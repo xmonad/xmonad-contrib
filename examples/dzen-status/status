@@ -1,0 +1,9 @@
+#!/bin/sh
+au=`date +"%H.%M %a %b %d"`
+uk=`TZ=GMT date +"UK %H.%M"`
+us=`TZ=America/New_York date +"NY %H.%M"`
+ca=`TZ=America/Los_Angeles date +"SF %H.%M"`
+hw=`/sbin/sysctl hw.setperf | sed "s/.*=//" | perl -anle 'print (0.6 + ($F[0]) / 100)'`
+ut=`uptime | sed 's/.*://; s/,//g'`
+bt=`/usr/sbin/apm | sed -n 's/.*: \([^ ]*\).*$/\1/;2p;4p' | xargs printf "apm %s%%, AC %s\n"`
+(printf "%s : %s : %s : %s : %s Ghz : %s :%s\n" "$au" "$uk" "$us" "$ca" "$hw" "$bt" "$ut"; sleep 10) | dzen2

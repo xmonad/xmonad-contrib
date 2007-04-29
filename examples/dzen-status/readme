@@ -1,0 +1,15 @@
+Use dzen2 for an external pop-up status bar.
+
+status
+    A shell script printing some strings into dzen2. In this case, it
+    extracts some openbsd settings.
+
+Config.hs
+    , ((modMask,               xK_s     ), spawn "/home/dons/bin/status")
+
+    mod-s pops up a 10 second status bar. mouse button 3 closes it
+    explicitly.
+
+dzen2 is available from:
+    http://gotmor.googlepages.com/dzen    
+
