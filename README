@@ -1,0 +1,7 @@
+3rd party xmonad extensions and contributions.
+
+This repository can be overlayed on an xmonad repository.
+Users may then import Haskell src from here, to extend their config
+files.
+
+examples/ contains further external programs useful with xmonad.
