@@ -21,6 +21,8 @@ runProcessWithInput cmd args input = do
     waitForProcess ph
     return output
     
+-- Starts dmenu on the current screen. Requires this patch to dmenu:
+-- http://www.jcreigh.com/dmenu/dmenu-2.8-xinerama.patch
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
     ws <- gets workspace
