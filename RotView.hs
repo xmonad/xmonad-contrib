@@ -1,4 +1,6 @@
-module XMonad.RotView ( rotView ) where
+module XMonadContrib.RotView ( rotView ) where
+
+-- Provides bindings to cycle through non-empty workspaces.
 
 -- To use:
 -- include XMonad.RotView
@@ -14,7 +16,7 @@ import XMonad ( X, WorkspaceId, workspace )
 import StackSet ( StackSet, focus )
 import qualified StackSet as W ( current )
 
-rotView :: Bool -> X m ()
+rotView :: Bool -> X ()
 rotView b = do ws <- gets workspace
                let m = W.current ws
                    allws = if b then allWorkspaces ws else reverse $ allWorkspaces ws
