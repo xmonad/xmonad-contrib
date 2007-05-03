@@ -27,6 +27,6 @@ dmenuXinerama opts = do
     let curscreen = fromIntegral $ fromMaybe 0 (M.lookup (W.current ws) (W.ws2screen ws)) :: Int
     io $ runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
 
-dmenu :: [String] -> IO String
-dmenu opts = runProcessWithInput "dmenu" [] (unlines opts)
+dmenu :: [String] -> X String
+dmenu opts = io $ runProcessWithInput "dmenu" [] (unlines opts)
 
