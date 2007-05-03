@@ -12,11 +12,11 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow )
 
 -- You can use this module with the following in your config file:
 
--- import XMonad.Mosaic
+-- import XMonadContrib.Mosaic
 -- import Control.Monad.State ( gets )
 -- import qualified StackSet as W ( peek )
 
--- defaultLayouts :: [Layout LayoutMsg]
+-- defaultLayouts :: [Layout]
 -- defaultLayouts = [ mosaic (1%4) (1%2) M.empty M.empty, full,
 --                    tall defaultDelta (1%2), wide defaultDelta (1%2) ]
 
