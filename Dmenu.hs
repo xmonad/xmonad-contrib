@@ -4,7 +4,6 @@ import XMonad
 import qualified StackSet as W
 import System.Process
 import System.IO
-import Control.Monad
 import Control.Monad.State
 import Data.Maybe
 import qualified Data.Map as M
