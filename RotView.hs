@@ -3,7 +3,7 @@ module XMonadContrib.RotView ( rotView ) where
 -- Provides bindings to cycle through non-empty workspaces.
 
 -- To use:
--- include XMonad.RotView
+-- import XMonadContrib.RotView
 
 --    , ((modMask .|. shiftMask, xK_Right), rotView True)
 --    , ((modMask .|. shiftMask, xK_Left), rotView False)
