@@ -35,16 +35,19 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow )
 import Data.Ratio
 import Graphics.X11.Xlib
 import XMonad
-import Operations ( ShrinkOrExpand (Shrink, Expand) )
+import Operations ( Resize(Shrink, Expand) )
 import qualified Data.Map as M
 import Data.List ( sort )
-import Data.Dynamic ( Typeable, fromDynamic )
+import Data.Typeable ( Typeable )
 import Control.Monad ( mplus )
 
 import System.IO.Unsafe
 
 data HandleWindow = ExpandWindow Window | ShrinkWindow Window | SquareWindow Window
                     deriving ( Typeable, Eq )
+
+instance Message HandleWindow
+
 expandWindow, shrinkWindow, squareWindow :: Window -> HandleWindow
 expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
@@ -53,7 +56,7 @@ squareWindow = SquareWindow
 mosaic :: Rational -> Rational -> M.Map Window WindowRater -> M.Map Window Area -> Layout
 mosaic delta tileFrac raters areas = Layout { doLayout = mosaicL tileFrac raters areas
                                             , modifyLayout = mlayout }
-    where mlayout x = (m1 `fmap` fromDynamic x) `mplus` (m2 `fmap` fromDynamic x)
+    where mlayout x = (m1 `fmap` fromMessage x) `mplus` (m2 `fmap` fromMessage x)
           m1 Shrink = mosaic delta (tileFrac/(1+delta)) raters areas
           m1 Expand = mosaic delta (tileFrac*(1+delta)) raters areas
           m2 (ExpandWindow w) = mosaic delta tileFrac raters
