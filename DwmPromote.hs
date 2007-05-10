@@ -36,8 +36,8 @@ dwmpromote = windows promote
 promote :: (Integral i, Ord a) => StackSet i j a -> StackSet i j a
 promote w = maybe w id $ do
     a <- peek w -- fail if null
-    let stack = index (current w) w
-        newstack = swap a (next stack a) stack
+    stack <- index (current w) w
+    let newstack = swap a (next stack a) stack
     return $ w { stacks = M.adjust (\(f,_) -> (f, newstack)) (current w) (stacks w),
                  focus = M.insert (current w) (head newstack) (focus w) }
   where
