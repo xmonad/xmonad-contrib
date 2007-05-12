@@ -1,4 +1,5 @@
-module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow ) where
+module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow,
+                              getName, withNamedWindow ) where
 
 -- This module defines a "mosaic" layout, which tries to give all windows
 -- equal area, while also trying to give them a user-defined (and run-time
@@ -13,8 +14,6 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow )
 -- You can use this module with the following in your config file:
 
 -- import XMonadContrib.Mosaic
--- import Control.Monad.State ( gets )
--- import qualified StackSet as W ( peek )
 
 -- defaultLayouts :: [Layout]
 -- defaultLayouts = [ mosaic (1%4) (1%2) M.empty M.empty, full,
@@ -22,18 +21,16 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow )
 
 -- In the key-bindings, do something like:
 
---     , ((modMask .|. shiftMask, xK_h     ), do ws <- gets workspace
---                                               whenJust (W.peek ws) $ \w ->
---                                                   layoutMsg (shrinkWindow w))
---     , ((modMask .|. shiftMask, xK_l     ), do ws <- gets workspace
---                                               whenJust (W.peek ws) $ \w ->
---                                                   layoutMsg (expandWindow w))
---     , ((modMask .|. shiftMask, xK_s     ), do ws <- gets workspace
---                                               whenJust (W.peek ws) $ \w ->
---                                                   layoutMsg (squareWindow w))
+--     , ((modMask .|. shiftMask, xK_h     ), withNamedWindow (sendMessage . shrinkWindow))
+--     , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
+--     , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
 
+import Control.Monad.Reader ( asks )
+import Control.Monad.State ( gets )
+import qualified StackSet as W ( peek )
 import Data.Ratio
 import Graphics.X11.Xlib
+import Graphics.X11.Xlib.Extras ( fetchName )
 import XMonad
 import Operations ( Resize(Shrink, Expand) )
 import qualified Data.Map as M
@@ -43,17 +40,17 @@ import Control.Monad ( mplus )
 
 import System.IO.Unsafe
 
-data HandleWindow = ExpandWindow Window | ShrinkWindow Window | SquareWindow Window
+data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow | SquareWindow NamedWindow
                     deriving ( Typeable, Eq )
 
 instance Message HandleWindow
 
-expandWindow, shrinkWindow, squareWindow :: Window -> HandleWindow
+expandWindow, shrinkWindow, squareWindow :: NamedWindow -> HandleWindow
 expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
 squareWindow = SquareWindow
 
-mosaic :: Rational -> Rational -> M.Map Window WindowRater -> M.Map Window Area -> Layout
+mosaic :: Rational -> Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area -> Layout
 mosaic delta tileFrac raters areas = Layout { doLayout = mosaicL tileFrac raters areas
                                             , modifyLayout = mlayout }
     where mlayout x = (m1 `fmap` fromMessage x) `mplus` (m2 `fmap` fromMessage x)
@@ -77,28 +74,35 @@ myerror :: String -> a
 myerror s = seq foo $ error s
     where foo = unsafePerformIO $ appendFile "/tmp/xmonad.trace" (s++"\n")
 
-multiply_area :: Area -> Window -> M.Map Window Area -> M.Map Window Area
+multiply_area :: Area -> NamedWindow -> M.Map NamedWindow Area -> M.Map NamedWindow Area
 multiply_area a w = M.alter (Just . f) w where f Nothing = a
                                                f (Just a') = a'*a
 
-add_rater :: WindowRater -> Window -> M.Map Window WindowRater -> M.Map Window WindowRater
+add_rater :: WindowRater -> NamedWindow -> M.Map NamedWindow WindowRater -> M.Map NamedWindow WindowRater
 add_rater r w = M.alter f w where f Nothing= Just r
                                   f (Just r') = Just $ \foo bar -> r foo bar + r' foo bar
 
-type WindowRater = Window -> Rectangle -> Rational
+type WindowRater = NamedWindow -> Rectangle -> Rational
 
-mosaicL :: Rational -> M.Map Window WindowRater -> M.Map Window Area
-        -> Rectangle -> [Window] -> [(Window, Rectangle)]
-mosaicL _ _ _ _ [] = []
+data NamedWindow = NW !String !Window
+instance Eq NamedWindow where
+    (NW s _) == (NW s' _) = s == s'
+instance Ord NamedWindow where
+    compare (NW s _) (NW s' _) = compare s s'
+
+mosaicL :: Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area
+        -> Rectangle -> [Window] -> X [(Window, Rectangle)]
+mosaicL _ _ _ _ [] = return []
 mosaicL f raters areas origRect origws
-    = flattenMosaic $ the_value $ if myv < myh then myv else myh
+    = do namedws <- mapM getName origws
+         let sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) namedws
+             myv = my_mosaic origRect Vertical sortedws
+             myh = my_mosaic origRect Horizontal sortedws
+         return $ map (\(nw,r)->(unName nw,r)) $ flattenMosaic $ the_value $ if myv < myh then myv else myh
     where mean_area = area origRect / fromIntegral (length origws)
-          myv = my_mosaic origRect Vertical sortedws
-          myh = my_mosaic origRect Horizontal sortedws
-          sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) origws
 
-          my_mosaic :: Rectangle -> CutDirection -> [Window]
-                    -> Rated Rational (Mosaic (Window, Rectangle))
+          my_mosaic :: Rectangle -> CutDirection -> [NamedWindow]
+                    -> Rated Rational (Mosaic (NamedWindow, Rectangle))
           my_mosaic _ _ [] = Rated 0 $ M []
           my_mosaic r _ [w] = Rated (rating w r) $ OM (w,r)
           my_mosaic r d ws = minL $
@@ -184,3 +188,14 @@ allsplits (x:xs) = (map ([x]:) splitsrest) ++
 maphead :: (a->a) -> [a] -> [a]
 maphead f (x:xs) = f x : xs
 maphead _ [] = []
+
+getName :: Window -> X NamedWindow
+getName w = asks display >>= \d -> do n <- maybe "" id `fmap` io (fetchName d w)
+                                      return $ NW n w
+
+unName :: NamedWindow -> Window
+unName (NW _ w) = w
+
+withNamedWindow :: (NamedWindow -> X ()) -> X ()
+withNamedWindow f = do ws <- gets workspace
+                       whenJust (W.peek ws) $ \w -> getName w >>= f
