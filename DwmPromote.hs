@@ -33,13 +33,13 @@ import qualified Data.Map as M
 dwmpromote :: X ()
 dwmpromote = windows promote
 
-promote :: (Integral i, Ord a) => StackSet i j a -> StackSet i j a
+promote :: (Integral i, Integral j, Ord a) => StackSet i j a -> StackSet i j a
 promote w = maybe w id $ do
     a <- peek w -- fail if null
     stack <- index (current w) w
     let newstack = swap a (next stack a) stack
-    return $ w { stacks = M.adjust (\(f,_) -> (f, newstack)) (current w) (stacks w),
-                 focus = M.insert (current w) (head newstack) (focus w) }
+    return . raiseFocus (head newstack) $
+        w { stacks = M.adjust (\(f,_) -> (f, newstack)) (current w) (stacks w) }
   where
     next s a | head s /= a = head s -- focused is not master
              | length s > 1 = s !! 1
