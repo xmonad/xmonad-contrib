@@ -1,4 +1,4 @@
-module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow,
+module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,
                               getName, withNamedWindow ) where
 
 -- This module defines a "mosaic" layout, which tries to give all windows
@@ -24,6 +24,7 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow,
 --     , ((modMask .|. shiftMask, xK_h     ), withNamedWindow (sendMessage . shrinkWindow))
 --     , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
 --     , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
+--     , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . clearWindow))
 
 import Control.Monad.Reader ( asks )
 import Control.Monad.State ( gets )
@@ -40,15 +41,17 @@ import Control.Monad ( mplus )
 
 import System.IO.Unsafe
 
-data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow | SquareWindow NamedWindow
+data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow
+                  | SquareWindow NamedWindow | ClearWindow NamedWindow
                     deriving ( Typeable, Eq )
 
 instance Message HandleWindow
 
-expandWindow, shrinkWindow, squareWindow :: NamedWindow -> HandleWindow
+expandWindow, shrinkWindow, squareWindow, myclearWindow :: NamedWindow -> HandleWindow
 expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
 squareWindow = SquareWindow
+myclearWindow = ClearWindow
 
 largeNumber :: Int
 largeNumber = 1000
@@ -66,6 +69,7 @@ mosaic delta tileFrac raters areas = Layout { doLayout = mosaicL tileFrac raters
                                 -- (add_rater (\_ (Rectangle _ _ wid h) -> delta*(wid///h-1)) w raters)
                                 (multiply_area (1/(1+ delta)) w areas)
           m2 (SquareWindow w) = mosaic delta tileFrac (M.insert w force_square raters) areas
+          m2 (ClearWindow w) = mosaic delta tileFrac (M.delete w raters) (M.delete w areas)
           force_square _ (Rectangle _ _ a b) = 100*(sqr(a///b) + sqr(b///a))
           sqr a = a * a
 
