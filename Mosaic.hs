@@ -50,6 +50,9 @@ expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
 squareWindow = SquareWindow
 
+largeNumber :: Int
+largeNumber = 1000
+
 mosaic :: Rational -> Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area -> Layout
 mosaic delta tileFrac raters areas = Layout { doLayout = mosaicL tileFrac raters areas
                                             , modifyLayout = mlayout }
@@ -109,7 +112,7 @@ mosaicL f raters areas origRect origws
                              map (fmap M . catRated .
                                   map (\(ws',r') -> my_mosaic r' (otherDirection d) ws')) $
                              map (\ws' -> zip ws' $ partitionR d r $ map sumareas ws') $
-                             init $ allsplits ws
+                             take largeNumber $ init $ allsplits ws
               where minL [] = myerror "minL on empty list"
                     minL [a] = a
                     minL (a:b:c) = minL (min a b:c)
