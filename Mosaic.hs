@@ -54,7 +54,7 @@ squareWindow = SquareWindow
 myclearWindow = ClearWindow
 
 largeNumber :: Int
-largeNumber = 1000
+largeNumber = 100
 
 mosaic :: Rational -> Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area -> Layout
 mosaic delta tileFrac raters areas = Layout { doLayout = mosaicL tileFrac raters areas
