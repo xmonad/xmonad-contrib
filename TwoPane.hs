@@ -2,7 +2,7 @@
 -- left window is always the master window, and the right is either the
 -- currently focused window or the second window in layout order.
 --
--- To use this layout, 'import XMonadContrib.TwoPane'and add
+-- To use this layout, 'import XMonadContrib.TwoPane' and add
 -- 'twoPane defaultDelta (1%2)' to the list of layouts
 
 module XMonadContrib.TwoPane where
