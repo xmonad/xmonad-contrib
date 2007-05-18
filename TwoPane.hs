@@ -15,12 +15,14 @@ import Control.Monad.State (gets)
 twoPane :: Rational -> Rational -> Layout
 twoPane delta split = Layout { doLayout = arrange, modifyLayout = message }
  where
-    arrange rect (w:x:_) = do
+    arrange rect ws@(w:x:_) = do
         (Just f) <- gets (W.peek . workspace) -- safe because of pattern match above
-        let (left, right) = splitHorizontallyBy split rect
-        return [(w, left), (if f == w then x else f, right)]
+        let y = if f == w then x else f
+            (left, right) = splitHorizontallyBy split rect
+        mapM_ hide . filter (\a -> a /= w && a /= y)  $ ws
+        return [(w, left), (y, right)]
     -- there are one or zero windows
-    arrange rect ws       = return . map (\w -> (w, rect)) $ ws
+    arrange rect ws         = return . map (\w -> (w, rect)) $ ws
 
     message x = case fromMessage x of
                     Just Shrink -> Just (twoPane delta (split - delta))
