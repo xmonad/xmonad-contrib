@@ -204,5 +204,5 @@ unName :: NamedWindow -> Window
 unName (NW _ w) = w
 
 withNamedWindow :: (NamedWindow -> X ()) -> X ()
-withNamedWindow f = do ws <- gets workspace
+withNamedWindow f = do ws <- gets windowset
                        whenJust (W.peek ws) $ \w -> getName w >>= f

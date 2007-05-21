@@ -18,7 +18,7 @@ import Data.Maybe ( listToMaybe )
 import qualified StackSet as W ( stacks, current, visibleWorkspaces, index )
 
 rotView :: Bool -> X ()
-rotView b = do ws <- gets workspace
+rotView b = do ws <- gets windowset
                let m = W.current ws
                    vis = W.visibleWorkspaces ws
                    allws = if b then allWorkspaces ws else reverse $ allWorkspaces ws

@@ -41,7 +41,7 @@ findEmptyWorkspace = findKey (([],[]) ==) . W.stacks
 
 withEmptyWorkspace :: (WorkspaceId -> X ()) -> X ()
 withEmptyWorkspace f = do
-    ws <- gets workspace
+    ws <- gets windowset
     whenJust (findEmptyWorkspace ws) f
 
 -- | Find and view an empty workspace. Do nothing if all workspaces are

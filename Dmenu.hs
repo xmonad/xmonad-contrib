@@ -24,7 +24,7 @@ runProcessWithInput cmd args input = do
 -- http://www.jcreigh.com/dmenu/dmenu-2.8-xinerama.patch
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
-    ws <- gets workspace
+    ws <- gets windowset
     let curscreen = fromIntegral $ fromMaybe 0 (M.lookup (W.current ws) (W.ws2screen ws)) :: Int
     io $ runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
 

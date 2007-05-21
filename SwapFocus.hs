@@ -10,7 +10,7 @@ module XMonadContrib.SwapFocus ( swapFocus ) where
 import Control.Monad.State
 
 import Operations ( refresh )
-import XMonad ( X, WindowSet, workspace )
+import XMonad ( X, WindowSet, windowset )
 import StackSet ( StackSet, peekStack, popFocus, pushFocus, current )
 
 sf :: (Integral i, Integral j, Ord a) => StackSet i j a -> Maybe (StackSet i j a)
@@ -24,7 +24,7 @@ swapFocus = smartwindows sf
 
 -- | smartwindows. Modify the current window list with a pure function, and only refresh if necesary
 smartwindows :: (WindowSet -> Maybe WindowSet) -> X ()
-smartwindows f = do w <- gets workspace
-                    case (f w) of Just f' -> do modify $ \s -> s { workspace = f' }
+smartwindows f = do w <- gets windowset
+                    case (f w) of Just f' -> do modify $ \s -> s { windowset = f' }
                                                 refresh
                                   Nothing -> return ()

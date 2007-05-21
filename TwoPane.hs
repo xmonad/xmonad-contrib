@@ -16,7 +16,7 @@ twoPane :: Rational -> Rational -> Layout
 twoPane delta split = Layout { doLayout = arrange, modifyLayout = message }
  where
     arrange rect ws@(w:x:_) = do
-        (Just f) <- gets (W.peek . workspace) -- safe because of pattern match above
+        (Just f) <- gets (W.peek . windowset) -- safe because of pattern match above
         let y = if f == w then x else f
             (left, right) = splitHorizontallyBy split rect
         mapM_ hide . filter (\a -> a /= w && a /= y)  $ ws
