@@ -28,32 +28,36 @@ module XMonadContrib.FindEmptyWorkspace (
   ) where
 
 import Control.Monad.State
-import qualified Data.Map as M
+import Data.List
 
 import XMonad
-import Operations
-import qualified StackSet as W
+import StackSet
 
--- | Find the first empty workspace in a WindowSet. Returns Nothing if
--- all workspaces are in use.
-findEmptyWorkspace :: WindowSet -> Maybe WorkspaceId
-findEmptyWorkspace = findKey (([],[]) ==) . W.stacks
+import qualified Operations as O
+
+-- | Find the first hidden empty workspace in a StackSet. Returns
+-- Nothing if all workspaces are in use. Function searches currently
+-- focused workspace, other visible workspaces (when in Xinerama) and
+-- hidden workspaces in this order.
+findEmptyWorkspace :: StackSet i a s -> Maybe (Workspace i a)
+findEmptyWorkspace = find (isEmpty . stack) . allWorkspaces
+  where
+    isEmpty Empty = True
+    isEmpty _     = False
+    allWorkspaces ss = (workspace . current) ss :
+                       (map workspace . visible) ss ++ hidden ss
 
 withEmptyWorkspace :: (WorkspaceId -> X ()) -> X ()
 withEmptyWorkspace f = do
     ws <- gets windowset
-    whenJust (findEmptyWorkspace ws) f
+    whenJust (findEmptyWorkspace ws) (f . tag)
 
 -- | Find and view an empty workspace. Do nothing if all workspaces are
 -- in use.
 viewEmptyWorkspace :: X ()
-viewEmptyWorkspace = withEmptyWorkspace view
+viewEmptyWorkspace = withEmptyWorkspace O.view
 
 -- | Tag current window to an empty workspace and view it. Do nothing if
 -- all workspaces are in use.
 tagToEmptyWorkspace :: X ()
-tagToEmptyWorkspace = withEmptyWorkspace $ \w -> tag w >> view w
-
--- Thanks to mauke on #haskell
-findKey :: (a -> Bool) -> M.Map k a -> Maybe k
-findKey f = M.foldWithKey (\k a -> mplus (if f a then Just k else Nothing)) Nothing
+tagToEmptyWorkspace = withEmptyWorkspace $ \w -> O.shift w >> O.view w
