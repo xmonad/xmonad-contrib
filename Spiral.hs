@@ -1,4 +1,4 @@
-module Spiral (spiral) where
+module XMonadContrib.Spiral (spiral) where
 
 import Graphics.X11.Xlib
 import Operations
