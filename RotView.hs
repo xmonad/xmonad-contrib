@@ -8,28 +8,24 @@ module XMonadContrib.RotView ( rotView ) where
 --    , ((modMask .|. shiftMask, xK_Right), rotView True)
 --    , ((modMask .|. shiftMask, xK_Left), rotView False)
 
-import qualified Data.Map as M
-import Control.Monad.State
-
-import Operations ( view )
-import XMonad ( X, WorkspaceId, workspace, whenJust )
-import StackSet ( StackSet )
+import Control.Monad.State ( gets )
+import Data.List ( sortBy )
 import Data.Maybe ( listToMaybe )
-import qualified StackSet as W ( stacks, current, visibleWorkspaces, index )
+
+import XMonad
+import StackSet
+import qualified Operations as O
 
 rotView :: Bool -> X ()
-rotView b = do ws <- gets windowset
-               let m = W.current ws
-                   vis = W.visibleWorkspaces ws
-                   allws = if b then allWorkspaces ws else reverse $ allWorkspaces ws
-                   pivoted = uncurry (flip (++)) . span (/=m) $ allws
-                   interesting i = not (i `elem` vis) && not (isEmpty i ws)
-                   nextws = listToMaybe . filter interesting $ pivoted
-               whenJust nextws view
+rotView b = do
+    ws <- gets windowset
+    let m = tag . workspace . current $ ws
+        sortWs = sortBy (\x y -> compare (tag x) (tag y))
+        pivoted = uncurry (flip (++)) . span ((< m) . tag) . sortWs . hidden $ ws
+        nextws = listToMaybe . filter (not.isEmpty) . (if b then id else reverse) $ pivoted
+    whenJust nextws (O.view . tag)
 
--- | A list of all the workspaces.
-allWorkspaces :: StackSet WorkspaceId j a -> [WorkspaceId]
-allWorkspaces = M.keys . W.stacks
-
-isEmpty :: WorkspaceId -> StackSet WorkspaceId j a -> Bool
-isEmpty i = maybe True null . W.index i
+isEmpty :: Workspace i a -> Bool
+isEmpty ws = case stack ws of
+                Empty     -> True
+                _         -> False
