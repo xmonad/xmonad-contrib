@@ -27,13 +27,13 @@ module XMonadContrib.DwmPromote (dwmpromote) where
 
 import XMonad
 import Operations (windows)
-import StackSet hiding (swap)
-import qualified Data.Map as M
+import StackSet
 
 dwmpromote :: X ()
 dwmpromote = windows swap
 
 swap :: StackSet i a s -> StackSet i a s
 swap = modify Empty $ \c -> case c of
+    Node _ [] []     -> c
     Node t [] (x:rs) -> Node x [] (t:rs)
     Node t ls rs     -> Node t [] (ys ++ x : rs) where (x:ys) = reverse ls
