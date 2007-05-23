@@ -26,18 +26,16 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, 
 --     , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
 --     , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . clearWindow))
 
-import Control.Monad.Reader ( asks )
-import Control.Monad.State ( gets )
-import qualified StackSet as W ( peek )
 import Data.Ratio
 import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras ( fetchName )
 import XMonad
 import Operations ( Resize(Shrink, Expand) )
 import qualified Data.Map as M
 import Data.List ( sort )
 import Data.Typeable ( Typeable )
 import Control.Monad ( mplus )
+
+import XMonadContrib.NamedWindows
 
 import System.IO.Unsafe
 
@@ -90,12 +88,6 @@ add_rater r w = M.alter f w where f Nothing= Just r
                                   f (Just r') = Just $ \foo bar -> r foo bar + r' foo bar
 
 type WindowRater = NamedWindow -> Rectangle -> Rational
-
-data NamedWindow = NW !String !Window
-instance Eq NamedWindow where
-    (NW s _) == (NW s' _) = s == s'
-instance Ord NamedWindow where
-    compare (NW s _) (NW s' _) = compare s s'
 
 mosaicL :: Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area
         -> Rectangle -> [Window] -> X [(Window, Rectangle)]
@@ -195,14 +187,3 @@ allsplits (x:xs) = (map ([x]:) splitsrest) ++
 maphead :: (a->a) -> [a] -> [a]
 maphead f (x:xs) = f x : xs
 maphead _ [] = []
-
-getName :: Window -> X NamedWindow
-getName w = asks display >>= \d -> do n <- maybe "" id `fmap` io (fetchName d w)
-                                      return $ NW n w
-
-unName :: NamedWindow -> Window
-unName (NW _ w) = w
-
-withNamedWindow :: (NamedWindow -> X ()) -> X ()
-withNamedWindow f = do ws <- gets windowset
-                       whenJust (W.peek ws) $ \w -> getName w >>= f
