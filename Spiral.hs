@@ -18,18 +18,19 @@ import XMonad
 fibs :: [Integer]
 fibs = 1 : 1 : (zipWith (+) fibs (tail fibs))
 
-fibRatios :: [Rational]
-fibRatios = ratios fibs
-    where
-      ratios (x:y:rs) = (x % y) : ratios (y:rs)
-      ratios _ = []
+mkRatios :: [Integer] -> [Rational]
+mkRatios (x1:x2:xs) = (x1 % x2) : mkRatios (x2:xs)
+mkRatios _ = []
 
 spiral :: Rational -> Layout
 spiral scale = Layout { doLayout = fibLayout,
-                           modifyLayout = \m -> fmap resize (fromMessage m) }
+                        modifyLayout = \m -> fmap resize (fromMessage m) }
     where
-      fibLayout sc ws = return $ zip ws (divideRects (map (* scale) . reverse . take len $ fibRatios) len East sc)
+      fibLayout sc ws = return $ zip ws rects
           where len = length ws
+                ratios = map (* scale) . reverse . take len . mkRatios $ fibs
+                rects = divideRects ratios len East sc
+
       resize Expand = spiral $ (11 % 10) * scale
       resize Shrink = spiral $ (10 % 11) * scale
 
