@@ -1,4 +1,4 @@
-module XMonadContrib.Spiral (spiral, fibSpiral) where
+module XMonadContrib.Spiral (spiral) where
 
 import Graphics.X11.Xlib
 import Operations
@@ -13,19 +13,8 @@ import XMonad
 --    defaultLayouts = [ full,
 --                       tall defaultWindowsInMaster defaultDelta (1%2),
 --                       wide defaultWindowsInMaster defaultDelta (1%2),
---                       spiral (1000 % 1618) ]
+--                       spiral (1 % 1) ]
 --
-spiral :: Rational -> Layout
-spiral rat = Layout { doLayout = \sc ws -> return $ zip ws (divideRects (repeat rat) (length ws) East $ sc),
-                      modifyLayout = \m -> fmap resize (fromMessage m)}
-
-    where resize Expand = let newRat = ((numerator rat + 10) % (denominator rat))
-                              normRat = if numerator newRat > denominator newRat then rat else newRat in
-                          spiral normRat
-          resize Shrink = let newRat = ((numerator rat - 10) % (denominator rat))
-                              normRat = if numerator newRat < 0 then rat else newRat in
-                          spiral normRat
-
 fibs :: [Integer]
 fibs = 1 : 1 : (zipWith (+) fibs (tail fibs))
 
@@ -35,14 +24,14 @@ fibRatios = ratios fibs
       ratios (x:y:rs) = (x % y) : ratios (y:rs)
       ratios _ = []
 
-fibSpiral :: Rational -> Layout
-fibSpiral scale = Layout { doLayout = fibLayout,
+spiral :: Rational -> Layout
+spiral scale = Layout { doLayout = fibLayout,
                            modifyLayout = \m -> fmap resize (fromMessage m) }
     where
       fibLayout sc ws = return $ zip ws (divideRects (map (* scale) . reverse . take len $ fibRatios) len East sc)
           where len = length ws
-      resize Expand = fibSpiral $ (11 % 10) * scale
-      resize Shrink = fibSpiral $ (10 % 11) * scale
+      resize Expand = spiral $ (11 % 10) * scale
+      resize Shrink = spiral $ (10 % 11) * scale
 
 data Direction = East | South | West | North
 
