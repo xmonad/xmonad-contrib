@@ -22,6 +22,8 @@ mkRatios :: [Integer] -> [Rational]
 mkRatios (x1:x2:xs) = (x1 % x2) : mkRatios (x2:xs)
 mkRatios _ = []
 
+data Direction = East | South | West | North deriving (Enum)
+
 spiral :: Rational -> Layout
 spiral scale = Layout { doLayout = fibLayout,
                         modifyLayout = \m -> fmap resize (fromMessage m) }
@@ -29,24 +31,17 @@ spiral scale = Layout { doLayout = fibLayout,
       fibLayout sc ws = return $ zip ws rects
           where len = length ws
                 ratios = map (* scale) . reverse . take len . mkRatios $ fibs
-                rects = divideRects ratios len East sc
+                rects = divideRects ratios (cycle [East .. North]) len sc
 
-      resize Expand = spiral $ (11 % 10) * scale
-      resize Shrink = spiral $ (10 % 11) * scale
+      resize Expand = spiral $ (21 % 20) * scale
+      resize Shrink = spiral $ (20 % 21) * scale
 
-data Direction = East | South | West | North
-
-nextDir :: Direction -> Direction
-nextDir East = South
-nextDir South = West
-nextDir West = North
-nextDir North = East
-
-divideRects :: [Rational] -> Int -> Direction -> Rectangle -> [Rectangle]
+divideRects :: [Rational] -> [Direction] -> Int -> Rectangle -> [Rectangle]
 divideRects [] _ _ _ = []
-divideRects (r:rs) n dir rect | n <= 1 = [rect]
-                              | otherwise = case divideRect r dir rect of
-                                     (r1, r2) -> r1 : (divideRects rs (n - 1) (nextDir dir) r2)
+divideRects _ [] _ _ = []
+divideRects (r:rs) (d:ds) n rect | n <= 1 = [rect]
+                                 | otherwise = case divideRect r d rect of
+                                       (r1, r2) -> r1 : (divideRects rs ds (n - 1) r2)
 
 divideRect :: Rational -> Direction -> Rectangle -> (Rectangle, Rectangle)
 divideRect ratio East (Rectangle x y w h) = let (w1, w2) = chop ratio (fromIntegral w) in
