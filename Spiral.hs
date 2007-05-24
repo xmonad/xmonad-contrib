@@ -37,6 +37,7 @@ spiral scale = Layout { doLayout = fibLayout,
 
 divideRects :: [(Rational, Direction)] -> Rectangle -> [Rectangle]
 divideRects [] _ = []
+divideRects [_] r = [r]
 divideRects ((r,d):xs) rect = case divideRect r d rect of
                                 (r1, r2) -> r1 : (divideRects xs r2)
 
