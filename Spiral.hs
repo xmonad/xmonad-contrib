@@ -24,20 +24,27 @@ mkRatios _ = []
 
 data Direction = East | South | West | North deriving (Enum)
 
+blend :: Rational -> [Rational] -> [Rational]
+blend scale ratios = zipWith (+) ratios scaleFactors
+    where
+      len = length ratios
+      step = (scale - (1 % 1)) / (fromIntegral len)
+      scaleFactors = map (* step) . reverse . take len $ [0..]
+
 spiral :: Rational -> Layout
 spiral scale = Layout { doLayout = fibLayout,
                         modifyLayout = \m -> fmap resize $ fromMessage m }
     where
       fibLayout sc ws = return $ zip ws rects
-          where ratios = map (* scale) . reverse . take (length ws) . mkRatios $ fibs
+          where ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
                 rects = divideRects (zip ratios (cycle [East .. North])) sc
 
       resize Expand = spiral $ (21 % 20) * scale
       resize Shrink = spiral $ (20 % 21) * scale
 
+-- This will produce one more rectangle than there are splits details
 divideRects :: [(Rational, Direction)] -> Rectangle -> [Rectangle]
-divideRects [] _ = []
-divideRects [_] r = [r]
+divideRects [] r = [r]
 divideRects ((r,d):xs) rect = case divideRect r d rect of
                                 (r1, r2) -> r1 : (divideRects xs r2)
 
