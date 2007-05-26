@@ -1,4 +1,4 @@
-module XMonadContrib.NamedWindows ( NamedWindow, getName, withNamedWindow, unName, name ) where
+module XMonadContrib.NamedWindows ( NamedWindow, getName, withNamedWindow, unName ) where
 
 -- This module allows you to associate the X titles of windows with
 -- them.  See XMonadContrib.Mosaic for an example of its use.
@@ -18,6 +18,8 @@ instance Eq NamedWindow where
     (NW s _) == (NW s' _) = s == s'
 instance Ord NamedWindow where
     compare (NW s _) (NW s' _) = compare s s'
+instance Show NamedWindow where
+    show (NW n _) = n
 
 getName :: Window -> X NamedWindow
 getName w = asks display >>= \d -> do n <- maybe "" id `fmap` io (fetchName d w)
@@ -25,9 +27,6 @@ getName w = asks display >>= \d -> do n <- maybe "" id `fmap` io (fetchName d w)
 
 unName :: NamedWindow -> Window
 unName (NW _ w) = w
-
-name :: NamedWindow -> String
-name (NW n _) = n
 
 withNamedWindow :: (NamedWindow -> X ()) -> X ()
 withNamedWindow f = do ws <- gets windowset
