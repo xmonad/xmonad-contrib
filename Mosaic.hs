@@ -1,4 +1,5 @@
 module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,
+                              tallWindow, wideWindow,
                               getName, withNamedWindow ) where
 
 -- This module defines a "mosaic" layout, which tries to give all windows
@@ -21,14 +22,19 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, 
 
 -- In the key-bindings, do something like:
 
+--     , ((controlMask .|. modMask .|. shiftMask, xK_h), withNamedWindow (sendMessage . tallWindow))
+--     , ((controlMask .|. modMask .|. shiftMask, xK_l), withNamedWindow (sendMessage . wideWindow))
 --     , ((modMask .|. shiftMask, xK_h     ), withNamedWindow (sendMessage . shrinkWindow))
 --     , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
 --     , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
---     , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . clearWindow))
+--     , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . myclearWindow))
+
+import Control.Monad.State ( State, runState, put, get )
+import System.Random ( StdGen, Random, mkStdGen, randomR )
 
 import Data.Ratio
 import Graphics.X11.Xlib
-import XMonad
+import XMonad hiding ( trace )
 import Operations ( Resize(Shrink, Expand) )
 import qualified Data.Map as M
 import Data.List ( sort )
@@ -36,127 +42,227 @@ import Data.Typeable ( Typeable )
 import Control.Monad ( mplus )
 
 import XMonadContrib.NamedWindows
+import XMonadContrib.Anneal
 
-import System.IO.Unsafe
+import Debug.Trace
 
 data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow
                   | SquareWindow NamedWindow | ClearWindow NamedWindow
+                  | TallWindow NamedWindow | WideWindow NamedWindow
                     deriving ( Typeable, Eq )
 
 instance Message HandleWindow
 
-expandWindow, shrinkWindow, squareWindow, myclearWindow :: NamedWindow -> HandleWindow
+expandWindow, shrinkWindow, squareWindow, myclearWindow,tallWindow, wideWindow :: NamedWindow -> HandleWindow
 expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
 squareWindow = SquareWindow
 myclearWindow = ClearWindow
+tallWindow = TallWindow
+wideWindow = WideWindow
 
-largeNumber :: Int
-largeNumber = 100
+largeNumber, mediumNumber, resolutionNumber :: Int
+largeNumber = 200
+mediumNumber = 10
+resolutionNumber = 100
 
-mosaic :: Rational -> Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area -> Layout
-mosaic delta tileFrac raters areas = Layout { doLayout = mosaicL tileFrac raters areas
-                                            , modifyLayout = mlayout }
+defaultArea :: Double
+defaultArea = 1
+
+flexibility :: Double
+flexibility = 0.1
+
+mosaic :: Double -> Double -> M.Map NamedWindow [WindowHint] -> Layout
+mosaic delta tileFrac hints = Layout { doLayout = mosaicL tileFrac hints, modifyLayout = mlayout }
     where mlayout x = (m1 `fmap` fromMessage x) `mplus` (m2 `fmap` fromMessage x)
-          m1 Shrink = mosaic delta (tileFrac/(1+delta)) raters areas
-          m1 Expand = mosaic delta (tileFrac*(1+delta)) raters areas
-          m2 (ExpandWindow w) = mosaic delta tileFrac raters
-                                -- (add_rater (\_ (Rectangle _ _ wid h) -> delta*(1-wid///h)) w raters)
-                                (multiply_area (1+delta) w areas)
-          m2 (ShrinkWindow w) = mosaic delta tileFrac raters
-                                -- (add_rater (\_ (Rectangle _ _ wid h) -> delta*(wid///h-1)) w raters)
-                                (multiply_area (1/(1+ delta)) w areas)
-          m2 (SquareWindow w) = mosaic delta tileFrac (M.insert w force_square raters) areas
-          m2 (ClearWindow w) = mosaic delta tileFrac (M.delete w raters) (M.delete w areas)
-          force_square _ (Rectangle _ _ a b) = 100*(sqr(a///b) + sqr(b///a))
-          sqr a = a * a
+          m1 Shrink = mosaic delta (tileFrac/(1+delta)) hints
+          m1 Expand = mosaic delta (tileFrac*(1+delta)) hints
+          m2 (ExpandWindow w) = mosaic delta tileFrac (multiply_area (1+delta) w hints)
+          m2 (ShrinkWindow w) = mosaic delta tileFrac (multiply_area (1/(1+ delta)) w hints)
+          m2 (SquareWindow w) = mosaic delta tileFrac (set_aspect_ratio 1 w hints)
+          m2 (TallWindow w) = mosaic delta tileFrac (multiply_aspect (1/(1+delta)) w hints)
+          m2 (WideWindow w) = mosaic delta tileFrac (multiply_aspect (1+delta) w hints)
+          m2 (ClearWindow w) = mosaic delta tileFrac (M.delete w hints)
 
-mytrace :: String -> a -> a
-mytrace s a = seq foo a
-    where foo = unsafePerformIO $ appendFile "/tmp/xmonad.trace" (s++"\n")
+multiply_area :: Double -> NamedWindow
+              -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+multiply_area a = alterlist f where f [] = [RelArea (defaultArea*a)]
+                                    f (RelArea a':xs) = RelArea (a'*a) : xs
+                                    f (x:xs) = x : f xs
 
-myerror :: String -> a
-myerror s = seq foo $ error s
-    where foo = unsafePerformIO $ appendFile "/tmp/xmonad.trace" (s++"\n")
+set_aspect_ratio :: Double -> NamedWindow
+                 -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+set_aspect_ratio r = alterlist f where f [] = [AspectRatio r]
+                                       f (FlexibleAspectRatio _:x) = AspectRatio r:x
+                                       f (AspectRatio _:x) = AspectRatio r:x
+                                       f (x:xs) = x:f xs
 
-multiply_area :: Area -> NamedWindow -> M.Map NamedWindow Area -> M.Map NamedWindow Area
-multiply_area a w = M.alter (Just . f) w where f Nothing = a
-                                               f (Just a') = a'*a
+multiply_aspect :: Double -> NamedWindow
+                -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+multiply_aspect r = alterlist f where f [] = [FlexibleAspectRatio r]
+                                      f (AspectRatio r':x) = AspectRatio (r*r'):x
+                                      f (FlexibleAspectRatio r':x) = FlexibleAspectRatio (r*r'):x
+                                      f (x:xs) = x:f xs
 
-add_rater :: WindowRater -> NamedWindow -> M.Map NamedWindow WindowRater -> M.Map NamedWindow WindowRater
-add_rater r w = M.alter f w where f Nothing= Just r
-                                  f (Just r') = Just $ \foo bar -> r foo bar + r' foo bar
+findlist :: Ord k => k -> M.Map k [a] -> [a]
+findlist = M.findWithDefault []
 
-type WindowRater = NamedWindow -> Rectangle -> Rational
+alterlist :: (Ord k, Ord a) => ([a] -> [a]) -> k -> M.Map k [a] -> M.Map k [a]
+alterlist f k = M.alter f' k
+    where f' Nothing = f' (Just [])
+          f' (Just xs) = case f xs of
+                           [] -> Nothing
+                           xs' -> Just xs'
 
-mosaicL :: Rational -> M.Map NamedWindow WindowRater -> M.Map NamedWindow Area
+mosaicL :: Double -> M.Map NamedWindow [WindowHint]
         -> Rectangle -> [Window] -> X [(Window, Rectangle)]
-mosaicL _ _ _ _ [] = return []
-mosaicL f raters areas origRect origws
+mosaicL _ _ _ [] = return []
+mosaicL f hints origRect origws
     = do namedws <- mapM getName origws
          let sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) namedws
-             myv = my_mosaic origRect Vertical sortedws
-             myh = my_mosaic origRect Horizontal sortedws
-         return $ map (\(nw,r)->(unName nw,r)) $ flattenMosaic $ the_value $ if myv < myh then myv else myh
-    where mean_area = area origRect / fromIntegral (length origws)
+             myv = runCountDown largeNumber $ mosaic_splits even_split origRect Vertical sortedws
+             myv2 = maxL $ runCountDown largeNumber $
+                    sequence $ replicate mediumNumber $
+                    mosaic_splits one_split origRect Vertical sortedws
+             myh = runCountDown largeNumber $ mosaic_splits even_split origRect Horizontal sortedws
+             myh2 = maxL $ runCountDown largeNumber $
+                    sequence $ replicate mediumNumber $
+                    mosaic_splits one_split origRect Horizontal sortedws
+         return $ map (\(nw,r)->(trace ("rate1:"++ unlines [show nw,
+                                                            show $ rate f meanarea (findlist nw hints) r,
+                                                            show r,
+                                                            show $ area r/meanarea,
+                                                            show $ findlist nw hints]) $
+                                 unName nw,crop' (findlist nw hints) r)) $
+                flattenMosaic $ the_value $
+                trace ("ratings: "++ show (map the_rating [myv,myh,myv2,myh2])) $
+                maxL [myv,myh,myv2,myh2]
+    where mosaic_splits _ _ _ [] = return $ Rated 0 $ M []
+          mosaic_splits _ r _ [w] = return $ Rated (rate f meanarea (findlist w hints) r) $ OM (w,r)
+          mosaic_splits spl r d ws = maxL `fmap` mapCD (spl r d) (init $ allsplits ws)
+          even_split :: Rectangle -> CutDirection -> [[NamedWindow]]
+                     -> State CountDown (Rated Double (Mosaic (NamedWindow, Rectangle)))
+          even_split r d [ws] = even_split r d $ map (:[]) ws
+          even_split r d wss =
+              do let areas = map sumareas wss
+                 let wsr_s :: [([NamedWindow], Rectangle)]
+                     wsr_s = zip wss (partitionR d r areas)
+                 submosaics <- mapM (\(ws',r') ->
+                                     mosaic_splits even_split r' (otherDirection d) ws') wsr_s
+                 return $ fmap M $ catRated submosaics
+          one_split :: Rectangle -> CutDirection -> [[NamedWindow]]
+                    -> State CountDown (Rated Double (Mosaic (NamedWindow, Rectangle)))
+          one_split r d [ws] = one_split r d $ map (:[]) ws
+          one_split r d wss =
+              do rnd <- mapM (const (fractional resolutionNumber)) [1..length wss]
+                 let wsr_s :: [([NamedWindow], Rectangle)]
+                     wsr_s = zip wss (partitionR d r rnd)
+                 submosaics <- mapM (\(ws',r') ->
+                                     mosaic_splits even_split r' (otherDirection d) ws') wsr_s
+                 return $ fmap M $ catRated submosaics
 
-          my_mosaic :: Rectangle -> CutDirection -> [NamedWindow]
-                    -> Rated Rational (Mosaic (NamedWindow, Rectangle))
-          my_mosaic _ _ [] = Rated 0 $ M []
-          my_mosaic r _ [w] = Rated (rating w r) $ OM (w,r)
-          my_mosaic r d ws = minL $
-                             map (fmap M . catRated .
-                                  map (\(ws',r') -> my_mosaic r' (otherDirection d) ws')) $
-                             map (\ws' -> zip ws' $ partitionR d r $ map sumareas ws') $
-                             take largeNumber $ init $ allsplits ws
-              where minL [] = myerror "minL on empty list"
-                    minL [a] = a
-                    minL (a:b:c) = minL (min a b:c)
-
-          partitionR :: CutDirection -> Rectangle -> [Area] -> [Rectangle]
+          partitionR :: CutDirection -> Rectangle -> [Double] -> [Rectangle]
           partitionR _ _ [] = []
           partitionR _ r [_] = [r]
           partitionR d r (a:ars) = r1 : partitionR d r2 ars
               where totarea = sum (a:ars)
                     (r1,r2) = split d (a/totarea) r
+          theareas = hints2area `fmap` hints
+          sumareas ws = sum $ map (\w -> M.findWithDefault 1 w theareas) ws
+          meanarea =  area origRect / fromIntegral (length origws)
 
-          rating :: WindowRater
-          rating w r = (M.findWithDefault default_preferences w raters) w r
-          default_preferences :: WindowRater
-          default_preferences _ r@(Rectangle _ _ w h)
-              | fr <- w /// h = sqr(fr/f)+sqr(f/fr)-2+ toRational (mean_area/area r)
-          sqr a = a * a
-          sumareas ws = sum $ map (\w -> M.findWithDefault 1 w areas) ws
+maxL :: Ord a => [a] -> a
+maxL [] = error "maxL on empty list"
+maxL [a] = a
+maxL (a:b:c) = maxL (max a b:c)
 
+catRated :: Floating v => [Rated v a] -> Rated v [a]
+catRated xs = Rated (product $ map the_rating xs) (map the_value xs)
 
+data CountDown = CD !StdGen !Int
 
-catRated :: Num v => [Rated v a] -> Rated v [a]
-catRated xs = Rated (sum $ map the_rating xs) (map the_value xs)
+runCountDown :: Int -> State CountDown a -> a
+runCountDown n x = fst $ runState x (CD (mkStdGen n) n)
 
-data Rated a b = Rated !a !b
-instance Functor (Rated a) where
-    f `fmap` (Rated v a) = Rated v (f a)
+tries_left :: State CountDown Int
+tries_left = do CD _ n <- get
+                return (max 0 n)
 
-the_value :: Rated a b -> b
-the_value (Rated _ b) = b
-the_rating :: Rated a b -> a
-the_rating (Rated a _) = a
+mapCD :: (a -> State CountDown b) -> [a] -> State CountDown [b]
+mapCD f xs = do n <- tries_left
+                let len = length xs
+                mapM (run_with_only ((n `div` len)+1) . f) $ take (n+1) xs
 
-instance Eq a => Eq (Rated a b) where
-    (Rated a _) == (Rated a' _) = a == a'
-instance Ord a => Ord (Rated a b) where
-    compare (Rated a _) (Rated a' _) = compare a a'
+run_with_only :: Int -> State CountDown a -> State CountDown a
+run_with_only limit j =
+    do CD g n <- get
+       let leftover = n - limit
+       if leftover < 0 then j
+                       else do put $ CD g limit
+                               x <- j
+                               CD g' n' <- get
+                               put $ CD g' (leftover + n')
+                               return x
 
-type Area = Rational
+getOne :: (Random a) => (a,a) -> State CountDown a
+getOne bounds = do CD g n <- get
+                   (x,g') <- return $ randomR bounds g
+                   put $ CD g' n
+                   return x
 
-area :: Rectangle -> Area
+fractional :: Int -> State CountDown Double
+fractional n = ((/ fromIntegral n).fromIntegral) `fmap` getOne (1,n)
+
+data WindowHint = RelArea Double
+                | AspectRatio Double
+                | FlexibleAspectRatio Double
+                  deriving ( Show, Read, Eq, Ord )
+
+fixedAspect :: [WindowHint] -> Bool
+fixedAspect [] = False
+fixedAspect (AspectRatio _:_) = True
+fixedAspect (_:x) = fixedAspect x
+
+rate :: Double -> Double -> [WindowHint] -> Rectangle -> Double
+rate defaulta meanarea xs rr
+    | fixedAspect xs = (area (crop xs rr) / meanarea) ** weight
+    | otherwise = (area rr / meanarea)**(weight-flexibility)
+                  * (area (crop (xs++[FlexibleAspectRatio defaulta]) rr) / meanarea)**flexibility
+     where weight = hints2area xs
+
+crop :: [WindowHint] -> Rectangle -> Rectangle
+crop (AspectRatio f:_) = cropit f
+crop (FlexibleAspectRatio f:_) = cropit f
+crop (_:hs) = crop hs
+crop [] = id
+
+crop' :: [WindowHint] -> Rectangle -> Rectangle
+crop' (AspectRatio f:_) = cropit f
+crop' (_:hs) = crop' hs
+crop' [] = id
+
+cropit :: Double -> Rectangle -> Rectangle
+cropit f (Rectangle a b w h) | w -/- h > f = Rectangle a b (floor $ h -* f) h
+                             | otherwise = Rectangle a b w (floor $ w -/ f)
+
+hints2area :: [WindowHint] -> Double
+hints2area [] = defaultArea
+hints2area (RelArea r:x) = r
+hints2area (_:x) = hints2area x
+
+area :: Rectangle -> Double
 area (Rectangle _ _ w h) = fromIntegral w * fromIntegral h
 
-(///) :: (Integral a, Integral b) => a -> b -> Rational
-a /// b = fromIntegral a / fromIntegral b
+(-/-) :: (Integral a, Integral b) => a -> b -> Double
+a -/- b = fromIntegral a / fromIntegral b
 
+(-/) :: (Integral a) => a -> Double -> Double
+a -/ b = fromIntegral a / b
 
-split :: CutDirection -> Rational -> Rectangle -> (Rectangle, Rectangle)
+(-*) :: (Integral a) => a -> Double -> Double
+a -* b = fromIntegral a * b
+
+split :: CutDirection -> Double -> Rectangle -> (Rectangle, Rectangle)
 split Vertical frac (Rectangle sx sy sw sh) = (Rectangle sx sy sw h,
                                                Rectangle sx (sy+fromIntegral h) sw (sh-h))
     where h = floor $ fromIntegral sh * frac
@@ -172,6 +278,7 @@ otherDirection Horizontal = Vertical
 data Mosaic a where
     M :: [Mosaic a] -> Mosaic a
     OM :: a -> Mosaic a
+          deriving ( Show )
 
 flattenMosaic :: Mosaic a -> [a]
 flattenMosaic (OM a) = [a]
@@ -180,8 +287,13 @@ flattenMosaic (M xs) = concatMap flattenMosaic xs
 allsplits :: [a] -> [[[a]]]
 allsplits [] = [[[]]]
 allsplits [a] = [[[a]]]
-allsplits (x:xs) = (map ([x]:) splitsrest) ++
-                   (map (maphead (x:)) splitsrest)
+allsplits (x:xs) = (map ([x]:) splitsrest) ++ (map (maphead (x:)) splitsrest)
+    where splitsrest = allsplits' xs
+
+allsplits' :: [a] -> [[[a]]]
+allsplits' [] = [[[]]]
+allsplits' [a] = [[[a]]]
+allsplits' (x:xs) = (map (maphead (x:)) splitsrest) ++ (map ([x]:) splitsrest)
     where splitsrest = allsplits xs
 
 maphead :: (a->a) -> [a] -> [a]
