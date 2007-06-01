@@ -319,9 +319,17 @@ lengthM (M x) = sum $ map lengthM x
 
 changeMosaic :: Mosaic a -> [Mosaic a]
 changeMosaic (OM a) = []
-changeMosaic (M xs) = [makeM $ reverse xs] ++
-                      map makeM (concatenations xs) ++
-                      map makeM (splits xs) -- should also change the lower level
+changeMosaic (M xs) = map makeM (concatenations xs) ++
+                      map makeM (splits xs) ++
+                      map M (tryAll changeMosaic xs)
+
+tryAll :: (a -> [a]) -> [a] -> [[a]]
+tryAll _ [] = []
+tryAll f (x:xs) = map (:xs) (f x) ++ map (x:) (tryAll f xs)
+
+onceToEach :: (a -> a) -> [a] -> [[a]]
+onceToEach _ [] = []
+onceToEach f (x:xs) = (f x : xs) : map (x:) (onceToEach f xs)
 
 splits :: [Mosaic a] -> [[Mosaic a]]
 splits [] = []
