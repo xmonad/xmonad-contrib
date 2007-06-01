@@ -57,8 +57,8 @@ metropolis x = do r <- gets rate
                                        then modify $ \s -> s { current = rx }
                                        else return ()
 
-select :: [a] -> State (Anneal x) a
-select [] = error "empty list in select"
+select :: [a] -> State (Anneal a) a
+select [] = the_value `fmap` gets best
 select [x] = return x
 select xs = do n <- getOne (0,length xs - 1)
                return (xs !! n)
