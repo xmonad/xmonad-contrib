@@ -51,14 +51,14 @@ commandMap :: M.Map String (X ())
 commandMap = M.fromList commands
 
 workspaceCommands :: [(String, X ())]
-workspaceCommands = [((m ++ show i), f i)
-                         | i <- [0 .. fromIntegral workspaces - 1]
+workspaceCommands = [((m ++ show i), f (fromIntegral i))
+                         | i <- [0 .. workspaces - 1]
                          , (f, m) <- [(view, "view"), (shift, "shift")]
                     ]
 
 screenCommands :: [(String, X ())]
-screenCommands = [((m ++ show sc), screenWorkspace sc >>= f)
-                      | sc <- [0, 1] -- TODO: adapt to screen changes
+screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= f)
+                      | sc <- [0, 1]::[Int] -- TODO: adapt to screen changes
                       , (f, m) <- [(view, "screen"), (shift, "screen-to-")]
                  ]
 
