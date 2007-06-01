@@ -62,7 +62,7 @@ tallWindow = TallWindow
 wideWindow = WideWindow
 
 largeNumber, mediumNumber, resolutionNumber :: Int
-largeNumber = 200
+largeNumber = 50
 mediumNumber = 10
 resolutionNumber = 100
 
@@ -121,22 +121,22 @@ mosaicL f hints origRect origws
     = do namedws <- mapM getName origws
          let sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) namedws
              myv = runCountDown largeNumber $ mosaic_splits even_split origRect Vertical sortedws
-             myv2 = maxL $ runCountDown largeNumber $
-                    sequence $ replicate mediumNumber $
-                    mosaic_splits one_split origRect Vertical sortedws
+             myv2 = mc_mosaic sortedws Vertical
+             myh2 = mc_mosaic sortedws Horizontal
+--             myv2 = maxL $ runCountDown largeNumber $
+--                    sequence $ replicate mediumNumber $
+--                    mosaic_splits one_split origRect Vertical sortedws
              myh = runCountDown largeNumber $ mosaic_splits even_split origRect Horizontal sortedws
-             myh2 = maxL $ runCountDown largeNumber $
-                    sequence $ replicate mediumNumber $
-                    mosaic_splits one_split origRect Horizontal sortedws
-         return $ map (\(nw,r)->(trace ("rate1:"++ unlines [show nw,
-                                                            show $ rate f meanarea (findlist nw hints) r,
-                                                            show r,
-                                                            show $ area r/meanarea,
-                                                            show $ findlist nw hints]) $
+--             myh2 = maxL $ runCountDown largeNumber $
+--                    sequence $ replicate mediumNumber $
+--                    mosaic_splits one_split origRect Horizontal sortedws
+         return $ map (\(nw,r)->(--trace ("rate1:"++ unlines [show nw,
+                                 --                           show $ rate f meanarea (findlist nw hints) r,
+                                 --                           show r,
+                                 --                           show $ area r/meanarea,
+                                 --                           show $ findlist nw hints]) $
                                  unName nw,crop' (findlist nw hints) r)) $
-                flattenMosaic $ the_value $
-                trace ("ratings: "++ show (map the_rating [myv,myh,myv2,myh2])) $
-                maxL [myv,myh,myv2,myh2]
+                flattenMosaic $ the_value $ maxL [myh2,myv2]
     where mosaic_splits _ _ _ [] = return $ Rated 0 $ M []
           mosaic_splits _ r _ [w] = return $ Rated (rate f meanarea (findlist w hints) r) $ OM (w,r)
           mosaic_splits spl r d ws = maxL `fmap` mapCD (spl r d) (init $ allsplits ws)
@@ -150,6 +150,32 @@ mosaicL f hints origRect origws
                  submosaics <- mapM (\(ws',r') ->
                                      mosaic_splits even_split r' (otherDirection d) ws') wsr_s
                  return $ fmap M $ catRated submosaics
+          another_mosaic :: [NamedWindow] -> CutDirection
+                         -> Rated Double (Mosaic (NamedWindow,Rectangle))
+          another_mosaic ws d = rate_mosaic ratew $
+                                rect_mosaic origRect d $
+                                zipML (example_mosaic ws) (map findarea ws)
+          mc_mosaic :: [NamedWindow] -> CutDirection
+                         -> Rated Double (Mosaic (NamedWindow,Rectangle))
+          mc_mosaic ws d = fmap (rect_mosaic origRect d) $
+                           anneal (zipML (example_mosaic ws) (map findarea ws))
+                           (the_rating . rate_mosaic ratew . rect_mosaic origRect d )
+                           changeMosaic
+
+          ratew :: (NamedWindow,Rectangle) -> Double
+          ratew (w,r) = rate f meanarea (findlist w hints) r
+          example_mosaic :: [NamedWindow] -> Mosaic NamedWindow
+          example_mosaic ws = M (map OM ws)
+          rect_mosaic :: Rectangle -> CutDirection -> Mosaic (a,Double) -> Mosaic (a,Rectangle)
+          rect_mosaic r _ (OM (w,_)) = OM (w,r)
+          rect_mosaic r d (M ws) = M $ zipWith (\w' r' -> rect_mosaic r' d' w') ws rs
+              where areas = map (sum . map snd . flattenMosaic) ws
+                    rs = partitionR d r areas
+                    d' = otherDirection d
+          rate_mosaic :: ((NamedWindow,Rectangle) -> Double)
+                      -> Mosaic (NamedWindow,Rectangle) -> Rated Double (Mosaic (NamedWindow,Rectangle))
+          rate_mosaic r m = catRatedM $ fmap (\x -> Rated (r x) x) m
+{-
           one_split :: Rectangle -> CutDirection -> [[NamedWindow]]
                     -> State CountDown (Rated Double (Mosaic (NamedWindow, Rectangle)))
           one_split r d [ws] = one_split r d $ map (:[]) ws
@@ -160,7 +186,7 @@ mosaicL f hints origRect origws
                  submosaics <- mapM (\(ws',r') ->
                                      mosaic_splits even_split r' (otherDirection d) ws') wsr_s
                  return $ fmap M $ catRated submosaics
-
+-}
           partitionR :: CutDirection -> Rectangle -> [Double] -> [Rectangle]
           partitionR _ _ [] = []
           partitionR _ r [_] = [r]
@@ -168,7 +194,9 @@ mosaicL f hints origRect origws
               where totarea = sum (a:ars)
                     (r1,r2) = split d (a/totarea) r
           theareas = hints2area `fmap` hints
-          sumareas ws = sum $ map (\w -> M.findWithDefault 1 w theareas) ws
+          sumareas ws = sum $ map findarea ws
+          findarea :: NamedWindow -> Double
+          findarea w = M.findWithDefault 1 w theareas
           meanarea =  area origRect / fromIntegral (length origws)
 
 maxL :: Ord a => [a] -> a
@@ -178,6 +206,10 @@ maxL (a:b:c) = maxL (max a b:c)
 
 catRated :: Floating v => [Rated v a] -> Rated v [a]
 catRated xs = Rated (product $ map the_rating xs) (map the_value xs)
+
+catRatedM :: Floating v => Mosaic (Rated v a) -> Rated v (Mosaic a)
+catRatedM (OM (Rated v x)) =  Rated v (OM x)
+catRatedM (M xs) = case catRated $ map catRatedM xs of Rated v xs' -> Rated v (M xs')
 
 data CountDown = CD !StdGen !Int
 
@@ -203,15 +235,6 @@ run_with_only limit j =
                                CD g' n' <- get
                                put $ CD g' (leftover + n')
                                return x
-
-getOne :: (Random a) => (a,a) -> State CountDown a
-getOne bounds = do CD g n <- get
-                   (x,g') <- return $ randomR bounds g
-                   put $ CD g' n
-                   return x
-
-fractional :: Int -> State CountDown Double
-fractional n = ((/ fromIntegral n).fromIntegral) `fmap` getOne (1,n)
 
 data WindowHint = RelArea Double
                 | AspectRatio Double
@@ -279,6 +302,52 @@ data Mosaic a where
     M :: [Mosaic a] -> Mosaic a
     OM :: a -> Mosaic a
           deriving ( Show )
+
+instance Functor Mosaic where
+    fmap f (OM x) = OM (f x)
+    fmap f (M xs) = M (map (fmap f) xs)
+
+zipMLwith :: (a -> b -> c) -> Mosaic a -> [b] -> Mosaic c
+zipMLwith f (OM x) (y:_) = OM (f x y)
+zipMLwith _ (OM _) [] = error "bad zipMLwith"
+zipMLwith f (M xxs) yys = makeM $ foo xxs yys
+    where foo (x:xs) ys = zipMLwith f x (take (lengthM x) ys) :
+                          foo xs (drop (lengthM x) ys)
+          foo [] _ = []
+
+zipML :: Mosaic a -> [b] -> Mosaic (a,b)
+zipML = zipMLwith (\a b -> (a,b))
+
+lengthM :: Mosaic a -> Int
+lengthM (OM _) = 1
+lengthM (M x) = sum $ map lengthM x
+
+changeMosaic :: Mosaic a -> [Mosaic a]
+changeMosaic (OM a) = []
+changeMosaic (M xs) = [makeM $ reverse xs] ++
+                      map makeM (concatenations xs) ++
+                      map makeM (splits xs) -- should also change the lower level
+
+splits :: [Mosaic a] -> [[Mosaic a]]
+splits [] = []
+splits (OM x:y) = map (OM x:) $ splits y
+splits (M (x:y):z) = (x:makeM y:z) : map (makeM (x:y) :) (splits z)
+splits (M []:x) = splits x
+
+concatenations :: [Mosaic a] -> [[Mosaic a]]
+concatenations (x:y:z) = (concatenateMosaic x y:z):(map (x:) $ concatenations (y:z))
+concatenations _ = []
+
+concatenateMosaic :: Mosaic a -> Mosaic a -> Mosaic a
+concatenateMosaic (OM a) (OM b) = M [OM a, OM b]
+concatenateMosaic (OM a) (M b) = M (OM a:b)
+concatenateMosaic (M a) (OM b) = M (a++[OM b])
+concatenateMosaic (M a) (M b) = M (a++b)
+
+makeM :: [Mosaic a] -> Mosaic a
+makeM [m] = m
+makeM [] = error "makeM []"
+makeM ms = M ms
 
 flattenMosaic :: Mosaic a -> [a]
 flattenMosaic (OM a) = [a]
