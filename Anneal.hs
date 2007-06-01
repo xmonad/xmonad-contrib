@@ -1,4 +1,5 @@
-module XMonadContrib.Anneal ( Rated(Rated), the_value, the_rating, anneal ) where
+module XMonadContrib.Anneal ( Rated(Rated), the_value, the_rating
+                            , anneal, annealMax ) where
 
 import System.Random ( StdGen, Random, mkStdGen, randomR )
 import Control.Monad.State ( State, runState, put, get, gets, modify )
@@ -20,6 +21,9 @@ instance Ord a => Ord (Rated a b) where
 
 anneal :: a -> (a -> Double) -> (a -> [a]) -> Rated Double a
 anneal st r sel = runAnneal st r (do_anneal sel)
+
+annealMax :: a -> (a -> Double) -> (a -> [a]) -> Rated Double a
+annealMax st r sel = runAnneal st (negate . r) (do_anneal sel)
 
 do_anneal :: (a -> [a]) -> State (Anneal a) (Rated Double a)
 do_anneal sel = do sequence_ $ replicate 100 da

@@ -153,7 +153,7 @@ mosaicL f hints origRect origws
           mc_mosaic :: [NamedWindow] -> CutDirection
                          -> Rated Double (Mosaic (NamedWindow,Rectangle))
           mc_mosaic ws d = fmap (rect_mosaic origRect d) $
-                           anneal (zipML (example_mosaic ws) (map findarea ws))
+                           annealMax (zipML (example_mosaic ws) (map findarea ws))
                            (the_rating . rate_mosaic ratew . rect_mosaic origRect d )
                            changeMosaic
 
