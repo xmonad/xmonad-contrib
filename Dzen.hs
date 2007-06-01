@@ -39,7 +39,7 @@ curScreen =  (W.screen . W.current) `liftM` gets windowset
 toXineramaArg :: ScreenId -> String
 toXineramaArg n = show ( ((fromIntegral n)+1)::Int )
 
--- requires glasser's xinerama patch to dzen
+-- Requires dzen >= 0.2.4.
 
 dzen :: String -> X ()
 dzen str = curScreen >>= \sc -> dzenScreen sc str
