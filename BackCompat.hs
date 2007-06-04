@@ -1,12 +1,20 @@
-module XMonadContrib.ReadMap () where
+module XMonadContrib.BackCompat (forM, forM_) where
 
-{- An instance of Read for Data.Map.Map's; useful for people that are still
- - compiling under 6.4.  To use it, add the following line to StackSet.hs:
- - import XMonadContrib.ReadMap
+{- This file will contain all the things GHC 6.4 users need to compile xmonad.
+ - Currently, the steps to get compilation are:
+ - add the following line to StackSet.hs, Operations.hs, and Main.hs:
+ - import XMonadContrib.BackCompat
  -}
 
 import Data.Map (Map, fromList)
 import GHC.Read
+
+forM_ :: (Monad m) => [a] -> (a -> m b) -> m ()
+forM_ = flip mapM_
+
+-- not used yet, but just in case
+forM :: (Monad m) => [a] -> (a -> m b) -> m [b]
+forM = flip mapM
 
 instance (Ord k, Read k, Read e) => Read (Map k e) where
   readsPrec _ = \s1 -> do
