@@ -13,7 +13,7 @@
 --
 -- An example use:
 --
---      xmonad | mux | dzen2 -ta l -fg '#a8a3f7' -bg '#3f3c6d'
+--      xmonad | xmonad-status | dzen2 -ta l -fg '#a8a3f7' -bg '#3f3c6d'
 --
 -- Creates a workspace table on the left side of the screen.
 --
