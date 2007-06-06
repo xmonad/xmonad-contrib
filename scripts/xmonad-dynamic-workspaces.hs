@@ -45,7 +45,6 @@ import StackSet
 import XMonad
 import System.IO
 import Text.PrettyPrint
-import Graphics.X11.Types (Window)
 
 --
 -- parse the StackSet output, and print it in the form:
@@ -63,7 +62,7 @@ main = forever $ getLine >>= readIO >>= draw
 --
 -- All the magic is in the 'ppr' instances, below.
 --
-draw :: WindowSet -> IO ()
+draw :: WS -> IO ()
 draw s = do putStrLn . render . ppr $ s
             hFlush stdout
 
@@ -77,7 +76,7 @@ class Pretty a where
 -- 
 -- And instances for the StackSet layers
 --
-instance Pretty WindowSet where
+instance Pretty WS where
     ppr (StackSet { current = cws   -- the different workspaces
                   , visible = vws
                   , hidden  = hws }) = ppr (sortBy tags workspaces)
@@ -94,7 +93,7 @@ instance Pretty WindowSet where
 instance Pretty TaggedW where
     ppr (C w) = brackets (int (1 + fromIntegral (tag w)))                    -- [1]
     ppr (V w) = parens   (ppr w)                    -- <2>
-    ppr (H w) = char ' ' <> ppr w <> char ' '                               -- 3
+    ppr (H w) = ppr w
 
 -- tags are printed as integers (or map them to strings)
 instance Pretty W where
@@ -102,7 +101,7 @@ instance Pretty W where
     ppr (Workspace i s) =
         case s of
             Empty -> empty
-            _     -> int (1 + fromIntegral i)
+            _     -> char ' ' <> int (1 + fromIntegral i) <> char ' '
 
 instance Pretty a => Pretty [a] where
     ppr []     = empty
@@ -113,7 +112,8 @@ instance Pretty a => Pretty [a] where
 -- Some type information for the pretty printer
 
 -- We have a fixed workspace type
-type W = Workspace WorkspaceId Window
+type W  = Workspace WorkspaceId Int
+type WS = StackSet  WorkspaceId Int ScreenId
 
 -- Introduce a newtype to distinguish different workspace flavours
 data TaggedW = C W  -- current 
