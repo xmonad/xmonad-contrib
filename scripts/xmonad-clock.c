@@ -1,8 +1,9 @@
 /*
-dwm status bar provider. use as ~/.xinitrc or call it in your xinitrc
-or xsession in place of dwm.
+
+dwm/xmonad status bar provider. launch from your .xinitrc, and pipe
+into dzen2.
  
-to compile: gcc -Os -s -o dwm-status dwm-status.c
+to compile: gcc -Os -s -o xmonad-status xmonad-status.c
  
 Copyright (c) 2007, Tom Menari <tom dot menari at googlemail dot com>
 Copyright (c) 2007, Don Stewart
@@ -55,6 +56,7 @@ int main(void) {
         pdttime      = time(NULL);
         pdtrealtime  = localtime(&pdttime);
         strftime(c, sizeof(c), TIME_FORMAT2, pdtrealtime);
+        unsetenv("TZ");
 
         fprintf(stdout, "%s | %s | %.2f | xmonad 0.3 \n", b, c, load);
         fflush(stdout);
