@@ -2,15 +2,10 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, 
                               tallWindow, wideWindow,
                               getName, withNamedWindow ) where
 
--- This module defines a "mosaic" layout, which tries to give all windows
--- equal area, while also trying to give them a user-defined (and run-time
--- adjustable) aspect ratio.  You can use mod-l and mod-h to adjust the
--- aspect ratio (which probably won't have a very interesting effect unless
--- you've got a number of windows upen.
-
--- My intent is to extend this layout to optimize various constraints, such
--- as windows that should have a different aspect ratio, a fixed size, or
--- minimum dimensions in certain directions.
+-- This module defines a "mosaic" layout, which tries to give each window a
+-- user-configurable relative area, while also trying to give them aspect
+-- ratios configurable at run-time by the user.  See comments below for the
+-- key bindings.
 
 -- You can use this module with the following in your config file:
 
