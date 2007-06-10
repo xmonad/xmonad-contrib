@@ -33,7 +33,7 @@ blend scale ratios = zipWith (+) ratios scaleFactors
 
 spiral :: Rational -> Layout
 spiral scale = Layout { doLayout = fibLayout,
-                        modifyLayout = \m -> fmap resize $ fromMessage m }
+                        modifyLayout = \m -> return $ fmap resize $ fromMessage m }
     where
       fibLayout sc ws = return $ zip ws rects
           where ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs

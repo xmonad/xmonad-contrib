@@ -24,7 +24,7 @@ twoPane delta split = Layout { doLayout = arrange, modifyLayout = message }
     -- there are one or zero windows
     arrange rect ws         = return . map (\w -> (w, rect)) $ ws
 
-    message x = case fromMessage x of
+    message x = return $ case fromMessage x of
                     Just Shrink -> Just (twoPane delta (split - delta))
                     Just Expand -> Just (twoPane delta (split + delta))
                     _           -> Nothing

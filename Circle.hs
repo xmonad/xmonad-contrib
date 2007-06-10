@@ -5,7 +5,7 @@ import XMonad
 
 circle :: Layout
 circle = Layout { doLayout = circleLayout,
-                  modifyLayout = const Nothing }
+                  modifyLayout = return . const Nothing }
 
 circleLayout :: Rectangle -> [Window] -> X [(Window, Rectangle)]
 circleLayout _ []     = return []
