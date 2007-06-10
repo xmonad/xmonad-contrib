@@ -11,11 +11,13 @@ module XMonadContrib.Tabbed ( tabbed ) where
 --                  , ... ]
 
 import Control.Monad ( forM )
+import Control.Monad.State ( gets )
 
 import Graphics.X11.Xlib
 import XMonad
 import XMonadContrib.Decoration
 import Operations ( focus )
+import qualified StackSet as W
 
 import XMonadContrib.NamedWindows
 
@@ -27,9 +29,14 @@ dolay sc [w] = return [(w,sc)]
 dolay sc@(Rectangle x _ wid _) ws =
     do let ts = gentabs x wid (length ws)
            tws = zip ts ws
-           maketab (t,w) = newDecoration t 1 0xFF0000 0x00FFFF (drawtab t w)  (focus w)
-           drawtab r w d w' gc =
+           maketab (t,w) = newDecoration t 1 0x000000 0x00FFFF (drawtab t w)  (focus w)
+           drawtab r@(Rectangle _ _ wt ht) w d w' gc =
                do nw <- getName w
+                  focusw <- gets (W.focus . W.stack . W.workspace . W.current . windowset)
+                  let tabcolor = if focusw == w then 0xBBBBBB else 0x888888
+                  io $ setForeground d gc tabcolor
+                  io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
+                  io $ setForeground d gc 0x000000
                   centerText d w' gc r (show nw)
            centerText d w' gc (Rectangle _ _ wt ht) name =
                do font <- io (fontFromGC d gc >>= queryFont d)
