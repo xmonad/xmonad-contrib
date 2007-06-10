@@ -10,7 +10,7 @@ import XMonad hiding ( trace )
 
 layoutHints :: Layout -> Layout
 layoutHints l = l { doLayout = \r x -> doLayout l r x >>= applyHints
-                  , modifyLayout = \x -> layoutHints `fmap` modifyLayout l x }
+                  , modifyLayout = \x -> fmap layoutHints `fmap` modifyLayout l x }
 
 applyHints :: [(Window, Rectangle)] -> X [(Window, Rectangle)]
 applyHints xs = mapM applyHint xs
