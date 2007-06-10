@@ -41,12 +41,12 @@ int main(void) {
     time_t pdttime;
     struct tm *pdtrealtime;
 
-    double load;    
+    double load[3];
  
     signal(SIGPIPE, SIG_IGN);
  
     for(;;) {
-        getloadavg(&load, 1);
+        getloadavg(load, 3);
  
         epochtime = time(NULL);
         realtime  = localtime(&epochtime);
@@ -58,7 +58,8 @@ int main(void) {
         strftime(c, sizeof(c), TIME_FORMAT2, pdtrealtime);
         unsetenv("TZ");
 
-        fprintf(stdout, "%s | %s | %.2f | xmonad 0.3 \n", b, c, load);
+        fprintf(stdout, "%s | %s | %.2f %.2f %.2f | xmonad 0.3 \n", b, c, load[0], load[1], load[2]);
+
         fflush(stdout);
         sleep(REFRESH_RATE);
     }
