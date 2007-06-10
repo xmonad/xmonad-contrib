@@ -40,10 +40,12 @@ dynamicLog = withWindowSet $ io . putStrLn . ppr
   where
     ppr s =  concatMap fmt $ sortBy tags
                 (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
-
        where tags a b = S.tag a `compare` S.tag b
              this     = S.tag (S.workspace (S.current s))
              pprTag   = show . (+(1::Int)) . fromIntegral . S.tag
-             fmt w | S.tag w == this      = "[" ++ pprTag w ++ "]"
-                   | S.stack w /= S.Empty = " " ++ pprTag w ++ " "
-                   | otherwise            = ""
+             visibles = map (S.tag . S.workspace) (S.visible s)
+
+             fmt w | S.tag w == this         = "[" ++ pprTag w ++ "]"
+                   | S.tag w `elem` visibles = "<" ++ pprTag w ++ ">"
+                   | S.stack w /= S.Empty    = " " ++ pprTag w ++ " "
+                   | otherwise               = ""
