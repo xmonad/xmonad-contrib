@@ -1,6 +1,7 @@
 module XMonadContrib.Decoration ( newDecoration ) where
 
 import qualified Data.Map as M
+import Data.Bits ( (.|.) )
 import Control.Monad.Reader ( asks )
 import Control.Monad.State ( modify, gets )
 import Graphics.X11.Xlib
@@ -18,6 +19,7 @@ newDecoration (Rectangle x y w h) th fg bg draw click =
        n <- (W.tag . W.workspace . W.current) `fmap` gets windowset
        Just (l,ls) <- M.lookup n `fmap` gets layouts
        win <- io $ createSimpleWindow d rt x y w h (fromIntegral th) fg bg
+       io $ selectInput d win $ exposureMask .|. buttonPressMask
        io $ mapWindow d win
        let draw' = withGC win draw
            modml :: (SomeMessage -> X (Maybe Layout)) -> SomeMessage -> X (Maybe Layout)
@@ -30,9 +32,9 @@ newDecoration (Rectangle x y w h) th fg bg draw click =
                | t == buttonPress && thisw == win = click
            handle_event (ButtonEvent {ev_window = thisw,ev_event_type = t})
                | t == buttonPress && thisw == win = click
-           handle_event (AnyEvent {ev_window = thisw}) | thisw == win = draw'
+           handle_event (AnyEvent {ev_window = thisw, ev_event_type = t})
+               | thisw == win && t == expose = draw'
            handle_event _ = return ()
-       draw'
        modify $ \s -> s { layouts = M.insert n (modl l,ls) (layouts s) }
        return win
 
