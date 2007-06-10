@@ -29,7 +29,7 @@ dolay sc [w] = return [(w,sc)]
 dolay sc@(Rectangle x _ wid _) ws =
     do let ts = gentabs x wid (length ws)
            tws = zip ts ws
-           maketab (t,w) = newDecoration t 1 0x000000 0x00FFFF (drawtab t w)  (focus w)
+           maketab (t,w) = newDecoration t 1 0x000000 0x777777 (drawtab t w)  (focus w)
            drawtab r@(Rectangle _ _ wt ht) w d w' gc =
                do nw <- getName w
                   focusw <- gets (W.focus . W.stack . W.workspace . W.current . windowset)
@@ -44,7 +44,7 @@ dolay sc@(Rectangle x _ wid _) ws =
                   -- let nameh = ht `div` 2
                   --     namew = textWidth font name -- textWidth also causes a crash!
                   let nameh = ht - 6
-                      namew = wt - 20
+                      namew = wt - 10
                   io $ drawString d w' gc
                          (fromIntegral (wt `div` 2) - fromIntegral (namew `div` 2))
                          (fromIntegral (ht `div` 2) + fromIntegral (nameh `div` 2)) name
