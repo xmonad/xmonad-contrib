@@ -26,8 +26,8 @@ tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
 
 dolay :: Rectangle -> [Window] -> X [(Window, Rectangle)]
 dolay sc [w] = return [(w,sc)]
-dolay sc@(Rectangle x _ wid _) ws =
-    do let ts = gentabs x wid (length ws)
+dolay sc@(Rectangle x y wid _) ws =
+    do let ts = gentabs x y wid (length ws)
            tws = zip ts ws
            maketab (t,w) = newDecoration t 1 0x000000 0x777777 (drawtab t w)  (focus w)
            drawtab r@(Rectangle _ _ wt ht) w d w' gc =
@@ -54,10 +54,10 @@ dolay sc@(Rectangle x _ wid _) ws =
 shrink :: Rectangle -> Rectangle
 shrink (Rectangle x y w h) = Rectangle x (y+tabsize) w (h-tabsize)
 
-gentabs :: Position -> Dimension -> Int -> [Rectangle]
-gentabs _ _ 0 = []
-gentabs x1 w num = Rectangle x1 0 (wid - 2) (tabsize - 2)
-                   : gentabs (x1 + fromIntegral wid) (w - wid) (num - 1)
+gentabs :: Position -> Position -> Dimension -> Int -> [Rectangle]
+gentabs _ _ _ 0 = []
+gentabs x y w num = Rectangle x y (wid - 2) (tabsize - 2)
+                   : gentabs (x + fromIntegral wid) y (w - wid) (num - 1)
                               where wid = w `div` (fromIntegral num)
 
 tabsize :: Integral a => a
