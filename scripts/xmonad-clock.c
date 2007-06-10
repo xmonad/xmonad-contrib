@@ -3,7 +3,7 @@
 dwm/xmonad status bar provider. launch from your .xinitrc, and pipe
 into dzen2.
  
-to compile: gcc -Os -s -o xmonad-status xmonad-status.c
+to compile: gcc -Os -s -o xmonad-clock xmonad-clock.c
  
 Copyright (c) 2007, Tom Menari <tom dot menari at googlemail dot com>
 Copyright (c) 2007, Don Stewart
