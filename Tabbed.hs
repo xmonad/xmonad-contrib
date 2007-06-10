@@ -17,6 +17,8 @@ import XMonad
 import XMonadContrib.Decoration
 import Operations ( focus )
 
+import XMonadContrib.NamedWindows
+
 tabbed :: Layout
 tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
 
@@ -25,7 +27,21 @@ dolay sc [w] = return [(w,sc)]
 dolay sc@(Rectangle x _ wid _) ws =
     do let ts = gentabs x wid (length ws)
            tws = zip ts ws
-       forM tws $ \(t,w) -> newDecoration t 1 0xFF0000 0x00FFFF (trace "draw") (focus w)
+           maketab (t,w) = newDecoration t 1 0xFF0000 0x00FFFF (drawtab t w)  (focus w)
+           drawtab r w d w' gc =
+               do nw <- getName w
+                  centerText d w' gc r (show nw)
+           centerText d w' gc (Rectangle _ _ wt ht) name =
+               do font <- io (fontFromGC d gc >>= queryFont d)
+                  -- let (_,namew,nameh,_) = textExtents font name -- textExtents causes a crash!
+                  -- let nameh = ht `div` 2
+                  --     namew = textWidth font name -- textWidth also causes a crash!
+                  let nameh = ht - 6
+                      namew = wt - 20
+                  io $ drawString d w' gc
+                         (fromIntegral (wt `div` 2) - fromIntegral (namew `div` 2))
+                         (fromIntegral (ht `div` 2) + fromIntegral (nameh `div` 2)) name
+       forM tws maketab
        return [ (w,shrink sc) | w <- ws ]
 
 shrink :: Rectangle -> Rectangle
@@ -38,4 +54,4 @@ gentabs x1 w num = Rectangle x1 0 (wid - 2) (tabsize - 2)
                               where wid = w `div` (fromIntegral num)
 
 tabsize :: Integral a => a
-tabsize = 30
+tabsize = 20
