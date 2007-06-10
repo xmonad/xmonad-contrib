@@ -36,8 +36,6 @@ xmonad > $PIPE &
 wait $!
 
 pkill -HUP dzen2
-pkill -HUP ssh-agent
-pkill -HUP -f clock
-pkill -HUP -f xmonad-status
+pkill -HUP -f xmonad-clock
 
 wait
