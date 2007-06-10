@@ -24,11 +24,13 @@ rm -f $PIPE
 [ -p $PIPE ] || exit
 
 # launch the external 60 second clock, and launch the workspace status bar
-xmonad-clock          | dzen2 -e '' -x 300 -w 768 -ta r -fg $FG -bg $BG -fn $FONT &
-xmonad-status < $PIPE | dzen2 -e '' -w 300 -ta l -fg $FG -bg $BG -fn $FONT &
+xmonad-clock | dzen2 -e '' -x 300 -w 768 -ta r -fg $FG -bg $BG -fn $FONT &
 
-# now go for it
-xmonad > $PIPE &
+# and a workspace status bar (this `cat' shouldn't be needed!)
+dzen2 -e '' -w 300 -ta l -fg $FG -bg $BG -fn $FONT < $PIPE &
+
+# go forit
+xmonad > $PIPE & 
 
 # wait for xmonad
 wait $!
