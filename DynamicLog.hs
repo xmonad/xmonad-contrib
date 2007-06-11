@@ -60,8 +60,10 @@ dynamicLogXinerama :: X ()
 dynamicLogXinerama = withWindowSet $ io . putStrLn . ppr
   where
     ppr ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
-      where onscreen  = map (pprTag . S.workspace) . sortBy (compare `on` S.screen) $ S.current ws : S.visible ws
-            offscreen = map pprTag . filter ((/= S.Empty) . S.stack) . sortBy (compare `on` S.tag) $ S.hidden ws
+      where onscreen  = map (pprTag . S.workspace)
+                            . sortBy (compare `on` S.screen) $ S.current ws : S.visible ws
+            offscreen = map pprTag . filter ((/= S.Empty) . S.stack)
+                            . sortBy (compare `on` S.tag) $ S.hidden ws
 
 -- util functions
 pprTag :: Integral i => S.Workspace i a -> String
