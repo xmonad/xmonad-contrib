@@ -10,7 +10,7 @@ module XMonadContrib.Tabbed ( tabbed ) where
 -- defaultLayouts = [ tabbed
 --                  , ... ]
 
-import Control.Monad ( forM )
+import Control.Monad ( forM, liftM )
 import Control.Monad.State ( gets )
 
 import Graphics.X11.Xlib
@@ -32,8 +32,7 @@ dolay sc@(Rectangle x y wid _) ws =
            maketab (t,w) = newDecoration t 1 0x000000 0x777777 (drawtab t w)  (focus w)
            drawtab r@(Rectangle _ _ wt ht) w d w' gc =
                do nw <- getName w
-                  focusw <- gets (W.focus . W.stack . W.workspace . W.current . windowset)
-                  let tabcolor = if focusw == w then 0xBBBBBB else 0x888888
+                  tabcolor <- (maybe 0x888888 (\focusw -> if focusw == w then 0xBBBBBB else 0x888888) . W.peek) `liftM` gets windowset
                   io $ setForeground d gc tabcolor
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
                   io $ setForeground d gc 0x000000
