@@ -1,5 +1,5 @@
 module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,
-                              tallWindow, wideWindow,
+                              tallWindow, wideWindow, flexibleWindow,
                               getName, withNamedWindow ) where
 
 -- This module defines a "mosaic" layout, which tries to give each window a
@@ -23,6 +23,7 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, 
 --     , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
 --     , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
 --     , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . myclearWindow))
+--     , ((controlMask .|. modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . flexibleWindow))
 
 import Control.Monad.State ( State, runState, put, get )
 import System.Random ( StdGen, Random, mkStdGen, randomR )
@@ -45,6 +46,7 @@ import Debug.Trace
 data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow
                   | SquareWindow NamedWindow | ClearWindow NamedWindow
                   | TallWindow NamedWindow | WideWindow NamedWindow
+                  | FlexibleWindow NamedWindow
                     deriving ( Typeable, Eq )
 
 instance Message HandleWindow
@@ -53,6 +55,7 @@ expandWindow, shrinkWindow, squareWindow, myclearWindow,tallWindow, wideWindow :
 expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
 squareWindow = SquareWindow
+flexibleWindow = FlexibleWindow
 myclearWindow = ClearWindow
 tallWindow = TallWindow
 wideWindow = WideWindow
@@ -76,6 +79,7 @@ mosaic delta tileFrac hints = full { doLayout = \r -> mosaicL tileFrac hints r .
           m2 (ExpandWindow w) = mosaic delta tileFrac (multiply_area (1+delta) w hints)
           m2 (ShrinkWindow w) = mosaic delta tileFrac (multiply_area (1/(1+ delta)) w hints)
           m2 (SquareWindow w) = mosaic delta tileFrac (set_aspect_ratio 1 w hints)
+          m2 (FlexibleWindow w) = mosaic delta tileFrac (make_flexible w hints)
           m2 (TallWindow w) = mosaic delta tileFrac (multiply_aspect (1/(1+delta)) w hints)
           m2 (WideWindow w) = mosaic delta tileFrac (multiply_aspect (1+delta) w hints)
           m2 (ClearWindow w) = mosaic delta tileFrac (M.delete w hints)
@@ -92,6 +96,12 @@ set_aspect_ratio r = alterlist f where f [] = [AspectRatio r]
                                        f (FlexibleAspectRatio _:x) = AspectRatio r:x
                                        f (AspectRatio _:x) = AspectRatio r:x
                                        f (x:xs) = x:f xs
+
+make_flexible :: NamedWindow
+              -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+make_flexible = alterlist (map f) where f (AspectRatio r) = FlexibleAspectRatio r
+                                        f (FlexibleAspectRatio r) = AspectRatio r
+                                        f x = x
 
 multiply_aspect :: Double -> NamedWindow
                 -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
