@@ -27,7 +27,7 @@ workspaceDir wd l = l { doLayout = \r x -> scd wd >> doLayout l r x
 
 scd :: String -> X ()
 scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
-           safeIO $ setCurrentDirectory x'
+           catchIO $ setCurrentDirectory x'
 
 changeDir :: [String] -> X ()
 changeDir dirs = do thisd <- io getCurrentDirectory
