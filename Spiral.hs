@@ -4,6 +4,7 @@ import Graphics.X11.Xlib
 import Operations
 import Data.Ratio
 import XMonad
+import qualified StackSet as W
 
 --
 -- Spiral layout
@@ -32,7 +33,7 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
 spiral :: Rational -> Layout
-spiral scale = Layout { doLayout = fibLayout,
+spiral scale = Layout { doLayout = \r -> fibLayout r . W.integrate,
                         modifyLayout = \m -> return $ fmap resize $ fromMessage m }
     where
       fibLayout sc ws = return $ zip ws rects

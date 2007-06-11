@@ -24,10 +24,11 @@ import XMonadContrib.NamedWindows
 tabbed :: Layout
 tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
 
-dolay :: Rectangle -> [Window] -> X [(Window, Rectangle)]
-dolay sc [w] = return [(w,sc)]
-dolay sc@(Rectangle x y wid _) ws =
-    do let ts = gentabs x y wid (length ws)
+dolay :: Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
+dolay sc (W.Node w [] []) = return [(w,sc)]
+dolay sc@(Rectangle x y wid _) s@(W.Node w _ _) =
+    do let ws = W.integrate s
+           ts = gentabs x y wid (length ws)
            tws = zip ts ws
            maketab (t,w) = newDecoration w t 1 0x000000 0x777777 (drawtab t w) (focus w)
            drawtab r@(Rectangle _ _ wt ht) w d w' gc =
@@ -48,7 +49,7 @@ dolay sc@(Rectangle x y wid _) ws =
                          (fromIntegral (wt `div` 2) - fromIntegral (namew `div` 2))
                          (fromIntegral (ht `div` 2) + fromIntegral (nameh `div` 2)) name
        forM tws maketab
-       return [ (w,shrink sc) | w <- ws ]
+       return [ (w,shrink sc) ]
 
 shrink :: Rectangle -> Rectangle
 shrink (Rectangle x y w h) = Rectangle x (y+tabsize) w (h-tabsize)

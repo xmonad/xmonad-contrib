@@ -2,6 +2,7 @@ module XMonadContrib.HintedTile (tall, wide) where
 
 import XMonad
 import Operations (Resize(..), IncMasterN(..), applySizeHints)
+import qualified StackSet as W
 import {-# SOURCE #-} Config (borderWidth)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
@@ -18,10 +19,11 @@ wide = tile splitVertically divideHorizontally
 tall = tile splitHorizontally divideVertically
 
 tile split divide nmaster delta frac =
-    Layout { doLayout     = \r w -> do { hints <- sequence (map getHints w)
-                                      ; return $ zip w (tiler frac r `uncurry` splitAt nmaster hints) }
-           , modifyLayout = \m -> fmap resize     (fromMessage m) `mplus`
-                                  fmap incmastern (fromMessage m) }
+    Layout { doLayout     = \r w' -> let w = W.integrate w'
+                                     in do { hints <- sequence (map getHints w)
+                                           ; return $ zip w (tiler frac r `uncurry` splitAt nmaster hints) }
+           , modifyLayout = \m -> return $ fmap resize     (fromMessage m) `mplus`
+                                           fmap incmastern (fromMessage m) }
 
     where resize Shrink = tile split divide nmaster delta (frac-delta)
           resize Expand = tile split divide nmaster delta (frac+delta)

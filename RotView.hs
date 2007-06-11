@@ -13,7 +13,7 @@ import Data.List ( sortBy )
 import Data.Maybe ( listToMaybe )
 
 import XMonad
-import StackSet
+import StackSet hiding (filter)
 import qualified Operations as O
 
 rotView :: Bool -> X ()

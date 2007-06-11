@@ -25,7 +25,7 @@
 
 module XMonadContrib.GreedyView (greedyView) where
 
-import StackSet as W
+import StackSet as W hiding (filter)
 import XMonad
 import Operations
 import Data.List (find)

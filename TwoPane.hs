@@ -13,9 +13,10 @@ import qualified StackSet as W
 import Control.Monad.State (gets)
 
 twoPane :: Rational -> Rational -> Layout
-twoPane delta split = Layout { doLayout = arrange, modifyLayout = message }
+twoPane delta split = Layout { doLayout = \r -> arrange r . W.integrate, modifyLayout = message }
  where
     arrange rect ws@(w:x:_) = do
+        -- TODO this is buggy, it might peek another workspace
         (Just f) <- gets (W.peek . windowset) -- safe because of pattern match above
         let y = if f == w then x else f
             (left, right) = splitHorizontallyBy split rect

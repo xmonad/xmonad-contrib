@@ -2,9 +2,10 @@ module XMonadContrib.Circle (circle) where -- actually it's an ellipse
 
 import Graphics.X11.Xlib
 import XMonad
+import StackSet (integrate)
 
 circle :: Layout
-circle = Layout { doLayout = circleLayout,
+circle = Layout { doLayout = \r -> circleLayout r . integrate,
                   modifyLayout = return . const Nothing }
 
 circleLayout :: Rectangle -> [Window] -> X [(Window, Rectangle)]
