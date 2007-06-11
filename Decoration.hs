@@ -11,9 +11,9 @@ import XMonad
 import Operations ( ModifyWindows(ModifyWindows) )
 import qualified StackSet as W
 
-newDecoration :: Rectangle -> Int -> Pixel -> Pixel
+newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel
               -> (Display -> Window -> GC -> X ()) -> X () -> X Window
-newDecoration (Rectangle x y w h) th fg bg draw click =
+newDecoration decfor (Rectangle x y w h) th fg bg draw click =
     do d <- asks display
        rt <- asks theRoot
        n <- (W.tag . W.workspace . W.current) `fmap` gets windowset
@@ -33,7 +33,8 @@ newDecoration (Rectangle x y w h) th fg bg draw click =
            handle_event (ButtonEvent {ev_window = thisw,ev_event_type = t})
                | t == buttonPress && thisw == win = click
            handle_event (AnyEvent {ev_window = thisw, ev_event_type = t})
-               | thisw == win && t == expose = draw'
+               | thisw == win    && t == expose         = draw'
+               | thisw == decfor && t == propertyNotify = draw'
            handle_event _ = return ()
        modify $ \s -> s { layouts = M.insert n (modl l,ls) (layouts s) }
        return win

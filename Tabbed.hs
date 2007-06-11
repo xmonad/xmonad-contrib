@@ -29,7 +29,7 @@ dolay sc [w] = return [(w,sc)]
 dolay sc@(Rectangle x y wid _) ws =
     do let ts = gentabs x y wid (length ws)
            tws = zip ts ws
-           maketab (t,w) = newDecoration t 1 0x000000 0x777777 (drawtab t w)  (focus w)
+           maketab (t,w) = newDecoration w t 1 0x000000 0x777777 (drawtab t w) (focus w)
            drawtab r@(Rectangle _ _ wt ht) w d w' gc =
                do nw <- getName w
                   tabcolor <- (maybe 0x888888 (\focusw -> if focusw == w then 0xBBBBBB else 0x888888) . W.peek) `liftM` gets windowset
