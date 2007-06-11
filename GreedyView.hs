@@ -1,3 +1,5 @@
+-- Maintainer: Spencer Janssen <sjanssen@cse.unl.edu>
+--
 -- greedyView is an alternative to standard workspace switching.  When a
 -- workspace is already visible on another screen, greedyView swaps the
 -- contents of that other screen with the current screen.

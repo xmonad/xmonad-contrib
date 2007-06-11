@@ -1,3 +1,5 @@
+-- Maintainer: Spencer Janssen <sjanssen@cse.unl.edu>
+--
 -- A layout that splits the screen horizontally and shows two windows.  The
 -- left window is always the master window, and the right is either the
 -- currently focused window or the second window in layout order.
