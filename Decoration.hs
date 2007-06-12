@@ -1,3 +1,4 @@
+{-# OPTIONS -fglasgow-exts #-}
 module XMonadContrib.Decoration ( newDecoration ) where
 
 import Data.Bits ( (.|.) )

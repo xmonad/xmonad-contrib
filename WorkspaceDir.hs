@@ -1,3 +1,4 @@
+{-# OPTIONS -fglasgow-exts #-}
 module XMonadContrib.WorkspaceDir ( workspaceDir, changeDir ) where
 
 -- to use:

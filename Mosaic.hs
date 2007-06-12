@@ -1,3 +1,4 @@
+{-# OPTIONS -fglasgow-exts #-}
 module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,
                               tallWindow, wideWindow, flexibleWindow,
                               getName, withNamedWindow ) where

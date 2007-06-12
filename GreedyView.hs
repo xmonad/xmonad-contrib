@@ -1,3 +1,4 @@
+{-# OPTIONS -fglasgow-exts #-}
 -- Maintainer: Spencer Janssen <sjanssen@cse.unl.edu>
 --
 -- greedyView is an alternative to standard workspace switching.  When a
