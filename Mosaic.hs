@@ -12,7 +12,7 @@ module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, 
 -- import XMonadContrib.Mosaic
 
 -- defaultLayouts :: [Layout]
--- defaultLayouts = [ mosaic (1%4) (1%2) M.empty M.empty, full,
+-- defaultLayouts = [ mosaic 0.25 0.5 M.empty M.empty, full,
 --                    tall defaultDelta (1%2), wide defaultDelta (1%2) ]
 
 -- In the key-bindings, do something like:
