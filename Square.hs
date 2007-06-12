@@ -13,9 +13,10 @@ module XMonadContrib.Square ( square ) where
 
 import XMonad
 import Graphics.X11.Xlib
+import StackSet ( integrate )
 
 square :: Layout
-square = Layout { doLayout = arrange, modifyLayout = message }
+square = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
  where
     arrange rect ws@(_:_) = do
         let (rest, sq) = splitSquare rect
