@@ -33,7 +33,7 @@ dwmpromote :: X ()
 dwmpromote = windows swap
 
 swap :: StackSet i a s -> StackSet i a s
-swap = modify Empty $ \c -> case c of
-    Node _ [] []     -> c
-    Node t [] (x:rs) -> Node x [] (t:rs)
-    Node t ls rs     -> Node t [] (ys ++ x : rs) where (x:ys) = reverse ls
+swap = modify' $ \c -> case c of
+    Stack _ [] []     -> c
+    Stack t [] (x:rs) -> Stack x [] (t:rs)
+    Stack t ls rs     -> Stack t [] (ys ++ x : rs) where (x:ys) = reverse ls

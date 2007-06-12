@@ -10,7 +10,7 @@ module XMonadContrib.RotView ( rotView ) where
 
 import Control.Monad.State ( gets )
 import Data.List ( sortBy )
-import Data.Maybe ( listToMaybe )
+import Data.Maybe ( listToMaybe, isJust )
 
 import XMonad
 import StackSet hiding (filter)
@@ -22,10 +22,5 @@ rotView b = do
     let m = tag . workspace . current $ ws
         sortWs = sortBy (\x y -> compare (tag x) (tag y))
         pivoted = uncurry (flip (++)) . span ((< m) . tag) . sortWs . hidden $ ws
-        nextws = listToMaybe . filter (not.isEmpty) . (if b then id else reverse) $ pivoted
+        nextws = listToMaybe . filter (isJust . stack) . (if b then id else reverse) $ pivoted
     whenJust nextws (O.view . tag)
-
-isEmpty :: Workspace i a -> Bool
-isEmpty ws = case stack ws of
-                Empty     -> True
-                _         -> False

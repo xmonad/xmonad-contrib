@@ -29,6 +29,7 @@ module XMonadContrib.FindEmptyWorkspace (
 
 import Control.Monad.State
 import Data.List
+import Data.Maybe ( isNothing )
 
 import XMonad
 import StackSet
@@ -40,10 +41,8 @@ import qualified Operations as O
 -- focused workspace, other visible workspaces (when in Xinerama) and
 -- hidden workspaces in this order.
 findEmptyWorkspace :: StackSet i a s -> Maybe (Workspace i a)
-findEmptyWorkspace = find (isEmpty . stack) . allWorkspaces
+findEmptyWorkspace = find (isNothing . stack) . allWorkspaces
   where
-    isEmpty Empty = True
-    isEmpty _     = False
     allWorkspaces ss = (workspace . current) ss :
                        (map workspace . visible) ss ++ hidden ss
 

@@ -32,5 +32,5 @@ withBorder bd l = l { doLayout = \r x -> setborders bd >> doLayout l r x
 
 setborders :: Dimension -> X ()
 setborders bw = withDisplay $ \d ->
-                do ws <- gets (W.integrate . W.stack . W.workspace . W.current . windowset)
+                do ws <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
                    mapM_ (\w -> io $ setWindowBorderWidth d w bw) ws

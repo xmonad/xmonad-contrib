@@ -20,6 +20,7 @@ module XMonadContrib.DynamicLog (dynamicLog, dynamicLogXinerama) where
 -- Useful imports
 --
 import XMonad
+import Data.Maybe ( isJust )
 import Data.List
 import qualified StackSet as S
 
@@ -45,7 +46,7 @@ dynamicLog = withWindowSet $ io . putStrLn . ppr
 
              fmt w | S.tag w == this         = "[" ++ pprTag w ++ "]"
                    | S.tag w `elem` visibles = "<" ++ pprTag w ++ ">"
-                   | S.stack w /= S.Empty    = " " ++ pprTag w ++ " "
+                   | isJust (S.stack w)      = " " ++ pprTag w ++ " "
                    | otherwise               = ""
 
 --
@@ -62,7 +63,7 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . ppr
     ppr ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
       where onscreen  = map (pprTag . S.workspace)
                             . sortBy (compare `on` S.screen) $ S.current ws : S.visible ws
-            offscreen = map pprTag . filter ((/= S.Empty) . S.stack)
+            offscreen = map pprTag . filter (isJust . S.stack)
                             . sortBy (compare `on` S.tag) $ S.hidden ws
 
 -- util functions

@@ -25,9 +25,8 @@ tabbed :: Layout
 tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
 
 dolay :: Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
-dolay _ W.Empty = return []
-dolay sc (W.Node w [] []) = return [(w,sc)]
-dolay sc@(Rectangle x y wid _) s@(W.Node w _ _) =
+dolay sc (W.Stack w [] []) = return [(w,sc)]
+dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) =
     do let ws = W.integrate s
            ts = gentabs x y wid (length ws)
            tws = zip ts ws

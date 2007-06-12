@@ -13,14 +13,14 @@ combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modify
     where arrange _ [] = return []
           arrange r [w] = return [(w,r)]
           arrange rinput origws =
-              do rs <- map snd `fmap` doLayout super rinput (differentiate $ take (length origls) origws)
+              do rs <- map snd `fmap` runLayout super rinput (differentiate $ take (length origls) origws)
                  let wss [] _ = []
                      wss [_] ws = [ws]
                      wss (n:ns) ws = take len1 ws : wss ns (drop len1 ws)
                          where len1 = min n (length ws - length ns)
-                 out <- sequence $ zipWith3 doLayout (map fst origls) rs
-                                                     (map differentiate $
-                                                      wss (take (length rs) $ map snd origls) origws)
+                 out <- sequence $ zipWith3 runLayout (map fst origls) rs
+                                                      (map differentiate $
+                                                       wss (take (length rs) $ map snd origls) origws)
                  return $ concat out
           message m = do msuper' <- modifyLayout super m
                          case msuper' of
