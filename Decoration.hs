@@ -8,7 +8,7 @@ import Graphics.X11.Xlib.Extras ( Event(AnyEvent,ButtonEvent), ev_subwindow, ev_
 import XMonadContrib.LayoutHooks
 
 import XMonad
-import Operations ( ModifyWindows(ModifyWindows) )
+import Operations ( UnDoLayout(UnDoLayout) )
 
 newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel
               -> (Display -> Window -> GC -> X ()) -> X () -> X Window
@@ -23,7 +23,7 @@ newDecoration decfor (Rectangle x y w h) th fg bg draw click = do
 
     let hook                                             :: SomeMessage -> X Bool
         hook sm  | Just e <- fromMessage sm              = handle_event e >> (trace $ "handle even " ++ show win ++ show e) >> return True
-                 | Just ModifyWindows == fromMessage sm  = io (destroyWindow d win) >> (trace $ "destroyed decoration " ++ show win) >> return False
+                 | Just UnDoLayout == fromMessage sm  = io (destroyWindow d win) >> (trace $ "destroyed decoration " ++ show win) >> return False
                  | otherwise                             = (trace $ "something weird " ++ show win) >> return True
 
         handle_event (ButtonEvent {ev_subwindow = thisw,ev_event_type = t})
