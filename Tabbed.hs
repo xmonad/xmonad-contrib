@@ -2,7 +2,7 @@
 -- |
 -- Module      :  XMonadContrib.Tabbed
 -- Copyright   :  (c) David Roundy
--- License     :  ??? GPL 2 ???
+-- License     :  BSD-style (see xmonad/LICENSE)
 -- 
 -- Maintainer  :  email@address.com
 -- Stability   :  unstable
