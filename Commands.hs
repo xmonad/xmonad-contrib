@@ -2,42 +2,25 @@
 -- |
 -- Module      :  XMonadContrib.Commands
 -- Copyright   :  (c) David Glasser 2007
+-- License     :  BSD3
 -- 
 -- Maintainer  :  glasser@mit.edu
 -- Stability   :  stable
 -- Portability :  portable
 --
------------------------------------------------------------------------------
---
 -- Allows you to run internal xmonad commands (X () actions) using
 -- a dmenu menu in addition to key bindings.  Requires dmenu and
 -- the Dmenu XMonadContrib module.
 --
--- To use, modify your Config.hs to:
---
---      import XMonadContrib.Commands
---
--- and add a keybinding to the runCommand action:
---
---     , ((modMask .|. controlMask, xK_y), runCommand)
---
--- and define the list commands:
---
---     commands = defaultCommands
---
--- Finally, add the following lines to Config.hs-boot:
--- 
---     import XMonad (X)
---     workspaces  :: Int
---     commands    :: [(String, X ())]
---
--- A popup menu of internal xmonad commands will appear.  You can
--- change the commands by changing the contents of the list
--- 'commands'.  (If you like it enough, you may even want to get rid
--- of many of your other key bindings!)
+-----------------------------------------------------------------------------
 
-module XMonadContrib.Commands where
-
+module XMonadContrib.Commands (
+                             -- * Usage
+                             -- $usage
+                             runCommand,
+                             defaultCommands
+                              ) where
+  
 import XMonad
 import Operations
 import {-# SOURCE #-} Config (workspaces, commands)
@@ -46,6 +29,32 @@ import XMonadContrib.Dmenu (dmenu)
 import qualified Data.Map as M
 import System.Exit
 import Data.Maybe
+
+-- $usage
+--
+-- To use, modify your Config.hs to:
+--
+-- >    import XMonadContrib.Commands
+--
+-- and add a keybinding to the runCommand action:
+--
+-- >    , ((modMask .|. controlMask, xK_y), runCommand)
+--
+-- and define the list commands:
+--
+-- >    commands = defaultCommands
+--
+-- Finally, add the following lines to Config.hs-boot:
+-- 
+-- >   import XMonad (X)
+-- >    workspaces  :: Int
+-- >    commands    :: [(String, X ())]
+--
+-- A popup menu of internal xmonad commands will appear.  You can
+-- change the commands by changing the contents of the list
+-- 'commands'.  (If you like it enough, you may even want to get rid
+-- of many of your other key bindings!)
+
 
 commandMap :: M.Map String (X ())
 commandMap = M.fromList commands
