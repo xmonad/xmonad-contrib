@@ -1,14 +1,22 @@
-module XMonadContrib.Tabbed ( tabbed ) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Tabbed
+-- Copyright   :  (c) David Roundy
+-- License     :  ??? GPL 2 ???
+-- 
+-- Maintainer  :  email@address.com
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- A tabbed layout for the Xmonad Window Manager 
+--
+-----------------------------------------------------------------------------
 
--- This module defines a tabbed layout.
-
--- You can use this module with the following in your config file:
-
--- import XMonadContrib.Tabbed
-
--- defaultLayouts :: [Layout]
--- defaultLayouts = [ tabbed
---                  , ... ]
+module XMonadContrib.Tabbed ( 
+                             -- * Usage:
+                             -- $usage
+                             tabbed
+                            ) where
 
 import Control.Monad ( forM, liftM )
 import Control.Monad.State ( gets )
@@ -20,6 +28,16 @@ import Operations ( focus )
 import qualified StackSet as W
 
 import XMonadContrib.NamedWindows
+
+-- $usage
+-- You can use this module with the following in your configuration file:
+--
+-- > import XMonadContrib.Tabbed
+--
+-- > defaultLayouts :: [Layout]
+-- > defaultLayouts = [ tabbed
+-- >                 , ... ]
+
 
 tabbed :: Layout
 tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
