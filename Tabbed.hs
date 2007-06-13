@@ -24,7 +24,7 @@ import Control.Monad.State ( gets )
 import Graphics.X11.Xlib
 import XMonad
 import XMonadContrib.Decoration
-import Operations ( focus )
+import Operations ( focus, initColor )
 import qualified StackSet as W
 
 import XMonadContrib.NamedWindows
@@ -44,17 +44,21 @@ tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
 
 dolay :: Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
 dolay sc (W.Stack w [] []) = return [(w,sc)]
-dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) =
-    do let ws = W.integrate s
+dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \d ->
+    do activecolor   <- io $ initColor d "#BBBBBB"
+       inactivecolor <- io $ initColor d "#888888"
+       textcolor     <- io $ initColor d "#000000"
+       bgcolor       <- io $ initColor d "#000000"
+       let ws = W.integrate s
            ts = gentabs x y wid (length ws)
            tws = zip ts ws
-           maketab (t,w) = newDecoration w t 1 0x000000 0x777777 (drawtab t w) (focus w)
+           maketab (t,w) = newDecoration w t 1 bgcolor activecolor (drawtab t w) (focus w)
            drawtab r@(Rectangle _ _ wt ht) w d w' gc =
                do nw <- getName w
-                  tabcolor <- (maybe 0x888888 (\focusw -> if focusw == w then 0xBBBBBB else 0x888888) . W.peek) `liftM` gets windowset
+                  tabcolor <- (maybe inactivecolor (\focusw -> if focusw == w then activecolor else inactivecolor) . W.peek) `liftM` gets windowset
                   io $ setForeground d gc tabcolor
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
-                  io $ setForeground d gc 0x000000
+                  io $ setForeground d gc textcolor
                   centerText d w' gc r (show nw)
            centerText d w' gc (Rectangle _ _ wt ht) name =
                do font <- io (fontFromGC d gc >>= queryFont d)
