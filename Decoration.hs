@@ -20,12 +20,10 @@ newDecoration decfor (Rectangle x y w h) th fg bg draw click = do
     io $ selectInput d win $ exposureMask .|. buttonPressMask
     io $ mapWindow d win
 
-    trace $ "created decoration " ++ show win
-
-    let hook                                             :: SomeMessage -> X Bool
-        hook sm  | Just e <- fromMessage sm              = handle_event e >> (trace $ "handle even " ++ show win ++ show e) >> return True
-                 | Just UnDoLayout == fromMessage sm  = io (destroyWindow d win) >> (trace $ "destroyed decoration " ++ show win) >> return False
-                 | otherwise                             = (trace $ "something weird " ++ show win) >> return True
+    let hook                                          :: SomeMessage -> X Bool
+        hook sm  | Just e <- fromMessage sm           = handle_event e >> return True
+                 | Just UnDoLayout == fromMessage sm  = io (destroyWindow d win) >> return False
+                 | otherwise                          = return True
 
         handle_event (ButtonEvent {ev_subwindow = thisw,ev_event_type = t})
             | t == buttonPress && thisw == win        = click
