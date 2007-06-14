@@ -5,25 +5,16 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  arcatan@kapsi.fi
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- Find an empty workspace in XMonad.
 --
 -----------------------------------------------------------------------------
---
--- Find an empty workspace in xmonad.
---
--- To use, modify your Config.hs to:
---
---     import XMonadContrib.FindEmptyWorkspace
---
--- and add a keybinding:
---
---     , ((modMask,                xK_m    ), viewEmptyWorkspace)
---     , ((modMask .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
---
--- Now you can jump to an empty workspace with mod-m. Mod-shift-m will
--- tag the current window to an empty workspace and view it.
---
 
 module XMonadContrib.FindEmptyWorkspace (
+    -- * Usage
+    -- $usage
     viewEmptyWorkspace, tagToEmptyWorkspace
   ) where
 
@@ -35,6 +26,21 @@ import XMonad
 import StackSet
 
 import qualified Operations as O
+
+-- $usage
+-- 
+-- To use, modify your Config.hs to:
+--
+-- >   import XMonadContrib.FindEmptyWorkspace
+--
+-- and add a keybinding:
+--
+--  >   , ((modMask,                xK_m    ), viewEmptyWorkspace)
+--  >   , ((modMask .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
+--
+-- Now you can jump to an empty workspace with mod-m. Mod-shift-m will
+-- tag the current window to an empty workspace and view it.
+
 
 -- | Find the first hidden empty workspace in a StackSet. Returns
 -- Nothing if all workspaces are in use. Function searches currently
