@@ -1,7 +1,26 @@
-module XMonadContrib.NamedWindows ( NamedWindow, getName, withNamedWindow, unName ) where
-
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.NamedWindows
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
 -- This module allows you to associate the X titles of windows with
--- them.  See XMonadContrib.Mosaic for an example of its use.
+-- them.
+--
+-----------------------------------------------------------------------------
+
+module XMonadContrib.NamedWindows (
+                                   -- * Usage
+                                   -- $usage
+                                   NamedWindow, 
+                                   getName, 
+                                   withNamedWindow, 
+                                   unName 
+                                  ) where
 
 import Control.Monad.Reader ( asks )
 import Control.Monad.State ( gets )
@@ -12,6 +31,10 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras ( fetchName )
 
 import XMonad
+
+-- $usage
+--   See "XMonadContrib.Mosaic" for an example of its use.
+
 
 data NamedWindow = NW !String !Window
 instance Eq NamedWindow where
