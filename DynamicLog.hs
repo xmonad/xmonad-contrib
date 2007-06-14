@@ -1,20 +1,28 @@
--- 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.DynamicLog
+-- Copyright   :  (c) Don Stewart <dons@cse.unsw.edu.au>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  Don Stewart <dons@cse.unsw.edu.au>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
 -- DynamicLog
 --
 -- Log events in:
 --
---      1 2 [3] 4 8
+-- >     1 2 [3] 4 8
 --
 -- format. suitable to pipe into dzen.
 --
--- To use, set:
---
---      import XMonadContrib.DynamicLog
---      logHook = dynamicLog
---
--- Don Stewart
+-----------------------------------------------------------------------------
 
-module XMonadContrib.DynamicLog (dynamicLog, dynamicLogXinerama) where
+module XMonadContrib.DynamicLog (
+                                 -- * Usage
+                                 -- $usage 
+                                 dynamicLog, dynamicLogXinerama
+                                ) where
 
 -- 
 -- Useful imports
@@ -24,16 +32,23 @@ import Data.Maybe ( isJust )
 import Data.List
 import qualified StackSet as S
 
+-- $usage 
 --
+-- To use, set:
+--
+-- >    import XMonadContrib.DynamicLog
+-- >    logHook = dynamicLog
+
+
+-- |
 -- Perform an arbitrary action on each state change.
 -- Examples include:
 --      * do nothing
 --      * log the state to stdout
-
 --
 -- An example logger, print a status bar output to dzen, in the form:
 --
---  1 2 [3] 4 7
+-- > 1 2 [3] 4 7
 --  
 
 dynamicLog :: X ()
@@ -49,10 +64,10 @@ dynamicLog = withWindowSet $ io . putStrLn . ppr
                    | isJust (S.stack w)      = " " ++ pprTag w ++ " "
                    | otherwise               = ""
 
---
+-- |
 -- Workspace logger with a format designed for Xinerama:
 --
--- [1 9 3] 2 7
+-- > [1 9 3] 2 7
 --
 -- where 1, 9, and 3 are the workspaces on screens 1, 2 and 3, respectively,
 -- and 2 and 7 are non-visible, non-empty workspaces
