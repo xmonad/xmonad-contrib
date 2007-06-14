@@ -1,13 +1,34 @@
-module XMonadContrib.BackCompat (forM, forM_) where
-
-{- This file will contain all the things GHC 6.4 users need to compile xmonad.
- - Currently, the steps to get compilation are:
- - add the following line to StackSet.hs, Operations.hs, and Main.hs:
- - import XMonadContrib.BackCompat
- -}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.BackCompat
+-- Copyright   :  (c) daniel@wagner-home.com
+-- License     :  BSD-style (see xmonad/LICENSE)
+-- 
+-- Maintainer  :  daniel@wagner-home.com
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- A module that provides back compatibility with GHC 6.4
+--
+-----------------------------------------------------------------------------
+module XMonadContrib.BackCompat (
+                                 -- * Usage
+                                 -- $usage
+                                 forM, forM_
+                                ) where
 
 import Data.Map (Map, fromList)
 import GHC.Read
+
+{- $usage
+ 
+This file will contain all the things GHC 6.4 users need to compile xmonad.
+Currently, the steps to get compilation are:
+add the following line to StackSet.hs, Operations.hs, and Main.hs:
+
+> import XMonadContrib.BackCompat
+
+-}
 
 forM_ :: (Monad m) => [a] -> (a -> m b) -> m ()
 forM_ = flip mapM_
