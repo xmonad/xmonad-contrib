@@ -1,12 +1,22 @@
-module XMonadContrib.RotView ( rotView ) where
-
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.RotView
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
 -- Provides bindings to cycle through non-empty workspaces.
+--
+-----------------------------------------------------------------------------
 
--- To use:
--- import XMonadContrib.RotView
-
---    , ((modMask .|. shiftMask, xK_Right), rotView True)
---    , ((modMask .|. shiftMask, xK_Left), rotView False)
+module XMonadContrib.RotView (
+                              -- * Usage
+                              -- $usage
+                              rotView
+                             ) where
 
 import Control.Monad.State ( gets )
 import Data.List ( sortBy )
@@ -15,6 +25,14 @@ import Data.Maybe ( listToMaybe, isJust )
 import XMonad
 import StackSet hiding (filter)
 import qualified Operations as O
+
+-- $usage
+-- You can use this module with the following in your Config.hs file:
+-- 
+-- > import XMonadContrib.RotView
+--
+-- >   , ((modMask .|. shiftMask, xK_Right), rotView True)
+-- >   , ((modMask .|. shiftMask, xK_Left), rotView False)
 
 rotView :: Bool -> X ()
 rotView b = do
