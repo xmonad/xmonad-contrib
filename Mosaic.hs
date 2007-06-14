@@ -323,9 +323,7 @@ otherDirection :: CutDirection -> CutDirection
 otherDirection Vertical = Horizontal
 otherDirection Horizontal = Vertical
 
-data Mosaic a where
-    M :: [Mosaic a] -> Mosaic a
-    OM :: a -> Mosaic a
+data Mosaic a = M [Mosaic a] | OM a
           deriving ( Show )
 
 instance Functor Mosaic where
