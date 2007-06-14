@@ -1,4 +1,22 @@
-module XMonadContrib.HintedTile (tall, wide) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.HintedTile
+-- Copyright   :  (c) Peter De Wachter <pdewacht@gmail.com>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- A gapless tiled layout that attempts to obey window size hints, 
+-- rather than simply ignoring them.
+--
+-----------------------------------------------------------------------------
+
+module XMonadContrib.HintedTile (
+                                 -- * Usage
+                                 -- $usage
+                                 tall, wide) where
 
 import XMonad
 import Operations (Resize(..), IncMasterN(..), applySizeHints)
@@ -7,6 +25,11 @@ import {-# SOURCE #-} Config (borderWidth)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import Control.Monad
+
+-- $usage
+-- You can use this module with the following in your Config.hs file:
+--
+-- > import XMonadContrib.HintedTile
 
 -- this sucks
 addBorder, substractBorder :: (Dimension, Dimension) -> (Dimension, Dimension)
