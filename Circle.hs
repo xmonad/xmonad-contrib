@@ -1,8 +1,31 @@
-module XMonadContrib.Circle (circle) where -- actually it's an ellipse
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Circle
+-- Copyright   :  (c) Peter De Wachter
+-- License     :  BSD-style (see LICENSE)
+-- 
+-- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- Circle is an elliptical, overlapping layout, by Peter De Wachter
+--
+-----------------------------------------------------------------------------
+
+module XMonadContrib.Circle (
+                             -- * Usage
+                             -- $usage
+                             circle
+                            ) where -- actually it's an ellipse
 
 import Graphics.X11.Xlib
 import XMonad
 import StackSet (integrate)
+
+-- $usage
+-- You can use this module with the following in your Config.hs file:
+--
+-- > import XMonadContrib.Circle
 
 circle :: Layout
 circle = Layout { doLayout = \r -> circleLayout r . integrate,
