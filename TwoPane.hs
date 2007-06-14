@@ -1,18 +1,40 @@
--- Maintainer: Spencer Janssen <sjanssen@cse.unl.edu>
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.TwoPane
+-- Copyright   :  (c) JSpencer Janssen <sjanssen@cse.unl.edu>
+-- License     :  BSD3-style (see LICENSE)
+-- 
+-- Maintainer  :  Spencer Janssen <sjanssen@cse.unl.edu>
+-- Stability   :  unstable
+-- Portability :  unportable
 --
 -- A layout that splits the screen horizontally and shows two windows.  The
 -- left window is always the master window, and the right is either the
 -- currently focused window or the second window in layout order.
 --
--- To use this layout, 'import XMonadContrib.TwoPane' and add
--- 'twoPane defaultDelta (1%2)' to the list of layouts
+-----------------------------------------------------------------------------
 
-module XMonadContrib.TwoPane where
+module XMonadContrib.TwoPane (
+                              -- * Usage
+                              -- $usage
+                              twoPane
+                             ) where
 
 import XMonad
 import Operations
 import qualified StackSet as W
 import Control.Monad.State (gets)
+
+
+-- $usage
+--
+-- You can use this module with the following in your Config.hs file:
+--
+-- > import XMonadContrib.TwoPane
+--
+--  and add, to the list of layouts:
+--
+-- > twoPane defaultDelta (1%2)
 
 twoPane :: Rational -> Rational -> Layout
 twoPane delta split = Layout { doLayout = \r -> arrange r . W.integrate, modifyLayout = message }
