@@ -1,10 +1,21 @@
--- Maintainer: Spencer Janssen <sjanssen@cse.unl.edu>
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.WorkspaceDir
+-- Copyright   :  (c) 2007  Spencer Janssen <sjanssen@cse.unl.edu>
+-- License     :  BSD3-style (see LICENSE)
+-- 
+-- Maintainer  :  Spencer Janssen <sjanssen@cse.unl.edu>
+-- Stability   :  unstable
+-- Portability :  unportable
 --
 -- This is an artificial dependency on all the XMonadContrib.* modules.  It is
 -- intended to help xmonad hackers ensure that contrib modules build after API
 -- changes.
 --
 -- Please add new modules to this list (in alphabetical order).
+--
+-----------------------------------------------------------------------------
+
 
 module XMonadContrib.MetaModule () where
 
