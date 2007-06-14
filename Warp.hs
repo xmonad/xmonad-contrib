@@ -1,19 +1,24 @@
-module XMonadContrib.Warp where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Warp
+-- Copyright   :  (c) daniel@wagner-home.com
+-- License     :  BSD3-style (see LICENSE)
+-- 
+-- Maintainer  :  daniel@wagner-home.com
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- This can be used to make a keybinding that warps the pointer to a given
+-- window or screen.
+--
+-----------------------------------------------------------------------------
 
-{- Usage:
- - This can be used to make a keybinding that warps the pointer to a given
- - window or screen.  For example, I've added the following keybindings to
- - my Config.hs:
- - 
- -   , ((modMask,   xK_z     ), warpToWindow (1%2) (1%2)) -- @@ Move pointer to currently focused window
- - 
- - -- mod-ctrl-{w,e,r} @@ Move mouse pointer to screen 1, 2, or 3
- -    ++
- -    [((modMask .|. controlMask, key), warpToScreen sc (1%2) (1%2))
- -        | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
- -
- - Note that warping to a particular screen may change the focus.
- -}
+module XMonadContrib.Warp (
+                           -- * Usage
+                           -- $usage
+                           warpToScreen, 
+                           warpToWindow
+                          ) where
 
 import Data.Ratio
 import Data.Maybe
@@ -22,6 +27,21 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import Operations
 import XMonad
+
+{- $usage
+This can be used to make a keybinding that warps the pointer to a given
+window or screen.  For example, I've added the following keybindings to
+my Config.hs:
+
+> , ((modMask,   xK_z     ), warpToWindow (1%2) (1%2)) -- @@ Move pointer to currently focused window
+> 
+>-- mod-ctrl-{w,e,r} @@ Move mouse pointer to screen 1, 2, or 3
+>   
+>   [((modMask .|. controlMask, key), warpToScreen sc (1%2) (1%2))
+>       | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
+
+Note that warping to a particular screen may change the focus.
+-}
 
 fraction :: (Integral a, Integral b) => Rational -> a -> b
 fraction f x = floor (f * fromIntegral x)
