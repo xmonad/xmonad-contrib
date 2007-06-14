@@ -1,30 +1,25 @@
 {-# OPTIONS -fglasgow-exts #-}
-module XMonadContrib.Mosaic ( mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,
-                              tallWindow, wideWindow, flexibleWindow,
-                              getName, withNamedWindow ) where
-
--- This module defines a "mosaic" layout, which tries to give each window a
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Mosaic
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- This module defines a \"mosaic\" layout, which tries to give each window a
 -- user-configurable relative area, while also trying to give them aspect
--- ratios configurable at run-time by the user.  See comments below for the
--- key bindings.
-
--- You can use this module with the following in your config file:
-
--- import XMonadContrib.Mosaic
-
--- defaultLayouts :: [Layout]
--- defaultLayouts = [ mosaic 0.25 0.5 M.empty M.empty, full,
---                    tall defaultDelta (1%2), wide defaultDelta (1%2) ]
-
--- In the key-bindings, do something like:
-
---     , ((controlMask .|. modMask .|. shiftMask, xK_h), withNamedWindow (sendMessage . tallWindow))
---     , ((controlMask .|. modMask .|. shiftMask, xK_l), withNamedWindow (sendMessage . wideWindow))
---     , ((modMask .|. shiftMask, xK_h     ), withNamedWindow (sendMessage . shrinkWindow))
---     , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
---     , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
---     , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . myclearWindow))
---     , ((controlMask .|. modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . flexibleWindow))
+-- ratios configurable at run-time by the user.
+--
+-----------------------------------------------------------------------------
+module XMonadContrib.Mosaic ( 
+                             -- * Usage
+                             -- $usage
+                             mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,
+                             tallWindow, wideWindow, flexibleWindow,
+                             getName, withNamedWindow ) where
 
 import Control.Monad.State ( State, runState, put, get )
 import System.Random ( StdGen, Random, mkStdGen, randomR )
@@ -43,6 +38,29 @@ import XMonadContrib.NamedWindows
 import XMonadContrib.Anneal
 
 import Debug.Trace
+
+-- $usage
+--
+-- Key bindings:
+-- 
+-- You can use this module with the following in your config file:
+--
+-- > import XMonadContrib.Mosaic
+--
+-- > defaultLayouts :: [Layout]
+-- > defaultLayouts = [ mosaic 0.25 0.5 M.empty M.empty, full,
+-- >                    tall defaultDelta (1%2), wide defaultDelta (1%2) ]
+--
+-- In the key-bindings, do something like:
+--
+-- >   , ((controlMask .|. modMask .|. shiftMask, xK_h), withNamedWindow (sendMessage . tallWindow))
+-- >   , ((controlMask .|. modMask .|. shiftMask, xK_l), withNamedWindow (sendMessage . wideWindow))
+-- >   , ((modMask .|. shiftMask, xK_h     ), withNamedWindow (sendMessage . shrinkWindow))
+-- >   , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
+-- >   , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
+-- >   , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . myclearWindow))
+-- >   , ((controlMask .|. modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . flexibleWindow))
+-- 
 
 data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow
                   | SquareWindow NamedWindow | ClearWindow NamedWindow
