@@ -1,12 +1,37 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Combo
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD-style (see LICENSE)
+-- 
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
 -- A layout that combines multiple layouts.
+--
+-----------------------------------------------------------------------------
 
--- To use this layout, 'import XMonadContrib.Combo' and add something like
--- 'combo [(full,1),(tabbed,1)] (twoPane 0.03 0.5)' to your defaultLayouts.
-
-module XMonadContrib.Combo where
+module XMonadContrib.Combo (
+                            -- * Usage
+                            -- $usage 
+                            combo
+                           ) where
 
 import XMonad
 import StackSet ( integrate, differentiate )
+
+-- $usage
+--
+-- To use this layout write, in your Config.hs:
+-- 
+-- > import XMonadContrib.Combo 
+-- 
+-- and add something like
+-- 
+-- > combo [(full,1),(tabbed,1)] (twoPane 0.03 0.5)
+--
+-- to your defaultLayouts.
 
 combo :: [(Layout, Int)] -> Layout -> Layout
 combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
