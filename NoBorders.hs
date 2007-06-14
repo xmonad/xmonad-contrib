@@ -1,15 +1,26 @@
-module XMonadContrib.NoBorders ( noBorders, withBorder ) where
-
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.NoBorders
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
 -- Make a given layout display without borders.  This is useful for
 -- full-screen or tabbed layouts, where you don't really want to waste a
 -- couple of pixels of real estate just to inform yourself that the visible
 -- window has focus.
+--
+-----------------------------------------------------------------------------
 
--- Usage:
-
--- import XMonadContrib.NoBorders
-
--- layouts = [ noBorders full, tall, ... ]
+module XMonadContrib.NoBorders (
+                                -- * Usage
+                                -- $usage
+                                noBorders, 
+                                withBorder 
+                               ) where
 
 import Control.Monad.State ( gets )
 import Graphics.X11.Xlib
@@ -18,6 +29,13 @@ import XMonad
 import Operations ( UnDoLayout(UnDoLayout) )
 import qualified StackSet as W
 import {-# SOURCE #-} Config (borderWidth)
+
+-- $usage
+-- You can use this module with the following in your Config.hs file:
+--
+-- > import XMonadContrib.NoBorders
+--
+-- > layouts = [ noBorders full, tall, ... ]
 
 noBorders :: Layout -> Layout
 noBorders = withBorder 0
