@@ -1,5 +1,23 @@
 {-# OPTIONS -fglasgow-exts #-}
-module XMonadContrib.Decoration ( newDecoration ) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Decoration
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD-style (see LICENSE)
+-- 
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- A module to be used to easily define decorations.
+--
+-----------------------------------------------------------------------------
+
+module XMonadContrib.Decoration (
+                                 -- * Usage
+                                 -- $usage 
+                                 newDecoration 
+                                ) where
 
 import Data.Bits ( (.|.) )
 import Control.Monad.Reader ( asks )
@@ -10,6 +28,10 @@ import XMonadContrib.LayoutHooks
 
 import XMonad
 import Operations ( UnDoLayout(UnDoLayout) )
+
+-- $usage
+-- You can use this module for writing other extensions.
+-- See, for instance, "XMonadContrib.Tabbed"
 
 newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel
               -> (Display -> Window -> GC -> X ()) -> X () -> X Window
