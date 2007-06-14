@@ -13,3 +13,8 @@ Haskell code contributed to this repo should live under the
 name space. For example:
 
     XMonadContrib.Mosaic
+
+------------------------------------------------------------------------
+
+Code submitted to the contrib repo is licensed under the same license as
+xmonad itself, with copyright held by the authors.
