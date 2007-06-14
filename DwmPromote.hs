@@ -5,29 +5,36 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  arcatan@kapsi.fi
---
------------------------------------------------------------------------------
+-- Stability   :  unstable
+-- Portability :  unportable
 --
 -- Dwm-like swap function for xmonad.
---
+-- 
 -- Swaps focused window with the master window. If focus is in the
 -- master, swap it with the next window in the stack. Focus stays in the
 -- master.
 --
--- To use, modify your Config.hs to:
---
---      import XMonadContrib.DwmPromote
---
--- and add a keybinding or substitute promote with dwmpromote:
---
---     , ((modMask,               xK_Return), dwmpromote)
---
+-----------------------------------------------------------------------------
 
-module XMonadContrib.DwmPromote (dwmpromote) where
+module XMonadContrib.DwmPromote (
+                                 -- * Usage
+                                 -- $usage 
+                                 dwmpromote
+                                ) where
 
 import XMonad
 import Operations (windows)
 import StackSet
+
+-- $usage
+--
+-- To use, modify your Config.hs to:
+--
+-- >    import XMonadContrib.DwmPromote
+--
+-- and add a keybinding or substitute promote with dwmpromote:
+--
+-- >   , ((modMask,               xK_Return), dwmpromote)
 
 dwmpromote :: X ()
 dwmpromote = windows swap
