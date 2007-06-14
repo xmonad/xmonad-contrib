@@ -1,19 +1,44 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Square
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- License     :  BSD3-style (see LICENSE)
+-- 
+-- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
 -- A layout that splits the screen into a square area and the rest of the
 -- screen.
+-- This is probably only ever useful in combination with 
+-- "XMonadContrib.Combo".
+-- It sticks one window in a square region, and makes the rest
+-- of the windows live with what's left (in a full-screen sense).
+--
+-----------------------------------------------------------------------------
 
-
--- An example layout using square to make the very last area square:
-
---  , combo [(tabbed,3),(tabbed,30),(tabbed,1),(tabbed,1)]
---              (combo [(twoPane 0.03 0.2,1)
---                     ,(combo [(twoPane 0.03 0.8,1),(square,1)]
---                                 (mirror $ twoPane 0.03 0.85),1)] (twoPane 0.03 0.5) )
-
-module XMonadContrib.Square ( square ) where
+module XMonadContrib.Square (
+                             -- * Usage
+                             -- $usage
+                             square ) where
 
 import XMonad
 import Graphics.X11.Xlib
 import StackSet ( integrate )
+
+-- $usage
+-- You can use this module with the following in your Config.hs file:
+--
+-- >   import XMonadContrib.Spiral
+--
+-- An example layout using square together with "XMonadContrib.Combo"
+-- to make the very last area square:
+--
+-- > , combo [(tabbed,3),(tabbed,30),(tabbed,1),(tabbed,1)]
+-- >             (combo [(twoPane 0.03 0.2,1)
+-- >                    ,(combo [(twoPane 0.03 0.8,1),(square,1)]
+-- >                                (mirror $ twoPane 0.03 0.85),1)] (twoPane 0.03 0.5) )
+
 
 square :: Layout
 square = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
