@@ -1,4 +1,22 @@
-module XMonadContrib.Spiral (spiral) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.SimpleDate
+-- Copyright   :  (c) Joe Thornber <joe.thornber@gmail.com>
+-- License     :  BSD3-style (see LICENSE)
+-- 
+-- Maintainer  :  Joe Thornber <joe.thornber@gmail.com>
+-- Stability   :  stable
+-- Portability :  portable
+--
+-- Spiral adds a spiral tiling layout
+--
+-----------------------------------------------------------------------------
+
+module XMonadContrib.Spiral (
+                             -- * Usage
+                             -- $usage
+                             spiral
+                            ) where
 
 import Graphics.X11.Xlib
 import Operations
@@ -6,16 +24,17 @@ import Data.Ratio
 import XMonad
 import qualified StackSet as W
 
+-- $usage
+-- You can use this module with the following in your Config.hs file:
 --
--- Spiral layout
+-- >   import XMonadContrib.Spiral
 --
--- eg,
---    defaultLayouts :: [Layout]
---    defaultLayouts = [ full,
---                       tall defaultWindowsInMaster defaultDelta (1%2),
---                       wide defaultWindowsInMaster defaultDelta (1%2),
---                       spiral (1 % 1) ]
---
+-- >   defaultLayouts :: [Layout]
+-- >   defaultLayouts = [ full,
+-- >                      tall defaultWindowsInMaster defaultDelta (1%2),
+-- >                      wide defaultWindowsInMaster defaultDelta (1%2),
+-- >                      spiral (1 % 1) ]
+
 fibs :: [Integer]
 fibs = 1 : 1 : (zipWith (+) fibs (tail fibs))
 
