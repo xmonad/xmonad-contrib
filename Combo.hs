@@ -20,6 +20,7 @@ module XMonadContrib.Combo (
 
 import XMonad
 import StackSet ( integrate, differentiate )
+import Operations ( UnDoLayout(UnDoLayout) )
 
 -- $usage
 --
@@ -47,7 +48,15 @@ combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modify
                                                       (map differentiate $
                                                        wss (take (length rs) $ map snd origls) origws)
                  return $ concat out
+          message m | Just UnDoLayout <- fromMessage m =
+                         do (super':ls') <- broadcastPrivate UnDoLayout (super:map fst origls)
+                            return $ Just $ combo (zip ls' $ map snd origls) super'
           message m = do msuper' <- modifyLayout super m
                          case msuper' of
                            Nothing -> return Nothing
                            Just super' -> return $ Just $ combo origls super'
+
+broadcastPrivate :: Message a => a -> [Layout] -> X [Layout]
+broadcastPrivate a ol = mapM f ol
+    where f l = do ml' <- modifyLayout l (SomeMessage a) `catchX` return (Just l)
+                   return $ maybe l id ml'
