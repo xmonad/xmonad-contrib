@@ -15,7 +15,8 @@
 module XMonadContrib.Tabbed ( 
                              -- * Usage:
                              -- $usage
-                             tabbed
+                              tabbed
+                            , Shrinker, shrinkText
                             ) where
 
 import Control.Monad ( forM, liftM )
@@ -35,16 +36,16 @@ import XMonadContrib.NamedWindows
 -- > import XMonadContrib.Tabbed
 --
 -- > defaultLayouts :: [Layout]
--- > defaultLayouts = [ tabbed
+-- > defaultLayouts = [ tabbed shrinkText
 -- >                 , ... ]
 
 
-tabbed :: Layout
-tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
+tabbed :: Shrinker -> Layout
+tabbed shrinkT =  Layout { doLayout = dolay shrinkT, modifyLayout = const (return Nothing) }
 
-dolay :: Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
-dolay sc (W.Stack w [] []) = return [(w,sc)]
-dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \dpy ->
+dolay :: Shrinker -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
+dolay _ sc (W.Stack w [] []) = return [(w,sc)]
+dolay shr sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \dpy ->
     do activecolor   <- io $ initColor dpy "#BBBBBB"
        inactivecolor <- io $ initColor dpy "#888888"
        textcolor     <- io $ initColor dpy "#000000"
@@ -64,12 +65,27 @@ dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \dpy ->
                do fontst <- io $ loadQueryFont d "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
                   io $ setFont d gc (fontFromFontStruct fontst)
                   let (_,asc,_,_) = textExtents fontst name
-                      width = textWidth fontst name
+                      name' = shrinkWhile shr (\n -> textWidth fontst n >
+                                                     fromIntegral wt - fromIntegral (ht `div` 2)) name
+                      width = textWidth fontst name'
                   io $ drawString d w' gc
                          (fromIntegral (wt `div` 2) - fromIntegral (width `div` 2))
-                         (fromIntegral ht - fromIntegral (asc `div` 2)) name
+                         (fromIntegral ht - fromIntegral (asc `div` 2)) name'
        forM tws maketab
        return [ (w,shrink sc) ]
+
+type Shrinker = String -> [String]
+
+shrinkWhile :: Shrinker -> (String -> Bool) -> String -> String
+shrinkWhile sh p x = sw $ sh x
+    where sw [n] = n
+          sw [] = ""
+          sw (n:ns) | p n = sw ns
+                    | otherwise = n
+
+shrinkText :: Shrinker
+shrinkText "" = [""]
+shrinkText cs = cs : shrinkText (init cs)
 
 shrink :: Rectangle -> Rectangle
 shrink (Rectangle x y w h) = Rectangle x (y+tabsize) w (h-tabsize)
