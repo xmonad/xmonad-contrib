@@ -44,32 +44,30 @@ tabbed =  Layout { doLayout = dolay, modifyLayout = const (return Nothing) }
 
 dolay :: Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
 dolay sc (W.Stack w [] []) = return [(w,sc)]
-dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \d ->
-    do activecolor   <- io $ initColor d "#BBBBBB"
-       inactivecolor <- io $ initColor d "#888888"
-       textcolor     <- io $ initColor d "#000000"
-       bgcolor       <- io $ initColor d "#000000"
+dolay sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \dpy ->
+    do activecolor   <- io $ initColor dpy "#BBBBBB"
+       inactivecolor <- io $ initColor dpy "#888888"
+       textcolor     <- io $ initColor dpy "#000000"
+       bgcolor       <- io $ initColor dpy "#000000"
        let ws = W.integrate s
            ts = gentabs x y wid (length ws)
            tws = zip ts ws
-           maketab (t,w) = newDecoration w t 1 bgcolor activecolor (drawtab t w) (focus w)
-           drawtab r@(Rectangle _ _ wt ht) w d w' gc =
-               do nw <- getName w
-                  tabcolor <- (maybe inactivecolor (\focusw -> if focusw == w then activecolor else inactivecolor) . W.peek) `liftM` gets windowset
+           maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor (drawtab t ow) (focus ow)
+           drawtab r@(Rectangle _ _ wt ht) ow d w' gc =
+               do nw <- getName ow
+                  tabcolor <- (maybe inactivecolor (\focusw -> if focusw == ow then activecolor else inactivecolor) . W.peek) `liftM` gets windowset
                   io $ setForeground d gc tabcolor
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
                   io $ setForeground d gc textcolor
                   centerText d w' gc r (show nw)
            centerText d w' gc (Rectangle _ _ wt ht) name =
-               do font <- io (fontFromGC d gc >>= queryFont d)
-                  -- let (_,namew,nameh,_) = textExtents font name -- textExtents causes a crash!
-                  -- let nameh = ht `div` 2
-                  --     namew = textWidth font name -- textWidth also causes a crash!
-                  let nameh = ht - 6
-                      namew = wt - 10
+               do fontst <- io $ loadQueryFont d "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
+                  io $ setFont d gc (fontFromFontStruct fontst)
+                  let (_,asc,_,_) = textExtents fontst name
+                      width = textWidth fontst name
                   io $ drawString d w' gc
-                         (fromIntegral (wt `div` 2) - fromIntegral (namew `div` 2))
-                         (fromIntegral (ht `div` 2) + fromIntegral (nameh `div` 2)) name
+                         (fromIntegral (wt `div` 2) - fromIntegral (width `div` 2))
+                         (fromIntegral ht - fromIntegral (asc `div` 2)) name
        forM tws maketab
        return [ (w,shrink sc) ]
 
