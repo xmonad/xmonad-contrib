@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.TwoPane
--- Copyright   :  (c) JSpencer Janssen <sjanssen@cse.unl.edu>
+-- Copyright   :  (c) Spencer Janssen <sjanssen@cse.unl.edu>
 -- License     :  BSD3-style (see LICENSE)
 -- 
 -- Maintainer  :  Spencer Janssen <sjanssen@cse.unl.edu>
