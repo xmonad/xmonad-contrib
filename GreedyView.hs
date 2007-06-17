@@ -1,7 +1,7 @@
 {-# OPTIONS -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.FindEmptyWorkspace
+-- Module      :  XMonadContrib.GreedyView
 -- Copyright   :  (c) Spencer Janssen <sjanssen@cse.unl.edu>
 -- License     :  BSD3-style (see LICENSE)
 --
