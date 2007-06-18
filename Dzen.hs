@@ -1,3 +1,17 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Dzen
+-- Copyright   :  (c) glasser@mit.edu
+-- License     :  BSD
+--
+-- Maintainer  :  glasser@mit.edu
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- Handy wrapper for dzen.
+--
+-----------------------------------------------------------------------------
+
 module XMonadContrib.Dzen (dzen, dzenScreen) where
 
 import System.Posix.Process (forkProcess, getProcessStatus, createSession)
