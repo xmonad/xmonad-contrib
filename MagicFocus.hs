@@ -3,6 +3,7 @@ module XMonadContrib.MagicFocus (magicFocus) where
 import XMonad
 import StackSet
 
+magicFocus :: Layout -> Layout
 magicFocus l = l { doLayout = \s -> (doLayout l) s . swap
                  , modifyLayout = \x -> fmap magicFocus `fmap` modifyLayout l x }
 
