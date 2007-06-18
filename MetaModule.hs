@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.WorkspaceDir
+-- Module      :  XMonadContrib.MetaModule
 -- Copyright   :  (c) 2007  Spencer Janssen <sjanssen@cse.unl.edu>
 -- License     :  BSD3-style (see LICENSE)
 -- 
