@@ -38,8 +38,9 @@ circleLayout r (w:ws) = return $ (w, center r) : (zip ws sats)
 
 center :: Rectangle -> Rectangle
 center (Rectangle sx sy sw sh) = Rectangle x y w h
-    where w = round ((fromIntegral sw / sqrt 2) :: Double)
-          h = round ((fromIntegral sh / sqrt 2) :: Double)
+    where s = sqrt 2
+          w = round ((fromIntegral sw / s) :: Double)
+          h = round ((fromIntegral sh / s) :: Double)
           x = sx + fromIntegral (sw - w) `div` 2
           y = sy + fromIntegral (sh - h) `div` 2
 
