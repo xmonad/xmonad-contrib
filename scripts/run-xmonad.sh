@@ -8,7 +8,7 @@ FG='#a8a3f7'
 BG='#3f3c6d' 
 FONT="-xos4-terminus-medium-r-normal--16-160-72-72-c-80-iso8859-1"
 
-PATH=/home/dons/bin:$PATH
+PATH=${HOME}/bin:$PATH
 
 # simple xmonad use, no interactive status bar.
 #
