@@ -21,6 +21,7 @@ module XMonadContrib.RotView (
 import Control.Monad.State ( gets )
 import Data.List ( sortBy )
 import Data.Maybe ( listToMaybe, isJust )
+import Data.Ord ( comparing )
 
 import XMonad
 import StackSet hiding (filter)
@@ -38,7 +39,7 @@ rotView :: Bool -> X ()
 rotView b = do
     ws <- gets windowset
     let m = tag . workspace . current $ ws
-        sortWs = sortBy (\x y -> compare (tag x) (tag y))
+        sortWs = sortBy (comparing tag)
         pivoted = uncurry (flip (++)) . span ((< m) . tag) . sortWs . hidden $ ws
         nextws = listToMaybe . filter (isJust . stack) . (if b then id else reverse) $ pivoted
     whenJust nextws (O.view . tag)
