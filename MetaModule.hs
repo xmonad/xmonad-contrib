@@ -19,6 +19,7 @@
 
 module XMonadContrib.MetaModule () where
 
+import XMonadContrib.Accordion ()
 import XMonadContrib.Anneal ()
 -- commented because of conflicts with 6.6's instances import XMonadContrib.BackCompat ()
 import XMonadContrib.Circle ()
