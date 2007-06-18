@@ -1,10 +1,31 @@
-module XMonadContrib.Accordion (accordion) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Accordion
+-- Copyright   :  (c) glasser@mit.edu
+-- License     :  BSD
+--
+-- Maintainer  :  glasser@mit.edu
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- Layout that puts non-focused windows in ribbons at the top and bottom
+-- of the screen.
+-----------------------------------------------------------------------------
+
+module XMonadContrib.Accordion (
+    -- * Usage
+    -- $ usage
+    accordion) where
 
 import XMonad
 import Operations
 import qualified StackSet as W
 import Graphics.X11.Xlib
 import Data.Ratio
+
+-- $ usage
+-- > import XMonadContrib.Accordion
+-- > defaultLayouts = [ accordion ]
 
 accordion :: Layout
 accordion = Layout { doLayout = accordionLayout
