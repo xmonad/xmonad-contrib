@@ -11,16 +11,20 @@
 -- Make layouts respect size hints.
 -----------------------------------------------------------------------------
 
-module XMonadContrib.LayoutHints ( layoutHints ) where
-
--- to use:
--- defaultLayouts = [ layoutHints tiled, layoutHints $ mirror tiled , full ]
+module XMonadContrib.LayoutHints (
+    -- * usage
+    -- $ usage
+    layoutHints) where
 
 import Operations ( applySizeHints, D )
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras ( getWMNormalHints )
 import {-#SOURCE#-} Config (borderWidth)
 import XMonad hiding ( trace )
+
+-- $ usage
+-- > import XMonadContrib.LayoutHints
+-- > defaultLayouts = [ layoutHints tiled , layoutHints $ mirror tiled ]
 
 -- | Expand a size by the given multiple of the border width.  The
 -- multiple is most commonly 1 or -1.
