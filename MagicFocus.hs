@@ -1,7 +1,27 @@
-module XMonadContrib.MagicFocus (magicFocus) where
+-----------------------------------------------------------------------------
+-- |
+-- Module       : XMonadContrib.MagicFocus
+-- Copyright    : (c) Peter De Wachter <pdewacht@gmail.com>
+-- License      : BSD
+--
+-- Maintainer   : Peter De Wachter <pdewacht@gmail.com>
+-- Stability    : unstable
+-- Portability  : unportable
+--
+-- Automagically put the focused window in the master area.
+-----------------------------------------------------------------------------
+
+module XMonadContrib.MagicFocus (
+                 -- * Usage
+                 -- $ usage
+                 magicFocus) where
 
 import XMonad
 import StackSet
+
+-- $ usage
+-- > import XMonadContrib.MagicFocus
+-- > defaultLayouts = [ magicFocus tiled , magicFocus $ mirror tiled ]
 
 magicFocus :: Layout -> Layout
 magicFocus l = l { doLayout = \s -> (doLayout l) s . swap
