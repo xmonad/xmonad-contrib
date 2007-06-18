@@ -17,11 +17,18 @@
 -----------------------------------------------------------------------------
 
 
-module XMonadContrib.Magnifier (magnifier) where
+module XMonadContrib.Magnifier (
+    -- * Usage
+    -- $usage
+    magnifier) where
 
 import Graphics.X11.Xlib
 import XMonad
 import StackSet
+
+-- $usage
+-- > import XMonadContrib.Magnifier
+-- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
 magnifier :: Layout -> Layout
 magnifier l = l { doLayout = \r s -> applyMagnifier r s `fmap` doLayout l r s
