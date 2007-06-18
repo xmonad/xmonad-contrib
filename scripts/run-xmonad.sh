@@ -13,7 +13,7 @@ PATH=/home/dons/bin:$PATH
 # simple xmonad use, no interactive status bar.
 #
 #clock | dzen2 -ta r -fg $FG -bg $BG -fn $FONT &
-#exec xmonad
+#xmonad
 
 #
 # with a pipe talking to an external program
