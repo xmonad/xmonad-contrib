@@ -1,3 +1,16 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module       : XMonadContrib.LayoutHints
+-- Copyright    : (c) David Roundy <droundy@darcs.net>
+-- License      : BSD
+--
+-- Maintainer   : David Roundy <droundy@darcs.net>
+-- Stability    : unstable
+-- Portability  : portable
+--
+-- Make layouts respect size hints.
+-----------------------------------------------------------------------------
+
 module XMonadContrib.LayoutHints ( layoutHints ) where
 
 -- to use:
