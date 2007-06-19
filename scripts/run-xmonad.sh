@@ -20,7 +20,7 @@ PATH=${HOME}/bin:$PATH
 #
 PIPE=$HOME/.xmonad-status
 rm -f $PIPE
-/sbin/mkfifo -m 600 $PIPE
+PATH=${PATH}:/sbin mkfifo -m 600 $PIPE
 [ -p $PIPE ] || exit
 
 # launch the external 60 second clock, and launch the workspace status bar
