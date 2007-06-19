@@ -23,7 +23,7 @@ import StackSet
 -- > import XMonadContrib.MagicFocus
 -- > defaultLayouts = [ magicFocus tiled , magicFocus $ mirror tiled ]
 
-magicFocus :: Layout -> Layout
+magicFocus :: Layout a -> Layout a
 magicFocus l = l { doLayout = \s -> (doLayout l) s . swap
                  , modifyLayout = \x -> fmap magicFocus `fmap` modifyLayout l x }
 
