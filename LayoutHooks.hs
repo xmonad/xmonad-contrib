@@ -1,3 +1,16 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module       : XMonadContrib.LayoutHooks
+-- Copyright    : (c) Stefan O'Rear <stefanor@cox.net>
+-- License      : BSD
+--
+-- Maintainer   : Stefan O'Rear <stefanor@cox.net>
+-- Stability    : unstable
+-- Portability  : portable
+--
+-- General layout-level hooks.
+-----------------------------------------------------------------------------
+
 module XMonadContrib.LayoutHooks ( addLayoutMessageHook ) where
 
 import qualified Data.Map as M  ( adjust  )
