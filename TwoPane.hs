@@ -21,10 +21,8 @@ module XMonadContrib.TwoPane (
                              ) where
 
 import XMonad
-import Operations
-import qualified StackSet as W
-import Control.Monad.State (gets)
-
+import Operations ( Resize(..), splitHorizontallyBy )
+import StackSet ( focus, up, down)
 
 -- $usage
 --
@@ -37,17 +35,14 @@ import Control.Monad.State (gets)
 -- > twoPane defaultDelta (1%2)
 
 twoPane :: Rational -> Rational -> Layout
-twoPane delta split = Layout { doLayout = \r -> arrange r . W.integrate, modifyLayout = message }
+twoPane delta split = Layout { doLayout = \r s -> return $ arrange r s, modifyLayout = message }
  where
-    arrange rect ws@(w:x:_) = do
-        -- TODO this is buggy, it might peek another workspace
-        (Just f) <- gets (W.peek . windowset) -- safe because of pattern match above
-        let y = if f == w then x else f
-            (left, right) = splitHorizontallyBy split rect
-        mapM_ hide . filter (\a -> a /= w && a /= y)  $ ws
-        return [(w, left), (y, right)]
-    -- there are one or zero windows
-    arrange rect ws         = return . map (\w -> (w, rect)) $ ws
+    arrange rect st = case reverse (up st) of
+                        (master:_) -> [(master,left),(focus st,right)]
+                        [] -> case down st of
+                                (next:_) -> [(focus st,left),(next,right)]
+                                [] -> [(focus st, rect)]
+        where (left, right) = splitHorizontallyBy split rect
 
     message x = return $ case fromMessage x of
                     Just Shrink -> Just (twoPane delta (split - delta))
