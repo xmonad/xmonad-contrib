@@ -21,7 +21,7 @@
 module XMonadContrib.DynamicLog (
                                  -- * Usage
                                  -- $usage 
-                                 dynamicLog, dynamicLogXinerama
+                                 dynamicLog, dynamicLogXinerama, pprWindowSet, pprWindowSetXinerama
                                 ) where
 
 -- 
@@ -52,17 +52,18 @@ import qualified StackSet as S
 --  
 
 dynamicLog :: X ()
-dynamicLog = withWindowSet $ io . putStrLn . ppr
-  where
-    ppr s =  concatMap fmt $ sortBy (compare `on` S.tag)
-                (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
-       where this     = S.tag (S.workspace (S.current s))
-             visibles = map (S.tag . S.workspace) (S.visible s)
+dynamicLog = withWindowSet $ io . putStrLn . pprWindowSet
 
-             fmt w | S.tag w == this         = "[" ++ pprTag w ++ "]"
-                   | S.tag w `elem` visibles = "<" ++ pprTag w ++ ">"
-                   | isJust (S.stack w)      = " " ++ pprTag w ++ " "
-                   | otherwise               = ""
+pprWindowSet :: WindowSet -> String
+pprWindowSet s =  concatMap fmt $ sortBy (compare `on` S.tag)
+            (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
+   where this     = S.tag (S.workspace (S.current s))
+         visibles = map (S.tag . S.workspace) (S.visible s)
+
+         fmt w | S.tag w == this         = "[" ++ pprTag w ++ "]"
+               | S.tag w `elem` visibles = "<" ++ pprTag w ++ ">"
+               | isJust (S.stack w)      = " " ++ pprTag w ++ " "
+               | otherwise               = ""
 
 -- |
 -- Workspace logger with a format designed for Xinerama:
@@ -73,13 +74,14 @@ dynamicLog = withWindowSet $ io . putStrLn . ppr
 -- and 2 and 7 are non-visible, non-empty workspaces
 --
 dynamicLogXinerama :: X ()
-dynamicLogXinerama = withWindowSet $ io . putStrLn . ppr
-  where
-    ppr ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
-      where onscreen  = map (pprTag . S.workspace)
-                            . sortBy (compare `on` S.screen) $ S.current ws : S.visible ws
-            offscreen = map pprTag . filter (isJust . S.stack)
-                            . sortBy (compare `on` S.tag) $ S.hidden ws
+dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
+
+pprWindowSetXinerama :: WindowSet -> String
+pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
+  where onscreen  = map (pprTag . S.workspace)
+                        . sortBy (compare `on` S.screen) $ S.current ws : S.visible ws
+        offscreen = map pprTag . filter (isJust . S.stack)
+                        . sortBy (compare `on` S.tag) $ S.hidden ws
 
 -- util functions
 pprTag :: Integral i => S.Workspace i a -> String
