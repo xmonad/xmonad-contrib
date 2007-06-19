@@ -31,7 +31,7 @@ import XMonad hiding ( trace )
 adjBorders             :: Dimension -> D -> D
 adjBorders mult (w,h)  = (w+2*mult*borderWidth, h+2*mult*borderWidth)
 
-layoutHints :: Layout -> Layout
+layoutHints :: Layout Window -> Layout Window
 layoutHints l = l { doLayout = \r x -> doLayout l r x >>= applyHints
                   , modifyLayout = \x -> fmap layoutHints `fmap` modifyLayout l x }
 

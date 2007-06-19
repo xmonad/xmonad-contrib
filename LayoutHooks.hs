@@ -20,7 +20,7 @@ import Control.Monad.State      ( modify  )
 import XMonad
 import qualified StackSet as W
 
-install :: (SomeMessage -> X Bool) -> Layout -> Layout
+install :: (SomeMessage -> X Bool) -> Layout a -> Layout a
 install hk lay = lay{ modifyLayout = mod' }
   where
     mod' msg = do reinst  <- hk msg

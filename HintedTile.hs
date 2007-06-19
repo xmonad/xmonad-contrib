@@ -37,7 +37,7 @@ addBorder (w, h) = (w + 2 * borderWidth, h + 2 * borderWidth)
 substractBorder (w, h) = (w - 2 * borderWidth, h - 2 * borderWidth)
 
 
-tall, wide :: Int -> Rational -> Rational -> Layout
+tall, wide :: Int -> Rational -> Rational -> Layout Window
 wide = tile splitVertically divideHorizontally
 tall = tile splitHorizontally divideVertically
 

@@ -40,7 +40,7 @@ import XMonadContrib.NamedWindows
 -- >                 , ... ]
 
 
-tabbed :: Shrinker -> Layout
+tabbed :: Shrinker -> Layout Window
 tabbed shrinkT =  Layout { doLayout = dolay shrinkT, modifyLayout = const (return Nothing) }
 
 dolay :: Shrinker -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]

@@ -90,7 +90,7 @@ defaultArea = 1
 flexibility :: Double
 flexibility = 0.1
 
-mosaic :: Double -> Double -> M.Map NamedWindow [WindowHint] -> Layout
+mosaic :: Double -> Double -> M.Map NamedWindow [WindowHint] -> Layout Window
 mosaic delta tileFrac hints = full { doLayout = \r -> mosaicL tileFrac hints r . W.integrate, modifyLayout = return . mlayout }
     where mlayout x = (m1 `fmap` fromMessage x) `mplus` (m2 `fmap` fromMessage x)
           m1 Shrink = mosaic delta (tileFrac/(1+delta)) hints

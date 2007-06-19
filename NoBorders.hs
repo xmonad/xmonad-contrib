@@ -37,10 +37,10 @@ import {-# SOURCE #-} Config (borderWidth)
 --
 -- > layouts = [ noBorders full, tall, ... ]
 
-noBorders :: Layout -> Layout
+noBorders :: Layout a -> Layout a
 noBorders = withBorder 0
 
-withBorder :: Dimension -> Layout -> Layout
+withBorder :: Dimension -> Layout a -> Layout a
 withBorder bd l = l { doLayout = \r x -> setborders bd >> doLayout l r x
                     , modifyLayout = ml }
     where ml m | Just UnDoLayout == fromMessage m

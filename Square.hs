@@ -40,7 +40,7 @@ import StackSet ( integrate )
 -- >                                (mirror $ twoPane 0.03 0.85),1)] (twoPane 0.03 0.5) )
 
 
-square :: Layout
+square :: Layout Window
 square = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
  where
     arrange rect ws@(_:_) = do

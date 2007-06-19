@@ -47,7 +47,7 @@ import XMonadContrib.Dmenu ( dmenu, runProcessWithInput )
 data Chdir = Chdir String deriving ( Typeable )
 instance Message Chdir
 
-workspaceDir :: String -> Layout -> Layout
+workspaceDir :: String -> Layout a -> Layout a
 workspaceDir wd l = l { doLayout = \r x -> scd wd >> doLayout l r x
                       , modifyLayout = ml }
     where ml m | Just (Chdir wd') <- fromMessage m = return $ Just (workspaceDir wd' l)

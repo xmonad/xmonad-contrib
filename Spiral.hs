@@ -51,7 +51,7 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       step = (scale - (1 % 1)) / (fromIntegral len)
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
-spiral :: Rational -> Layout
+spiral :: Rational -> Layout a
 spiral scale = Layout { doLayout = \r -> fibLayout r . W.integrate,
                         modifyLayout = \m -> return $ fmap resize $ fromMessage m }
     where

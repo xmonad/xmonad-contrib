@@ -27,7 +27,7 @@ import Data.Ratio
 -- > import XMonadContrib.Accordion
 -- > defaultLayouts = [ accordion ]
 
-accordion :: Layout
+accordion :: Layout Window
 accordion = Layout { doLayout = accordionLayout
                     , modifyLayout = const $ return Nothing }
 

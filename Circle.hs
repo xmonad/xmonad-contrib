@@ -27,7 +27,7 @@ import StackSet (integrate)
 --
 -- > import XMonadContrib.Circle
 
-circle :: Layout
+circle :: Layout Window
 circle = Layout { doLayout = \r -> circleLayout r . integrate,
                   modifyLayout = return . const Nothing }
 

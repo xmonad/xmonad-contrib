@@ -30,7 +30,7 @@ import StackSet
 -- > import XMonadContrib.Magnifier
 -- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
-magnifier :: Layout -> Layout
+magnifier :: Layout Window -> Layout Window
 magnifier l = l { doLayout = \r s -> applyMagnifier r s `fmap` doLayout l r s
                 , modifyLayout = \x -> fmap magnifier `fmap` modifyLayout l x }
 

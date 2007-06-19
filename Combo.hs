@@ -34,7 +34,7 @@ import Operations ( UnDoLayout(UnDoLayout) )
 --
 -- to your defaultLayouts.
 
-combo :: [(Layout, Int)] -> Layout -> Layout
+combo :: [(Layout a, Int)] -> Layout a -> Layout a
 combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
     where arrange _ [] = return []
           arrange r [w] = return [(w,r)]
@@ -56,7 +56,7 @@ combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modify
                            Nothing -> return Nothing
                            Just super' -> return $ Just $ combo origls super'
 
-broadcastPrivate :: Message a => a -> [Layout] -> X [Layout]
+broadcastPrivate :: Message a => a -> [Layout b] -> X [Layout b]
 broadcastPrivate a ol = mapM f ol
     where f l = do ml' <- modifyLayout l (SomeMessage a) `catchX` return (Just l)
                    return $ maybe l id ml'
