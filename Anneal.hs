@@ -1,3 +1,16 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonadContrib.Anneal
+-- Copyright   :  (c) David Roundy
+-- License     :  BSD-style (see LICENSE)
+--
+-- Maintainer  :  David Roundy <droundy@darcs.org>
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+--
+-----------------------------------------------------------------------------
+
 module XMonadContrib.Anneal ( Rated(Rated), the_value, the_rating
                             , anneal, annealMax ) where
 
