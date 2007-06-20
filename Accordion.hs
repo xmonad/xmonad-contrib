@@ -23,7 +23,7 @@ import qualified StackSet as W
 import Graphics.X11.Xlib
 import Data.Ratio
 
--- $ usage
+-- $usage
 -- > import XMonadContrib.Accordion
 -- > defaultLayouts = [ accordion ]
 

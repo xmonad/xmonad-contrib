@@ -13,7 +13,7 @@
 
 module XMonadContrib.LayoutHints (
     -- * usage
-    -- $ usage
+    -- $usage
     layoutHints) where
 
 import Operations ( applySizeHints, D )
@@ -22,7 +22,7 @@ import Graphics.X11.Xlib.Extras ( getWMNormalHints )
 import {-#SOURCE#-} Config (borderWidth)
 import XMonad hiding ( trace )
 
--- $ usage
+-- $usage
 -- > import XMonadContrib.LayoutHints
 -- > defaultLayouts = [ layoutHints tiled , layoutHints $ mirror tiled ]
 

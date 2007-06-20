@@ -14,7 +14,7 @@
 -- ratios configurable at run-time by the user.
 --
 -----------------------------------------------------------------------------
-module XMonadContrib.Mosaic ( 
+module XMonadContrib.Mosaic (
                              -- * Usage
                              -- $usage
                              mosaic, expandWindow, shrinkWindow, squareWindow, myclearWindow,

@@ -13,13 +13,13 @@
 
 module XMonadContrib.MagicFocus (
                  -- * Usage
-                 -- $ usage
+                 -- $usage
                  magicFocus) where
 
 import XMonad
 import StackSet
 
--- $ usage
+-- $usage
 -- > import XMonadContrib.MagicFocus
 -- > defaultLayouts = [ magicFocus tiled , magicFocus $ mirror tiled ]
 

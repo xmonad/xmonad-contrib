@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.Circle
 -- Copyright   :  (c) Peter De Wachter
 -- License     :  BSD-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
