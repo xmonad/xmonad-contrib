@@ -30,7 +30,7 @@ import Operations ( UnDoLayout(UnDoLayout) )
 -- 
 -- and add something like
 -- 
--- > combo [(full,1),(tabbed,1)] (twoPane 0.03 0.5)
+-- > combo [(full,1),(tabbed shrinkText,1)] (twoPane 0.03 0.5)
 --
 -- to your defaultLayouts.
 
