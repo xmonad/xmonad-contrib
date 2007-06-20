@@ -21,8 +21,8 @@ module XMonadContrib.Mosaic (
                              tallWindow, wideWindow, flexibleWindow,
                              getName, withNamedWindow ) where
 
-import Control.Monad.State ( State, runState, put, get )
-import System.Random ( StdGen, Random, mkStdGen, randomR )
+import Control.Monad.State ( State, put, get )
+import System.Random ( StdGen )
 
 import Data.Ratio
 import Graphics.X11.Xlib
@@ -36,8 +36,6 @@ import Control.Monad ( mplus )
 
 import XMonadContrib.NamedWindows
 import XMonadContrib.Anneal
-
-import Debug.Trace
 
 -- $usage
 --
@@ -79,10 +77,11 @@ myclearWindow = ClearWindow
 tallWindow = TallWindow
 wideWindow = WideWindow
 
-largeNumber, mediumNumber, resolutionNumber :: Int
-largeNumber = 50
-mediumNumber = 10
-resolutionNumber = 100
+-- TODO: not used at the moment:
+-- largeNumber, mediumNumber, resolutionNumber :: Int
+-- largeNumber = 50
+-- mediumNumber = 10
+-- resolutionNumber = 100
 
 defaultArea :: Double
 defaultArea = 1
@@ -145,13 +144,14 @@ mosaicL _ _ _ [] = return []
 mosaicL f hints origRect origws
     = do namedws <- mapM getName origws
          let sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) namedws
-             myv = runCountDown largeNumber $ mosaic_splits even_split origRect Vertical sortedws
+             -- TODO: remove all this dead code
+             -- myv = runCountDown largeNumber $ mosaic_splits even_split origRect Vertical sortedws
              myv2 = mc_mosaic sortedws Vertical
              myh2 = mc_mosaic sortedws Horizontal
 --             myv2 = maxL $ runCountDown largeNumber $
 --                    sequence $ replicate mediumNumber $
 --                    mosaic_splits one_split origRect Vertical sortedws
-             myh = runCountDown largeNumber $ mosaic_splits even_split origRect Horizontal sortedws
+             -- myh = runCountDown largeNumber $ mosaic_splits even_split origRect Horizontal sortedws
 --             myh2 = maxL $ runCountDown largeNumber $
 --                    sequence $ replicate mediumNumber $
 --                    mosaic_splits one_split origRect Horizontal sortedws
@@ -175,11 +175,13 @@ mosaicL f hints origRect origws
                  submosaics <- mapM (\(ws',r') ->
                                      mosaic_splits even_split r' (otherDirection d) ws') wsr_s
                  return $ fmap M $ catRated submosaics
+          {-
           another_mosaic :: [NamedWindow] -> CutDirection
                          -> Rated Double (Mosaic (NamedWindow,Rectangle))
           another_mosaic ws d = rate_mosaic ratew $
                                 rect_mosaic origRect d $
                                 zipML (example_mosaic ws) (map findarea ws)
+          -}
           mc_mosaic :: [NamedWindow] -> CutDirection
                          -> Rated Double (Mosaic (NamedWindow,Rectangle))
           mc_mosaic ws d = fmap (rect_mosaic origRect d) $
@@ -237,9 +239,6 @@ catRatedM (OM (Rated v x)) =  Rated v (OM x)
 catRatedM (M xs) = case catRated $ map catRatedM xs of Rated v xs' -> Rated v (M xs')
 
 data CountDown = CD !StdGen !Int
-
-runCountDown :: Int -> State CountDown a -> a
-runCountDown n x = fst $ runState x (CD (mkStdGen n) n)
 
 tries_left :: State CountDown Int
 tries_left = do CD _ n <- get
@@ -354,10 +353,6 @@ changeMosaic (M xs) = map makeM (concatenations xs) ++
 tryAll :: (a -> [a]) -> [a] -> [[a]]
 tryAll _ [] = []
 tryAll f (x:xs) = map (:xs) (f x) ++ map (x:) (tryAll f xs)
-
-onceToEach :: (a -> a) -> [a] -> [[a]]
-onceToEach _ [] = []
-onceToEach f (x:xs) = (f x : xs) : map (x:) (onceToEach f xs)
 
 splits :: [Mosaic a] -> [[Mosaic a]]
 splits [] = []
