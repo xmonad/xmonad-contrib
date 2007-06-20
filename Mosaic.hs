@@ -70,7 +70,7 @@ data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow
 
 instance Message HandleWindow
 
-expandWindow, shrinkWindow, squareWindow, myclearWindow,tallWindow, wideWindow :: NamedWindow -> HandleWindow
+expandWindow, shrinkWindow, squareWindow, flexibleWindow, myclearWindow,tallWindow, wideWindow :: NamedWindow -> HandleWindow
 expandWindow = ExpandWindow
 shrinkWindow = ShrinkWindow
 squareWindow = SquareWindow
@@ -295,7 +295,7 @@ cropit f (Rectangle a b w h) | w -/- h > f = Rectangle a b (floor $ h -* f) h
 
 hints2area :: [WindowHint] -> Double
 hints2area [] = defaultArea
-hints2area (RelArea r:x) = r
+hints2area (RelArea r:_) = r
 hints2area (_:x) = hints2area x
 
 area :: Rectangle -> Double
@@ -346,7 +346,7 @@ lengthM (OM _) = 1
 lengthM (M x) = sum $ map lengthM x
 
 changeMosaic :: Mosaic a -> [Mosaic a]
-changeMosaic (OM a) = []
+changeMosaic (OM _) = []
 changeMosaic (M xs) = map makeM (concatenations xs) ++
                       map makeM (splits xs) ++
                       map M (tryAll changeMosaic xs)
