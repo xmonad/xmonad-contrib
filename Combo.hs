@@ -48,13 +48,10 @@ combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modify
                                                       (map differentiate $
                                                        wss (take (length rs) $ map snd origls) origws)
                  return $ concat out
-          message m | Just UnDoLayout <- fromMessage m =
-                         do (super':ls') <- broadcastPrivate UnDoLayout (super:map fst origls)
-                            return $ Just $ combo (zip ls' $ map snd origls) super'
-          message m = do msuper' <- modifyLayout super m
-                         case msuper' of
-                           Nothing -> return Nothing
-                           Just super' -> return $ Just $ combo origls super'
+          message m = case fromMessage m of
+                        Just UnDoLayout -> fmap (\(super':ls') -> Just $ combo (zip ls' $ map snd origls) super')
+                                                (broadcastPrivate UnDoLayout (super:map fst origls))
+                        _               -> fmap (maybe Nothing (Just . combo origls)) (modifyLayout super m)
 
 broadcastPrivate :: Message a => a -> [Layout b] -> X [Layout b]
 broadcastPrivate a ol = mapM f ol
