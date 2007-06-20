@@ -30,6 +30,7 @@ module XMonadContrib.DynamicLog (
 import XMonad
 import Data.Maybe ( isJust )
 import Data.List
+import Data.Ord ( comparing )
 import qualified StackSet as S
 
 -- $usage 
@@ -55,7 +56,7 @@ dynamicLog :: X ()
 dynamicLog = withWindowSet $ io . putStrLn . pprWindowSet
 
 pprWindowSet :: WindowSet -> String
-pprWindowSet s =  concatMap fmt $ sortBy (compare `on` S.tag)
+pprWindowSet s =  concatMap fmt $ sortBy (comparing S.tag)
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
    where this     = S.tag (S.workspace (S.current s))
          visibles = map (S.tag . S.workspace) (S.visible s)
@@ -79,13 +80,10 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 pprWindowSetXinerama :: WindowSet -> String
 pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
   where onscreen  = map (pprTag . S.workspace)
-                        . sortBy (compare `on` S.screen) $ S.current ws : S.visible ws
+                        . sortBy (comparing S.screen) $ S.current ws : S.visible ws
         offscreen = map pprTag . filter (isJust . S.stack)
-                        . sortBy (compare `on` S.tag) $ S.hidden ws
+                        . sortBy (comparing S.tag) $ S.hidden ws
 
 -- util functions
 pprTag :: Integral i => S.Workspace i a -> String
 pprTag = show . (+(1::Int)) . fromIntegral . S.tag
-
-on :: (a -> a -> c) -> (b -> a) -> b -> b -> c
-on f g a b = (g a) `f` (g b)
