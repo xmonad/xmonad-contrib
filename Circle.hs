@@ -27,11 +27,11 @@ import StackSet (integrate)
 --
 -- > import XMonadContrib.Circle
 
-circle :: Layout Window
+circle :: Layout a
 circle = Layout { doLayout = \r -> circleLayout r . integrate,
                   modifyLayout = return . const Nothing }
 
-circleLayout :: Rectangle -> [Window] -> X [(Window, Rectangle)]
+circleLayout :: Rectangle -> [a] -> X [(a, Rectangle)]
 circleLayout _ []     = return []
 circleLayout r (w:ws) = return $ (w, center r) : (zip ws sats)
     where sats = map (satellite r) $ take (length ws) [0, pi * 2 / fromIntegral (length ws) ..]

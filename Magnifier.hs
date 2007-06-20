@@ -30,11 +30,11 @@ import StackSet
 -- > import XMonadContrib.Magnifier
 -- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
-magnifier :: Layout Window -> Layout Window
+magnifier :: Eq a => Layout a -> Layout a
 magnifier l = l { doLayout = \r s -> applyMagnifier r s `fmap` doLayout l r s
                 , modifyLayout = \x -> fmap magnifier `fmap` modifyLayout l x }
 
-applyMagnifier :: Rectangle -> Stack Window -> [(Window, Rectangle)] -> [(Window, Rectangle)]
+applyMagnifier :: Eq a => Rectangle -> Stack a -> [(a, Rectangle)] -> [(a, Rectangle)]
 applyMagnifier r s | null (up s) = id  -- don't change the master window
                    | otherwise   = map $ \(w,wr) -> if w == focus s then (w, shrink r $ magnify wr) else (w, wr)
 

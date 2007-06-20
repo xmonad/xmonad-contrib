@@ -27,11 +27,11 @@ import Data.Ratio
 -- > import XMonadContrib.Accordion
 -- > defaultLayouts = [ accordion ]
 
-accordion :: Layout Window
+accordion :: Eq a => Layout a
 accordion = Layout { doLayout = accordionLayout
                     , modifyLayout = const $ return Nothing }
 
-accordionLayout :: Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
+accordionLayout :: Eq a => Rectangle -> W.Stack a -> X [(a, Rectangle)]
 accordionLayout sc ws = return $ (zip ups tops) ++
                                [(W.focus ws, mainPane)] ++
                                (zip dns bottoms)
