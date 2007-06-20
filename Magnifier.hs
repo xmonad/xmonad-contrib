@@ -11,8 +11,6 @@
 -- Screenshot  :  http://caladan.rave.org/magnifier.png
 --
 -- This layout hack increases the size of the window that has focus.
--- The master window is left alone. (Maybe that should be an option.)
---
 --
 -----------------------------------------------------------------------------
 
@@ -20,7 +18,7 @@
 module XMonadContrib.Magnifier (
     -- * Usage
     -- $usage
-    magnifier) where
+    magnifier, magnifier') where
 
 import Graphics.X11.Xlib
 import XMonad
@@ -30,13 +28,24 @@ import StackSet
 -- > import XMonadContrib.Magnifier
 -- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
+-- | Increase the size of the window that has focus, unless it is the master window.
 magnifier :: Eq a => Layout a -> Layout a
-magnifier l = l { doLayout = \r s -> applyMagnifier r s `fmap` doLayout l r s
+magnifier l = l { doLayout = \r s -> unlessMaster applyMagnifier r s `fmap` doLayout l r s
                 , modifyLayout = \x -> fmap magnifier `fmap` modifyLayout l x }
 
-applyMagnifier :: Eq a => Rectangle -> Stack a -> [(a, Rectangle)] -> [(a, Rectangle)]
-applyMagnifier r s | null (up s) = id  -- don't change the master window
-                   | otherwise   = map $ \(w,wr) -> if w == focus s then (w, shrink r $ magnify wr) else (w, wr)
+-- | Increase the size of the window that has focus, even if it is the master window.
+magnifier' :: Eq a => Layout a -> Layout a
+magnifier' l = l { doLayout = \r s -> applyMagnifier r s `fmap` doLayout l r s
+                 , modifyLayout = \x -> fmap magnifier' `fmap` modifyLayout l x }
+
+
+type DoLayout = Eq a => Rectangle -> Stack a -> [(a, Rectangle)] -> [(a, Rectangle)]
+
+unlessMaster :: DoLayout -> DoLayout
+unlessMaster f r s = if null (up s) then id else f r s
+
+applyMagnifier :: DoLayout
+applyMagnifier r s = map $ \(w,wr) -> if w == focus s then (w, shrink r $ magnify wr) else (w, wr)
 
 magnify :: Rectangle -> Rectangle
 magnify (Rectangle x y w h) = Rectangle x' y' w' h'
