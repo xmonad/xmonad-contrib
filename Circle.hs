@@ -20,7 +20,7 @@ module XMonadContrib.Circle (
 
 import Graphics.X11.Xlib
 import XMonad
-import StackSet (integrate)
+import StackSet (integrate, Stack(..))
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -28,7 +28,7 @@ import StackSet (integrate)
 -- > import XMonadContrib.Circle
 
 circle :: Layout a
-circle = Layout { doLayout = \r -> return . circleLayout r . integrate,
+circle = Layout { doLayout = \r s -> return . raise (length (up s)) . circleLayout r $ integrate s,
                   modifyLayout = return . const Nothing }
 
 circleLayout :: Rectangle -> [a] -> [(a, Rectangle)]
@@ -36,6 +36,9 @@ circleLayout _ []     = []
 circleLayout r (w:ws) = master : rest
     where master = (w, center r)
           rest   = zip ws $ map (satellite r) [0, pi * 2 / fromIntegral (length ws) ..]
+
+raise :: Int -> [a] -> [a]
+raise n xs = xs !! n : take n xs ++ drop (n + 1) xs
 
 center :: Rectangle -> Rectangle
 center (Rectangle sx sy sw sh) = Rectangle x y w h
