@@ -21,8 +21,8 @@ module XMonadContrib.Mosaic (
                              tallWindow, wideWindow, flexibleWindow,
                              getName, withNamedWindow ) where
 
-import Control.Monad.State ( State, put, get )
-import System.Random ( StdGen )
+import Control.Monad.State ( State, put, get, runState )
+import System.Random ( StdGen, mkStdGen )
 
 import Data.Ratio
 import Graphics.X11.Xlib
@@ -77,11 +77,8 @@ myclearWindow = ClearWindow
 tallWindow = TallWindow
 wideWindow = WideWindow
 
--- TODO: not used at the moment:
--- largeNumber, mediumNumber, resolutionNumber :: Int
--- largeNumber = 50
--- mediumNumber = 10
--- resolutionNumber = 100
+largeNumber :: Int
+largeNumber = 50
 
 defaultArea :: Double
 defaultArea = 1
@@ -145,13 +142,13 @@ mosaicL f hints origRect origws
     = do namedws <- mapM getName origws
          let sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) namedws
              -- TODO: remove all this dead code
-             -- myv = runCountDown largeNumber $ mosaic_splits even_split origRect Vertical sortedws
+             myv = runCountDown largeNumber $ mosaic_splits even_split origRect Vertical sortedws
              myv2 = mc_mosaic sortedws Vertical
              myh2 = mc_mosaic sortedws Horizontal
 --             myv2 = maxL $ runCountDown largeNumber $
 --                    sequence $ replicate mediumNumber $
 --                    mosaic_splits one_split origRect Vertical sortedws
-             -- myh = runCountDown largeNumber $ mosaic_splits even_split origRect Horizontal sortedws
+             myh = runCountDown largeNumber $ mosaic_splits even_split origRect Horizontal sortedws
 --             myh2 = maxL $ runCountDown largeNumber $
 --                    sequence $ replicate mediumNumber $
 --                    mosaic_splits one_split origRect Horizontal sortedws
@@ -161,7 +158,7 @@ mosaicL f hints origRect origws
                                  --                           show $ area r/meanarea,
                                  --                           show $ findlist nw hints]) $
                                  unName nw,crop' (findlist nw hints) r)) $
-                flattenMosaic $ the_value $ maxL [myh2,myv2]
+                flattenMosaic $ the_value $ maxL [myh,myv,myh2,myv2]
     where mosaic_splits _ _ _ [] = return $ Rated 0 $ M []
           mosaic_splits _ r _ [w] = return $ Rated (rate f meanarea (findlist w hints) r) $ OM (w,r)
           mosaic_splits spl r d ws = maxL `fmap` mapCD (spl r d) (init $ allsplits ws)
@@ -289,8 +286,8 @@ crop' (_:hs) = crop' hs
 crop' [] = id
 
 cropit :: Double -> Rectangle -> Rectangle
-cropit f (Rectangle a b w h) | w -/- h > f = Rectangle a b (floor $ h -* f) h
-                             | otherwise = Rectangle a b w (floor $ w -/ f)
+cropit f (Rectangle a b w h) | w -/- h > f = Rectangle a b (ceiling $ h -* f) h
+                             | otherwise = Rectangle a b w (ceiling $ w -/ f)
 
 hints2area :: [WindowHint] -> Double
 hints2area [] = defaultArea
@@ -394,3 +391,6 @@ allsplits' (x:xs) = (map (maphead (x:)) splitsrest) ++ (map ([x]:) splitsrest)
 maphead :: (a->a) -> [a] -> [a]
 maphead f (x:xs) = f x : xs
 maphead _ [] = []
+
+runCountDown :: Int -> State CountDown a -> a
+runCountDown n x = fst $ runState x (CD (mkStdGen n) n)
