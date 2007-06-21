@@ -34,18 +34,18 @@ import XMonadContrib.NamedWindows
 -- You can use this module with the following in your configuration file:
 --
 -- > import XMonadContrib.Tabbed
+-- > import XMonadContrib.SimpleStacking
 --
 -- > defaultLayouts :: [Layout]
--- > defaultLayouts = [ tabbed shrinkText
+-- > defaultLayouts = [ simpleStacking $ tabbed shrinkText
 -- >                 , ... ]
-
 
 tabbed :: Shrinker -> Layout Window
 tabbed shrinkT =  Layout { doLayout = dolay shrinkT, modifyLayout = const (return Nothing) }
 
 dolay :: Shrinker -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
 dolay _ sc (W.Stack w [] []) = return [(w,sc)]
-dolay shr sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \dpy ->
+dolay shr sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
     do activecolor   <- io $ initColor dpy "#BBBBBB"
        inactivecolor <- io $ initColor dpy "#888888"
        textcolor     <- io $ initColor dpy "#000000"
@@ -72,7 +72,7 @@ dolay shr sc@(Rectangle x y wid _) s@(W.Stack w _ _) = withDisplay $ \dpy ->
                          (fromIntegral (wt `div` 2) - fromIntegral (width `div` 2))
                          (fromIntegral ht - fromIntegral (asc `div` 2)) name'
        forM tws maketab
-       return [ (w,shrink sc) ]
+       return $ map (\w -> (w,shrink sc)) ws
 
 type Shrinker = String -> [String]
 

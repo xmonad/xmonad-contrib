@@ -27,10 +27,11 @@ import Operations ( UnDoLayout(UnDoLayout) )
 -- To use this layout write, in your Config.hs:
 -- 
 -- > import XMonadContrib.Combo 
+-- > import XMonadContrib.SimpleStacking
 -- 
 -- and add something like
 -- 
--- > combo [(full,1),(tabbed shrinkText,1)] (twoPane 0.03 0.5)
+-- > simpleStacking $ combo [(full,1),(tabbed shrinkText,1)] (twoPane 0.03 0.5)
 --
 -- to your defaultLayouts.
 
