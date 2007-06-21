@@ -28,19 +28,20 @@ import StackSet (integrate)
 -- > import XMonadContrib.Circle
 
 circle :: Layout a
-circle = Layout { doLayout = \r -> circleLayout r . integrate,
+circle = Layout { doLayout = \r -> return . circleLayout r . integrate,
                   modifyLayout = return . const Nothing }
 
-circleLayout :: Rectangle -> [a] -> X [(a, Rectangle)]
-circleLayout _ []     = return []
-circleLayout r (w:ws) = return $ (w, center r) : (zip ws sats)
-    where sats = map (satellite r) $ take (length ws) [0, pi * 2 / fromIntegral (length ws) ..]
+circleLayout :: Rectangle -> [a] -> [(a, Rectangle)]
+circleLayout _ []     = []
+circleLayout r (w:ws) = master : rest
+    where master = (w, center r)
+          rest   = zip ws $ map (satellite r) [0, pi * 2 / fromIntegral (length ws) ..]
 
 center :: Rectangle -> Rectangle
 center (Rectangle sx sy sw sh) = Rectangle x y w h
-    where s = sqrt 2
-          w = round ((fromIntegral sw / s) :: Double)
-          h = round ((fromIntegral sh / s) :: Double)
+    where s = sqrt 2 :: Double
+          w = round (fromIntegral sw / s)
+          h = round (fromIntegral sh / s)
           x = sx + fromIntegral (sw - w) `div` 2
           y = sy + fromIntegral (sh - h) `div` 2
 
