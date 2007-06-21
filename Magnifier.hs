@@ -45,7 +45,9 @@ unlessMaster :: DoLayout -> DoLayout
 unlessMaster f r s = if null (up s) then id else f r s
 
 applyMagnifier :: DoLayout
-applyMagnifier r s = map $ \(w,wr) -> if w == focus s then (w, shrink r $ magnify wr) else (w, wr)
+applyMagnifier r s = reverse . foldr accumulate []
+    where accumulate (w,wr) ws | w == focus s = ws ++ [(w, shrink r $ magnify wr)]
+                               | otherwise    = (w,wr) : ws
 
 magnify :: Rectangle -> Rectangle
 magnify (Rectangle x y w h) = Rectangle x' y' w' h'
