@@ -22,14 +22,10 @@ module XMonadContrib.Square (
                              -- $usage
                              square ) where
 
-import XMonad
-import Graphics.X11.Xlib
-import StackSet ( integrate )
-
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 --
--- >   import XMonadContrib.Spiral
+-- >   import XMonadContrib.Square
 --
 -- An example layout using square together with "XMonadContrib.Combo"
 -- to make the very last area square:
@@ -39,16 +35,17 @@ import StackSet ( integrate )
 -- >                    ,(combo [(twoPane 0.03 0.8,1),(square,1)]
 -- >                                (mirror $ twoPane 0.03 0.85),1)] (twoPane 0.03 0.5) )
 
+import XMonad
+import Graphics.X11.Xlib
+import StackSet ( integrate )
+import XMonadContrib.LayoutHelpers ( l2lModDo )
 
 square :: Layout a
-square = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
- where
-    arrange rect ws@(_:_) = do
-        let (rest, sq) = splitSquare rect
-        return (map (\w->(w,rest)) (init ws) ++ [(last ws,sq)])
-    arrange _ [] = return []
-
-    message _ = return Nothing
+square = Layout { doLayout = l2lModDo arrange, modifyLayout = const (return Nothing) }
+ where arrange :: Rectangle -> [a] -> [(a, Rectangle)]
+       arrange rect ws@(_:_) = map (\w->(w,rest)) (init ws) ++ [(last ws,sq)]
+                 where (rest, sq) = splitSquare rect
+       arrange _ [] = []
 
 splitSquare :: Rectangle -> (Rectangle, Rectangle)
 splitSquare (Rectangle x y w h)
