@@ -42,8 +42,7 @@ import Graphics.X11.Xlib.Extras
 -- > import XMonadContrib.LayoutScreens
 --
 -- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
--- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), do layoutScreens 1 xineScreenLayout
---                                                              rescreen)
+-- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
 
 layoutScreens :: Int -> Layout Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
