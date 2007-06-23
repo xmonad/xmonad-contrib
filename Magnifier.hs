@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Screenshot  :  http://caladan.rave.org/magnifier.png
+-- Screenshot  :  <http://caladan.rave.org/magnifier.png>
 --
 -- This layout hack increases the size of the window that has focus.
 --
