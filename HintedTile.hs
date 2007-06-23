@@ -44,7 +44,8 @@ tall = tile splitHorizontally divideVertically
 tile split divide nmaster delta frac =
     Layout { doLayout     = \r w' -> let w = W.integrate w'
                                      in do { hints <- sequence (map getHints w)
-                                           ; return $ zip w (tiler frac r `uncurry` splitAt nmaster hints) }
+                                           ; return (zip w (tiler frac r `uncurry` splitAt nmaster hints)
+                                                    , Nothing) }
            , modifyLayout = \m -> return $ fmap resize     (fromMessage m) `mplus`
                                            fmap incmastern (fromMessage m) }
 

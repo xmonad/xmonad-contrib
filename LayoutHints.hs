@@ -21,6 +21,7 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras ( getWMNormalHints )
 import {-#SOURCE#-} Config (borderWidth)
 import XMonad hiding ( trace )
+import XMonadContrib.LayoutHelpers ( layoutModify, idModMod )
 
 -- $usage
 -- > import XMonadContrib.LayoutHints
@@ -32,12 +33,10 @@ adjBorders             :: Dimension -> D -> D
 adjBorders mult (w,h)  = (w+2*mult*borderWidth, h+2*mult*borderWidth)
 
 layoutHints :: Layout Window -> Layout Window
-layoutHints l = l { doLayout = \r x -> doLayout l r x >>= applyHints
-                  , modifyLayout = \x -> fmap layoutHints `fmap` modifyLayout l x }
-
-applyHints :: [(Window, Rectangle)] -> X [(Window, Rectangle)]
-applyHints xs = mapM applyHint xs
-    where applyHint (w,Rectangle a b c d) =
+layoutHints = layoutModify applyHints idModMod
+    where applyHints _ _ xs = do xs' <- mapM applyHint xs
+                                 return (xs', Nothing)
+          applyHint (w,Rectangle a b c d) =
               withDisplay $ \disp ->
                   do sh <- io $ getWMNormalHints disp w
                      let (c',d') = adjBorders 1 . applySizeHints sh . adjBorders (-1) $ (c,d)

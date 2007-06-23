@@ -18,9 +18,9 @@ module XMonadContrib.Combo (
                             combo
                            ) where
 
+import Data.Maybe ( isJust )
 import XMonad
 import StackSet ( integrate, differentiate )
-import Operations ( UnDoLayout(UnDoLayout) )
 
 -- $usage
 --
@@ -37,10 +37,11 @@ import Operations ( UnDoLayout(UnDoLayout) )
 
 combo :: [(Layout a, Int)] -> Layout a -> Layout a
 combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
-    where arrange _ [] = return []
-          arrange r [w] = return [(w,r)]
+    where arrange _ [] = return ([], Nothing)
+          arrange r [w] = return ([(w,r)], Nothing)
           arrange rinput origws =
-              do rs <- map snd `fmap` runLayout super rinput (differentiate $ take (length origls) origws)
+              do rs <- (map snd . fst) `fmap`
+                       runLayout super rinput (differentiate $ take (length origls) origws)
                  let wss [] _ = []
                      wss [_] ws = [ws]
                      wss (n:ns) ws = take len1 ws : wss ns (drop len1 ws)
@@ -48,13 +49,16 @@ combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modify
                  out <- sequence $ zipWith3 runLayout (map fst origls) rs
                                                       (map differentiate $
                                                        wss (take (length rs) $ map snd origls) origws)
-                 return $ concat out
-          message m = case fromMessage m of
-                        Just UnDoLayout -> fmap (\(super':ls') -> Just $ combo (zip ls' $ map snd origls) super')
-                                                (broadcastPrivate UnDoLayout (super:map fst origls))
-                        _               -> fmap (maybe Nothing (Just . combo origls)) (modifyLayout super m)
+                 let origls' = zipWith foo (out++repeat ([],Nothing)) origls
+                     foo (_, Nothing) x = x
+                     foo (_, Just l') (_, n) = (l', n)
+                 return (concat $ map fst out, Just $ combo origls' super)
+          message m = do mls <- broadcastPrivate m (super:map fst origls)
+                         return $ (\(super':ls') -> combo (zip ls' $ map snd origls) super') `fmap` mls
 
-broadcastPrivate :: Message a => a -> [Layout b] -> X [Layout b]
-broadcastPrivate a ol = mapM f ol
-    where f l = do ml' <- modifyLayout l (SomeMessage a) `catchX` return (Just l)
-                   return $ maybe l id ml'
+broadcastPrivate :: SomeMessage -> [Layout b] -> X (Maybe [Layout b])
+broadcastPrivate a ol = do nml <- mapM f ol
+                           if any isJust nml
+                              then return $ Just $ zipWith ((flip maybe) id) ol nml
+                              else return Nothing
+    where f l = modifyLayout l a `catchX` return Nothing

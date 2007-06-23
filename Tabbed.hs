@@ -20,7 +20,8 @@ module XMonadContrib.Tabbed (
                             , TConf (..), defaultTConf
                             ) where
 
-import Control.Monad ( forM )
+import Control.Monad ( forM, liftM )
+import Control.Monad.State ( gets )
 
 import Graphics.X11.Xlib
 import XMonad
@@ -29,6 +30,7 @@ import Operations ( focus, initColor )
 import qualified StackSet as W
 
 import XMonadContrib.NamedWindows
+import XMonadContrib.LayoutHelpers ( idModify )
 
 -- $usage
 -- You can use this module with the following in your configuration file:
@@ -50,42 +52,23 @@ import XMonadContrib.NamedWindows
 -- > defaultLayouts = [ simpleStacking $ tabbed shrinkText myconfig
 -- >                 , ... ]
 
-data TConf = 
-    TConf { activeColor :: String
-          , inactiveColor :: String
-          , bgColor :: String
-          , textColor :: String
-          , fontName :: String 
-          , tabSize :: Int
-          } deriving (Show, Read)
- 
-defaultTConf :: TConf
-defaultTConf = 
-    TConf { activeColor ="#BBBBBB"
-          , inactiveColor = "#888888"
-          , bgColor = "#000000"
-          , textColor = "#000000"
-          , fontName = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-          , tabSize = 20
-          }
+tabbed :: Shrinker -> Layout Window
+tabbed shrinkT =  Layout { doLayout = dolay shrinkT, modifyLayout = const (return Nothing) }
 
-tabbed :: Shrinker -> TConf -> Layout Window
-tabbed shrinkT config =  Layout { doLayout = dolay shrinkT config, modifyLayout = const (return Nothing) }
-
-dolay :: Shrinker -> TConf -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
-dolay _ _ sc (W.Stack w [] []) = return [(w,sc)]
-dolay shr conf sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
-    do activecolor   <- io $ initColor dpy $ activeColor conf
-       inactivecolor <- io $ initColor dpy $ inactiveColor conf
-       textcolor     <- io $ initColor dpy $ textColor conf 
-       bgcolor       <- io $ initColor dpy $ bgColor conf 
+dolay :: Shrinker -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
+dolay _ sc (W.Stack w [] []) = return [(w,sc)]
+dolay shr sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
+    do activecolor   <- io $ initColor dpy "#BBBBBB"
+       inactivecolor <- io $ initColor dpy "#888888"
+       textcolor     <- io $ initColor dpy "#000000"
+       bgcolor       <- io $ initColor dpy "#000000"
        let ws = W.integrate s
            ts = gentabs conf x y wid (length ws)
            tws = zip ts ws
-           maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor (fontName conf) (drawtab t ow) (focus ow)
-           drawtab r@(Rectangle _ _ wt ht) ow d w' gc fn =
+           maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor (drawtab t ow) (focus ow)
+           drawtab r@(Rectangle _ _ wt ht) ow d w' gc =
                do nw <- getName ow
-                  let tabcolor = if W.focus s == ow then activecolor else inactivecolor
+                  tabcolor <- (maybe inactivecolor (\focusw -> if focusw == ow then activecolor else inactivecolor) . W.peek) `liftM` gets windowset
                   io $ setForeground d gc tabcolor
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
                   io $ setForeground d gc textcolor
@@ -99,7 +82,7 @@ dolay shr conf sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
                          (fromIntegral (wt `div` 2) - fromIntegral (width `div` 2))
                          ((fromIntegral ht + fromIntegral asc) `div` 2) name'
        forM tws maketab
-       return [(W.focus s, shrink conf sc)]
+       return $ map (\w -> (w,shrink sc)) ws
 
 type Shrinker = String -> [String]
 

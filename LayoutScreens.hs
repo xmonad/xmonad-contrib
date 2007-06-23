@@ -48,7 +48,7 @@ layoutScreens :: Int -> Layout Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
 layoutScreens nscr l =
     do rtrect <- asks theRoot >>= getWindowRectangle
-       wss <- doLayout l rtrect W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] }
+       (wss, _) <- doLayout l rtrect W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] }
        modify $ \s -> s { xineScreens = map snd wss
                         , statusGaps  = take nscr $ (statusGaps s) ++ repeat (0,0,0,0) }
 

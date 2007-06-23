@@ -24,6 +24,7 @@ module XMonadContrib.Magnifier (
 import Graphics.X11.Xlib
 import XMonad
 import StackSet
+import XMonadContrib.LayoutHelpers
 
 -- $usage
 -- > import XMonadContrib.Magnifier
@@ -31,24 +32,20 @@ import StackSet
 
 -- | Increase the size of the window that has focus, unless it is the master window.
 magnifier :: Eq a => Layout a -> Layout a
-magnifier l = l { doLayout = \r s -> unlessMaster applyMagnifier r s `fmap` doLayout l r s
-                , modifyLayout = \x -> fmap magnifier `fmap` modifyLayout l x }
+magnifier = layoutModify (unlessMaster applyMagnifier) idModMod
 
 -- | Increase the size of the window that has focus, even if it is the master window.
 magnifier' :: Eq a => Layout a -> Layout a
-magnifier' l = l { doLayout = \r s -> applyMagnifier r s `fmap` doLayout l r s
-                 , modifyLayout = \x -> fmap magnifier' `fmap` modifyLayout l x }
+magnifier' = layoutModify applyMagnifier idModMod
 
+unlessMaster :: ModDo a -> ModDo a
+unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
+                                              else mainmod r s wrs
 
-type DoLayout = Eq a => Rectangle -> Stack a -> [(a, Rectangle)] -> [(a, Rectangle)]
-
-unlessMaster :: DoLayout -> DoLayout
-unlessMaster f r s = if null (up s) then id else f r s
-
-applyMagnifier :: DoLayout
-applyMagnifier r s = reverse . foldr accumulate []
-    where accumulate (w,wr) ws | w == focus s = ws ++ [(w, shrink r $ magnify wr)]
-                               | otherwise    = (w,wr) : ws
+applyMagnifier :: Eq a => ModDo a
+applyMagnifier r s wrs = return (map mag wrs, Nothing)
+    where mag (w,wr) | w == focus s = (w, shrink r $ magnify wr)
+                     | otherwise = (w,wr)
 
 magnify :: Rectangle -> Rectangle
 magnify (Rectangle x y w h) = Rectangle x' y' w' h'

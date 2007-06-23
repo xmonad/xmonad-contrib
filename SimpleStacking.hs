@@ -21,15 +21,16 @@ module XMonadContrib.SimpleStacking (
                                      simpleStacking
                                     ) where
 
-import Control.Monad.State ( modify )
+import Control.Monad.State ( get )
 import qualified Data.Map as M
 import Data.Maybe ( catMaybes )
 
-import Data.List ( nub, lookup )
-import StackSet ( focus, tag, workspace, current, integrate )
+import Data.List ( nub, lookup, delete )
+import StackSet ( focus, tag, workspace, current, up, down )
 import Graphics.X11.Xlib ( Window )
 
 import XMonad
+import XMonadContrib.LayoutHelpers
 
 -- $usage
 -- You can use this module for 
@@ -39,14 +40,9 @@ simpleStacking :: Layout Window -> Layout Window
 simpleStacking = simpleStacking' []
 
 simpleStacking' :: [Window] -> Layout Window -> Layout Window
-simpleStacking' st l = l { doLayout = dl
-                         , modifyLayout = \m -> fmap (simpleStacking' st) `fmap` modifyLayout l m }
-    where dl r s = do modify $ \ state ->
-                          state { layouts = M.adjust
-                                            (\(_,ss)->(simpleStacking'
-                                                       (focus s:filter (`elem` integrate s) st) l,ss))
-                                            (tag.workspace.current.windowset $ state)
-                                            (layouts state) }
-                      lo <- doLayout l r s
-                      let m = map (\ (w,rr) -> (w,(w,rr))) lo
-                      return $ catMaybes $ map ((flip lookup) m) $ nub (focus s : st ++ map fst lo)
+simpleStacking' st = layoutModify dl idModMod
+    where dl r s wrs = let m = map (\ (w,rr) -> (w,(w,rr))) wrs
+                           wrs' = catMaybes $ map ((flip lookup) m) $
+                                  nub (focus s : st ++ map fst wrs)
+                           st' = focus s:filter (`elem` (up s++down s)) st
+                       in return (wrs', Just (simpleStacking' st'))

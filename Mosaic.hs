@@ -87,7 +87,8 @@ flexibility :: Double
 flexibility = 0.1
 
 mosaic :: Double -> Double -> M.Map NamedWindow [WindowHint] -> Layout Window
-mosaic delta tileFrac hints = full { doLayout = \r -> mosaicL tileFrac hints r . W.integrate, modifyLayout = return . mlayout }
+mosaic delta tileFrac hints = full { doLayout = \r -> mosaicL tileFrac hints r . W.integrate
+                                   , modifyLayout = return . mlayout }
     where mlayout x = (m1 `fmap` fromMessage x) `mplus` (m2 `fmap` fromMessage x)
           m1 Shrink = mosaic delta (tileFrac/(1+delta)) hints
           m1 Expand = mosaic delta (tileFrac*(1+delta)) hints
@@ -136,8 +137,8 @@ alterlist f k = M.alter f' k
                            xs' -> Just xs'
 
 mosaicL :: Double -> M.Map NamedWindow [WindowHint]
-        -> Rectangle -> [Window] -> X [(Window, Rectangle)]
-mosaicL _ _ _ [] = return []
+        -> Rectangle -> [Window] -> X ([(Window, Rectangle)],Maybe (Layout Window))
+mosaicL _ _ _ [] = return ([], Nothing)
 mosaicL f hints origRect origws
     = do namedws <- mapM getName origws
          let sortedws = reverse $ map the_value $ sort $ map (\w -> Rated (sumareas [w]) w) namedws
@@ -152,13 +153,13 @@ mosaicL f hints origRect origws
 --             myh2 = maxL $ runCountDown largeNumber $
 --                    sequence $ replicate mediumNumber $
 --                    mosaic_splits one_split origRect Horizontal sortedws
-         return $ map (\(nw,r)->(--trace ("rate1:"++ unlines [show nw,
+         return (map (\(nw,r)->(--trace ("rate1:"++ unlines [show nw,
                                  --                           show $ rate f meanarea (findlist nw hints) r,
                                  --                           show r,
                                  --                           show $ area r/meanarea,
                                  --                           show $ findlist nw hints]) $
                                  unName nw,crop' (findlist nw hints) r)) $
-                flattenMosaic $ the_value $ maxL [myh,myv,myh2,myv2]
+                flattenMosaic $ the_value $ maxL [myh,myv,myh2,myv2], Nothing)
     where mosaic_splits _ _ _ [] = return $ Rated 0 $ M []
           mosaic_splits _ r _ [w] = return $ Rated (rate f meanarea (findlist w hints) r) $ OM (w,r)
           mosaic_splits spl r d ws = maxL `fmap` mapCD (spl r d) (init $ allsplits ws)

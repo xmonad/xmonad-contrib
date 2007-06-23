@@ -17,7 +17,7 @@ module XMonadContrib.LayoutHelpers (
     DoLayout, ModDo, ModMod, ModLay,
     layoutModify,
     l2lModDo, idModify,
-    idModMod,
+    idModDo, idModMod,
     ) where
 
 import Graphics.X11.Xlib ( Rectangle )
@@ -27,8 +27,7 @@ import StackSet ( Stack, integrate )
 -- $usage
 -- Use LayoutHelpers to help write easy Layouts.
 
---type DoLayout a = Rectangle -> Stack a -> X ([(a, Rectangle)], Maybe (Layout a))
-type DoLayout a = Rectangle -> Stack a -> X [(a, Rectangle)]
+type DoLayout a = Rectangle -> Stack a -> X ([(a, Rectangle)], Maybe (Layout a))
 type ModifyLayout a = SomeMessage -> X (Maybe (Layout a))
 
 type ModDo a = Rectangle -> Stack a -> [(a, Rectangle)] -> X ([(a, Rectangle)], Maybe (ModLay a))
@@ -38,16 +37,12 @@ type ModLay a = Layout a -> Layout a
 
 layoutModify :: ModDo a -> ModMod a -> ModLay a
 layoutModify fdo fmod l = Layout { doLayout = dl, modifyLayout = modl }
-    where dl r s = do --(ws, ml') <- doLayout l r s
-                      ws <- doLayout l r s
+    where dl r s = do (ws, ml') <- doLayout l r s
                       (ws', mmod') <- fdo r s ws
-                      --let ml'' = case mmod' of
-                      --           Just mod' -> Just $ mod' $ maybe l id ml'
-                      --           Nothing -> layoutModify fdo mod `fmap` ml'
-                      --return (ws', ml'')
-                      case mmod' of
-                        Just _ -> fail "Sorry, can't yet safely modify layouts in doLayout."
-                        Nothing -> return ws'
+                      let ml'' = case mmod' of
+                                 Just mod' -> Just $ mod' $ maybe l id ml'
+                                 Nothing -> layoutModify fdo fmod `fmap` ml'
+                      return (ws', ml'')
           modl m = do ml' <- modifyLayout l m
                       mmod' <- fmod m
                       return $ case mmod' of
@@ -55,8 +50,10 @@ layoutModify fdo fmod l = Layout { doLayout = dl, modifyLayout = modl }
                                Nothing -> layoutModify fdo fmod `fmap` ml'
 
 l2lModDo :: (Rectangle -> [a] -> [(a,Rectangle)]) -> DoLayout a
---l2lModDo dl r s = return (dl r $ integrate s, Nothing)
-l2lModDo dl r s = return (dl r $ integrate s)
+l2lModDo dl r s = return (dl r $ integrate s, Nothing)
+
+idModDo :: ModDo a
+idModDo _ _ wrs = return (wrs, Nothing)
 
 idModify :: ModifyLayout a
 idModify _ = return Nothing

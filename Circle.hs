@@ -22,14 +22,16 @@ import Graphics.X11.Xlib
 import XMonad
 import StackSet (integrate, Stack(..))
 
+import XMonadContrib.LayoutHelpers ( idModify )
+
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 --
 -- > import XMonadContrib.Circle
 
 circle :: Layout a
-circle = Layout { doLayout = \r s -> return . raise (length (up s)) . circleLayout r $ integrate s,
-                  modifyLayout = return . const Nothing }
+circle = Layout { doLayout = \r s -> return (raise (length (up s)) . circleLayout r $ integrate s, Nothing),
+                  modifyLayout = idModify }
 
 circleLayout :: Rectangle -> [a] -> [(a, Rectangle)]
 circleLayout _ []     = []

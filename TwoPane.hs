@@ -35,7 +35,7 @@ import StackSet ( focus, up, down)
 -- > twoPane defaultDelta (1%2)
 
 twoPane :: Rational -> Rational -> Layout a
-twoPane delta split = Layout { doLayout = \r s -> return $ arrange r s, modifyLayout = message }
+twoPane delta split = Layout { doLayout = \r s -> return (arrange r s,Nothing), modifyLayout = message }
  where
     arrange rect st = case reverse (up st) of
                         (master:_) -> [(master,left),(focus st,right)]

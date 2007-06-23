@@ -31,10 +31,11 @@ import XMonadContrib.LayoutHelpers ( idModify )
 accordion :: Eq a => Layout a
 accordion = Layout { doLayout = accordionLayout, modifyLayout = idModify }
 
-accordionLayout :: Eq a => Rectangle -> W.Stack a -> X [(a, Rectangle)]
-accordionLayout sc ws = return $ (zip ups tops) ++
-                               [(W.focus ws, mainPane)] ++
-                               (zip dns bottoms)
+accordionLayout :: Eq a => Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (Layout a))
+accordionLayout sc ws = return ((zip ups tops) ++
+                                [(W.focus ws, mainPane)] ++
+                                (zip dns bottoms)
+                               ,Nothing)
  where ups    = W.up ws
        dns    = W.down ws
        (top, allButTop) = splitVerticallyBy (1%8) sc
