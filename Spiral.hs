@@ -22,7 +22,8 @@ import Graphics.X11.Xlib
 import Operations
 import Data.Ratio
 import XMonad
-import qualified StackSet as W
+
+import XMonadContrib.LayoutHelpers
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -52,10 +53,10 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
 spiral :: Rational -> Layout a
-spiral scale = Layout { doLayout = \r -> fibLayout r . W.integrate,
+spiral scale = Layout { doLayout = l2lModDo fibLayout,
                         modifyLayout = \m -> return $ fmap resize $ fromMessage m }
     where
-      fibLayout sc ws = return $ zip ws rects
+      fibLayout sc ws = zip ws rects
           where ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
                 rects = divideRects (zip ratios (cycle [East .. North])) sc
 
