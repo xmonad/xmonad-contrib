@@ -22,6 +22,11 @@ module XMonadContrib.Square (
                              -- $usage
                              square ) where
 
+import XMonad
+import Graphics.X11.Xlib
+import StackSet ( integrate )
+import XMonadContrib.LayoutHelpers ( l2lModDo )
+
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 --
@@ -34,11 +39,6 @@ module XMonadContrib.Square (
 -- >             (combo [(twoPane 0.03 0.2,1)
 -- >                    ,(combo [(twoPane 0.03 0.8,1),(square,1)]
 -- >                                (mirror $ twoPane 0.03 0.85),1)] (twoPane 0.03 0.5) )
-
-import XMonad
-import Graphics.X11.Xlib
-import StackSet ( integrate )
-import XMonadContrib.LayoutHelpers ( l2lModDo )
 
 square :: Layout a
 square = Layout { doLayout = l2lModDo arrange, modifyLayout = const (return Nothing) }
