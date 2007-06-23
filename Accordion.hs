@@ -22,14 +22,14 @@ import Operations
 import qualified StackSet as W
 import Graphics.X11.Xlib
 import Data.Ratio
+import XMonadContrib.LayoutHelpers ( idModify )
 
 -- $usage
 -- > import XMonadContrib.Accordion
 -- > defaultLayouts = [ accordion ]
 
 accordion :: Eq a => Layout a
-accordion = Layout { doLayout = accordionLayout
-                    , modifyLayout = const $ return Nothing }
+accordion = Layout { doLayout = accordionLayout, modifyLayout = idModify }
 
 accordionLayout :: Eq a => Rectangle -> W.Stack a -> X [(a, Rectangle)]
 accordionLayout sc ws = return $ (zip ups tops) ++
