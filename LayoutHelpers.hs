@@ -16,7 +16,7 @@ module XMonadContrib.LayoutHelpers (
     -- $usage
     DoLayout, ModDo, ModMod, ModLay,
     layoutModify,
-    l2lModDo,
+    l2lModDo, idModify,
     idModMod,
     ) where
 
@@ -57,6 +57,9 @@ layoutModify fdo fmod l = Layout { doLayout = dl, modifyLayout = modl }
 l2lModDo :: (Rectangle -> [a] -> [(a,Rectangle)]) -> DoLayout a
 --l2lModDo dl r s = return (dl r $ integrate s, Nothing)
 l2lModDo dl r s = return (dl r $ integrate s)
+
+idModify :: ModifyLayout a
+idModify _ = return Nothing
 
 idModMod :: ModMod a
 idModMod _ = return Nothing

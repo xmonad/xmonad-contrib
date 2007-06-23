@@ -40,8 +40,13 @@ import XMonadContrib.LayoutHelpers ( l2lModDo )
 -- >                    ,(combo [(twoPane 0.03 0.8,1),(square,1)]
 -- >                                (mirror $ twoPane 0.03 0.85),1)] (twoPane 0.03 0.5) )
 
+import XMonad
+import Graphics.X11.Xlib
+import StackSet ( integrate )
+import XMonadContrib.LayoutHelpers ( l2lModDo )
+
 square :: Layout a
-square = Layout { doLayout = l2lModDo arrange, modifyLayout = const (return Nothing) }
+square = Layout { doLayout = l2lModDo arrange, modifyLayout = idModify }
  where arrange :: Rectangle -> [a] -> [(a, Rectangle)]
        arrange rect ws@(_:_) = map (\w->(w,rest)) (init ws) ++ [(last ws,sq)]
                  where (rest, sq) = splitSquare rect
