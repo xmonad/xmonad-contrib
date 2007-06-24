@@ -35,7 +35,10 @@ import {-# SOURCE #-} Config (borderWidth)
 --
 -- > import XMonadContrib.NoBorders
 --
--- > layouts = [ noBorders full, tall, ... ]
+-- and modify the defaultLayouts to call noBorders on the layouts you want to lack
+-- borders
+--
+-- > defaultLayouts = [ noBorders full, ... ]
 
 noBorders :: Layout a -> Layout a
 noBorders = withBorder 0
