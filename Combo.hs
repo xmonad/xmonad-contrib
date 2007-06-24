@@ -18,6 +18,7 @@ module XMonadContrib.Combo (
                             combo
                            ) where
 
+import Control.Arrow ( first )
 import Data.Maybe ( isJust )
 import XMonad
 import StackSet ( integrate, differentiate )
@@ -31,30 +32,39 @@ import StackSet ( integrate, differentiate )
 -- 
 -- and add something like
 -- 
--- > simpleStacking $ combo [(full,1),(tabbed shrinkText,1)] (twoPane 0.03 0.5)
+-- > simpleStacking $ combo (twoPane 0.03 0.5) [(full,1),(tabbed shrinkText,1)]
 --
 -- to your defaultLayouts.
+--
+-- The first argument to combo is a Layout that will divide the screen into
+-- one or more subscreens.  The second argument is a list of layouts which
+-- will be used to lay out the contents of each of those subscreents.
+-- Paired with each of these layouts is an integer giving the number of
+-- windows this section should hold.  This number is ignored for the last
+-- layout, which will hold any excess windows.
 
-combo :: [(Layout a, Int)] -> Layout a -> Layout a
-combo origls super = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
+combo :: Layout (Layout a, Int) -> [(Layout a, Int)] -> Layout a
+combo super origls = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }
     where arrange _ [] = return ([], Nothing)
           arrange r [w] = return ([(w,r)], Nothing)
           arrange rinput origws =
-              do rs <- (map snd . fst) `fmap`
-                       runLayout super rinput (differentiate $ take (length origls) origws)
-                 let wss [] _ = []
-                     wss [_] ws = [ws]
-                     wss (n:ns) ws = take len1 ws : wss ns (drop len1 ws)
-                         where len1 = min n (length ws - length ns)
-                 out <- sequence $ zipWith3 runLayout (map fst origls) rs
-                                                      (map differentiate $
-                                                       wss (take (length rs) $ map snd origls) origws)
+              do lrs <- fst `fmap`
+                       runLayout super rinput (differentiate $ take (length origws) origls)
+                 let lwrs [] _ = []
+                     lwrs [((l,_),r)] ws = [((l,r),differentiate ws)]
+                     lwrs (((l,n),r):xs) ws = ((l,r),differentiate $ take len1 ws) : lwrs xs (drop len1 ws)
+                         where len1 = min n (length ws - length xs)
+                 out <- mapM (uncurry $ uncurry runLayout) $ lwrs lrs origws
                  let origls' = zipWith foo (out++repeat ([],Nothing)) origls
                      foo (_, Nothing) x = x
                      foo (_, Just l') (_, n) = (l', n)
-                 return (concat $ map fst out, Just $ combo origls' super)
-          message m = do mls <- broadcastPrivate m (super:map fst origls)
-                         return $ (\(super':ls') -> combo (zip ls' $ map snd origls) super') `fmap` mls
+                 return (concat $ map fst out, Just $ combo super origls')
+          message m = do mls <- broadcastPrivate m (map fst origls)
+                         let mls' = (\x->zipWith first (map const x) origls) `fmap` mls
+                         msuper <- broadcastPrivate m [super]
+                         case msuper of
+                           Just [super'] -> return $ Just $ combo super' $ maybe origls id mls'
+                           _ -> return $ combo super `fmap` mls'
 
 broadcastPrivate :: SomeMessage -> [Layout b] -> X (Maybe [Layout b])
 broadcastPrivate a ol = do nml <- mapM f ol
