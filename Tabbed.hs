@@ -40,6 +40,16 @@ import XMonadContrib.NamedWindows
 -- > defaultLayouts :: [Layout]
 -- > defaultLayouts = [ simpleStacking $ tabbed shrinkText defaultTConf
 -- >                 , ... ]
+--
+-- You can also edit the default configuration options.
+--
+-- > myconfig = defaultTConf { bgColor = "#FF0000"
+-- >                         , textColor = "#00FF00"}
+--
+-- and
+--
+-- > defaultLayouts = [ simpleStacking $ tabbed shrinkText myconfig
+-- >                 , ... ]
 
 data TConf = 
     TConf { activeColor :: String
