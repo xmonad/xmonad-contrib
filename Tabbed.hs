@@ -17,6 +17,7 @@ module XMonadContrib.Tabbed (
                              -- $usage
                               tabbed
                             , Shrinker, shrinkText
+                            , TConf (..), defaultTConf
                             ) where
 
 import Control.Monad ( forM, liftM )
@@ -37,42 +38,59 @@ import XMonadContrib.NamedWindows
 -- > import XMonadContrib.SimpleStacking
 --
 -- > defaultLayouts :: [Layout]
--- > defaultLayouts = [ simpleStacking $ tabbed shrinkText
+-- > defaultLayouts = [ simpleStacking $ tabbed shrinkText defaultTConf
 -- >                 , ... ]
 
-tabbed :: Shrinker -> Layout Window
-tabbed shrinkT =  Layout { doLayout = dolay shrinkT, modifyLayout = const (return Nothing) }
+data TConf = 
+    TConf { activeColor :: String
+          , inactiveColor :: String
+          , bgColor :: String
+          , textColor :: String
+          , fontName :: String 
+          , tabSize :: Int
+          } deriving (Show, Read)
+ 
+defaultTConf :: TConf
+defaultTConf = 
+    TConf { activeColor ="#BBBBBB"
+          , inactiveColor = "#888888"
+          , bgColor = "#000000"
+          , textColor = "#000000"
+          , fontName = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+          , tabSize = 20
+          }
 
-dolay :: Shrinker -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
-dolay _ sc (W.Stack w [] []) = return [(w,sc)]
-dolay shr sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
-    do activecolor   <- io $ initColor dpy "#BBBBBB"
-       inactivecolor <- io $ initColor dpy "#888888"
-       textcolor     <- io $ initColor dpy "#000000"
-       bgcolor       <- io $ initColor dpy "#000000"
+tabbed :: Shrinker -> TConf -> Layout Window
+tabbed shrinkT config =  Layout { doLayout = dolay shrinkT config, modifyLayout = const (return Nothing) }
+
+dolay :: Shrinker -> TConf -> Rectangle -> W.Stack Window -> X [(Window, Rectangle)]
+dolay _ _ sc (W.Stack w [] []) = return [(w,sc)]
+dolay shr conf sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
+    do activecolor   <- io $ initColor dpy $ activeColor conf
+       inactivecolor <- io $ initColor dpy $ inactiveColor conf
+       textcolor     <- io $ initColor dpy $ textColor conf 
+       bgcolor       <- io $ initColor dpy $ bgColor conf 
        let ws = W.integrate s
-           ts = gentabs x y wid (length ws)
+           ts = gentabs conf x y wid (length ws)
            tws = zip ts ws
-           maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor (drawtab t ow) (focus ow)
-           drawtab r@(Rectangle _ _ wt ht) ow d w' gc =
+           maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor (fontName conf) (drawtab t ow) (focus ow)
+           drawtab r@(Rectangle _ _ wt ht) ow d w' gc fn =
                do nw <- getName ow
                   tabcolor <- (maybe inactivecolor (\focusw -> if focusw == ow then activecolor else inactivecolor) . W.peek) `liftM` gets windowset
                   io $ setForeground d gc tabcolor
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
                   io $ setForeground d gc textcolor
-                  centerText d w' gc r (show nw)
-           centerText d w' gc (Rectangle _ _ wt ht) name =
-               do fontst <- io $ loadQueryFont d "-misc-fixed-*-*-*-*-*-*-*-*-*-*-*-*"
-                  io $ setFont d gc (fontFromFontStruct fontst)
-                  let (_,asc,_,_) = textExtents fontst name
+                  centerText d w' gc fn r (show nw)
+           centerText d w' gc fontst (Rectangle _ _ wt ht) name =
+               do let (_,asc,_,_) = textExtents fontst name
                       name' = shrinkWhile shr (\n -> textWidth fontst n >
                                                      fromIntegral wt - fromIntegral (ht `div` 2)) name
                       width = textWidth fontst name'
                   io $ drawString d w' gc
                          (fromIntegral (wt `div` 2) - fromIntegral (width `div` 2))
-                         (fromIntegral ht - fromIntegral (asc `div` 2)) name'
+                         ((fromIntegral ht + fromIntegral asc) `div` 2) name'
        forM tws maketab
-       return $ map (\w -> (w,shrink sc)) ws
+       return $ map (\w -> (w,shrink conf sc)) ws
 
 type Shrinker = String -> [String]
 
@@ -87,14 +105,11 @@ shrinkText :: Shrinker
 shrinkText "" = [""]
 shrinkText cs = cs : shrinkText (init cs)
 
-shrink :: Rectangle -> Rectangle
-shrink (Rectangle x y w h) = Rectangle x (y+tabsize) w (h-tabsize)
+shrink :: TConf -> Rectangle -> Rectangle
+shrink c (Rectangle x y w h) = Rectangle x (y + fromIntegral (tabSize c)) w (h - fromIntegral (tabSize c))
 
-gentabs :: Position -> Position -> Dimension -> Int -> [Rectangle]
-gentabs _ _ _ 0 = []
-gentabs x y w num = Rectangle x y (wid - 2) (tabsize - 2)
-                   : gentabs (x + fromIntegral wid) y (w - wid) (num - 1)
-                              where wid = w `div` (fromIntegral num)
-
-tabsize :: Integral a => a
-tabsize = 20
+gentabs :: TConf -> Position -> Position -> Dimension -> Int -> [Rectangle]
+gentabs _ _ _ _ 0 = []
+gentabs c x y w num = Rectangle x y (wid - 2) (fromIntegral (tabSize c) - 2)
+                      : gentabs c (x + fromIntegral wid) y (w - wid) (num - 1)
+                          where wid = w `div` (fromIntegral num)
