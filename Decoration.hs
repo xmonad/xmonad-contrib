@@ -33,9 +33,9 @@ import Operations ( UnDoLayout(UnDoLayout) )
 -- You can use this module for writing other extensions.
 -- See, for instance, "XMonadContrib.Tabbed"
 
-newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel
-              -> (Display -> Window -> GC -> X ()) -> X () -> X Window
-newDecoration decfor (Rectangle x y w h) th fg bg draw click = do
+newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel -> String
+              -> (Display -> Window -> GC -> FontStruct -> X ()) -> X () -> X Window
+newDecoration decfor (Rectangle x y w h) th fg bg fn draw click = do
     d <- asks display
     rt <- asks theRoot
     win <- io $ createSimpleWindow d rt x y w h (fromIntegral th) fg bg
@@ -52,8 +52,8 @@ newDecoration decfor (Rectangle x y w h) th fg bg draw click = do
         handle_event (ButtonEvent {ev_window = thisw,ev_event_type = t})
             | t == buttonPress && thisw == win        = click
         handle_event (AnyEvent {ev_window = thisw, ev_event_type = t})
-            | thisw == win    && t == expose          = withGC win draw
-            | thisw == decfor && t == propertyNotify  = withGC win draw
+            | thisw == win    && t == expose          = withGC win fn draw
+            | thisw == decfor && t == propertyNotify  = withGC win fn draw
         handle_event _ = return ()
 
     addLayoutMessageHook hook
@@ -61,7 +61,13 @@ newDecoration decfor (Rectangle x y w h) th fg bg draw click = do
     return win
 
 -- FIXME: withGC should use bracket (but can't, unless draw is an IO thing)
-withGC :: Drawable -> (Display -> Drawable -> GC -> X ()) -> X ()
-withGC w f = withDisplay $ \d -> do gc <- io $ createGC d w
-                                    f d w gc
-                                    io $ freeGC d gc
+withGC :: Drawable -> String -> (Display -> Drawable -> GC -> FontStruct -> X ()) -> X ()
+withGC w fn f = withDisplay $ \d -> do gc <- io $ createGC d w
+                                       let fontname = if fn == "" 
+                                                      then "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+                                                      else fn
+                                       font <- io $ loadQueryFont d fontname
+                                       io $ setFont d gc (fontFromFontStruct font)
+                                       f d w gc font
+                                       io $ freeGC d gc
+                                       io $ freeFont d font
