@@ -14,7 +14,7 @@
 
 module XMonadContrib.Accordion (
     -- * Usage
-    -- $ usage
+    -- $usage
     accordion) where
 
 import XMonad
