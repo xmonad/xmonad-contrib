@@ -11,6 +11,8 @@
 --
 -- A module to be used to obtain a simple "memory" of stacking order.
 --
+-- WARNING: This module is incompatible with Xinerama!
+--
 -----------------------------------------------------------------------------
 
 module XMonadContrib.SimpleStacking (
