@@ -20,8 +20,7 @@ module XMonadContrib.Tabbed (
                             , TConf (..), defaultTConf
                             ) where
 
-import Control.Monad ( forM, liftM )
-import Control.Monad.State ( gets )
+import Control.Monad ( forM )
 
 import Graphics.X11.Xlib
 import XMonad
@@ -86,7 +85,7 @@ dolay shr conf sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
            maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor (fontName conf) (drawtab t ow) (focus ow)
            drawtab r@(Rectangle _ _ wt ht) ow d w' gc fn =
                do nw <- getName ow
-                  tabcolor <- (maybe inactivecolor (\focusw -> if focusw == ow then activecolor else inactivecolor) . W.peek) `liftM` gets windowset
+                  let tabcolor = if W.focus s == ow then activecolor else inactivecolor
                   io $ setForeground d gc tabcolor
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
                   io $ setForeground d gc textcolor
@@ -100,7 +99,7 @@ dolay shr conf sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
                          (fromIntegral (wt `div` 2) - fromIntegral (width `div` 2))
                          ((fromIntegral ht + fromIntegral asc) `div` 2) name'
        forM tws maketab
-       return $ map (\w -> (w,shrink conf sc)) ws
+       return [(W.focus s, shrink conf sc)]
 
 type Shrinker = String -> [String]
 
