@@ -33,9 +33,10 @@ import Operations ( UnDoLayout(UnDoLayout) )
 -- You can use this module for writing other extensions.
 -- See, for instance, "XMonadContrib.Tabbed"
 
-newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel
-              -> (Display -> Window -> GC -> X ()) -> X () -> X Window
-newDecoration decfor (Rectangle x y w h) th fg bg draw click = do
+newDecoration :: Window -> Rectangle -> Int -> Pixel -> Pixel -> String
+              -> (Display -> Window -> GC -> FontStruct -> X ())
+              -> X () -> Layout a -> X (Layout a)
+newDecoration decfor (Rectangle x y w h) th fg bg fn draw click l = do
     d <- asks display
     rt <- asks theRoot
     win <- io $ createSimpleWindow d rt x y w h (fromIntegral th) fg bg
