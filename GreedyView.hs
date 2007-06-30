@@ -54,11 +54,10 @@ greedyView = windows . greedyView'
 greedyView' :: WorkspaceId -> WindowSet -> WindowSet
 greedyView' w ws
  | any wTag (hidden ws)                             = W.view w ws
- | (Just s) <- find (wTag . workspace) (visible ws) = ws { current = setScreen s (screen $ current ws)
-                                                         , visible = setScreen (current ws) (screen s)
+ | (Just s) <- find (wTag . workspace) (visible ws) = ws { current = (current ws) { workspace = workspace s }
+                                                         , visible = s { workspace = workspace (current ws) }
                                                                    : filter (not . wTag . workspace) (visible ws)
                                                          }
  | otherwise                                        = ws
  where
-    setScreen s i = s { screen = i }
     wTag = (w == ) . tag
