@@ -46,7 +46,7 @@ import qualified Operations as O
 -- Nothing if all workspaces are in use. Function searches currently
 -- focused workspace, other visible workspaces (when in Xinerama) and
 -- hidden workspaces in this order.
-findEmptyWorkspace :: StackSet i a s -> Maybe (Workspace i a)
+findEmptyWorkspace :: StackSet i a s sd -> Maybe (Workspace i a)
 findEmptyWorkspace = find (isNothing . stack) . allWorkspaces
   where
     allWorkspaces ss = (workspace . current) ss :

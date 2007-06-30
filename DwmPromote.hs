@@ -39,7 +39,7 @@ import StackSet
 dwmpromote :: X ()
 dwmpromote = windows swap
 
-swap :: StackSet i a s -> StackSet i a s
+swap :: StackSet i a s sd -> StackSet i a s sd
 swap = modify' $ \c -> case c of
     Stack _ [] []     -> c
     Stack t [] (x:rs) -> Stack x [] (t:rs)

@@ -22,11 +22,13 @@ module XMonadContrib.Warp (
 
 import Data.Ratio
 import Data.Maybe
+import Data.List
 import Control.Monad.RWS
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import Operations
 import XMonad
+import StackSet as W
 
 {- $usage
 This can be used to make a keybinding that warps the pointer to a given
@@ -59,10 +61,11 @@ warpToWindow h v =
             wa <- io $ getWindowAttributes d w
             warp w (fraction h (wa_width wa)) (fraction v (wa_height wa))
 
-warpToScreen :: Int -> Rational -> Rational -> X ()
+warpToScreen :: ScreenId -> Rational -> Rational -> X ()
 warpToScreen n h v = do
-    xScreens <- gets xineScreens
-    root     <- asks theRoot
-    whenJust (ix n xScreens) $ \r ->
-        warp root (rect_x r + fraction h (rect_width  r))
-                  (rect_y r + fraction v (rect_height r))
+    root <- asks theRoot
+    (StackSet {current = x, visible = xs}) <- gets windowset
+    whenJust (fmap (screenRect . W.screenDetail) . find ((n==) . W.screen) $ x : xs)
+        $ \r ->
+            warp root (rect_x r + fraction h (rect_width  r))
+                      (rect_y r + fraction v (rect_height r))

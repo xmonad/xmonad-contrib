@@ -47,7 +47,7 @@ import StackSet
 copy :: WorkspaceId -> X ()
 copy n = windows (copy' n)
 
-copy' :: (Ord a, Eq s, Integral i) => i -> StackSet i a s -> StackSet i a s
+copy' :: (Ord a, Eq s, Integral i) => i -> StackSet i a s sd -> StackSet i a s sd
 copy' n s = if n `tagMember` s && n /= tag (workspace (current s))
             then maybe s go (peek s)
             else s
@@ -68,11 +68,11 @@ copy' n s = if n `tagMember` s && n /= tag (workspace (current s))
 -- Semantics in Huet's paper is that insert doesn't move the cursor.
 -- However, we choose to insert above, and move the focus.
 
-insertUp' :: Eq a => a -> StackSet i a s -> StackSet i a s
+insertUp' :: Eq a => a -> StackSet i a s sd -> StackSet i a s sd
 insertUp' a s = modify (Just $ Stack a [] [])
                 (\(Stack t l r) -> Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
 
-delete' :: Ord a => a -> StackSet i a s -> StackSet i a s
+delete' :: Ord a => a -> StackSet i a s sd -> StackSet i a s sd
 delete' w = sink w . modify Nothing (filter (/= w))
 
 -- | Remove the focussed window from this workspace.  If it's present in no
