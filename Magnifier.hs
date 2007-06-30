@@ -43,9 +43,9 @@ unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
                                               else mainmod r s wrs
 
 applyMagnifier :: Eq a => ModDo a
-applyMagnifier r s wrs = return (map mag wrs, Nothing)
-    where mag (w,wr) | w == focus s = (w, shrink r $ magnify wr)
-                     | otherwise = (w,wr)
+applyMagnifier r s wrs = return (reverse $ foldr mag [] wrs, Nothing)
+    where mag (w,wr) ws | w == focus s = ws ++ [(w, shrink r $ magnify wr)]
+                        | otherwise    = (w,wr) : ws
 
 magnify :: Rectangle -> Rectangle
 magnify (Rectangle x y w h) = Rectangle x' y' w' h'
