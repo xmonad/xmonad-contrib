@@ -1,14 +1,12 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.RotView
+-- Module      :  XMonadContrib.LayoutScreens
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  David Roundy <droundy@darcs.net>
 -- Stability   :  unstable
 -- Portability :  unportable
---
--- Provides bindings to cycle through non-empty workspaces.
 --
 -----------------------------------------------------------------------------
 
