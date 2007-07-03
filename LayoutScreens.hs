@@ -18,7 +18,6 @@ module XMonadContrib.LayoutScreens (
                                     layoutScreens
                                    ) where
 
-import Control.Monad.State ( modify )
 import Control.Monad.Reader ( asks )
 
 import XMonad
@@ -49,13 +48,13 @@ layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ sh
 layoutScreens nscr l =
     do rtrect <- asks theRoot >>= getWindowRectangle
        (wss, _) <- doLayout l rtrect W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] }
-       modify $ \s -> s { xineScreens = map snd wss
-                        , statusGaps  = take nscr $ (statusGaps s) ++ repeat (0,0,0,0) }
-
        O.windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
            let (x:xs, ys) = splitAt nscr $ map W.workspace (v:vs) ++ hs
-           in  ws { W.current = W.Screen x 0
-                  , W.visible = zipWith W.Screen xs [1 ..]
+               gaps = map (statusGap . W.screenDetail) $ v:vs
+               (s:ss, g:gg) = (map snd wss, take nscr $ gaps ++ repeat (0,0,0,0))
+               sd = zipWith SD ss gg
+           in  ws { W.current = W.Screen x 0 (SD s g)
+                  , W.visible = zipWith3 W.Screen xs [1 ..] sd
                   , W.hidden  = ys }
 
 getWindowRectangle :: Window -> X Rectangle
