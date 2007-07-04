@@ -51,10 +51,9 @@ layoutScreens nscr l =
        O.windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
            let (x:xs, ys) = splitAt nscr $ map W.workspace (v:vs) ++ hs
                gaps = map (statusGap . W.screenDetail) $ v:vs
-               (s:ss, g:gg) = (map snd wss, take nscr $ gaps ++ repeat (0,0,0,0))
-               sd = zipWith SD ss gg
+               (s:ss, g:gg) = (map snd wss, take nscr $ gaps ++ repeat (head gaps))
            in  ws { W.current = W.Screen x 0 (SD s g)
-                  , W.visible = zipWith3 W.Screen xs [1 ..] sd
+                  , W.visible = zipWith3 W.Screen xs [1 ..] $ zipWith SD ss gg
                   , W.hidden  = ys }
 
 getWindowRectangle :: Window -> X Rectangle
