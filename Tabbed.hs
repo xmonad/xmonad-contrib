@@ -54,18 +54,22 @@ import XMonadContrib.LayoutHelpers ( idModify )
 data TConf = 
     TConf { activeColor :: String
           , inactiveColor :: String
-          , bgColor :: String
-          , textColor :: String
-          , fontName :: String 
+          , activeBorderColor :: String
+          , inactiveTextColor :: String
+          , inactiveBorderColor :: String
+          , activeTextColor :: String
+          , fontName :: String
           , tabSize :: Int
           } deriving (Show, Read)
- 
+
 defaultTConf :: TConf
 defaultTConf = 
     TConf { activeColor ="#BBBBBB"
           , inactiveColor = "#888888"
-          , bgColor = "#000000"
-          , textColor = "#000000"
+          , activeBorderColor = "#FFFFFF"
+          , inactiveBorderColor = "#BFBFBF"
+          , activeTextColor = "#FFFFFF"
+          , inactiveTextColor = "#BFBFBF"
           , fontName = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
           , tabSize = 20
           }
@@ -80,27 +84,30 @@ dolay :: Shrinker -> TConf
       -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Layout Window))
 dolay _ _ sc (W.Stack w [] []) = return ([(w,sc)], Nothing)
 dolay shr conf sc@(Rectangle x y wid _) s = withDisplay $ \dpy ->
-    do activecolor   <- io $ initColor dpy $ activeColor conf
-       inactivecolor <- io $ initColor dpy $ inactiveColor conf
-       textcolor     <- io $ initColor dpy $ textColor conf 
-       bgcolor       <- io $ initColor dpy $ bgColor conf 
+    do ac   <- io $ initColor dpy $ activeColor conf
+       ic <- io $ initColor dpy $ inactiveColor conf
+       abc <- io $ initColor dpy $ activeBorderColor conf
+       ibc <- io $ initColor dpy $ inactiveBorderColor conf
+       atc <- io $ initColor dpy $ activeTextColor conf 
+       itc <- io $ initColor dpy $ inactiveTextColor conf
        let ws = W.integrate s
            ts = gentabs conf x y wid (length ws)
            tws = zip ts ws
+           focusColor w incol actcol = (maybe incol (\focusw -> if focusw == w 
+                                                                then actcol else incol) . W.peek) 
+                                       `fmap` gets windowset
            make_tabs [] l = return l
-           make_tabs (tw':tws') l = do l' <- maketab tw' l
+           make_tabs (tw':tws') l = do bc <- focusColor (snd tw') ibc abc
+                                       l' <- maketab tw' bc l
                                        make_tabs tws' l'
-           maketab (t,ow) = newDecoration ow t 1 bgcolor activecolor
-                            (fontName conf) (drawtab t ow) (focus ow)
+           maketab (t,ow) bg = newDecoration ow t 1 bg ac
+                                (fontName conf) (drawtab t ow) (focus ow)
            drawtab r@(Rectangle _ _ wt ht) ow d w' gc fn =
                do nw <- getName ow
-                  tabcolor <- (maybe inactivecolor (\focusw -> if focusw == ow
-                                                               then activecolor
-                                                               else inactivecolor) . W.peek)
-                              `fmap` gets windowset
-                  io $ setForeground d gc tabcolor
+                  (fc,tc) <- focusColor ow (ic,itc) (ac,atc)
+                  io $ setForeground d gc fc
                   io $ fillRectangles d w' gc [Rectangle 0 0 wt ht]
-                  io $ setForeground d gc textcolor
+                  io $ setForeground d gc tc
                   centerText d w' gc fn r (show nw)
            centerText d w' gc fontst (Rectangle _ _ wt ht) name =
                do let (_,asc,_,_) = textExtents fontst name
