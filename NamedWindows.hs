@@ -28,7 +28,7 @@ import Control.Monad.State ( gets )
 import qualified StackSet as W ( peek )
 
 import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras ( fetchName )
+import Graphics.X11.Xlib.Extras
 
 import XMonad
 
@@ -45,7 +45,8 @@ instance Show NamedWindow where
     show (NW n _) = n
 
 getName :: Window -> X NamedWindow
-getName w = asks display >>= \d -> do n <- maybe "" id `fmap` io (fetchName d w)
+getName w = asks display >>= \d -> do s <- io $ getClassHint d w
+                                      n <- maybe (resName s) id `fmap` io (fetchName d w)
                                       return $ NW n w
 
 unName :: NamedWindow -> Window
