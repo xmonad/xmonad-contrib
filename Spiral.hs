@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.SimpleDate
+-- Module      :  XMonadContrib.Spiral
 -- Copyright   :  (c) Joe Thornber <joe.thornber@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 -- 
