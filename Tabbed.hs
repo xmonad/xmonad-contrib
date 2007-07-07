@@ -43,8 +43,8 @@ import XMonadContrib.LayoutHelpers ( idModify )
 --
 -- You can also edit the default configuration options.
 --
--- > myconfig = defaultTConf { bgColor = "#FF0000"
--- >                         , textColor = "#00FF00"}
+-- > myconfig = defaultTConf { inactiveBolderColor = "#FF0000"
+-- >                         , activeTextColor = "#00FF00"}
 --
 -- and
 --
