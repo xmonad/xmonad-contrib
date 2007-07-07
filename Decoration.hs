@@ -42,6 +42,7 @@ newDecoration decfor (Rectangle x y w h) th fg bg fn draw click l = do
     win <- io $ createSimpleWindow d rt x y w h (fromIntegral th) fg bg
     io $ selectInput d win $ exposureMask .|. buttonPressMask
     io $ mapWindow d win
+    io $ restackWindows d $ decfor : [win]
 
     let hook :: SomeMessage -> X (Maybe (ModLay a))
         hook sm  | Just e <- fromMessage sm           = handle_event e >> return Nothing
