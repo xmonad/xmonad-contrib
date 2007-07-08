@@ -43,7 +43,7 @@ runProcessWithInput cmd args input = do
     return output
     
 -- | Starts dmenu on the current screen. Requires this patch to dmenu:
--- http:\/\/www.jcreigh.com\/dmenu\/dmenu-2.8-xinerama.patch
+-- <http://www.jcreigh.com/dmenu/dmenu-3.2-xinerama.patch>
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
     curscreen <- (fromIntegral . W.screen . W.current) `liftM` gets windowset :: X Int
