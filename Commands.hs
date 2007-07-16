@@ -66,7 +66,7 @@ workspaceCommands = [((m ++ show i), f (fromIntegral i))
                     ]
 
 screenCommands :: [(String, X ())]
-screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= f)
+screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip whenJust f)
                       | sc <- [0, 1]::[Int] -- TODO: adapt to screen changes
                       , (f, m) <- [(view, "screen"), (shift, "screen-to-")]
                  ]
