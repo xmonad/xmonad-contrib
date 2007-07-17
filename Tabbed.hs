@@ -37,7 +37,7 @@ import XMonadContrib.LayoutHelpers ( idModify )
 --
 -- > import XMonadContrib.Tabbed
 --
--- > defaultLayouts :: [Layout]
+-- > defaultLayouts :: [Layout Window]
 -- > defaultLayouts = [ tabbed shrinkText defaultTConf
 -- >                  , ... ]
 --
