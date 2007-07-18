@@ -37,7 +37,7 @@ import Control.Monad.State
 -- $usage
 -- To use demanage, add this import:
 --
--- >     import XMonadContrib.GreedyView
+-- >     import XMonadContrib.DeManage
 --
 -- And add a keybinding to it:
 --
