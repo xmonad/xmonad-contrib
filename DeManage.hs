@@ -33,6 +33,7 @@ import qualified StackSet as W
 import XMonad
 import Operations
 import Control.Monad.State
+import Graphics.X11 (Window)
 
 -- $usage
 -- To use demanage, add this import:
@@ -41,12 +42,12 @@ import Control.Monad.State
 --
 -- And add a keybinding to it:
 --
--- > , ((modMask,               xK_d     ), demanage)
+-- > , ((modMask,               xK_d     ), withFocused demanage)
 --
 
 -- | Stop managing the current focused window.
-demanage :: X ()
-demanage = do
-    ws <- gets windowset
-    modify (\s -> s { windowset = maybe ws (flip W.delete ws) (W.peek ws) })
+demanage :: Window -> X ()
+demanage w = do
+    -- use modify to defeat automatic 'unmanage' calls.
+    modify (\s -> s { windowset = W.delete w (windowset s) })
     refresh
