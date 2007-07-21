@@ -20,7 +20,7 @@ module XMonadContrib.ThreeColumns (
 
 import XMonad
 import qualified StackSet as W
-import Operations ( Resize(..), IncMasterN(..), splitVertically, tall )
+import Operations ( Resize(..), IncMasterN(..), splitVertically, tall, splitHorizontallyBy )
 
 import Data.Ratio
 
@@ -52,10 +52,12 @@ threeCol nmaster delta frac =
 
 -- | tile3.  Compute window positions using 3 panes
 tile3 :: Rational -> Rectangle -> Int -> Int -> [Rectangle]
-tile3 f r nmaster n = if n <= nmaster || nmaster == 0
-    then splitVertically n r
-    else splitVertically nmaster r1 ++ splitVertically nmid r2 ++ splitVertically nright r3
+tile3 f r nmaster n 
+    | n <= nmaster || nmaster == 0 = splitVertically n r
+    | n <= nmaster+1 = splitVertically nmaster s1 ++ splitVertically (n-nmaster) s2
+    | otherwise = splitVertically nmaster r1 ++ splitVertically nmid r2 ++ splitVertically nright r3
   where (r1, r2, r3) = split3HorizontallyBy f r
+        (s1, s2) = splitHorizontallyBy f r
         nslave = (n - nmaster)
         nmid = floor (nslave % 2)
         nright = (n - nmaster - nmid)
