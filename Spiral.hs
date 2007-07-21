@@ -16,6 +16,9 @@ module XMonadContrib.Spiral (
                              -- * Usage
                              -- $usage
                              spiral
+                            , spiralWithDir
+                            , Rotation (..)
+                            , Direction (..)
                             ) where
 
 import Graphics.X11.Xlib
@@ -43,7 +46,8 @@ mkRatios :: [Integer] -> [Rational]
 mkRatios (x1:x2:xs) = (x1 % x2) : mkRatios (x2:xs)
 mkRatios _ = []
 
-data Direction = East | South | West | North deriving (Enum)
+data Rotation = CW | CCW
+data Direction = East | South | West | North deriving (Eq, Enum)
 
 blend :: Rational -> [Rational] -> [Rational]
 blend scale ratios = zipWith (+) ratios scaleFactors
@@ -53,13 +57,18 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
 spiral :: Rational -> Layout a
-spiral scale = Layout { doLayout = l2lModDo fibLayout,
-                        modifyLayout = \m -> return $ fmap resize $ fromMessage m }
+spiral = spiralWithDir East CW
+
+spiralWithDir :: Direction -> Rotation -> Rational -> Layout a
+spiralWithDir dir rot scale = Layout { doLayout = l2lModDo fibLayout,
+                                       modifyLayout = \m -> return $ fmap resize $ fromMessage m }
     where
       fibLayout sc ws = zip ws rects
           where ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
-                rects = divideRects (zip ratios (cycle [East .. North])) sc
-
+                rects = divideRects (zip ratios dirs) sc
+                dirs  = dropWhile (/= dir) $ case rot of
+                                               CW  -> cycle [East .. North] 
+                                               CCW -> cycle [North, West, South, East]
       resize Expand = spiral $ (21 % 20) * scale
       resize Shrink = spiral $ (20 % 21) * scale
 
