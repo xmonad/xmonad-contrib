@@ -59,7 +59,7 @@ tile3 f r nmaster n
   where (r1, r2, r3) = split3HorizontallyBy f r
         (s1, s2) = splitHorizontallyBy f r
         nslave = (n - nmaster)
-        nmid = floor (nslave % 2)
+        nmid = ceiling (nslave % 2)
         nright = (n - nmaster - nmid)
 
 split3HorizontallyBy :: Rational -> Rectangle -> (Rectangle, Rectangle, Rectangle)
@@ -67,6 +67,6 @@ split3HorizontallyBy f (Rectangle sx sy sw sh) =
     ( Rectangle sx sy leftw sh
     , Rectangle (sx + fromIntegral leftw) sy midw sh
     , Rectangle (sx + fromIntegral leftw + fromIntegral midw) sy rightw sh )
-  where leftw = floor $ fromIntegral sw * (2/3) * f
-        midw = floor ( (sw - leftw) % 2 )
+  where leftw = ceiling $ fromIntegral sw * (2/3) * f
+        midw = ceiling ( (sw - leftw) % 2 )
         rightw = sw - leftw - midw
