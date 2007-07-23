@@ -20,7 +20,7 @@ module XMonadContrib.ThreeColumns (
 
 import XMonad
 import qualified StackSet as W
-import Operations ( Resize(..), IncMasterN(..), splitVertically, tall, splitHorizontallyBy )
+import Operations ( Resize(..), IncMasterN(..), splitVertically, splitHorizontallyBy )
 
 import Data.Ratio
 
@@ -46,9 +46,9 @@ threeCol nmaster delta frac =
            , modifyLayout = \m -> return $ msum [fmap resize     (fromMessage m)
                                                 ,fmap incmastern (fromMessage m)] }
 
-    where resize Shrink = tall nmaster delta (max 0 $ frac-delta)
-          resize Expand = tall nmaster delta (min 1 $ frac+delta)
-          incmastern (IncMasterN d) = tall (max 0 (nmaster+d)) delta frac
+    where resize Shrink = threeCol nmaster delta (max 0 $ frac-delta)
+          resize Expand = threeCol nmaster delta (min 1 $ frac+delta)
+          incmastern (IncMasterN d) = threeCol (max 0 (nmaster+d)) delta frac
 
 -- | tile3.  Compute window positions using 3 panes
 tile3 :: Rational -> Rectangle -> Int -> Int -> [Rectangle]
