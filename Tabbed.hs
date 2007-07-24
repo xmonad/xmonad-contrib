@@ -64,10 +64,10 @@ data TConf =
 
 defaultTConf :: TConf
 defaultTConf = 
-    TConf { activeColor ="#BBBBBB"
-          , inactiveColor = "#888888"
+    TConf { activeColor ="#999999"
+          , inactiveColor = "#666666"
           , activeBorderColor = "#FFFFFF"
-          , inactiveBorderColor = "#BFBFBF"
+          , inactiveBorderColor = "#BBBBBB"
           , activeTextColor = "#FFFFFF"
           , inactiveTextColor = "#BFBFBF"
           , fontName = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
