@@ -31,6 +31,7 @@ import Data.List ( nub )
 import XMonad
 import Operations ( sendMessage )
 import XMonadContrib.Dmenu ( dmenu, runProcessWithInput )
+import XMonadContrib.LayoutHelpers ( layoutModify )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -48,10 +49,10 @@ data Chdir = Chdir String deriving ( Typeable )
 instance Message Chdir
 
 workspaceDir :: String -> Layout a -> Layout a
-workspaceDir wd l = l { doLayout = \r x -> scd wd >> doLayout l r x
-                      , modifyLayout = ml }
-    where ml m | Just (Chdir wd') <- fromMessage m = return $ Just (workspaceDir wd' l)
-               | otherwise = fmap (workspaceDir wd) `fmap` modifyLayout l m
+workspaceDir wd = layoutModify dowd modwd
+    where dowd _ _ rws = scd wd >> return (rws, Nothing)
+          modwd m = return $ do Chdir wd' <- fromMessage m
+                                Just $ workspaceDir wd'
 
 scd :: String -> X ()
 scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
