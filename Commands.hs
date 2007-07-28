@@ -17,14 +17,18 @@
 module XMonadContrib.Commands (
                              -- * Usage
                              -- $usage
+                             commandMap,
                              runCommand,
+                             runCommand',
+                             workspaceCommands,
+                             screenCommands,
                              defaultCommands
                               ) where
-  
+
 import XMonad
 import Operations
-import {-# SOURCE #-} Config (workspaces, commands)
 import XMonadContrib.Dmenu (dmenu)
+import {-# SOURCE #-} Config (workspaces)
 
 import qualified Data.Map as M
 import System.Exit
@@ -42,22 +46,16 @@ import Data.Maybe
 --
 -- and define the list commands:
 --
+-- >    commands :: [(String, X ())]
 -- >    commands = defaultCommands
---
--- Finally, add the following lines to Config.hs-boot:
--- 
--- >   import XMonad (X)
--- >    workspaces  :: Int
--- >    commands    :: [(String, X ())]
 --
 -- A popup menu of internal xmonad commands will appear.  You can
 -- change the commands by changing the contents of the list
 -- 'commands'.  (If you like it enough, you may even want to get rid
 -- of many of your other key bindings!)
 
-
-commandMap :: M.Map String (X ())
-commandMap = M.fromList commands
+commandMap :: [(String, X ())] -> M.Map String (X ())
+commandMap c = M.fromList c
 
 workspaceCommands :: [(String, X ())]
 workspaceCommands = [((m ++ show i), f (fromIntegral i))
@@ -91,7 +89,13 @@ defaultCommands = workspaceCommands ++ screenCommands
                      , ("quit-wm", io $ exitWith ExitSuccess)
                      ]
 
-runCommand :: X ()
-runCommand = do
-  choice <- dmenu (M.keys commandMap)
-  fromMaybe (return ()) (M.lookup choice commandMap)
+runCommand :: [(String, X ())] -> X ()
+runCommand cl = do
+  let m = commandMap cl
+  choice <- dmenu (M.keys m)
+  fromMaybe (return ()) (M.lookup choice m)
+
+runCommand' :: String -> X ()
+runCommand' c = do
+  let m = commandMap defaultCommands
+  fromMaybe (return ()) (M.lookup c m)
