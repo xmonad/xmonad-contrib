@@ -24,7 +24,6 @@ import XMonad
 import Operations
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
-import Foreign.C.Types
 
 -- $usage
 -- Add this import to your Config.hs file:
@@ -46,6 +45,8 @@ import Foreign.C.Types
 -- You can also write your own function for this parameter. It should take
 -- a value between 0 and 1 indicating position, and return a value indicating
 -- the corresponding position if plain Flex.linear was used.
+
+discrete, linear, resize, position :: Double -> Double
 
 discrete x | x < 0.33 = 0
            | x > 0.66 = 1
