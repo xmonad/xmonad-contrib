@@ -47,7 +47,7 @@ import StackSet
 copy :: WorkspaceId -> X ()
 copy n = windows (copy' n)
 
-copy' :: (Ord a, Eq s, Integral i) => i -> StackSet i a s sd -> StackSet i a s sd
+copy' :: (Ord a, Eq s, Eq i) => i -> StackSet i a s sd -> StackSet i a s sd
 copy' n s = if n `tagMember` s && n /= tag (workspace (current s))
             then maybe s go (peek s)
             else s
