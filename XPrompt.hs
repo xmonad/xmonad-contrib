@@ -28,6 +28,7 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import XMonad  hiding (io)
 import Operations
+import qualified StackSet as W
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -49,6 +50,7 @@ data XPState =
     XPS { dpy :: Display    
         , rootw :: Window   
         , win :: Window
+        , screen :: Rectangle
         , complWin :: Maybe Window
         , complWinDim :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
@@ -101,23 +103,24 @@ defaultPromptConfig =
 
 type ComplFunction = String -> IO [String]
 
-initState :: XPrompt p => Display -> Window -> Window -> ComplFunction
+initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
           -> GC -> FontStruct -> p -> XPConfig -> XPState
-initState d rw w compl gc f pt c =
-    XPS d rw w Nothing Nothing compl Nothing gc f (XPT pt) "" 0 c
+initState d rw w s compl gc f pt c =
+    XPS d rw w s Nothing Nothing compl Nothing gc f (XPT pt) "" 0 c
 
 mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ())  -> X ()
 mkXPrompt t conf compl action = do
   c <- ask
   let d = display c
       rw = theRoot c
-  w <- liftIO $ createWin d rw conf
+  s <- gets $ screenRect . W.screenDetail . W.current . windowset
+  w <- liftIO $ createWin d rw conf s
   liftIO $ selectInput d w $ exposureMask .|. keyPressMask
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   fontS <- liftIO $ loadQueryFont d (font conf)
 
-  let st = initState d rw w compl gc fontS (XPT t) conf
+  let st = initState d rw w s compl gc fontS (XPT t) conf
   st' <- liftIO $ execStateT runXP st
 
   liftIO $ freeGC d gc
@@ -246,15 +249,13 @@ moveCursor d =
 
 -- X Stuff
 
-createWin :: Display -> Window -> XPConfig -> IO Window
-createWin d rw c = do
-  let scr = defaultScreenOfDisplay d
-      wh = widthOfScreen scr
-      (x,y) = case position c of
+createWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
+createWin d rw c s = do
+  let (x,y) = case position c of
                 Top -> (0,0)
-                Bottom -> (0,heightOfScreen scr - (height c))
-  w <- mkUnmanagedWindow d scr rw 
-                      x (fi y) wh (height c)
+                Bottom -> (0, rect_height s - height c)
+  w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw 
+                      (rect_x s + x) (rect_y s + fi y) (rect_width s) (height c)
   mapWindow d w
   return w
 
@@ -384,15 +385,15 @@ getComplWinDim compl = do
   st <- get
   let c = config st
       d = dpy st
-      scr = defaultScreenOfDisplay d
-      wh = widthOfScreen scr
+      scr = screen st
+      wh = rect_width scr
       ht = height c
       fontst = fs st
 
   let compl_number = length compl
       max_compl_len =  (fi ht `div` 2) + (maximum . map (textWidth fontst) $ compl)
       columns = wh `div` (fi max_compl_len)
-      rem_height =  heightOfScreen scr - ht
+      rem_height =  rect_height scr - ht
       needed_rows = max 1 (compl_number `div` fi columns)
       actual_max_number_of_rows = rem_height `div` ht
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
@@ -407,7 +408,7 @@ getComplWinDim compl = do
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
       xx = take (fi columns) [xp,(xp + max_compl_len)..]
 
-  return (x, fi y, wh, actual_height, xx, yy)
+  return (rect_x scr + x, rect_y scr + fi y, wh, actual_height, xx, yy)
 
 drawComplWin :: Window -> [String] -> XP ()
 drawComplWin w compl = do
