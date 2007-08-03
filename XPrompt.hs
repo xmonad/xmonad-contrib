@@ -1,3 +1,4 @@
+{-# OPTIONS -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.XPrompt
@@ -17,6 +18,7 @@ module XMonadContrib.XPrompt (
                              -- $usage
                              mkXPrompt
                              , defaultPromptConfig
+                             , defaultXPConfig
                              , mkComplFunFromList
                              , XPType (..)
                              , XPPosition (..)
@@ -36,13 +38,18 @@ import Data.Bits
 import Data.Char
 import Data.Maybe
 import Data.List
-
+import System.Environment (getEnv)
+import System.IO
+import System.Posix.Files (fileExist)
 
 -- $usage:
 --
 -- For example usage see XMonadContrib.ShellPrompt or
 -- XMonadContrib.XMonadPrompt
 
+-- TODO
+-- scrolling the completions that don't fit in the window
+-- commands to edit the command line
 
 type XP = StateT XPState IO
 
@@ -54,24 +61,27 @@ data XPState =
         , complWin :: Maybe Window
         , complWinDim :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
-        , compList :: Maybe [String]
+        , compList :: Maybe [String] -- Maybe ([String],[String],[String]) for scrolling 
         , gcon :: GC
         , fs :: FontStruct 
         , xptype :: XPType
         , command :: String 
-        , offset :: Int     
+        , offset :: Int
+        , history :: ![History]
         , config :: XPConfig
         }
 
 data XPConfig =  
-    XPC { font           :: String   -- ^ Font
-        , bgColor        :: String   -- ^ Backgroud color
-        , fgColor        :: String   -- ^ Default font color
-        , hLight         :: String   -- ^ Default font color
-        , borderColor    :: String   -- ^ 
-        , borderWidth    :: Dimension
-        , position       :: XPPosition
-        , height         :: Dimension      -- ^ Window height
+    XPC { font           :: String     -- ^ Font
+        , bgColor        :: String     -- ^ Backgroud color
+        , fgColor        :: String     -- ^ Font color
+        , fgHLight       :: String     -- ^ Font color of a highlighted completion entry 
+        , bgHLight       :: String     -- ^ Backgroud color of a highlighted completion entry 
+        , borderColor    :: String     -- ^ Border color 
+        , borderWidth    :: Dimension  -- ^ Border width
+        , position       :: XPPosition -- ^ Position: 'Top' or 'Bottom'
+        , height         :: Dimension  -- ^ Window height
+        , historySize    :: Int 
         } deriving (Show, Read)
 
 data XPType = forall p . XPrompt p => XPT p 
@@ -90,23 +100,28 @@ data XPPosition = Top
                   deriving (Show,Read)
 
 defaultPromptConfig :: XPConfig
-defaultPromptConfig =
+defaultPromptConfig = defaultXPConfig
+
+defaultXPConfig :: XPConfig
+defaultXPConfig =
     XPC { font = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
         , bgColor = "#666666"
         , fgColor = "#FFFFFF"
-        , hLight = "#999999"
+        , fgHLight = "#000000"
+        , bgHLight = "#999999"
         , borderColor = "#FFFFFF"
         , borderWidth = 1
         , position = Bottom
         , height = 18
+        , historySize = 256
         }
 
 type ComplFunction = String -> IO [String]
 
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
-          -> GC -> FontStruct -> p -> XPConfig -> XPState
-initState d rw w s compl gc f pt c =
-    XPS d rw w s Nothing Nothing compl Nothing gc f (XPT pt) "" 0 c
+          -> GC -> FontStruct -> p -> [History] -> XPConfig -> XPState
+initState d rw w s compl gc f pt h c =
+    XPS d rw w s Nothing Nothing compl Nothing gc f (XPT pt) "" 0 h c
 
 mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ())  -> X ()
 mkXPrompt t conf compl action = do
@@ -119,8 +134,8 @@ mkXPrompt t conf compl action = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   fontS <- liftIO $ loadQueryFont d (font conf)
-
-  let st = initState d rw w s compl gc fontS (XPT t) conf
+  h <- liftIO $ readHistory
+  let st = initState d rw w s compl gc fontS (XPT t) h conf
   st' <- liftIO $ execStateT runXP st
 
   liftIO $ freeGC d gc
@@ -134,14 +149,15 @@ runXP = do
       w = win st
   status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
   when (status == grabSuccess) $ do
-            updateWin
+            updateWindows
+            eventLoop handle
             io $ ungrabKeyboard d currentTime
   io $ destroyWindow d w
   destroyComplWin
   io $ sync d False
 
-eventLoop :: XP ()
-eventLoop = do
+eventLoop :: (KeyStroke -> Event -> XP ()) -> XP ()
+eventLoop action = do
   d <- gets dpy
   (keysym,string,event) <- io $ 
             allocaXEvent $ \e -> do 
@@ -149,20 +165,43 @@ eventLoop = do
               ev <- getEvent e
               (ks,s) <- lookupString $ asKeyEvent e
               return (ks,s,ev)
-  handle (fromMaybe xK_VoidSymbol keysym,string) event
+  action (fromMaybe xK_VoidSymbol keysym,string) event
 
 type KeyStroke = (KeySym, String)
 
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
+handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
+    | t == keyPress && ks == xK_Tab = completionHandle k e
 handle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
-    | t == keyPress = do
-  keyPressHandle m ks
+    | t == keyPress = keyPressHandle m ks
 handle _ (AnyEvent {ev_event_type = t, ev_window = w}) 
     | t == expose = do 
   st <- get
-  when (win st == w) updateWin                 
-handle _  _ = eventLoop
+  when (win st == w) $ updateWindows >> eventLoop handle                 
+handle _  _ = eventLoop handle
+
+-- completion event handler
+completionHandle :: KeyStroke -> Event -> XP ()
+completionHandle k@(ks,_) e@(KeyEvent {ev_event_type = t})
+    | t == keyPress && ks == xK_Tab = do
+  st <- get
+  case compList st of
+    Just l -> let new_index = case elemIndex (getLastWord (command st)) l of
+                                Just i -> if i >= (length l - 1) then 0 else i + 1
+                                Nothing -> 0
+                  new_command = skipLastWord (command st) ++ fill ++ l !! new_index
+                  fill = if  ' ' `elem` (command st) then " " else ""
+              in do modify $ \s ->  s { command = new_command, offset = length new_command }
+                    redrawWindows
+    Nothing -> do updateWindows
+  eventLoop completionHandle
+
+completionHandle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
+    | t == keyPress = keyPressHandle m ks
+-- go back to main loop
+completionHandle k e = handle k e
+
 
 -- KeyPresses
 
@@ -173,49 +212,67 @@ keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 keyPressHandle mask (ks,s)
     | mask == controlMask = do
   -- TODO
-  eventLoop
+  eventLoop handle
 
 keyPressHandle _ (ks,_)
 -- exit
     | ks == xK_Return = do
+  historyPush
+  writeHistory
   return ()
 -- backspace
     | ks == xK_BackSpace = do
   deleteString Prev
-  updateWin
+  setCompletionList
+  updateWindows
+  eventLoop handle
 -- delete
     | ks == xK_Delete = do
   deleteString Next
-  updateWin
+  setCompletionList
+  updateWindows
+  eventLoop handle
 -- left
     | ks == xK_Left = do
   moveCursor Prev
-  updateWin
+  redrawWindows
+  eventLoop handle
 -- right
     | ks == xK_Right = do
   moveCursor Next
-  updateWin
+  redrawWindows
+  eventLoop handle
+-- up
+    | ks == xK_Up = do
+  moveHistory Prev
+  setCompletionList
+  updateWindows
+  eventLoop handle
+-- down
+    | ks == xK_Down = do
+  moveHistory Next
+  setCompletionList
+  updateWindows
+  eventLoop handle
 -- exscape: exit and discard everything
     | ks  == xK_Escape = do
   flushString
   return ()
--- tab -> completion loop
-    | ks  == xK_Tab = do
-  completionLoop
-  --eventLoop
 
 -- insert a character
 keyPressHandle _ (_,s)
-    | s == "" = eventLoop
+    | s == "" = eventLoop handle
     | otherwise = do
   insertString s
-  updateWin
+  setCompletionList
+  updateWindows
+  eventLoop handle
 
 -- KeyPress and State
 
 -- |  Flush the command string and reset the offest
 flushString :: XP ()
-flushString =
+flushString = do
   modify (\s -> s { command = "", offset = 0} )  
  
 -- | Insert a character at the cursor position
@@ -246,6 +303,17 @@ moveCursor d =
   modify (\s -> s { offset = o (offset s) (command s)} )
   where o oo c = if d == Prev then max 0 (oo - 1) else min (length c) (oo + 1)
 
+moveHistory :: Direction -> XP ()
+moveHistory d = do
+  h <- getHistory
+  c <- gets command
+  let str = if h /= [] then head h else c
+  let nc = case elemIndex c h of
+             Just i -> case d of
+                         Prev -> h !! (if (i + 1) > (length h - 1) then 0 else i + 1)
+                         Next -> h !! (max (i - 1) 0)
+             Nothing -> str
+  modify (\s -> s { command = nc, offset = length nc })
 
 -- X Stuff
 
@@ -259,27 +327,20 @@ createWin d rw c s = do
   mapWindow d w
   return w
 
-updateWin :: XP ()
-updateWin = do
+updateWindows :: XP ()
+updateWindows = do
+  d <- gets dpy
+  drawWin
+  setCompletionList
+  io $ sync d False
+
+redrawWindows :: XP ()
+redrawWindows = do
   st <- get
   drawWin
-  compl <- getCompletions (command st)
-  nwi <- getComplWinDim compl
-  let recreate = do destroyComplWin
-                    w <- createComplWin nwi
-                    drawComplWin w compl
-  -- check if we have to recreate the completion window
-  if (compl /= [] )
-     then case complWin st of
-            Just w -> case complWinDim st of
-                        Just wi -> if nwi == wi -- complWinDim did not change
-                                   then drawComplWin w compl -- so update
-                                   else recreate
-                        Nothing -> recreate
-            Nothing -> recreate
-     else destroyComplWin
-  io $ sync (dpy st) False
-  eventLoop
+  case compList st of
+    Just l -> redrawComplWin l
+    Nothing -> return ()
 
 drawWin :: XP ()
 drawWin = do
@@ -338,13 +399,20 @@ getCompletions s = do
   setComplList c
   return c
 
+setComplList :: [String] -> XP ()
+setComplList [] = return ()
+setComplList l =
+  modify (\s -> s { compList = Just l })
+
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
   modify (\s -> s { complWin = Just w, complWinDim = Just wi })
 
-setComplList :: [String] -> XP ()
-setComplList l =
-  modify (\s -> s { compList = Just l })
+setCompletionList :: XP ()
+setCompletionList = do
+  c <- gets command
+  compl <- getCompletions $ getLastWord c
+  redrawComplWin compl
 
 destroyComplWin :: XP ()
 destroyComplWin = do
@@ -355,17 +423,7 @@ destroyComplWin = do
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing, compList = Nothing })
     Nothing -> return ()
 
-completionLoop :: XP ()
-completionLoop = do
-  cl <- gets compList
-  let nc oc | oc == [] = []
-            | otherwise = head $ fromMaybe [oc] cl 
-  case cl of
-    Just (l:_) -> do modify (\s -> s { command = l, offset = length l })
-                     updateWin
-    _ -> eventLoop
-
-type ComplWindowDim = (Position,Position,Dimension,Dimension,Rows,Columns)
+type ComplWindowDim = (Position,Position,Dimension,Dimension,Columns,Rows)
 type Rows = [Position]
 type Columns = [Position]
 
@@ -384,7 +442,6 @@ getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
   st <- get
   let c = config st
-      d = dpy st
       scr = screen st
       wh = rect_width scr
       ht = height c
@@ -394,7 +451,8 @@ getComplWinDim compl = do
       max_compl_len =  (fi ht `div` 2) + (maximum . map (textWidth fontst) $ compl)
       columns = wh `div` (fi max_compl_len)
       rem_height =  rect_height scr - ht
-      needed_rows = max 1 (compl_number `div` fi columns)
+      (rows,r) = compl_number `divMod` fi columns
+      needed_rows = max 1 (rows + if r == 0 then 0 else 1) 
       actual_max_number_of_rows = rem_height `div` ht
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
       actual_height = actual_rows * ht
@@ -432,6 +490,23 @@ drawComplWin w compl = do
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
 
+redrawComplWin ::  [String] -> XP ()
+redrawComplWin compl = do
+  st <- get
+  nwi <- getComplWinDim compl
+  let recreate = do destroyComplWin
+                    w <- createComplWin nwi
+                    drawComplWin w compl
+  if (compl /= [] )
+     then case complWin st of
+            Just w -> case complWinDim st of
+                        Just wi -> if nwi == wi -- complWinDim did not change
+                                   then drawComplWin w compl -- so update
+                                   else recreate
+                        Nothing -> recreate
+            Nothing -> recreate
+     else destroyComplWin
+
 printComplList :: Display -> Drawable -> GC -> Pixel -> Pixel
                -> [Position] -> [Position] -> [[String]] -> XP ()
 printComplList _ _ _ _ _ _ _ [] = return ()
@@ -452,10 +527,62 @@ printComplString :: Display -> Drawable -> GC -> Pixel -> Pixel
                  -> Position -> Position -> String  -> XP ()
 printComplString d drw gc fc bc x y s = do
   st <- get
-  if s == command st
-     then do c <- io $ initColor d (hLight $ config st)
-             io $ printString d drw gc fc c x y s
+  if s == getLastWord (command st)
+     then do bhc <- io $ initColor d (bgHLight $ config st)
+             fhc <- io $ initColor d (fgHLight $ config st)
+             io $ printString d drw gc fhc bhc x y s
      else io $ printString d drw gc fc bc x y s
+
+-- History
+
+data History = 
+    H { prompt :: String 
+      , command_history :: String
+      } deriving (Show, Read, Eq) 
+
+historyPush :: XP ()
+historyPush = do
+  c <- gets command
+  when (c /= []) $ modify (\s -> s { history = H (showXPrompt (xptype s)) c : history s })
+
+getHistory :: XP [String]
+getHistory = do
+  hist <- gets history
+  pt <- gets xptype
+  return $ map command_history . filter (\h -> prompt h == showXPrompt pt) $ hist
+
+readHistory :: IO [History]
+readHistory = do
+  home <- getEnv "HOME"
+  let path = home ++ "/.xmonad_history"
+  f <- fileExist path
+  -- from http://users.aber.ac.uk/afc/stricthaskell.html#semiclosed
+  let hGetContentsStrict h = do
+                b <- hIsEOF h
+                if b then return [] else 
+                    do c <- hGetChar h
+                       r <- hGetContentsStrict h
+                       return (c:r)
+      do_read = do ha <- openFile path ReadMode
+                   hSetBuffering ha NoBuffering
+                   s <- hGetContentsStrict ha
+                   hClose ha
+                   return s
+  if f then do str <- catch (do_read) (\_ -> do putStrLn "error in reading"; return [])
+               case (reads str) of
+                 [(hist,_)] -> return hist
+                 [] -> return []
+                 _ -> return []
+       else return []
+
+writeHistory :: XP ()
+writeHistory = do
+  h <- gets history
+  c <- gets config
+  home <- io $ getEnv "HOME"
+  let path = home ++ "/.xmonad_history"
+      htw = take (historySize c) . nub $ h
+  io $ catch (writeFile path (show htw)) (\_ -> do putStrLn "error in writing"; return ())
 
 -- More general X Stuff
 
@@ -511,3 +638,10 @@ splitInSubListsAt _ [] = []
 splitInSubListsAt i x = f : splitInSubListsAt i rest
     where (f,rest) = splitAt i x
 
+getLastWord :: String -> String
+getLastWord [] = []
+getLastWord c = last . words $ c
+
+skipLastWord :: String -> String
+skipLastWord [] = []
+skipLastWord c = unwords . init . words $ c
