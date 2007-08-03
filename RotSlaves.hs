@@ -13,10 +13,12 @@
 -----------------------------------------------------------------------------
 module XMonadContrib.RotSlaves (
 	-- $usage
-	rotSlaves', rotSlaves
+	rotSlaves', rotSlavesUp, rotSlavesDown
 	) where
 
-import qualified StackSet as SS
+import StackSet
+import Operations
+import XMonad
 
 -- $usage
 --
@@ -26,22 +28,20 @@ import qualified StackSet as SS
 --
 -- and add a keybinding:
 --
--- , ((modMask .|. shiftMask, xK_Tab   ), windows rotSlaves) 
+-- , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp) 
 --
 --
 -- This operation will rotate all windows except the master window, while the focus
 -- stays where it is. It is usefull together with the TwoPane-Layout (see XMonadContrib.TwoPane).
 --
 
-rotSlaves :: SS.StackSet i a s sd -> SS.StackSet i a s sd
-rotSlaves = SS.modify' rotSlaves'
+rotSlavesUp,rotSlavesDown :: X ()
+rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> (tail l)++[head l]))
+rotSlavesDown = windows $ modify' (rotSlaves' (\l -> [last l]++(init l)))
 
-rotSlaves' :: SS.Stack a -> SS.Stack a
-rotSlaves' (SS.Stack t ls rs) | (null ls) = SS.Stack t [] ((rearRs)++(frontRs))          --Master has focus
-                              | otherwise = SS.Stack t' (reverse ((master)++revls')) rs' --otherwise
-    where  (frontRs, rearRs) = splitAt (max 0 ((length rs) - 1)) rs
-           (ils, master)     = splitAt (max 0 ((length ls) - 1)) ls
-           toBeRotated       = (reverse ils)++(t:rs)
-           (revls',t':rs')   = splitAt (length ils) ((last toBeRotated):(init toBeRotated))
-
-
+rotSlaves' :: ([a] -> [a]) -> Stack a -> Stack a
+rotSlaves' _ s@(Stack _ [] []) = s
+rotSlaves' f   (Stack t [] rs) = Stack t [] (f rs)                -- Master has focus
+rotSlaves' f s@(Stack _ ls _ ) = Stack t' (reverse revls') rs'    -- otherwise
+    where  (master:ws)     = integrate s
+           (revls',t':rs') = splitAt (length ls) (master:(f ws))
