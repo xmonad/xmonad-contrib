@@ -223,13 +223,13 @@ keyPressHandle _ (ks,_)
 -- backspace
     | ks == xK_BackSpace = do
   deleteString Prev
-  setCompletionList
+  refreshCompletionList
   updateWindows
   eventLoop handle
 -- delete
     | ks == xK_Delete = do
   deleteString Next
-  setCompletionList
+  refreshCompletionList
   updateWindows
   eventLoop handle
 -- left
@@ -245,13 +245,13 @@ keyPressHandle _ (ks,_)
 -- up
     | ks == xK_Up = do
   moveHistory Prev
-  setCompletionList
+  refreshCompletionList
   updateWindows
   eventLoop handle
 -- down
     | ks == xK_Down = do
   moveHistory Next
-  setCompletionList
+  refreshCompletionList
   updateWindows
   eventLoop handle
 -- exscape: exit and discard everything
@@ -264,7 +264,7 @@ keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
     | otherwise = do
   insertString s
-  setCompletionList
+  refreshCompletionList
   updateWindows
   eventLoop handle
 
@@ -331,7 +331,7 @@ updateWindows :: XP ()
 updateWindows = do
   d <- gets dpy
   drawWin
-  setCompletionList
+  refreshCompletionList
   io $ sync d False
 
 redrawWindows :: XP ()
@@ -408,8 +408,8 @@ setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
   modify (\s -> s { complWin = Just w, complWinDim = Just wi })
 
-setCompletionList :: XP ()
-setCompletionList = do
+refreshCompletionList :: XP ()
+refreshCompletionList = do
   c <- gets command
   compl <- getCompletions $ getLastWord c
   redrawComplWin compl
