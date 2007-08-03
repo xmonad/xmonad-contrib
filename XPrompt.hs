@@ -61,7 +61,6 @@ data XPState =
         , complWin :: Maybe Window
         , complWinDim :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
-        , compList :: [String] -- Maybe ([String],[String],[String]) for scrolling 
         , gcon :: GC
         , fs :: FontStruct 
         , xptype :: XPType
@@ -121,7 +120,7 @@ type ComplFunction = String -> IO [String]
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
           -> GC -> FontStruct -> p -> [History] -> XPConfig -> XPState
 initState d rw w s compl gc f pt h c =
-    XPS d rw w s Nothing Nothing compl [] gc f (XPT pt) "" 0 h c
+    XPS d rw w s Nothing Nothing compl gc f (XPT pt) "" 0 h c
 
 mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ())  -> X ()
 mkXPrompt t conf compl action = do
@@ -149,9 +148,10 @@ runXP = do
       w = win st
   status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
   when (status == grabSuccess) $ do
-            updateWindows
-            eventLoop handle
-            io $ ungrabKeyboard d currentTime
+            --updateWindows
+          updateWindows
+          eventLoop handle
+          io $ ungrabKeyboard d currentTime
   io $ destroyWindow d w
   destroyComplWin
   io $ sync d False
@@ -172,7 +172,9 @@ type KeyStroke = (KeySym, String)
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
 handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
-    | t == keyPress && ks == xK_Tab = completionHandle k e
+    | t == keyPress && ks == xK_Tab = do
+  c <- getCompletions
+  completionHandle c k e
 handle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
     | t == keyPress = keyPressHandle m ks
 handle _ (AnyEvent {ev_event_type = t, ev_window = w}) 
@@ -182,25 +184,27 @@ handle _ (AnyEvent {ev_event_type = t, ev_window = w})
 handle _  _ = eventLoop handle
 
 -- completion event handler
-completionHandle :: KeyStroke -> Event -> XP ()
-completionHandle k@(ks,_) e@(KeyEvent {ev_event_type = t})
+completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
+completionHandle c k@(ks,_) e@(KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab = do
   st <- get
-  case compList st of
+  case c of
     [] -> do updateWindows
+             eventLoop handle
     l  -> let new_index = case elemIndex (getLastWord (command st)) l of
                                 Just i -> if i >= (length l - 1) then 0 else i + 1
                                 Nothing -> 0
               new_command = skipLastWord (command st) ++ fill ++ l !! new_index
               fill = if  ' ' `elem` (command st) then " " else ""
           in do modify $ \s ->  s { command = new_command, offset = length new_command }
-                redrawWindows
-  eventLoop completionHandle
-
-completionHandle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
+                redrawWindows c
+                eventLoop (completionHandle c)
+-- key release
+    | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
+completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
 -- go back to main loop
-completionHandle k e = handle k e
+completionHandle _ k e = handle k e
 
 
 -- KeyPresses
@@ -223,35 +227,31 @@ keyPressHandle _ (ks,_)
 -- backspace
     | ks == xK_BackSpace = do
   deleteString Prev
-  refreshCompletionList
   updateWindows
   eventLoop handle
 -- delete
     | ks == xK_Delete = do
   deleteString Next
-  refreshCompletionList
   updateWindows
   eventLoop handle
 -- left
     | ks == xK_Left = do
   moveCursor Prev
-  redrawWindows
+  updateWindows
   eventLoop handle
 -- right
     | ks == xK_Right = do
   moveCursor Next
-  redrawWindows
+  updateWindows
   eventLoop handle
 -- up
     | ks == xK_Up = do
   moveHistory Prev
-  refreshCompletionList
   updateWindows
   eventLoop handle
 -- down
     | ks == xK_Down = do
   moveHistory Next
-  refreshCompletionList
   updateWindows
   eventLoop handle
 -- exscape: exit and discard everything
@@ -264,7 +264,6 @@ keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
     | otherwise = do
   insertString s
-  refreshCompletionList
   updateWindows
   eventLoop handle
 
@@ -317,6 +316,25 @@ moveHistory d = do
 
 -- X Stuff
 
+updateWindows :: XP ()
+updateWindows = do
+  d <- gets dpy
+  drawWin
+  c <- getCompletions
+  case c  of
+    [] -> return ()
+    l  -> redrawComplWin l
+  io $ sync d False
+
+redrawWindows :: [String] -> XP ()
+redrawWindows c = do
+  d <- gets dpy
+  drawWin
+  case c  of
+    [] -> return ()
+    l  -> redrawComplWin l
+  io $ sync d False
+
 createWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
 createWin d rw c s = do
   let (x,y) = case position c of
@@ -326,21 +344,6 @@ createWin d rw c s = do
                       (rect_x s + x) (rect_y s + fi y) (rect_width s) (height c)
   mapWindow d w
   return w
-
-updateWindows :: XP ()
-updateWindows = do
-  d <- gets dpy
-  drawWin
-  refreshCompletionList
-  io $ sync d False
-
-redrawWindows :: XP ()
-redrawWindows = do
-  st <- get
-  drawWin
-  case compList st of
-    [] -> return ()
-    l  -> redrawComplWin l
 
 drawWin :: XP ()
 drawWin = do
@@ -392,26 +395,14 @@ printPrompt drw gc fontst = do
 
 -- Completions
 
-getCompletions :: String -> XP [String]
-getCompletions s = do
-  cf <- gets completionFunction 
-  c <- io $ cf s
-  setComplList c
-  return c
-
-setComplList :: [String] -> XP ()
-setComplList l =
-  modify (\s -> s { compList = l })
+getCompletions :: XP [String]
+getCompletions = do
+  s <- get
+  io $ (completionFunction s) (command s)
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
   modify (\s -> s { complWin = Just w, complWinDim = Just wi })
-
-refreshCompletionList :: XP ()
-refreshCompletionList = do
-  c <- gets command
-  compl <- getCompletions $ getLastWord c
-  redrawComplWin compl
 
 destroyComplWin :: XP ()
 destroyComplWin = do
@@ -419,7 +410,7 @@ destroyComplWin = do
   cw <- gets complWin
   case cw of
     Just w -> do io $ destroyWindow d w
-                 modify (\s -> s { complWin = Nothing, complWinDim = Nothing, compList = [] })
+                 modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
 
 type ComplWindowDim = (Position,Position,Dimension,Dimension,Columns,Rows)
