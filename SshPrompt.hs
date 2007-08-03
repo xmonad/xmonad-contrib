@@ -21,6 +21,7 @@ module XMonadContrib.SshPrompt (
 usage:
 1. In Config.hs add:
 
+> import XMonadContrib.XPrompt
 > import XMonadContrib.SshPrompt
 
 3. In your keybindings add something like:

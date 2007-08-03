@@ -25,11 +25,12 @@ to
 build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0, readline >= 1.0
 
 2. In Config.hs add:
+> import XMonadContrib.XPrompt
 > import XMonadContrib.ShellPrompt
 
 3. In your keybindings add something like:
 
->   , ((modMask .|. controlMask, xK_x), shellPrompt defaultPromptConfig)
+>   , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 
 -}
 
@@ -53,8 +54,8 @@ shellPrompt c = mkXPrompt Shell c getShellCompl spawn
 getShellCompl :: String -> IO [String]
 getShellCompl s 
     | s /= "" && last s /= ' ' = do
-  fl <- filenameCompletionFunction (last . words $ s)
-  c <- commandCompletionFunction (last . words $ s)
+  fl <- filenameCompletionFunction s
+  c <- commandCompletionFunction s
   return $ sort . nub $ fl ++ c
     | otherwise = return []
 

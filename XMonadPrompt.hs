@@ -20,6 +20,7 @@ module XMonadContrib.XMonadPrompt (
 {-
 usage:
 in Config.hs add:
+> import XMonadContrib.XPrompt
 > import XMonadContrib.XMonadPrompt
 
 in you keybindings add:
