@@ -61,7 +61,7 @@ data XPState =
         , complWin :: Maybe Window
         , complWinDim :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
-        , compList :: Maybe [String] -- Maybe ([String],[String],[String]) for scrolling 
+        , compList :: [String] -- Maybe ([String],[String],[String]) for scrolling 
         , gcon :: GC
         , fs :: FontStruct 
         , xptype :: XPType
@@ -121,7 +121,7 @@ type ComplFunction = String -> IO [String]
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
           -> GC -> FontStruct -> p -> [History] -> XPConfig -> XPState
 initState d rw w s compl gc f pt h c =
-    XPS d rw w s Nothing Nothing compl Nothing gc f (XPT pt) "" 0 h c
+    XPS d rw w s Nothing Nothing compl [] gc f (XPT pt) "" 0 h c
 
 mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ())  -> X ()
 mkXPrompt t conf compl action = do
@@ -187,14 +187,14 @@ completionHandle k@(ks,_) e@(KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab = do
   st <- get
   case compList st of
-    Just l -> let new_index = case elemIndex (getLastWord (command st)) l of
+    [] -> do updateWindows
+    l  -> let new_index = case elemIndex (getLastWord (command st)) l of
                                 Just i -> if i >= (length l - 1) then 0 else i + 1
                                 Nothing -> 0
-                  new_command = skipLastWord (command st) ++ fill ++ l !! new_index
-                  fill = if  ' ' `elem` (command st) then " " else ""
-              in do modify $ \s ->  s { command = new_command, offset = length new_command }
-                    redrawWindows
-    Nothing -> do updateWindows
+              new_command = skipLastWord (command st) ++ fill ++ l !! new_index
+              fill = if  ' ' `elem` (command st) then " " else ""
+          in do modify $ \s ->  s { command = new_command, offset = length new_command }
+                redrawWindows
   eventLoop completionHandle
 
 completionHandle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
@@ -339,8 +339,8 @@ redrawWindows = do
   st <- get
   drawWin
   case compList st of
-    Just l -> redrawComplWin l
-    Nothing -> return ()
+    [] -> return ()
+    l  -> redrawComplWin l
 
 drawWin :: XP ()
 drawWin = do
@@ -400,9 +400,8 @@ getCompletions s = do
   return c
 
 setComplList :: [String] -> XP ()
-setComplList [] = return ()
 setComplList l =
-  modify (\s -> s { compList = Just l })
+  modify (\s -> s { compList = l })
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
@@ -420,7 +419,7 @@ destroyComplWin = do
   cw <- gets complWin
   case cw of
     Just w -> do io $ destroyWindow d w
-                 modify (\s -> s { complWin = Nothing, complWinDim = Nothing, compList = Nothing })
+                 modify (\s -> s { complWin = Nothing, complWinDim = Nothing, compList = [] })
     Nothing -> return ()
 
 type ComplWindowDim = (Position,Position,Dimension,Dimension,Columns,Rows)
