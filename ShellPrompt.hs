@@ -17,22 +17,6 @@ module XMonadContrib.ShellPrompt (
                              -- $usage
                              shellPrompt
                               ) where
-{-
-usage:
-1. In xmonad.cabal change: 
-build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0
-to
-build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0, readline >= 1.0
-
-2. In Config.hs add:
-> import XMonadContrib.XPrompt
-> import XMonadContrib.ShellPrompt
-
-3. In your keybindings add something like:
-
->   , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
-
--}
 
 import XMonad
 import XMonadContrib.XPrompt
@@ -41,6 +25,26 @@ import Control.Monad
 import Data.List
 import System.Console.Readline
 import System.Environment
+
+-- $usage
+--
+-- 1. In xmonad.cabal change: 
+--
+-- > build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0
+--
+-- to
+--
+-- > build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0, readline >= 1.0
+--
+-- 2. In Config.hs add:
+--
+-- > import XMonadContrib.XPrompt
+-- > import XMonadContrib.ShellPrompt
+--
+-- 3. In your keybindings add something like:
+--
+-- >   , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+--
 
 data Shell = Shell
 
