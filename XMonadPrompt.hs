@@ -17,21 +17,22 @@ module XMonadContrib.XMonadPrompt (
                              -- $usage
                              xmonadPrompt
                               ) where
-{-
-usage:
-in Config.hs add:
-> import XMonadContrib.XPrompt
-> import XMonadContrib.XMonadPrompt
-
-in you keybindings add:
-
->   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultPromptConfig)
-
--}
 
 import XMonad
 import XMonadContrib.XPrompt
-import XMonadContrib.Commands
+import XMonadContrib.Commands (defaultCommands, runCommand')
+
+-- $usage
+--
+-- in Config.hs add:
+--
+-- > import XMonadContrib.XPrompt
+-- > import XMonadContrib.XMonadPrompt
+--
+-- in you keybindings add:
+--
+-- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+--
 
 data XMonad = XMonad
 
