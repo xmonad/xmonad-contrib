@@ -17,7 +17,6 @@ module XMonadContrib.XPrompt (
                              -- * Usage
                              -- $usage
                              mkXPrompt
-                             , defaultPromptConfig
                              , defaultXPConfig
                              , mkComplFunFromList
                              , XPType (..)
@@ -99,9 +98,6 @@ class XPrompt t where
 data XPPosition = Top 
                 | Bottom
                   deriving (Show,Read)
-
-defaultPromptConfig :: XPConfig
-defaultPromptConfig = defaultXPConfig
 
 defaultXPConfig :: XPConfig
 defaultXPConfig =
