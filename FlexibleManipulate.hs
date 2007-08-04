@@ -32,11 +32,12 @@ import Graphics.X11.Xlib.Extras
 -- > import qualified XMonadContrib.FlexibleManipulate as Flex
 --
 -- Set one of the mouse button bindings up like this:
+--
 -- > mouseBindings = M.fromList
 -- >     [ ((modMask, button1), (\w -> focus w >> Flex.mouseWindow Flex.linear w)) ], ...
 --
 -- Flex.linear indicates that positions between the edges and the middle
---    indicate a combination scale/position.
+--    indicate a combination scale\/position.
 -- Flex.discrete indicates that there are discrete pick regions. (window
 --    is divided by thirds for each axis)
 -- Flex.resize performs only resize of the window, based on which quadrant
