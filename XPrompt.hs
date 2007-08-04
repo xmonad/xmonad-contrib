@@ -42,14 +42,16 @@ import System.Environment (getEnv)
 import System.IO
 import System.Posix.Files (fileExist)
 
--- $usage:
+-- $usage
 --
--- For example usage see XMonadContrib.ShellPrompt or
--- XMonadContrib.XMonadPrompt
-
--- TODO
--- scrolling the completions that don't fit in the window
--- commands to edit the command line
+-- For example usage see 'XMonadContrib.ShellPrompt',
+-- 'XMonadContrib.XMonadPrompt' or 'XMonadContrib.SshPrompt'
+--
+-- TODO:
+--
+-- * scrolling the completions that don't fit in the window (?)
+--
+-- * commands to edit the command line
 
 type XP = StateT XPState IO
 
@@ -80,7 +82,7 @@ data XPConfig =
         , borderWidth    :: Dimension  -- ^ Border width
         , position       :: XPPosition -- ^ Position: 'Top' or 'Bottom'
         , height         :: Dimension  -- ^ Window height
-        , historySize    :: Int 
+        , historySize    :: Int        -- ^ The number of history entries to be saved
         } deriving (Show, Read)
 
 data XPType = forall p . XPrompt p => XPT p 
@@ -583,10 +585,10 @@ printString d drw gc fc bc x y s = do
 fillDrawable :: Display -> Drawable -> GC -> Pixel -> Pixel
              -> Dimension -> Dimension -> Dimension -> IO ()
 fillDrawable d drw gc border bgcolor bw wh ht = do
-  -- we strat with the border
+  -- we start with the border
   setForeground d gc border
   fillRectangle d drw gc 0 0 wh ht
-  -- this foreground is the background of the text
+  -- here foreground means the background of the text
   setForeground d gc bgcolor
   fillRectangle d drw gc (fi bw) (fi bw) (wh - (bw * 2)) (ht - (bw * 2))
 
