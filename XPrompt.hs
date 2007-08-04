@@ -66,7 +66,7 @@ data XPState =
         , xptype :: XPType
         , command :: String 
         , offset :: Int
-        , history :: ![History]
+        , history :: [History]
         , config :: XPConfig
         }
 
@@ -139,7 +139,7 @@ mkXPrompt t conf compl action = do
 
   liftIO $ freeGC d gc
   liftIO $ freeFont d fontS
-  action (command st')
+  when (command st' /= "") $ action (command st')
 
 runXP :: XP ()
 runXP = do
@@ -148,13 +148,14 @@ runXP = do
       w = win st
   status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
   when (status == grabSuccess) $ do
-            --updateWindows
           updateWindows
           eventLoop handle
           io $ ungrabKeyboard d currentTime
   io $ destroyWindow d w
   destroyComplWin
   io $ sync d False
+
+type KeyStroke = (KeySym, String)
 
 eventLoop :: (KeyStroke -> Event -> XP ()) -> XP ()
 eventLoop action = do
@@ -166,8 +167,6 @@ eventLoop action = do
               (ks,s) <- lookupString $ asKeyEvent e
               return (ks,s,ev)
   action (fromMaybe xK_VoidSymbol keysym,string) event
-
-type KeyStroke = (KeySym, String)
 
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
@@ -185,7 +184,7 @@ handle _  _ = eventLoop handle
 
 -- completion event handler
 completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
-completionHandle c k@(ks,_) e@(KeyEvent {ev_event_type = t})
+completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab = do
   st <- get
   case c of
@@ -201,11 +200,11 @@ completionHandle c k@(ks,_) e@(KeyEvent {ev_event_type = t})
                 eventLoop (completionHandle c)
 -- key release
     | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
+-- other keys
 completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
--- go back to main loop
+-- some other event: go back to main loop
 completionHandle _ k e = handle k e
-
 
 -- KeyPresses
 
@@ -213,13 +212,13 @@ data Direction = Prev | Next deriving (Eq,Show,Read)
 
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 -- commands: ctrl + ... todo
-keyPressHandle mask (ks,s)
+keyPressHandle mask _
     | mask == controlMask = do
   -- TODO
   eventLoop handle
 
 keyPressHandle _ (ks,_)
--- exit
+-- Return: exit
     | ks == xK_Return = do
   historyPush
   writeHistory
@@ -227,37 +226,35 @@ keyPressHandle _ (ks,_)
 -- backspace
     | ks == xK_BackSpace = do
   deleteString Prev
-  updateWindows
-  eventLoop handle
+  go
 -- delete
     | ks == xK_Delete = do
   deleteString Next
-  updateWindows
-  eventLoop handle
+  go
 -- left
     | ks == xK_Left = do
   moveCursor Prev
-  updateWindows
-  eventLoop handle
+  go
 -- right
     | ks == xK_Right = do
   moveCursor Next
-  updateWindows
-  eventLoop handle
+  go
 -- up
     | ks == xK_Up = do
   moveHistory Prev
-  updateWindows
-  eventLoop handle
+  go
 -- down
     | ks == xK_Down = do
   moveHistory Next
-  updateWindows
-  eventLoop handle
--- exscape: exit and discard everything
+  go
+-- escape: exit and discard everything
     | ks  == xK_Escape = do
   flushString
   return ()
+      where
+        go = do
+          updateWindows
+          eventLoop handle
 
 -- insert a character
 keyPressHandle _ (_,s)
@@ -322,7 +319,7 @@ updateWindows = do
   drawWin
   c <- getCompletions
   case c  of
-    [] -> return ()
+    [] -> destroyComplWin >> return ()
     l  -> redrawComplWin l
   io $ sync d False
 
