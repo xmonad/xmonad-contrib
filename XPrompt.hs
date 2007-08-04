@@ -39,7 +39,7 @@ import Data.Maybe
 import Data.List
 import System.Environment (getEnv)
 import System.IO
-import System.Posix.Files (fileExist)
+import System.Posix.Files
 
 -- $usage
 --
@@ -131,13 +131,17 @@ mkXPrompt t conf compl action = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   fontS <- liftIO $ loadQueryFont d (font conf)
-  h <- liftIO $ readHistory
-  let st = initState d rw w s compl gc fontS (XPT t) h conf
+  (hist,h) <- liftIO $ readHistory
+  let st = initState d rw w s compl gc fontS (XPT t) hist conf
   st' <- liftIO $ execStateT runXP st
 
   liftIO $ freeGC d gc
   liftIO $ freeFont d fontS
-  when (command st' /= "") $ action (command st')
+  liftIO $ hClose h
+  when (command st' /= "") $ do 
+    let htw = take (historySize conf) (history st')
+    liftIO $ writeHistory h htw
+    action (command st')
 
 runXP :: XP ()
 runXP = do
@@ -219,7 +223,6 @@ keyPressHandle _ (ks,_)
 -- Return: exit
     | ks == xK_Return = do
   historyPush
-  writeHistory
   return ()
 -- backspace
     | ks == xK_BackSpace = do
@@ -528,7 +531,7 @@ data History =
 historyPush :: XP ()
 historyPush = do
   c <- gets command
-  when (c /= []) $ modify (\s -> s { history = H (showXPrompt (xptype s)) c : history s })
+  when (c /= []) $ modify (\s -> s { history = nub $ H (showXPrompt (xptype s)) c : history s })
 
 getHistory :: XP [String]
 getHistory = do
@@ -536,38 +539,26 @@ getHistory = do
   pt <- gets xptype
   return $ map command_history . filter (\h -> prompt h == showXPrompt pt) $ hist
 
-readHistory :: IO [History]
+readHistory :: IO ([History],Handle)
 readHistory = do
   home <- getEnv "HOME"
   let path = home ++ "/.xmonad_history"
   f <- fileExist path
-  -- from http://users.aber.ac.uk/afc/stricthaskell.html#semiclosed
-  let hGetContentsStrict h = do
-                b <- hIsEOF h
-                if b then return [] else 
-                    do c <- hGetChar h
-                       r <- hGetContentsStrict h
-                       return (c:r)
-      do_read = do ha <- openFile path ReadMode
-                   hSetBuffering ha NoBuffering
-                   s <- hGetContentsStrict ha
-                   hClose ha
-                   return s
-  if f then do str <- catch (do_read) (\_ -> do putStrLn "error in reading"; return [])
+  if f then do h <- openFile path ReadMode
+               str <- hGetContents h
                case (reads str) of
-                 [(hist,_)] -> return hist
-                 [] -> return []
-                 _ -> return []
-       else return []
+                 [(hist,_)] -> return (hist,h)
+                 [] -> return ([],h)
+                 _ -> return ([],h)
+       else do touchFile path
+               h <- openFile path ReadMode
+               return ([],h)
 
-writeHistory :: XP ()
-writeHistory = do
-  h <- gets history
-  c <- gets config
-  home <- io $ getEnv "HOME"
+writeHistory :: Handle -> [History] -> IO ()
+writeHistory h hist = do
+  home <- getEnv "HOME"
   let path = home ++ "/.xmonad_history"
-      htw = take (historySize c) . nub $ h
-  io $ catch (writeFile path (show htw)) (\_ -> do putStrLn "error in writing"; return ())
+  catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
 
 -- More general X Stuff
 
