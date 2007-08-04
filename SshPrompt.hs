@@ -17,18 +17,6 @@ module XMonadContrib.SshPrompt (
                              -- $usage
                              sshPrompt
                               ) where
-{-
-usage:
-1. In Config.hs add:
-
-> import XMonadContrib.XPrompt
-> import XMonadContrib.SshPrompt
-
-3. In your keybindings add something like:
-
->   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultPromptConfig)
-
--}
 
 import XMonad
 import XMonadContrib.XPrompt
@@ -36,6 +24,17 @@ import XMonadContrib.XPrompt
 import Control.Monad
 import System.Directory
 import System.Environment
+
+-- $usage
+-- 1. In Config.hs add:
+--
+-- > import XMonadContrib.XPrompt
+-- > import XMonadContrib.SshPrompt
+--
+-- 3. In your keybindings add something like:
+--
+-- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+--
 
 data Ssh = Ssh
 
