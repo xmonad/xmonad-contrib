@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.SwitchTrans
@@ -8,11 +9,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
------------------------------------------------------------------------------
-
-{-# OPTIONS_GHC -fglasgow-exts #-}
-
--- | Ordinary layout transformers are simple and easy to use but inflexible.
+--
+-- Ordinary layout transformers are simple and easy to use but inflexible.
 -- This module provides a more structured interface to them.
 --
 -- The basic idea is to have a base layout and a set of layout transformers,
@@ -33,7 +31,7 @@
 -- >         mkSwitch (M.singleton "mirror" mirror)
 -- >     ) [ tiled ]
 --
--- (The noBorders transformer is from @XMonadContrib.NoBorders@.)
+-- (The noBorders transformer is from 'XMonadContrib.NoBorders'.)
 --
 -- This example is probably overkill but it's very close to what I actually use.
 -- Anyway, this layout behaves like the default @tiled@ layout, until you send it
@@ -54,11 +52,13 @@
 --
 -- The reason I use two stacked @SwitchTrans@ transformers instead of
 -- @mkSwitch (M.fromList [("full", const $ noBorders full), ("mirror", mirror)])@
--- is that I use @mod-f@ to "zoom in" on interesting windows, no matter what other
+-- is that I use @mod-f@ to \"zoom in\" on interesting windows, no matter what other
 -- layout transformers may be active. Having an extra fullscreen mode on top of
--- everything else means I can zoom in and out without implicitly undoing "normal"
+-- everything else means I can zoom in and out without implicitly undoing \"normal\"
 -- layout transformers, like @mirror@. Remember, inside a @SwitchTrans@ there can
 -- be at most one active layout transformer.
+-----------------------------------------------------------------------------
+
 module XMonadContrib.SwitchTrans (
     Toggle(..),
     Enable(..),
