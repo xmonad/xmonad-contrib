@@ -550,8 +550,7 @@ readHistory = do
                  [(hist,_)] -> return (hist,h)
                  [] -> return ([],h)
                  _ -> return ([],h)
-       else do touchFile path
-               h <- openFile path ReadMode
+       else do h <- openFile path WriteMode
                return ([],h)
 
 writeHistory :: Handle -> [History] -> IO ()
