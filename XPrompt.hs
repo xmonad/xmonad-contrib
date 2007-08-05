@@ -396,7 +396,7 @@ printPrompt drw gc fontst = do
 getCompletions :: XP [String]
 getCompletions = do
   s <- get
-  io $ (completionFunction s) (command s)
+  io $ (completionFunction s) (getLastWord $ command s)
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
@@ -555,7 +555,7 @@ readHistory = do
                return ([],h)
 
 writeHistory :: Handle -> [History] -> IO ()
-writeHistory h hist = do
+writeHistory _ hist = do
   home <- getEnv "HOME"
   let path = home ++ "/.xmonad_history"
   catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
