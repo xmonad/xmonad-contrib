@@ -25,7 +25,6 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
 -- $usage
-
 -- This module allows you to pretend that you have more than one screen by
 -- dividing a single screen into multiple screens that xmonad will treat as
 -- separate screens.  This should definitely be useful for testing the
@@ -33,7 +32,7 @@ import Graphics.X11.Xlib.Extras
 -- handy for use as an actual user interface, if you've got a very large
 -- sceen and long for greater flexibility (e.g. being able to see your
 -- email window at all times, a crude mimic of sticky windows).
-
+--
 -- You can use this module with the following in your Config.hs file:
 -- 
 -- > import XMonadContrib.LayoutScreens
