@@ -21,7 +21,7 @@ module XMonadContrib.Magnifier (
     -- $usage
     magnifier, magnifier') where
 
-import Graphics.X11.Xlib
+import Graphics.X11.Xlib (Window, Rectangle(..))
 import XMonad
 import StackSet
 import XMonadContrib.LayoutHelpers
@@ -31,21 +31,22 @@ import XMonadContrib.LayoutHelpers
 -- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
 -- | Increase the size of the window that has focus, unless it is the master window.
-magnifier :: Eq a => Layout a -> Layout a
+magnifier :: Layout Window -> Layout Window
 magnifier = layoutModify (unlessMaster applyMagnifier) idModMod
 
 -- | Increase the size of the window that has focus, even if it is the master window.
-magnifier' :: Eq a => Layout a -> Layout a
+magnifier' :: Layout Window -> Layout Window
 magnifier' = layoutModify applyMagnifier idModMod
 
-unlessMaster :: ModDo a -> ModDo a
+unlessMaster :: ModDo Window -> ModDo Window
 unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
                                               else mainmod r s wrs
 
-applyMagnifier :: Eq a => ModDo a
-applyMagnifier r s wrs = return (reverse $ foldr mag [] wrs, Nothing)
-    where mag (w,wr) ws | w == focus s = ws ++ [(w, shrink r $ magnify wr)]
-                        | otherwise    = (w,wr) : ws
+applyMagnifier :: ModDo Window
+applyMagnifier r _ wrs = do focused <- withWindowSet (return . peek)
+                            let mag (w,wr) ws | focused == Just w = ws ++ [(w, shrink r $ magnify wr)]
+                                              | otherwise         = (w,wr) : ws
+                            return (reverse $ foldr mag [] wrs, Nothing)
 
 magnify :: Rectangle -> Rectangle
 magnify (Rectangle x y w h) = Rectangle x' y' w' h'
