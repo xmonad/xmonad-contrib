@@ -47,6 +47,7 @@ import XMonadContrib.Magnifier ()
 import XMonadContrib.Mosaic ()
 import XMonadContrib.NamedWindows ()
 import XMonadContrib.NoBorders ()
+import XMonadContrib.Roledex ()
 import XMonadContrib.RotSlaves ()
 import XMonadContrib.RotView ()
 -- XMonadContrib.ShellPrompt depends on readline
