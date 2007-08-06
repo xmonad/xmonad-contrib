@@ -19,10 +19,10 @@
 -----------------------------------------------------------------------------
 
 module XMonadContrib.DynamicLog (
-                                 -- * Usage
-                                 -- $usage 
-                                 dynamicLog, dynamicLogXinerama, pprWindowSet, pprWindowSetXinerama
-                                ) where
+    -- * Usage
+    -- $usage 
+    dynamicLog, dynamicLogXinerama, pprWindowSet, pprWindowSetXinerama
+  ) where
 
 -- 
 -- Useful imports
