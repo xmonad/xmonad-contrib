@@ -20,6 +20,7 @@ module XMonadContrib.SshPrompt (
 
 import XMonad
 import XMonadContrib.XPrompt
+import XMonadContrib.RunInXTerm
 
 import Control.Monad
 import System.Directory
@@ -47,7 +48,7 @@ sshPrompt c = do
   mkXPrompt Ssh c (mkComplFunFromList sc) ssh
 
 ssh :: String -> X ()
-ssh s = spawn $ "exec xterm -e ssh " ++ s
+ssh s = runInXTerm ("ssh " ++ s)
  
 sshComplList :: IO [String]
 sshComplList = do
