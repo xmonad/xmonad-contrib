@@ -380,7 +380,7 @@ printPrompt drw gc fontst = do
       ht = height c
       (fsl,psl) = (textWidth fontst f, textWidth fontst p)
       (_,asc,desc,_) = textExtents fontst str
-      y = fi $ (ht + fi (asc + desc)) `div` 2
+      y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
   fgcolor <- io $ initColor d $ fgColor c
   bgcolor <- io $ initColor d $ bgColor c
