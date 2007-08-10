@@ -132,6 +132,7 @@ mkXPrompt t conf compl action = do
   liftIO $ setGraphicsExposures d gc False
   fontS <- liftIO (loadQueryFont d (font conf) `catch`
                    \_ -> loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*")
+  liftIO $ setFont d gc $ fontFromFontStruct fontS
   (hist,h) <- liftIO $ readHistory
   let st = initState d rw w s compl gc fontS (XPT t) hist conf
   st' <- liftIO $ execStateT runXP st
