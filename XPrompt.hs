@@ -130,7 +130,8 @@ mkXPrompt t conf compl action = do
   liftIO $ selectInput d w $ exposureMask .|. keyPressMask
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
-  fontS <- liftIO $ loadQueryFont d (font conf)
+  fontS <- liftIO (loadQueryFont d (font conf) `catch`
+                   \_ -> loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*")
   (hist,h) <- liftIO $ readHistory
   let st = initState d rw w s compl gc fontS (XPT t) hist conf
   st' <- liftIO $ execStateT runXP st
