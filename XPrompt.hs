@@ -102,10 +102,10 @@ data XPPosition = Top
 defaultXPConfig :: XPConfig
 defaultXPConfig =
     XPC { font = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-        , bgColor = "#666666"
+        , bgColor = "#333333"
         , fgColor = "#FFFFFF"
         , fgHLight = "#000000"
-        , bgHLight = "#999999"
+        , bgHLight = "#BBBBBB"
         , borderColor = "#FFFFFF"
         , borderWidth = 1
         , position = Bottom
