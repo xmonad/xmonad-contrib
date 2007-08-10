@@ -66,7 +66,8 @@ withGC w fn f = withDisplay $ \d -> do gc <- io $ createGC d w
                                        let fontname = if fn == "" 
                                                       then "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
                                                       else fn
-                                       font <- io $ loadQueryFont d fontname
+                                       font <- io $ catch (loadQueryFont d fontname)
+                                                          (const $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*")
                                        io $ setFont d gc (fontFromFontStruct font)
                                        f d w gc font
                                        io $ freeGC d gc
