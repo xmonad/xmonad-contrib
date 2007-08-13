@@ -48,9 +48,9 @@ combo super origls = Layout { doLayout = \r s -> arrange r (integrate s), modify
     where arrange _ [] = return ([], Nothing)
           arrange r [w] = return ([(w,r)], Nothing)
           arrange rinput origws =
-              do lrs <- fst `fmap`
-                       runLayout super rinput (differentiate $ take (length origws) origls)
-                 let lwrs [] _ = []
+              do (lrs, msuper') <- runLayout super rinput (differentiate $ take (length origws) origls)
+                 let super' = maybe super id msuper'
+                     lwrs [] _ = []
                      lwrs [((l,_),r)] ws = [((l,r),differentiate ws)]
                      lwrs (((l,n),r):xs) ws = ((l,r),differentiate $ take len1 ws) : lwrs xs (drop len1 ws)
                          where len1 = min n (length ws - length xs)
@@ -58,7 +58,7 @@ combo super origls = Layout { doLayout = \r s -> arrange r (integrate s), modify
                  let origls' = zipWith foo (out++repeat ([],Nothing)) origls
                      foo (_, Nothing) x = x
                      foo (_, Just l') (_, n) = (l', n)
-                 return (concat $ map fst out, Just $ combo super origls')
+                 return (concat $ map fst out, Just $ combo super' origls')
           message m = do mls <- broadcastPrivate m (map fst origls)
                          let mls' = (\x->zipWith first (map const x) origls) `fmap` mls
                          msuper <- broadcastPrivate m [super]
