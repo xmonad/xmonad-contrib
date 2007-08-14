@@ -25,13 +25,15 @@ module XMonadContrib.WorkspaceDir (
                                    changeDir
                                   ) where
 
-import System.Directory ( setCurrentDirectory, getCurrentDirectory )
-import Data.List ( nub )
+import System.Directory ( setCurrentDirectory )
 
 import XMonad
 import Operations ( sendMessage )
-import XMonadContrib.Dmenu ( dmenu, runProcessWithInput )
+import XMonadContrib.Dmenu ( runProcessWithInput )
+import XMonadContrib.XPrompt ( XPConfig )
+import XMonadContrib.DirectoryPrompt ( directoryPrompt )
 import XMonadContrib.LayoutHelpers ( layoutModify )
+import XMonadContrib.XPrompt ( defaultXPConfig )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -42,7 +44,7 @@ import XMonadContrib.LayoutHelpers ( layoutModify )
 --
 -- In keybindings:
 --
--- >  , ((modMask .|. shiftMask, xK_x     ), changeDir ["~","/tmp"])
+-- >  , ((modMask .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
 
 
 data Chdir = Chdir String deriving ( Typeable )
@@ -58,7 +60,5 @@ scd :: String -> X ()
 scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
            catchIO $ setCurrentDirectory x'
 
-changeDir :: [String] -> X ()
-changeDir dirs = do thisd <- io getCurrentDirectory
-                    dir <- dmenu (nub (thisd:dirs))
-                    sendMessage (Chdir dir)
+changeDir :: XPConfig -> X ()
+changeDir c = directoryPrompt c "Set working directory: " (sendMessage . Chdir)
