@@ -166,7 +166,7 @@ eventLoop action = do
   d <- gets dpy
   (keysym,string,event) <- io $ 
             allocaXEvent $ \e -> do 
-              nextEvent d e
+              maskEvent d keyPressMask e
               ev <- getEvent e
               (ks,s) <- lookupString $ asKeyEvent e
               return (ks,s,ev)
