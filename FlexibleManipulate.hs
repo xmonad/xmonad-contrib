@@ -71,13 +71,15 @@ mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
         mul = mapP (\x -> 2 - 2 * abs(x - 0.5)) fc --Fudge factors: interpolation between 1 when on edge, 2 in middle
         atl = ((1, 1) - fc) * mul
         abr = fc * mul
-    mouseDrag $ \(_, _, _, _, _, ex, ey, _, _, _) -> do
+    mouseDrag (\ex ey -> io $ do
         let offset = (fromIntegral ex, fromIntegral ey) - pointer
             npos = wpos + offset * atl
             nbr = (wpos + wsize) + offset * abr
             ntl = minP (nbr - (32, 32)) npos    --minimum size
             nwidth = applySizeHints sh $ mapP round (nbr - ntl)
         moveResizeWindow d w (round $ fst ntl) (round $ snd ntl) `uncurry` nwidth
+        return ())
+        (float w)
 
     float w
     
