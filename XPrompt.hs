@@ -166,9 +166,11 @@ eventLoop action = do
   d <- gets dpy
   (keysym,string,event) <- io $ 
             allocaXEvent $ \e -> do 
-              maskEvent d keyPressMask e
+              maskEvent d (exposureMask .|. keyPressMask) e
               ev <- getEvent e
-              (ks,s) <- lookupString $ asKeyEvent e
+              (ks,s) <- if ev_event_type ev == keyPress
+                        then lookupString $ asKeyEvent e
+                        else return (Nothing, "")
               return (ks,s,ev)
   action (fromMaybe xK_VoidSymbol keysym,string) event
 
@@ -616,8 +618,9 @@ splitInSubListsAt i x = f : splitInSubListsAt i rest
     where (f,rest) = splitAt i x
 
 getLastWord :: String -> String
-getLastWord [] = []
-getLastWord c = last . words $ c
+getLastWord c 
+    | c == [] || filter (/=' ') c == []  = []
+    | otherwise = last . words $ c
 
 skipLastWord :: String -> String
 skipLastWord [] = []
