@@ -48,8 +48,8 @@ mouseResizeWindow w = whenX (isClient w) $ withDisplay $ \d -> do
     mouseDrag (\ex ey -> do
                  wa' <- io $ getWindowAttributes d w
                  let [px, py] = map (fromIntegral . ($ wa')) [wa_x, wa_y]
-                 io $ moveResizeWindow d w (fromIntegral $ fx px (fromIntegral ex))
-                                           (fromIntegral $ fy py (fromIntegral ey))
+                 io $ moveResizeWindow d w (fx px (fromIntegral ex))
+                                           (fy py (fromIntegral ey))
                             `uncurry` applySizeHints sh (gx $ fromIntegral ex, gy $ fromIntegral ey))
               (float w)
     where
