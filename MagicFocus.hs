@@ -16,6 +16,7 @@ module XMonadContrib.MagicFocus (
                  -- $usage
                  magicFocus) where
 
+import Graphics.X11.Xlib (Window)
 import XMonad
 import StackSet
 
@@ -23,9 +24,10 @@ import StackSet
 -- > import XMonadContrib.MagicFocus
 -- > defaultLayouts = [ magicFocus tiled , magicFocus $ mirror tiled ]
 
-magicFocus :: Layout a -> Layout a
-magicFocus l = l { doLayout = \s -> (doLayout l) s . swap
+magicFocus :: Layout Window -> Layout Window
+magicFocus l = l { doLayout = \r s -> withWindowSet (return . peek) >>= (doLayout l) r . swap s
                  , modifyLayout = \x -> fmap magicFocus `fmap` modifyLayout l x }
 
-swap :: Stack a -> Stack a
-swap (Stack f u d) = Stack f [] (reverse u ++ d)
+swap :: (Eq a) => Stack a -> Maybe a -> Stack a
+swap (Stack f u d) focused | Just f == focused = Stack f [] (reverse u ++ d)
+                           | otherwise         = Stack f u d
