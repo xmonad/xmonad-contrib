@@ -18,9 +18,10 @@ module XMonadContrib.Circle (
                              circle
                             ) where -- actually it's an ellipse
 
+import Data.List
 import Graphics.X11.Xlib
 import XMonad
-import StackSet (integrate, Stack(..))
+import StackSet (integrate, peek)
 
 import XMonadContrib.LayoutHelpers ( idModify )
 
@@ -29,9 +30,10 @@ import XMonadContrib.LayoutHelpers ( idModify )
 --
 -- > import XMonadContrib.Circle
 
-circle :: Layout a
-circle = Layout { doLayout = \r s -> return (raise (length (up s)) . circleLayout r $ integrate s, Nothing),
-                  modifyLayout = idModify }
+circle :: Layout Window
+circle = Layout { doLayout = \r s -> do { layout <- raiseFocus $ circleLayout r $ integrate s
+                                       ;  return (layout, Nothing) }
+                , modifyLayout = idModify }
 
 circleLayout :: Rectangle -> [a] -> [(a, Rectangle)]
 circleLayout _ []     = []
@@ -39,8 +41,11 @@ circleLayout r (w:ws) = master : rest
     where master = (w, center r)
           rest   = zip ws $ map (satellite r) [0, pi * 2 / fromIntegral (length ws) ..]
 
-raise :: Int -> [a] -> [a]
-raise n xs = xs !! n : take n xs ++ drop (n + 1) xs
+raiseFocus :: [(Window, Rectangle)] -> X [(Window, Rectangle)]
+raiseFocus xs = do focused <- withWindowSet (return . peek)
+                   return $ case find ((== focused) . Just . fst) xs of
+                              Just x  -> x : delete x xs
+                              Nothing -> xs
 
 center :: Rectangle -> Rectangle
 center (Rectangle sx sy sw sh) = Rectangle x y w h
