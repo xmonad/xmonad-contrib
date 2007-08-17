@@ -16,6 +16,8 @@ module XMonadContrib.ShellPrompt (
                              -- * Usage
                              -- $usage
                              shellPrompt
+                             , rmPath
+                             , split
                               ) where
 
 import XMonad
@@ -73,8 +75,10 @@ commandCompletionFunction str
       cl = liftM (nub . rmPath . concat) . mapM fCF . map addToPath . split ':'  
       addToPath = flip (++) ("/" ++ str)
       fCF = filenameCompletionFunction
-      rmPath [] = []
-      rmPath s = map (last . split '/') s
+
+rmPath :: [String] -> [String]
+rmPath s = 
+    map (reverse . fst . break  (=='/') . reverse) s
 
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []
