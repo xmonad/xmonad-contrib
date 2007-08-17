@@ -23,6 +23,7 @@ module XMonadContrib.XPrompt (
                              , XPPosition (..)
                              , XPConfig (..)
                              , XPrompt (..)
+                             -- * Utilities
                              , mkUnmanagedWindow
                              , getLastWord
                              , skipLastWord
@@ -50,8 +51,8 @@ import System.Posix.Files
 
 -- $usage
 --
--- For example usage see 'XMonadContrib.ShellPrompt',
--- 'XMonadContrib.XMonadPrompt' or 'XMonadContrib.SshPrompt'
+-- For usage examples see 'ShellPrompt',
+-- 'XMonadPrompt' or 'SshPrompt'
 --
 -- TODO:
 --
@@ -99,6 +100,16 @@ instance Show XPType where
 instance XPrompt XPType where
     showXPrompt = show
 
+-- | The class prompt types must be an instance of. In order to
+-- create a prompt you need to create a data type, without parameters,
+-- and make it an instance of this class, by implementing a simple
+-- method, 'showXPrompt', which will be used to print the string to be
+-- displayed in the command line window.
+--
+-- This is an example of a XPrompt instance definition:
+--
+-- >     instance XPrompt Shell where
+-- >          showXPrompt Shell = "Run:   "
 class XPrompt t where
     showXPrompt :: t -> String
 
@@ -127,6 +138,17 @@ initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunct
 initState d rw w s compl gc f pt h c =
     XPS d rw w s Nothing Nothing compl gc f (XPT pt) "" 0 h c
 
+-- | Creates a prompt given:
+--
+-- * a prompt type, instance of the 'XPrompt' class. 
+--
+-- * a prompt configuration ('defaultXPConfig' can be used as a
+-- starting point)
+--
+-- * a completion functions ('mkComplFunFromList' can be used to
+-- create a completions function given a list of possible completions)
+--
+-- * an action to be run: the action must take a string and return 'XMonad.X' ()
 mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ())  -> X ()
 mkXPrompt t conf compl action = do
   c <- ask
@@ -610,7 +632,8 @@ mkUnmanagedWindow d s rw x y w h = do
 
 -- Utilities
 
--- completions
+-- | This function takes a list of possible completions and returns a
+-- completions function to be used with 'mkXPrompt'
 mkComplFunFromList :: [String] -> String -> IO [String]
 mkComplFunFromList _ [] = return []
 mkComplFunFromList l s =
