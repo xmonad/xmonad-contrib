@@ -23,6 +23,13 @@ module XMonadContrib.XPrompt (
                              , XPPosition (..)
                              , XPConfig (..)
                              , XPrompt (..)
+                             , mkUnmanagedWindow
+                             , getLastWord
+                             , skipLastWord
+                             , splitInSubListsAt
+                             , newIndex
+                             , newCommand
+
                              ) where
 
 import Graphics.X11.Xlib
@@ -196,14 +203,10 @@ completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
   case c of
     [] -> do updateWindows
              eventLoop handle
-    l  -> let new_index = case elemIndex (getLastWord (command st)) l of
-                                Just i -> if i >= (length l - 1) then 0 else i + 1
-                                Nothing -> 0
-              new_command = skipLastWord (command st) ++ fill ++ l !! new_index
-              fill = if  ' ' `elem` (command st) then " " else ""
-          in do modify $ \s ->  s { command = new_command, offset = length new_command }
-                redrawWindows c
-                eventLoop (completionHandle c)
+    l  -> do let new_command = newCommand (command st) l
+             modify $ \s ->  s { command = new_command, offset = length new_command }
+             redrawWindows c
+             eventLoop (completionHandle c)
 -- key release
     | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
 -- other keys
@@ -211,6 +214,16 @@ completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
+
+newIndex :: String -> [String] -> Int
+newIndex com cl =
+    case elemIndex (getLastWord com) cl of
+      Just i -> if i >= length cl - 1 then 0 else i + 1
+      Nothing -> 0
+
+newCommand :: String -> [String] -> String
+newCommand com cl =
+    skipLastWord com ++ (cl !! (newIndex com cl))
 
 -- KeyPresses
 
@@ -603,7 +616,6 @@ mkComplFunFromList _ [] = return []
 mkComplFunFromList l s =
   return $ filter (\x -> take (length s) x == s) l
 
-
 -- Lift an IO action into the XP
 io :: IO a -> XP a
 io = liftIO
@@ -618,10 +630,9 @@ splitInSubListsAt i x = f : splitInSubListsAt i rest
     where (f,rest) = splitAt i x
 
 getLastWord :: String -> String
-getLastWord c 
-    | c == [] || filter (/=' ') c == []  = []
-    | otherwise = last . words $ c
+getLastWord str =
+    reverse . fst . break isSpace . reverse $ str
 
 skipLastWord :: String -> String
-skipLastWord [] = []
-skipLastWord c = unwords . init . words $ c
+skipLastWord str =
+    reverse . snd . break isSpace . reverse $ str
