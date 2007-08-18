@@ -23,8 +23,14 @@ module XMonadContrib.XPrompt (
                              , XPPosition (..)
                              , XPConfig (..)
                              , XPrompt (..)
-                             -- * Utilities
+                             , ComplFunction
+                             -- * X Utilities
+                             -- $xutils
                              , mkUnmanagedWindow
+                             , fillDrawable
+                             , printString
+                             -- * Other Utilities
+                             -- $utils
                              , getLastWord
                              , skipLastWord
                              , splitInSubListsAt
@@ -51,8 +57,8 @@ import System.Posix.Files
 
 -- $usage
 --
--- For usage examples see 'ShellPrompt',
--- 'XMonadPrompt' or 'SshPrompt'
+-- For usage examples see "XMonadContrib.ShellPrompt",
+-- "XMonadContrib.XMonadPrompt" or "XMonadContrib.SshPrompt"
 --
 -- TODO:
 --
@@ -145,7 +151,7 @@ initState d rw w s compl gc f pt h c =
 -- * a prompt configuration ('defaultXPConfig' can be used as a
 -- starting point)
 --
--- * a completion functions ('mkComplFunFromList' can be used to
+-- * a completion function ('mkComplFunFromList' can be used to
 -- create a completions function given a list of possible completions)
 --
 -- * an action to be run: the action must take a string and return 'XMonad.X' ()
@@ -237,12 +243,16 @@ completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
 
+-- | Given a completion and a list of possible completions, returns the
+-- index of the next completion in the list
 newIndex :: String -> [String] -> Int
 newIndex com cl =
     case elemIndex (getLastWord com) cl of
       Just i -> if i >= length cl - 1 then 0 else i + 1
       Nothing -> 0
 
+-- | Given a completion and a list of possible completions, returns the
+-- the next completion in the list
 newCommand :: String -> [String] -> String
 newCommand com cl =
     skipLastWord com ++ (cl !! (newIndex com cl))
@@ -598,8 +608,9 @@ writeHistory _ hist = do
   let path = home ++ "/.xmonad_history"
   catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
 
--- More general X Stuff
+-- $xutils
 
+-- | Prints a string on a 'Drawable'
 printString :: Display -> Drawable -> GC -> Pixel -> Pixel
             -> Position -> Position -> String  -> IO ()
 printString d drw gc fc bc x y s = do
@@ -607,6 +618,7 @@ printString d drw gc fc bc x y s = do
   setBackground d gc bc
   drawImageString d drw gc x y s
 
+-- | Fills a 'Drawable' with a rectangle and a border 
 fillDrawable :: Display -> Drawable -> GC -> Pixel -> Pixel
              -> Dimension -> Dimension -> Dimension -> IO ()
 fillDrawable d drw gc border bgcolor bw wh ht = do
@@ -630,7 +642,7 @@ mkUnmanagedWindow d s rw x y w h = do
            createWindow d rw x y w h 0 (defaultDepthOfScreen s) 
                         inputOutput visual attrmask attributes
 
--- Utilities
+-- $utils
 
 -- | This function takes a list of possible completions and returns a
 -- completions function to be used with 'mkXPrompt'
@@ -643,19 +655,24 @@ mkComplFunFromList l s =
 io :: IO a -> XP a
 io = liftIO
 
--- shorthand
+-- Shorthand for fromIntegral
 fi :: (Num b, Integral a) => a -> b
 fi = fromIntegral
 
+-- | Given a maximum length, splits a list into sublists
 splitInSubListsAt :: Int -> [a] -> [[a]]
 splitInSubListsAt _ [] = []
 splitInSubListsAt i x = f : splitInSubListsAt i rest
     where (f,rest) = splitAt i x
 
+-- | Gets the last word of a string or the whole string if formed by
+-- only one word
 getLastWord :: String -> String
 getLastWord str =
     reverse . fst . break isSpace . reverse $ str
 
+-- | Skips the last word of the string, if the string is composed by
+-- more then one word. Otherwise returns the string.
 skipLastWord :: String -> String
 skipLastWord str =
     reverse . snd . break isSpace . reverse $ str
