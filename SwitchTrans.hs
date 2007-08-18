@@ -31,7 +31,7 @@
 -- >         mkSwitch (M.singleton "mirror" mirror)
 -- >     ) [ tiled ]
 --
--- (The noBorders transformer is from 'XMonadContrib.NoBorders'.)
+-- (The noBorders transformer is from "XMonadContrib.NoBorders".)
 --
 -- This example is probably overkill but it's very close to what I actually use.
 -- Anyway, this layout behaves like the default @tiled@ layout, until you send it
