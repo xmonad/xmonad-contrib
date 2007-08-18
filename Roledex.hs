@@ -2,14 +2,14 @@
 -- |
 -- Module      :  XMonadContrib.Roledex
 -- Copyright   :  (c) tim.thelion@gmail.com
--- License     :  BSD Because this is dirived from Accordian which is licenced that way. 
--- The maintainer of Accordian is glasser@mit.edu
+-- License     :  BSD
 --
 -- Maintainer  :  tim.thelion@gmail.com
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Screenshot  :  www.timthelion.com/rolodex.png
+-- Screenshot  :  <http://www.timthelion.com/rolodex.png>
+--
 -- This is a compleatly pointless layout which acts like Microsoft's Flip 3D
 -----------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ import Data.Ratio
 import XMonadContrib.LayoutHelpers ( idModify )
 
 -- $usage
+--
 -- > import XMonadContrib.Roledex 
 -- > defaultLayouts = [ roledex ]
 
