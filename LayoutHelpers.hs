@@ -8,11 +8,11 @@
 -- Stability    : unstable
 -- Portability  : portable
 --
--- Make layouts respect size hints.
+-- A module for writing easy Layouts
 -----------------------------------------------------------------------------
 
 module XMonadContrib.LayoutHelpers (
-    -- * usage
+    -- * Usage
     -- $usage
     DoLayout, ModDo, ModMod, ModLay,
     layoutModify,
