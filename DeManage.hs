@@ -16,8 +16,11 @@
 -- To make a panel display correctly with xmonad:
 --
 --  * Determine the pixel size of the panel, add that value to defaultGaps
+--
 --  * Launch the panel
+--
 --  * Give the panel window focus, then press mod-d
+--
 --  * Convince the panel to move\/resize to the correct location.  Changing the
 --  panel's position setting several times seems to work.
 --
