@@ -28,12 +28,11 @@ import XMonad
 --
 -- and add a keybinding:
 --
--- , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp) 
+-- > , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp) 
 --
 --
 -- This operation will rotate all windows except the master window, while the focus
 -- stays where it is. It is usefull together with the TwoPane-Layout (see XMonadContrib.TwoPane).
---
 
 rotSlavesUp,rotSlavesDown :: X ()
 rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> (tail l)++[head l]))
