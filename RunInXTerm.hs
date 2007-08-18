@@ -23,7 +23,7 @@ import XMonad
 import System.Environment
 
 -- $usage
--- For an example usage see SshPrompt
+-- For an example usage see "XMonadContrib.SshPrompt"
 
 runInXTerm :: String -> X ()
 runInXTerm com = do
