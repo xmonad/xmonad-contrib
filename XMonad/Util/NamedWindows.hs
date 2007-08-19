@@ -22,6 +22,9 @@ module XMonad.Util.NamedWindows (
                                    unName
                                   ) where
 
+import Control.Monad.Reader ( asks )
+import Control.Monad.State ( gets )
+
 import qualified XMonad.StackSet as W ( peek )
 
 
@@ -40,9 +43,15 @@ instance Show NamedWindow where
     show (NW n _) = n
 
 getName :: Window -> X NamedWindow
-getName w = asks display >>= \d -> do s <- io $ getClassHint d w
-                                      n <- maybe (resName s) id `fmap` io (fetchName d w)
-                                      return $ NW n w
+getName w = withDisplay $ \d -> do
+    let getIt = bracket getProp (xFree . tp_value) (fmap (`NW` w) . copy)
+
+        getProp = (internAtom d "_NET_WM_NAME" False >>= getTextProperty d w)
+                      `catch` \_ -> getTextProperty d w wM_NAME
+
+        copy prop = head `fmap` wcTextPropertyToTextList d prop
+
+    io $ getIt `catch` \_ ->  ((`NW` w) . resName) `fmap` getClassHint d w
 
 unName :: NamedWindow -> Window
 unName (NW _ w) = w
