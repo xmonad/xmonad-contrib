@@ -35,7 +35,7 @@ import StackSet
 -- > -- mod-shift-[1..9] @@ Move client to workspace N
 -- > -- mod-control-shift-[1..9] @@ Copy client to workspace N
 -- > [((m .|. modMask, k), f i)
--- >     | (i, k) <- zip [0..fromIntegral (workspaces-1)] [xK_1 ..]
+-- >     | (i, k) <- zip workspaces [xK_1 ..]
 -- >     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
 --
 -- you may also wish to redefine the binding to kill a window so it only
