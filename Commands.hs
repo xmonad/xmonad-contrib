@@ -58,7 +58,7 @@ commandMap :: [(String, X ())] -> M.Map String (X ())
 commandMap c = M.fromList c
 
 workspaceCommands :: [(String, X ())]
-workspaceCommands = [((m ++ show i), f (fromIntegral i))
+workspaceCommands = [((m ++ show i), f i)
                          | i <- workspaces
                          , (f, m) <- [(view, "view"), (shift, "shift")]
                     ]
