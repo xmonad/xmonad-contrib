@@ -65,9 +65,9 @@ pprWindowSet s =  concatMap fmt $ sortBy (comparing S.tag)
    where this     = S.tag (S.workspace (S.current s))
          visibles = map (S.tag . S.workspace) (S.visible s)
 
-         fmt w | S.tag w == this         = "[" ++ pprTag w ++ "]"
-               | S.tag w `elem` visibles = "<" ++ pprTag w ++ ">"
-               | isJust (S.stack w)      = " " ++ pprTag w ++ " "
+         fmt w | S.tag w == this         = "[" ++ S.tag w ++ "]"
+               | S.tag w `elem` visibles = "<" ++ S.tag w ++ ">"
+               | isJust (S.stack w)      = " " ++ S.tag w ++ " "
                | otherwise               = ""
 
 -- |
@@ -83,11 +83,7 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 
 pprWindowSetXinerama :: WindowSet -> String
 pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
-  where onscreen  = map (pprTag . S.workspace)
+  where onscreen  = map (S.tag . S.workspace)
                         . sortBy (comparing S.screen) $ S.current ws : S.visible ws
-        offscreen = map pprTag . filter (isJust . S.stack)
+        offscreen = map S.tag . filter (isJust . S.stack)
                         . sortBy (comparing S.tag) $ S.hidden ws
-
--- util functions
-pprTag :: Integral i => S.Workspace i a -> String
-pprTag = show . (+(1::Int)) . fromIntegral . S.tag

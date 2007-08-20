@@ -21,7 +21,7 @@ module XMonadContrib.DynamicWorkspaces (
 
 import Control.Monad.State ( gets, modify )
 
-import XMonad ( X, XState(..), Layout, trace )
+import XMonad ( X, XState(..), Layout, WorkspaceId, trace )
 import Operations ( windows, view )
 import StackSet ( tagMember, StackSet(..), Screen(..), Workspace(..),
                   integrate, differentiate )
@@ -36,9 +36,12 @@ import Graphics.X11.Xlib ( Window )
 -- >   , ((modMask .|. shiftMask, xK_Up), addWorkspace defaultLayouts)
 -- >   , ((modMask .|. shiftMask, xK_Down), removeWorkspace)
 
+allPossibleTags :: [WorkspaceId]
+allPossibleTags = map (:"") ['0'..]
+
 addWorkspace :: [Layout Window] -> X ()
 addWorkspace (l:ls) = do s <- gets windowset
-                         let newtag:_ = filter (not . (`tagMember` s)) [0..]
+                         let newtag:_ = filter (not . (`tagMember` s)) allPossibleTags
                          modify $ \st -> st { layouts = insert newtag (l,ls) $ layouts st }
                          windows (addWorkspace' newtag)
 addWorkspace [] = trace "bad layouts in XMonadContrib.DynamicWorkspaces.addWorkspace\n"
