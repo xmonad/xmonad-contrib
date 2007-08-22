@@ -69,20 +69,20 @@ import System.Posix.Files
 type XP = StateT XPState IO
 
 data XPState =
-    XPS { dpy :: Display    
-        , rootw :: Window   
-        , win :: Window
-        , screen :: Rectangle
-        , complWin :: Maybe Window
-        , complWinDim :: Maybe ComplWindowDim
+    XPS { dpy                :: Display    
+        , rootw              :: Window   
+        , win                :: Window
+        , screen             :: Rectangle
+        , complWin           :: Maybe Window
+        , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
-        , gcon :: GC
-        , fs :: FontStruct 
-        , xptype :: XPType
-        , command :: String 
-        , offset :: Int
-        , history :: [History]
-        , config :: XPConfig
+        , gcon               :: GC
+        , fs                 :: FontStruct 
+        , xptype             :: XPType
+        , command            :: String 
+        , offset             :: Int
+        , history            :: [History]
+        , config             :: XPConfig
         }
 
 data XPConfig =  
@@ -125,15 +125,15 @@ data XPPosition = Top
 
 defaultXPConfig :: XPConfig
 defaultXPConfig =
-    XPC { font = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-        , bgColor = "#333333"
-        , fgColor = "#FFFFFF"
-        , fgHLight = "#000000"
-        , bgHLight = "#BBBBBB"
+    XPC { font        = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+        , bgColor     = "#333333"
+        , fgColor     = "#FFFFFF"
+        , fgHLight    = "#000000"
+        , bgHLight    = "#BBBBBB"
         , borderColor = "#FFFFFF"
         , borderWidth = 1
-        , position = Bottom
-        , height = 18
+        , position    = Bottom
+        , height      = 18
         , historySize = 256
         }
 
@@ -177,7 +177,7 @@ mkXPrompt t conf compl action = do
   liftIO $ hClose h
   when (command st' /= "") $ do 
     let htw = take (historySize conf) (history st')
-    liftIO $ writeHistory h htw
+    liftIO $ writeHistory htw
     action (command st')
 
 runXP :: XP ()
@@ -339,8 +339,8 @@ deleteString d =
   where o oo = if d == Prev then max 0 (oo - 1) else oo
         c oc oo
             | oo >= length oc && d == Prev = take (oo - 1) oc
-            | oo < length oc && d == Prev = take (oo - 1) f ++ ss
-            | oo < length oc && d == Next = f ++ tail ss
+            | oo <  length oc && d == Prev = take (oo - 1) f ++ ss
+            | oo <  length oc && d == Next = f ++ tail ss
             | otherwise = oc
             where (f,ss) = splitAt oo oc
 
@@ -516,7 +516,7 @@ drawComplWin w compl = do
       gc = gcon st
   bgcolor <- io $ initColor d (bgColor c)
   fgcolor <- io $ initColor d (fgColor c)
-  border <- io $ initColor d (borderColor c)
+  border  <- io $ initColor d (borderColor c)
 
   (_,_,wh,ht,xx,yy) <- getComplWinDim compl
 
@@ -603,8 +603,8 @@ readHistory = do
        else do h <- openFile path WriteMode
                return ([],h)
 
-writeHistory :: Handle -> [History] -> IO ()
-writeHistory _ hist = do
+writeHistory :: [History] -> IO ()
+writeHistory hist = do
   home <- getEnv "HOME"
   let path = home ++ "/.xmonad_history"
   catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
