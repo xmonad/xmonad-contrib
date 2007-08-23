@@ -57,34 +57,12 @@ import StackSet
 -- | copy. Copy a window to a new workspace.
 copy :: WorkspaceId -> X ()
 copy n = windows (copy' n)
-
-copy' :: (Ord a, Eq s, Eq i) => i -> StackSet i a s sd -> StackSet i a s sd
-copy' n s = if n `tagMember` s && n /= tag (workspace (current s))
-            then maybe s go (peek s)
-            else s
-    where go w = view (tag (workspace (current s))) $ insertUp' w $ view n s
-
- 
--- |
--- /O(n)/. (Complexity due to check if element is in current stack.) Insert
--- a new element into the stack, above the currently focused element.
---
--- The new element is given focus, and is set as the master window.
--- The previously focused element is moved down.  The previously
--- 'master' element is forgotten. (Thus, 'insert' will cause a retiling).
---
--- If the element is already in the current stack, it is shifted to the
--- focus position, as if it had been removed and then added.
---
--- Semantics in Huet's paper is that insert doesn't move the cursor.
--- However, we choose to insert above, and move the focus.
-
-insertUp' :: Eq a => a -> StackSet i a s sd -> StackSet i a s sd
-insertUp' a s = modify (Just $ Stack a [] [])
-                (\(Stack t l r) -> Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
-
-delete' :: Ord a => a -> StackSet i a s sd -> StackSet i a s sd
-delete' w = sink w . modify Nothing (filter (/= w))
+    where copy' n s = if n `tagMember` s && n /= tag (workspace (current s))
+                      then maybe s (go s) (peek s)
+                      else s
+          go s w = view (tag (workspace (current s))) $ insertUp' w $ view n s
+          insertUp' a s = modify (Just $ Stack a [] [])
+                          (\(Stack t l r) -> Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
 
 -- | Remove the focussed window from this workspace.  If it's present in no
 -- other workspace, then kill it instead. If we do kill it, we'll get a
@@ -98,3 +76,4 @@ kill1 = do ss <- gets windowset
            whenJust (peek ss) $ \w -> if member w $ delete' w ss
                                       then windows $ delete' w
                                       else kill
+    where delete' w = sink w . modify Nothing (filter (/= w))
