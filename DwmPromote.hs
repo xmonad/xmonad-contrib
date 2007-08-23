@@ -40,10 +40,8 @@ import StackSet
 -- %keybind , ((modMask,               xK_Return), dwmpromote)
 
 dwmpromote :: X ()
-dwmpromote = windows swap
-
-swap :: StackSet i a s sd -> StackSet i a s sd
-swap = modify' $ \c -> case c of
-    Stack _ [] []     -> c
-    Stack t [] (x:rs) -> Stack x [] (t:rs)
-    Stack t ls rs     -> Stack t [] (ys ++ x : rs) where (x:ys) = reverse ls
+dwmpromote = windows $ modify' $
+             \c -> case c of
+                   Stack _ [] []     -> c
+                   Stack t [] (x:rs) -> Stack x [] (t:rs)
+                   Stack t ls rs     -> Stack t [] (ys ++ x : rs) where (x:ys) = reverse ls
