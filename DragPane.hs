@@ -71,8 +71,9 @@ dragPane ident delta split = Layout { doLayout = dolay, modifyLayout = return . 
                                         sendMessage (SetFrac ident ((fromIntegral ex - leftmost)/widt)))
                                         (return ())
                                         
-                   l' <- handle (dragPane ident delta split)
-                   return (wrs, Just l')
+                   ml' <- if length wrs > 1 then Just `fmap` handle (dragPane ident delta split)
+                                            else return Nothing
+                   return (wrs, ml')
     message x | Just Shrink <- fromMessage x = Just (dragPane ident delta (split - delta))
               | Just Expand <- fromMessage x = Just (dragPane ident delta (split + delta))
               | Just (SetFrac ident' frac) <- fromMessage x, ident' == ident =
@@ -105,8 +106,9 @@ dragUpDownPane ident delta split = Layout { doLayout = dolay, modifyLayout = ret
                                         sendMessage (SetFrac ident ((fromIntegral ey - leftmost)/widt)))
                                         (return ())
                                         
-                   l' <- handle (dragUpDownPane ident delta split)
-                   return (wrs, Just l')
+                   ml' <- if length wrs > 1 then Just `fmap` handle (dragUpDownPane ident delta split)
+                                            else return Nothing
+                   return (wrs, ml')
     message x | Just Shrink <- fromMessage x = Just (dragUpDownPane ident delta (split - delta))
               | Just Expand <- fromMessage x = Just (dragUpDownPane ident delta (split + delta))
               | Just (SetFrac ident' frac) <- fromMessage x, ident' == ident =
