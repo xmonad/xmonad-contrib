@@ -21,8 +21,6 @@ import XMonad
 import Operations 
 import qualified StackSet as W
 
-viewPrev' :: (Eq a, Eq s, Eq i) => W.StackSet i a s sd -> W.StackSet i a s sd
-viewPrev' x = W.view (W.tag . head . W.hidden $ x) x
-
 viewPrev :: X ()
 viewPrev = windows viewPrev'
+    where viewPrev' x = W.view (W.tag . head . W.hidden $ x) x
