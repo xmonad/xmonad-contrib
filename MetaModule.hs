@@ -51,6 +51,7 @@ import XMonadContrib.NoBorders ()
 import XMonadContrib.Roledex ()
 import XMonadContrib.RotSlaves ()
 import XMonadContrib.RotView ()
+import XMonadContrib.SetWMName ()
 -- XMonadContrib.ShellPrompt depends on readline
 --import XMonadContrib.ShellPrompt ()
 import XMonadContrib.SimpleDate ()
