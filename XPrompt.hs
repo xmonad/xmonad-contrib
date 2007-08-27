@@ -265,55 +265,33 @@ data Direction = Prev | Next deriving (Eq,Show,Read)
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 -- commands: ctrl + ... todo
 keyPressHandle mask _
-    | mask == controlMask = do
-  -- TODO
-  eventLoop handle
-
+    | mask == controlMask = eventLoop handle -- TODO
 keyPressHandle _ (ks,_)
 -- Return: exit
-    | ks == xK_Return = do
-  historyPush
-  return ()
+    | ks == xK_Return = do historyPush
+                           liftIO $ hPutStrLn stderr "Hello world"
+                           return ()
 -- backspace
-    | ks == xK_BackSpace = do
-  deleteString Prev
-  go
+    | ks == xK_BackSpace = deleteString Prev >> go
 -- delete
-    | ks == xK_Delete = do
-  deleteString Next
-  go
+    | ks == xK_Delete = deleteString Next >> go
 -- left
-    | ks == xK_Left = do
-  moveCursor Prev
-  go
+    | ks == xK_Left = moveCursor Prev >> go
 -- right
-    | ks == xK_Right = do
-  moveCursor Next
-  go
+    | ks == xK_Right = moveCursor Next >> go
 -- up
-    | ks == xK_Up = do
-  moveHistory Prev
-  go
+    | ks == xK_Up = moveHistory Prev >> go
 -- down
-    | ks == xK_Down = do
-  moveHistory Next
-  go
+    | ks == xK_Down = moveHistory Next >> go
 -- escape: exit and discard everything
-    | ks  == xK_Escape = do
-  flushString
-  return ()
-      where
-        go = do
-          updateWindows
-          eventLoop handle
-
+    | ks  == xK_Escape = flushString >> return ()
+    where go = updateWindows >> eventLoop handle
 -- insert a character
 keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
-    | otherwise = do
-  insertString s
-  updateWindows
-  eventLoop handle
+    | otherwise = do insertString s
+                     updateWindows
+                     eventLoop handle
 
 -- KeyPress and State
 
@@ -327,10 +305,9 @@ insertString :: String -> XP ()
 insertString str = 
   modify (\s -> s { command = c (command s) (offset s), offset = o (offset s)} )
   where o oo = oo + length str
-        c oc oo
-            | oo >= length oc = oc ++ str
-            | otherwise = f ++ str ++ ss
-            where (f,ss) = splitAt oo oc
+        c oc oo | oo >= length oc = oc ++ str
+                | otherwise = f ++ str ++ ss
+                where (f,ss) = splitAt oo oc
 
 -- | Remove a character at the cursor position
 deleteString :: Direction -> XP ()
