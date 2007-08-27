@@ -33,7 +33,6 @@ import XMonadContrib.Dmenu ( runProcessWithInput )
 import XMonadContrib.XPrompt ( XPConfig )
 import XMonadContrib.DirectoryPrompt ( directoryPrompt )
 import XMonadContrib.LayoutHelpers ( layoutModify )
-import XMonadContrib.XPrompt ( defaultXPConfig )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
