@@ -220,7 +220,8 @@ handle ks (KeyEvent {ev_event_type = t, ev_state = m})
 handle _ (AnyEvent {ev_event_type = t, ev_window = w}) 
     | t == expose = do 
   st <- get
-  when (win st == w) $ updateWindows >> eventLoop handle                 
+  when (win st == w) updateWindows
+  eventLoop handle
 handle _  _ = eventLoop handle
 
 -- completion event handler
