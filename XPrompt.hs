@@ -269,7 +269,6 @@ keyPressHandle mask _
 keyPressHandle _ (ks,_)
 -- Return: exit
     | ks == xK_Return = do historyPush
-                           liftIO $ hPutStrLn stderr "Hello world"
                            return ()
 -- backspace
     | ks == xK_BackSpace = deleteString Prev >> go
