@@ -463,7 +463,7 @@ getComplWinDim compl = do
 
   let compl_number = length compl
       max_compl_len =  (fi ht `div` 2) + (maximum . map (textWidth fontst) $ compl)
-      columns = wh `div` (fi max_compl_len)
+      columns = max 1 $ wh `div` (fi max_compl_len)
       rem_height =  rect_height scr - ht
       (rows,r) = compl_number `divMod` fi columns
       needed_rows = max 1 (rows + if r == 0 then 0 else 1) 
