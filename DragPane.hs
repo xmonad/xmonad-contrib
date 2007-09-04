@@ -37,7 +37,7 @@ import StackSet ( focus, up, down)
 --
 --  and add, to the list of layouts:
 --
--- > dragPane defaultDelta (1%2)
+-- > dragPane "" (fromRational delta) (fromRational delta)
 
 halfHandleWidth :: Integral a => a
 halfHandleWidth = 2
