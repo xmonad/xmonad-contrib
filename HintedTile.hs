@@ -29,7 +29,9 @@ import Control.Monad
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 --
--- > import XMonadContrib.HintedTile
+-- > import qualified XMonadContrib.HintedTile
+--
+-- > defaultLayouts = [ XMonadContrib.HintedTil.tall nmaster delta ratio, ... ]
 
 -- this sucks
 addBorder, substractBorder :: (Dimension, Dimension) -> (Dimension, Dimension)
