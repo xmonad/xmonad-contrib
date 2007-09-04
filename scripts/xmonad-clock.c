@@ -30,7 +30,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /* configuration */
 #define REFRESH_RATE    60
 #define TIME_FORMAT     "%H.%M %a %b %d" 
-#define TIME_FORMAT2    "PDT %H.%M"
+#define TIME_FORMAT2    "SYD %H.%M"
  
 int main(void) {
     char b[34];
@@ -52,7 +52,7 @@ int main(void) {
         realtime  = localtime(&epochtime);
         strftime(b, sizeof(b), TIME_FORMAT, realtime);
 
-        setenv("TZ","America/Los_Angeles", 1);
+        setenv("TZ","Australia/Sydney", 1);
         pdttime      = time(NULL);
         pdtrealtime  = localtime(&pdttime);
         strftime(c, sizeof(c), TIME_FORMAT2, pdtrealtime);

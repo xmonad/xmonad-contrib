@@ -8,7 +8,7 @@
 -- Maintainer  :  David Roundy <droundy@darcs.net>
 -- Stability   :  unstable
 -- Portability :  unportable
-
+--
 -- Layouts that splits the screen either horizontally or vertically and
 -- shows two windows.  The first window is always the master window, and
 -- the other is either the currently focused window or the second window in
