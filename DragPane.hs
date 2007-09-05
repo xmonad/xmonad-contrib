@@ -40,7 +40,7 @@ import StackSet ( focus, up, down)
 -- > dragPane "" (fromRational delta) (fromRational delta)
 
 halfHandleWidth :: Integral a => a
-halfHandleWidth = 2
+halfHandleWidth = 1
 
 handleColor :: String
 handleColor = "#000000"
