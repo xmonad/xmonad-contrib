@@ -60,8 +60,8 @@ mouseResizeWindow w = whenX (isClient w) $ withDisplay $ \d -> do
     firstHalf a b = fromIntegral a * 2 <= b
     cfst = curry fst
     csnd = curry snd
-    mkSel :: Bool -> Position -> Position -> (Position, a -> a -> a, CInt -> Dimension)
+    mkSel :: Bool -> Position -> Position -> (Position, a -> a -> a, CInt -> Position)
     mkSel b k p =
         if b
-            then (0, csnd, fromIntegral . max 1 . ((k + p) -) . fromIntegral)
-            else (k, cfst, fromIntegral . max 1 . subtract p  . fromIntegral)
+            then (0, csnd, ((k + p) -) . fromIntegral)
+            else (k, cfst, subtract p  . fromIntegral)
