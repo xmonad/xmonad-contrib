@@ -32,7 +32,7 @@ import StackSet ( integrate, differentiate )
 -- 
 -- and add something like
 -- 
--- > simpleStacking $ combo (twoPane 0.03 0.5) [(full,1),(tabbed shrinkText,1)]
+-- > simpleStacking $ combo (twoPane 0.03 0.5) [(full,1),(tabbed shrinkText defaultTConf,1)]
 --
 -- to your defaultLayouts.
 --
@@ -42,6 +42,10 @@ import StackSet ( integrate, differentiate )
 -- Paired with each of these layouts is an integer giving the number of
 -- windows this section should hold.  This number is ignored for the last
 -- layout, which will hold any excess windows.
+
+-- %import XMonadContrib.Combo
+-- %import XMonadContrib.SimpleStacking
+-- %layout , simpleStacking $ combo (twoPane 0.03 0.5) [(full,1),(tabbed shrinkText defaultTConf,1)]
 
 combo :: Layout (Layout a, Int) -> [(Layout a, Int)] -> Layout a
 combo super origls = Layout { doLayout = \r s -> arrange r (integrate s), modifyLayout = message }

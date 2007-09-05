@@ -48,6 +48,11 @@ import System.Environment
 -- >   , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 --
 
+-- %cabalbuilddep readline>=1.0
+-- %import XMonadContrib.XPrompt
+-- %import XMonadContrib.ShellPrompt
+-- %keybind , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+
 data Shell = Shell
 
 instance XPrompt Shell where

@@ -41,6 +41,10 @@ import qualified Operations as O
 -- Now you can jump to an empty workspace with mod-m. Mod-shift-m will
 -- tag the current window to an empty workspace and view it.
 
+-- %import XMonadContrib.FindEmptyWorkspace
+-- %keybind , ((modMask,                xK_m    ), viewEmptyWorkspace)
+-- %keybind , ((modMask .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
+
 
 -- | Find the first hidden empty workspace in a StackSet. Returns
 -- Nothing if all workspaces are in use. Function searches currently

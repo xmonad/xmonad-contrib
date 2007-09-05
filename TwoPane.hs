@@ -32,7 +32,10 @@ import StackSet ( focus, up, down)
 --
 --  and add, to the list of layouts:
 --
--- > twoPane defaultDelta (1%2)
+-- > twoPane delta (1%2)
+
+-- %import XMonadContrib.TwoPane
+-- %layout , twoPane delta (1%2)
 
 twoPane :: Rational -> Rational -> Layout a
 twoPane delta split = Layout { doLayout = \r s -> return (arrange r s,Nothing), modifyLayout = message }

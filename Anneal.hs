@@ -17,6 +17,8 @@ module XMonadContrib.Anneal ( Rated(Rated), the_value, the_rating
 import System.Random ( StdGen, Random, mkStdGen, randomR )
 import Control.Monad.State ( State, runState, put, get, gets, modify )
 
+-- %import XMonadContrib.Anneal
+
 data Rated a b = Rated !a !b
                  deriving ( Show )
 instance Functor (Rated a) where

@@ -46,6 +46,12 @@ import XMonadContrib.XPrompt ( defaultXPConfig )
 --
 -- >  , ((modMask .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
 
+-- %import XMonadContrib.WorkspaceDir
+-- %keybind , ((modMask .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
+-- %layout -- prepend 'map (workspaceDir "~")' to defaultLayouts definition above,
+-- %layout -- just before the list, like the following (don't uncomment next line):
+-- %layout -- defaultLayouts = map (workspaceDir "~") [ tiled, ... ]
+
 
 data Chdir = Chdir String deriving ( Typeable )
 instance Message Chdir

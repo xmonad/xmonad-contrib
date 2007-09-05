@@ -37,7 +37,10 @@ import Graphics.X11.Xlib
 --
 --  and add, to the list of layouts:
 --
--- > threeCol
+-- > threeCol nmaster delta ratio
+
+-- %import XMonadContrib.ThreeColumns
+-- %layout , threeCol nmaster delta ratio
 
 threeCol :: Int -> Rational -> Rational -> Layout a
 threeCol nmaster delta frac =

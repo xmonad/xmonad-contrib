@@ -59,6 +59,16 @@ import XMonadContrib.Anneal
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . flexibleWindow))
 -- 
 
+-- %import XMonadContrib.Mosaic
+-- %keybind , ((controlMask .|. modMask .|. shiftMask, xK_h), withNamedWindow (sendMessage . tallWindow))
+-- %keybind , ((controlMask .|. modMask .|. shiftMask, xK_l), withNamedWindow (sendMessage . wideWindow))
+-- %keybind , ((modMask .|. shiftMask, xK_h     ), withNamedWindow (sendMessage . shrinkWindow))
+-- %keybind , ((modMask .|. shiftMask, xK_l     ), withNamedWindow (sendMessage . expandWindow))
+-- %keybind , ((modMask .|. shiftMask, xK_s     ), withNamedWindow (sendMessage . squareWindow))
+-- %keybind , ((modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . myclearWindow))
+-- %keybind , ((controlMask .|. modMask .|. shiftMask, xK_o     ), withNamedWindow (sendMessage . flexibleWindow))
+-- %layout , mosaic 0.25 0.5 M.empty
+
 data HandleWindow = ExpandWindow NamedWindow | ShrinkWindow NamedWindow
                   | SquareWindow NamedWindow | ClearWindow NamedWindow
                   | TallWindow NamedWindow | WideWindow NamedWindow

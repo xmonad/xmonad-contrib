@@ -34,6 +34,9 @@ import XMonad
 -- This operation will rotate all windows except the master window, while the focus
 -- stays where it is. It is usefull together with the TwoPane-Layout (see XMonadContrib.TwoPane).
 
+-- %import XMonadContrib.RotSlaves
+-- %keybind , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp)
+
 rotSlavesUp,rotSlavesDown :: X ()
 rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> (tail l)++[head l]))
 rotSlavesDown = windows $ modify' (rotSlaves' (\l -> [last l]++(init l)))

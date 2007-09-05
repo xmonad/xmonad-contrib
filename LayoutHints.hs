@@ -27,6 +27,10 @@ import XMonadContrib.LayoutHelpers ( layoutModify, idModMod )
 -- > import XMonadContrib.LayoutHints
 -- > defaultLayouts = [ layoutHints tiled , layoutHints $ mirror tiled ]
 
+-- %import XMonadContrib.LayoutHints
+-- %layout , layoutHints tiled
+-- %layout , layoutHints $ mirror tiled
+
 -- | Expand a size by the given multiple of the border width.  The
 -- multiple is most commonly 1 or -1.
 adjBorders             :: Dimension -> D -> D

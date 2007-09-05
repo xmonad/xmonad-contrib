@@ -30,6 +30,9 @@ import XMonadContrib.LayoutHelpers ( idModify )
 -- > import XMonadContrib.Roledex 
 -- > defaultLayouts = [ roledex ]
 
+-- %import XMonadContrib.Roledex
+-- %layout , roledex
+
 roledex :: Eq a => Layout a
 roledex = Layout { doLayout = roledexLayout, modifyLayout = idModify }
 

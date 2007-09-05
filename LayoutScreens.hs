@@ -40,6 +40,10 @@ import Graphics.X11.Xlib.Extras
 -- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
 
+-- %import XMonadContrib.LayoutScreens
+-- %keybind , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
+-- %keybind , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
+
 layoutScreens :: Int -> Layout Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
 layoutScreens nscr l =

@@ -30,6 +30,10 @@ import XMonadContrib.LayoutHelpers
 -- > import XMonadContrib.Magnifier
 -- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
+-- %import XMonadContrib.Magnifier
+-- %layout , magnifier tiled
+-- %layout , magnifier $ mirror tiled
+
 -- | Increase the size of the window that has focus, unless it is the master window.
 magnifier :: Layout Window -> Layout Window
 magnifier = layoutModify (unlessMaster applyMagnifier) idModMod

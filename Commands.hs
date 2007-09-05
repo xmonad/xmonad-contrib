@@ -42,7 +42,7 @@ import Data.Maybe
 --
 -- and add a keybinding to the runCommand action:
 --
--- >    , ((modMask .|. controlMask, xK_y), runCommand)
+-- >    , ((modMask .|. controlMask, xK_y), runCommand commands)
 --
 -- and define the list commands:
 --
@@ -53,6 +53,11 @@ import Data.Maybe
 -- change the commands by changing the contents of the list
 -- 'commands'.  (If you like it enough, you may even want to get rid
 -- of many of your other key bindings!)
+
+-- %def commands :: [(String, X ())]
+-- %def commands = defaultCommands
+-- %import XMonadContrib.Commands
+-- %keybind , ((modMask .|. controlMask, xK_y), runCommand commands)
 
 commandMap :: [(String, X ())] -> M.Map String (X ())
 commandMap c = M.fromList c

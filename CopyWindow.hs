@@ -43,6 +43,17 @@ import StackSet
 --
 -- >  , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
 
+-- %import XMonadContrib.CopyWindow
+-- %keybind -- comment out default close window binding above if you uncomment this:
+-- %keybind , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
+-- %keybindlist ++
+-- %keybindlist -- mod-[1..9] @@ Switch to workspace N
+-- %keybindlist -- mod-shift-[1..9] @@ Move client to workspace N
+-- %keybindlist -- mod-control-shift-[1..9] @@ Copy client to workspace N
+-- %keybindlist [((m .|. modMask, k), f i)
+-- %keybindlist     | (i, k) <- zip workspaces [xK_1 ..]
+-- %keybindlist     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
+
 -- | copy. Copy a window to a new workspace.
 copy :: WorkspaceId -> X ()
 copy n = windows (copy' n)

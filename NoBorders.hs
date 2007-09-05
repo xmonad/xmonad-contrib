@@ -40,6 +40,10 @@ import {-# SOURCE #-} Config (borderWidth)
 --
 -- > defaultLayouts = [ noBorders full, ... ]
 
+-- %import XMonadContrib.NoBorders
+-- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
+-- %layout , noBorders full
+
 noBorders :: Layout a -> Layout a
 noBorders = withBorder 0
 

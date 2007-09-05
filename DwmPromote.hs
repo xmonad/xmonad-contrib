@@ -36,6 +36,9 @@ import StackSet
 --
 -- >   , ((modMask,               xK_Return), dwmpromote)
 
+-- %import XMonadContrib.DwmPromote
+-- %keybind , ((modMask,               xK_Return), dwmpromote)
+
 dwmpromote :: X ()
 dwmpromote = windows swap
 

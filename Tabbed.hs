@@ -51,6 +51,9 @@ import XMonadContrib.LayoutHelpers ( idModify )
 -- > defaultLayouts = [ tabbed shrinkText myconfig
 -- >                  , ... ]
 
+-- %import XMonadContrib.Tabbed
+-- %layout , tabbed shrinkText defaultTConf
+
 data TConf = 
     TConf { activeColor :: String
           , inactiveColor :: String

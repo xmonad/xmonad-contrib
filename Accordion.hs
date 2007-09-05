@@ -28,6 +28,9 @@ import XMonadContrib.LayoutHelpers ( idModify )
 -- > import XMonadContrib.Accordion
 -- > defaultLayouts = [ accordion ]
 
+-- %import XMonadContrib.Accordion
+-- %layout , accordion
+
 accordion :: Eq a => Layout a
 accordion = Layout { doLayout = accordionLayout, modifyLayout = idModify }
 

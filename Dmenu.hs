@@ -30,6 +30,8 @@ import Control.Monad.State
 --
 -- > import XMonadContrib.Dmenu
 
+-- %import XMonadContrib.Dmenu
+
 runProcessWithInput :: FilePath -> [String] -> String -> IO String
 runProcessWithInput cmd args input = do
     (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing

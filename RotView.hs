@@ -35,6 +35,10 @@ import qualified Operations as O
 -- >   , ((modMask .|. shiftMask, xK_Right), rotView True)
 -- >   , ((modMask .|. shiftMask, xK_Left), rotView False)
 
+-- %import XMonadContrib.RotView
+-- %keybind , ((modMask .|. shiftMask, xK_Right), rotView True)
+-- %keybind , ((modMask .|. shiftMask, xK_Left), rotView False)
+
 rotView :: Bool -> X ()
 rotView b = do
     ws <- gets windowset

@@ -30,6 +30,8 @@ import XMonadContrib.LayoutHelpers ( idModify )
 --
 -- > import XMonadContrib.Circle
 
+-- %import XMonadContrib.Circle
+
 circle :: Layout Window
 circle = Layout { doLayout = \r s -> do { layout <- raiseFocus $ circleLayout r $ integrate s
                                        ;  return (layout, Nothing) }

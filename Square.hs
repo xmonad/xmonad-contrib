@@ -38,6 +38,8 @@ import XMonadContrib.LayoutHelpers ( l2lModDo, idModify )
 -- >                [(twoPane 0.03 0.2,1),(combo [(twoPane 0.03 0.8,1),(square,1)]
 -- >         [(tabbed,3),(tabbed,30),(tabbed,1),(tabbed,1)]
 
+-- %import XMonadContrib.Square
+
 square :: Layout a
 square = Layout { doLayout = l2lModDo arrange, modifyLayout = idModify }
  where arrange :: Rectangle -> [a] -> [(a, Rectangle)]

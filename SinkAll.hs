@@ -25,6 +25,9 @@ import Graphics.X11.Xlib
 -- > import XMonadContrib.SinkAll
 -- > keys = [ ((modMask .|. shiftMask, xK_t), sinkAll) ]
 
+-- %import XMonadContrib.SinkAll
+-- %keybind , ((modMask .|. shiftMask, xK_t), sinkAll)
+
 sinkAll :: X ()
 sinkAll = withAll sink
 

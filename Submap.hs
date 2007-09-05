@@ -43,6 +43,14 @@ anyModifier will not work, because that is a special value passed to XGrabKey()
 and not an actual modifier.
 -}
 
+-- %import XMonadContrib.Submap
+-- %keybind , ((modMask, xK_a), submap . M.fromList $
+-- %keybind     [ ((0, xK_n),     spawn "mpc next")
+-- %keybind     , ((0, xK_p),     spawn "mpc prev")
+-- %keybind     , ((0, xK_z),     spawn "mpc random")
+-- %keybind     , ((0, xK_space), spawn "mpc toggle")
+-- %keybind     ])
+
 submap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
 submap keys = do
     XConf { theRoot = root, display = d } <- ask

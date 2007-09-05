@@ -45,6 +45,13 @@ my Config.hs:
 Note that warping to a particular screen may change the focus.
 -}
 
+-- %import XMonadContrib.Warp
+-- %keybind , ((modMask,   xK_z     ), warpToWindow (1%2) (1%2)) -- @@ Move pointer to currently focused window
+-- %keybindlist ++
+-- %keybindlist -- mod-ctrl-{w,e,r} @@ Move mouse pointer to screen 1, 2, or 3
+-- %keybindlist [((modMask .|. controlMask, key), warpToScreen sc (1%2) (1%2))
+-- %keybindlist     | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
+
 fraction :: (Integral a, Integral b) => Rational -> a -> b
 fraction f x = floor (f * fromIntegral x)
 

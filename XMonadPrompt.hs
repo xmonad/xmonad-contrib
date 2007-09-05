@@ -34,6 +34,10 @@ import XMonadContrib.Commands (defaultCommands, runCommand')
 -- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
 --
 
+-- %import XMonadContrib.XPrompt
+-- %import XMonadContrib.XMonadPrompt
+-- %keybind , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+
 data XMonad = XMonad
 
 instance XPrompt XMonad where

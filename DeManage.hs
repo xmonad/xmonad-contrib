@@ -48,6 +48,9 @@ import Graphics.X11 (Window)
 -- > , ((modMask,               xK_d     ), withFocused demanage)
 --
 
+-- %import XMonadContrib.DeManage
+-- %keybind , ((modMask,               xK_d     ), withFocused demanage)
+
 -- | Stop managing the current focused window.
 demanage :: Window -> X ()
 demanage w = do

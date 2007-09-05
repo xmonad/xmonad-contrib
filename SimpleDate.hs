@@ -32,5 +32,8 @@ import XMonad
 --
 -- a popup date menu will now be bound to mod-d
 
+-- %import XMonadContrib.SimpleDate
+-- %keybind , ((modMask,               xK_d     ), date)
+
 date :: X ()
 date = spawn "(date; sleep 10) | dzen2"

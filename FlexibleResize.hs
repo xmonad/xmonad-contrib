@@ -32,6 +32,9 @@ import Foreign.C.Types
 -- >     [ ...
 -- >     , ((modMask, button3), (\w -> focus w >> Flex.mouseResizeWindow w)) ]
 
+-- %import qualified XMonadContrib.FlexibleResize as Flex
+-- %mousebind , ((modMask, button3), (\\w -> focus w >> Flex.mouseResizeWindow w))
+
 mouseResizeWindow :: Window -> X ()
 mouseResizeWindow w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w

@@ -37,6 +37,10 @@ import System.Environment
 -- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
 --
 
+-- %import XMonadContrib.XPrompt
+-- %import XMonadContrib.SshPrompt
+-- %keybind , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+
 data Ssh = Ssh
 
 instance XPrompt Ssh where

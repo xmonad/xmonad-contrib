@@ -40,6 +40,10 @@ import qualified StackSet as S
 -- >    import XMonadContrib.DynamicLog
 -- >    logHook = dynamicLog
 
+-- %import XMonadContrib.DynamicLog
+-- %def -- comment out default logHook definition above if you uncomment this:
+-- %def logHook = dynamicLog
+
 
 -- |
 -- Perform an arbitrary action on each state change.

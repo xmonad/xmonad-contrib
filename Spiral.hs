@@ -33,11 +33,10 @@ import XMonadContrib.LayoutHelpers
 --
 -- >   import XMonadContrib.Spiral
 --
--- >   defaultLayouts :: [Layout]
--- >   defaultLayouts = [ full,
--- >                      tall defaultWindowsInMaster defaultDelta (1%2),
--- >                      wide defaultWindowsInMaster defaultDelta (1%2),
--- >                      spiral (1 % 1) ]
+-- >   defaultLayouts = [ full, spiral (1 % 1), ... ]
+
+-- %import XMonadContrib.Spiral
+-- %layout , spiral (1 % 1)
 
 fibs :: [Integer]
 fibs = 1 : 1 : (zipWith (+) fibs (tail fibs))

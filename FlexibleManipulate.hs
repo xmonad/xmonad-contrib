@@ -48,6 +48,9 @@ import Graphics.X11.Xlib.Extras
 -- a value between 0 and 1 indicating position, and return a value indicating
 -- the corresponding position if plain Flex.linear was used.
 
+-- %import qualified XMonadContrib.FlexibleManipulate as Flex
+-- %mousebind , ((modMask, button1), (\\w -> focus w >> Flex.mouseWindow Flex.linear w))
+
 discrete, linear, resize, position :: Double -> Double
 
 discrete x | x < 0.33 = 0
