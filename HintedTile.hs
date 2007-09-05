@@ -33,6 +33,10 @@ import Control.Monad
 --
 -- > defaultLayouts = [ XMonadContrib.HintedTile.tall nmaster delta ratio, ... ]
 
+-- %import qualified XMonadContrib.HintedTile
+--
+-- %layout , XMonadContrib.HintedTile.tall nmaster delta ratio
+
 -- this sucks
 addBorder, substractBorder :: (Dimension, Dimension) -> (Dimension, Dimension)
 addBorder (w, h) = (w + 2 * borderWidth, h + 2 * borderWidth)
