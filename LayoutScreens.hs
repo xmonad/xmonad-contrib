@@ -13,7 +13,7 @@
 module XMonadContrib.LayoutScreens (
                                     -- * Usage
                                     -- $usage
-                                    layoutScreens
+                                    layoutScreens, fixedLayout
                                    ) where
 
 import Control.Monad.Reader ( asks )
@@ -39,6 +39,16 @@ import Graphics.X11.Xlib.Extras
 --
 -- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
+--
+-- Another example use would be to handle a scenario where xrandr didn't
+-- work properly (e.g. a VNC X server in my case) and you want to be able
+-- to resize your screen (e.g. to match the size of a remote VNC client):
+-- 
+-- > import XMonadContrib.LayoutScreens
+--
+-- >   , ((modMask .|. shiftMask, xK_space),
+-- >        layoutScreens 1 (fixedLayout $ Rectangle 0 0 1024 768))
+-- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
 
 -- %import XMonadContrib.LayoutScreens
 -- %keybind , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
@@ -62,3 +72,7 @@ getWindowRectangle w = withDisplay $ \d ->
     do a <- io $ getWindowAttributes d w
        return $ Rectangle (fromIntegral $ wa_x a)     (fromIntegral $ wa_y a)
                           (fromIntegral $ wa_width a) (fromIntegral $ wa_height a)
+
+fixedLayout :: Rectangle -> Layout a
+fixedLayout r = Layout { doLayout     = \_ (W.Stack f _ _) -> return ([(f, r)],Nothing)
+                       , modifyLayout = const (return Nothing) } -- no changes
