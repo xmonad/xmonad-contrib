@@ -25,6 +25,8 @@ import XMonadContrib.RunInXTerm
 import Control.Monad
 import System.Directory
 import System.Environment
+import Data.List
+import Data.Maybe
 
 -- $usage
 -- 1. In Config.hs add:
@@ -53,12 +55,49 @@ sshPrompt c = do
 
 ssh :: String -> X ()
 ssh s = runInXTerm ("ssh " ++ s)
- 
+
 sshComplList :: IO [String]
-sshComplList = do
+sshComplList =  (nub . sort) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal 
+
+sshComplListLocal :: IO [String]
+sshComplListLocal = do
   h <- getEnv "HOME"
-  let kh = h ++ "/.ssh/known_hosts"
+  sshComplListFile $ h ++ "/.ssh/known_hosts"
+ 
+sshComplListGlobal :: IO [String]
+sshComplListGlobal = do
+  env <- getEnv "SSH_KNOWN_HOSTS" `catch` (\_ -> return "/nonexistent")
+  fs <- mapM fileExists [ env
+                        , "/usr/local/etc/ssh/ssh_known_hosts"
+                        , "/usr/local/etc/ssh_known_hosts"
+                        , "/etc/ssh/ssh_known_hosts"
+                        , "/etc/ssh_known_hosts"
+                        ]
+  case catMaybes fs of
+    []    -> return []
+    (f:_) -> sshComplListFile' f
+
+sshComplListFile :: String -> IO [String]
+sshComplListFile kh = do
   f <- doesFileExist kh
-  if f then do l <- readFile kh
-               return $ map (takeWhile (/= ',') . concat . take 1 . words) (lines l)
+  if f then sshComplListFile' kh
        else return []
+
+sshComplListFile' :: String -> IO [String]
+sshComplListFile' kh = do
+  l <- readFile kh
+  return $ map (takeWhile (/= ',') . concat . take 1 . words)
+         $ filter nonComment
+         $ lines l
+
+fileExists :: String -> IO (Maybe String)
+fileExists kh = do
+  f <- doesFileExist kh
+  if f then return $ Just kh
+       else return Nothing
+
+nonComment :: String -> Bool
+nonComment []      = False
+nonComment ('#':_) = False
+nonComment ('|':_) = False -- hashed, undecodeable
+nonComment _       = True
