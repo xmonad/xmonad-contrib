@@ -73,6 +73,6 @@ getWindowRectangle w = withDisplay $ \d ->
        return $ Rectangle (fromIntegral $ wa_x a)     (fromIntegral $ wa_y a)
                           (fromIntegral $ wa_width a) (fromIntegral $ wa_height a)
 
-fixedLayout :: Rectangle -> Layout a
-fixedLayout r = Layout { doLayout     = \_ (W.Stack f _ _) -> return ([(f, r)],Nothing)
+fixedLayout :: [Rectangle] -> Layout a
+fixedLayout rs = Layout { doLayout     = \_ s -> return (zip (W.integrate s) rs,Nothing)
                        , modifyLayout = const (return Nothing) } -- no changes
