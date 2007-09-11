@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- WorkspaceDir is an exstension to set the current directory in a workspace.
+-- WorkspaceDir is an extension to set the current directory in a workspace.
 --
 -- Actually, it sets the current directory in a layout, since there's no way I
 -- know of to attach a behavior to a workspace.  This means that any terminals

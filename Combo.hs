@@ -38,7 +38,7 @@ import StackSet ( integrate, differentiate )
 --
 -- The first argument to combo is a Layout that will divide the screen into
 -- one or more subscreens.  The second argument is a list of layouts which
--- will be used to lay out the contents of each of those subscreents.
+-- will be used to lay out the contents of each of those subscreens.
 -- Paired with each of these layouts is an integer giving the number of
 -- windows this section should hold.  This number is ignored for the last
 -- layout, which will hold any excess windows.

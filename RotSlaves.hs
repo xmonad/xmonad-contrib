@@ -32,7 +32,7 @@ import XMonad
 --
 --
 -- This operation will rotate all windows except the master window, while the focus
--- stays where it is. It is usefull together with the TwoPane-Layout (see XMonadContrib.TwoPane).
+-- stays where it is. It is useful together with the TwoPane-Layout (see XMonadContrib.TwoPane).
 
 -- %import XMonadContrib.RotSlaves
 -- %keybind , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp)

@@ -41,7 +41,7 @@ import XMonadContrib.Anneal
 --
 -- Key bindings:
 -- 
--- You can use this module with the following in your config file:
+-- You can use this module with the following in your Config.hs:
 --
 -- > import XMonadContrib.Mosaic
 --

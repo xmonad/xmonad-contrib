@@ -8,7 +8,7 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Focus the n'th window on the screen.
+-- Focus the nth window on the screen.
 -----------------------------------------------------------------------------
 
 module XMonadContrib.FocusNth (

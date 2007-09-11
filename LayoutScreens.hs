@@ -30,7 +30,7 @@ import Graphics.X11.Xlib.Extras
 -- separate screens.  This should definitely be useful for testing the
 -- behavior of xmonad under Xinerama, and it's possible that it'd also be
 -- handy for use as an actual user interface, if you've got a very large
--- sceen and long for greater flexibility (e.g. being able to see your
+-- screen and long for greater flexibility (e.g. being able to see your
 -- email window at all times, a crude mimic of sticky windows).
 --
 -- You can use this module with the following in your Config.hs file:

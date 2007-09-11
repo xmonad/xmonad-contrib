@@ -10,7 +10,7 @@
 --
 -- Screenshot  :  <http://www.timthelion.com/rolodex.png>
 --
--- This is a compleatly pointless layout which acts like Microsoft's Flip 3D
+-- This is a completely pointless layout which acts like Microsoft's Flip 3D
 -----------------------------------------------------------------------------
 
 module XMonadContrib.Roledex (

@@ -14,7 +14,7 @@
 --
 -- >     1 2 [3] 4 8
 --
--- format. suitable to pipe into dzen.
+-- format. Suitable to pipe into dzen.
 --
 -----------------------------------------------------------------------------
 

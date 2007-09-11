@@ -42,7 +42,7 @@ import Graphics.X11.Xlib.Extras
 --    is divided by thirds for each axis)
 -- Flex.resize performs only resize of the window, based on which quadrant
 --    the mouse is in
--- Flex.position is similar to the builtin mouseMoveWindow
+-- Flex.position is similar to the built-in mouseMoveWindow
 --
 -- You can also write your own function for this parameter. It should take
 -- a value between 0 and 1 indicating position, and return a value indicating

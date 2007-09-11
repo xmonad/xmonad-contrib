@@ -29,7 +29,7 @@
 -- Setting WM name to "compiz" does not solve the problem, because of yet
 -- another bug in AWT code (related to insets). For LG3D insets are explicitly
 -- set to 0, while for other WMs the insets are "guessed" and the algorithm
--- fails miserably by guessing abolutely bogus values.
+-- fails miserably by guessing absolutely bogus values.
 -----------------------------------------------------------------------------
 
 module XMonadContrib.SetWMName (
