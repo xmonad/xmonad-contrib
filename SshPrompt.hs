@@ -36,12 +36,12 @@ import Data.Maybe
 --
 -- 3. In your keybindings add something like:
 --
--- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+-- >   , ((modMask .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 --
 
 -- %import XMonadContrib.XPrompt
 -- %import XMonadContrib.SshPrompt
--- %keybind , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+-- %keybind , ((modMask .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 
 data Ssh = Ssh
 
