@@ -25,7 +25,7 @@ import Data.Maybe ( isNothing )
 import XMonad
 import StackSet
 
-import qualified Operations as O
+import Operations
 
 -- $usage
 -- 
@@ -64,9 +64,9 @@ withEmptyWorkspace f = do
 -- | Find and view an empty workspace. Do nothing if all workspaces are
 -- in use.
 viewEmptyWorkspace :: X ()
-viewEmptyWorkspace = withEmptyWorkspace O.view
+viewEmptyWorkspace = withEmptyWorkspace (windows . view)
 
 -- | Tag current window to an empty workspace and view it. Do nothing if
 -- all workspaces are in use.
 tagToEmptyWorkspace :: X ()
-tagToEmptyWorkspace = withEmptyWorkspace $ \w -> O.shift w >> O.view w
+tagToEmptyWorkspace = withEmptyWorkspace $ \w -> windows $ view w . shift w

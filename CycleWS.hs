@@ -36,8 +36,8 @@ import Data.List
 -- >     , ((modMask              , xK_period), nextWS ) 
 
 nextWS, prevWS :: X ()
-nextWS = withWindowSet $ \s -> view (workspaces !! (setWS s N))
-prevWS = withWindowSet $ \s -> view (workspaces !! (setWS s P))
+nextWS = withWindowSet $ \s -> windows $ W.view (workspaces !! (setWS s N))
+prevWS = withWindowSet $ \s -> windows $ W.view (workspaces !! (setWS s P))
 
 data Dir = P | N deriving Eq
 setWS :: WindowSet -> Dir -> Int

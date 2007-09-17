@@ -27,6 +27,7 @@ module XMonadContrib.Commands (
 
 import XMonad
 import Operations
+import StackSet hiding (sink)
 import XMonadContrib.Dmenu (dmenu)
 import {-# SOURCE #-} Config (workspaces)
 
@@ -63,13 +64,13 @@ commandMap :: [(String, X ())] -> M.Map String (X ())
 commandMap c = M.fromList c
 
 workspaceCommands :: [(String, X ())]
-workspaceCommands = [((m ++ show i), f i)
+workspaceCommands = [((m ++ show i), windows $ f i)
                          | i <- workspaces
                          , (f, m) <- [(view, "view"), (shift, "shift")]
                     ]
 
 screenCommands :: [(String, X ())]
-screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip whenJust f)
+screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip whenJust (windows . f))
                       | sc <- [0, 1]::[Int] -- TODO: adapt to screen changes
                       , (f, m) <- [(view, "screen"), (shift, "screen-to-")]
                  ]
@@ -85,11 +86,11 @@ defaultCommands = workspaceCommands ++ screenCommands
                      , ("run", spawn "exe=`dmenu_path | dmenu -b` && exec $exe")
                      , ("kill", kill)
                      , ("refresh", refresh)
-                     , ("focus-up", focusUp)
-                     , ("focus-down", focusDown)
-                     , ("swap-up", swapUp)
-                     , ("swap-down", swapDown)
-                     , ("swap-master", swapMaster)
+                     , ("focus-up", windows $ focusUp)
+                     , ("focus-down", windows $ focusDown)
+                     , ("swap-up", windows $ swapUp)
+                     , ("swap-down", windows $ swapDown)
+                     , ("swap-master", windows $ swapMaster)
                      , ("sink", withFocused sink)
                      , ("quit-wm", io $ exitWith ExitSuccess)
                      ]

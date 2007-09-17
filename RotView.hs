@@ -25,7 +25,7 @@ import Data.Ord ( comparing )
 
 import XMonad
 import StackSet hiding (filter)
-import qualified Operations as O
+import Operations
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -46,4 +46,4 @@ rotView b = do
         sortWs = sortBy (comparing tag)
         pivoted = uncurry (flip (++)) . span ((< m) . tag) . sortWs . hidden $ ws
         nextws = listToMaybe . filter (isJust . stack) . (if b then id else reverse) $ pivoted
-    whenJust nextws (O.view . tag)
+    whenJust nextws (windows . view . tag)

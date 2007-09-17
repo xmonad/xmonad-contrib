@@ -22,9 +22,8 @@ module XMonadContrib.DynamicWorkspaces (
 import Control.Monad.State ( gets, modify )
 
 import XMonad ( X, XState(..), Layout, WorkspaceId, trace )
-import Operations ( windows, view )
-import StackSet ( tagMember, StackSet(..), Screen(..), Workspace(..),
-                  integrate, differentiate )
+import Operations
+import StackSet hiding (filter, modify, delete)
 import Data.Map ( delete, insert )
 import Graphics.X11.Xlib ( Window )
 
@@ -51,7 +50,7 @@ removeWorkspace = do s <- gets windowset
                      case s of
                        StackSet { current = Screen { workspace = torem }
                                 , hidden = (w:_) }
-                           -> do view $ tag w
+                           -> do windows $ view (tag w)
                                  modify $ \st -> st { layouts = delete (tag torem) $ layouts st }
                                  windows (removeWorkspace' (tag torem))
                        _ -> return ()
