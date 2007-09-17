@@ -16,7 +16,7 @@ module XMonadContrib.SinkAll (
 
 import Operations
 import XMonad
-import StackSet hiding (sink)
+import StackSet
 
 import Control.Monad.State
 import Graphics.X11.Xlib
@@ -32,6 +32,6 @@ sinkAll :: X ()
 sinkAll = withAll sink
 
 -- Apply a function to all windows on current workspace.
-withAll :: (Window -> X a) -> X ()
-withAll f = gets (integrate' . stack . workspace . current . windowset) >>=
-    mapM_ f
+withAll :: (Window -> WindowSet -> WindowSet) -> X ()
+withAll f = windows $ \ws -> let all = integrate' . stack . workspace . current $ ws
+                             in foldr f ws all

@@ -27,7 +27,7 @@ module XMonadContrib.Commands (
 
 import XMonad
 import Operations
-import StackSet hiding (sink)
+import StackSet
 import XMonadContrib.Dmenu (dmenu)
 import {-# SOURCE #-} Config (workspaces)
 
@@ -91,7 +91,7 @@ defaultCommands = workspaceCommands ++ screenCommands
                      , ("swap-up", windows $ swapUp)
                      , ("swap-down", windows $ swapDown)
                      , ("swap-master", windows $ swapMaster)
-                     , ("sink", withFocused sink)
+                     , ("sink", withFocused $ windows . sink)
                      , ("quit-wm", io $ exitWith ExitSuccess)
                      ]
 
