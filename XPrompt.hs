@@ -89,10 +89,10 @@ data XPConfig =
     XPC { font           :: String     -- ^ Font
         , bgColor        :: String     -- ^ Backgroud color
         , fgColor        :: String     -- ^ Font color
-        , fgHLight       :: String     -- ^ Font color of a highlighted completion entry 
-        , bgHLight       :: String     -- ^ Backgroud color of a highlighted completion entry 
-        , borderColor    :: String     -- ^ Border color 
-        , borderWidth    :: Dimension  -- ^ Border width
+        , fgHLight       :: String     -- ^ Font color of a highlighted completion entry
+        , bgHLight       :: String     -- ^ Backgroud color of a highlighted completion entry
+        , borderColor    :: String     -- ^ Border color
+        , borderPixel    :: Dimension  -- ^ Border width
         , position       :: XPPosition -- ^ Position: 'Top' or 'Bottom'
         , height         :: Dimension  -- ^ Window height
         , historySize    :: Int        -- ^ The number of history entries to be saved
@@ -131,7 +131,7 @@ defaultXPConfig =
         , fgHLight    = "#000000"
         , bgHLight    = "#BBBBBB"
         , borderColor = "#FFFFFF"
-        , borderWidth = 1
+        , borderPixel = 1
         , position    = Bottom
         , height      = 18
         , historySize = 256
@@ -378,7 +378,7 @@ drawWin = do
       w = win st
       wh = widthOfScreen scr
       ht = height c
-      bw = borderWidth c
+      bw = borderPixel c
       gc = gcon st
       fontStruc = fs st
   bgcolor <- io $ initColor d (bgColor c)
@@ -488,7 +488,7 @@ drawComplWin w compl = do
   let c = config st
       d = dpy st
       scr = defaultScreenOfDisplay d
-      bw = borderWidth c
+      bw = borderPixel c
       gc = gcon st
   bgcolor <- io $ initColor d (bgColor c)
   fgcolor <- io $ initColor d (fgColor c)
