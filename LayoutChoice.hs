@@ -5,11 +5,11 @@
 -- Copyright   :  (c) David Roundy
 -- License     :  BSD-style (see xmonad/LICENSE)
 -- 
--- Maintainer  :  email@address.com
+-- Maintainer  :  droundy@darcs.net
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A tabbed layout for the Xmonad Window Manager 
+-- A replacement for the default layout handling.
 --
 -----------------------------------------------------------------------------
 
