@@ -21,7 +21,6 @@ module XMonadContrib.Warp (
                           ) where
 
 import Data.Ratio
-import Data.Maybe
 import Data.List
 import Control.Monad.RWS
 import Graphics.X11.Xlib
@@ -54,9 +53,6 @@ Note that warping to a particular screen may change the focus.
 
 fraction :: (Integral a, Integral b) => Rational -> a -> b
 fraction f x = floor (f * fromIntegral x)
-
-ix :: Int -> [a] -> Maybe a
-ix n = listToMaybe . take 1 . drop n
 
 warp :: Window -> Position -> Position -> X ()
 warp w x y = withDisplay $ \d -> io $ warpPointer d none w 0 0 0 0 x y
