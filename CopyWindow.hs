@@ -56,10 +56,10 @@ import StackSet
 
 -- | copy. Copy a window to a new workspace.
 copy :: WorkspaceId -> X ()
-copy n = windows (copy' n)
-    where copy' n s = if n `tagMember` s && n /= tag (workspace (current s))
-                      then maybe s (go s) (peek s)
-                      else s
+copy n = windows copy'
+    where copy' s = if n `tagMember` s && n /= tag (workspace (current s))
+                    then maybe s (go s) (peek s)
+                    else s
           go s w = view (tag (workspace (current s))) $ insertUp' w $ view n s
           insertUp' a s = modify (Just $ Stack a [] [])
                           (\(Stack t l r) -> Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
