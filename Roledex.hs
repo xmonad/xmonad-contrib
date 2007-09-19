@@ -62,5 +62,6 @@ roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
                 then (n - 1) : (cd (n-1) m)
                 else []
 
+div' :: Integral a => a -> a -> a
 div' _ 0 = 0
 div' n o = div n o
