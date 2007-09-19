@@ -18,7 +18,6 @@ import Operations
 import XMonad
 import StackSet
 
-import Control.Monad.State
 import Graphics.X11.Xlib
 
 -- $usage
@@ -33,5 +32,5 @@ sinkAll = withAll sink
 
 -- Apply a function to all windows on current workspace.
 withAll :: (Window -> WindowSet -> WindowSet) -> X ()
-withAll f = windows $ \ws -> let all = integrate' . stack . workspace . current $ ws
-                             in foldr f ws all
+withAll f = windows $ \ws -> let all' = integrate' . stack . workspace . current $ ws
+                             in foldr f ws all'
