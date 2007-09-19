@@ -37,6 +37,7 @@ getDirCompl :: String -> IO [String]
 getDirCompl s = (filter notboring . lines) `fmap`
                 runProcessWithInput "/bin/bash" [] ("compgen -A directory " ++ s ++ "\n")
 
+notboring :: String -> Bool
 notboring ('.':'.':_) = True
 notboring ('.':_) = False
 notboring _ = True
