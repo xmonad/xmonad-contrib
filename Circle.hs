@@ -15,15 +15,13 @@
 module XMonadContrib.Circle (
                              -- * Usage
                              -- $usage
-                             circle
+                             Circle
                             ) where -- actually it's an ellipse
 
 import Data.List
 import Graphics.X11.Xlib
 import XMonad
 import StackSet (integrate, peek)
-
-import XMonadContrib.LayoutHelpers ( idModify )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -32,10 +30,12 @@ import XMonadContrib.LayoutHelpers ( idModify )
 
 -- %import XMonadContrib.Circle
 
-circle :: Layout Window
-circle = Layout { doLayout = \r s -> do { layout <- raiseFocus $ circleLayout r $ integrate s
-                                       ;  return (layout, Nothing) }
-                , modifyLayout = idModify }
+data Circle a = Circle deriving ( Read, Show )
+
+instance Layout Circle Window where
+    doLayout Circle r s = do layout <- raiseFocus $ circleLayout r $ integrate s
+                             return (layout, Nothing)
+    modifyLayout Circle _ = return Nothing
 
 circleLayout :: Rectangle -> [a] -> [(a, Rectangle)]
 circleLayout _ []     = []
