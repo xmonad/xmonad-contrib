@@ -15,7 +15,7 @@
 module XMonadContrib.Circle (
                              -- * Usage
                              -- $usage
-                             Circle
+                             Circle (..)
                             ) where -- actually it's an ellipse
 
 import Data.List
