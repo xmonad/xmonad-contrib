@@ -17,7 +17,7 @@
 module XMonadContrib.TwoPane (
                               -- * Usage
                               -- $usage
-                              twoPane
+                              TwoPane (..)
                              ) where
 
 import XMonad
@@ -32,22 +32,28 @@ import StackSet ( focus, up, down)
 --
 --  and add, to the list of layouts:
 --
--- > twoPane delta (1%2)
+-- > ,("twopane", SomeLayout $ TwoPane 0.03 0.5) 
 
 -- %import XMonadContrib.TwoPane
--- %layout , twoPane delta (1%2)
+-- %layout , ,("twopane", SomeLayout $ TwoPane 0.03 0.5) 
 
-twoPane :: Rational -> Rational -> Layout a
-twoPane delta split = Layout { doLayout = \r s -> return (arrange r s,Nothing), modifyLayout = message }
- where
-    arrange rect st = case reverse (up st) of
-                        (master:_) -> [(master,left),(focus st,right)]
-                        [] -> case down st of
-                                (next:_) -> [(focus st,left),(next,right)]
-                                [] -> [(focus st, rect)]
-        where (left, right) = splitHorizontallyBy split rect
+data TwoPane a = 
+    TwoPane Rational Rational 
+    deriving ( Show, Read )
 
-    message x = return $ case fromMessage x of
-                    Just Shrink -> Just (twoPane delta (split - delta))
-                    Just Expand -> Just (twoPane delta (split + delta))
-                    _           -> Nothing
+instance Layout TwoPane a where
+    doLayout (TwoPane _ split) r s = return (arrange r s,Nothing)
+        where
+          arrange rect st = case reverse (up st) of
+                              (master:_) -> [(master,left),(focus st,right)]
+                              [] -> case down st of
+                                      (next:_) -> [(focus st,left),(next,right)]
+                                      [] -> [(focus st, rect)]
+              where (left, right) = splitHorizontallyBy split rect
+
+    modifyLayout (TwoPane delta split) x = 
+        return $ case fromMessage x of
+                   Just Shrink -> Just (TwoPane delta (split - delta))
+                   Just Expand -> Just (TwoPane delta (split + delta))
+                   _           -> Nothing
+
