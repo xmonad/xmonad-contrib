@@ -18,17 +18,17 @@
 module XMonadContrib.NoBorders (
                                 -- * Usage
                                 -- $usage
-                                noBorders, 
-                                withBorder 
+                                noBorders,
+                                withBorder
                                ) where
 
 import Control.Monad.State ( gets )
 import Graphics.X11.Xlib
 
 import XMonad
-import Operations ( UnDoLayout(UnDoLayout) )
-import qualified StackSet as W
+import XMonadContrib.LayoutHelpers
 import {-# SOURCE #-} Config (borderWidth)
+import qualified StackSet as W
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -44,16 +44,17 @@ import {-# SOURCE #-} Config (borderWidth)
 -- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
 -- %layout , noBorders full
 
-noBorders :: Layout a -> Layout a
-noBorders = withBorder 0
+data WithBorder a = WithBorder Dimension deriving ( Read, Show )
 
-withBorder :: Dimension -> Layout a -> Layout a
-withBorder bd l = l { doLayout = \r x -> setborders bd >> doLayout l r x
-                    , modifyLayout = ml }
-    where ml m | Just UnDoLayout == fromMessage m
-                   = do setborders borderWidth
-                        fmap (withBorder bd) `fmap` (modifyLayout l) m
-               | otherwise = fmap (withBorder bd) `fmap` (modifyLayout l) m
+instance LayoutModifier WithBorder a where
+    hook (WithBorder b) = setborders b
+    unhook (WithBorder _) = setborders borderWidth
+
+noBorders :: Layout l a => l a -> ModifiedLayout WithBorder l a
+noBorders = ModifiedLayout (WithBorder 0)
+
+withBorder :: Layout l a => Dimension -> l a -> ModifiedLayout WithBorder l a
+withBorder b = ModifiedLayout (WithBorder b)
 
 setborders :: Dimension -> X ()
 setborders bw = withDisplay $ \d ->

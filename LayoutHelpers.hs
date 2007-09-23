@@ -1,4 +1,3 @@
-{-# OPTIONS -fallow-undecidable-instances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonadContrib.LayoutHelpers
@@ -15,37 +14,42 @@
 module XMonadContrib.LayoutHelpers (
     -- * Usage
     -- $usage
-    LayoutModifier(..)
+    LayoutModifier(..), ModifiedLayout(..)
     ) where
 
-import Control.Monad ( mplus )
 import Graphics.X11.Xlib ( Rectangle )
 import XMonad
 import StackSet ( Stack )
+import Operations ( UnDoLayout(UnDoLayout) )
 
 -- $usage
 -- Use LayoutHelpers to help write easy Layouts.
 
-class (Show (m l a), Read (m l a), Layout l a) => LayoutModifier m l a where
-    extractLayout :: m l a -> l a
-    wrapLayout :: m l a -> l a -> m l a
-    modifyModify :: m l a -> SomeMessage -> X (Maybe (l a ->  m l a))
-    modifyModify _ _ = return Nothing
-    redoLayout :: m l a -> Rectangle -> Stack a -> [(a, Rectangle)]
-               -> X ([(a, Rectangle)], Maybe (l a -> m l a))
+class (Show (m a), Read (m a)) => LayoutModifier m a where
+    modifyModify :: m a -> SomeMessage -> X (Maybe (m l))
+    modifyModify m mess | Just UnDoLayout <- fromMessage mess = do unhook m; return Nothing
+                        | otherwise = return Nothing
+    redoLayout :: m a -> Rectangle -> Stack a -> [(a, Rectangle)]
+               -> X ([(a, Rectangle)], Maybe (m l))
     redoLayout m _ _ wrs = do hook m; return (wrs, Nothing)
-    hook :: m l a -> X ()
+    hook :: m a -> X ()
     hook _ = return ()
+    unhook :: m a -> X ()
+    unhook _ = return ()
 
-instance LayoutModifier m l a => Layout (m l) a where
-    doLayout m r s = do (ws, ml') <- doLayout (extractLayout m) r s
-                        (ws', mmod') <- redoLayout m r s ws
-                        let ml'' = case mmod' of
-                                   Just mod' -> Just $ mod' $ maybe (extractLayout m) id ml'
-                                   Nothing -> wrapLayout m `fmap` ml'
-                        return (ws', ml'')
-    modifyLayout m mess = do ml' <- modifyLayout (extractLayout m) mess
-                             mmod' <- modifyModify m mess
-                             return $ case mmod' of
-                                      Just  mod' -> Just $ mod' $ maybe (extractLayout m) id ml'
-                                      Nothing -> wrapLayout m `fmap` ml'
+instance (LayoutModifier m a, Layout l a) => Layout (ModifiedLayout m l) a where
+    doLayout (ModifiedLayout m l) r s =
+        do (ws, ml') <- doLayout l r s
+           (ws', mm') <- redoLayout m r s ws
+           let ml'' = case mm' of
+                      Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
+                      Nothing -> ModifiedLayout m `fmap` ml'
+           return (ws', ml'')
+    modifyLayout (ModifiedLayout m l) mess =
+        do ml' <- modifyLayout l mess
+           mm' <- modifyModify m mess
+           return $ case mm' of
+                    Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
+                    Nothing -> (ModifiedLayout m) `fmap` ml'
+
+data ModifiedLayout m l a = ModifiedLayout (m a) (l a) deriving ( Read, Show )
