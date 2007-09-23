@@ -33,7 +33,9 @@ class (Show (m l a), Read (m l a), Layout l a) => LayoutModifier m l a where
     modifyModify _ _ = return Nothing
     redoLayout :: m l a -> Rectangle -> Stack a -> [(a, Rectangle)]
                -> X ([(a, Rectangle)], Maybe (l a -> m l a))
-    redoLayout _ _ _ wrs = return (wrs, Nothing)
+    redoLayout m _ _ wrs = do hook m; return (wrs, Nothing)
+    hook :: m l a -> X ()
+    hook _ = return ()
 
 instance LayoutModifier m l a => Layout (m l) a where
     doLayout m r s = do (ws, ml') <- doLayout (extractLayout m) r s
