@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module       : XMonadContrib.LayoutHelpers
+-- Module       : XMonadContrib.LayoutModifier
 -- Copyright    : (c) David Roundy <droundy@darcs.net>
 -- License      : BSD
 --
@@ -11,7 +11,7 @@
 -- A module for writing easy Layouts
 -----------------------------------------------------------------------------
 
-module XMonadContrib.LayoutHelpers (
+module XMonadContrib.LayoutModifier (
     -- * Usage
     -- $usage
     LayoutModifier(..), ModifiedLayout(..)

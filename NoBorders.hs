@@ -26,7 +26,7 @@ import Control.Monad.State ( gets )
 import Graphics.X11.Xlib
 
 import XMonad
-import XMonadContrib.LayoutHelpers
+import XMonadContrib.LayoutModifier
 import {-# SOURCE #-} Config (borderWidth)
 import qualified StackSet as W
 
