@@ -32,7 +32,7 @@ import Operations ( sendMessage )
 import XMonadContrib.Dmenu ( runProcessWithInput )
 import XMonadContrib.XPrompt ( XPConfig )
 import XMonadContrib.DirectoryPrompt ( directoryPrompt )
-import XMonadContrib.LayoutHelpers ( layoutModify )
+import XMonadContrib.LayoutModifier
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -55,11 +55,16 @@ import XMonadContrib.LayoutHelpers ( layoutModify )
 data Chdir = Chdir String deriving ( Typeable )
 instance Message Chdir
 
-workspaceDir :: String -> Layout a -> Layout a
-workspaceDir wd = layoutModify dowd modwd
-    where dowd _ _ rws = scd wd >> return (rws, Nothing)
-          modwd m = return $ do Chdir wd' <- fromMessage m
-                                Just $ workspaceDir wd'
+data WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
+
+instance LayoutModifier WorkspaceDir a where
+    hook (WorkspaceDir s) = scd s
+    modifyModify (WorkspaceDir _) m = return $ do Chdir wd <- fromMessage m
+                                                  Just (WorkspaceDir wd)
+
+workspaceDir :: Layout l a => String -> l a
+             -> ModifiedLayout WorkspaceDir l a
+workspaceDir s = ModifiedLayout (WorkspaceDir s)
 
 scd :: String -> X ()
 scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
