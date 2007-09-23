@@ -54,7 +54,7 @@ import Graphics.X11.Xlib.Extras
 -- %keybind , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
 -- %keybind , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
 
-layoutScreens :: Int -> Layout Int -> X ()
+layoutScreens :: Layout l Int => Int -> l Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
 layoutScreens nscr l =
     do rtrect <- asks theRoot >>= getWindowRectangle
@@ -73,6 +73,10 @@ getWindowRectangle w = withDisplay $ \d ->
        return $ Rectangle (fromIntegral $ wa_x a)     (fromIntegral $ wa_y a)
                           (fromIntegral $ wa_width a) (fromIntegral $ wa_height a)
 
-fixedLayout :: [Rectangle] -> Layout a
-fixedLayout rs = Layout { doLayout     = \_ s -> return (zip (W.integrate s) rs,Nothing)
-                       , modifyLayout = const (return Nothing) } -- no changes
+data FixedLayout a = FixedLayout [Rectangle] deriving (Read,Show)
+
+instance Layout FixedLayout a where
+    doLayout (FixedLayout rs) _ s = return (zip (W.integrate s) rs, Nothing)
+
+fixedLayout :: [Rectangle] -> FixedLayout a
+fixedLayout = FixedLayout
