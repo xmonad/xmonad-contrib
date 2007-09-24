@@ -27,7 +27,7 @@ module XMonadContrib.Commands (
 
 import XMonad
 import Operations
-import StackSet
+import StackSet hiding (workspaces)
 import XMonadContrib.Dmenu (dmenu)
 import {-# SOURCE #-} Config (workspaces)
 
