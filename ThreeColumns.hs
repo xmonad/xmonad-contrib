@@ -15,7 +15,7 @@
 module XMonadContrib.ThreeColumns (
                               -- * Usage
                               -- $usage
-                              threeCol
+                              ThreeCol
                              ) where
 
 import XMonad
@@ -37,21 +37,24 @@ import Graphics.X11.Xlib
 --
 --  and add, to the list of layouts:
 --
--- > threeCol nmaster delta ratio
+-- > ThreeCol nmaster delta ratio
 
 -- %import XMonadContrib.ThreeColumns
--- %layout , threeCol nmaster delta ratio
+-- %layout , ThreeCol nmaster delta ratio
 
-threeCol :: Int -> Rational -> Rational -> Layout a
-threeCol nmaster delta frac =
-    Layout { doLayout     = \r -> return . (\x->(x,Nothing)) .
-                                  ap zip (tile3 frac r nmaster . length) . W.integrate
-           , modifyLayout = \m -> return $ msum [fmap resize     (fromMessage m)
-                                                ,fmap incmastern (fromMessage m)] }
+data ThreeCol a = ThreeCol Int Rational Rational deriving (Show,Read)
 
-    where resize Shrink = threeCol nmaster delta (max 0 $ frac-delta)
-          resize Expand = threeCol nmaster delta (min 1 $ frac+delta)
-          incmastern (IncMasterN d) = threeCol (max 0 (nmaster+d)) delta frac
+instance Layout ThreeCol a where
+    doLayout (ThreeCol nmaster _ frac) r =
+        return . (\x->(x,Nothing)) .
+        ap zip (tile3 frac r nmaster . length) . W.integrate
+    modifyLayout (ThreeCol nmaster delta frac) m =
+        return $ msum [fmap resize     (fromMessage m)
+                      ,fmap incmastern (fromMessage m)]
+            where resize Shrink = ThreeCol nmaster delta (max 0 $ frac-delta)
+                  resize Expand = ThreeCol nmaster delta (min 1 $ frac+delta)
+                  incmastern (IncMasterN d) = ThreeCol (max 0 (nmaster+d)) delta frac
+    description _ = "ThreeCol"
 
 -- | tile3.  Compute window positions using 3 panes
 tile3 :: Rational -> Rectangle -> Int -> Int -> [Rectangle]
