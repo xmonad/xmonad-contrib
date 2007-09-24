@@ -26,11 +26,11 @@ import Operations ( LayoutMessages(Hide) )
 -- Use LayoutHelpers to help write easy Layouts.
 
 class (Show (m a), Read (m a)) => LayoutModifier m a where
-    modifyModify :: m a -> SomeMessage -> X (Maybe (m l))
+    modifyModify :: m a -> SomeMessage -> X (Maybe (m a))
     modifyModify m mess | Just Hide <- fromMessage mess = do unhook m; return Nothing
                         | otherwise = return Nothing
     redoLayout :: m a -> Rectangle -> Stack a -> [(a, Rectangle)]
-               -> X ([(a, Rectangle)], Maybe (m l))
+               -> X ([(a, Rectangle)], Maybe (m a))
     redoLayout m _ _ wrs = do hook m; return (wrs, Nothing)
     hook :: m a -> X ()
     hook _ = return ()
