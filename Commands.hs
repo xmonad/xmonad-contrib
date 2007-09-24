@@ -81,7 +81,7 @@ defaultCommands = workspaceCommands ++ screenCommands
                      , ("expand", sendMessage Expand)
                      , ("restart-wm", restart Nothing True)
                      , ("restart-wm-no-resume", restart Nothing False)
-                     , ("layout", switchLayout)
+                     , ("layout", sendMessage NextLayout)
                      , ("xterm", spawn "xterm")
                      , ("run", spawn "exe=`dmenu_path | dmenu -b` && exec $exe")
                      , ("kill", kill)
