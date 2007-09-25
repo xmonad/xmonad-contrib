@@ -101,7 +101,9 @@ instance Read FontStruct where
     readsPrec _ _ = []
 
 doLay :: Maybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
-doLay _ _ sc (W.Stack w [] []) = return ([(w,sc)], Nothing)
+doLay mst _ sc (W.Stack w [] []) = do
+  when (isJust mst) $ destroyTabs (map fst $ tabsWindows (fromJust mst))
+  return ([(w,sc)], Nothing)
 doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   let ws = W.integrate s
       width = wid `div` fromIntegral (length ws)
@@ -135,7 +137,7 @@ handleEvent :: TConf -> TabState -> Event -> X ()
 -- button press
 handleEvent conf (TabState    {tabsWindows = tws,   scr          = screen, fontS         = fs }) 
                  (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
-    | t == buttonPress && thisw `elem` map fst tws || thisbw `elem` map fst tws = do
+    | t == buttonPress, tl <- map fst tws, thisw `elem` tl || thisbw `elem` tl  = do
   focus (fromJust $ lookup thisw tws)
   updateTab conf fs width (thisw, fromJust $ lookup thisw tws)
     where
@@ -181,7 +183,7 @@ updateTab c fs wh (tabw,ow) = do
       d                    = display xc
       focusColor win ic ac = (maybe ic (\focusw -> if focusw == win 
                                                    then ac else ic) . W.peek) 
-                           `fmap` gets windowset
+                             `fmap` gets windowset
   (bc',borderc',tc') <- focusColor ow
                            (inactiveColor c, inactiveBorderColor c, inactiveTextColor c) 
                            (activeColor   c, activeBorderColor   c, activeTextColor   c)
@@ -197,16 +199,16 @@ updateTab c fs wh (tabw,ow) = do
   io $ setGraphicsExposures d gc False
   io $ fillDrawable d p gc borderc bc 1 wh ht
   io $ setFont d gc (fontFromFontStruct fs)
-  let name = shrinkWhile shrinkText (\n -> textWidth fs n >
+  let name           = shrinkWhile shrinkText (\n -> textWidth fs n >
                                            fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
-      width = textWidth fs name
+      width          = textWidth   fs name
       (_,asc,desc,_) = textExtents fs name
-      y = fromIntegral $ ((ht - fromIntegral (asc + desc)) `div` 2) + fromIntegral asc
-      x = fromIntegral (wh `div` 2) - fromIntegral (width `div` 2)
+      y              = fromIntegral $ ((ht - fromIntegral (asc + desc)) `div` 2) + fromIntegral asc
+      x              = fromIntegral (wh `div` 2) - fromIntegral (width `div` 2)
   io $ printString d p gc tc bc x y name
-  io $ copyArea d p tabw gc 0 0 wh ht 0 0
-  io $ freePixmap d p
-  io $ freeGC d gc
+  io $ copyArea    d p tabw gc 0 0 wh ht 0 0
+  io $ freePixmap  d p
+  io $ freeGC      d gc
 
 destroyTabs :: [Window] -> X ()
 destroyTabs w = do
