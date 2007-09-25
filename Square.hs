@@ -20,11 +20,11 @@
 module XMonadContrib.Square (
                              -- * Usage
                              -- $usage
-                             square ) where
+                             Square(..) ) where
 
 import XMonad
 import Graphics.X11.Xlib
-import XMonadContrib.LayoutHelpers ( l2lModDo, idModify )
+import StackSet ( integrate )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -40,12 +40,13 @@ import XMonadContrib.LayoutHelpers ( l2lModDo, idModify )
 
 -- %import XMonadContrib.Square
 
-square :: Layout a
-square = Layout { doLayout = l2lModDo arrange, modifyLayout = idModify }
- where arrange :: Rectangle -> [a] -> [(a, Rectangle)]
-       arrange rect ws@(_:_) = map (\w->(w,rest)) (init ws) ++ [(last ws,sq)]
-                 where (rest, sq) = splitSquare rect
-       arrange _ [] = []
+data Square a = Square deriving ( Read, Show )
+
+instance Layout Square a where
+    pureLayout Square r s = arrange (integrate s)
+        where arrange ws@(_:_) = map (\w->(w,rest)) (init ws) ++ [(last ws,sq)]
+              arrange [] = [] -- actually, this is an impossible case
+              (rest, sq) = splitSquare r
 
 splitSquare :: Rectangle -> (Rectangle, Rectangle)
 splitSquare (Rectangle x y w h)
