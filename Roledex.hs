@@ -16,14 +16,13 @@
 module XMonadContrib.Roledex (
     -- * Usage
     -- $usage
-    roledex) where
+    Roledex(Roledex)) where
 
 import XMonad
 import Operations
 import qualified StackSet as W
 import Graphics.X11.Xlib
 import Data.Ratio
-import XMonadContrib.LayoutHelpers ( idModify )
 
 -- $usage
 --
@@ -33,10 +32,12 @@ import XMonadContrib.LayoutHelpers ( idModify )
 -- %import XMonadContrib.Roledex
 -- %layout , roledex
 
-roledex :: Eq a => Layout a
-roledex = Layout { doLayout = roledexLayout, modifyLayout = idModify }
+data Roledex a = Roledex deriving ( Show, Read )
 
-roledexLayout :: Eq a => Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (Layout a))
+instance Layout Roledex Window where
+    doLayout _ = roledexLayout
+
+roledexLayout :: Eq a => Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (Roledex a))
 roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
                               (zip ups tops) ++
                               (reverse (zip dns bottoms))
@@ -44,7 +45,7 @@ roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
  where ups    = W.up ws
        dns    = W.down ws
        c = length ups + length dns
-       rect = fst $ splitHorizontallyBy (2% 3) $ fst (splitVerticallyBy (2% 3) sc) 
+       rect = fst $ splitHorizontallyBy (2%3 :: Ratio Int) $ fst (splitVerticallyBy (2%3 :: Ratio Int) sc) 
        gw = div' (w - rw) (fromIntegral c) 
             where
             (Rectangle _ _ w _) = sc
