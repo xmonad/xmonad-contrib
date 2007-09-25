@@ -95,7 +95,7 @@ data Tabbed a =
 
 instance Layout Tabbed Window where
     doLayout (Tabbed mst conf) = doLay mst conf
-    modifyLayout l m           = modLay l m
+    handleMessage l m           = modLay l m
 
 instance Read FontStruct where
     readsPrec _ _ = []

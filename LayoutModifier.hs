@@ -45,8 +45,8 @@ instance (LayoutModifier m a, Layout l a) => Layout (ModifiedLayout m l) a where
                       Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                       Nothing -> ModifiedLayout m `fmap` ml'
            return (ws', ml'')
-    modifyLayout (ModifiedLayout m l) mess =
-        do ml' <- modifyLayout l mess
+    handleMessage (ModifiedLayout m l) mess =
+        do ml' <- handleMessage l mess
            mm' <- modifyModify m mess
            return $ case mm' of
                     Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'

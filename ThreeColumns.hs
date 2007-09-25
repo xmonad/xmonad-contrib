@@ -48,7 +48,7 @@ instance Layout ThreeCol a where
     doLayout (ThreeCol nmaster _ frac) r =
         return . (\x->(x,Nothing)) .
         ap zip (tile3 frac r nmaster . length) . W.integrate
-    modifyLayout (ThreeCol nmaster delta frac) m =
+    handleMessage (ThreeCol nmaster delta frac) m =
         return $ msum [fmap resize     (fromMessage m)
                       ,fmap incmastern (fromMessage m)]
             where resize Shrink = ThreeCol nmaster delta (max 0 $ frac-delta)

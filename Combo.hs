@@ -79,7 +79,7 @@ instance (Eq a, Show a, Read a, ReadableSomeLayout a, Layout l (SomeLayout a, In
                                                                    , down = tail $ dropWhile (/=z) xs }
                                       | otherwise = differentiate zs xs
               differentiate [] xs = W.differentiate xs
-    modifyLayout (Combo f super origls) m =
+    handleMessage (Combo f super origls) m =
                       do mls <- broadcastPrivate m (map fst origls)
                          let mls' = (\x->zipWith first (map const x) origls) `fmap` mls
                          msuper <- broadcastPrivate m [super]
@@ -92,4 +92,4 @@ broadcastPrivate a ol = do nml <- mapM f ol
                            if any isJust nml
                               then return $ Just $ zipWith ((flip maybe) id) ol nml
                               else return Nothing
-    where f l = modifyLayout l a `catchX` return Nothing
+    where f l = handleMessage l a `catchX` return Nothing

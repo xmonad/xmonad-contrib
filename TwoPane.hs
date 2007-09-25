@@ -51,7 +51,7 @@ instance Layout TwoPane a where
                                       [] -> [(focus st, rect)]
               where (left, right) = splitHorizontallyBy split rect
 
-    modifyLayout (TwoPane delta split) x = 
+    handleMessage (TwoPane delta split) x = 
         return $ case fromMessage x of
                    Just Shrink -> Just (TwoPane delta (split - delta))
                    Just Expand -> Just (TwoPane delta (split + delta))
