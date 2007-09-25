@@ -19,12 +19,11 @@ module XMonadContrib.DynamicWorkspaces (
                                          addWorkspace, removeWorkspace
                                        ) where
 
-import Control.Monad.State ( gets, modify )
+import Control.Monad.State ( gets )
 
-import XMonad ( X, XState(..), Layout, WorkspaceId, trace )
+import XMonad ( X, XState(..), SomeLayout, WorkspaceId )
 import Operations
 import StackSet hiding (filter, modify, delete)
-import Data.Map ( delete, insert )
 import Graphics.X11.Xlib ( Window )
 
 -- $usage
@@ -38,12 +37,10 @@ import Graphics.X11.Xlib ( Window )
 allPossibleTags :: [WorkspaceId]
 allPossibleTags = map (:"") ['0'..]
 
-addWorkspace :: [Layout Window] -> X ()
-addWorkspace (l:ls) = do s <- gets windowset
-                         let newtag:_ = filter (not . (`tagMember` s)) allPossibleTags
-                         modify $ \st -> st { layouts = insert newtag (l,ls) $ layouts st }
-                         windows (addWorkspace' newtag)
-addWorkspace [] = trace "bad layouts in XMonadContrib.DynamicWorkspaces.addWorkspace\n"
+addWorkspace :: SomeLayout Window -> X ()
+addWorkspace l = do s <- gets windowset
+                    let newtag:_ = filter (not . (`tagMember` s)) allPossibleTags
+                    windows (addWorkspace' newtag l)
 
 removeWorkspace :: X ()
 removeWorkspace = do s <- gets windowset
@@ -51,17 +48,16 @@ removeWorkspace = do s <- gets windowset
                        StackSet { current = Screen { workspace = torem }
                                 , hidden = (w:_) }
                            -> do windows $ view (tag w)
-                                 modify $ \st -> st { layouts = delete (tag torem) $ layouts st }
                                  windows (removeWorkspace' (tag torem))
                        _ -> return ()
 
-addWorkspace' :: i -> StackSet i a sid sd -> StackSet i a sid sd
-addWorkspace' newtag s@(StackSet { current = scr@(Screen { workspace = w })
-                                 , hidden = ws })
-    = s { current = scr { workspace = Workspace newtag Nothing }
+addWorkspace' :: i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
+addWorkspace' newtag l s@(StackSet { current = scr@(Screen { workspace = w })
+                                   , hidden = ws })
+    = s { current = scr { workspace = Workspace newtag l Nothing }
         , hidden = w:ws }
 
-removeWorkspace' :: (Eq i) => i -> StackSet i a sid sd -> StackSet i a sid sd
+removeWorkspace' :: (Eq i) => i -> StackSet i l a sid sd -> StackSet i l a sid sd
 removeWorkspace' torem s@(StackSet { current = scr@(Screen { workspace = wc })
                                    , hidden = (w:ws) })
     | tag w == torem = s { current = scr { workspace = wc { stack = meld (stack w) (stack wc) } }
