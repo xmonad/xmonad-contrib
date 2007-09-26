@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-orphans -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.Tabbed
@@ -95,7 +96,7 @@ data Tabbed a =
 
 instance Layout Tabbed Window where
     doLayout (Tabbed mst conf) = doLay mst conf
-    handleMessage l m           = modLay l m
+    handleMessage l m          = modLay l m
 
 instance Read FontStruct where
     readsPrec _ _ = []
@@ -110,11 +111,11 @@ doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
       -- initialize state
   st <- case mst of
           Nothing -> initState conf sc ws
-          Just ts -> if map snd (tabsWindows ts) == ws
+          Just ts -> if map snd (tabsWindows ts) == ws && scr ts == sc
                      then return ts
                      else do destroyTabs (map fst $ tabsWindows ts)
                              tws <- createTabs conf sc ws
-                             return (ts {tabsWindows = zip tws ws})
+                             return (ts {scr = sc, tabsWindows = zip tws ws})
   showTabs $ map fst $ tabsWindows st
   mapM_ (updateTab conf (fontS st) width) $ tabsWindows st
   return ([(w,shrink conf sc)], Just (Tabbed (Just st) conf))
@@ -150,7 +151,7 @@ handleEvent conf (TabState {tabsWindows = tws,   scr           = screen, fontS =
   updateTab conf fs width (thisw, fromJust $ lookup thisw tws)
 -- propertyNotify
     | thisw `elem` (map snd tws) && t == propertyNotify = do
-  let tabwin = (fst $ fromJust $ find (\x -> snd x == thisw) tws, thisw)
+  let tabwin = (fst $ fromJust $ find ((== thisw) . snd) tws, thisw)
   updateTab conf fs width tabwin
     where
       width = rect_width screen`div` fromIntegral (length tws)
