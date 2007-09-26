@@ -59,10 +59,8 @@ data DragPane a =
 data DragType = Horizontal | Vertical deriving ( Show, Read )
 
 instance Layout DragPane Window where
-    doLayout d@(DragPane _ ty _ _) = 
-        case ty of
-          Vertical   -> doLay id d
-          Horizontal -> doLay mirrorRect d
+    doLayout d@(DragPane _ Vertical _ _) = doLay id d
+    doLayout d@(DragPane _ Horizontal _ _) = doLay mirrorRect d
     handleMessage = handleMess
 
 data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq, Typeable )
