@@ -4,9 +4,11 @@
 -- Module      :  XMonadContrib.DragPane
 -- Copyright   :  (c) Spencer Janssen <sjanssen@cse.unl.edu>
 --                    David Roundy <droundy@darcs.net>,
+--                    Andrea Rossato <andrea.rossato@unibz.it>
 -- License     :  BSD3-style (see LICENSE)
 -- 
 -- Maintainer  :  David Roundy <droundy@darcs.net>
+--                Andrea Rossato <andrea.rossato@unibz.it>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -20,15 +22,19 @@
 module XMonadContrib.DragPane (
                                -- * Usage
                                -- $usage
-                               dragPane, dragUpDownPane
+                                DragPane (DragPane)
+                              , DragType (..)
                               ) where
 
 import Control.Monad.Reader ( asks )
-import Graphics.X11.Xlib ( Rectangle( Rectangle ) )
+import Graphics.X11.Xlib
+import Graphics.X11.Xlib.Extras
 import XMonad
-import XMonadContrib.Decoration ( newDecoration )
-import Operations ( Resize(..), splitHorizontallyBy, initColor, mouseDrag, sendMessage, mirrorRect )
-import StackSet ( focus, up, down)
+import Data.Bits
+import Data.Unique
+
+import Operations 
+import qualified StackSet as W 
 
 -- $usage
 --
@@ -38,7 +44,7 @@ import StackSet ( focus, up, down)
 --
 --  and add, to the list of layouts:
 --
--- > dragPane "" (fromRational delta) (fromRational delta)
+-- > DragPane Nothing Vertical 0.1 0.5
 
 halfHandleWidth :: Integral a => a
 halfHandleWidth = 1
@@ -46,49 +52,107 @@ halfHandleWidth = 1
 handleColor :: String
 handleColor = "#000000"
 
-dragPane :: String -> Double -> Double -> Layout a
-dragPane = dragPane' id
+data DragPane a = 
+    DragPane (Maybe (Window,Rectangle,Int)) DragType Double Double 
+             deriving ( Show, Read )
 
-dragUpDownPane :: String -> Double -> Double -> Layout a
-dragUpDownPane = dragPane' mirrorRect
+data DragType = Horizontal | Vertical deriving ( Show, Read )
 
-dragPane' :: (Rectangle -> Rectangle) -> String -> Double -> Double -> Layout a
-dragPane' mirror ident delta split = Layout { doLayout = dolay, modifyLayout = return . message }
- where
-    dolay r s = do handlec <- withDisplay $ \dpy -> io $ initColor dpy handleColor
-                   root <- asks theRoot
-                   let r' = mirror r
-		       (left', right') = splitHorizontallyBy split r'
-                       leftmost = fromIntegral $ case r' of Rectangle x _ _ _ -> x
-                       widt = fromIntegral $ case r' of Rectangle _ _ w _ -> w
-                       left = case left' of Rectangle x y w h ->
-		                              mirror $ Rectangle x y (w-halfHandleWidth) h
-                       right = case right' of
-                               Rectangle x y w h ->
-			         mirror $ Rectangle (x+halfHandleWidth) y (w-halfHandleWidth) h
-                       handr = case left' of
-                               Rectangle x y w h ->
-                                 mirror $ Rectangle (x + fromIntegral w - halfHandleWidth) y (2*halfHandleWidth) h
-                       wrs = case reverse (up s) of
-                             (master:_) -> [(master,left),(focus s,right)]
-                             [] -> case down s of
-                                   (next:_) -> [(focus s,left),(next,right)]
-                                   [] -> [(focus s, r)]
-                       handle = newDecoration root handr 0 handlec handlec
-                                "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-                                (const $ const $ const $ const $ return ()) (doclick)
-                       doclick = mouseDrag (\ex _ ->
-                                        sendMessage (SetFrac ident ((fromIntegral ex - leftmost)/widt)))
-                                        (return ())
-                                        
-                   ml' <- if length wrs > 1 then Just `fmap` handle (dragPane' mirror ident delta split)
-                                            else return Nothing
-                   return (wrs, ml')
-    message x | Just Shrink <- fromMessage x = Just (dragPane' mirror ident delta (split - delta))
-              | Just Expand <- fromMessage x = Just (dragPane' mirror ident delta (split + delta))
-              | Just (SetFrac ident' frac) <- fromMessage x, ident' == ident =
-                                              Just (dragPane' mirror ident delta frac)
-    message _ = Nothing
+instance Layout DragPane Window where
+    doLayout d@(DragPane _ ty _ _) = 
+        case ty of
+          Vertical   -> doLay id d
+          Horizontal -> doLay mirrorRect d
+    handleMessage = handleMess
 
-data SetFrac = SetFrac String Double deriving ( Show, Read, Eq, Typeable )
+data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq, Typeable )
 instance Message SetFrac
+
+handleMess :: DragPane Window -> SomeMessage -> X (Maybe (DragPane Window)) 
+handleMess d@(DragPane mb@(Just (win,_,ident)) ty delta split) x
+    | Just e <- fromMessage x :: Maybe Event = do
+  handleEvent d e 
+  return Nothing
+    | Just Hide             <- fromMessage x = do
+  hideDragWin win
+  return $ Just (DragPane mb ty delta split)
+    | Just ReleaseResources <- fromMessage x = do
+  destroyDragWin win
+  return $ Just (DragPane Nothing ty delta split)
+    -- layout specific messages
+    | Just Shrink <- fromMessage x = return $ Just (DragPane mb ty delta (split - delta))
+    | Just Expand <- fromMessage x = return $ Just (DragPane mb ty delta (split + delta))
+    | Just (SetFrac ident' frac) <- fromMessage x, ident' == ident = do
+                                     return $ Just (DragPane mb ty delta frac)
+handleMess _ _ = return Nothing
+
+handleEvent :: DragPane Window -> Event -> X ()
+handleEvent (DragPane (Just (win,r,ident)) ty _ _) 
+            (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
+    | t == buttonPress && thisw == win || thisbw == win  = do
+  mouseDrag (\ex ey -> do
+             let frac = case ty of
+                          Vertical   -> (fromIntegral ex - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width  r)
+                          Horizontal -> (fromIntegral ey - (fromIntegral $ rect_y r))/(fromIntegral $ rect_height r)
+             sendMessage (SetFrac ident frac))
+            (return ())
+handleEvent _ _ = return ()
+
+doLay :: (Rectangle -> Rectangle) -> DragPane Window -> Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (DragPane a))
+doLay mirror (DragPane mw ty delta split) r s = do
+  handlec <- withDisplay $ \dpy -> io $ initColor dpy handleColor
+  let r' = mirror r
+      (left', right') = splitHorizontallyBy split r'
+      left = case left' of Rectangle x y w h ->
+                               mirror $ Rectangle x y (w-halfHandleWidth) h
+      right = case right' of
+                Rectangle x y w h ->
+		    mirror $ Rectangle (x+halfHandleWidth) y (w-halfHandleWidth) h
+      handr = case left' of
+                Rectangle x y w h ->
+                    mirror $ Rectangle (x + fromIntegral w - halfHandleWidth) y (2*halfHandleWidth) h
+      wrs = case reverse (W.up s) of
+              (master:_) -> [(master,left),(W.focus s,right)]
+              [] -> case W.down s of
+                      (next:_) -> [(W.focus s,left),(next,right)]
+                      [] -> [(W.focus s, r)]
+  if length wrs > 1 
+     then case mw of
+            Just (w,_,ident) -> do 
+                    w' <- updateDragWin w handlec handr
+                    return (wrs, Just $ DragPane (Just (w',r',ident)) ty delta split)
+            Nothing -> do 
+                    w <- newDragWin handlec handr
+                    i <- io $ newUnique
+                    return (wrs, Just $ DragPane (Just (w,r',hashUnique i)) ty delta split)
+     else return (wrs, Nothing)
+
+
+newDragWin :: Pixel -> Rectangle -> X Window
+newDragWin p r = do
+  d  <- asks display
+  dragWin d p r
+
+updateDragWin :: Window -> Pixel -> Rectangle -> X Window
+updateDragWin w p r = do
+    d  <- asks display
+    io $ destroyWindow d w
+    dragWin d p r
+
+hideDragWin :: Window -> X ()
+hideDragWin w = do
+    d  <- asks display
+    io $ unmapWindow d w
+
+destroyDragWin :: Window -> X ()
+destroyDragWin w = do
+    d  <- asks display
+    io $ destroyWindow d w
+
+dragWin :: Display -> Pixel -> Rectangle -> X Window
+dragWin d p (Rectangle x y wt ht) = do
+  rt <- asks theRoot
+  w  <- io $ createSimpleWindow d rt x y wt ht 0 p p
+  io $ selectInput d w $ exposureMask .|. buttonPressMask
+  io $ mapWindow d w
+  return w
