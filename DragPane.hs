@@ -22,7 +22,7 @@
 module XMonadContrib.DragPane (
                                -- * Usage
                                -- $usage
-                                DragPane (DragPane)
+                                dragPane
                               , DragType (..)
                               ) where
 
@@ -44,13 +44,16 @@ import qualified StackSet as W
 --
 --  and add, to the list of layouts:
 --
--- > DragPane Nothing Vertical 0.1 0.5
+-- > dragPane Vertical 0.1 0.5
 
 halfHandleWidth :: Integral a => a
 halfHandleWidth = 1
 
 handleColor :: String
 handleColor = "#000000"
+
+dragPane :: DragType -> Double -> Double -> DragPane a
+dragPane t x y = DragPane Nothing t x y
 
 data DragPane a = 
     DragPane (Maybe (Window,Rectangle,Int)) DragType Double Double 
