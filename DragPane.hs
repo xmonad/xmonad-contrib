@@ -71,15 +71,12 @@ instance Message SetFrac
 
 handleMess :: DragPane Window -> SomeMessage -> X (Maybe (DragPane Window)) 
 handleMess d@(DragPane mb@(Just (win,_,ident)) ty delta split) x
-    | Just e <- fromMessage x :: Maybe Event = do
-  handleEvent d e 
-  return Nothing
-    | Just Hide             <- fromMessage x = do
-  hideDragWin win
-  return $ Just (DragPane mb ty delta split)
-    | Just ReleaseResources <- fromMessage x = do
-  destroyDragWin win
-  return $ Just (DragPane Nothing ty delta split)
+    | Just e <- fromMessage x :: Maybe Event = do handleEvent d e
+                                                  return Nothing
+    | Just Hide             <- fromMessage x = do hideDragWin win
+                                                  return $ Just (DragPane mb ty delta split)
+    | Just ReleaseResources <- fromMessage x = do destroyDragWin win
+                                                  return $ Just (DragPane Nothing ty delta split)
     -- layout specific messages
     | Just Shrink <- fromMessage x = return $ Just (DragPane mb ty delta (split - delta))
     | Just Expand <- fromMessage x = return $ Just (DragPane mb ty delta (split + delta))
