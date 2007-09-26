@@ -11,26 +11,38 @@
 -- Automagically put the focused window in the master area.
 -----------------------------------------------------------------------------
 
-module XMonadContrib.MagicFocus (
-                 -- * Usage
-                 -- $usage
-                 magicFocus) where
+module XMonadContrib.MagicFocus 
+    (-- * Usage
+     -- $usage
+     MagicFocus(MagicFocus)
+    ) where
 
-import Graphics.X11.Xlib (Window)
+import Graphics.X11.Xlib
 import XMonad
 import StackSet
 
 -- $usage
 -- > import XMonadContrib.MagicFocus
--- > defaultLayouts = [ magicFocus tiled , magicFocus $ mirror tiled ]
+-- > defaultLayouts = [ SomeLayout $ MagicFocus tiled , SomeLayout $ MagicFocus $ Mirror tiled ]
 
 -- %import XMonadContrib.MagicFocus
--- %layout , magicFocus tiled
--- %layout , magicFocus $ mirror tiled
+-- %layout , SomeLayout $ MagicFocus tiled
+-- %layout , SomeLayout $ MagicFocus $ Mirror tiled
 
-magicFocus :: Layout Window -> Layout Window
-magicFocus l = l { doLayout = \r s -> withWindowSet (return . peek) >>= (doLayout l) r . swap s
-                 , modifyLayout = \x -> fmap magicFocus `fmap` modifyLayout l x }
+
+data MagicFocus l a = MagicFocus (l a) deriving ( Show , Read )
+
+instance (Layout l Window) => Layout (MagicFocus l) Window where
+          doLayout = magicFocus
+
+magicFocus :: Layout l Window => MagicFocus l Window -> Rectangle
+           -> Stack Window -> X ([(Window, Rectangle)], Maybe (MagicFocus l Window))
+magicFocus (MagicFocus l) r s = 
+    withWindowSet $ \wset -> do
+      (ws,nl) <- doLayout l r (swap s $ peek wset)
+      case nl of
+        Nothing -> return (ws, Nothing)
+        Just l' -> return (ws, Just $ MagicFocus l')
 
 swap :: (Eq a) => Stack a -> Maybe a -> Stack a
 swap (Stack f u d) focused | Just f == focused = Stack f [] (reverse u ++ d)
