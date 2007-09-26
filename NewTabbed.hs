@@ -16,7 +16,7 @@
 module XMonadContrib.NewTabbed ( 
                              -- * Usage:
                              -- $usage
-                             Tabbed (..)
+                             tabbed
                             , TConf (..), defaultTConf
                             ) where
 
@@ -45,7 +45,7 @@ import XMonadContrib.XPrompt (fillDrawable, printString)
 -- > defaultLayouts = [("tall", SomeLayout tiled)
 -- >                  ,("wide", SomeLayout $ Mirror tiled)
 -- >                  -- Extension-provided layouts
--- >                  ,("tabbed", SomeLayout $ Tabbed Nothing myTabConfig)
+-- >                  ,("tabbed", SomeLayout $ tabbed myTabConfig)
 -- >                  , ... ]
 --
 -- You can also edit the default configuration options.
@@ -60,6 +60,9 @@ import XMonadContrib.XPrompt (fillDrawable, printString)
 
 -- %import XMonadContrib.NewTabbed
 -- %layout , tabbed shrinkText defaultTConf
+
+tabbed :: TConf -> Tabbed a
+tabbed t = Tabbed INothin t
 
 data TConf = 
     TConf { activeColor         :: String
@@ -88,22 +91,26 @@ data TabState =
     TabState { tabsWindows :: [(Window,Window)]
              , scr         :: Rectangle
              , fontS       :: FontStruct -- FontSet
-    } deriving (Read, Show)
+    }
 
 data Tabbed a = 
-    Tabbed (Maybe TabState) TConf 
+    Tabbed (InvisibleMaybe TabState) TConf
     deriving (Show, Read)
+
+data InvisibleMaybe a = INothin | IJus a
+instance Show (InvisibleMaybe a) where show _ = ""
+instance Read (InvisibleMaybe a) where readsPrec _ s = [(INothin, s)]
+whenIJus :: Monad m => InvisibleMaybe a -> (a -> m ()) -> m ()
+whenIJus (IJus a) j = j a
+whenIJus INothin _ = return ()
 
 instance Layout Tabbed Window where
     doLayout (Tabbed mst conf) = doLay mst conf
     handleMessage l m          = modLay l m
 
-instance Read FontStruct where
-    readsPrec _ _ = []
-
-doLay :: Maybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
+doLay :: InvisibleMaybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
 doLay mst _ sc (W.Stack w [] []) = do
-  when (isJust mst) $ destroyTabs (map fst $ tabsWindows (fromJust mst))
+  whenIJus mst $ \st -> destroyTabs (map fst $ tabsWindows st)
   return ([(w,sc)], Nothing)
 doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   let ws = W.integrate s
@@ -111,28 +118,28 @@ doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
       -- initialize state
   st <- case mst of
           Nothing -> initState conf sc ws
-          Just ts -> if map snd (tabsWindows ts) == ws && scr ts == sc
+          Just ts -> if map snd (tabsWindows ts) == ws
                      then return ts
                      else do destroyTabs (map fst $ tabsWindows ts)
                              tws <- createTabs conf sc ws
                              return (ts {scr = sc, tabsWindows = zip tws ws})
   showTabs $ map fst $ tabsWindows st
   mapM_ (updateTab conf (fontS st) width) $ tabsWindows st
-  return ([(w,shrink conf sc)], Just (Tabbed (Just st) conf))
+  return ([(w,shrink conf sc)], Just (Tabbed (IJus st) conf))
 
 modLay :: Tabbed Window -> SomeMessage -> X (Maybe (Tabbed Window))
-modLay (Tabbed mst conf) m
-    | Just st <- mst, Just e <- fromMessage m :: Maybe Event = do
+modLay (Tabbed (IJus st) conf) m
+    | Just e <- fromMessage m :: Maybe Event = do
   handleEvent conf st e >> return Nothing
-    | Just st <- mst, Just Hide             == fromMessage m = do
+    | Just Hide             == fromMessage m = do
   hideTabs $ map fst $ tabsWindows st
   return Nothing
-    | Just st <- mst, Just ReleaseResources == fromMessage m = do
+    | Just ReleaseResources == fromMessage m = do
   d <- asks display
   destroyTabs $ map fst $ tabsWindows st
   io $ freeFont d (fontS st)
-  return $ Just $ Tabbed Nothing conf
-    | otherwise = return Nothing
+  return $ Just $ Tabbed INothin conf
+modLay _ _ = return Nothing
 
 handleEvent :: TConf -> TabState -> Event -> X ()
 -- button press
