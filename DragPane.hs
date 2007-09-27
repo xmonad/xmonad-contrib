@@ -62,7 +62,7 @@ data DragPane a =
 data DragType = Horizontal | Vertical deriving ( Show, Read )
 
 instance Layout DragPane Window where
-    doLayout d@(DragPane _ Vertical _ _) = doLay id d
+    doLayout d@(DragPane _ Vertical   _ _) = doLay id d
     doLayout d@(DragPane _ Horizontal _ _) = doLay mirrorRect d
     handleMessage = handleMess
 
@@ -133,19 +133,19 @@ newDragWin p r = do
 
 updateDragWin :: Window -> Pixel -> Rectangle -> X Window
 updateDragWin w p r = do
-    d  <- asks display
-    io $ destroyWindow d w
-    dragWin d p r
+  d  <- asks display
+  io $ destroyWindow d w
+  dragWin d p r
 
 hideDragWin :: Window -> X ()
 hideDragWin w = do
-    d  <- asks display
-    io $ unmapWindow d w
+  d  <- asks display
+  io $ unmapWindow d w
 
 destroyDragWin :: Window -> X ()
 destroyDragWin w = do
-    d  <- asks display
-    io $ destroyWindow d w
+  d  <- asks display
+  io $ destroyWindow d w
 
 dragWin :: Display -> Pixel -> Rectangle -> X Window
 dragWin d p (Rectangle x y wt ht) = do
