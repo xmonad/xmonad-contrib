@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonadContrib.NewTabbed ( 
+module XMonadContrib.Tabbed ( 
                              -- * Usage:
                              -- $usage
                              tabbed
@@ -39,7 +39,7 @@ import XMonadContrib.XPrompt (fillDrawable, printString)
 -- $usage
 -- You can use this module with the following in your configuration file:
 --
--- > import XMonadContrib.NewTabbed
+-- > import XMonadContrib.Tabbed
 --
 -- > defaultLayouts :: [(String, SomeLayout Window)]
 -- > defaultLayouts = [SomeLayout tiled
@@ -58,7 +58,7 @@ import XMonadContrib.XPrompt (fillDrawable, printString)
 -- > defaultLayouts = [ tabbed myTabConfig
 -- >                  , ... ]
 
--- %import XMonadContrib.NewTabbed
+-- %import XMonadContrib.Tabbed
 -- %layout , tabbed defaultTConf
 
 tabbed :: TConf -> Tabbed a
