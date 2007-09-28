@@ -43,6 +43,7 @@ adjBorders mult (w,h)  = (w+2*mult*borderWidth, h+2*mult*borderWidth)
 data LayoutHints a = LayoutHints deriving (Read, Show)
 
 instance LayoutModifier LayoutHints Window where
+    modifierDescription _ = "Hinted"
     redoLayout _ _ _ xs = do
                             xs' <- mapM applyHint xs
                             return (xs', Nothing)
