@@ -107,6 +107,7 @@ whenIJus INothin _ = return ()
 instance Layout Tabbed Window where
     doLayout (Tabbed mst conf) = doLay mst conf
     handleMessage              = handleMess
+    description _              = "Tabbed"
 
 instance Read FontStruct where
     readsPrec _ _ = []
