@@ -1,4 +1,6 @@
-{-# OPTIONS -fallow-undecidable-instances #-}
+{-# OPTIONS_GHC -fallow-undecidable-instances #-}
+{-# LANGUAGE FlexibleInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.Combo

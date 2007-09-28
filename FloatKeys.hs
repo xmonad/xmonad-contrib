@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonadContrib.FloatKeys
@@ -87,8 +86,10 @@ keysAbsResizeWindow' :: SizeHints -> P -> D -> D -> D -> (P,D)
 keysAbsResizeWindow' sh (x,y) (w,h) (dx,dy) (ax, ay) = ((round nx, round ny), (nw, nh))
     where
         (nw, nh) = applySizeHints sh (w + dx, h + dy)
-        nx :: Rational = fromIntegral (ax * w + nw * (fromIntegral x - ax)) / fromIntegral w
-        ny :: Rational = fromIntegral (ay * h + nh * (fromIntegral y - ay)) / fromIntegral h
+        nx :: Rational
+        nx = fromIntegral (ax * w + nw * (fromIntegral x - ax)) / fromIntegral w
+        ny :: Rational
+        ny = fromIntegral (ay * h + nh * (fromIntegral y - ay)) / fromIntegral h
 
 keysResizeWindow' :: SizeHints -> P -> D -> D -> G -> (P,D)
 keysResizeWindow' sh (x,y) (w,h) (dx,dy) (gx, gy) = ((nx, ny), (nw, nh))
