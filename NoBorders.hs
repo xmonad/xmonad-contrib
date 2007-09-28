@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.NoBorders
@@ -44,19 +46,27 @@ import qualified StackSet as W
 -- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
 -- %layout , noBorders full
 
-data WithBorder a = WithBorder Dimension deriving ( Read, Show )
+-- todo, use an InvisibleList.
+data WithBorder a = WithBorder Dimension [a] deriving ( Read, Show )
 
-instance LayoutModifier WithBorder a where
-    hook (WithBorder b) = setborders b
-    unhook (WithBorder _) = setborders borderWidth
+instance LayoutModifier WithBorder Window where
+    modifierDescription (WithBorder 0 _) = "NoBorders"
+    modifierDescription (WithBorder n _) = "Borders " ++ show n
 
-noBorders :: Layout l a => l a -> ModifiedLayout WithBorder l a
-noBorders = ModifiedLayout (WithBorder 0)
+    unhook (WithBorder _ s) = setBorders borderWidth s
+
+    redoLayout (WithBorder n s) _ stack wrs = do
+        setBorders borderWidth s
+        setBorders n ws
+        return (wrs, Just $ WithBorder n ws)
+     where
+        ws = map fst wrs
+
+noBorders :: Layout l Window => l Window -> ModifiedLayout WithBorder l Window
+noBorders = ModifiedLayout $ WithBorder 0 []
 
 withBorder :: Layout l a => Dimension -> l a -> ModifiedLayout WithBorder l a
-withBorder b = ModifiedLayout (WithBorder b)
+withBorder b = ModifiedLayout $ WithBorder b []
 
-setborders :: Dimension -> X ()
-setborders bw = withDisplay $ \d ->
-                do ws <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
-                   mapM_ (\w -> io $ setWindowBorderWidth d w bw) ws
+setBorders :: Dimension -> [Window] -> X ()
+setBorders bw ws = withDisplay $ \d -> mapM_ (\w -> io $ setWindowBorderWidth d w bw) ws
