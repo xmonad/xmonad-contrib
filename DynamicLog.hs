@@ -28,11 +28,13 @@ module XMonadContrib.DynamicLog (
 -- Useful imports
 --
 import XMonad
+import {-# SOURCE #-} Config (workspaces)
 import Operations () -- for ReadableSomeLayout instance
 import Data.Maybe ( isJust )
 import Data.List
 import Data.Ord ( comparing )
 import qualified StackSet as S
+import Data.Monoid
 
 -- $usage 
 --
@@ -63,9 +65,18 @@ dynamicLog = withWindowSet $ \ws -> do
     io . putStrLn $ "(" ++ desc ++ ") " ++ pprWindowSet ws
 
 pprWindowSet :: WindowSet -> String
-pprWindowSet s =  concatMap fmt $ sortBy (comparing S.tag)
+pprWindowSet s =  concatMap fmt $ sortBy cmp
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
-   where this     = S.tag (S.workspace (S.current s))
+   where f Nothing Nothing = EQ
+         f (Just _) Nothing = LT
+         f Nothing (Just _) = GT
+         f (Just x) (Just y) = compare x y
+
+         wsIndex = flip elemIndex workspaces . S.tag
+
+         cmp a b = f (wsIndex a) (wsIndex b) `mappend` compare (S.tag a) (S.tag b)
+
+         this     = S.tag (S.workspace (S.current s))
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w | S.tag w == this         = "[" ++ S.tag w ++ "]"
