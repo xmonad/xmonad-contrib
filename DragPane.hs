@@ -36,6 +36,7 @@ import Data.Unique
 
 import Operations 
 import qualified StackSet as W 
+import XMonadContrib.Invisible
 
 -- $usage
 --
@@ -54,10 +55,10 @@ handleColor :: String
 handleColor = "#000000"
 
 dragPane :: DragType -> Double -> Double -> DragPane a
-dragPane t x y = DragPane Nothing t x y
+dragPane t x y = DragPane (I Nothing) t x y
 
 data DragPane a = 
-    DragPane (Maybe (Window,Rectangle,Int)) DragType Double Double 
+    DragPane (Invisible Maybe (Window,Rectangle,Int)) DragType Double Double 
              deriving ( Show, Read )
 
 data DragType = Horizontal | Vertical deriving ( Show, Read )
@@ -71,13 +72,13 @@ data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq, Typeable )
 instance Message SetFrac
 
 handleMess :: DragPane Window -> SomeMessage -> X (Maybe (DragPane Window)) 
-handleMess d@(DragPane mb@(Just (win,_,ident)) ty delta split) x
+handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
     | Just e <- fromMessage x :: Maybe Event = do handleEvent d e
                                                   return Nothing
     | Just Hide             <- fromMessage x = do hideDragWin win
                                                   return $ Just (DragPane mb ty delta split)
     | Just ReleaseResources <- fromMessage x = do destroyDragWin win
-                                                  return $ Just (DragPane Nothing ty delta split)
+                                                  return $ Just (DragPane (I Nothing) ty delta split)
     -- layout specific messages
     | Just Shrink <- fromMessage x = return $ Just (DragPane mb ty delta (split - delta))
     | Just Expand <- fromMessage x = return $ Just (DragPane mb ty delta (split + delta))
@@ -86,7 +87,7 @@ handleMess d@(DragPane mb@(Just (win,_,ident)) ty delta split) x
 handleMess _ _ = return Nothing
 
 handleEvent :: DragPane Window -> Event -> X ()
-handleEvent (DragPane (Just (win,r,ident)) ty _ _) 
+handleEvent (DragPane (I (Just (win,r,ident))) ty _ _) 
             (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
     | t == buttonPress && thisw == win || thisbw == win  = do
   mouseDrag (\ex ey -> do
@@ -117,13 +118,13 @@ doLay mirror (DragPane mw ty delta split) r s = do
                       [] -> [(W.focus s, r)]
   if length wrs > 1 
      then case mw of
-            Just (w,_,ident) -> do 
+            I (Just (w,_,ident)) -> do 
                     w' <- updateDragWin w handlec handr
-                    return (wrs, Just $ DragPane (Just (w',r',ident)) ty delta split)
-            Nothing -> do 
+                    return (wrs, Just $ DragPane (I $ Just (w',r',ident)) ty delta split)
+            I Nothing -> do 
                     w <- newDragWin handlec handr
                     i <- io $ newUnique
-                    return (wrs, Just $ DragPane (Just (w,r',hashUnique i)) ty delta split)
+                    return (wrs, Just $ DragPane (I $ Just (w,r',hashUnique i)) ty delta split)
      else return (wrs, Nothing)
 
 
