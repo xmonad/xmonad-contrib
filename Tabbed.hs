@@ -36,6 +36,7 @@ import qualified StackSet as W
 
 import XMonadContrib.NamedWindows
 import XMonadContrib.XPrompt (fillDrawable, printString)
+import XMonadContrib.Invisible
 
 -- $usage
 -- You can use this module with the following in your configuration file:
@@ -63,7 +64,7 @@ import XMonadContrib.XPrompt (fillDrawable, printString)
 -- %layout , tabbed defaultTConf
 
 tabbed :: TConf -> Tabbed a
-tabbed t = Tabbed INothin t
+tabbed t = Tabbed (I Nothing) t
 
 data TConf = 
     TConf { activeColor         :: String
@@ -95,15 +96,8 @@ data TabState =
     }
 
 data Tabbed a = 
-    Tabbed (InvisibleMaybe TabState) TConf
+    Tabbed (Invisible Maybe TabState) TConf
     deriving (Show, Read)
-
-data InvisibleMaybe a = INothin | IJus a
-instance Show (InvisibleMaybe a) where show _ = ""
-instance Read (InvisibleMaybe a) where readsPrec _ s = [(INothin, s)]
-whenIJus :: Monad m => InvisibleMaybe a -> (a -> m ()) -> m ()
-whenIJus (IJus a) j = j a
-whenIJus INothin _ = return ()
 
 instance Layout Tabbed Window where
     doLayout (Tabbed mst conf) = doLay mst conf
@@ -113,33 +107,33 @@ instance Layout Tabbed Window where
 instance Read FontStruct where
     readsPrec _ _ = []
 
-doLay :: InvisibleMaybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
+doLay :: Invisible Maybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
 doLay mst _ sc (W.Stack w [] []) = do
-  whenIJus mst $ \st -> destroyTabs (map fst $ tabsWindows st)
+  whenIJust mst $ \st -> destroyTabs (map fst $ tabsWindows st)
   return ([(w,sc)], Nothing)
 doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   let ws = W.integrate s
       width = wid `div` fromIntegral (length ws)
       -- initialize state
   st <- case mst of
-          INothin -> initState conf sc ws
-          IJus ts -> if map snd (tabsWindows ts) == ws && scr ts == sc
-                     then return ts
-                     else do destroyTabs (map fst $ tabsWindows ts)
-                             tws <- createTabs conf sc ws
-                             return (ts {scr = sc, tabsWindows = zip tws ws})
+          (I Nothing)   -> initState conf sc ws
+          (I (Just ts)) -> if map snd (tabsWindows ts) == ws && scr ts == sc
+                           then return ts
+                           else do destroyTabs (map fst $ tabsWindows ts)
+                                   tws <- createTabs conf sc ws
+                                   return (ts {scr = sc, tabsWindows = zip tws ws})
   showTabs $ map fst $ tabsWindows st
   mapM_ (updateTab conf (fontS st) width) $ tabsWindows st
-  return ([(w,shrink conf sc)], Just (Tabbed (IJus st) conf))
+  return ([(w,shrink conf sc)], Just (Tabbed (I (Just st)) conf))
 
 handleMess :: Tabbed Window -> SomeMessage -> X (Maybe (Tabbed Window))
-handleMess (Tabbed (IJus st@(TabState {tabsWindows = tws}))  conf) m
+handleMess (Tabbed (I (Just st@(TabState {tabsWindows = tws})))  conf) m
     | Just e <- fromMessage m :: Maybe Event = handleEvent conf st e  >> return Nothing
     | Just Hide             == fromMessage m = hideTabs (map fst tws) >> return Nothing
     | Just ReleaseResources == fromMessage m = do d <- asks display
                                                   destroyTabs $ map fst tws
                                                   io $ freeFont d (fontS st)
-                                                  return $ Just $ Tabbed INothin conf
+                                                  return $ Just $ Tabbed (I Nothing) conf
 handleMess _ _  = return Nothing
 
 handleEvent :: TConf -> TabState -> Event -> X ()
