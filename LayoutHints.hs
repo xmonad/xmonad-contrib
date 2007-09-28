@@ -29,8 +29,8 @@ import XMonadContrib.LayoutModifier
 -- > defaultLayouts = [ layoutHints tiled , layoutHints $ mirror tiled ]
 
 -- %import XMonadContrib.LayoutHints
--- %layout , ModifiedLayout LayoutHints $ layoutHints tiled
--- %layout , ModifiedLayout LayoutHints $ mirror tiled
+-- %layout , layoutHints $ tiled
+-- %layout , layoutHints $ mirror tiled
 
 layoutHints :: (Layout l a) => l a -> ModifiedLayout LayoutHints l a
 layoutHints = ModifiedLayout LayoutHints
