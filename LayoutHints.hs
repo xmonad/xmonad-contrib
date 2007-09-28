@@ -14,6 +14,7 @@
 module XMonadContrib.LayoutHints (
     -- * usage
     -- $usage
+    layoutHints,
     LayoutHints) where
 
 import Operations ( applySizeHints, D )
@@ -30,6 +31,9 @@ import XMonadContrib.LayoutModifier
 -- %import XMonadContrib.LayoutHints
 -- %layout , ModifiedLayout LayoutHints $ layoutHints tiled
 -- %layout , ModifiedLayout LayoutHints $ mirror tiled
+
+layoutHints :: (Layout l a) => l a -> ModifiedLayout LayoutHints l a
+layoutHints = ModifiedLayout LayoutHints
 
 -- | Expand a size by the given multiple of the border width.  The
 -- multiple is most commonly 1 or -1.
