@@ -28,6 +28,7 @@ module XMonadContrib.DynamicLog (
 -- Useful imports
 --
 import XMonad
+import Operations () -- for ReadableSomeLayout instance
 import Data.Maybe ( isJust )
 import Data.List
 import Data.Ord ( comparing )
@@ -57,7 +58,9 @@ import qualified StackSet as S
 --  
 
 dynamicLog :: X ()
-dynamicLog = withWindowSet $ io . putStrLn . pprWindowSet
+dynamicLog = withWindowSet $ \ws -> do
+    let desc = description . S.layout . S.workspace . S.current $ ws
+    io . putStrLn $ "(" ++ desc ++ ") " ++ pprWindowSet ws
 
 pprWindowSet :: WindowSet -> String
 pprWindowSet s =  concatMap fmt $ sortBy (comparing S.tag)
