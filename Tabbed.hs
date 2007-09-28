@@ -108,15 +108,15 @@ instance Read FontStruct where
     readsPrec _ _ = []
 
 doLay :: Invisible Maybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
-doLay mst _ sc (W.Stack w [] []) = do
+doLay mst c sc (W.Stack w [] []) = do
   whenIJust mst $ \st -> destroyTabs (map fst $ tabsWindows st)
-  return ([(w,sc)], Nothing)
+  return ([(w,sc)], Just $ Tabbed (I Nothing) c)
 doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   let ws = W.integrate s
       width = wid `div` fromIntegral (length ws)
       -- initialize state
   st <- case mst of
-          (I Nothing)   -> initState conf sc ws
+          (I Nothing  ) -> initState conf sc ws
           (I (Just ts)) -> if map snd (tabsWindows ts) == ws && scr ts == sc
                            then return ts
                            else do destroyTabs (map fst $ tabsWindows ts)
