@@ -20,15 +20,17 @@ module XMonadContrib.LayoutModifier (
 import Graphics.X11.Xlib ( Rectangle )
 import XMonad
 import StackSet ( Stack )
-import Operations ( LayoutMessages(Hide) )
+import Operations ( LayoutMessages(Hide, ReleaseResources) )
 
 -- $usage
 -- Use LayoutHelpers to help write easy Layouts.
 
 class (Show (m a), Read (m a)) => LayoutModifier m a where
     modifyModify :: m a -> SomeMessage -> X (Maybe (m a))
-    modifyModify m mess | Just Hide <- fromMessage mess = do unhook m; return Nothing
+    modifyModify m mess | Just Hide <- fromMessage mess             = doUnhook
+                        | Just ReleaseResources <- fromMessage mess = doUnhook
                         | otherwise = return Nothing
+     where doUnhook = do unhook m; return Nothing
     redoLayout :: m a -> Rectangle -> Stack a -> [(a, Rectangle)]
                -> X ([(a, Rectangle)], Maybe (m a))
     redoLayout m _ _ wrs = do hook m; return (wrs, Nothing)
