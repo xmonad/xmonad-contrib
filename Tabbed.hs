@@ -2,10 +2,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.Tabbed
--- Copyright   :  (c) David Roundy
+-- Copyright   :  (c) 2007 David Roundy, Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 -- 
--- Maintainer  :  email@address.com
+-- Maintainer  :  droundy@darcs.net, andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -91,7 +91,7 @@ data TabState =
     TabState { tabsWindows :: [(Window,Window)]
              , scr         :: Rectangle
              , fontS       :: FontStruct -- FontSet
-    }
+    } deriving ( Show , Read )
 
 data Tabbed a = 
     Tabbed (InvisibleMaybe TabState) TConf
@@ -137,7 +137,7 @@ handleMess (Tabbed (IJus st@(TabState {tabsWindows = tws}))  conf) m
     | Just ReleaseResources == fromMessage m = do d <- asks display
                                                   destroyTabs $ map fst tws
                                                   io $ freeFont d (fontS st)
-                                                  return $ Just $ Tabbed INothin conf
+                                                  return Nothing
 handleMess _ _  = return Nothing
 
 handleEvent :: TConf -> TabState -> Event -> X ()
