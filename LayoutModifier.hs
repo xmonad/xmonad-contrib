@@ -36,6 +36,8 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     hook _ = return ()
     unhook :: m a -> X ()
     unhook _ = return ()
+    modifierDescription :: m a -> String
+    modifierDescription = show
 
 instance (LayoutModifier m a, Layout l a) => Layout (ModifiedLayout m l) a where
     doLayout (ModifiedLayout m l) r s =
@@ -51,5 +53,6 @@ instance (LayoutModifier m a, Layout l a) => Layout (ModifiedLayout m l) a where
            return $ case mm' of
                     Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                     Nothing -> (ModifiedLayout m) `fmap` ml'
+    description (ModifiedLayout m l) = modifierDescription m ++ description l
 
 data ModifiedLayout m l a = ModifiedLayout (m a) (l a) deriving ( Read, Show )
