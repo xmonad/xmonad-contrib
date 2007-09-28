@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonadContrib.LayoutModifier
