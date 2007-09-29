@@ -21,6 +21,7 @@ module XMonadContrib.NoBorders (
                                 -- * Usage
                                 -- $usage
                                 noBorders,
+                                smartBorders,
                                 withBorder
                                ) where
 
@@ -70,3 +71,23 @@ withBorder b = ModifiedLayout $ WithBorder b []
 
 setBorders :: Dimension -> [Window] -> X ()
 setBorders bw ws = withDisplay $ \d -> mapM_ (\w -> io $ setWindowBorderWidth d w bw) ws
+
+data SmartBorder a = SmartBorder [a] deriving (Read, Show)
+
+instance LayoutModifier SmartBorder Window where
+    modifierDescription _ = "SmartBorder"
+
+    unhook (SmartBorder s) = setBorders borderWidth s
+
+    redoLayout (SmartBorder s) _ stack wrs = do
+        ss <- gets (W.screens . windowset)
+        setBorders borderWidth s
+
+        if singleton ws && singleton ss
+            then do setBorders 0 ws; return (wrs, Just $ SmartBorder ws)
+            else return (wrs, Just $ SmartBorder [])
+     where
+        ws = map fst wrs
+        singleton = null . drop 1
+
+smartBorders = ModifiedLayout (SmartBorder [])
