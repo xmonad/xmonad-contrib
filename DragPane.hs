@@ -27,7 +27,6 @@ module XMonadContrib.DragPane (
                               , DragType (..)
                               ) where
 
-import Control.Monad.Reader ( asks )
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import XMonad
@@ -37,6 +36,7 @@ import Data.Unique
 import Operations 
 import qualified StackSet as W 
 import XMonadContrib.Invisible
+import XMonadContrib.XUtils
 
 -- $usage
 --
@@ -75,9 +75,9 @@ handleMess :: DragPane Window -> SomeMessage -> X (Maybe (DragPane Window))
 handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
     | Just e <- fromMessage x :: Maybe Event = do handleEvent d e
                                                   return Nothing
-    | Just Hide             <- fromMessage x = do hideDragWin win
+    | Just Hide             <- fromMessage x = do hideWindow win
                                                   return $ Just (DragPane mb ty delta split)
-    | Just ReleaseResources <- fromMessage x = do destroyDragWin win
+    | Just ReleaseResources <- fromMessage x = do deleteWindow win
                                                   return $ Just (DragPane (I Nothing) ty delta split)
     -- layout specific messages
     | Just Shrink <- fromMessage x = return $ Just (DragPane mb ty delta (split - delta))
@@ -100,7 +100,6 @@ handleEvent _ _ = return ()
 
 doLay :: (Rectangle -> Rectangle) -> DragPane Window -> Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (DragPane a))
 doLay mirror (DragPane mw ty delta split) r s = do
-  handlec <- withDisplay $ \dpy -> io $ initColor dpy handleColor
   let r' = mirror r
       (left', right') = splitHorizontallyBy split r'
       left = case left' of Rectangle x y w h ->
@@ -119,40 +118,19 @@ doLay mirror (DragPane mw ty delta split) r s = do
   if length wrs > 1 
      then case mw of
             I (Just (w,_,ident)) -> do 
-                    w' <- updateDragWin w handlec handr
+                    w' <- deleteWindow w >> newDragWin handr
                     return (wrs, Just $ DragPane (I $ Just (w',r',ident)) ty delta split)
             I Nothing -> do 
-                    w <- newDragWin handlec handr
+                    w <- newDragWin handr
                     i <- io $ newUnique
                     return (wrs, Just $ DragPane (I $ Just (w,r',hashUnique i)) ty delta split)
      else return (wrs, Nothing)
 
 
-newDragWin :: Pixel -> Rectangle -> X Window
-newDragWin p r = do
-  d  <- asks display
-  dragWin d p r
-
-updateDragWin :: Window -> Pixel -> Rectangle -> X Window
-updateDragWin w p r = do
-  d  <- asks display
-  io $ destroyWindow d w
-  dragWin d p r
-
-hideDragWin :: Window -> X ()
-hideDragWin w = do
-  d  <- asks display
-  io $ unmapWindow d w
-
-destroyDragWin :: Window -> X ()
-destroyDragWin w = do
-  d  <- asks display
-  io $ destroyWindow d w
-
-dragWin :: Display -> Pixel -> Rectangle -> X Window
-dragWin d p (Rectangle x y wt ht) = do
-  rt <- asks theRoot
-  w  <- io $ createSimpleWindow d rt x y wt ht 0 p p
-  io $ selectInput d w $ exposureMask .|. buttonPressMask
-  io $ mapWindow d w
-  return w
+newDragWin :: Rectangle -> X Window
+newDragWin  r@(Rectangle _ _ wh ht) = do
+  let mask = Just $ exposureMask .|. buttonPressMask
+  w <- createNewWindow r mask
+  paintWindow w wh ht 0 handleColor handleColor
+  showWindow  w
+  return      w
