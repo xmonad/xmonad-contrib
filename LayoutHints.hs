@@ -34,7 +34,7 @@ import XMonadContrib.LayoutModifier
 -- %layout , layoutHints $ tiled
 -- %layout , layoutHints $ mirror tiled
 
-layoutHints :: (Layout l a) => l a -> ModifiedLayout LayoutHints l a
+layoutHints :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHints l a
 layoutHints = ModifiedLayout LayoutHints
 
 -- | Expand a size by the given multiple of the border width.  The

@@ -63,10 +63,10 @@ instance LayoutModifier WithBorder Window where
      where
         ws = map fst wrs
 
-noBorders :: Layout l Window => l Window -> ModifiedLayout WithBorder l Window
+noBorders :: LayoutClass l Window => l Window -> ModifiedLayout WithBorder l Window
 noBorders = ModifiedLayout $ WithBorder 0 []
 
-withBorder :: Layout l a => Dimension -> l a -> ModifiedLayout WithBorder l a
+withBorder :: LayoutClass l a => Dimension -> l a -> ModifiedLayout WithBorder l a
 withBorder b = ModifiedLayout $ WithBorder b []
 
 setBorders :: Dimension -> [Window] -> X ()

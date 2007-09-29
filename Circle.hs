@@ -33,7 +33,7 @@ import StackSet (integrate, peek)
 
 data Circle a = Circle deriving ( Read, Show )
 
-instance Layout Circle Window where
+instance LayoutClass Circle Window where
     doLayout Circle r s = do layout <- raiseFocus $ circleLayout r $ integrate s
                              return (layout, Nothing)
 

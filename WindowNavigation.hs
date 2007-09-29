@@ -93,7 +93,7 @@ instance LayoutModifier WindowNavigation Window where
            --mapM_ (\(w,c) -> sc c w) wnavigablec
            return (wrs, Just $ WindowNavigation $ I $ Just $ NS pt wnavigable)
 
-    modifyModify (WindowNavigation (I (Just (NS pt wrs)))) m
+    handleMess (WindowNavigation (I (Just (NS pt wrs)))) m
         | Just (Go d) <- fromMessage m =
                          case sortby d $ filter (inr d pt . snd) wrs of
                          [] -> return Nothing
@@ -105,8 +105,8 @@ instance LayoutModifier WindowNavigation Window where
                           mapM_ (sc (Just nbc) . fst) wrs
                           return $ Just $ WindowNavigation $ I $ Just $ NS pt []
         | Just ReleaseResources <- fromMessage m =
-               modifyModify (WindowNavigation (I $ Just (NS pt wrs))) (SomeMessage Hide)
-    modifyModify _ _ = return Nothing
+               handleMess (WindowNavigation (I $ Just (NS pt wrs))) (SomeMessage Hide)
+    handleMess _ _ = return Nothing
 
 truncHead (x:_) = [x]
 truncHead [] = []

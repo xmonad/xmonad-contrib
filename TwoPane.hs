@@ -43,7 +43,7 @@ data TwoPane a =
     TwoPane Rational Rational 
     deriving ( Show, Read )
 
-instance Layout TwoPane a where
+instance LayoutClass TwoPane a where
     doLayout (TwoPane _ split) r s = return (arrange r s,Nothing)
         where
           arrange rect st = case reverse (up st) of

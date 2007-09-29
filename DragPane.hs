@@ -63,7 +63,7 @@ data DragPane a =
 
 data DragType = Horizontal | Vertical deriving ( Show, Read )
 
-instance Layout DragPane Window where
+instance LayoutClass DragPane Window where
     doLayout d@(DragPane _ Vertical   _ _) = doLay id d
     doLayout d@(DragPane _ Horizontal _ _) = doLay mirrorRect d
     handleMessage = handleMess

@@ -55,11 +55,11 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       step = (scale - (1 % 1)) / (fromIntegral len)
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
-spiral :: Rational -> Layout a
+spiral :: Rational -> LayoutClass a
 spiral = spiralWithDir East CW
 
-spiralWithDir :: Direction -> Rotation -> Rational -> Layout a
-spiralWithDir dir rot scale = Layout { doLayout = l2lModDo fibLayout,
+spiralWithDir :: Direction -> Rotation -> Rational -> LayoutClass a
+spiralWithDir dir rot scale = LayoutClass { doLayout = l2lModDo fibLayout,
                                        modifyLayout = \m -> return $ fmap resize $ fromMessage m }
     where
       fibLayout sc ws = zip ws rects

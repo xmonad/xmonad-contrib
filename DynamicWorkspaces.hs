@@ -21,7 +21,7 @@ module XMonadContrib.DynamicWorkspaces (
 
 import Control.Monad.State ( gets )
 
-import XMonad ( X, XState(..), SomeLayout, WorkspaceId )
+import XMonad ( X, XState(..), Layout, WorkspaceId )
 import Operations
 import StackSet hiding (filter, modify, delete)
 import Graphics.X11.Xlib ( Window )
@@ -37,7 +37,7 @@ import Graphics.X11.Xlib ( Window )
 allPossibleTags :: [WorkspaceId]
 allPossibleTags = map (:"") ['0'..]
 
-addWorkspace :: SomeLayout Window -> X ()
+addWorkspace :: Layout Window -> X ()
 addWorkspace l = do s <- gets windowset
                     let newtag:_ = filter (not . (`tagMember` s)) allPossibleTags
                     windows (addWorkspace' newtag l)

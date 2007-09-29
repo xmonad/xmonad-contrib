@@ -46,7 +46,7 @@ import Graphics.X11.Xlib
 
 data ThreeCol a = ThreeCol Int Rational Rational deriving (Show,Read)
 
-instance Layout ThreeCol a where
+instance LayoutClass ThreeCol a where
     doLayout (ThreeCol nmaster _ frac) r =
         return . (\x->(x,Nothing)) .
         ap zip (tile3 frac r nmaster . length) . W.integrate

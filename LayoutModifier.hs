@@ -28,8 +28,8 @@ import Operations ( LayoutMessages(Hide, ReleaseResources) )
 -- Use LayoutHelpers to help write easy Layouts.
 
 class (Show (m a), Read (m a)) => LayoutModifier m a where
-    modifyModify :: m a -> SomeMessage -> X (Maybe (m a))
-    modifyModify m mess | Just Hide <- fromMessage mess             = doUnhook
+    handleMess :: m a -> SomeMessage -> X (Maybe (m a))
+    handleMess m mess | Just Hide <- fromMessage mess             = doUnhook
                         | Just ReleaseResources <- fromMessage mess = doUnhook
                         | otherwise = return Nothing
      where doUnhook = do unhook m; return Nothing
@@ -43,7 +43,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     modifierDescription :: m a -> String
     modifierDescription = show
 
-instance (LayoutModifier m a, Layout l a) => Layout (ModifiedLayout m l) a where
+instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
     doLayout (ModifiedLayout m l) r s =
         do (ws, ml') <- doLayout l r s
            (ws', mm') <- redoLayout m r s ws
@@ -53,7 +53,7 @@ instance (LayoutModifier m a, Layout l a) => Layout (ModifiedLayout m l) a where
            return (ws', ml'')
     handleMessage (ModifiedLayout m l) mess =
         do ml' <- handleMessage l mess
-           mm' <- modifyModify m mess
+           mm' <- handleMess m mess
            return $ case mm' of
                     Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                     Nothing -> (ModifiedLayout m) `fmap` ml'

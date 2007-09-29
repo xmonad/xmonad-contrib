@@ -10,7 +10,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Layout that puts non-focused windows in ribbons at the top and bottom
+-- LayoutClass that puts non-focused windows in ribbons at the top and bottom
 -- of the screen.
 -----------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ import Data.Ratio
 
 data Accordion a = Accordion deriving ( Read, Show )
 
-instance Layout Accordion Window where
+instance LayoutClass Accordion Window where
     pureLayout _ sc ws = zip ups tops ++ [(W.focus ws, mainPane)] ++ zip dns bottoms
      where
        ups    = W.up ws

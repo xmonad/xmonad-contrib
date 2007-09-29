@@ -99,7 +99,7 @@ data Tabbed a =
     Tabbed (Invisible Maybe TabState) (Invisible Maybe Shrinker) TConf
     deriving (Show, Read)
 
-instance Layout Tabbed Window where
+instance LayoutClass Tabbed Window where
     doLayout (Tabbed ist ishr conf) = doLay ist ishr conf
     handleMessage                   = handleMess
     description _                   = "Tabbed"

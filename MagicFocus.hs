@@ -34,10 +34,10 @@ import StackSet
 
 data MagicFocus l a = MagicFocus (l a) deriving ( Show , Read )
 
-instance (Layout l Window) => Layout (MagicFocus l) Window where
+instance (LayoutClass l Window) => LayoutClass (MagicFocus l) Window where
           doLayout = magicFocus
 
-magicFocus :: Layout l Window => MagicFocus l Window -> Rectangle
+magicFocus :: LayoutClass l Window => MagicFocus l Window -> Rectangle
            -> Stack Window -> X ([(Window, Rectangle)], Maybe (MagicFocus l Window))
 magicFocus (MagicFocus l) r s = 
     withWindowSet $ \wset -> do

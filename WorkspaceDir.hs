@@ -60,10 +60,10 @@ data WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
 
 instance LayoutModifier WorkspaceDir a where
     hook (WorkspaceDir s) = scd s
-    modifyModify (WorkspaceDir _) m = return $ do Chdir wd <- fromMessage m
-                                                  Just (WorkspaceDir wd)
+    handleMess (WorkspaceDir _) m = return $ do Chdir wd <- fromMessage m
+                                                Just (WorkspaceDir wd)
 
-workspaceDir :: Layout l a => String -> l a
+workspaceDir :: LayoutClass l a => String -> l a
              -> ModifiedLayout WorkspaceDir l a
 workspaceDir s = ModifiedLayout (WorkspaceDir s)
 

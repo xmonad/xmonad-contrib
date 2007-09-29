@@ -50,15 +50,15 @@ import qualified StackSet as W ( differentiate )
 -- %import XMonadContrib.Combo
 -- %layout , combo (twoPane 0.03 0.5) [(full,1),(tabbed shrinkText defaultTConf,1)]
 
-combo :: (Eq a, Show a, Read a, ReadableSomeLayout a, Layout l (SomeLayout a, Int))
-         => (l (SomeLayout a, Int)) -> [(SomeLayout a, Int)] -> Combo l a
+combo :: (Eq a, Show a, Read a, ReadableLayout a, LayoutClass l (Layout a, Int))
+         => (l (Layout a, Int)) -> [(Layout a, Int)] -> Combo l a
 combo = Combo []
 
-data Combo l a = Combo [a] (l (SomeLayout a, Int)) [(SomeLayout a, Int)]
+data Combo l a = Combo [a] (l (Layout a, Int)) [(Layout a, Int)]
                  deriving ( Show, Read )
 
-instance (Eq a, Show a, Read a, ReadableSomeLayout a, Layout l (SomeLayout a, Int))
-    => Layout (Combo l) a where
+instance (Eq a, Show a, Read a, ReadableLayout a, LayoutClass l (Layout a, Int))
+    => LayoutClass (Combo l) a where
     doLayout (Combo f super origls) rinput s = arrange (integrate s)
         where arrange [] = return ([], Just $ Combo [] super origls)
               arrange [w] = return ([(w,rinput)], Just $ Combo [w] super origls)
@@ -89,7 +89,7 @@ instance (Eq a, Show a, Read a, ReadableSomeLayout a, Layout l (SomeLayout a, In
                            Just [super'] -> return $ Just $ Combo f super' $ maybe origls id mls'
                            _ -> return $ Combo f super `fmap` mls'
 
-broadcastPrivate :: Layout l b => SomeMessage -> [l b] -> X (Maybe [l b])
+broadcastPrivate :: LayoutClass l b => SomeMessage -> [l b] -> X (Maybe [l b])
 broadcastPrivate a ol = do nml <- mapM f ol
                            if any isJust nml
                               then return $ Just $ zipWith ((flip maybe) id) ol nml

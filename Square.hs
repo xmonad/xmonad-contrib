@@ -42,7 +42,7 @@ import StackSet ( integrate )
 
 data Square a = Square deriving ( Read, Show )
 
-instance Layout Square a where
+instance LayoutClass Square a where
     pureLayout Square r s = arrange (integrate s)
         where arrange ws@(_:_) = map (\w->(w,rest)) (init ws) ++ [(last ws,sq)]
               arrange [] = [] -- actually, this is an impossible case

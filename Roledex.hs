@@ -36,7 +36,7 @@ import Data.Ratio
 
 data Roledex a = Roledex deriving ( Show, Read )
 
-instance Layout Roledex Window where
+instance LayoutClass Roledex Window where
     doLayout _ = roledexLayout
 
 roledexLayout :: Eq a => Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (Roledex a))
