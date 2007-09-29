@@ -33,6 +33,7 @@ instance Monad m => Show (Invisible m a) where
 instance (Functor m, Monad m) => Monad (Invisible m) where
     return a = I (return a)
     m >>= f  = m >>= f
+    fail   s = I (fail s)
 
 instance (Functor m, Monad m) => Functor (Invisible m) where
     fmap f (I x) = I (fmap f x)
