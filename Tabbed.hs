@@ -35,8 +35,8 @@ import Operations
 import qualified StackSet as W
 
 import XMonadContrib.NamedWindows
-import XMonadContrib.XPrompt (fillDrawable, printString)
 import XMonadContrib.Invisible
+import XMonadContrib.XUtils
 
 -- $usage
 -- You can use this module with the following in your configuration file:
@@ -109,7 +109,7 @@ instance Read FontStruct where
 
 doLay :: Invisible Maybe TabState -> TConf -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
 doLay mst c sc (W.Stack w [] []) = do
-  whenIJust mst $ \st -> destroyTabs (map fst $ tabsWindows st)
+  whenIJust mst $ \st -> mapM_ deleteWindow (map fst $ tabsWindows st)
   return ([(w,sc)], Just $ Tabbed (I Nothing) c)
 doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   let ws = W.integrate s
@@ -119,19 +119,19 @@ doLay mst conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
           (I Nothing  ) -> initState conf sc ws
           (I (Just ts)) -> if map snd (tabsWindows ts) == ws && scr ts == sc
                            then return ts
-                           else do destroyTabs (map fst $ tabsWindows ts)
+                           else do mapM_ deleteWindow (map fst $ tabsWindows ts)
                                    tws <- createTabs conf sc ws
                                    return (ts {scr = sc, tabsWindows = zip tws ws})
-  showTabs $ map fst $ tabsWindows st
+  mapM_ showWindow $ map fst $ tabsWindows st
   mapM_ (updateTab conf (fontS st) width) $ tabsWindows st
   return ([(w,shrink conf sc)], Just (Tabbed (I (Just st)) conf))
 
 handleMess :: Tabbed Window -> SomeMessage -> X (Maybe (Tabbed Window))
 handleMess (Tabbed (I (Just st@(TabState {tabsWindows = tws})))  conf) m
-    | Just e <- fromMessage m :: Maybe Event = handleEvent conf st e  >> return Nothing
-    | Just Hide             == fromMessage m = hideTabs (map fst tws) >> return Nothing
+    | Just e <- fromMessage m :: Maybe Event = handleEvent conf st e          >> return Nothing
+    | Just Hide             == fromMessage m = mapM_ hideWindow (map fst tws) >> return Nothing
     | Just ReleaseResources == fromMessage m = do d <- asks display
-                                                  destroyTabs $ map fst tws
+                                                  mapM_ deleteWindow $ map fst tws
                                                   io $ freeFont d (fontS st)
                                                   return $ Just $ Tabbed (I Nothing) conf
 handleMess _ _  = return Nothing
@@ -160,73 +160,40 @@ handleEvent conf (TabState {tabsWindows = tws,   scr           = screen, fontS =
 handleEvent _ _ _ =  return ()
 
 initState :: TConf -> Rectangle -> [Window] -> X TabState
-initState conf sc ws = withDisplay $ \ d -> do
-  fs <- io $ loadQueryFont d (fontName conf) `catch`
-        \_-> loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+initState conf sc ws = do
+  fs  <- initFont (fontName conf)
   tws <- createTabs conf sc ws
   return $ TabState (zip tws ws) sc fs
 
 createTabs :: TConf -> Rectangle -> [Window] -> X [Window]
 createTabs _ _ [] = return []
 createTabs c (Rectangle x y wh ht) owl@(ow:ows) = do
-  let wid = wh `div` (fromIntegral $ length owl)
+  let wid    = wh `div` (fromIntegral $ length owl)
+      height = fromIntegral $ tabSize c
+      mask   = Just (exposureMask .|. buttonPressMask)
   d  <- asks display
-  rt <- asks theRoot
-  w  <- io $ createSimpleWindow d rt x y wid (fromIntegral $ tabSize c) 0 0 0
-  io $ selectInput d w $ exposureMask .|. buttonPressMask
+  w  <- createNewWindow (Rectangle x y wid height) mask
   io $ restackWindows d $ w : [ow]
   ws <- createTabs c (Rectangle (x + fromIntegral wid) y (wh - wid) ht) ows
   return (w:ws)
 
 updateTab :: TConf -> FontStruct -> Dimension -> (Window,Window) -> X ()
 updateTab c fs wh (tabw,ow) = do
-  xc <- ask
   nw <- getName ow
   let ht                   = fromIntegral $ tabSize c :: Dimension
-      d                    = display xc
       focusColor win ic ac = (maybe ic (\focusw -> if focusw == win 
                                                    then ac else ic) . W.peek) 
                              `fmap` gets windowset
   (bc',borderc',tc') <- focusColor ow
                            (inactiveColor c, inactiveBorderColor c, inactiveTextColor c) 
                            (activeColor   c, activeBorderColor   c, activeTextColor   c)
-  
-  -- initialize colors
-  bc      <- io $ initColor d bc'
-  borderc <- io $ initColor d borderc'
-  tc      <- io $ initColor d tc'
-  -- pixmax and graphic context
-  p       <- io $ createPixmap d tabw wh ht (defaultDepthOfScreen $ defaultScreenOfDisplay d)
-  gc      <- io $ createGC d p
-  -- draw
-  io $ setGraphicsExposures d gc False
-  io $ fillDrawable d p gc borderc bc 1 wh ht
-  io $ setFont d gc (fontFromFontStruct fs)
   let name           = shrinkWhile shrinkText (\n -> textWidth fs n >
                                            fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
       width          = textWidth   fs name
       (_,asc,desc,_) = textExtents fs name
       y              = fromIntegral $ ((ht - fromIntegral (asc + desc)) `div` 2) + fromIntegral asc
       x              = fromIntegral (wh `div` 2) - fromIntegral (width `div` 2)
-  io $ printString d p gc tc bc x y name
-  io $ copyArea    d p tabw gc 0 0 wh ht 0 0
-  io $ freePixmap  d p
-  io $ freeGC      d gc
-
-destroyTabs :: [Window] -> X ()
-destroyTabs w = do
-  d <- asks display
-  io $ mapM_ (destroyWindow d) w
-
-hideTabs :: [Window] -> X ()
-hideTabs w = do
-  d <- asks display
-  io $ mapM_ (unmapWindow d) w
-
-showTabs :: [Window] -> X ()
-showTabs w = do
-  d <- asks display
-  io $ mapM_ (mapWindow d) w
+  paintAndWrite tabw fs wh ht 1 bc' borderc' x y tc' bc' name
 
 shrink :: TConf -> Rectangle -> Rectangle
 shrink c (Rectangle x y w h) = 
