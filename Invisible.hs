@@ -17,6 +17,7 @@ module XMonadContrib.Invisible (
                              -- $usage
                              Invisible (..)
                             , whenIJust
+                            , fromIMaybe
                             ) where
 
 -- $usage
@@ -41,3 +42,7 @@ instance (Functor m, Monad m) => Functor (Invisible m) where
 whenIJust :: (Monad m) => Invisible Maybe a -> (a -> m ()) -> m ()
 whenIJust (I (Just x)) f  = f x
 whenIJust (I  Nothing) _  = return ()
+
+fromIMaybe :: a -> Invisible Maybe a -> a
+fromIMaybe _ (I (Just x)) = x
+fromIMaybe a (I  Nothing) = a

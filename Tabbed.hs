@@ -137,7 +137,7 @@ handleMess _ _  = return Nothing
 handleEvent :: Invisible Maybe Shrinker -> TConf -> TabState -> Event -> X ()
 -- button press
 handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, fontS         = fs }) 
-                 (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
+                      (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
     | t == buttonPress, tl <- map fst tws, thisw `elem` tl || thisbw `elem` tl  = do
   focus (fromJust $ lookup thisw tws)
   updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
@@ -145,7 +145,7 @@ handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, 
       width = rect_width screen`div` fromIntegral (length tws)
 
 handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, fontS = fs }) 
-                 (AnyEvent {ev_window   = thisw, ev_event_type = t                  })
+                      (AnyEvent {ev_window   = thisw, ev_event_type = t                  })
 -- expose
     | thisw `elem` (map fst tws) && t == expose         = do
   updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
@@ -206,7 +206,3 @@ shrinkWhile sh p x = sw $ sh x
 shrinkText :: Shrinker
 shrinkText "" = [""]
 shrinkText cs = cs : shrinkText (init cs)
-
-fromIMaybe :: a -> Invisible Maybe a -> a
-fromIMaybe _ (I (Just x)) = x
-fromIMaybe a (I  Nothing) = a
