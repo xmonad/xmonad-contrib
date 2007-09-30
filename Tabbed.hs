@@ -189,11 +189,7 @@ updateTab c fs wh (tabw,ow) = do
                            (activeColor   c, activeBorderColor   c, activeTextColor   c)
   let name           = shrinkWhile shrinkText (\n -> textWidth fs n >
                                            fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
-      width          = textWidth   fs name
-      (_,asc,desc,_) = textExtents fs name
-      y              = fromIntegral $ ((ht - fromIntegral (asc + desc)) `div` 2) + fromIntegral asc
-      x              = fromIntegral (wh `div` 2) - fromIntegral (width `div` 2)
-  paintAndWrite tabw fs wh ht 1 bc' borderc' x y tc' bc' name
+  paintAndWrite tabw fs wh ht 1 bc' borderc' tc' bc' AlignCenter name
 
 shrink :: TConf -> Rectangle -> Rectangle
 shrink c (Rectangle x y w h) = 
