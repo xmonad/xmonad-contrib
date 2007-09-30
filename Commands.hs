@@ -29,7 +29,7 @@ import XMonad
 import Operations
 import StackSet hiding (workspaces)
 import XMonadContrib.Dmenu (dmenu)
-import {-# SOURCE #-} Config (workspaces)
+import {-# SOURCE #-} Config (workspaces,possibleLayouts)
 
 import qualified Data.Map as M
 import System.Exit
@@ -77,23 +77,26 @@ screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip wh
 
 defaultCommands :: [(String, X ())]
 defaultCommands = workspaceCommands ++ screenCommands
-                  ++ [ ("shrink", sendMessage Shrink)
-                     , ("expand", sendMessage Expand)
-                     , ("restart-wm", restart Nothing True)
-                     , ("restart-wm-no-resume", restart Nothing False)
-                     , ("layout", sendMessage NextLayout)
-                     , ("xterm", spawn "xterm")
-                     , ("run", spawn "exe=`dmenu_path | dmenu -b` && exec $exe")
-                     , ("kill", kill)
-                     , ("refresh", refresh)
-                     , ("focus-up", windows $ focusUp)
-                     , ("focus-down", windows $ focusDown)
-                     , ("swap-up", windows $ swapUp)
-                     , ("swap-down", windows $ swapDown)
-                     , ("swap-master", windows $ swapMaster)
-                     , ("sink", withFocused $ windows . sink)
-                     , ("quit-wm", io $ exitWith ExitSuccess)
+                  ++ [ ("shrink"              , sendMessage Shrink                               )
+                     , ("expand"              , sendMessage Expand                               )
+                     , ("next-layout"         , sendMessage NextLayout                           )
+                     , ("previous-layout"     , sendMessage PrevLayout                           )
+                     , ("default-layout"      , setLayout (head possibleLayouts)                 )
+                     , ("restart-wm"          , sr >> restart Nothing True                       )
+                     , ("restart-wm-no-resume", sr >> restart Nothing False                      )
+                     , ("xterm"               , spawn "xterm"                                    )
+                     , ("run"                 , spawn "exe=`dmenu_path | dmenu -b` && exec $exe" )
+                     , ("kill"                , kill                                             )
+                     , ("refresh"             , refresh                                          )
+                     , ("focus-up"            , windows $ focusUp                                )
+                     , ("focus-down"          , windows $ focusDown                              )
+                     , ("swap-up"             , windows $ swapUp                                 )
+                     , ("swap-down"           , windows $ swapDown                               )
+                     , ("swap-master"         , windows $ swapMaster                             )
+                     , ("sink"                , withFocused $ windows . sink                     )
+                     , ("quit-wm"             , io $ exitWith ExitSuccess                        )
                      ]
+    where sr = broadcastMessage ReleaseResources
 
 runCommand :: [(String, X ())] -> X ()
 runCommand cl = do
