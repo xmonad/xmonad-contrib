@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A module for painting on the screem
+-- A module for painting on the screen
 --
 -----------------------------------------------------------------------------
 
@@ -22,6 +22,8 @@ module XMonadContrib.XUtils  (
                              , hideWindow
                              , deleteWindow
                              , paintWindow
+                             , Align (..)
+                             , stringPosition
                              , paintAndWrite
                             ) where
 
@@ -42,7 +44,7 @@ import Operations
 stringToPixel :: String -> X Pixel
 stringToPixel s = do
   d <- asks display
-  return =<< io $ catch (getIt d) (fallBack d)
+  io $ catch (getIt d) (fallBack d)
     where getIt    d = initColor d s
           fallBack d = const $ return $ blackPixel d (defaultScreen d)
 
@@ -51,7 +53,7 @@ stringToPixel s = do
 initFont :: String -> X FontStruct
 initFont s = do
   d <- asks display
-  return =<< io $ catch (getIt d) (fallBack d)
+  io $ catch (getIt d) (fallBack d)
       where getIt    d = loadQueryFont d s
             fallBack d = const $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
 
@@ -97,6 +99,21 @@ paintWindow :: Window     -- ^ The window where to draw
 paintWindow w wh ht bw c bc =
     paintWindow' w (Rectangle 0 0 wh ht) bw c bc Nothing
 
+-- | String position
+data Align = AlignCenter | AlignRight | AlignLeft
+
+-- | Return the string x and y 'Position' in a 'Rectangle', given a
+-- 'FontStruct' and the 'Align'ment
+stringPosition :: FontStruct -> Rectangle -> Align -> String -> (Position,Position)
+stringPosition fs (Rectangle _ _ w h) al s = (x',y')
+    where width     = textWidth   fs s
+          (_,a,d,_) = textExtents fs s
+          y'        = fi $ ((h - fi (a + d)) `div` 2) + fi a
+          x'        = case al of 
+                        AlignCenter -> fi (w `div` 2) - fi (width `div` 2)
+                        AlignLeft   -> 1
+                        AlignRight  -> fi (w - (fi width + 1))
+
 -- | Fill a window with a rectangle and a border, and write a string at given position
 paintAndWrite :: Window     -- ^ The window where to draw 
               -> FontStruct -- ^ The FontStruct
@@ -105,14 +122,16 @@ paintAndWrite :: Window     -- ^ The window where to draw
               -> Dimension  -- ^ Border width
               -> String     -- ^ Window background color
               -> String     -- ^ Border color
-              -> Position   -- ^ String x position
-              -> Position   -- ^ String y position
               -> String     -- ^ String color
               -> String     -- ^ String background color
+              -> Align      -- ^ String 'Align'ment
               -> String     -- ^ String to be printed
               -> X ()
-paintAndWrite w fs wh ht bw bc borc x y ffc fbc str =
-    paintWindow' w (Rectangle x y wh ht) bw bc borc (Just (fs,ffc,fbc,str))
+paintAndWrite w fs wh ht bw bc borc ffc fbc al str =
+    paintWindow' w r bw bc borc ms
+    where ms    = Just (fs,ffc,fbc,str)
+          r     = Rectangle x y wh ht
+          (x,y) = stringPosition fs (Rectangle 0 0 wh ht) al str
 
 -- This stuf is not exported
 
@@ -121,7 +140,6 @@ paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
   d  <- asks display
   p  <- io $ createPixmap d win wh ht (defaultDepthOfScreen $ defaultScreenOfDisplay d)
   gc <- io $ createGC d p
-  let fi = fromIntegral
   -- draw
   io $ setGraphicsExposures d gc False
   [c',bc'] <- mapM stringToPixel [color,b_color]
@@ -135,7 +153,7 @@ paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
     let (fs,fc,bc,s) = fromJust str
     io $ setFont d gc $ fontFromFontStruct fs
     printString d p gc fc bc x y s
-  -- copy the pixmap over the wind
+  -- copy the pixmap over the window
   io $ copyArea      d p win gc 0 0 wh ht 0 0
   -- free the pixmap and GC
   io $ freePixmap    d p
@@ -149,3 +167,7 @@ printString d drw gc fc bc x y s = do
   io $ setForeground   d gc fc'
   io $ setBackground   d gc bc'
   io $ drawImageString d drw gc x y s
+
+-- | Short-hand for 'fromIntegral'
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral
