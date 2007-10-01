@@ -47,7 +47,7 @@ import XMonadContrib.XUtils
 -- > defaultLayouts = [SomeLayout tiled
 -- >                  ,SomeLayout $ Mirror tiled
 -- >                  -- Extension-provided layouts
--- >                  ,SomeLayout $ tabbed defaultTConf)
+-- >                  ,SomeLayout $ tabbed shrinkText defaultTConf)
 -- >                  , ... ]
 --
 -- You can also edit the default configuration options.
@@ -57,11 +57,11 @@ import XMonadContrib.XUtils
 --
 -- and
 --
--- > defaultLayouts = [ tabbed myTabConfig
--- >                  , ... ]
+-- > defaultLayouts = [ ...
+-- >                  , tabbed shrinkText myTabConfig ]
 
 -- %import XMonadContrib.Tabbed
--- %layout , tabbed defaultTConf
+-- %layout , tabbed shrinkText defaultTConf
 
 tabbed :: Shrinker -> TConf -> Tabbed a
 tabbed s t = Tabbed (I Nothing) (I (Just s)) t
