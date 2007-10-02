@@ -25,18 +25,17 @@ import Graphics.X11.Xlib
 import Operations
 import Data.Ratio
 import XMonad
-
-import XMonadContrib.LayoutHelpers
+import StackSet ( integrate )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 --
 -- >   import XMonadContrib.Spiral
 --
--- >   defaultLayouts = [ full, spiral (1 % 1), ... ]
+-- >   defaultLayouts = [ ..., Layout $ spiral (1 % 1), ... ]
 
 -- %import XMonadContrib.Spiral
--- %layout , spiral (1 % 1)
+-- %layout , Layout $ spiral (1 % 1)
 
 fibs :: [Integer]
 fibs = 1 : 1 : (zipWith (+) fibs (tail fibs))
@@ -45,8 +44,8 @@ mkRatios :: [Integer] -> [Rational]
 mkRatios (x1:x2:xs) = (x1 % x2) : mkRatios (x2:xs)
 mkRatios _ = []
 
-data Rotation = CW | CCW
-data Direction = East | South | West | North deriving (Eq, Enum)
+data Rotation = CW | CCW deriving (Read, Show)
+data Direction = East | South | West | North deriving (Eq, Enum, Read, Show)
 
 blend :: Rational -> [Rational] -> [Rational]
 blend scale ratios = zipWith (+) ratios scaleFactors
@@ -55,21 +54,26 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       step = (scale - (1 % 1)) / (fromIntegral len)
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
-spiral :: Rational -> LayoutClass a
+spiral :: Rational -> SpiralWithDir a
 spiral = spiralWithDir East CW
 
-spiralWithDir :: Direction -> Rotation -> Rational -> LayoutClass a
-spiralWithDir dir rot scale = LayoutClass { doLayout = l2lModDo fibLayout,
-                                       modifyLayout = \m -> return $ fmap resize $ fromMessage m }
-    where
-      fibLayout sc ws = zip ws rects
-          where ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
-                rects = divideRects (zip ratios dirs) sc
-                dirs  = dropWhile (/= dir) $ case rot of
-                                               CW  -> cycle [East .. North] 
-                                               CCW -> cycle [North, West, South, East]
-      resize Expand = spiralWithDir dir rot $ (21 % 20) * scale
-      resize Shrink = spiralWithDir dir rot $ (20 % 21) * scale
+spiralWithDir :: Direction -> Rotation -> Rational -> SpiralWithDir a
+spiralWithDir = SpiralWithDir
+
+data SpiralWithDir a = SpiralWithDir Direction Rotation Rational
+                     deriving ( Read, Show )
+
+instance LayoutClass SpiralWithDir a where
+    pureLayout (SpiralWithDir dir rot scale) sc stack = zip ws rects
+        where ws = integrate stack
+              ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
+              rects = divideRects (zip ratios dirs) sc
+              dirs  = dropWhile (/= dir) $ case rot of
+                                           CW  -> cycle [East .. North] 
+                                           CCW -> cycle [North, West, South, East]
+    handleMessage (SpiralWithDir dir rot scale) = return . fmap resize . fromMessage
+        where resize Expand = spiralWithDir dir rot $ (21 % 20) * scale
+              resize Shrink = spiralWithDir dir rot $ (20 % 21) * scale
 
 -- This will produce one more rectangle than there are splits details
 divideRects :: [(Rational, Direction)] -> Rectangle -> [Rectangle]
