@@ -32,6 +32,7 @@ import XMonad
 import XMonadContrib.LayoutModifier
 import {-# SOURCE #-} Config (borderWidth)
 import qualified StackSet as W
+import Data.List ((\\))
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -57,7 +58,7 @@ instance LayoutModifier WithBorder Window where
     unhook (WithBorder _ s) = setBorders borderWidth s
 
     redoLayout (WithBorder n s) _ stack wrs = do
-        setBorders borderWidth s
+        setBorders borderWidth (ws \\ s)
         setBorders n ws
         return (wrs, Just $ WithBorder n ws)
      where
@@ -81,11 +82,15 @@ instance LayoutModifier SmartBorder Window where
 
     redoLayout (SmartBorder s) _ stack wrs = do
         ss <- gets (W.screens . windowset)
-        setBorders borderWidth s
 
         if singleton ws && singleton ss
-            then do setBorders 0 ws; return (wrs, Just $ SmartBorder ws)
-            else return (wrs, Just $ SmartBorder [])
+            then do
+                setBorders borderWidth (s \\ ws)
+                setBorders 0 ws
+                return (wrs, Just $ SmartBorder ws)
+            else do
+                setBorders borderWidth s
+                return (wrs, Just $ SmartBorder [])
      where
         ws = map fst wrs
         singleton = null . drop 1
