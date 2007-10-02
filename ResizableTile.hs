@@ -34,7 +34,7 @@ import Control.Monad
 --
 -- and redefine "tiled" as:
 --
--- >     tiled   = T.Tall nmaster delta ratio (repeat 1)
+-- >     tiled   = T.Tall nmaster delta ratio []
 
 data MirrorResize = MirrorShrink | MirrorExpand deriving Typeable
 instance Message MirrorResize
@@ -43,7 +43,7 @@ data Tall a = Tall Int Rational Rational [Rational] deriving (Show, Read)
 instance Layout Tall a where
     doLayout (Tall nmaster _ frac mfrac) r =
         return . (\x->(x,Nothing)) .
-        ap zip (tile frac mfrac r nmaster . length) . W.integrate
+        ap zip (tile frac (mfrac ++ repeat 1) r nmaster . length) . W.integrate
     handleMessage (Tall nmaster delta frac mfrac) m =
         do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
            case ms of
@@ -57,10 +57,9 @@ instance Layout Tall a where
               mresize MirrorExpand s = mresize' s (0-delta)
               mresize' s d = let n = length $ W.up s
                                  total = n + (length $ W.down s) + 1
-                             in Tall nmaster delta frac
-                                    (modifymfrac mfrac d (if n == (nmaster-1) || n == (total-1)
-                                                          then n-1
-                                                          else n))
+                                 pos = if n == (nmaster-1) || n == (total-1) then n-1 else n
+                                 mfrac' = modifymfrac (mfrac ++ repeat 1) d pos
+                             in Tall nmaster delta frac $ take total mfrac'
               modifymfrac [] _ _ = []
               modifymfrac (f:fx) d n | n == 0    = f+d : fx
                                      | otherwise = f : modifymfrac fx d (n-1)
