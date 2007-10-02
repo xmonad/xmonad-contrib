@@ -265,9 +265,15 @@ data Direction = Prev | Next deriving (Eq,Show,Read)
 
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 -- commands: ctrl + ... todo
-keyPressHandle mask _
-    | mask == controlMask = eventLoop handle -- TODO
-keyPressHandle _ (ks,_)
+keyPressHandle mask (ks,_)
+    | mask == controlMask =
+        case () of
+-- ^U
+          _ | ks == xK_u -> killBefore >> go
+-- ^K
+            | ks == xK_k -> killAfter >> go
+-- Unhandled control sequence
+            | otherwise  -> eventLoop handle
 -- Return: exit
     | ks == xK_Return = do historyPush
                            return ()
@@ -294,6 +300,17 @@ keyPressHandle _ (_,s)
                      eventLoop handle
 
 -- KeyPress and State
+
+-- | Kill the portion of the command before the cursor
+killBefore :: XP ()
+killBefore =
+  modify $ \s -> s { command = drop (offset s) (command s)
+                   , offset  = 0 }
+
+-- | Kill the portion of the command including and after the cursor
+killAfter :: XP ()
+killAfter =
+  modify $ \s -> s { command = take (offset s) (command s) }
 
 -- |  Flush the command string and reset the offest
 flushString :: XP ()
