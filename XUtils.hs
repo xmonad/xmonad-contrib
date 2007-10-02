@@ -17,6 +17,7 @@ module XMonadContrib.XUtils  (
                              -- $usage
                              stringToPixel
                              , initFont
+                             , releaseFont
                              , createNewWindow
                              , showWindow
                              , hideWindow
@@ -56,6 +57,11 @@ initFont s = do
   io $ catch (getIt d) (fallBack d)
       where getIt    d = loadQueryFont d s
             fallBack d = const $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+
+releaseFont :: FontStruct -> X ()
+releaseFont fs = do
+  d <- asks display
+  io $ freeFont d fs
 
 -- | Create a simple window given a rectangle. If Nothing is given
 -- only the exposureMask will be set, otherwise the Just value.
@@ -105,11 +111,11 @@ data Align = AlignCenter | AlignRight | AlignLeft
 -- | Return the string x and y 'Position' in a 'Rectangle', given a
 -- 'FontStruct' and the 'Align'ment
 stringPosition :: FontStruct -> Rectangle -> Align -> String -> (Position,Position)
-stringPosition fs (Rectangle _ _ w h) al s = (x',y')
+stringPosition fs (Rectangle _ _ w h) al s = (x,y)
     where width     = textWidth   fs s
           (_,a,d,_) = textExtents fs s
-          y'        = fi $ ((h - fi (a + d)) `div` 2) + fi a
-          x'        = case al of 
+          y         = fi $ ((h - fi (a + d)) `div` 2) + fi a
+          x         = case al of 
                         AlignCenter -> fi (w `div` 2) - fi (width `div` 2)
                         AlignLeft   -> 1
                         AlignRight  -> fi (w - (fi width + 1))
