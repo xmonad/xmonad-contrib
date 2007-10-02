@@ -56,7 +56,6 @@ import XMonadContrib.SetWMName ()
 -- XMonadContrib.ShellPrompt depends on readline
 --import XMonadContrib.ShellPrompt ()
 import XMonadContrib.SimpleDate ()
-import XMonadContrib.SimpleStacking ()
 import XMonadContrib.SinkAll ()
 import XMonadContrib.Spiral ()
 import XMonadContrib.Square ()
