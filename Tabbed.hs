@@ -128,9 +128,8 @@ handleMess :: Tabbed Window -> SomeMessage -> X (Maybe (Tabbed Window))
 handleMess (Tabbed (I (Just st@(TabState {tabsWindows = tws}))) ishr conf) m
     | Just e <- fromMessage m :: Maybe Event = handleEvent ishr conf st e     >> return Nothing
     | Just Hide             == fromMessage m = mapM_ hideWindow (map fst tws) >> return Nothing
-    | Just ReleaseResources == fromMessage m = do d <- asks display
-                                                  mapM_ deleteWindow $ map fst tws
-                                                  io $ freeFont d (fontS st)
+    | Just ReleaseResources == fromMessage m = do mapM_ deleteWindow $ map fst tws
+                                                  releaseFont (fontS st)
                                                   return $ Just $ Tabbed (I Nothing) (I Nothing) conf
 handleMess _ _  = return Nothing
 
