@@ -17,7 +17,7 @@
 module XMonadContrib.ThreeColumns (
                               -- * Usage
                               -- $usage
-                              ThreeCol
+                              ThreeCol(..)
                              ) where
 
 import XMonad
