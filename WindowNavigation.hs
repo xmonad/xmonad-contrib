@@ -27,7 +27,7 @@ import Control.Monad.Reader ( ask )
 import Data.List ( nub, sortBy, (\\) )
 import XMonad
 import qualified StackSet as W
-import Operations ( focus, LayoutMessages(..) )
+import Operations ( windows, focus, LayoutMessages(..) )
 import XMonadContrib.LayoutModifier
 import XMonadContrib.Invisible
 import XMonadContrib.XUtils
@@ -51,12 +51,16 @@ import XMonadContrib.XUtils
 -- %keybind , ((modMask, xK_Left), sendMessage $ Go L)
 -- %keybind , ((modMask, xK_Up), sendMessage $ Go U)
 -- %keybind , ((modMask, xK_Down), sendMessage $ Go D)
+-- %keybind , ((modMask .|. controlMask, xK_Right), sendMessage $ Swap R)
+-- %keybind , ((modMask .|. controlMask, xK_Left), sendMessage $ Swap L)
+-- %keybind , ((modMask .|. controlMask, xK_Up), sendMessage $ Swap U)
+-- %keybind , ((modMask .|. controlMask, xK_Down), sendMessage $ Swap D)
 -- %layout -- include 'windowNavigation' in defaultLayout definition above.
 -- %layout -- just before the list, like the following (don't uncomment next line):
 -- %layout -- defaultLayout = SomeLayout $ windowNavigation defaultWNConfig $ ...
 
 
-data Navigate = Go Direction deriving ( Read, Show, Typeable )
+data Navigate = Go Direction | Swap Direction deriving ( Read, Show, Typeable )
 data Direction = U | D | R | L deriving ( Read, Show, Eq )
 instance Message Navigate
 
@@ -110,6 +114,22 @@ instance LayoutModifier WindowNavigation Window where
                          ((w,r):_) -> do focus w
                                          return $ Just $ WindowNavigation conf $ I $ Just $
                                                 NS (centerd d pt r) wrs
+        | Just (Swap d) <- fromMessage m =
+             case sortby d $ filter (inr d pt . snd) wrs of
+             []        -> return Nothing
+             ((w,_):_) -> do let swap st = unint (W.focus st) $ map (swapw (W.focus st)) $ W.integrate st
+                                 swapw y x | x == w = y
+                                           | x == y = w
+                                           | otherwise = x
+                                 unint f xs = case span (/= f) xs of
+                                              (u,_:dn) -> W.Stack { W.focus = f
+                                                                  , W.up = reverse u
+                                                                  , W.down = dn }
+                                              _ -> W.Stack { W.focus = f
+                                                           , W.down = xs
+                                                           , W.up = [] }
+                             windows $ W.modify' swap
+                             return Nothing
         | Just Hide <- fromMessage m =
                        do XConf { normalBorder = nbc } <- ask
                           mapM_ (sc nbc . fst) wrs
