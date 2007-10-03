@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonadContrib.ResizableTile (Tall(..), MirrorResize(..)) where
+module XMonadContrib.ResizableTile (ResizableTall(..), MirrorResize(..)) where
 
 import XMonad
 import Operations (Resize(..), IncMasterN(..))
@@ -25,7 +25,7 @@ import Control.Monad
 --
 -- To use, modify your Config.hs to:
 --
--- >    import XMonadContrib.ResizableTile as T
+-- >    import XMonadContrib.ResizableTile
 --
 -- and add a keybinding:
 --
@@ -34,36 +34,36 @@ import Control.Monad
 --
 -- and redefine "tiled" as:
 --
--- >     tiled   = T.Tall nmaster delta ratio []
+-- >     tiled   = ResizableTall nmaster delta ratio []
 
 data MirrorResize = MirrorShrink | MirrorExpand deriving Typeable
 instance Message MirrorResize
 
-data Tall a = Tall Int Rational Rational [Rational] deriving (Show, Read)
-instance LayoutClass Tall a where
-    doLayout (Tall nmaster _ frac mfrac) r =
+data ResizableTall a = ResizableTall Int Rational Rational [Rational] deriving (Show, Read)
+instance LayoutClass ResizableTall a where
+    doLayout (ResizableTall nmaster _ frac mfrac) r =
         return . (\x->(x,Nothing)) .
         ap zip (tile frac (mfrac ++ repeat 1) r nmaster . length) . W.integrate
-    handleMessage (Tall nmaster delta frac mfrac) m =
+    handleMessage (ResizableTall nmaster delta frac mfrac) m =
         do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
            case ms of
              Nothing -> return Nothing
              Just s -> return $ msum [fmap resize (fromMessage m)
                                      ,fmap (\x -> mresize x s) (fromMessage m)
                                      ,fmap incmastern (fromMessage m)]
-        where resize Shrink = Tall nmaster delta (max 0 $ frac-delta) mfrac
-              resize Expand = Tall nmaster delta (min 1 $ frac+delta) mfrac
+        where resize Shrink = ResizableTall nmaster delta (max 0 $ frac-delta) mfrac
+              resize Expand = ResizableTall nmaster delta (min 1 $ frac+delta) mfrac
               mresize MirrorShrink s = mresize' s delta
               mresize MirrorExpand s = mresize' s (0-delta)
               mresize' s d = let n = length $ W.up s
                                  total = n + (length $ W.down s) + 1
                                  pos = if n == (nmaster-1) || n == (total-1) then n-1 else n
                                  mfrac' = modifymfrac (mfrac ++ repeat 1) d pos
-                             in Tall nmaster delta frac $ take total mfrac'
+                             in ResizableTall nmaster delta frac $ take total mfrac'
               modifymfrac [] _ _ = []
               modifymfrac (f:fx) d n | n == 0    = f+d : fx
                                      | otherwise = f : modifymfrac fx d (n-1)
-              incmastern (IncMasterN d) = Tall (max 0 (nmaster+d)) delta frac mfrac
+              incmastern (IncMasterN d) = ResizableTall (max 0 (nmaster+d)) delta frac mfrac
     description _ = "ResizableTall"
 
 tile :: Rational -> [Rational] -> Rectangle -> Int -> Int -> [Rectangle]
