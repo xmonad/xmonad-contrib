@@ -66,7 +66,7 @@ resetAlt = ResetAlt
 type Areas = M.Map Window Rational
 data MosaicAlt a = MosaicAlt Areas deriving ( Show, Read )
 
-instance Layout MosaicAlt Window where
+instance LayoutClass MosaicAlt Window where
     description _ = "MosaicAlt"
     doLayout (MosaicAlt areas) rect stack =
             return (arrange rect stack areas', Just $ MosaicAlt areas')

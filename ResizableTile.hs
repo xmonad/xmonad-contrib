@@ -40,7 +40,7 @@ data MirrorResize = MirrorShrink | MirrorExpand deriving Typeable
 instance Message MirrorResize
 
 data Tall a = Tall Int Rational Rational [Rational] deriving (Show, Read)
-instance Layout Tall a where
+instance LayoutClass Tall a where
     doLayout (Tall nmaster _ frac mfrac) r =
         return . (\x->(x,Nothing)) .
         ap zip (tile frac (mfrac ++ repeat 1) r nmaster . length) . W.integrate
