@@ -34,6 +34,11 @@ import StackSet
 -- > ++
 -- > [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
 -- >     | (i, k) <- zip workspaces [xK_1 ..]]
+--
+-- %import XMonadContrib.SwapWorkspaces
+-- %keybindlist ++
+-- %keybindlist [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
+-- %keybindlist     | (i, k) <- zip workspaces [xK_1 ..]]
 
 swapWithCurrent :: Eq i => i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWithCurrent t s = swapWorkspaces t (tag $ workspace $ current s) s
