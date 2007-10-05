@@ -22,33 +22,26 @@ module XMonadContrib.ShellPrompt (
 
 import XMonad
 import XMonadContrib.XPrompt
+import XMonadContrib.Dmenu
 
 import Control.Monad
 import Data.List
-import System.Console.Readline
+import System.Directory
+import System.IO
 import System.Environment
 
 -- $usage
 --
--- 1. In xmonad.cabal change: 
---
--- > build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0
---
--- to
---
--- > build-depends:      base>=2.0, X11>=1.2.1, X11-extras>=0.2, mtl>=1.0, unix>=1.0, readline >= 1.0
---
--- 2. In Config.hs add:
+-- 1. In Config.hs add:
 --
 -- > import XMonadContrib.XPrompt
 -- > import XMonadContrib.ShellPrompt
 --
--- 3. In your keybindings add something like:
+-- 2. In your keybindings add something like:
 --
 -- >   , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 --
 
--- %cabalbuilddep readline>=1.0
 -- %import XMonadContrib.XPrompt
 -- %import XMonadContrib.ShellPrompt
 -- %keybind , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
@@ -65,21 +58,25 @@ shellPrompt c = mkXPrompt Shell c getShellCompl spawn
 getShellCompl :: String -> IO [String]
 getShellCompl s 
     | s /= "" && last s /= ' ' = do
-  fl <- filenameCompletionFunction s
+  f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
   c <- commandCompletionFunction s
-  return $ sort . nub $ fl ++ c
+  hPutStrLn stdout s
+  return $ map escape . sort . nub $ f ++ c
     | otherwise = return []
 
 commandCompletionFunction :: String -> IO [String]
 commandCompletionFunction str 
     | '/' `elem` str = return []
-    | otherwise = do
+    | otherwise      = do
   p <- getEnv "PATH"
   cl p
     where
-      cl = liftM (nub . rmPath . concat) . mapM fCF . map addToPath . split ':'  
-      addToPath = flip (++) ("/" ++ str)
-      fCF = filenameCompletionFunction
+      cl     = liftM (nub . rmPath . concat) . mapM cmpl . split ':'  
+      cmpl s = filter (isPrefixOf str) `fmap` getFileNames s
+
+getFileNames :: FilePath -> IO [FilePath]
+getFileNames fp = 
+    getDirectoryContents fp `catch` \_ -> return []
 
 rmPath :: [String] -> [String]
 rmPath s = 
@@ -94,3 +91,12 @@ split e l =
           rest s | s == [] = []
                  | otherwise = tail s
 
+escape :: String -> String
+escape []       = ""
+escape (' ':xs) = "\\ " ++ escape xs
+escape (x:xs)
+    | isSpecialChar x = '\\' : x : escape xs
+    | otherwise = x : escape xs
+
+isSpecialChar :: Char -> Bool
+isSpecialChar =  flip elem "\\@\"'#?$*()[]{};"
