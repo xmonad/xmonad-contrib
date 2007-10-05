@@ -8,16 +8,31 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
+-- A simple layout that attempts to put all windows in a square grid.
 --
 -----------------------------------------------------------------------------
 
 module XMonadContrib.Grid (
+    -- * Usage
+    -- $usage
 	Grid(..)
 ) where
 
 import XMonad
 import StackSet
 import Graphics.X11.Xlib.Types
+
+-- $usage
+-- Put the following in your Config.hs file:
+--
+-- > import XMonadContrib.Grid
+-- > ...
+-- > defaultLayouts = [ ...
+-- >                  , Layout Grid
+-- >                  ]
+
+-- %import XMonadContrib.Grid
+-- %layout , Layout Grid
 
 data Grid a = Grid deriving (Read, Show)
 
