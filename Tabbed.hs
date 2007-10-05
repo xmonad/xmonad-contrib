@@ -138,8 +138,10 @@ handleEvent :: Invisible Maybe Shrinker -> TConf -> TabState -> Event -> X ()
 handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, fontS         = fs }) 
                       (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
     | t == buttonPress, tl <- map fst tws, thisw `elem` tl || thisbw `elem` tl  = do
-  focus (fromJust $ lookup thisw tws)
-  updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
+  case lookup thisw tws of 
+    Just x  -> do focus x
+                  updateTab ishr conf fs width (thisw, x)
+    Nothing -> return ()
     where
       width = rect_width screen`div` fromIntegral (length tws)
 
