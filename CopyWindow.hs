@@ -55,8 +55,7 @@ import StackSet
 -- %keybindlist     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
 
 -- | copy. Copy a window to a new workspace.
-copy :: WorkspaceId -> X ()
-copy n = windows copy'
+copy n = copy'
     where copy' s = if n `tagMember` s && n /= tag (workspace (current s))
                     then maybe s (go s) (peek s)
                     else s
