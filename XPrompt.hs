@@ -35,17 +35,19 @@ module XMonadContrib.XPrompt (
                              , getLastWord
                              , skipLastWord
                              , splitInSubListsAt
+                             , breakAtSpace
                              , newIndex
                              , newCommand
-
                              ) where
 
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import XMonad  hiding (io)
-import Operations
+import Operations (initColor)
 import qualified StackSet as W
+import XMonadContrib.XUtils
 
+import Control.Arrow ((***),(&&&))
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Bits
@@ -57,7 +59,6 @@ import System.IO
 import System.Posix.Files
 
 -- $usage
---
 -- For usage examples see "XMonadContrib.ShellPrompt",
 -- "XMonadContrib.XMonadPrompt" or "XMonadContrib.SshPrompt"
 --
@@ -78,7 +79,7 @@ data XPState =
         , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
         , gcon               :: GC
-        , fs                 :: FontStruct 
+        , fontS              :: FontStruct 
         , xptype             :: XPType
         , command            :: String 
         , offset             :: Int
@@ -87,16 +88,16 @@ data XPState =
         }
 
 data XPConfig =  
-    XPC { font           :: String     -- ^ Font
-        , bgColor        :: String     -- ^ Backgroud color
-        , fgColor        :: String     -- ^ Font color
-        , fgHLight       :: String     -- ^ Font color of a highlighted completion entry
-        , bgHLight       :: String     -- ^ Backgroud color of a highlighted completion entry
-        , borderColor    :: String     -- ^ Border color
-        , borderPixel    :: Dimension  -- ^ Border width
-        , position       :: XPPosition -- ^ Position: 'Top' or 'Bottom'
-        , height         :: Dimension  -- ^ Window height
-        , historySize    :: Int        -- ^ The number of history entries to be saved
+    XPC { font              :: String     -- ^ Font
+        , bgColor           :: String     -- ^ Backgroud color
+        , fgColor           :: String     -- ^ Font color
+        , fgHLight          :: String     -- ^ Font color of a highlighted completion entry 
+        , bgHLight          :: String     -- ^ Backgroud color of a highlighted completion entry 
+        , borderColor       :: String     -- ^ Border color 
+        , promptBorderWidth :: Dimension  -- ^ Border width
+        , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
+        , height            :: Dimension  -- ^ Window height
+        , historySize       :: Int        -- ^ The number of history entries to be saved
         } deriving (Show, Read)
 
 data XPType = forall p . XPrompt p => XPT p 
@@ -126,24 +127,24 @@ data XPPosition = Top
 
 defaultXPConfig :: XPConfig
 defaultXPConfig =
-    XPC { font        = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-        , bgColor     = "#333333"
-        , fgColor     = "#FFFFFF"
-        , fgHLight    = "#000000"
-        , bgHLight    = "#BBBBBB"
-        , borderColor = "#FFFFFF"
-        , borderPixel = 1
-        , position    = Bottom
-        , height      = 18
-        , historySize = 256
+    XPC { font              = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+        , bgColor           = "#333333"
+        , fgColor           = "#FFFFFF"
+        , fgHLight          = "#000000"
+        , bgHLight          = "#BBBBBB"
+        , borderColor       = "#FFFFFF"
+        , promptBorderWidth = 1
+        , position          = Bottom
+        , height            = 18
+        , historySize       = 256
         }
 
 type ComplFunction = String -> IO [String]
 
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
           -> GC -> FontStruct -> p -> [History] -> XPConfig -> XPState
-initState d rw w s compl gc f pt h c =
-    XPS d rw w s Nothing Nothing compl gc f (XPT pt) "" 0 h c
+initState d rw w s compl gc fonts pt h c =
+    XPS d rw w s Nothing Nothing compl gc fonts (XPT pt) "" 0 h c
 
 -- | Creates a prompt given:
 --
@@ -166,15 +167,14 @@ mkXPrompt t conf compl action = do
   liftIO $ selectInput d w $ exposureMask .|. keyPressMask
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
-  fontS <- liftIO (loadQueryFont d (font conf) `catch`
-                   \_ -> loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*")
-  liftIO $ setFont d gc $ fontFromFontStruct fontS
   (hist,h) <- liftIO $ readHistory
-  let st = initState d rw w s compl gc fontS (XPT t) hist conf
+  fs <- initFont (font conf)
+  liftIO $ setFont d gc $ fontFromFontStruct fs
+  let st = initState d rw w s compl gc fs (XPT t) hist conf
   st' <- liftIO $ execStateT runXP st
 
+  releaseFont fs
   liftIO $ freeGC d gc
-  liftIO $ freeFont d fontS
   liftIO $ hClose h
   when (command st' /= "") $ do 
     let htw = take (historySize conf) (history st')
@@ -184,8 +184,7 @@ mkXPrompt t conf compl action = do
 runXP :: XP ()
 runXP = do
   st <- get
-  let d = dpy st
-      w = win st
+  let (d,w) = (dpy &&& win) st
   status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
   when (status == grabSuccess) $ do
           updateWindows
@@ -269,28 +268,31 @@ keyPressHandle mask (ks,_)
     | mask == controlMask =
         case () of
 -- ^U
-          _ | ks == xK_u -> killBefore >> go
+          _ | ks == xK_u -> killBefore  >> go
 -- ^K
-            | ks == xK_k -> killAfter >> go
+            | ks == xK_k -> killAfter   >> go
+-- ^A
+            | ks == xK_a -> startOfLine >> go
+-- ^E
+            | ks == xK_e -> endOfLine   >> go
 -- Unhandled control sequence
             | otherwise  -> eventLoop handle
 -- Return: exit
-    | ks == xK_Return = do historyPush
-                           return ()
+    | ks == xK_Return    = historyPush       >> return ()
 -- backspace
     | ks == xK_BackSpace = deleteString Prev >> go
 -- delete
-    | ks == xK_Delete = deleteString Next >> go
+    | ks == xK_Delete    = deleteString Next >> go
 -- left
-    | ks == xK_Left = moveCursor Prev >> go
+    | ks == xK_Left      = moveCursor   Prev >> go
 -- right
-    | ks == xK_Right = moveCursor Next >> go
+    | ks == xK_Right     = moveCursor   Next >> go
 -- up
-    | ks == xK_Up = moveHistory Prev >> go
+    | ks == xK_Up        = moveHistory  Prev >> go
 -- down
-    | ks == xK_Down = moveHistory Next >> go
+    | ks == xK_Down      = moveHistory  Next >> go
 -- escape: exit and discard everything
-    | ks  == xK_Escape = flushString >> return ()
+    | ks == xK_Escape = flushString >> return ()
     where go = updateWindows >> eventLoop handle
 -- insert a character
 keyPressHandle _ (_,s)
@@ -312,6 +314,16 @@ killAfter :: XP ()
 killAfter =
   modify $ \s -> s { command = take (offset s) (command s) }
 
+-- | Put the cursor at the end of line
+endOfLine :: XP ()
+endOfLine  =
+    modify $ \s -> s { offset = length (command s) }
+
+-- | Put the cursor at the start of line
+startOfLine :: XP ()
+startOfLine  =
+    modify $ \s -> s { offset = 0 }
+
 -- |  Flush the command string and reset the offest
 flushString :: XP ()
 flushString = do
@@ -319,7 +331,7 @@ flushString = do
  
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
-insertString str = 
+insertString str =
   modify (\s -> s { command = c (command s) (offset s), offset = o (offset s)} )
   where o oo = oo + length str
         c oc oo | oo >= length oc = oc ++ str
@@ -390,30 +402,25 @@ createWin d rw c s = do
 drawWin :: XP ()
 drawWin = do
   st <- get
-  let c = config st
-      d = dpy st
+  let (c,(d,(w,gc))) = (config &&& dpy &&& win &&& gcon) st
       scr = defaultScreenOfDisplay d
-      w = win st
       wh = widthOfScreen scr
       ht = height c
-      bw = borderPixel c
-      gc = gcon st
-      fontStruc = fs st
+      bw = promptBorderWidth c
   bgcolor <- io $ initColor d (bgColor c)
-  border <- io $ initColor d (borderColor c)
+  border  <- io $ initColor d (borderColor c)
   p <- io $ createPixmap d w wh ht
                          (defaultDepthOfScreen scr)
   io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
-  printPrompt p gc fontStruc
+  printPrompt p
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
 
-printPrompt :: Drawable -> GC -> FontStruct -> XP ()
-printPrompt drw gc fontst = do
-  c <- gets config
+printPrompt :: Drawable -> XP ()
+printPrompt drw = do
   st <- get
-  let d = dpy st
-      (prt,com,off) = (show (xptype st), command st, offset st)
+  let (gc,(c,(d,fs))) = (gcon &&& config &&& dpy &&& fontS) st
+      (prt,(com,off)) = (show . xptype &&& command &&& offset) st
       str = prt ++ com
       -- scompose the string in 3 part: till the cursor, the cursor and the rest
       (f,p,ss) = if off >= length com
@@ -421,8 +428,8 @@ printPrompt drw gc fontst = do
                  else let (a,b) = (splitAt off com) 
                       in (prt ++ a, [head b], tail b)
       ht = height c
-      (fsl,psl) = (textWidth fontst f, textWidth fontst p)
-      (_,asc,desc,_) = textExtents fontst str
+      (fsl,psl) = (textWidth fs *** textWidth fs) (f,p)
+      (_,asc,desc,_) = textExtents fs str
       y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
   fgcolor <- io $ initColor d $ fgColor c
@@ -433,7 +440,6 @@ printPrompt drw gc fontst = do
   io $ printString d drw gc bgcolor fgcolor (x + fsl) y p
   -- reverse the colors and print the rest of the string
   io $ printString d drw gc fgcolor bgcolor (x + fsl + psl) y ss
-
 
 -- Completions
 
@@ -448,7 +454,7 @@ setComplWin w wi =
 
 destroyComplWin :: XP ()
 destroyComplWin = do
-  d <- gets dpy
+  d  <- gets dpy
   cw <- gets complWin
   case cw of
     Just w -> do io $ destroyWindow d w
@@ -473,17 +479,14 @@ createComplWin wi@(x,y,wh,ht,_,_) = do
 getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
   st <- get
-  let c = config st
-      scr = screen st
+  let (c,(scr,fs)) = (config &&& screen &&& fontS) st
       wh = rect_width scr
       ht = height c
-      fontst = fs st
 
-  let compl_number = length compl
-      max_compl_len =  (fi ht `div` 2) + (maximum . map (textWidth fontst) $ compl)
+  let max_compl_len =  (fi ht `div` 2) + (maximum . map (textWidth fs) $ compl)
       columns = max 1 $ wh `div` (fi max_compl_len)
       rem_height =  rect_height scr - ht
-      (rows,r) = compl_number `divMod` fi columns
+      (rows,r) = (length compl) `divMod` fi columns
       needed_rows = max 1 (rows + if r == 0 then 0 else 1) 
       actual_max_number_of_rows = rem_height `div` ht
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
@@ -492,7 +495,7 @@ getComplWinDim compl = do
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
 
-  let (_,asc,desc,_) = textExtents fontst $ head compl
+  let (_,asc,desc,_) = textExtents fs $ head compl
       yp = fi $ (ht + fi (asc + desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
@@ -506,7 +509,7 @@ drawComplWin w compl = do
   let c = config st
       d = dpy st
       scr = defaultScreenOfDisplay d
-      bw = borderPixel c
+      bw = promptBorderWidth c
       gc = gcon st
   bgcolor <- io $ initColor d (bgColor c)
   fgcolor <- io $ initColor d (fgColor c)
@@ -562,7 +565,7 @@ printComplString d drw gc fc bc x y s = do
   if s == getLastWord (command st)
      then do bhc <- io $ initColor d (bgHLight $ config st)
              fhc <- io $ initColor d (fgHLight $ config st)
-             io $ printString d drw gc fhc bhc x y s
+             io $ printString d drw gc fhc bhc x y s 
      else io $ printString d drw gc fc bc x y s
 
 -- History
@@ -607,7 +610,7 @@ writeHistory hist = do
 
 -- | Prints a string on a 'Drawable'
 printString :: Display -> Drawable -> GC -> Pixel -> Pixel
-            -> Position -> Position -> String  -> IO ()
+            -> Position -> Position -> String -> IO ()
 printString d drw gc fc bc x y s = do
   setForeground d gc fc
   setBackground d gc bc
@@ -664,10 +667,17 @@ splitInSubListsAt i x = f : splitInSubListsAt i rest
 -- only one word
 getLastWord :: String -> String
 getLastWord str =
-    reverse . fst . break isSpace . reverse $ str
+    reverse . fst . breakAtSpace . reverse $ str
 
 -- | Skips the last word of the string, if the string is composed by
 -- more then one word. Otherwise returns the string.
 skipLastWord :: String -> String
 skipLastWord str =
-    reverse . snd . break isSpace . reverse $ str
+    reverse . snd . breakAtSpace . reverse $ str
+
+breakAtSpace :: String -> (String, String)
+breakAtSpace s 
+    | " \\" `isPrefixOf` s2 = (s1 ++ " " ++ s1', s2')
+    | otherwise = (s1, s2)
+      where (s1, s2 ) = break isSpace s
+            (s1',s2') = breakAtSpace $ tail s2
