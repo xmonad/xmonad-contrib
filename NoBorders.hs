@@ -57,7 +57,7 @@ instance LayoutModifier WithBorder Window where
 
     unhook (WithBorder _ s) = setBorders borderWidth s
 
-    redoLayout (WithBorder n s) _ stack wrs = do
+    redoLayout (WithBorder n s) _ _ wrs = do
         setBorders borderWidth (ws \\ s)
         setBorders n ws
         return (wrs, Just $ WithBorder n ws)
@@ -80,7 +80,7 @@ instance LayoutModifier SmartBorder Window where
 
     unhook (SmartBorder s) = setBorders borderWidth s
 
-    redoLayout (SmartBorder s) _ stack wrs = do
+    redoLayout (SmartBorder s) _ _ wrs = do
         ss <- gets (W.screens . windowset)
 
         if singleton ws && singleton ss
