@@ -23,13 +23,16 @@
 -- will undo the current layout transformer, pass the message on to the base
 -- layout, then reapply the transformer.
 --
+-- Another potential problem is that functions can't be (de-)serialized so this
+-- layout will not preserve state across xmonad restarts.
+--
 -- Here's how you might use this in Config.hs:
 --
 -- > defaultLayouts =
 -- >     map (
--- >         mkSwitch (M.singleton "full" (const $ noBorders full)) .
--- >         mkSwitch (M.singleton "mirror" mirror)
--- >     ) [ tiled ]
+-- >         mkSwitch (M.singleton "full" (const $ Layout $ noBorders full)) .
+-- >         mkSwitch (M.singleton "mirror" (Layout . Mirror))
+-- >     ) [ Layout tiled ]
 --
 -- (The noBorders transformer is from "XMonadContrib.NoBorders".)
 --
@@ -50,13 +53,14 @@
 -- Rotating first then changing the size of the master area then rotating back
 -- does not undo the master area changes.
 --
--- The reason I use two stacked @SwitchTrans@ transformers instead of
--- @mkSwitch (M.fromList [("full", const $ noBorders full), ("mirror", mirror)])@
--- is that I use @mod-f@ to \"zoom in\" on interesting windows, no matter what other
--- layout transformers may be active. Having an extra fullscreen mode on top of
--- everything else means I can zoom in and out without implicitly undoing \"normal\"
--- layout transformers, like @mirror@. Remember, inside a @SwitchTrans@ there can
--- be at most one active layout transformer.
+-- The reason I use two stacked @SwitchTrans@ transformers instead of @mkSwitch
+-- (M.fromList [("full", const $ Layout $ noBorders Full), ("mirror", Layout .
+-- Mirror)])@ is that I use @mod-f@ to \"zoom in\" on interesting windows, no
+-- matter what other layout transformers may be active. Having an extra
+-- fullscreen mode on top of everything else means I can zoom in and out
+-- without implicitly undoing \"normal\" layout transformers, like @Mirror@.
+-- Remember, inside a @SwitchTrans@ there can be at most one active layout
+-- transformer.
 -----------------------------------------------------------------------------
 
 module XMonadContrib.SwitchTrans (
@@ -82,7 +86,7 @@ instance Message Enable
 data Disable = Disable String deriving (Eq, Typeable)
 instance Message Disable
 
-data State a = State {
+data SwitchTrans a = SwitchTrans {
     base :: Layout a,
     currTag :: Maybe String,
     currLayout :: Layout a,
@@ -90,12 +94,66 @@ data State a = State {
     filters :: Map String (Layout a -> Layout a)
 }
 
+instance Show (SwitchTrans a) where
+    show st = "SwitchTrans #<" ++ show (base st) ++ " " ++ show (currTag st) ++ " " ++ show (currLayout st) ++ "...>"
+
+instance Read (SwitchTrans a) where
+    readsPrec _ _ = []
+
+unLayout :: Layout a -> (forall l. (LayoutClass l a) => l a -> r) -> r
+unLayout (Layout l) k = k l
+
+instance LayoutClass SwitchTrans a where
+    description _ = "SwitchTrans"
+
+    doLayout st r s = currLayout st `unLayout` \l -> do
+        (x, _) <- doLayout l r s
+        return (x, Nothing)  -- sorry Dave, I still can't let you do that
+
+    pureLayout st r s = currLayout st `unLayout` \l -> pureLayout l r s
+
+    handleMessage st m
+        | Just (Disable tag) <- fromMessage m
+        , M.member tag (filters st)
+        = provided (currTag st == Just tag) $ disable
+        | Just (Enable tag) <- fromMessage m
+        , Just alt <- M.lookup tag (filters st)
+        = provided (currTag st /= Just tag) $ enable tag alt
+        | Just (Toggle tag) <- fromMessage m
+        , Just alt <- M.lookup tag (filters st)
+        =
+            if (currTag st == Just tag) then
+                disable
+            else
+                enable tag alt
+        | otherwise = base st `unLayout` \b -> do
+            x <- handleMessage b m
+            case x of
+                Nothing -> return Nothing
+                Just b' -> currLayout st `unLayout` \cl -> do
+                    handleMessage cl (SomeMessage ReleaseResources)
+                    let b'' = Layout b'
+                    return . Just $ st{ base = b'', currLayout = currFilt st b'' }
+        where
+        enable tag alt = currLayout st `unLayout` \cl -> do
+            handleMessage cl (SomeMessage ReleaseResources)
+            return . Just $ st{
+                currTag = Just tag,
+                currFilt = alt,
+                currLayout = alt (base st) }
+        disable = currLayout st `unLayout` \cl -> do
+            handleMessage cl (SomeMessage ReleaseResources)
+            return . Just $ st{
+                currTag = Nothing,
+                currFilt = id,
+                currLayout = base st }
+
 -- | Take a transformer table and a base layout, and return a
 -- SwitchTrans layout.
 mkSwitch :: Map String (Layout a -> Layout a) -> Layout a -> Layout a
-mkSwitch fs b = switched st
+mkSwitch fs b = Layout st
     where
-    st = State{
+    st = SwitchTrans{
         base = b,
         currTag = Nothing,
         currLayout = b,
@@ -107,55 +165,3 @@ provided c x
     | c = x
     | otherwise = return Nothing
 
-switched :: State a -> Layout a
-switched
-    state@State{
-        base = b,
-        currTag = ct,
-        currLayout = cl,
-        currFilt = cf,
-        filters = fs
-    } = Layout {doLayout = dl, modifyLayout = ml}
-    where
-    enable tag alt = do
-        modifyLayout cl (SomeMessage UnDoLayout)
-        return . Just . switched $ state{
-            currTag = Just tag,
-            currFilt = alt,
-            currLayout = alt b }
-    disable = do
-        modifyLayout cl (SomeMessage UnDoLayout)
-        return . Just . switched $ state{
-            currTag = Nothing,
-            currFilt = id,
-            currLayout = b }
-    dl r s = do
-        (x, _) <- doLayout cl r s
-        return (x, Nothing)  -- sorry Dave, I can't let you do that
-    ml m
-        | Just (Disable tag) <- fromMessage m
-        , M.member tag fs
-        = provided (ct == Just tag) $ disable
-        | Just (Enable tag) <- fromMessage m
-        , Just alt <- M.lookup tag fs
-        = provided (ct /= Just tag) $ enable tag alt
-        | Just (Toggle tag) <- fromMessage m
-        , Just alt <- M.lookup tag fs
-        =
-            if (ct == Just tag) then
-                disable
-            else
-                enable tag alt
-        | Just UnDoLayout <- fromMessage m
-        = do
-            modifyLayout cl m
-            return Nothing
-        | otherwise = do
-            x <- modifyLayout b m
-            case x of
-                Nothing -> return Nothing
-                Just b' -> do
-                    modifyLayout cl (SomeMessage UnDoLayout)
-                    return . Just $ switched state{
-                        base = b',
-                        currLayout = cf b' }
