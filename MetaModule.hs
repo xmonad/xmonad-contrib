@@ -79,4 +79,3 @@ import XMonadContrib.XPropManage ()
 import XMonadContrib.Warp ()
 import XMonadContrib.WindowNavigation ()
 import XMonadContrib.WorkspaceDir ()
-
