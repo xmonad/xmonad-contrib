@@ -21,7 +21,7 @@
 module XMonadContrib.DynamicLog (
     -- * Usage
     -- $usage 
-    dynamicLog, dynamicLogXinerama, pprWindowSet, pprWindowSetXinerama
+    dynamicLog, dynamicLogWithTitle, dynamicLogWithTitleColored, dynamicLogXinerama, pprWindowSet, pprWindowSetXinerama
   ) where
 
 -- 
@@ -35,6 +35,7 @@ import Data.List
 import Data.Ord ( comparing )
 import qualified StackSet as S
 import Data.Monoid
+import XMonadContrib.NamedWindows
 
 -- $usage 
 --
@@ -42,10 +43,23 @@ import Data.Monoid
 --
 -- >    import XMonadContrib.DynamicLog
 -- >    logHook = dynamicLog
+--
+-- To get the title of the currently focused window after the workspace list:
+--
+-- >    import XMonadContrib.DynamicLog
+-- >    logHook = dynamicLogWithTitle
+--
+-- To have the window title highlighted in any color recognized by dzen:
+--
+-- >    import XMonadContrib.DynamicLog
+-- >    logHook = dynamicLogWithTitleColored "white"
+--
 
 -- %import XMonadContrib.DynamicLog
--- %def -- comment out default logHook definition above if you uncomment this:
+-- %def -- comment out default logHook definition above if you uncomment any of these:
 -- %def logHook = dynamicLog
+-- %def logHook = dynamicLogWithTitle
+-- %def logHook = dynamicLogWithTitleColored "white"
 
 
 -- |
@@ -63,6 +77,21 @@ dynamicLog :: X ()
 dynamicLog = withWindowSet $ \ws -> do
     let desc = description . S.layout . S.workspace . S.current $ ws
     io . putStrLn $ "(" ++ desc ++ ") " ++ pprWindowSet ws
+
+-- Appends title of currently focused window to log output
+-- Arguments are: pre-title text and post-title text
+dynamicLogWithTitle_ :: String -> String -> X ()
+dynamicLogWithTitle_ pre post= do ld <- withWindowSet $ return . description . S.layout . S.workspace . S.current  -- layout description
+                                  ws <- withWindowSet $ return . pprWindowSet  -- workspace list
+                                  wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek  -- window title
+                                  io . putStrLn $ "(" ++ ld ++ ") " ++ ws ++ " " ++ pre ++ wt ++ post
+
+dynamicLogWithTitle :: X ()
+dynamicLogWithTitle = dynamicLogWithTitle_ "<" ">"
+
+-- As dynamicLogWithTitle but with colored window title instead of angle brackets (works with dzen only)
+dynamicLogWithTitleColored :: String -> X ()
+dynamicLogWithTitleColored color = dynamicLogWithTitle_ ("^fg(" ++ color ++ ")") "^fg()"
 
 pprWindowSet :: WindowSet -> String
 pprWindowSet s =  concatMap fmt $ sortBy cmp
