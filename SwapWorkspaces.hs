@@ -43,7 +43,6 @@ import StackSet
 swapWithCurrent :: Eq i => i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWithCurrent t s = swapWorkspaces t (tag $ workspace $ current s) s
 
--- Stole this from StackSet.renameTag -- extracted the traversal code they have in common as mapWorkspaces
 swapWorkspaces :: Eq i => i -> i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWorkspaces t1 t2 = mapWorkspace swap
     where swap w = if      tag w == t1 then w { tag = t2 }
