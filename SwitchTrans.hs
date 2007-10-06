@@ -19,9 +19,11 @@
 -- a group of radio buttons.
 --
 -- A side effect of this meta-layout is that layout transformers no longer
--- receive any messages; any message not handled by @SwitchTrans@ itself
--- will undo the current layout transformer, pass the message on to the base
--- layout, then reapply the transformer.
+-- receive any messages; any message not handled by @SwitchTrans@ itself will
+-- undo the current layout transformer, pass the message on to the base layout,
+-- then reapply the transformer. (This happens to break
+-- "XMonadContrib.NoBorders" and any transformer that updates its state on
+-- @doLayout@ calls :-( )
 --
 -- Another potential problem is that functions can't be (de-)serialized so this
 -- layout will not preserve state across xmonad restarts.
@@ -30,11 +32,9 @@
 --
 -- > defaultLayouts =
 -- >     map (
--- >         mkSwitch (M.singleton "full" (const $ Layout $ noBorders full)) .
+-- >         mkSwitch (M.singleton "full" (const $ Layout full)) .
 -- >         mkSwitch (M.singleton "mirror" (Layout . Mirror))
 -- >     ) [ Layout tiled ]
---
--- (The noBorders transformer is from "XMonadContrib.NoBorders".)
 --
 -- This example is probably overkill but it's very close to what I actually use.
 -- Anyway, this layout behaves like the default @tiled@ layout, until you send it
@@ -54,7 +54,7 @@
 -- does not undo the master area changes.
 --
 -- The reason I use two stacked @SwitchTrans@ transformers instead of @mkSwitch
--- (M.fromList [("full", const $ Layout $ noBorders Full), ("mirror", Layout .
+-- (M.fromList [(\"full\", const $ Layout Full), (\"mirror\", Layout .
 -- Mirror)])@ is that I use @mod-f@ to \"zoom in\" on interesting windows, no
 -- matter what other layout transformers may be active. Having an extra
 -- fullscreen mode on top of everything else means I can zoom in and out
@@ -76,6 +76,9 @@ import Operations
 import qualified Data.Map as M
 import Data.Map (Map)
 
+-- import System.IO
+
+
 -- | Toggle the specified layout transformer.
 data Toggle = Toggle String deriving (Eq, Typeable)
 instance Message Toggle
@@ -95,7 +98,7 @@ data SwitchTrans a = SwitchTrans {
 }
 
 instance Show (SwitchTrans a) where
-    show st = "SwitchTrans #<" ++ show (base st) ++ " " ++ show (currTag st) ++ " " ++ show (currLayout st) ++ "...>"
+    show st = "SwitchTrans #<base: " ++ show (base st) ++ ", tag: " ++ show (currTag st) ++ ", layout: " ++ show (currLayout st) ++ ", ...>"
 
 instance Read (SwitchTrans a) where
     readsPrec _ _ = []
@@ -126,6 +129,10 @@ instance LayoutClass SwitchTrans a where
                 disable
             else
                 enable tag alt
+        | Just ReleaseResources <- fromMessage m
+        = currLayout st `unLayout` \cl -> do
+            handleMessage cl m
+            return Nothing
         | otherwise = base st `unLayout` \b -> do
             x <- handleMessage b m
             case x of
@@ -136,12 +143,14 @@ instance LayoutClass SwitchTrans a where
                     return . Just $ st{ base = b'', currLayout = currFilt st b'' }
         where
         enable tag alt = currLayout st `unLayout` \cl -> do
+            -- io $ hPutStrLn stderr $ "[ST]+ " ++ show cl ++ " -> " ++ show (alt (base st))
             handleMessage cl (SomeMessage ReleaseResources)
             return . Just $ st{
                 currTag = Just tag,
                 currFilt = alt,
                 currLayout = alt (base st) }
         disable = currLayout st `unLayout` \cl -> do
+            -- io $ hPutStrLn stderr $ "[ST]- " ++ show cl ++ " -> " ++ show (base st)
             handleMessage cl (SomeMessage ReleaseResources)
             return . Just $ st{
                 currTag = Nothing,
