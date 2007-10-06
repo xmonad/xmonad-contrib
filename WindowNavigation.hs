@@ -1,4 +1,4 @@
-{-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.WorkspaceDir
