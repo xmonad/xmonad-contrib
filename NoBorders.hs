@@ -95,4 +95,5 @@ instance LayoutModifier SmartBorder Window where
         ws = map fst wrs
         singleton = null . drop 1
 
+smartBorders :: LayoutClass l a => l a -> ModifiedLayout SmartBorder l a
 smartBorders = ModifiedLayout (SmartBorder [])
