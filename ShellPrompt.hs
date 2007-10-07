@@ -26,6 +26,7 @@ import XMonadContrib.Dmenu
 
 import Control.Monad
 import Data.List
+import Data.Maybe
 import System.Directory
 import System.IO
 import System.Environment
