@@ -38,10 +38,12 @@ import Data.Word
 -- > import XMonadContrib.ManageDocks
 --
 -- > manageHook w _ _ _  = manageDocksHook w
+--
+-- and comment out the default `manageHook _ _ _ _ = return id` line.
 
 -- %import XMonadContrib.ManageDocks
 -- %def -- comment out default manageHook definition above if you uncomment this:
--- %def manageHook _ _ _ = manageDocksHook w
+-- %def manageHook w _ _ _ = manageDocksHook w
 
 
 -- |
