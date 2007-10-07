@@ -27,6 +27,8 @@ import qualified StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
+import XMonadContrib.SetWMName
+
 -- $usage
 -- Add the imports to your configuration file and add the logHook:
 --
@@ -50,6 +52,8 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
 	-- see http://code.google.com/p/xmonad/issues/detail?id=53
 	let ws = sortBy (comparing W.tag) $ W.workspaces s
 	let wins = W.allWindows s
+
+	setSupported
 
 	-- Number of Workspaces
 	setNumberOfDesktops (length ws)
@@ -112,3 +116,15 @@ setWindowDesktop win i = withDisplay $ \dpy -> do
 	a <- getAtom "_NET_WM_DESKTOP"
 	c <- getAtom "CARDINAL"
 	io $ changeProperty32 dpy win a c propModeReplace [fromIntegral i]
+
+setSupported :: X ()
+setSupported = withDisplay $ \dpy -> do 
+	r <- asks theRoot
+	a <- getAtom "_NET_SUPPORTED"
+	c <- getAtom "ATOM"
+	supp <- mapM getAtom ["_NET_WM_STATE_HIDDEN"]
+	io $ changeProperty32 dpy r a c propModeReplace supp
+	
+	setWMName "xmonad"
+
+
