@@ -212,13 +212,12 @@ eventLoop action = do
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
 handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
-    | t == keyPress && ks == xK_Tab = do
+    | t == keyPress && ks == xK_Tab    = do
   c <- getCompletions
   completionHandle c k e
 handle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
     | t == keyPress = keyPressHandle m ks
-handle _ (AnyEvent {ev_event_type = t, ev_window = w}) 
-    | t == expose = do 
+handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
   eventLoop handle

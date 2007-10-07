@@ -142,24 +142,20 @@ handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, 
     Just x  -> do focus x
                   updateTab ishr conf fs width (thisw, x)
     Nothing -> return ()
-    where
-      width = rect_width screen`div` fromIntegral (length tws)
-
-handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, fontS = fs }) 
-                      (AnyEvent {ev_window   = thisw, ev_event_type = t                  })
--- expose
-    | thisw `elem` (map fst tws) && t == expose         = do
-  updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
-    where
-      width = rect_width screen`div` fromIntegral (length tws)
-handleEvent ishr conf (TabState      {tabsWindows = tws,   scr           = screen, fontS = fs }) 
-                      (PropertyEvent {ev_window   = thisw })
+    where width = rect_width screen `div` fromIntegral (length tws)
 -- propertyNotify
-    | thisw `elem` (map snd tws)                        = do
+handleEvent ishr conf (TabState      {tabsWindows = tws, scr = screen, fontS = fs }) 
+                      (PropertyEvent {ev_window   = thisw })
+    | thisw `elem` (map snd tws) = do
   let tabwin = (fst $ fromJust $ find ((== thisw) . snd) tws, thisw)
   updateTab ishr conf fs width tabwin
-    where
-      width = rect_width screen`div` fromIntegral (length tws)
+    where width = rect_width screen `div` fromIntegral (length tws)
+-- expose
+handleEvent ishr conf (TabState {tabsWindows = tws, scr = screen, fontS = fs }) 
+                      (ExposeEvent {ev_window   = thisw })
+    | thisw `elem` (map fst tws) = do
+  updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
+    where width = rect_width screen `div` fromIntegral (length tws)
 handleEvent _ _ _ _ =  return ()
 
 initState :: TConf -> Rectangle -> [Window] -> X TabState
