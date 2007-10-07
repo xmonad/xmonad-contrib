@@ -102,9 +102,7 @@ runCommand :: [(String, X ())] -> X ()
 runCommand cl = do
   let m = commandMap cl
   choice <- dmenu (M.keys m)
-  case choice of
-    Just selection -> fromMaybe (return ()) (M.lookup selection m)
-    Nothing        -> return ()
+  fromMaybe (return ()) (M.lookup choice m)
 
 runCommand' :: String -> X ()
 runCommand' c = do

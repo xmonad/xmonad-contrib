@@ -22,7 +22,6 @@ module XMonadContrib.Dmenu (
 import XMonad
 import qualified StackSet as W
 import qualified Data.Map as M
-import System.Exit
 import System.Process
 import System.IO
 import Control.Monad.State
@@ -36,7 +35,7 @@ import Control.Monad.State
 
 -- | Returns Just output if the command succeeded, and Nothing if it didn't.
 -- This corresponds to dmenu's notion of exit code 1 for a cancelled invocation.
-runProcessWithInput :: FilePath -> [String] -> String -> IO (Maybe String)
+runProcessWithInput :: FilePath -> [String] -> String -> IO String
 runProcessWithInput cmd args input = do
     (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
     hPutStr pin input
@@ -45,21 +44,20 @@ runProcessWithInput cmd args input = do
     when (output==output) $ return ()
     hClose pout
     hClose perr
-    exitCode <- waitForProcess ph
-    case exitCode of
-      ExitSuccess   -> return (Just output)
-      ExitFailure _ -> return Nothing
+    waitForProcess ph
+    return output
 
 -- | Starts dmenu on the current screen. Requires this patch to dmenu:
 -- <http://www.jcreigh.com/dmenu/dmenu-3.2-xinerama.patch>
-dmenuXinerama :: [String] -> X (Maybe String)
+dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
     curscreen <- (fromIntegral . W.screen . W.current) `liftM` gets windowset :: X Int
     io $ runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
 
-dmenu :: [String] -> X (Maybe String)
+dmenu :: [String] -> X String
 dmenu opts = io $ runProcessWithInput "dmenu" [] (unlines opts)
 
 dmenuMap :: M.Map String a -> X (Maybe a)
-dmenuMap selectionMap =
-  dmenu (M.keys selectionMap) >>= return . maybe Nothing (flip M.lookup selectionMap)
+dmenuMap selectionMap = do
+  selection <- dmenu (M.keys selectionMap)
+  return $ M.lookup selection selectionMap

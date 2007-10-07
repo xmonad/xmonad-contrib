@@ -25,7 +25,6 @@ import XMonadContrib.Dmenu
 
 import Control.Monad
 import Data.List
-import Data.Maybe
 import System.Directory
 import System.IO
 import System.Environment
@@ -58,7 +57,7 @@ shellPrompt c = mkXPrompt Shell c getShellCompl spawn
 getShellCompl :: String -> IO [String]
 getShellCompl s 
     | s /= "" && last s /= ' ' = do
-  f <- fmap (lines . fromMaybe "") $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
+  f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
   c <- commandCompletionFunction s
   hPutStrLn stdout s
   return . map escape . sort . nub $ f ++ c

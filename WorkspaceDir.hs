@@ -68,10 +68,8 @@ workspaceDir :: LayoutClass l a => String -> l a
 workspaceDir s = ModifiedLayout (WorkspaceDir s)
 
 scd :: String -> X ()
-scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return Nothing)
-           case x' of
-             Just newDir -> catchIO $ setCurrentDirectory newDir
-             Nothing     -> return ()
+scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
+           catchIO $ setCurrentDirectory x'
 
 changeDir :: XPConfig -> X ()
 changeDir c = directoryPrompt c "Set working directory: " (sendMessage . Chdir)

@@ -18,8 +18,6 @@ module XMonadContrib.DirectoryPrompt (
                              directoryPrompt
                               ) where
 
-import Data.Maybe(fromMaybe)
-
 import XMonad
 import XMonadContrib.XPrompt
 import XMonadContrib.Dmenu ( runProcessWithInput )
@@ -36,7 +34,7 @@ directoryPrompt :: XPConfig -> String -> (String -> X ()) -> X ()
 directoryPrompt c prom job = mkXPrompt (Dir prom) c getDirCompl job
 
 getDirCompl :: String -> IO [String]
-getDirCompl s = (filter notboring . lines . fromMaybe "") `fmap`
+getDirCompl s = (filter notboring . lines) `fmap`
                 runProcessWithInput "/bin/bash" [] ("compgen -A directory " ++ s ++ "\n")
 
 notboring :: String -> Bool
