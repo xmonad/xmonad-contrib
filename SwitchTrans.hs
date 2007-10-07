@@ -110,36 +110,39 @@ instance Read (SwitchTrans a) where
 unLayout :: Layout a -> (forall l. (LayoutClass l a) => l a -> r) -> r
 unLayout (Layout l) k = k l
 
+acceptChange :: (LayoutClass l a) => SwitchTrans a -> ((l a -> SwitchTrans a) -> b -> c) -> X b -> X c
+acceptChange st f action =
+    -- seriously, Dave, you need to stop this
+    fmap (f (\l -> st{ currLayout = Layout l})) action
+
 instance LayoutClass SwitchTrans a where
     description _ = "SwitchTrans"
 
-    doLayout st r s = currLayout st `unLayout` \l -> do
-        (x, y) <- doLayout l r s
-        case y of
-            Nothing -> return (x, Nothing)
-            -- ok, Dave; but just this one time
-            Just l' -> return (x, Just $ st{ currLayout = Layout l' })
+    doLayout st r s = currLayout st `unLayout` \l ->
+        acceptChange st (fmap . fmap) (doLayout l r s)
 
     pureLayout st r s = currLayout st `unLayout` \l -> pureLayout l r s
 
     handleMessage st m
         | Just (Disable tag) <- fromMessage m
         , M.member tag (filters st)
-        = provided (currTag st == Just tag) $ disable
+            = provided (currTag st == Just tag) $ disable
         | Just (Enable tag) <- fromMessage m
         , Just alt <- M.lookup tag (filters st)
-        = provided (currTag st /= Just tag) $ enable tag alt
+            = provided (currTag st /= Just tag) $ enable tag alt
         | Just (Toggle tag) <- fromMessage m
         , Just alt <- M.lookup tag (filters st)
-        =
+            =
             if (currTag st == Just tag) then
                 disable
             else
                 enable tag alt
         | Just ReleaseResources <- fromMessage m
-        = currLayout st `unLayout` \cl -> do
-            handleMessage cl m
-            return Nothing
+            = currLayout st `unLayout` \cl ->
+                acceptChange st fmap (handleMessage cl m)
+        | Just Hide <- fromMessage m
+            = currLayout st `unLayout` \cl ->
+                acceptChange st fmap (handleMessage cl m)
         | otherwise = base st `unLayout` \b -> do
             x <- handleMessage b m
             case x of
