@@ -21,9 +21,7 @@
 -- A side effect of this meta-layout is that layout transformers no longer
 -- receive any messages; any message not handled by @SwitchTrans@ itself will
 -- undo the current layout transformer, pass the message on to the base layout,
--- then reapply the transformer. (This happens to break
--- "XMonadContrib.NoBorders" and any transformer that updates its state on
--- @doLayout@ calls :-( )
+-- then reapply the transformer.
 --
 -- Another potential problem is that functions can't be (de-)serialized so this
 -- layout will not preserve state across xmonad restarts.
@@ -32,9 +30,15 @@
 --
 -- > defaultLayouts =
 -- >     map (
--- >         mkSwitch (M.singleton "full" (const $ Layout full)) .
--- >         mkSwitch (M.singleton "mirror" (Layout . Mirror))
+-- >         mkSwitch (M.fromList [
+-- >             ("full", const $ Layout $ noBorders Full)
+-- >         ]) .
+-- >         mkSwitch (M.fromList [
+-- >             ("mirror", Layout . Mirror)
+-- >         ])
 -- >     ) [ Layout tiled ]
+--
+-- (The @noBorders@ transformer is from "XMonadContrib.NoBorders".)
 --
 -- This example is probably overkill but it's very close to what I actually use.
 -- Anyway, this layout behaves like the default @tiled@ layout, until you send it
@@ -54,10 +58,10 @@
 -- does not undo the master area changes.
 --
 -- The reason I use two stacked @SwitchTrans@ transformers instead of @mkSwitch
--- (M.fromList [(\"full\", const $ Layout Full), (\"mirror\", Layout .
--- Mirror)])@ is that I use @mod-f@ to \"zoom in\" on interesting windows, no
--- matter what other layout transformers may be active. Having an extra
--- fullscreen mode on top of everything else means I can zoom in and out
+-- (M.fromList [(\"full\", const $ Layout $ noBorders Full), (\"mirror\",
+-- Layout . Mirror)])@ is that I use @mod-f@ to \"zoom in\" on interesting
+-- windows, no matter what other layout transformers may be active. Having an
+-- extra fullscreen mode on top of everything else means I can zoom in and out
 -- without implicitly undoing \"normal\" layout transformers, like @Mirror@.
 -- Remember, inside a @SwitchTrans@ there can be at most one active layout
 -- transformer.
@@ -110,8 +114,11 @@ instance LayoutClass SwitchTrans a where
     description _ = "SwitchTrans"
 
     doLayout st r s = currLayout st `unLayout` \l -> do
-        (x, _) <- doLayout l r s
-        return (x, Nothing)  -- sorry Dave, I still can't let you do that
+        (x, y) <- doLayout l r s
+        case y of
+            Nothing -> return (x, Nothing)
+            -- ok, Dave; but just this one time
+            Just l' -> return (x, Just $ st{ currLayout = Layout l' })
 
     pureLayout st r s = currLayout st `unLayout` \l -> pureLayout l r s
 
