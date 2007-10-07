@@ -41,6 +41,12 @@ import {-# SOURCE #-} qualified Config (workspaces)
 -- >   , ((modMask,               xK_Left),  prevWorkspace)
 -- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext)
 -- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
+--
+-- If you want to follow the moved window, you can use both actions:
+--
+-- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext >> nextWorkspace)
+-- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev >> prevWorkspace)
+--
 
 -- %import XMonadContrib.RotView
 -- %keybind , ((modMask .|. shiftMask, xK_Right), rotView True)
