@@ -150,8 +150,12 @@ handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, fo
 -- expose
     | thisw `elem` (map fst tws) && t == expose         = do
   updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
+    where
+      width = rect_width screen`div` fromIntegral (length tws)
+handleEvent ishr conf (TabState      {tabsWindows = tws,   scr           = screen, fontS = fs }) 
+                      (PropertyEvent {ev_window   = thisw })
 -- propertyNotify
-    | thisw `elem` (map snd tws) && t == propertyNotify = do
+    | thisw `elem` (map snd tws)                        = do
   let tabwin = (fst $ fromJust $ find ((== thisw) . snd) tws, thisw)
   updateTab ishr conf fs width tabwin
     where
