@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.Dmenu
 -- Copyright   :  (c) Spencer Janssen <sjanssen@cse.unl.edu>
 -- License     :  BSD-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Spencer Janssen <sjanssen@cse.unl.edu>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -14,13 +14,14 @@
 
 module XMonadContrib.Dmenu (
                             -- * Usage
-                            -- $usage 
-                            dmenu, dmenuXinerama, 
+                            -- $usage
+                            dmenu, dmenuXinerama, dmenuMap,
                             runProcessWithInput
                            ) where
 
 import XMonad
 import qualified StackSet as W
+import qualified Data.Map as M
 import System.Exit
 import System.Process
 import System.IO
@@ -58,3 +59,7 @@ dmenuXinerama opts = do
 
 dmenu :: [String] -> X (Maybe String)
 dmenu opts = io $ runProcessWithInput "dmenu" [] (unlines opts)
+
+dmenuMap :: M.Map String a -> X (Maybe a)
+dmenuMap selectionMap =
+  dmenu (M.keys selectionMap) >>= return . maybe Nothing (flip M.lookup selectionMap)
