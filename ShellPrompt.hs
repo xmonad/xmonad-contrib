@@ -16,7 +16,6 @@ module XMonadContrib.ShellPrompt (
                              -- * Usage
                              -- $usage
                              shellPrompt
-                             , rmPath
                              , split
                               ) where
 
@@ -62,26 +61,29 @@ getShellCompl s
   f <- fmap (lines . fromMaybe "") $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
   c <- commandCompletionFunction s
   hPutStrLn stdout s
-  return $ map escape . sort . nub $ f ++ c
+  return . map escape . sort . nub $ f ++ c
     | otherwise = return []
 
 commandCompletionFunction :: String -> IO [String]
-commandCompletionFunction str 
+commandCompletionFunction str
     | '/' `elem` str = return []
     | otherwise      = do
-  p <- getEnv "PATH"
-  cl p
-    where
-      cl     = liftM (nub . rmPath . concat) . mapM cmpl . split ':'  
-      cmpl s = filter (isPrefixOf str) `fmap` getFileNames s
+  p  <- getEnv "PATH" `catch` const (return [])
+  let ds = split ':' p
+      fp d f = d ++ "/" ++ f  
+  es <- forM ds $ \d -> do
+          exists <- doesDirectoryExist d
+          if exists
+             then getDirectoryContents d >>= filterM (isExecutable . fp d)
+             else return []
+  return . filter (isPrefixOf str) . concat $ es
 
-getFileNames :: FilePath -> IO [FilePath]
-getFileNames fp = 
-    getDirectoryContents fp `catch` \_ -> return []
-
-rmPath :: [String] -> [String]
-rmPath s = 
-    map (reverse . fst . break  (=='/') . reverse) s
+isExecutable :: FilePath ->IO Bool
+isExecutable f = do
+    fe <- doesFileExist f
+    if fe
+        then fmap executable $ getPermissions f
+        else return False
 
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []
@@ -89,7 +91,7 @@ split e l =
     f : split e (rest ls)
         where 
           (f,ls) = span (/=e) l
-          rest s | s == [] = []
+          rest s | s == []   = []
                  | otherwise = tail s
 
 escape :: String -> String
@@ -97,7 +99,7 @@ escape []       = ""
 escape (' ':xs) = "\\ " ++ escape xs
 escape (x:xs)
     | isSpecialChar x = '\\' : x : escape xs
-    | otherwise = x : escape xs
+    | otherwise       = x : escape xs
 
 isSpecialChar :: Char -> Bool
 isSpecialChar =  flip elem "\\@\"'#?$*()[]{};"
