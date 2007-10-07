@@ -79,7 +79,7 @@ mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
             npos = wpos + offset * atl
             nbr = (wpos + wsize) + offset * abr
             ntl = minP (nbr - (32, 32)) npos    --minimum size
-            nwidth = applySizeHints sh $ mapP round (nbr - ntl)
+            nwidth = applySizeHints sh $ mapP (round :: Double -> Integer) (nbr - ntl)
         moveResizeWindow d w (round $ fst ntl) (round $ snd ntl) `uncurry` nwidth
         return ())
         (float w)
