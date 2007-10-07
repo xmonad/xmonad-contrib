@@ -31,8 +31,9 @@ import XMonadContrib.Dmenu (dmenuMap)
 import XMonadContrib.NamedWindows (getName)
 
 -- $usage
--- WindowBringer brings you to windows. (A future edition will bring windows to
--- you.)
+-- WindowBringer brings windows to you and you to windows.
+-- That is to say, it pops up a dmenu with window names, in case you forgot
+-- where you left your XChat.
 --
 -- Place in your Config.hs:
 -- > import XMonadContrib.WindowBringer
