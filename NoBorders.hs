@@ -42,11 +42,11 @@ import Data.List ((\\))
 -- and modify the defaultLayouts to call noBorders on the layouts you want to lack
 -- borders
 --
--- > defaultLayouts = [ noBorders full, ... ]
+-- > defaultLayouts = [ Layout (noBorders Full), ... ]
 
 -- %import XMonadContrib.NoBorders
 -- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
--- %layout , noBorders full
+-- %layout , noBorders Full
 
 -- todo, use an InvisibleList.
 data WithBorder a = WithBorder Dimension [a] deriving ( Read, Show )
