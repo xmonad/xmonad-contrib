@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.ShellPrompt
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
--- 
+--
 -- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -16,6 +16,7 @@ module XMonadContrib.ShellPrompt (
                              -- * Usage
                              -- $usage
                              shellPrompt
+                             , getShellCompl
                              , split
                               ) where
 
@@ -55,7 +56,7 @@ shellPrompt :: XPConfig -> X ()
 shellPrompt c = mkXPrompt Shell c getShellCompl spawn
 
 getShellCompl :: String -> IO [String]
-getShellCompl s 
+getShellCompl s
     | s /= "" && last s /= ' ' = do
   f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
   c <- commandCompletionFunction s
@@ -69,7 +70,7 @@ commandCompletionFunction str
     | otherwise      = do
   p  <- getEnv "PATH" `catch` const (return [])
   let ds = split ':' p
-      fp d f = d ++ "/" ++ f  
+      fp d f = d ++ "/" ++ f
   es <- forM ds $ \d -> do
           exists <- doesDirectoryExist d
           if exists
@@ -88,7 +89,7 @@ split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []
 split e l =
     f : split e (rest ls)
-        where 
+        where
           (f,ls) = span (/=e) l
           rest s | s == []   = []
                  | otherwise = tail s
