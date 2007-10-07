@@ -1,51 +1,99 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.CycleWS
--- Copyright   :  (C) 2007 Andrea Rossato
--- License     :  BSD3
--- 
--- Maintainer  :  andrea.rossato@unibz.it
+-- Copyright   :  (c) Joachim Breitner <mail@joachim-breitner.de>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  Joachim Breitner <mail@joachim-breitner.de>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A module to cycle between Workspaces
+-- Provides bindings to cycle forward or backward through the list
+-- of workspaces, and to move windows there.
 --
 -----------------------------------------------------------------------------
 
 module XMonadContrib.CycleWS (
-                             -- * Usage
-                             -- $usage
-                             nextWS
-                             , prevWS
-                              ) where
+                              -- * Usage
+                              -- $usage
+                              nextWS,
+                              prevWS,
+			      shiftToNext,
+			      shiftToPrev,
+                             ) where
+
+import Control.Monad.State ( gets )
+import Data.List ( sortBy, findIndex )
+import Data.Maybe ( fromMaybe )
+import Data.Ord ( comparing )
 
 import XMonad
+import StackSet hiding (filter, findIndex)
 import Operations
-import qualified StackSet as W
-import {-# SOURCE #-} Config (workspaces)
-import Data.List
+import {-# SOURCE #-} qualified Config (workspaces)
 
 -- $usage
--- Import this module in Config.hs:
+-- You can use this module with the following in your Config.hs file:
+-- 
+-- > import XMonadContrib.NextWorkspace
 --
--- > import XMonadContrib.CycleWS
+-- >   , ((modMask,               xK_Right), nextWS)
+-- >   , ((modMask,               xK_Left),  prevWWS)
+-- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext)
+-- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
 --
--- And add, in you key bindings:
+-- If you want to follow the moved window, you can use both actions:
 --
--- >     , ((modMask              , xK_comma ), prevWS ) 
--- >     , ((modMask              , xK_period), nextWS ) 
+-- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext >> nextWS)
+-- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev >> prevWS)
+--
 
-nextWS, prevWS :: X ()
-nextWS = withWindowSet $ \s -> windows $ W.view (workspaces !! (setWS s N))
-prevWS = withWindowSet $ \s -> windows $ W.view (workspaces !! (setWS s P))
+-- %import XMonadContrib.NextWorkspace
+-- %keybind , ((modMask,               xK_Right), nextWS)
+-- %keybind , ((modMask,               xK_Left),  prevWWS)
+-- %keybind , ((modMask .|. shiftMask, xK_Right), shiftToNext)
+-- %keybind , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
 
-data Dir = P | N deriving Eq
-setWS :: WindowSet -> Dir -> Int
-setWS s d 
-    | d == N && cur == (lw - 1) = 0
-    | d == N                    = cur + 1
-    | d == P && cur == 0        = lw - 1
-    | otherwise                 = cur - 1
-      where 
-        cur = maybe 0 id $ elemIndex (W.tag (W.workspace ((W.current s)))) workspaces
-        lw  = length workspaces
+
+-- ---------------------
+-- |
+-- Switch to next workspace
+nextWS :: X()
+nextWS = switchWorkspace (1)
+
+-- ---------------------
+-- |
+-- Switch to previous workspace
+prevWS :: X()
+prevWS = switchWorkspace (-1)
+
+-- |
+-- Move focused window to next workspace
+shiftToNext :: X()
+shiftToNext = shiftBy (1)
+
+-- |
+-- Move focused window to previous workspace
+shiftToPrev :: X ()
+shiftToPrev = shiftBy (-1)
+
+switchWorkspace :: Int -> X ()
+switchWorkspace d = wsBy d >>= windows . greedyView
+
+shiftBy :: Int -> X ()
+shiftBy d = wsBy d >>= windows . shift
+
+wsBy :: Int -> X (WorkspaceId)
+wsBy d = do
+    ws <- gets windowset
+    let orderedWs = sortBy (comparing wsIndex) (workspaces ws)
+    let now = fromMaybe 0 $ findWsIndex (workspace (current ws)) orderedWs
+    let next = orderedWs !! ((now + d) `mod` length orderedWs)
+    return $ tag next
+
+
+wsIndex :: WindowSpace -> Maybe Int
+wsIndex ws = findIndex (==(tag ws)) Config.workspaces
+
+findWsIndex :: WindowSpace -> [WindowSpace] -> Maybe Int
+findWsIndex ws wss = findIndex ((== tag ws) . tag) wss
