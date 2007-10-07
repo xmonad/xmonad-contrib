@@ -13,10 +13,10 @@
 -----------------------------------------------------------------------------
 
 module XMonadContrib.WindowBringer (
-                            -- * Usage
-                            -- $usage 
-                            gotoMenu
-                           ) where
+                                    -- * Usage
+                                    -- $usage
+                                    gotoMenu, bringMenu
+                                   ) where
 
 import Control.Monad.State (gets)
 import Data.Char (toLower)
@@ -38,23 +38,38 @@ import XMonadContrib.NamedWindows (getName)
 -- > import XMonadContrib.WindowBringer
 -- and in the keys definition:
 -- > , ((modMask .|. shiftMask, xK_g     ), gotoMenu)
+-- > , ((modMask .|. shiftMask, xK_b     ), bringMenu)
 --
 -- %import XMonadContrib.WindowBringer
 -- %keybind ((modMask .|. shiftMask, xK_g     ), gotoMenu)
+-- %keybind ((modMask .|. shiftMask, xK_b     ), bringMenu)
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
 -- taken to the corresponding workspace.
 gotoMenu :: X ()
-gotoMenu = do
-  workspaceMap >>= dmenuMap >>= flip X.whenJust (windows . W.greedyView)
+gotoMenu = workspaceMap >>= actionMenu (windows . W.greedyView)
+ where workspaceMap = windowMapWith (W.tag . fst)
 
--- | A map from decorated window name to target workspace ID, for use by gotoMenu.
-workspaceMap :: X (M.Map String X.WorkspaceId)
-workspaceMap = do
+-- | Pops open a dmenu with window titles. Choose one, and it will be
+-- dragged, kicking and screaming, into your current workspace.
+bringMenu :: X ()
+bringMenu = windowMap >>= actionMenu (windows . bringWindow)
+ where windowMap = windowMapWith snd
+       bringWindow w ws = W.shiftWin (W.tag . W.workspace . W.current $ ws) w ws
+
+-- | Calls dmenuMap to grab the appropriate element from the Map, and hands it
+-- off to action if found.
+actionMenu :: (a -> X ()) -> M.Map String a -> X ()
+actionMenu action windowMap = dmenuMap windowMap >>= flip X.whenJust action
+
+-- | Generates a Map from window name to <whatever you specify>. For use with
+-- dmenuMap. TODO: extract the pure, creamy center.
+windowMapWith :: ((X.WindowSpace, Window) -> a) -> X (M.Map String a)
+windowMapWith value = do
   ws <- gets X.windowset
   M.fromList `fmap` concat `fmap` mapM keyValuePairs (W.workspaces ws)
  where keyValuePairs ws = mapM (keyValuePair ws) $ W.integrate' (W.stack ws)
-       keyValuePair ws w = flip (,) (W.tag ws) `fmap` decorateName ws w
+       keyValuePair ws w = flip (,) (value (ws, w)) `fmap` decorateName ws w
 
 -- | Returns the window name as will be listed in dmenu.
 -- Lowercased, for your convenience (since dmenu is case-sensitive).
