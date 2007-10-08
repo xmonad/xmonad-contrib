@@ -1,4 +1,6 @@
-{-# OPTIONS -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
+{-# LANGUAGE FlexibleInstances, GeneralizedNewtypeDeriving, MultiParamTypeClasses, TypeSynonymInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.WorkspaceDir

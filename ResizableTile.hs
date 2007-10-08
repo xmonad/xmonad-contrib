@@ -1,4 +1,6 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
+{-# LANGUAGE FlexibleInstances, GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.ResizableTile

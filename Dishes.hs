@@ -1,4 +1,5 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.Dishes
