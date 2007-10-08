@@ -66,11 +66,12 @@ releaseFont fs = do
 -- | Create a simple window given a rectangle. If Nothing is given
 -- only the exposureMask will be set, otherwise the Just value.
 -- Use 'showWindow' to map and hideWindow to unmap.
-createNewWindow :: Rectangle -> Maybe EventMask -> X Window
-createNewWindow (Rectangle x y w h) m = do
+createNewWindow :: Rectangle -> Maybe EventMask -> String -> X Window
+createNewWindow (Rectangle x y w h) m col = do
   d   <- asks display
   rw  <- asks theRoot
-  win <- io $ createSimpleWindow d rw x y w h 0 0 0
+  c <- stringToPixel col
+  win <- io $ createSimpleWindow d rw x y w h 0 c c
   case m of
     Just em -> io $ selectInput d win em
     Nothing -> io $ selectInput d win exposureMask

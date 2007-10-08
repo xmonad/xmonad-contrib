@@ -172,7 +172,7 @@ createTabs c (Rectangle x y wh ht) owl@(ow:ows) = do
       height = fromIntegral $ tabSize c
       mask   = Just (exposureMask .|. buttonPressMask)
   d  <- asks display
-  w  <- createNewWindow (Rectangle x y wid height) mask
+  w  <- createNewWindow (Rectangle x y wid height) mask (inactiveColor c)
   io $ restackWindows d $ w : [ow]
   ws <- createTabs c (Rectangle (x + fromIntegral wid) y (wh - wid) ht) ows
   return (w:ws)
