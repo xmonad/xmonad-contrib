@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -fallow-undecidable-instances #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |

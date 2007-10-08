@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.Square

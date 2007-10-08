@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.FlexibleManipulate

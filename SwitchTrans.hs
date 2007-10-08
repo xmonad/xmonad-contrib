@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.SwitchTrans

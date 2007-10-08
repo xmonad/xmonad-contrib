@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.Grid
