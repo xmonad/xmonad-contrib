@@ -58,7 +58,7 @@ dragPane :: DragType -> Double -> Double -> DragPane a
 dragPane t x y = DragPane (I Nothing) t x y
 
 data DragPane a = 
-    DragPane (Invisible Maybe (Window,Rectangle,Int)) DragType Double Double 
+    DragPane (Invisible Maybe (Window,Rectangle,Rectangle,Int)) DragType Double Double 
              deriving ( Show, Read )
 
 data DragType = Horizontal | Vertical deriving ( Show, Read )
@@ -72,7 +72,7 @@ data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq, Typeable )
 instance Message SetFrac
 
 handleMess :: DragPane Window -> SomeMessage -> X (Maybe (DragPane Window)) 
-handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
+handleMess d@(DragPane mb@(I (Just (win,_,_,ident))) ty delta split) x
     | Just e <- fromMessage x :: Maybe Event = do handleEvent d e
                                                   return Nothing
     | Just Hide             <- fromMessage x = do hideWindow win
@@ -87,7 +87,7 @@ handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
 handleMess _ _ = return Nothing
 
 handleEvent :: DragPane Window -> Event -> X ()
-handleEvent (DragPane (I (Just (win,r,ident))) ty _ _) 
+handleEvent (DragPane (I (Just (win,_,r,ident))) ty _ _) 
             (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
     | t == buttonPress && thisw == win || thisbw == win  = do
   mouseDrag (\ex ey -> do
@@ -96,7 +96,12 @@ handleEvent (DragPane (I (Just (win,r,ident))) ty _ _)
                           Horizontal -> (fromIntegral ey - (fromIntegral $ rect_y r))/(fromIntegral $ rect_height r)
              sendMessage (SetFrac ident frac))
             (return ())
-handleEvent _ _ = return ()
+handleEvent (DragPane (I (Just (win,oret,_,_))) _ _ _) 
+            (ExposeEvent {ev_window = thisw })
+    | thisw == win = do 
+  updateDragWin win oret
+  return ()
+handleEvent _ _    = return ()
 
 doLay :: (Rectangle -> Rectangle) -> DragPane Window -> Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (DragPane a))
 doLay mirror (DragPane mw ty delta split) r s = do
@@ -117,13 +122,13 @@ doLay mirror (DragPane mw ty delta split) r s = do
                       [] -> [(W.focus s, r)]
   if length wrs > 1 
      then case mw of
-            I (Just (w,_,ident)) -> do 
+            I (Just (w,_,_,ident)) -> do 
                     w' <- deleteWindow w >> newDragWin handr
-                    return (wrs, Just $ DragPane (I $ Just (w',r',ident)) ty delta split)
+                    return (wrs, Just $ DragPane (I $ Just (w',r,r',ident)) ty delta split)
             I Nothing -> do 
                     w <- newDragWin handr
                     i <- io $ newUnique
-                    return (wrs, Just $ DragPane (I $ Just (w,r',hashUnique i)) ty delta split)
+                    return (wrs, Just $ DragPane (I $ Just (w,r,r',hashUnique i)) ty delta split)
      else return (wrs, Nothing)
 
 
@@ -131,6 +136,10 @@ newDragWin :: Rectangle -> X Window
 newDragWin  r@(Rectangle _ _ wh ht) = do
   let mask = Just $ exposureMask .|. buttonPressMask
   w <- createNewWindow r mask
-  paintWindow w wh ht 0 handleColor handleColor
   showWindow  w
+  paintWindow w wh ht 0 handleColor handleColor
   return      w
+
+updateDragWin :: Window -> Rectangle -> X ()
+updateDragWin w (Rectangle _ _ wh ht) = do
+  paintWindow w wh ht 0 handleColor handleColor
