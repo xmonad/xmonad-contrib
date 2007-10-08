@@ -39,7 +39,7 @@ import Graphics.X11.Xlib.Extras
 -- 
 -- > import XMonadContrib.LayoutScreens
 --
--- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
+-- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (TwoPane 0.5 0.5))
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
 --
 -- Another example use would be to handle a scenario where xrandr didn't
