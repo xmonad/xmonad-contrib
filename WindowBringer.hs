@@ -15,7 +15,7 @@
 module XMonadContrib.WindowBringer (
                                     -- * Usage
                                     -- $usage
-                                    gotoMenu, bringMenu
+                                    gotoMenu, bringMenu, windowMapWith
                                    ) where
 
 import Control.Monad.State (gets)
