@@ -41,6 +41,7 @@ import Graphics.X11.Xlib.Extras (currentTime, ev_event_type, getEvent, getWindow
 import Data.Maybe (fromMaybe)
 import Control.Concurrent (forkIO)
 import Data.Char (chr, ord)
+import Control.Exception as E (catch)
 
 -- promptSelection's imports:
 import XMonad (io, spawn, X ())
@@ -57,13 +58,11 @@ getSelection = do
   rootw  <- rootWindow dpy dflt
   win <- createSimpleWindow dpy rootw 0 0 200 100 0 0 0
   p <- internAtom dpy "PRIMARY" True
-  ty <- internAtom dpy "UTF8_STRING" False
--- import Control.Exception as E (catch)
-{-  ty <- E.catch
+  ty <- E.catch
                (E.catch
-                     (internAtom dpy "sTring" False)
+                     (internAtom dpy "UTF8_STRING" False)
                      (\_ -> internAtom dpy "COMPOUND_TEXT" False))
-             (\_ -> internAtom dpy "UTF8_STRING" False) -}
+             (\_ -> internAtom dpy "sTring" False)
   clp <- internAtom dpy "BLITZ_SEL_STRING" False
   xConvertSelection dpy p ty clp win currentTime
   allocaXEvent $ \e -> do
