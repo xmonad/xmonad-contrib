@@ -63,12 +63,12 @@ setWMName name = do
     dpy <- asks display
     io $ do
         -- _NET_SUPPORTING_WM_CHECK atom of root and support windows refers to the support window
-        mapM_ (\w -> changeProperty32 dpy w atom_NET_SUPPORTING_WM_CHECK wINDOW 0 [supportWindow]) [root, supportWindow]
+        mapM_ (\w -> changeProperty32 dpy w atom_NET_SUPPORTING_WM_CHECK wINDOW 0 [fromIntegral supportWindow]) [root, supportWindow]
         -- set WM_NAME in supportWindow (now only accepts latin1 names to eliminate dependency on utf8 encoder)
         changeProperty8 dpy supportWindow atom_NET_WM_NAME atom_UTF8_STRING 0 (latin1StringToWord8List name)
         -- declare which _NET protocols are supported (append to the list if it exists)
         supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy atom_NET_SUPPORTED_ATOM root
-        changeProperty32 dpy root atom_NET_SUPPORTED_ATOM aTOM 0 (nub $ atom_NET_SUPPORTING_WM_CHECK : atom_NET_WM_NAME : supportedList)
+        changeProperty32 dpy root atom_NET_SUPPORTED_ATOM aTOM 0 (nub $ fromIntegral atom_NET_SUPPORTING_WM_CHECK : fromIntegral atom_NET_WM_NAME : supportedList)
   where
     netSupportingWMCheckAtom :: X Atom
     netSupportingWMCheckAtom = getAtom "_NET_SUPPORTING_WM_CHECK"
@@ -81,7 +81,7 @@ setWMName name = do
         atom_NET_SUPPORTING_WM_CHECK <- netSupportingWMCheckAtom
         root <- asks theRoot
         supportWindow <- fmap (join . fmap listToMaybe) $ io $ getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root
-        validateWindow supportWindow
+        validateWindow (fmap fromIntegral supportWindow)
 
     validateWindow :: Maybe Window -> X Window
     validateWindow w = do
@@ -96,7 +96,7 @@ setWMName name = do
     isValidWindow w = withDisplay $ \dpy -> io $ alloca $ \p -> do
         status <- xGetWindowAttributes dpy w p
         return (status /= 0)
-        
+
     -- this code was translated from C (see OpenBox WM, screen.c)
     createSupportWindow :: X Window
     createSupportWindow = withDisplay $ \dpy -> do

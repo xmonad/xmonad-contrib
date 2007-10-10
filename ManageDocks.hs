@@ -19,10 +19,10 @@
 --  * To reset the gap, press Mod-b twice and restart xmonad (Mod-q)
 -----------------------------------------------------------------------------
 module XMonadContrib.ManageDocks (
-	-- * Usage
-	-- $usage
-	manageDocksHook
-	) where
+    -- * Usage
+    -- $usage
+    manageDocksHook
+    ) where
 
 import Control.Monad.Reader
 import XMonad
@@ -51,40 +51,40 @@ import Data.Word
 -- not manage it. If the window has the STRUT property set, adjust the gap accordingly.
 manageDocksHook :: Window -> X (WindowSet -> WindowSet)
 manageDocksHook w = do
-	hasStrut <- getStrut w
-	maybe (return ()) setGap hasStrut
+    hasStrut <- getStrut w
+    maybe (return ()) setGap hasStrut
 
-	isDock <- checkDock w
-	if isDock then do
-		reveal w
-		return (W.delete w)
-	      else do
-	        return id
+    isDock <- checkDock w
+    if isDock then do
+        reveal w
+        return (W.delete w)
+          else do
+            return id
 
 -- |
 -- Checks if a window is a DOCK window
 checkDock :: Window -> X (Bool)
 checkDock w = do
-	a <- getAtom "_NET_WM_WINDOW_TYPE"
-	d <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
-	mbr <- getProp a w
-	case mbr of 
-		Just [r] -> return (r == d)
-		_        -> return False
+    a <- getAtom "_NET_WM_WINDOW_TYPE"
+    d <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
+    mbr <- getProp a w
+    case mbr of
+        Just [r] -> return (fromIntegral r == d)
+        _        -> return False
 
--- | 
+-- |
 -- Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X (Maybe (Int, Int, Int, Int))
-getStrut w = do 
-	a <- getAtom "_NET_WM_STRUT"
-	mbr <- getProp a w
-	case mbr of 
-		Just [l,r,t,b] -> return (Just (
-					fromIntegral t,
-					fromIntegral b,
-					fromIntegral l,
-					fromIntegral r))
-		_              -> return Nothing
+getStrut w = do
+    a <- getAtom "_NET_WM_STRUT"
+    mbr <- getProp a w
+    case mbr of
+        Just [l,r,t,b] -> return (Just (
+                    fromIntegral t,
+                    fromIntegral b,
+                    fromIntegral l,
+                    fromIntegral r))
+        _              -> return Nothing
 
 -- |
 -- Helper to read a property
@@ -98,5 +98,5 @@ setGap gap = modifyGap (\_ -> max4 gap)
 
 -- |
 -- Piecewise maximum of a 4-tuple of Ints
-max4 :: (Int, Int, Int, Int) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int) 
+max4 :: (Int, Int, Int, Int) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
 max4 (a1,a2,a3,a4) (b1,b2,b3,b4) = (max a1 b1, max a2 b2, max a3 b3, max a4 b4)
