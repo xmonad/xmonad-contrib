@@ -19,8 +19,8 @@ module XMonadContrib.RotView (
                              ) where
 
 import Control.Monad.State ( gets )
-import Data.List ( sortBy )
-import Data.Maybe ( listToMaybe, isJust )
+import Data.List ( sortBy, find )
+import Data.Maybe ( isJust )
 import Data.Ord ( comparing )
 
 import XMonad
@@ -29,7 +29,7 @@ import Operations
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
--- 
+--
 -- > import XMonadContrib.RotView
 --
 -- >   , ((modMask .|. shiftMask, xK_Right), rotView True)
@@ -40,10 +40,14 @@ import Operations
 -- %keybind , ((modMask .|. shiftMask, xK_Left), rotView False)
 
 rotView :: Bool -> X ()
-rotView b = do
+rotView forward = do
     ws <- gets windowset
-    let m = tag . workspace . current $ ws
-        sortWs = sortBy (comparing tag)
-        pivoted = uncurry (flip (++)) . span ((< m) . tag) . sortWs . hidden $ ws
-        nextws = listToMaybe . filter (isJust . stack) . (if b then id else reverse) $ pivoted
+    let currentTag = tag . workspace . current $ ws
+        sortWs     = sortBy (comparing tag)
+        isNotEmpty = isJust . stack
+        sorted     = sortWs (hidden ws)
+        pivoted    = let (a,b) = span ((< currentTag) . tag) sorted in b ++ a
+        pivoted'   | forward   = pivoted
+                   | otherwise = reverse pivoted
+        nextws     = find isNotEmpty pivoted'
     whenJust nextws (windows . view . tag)
