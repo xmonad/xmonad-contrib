@@ -81,7 +81,7 @@ import Operations
 import qualified Data.Map as M
 import Data.Map (Map)
 
--- import System.IO
+--import System.IO
 
 
 -- | Toggle the specified layout transformer.
@@ -119,8 +119,11 @@ acceptChange st f action =
 instance LayoutClass SwitchTrans a where
     description _ = "SwitchTrans"
 
-    doLayout st r s = currLayout st `unLayout` \l ->
-        acceptChange st (fmap . fmap) (doLayout l r s)
+    doLayout st r s = currLayout st `unLayout` \l -> do
+        --io $ hPutStrLn stderr $ "[ST]{ " ++ show st
+        x{- @(_, w) -} <- acceptChange st (fmap . fmap) (doLayout l r s)
+        --io $ hPutStrLn stderr $ "[ST]} " ++ show w
+        return x
 
     pureLayout st r s = currLayout st `unLayout` \l -> pureLayout l r s
 
@@ -139,11 +142,15 @@ instance LayoutClass SwitchTrans a where
             else
                 enable tag alt
         | Just ReleaseResources <- fromMessage m
-            = currLayout st `unLayout` \cl ->
+            = currLayout st `unLayout` \cl -> do
+                --io $ hPutStrLn stderr $ "[ST]~ " ++ show st
                 acceptChange st fmap (handleMessage cl m)
         | Just Hide <- fromMessage m
-            = currLayout st `unLayout` \cl ->
-                acceptChange st fmap (handleMessage cl m)
+            = currLayout st `unLayout` \cl -> do
+                --io $ hPutStrLn stderr $ "[ST]< " ++ show st
+                x <- acceptChange st fmap (handleMessage cl m)
+                --io $ hPutStrLn stderr $ "[ST]> " ++ show x
+                return x
         | otherwise = base st `unLayout` \b -> do
             x <- handleMessage b m
             case x of
@@ -154,14 +161,14 @@ instance LayoutClass SwitchTrans a where
                     return . Just $ st{ base = b'', currLayout = currFilt st b'' }
         where
         enable tag alt = currLayout st `unLayout` \cl -> do
-            -- io $ hPutStrLn stderr $ "[ST]+ " ++ show cl ++ " -> " ++ show (alt (base st))
+            --io $ hPutStrLn stderr $ "[ST]+ " ++ show cl ++ " -> " ++ show (alt (base st))
             handleMessage cl (SomeMessage ReleaseResources)
             return . Just $ st{
                 currTag = Just tag,
                 currFilt = alt,
                 currLayout = alt (base st) }
         disable = currLayout st `unLayout` \cl -> do
-            -- io $ hPutStrLn stderr $ "[ST]- " ++ show cl ++ " -> " ++ show (base st)
+            --io $ hPutStrLn stderr $ "[ST]- " ++ show cl ++ " -> " ++ show (base st)
             handleMessage cl (SomeMessage ReleaseResources)
             return . Just $ st{
                 currTag = Nothing,
