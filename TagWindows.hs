@@ -15,7 +15,7 @@ module XMonadContrib.TagWindows (
                  -- * Usage
                  -- $usage
                  addTag, delTag, unTag,
-                 setTags, getTags,
+                 setTags, getTags, hasTag,
                  withTaggedP,  withTaggedGlobalP, withFocusedP,
                  withTagged ,  withTaggedGlobal ,
                  focusUpTagged,   focusUpTaggedGlobal,
