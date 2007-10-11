@@ -60,7 +60,6 @@ getShellCompl s
     | s /= "" && last s /= ' ' = do
   f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
   c <- commandCompletionFunction s
-  hPutStrLn stdout s
   return . map escape . sort . nub $ f ++ c
     | otherwise = return []
 
