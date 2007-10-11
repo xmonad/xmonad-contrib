@@ -58,7 +58,7 @@ instance LayoutModifier WithBorder Window where
     unhook (WithBorder _ s) = setBorders borderWidth s
 
     redoLayout (WithBorder n s) _ _ wrs = do
-        setBorders borderWidth (ws \\ s)
+        setBorders borderWidth (s \\ ws)
         setBorders n ws
         return (wrs, Just $ WithBorder n ws)
      where
