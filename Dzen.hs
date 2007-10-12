@@ -14,38 +14,10 @@
 
 module XMonadContrib.Dzen (dzen, dzenScreen) where
 
-import System.Posix.Process (forkProcess, getProcessStatus, createSession)
-import System.IO
-import System.Process
-import System.Exit
-import Control.Concurrent (threadDelay)
 import Control.Monad.State
-
 import qualified StackSet as W
 import XMonad
-
--- wait is in us
-runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
-runProcessWithInputAndWait cmd args input timeout = do
-    pid <- forkProcess $ do
-       forkProcess $ do -- double fork it over to init
-         createSession
-         (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
-         hPutStr pin input
-         hFlush pin
-         threadDelay timeout
-         hClose pin
-         --     output <- hGetContents pout
-         --     when (output==output) $ return ()
-         hClose pout
-         hClose perr
-         waitForProcess ph
-         return ()
-       exitWith ExitSuccess
-       return ()
-    getProcessStatus True False pid
-    return ()
-
+import XMonadContrib.Run
 
 curScreen :: X ScreenId
 curScreen =  (W.screen . W.current) `liftM` gets windowset

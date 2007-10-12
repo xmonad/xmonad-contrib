@@ -17,16 +17,14 @@
 module XMonadContrib.Dmenu (
                             -- * Usage
                             -- $usage
-                            dmenu, dmenuXinerama, dmenuMap,
-                            runProcessWithInput
+                            dmenu, dmenuXinerama, dmenuMap
                            ) where
 
 import XMonad
 import qualified StackSet as W
 import qualified Data.Map as M
-import System.Process
-import System.IO
 import Control.Monad.State
+import XMonadContrib.Run
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -34,20 +32,6 @@ import Control.Monad.State
 -- > import XMonadContrib.Dmenu
 
 -- %import XMonadContrib.Dmenu
-
--- | Returns Just output if the command succeeded, and Nothing if it didn't.
--- This corresponds to dmenu's notion of exit code 1 for a cancelled invocation.
-runProcessWithInput :: FilePath -> [String] -> String -> IO String
-runProcessWithInput cmd args input = do
-    (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
-    hPutStr pin input
-    hClose pin
-    output <- hGetContents pout
-    when (output==output) $ return ()
-    hClose pout
-    hClose perr
-    waitForProcess ph
-    return output
 
 -- | Starts dmenu on the current screen. Requires this patch to dmenu:
 -- <http://www.jcreigh.com/dmenu/dmenu-3.2-xinerama.patch>

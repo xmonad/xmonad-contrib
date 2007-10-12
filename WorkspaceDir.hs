@@ -33,7 +33,7 @@ import System.Directory ( setCurrentDirectory )
 
 import XMonad
 import Operations ( sendMessage )
-import XMonadContrib.Dmenu ( runProcessWithInput )
+import XMonadContrib.Run ( runProcessWithInput )
 import XMonadContrib.XPrompt ( XPConfig )
 import XMonadContrib.DirectoryPrompt ( directoryPrompt )
 import XMonadContrib.LayoutModifier

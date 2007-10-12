@@ -26,7 +26,8 @@ module XMonadContrib.WmiiActions (
                                  ) where
 
 import XMonad
-import XMonadContrib.Dmenu (dmenu, dmenuXinerama, runProcessWithInput)
+import XMonadContrib.Dmenu (dmenu, dmenuXinerama)
+import XMonadContrib.Run (runProcessWithInput)
 
 import Control.Monad (filterM, liftM, liftM2)
 import System.Directory (getDirectoryContents, doesFileExist, getPermissions, executable)

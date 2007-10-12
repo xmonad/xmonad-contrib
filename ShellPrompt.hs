@@ -22,7 +22,7 @@ module XMonadContrib.ShellPrompt (
 
 import XMonad
 import XMonadContrib.XPrompt
-import XMonadContrib.Dmenu
+import XMonadContrib.Run
 
 import Control.Monad
 import Data.List

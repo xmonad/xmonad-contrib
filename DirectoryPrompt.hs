@@ -20,7 +20,7 @@ module XMonadContrib.DirectoryPrompt (
 
 import XMonad
 import XMonadContrib.XPrompt
-import XMonadContrib.Dmenu ( runProcessWithInput )
+import XMonadContrib.Run ( runProcessWithInput )
 
 -- $usage
 -- For an example usage see "XMonadContrib.WorkspaceDir"
