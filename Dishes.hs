@@ -32,15 +32,20 @@ import Graphics.X11.Xlib
 -- You can use this module with the following in your Config.hs file:
 --
 -- > import XMonadContrib.Dishes
+--
+-- and add the following line to your 'defaultLayouts'
+--
+-- > , Layout $ Dishes 2 (1%6)
 
 -- %import XMonadContrib.Dishes
+-- %layout , Layout $ Dishes 2 (1%6)
 
 data Dishes a = Dishes Int Rational deriving (Show, Read)
 instance LayoutClass Dishes a where
 	doLayout (Dishes nmaster h) r =
 		return . (\x->(x,Nothing)) .
 		ap zip (dishes h r nmaster . length) . integrate
-	handleMessage (Dishes nmaster h) m = return $ fmap incmastern (fromMessage m)
+	pureMessage (Dishes nmaster h) m = fmap incmastern (fromMessage m)
 		where incmastern (IncMasterN d) = Dishes (max 0 (nmaster+d)) h
 
 dishes :: Rational -> Rectangle -> Int -> Int -> [Rectangle]
