@@ -12,9 +12,7 @@
 -- each other, without having to move individual windows.
 --
 -- TODO: add quickcheck props for:
---
 --       * double swap invariant (guarantees no 'loss' of workspaces)
---
 --       * non-swapped ws's invariant
 --
 -----------------------------------------------------------------------------
@@ -43,10 +41,17 @@ import StackSet
 -- %keybindlist ++
 -- %keybindlist [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
 -- %keybindlist     | (i, k) <- zip workspaces [xK_1 ..]]
+--
+-- After installing this update, if you're on workspace 1, hitting mod-ctrl-5
+-- will swap workspaces 1 and 5.
 
+-- | Swaps the currently focused workspace with the given workspace tag, via
+--   @swapWorkspaces@.
 swapWithCurrent :: Eq i => i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWithCurrent t s = swapWorkspaces t (tag $ workspace $ current s) s
 
+-- | Takes two workspace tags and an existing StackSet and returns a new
+--   one with the two corresponding workspaces' tags swapped.
 swapWorkspaces :: Eq i => i -> i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWorkspaces t1 t2 = mapWorkspace swap
     where swap w = if      tag w == t1 then w { tag = t2 }
