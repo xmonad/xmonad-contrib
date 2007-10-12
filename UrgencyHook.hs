@@ -45,6 +45,9 @@ import Graphics.X11.Xlib.Extras
 -- messages sent to it. Next, add your actual urgencyHook to Config. This
 -- needs to take a Window and return an X () action. Here's an example:
 --
+-- > import Dzen (dzen)
+-- > import NamedWindows (getName)
+-- ...
 -- > urgencyHook :: Window -> X ()
 -- > urgencyHook w = do
 -- >     name <- getName w
