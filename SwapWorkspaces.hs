@@ -11,10 +11,6 @@
 -- Lets you swap workspace tags, so you can keep related ones next to
 -- each other, without having to move individual windows.
 --
--- TODO: add quickcheck props for:
---       * double swap invariant (guarantees no 'loss' of workspaces)
---       * non-swapped ws's invariant
---
 -----------------------------------------------------------------------------
 
 module XMonadContrib.SwapWorkspaces (
