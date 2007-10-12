@@ -4,36 +4,21 @@
 -- Copyright   :  (C) 2007 Andrea Rossato, Matthew Sackman
 -- License     :  BSD3
 --
--- Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>, Matthew Sackman <matthew@wellquite.org>
+-- Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>,
+--                Matthew Sackman <matthew@wellquite.org>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
 -- A module for accessing and manipulating the X Window mouse selection (used in copy and pasting).
 -- getSelection and putSelection are adaptations of Hxsel.hs and Hxput.hs from XMonad-utils, available:
--- $ darcs get http://gorgias.mine.nu/repos/xmonad-utils
+--
+-- $ darcs get "http:\/\/gorgias.mine.nu\/repos\/xmonad-utils"
 -----------------------------------------------------------------------------
-{- $usage
-    Add 'import XMonadContrib.XSelection' to the top of Config.hs
-    Then make use of getSelection or promptSelection as needed; if
-    one wanted to run Firefox with the selection as an argument (say,
-    the selection is an URL you just highlighted), then one could add
-    to the Config.hs a line like thus:
-        , ((modMask .|. shiftMask, xK_b     ), promptSelection "firefox")
 
-    TODO:
-             * Fix Unicode handling. Currently it's still better than calling
-               'chr' to translate to ASCII, though.
-               As near as I can tell, the mangling happens when the String is
-               outputted somewhere, such as via promptSelection's passing through
-               the shell, or GHCi printing to the terminal. utf-string has IO functions
-               which can fix this, though I do not know have to use them here. It's
-               a complex issue; see
-               <http://www.haskell.org/pipermail/xmonad/2007-September/001967.html>
-               and <http://www.haskell.org/pipermail/xmonad/2007-September/001966.html>.
-             * Possibly add some more elaborate functionality: Emacs' registers are nice.
--}
-
-module XMonadContrib.XSelection (getSelection, promptSelection, putSelection) where
+module XMonadContrib.XSelection (
+                                 -- * Usage
+                                 -- $usage
+                                 getSelection, promptSelection, putSelection) where
 
 -- getSelection, putSelection's imports:
 import Graphics.X11.Xlib (allocaXEvent, createSimpleWindow, defaultScreen, destroyWindow, internAtom, nextEvent, openDisplay, rootWindow, selectionNotify, Display(), Atom(), XEventPtr(), selectionRequest, sendEvent, noEventMask, sync)
@@ -49,8 +34,32 @@ import XMonad (io, spawn, X ())
 -- decode's imports
 import Foreign (Word8(), (.&.), shiftL, (.|.))
 
+{- $usage
+    Add 'import XMonadContrib.XSelection' to the top of Config.hs
+    Then make use of getSelection or promptSelection as needed; if
+    one wanted to run Firefox with the selection as an argument (say,
+    the selection is an URL you just highlighted), then one could add
+    to the Config.hs a line like thus:
+
+>  , ((modMask .|. shiftMask, xK_b     ), promptSelection "firefox")
+
+    TODO:
+
+             * Fix Unicode handling. Currently it's still better than calling
+               'chr' to translate to ASCII, though.
+               As near as I can tell, the mangling happens when the String is
+               outputted somewhere, such as via promptSelection's passing through
+               the shell, or GHCi printing to the terminal. utf-string has IO functions
+               which can fix this, though I do not know have to use them here. It's
+               a complex issue; see
+               <http://www.haskell.org/pipermail/xmonad/2007-September/001967.html>
+               and <http://www.haskell.org/pipermail/xmonad/2007-September/001966.html>.
+
+             * Possibly add some more elaborate functionality: Emacs' registers are nice.
+-}
+
 -- | Returns a String corresponding to the current mouse selection in X; if there is none, an empty string is returned.. Note that this is
--- only reliable for ASCII text and currently mangles/escapes more complex UTF-8 characters.
+-- only reliable for ASCII text and currently mangles\/escapes more complex UTF-8 characters.
 getSelection :: IO String
 getSelection = do
   dpy <- openDisplay ""
@@ -113,7 +122,7 @@ putSelection text = do
                                                       processEvent dpy ty text e
 
 -- | A wrapper around getSelection. Makes it convenient to run a program with the current selection as an argument. This is convenient
--- for handling URLs, in particular. For example, in your Config.hs you could bind a key to 'promptSelection "firefox"'; this would allow you to
+-- for handling URLs, in particular. For example, in your Config.hs you could bind a key to @promptSelection \"firefox\"@; this would allow you to
 -- highlight a URL string and then immediately open it up in Firefox.
 promptSelection :: String -> X ()
 promptSelection app = spawn . ((app ++ " ") ++) =<< io getSelection

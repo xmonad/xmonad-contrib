@@ -29,6 +29,7 @@ import XMonad
 -- $usage
 -- 
 -- Add something like the following lines to Config.hs to use this module
+--
 -- > import XMonadContrib.XPropManage
 -- 
 -- > manageHook = xPropManageHook xPropMatches 
@@ -51,7 +52,7 @@ import XMonad
 -- a function to apply in 'windows' (see Operations.hs). So if the action does only work on the
 -- WindowSet use just 'pmP function'.
 --
--- *1 You can get the available properties of an application with the xprop utility. STRING properties
+-- \*1 You can get the available properties of an application with the xprop utility. STRING properties
 -- should work fine. Others might not work.
 --
 

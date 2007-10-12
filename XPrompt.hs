@@ -266,13 +266,13 @@ keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 keyPressHandle mask (ks,_)
     | mask == controlMask =
         case () of
--- ^U
+-- ctrl U
           _ | ks == xK_u -> killBefore  >> go
--- ^K
+-- ctrl K
             | ks == xK_k -> killAfter   >> go
--- ^A
+-- ctrl A
             | ks == xK_a -> startOfLine >> go
--- ^E
+-- ctrl E
             | ks == xK_e -> endOfLine   >> go
 -- Unhandled control sequence
             | otherwise  -> eventLoop handle

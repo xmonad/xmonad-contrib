@@ -17,18 +17,18 @@
 -- Remember that you need to call the setWMName action yourself (at least until
 -- we have startup hooks). E.g., you can bind it in your Config.hs:
 --
---  ((modMask .|. controlMask .|. shiftMask, xK_z), setWMName "LG3D") -- @@ Java hack
+-- > ((modMask .|. controlMask .|. shiftMask, xK_z), setWMName "LG3D") -- @@ Java hack
 --
 -- and press the key combination before running the Java programs (you only
 -- need to do it once per XMonad execution)
 --
 -- For details on the problems with running Java GUI programs in non-reparenting
--- WMs, see <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6429775> and
+-- WMs, see "http:\/\/bugs.sun.com\/bugdatabase\/view_bug.do?bug_id=6429775" and
 -- related bugs.
 --
 -- Setting WM name to "compiz" does not solve the problem, because of yet
 -- another bug in AWT code (related to insets). For LG3D insets are explicitly
--- set to 0, while for other WMs the insets are "guessed" and the algorithm
+-- set to 0, while for other WMs the insets are \"guessed\" and the algorithm
 -- fails miserably by guessing absolutely bogus values.
 -----------------------------------------------------------------------------
 

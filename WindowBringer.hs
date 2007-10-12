@@ -36,11 +36,14 @@ import XMonadContrib.NamedWindows (getName)
 -- where you left your XChat.
 --
 -- Place in your Config.hs:
+--
 -- > import XMonadContrib.WindowBringer
+--
 -- and in the keys definition:
+--
 -- > , ((modMask .|. shiftMask, xK_g     ), gotoMenu)
 -- > , ((modMask .|. shiftMask, xK_b     ), bringMenu)
---
+
 -- %import XMonadContrib.WindowBringer
 -- %keybind ((modMask .|. shiftMask, xK_g     ), gotoMenu)
 -- %keybind ((modMask .|. shiftMask, xK_b     ), bringMenu)

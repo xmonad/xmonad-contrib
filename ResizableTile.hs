@@ -11,7 +11,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- More useful tiled layout that allows you to change a width/height of window.
+-- More useful tiled layout that allows you to change a width\/height of window.
 --
 -----------------------------------------------------------------------------
 

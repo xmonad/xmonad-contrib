@@ -12,7 +12,9 @@
 -- each other, without having to move individual windows.
 --
 -- TODO: add quickcheck props for:
+--
 --       * double swap invariant (guarantees no 'loss' of workspaces)
+--
 --       * non-swapped ws's invariant
 --
 -----------------------------------------------------------------------------
@@ -28,13 +30,15 @@ import StackSet
 
 -- $usage
 -- Add this import to your Config.hs:
+--
 -- > import XMonadContrib.SwapWorkspaces
 --
 -- Throw this in your keys definition:
+--
 -- > ++
 -- > [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
 -- >     | (i, k) <- zip workspaces [xK_1 ..]]
---
+
 -- %import XMonadContrib.SwapWorkspaces
 -- %keybindlist ++
 -- %keybindlist [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
