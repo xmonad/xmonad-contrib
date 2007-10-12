@@ -22,7 +22,7 @@ instance LayoutModifier WithUrgencyHook Window where
                   when (testBit flags urgencyHintBit) $ do
                       urgencyHook w
                       -- Is clearing the bit really necessary? Xlib manual advises it.
-                      _ <- io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
+                      io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
                       return ()
           _ -> return ()
       return Nothing
