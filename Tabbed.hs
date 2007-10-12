@@ -44,11 +44,11 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.Tabbed
 --
--- > defaultLayouts :: [(String, SomeLayout Window)]
--- > defaultLayouts = [SomeLayout tiled
--- >                  ,SomeLayout $ Mirror tiled
+-- > defaultLayouts :: [(String, Layout Window)]
+-- > defaultLayouts = [Layout tiled
+-- >                  ,Layout $ Mirror tiled
 -- >                  -- Extension-provided layouts
--- >                  ,SomeLayout $ tabbed shrinkText defaultTConf)
+-- >                  ,Layout $ tabbed shrinkText defaultTConf)
 -- >                  , ... ]
 --
 -- You can also edit the default configuration options.

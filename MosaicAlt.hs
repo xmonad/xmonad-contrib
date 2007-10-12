@@ -43,7 +43,7 @@ import Graphics.X11.Types ( Window )
 -- > import XMonadContrib.MosaicAlt
 --
 -- > defaultLayouts = ...
--- >                  , SomeLayout $ MosaicAlt M.empty
+-- >                  , Layout $ MosaicAlt M.empty
 -- >                  ...
 --
 -- > keys = ...
@@ -55,7 +55,7 @@ import Graphics.X11.Types ( Window )
 -- >     ...
 
 -- %import XMonadContrib.MosaicAlt
--- %layout , SomeLayout $ MosaicAlt M.empty
+-- %layout , Layout $ MosaicAlt M.empty
 
 data HandleWindowAlt =
     ShrinkWindowAlt Window

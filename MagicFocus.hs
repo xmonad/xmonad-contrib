@@ -25,11 +25,11 @@ import StackSet
 
 -- $usage
 -- > import XMonadContrib.MagicFocus
--- > defaultLayouts = [ SomeLayout $ MagicFocus tiled , SomeLayout $ MagicFocus $ Mirror tiled ]
+-- > defaultLayouts = [ Layout $ MagicFocus tiled , Layout $ MagicFocus $ Mirror tiled ]
 
 -- %import XMonadContrib.MagicFocus
--- %layout , SomeLayout $ MagicFocus tiled
--- %layout , SomeLayout $ MagicFocus $ Mirror tiled
+-- %layout , Layout $ MagicFocus tiled
+-- %layout , Layout $ MagicFocus $ Mirror tiled
 
 
 data MagicFocus l a = MagicFocus (l a) deriving ( Show , Read )
