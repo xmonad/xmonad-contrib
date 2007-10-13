@@ -33,7 +33,7 @@ import XMonadContrib.WindowBringer
 
 -- $usage
 -- WindowPrompt brings windows to you and you to windows.
--- That is to say, it pops up a dmenu with window names, in case you forgot
+-- That is to say, it pops up a prompt with window names, in case you forgot
 -- where you left your XChat.
 --
 -- Place in your Config.hs:
@@ -44,12 +44,13 @@ import XMonadContrib.WindowBringer
 -- and in the keys definition:
 --
 -- > , ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- > , ((modMask .|. shiftMask, xK_g     ), windowPromptBring defaultXPConfig)
---
+-- > , ((modMask .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
+
 -- %import XMonadContrib.XPrompt
 -- %import XMonadContrib.WindowPrompt
 -- %keybind , ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- %keybind , ((modMask .|. shiftMask, xK_g     ), windowPromptBring defaultXPConfig)
+-- %keybind , ((modMask .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
+
 
 data WindowPrompt = Goto | Bring
 instance XPrompt WindowPrompt where 
