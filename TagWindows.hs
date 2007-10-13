@@ -45,22 +45,23 @@ import XMonad
 -- > import XMonadContrib.XPrompt    -- to use tagPrompt
 -- 
 -- and add keybindings like as follows:
---    , ((modMask,                 xK_f  ), withFocused (addTag "abc")) 
---    , ((modMask .|. controlMask, xK_f  ), withFocused (delTag "abc")) 
---    , ((modMask .|. shiftMask,   xK_f  ), withTaggedGlobal "abc" sink) 
---    , ((modMask,                 xK_d  ), withTaggedP "abc" (shiftWin "2")) 
---    , ((modMask .|. shiftMask,   xK_d  ), withTaggedGlobalP "abc" shiftHere) 
---    , ((modMask .|. controlMask, xK_d  ), focusUpTaggedGlobal "abc") 
---    , ((modMask,                 xK_g  ), tagPrompt defaultXPConfig (\s -> withFocused (addTag s))) 
---    , ((modMask .|. controlMask, xK_g  ), tagDelPrompt defaultXPConfig)
---    , ((modMask .|. shiftMask,   xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobal s float))
---    , ((modWinMask,              xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedP s (shiftWin "2")))
---    , ((modWinMask .|. shiftMask, xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobalP s shiftHere))
---    , ((modWinMask .|. controlMask, xK_g), tagPrompt defaultXPConfig (\s -> focusUpTaggedGlobal s)) 
+--
+-- >   , ((modMask,                 xK_f  ), withFocused (addTag "abc")) 
+-- >   , ((modMask .|. controlMask, xK_f  ), withFocused (delTag "abc")) 
+-- >   , ((modMask .|. shiftMask,   xK_f  ), withTaggedGlobal "abc" sink) 
+-- >   , ((modMask,                 xK_d  ), withTaggedP "abc" (shiftWin "2")) 
+-- >   , ((modMask .|. shiftMask,   xK_d  ), withTaggedGlobalP "abc" shiftHere) 
+-- >   , ((modMask .|. controlMask, xK_d  ), focusUpTaggedGlobal "abc") 
+-- >   , ((modMask,                 xK_g  ), tagPrompt defaultXPConfig (\s -> withFocused (addTag s))) 
+-- >   , ((modMask .|. controlMask, xK_g  ), tagDelPrompt defaultXPConfig)
+-- >   , ((modMask .|. shiftMask,   xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobal s float))
+-- >   , ((modWinMask,              xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedP s (shiftWin "2")))
+-- >   , ((modWinMask .|. shiftMask, xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobalP s shiftHere))
+-- >   , ((modWinMask .|. controlMask, xK_g), tagPrompt defaultXPConfig (\s -> focusUpTaggedGlobal s)) 
 --
 -- NOTE: Tags are saved as space seperated string and split with 'unwords' thus
 --       if you add a tag "a b" the window will have the tags "a" and "b" but not "a b".
---
+
 -- %import XMonadContrib.TagWindows
 -- %import XMonadContrib.XPrompt        -- to use tagPrompt
 
