@@ -20,7 +20,7 @@ module XMonadContrib.WindowNavigation (
                                    -- $usage
                                    windowNavigation,
                                    Navigate(..), Direction(..),
-                                   WNConfig (..), defaultWNConfig
+                                   navigateColor, noNavigateBorders
                                   ) where
 
 import Graphics.X11.Xlib ( Rectangle(..), Window, Pixel, setWindowBorder )
@@ -39,24 +39,24 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.WindowNavigation
 -- >
--- > layoutHook = Layout $ windowNavigation defaultWNConfig $ Select ...
+-- > layoutHook = Layout $ windowNavigation defaultWNConfig $ LayoutSelection ...
 --
 -- In keybindings:
 --
 -- >    , ((modMask, xK_Right), sendMessage $ Go R)
--- >    , ((modMask, xK_Left), sendMessage $ Go L)
--- >    , ((modMask, xK_Up), sendMessage $ Go U)
--- >    , ((modMask, xK_Down), sendMessage $ Go D)
+-- >    , ((modMask, xK_Left ), sendMessage $ Go L)
+-- >    , ((modMask, xK_Up   ), sendMessage $ Go U)
+-- >    , ((modMask, xK_Down ), sendMessage $ Go D)
 
 -- %import XMonadContrib.WindowNavigation
--- %keybind , ((modMask, xK_Right), sendMessage $ Go R)
--- %keybind , ((modMask, xK_Left), sendMessage $ Go L)
--- %keybind , ((modMask, xK_Up), sendMessage $ Go U)
--- %keybind , ((modMask, xK_Down), sendMessage $ Go D)
+-- %keybind , ((modMask,                 xK_Right), sendMessage $ Go R)
+-- %keybind , ((modMask,                 xK_Left ), sendMessage $ Go L)
+-- %keybind , ((modMask,                 xK_Up   ), sendMessage $ Go U)
+-- %keybind , ((modMask,                 xK_Down ), sendMessage $ Go D)
 -- %keybind , ((modMask .|. controlMask, xK_Right), sendMessage $ Swap R)
--- %keybind , ((modMask .|. controlMask, xK_Left), sendMessage $ Swap L)
--- %keybind , ((modMask .|. controlMask, xK_Up), sendMessage $ Swap U)
--- %keybind , ((modMask .|. controlMask, xK_Down), sendMessage $ Swap D)
+-- %keybind , ((modMask .|. controlMask, xK_Left ), sendMessage $ Swap L)
+-- %keybind , ((modMask .|. controlMask, xK_Up   ), sendMessage $ Swap U)
+-- %keybind , ((modMask .|. controlMask, xK_Down ), sendMessage $ Swap D)
 -- %layout -- include 'windowNavigation' in layoutHook definition above.
 -- %layout -- just before the list, like the following (don't uncomment next line):
 -- %layout -- layoutHook = Layout $ windowNavigation defaultWNConfig $ ...
@@ -73,6 +73,14 @@ data WNConfig =
         , leftColor     :: String
         , rightColor    :: String
         } deriving (Show, Read)
+
+noNavigateBorders :: WNConfig
+noNavigateBorders = 
+    defaultWNConfig {showNavigable = False}
+
+navigateColor :: String -> WNConfig
+navigateColor c =
+    WNC True c c c c
 
 defaultWNConfig :: WNConfig
 defaultWNConfig = WNC True "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
