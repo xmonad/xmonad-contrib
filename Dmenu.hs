@@ -10,6 +10,8 @@
 --
 -- A convenient binding to dmenu.
 --
+-- Requires the process-1.0 package
+--
 -----------------------------------------------------------------------------
 
 module XMonadContrib.Dmenu (
