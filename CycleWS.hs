@@ -38,7 +38,7 @@ import {-# SOURCE #-} qualified Config (workspaces)
 -- > import XMonadContrib.NextWorkspace
 --
 -- >   , ((modMask,               xK_Right), nextWS)
--- >   , ((modMask,               xK_Left),  prevWWS)
+-- >   , ((modMask,               xK_Left),  prevWS)
 -- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext)
 -- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
 --
@@ -50,7 +50,7 @@ import {-# SOURCE #-} qualified Config (workspaces)
 
 -- %import XMonadContrib.NextWorkspace
 -- %keybind , ((modMask,               xK_Right), nextWS)
--- %keybind , ((modMask,               xK_Left),  prevWWS)
+-- %keybind , ((modMask,               xK_Left),  prevWS)
 -- %keybind , ((modMask .|. shiftMask, xK_Right), shiftToNext)
 -- %keybind , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
 
