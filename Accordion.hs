@@ -27,10 +27,10 @@ import Data.Ratio
 
 -- $usage
 -- > import XMonadContrib.Accordion
--- > defaultLayouts = [ accordion ]
+-- > defaultLayouts = [ Layout Accordion ]
 
 -- %import XMonadContrib.Accordion
--- %layout , accordion
+-- %layout , Layout Accordion
 
 data Accordion a = Accordion deriving ( Read, Show )
 
