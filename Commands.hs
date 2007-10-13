@@ -29,7 +29,7 @@ import XMonad
 import Operations
 import StackSet hiding (workspaces)
 import XMonadContrib.Dmenu (dmenu)
-import {-# SOURCE #-} Config (workspaces,possibleLayouts)
+import {-# SOURCE #-} Config (workspaces,serialisedLayouts)
 
 import qualified Data.Map as M
 import System.Exit
@@ -81,7 +81,7 @@ defaultCommands = workspaceCommands ++ screenCommands
                      , ("expand"              , sendMessage Expand                               )
                      , ("next-layout"         , sendMessage NextLayout                           )
                      , ("previous-layout"     , sendMessage PrevLayout                           )
-                     , ("default-layout"      , setLayout (head possibleLayouts)                 )
+                     , ("default-layout"      , setLayout (head serialisedLayouts)                 )
                      , ("restart-wm"          , sr >> restart Nothing True                       )
                      , ("restart-wm-no-resume", sr >> restart Nothing False                      )
                      , ("xterm"               , spawn "xterm"                                    )
