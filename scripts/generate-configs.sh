@@ -115,12 +115,12 @@ TAG_MOUSEBIND="%mousebind"
 # Insert markers to search for in Config.sh and xmonad.cabal. Values are
 # extended sed regular expressions.
 INS_MARKER_CABALBUILDDEP='^build-depends:.*'
-INS_MARKER_DEF='-- Extension-provided definitions$'
-INS_MARKER_IMPORT='-- Extension-provided imports$'
-INS_MARKER_KEYBIND='-- Extension-provided key bindings$'
-INS_MARKER_KEYBINDLIST='-- Extension-provided key bindings lists$'
-INS_MARKER_LAYOUT='-- Extension-provided layouts$'
-INS_MARKER_MOUSEBIND='-- Extension-provided mouse bindings$'
+INS_MARKER_IMPORT='-- % Extension-provided imports$'
+INS_MARKER_LAYOUT='-- % Extension-provided layouts$'
+INS_MARKER_KEYBIND='-- % Extension-provided key bindings$'
+INS_MARKER_KEYBINDLIST='-- % Extension-provided key bindings lists$'
+INS_MARKER_MOUSEBIND='-- % Extension-provided mouse bindings$'
+INS_MARKER_DEF='-- % Extension-provided definitions$'
 
 # Literal indentation strings. Values may contain escaped chars such as \t.
 INS_INDENT_CABALBUILDDEP=""
