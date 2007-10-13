@@ -8,6 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
+-- Requires the 'random' package
 --
 -----------------------------------------------------------------------------
 
