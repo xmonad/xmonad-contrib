@@ -15,7 +15,11 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonadContrib.ResizableTile (ResizableTall(..), MirrorResize(..)) where
+module XMonadContrib.ResizableTile (
+                                    -- * Usage
+                                    -- $usage
+                                    ResizableTall(..), MirrorResize(..)
+                                   ) where
 
 import XMonad
 import Operations (Resize(..), IncMasterN(..))
