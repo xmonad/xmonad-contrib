@@ -35,7 +35,7 @@ import qualified StackSet as W ( differentiate )
 -- 
 -- and add something like
 -- 
--- > combo (twoPane 0.03 0.5) [(full,1),(tabbed shrinkText defaultTConf,1)]
+-- > combo (TwoPane 0.03 0.5) [(Full,1),(tabbed shrinkText defaultTConf,1)]
 --
 -- to your defaultLayouts.
 --
