@@ -48,8 +48,8 @@ import XMonadContrib.WindowBringer
 --
 -- %import XMonadContrib.XPrompt
 -- %import XMonadContrib.WindowPrompt
--- %keybind ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- %keybind ((modMask .|. shiftMask, xK_g     ), windowPromptBring defaultXPConfig)
+-- %keybind , ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
+-- %keybind , ((modMask .|. shiftMask, xK_g     ), windowPromptBring defaultXPConfig)
 
 data WindowPrompt = Goto | Bring
 instance XPrompt WindowPrompt where 

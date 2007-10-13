@@ -35,7 +35,7 @@ import {-# SOURCE #-} qualified Config (workspaces)
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 -- 
--- > import XMonadContrib.NextWorkspace
+-- > import XMonadContrib.CycleWS
 --
 -- >   , ((modMask,               xK_Right), nextWS)
 -- >   , ((modMask,               xK_Left),  prevWS)
@@ -48,7 +48,7 @@ import {-# SOURCE #-} qualified Config (workspaces)
 -- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev >> prevWS)
 --
 
--- %import XMonadContrib.NextWorkspace
+-- %import XMonadContrib.CycleWS
 -- %keybind , ((modMask,               xK_Right), nextWS)
 -- %keybind , ((modMask,               xK_Left),  prevWS)
 -- %keybind , ((modMask .|. shiftMask, xK_Right), shiftToNext)

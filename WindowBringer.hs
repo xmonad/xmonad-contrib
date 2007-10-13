@@ -44,8 +44,8 @@ import XMonadContrib.NamedWindows (getName)
 -- > , ((modMask .|. shiftMask, xK_b     ), bringMenu)
 
 -- %import XMonadContrib.WindowBringer
--- %keybind ((modMask .|. shiftMask, xK_g     ), gotoMenu)
--- %keybind ((modMask .|. shiftMask, xK_b     ), bringMenu)
+-- %keybind , ((modMask .|. shiftMask, xK_g     ), gotoMenu)
+-- %keybind , ((modMask .|. shiftMask, xK_b     ), bringMenu)
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
 --   taken to the corresponding workspace.
