@@ -34,10 +34,10 @@ import StackSet ( focus, up, down)
 --
 --  and add, to the list of layouts:
 --
--- > ,(Layout $ TwoPane 0.03 0.5) 
+-- > , (Layout $ TwoPane 0.03 0.5)
 
 -- %import XMonadContrib.TwoPane
--- %layout , ,(Layout $ TwoPane 0.03 0.5) 
+-- %layout , (Layout $ TwoPane 0.03 0.5)
 
 data TwoPane a = 
     TwoPane Rational Rational 
