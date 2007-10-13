@@ -47,7 +47,7 @@ import XMonadContrib.XUtils
 --
 --  and add, to the list of layouts:
 --
--- > dragPane Vertical 0.1 0.5
+-- > Layout $ dragPane Horizontal 0.1 0.5
 
 halfHandleWidth :: Integral a => a
 halfHandleWidth = 1
