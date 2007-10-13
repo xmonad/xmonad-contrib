@@ -21,7 +21,13 @@
 module XMonadContrib.DynamicLog (
     -- * Usage
     -- $usage 
-    dynamicLog, dynamicLogWithTitle, dynamicLogWithTitleColored, dynamicLogXinerama, pprWindowSet, pprWindowSetXinerama
+    dynamicLog,
+    dynamicLogWithTitle,
+    dynamicLogWithTitleColored,
+    dynamicLogXinerama,
+
+    pprWindowSet,
+    pprWindowSetXinerama
   ) where
 
 -- 
@@ -36,6 +42,7 @@ import Data.Ord ( comparing )
 import qualified StackSet as S
 import Data.Monoid
 import XMonadContrib.NamedWindows
+import Data.Char
 
 -- $usage 
 --
@@ -68,37 +75,58 @@ import XMonadContrib.NamedWindows
 --      * do nothing
 --      * log the state to stdout
 --
--- An example logger, print a status bar output to dzen, in the form:
+-- | 
+-- An example log hook, print a status bar output to dzen, in the form:
 --
--- > 1 2 [3] 4 7
+-- > 1 2 [3] 4 7 : full
+--
+-- That is, the currently populated workspaces, and the current
+-- workspace layout
 --  
-
 dynamicLog :: X ()
 dynamicLog = withWindowSet $ \ws -> do
-    let desc = description . S.layout . S.workspace . S.current $ ws
-    io . putStrLn $ "(" ++ desc ++ ") " ++ pprWindowSet ws
+    let ld = description . S.layout . S.workspace . S.current $ ws
+        wn = pprWindowSet ws
+    io . putStrLn $ concat [wn ," : " ,map toLower ld]
 
--- Appends title of currently focused window to log output
+-- | Appends title of currently focused window to log output, and the
+-- current layout mode, to the normal dynamic log format.
 -- Arguments are: pre-title text and post-title text
+--
+-- The result is rendered in the form:
+--
+-- > 1 2 [3] 4 7 : full : urxvt
+--
 dynamicLogWithTitle_ :: String -> String -> X ()
-dynamicLogWithTitle_ pre post= do ld <- withWindowSet $ return . description . S.layout . S.workspace . S.current  -- layout description
-                                  ws <- withWindowSet $ return . pprWindowSet  -- workspace list
-                                  wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek  -- window title
-                                  io . putStrLn $ "(" ++ ld ++ ") " ++ ws ++ " " ++ pre ++ wt ++ post
+dynamicLogWithTitle_ pre post= do
+    -- layout description
+    ld <- withWindowSet $ return . description . S.layout . S.workspace . S.current
+    -- workspace list
+    ws <- withWindowSet $ return . pprWindowSet
+    -- window title
+    wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek
+
+    io . putStrLn $ concat [ws ," : " ,map toLower ld
+                           , case wt of
+                                   [] -> []
+                                   s  -> " : " ++ pre ++ s ++ post
+                           ]
 
 dynamicLogWithTitle :: X ()
-dynamicLogWithTitle = dynamicLogWithTitle_ "<" ">"
+dynamicLogWithTitle = dynamicLogWithTitle_ "" ""
 
--- As dynamicLogWithTitle but with colored window title instead of angle brackets (works with dzen only)
+-- | 
+-- As for dynamicLogWithTitle but with colored window title (for dzen use)
+--
 dynamicLogWithTitleColored :: String -> X ()
 dynamicLogWithTitleColored color = dynamicLogWithTitle_ ("^fg(" ++ color ++ ")") "^fg()"
 
 pprWindowSet :: WindowSet -> String
 pprWindowSet s =  concatMap fmt $ sortBy cmp
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
-   where f Nothing Nothing = EQ
-         f (Just _) Nothing = LT
-         f Nothing (Just _) = GT
+   where f Nothing Nothing   = EQ
+         f (Just _) Nothing  = LT
+         f Nothing (Just _)  = GT
          f (Just x) (Just y) = compare x y
 
          wsIndex = flip elemIndex workspaces . S.tag
