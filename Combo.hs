@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -54,7 +54,7 @@ combo :: (Eq a, Show a, Read a, ReadableLayout a, LayoutClass l (Layout a, Int))
 combo = Combo []
 
 data Combo l a = Combo [a] (l (Layout a, Int)) [(Layout a, Int)]
-                 deriving ( Show, Read )
+                 deriving (Show, Read)
 
 instance (Eq a, Show a, Read a, ReadableLayout a, LayoutClass l (Layout a, Int))
     => LayoutClass (Combo l) a where
