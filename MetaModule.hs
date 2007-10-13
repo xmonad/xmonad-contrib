@@ -23,7 +23,7 @@ import XMonadContrib.Accordion ()
 import XMonadContrib.Anneal ()
 import XMonadContrib.Circle ()
 import XMonadContrib.Commands ()
-import XMonadContrib.Combo ()
+import XMonadContrib.Combo () -- broken under ghc head
 import XMonadContrib.CopyWindow ()
 import XMonadContrib.CycleWS ()
 import XMonadContrib.DeManage ()
