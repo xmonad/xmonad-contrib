@@ -17,6 +17,8 @@
 -- know of to attach a behavior to a workspace.  This means that any terminals
 -- (or other programs) pulled up in that workspace (with that layout) will
 -- execute in that working directory.  Sort of handy, I think.
+-- 
+-- Requires the 'directory' package
 --
 -----------------------------------------------------------------------------
 
