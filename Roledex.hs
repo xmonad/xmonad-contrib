@@ -29,10 +29,10 @@ import Data.Ratio
 -- $usage
 --
 -- > import XMonadContrib.Roledex 
--- > defaultLayouts = [ roledex ]
+-- > defaultLayouts = [ Layout Roledex ]
 
 -- %import XMonadContrib.Roledex
--- %layout , roledex
+-- %layout , Layout Roledex
 
 data Roledex a = Roledex deriving ( Show, Read )
 
