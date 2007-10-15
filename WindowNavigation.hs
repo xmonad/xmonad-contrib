@@ -39,7 +39,7 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.WindowNavigation
 -- >
--- > defaultLayout = Layout $ windowNavigation defaultWNConfig $ Select ...
+-- > layoutHook = Layout $ windowNavigation defaultWNConfig $ Select ...
 --
 -- In keybindings:
 --
@@ -57,9 +57,9 @@ import XMonadContrib.XUtils
 -- %keybind , ((modMask .|. controlMask, xK_Left), sendMessage $ Swap L)
 -- %keybind , ((modMask .|. controlMask, xK_Up), sendMessage $ Swap U)
 -- %keybind , ((modMask .|. controlMask, xK_Down), sendMessage $ Swap D)
--- %layout -- include 'windowNavigation' in defaultLayout definition above.
+-- %layout -- include 'windowNavigation' in layoutHook definition above.
 -- %layout -- just before the list, like the following (don't uncomment next line):
--- %layout -- defaultLayout = Layout $ windowNavigation defaultWNConfig $ ...
+-- %layout -- layoutHook = Layout $ windowNavigation defaultWNConfig $ ...
 
 
 data Navigate = Go Direction | Swap Direction deriving ( Read, Show, Typeable )
