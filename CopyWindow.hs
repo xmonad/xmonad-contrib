@@ -76,4 +76,4 @@ kill1 = do ss <- gets windowset
            whenJust (peek ss) $ \w -> if member w $ delete'' w ss
                                       then windows $ delete'' w
                                       else kill
-    where delete'' w = sink w . modify Nothing (filter (/= w))
+    where delete'' w = modify Nothing (filter (/= w))
