@@ -26,6 +26,7 @@ import XMonadContrib.Dmenu
 
 import Control.Monad
 import Data.List
+import Data.Set (toList, fromList)
 import System.Directory
 import System.IO
 import System.Environment
@@ -60,7 +61,7 @@ getShellCompl s
     | s /= "" && last s /= ' ' = do
   f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
   c <- commandCompletionFunction s
-  return . map escape . sort . nub $ f ++ c
+  return . map escape . sort . (toList . fromList) $ f ++ c
     | otherwise = return []
 
 commandCompletionFunction :: String -> IO [String]
