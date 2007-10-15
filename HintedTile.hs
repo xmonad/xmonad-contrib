@@ -31,7 +31,7 @@ import Control.Monad
 --
 -- > import qualified XMonadContrib.HintedTile
 --
--- > defaultLayouts = [ XMonadContrib.HintedTile.tall nmaster delta ratio, ... ]
+-- > layouts = [ XMonadContrib.HintedTile.tall nmaster delta ratio, ... ]
 
 -- %import qualified XMonadContrib.HintedTile
 --

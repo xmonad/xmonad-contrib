@@ -29,7 +29,7 @@ import Data.Ratio
 -- $usage
 --
 -- > import XMonadContrib.Roledex 
--- > defaultLayouts = [ Layout Roledex ]
+-- > layouts = [ Layout Roledex ]
 
 -- %import XMonadContrib.Roledex
 -- %layout , Layout Roledex

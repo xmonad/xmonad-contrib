@@ -44,14 +44,14 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.Tabbed
 --
--- > defaultLayouts :: [Layout Window]
--- > defaultLayouts = [ Layout tiled
--- >                  , Layout $ Mirror tiled
--- >                  , Layout Full
+-- > layouts :: [Layout Window]
+-- > layouts = [ Layout tiled
+-- >           , Layout $ Mirror tiled
+-- >           , Layout Full
 -- >
--- >                  -- Extension-provided layouts
--- >                  , Layout $ tabbed shrinkText defaultTConf
--- >                 ]
+-- >           -- Extension-provided layouts
+-- >           , Layout $ tabbed shrinkText defaultTConf
+-- >           ]
 -- >                  
 -- >                  , ... ]
 --
@@ -62,8 +62,8 @@ import XMonadContrib.XUtils
 --
 -- and
 --
--- > defaultLayouts = [ ...
--- >                  , Layout $ tabbed shrinkText myTabConfig ]
+-- > layouts = [ ...
+-- >           , Layout $ tabbed shrinkText myTabConfig ]
 
 -- %import XMonadContrib.Tabbed
 -- %layout , tabbed shrinkText defaultTConf

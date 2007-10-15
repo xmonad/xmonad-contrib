@@ -27,7 +27,7 @@ import Data.Ratio
 
 -- $usage
 -- > import XMonadContrib.Accordion
--- > defaultLayouts = [ Layout Accordion ]
+-- > layouts = [ Layout Accordion ]
 
 -- %import XMonadContrib.Accordion
 -- %layout , Layout Accordion

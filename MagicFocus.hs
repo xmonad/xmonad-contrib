@@ -25,7 +25,7 @@ import StackSet
 
 -- $usage
 -- > import XMonadContrib.MagicFocus
--- > defaultLayouts = [ Layout $ MagicFocus tiled , Layout $ MagicFocus $ Mirror tiled ]
+-- > layouts = [ Layout $ MagicFocus tiled , Layout $ MagicFocus $ Mirror tiled ]
 
 -- %import XMonadContrib.MagicFocus
 -- %layout , Layout $ MagicFocus tiled

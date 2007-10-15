@@ -37,7 +37,7 @@ import qualified StackSet as W ( differentiate )
 -- 
 -- > combo (TwoPane 0.03 0.5) [(Full,1),(tabbed shrinkText defaultTConf,1)]
 --
--- to your defaultLayouts.
+-- to your layouts.
 --
 -- The first argument to combo is a layout that will divide the screen into
 -- one or more subscreens.  The second argument is a list of layouts which

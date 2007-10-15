@@ -46,8 +46,8 @@ import XMonadContrib.Anneal
 --
 -- > import XMonadContrib.Mosaic
 --
--- > defaultLayouts :: [Layout Window]
--- > defaultLayouts = [ mosaic 0.25 0.5 M.empty, full ]
+-- > layouts :: [Layout Window]
+-- > layouts = [ mosaic 0.25 0.5 M.empty, full ]
 --
 -- In the key-bindings, do something like:
 --

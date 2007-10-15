@@ -29,7 +29,7 @@ import StackSet (integrate, peek)
 -- You can use this module with the following in your Config.hs file:
 --
 -- > import XMonadContrib.Circle
--- > defaultLayouts = [ Layout Circle ]
+-- > layouts = [ Layout Circle ]
 
 -- %import XMonadContrib.Circle
 

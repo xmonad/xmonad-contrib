@@ -31,7 +31,7 @@ import Graphics.X11.Xlib ( Window )
 -- 
 -- > import XMonadContrib.DynamicWorkspaces
 --
--- >   , ((modMask .|. shiftMask, xK_Up), addWorkspace defaultLayouts)
+-- >   , ((modMask .|. shiftMask, xK_Up), addWorkspace layouts)
 -- >   , ((modMask .|. shiftMask, xK_Down), removeWorkspace)
 
 allPossibleTags :: [WorkspaceId]

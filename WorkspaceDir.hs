@@ -43,7 +43,7 @@ import XMonadContrib.LayoutModifier
 --
 -- > import XMonadContrib.WorkspaceDir
 -- >
--- > defaultLayouts = map (workspaceDir "~") [ tiled, ... ]
+-- > layouts = map (workspaceDir "~") [ tiled, ... ]
 --
 -- In keybindings:
 --
@@ -51,9 +51,9 @@ import XMonadContrib.LayoutModifier
 
 -- %import XMonadContrib.WorkspaceDir
 -- %keybind , ((modMask .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
--- %layout -- prepend 'map (workspaceDir "~")' to defaultLayouts definition above,
+-- %layout -- prepend 'map (workspaceDir "~")' to layouts definition above,
 -- %layout -- just before the list, like the following (don't uncomment next line):
--- %layout -- defaultLayouts = map (workspaceDir "~") [ tiled, ... ]
+-- %layout -- layouts = map (workspaceDir "~") [ tiled, ... ]
 
 
 data Chdir = Chdir String deriving ( Typeable )

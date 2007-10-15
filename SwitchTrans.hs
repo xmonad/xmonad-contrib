@@ -29,7 +29,7 @@
 --
 -- Here's how you might use this in Config.hs:
 --
--- > defaultLayouts =
+-- > layouts =
 -- >     map (
 -- >         mkSwitch (M.fromList [
 -- >             ("full", const $ Layout $ noBorders Full)

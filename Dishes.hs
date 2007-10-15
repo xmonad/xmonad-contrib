@@ -33,7 +33,7 @@ import Graphics.X11.Xlib
 --
 -- > import XMonadContrib.Dishes
 --
--- and add the following line to your 'defaultLayouts'
+-- and add the following line to your 'layouts'
 --
 -- > , Layout $ Dishes 2 (1%6)
 

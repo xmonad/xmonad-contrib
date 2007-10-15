@@ -34,7 +34,7 @@ import StackSet ( integrate )
 --
 -- >   import XMonadContrib.Spiral
 --
--- >   defaultLayouts = [ ..., Layout $ spiral (1 % 1), ... ]
+-- >   layouts = [ ..., Layout $ spiral (1 % 1), ... ]
 
 -- %import XMonadContrib.Spiral
 -- %layout , Layout $ spiral (1 % 1)

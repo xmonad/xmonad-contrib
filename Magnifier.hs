@@ -29,7 +29,7 @@ import XMonadContrib.LayoutHelpers
 
 -- $usage
 -- > import XMonadContrib.Magnifier
--- > defaultLayouts = [ magnifier tiled , magnifier $ mirror tiled ]
+-- > layouts = [ magnifier tiled , magnifier $ mirror tiled ]
 
 -- %import XMonadContrib.Magnifier
 -- %layout , magnifier tiled
