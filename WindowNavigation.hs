@@ -39,7 +39,7 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.WindowNavigation
 -- >
--- > defaultLayout = Layout $ windowNavigation defaultWNConfig $ LayoutSelection ...
+-- > defaultLayout = Layout $ windowNavigation defaultWNConfig $ Select ...
 --
 -- In keybindings:
 --
