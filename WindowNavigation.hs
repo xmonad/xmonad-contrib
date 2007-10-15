@@ -20,11 +20,11 @@ module XMonadContrib.WindowNavigation (
                                    -- $usage
                                    windowNavigation,
                                    Navigate(..), Direction(..),
-                                   navigateColor, noNavigateBorders
+                                   navigateColor, navigateBrightness,
+                                   noNavigateBorders, defaultWNConfig
                                   ) where
 
 import Graphics.X11.Xlib ( Rectangle(..), Window, Pixel, setWindowBorder )
-import Control.Monad ( when )
 import Control.Monad.Reader ( ask )
 import Data.List ( nub, sortBy, (\\) )
 import XMonad
@@ -67,7 +67,7 @@ data Direction = U | D | R | L deriving ( Read, Show, Eq )
 instance Message Navigate
 
 data WNConfig = 
-    WNC { showNavigable :: Bool
+    WNC { brightness    :: Maybe Double -- Indicates a fraction of the focus color.
         , upColor       :: String
         , downColor     :: String
         , leftColor     :: String
@@ -76,14 +76,19 @@ data WNConfig =
 
 noNavigateBorders :: WNConfig
 noNavigateBorders = 
-    defaultWNConfig {showNavigable = False}
+    defaultWNConfig {brightness = Just 0}
 
 navigateColor :: String -> WNConfig
 navigateColor c =
-    WNC True c c c c
+    WNC Nothing c c c c
+
+navigateBrightness :: Double -> WNConfig
+navigateBrightness f | f > 1 = navigateBrightness 1
+                     | f < 0 = navigateBrightness 0
+navigateBrightness f = defaultWNConfig { brightness = Just f }
 
 defaultWNConfig :: WNConfig
-defaultWNConfig = WNC True "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
+defaultWNConfig = WNC (Just 0.5) "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
 
 data NavigationState a = NS Point [(a,Rectangle)]
 
@@ -94,8 +99,16 @@ windowNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
 
 instance LayoutModifier WindowNavigation Window where
     redoLayout (WindowNavigation conf (I state)) rscr s wrs =
-        do XConf { normalBorder = nbc } <- ask
-           [uc,dc,lc,rc] <- mapM stringToPixel [upColor conf, downColor conf, leftColor conf, rightColor conf]
+        do XConf { normalBorder = nbc, focusedBorder = fbc } <- ask
+           [uc,dc,lc,rc] <-
+               case brightness conf of
+               Just frac -> return $ map round [myc,myc,myc,myc]
+                   -- Note:  The following is a fragile crude hack... it really only
+                   -- works properly when the only non-zero color is blue.  We should
+                   -- split the color into components and average *those*.
+                   where myc = (1-frac)*(fromIntegral nbc) + frac*(fromIntegral fbc)
+               Nothing -> mapM stringToPixel [upColor conf, downColor conf,
+                                              leftColor conf, rightColor conf]
            let dirc U = uc
                dirc D = dc
                dirc L = lc
@@ -114,7 +127,7 @@ instance LayoutModifier WindowNavigation Window where
                wothers = case state of Just (NS _ wo) -> map fst wo
                                        _              -> []
            mapM_ (sc nbc) (wothers \\ map fst wnavigable)
-           when (showNavigable conf) $ mapM_ (\(win,c) -> sc c win) wnavigablec
+           mapM_ (\(win,c) -> sc c win) wnavigablec
            return (wrs, Just $ WindowNavigation conf $ I $ Just $ NS pt wnavigable)
 
     handleMess (WindowNavigation conf (I (Just (NS pt wrs)))) m
