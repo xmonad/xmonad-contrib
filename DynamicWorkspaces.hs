@@ -16,7 +16,8 @@
 module XMonadContrib.DynamicWorkspaces (
                                          -- * Usage
                                          -- $usage
-                                         addWorkspace, removeWorkspace
+                                         addWorkspace, removeWorkspace,
+                                         selectWorkspace
                                        ) where
 
 import Control.Monad.State ( gets )
@@ -25,17 +26,26 @@ import XMonad ( X, XState(..), Layout, WorkspaceId )
 import Operations
 import StackSet hiding (filter, modify, delete)
 import Graphics.X11.Xlib ( Window )
+import XMonadContrib.WorkspacePrompt
+import XMonadContrib.XPrompt ( XPConfig )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 -- 
 -- > import XMonadContrib.DynamicWorkspaces
 --
--- >   , ((modMask .|. shiftMask, xK_Up), addWorkspace layouts)
--- >   , ((modMask .|. shiftMask, xK_Down), removeWorkspace)
+-- >   , ((modMask .|. shiftMask, xK_n), selectWorkspace defaultXPConfig layoutHook)
+-- >   , ((modMask .|. shiftMask, xK_BackSpace), removeWorkspace)
 
 allPossibleTags :: [WorkspaceId]
 allPossibleTags = map (:"") ['0'..]
+
+selectWorkspace :: XPConfig -> Layout Window -> X ()
+selectWorkspace conf l = workspacePrompt conf $ \w ->
+                         do s <- gets windowset
+                            if tagMember w s
+                                then windows $ greedyView w
+                                else windows $ addWorkspace' w l
 
 addWorkspace :: Layout Window -> X ()
 addWorkspace l = do s <- gets windowset
