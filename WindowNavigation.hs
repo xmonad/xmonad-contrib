@@ -39,7 +39,11 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.WindowNavigation
 -- >
--- > layoutHook = Layout $ windowNavigation defaultWNConfig $ LayoutSelection ...
+-- > layoutHook = Layout $ windowNavigation defaultWNConfig $ Select ...
+--
+-- or perhaps
+--
+-- > layoutHook = Layout $ windowNavigation (navigateBorder "green") $ Select ...
 --
 -- In keybindings:
 --
@@ -60,6 +64,8 @@ import XMonadContrib.XUtils
 -- %layout -- include 'windowNavigation' in layoutHook definition above.
 -- %layout -- just before the list, like the following (don't uncomment next line):
 -- %layout -- layoutHook = Layout $ windowNavigation defaultWNConfig $ ...
+-- %layout -- or
+-- %layout -- layoutHook = Layout $ windowNavigation (navigateBorder "green") $ ...
 
 
 data Navigate = Go Direction | Swap Direction deriving ( Read, Show, Typeable )
