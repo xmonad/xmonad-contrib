@@ -76,6 +76,7 @@ instance LayoutClass SpiralWithDir a where
     handleMessage (SpiralWithDir dir rot scale) = return . fmap resize . fromMessage
         where resize Expand = spiralWithDir dir rot $ (21 % 20) * scale
               resize Shrink = spiralWithDir dir rot $ (20 % 21) * scale
+    description _ = "Spiral"
 
 -- This will produce one more rectangle than there are splits details
 divideRects :: [(Rational, Direction)] -> Rectangle -> [Rectangle]
