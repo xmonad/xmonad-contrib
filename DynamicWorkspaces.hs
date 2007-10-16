@@ -63,10 +63,9 @@ withNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windows
 
 selectWorkspace :: XPConfig -> Layout Window -> X ()
 selectWorkspace conf l = workspacePrompt conf $ \w ->
-                         do s <- gets windowset
-                            if tagMember w s
-                                then windows $ greedyView w
-                                else windows $ addWorkspace' w l
+                         windows $ \s -> if tagMember w s
+                                         then greedyView w s
+                                         else addWorkspace' w l s
 
 addWorkspace :: Layout Window -> X ()
 addWorkspace l = do s <- gets windowset
