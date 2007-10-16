@@ -37,8 +37,8 @@ import Graphics.X11.Xlib.Extras
 -- to your import list in Config. Change your defaultLayout such that
 -- withUrgencyHook is applied along the chain. Mine, for example:
 --
--- > defaultLayout = Layout $ withUrgencyHook $ windowNavigation wnConfig $
--- >                          LayoutSelection defaultLayouts
+-- > layoutHook = Layout $ withUrgencyHook $ windowNavigation wnConfig $
+-- >                       Select defaultLayouts
 --
 -- It shouldn't hurt to have the "withUrgencyHook $" at the outermost layer,
 -- as above, as UrgencyHook is a LayoutModifier, and hence passes on any
