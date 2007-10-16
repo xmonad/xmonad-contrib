@@ -17,12 +17,14 @@ module XMonadContrib.DynamicWorkspaces (
                                          -- * Usage
                                          -- $usage
                                          addWorkspace, removeWorkspace,
-                                         selectWorkspace
+                                         selectWorkspace,
+                                         toNthWorkspace, withNthWorkspace
                                        ) where
 
 import Control.Monad.State ( gets )
+import Data.List ( sort )
 
-import XMonad ( X, XState(..), Layout, WorkspaceId )
+import XMonad ( X, XState(..), Layout, WorkspaceId, WindowSet )
 import Operations
 import StackSet hiding (filter, modify, delete)
 import Graphics.X11.Xlib ( Window )
@@ -36,9 +38,28 @@ import XMonadContrib.XPrompt ( XPConfig )
 --
 -- >   , ((modMask .|. shiftMask, xK_n), selectWorkspace defaultXPConfig layoutHook)
 -- >   , ((modMask .|. shiftMask, xK_BackSpace), removeWorkspace)
+-- 
+-- > -- mod-[1..9] %! Switch to workspace N
+-- > -- mod-shift-[1..9] %! Move client to workspace N
+-- >    ++
+-- >    zip (zip (repeat modMask) [xK_1..xK_9]) (map (withNthWorkspace W.greedyView) [0..])
+-- >    ++
+-- >    zip (zip (repeat (modMask .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
 
 allPossibleTags :: [WorkspaceId]
 allPossibleTags = map (:"") ['0'..]
+
+toNthWorkspace :: (String -> X ()) -> Int -> X ()
+toNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windowset)
+                             case drop wnum ws of
+                               (w:_) -> job w
+                               [] -> return ()
+
+withNthWorkspace :: (String -> WindowSet -> WindowSet) -> Int -> X ()
+withNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windowset)
+                               case drop wnum ws of
+                                 (w:_) -> windows $ job w
+                                 [] -> return ()
 
 selectWorkspace :: XPConfig -> Layout Window -> X ()
 selectWorkspace conf l = workspacePrompt conf $ \w ->
