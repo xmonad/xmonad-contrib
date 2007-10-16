@@ -16,6 +16,7 @@ module XMonadContrib.XUtils  (
                              -- * Usage:
                              -- $usage
                              stringToPixel
+                             , averagePixels
                              , initFont
                              , releaseFont
                              , createNewWindow
@@ -48,6 +49,16 @@ stringToPixel s = do
   io $ catch (getIt d) (fallBack d)
     where getIt    d = initColor d s
           fallBack d = const $ return $ blackPixel d (defaultScreen d)
+
+-- | Compute the weighted average the colors of two given Pixel values.
+averagePixels :: Pixel -> Pixel -> Double -> X Pixel
+averagePixels p1 p2 f =
+    do d <- asks display
+       let cm = defaultColormap d (defaultScreen d)
+       [Color _ r1 g1 b1 _,Color _ r2 g2 b2 _] <- io $ queryColors d cm [Color p1 0 0 0 0,Color p2 0 0 0 0]
+       let mn x1 x2 = round (fromIntegral x1 * f + fromIntegral x2 * (1-f))
+       Color p _ _ _ _ <- io $ allocColor d cm (Color 0 (mn r1 r2) (mn g1 g2) (mn b1 b2) 0)
+       return p
 
 -- | Given a fontname returns the fonstructure. If the font name is
 --  not valid the default font will be loaded and returned.

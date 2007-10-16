@@ -108,11 +108,8 @@ instance LayoutModifier WindowNavigation Window where
         do XConf { normalBorder = nbc, focusedBorder = fbc } <- ask
            [uc,dc,lc,rc] <-
                case brightness conf of
-               Just frac -> return $ map round [myc,myc,myc,myc]
-                   -- Note:  The following is a fragile crude hack... it really only
-                   -- works properly when the only non-zero color is blue.  We should
-                   -- split the color into components and average *those*.
-                   where myc = (1-frac)*(fromIntegral nbc) + frac*(fromIntegral fbc)
+               Just frac -> do myc <- averagePixels fbc nbc frac
+                               return [myc,myc,myc,myc]
                Nothing -> mapM stringToPixel [upColor conf, downColor conf,
                                               leftColor conf, rightColor conf]
            let dirc U = uc
