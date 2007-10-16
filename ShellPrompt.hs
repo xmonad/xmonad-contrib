@@ -52,31 +52,35 @@ data Shell = Shell
 instance XPrompt Shell where
     showXPrompt Shell = "Run:   "
 
-
 shellPrompt :: XPConfig -> X ()
-shellPrompt c = mkXPrompt Shell c getShellCompl spawn
+shellPrompt c = do
+    cmds <- io $ getCommands
+    mkXPrompt Shell c (getShellCompl cmds) spawn
 
-getShellCompl :: String -> IO [String]
-getShellCompl s
-    | s /= "" && last s /= ' ' = do
-  f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
-  c <- commandCompletionFunction s
-  return . map escape . sort . (toList . fromList) $ f ++ c
-    | otherwise = return []
+getShellCompl :: [String] -> String -> IO [String]
+getShellCompl cmds s | s == "" || last s == ' ' = return []
+                     | otherwise                = do
+    f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
+    return . map escape . uniqSort $ f ++ commandCompletionFunction cmds s
 
-commandCompletionFunction :: String -> IO [String]
-commandCompletionFunction str
-    | '/' `elem` str = return []
-    | otherwise      = do
-  p  <- getEnv "PATH" `catch` const (return [])
-  let ds = split ':' p
-      fp d f = d ++ "/" ++ f
-  es <- forM ds $ \d -> do
-          exists <- doesDirectoryExist d
-          if exists
-             then getDirectoryContents d >>= filterM (isExecutable . fp d)
-             else return []
-  return . filter (isPrefixOf str) . concat $ es
+uniqSort :: Ord a => [a] -> [a]
+uniqSort = toList . fromList
+
+commandCompletionFunction :: [String] -> String -> [String]
+commandCompletionFunction cmds str | '/' `elem` str = []
+                                   | otherwise      = filter (isPrefixOf str) cmds
+
+getCommands :: IO [String]
+getCommands = do
+    p  <- getEnv "PATH" `catch` const (return [])
+    let ds = split ':' p
+        fp d f = d ++ "/" ++ f
+    es <- forM ds $ \d -> do
+        exists <- doesDirectoryExist d
+        if exists
+            then getDirectoryContents d >>= filterM (isExecutable . fp d)
+            else return []
+    return . uniqSort . concat $ es
 
 isExecutable :: FilePath ->IO Bool
 isExecutable f = do
