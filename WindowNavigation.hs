@@ -18,7 +18,7 @@
 module XMonadContrib.WindowNavigation ( 
                                    -- * Usage
                                    -- $usage
-                                   windowNavigation,
+                                   windowNavigation, configurableNavigation,
                                    Navigate(..), Direction(..),
                                    navigateColor, navigateBrightness,
                                    noNavigateBorders, defaultWNConfig
@@ -39,11 +39,11 @@ import XMonadContrib.XUtils
 --
 -- > import XMonadContrib.WindowNavigation
 -- >
--- > layoutHook = Layout $ windowNavigation defaultWNConfig $ Select ...
+-- > layoutHook = Layout $ windowNavigation $ Select ...
 --
 -- or perhaps
 --
--- > layoutHook = Layout $ windowNavigation (navigateBorder "green") $ Select ...
+-- > layoutHook = Layout $ configurableNavigation (navigateBorder "green") $ Select ...
 --
 -- In keybindings:
 --
@@ -63,9 +63,9 @@ import XMonadContrib.XUtils
 -- %keybind , ((modMask .|. controlMask, xK_Down ), sendMessage $ Swap D)
 -- %layout -- include 'windowNavigation' in layoutHook definition above.
 -- %layout -- just before the list, like the following (don't uncomment next line):
--- %layout -- layoutHook = Layout $ windowNavigation defaultWNConfig $ ...
+-- %layout -- layoutHook = Layout $ windowNavigation $ ...
 -- %layout -- or
--- %layout -- layoutHook = Layout $ windowNavigation (navigateBorder "green") $ ...
+-- %layout -- layoutHook = Layout $ configurableNavigation (navigateBorder "green") $ ...
 
 
 data Navigate = Go Direction | Swap Direction deriving ( Read, Show, Typeable )
@@ -100,8 +100,11 @@ data NavigationState a = NS Point [(a,Rectangle)]
 
 data WindowNavigation a = WindowNavigation WNConfig (Invisible Maybe (NavigationState a)) deriving ( Read, Show )
 
-windowNavigation :: LayoutClass l a => WNConfig -> l a -> ModifiedLayout WindowNavigation l a
-windowNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
+windowNavigation :: LayoutClass l a => l a -> ModifiedLayout WindowNavigation l a
+windowNavigation = ModifiedLayout (WindowNavigation defaultWNConfig (I Nothing))
+
+configurableNavigation :: LayoutClass l a => WNConfig -> l a -> ModifiedLayout WindowNavigation l a
+configurableNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
 
 instance LayoutModifier WindowNavigation Window where
     redoLayout (WindowNavigation conf (I state)) rscr s wrs =
