@@ -134,7 +134,7 @@ unwords' :: [String] -> String
 unwords' = sepBy " "
 
 sepBy :: String -> [String] -> String
-sepBy sep = concat . intersperse sep . filter null
+sepBy sep = concat . intersperse sep . filter (not . null)
 
 -- TODO dzenColor
 xmobarColor :: String -> String -> String -> String
