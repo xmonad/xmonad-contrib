@@ -157,7 +157,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppHiddenNoWindows = const ""
                , ppSep             = " : "
                , ppTitle           = const ""
-               , ppLayout          = wrap "(" ")"}
+               , ppLayout          = id }
 
 -- | The options that sjanssen likes to use, as an example.  Note the use of
 -- 'xmobarColor' and the record update on defaultPP
