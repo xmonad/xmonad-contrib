@@ -42,7 +42,6 @@ import Data.Ord ( comparing )
 import qualified StackSet as S
 import Data.Monoid
 import XMonadContrib.NamedWindows
-import Data.Char
 
 -- $usage 
 --
@@ -87,7 +86,7 @@ dynamicLog :: X ()
 dynamicLog = withWindowSet $ \ws -> do
     let ld = description . S.layout . S.workspace . S.current $ ws
         wn = pprWindowSet ws
-    io . putStrLn $ concat [wn ," : " ,map toLower ld]
+    io . putStrLn $ concat [wn ," : " ,ld]
 
 -- | Appends title of currently focused window to log output, and the
 -- current layout mode, to the normal dynamic log format.
