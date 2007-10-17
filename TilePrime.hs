@@ -21,7 +21,7 @@ module XMonadContrib.TilePrime (
     ) where
 
 import Control.Monad (mplus)
-import Data.List (genericLength)
+import Data.List (mapAccumL)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras (getWMNormalHints)
 import Operations
@@ -59,30 +59,29 @@ instance LayoutClass TilePrime Window where
     resize Expand = c { frac = min 1 $ frac c + delta c }
     incmastern (IncMasterN d) = c { nmaster = max 0 $ nmaster c + d }
 
-  doLayout c rect s = do
-    let flp = flipped c
+  doLayout TilePrime { frac = f, nmaster = m, flipped = flp } rect s = do
     let xs = W.integrate s
     hints <- withDisplay $ \ disp -> io (mapM (getWMNormalHints disp) xs)
     let xs' = zip xs hints
         (leftRect, rightRect)
-          | null (drop 1 xs) = (rect, Rectangle 0 0 0 0)
-          | flp       = splitVerticallyBy (frac c) rect
-          | otherwise = splitHorizontallyBy (frac c) rect
-        masters = fillWindows flp leftRect (take (nmaster c) xs')
-        slaves  = fillWindows flp rightRect (drop (nmaster c) xs')
+          | null (drop m xs) = (rect, Rectangle 0 0 0 0)
+          | flp       = splitVerticallyBy f rect
+          | otherwise = splitHorizontallyBy f rect
+        (leftXs, rightXs) = splitAt m xs'
+        masters = fillWindows leftRect leftXs
+        slaves  = fillWindows rightRect rightXs
     return (masters ++ slaves, Nothing)
 
     where
+    fillWindows r xs = snd $ mapAccumL aux (r,n) xs
+      where n = fromIntegral (length xs) :: Rational
 
-    fillWindows _ _ [] = []
-    fillWindows flp r ((x,hint):xs) = (x,r') : fillWindows flp rest xs
+    aux (r,n) (x,hint) = ((rest,n-1),(x,r'))
       where
-      n = 1 + genericLength xs :: Rational
+      (allocated, _) | flp       = splitHorizontallyBy (recip n) r
+                     | otherwise = splitVerticallyBy (recip n) r
 
-      (alloca, _) | flp       = splitHorizontallyBy (recip n) r
-                  | otherwise = splitVerticallyBy (recip n) r
-
-      (w,h) = applySizeHints hint `underBorders` (rect_width alloca, rect_height alloca)
+      (w,h) = applySizeHints hint `underBorders` rect_D allocated
 
       r'   = r { rect_width = w, rect_height = h }
 
@@ -90,6 +89,9 @@ instance LayoutClass TilePrime Window where
                            , rect_width  = rect_width r - w }
            | otherwise = r { rect_y      = rect_y r + toEnum (fromEnum h)
                            , rect_height = rect_height r - h }
+
+rect_D :: Rectangle -> D
+rect_D Rectangle { rect_width = w, rect_height = h } = (w,h)
 
 -- | Transform a function on dimensions into one without regard for borders
 underBorders :: (D -> D) -> D -> D
