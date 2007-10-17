@@ -12,8 +12,9 @@
 -- and keep the focus in place.
 -----------------------------------------------------------------------------
 module XMonadContrib.RotSlaves (
-	-- $usage
-	rotSlaves', rotSlavesUp, rotSlavesDown
+	-- $usag
+	rotSlaves', rotSlavesUp, rotSlavesDown,
+	rotAll', rotAllUp, rotAllDown
 	) where
 
 import StackSet
@@ -28,7 +29,7 @@ import XMonad
 --
 -- and add a keybinding:
 --
--- > , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp) 
+-- > , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp)
 --
 --
 -- This operation will rotate all windows except the master window, while the focus
@@ -37,6 +38,7 @@ import XMonad
 -- %import XMonadContrib.RotSlaves
 -- %keybind , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp)
 
+-- | Rotate the windows in the current stack excluding the first one
 rotSlavesUp,rotSlavesDown :: X ()
 rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> (tail l)++[head l]))
 rotSlavesDown = windows $ modify' (rotSlaves' (\l -> [last l]++(init l)))
@@ -47,3 +49,12 @@ rotSlaves' f   (Stack t [] rs) = Stack t [] (f rs)                -- Master has 
 rotSlaves' f s@(Stack _ ls _ ) = Stack t' (reverse revls') rs'    -- otherwise
     where  (master:ws)     = integrate s
            (revls',t':rs') = splitAt (length ls) (master:(f ws))
+
+-- | Rotate the windows in the current stack
+rotAllUp,rotAllDown :: X ()
+rotAllUp   = windows $ modify' (rotAll' (\l -> (tail l)++[head l]))
+rotAllDown = windows $ modify' (rotAll' (\l -> [last l]++(init l)))
+
+rotAll' :: ([a] -> [a]) -> Stack a -> Stack a
+rotAll' f s = Stack r (reverse revls) rs
+    where (revls,r:rs) = splitAt (length (up s)) (f (integrate s))
