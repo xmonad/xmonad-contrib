@@ -14,7 +14,11 @@
 -- -----------------------------------------------------------------------------
 --
 
-module XMonadContrib.TilePrime (TilePrime(TilePrime)) where
+module XMonadContrib.TilePrime (
+    -- * Usage
+    -- $usage
+    TilePrime(TilePrime)
+    ) where
 
 import Control.Monad (mplus)
 import Data.List (genericLength)
@@ -24,6 +28,20 @@ import Operations
 import XMonad hiding (trace)
 import qualified StackSet as W
 import {-#SOURCE#-} Config (borderWidth)
+
+-- $usage
+-- You can use this module with the following in your Config.hs file:
+--
+-- > import XMonadContrib.TilePrime
+--
+-- and add the following line to your 'layouts'
+--
+-- > , Layout $ TilePrime nmaster delta ratio False
+--
+-- Use True as the last argument to get a wide layout.
+
+-- %import XMonadContrib.TilePrime
+-- %layout , Layout $ TilePrime nmaster delta ratio False
 
 data TilePrime a = TilePrime
                          { nmaster     :: Int
