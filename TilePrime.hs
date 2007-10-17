@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances #-}
 -- --------------------------------------------------------------------------
 -- -- |
 -- -- Module      :  TilePrime.hs
