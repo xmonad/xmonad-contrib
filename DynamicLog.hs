@@ -55,8 +55,6 @@ import XMonadContrib.NamedWindows
 -- %import XMonadContrib.DynamicLog
 -- %def -- comment out default logHook definition above if you uncomment any of these:
 -- %def logHook = dynamicLog
--- %def logHook = dynamicLogWithTitle
--- %def logHook = dynamicLogWithTitleColored "white"
 
 
 -- |
@@ -71,7 +69,7 @@ dynamicLog :: X ()
 dynamicLog = dynamicLogWithPP defaultPP
 
 -- |
--- A log
+-- A log function that uses the 'PP' hooks to customize output.
 dynamicLogWithPP :: PP -> X ()
 dynamicLogWithPP pp = do
     -- layout description
