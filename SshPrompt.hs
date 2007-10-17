@@ -20,7 +20,7 @@ module XMonadContrib.SshPrompt (
 
 import XMonad
 import XMonadContrib.XPrompt
-import XMonadContrib.RunInXTerm
+import XMonadContrib.Run
 
 import Control.Monad
 import System.Directory
