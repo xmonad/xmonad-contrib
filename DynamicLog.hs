@@ -22,12 +22,14 @@ module XMonadContrib.DynamicLog (
     -- * Usage
     -- $usage 
     dynamicLog,
-    dynamicLogWithTitle,
-    dynamicLogWithTitleColored,
+    dynamicLogWithPP,
     dynamicLogXinerama,
 
     pprWindowSet,
-    pprWindowSetXinerama
+    pprWindowSetXinerama,
+
+    PP(..), defaultPP, sjanssenPP,
+    wrap, xmobarColor
   ) where
 
 -- 
@@ -49,17 +51,6 @@ import XMonadContrib.NamedWindows
 --
 -- >    import XMonadContrib.DynamicLog
 -- >    logHook = dynamicLog
---
--- To get the title of the currently focused window after the workspace list:
---
--- >    import XMonadContrib.DynamicLog
--- >    logHook = dynamicLogWithTitle
---
--- To have the window title highlighted in any color recognized by dzen:
---
--- >    import XMonadContrib.DynamicLog
--- >    logHook = dynamicLogWithTitleColored "white"
---
 
 -- %import XMonadContrib.DynamicLog
 -- %def -- comment out default logHook definition above if you uncomment any of these:
@@ -69,59 +60,35 @@ import XMonadContrib.NamedWindows
 
 
 -- |
--- Perform an arbitrary action on each state change.
--- Examples include:
---      * do nothing
---      * log the state to stdout
+-- An example log hook, print a status bar output to stdout, in the form:
 --
--- | 
--- An example log hook, print a status bar output to dzen, in the form:
+-- > 1 2 [3] 4 7 : full : title
 --
--- > 1 2 [3] 4 7 : full
+-- That is, the currently populated workspaces, the current
+-- workspace layout, and the title of the focused window.
 --
--- That is, the currently populated workspaces, and the current
--- workspace layout
---  
 dynamicLog :: X ()
-dynamicLog = withWindowSet $ \ws -> do
-    let ld = description . S.layout . S.workspace . S.current $ ws
-        wn = pprWindowSet ws
-    io . putStrLn $ concat [wn ," : " ,ld]
+dynamicLog = dynamicLogWithPP defaultPP
 
--- | Appends title of currently focused window to log output, and the
--- current layout mode, to the normal dynamic log format.
--- Arguments are: pre-title text and post-title text
---
--- The result is rendered in the form:
---
--- > 1 2 [3] 4 7 : full : urxvt
---
-dynamicLogWithTitle_ :: String -> String -> X ()
-dynamicLogWithTitle_ pre post= do
+-- |
+-- A log
+dynamicLogWithPP :: PP -> X ()
+dynamicLogWithPP pp = do
     -- layout description
     ld <- withWindowSet $ return . description . S.layout . S.workspace . S.current
     -- workspace list
-    ws <- withWindowSet $ return . pprWindowSet
+    ws <- withWindowSet $ return . pprWindowSet pp
     -- window title
     wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek
 
-    io . putStrLn $ concat [ws ," : " ,map toLower ld
-                           , case wt of
-                                   [] -> []
-                                   s  -> " : " ++ pre ++ s ++ post
-                           ]
+    io . putStrLn . sepBy (ppSep pp) $
+                        [ ws
+                        , ppLayout pp ld
+                        , ppTitle  pp wt
+                        ]
 
-dynamicLogWithTitle :: X ()
-dynamicLogWithTitle = dynamicLogWithTitle_ "" ""
-
--- | 
--- As for dynamicLogWithTitle but with colored window title (for dzen use)
---
-dynamicLogWithTitleColored :: String -> X ()
-dynamicLogWithTitleColored color = dynamicLogWithTitle_ ("^fg(" ++ color ++ ")") "^fg()"
-
-pprWindowSet :: WindowSet -> String
-pprWindowSet s =  concatMap fmt $ sortBy cmp
+pprWindowSet :: PP -> WindowSet -> String
+pprWindowSet pp s =  unwords' $ map fmt $ sortBy cmp
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
    where f Nothing Nothing   = EQ
          f (Just _) Nothing  = LT
@@ -135,10 +102,11 @@ pprWindowSet s =  concatMap fmt $ sortBy cmp
          this     = S.tag (S.workspace (S.current s))
          visibles = map (S.tag . S.workspace) (S.visible s)
 
-         fmt w | S.tag w == this         = "[" ++ S.tag w ++ "]"
-               | S.tag w `elem` visibles = "<" ++ S.tag w ++ ">"
-               | isJust (S.stack w)      = " " ++ S.tag w ++ " "
-               | otherwise               = ""
+         fmt w = printer pp (S.tag w)
+          where printer | S.tag w == this         = ppCurrent
+                        | S.tag w `elem` visibles = ppVisible
+                        | isJust (S.stack w)      = ppHidden
+                        | otherwise               = ppHiddenNoWindows
 
 -- |
 -- Workspace logger with a format designed for Xinerama:
@@ -157,3 +125,43 @@ pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
                         . sortBy (comparing S.screen) $ S.current ws : S.visible ws
         offscreen = map S.tag . filter (isJust . S.stack)
                         . sortBy (comparing S.tag) $ S.hidden ws
+
+wrap :: String -> String -> String -> String
+wrap l r m = l ++ m ++ r
+
+-- | Intersperse spaces, filtering empty words.
+unwords' :: [String] -> String
+unwords' = sepBy " "
+
+sepBy :: String -> [String] -> String
+sepBy sep = concat . intersperse sep . filter null
+
+-- TODO dzenColor
+xmobarColor :: String -> String -> String -> String
+xmobarColor fg bg = wrap t "</fc>"
+ where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
+
+-- | The 'PP' type allows the user to customize various behaviors of
+-- dynamicLogPP
+data PP = PP { ppCurrent, ppVisible
+             , ppHidden, ppHiddenNoWindows :: WorkspaceId -> String
+             , ppSep :: String
+             , ppTitle :: String -> String
+             , ppLayout :: String -> String }
+
+-- | The default pretty printing options, as seen in dynamicLog
+defaultPP :: PP
+defaultPP = PP { ppCurrent         = wrap "[" "]"
+               , ppVisible         = wrap "<" ">"
+               , ppHidden          = id
+               , ppHiddenNoWindows = const ""
+               , ppSep             = " : "
+               , ppTitle           = const ""
+               , ppLayout          = wrap "(" ")"}
+
+-- | The options that sjanssen likes to use, as an example.  Note the use of
+-- 'xmobarColor' and the record update on defaultPP
+sjanssenPP :: PP
+sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
+                       , ppTitle = xmobarColor "#00ee00" ""
+                       }
