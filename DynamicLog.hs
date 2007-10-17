@@ -81,7 +81,7 @@ dynamicLogWithPP pp = do
     -- window title
     wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek
 
-    io . putStrLn . sepBy (ppSep pp) $
+    io . putStrLn . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp wt
@@ -147,7 +147,8 @@ data PP = PP { ppCurrent, ppVisible
              , ppHidden, ppHiddenNoWindows :: WorkspaceId -> String
              , ppSep :: String
              , ppTitle :: String -> String
-             , ppLayout :: String -> String }
+             , ppLayout :: String -> String
+             , ppOrder :: [String] -> [String] }
 
 -- | The default pretty printing options, as seen in dynamicLog
 defaultPP :: PP
@@ -157,11 +158,13 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppHiddenNoWindows = const ""
                , ppSep             = " : "
                , ppTitle           = const ""
-               , ppLayout          = id }
+               , ppLayout          = id
+               , ppOrder           = id }
 
 -- | The options that sjanssen likes to use, as an example.  Note the use of
 -- 'xmobarColor' and the record update on defaultPP
 sjanssenPP :: PP
 sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
                        , ppTitle = xmobarColor "#00ee00" ""
+                       , ppOrder = reverse
                        }
