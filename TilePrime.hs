@@ -50,7 +50,8 @@ data TilePrime a = TilePrime
                          } deriving (Show, Read)
 
 instance LayoutClass TilePrime Window where
-  description _ = "TilePrime"
+  description c | flipped c = "TilePrime Horizontal"
+                | otherwise = "TilePrime Vertical"
 
   pureMessage c m = fmap resize (fromMessage m) `mplus`
                     fmap incmastern (fromMessage m)
