@@ -17,7 +17,7 @@ module XMonadContrib.DynamicWorkspaces (
                                          -- * Usage
                                          -- $usage
                                          addWorkspace, removeWorkspace,
-                                         selectWorkspace,
+                                         selectWorkspace, renameWorkspace,
                                          toNthWorkspace, withNthWorkspace
                                        ) where
 
@@ -38,6 +38,7 @@ import XMonadContrib.XPrompt ( XPConfig )
 --
 -- >   , ((modMask .|. shiftMask, xK_n), selectWorkspace defaultXPConfig layoutHook)
 -- >   , ((modMask .|. shiftMask, xK_BackSpace), removeWorkspace)
+-- >   , ((modMask .|. shiftMask .|. controlMask, xK_r), renameWorkspace defaultXPConfig)
 -- 
 -- > -- mod-[1..9] %! Switch to workspace N
 -- > -- mod-shift-[1..9] %! Move client to workspace N
@@ -48,6 +49,13 @@ import XMonadContrib.XPrompt ( XPConfig )
 
 allPossibleTags :: [WorkspaceId]
 allPossibleTags = map (:"") ['0'..]
+
+renameWorkspace :: XPConfig -> X ()
+renameWorkspace conf = workspacePrompt conf $ \w ->
+                       windows $ \s -> let sett wk = wk { tag = w }
+                                           setscr scr = scr { workspace = sett $ workspace scr }
+                                           sets q = q { current = setscr $ current q }
+                                       in sets $ removeWorkspace' w s
 
 toNthWorkspace :: (String -> X ()) -> Int -> X ()
 toNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windowset)
