@@ -8,28 +8,33 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Handy wrapper for dzen.
+-- Handy wrapper for dzen. Requires dzen >= 0.2.4.
 --
 -----------------------------------------------------------------------------
 
-module XMonadContrib.Dzen (dzen, dzenScreen) where
+module XMonadContrib.Dzen (dzen, dzenScreen, seconds) where
 
-import Control.Monad.State
-import qualified StackSet as W
 import XMonad
-import XMonadContrib.Run
-
-curScreen :: X ScreenId
-curScreen =  (W.screen . W.current) `liftM` gets windowset
+import XMonadContrib.Run (runProcessWithInputAndWait, seconds)
 
 toXineramaArg :: ScreenId -> String
 toXineramaArg n = show ( ((fromIntegral n)+1)::Int )
 
--- Requires dzen >= 0.2.4.
+-- | @dzen str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds.
+-- Example usage:
+-- > dzen "Hi, mom!" (5 `seconds`)
+dzen :: String -> Int -> X ()
+dzen str timeout = dzenWithArgs str [] timeout
 
-dzen :: String -> X ()
-dzen str = curScreen >>= \sc -> dzenScreen sc str
+-- | @dzenScreen sc str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds, and on screen @sc@.
+-- Requires dzen to be compiled with Xinerama support.
+dzenScreen :: ScreenId -> String -> Int -> X()
+dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
+    where screen  = toXineramaArg sc
 
-dzenScreen :: ScreenId -> String -> X()
-dzenScreen sc str = io $ (runProcessWithInputAndWait "dzen2" ["-xs", screen] str 5000000)
-    where screen = toXineramaArg sc
+dzenWithArgs :: String -> [String] -> Int -> X ()
+dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
+  -- dzen seems to require the input to terminate with exactly one newline.
+  where unchomp s@['\n'] = s
+        unchomp []       = ['\n']
+        unchomp (c:cs)   = c : unchomp cs

@@ -20,7 +20,8 @@ module XMonadContrib.Run (
                           -- $usage
                           runInXTerm,
                           runProcessWithInput,
-                          runProcessWithInputAndWait
+                          runProcessWithInputAndWait,
+                          seconds
                          ) where
 
 import XMonad
@@ -82,3 +83,8 @@ runInXTerm com = do
   c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
   spawn ("exec " ++ c ++ " -e " ++ com)
 
+-- | Multiplies by ONE MILLION, for use with runProcessWithInputAndWait.
+-- Use like:
+-- > (5.5 `seconds`)
+seconds :: Rational -> Int
+seconds = fromEnum . (* 1000000)
