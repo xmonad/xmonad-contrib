@@ -159,7 +159,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppHiddenNoWindows = const ""
                , ppSep             = " : "
                , ppWsSep           = " "
-               , ppTitle           = shorten 50
+               , ppTitle           = shorten 80
                , ppLayout          = id
                , ppOrder           = id }
 
@@ -167,6 +167,6 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
 -- 'xmobarColor' and the record update on defaultPP
 sjanssenPP :: PP
 sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
-                       , ppTitle = xmobarColor "#00ee00" "" . shorten 50
+                       , ppTitle = xmobarColor "#00ee00" "" . shorten 80
                        , ppOrder = reverse
                        }
