@@ -86,7 +86,7 @@ dynamicLogWithPP pp = do
                         ]
 
 pprWindowSet :: PP -> WindowSet -> String
-pprWindowSet pp s =  unwords' $ map fmt $ sortBy cmp
+pprWindowSet pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
    where f Nothing Nothing   = EQ
          f (Just _) Nothing  = LT
@@ -128,10 +128,6 @@ wrap :: String -> String -> String -> String
 wrap l r "" = ""
 wrap l r m  = l ++ m ++ r
 
--- | Intersperse spaces, filtering empty words.
-unwords' :: [String] -> String
-unwords' = sepBy " "
-
 sepBy :: String -> [String] -> String
 sepBy sep = concat . intersperse sep . filter (not . null)
 
@@ -144,7 +140,7 @@ xmobarColor fg bg = wrap t "</fc>"
 -- dynamicLogPP
 data PP = PP { ppCurrent, ppVisible
              , ppHidden, ppHiddenNoWindows :: WorkspaceId -> String
-             , ppSep :: String
+             , ppSep, ppWsSep :: String
              , ppTitle :: String -> String
              , ppLayout :: String -> String
              , ppOrder :: [String] -> [String] }
@@ -156,6 +152,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
                , ppSep             = " : "
+               , ppWsSep           = " "
                , ppTitle           = const ""
                , ppLayout          = id
                , ppOrder           = id }
