@@ -58,6 +58,8 @@ instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m 
            return $ case mm' of
                     Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                     Nothing -> (ModifiedLayout m) `fmap` ml'
-    description (ModifiedLayout m l) = modifierDescription m ++ " " ++ description l
+    description (ModifiedLayout m l) = modDesc ++ sep ++ description l
+     where modDesc = modifierDescription m
+           sep     = if modDesc == "" then "" else " "
 
 data ModifiedLayout m l a = ModifiedLayout (m a) (l a) deriving ( Read, Show )
