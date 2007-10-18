@@ -29,7 +29,7 @@ module XMonadContrib.DynamicLog (
     pprWindowSetXinerama,
 
     PP(..), defaultPP, sjanssenPP,
-    wrap, xmobarColor
+    wrap, xmobarColor, shorten
   ) where
 
 -- 
@@ -128,6 +128,12 @@ wrap :: String -> String -> String -> String
 wrap l r "" = ""
 wrap l r m  = l ++ m ++ r
 
+shorten :: Int -> String -> String
+shorten n xs | length xs < n = xs
+             | otherwise     = (take (n - length end) xs) ++ end
+ where
+    end = "..."
+
 sepBy :: String -> [String] -> String
 sepBy sep = concat . intersperse sep . filter (not . null)
 
@@ -153,7 +159,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppHiddenNoWindows = const ""
                , ppSep             = " : "
                , ppWsSep           = " "
-               , ppTitle           = const ""
+               , ppTitle           = shorten 50
                , ppLayout          = id
                , ppOrder           = id }
 
