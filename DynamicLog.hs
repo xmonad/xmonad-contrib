@@ -29,7 +29,7 @@ module XMonadContrib.DynamicLog (
     pprWindowSetXinerama,
 
     PP(..), defaultPP, sjanssenPP,
-    wrap, xmobarColor, shorten
+    wrap, dzenColor, xmobarColor, shorten
   ) where
 
 -- 
@@ -137,7 +137,13 @@ shorten n xs | length xs < n = xs
 sepBy :: String -> [String] -> String
 sepBy sep = concat . intersperse sep . filter (not . null)
 
--- TODO dzenColor
+dzenColor :: String -> String -> String -> String
+dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
+ where (fg1,fg2) | null fg = ("","")
+                 | otherwise = ("^fg(" ++ fg ++ ")","^fg()")
+       (bg1,bg2) | null bg = ("","")
+                 | otherwise = ("^bg(" ++ bg ++ ")","^bg()")
+
 xmobarColor :: String -> String -> String -> String
 xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
