@@ -3,7 +3,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.WorkspaceDir
+-- Module      :  XMonadContrib.WindowNavigation
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 -- 
