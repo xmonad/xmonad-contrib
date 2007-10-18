@@ -125,7 +125,8 @@ pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
                         . sortBy (comparing S.tag) $ S.hidden ws
 
 wrap :: String -> String -> String -> String
-wrap l r m = l ++ m ++ r
+wrap l r "" = ""
+wrap l r m  = l ++ m ++ r
 
 -- | Intersperse spaces, filtering empty words.
 unwords' :: [String] -> String
