@@ -167,6 +167,6 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
 -- 'xmobarColor' and the record update on defaultPP
 sjanssenPP :: PP
 sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
-                       , ppTitle = xmobarColor "#00ee00" ""
+                       , ppTitle = xmobarColor "#00ee00" "" . shorten 50
                        , ppOrder = reverse
                        }
