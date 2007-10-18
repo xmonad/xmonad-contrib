@@ -42,7 +42,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     unhook :: m a -> X ()
     unhook _ = return ()
     modifierDescription :: m a -> String
-    modifierDescription = show
+    modifierDescription = const ""
 
 instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
     doLayout (ModifiedLayout m l) r s =
