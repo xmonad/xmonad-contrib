@@ -18,6 +18,9 @@ module XMonadContrib.ShellPrompt (
                              shellPrompt
                              , getShellCompl
                              , split
+                             , prompt
+                             , safePrompt
+                             , runInXTerm
                               ) where
 
 import XMonad
@@ -56,6 +59,27 @@ shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
     cmds <- io $ getCommands
     mkXPrompt Shell c (getShellCompl cmds) spawn
+
+{- | See safe and unsafeSpawn. prompt is an alias for safePrompt; safePrompt and unsafePrompt work on the same principles,
+   but will use XPrompt to interactively query the user for input; the appearance is set by passing an XPConfig as the
+   second argument. The first argument is the program to be run with the interactive input.
+   You would use these like this:
+   >     , ((modMask,               xK_b     ), safePrompt "firefox" greenXPConfig)
+   >     , ((modMask .|. shiftMask, xK_c     ), prompt ("xterm" ++ " -e") greenXPConfig)
+   Note that you want to use safePrompt for Firefox input, as Firefox wants URLs, and unsafePrompt for the XTerm example
+   because this allows you to easily start a terminal executing an arbitrary command, like 'top'. -}
+prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
+prompt = unsafePrompt
+safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
+    where run = safeSpawn c
+unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
+    where run a = unsafeSpawn $ c ++ " " ++ a
+
+-- This may be better done as a specialization of 'prompt'
+runInXTerm :: String -> X ()
+runInXTerm com = do
+  c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
+  spawn ("exec " ++ c ++ " -e " ++ com)
 
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []

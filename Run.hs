@@ -18,7 +18,6 @@
 module XMonadContrib.Run (
                           -- * Usage
                           -- $usage
-                          runInXTerm,
                           runProcessWithInput,
                           runProcessWithInputAndWait,
                           seconds
@@ -78,13 +77,9 @@ runProcessWithInputAndWait cmd args input timeout = do
     getProcessStatus True False pid
     return ()
 
-runInXTerm :: String -> X ()
-runInXTerm com = do
-  c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
-  spawn ("exec " ++ c ++ " -e " ++ com)
-
--- | Multiplies by ONE MILLION, for use with runProcessWithInputAndWait.
--- Use like:
--- > (5.5 `seconds`)
+{- | Multiplies by ONE MILLION, for use with runProcessWithInputAndWait.
+     Use like:
+     > (5.5 `seconds`)
+-}
 seconds :: Rational -> Int
 seconds = fromEnum . (* 1000000)
