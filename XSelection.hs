@@ -58,8 +58,8 @@ import Foreign (Word8(), (.&.), shiftL, (.|.))
              * Possibly add some more elaborate functionality: Emacs' registers are nice.
 -}
 
--- | Returns a String corresponding to the current mouse selection in X; if there is none, an empty string is returned.. Note that this is
--- only reliable for ASCII text and currently mangles\/escapes more complex UTF-8 characters.
+-- | Returns a String corresponding to the current mouse selection in X; if there is none, an empty string is returned. Note that this is
+-- really only reliable for ASCII text and currently escapes or otherwise mangles more complex UTF-8 characters.
 getSelection :: IO String
 getSelection = do
   dpy <- openDisplay ""
@@ -121,9 +121,10 @@ putSelection text = do
                                                                print ev
                                                       processEvent dpy ty text e
 
--- | A wrapper around getSelection. Makes it convenient to run a program with the current selection as an argument. This is convenient
--- for handling URLs, in particular. For example, in your Config.hs you could bind a key to @promptSelection \"firefox\"@; this would allow you to
--- highlight a URL string and then immediately open it up in Firefox.
+{- | A wrapper around getSelection. Makes it convenient to run a program with the current selection as an argument.
+This is convenient for handling URLs, in particular. For example, in your Config.hs you could bind a key to
+         @promptSelection \"firefox\"@;
+this would allow you to highlight a URL string and then immediately open it up in Firefox. -}
 promptSelection :: String -> X ()
 promptSelection app = spawn . ((app ++ " ") ++) =<< io getSelection
 
@@ -155,9 +156,7 @@ decode (c:cs)
             (acc < 0xd800 || 0xdfff < acc)     &&
             (acc < 0xfffe || 0xffff < acc)      = chr acc : decode rs
           | otherwise = replacement_character : decode rs
-
         aux n (r:rs) acc
           | r .&. 0xc0 == 0x80 = aux (n-1) rs
                                $ shiftL acc 6 .|. fromEnum (r .&. 0x3f)
-
         aux _ rs     _ = replacement_character : decode rs
