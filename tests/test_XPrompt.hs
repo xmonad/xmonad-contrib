@@ -26,10 +26,6 @@ deepestCheck p = check (defaultConfig { configMaxTest = 100000}) p
 prop_split (str :: [Char]) =
     forAll (elements str) $ \e -> S.split e str == S.split e str
 
--- check for exceptions
-prop_rmPath (str :: [[Char]]) =
-    S.rmPath str == S.rmPath str
-
 -- check if the first element of the new list is indeed the first part
 -- of the string.
 prop_spliInSubListsAt (x :: Int) (str :: [Char]) =
@@ -68,8 +64,6 @@ prop_newCommandIndex =
 main = do
   putStrLn "Testing ShellPrompt.split"
   deepCheck prop_split
-  putStrLn "Testing ShellPrompt.rmPath"
-  doubleCheck prop_rmPath
   putStrLn "Testing spliInSubListsAt"
   deepCheck prop_spliInSubListsAt
   putStrLn "Testing newIndex + newCommand"
