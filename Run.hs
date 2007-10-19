@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.Run
 -- Copyright   :  (C) 2007 Spencer Janssen, Andrea Rossato, glasser@mit.edu
 -- License     :  BSD-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Christian Thiemann <mail@christian-thiemann.de>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -23,15 +23,15 @@ module XMonadContrib.Run (
                           seconds
                          ) where
 
-import XMonad
+import Control.Monad.State (Monad((>>), return), when)
+import System.Posix.Process (createSession, forkProcess, executeFile,
+			    getProcessStatus)
 import Control.Concurrent (threadDelay)
-import Control.Monad.State
-import System.Environment
-import System.Exit
-import System.IO
-import System.Posix.Process (forkProcess, getProcessStatus, createSession)
-import System.Process
-
+import Control.Exception (try)
+import System.Exit (ExitCode(ExitSuccess), exitWith)
+import System.IO (IO, FilePath, hPutStr, hGetContents, hFlush, hClose)
+import System.Process (runInteractiveProcess, waitForProcess)
+import XMonad (X, io, spawn)
 
 -- $usage
 -- For an example usage of runInXTerm see XMonadContrib.SshPrompt
@@ -66,8 +66,6 @@ runProcessWithInputAndWait cmd args input timeout = do
          hFlush pin
          threadDelay timeout
          hClose pin
-         --     output <- hGetContents pout
-         --     when (output==output) $ return ()
          hClose pout
          hClose perr
          waitForProcess ph
