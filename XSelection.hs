@@ -23,19 +23,23 @@ module XMonadContrib.XSelection (
                                  safePromptSelection,
                                  putSelection) where
 
--- getSelection, putSelection's imports:
-import Graphics.X11.Xlib (allocaXEvent, createSimpleWindow, defaultScreen, destroyWindow, internAtom, nextEvent, openDisplay, rootWindow, selectionNotify, Display(), Atom(), XEventPtr(), selectionRequest, sendEvent, noEventMask, sync)
-import Graphics.X11.Xlib.Extras (currentTime, ev_event_type, getEvent, getWindowProperty8, xConvertSelection, xSetSelectionOwner, xGetSelectionOwner, changeProperty8, propModeReplace, setSelectionNotify, ev_requestor, ev_selection, ev_target, ev_property, ev_time, ev_event_display)
-import Data.Maybe (fromMaybe)
+import Graphics.X11.Xlib.Extras (Graphics.X11.Xlib.Extras.Event(ev_event_display,
+							       ev_time, ev_property, ev_target, ev_selection,
+							       ev_requestor, ev_event_type),
+				xConvertSelection, xGetSelectionOwner, xSetSelectionOwner, getEvent,
+				currentTime, setSelectionNotify, getWindowProperty8, changeProperty8,
+				propModeReplace)
+import Graphics.X11.Xlib (destroyWindow, createSimpleWindow, Display, XEventPtr,
+			 sendEvent, nextEvent, sync, allocaXEvent, openDisplay, rootWindow,
+			 defaultScreen, internAtom, Atom, selectionNotify, selectionRequest, noEventMask)
 import Control.Concurrent (forkIO)
-import Data.Char (chr, ord)
 import Control.Exception as E (catch)
-
--- promptSelection's imports:
-import XMonad (io, spawn, X ())
-
--- decode's imports
-import Foreign (Word8(), (.&.), shiftL, (.|.))
+import Control.Monad(Monad (return, (>>)), Functor(..), liftM, join)
+import Data.Char (chr, ord)
+import Data.Maybe (fromMaybe)
+import Foreign(Word8, Data.Bits.Bits (shiftL, (.&.), (.|.)))
+import XMonadContrib.Run (safeSpawn, unsafeSpawn)
+import XMonad (X, io)
 
 {- $usage
     Add 'import XMonadContrib.XSelection' to the top of Config.hs
@@ -159,7 +163,7 @@ decode (c:cs)
     multi_byte :: Int -> Word8 -> Int -> [Char]
     multi_byte i mask overlong = aux i cs (fromEnum (c .&. mask))
       where
-        aux :: forall t. (Num t) => t -> [Word8] -> Int -> [Char]
+        aux :: Int -> [Word8] -> Int -> [Char]
         aux 0 rs acc
           | overlong <= acc && acc <= 0x10ffff &&
             (acc < 0xd800 || 0xdfff < acc)     &&
