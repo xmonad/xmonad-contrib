@@ -21,9 +21,10 @@ module XMonadContrib.SshPrompt (
 import System.Environment (getEnv)
 import XMonadContrib.ShellPrompt (runInXTerm)
 import Control.Monad(Monad (return), Functor(..), liftM2, mapM)
-import Data.List ((++), concat, filter, map, words, lines, takeWhile, take, nub,
+import Data.List ((++), concat, filter, map, words, lines, takeWhile, take,
 		 sort)
 import Data.Maybe (Maybe(..), catMaybes)
+import Data.Set (toList, fromList)
 import System.Directory (doesFileExist)
 import XMonad (X, io)
 import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt,
@@ -57,7 +58,7 @@ ssh :: String -> X ()
 ssh s = runInXTerm ("ssh " ++ s)
 
 sshComplList :: IO [String]
-sshComplList =  (nub . sort) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
+sshComplList =  (sort . toList . fromList) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
 
 sshComplListLocal :: IO [String]
 sshComplListLocal = do
