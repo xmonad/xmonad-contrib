@@ -149,6 +149,7 @@ decode (c:cs)
     multi_byte :: Int -> Word8 -> Int -> [Char]
     multi_byte i mask overlong = aux i cs (fromEnum (c .&. mask))
       where
+        aux :: forall t. (Num t) => t -> [Word8] -> Int -> [Char]
         aux 0 rs acc
           | overlong <= acc && acc <= 0x10ffff &&
             (acc < 0xd800 || 0xdfff < acc)     &&
