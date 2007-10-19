@@ -18,7 +18,10 @@
 module XMonadContrib.XSelection (
                                  -- * Usage
                                  -- $usage
-                                 getSelection, promptSelection, putSelection) where
+                                 getSelection,
+                                 promptSelection,
+                                 safePromptSelection,
+                                 putSelection) where
 
 -- getSelection, putSelection's imports:
 import Graphics.X11.Xlib (allocaXEvent, createSimpleWindow, defaultScreen, destroyWindow, internAtom, nextEvent, openDisplay, rootWindow, selectionNotify, Display(), Atom(), XEventPtr(), selectionRequest, sendEvent, noEventMask, sync)
@@ -124,9 +127,15 @@ putSelection text = do
 {- | A wrapper around getSelection. Makes it convenient to run a program with the current selection as an argument.
 This is convenient for handling URLs, in particular. For example, in your Config.hs you could bind a key to
          @promptSelection \"firefox\"@;
-this would allow you to highlight a URL string and then immediately open it up in Firefox. -}
-promptSelection :: String -> X ()
-promptSelection app = spawn . ((app ++ " ") ++) =<< io getSelection
+this would allow you to highlight a URL string and then immediately open it up in Firefox.
+
+promptSelection passes strings through the shell; if you do not wish your selected text to be interpreted/mangled
+by the shell, use safePromptSelection which will bypass the shell using safeSpawn from Run.hs; see Run.hs for more
+details on the advantages/disadvantages of this. -}
+promptSelection, safePromptSelection, unsafePromptSelection :: String -> X ()
+promptSelection = unsafePromptSelection
+safePromptSelection app = join $ io $ liftM (safeSpawn app) (getSelection)
+unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) getSelection
 
 {- UTF-8 decoding for internal use in getSelection. This code is copied from Eric Mertens's utf-string library
    <http://code.haskell.org/utf8-string/> (version 0.1), which is BSD-3 licensed, as is this module.
