@@ -20,12 +20,14 @@ module XMonadContrib.WindowNavigation (
                                    -- $usage
                                    windowNavigation, configurableNavigation,
                                    Navigate(..), Direction(..),
+                                   MoveWindowToWindow(..),
                                    navigateColor, navigateBrightness,
                                    noNavigateBorders, defaultWNConfig
                                   ) where
 
 import Graphics.X11.Xlib ( Rectangle(..), Window, Pixel, setWindowBorder )
 import Control.Monad.Reader ( ask )
+import Control.Monad.State ( gets )
 import Data.List ( nub, sortBy, (\\) )
 import XMonad
 import qualified StackSet as W
@@ -67,8 +69,10 @@ import XMonadContrib.XUtils
 -- %layout -- or
 -- %layout -- layoutHook = Layout $ configurableNavigation (navigateBorder "green") $ ...
 
+data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeable )
+instance Typeable a => Message (MoveWindowToWindow a)
 
-data Navigate = Go Direction | Swap Direction deriving ( Read, Show, Typeable )
+data Navigate = Go Direction | Swap Direction | Move Direction deriving ( Read, Show, Typeable )
 data Direction = U | D | R | L deriving ( Read, Show, Eq )
 instance Message Navigate
 
@@ -136,12 +140,12 @@ instance LayoutModifier WindowNavigation Window where
            mapM_ (\(win,c) -> sc c win) wnavigablec
            return (wrs, Just $ WindowNavigation conf $ I $ Just $ NS pt wnavigable)
 
-    handleMess (WindowNavigation conf (I (Just (NS pt wrs)))) m
+    handleMessOrMaybeModifyIt (WindowNavigation conf (I (Just (NS pt wrs)))) m
         | Just (Go d) <- fromMessage m =
                          case sortby d $ filter (inr d pt . snd) wrs of
                          []        -> return Nothing
                          ((w,r):_) -> do focus w
-                                         return $ Just $ WindowNavigation conf $ I $ Just $
+                                         return $ Just $ Left $ WindowNavigation conf $ I $ Just $
                                                 NS (centerd d pt r) wrs
         | Just (Swap d) <- fromMessage m =
              case sortby d $ filter (inr d pt . snd) wrs of
@@ -159,13 +163,19 @@ instance LayoutModifier WindowNavigation Window where
                                                            , W.up = [] }
                              windows $ W.modify' swap
                              return Nothing
+        | Just (Move d) <- fromMessage m =
+             case sortby d $ filter (inr d pt . snd) wrs of
+             []        -> return Nothing
+             ((w,_):_) -> do mst <- gets (W.stack . W.workspace . W.current . windowset)
+                             return $ do st <- mst
+                                         Just $ Right $ SomeMessage $ MoveWindowToWindow (W.focus st) w
         | Just Hide <- fromMessage m =
                        do XConf { normalBorder = nbc } <- ask
                           mapM_ (sc nbc . fst) wrs
-                          return $ Just $ WindowNavigation conf $ I $ Just $ NS pt []
+                          return $ Just $ Left $ WindowNavigation conf $ I $ Just $ NS pt []
         | Just ReleaseResources <- fromMessage m =
-               handleMess (WindowNavigation conf (I $ Just (NS pt wrs))) (SomeMessage Hide)
-    handleMess _ _ = return Nothing
+               handleMessOrMaybeModifyIt (WindowNavigation conf (I $ Just (NS pt wrs))) (SomeMessage Hide)
+    handleMessOrMaybeModifyIt _ _ = return Nothing
 
 truncHead :: [a] -> [a]
 truncHead (x:_) = [x]
