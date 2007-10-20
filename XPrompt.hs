@@ -265,34 +265,25 @@ keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 -- commands: ctrl + ... todo
 keyPressHandle mask (ks,_)
     | mask == controlMask =
+        -- control sequences
         case () of
--- ctrl U
           _ | ks == xK_u -> killBefore  >> go
--- ctrl K
             | ks == xK_k -> killAfter   >> go
--- ctrl A
             | ks == xK_a -> startOfLine >> go
--- ctrl E
             | ks == xK_e -> endOfLine   >> go
--- Unhandled control sequence
-            | otherwise  -> eventLoop handle
--- Return: exit
+            | ks == xK_g || ks == xK_c -> quit
+            | otherwise  -> eventLoop handle -- unhandled control sequence
     | ks == xK_Return    = historyPush       >> return ()
--- backspace
     | ks == xK_BackSpace = deleteString Prev >> go
--- delete
     | ks == xK_Delete    = deleteString Next >> go
--- left
     | ks == xK_Left      = moveCursor   Prev >> go
--- right
     | ks == xK_Right     = moveCursor   Next >> go
--- up
     | ks == xK_Up        = moveHistory  Prev >> go
--- down
     | ks == xK_Down      = moveHistory  Next >> go
--- escape: exit and discard everything
-    | ks == xK_Escape = flushString >> return ()
-    where go = updateWindows >> eventLoop handle
+    | ks == xK_Escape    = quit
+    where
+      go   = updateWindows >> eventLoop handle
+      quit = flushString   >> return () -- quit and discard everything
 -- insert a character
 keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
