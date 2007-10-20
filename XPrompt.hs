@@ -5,7 +5,7 @@
 -- Module      :  XMonadContrib.XPrompt
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
--- 
+--
 -- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -71,36 +71,36 @@ import System.Posix.Files
 type XP = StateT XPState IO
 
 data XPState =
-    XPS { dpy                :: Display    
-        , rootw              :: Window   
+    XPS { dpy                :: Display
+        , rootw              :: Window
         , win                :: Window
         , screen             :: Rectangle
         , complWin           :: Maybe Window
         , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
         , gcon               :: GC
-        , fontS              :: FontStruct 
+        , fontS              :: FontStruct
         , xptype             :: XPType
-        , command            :: String 
+        , command            :: String
         , offset             :: Int
         , history            :: [History]
         , config             :: XPConfig
         }
 
-data XPConfig =  
+data XPConfig =
     XPC { font              :: String     -- ^ Font
         , bgColor           :: String     -- ^ Backgroud color
         , fgColor           :: String     -- ^ Font color
-        , fgHLight          :: String     -- ^ Font color of a highlighted completion entry 
-        , bgHLight          :: String     -- ^ Backgroud color of a highlighted completion entry 
-        , borderColor       :: String     -- ^ Border color 
+        , fgHLight          :: String     -- ^ Font color of a highlighted completion entry
+        , bgHLight          :: String     -- ^ Backgroud color of a highlighted completion entry
+        , borderColor       :: String     -- ^ Border color
         , promptBorderWidth :: Dimension  -- ^ Border width
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
         , height            :: Dimension  -- ^ Window height
         , historySize       :: Int        -- ^ The number of history entries to be saved
         } deriving (Show, Read)
 
-data XPType = forall p . XPrompt p => XPT p 
+data XPType = forall p . XPrompt p => XPT p
 
 instance Show XPType where
     show (XPT p) = showXPrompt p
@@ -121,7 +121,7 @@ instance XPrompt XPType where
 class XPrompt t where
     showXPrompt :: t -> String
 
-data XPPosition = Top 
+data XPPosition = Top
                 | Bottom
                   deriving (Show,Read)
 
@@ -148,7 +148,7 @@ initState d rw w s compl gc fonts pt h c =
 
 -- | Creates a prompt given:
 --
--- * a prompt type, instance of the 'XPrompt' class. 
+-- * a prompt type, instance of the 'XPrompt' class.
 --
 -- * a prompt configuration ('defaultXPConfig' can be used as a
 -- starting point)
@@ -176,7 +176,7 @@ mkXPrompt t conf compl action = do
   releaseFont fs
   liftIO $ freeGC d gc
   liftIO $ hClose h
-  when (command st' /= "") $ do 
+  when (command st' /= "") $ do
     let htw = take (historySize conf) (history st')
     liftIO $ writeHistory htw
     action (command st')
@@ -199,8 +199,8 @@ type KeyStroke = (KeySym, String)
 eventLoop :: (KeyStroke -> Event -> XP ()) -> XP ()
 eventLoop action = do
   d <- gets dpy
-  (keysym,string,event) <- io $ 
-            allocaXEvent $ \e -> do 
+  (keysym,string,event) <- io $
+            allocaXEvent $ \e -> do
               maskEvent d (exposureMask .|. keyPressMask) e
               ev <- getEvent e
               (ks,s) <- if ev_event_type ev == keyPress
@@ -215,7 +215,7 @@ handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab    = do
   c <- getCompletions
   completionHandle c k e
-handle ks (KeyEvent {ev_event_type = t, ev_state = m}) 
+handle ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
@@ -326,8 +326,8 @@ startOfLine  =
 -- |  Flush the command string and reset the offest
 flushString :: XP ()
 flushString = do
-  modify (\s -> s { command = "", offset = 0} )  
- 
+  modify (\s -> s { command = "", offset = 0} )
+
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
 insertString str =
@@ -393,7 +393,7 @@ createWin d rw c s = do
   let (x,y) = case position c of
                 Top -> (0,0)
                 Bottom -> (0, rect_height s - height c)
-  w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw 
+  w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw
                       (rect_x s + x) (rect_y s + fi y) (rect_width s) (height c)
   mapWindow d w
   return w
@@ -424,7 +424,7 @@ printPrompt drw = do
       -- scompose the string in 3 part: till the cursor, the cursor and the rest
       (f,p,ss) = if off >= length com
                  then (str, " ","") -- add a space: it will be our cursor ;-)
-                 else let (a,b) = (splitAt off com) 
+                 else let (a,b) = (splitAt off com)
                       in (prt ++ a, [head b], tail b)
       ht = height c
       (fsl,psl) = (textWidth fs *** textWidth fs) (f,p)
@@ -486,7 +486,7 @@ getComplWinDim compl = do
       columns = max 1 $ wh `div` (fi max_compl_len)
       rem_height =  rect_height scr - ht
       (rows,r) = (length compl) `divMod` fi columns
-      needed_rows = max 1 (rows + if r == 0 then 0 else 1) 
+      needed_rows = max 1 (rows + if r == 0 then 0 else 1)
       actual_max_number_of_rows = rem_height `div` ht
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
       actual_height = actual_rows * ht
@@ -564,15 +564,15 @@ printComplString d drw gc fc bc x y s = do
   if s == getLastWord (command st)
      then do bhc <- io $ initColor d (bgHLight $ config st)
              fhc <- io $ initColor d (fgHLight $ config st)
-             io $ printString d drw gc fhc bhc x y s 
+             io $ printString d drw gc fhc bhc x y s
      else io $ printString d drw gc fc bc x y s
 
 -- History
 
-data History = 
-    H { prompt :: String 
+data History =
+    H { prompt :: String
       , command_history :: String
-      } deriving (Show, Read, Eq) 
+      } deriving (Show, Read, Eq)
 
 historyPush :: XP ()
 historyPush = do
@@ -615,7 +615,7 @@ printString d drw gc fc bc x y s = do
   setBackground d gc bc
   drawImageString d drw gc x y s
 
--- | Fills a 'Drawable' with a rectangle and a border 
+-- | Fills a 'Drawable' with a rectangle and a border
 fillDrawable :: Display -> Drawable -> GC -> Pixel -> Pixel
              -> Dimension -> Dimension -> Dimension -> IO ()
 fillDrawable d drw gc border bgcolor bw wh ht = do
@@ -628,15 +628,15 @@ fillDrawable d drw gc border bgcolor bw wh ht = do
 
 -- | Creates a window with the attribute override_redirect set to True.
 -- Windows Managers should not touch this kind of windows.
-mkUnmanagedWindow :: Display -> Screen -> Window -> Position 
+mkUnmanagedWindow :: Display -> Screen -> Window -> Position
                   -> Position -> Dimension -> Dimension -> IO Window
 mkUnmanagedWindow d s rw x y w h = do
   let visual = defaultVisualOfScreen s
       attrmask = cWOverrideRedirect
-  allocaSetWindowAttributes $ 
+  allocaSetWindowAttributes $
          \attributes -> do
            set_override_redirect attributes True
-           createWindow d rw x y w h 0 (defaultDepthOfScreen s) 
+           createWindow d rw x y w h 0 (defaultDepthOfScreen s)
                         inputOutput visual attrmask attributes
 
 -- $utils
@@ -675,7 +675,7 @@ skipLastWord str =
     reverse . snd . breakAtSpace . reverse $ str
 
 breakAtSpace :: String -> (String, String)
-breakAtSpace s 
+breakAtSpace s
     | " \\" `isPrefixOf` s2 = (s1 ++ " " ++ s1', s2')
     | otherwise = (s1, s2)
       where (s1, s2 ) = break isSpace s
