@@ -34,9 +34,13 @@ import Graphics.X11.Xlib.Extras
 -- >     [ ...
 -- >     , ((modMask, button3),               (\w -> focus w >> Sqr.mouseResizeWindow w False))
 -- >     , ((modMask .|. shiftMask, button3), (\w -> focus w >> Sqr.mouseResizeWindow w True )) ]
+--
+-- The line without the shiftMask replaces the standard mouse resize function call, so it's
+-- not completely necessary but seems neater this way.
 
 -- %import qualified XMonadContrib.ConstrainedResize as Sqr
 -- %mousebind , ((modMask, button3), (\\w -> focus w >> Sqr.mouseResizeWindow w False))
+-- %mousebind , ((modMask .|. shiftMask, button3), (\\w -> focus w >> Sqr.mouseResizeWindow w True))
 
 -- | Resize (floating) window with optional aspect ratio constraints.
 mouseResizeWindow :: Window -> Bool -> X ()
