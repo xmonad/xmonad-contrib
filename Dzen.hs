@@ -43,15 +43,14 @@ dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
 -- | Flashes when a window requests your attention and you can't see it. For use with
 -- XMonadContrib.UrgencyHook. Usage:
 -- > urgencyHook = dzenUrgencyHook (5 `seconds`)
--- Bug: Doesn't flash if you're on the same workspace, Full or Tabbed layout, different window.
 dzenUrgencyHook :: Int -> Window -> X ()
 dzenUrgencyHook duration w = do
     visibles <- gets mapped
     name <- getName w
     ws <- gets windowset
-    whenJust (W.findIndex w ws) (flash name ws visibles)
-  where flash name ws visibles index =
-              when (index /= W.tag (W.workspace (W.current ws)) && not (S.member w visibles)) $
+    whenJust (W.findIndex w ws) (flash name visibles)
+  where flash name visibles index =
+              when (not $ S.member w visibles) $
               dzen (show name ++ " requests your attention on workspace " ++ index) duration
 
 dzenWithArgs :: String -> [String] -> Int -> X ()
