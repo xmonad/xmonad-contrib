@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.SshPrompt
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
---
+-- 
 -- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -35,7 +35,7 @@ import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt,
 -- > import XMonadContrib.XPrompt
 -- > import XMonadContrib.SshPrompt
 --
--- 3. In your keybindings add something like:
+-- 2. In your keybindings add something like:
 --
 -- >   , ((modMask .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 --
@@ -47,7 +47,7 @@ import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt,
 data Ssh = Ssh
 
 instance XPrompt Ssh where
-    showXPrompt Ssh = "SSH to:   "
+    showXPrompt Ssh = "SSH to: "
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
@@ -58,13 +58,13 @@ ssh :: String -> X ()
 ssh s = runInTerm ("ssh " ++ s)
 
 sshComplList :: IO [String]
-sshComplList =  (sort . toList . fromList) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
+sshComplList =  (nub . sort) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal 
 
 sshComplListLocal :: IO [String]
 sshComplListLocal = do
   h <- getEnv "HOME"
   sshComplListFile $ h ++ "/.ssh/known_hosts"
-
+ 
 sshComplListGlobal :: IO [String]
 sshComplListGlobal = do
   env <- getEnv "SSH_KNOWN_HOSTS" `catch` (\_ -> return "/nonexistent")
