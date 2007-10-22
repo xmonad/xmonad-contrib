@@ -48,7 +48,7 @@ dzenUrgencyHook duration w = do
     visibles <- gets mapped
     name <- getName w
     ws <- gets windowset
-    whenJust (W.findIndex w ws) (flash name visibles)
+    whenJust (W.findTag w ws) (flash name visibles)
   where flash name visibles index =
               when (not $ S.member w visibles) $
               dzen (show name ++ " requests your attention on workspace " ++ index) duration
