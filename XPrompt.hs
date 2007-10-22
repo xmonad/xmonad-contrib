@@ -120,7 +120,7 @@ instance XPrompt XPType where
 -- This is an example of a XPrompt instance definition:
 --
 -- >     instance XPrompt Shell where
--- >          showXPrompt Shell = "Run:   "
+-- >          showXPrompt Shell = "Run: "
 class XPrompt t where
     showXPrompt :: t -> String
 
@@ -667,14 +667,12 @@ splitInSubListsAt i x = f : splitInSubListsAt i rest
 -- | Gets the last word of a string or the whole string if formed by
 -- only one word
 getLastWord :: String -> String
-getLastWord str =
-    reverse . fst . breakAtSpace . reverse $ str
+getLastWord = reverse . fst . breakAtSpace . reverse
 
 -- | Skips the last word of the string, if the string is composed by
 -- more then one word. Otherwise returns the string.
 skipLastWord :: String -> String
-skipLastWord str =
-    reverse . snd . breakAtSpace . reverse $ str
+skipLastWord = reverse . snd . breakAtSpace . reverse
 
 breakAtSpace :: String -> (String, String)
 breakAtSpace s
