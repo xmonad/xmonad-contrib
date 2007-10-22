@@ -50,7 +50,7 @@ import XMonadContrib.XPrompt
 data Shell = Shell
 
 instance XPrompt Shell where
-    showXPrompt Shell = "Run:   "
+    showXPrompt Shell = "Run: "
 
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
