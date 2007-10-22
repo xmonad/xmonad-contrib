@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.UrgencyHook
