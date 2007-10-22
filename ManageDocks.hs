@@ -12,16 +12,16 @@
 -- layouts. It also detects window with STRUT set and modifies the
 -- gap accordingly.
 --
--- Cheveats:
---
---  * Only acts on STRUT apps on creation, not if you move or close them
---
---  * To reset the gap, press Mod-b twice and restart xmonad (Mod-q)
+-- It also allows you to reset the gap to reflect the state of current STRUT
+-- windows (for example, after you resized or closed a panel), and to toggle the Gap
+-- in a STRUT-aware fashion.
 -----------------------------------------------------------------------------
 module XMonadContrib.ManageDocks (
     -- * Usage
     -- $usage
     manageDocksHook
+    ,resetGap
+    ,toggleGap
     ) where
 
 import Control.Monad.Reader
@@ -30,7 +30,8 @@ import Operations
 import qualified StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
-import Data.Word
+import Data.Word (Word32)
+import Data.Maybe (catMaybes)
 
 -- $usage
 -- Add the imports to your configuration file and add the mangeHook:
@@ -40,10 +41,15 @@ import Data.Word
 -- > manageHook w _ _ _  = manageDocksHook w
 --
 -- and comment out the default `manageHook _ _ _ _ = return id` line.
+--
+-- Then you can bind resetGap or toggleGap as you wish:
+--
+-- > , ((modMask,               xK_b), toggleGap)
 
 -- %import XMonadContrib.ManageDocks
 -- %def -- comment out default manageHook definition above if you uncomment this:
 -- %def manageHook w _ _ _ = manageDocksHook w
+-- %keybind , ((modMask,               xK_b), toggleGap)
 
 
 -- |
@@ -58,8 +64,8 @@ manageDocksHook w = do
     if isDock then do
         reveal w
         return (W.delete w)
-          else do
-            return id
+     else do
+        return id
 
 -- |
 -- Checks if a window is a DOCK window
@@ -95,6 +101,32 @@ getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 -- Modifies the gap, setting new max
 setGap :: (Int, Int, Int, Int) -> X ()
 setGap gap = modifyGap (\_ -> max4 gap)
+
+
+-- |
+-- Goes through the list of windows and find the gap so that all STRUT
+-- settings are satisfied.
+calcGap :: X (Int, Int, Int, Int)
+calcGap = withDisplay $ \dpy -> do
+	rootw <- asks theRoot
+	-- We don’t keep track of dock like windows, so we find all of them here
+	(_,_,wins) <- io $ queryTree dpy rootw
+	struts <- catMaybes `fmap` mapM getStrut wins
+	return $ foldl max4 (0,0,0,0) struts
+
+-- |
+-- Adjusts the gap to the STRUTs of all current Windows 
+resetGap :: X ()
+resetGap = do
+	newGap <- calcGap
+	modifyGap (\_ _ -> newGap)
+
+-- |
+-- Removes the gap or, if already removed, sets the gap according to the windows’ STRUT
+toggleGap :: X ()
+toggleGap = do
+	newGap <- calcGap
+	modifyGap (\_ old -> if old == (0,0,0,0) then newGap else (0,0,0,0))
 
 -- |
 -- Piecewise maximum of a 4-tuple of Ints
