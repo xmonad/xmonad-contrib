@@ -64,7 +64,7 @@ data DragPane a =
 
 data DragType = Horizontal | Vertical deriving ( Show, Read )
 
-instance LayoutClass DragPane Window where
+instance LayoutClass DragPane a where
     doLayout d@(DragPane _ Vertical   _ _) = doLay id d
     doLayout d@(DragPane _ Horizontal _ _) = doLay mirrorRect d
     handleMessage = handleMess
@@ -72,7 +72,7 @@ instance LayoutClass DragPane Window where
 data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq, Typeable )
 instance Message SetFrac
 
-handleMess :: DragPane Window -> SomeMessage -> X (Maybe (DragPane Window)) 
+handleMess :: DragPane a -> SomeMessage -> X (Maybe (DragPane a))
 handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
     | Just e <- fromMessage x :: Maybe Event = do handleEvent d e
                                                   return Nothing
@@ -87,7 +87,7 @@ handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
                                      return $ Just (DragPane mb ty delta frac)
 handleMess _ _ = return Nothing
 
-handleEvent :: DragPane Window -> Event -> X ()
+handleEvent :: DragPane a -> Event -> X ()
 handleEvent (DragPane (I (Just (win,r,ident))) ty _ _) 
             (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
     | t == buttonPress && thisw == win || thisbw == win  = do
@@ -99,7 +99,7 @@ handleEvent (DragPane (I (Just (win,r,ident))) ty _ _)
             (return ())
 handleEvent _ _  = return ()
 
-doLay :: (Rectangle -> Rectangle) -> DragPane Window -> Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (DragPane a))
+doLay :: (Rectangle -> Rectangle) -> DragPane a -> Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (DragPane a))
 doLay mirror (DragPane mw ty delta split) r s = do
   let r' = mirror r
       (left', right') = splitHorizontallyBy split r'
