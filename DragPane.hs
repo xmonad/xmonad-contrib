@@ -93,8 +93,8 @@ handleEvent (DragPane (I (Just (win,r,ident))) ty _ _)
     | t == buttonPress && thisw == win || thisbw == win  = do
   mouseDrag (\ex ey -> do
              let frac = case ty of
-                          Vertical   -> (fromIntegral ex - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width  r)
-                          Horizontal -> (fromIntegral ey - (fromIntegral $ rect_y r))/(fromIntegral $ rect_height r)
+                        Vertical   -> (fromIntegral ex - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width  r)
+                        Horizontal -> (fromIntegral ey - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width r)
              sendMessage (SetFrac ident frac))
             (return ())
 handleEvent _ _  = return ()
