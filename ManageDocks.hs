@@ -22,6 +22,7 @@ module XMonadContrib.ManageDocks (
     manageDocksHook
     ,resetGap
     ,toggleGap
+    ,avoidStruts
     ) where
 
 import Control.Monad.Reader
@@ -132,3 +133,21 @@ toggleGap = do
 -- Piecewise maximum of a 4-tuple of Ints
 max4 :: (Int, Int, Int, Int) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
 max4 (a1,a2,a3,a4) (b1,b2,b3,b4) = (max a1 b1, max a2 b2, max a3 b3, max a4 b4)
+
+-- | Adjust layout automagically.
+avoidStruts :: LayoutClass l a => l a -> AvoidStruts l a
+avoidStruts = AvoidStruts
+
+data AvoidStruts l a = AvoidStruts (l a) deriving ( Read, Show )
+
+instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
+    doLayout (AvoidStruts lo) (Rectangle x y w h) s =
+        do (t,l,b,r) <- calcGap
+           let rect = Rectangle (x+10+fromIntegral l) (y+fromIntegral t)
+                      (w-fromIntegral l-fromIntegral r) (h-fromIntegral t-fromIntegral b)
+           (wrs,mlo') <- doLayout lo rect s
+           return (wrs, AvoidStruts `fmap` mlo')
+    handleMessage (AvoidStruts l) m =
+        do ml' <- handleMessage l m
+           return (AvoidStruts `fmap` ml')
+    description (AvoidStruts l) = description l
