@@ -17,7 +17,8 @@
 module XMonadContrib.Combo (
                             -- * Usage
                             -- $usage 
-                            combo, combineTwo
+                            combo, combineTwo,
+                            CombineTwo
                            ) where
 
 import Control.Arrow ( first )
