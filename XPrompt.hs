@@ -486,7 +486,7 @@ getComplWinDim compl = do
                 Bottom -> (0, (0 + rem_height - actual_height))
 
   let (_,asc,desc,_) = textExtents fs $ head compl
-      yp = fi $ (ht + fi (asc + desc)) `div` 2
+      yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
       xx = take (fi columns) [xp,(xp + max_compl_len)..]
