@@ -25,7 +25,7 @@ module XMonadContrib.DragPane (
                                -- * Usage
                                -- $usage
                                 dragPane
-                              , DragType (..)
+                              , DragPane, DragType (..)
                               ) where
 
 import Graphics.X11.Xlib
