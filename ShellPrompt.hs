@@ -25,7 +25,6 @@ module XMonadContrib.ShellPrompt (
 import System.Environment
 import Control.Monad
 import Data.List
-import Data.Set (toList, fromList)
 import System.Directory
 import System.IO
 import XMonadContrib.Run
@@ -78,9 +77,6 @@ getShellCompl cmds s | s == "" || last s == ' ' = return []
                      | otherwise                = do
     f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
     return . map escape . uniqSort $ f ++ commandCompletionFunction cmds s
-
-uniqSort :: Ord a => [a] -> [a]
-uniqSort = toList . fromList
 
 commandCompletionFunction :: [String] -> String -> [String]
 commandCompletionFunction cmds str | '/' `elem` str = []
