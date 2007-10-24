@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.SshPrompt
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
--- 
+--
 -- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -18,17 +18,17 @@ module XMonadContrib.SshPrompt (
                              sshPrompt
                               ) where
 
-import System.Environment (getEnv)
-import Control.Monad(Monad (return), Functor(..), liftM2, mapM)
-import Data.List ((++), concat, filter, map, words, lines, takeWhile, take,
-		 sort)
-import Data.Maybe (Maybe(..), catMaybes)
-import Data.Set (toList, fromList)
-import System.Directory (doesFileExist)
-import XMonad (X, io)
-import XMonadContrib.Run (runInTerm)
-import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt,
-			     mkComplFunFromList)
+import XMonad
+import XMonadContrib.Run
+import XMonadContrib.XPrompt
+
+import System.Directory
+import System.Environment
+
+import Control.Monad
+import Data.List
+import Data.Maybe
+
 -- $usage
 -- 1. In Config.hs add:
 --
@@ -58,13 +58,13 @@ ssh :: String -> X ()
 ssh s = runInTerm ("ssh " ++ s)
 
 sshComplList :: IO [String]
-sshComplList =  (nub . sort) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal 
+sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
 
 sshComplListLocal :: IO [String]
 sshComplListLocal = do
   h <- getEnv "HOME"
   sshComplListFile $ h ++ "/.ssh/known_hosts"
- 
+
 sshComplListGlobal :: IO [String]
 sshComplListGlobal = do
   env <- getEnv "SSH_KNOWN_HOSTS" `catch` (\_ -> return "/nonexistent")
