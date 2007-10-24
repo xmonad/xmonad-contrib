@@ -15,6 +15,8 @@
 --   * narrow completions by section number, if the one is specified
 --     (like @\/etc\/bash_completion@ does)
 --
+--   * handle explicit paths (e.g., @~\/src\/xmonad\/man\/xmonad.1@)
+--
 --   * quickcheck properties
 -----------------------------------------------------------------------------
 
@@ -23,13 +25,12 @@ module XMonadContrib.ManPrompt (
                                 -- $usage
                                 manPrompt
                                , getCommandOutput
-                               , uniqSort
                                ) where
 
 import XMonad
 import XMonadContrib.XPrompt
 import XMonadContrib.Run
-import XMonadContrib.ShellPrompt ( split )
+import XMonadContrib.ShellPrompt (split)
 
 import System.Directory
 import System.Process
@@ -39,7 +40,6 @@ import qualified Control.Exception as E
 import Control.Monad
 import Data.List
 import Data.Maybe
-import Data.Set (toList, fromList)
 
 -- $usage
 -- 1. In Config.hs add:
@@ -61,20 +61,10 @@ instance XPrompt Man where
 
 -- | Query for manual page to be displayed.
 manPrompt :: XPConfig -> X ()
-manPrompt c = mkXPrompt Man c manCompl man
-    where
-      man :: String -> X ()
-      man s = runInXTerm ("man " ++ s)
+manPrompt c = mkXPrompt Man c manCompl $ runInTerm . (++) "man "
 
 manCompl :: String -> IO [String]
 manCompl s = getManpages >>= flip mkComplFunFromList s
-
--- | Sort a list and remove duplicates.
---
--- /XXX Code duplication!/
--- The function with the same name exists in "ShellPrompt" module.
-uniqSort :: Ord a => [a] -> [a]
-uniqSort = toList . fromList
 
 -- | Obtain the list of manual pages.
 --
