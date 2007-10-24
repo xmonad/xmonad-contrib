@@ -26,7 +26,7 @@ import Data.Maybe (Maybe(..), catMaybes)
 import Data.Set (toList, fromList)
 import System.Directory (doesFileExist)
 import XMonad (X, io)
-import XMonadContrib.Run (runInXTerm)
+import XMonadContrib.Run (runInTerm)
 import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt,
 			     mkComplFunFromList)
 -- $usage
@@ -55,7 +55,7 @@ sshPrompt c = do
   mkXPrompt Ssh c (mkComplFunFromList sc) ssh
 
 ssh :: String -> X ()
-ssh s = runInXTerm ("ssh " ++ s)
+ssh s = runInTerm ("ssh " ++ s)
 
 sshComplList :: IO [String]
 sshComplList =  (sort . toList . fromList) `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal

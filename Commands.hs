@@ -29,7 +29,7 @@ import XMonad
 import Operations
 import StackSet hiding (workspaces)
 import XMonadContrib.Dmenu (dmenu)
-import {-# SOURCE #-} Config (workspaces,serialisedLayouts)
+import {-# SOURCE #-} Config (workspaces,serialisedLayouts, terminal)
 
 import qualified Data.Map as M
 import System.Exit
@@ -84,7 +84,7 @@ defaultCommands = workspaceCommands ++ screenCommands
                      , ("default-layout"      , setLayout (head serialisedLayouts)                 )
                      , ("restart-wm"          , sr >> restart Nothing True                       )
                      , ("restart-wm-no-resume", sr >> restart Nothing False                      )
-                     , ("xterm"               , spawn "xterm"                                    )
+                     , ("xterm"               , spawn terminal                                   )
                      , ("run"                 , spawn "exe=`dmenu_path | dmenu -b` && exec $exe" )
                      , ("kill"                , kill                                             )
                      , ("refresh"             , refresh                                          )

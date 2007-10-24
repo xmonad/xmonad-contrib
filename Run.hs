@@ -24,7 +24,6 @@ module XMonadContrib.Run (
                           unsafeSpawn,
                           runInTerm,
                           safeRunInTerm,
-                          runInXTerm,
                           seconds
                          ) where
 
@@ -37,6 +36,7 @@ import System.Exit (ExitCode(ExitSuccess), exitWith)
 import System.IO (IO, FilePath, hPutStr, hGetContents, hFlush, hClose)
 import System.Process (runInteractiveProcess, waitForProcess)
 import XMonad (X, io, spawn)
+import {-# SOURCE #-} Config (terminal)
 
 -- $usage
 -- For an example usage of runInXTerm see XMonadContrib.SshPrompt
@@ -106,15 +106,10 @@ safeSpawn prog arg = io (try (forkProcess $ executeFile prog True [arg] Nothing)
 unsafeSpawn :: String -> X ()
 unsafeSpawn = spawn
 
--- | Run a given program in a given X terminal emulator. This uses safeSpawn.
-safeRunInTerm :: String -> String -> X ()
-safeRunInTerm term command = safeSpawn term ("-e " ++ command)
+-- | Run a given program in the preferred terminal emulator. This uses safeSpawn.
+safeRunInTerm :: String -> X ()
+safeRunInTerm command = safeSpawn terminal ("-e " ++ command)
 
-unsafeRunInTerm, runInTerm :: String -> String -> X ()
-unsafeRunInTerm term command = unsafeSpawn $ term ++ " -e " ++ command
+unsafeRunInTerm, runInTerm :: String -> X ()
+unsafeRunInTerm command = unsafeSpawn $ terminal ++ " -e " ++ command
 runInTerm = unsafeRunInTerm
-
--- | Runs a given program in XTerm, the X terminal emulator included by default in X.org installations.
---   Specializes runInTerm to use XTerm instead of an arbitrary other terminal emulator.
-runInXTerm :: String -> X ()
-runInXTerm = runInTerm "xterm"
