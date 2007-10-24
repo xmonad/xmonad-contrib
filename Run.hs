@@ -39,7 +39,7 @@ import XMonad (X, io, spawn)
 import {-# SOURCE #-} Config (terminal)
 
 -- $usage
--- For an example usage of runInXTerm see XMonadContrib.SshPrompt
+-- For an example usage of runInTerm see XMonadContrib.SshPrompt
 --
 -- For an example usage of runProcessWithInput see
 -- XMonadContrib.{DirectoryPrompt,Dmenu,ShellPrompt,WmiiActions,WorkspaceDir}
