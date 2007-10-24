@@ -22,6 +22,7 @@ module XMonadContrib.Run (
                           runProcessWithInputAndWait,
                           safeSpawn,
                           unsafeSpawn,
+                          runInTerm,
                           runInXTerm,
                           seconds
                          ) where
@@ -105,6 +106,12 @@ safeSpawn prog arg = io (try (forkProcess $ executeFile prog True [arg] Nothing)
 unsafeSpawn :: String -> X ()
 unsafeSpawn = spawn
 
+-- | Run a given program in a given X terminal emulator. This uses safeSpawn.
+runInTerm :: String -> String -> X ()
+runInTerm term command = safeSpawn term ("-e " ++ command)
+
+-- | Runs a given program in XTerm, the X terminal emulator included by default in X.org installations.
+-- The use of XTerm can be overridden in one's shell by setting $XTERMCMD to another shell's name.
 runInXTerm :: String -> X ()
 runInXTerm com = do
   c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
