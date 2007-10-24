@@ -23,7 +23,10 @@ module XMonadContrib.Invisible (
                             ) where
 
 -- $usage
--- A data type to store the layout state
+-- A wrapper data type to store layout state that shouldn't be persisted across
+-- restarts. A common wrapped type to use is @Maybe a@.
+-- Invisible derives trivial definitions for Read and Show, so the wrapped data
+-- type need not do so
 
 newtype Invisible m a = I (m a) deriving (Monad, Functor)
 
