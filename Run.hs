@@ -28,7 +28,6 @@ module XMonadContrib.Run (
                          ) where
 
 import Control.Monad.State (Monad((>>), return), when)
-import System.Environment (getEnv)
 import System.Posix.Process (createSession, forkProcess, executeFile,
 			    getProcessStatus)
 import Control.Concurrent (threadDelay)
@@ -111,8 +110,6 @@ runInTerm :: String -> String -> X ()
 runInTerm term command = safeSpawn term ("-e " ++ command)
 
 -- | Runs a given program in XTerm, the X terminal emulator included by default in X.org installations.
--- The use of XTerm can be overridden in one's shell by setting $XTERMCMD to another shell's name.
+--   Specializes runInTerm to use XTerm instead of an arbitrary other terminal emulator.
 runInXTerm :: String -> X ()
-runInXTerm com = do
-  c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
-  spawn ("exec " ++ c ++ " -e " ++ com)
+runInXTerm = runInTerm "xterm"
