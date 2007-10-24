@@ -22,10 +22,12 @@ module XMonadContrib.Run (
                           runProcessWithInputAndWait,
                           safeSpawn,
                           unsafeSpawn,
+                          runInXTerm,
                           seconds
                          ) where
 
 import Control.Monad.State (Monad((>>), return), when)
+import System.Environment (getEnv)
 import System.Posix.Process (createSession, forkProcess, executeFile,
 			    getProcessStatus)
 import Control.Concurrent (threadDelay)
@@ -102,3 +104,8 @@ safeSpawn :: FilePath -> String -> X ()
 safeSpawn prog arg = io (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
 unsafeSpawn :: String -> X ()
 unsafeSpawn = spawn
+
+runInXTerm :: String -> X ()
+runInXTerm com = do
+  c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
+  spawn ("exec " ++ c ++ " -e " ++ com)

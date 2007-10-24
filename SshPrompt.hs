@@ -19,7 +19,6 @@ module XMonadContrib.SshPrompt (
                               ) where
 
 import System.Environment (getEnv)
-import XMonadContrib.ShellPrompt (runInXTerm)
 import Control.Monad(Monad (return), Functor(..), liftM2, mapM)
 import Data.List ((++), concat, filter, map, words, lines, takeWhile, take,
 		 sort)
@@ -27,6 +26,7 @@ import Data.Maybe (Maybe(..), catMaybes)
 import Data.Set (toList, fromList)
 import System.Directory (doesFileExist)
 import XMonad (X, io)
+import XMonadContrib.Run (runInXTerm)
 import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt,
 			     mkComplFunFromList)
 -- $usage

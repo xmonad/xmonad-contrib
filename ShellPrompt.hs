@@ -20,7 +20,6 @@ module XMonadContrib.ShellPrompt (
                              , split
                              , prompt
                              , safePrompt
-                             , runInXTerm
                               ) where
 
 import System.Environment (getEnv)
@@ -75,12 +74,6 @@ safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
     where run = safeSpawn c
 unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
     where run a = unsafeSpawn $ c ++ " " ++ a
-
--- This may be better done as a specialization of 'prompt'
-runInXTerm :: String -> X ()
-runInXTerm com = do
-  c <- io $ catch (getEnv "XTERMCMD") (const $ return "xterm")
-  spawn ("exec " ++ c ++ " -e " ++ com)
 
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
