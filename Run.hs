@@ -23,6 +23,7 @@ module XMonadContrib.Run (
                           safeSpawn,
                           unsafeSpawn,
                           runInTerm,
+                          safeRunInTerm,
                           runInXTerm,
                           seconds
                          ) where
@@ -106,8 +107,12 @@ unsafeSpawn :: String -> X ()
 unsafeSpawn = spawn
 
 -- | Run a given program in a given X terminal emulator. This uses safeSpawn.
-runInTerm :: String -> String -> X ()
-runInTerm term command = safeSpawn term ("-e " ++ command)
+safeRunInTerm :: String -> String -> X ()
+safeRunInTerm term command = safeSpawn term ("-e " ++ command)
+
+unsafeRunInTerm, runInTerm :: String -> String -> X ()
+unsafeRunInTerm term command = unsafeSpawn $ term ++ " -e " ++ command
+runInTerm = unsafeRunInTerm
 
 -- | Runs a given program in XTerm, the X terminal emulator included by default in X.org installations.
 --   Specializes runInTerm to use XTerm instead of an arbitrary other terminal emulator.
