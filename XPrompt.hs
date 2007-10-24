@@ -38,6 +38,7 @@ module XMonadContrib.XPrompt (
                              , breakAtSpace
                              , newIndex
                              , newCommand
+                             , uniqSort
                              ) where
 
 import Graphics.X11.Xlib
@@ -54,6 +55,7 @@ import Data.Bits
 import Data.Char
 import Data.Maybe
 import Data.List
+import Data.Set (fromList, toList)
 import System.Environment (getEnv)
 import System.IO
 import System.Posix.Files
@@ -671,3 +673,7 @@ breakAtSpace s
     | otherwise = (s1, s2)
       where (s1, s2 ) = break isSpace s
             (s1',s2') = breakAtSpace $ tail s2
+
+-- | Sort a list and remove duplicates.
+uniqSort :: Ord a => [a] -> [a]
+uniqSort = toList . fromList
