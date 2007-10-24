@@ -22,17 +22,15 @@ module XMonadContrib.ShellPrompt (
                              , safePrompt
                               ) where
 
-import System.Environment (getEnv)
-import Control.Monad (Monad((>>=), return), Functor(..), filterM, forM)
-import Data.List ((++), concat, filter, map, lines, elem, span, tail, last,
-		 isPrefixOf)
+import System.Environment
+import Control.Monad
+import Data.List
 import Data.Set (toList, fromList)
-import System.Directory (Permissions(executable), getPermissions,
-			getDirectoryContents, doesDirectoryExist, doesFileExist)
-import System.IO (IO, FilePath)
-import XMonadContrib.Run (runProcessWithInput, safeSpawn, unsafeSpawn)
-import XMonad (X, io, spawn)
-import XMonadContrib.XPrompt (XPrompt(..), XPConfig, mkXPrompt)
+import System.Directory
+import System.IO
+import XMonadContrib.Run
+import XMonad
+import XMonadContrib.XPrompt
 
 -- $usage
 --
