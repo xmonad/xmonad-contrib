@@ -64,11 +64,12 @@ instance LayoutClass TilePrime Window where
     let xs = W.integrate s
     hints <- withDisplay $ \ disp -> io (mapM (getWMNormalHints disp) xs)
     let xs' = zip xs hints
-        (leftRect, rightRect)
-          | null (drop m xs) = (rect, Rectangle 0 0 0 0)
-          | flp       = splitVerticallyBy f rect
-          | otherwise = splitHorizontallyBy f rect
         (leftXs, rightXs) = splitAt m xs'
+        (leftRect, rightRect)
+          | null rightXs = (rect, Rectangle 0 0 0 0)
+          | null leftXs  = (Rectangle 0 0 0 0, rect)
+          | flp          = splitVerticallyBy f rect
+          | otherwise    = splitHorizontallyBy f rect
         masters = fillWindows leftRect leftXs
         slaves  = fillWindows rightRect rightXs
     return (masters ++ slaves, Nothing)
