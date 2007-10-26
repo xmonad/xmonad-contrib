@@ -22,6 +22,7 @@ module XMonadContrib.DynamicLog (
     -- * Usage
     -- $usage 
     dynamicLog,
+    dynamicLogDzen,
     dynamicLogWithPP,
     dynamicLogXinerama,
 
@@ -67,6 +68,30 @@ import XMonadContrib.NamedWindows
 --
 dynamicLog :: X ()
 dynamicLog = dynamicLogWithPP defaultPP
+
+-- | An example log hook that emulates dwm's status bar, using colour codes printed to dzen
+-- Requires dzen. Workspaces, xinerama, layouts and the window title are handled.
+--
+dynamicLogDzen :: X ()
+dynamicLogDzen = dynamicLogWithPP dzenPP
+ where
+  dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
+                       , ppVisible  = dzenColor "black" "#999999" . pad
+                       , ppHidden   = dzenColor "black" "#cccccc" . pad
+                       , ppHiddenNoWindows = const ""
+                       , ppWsSep    = ""
+                       , ppSep      = ""
+                       , ppLayout   = dzenColor "black" "#cccccc" .
+                                      (\ x -> case x of
+                                                "TilePrime Horizontal" -> " TTT "
+                                                "TilePrime Vertical"   -> " []= "
+                                                "Hinted Full"          -> " [ ] "
+                                                _                      -> pad x
+                                      )
+                       , ppTitle    = ("^bg(#324c80) " ++) . escape
+                       }
+  escape = concatMap (\x -> if x == '^' then "^^" else [x])
+  pad = wrap " " " "
 
 -- |
 -- A log function that uses the 'PP' hooks to customize output.
