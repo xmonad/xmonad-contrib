@@ -446,8 +446,8 @@ printPrompt drw = do
 getCompletions :: XP [String]
 getCompletions = do
   s <- get
-  io $ ((completionFunction s) (getLastWord $ command s)
-       `catch` \_ -> return [])
+  io $ (completionFunction s) (getLastWord $ command s)
+       `catch` \_ -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
