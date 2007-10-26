@@ -29,7 +29,7 @@ import Data.Maybe ( fromMaybe )
 import Data.Ord ( comparing )
 
 import XMonad
-import StackSet hiding (filter, findIndex)
+import StackSet hiding (filter)
 import Operations
 import {-# SOURCE #-} qualified Config (workspaces)
 
