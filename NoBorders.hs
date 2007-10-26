@@ -43,6 +43,7 @@ import Data.List ((\\))
 -- borders
 --
 -- > layouts = [ Layout (noBorders Full), ... ]
+-- 
 
 -- %import XMonadContrib.NoBorders
 -- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
@@ -95,5 +96,11 @@ instance LayoutModifier SmartBorder Window where
         ws = map fst wrs
         singleton = null . drop 1
 
+--
+-- | You can cleverly set no borders on a range of layouts, using a
+-- layoutHook like so:
+--
+-- > layoutHook = Layout $ smartBorders $ Select layouts
+--
 smartBorders :: LayoutClass l a => l a -> ModifiedLayout SmartBorder l a
 smartBorders = ModifiedLayout (SmartBorder [])
