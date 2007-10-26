@@ -81,7 +81,7 @@ unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
                      | otherwise                = do
-    f <- fmap lines $ runProcessWithInput "/bin/bash" [] ("compgen -A file " ++ s ++ "\n")
+    f <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ s ++ "\n")
     return . map escape . uniqSort $ f ++ commandCompletionFunction cmds s
 
 commandCompletionFunction :: [String] -> String -> [String]
