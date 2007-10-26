@@ -57,14 +57,20 @@ shellPrompt c = do
     cmds <- io $ getCommands
     mkXPrompt Shell c (getShellCompl cmds) spawn
 
-{- | See safe and unsafeSpawn. prompt is an alias for safePrompt; safePrompt and unsafePrompt work on the same principles,
-   but will use XPrompt to interactively query the user for input; the appearance is set by passing an XPConfig as the
-   second argument. The first argument is the program to be run with the interactive input.
-   You would use these like this:
-   >     , ((modMask,               xK_b     ), safePrompt "firefox" greenXPConfig)
-   >     , ((modMask .|. shiftMask, xK_c     ), prompt ("xterm" ++ " -e") greenXPConfig)
-   Note that you want to use safePrompt for Firefox input, as Firefox wants URLs, and unsafePrompt for the XTerm example
-   because this allows you to easily start a terminal executing an arbitrary command, like 'top'. -}
+-- | See safe and unsafeSpawn. prompt is an alias for safePrompt;
+-- safePrompt and unsafePrompt work on the same principles, but will use
+-- XPrompt to interactively query the user for input; the appearance is
+-- set by passing an XPConfig as the second argument. The first argument
+-- is the program to be run with the interactive input.
+-- You would use these like this:
+--
+-- >     , ((modMask,               xK_b     ), safePrompt "firefox" greenXPConfig)
+-- >     , ((modMask .|. shiftMask, xK_c     ), prompt ("xterm" ++ " -e") greenXPConfig)
+--
+-- Note that you want to use safePrompt for Firefox input, as Firefox
+-- wants URLs, and unsafePrompt for the XTerm example because this allows
+-- you to easily start a terminal executing an arbitrary command, like
+-- 'top'.
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
 safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
