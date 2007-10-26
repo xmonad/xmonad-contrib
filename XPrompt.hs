@@ -47,6 +47,7 @@ import XMonad  hiding (io)
 import Operations (initColor)
 import qualified StackSet as W
 import XMonadContrib.XUtils
+import XMonadContrib.XSelection (getSelection)
 
 import Control.Arrow ((***),(&&&))
 import Control.Monad.Reader
@@ -273,6 +274,7 @@ keyPressHandle mask (ks,_)
             | ks == xK_k -> killAfter   >> go
             | ks == xK_a -> startOfLine >> go
             | ks == xK_e -> endOfLine   >> go
+            | ks == xK_y -> pasteString >> go
             | ks == xK_g || ks == xK_c -> quit
             | otherwise  -> eventLoop handle -- unhandled control sequence
     | ks == xK_Return    = historyPush       >> return ()
@@ -329,6 +331,10 @@ insertString str =
         c oc oo | oo >= length oc = oc ++ str
                 | otherwise = f ++ str ++ ss
                 where (f,ss) = splitAt oo oc
+
+-- | Insert the current X selection string at the cursor position.
+pasteString :: XP ()
+pasteString = join $ io $ liftM insertString $ getSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction -> XP ()
