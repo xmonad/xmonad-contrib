@@ -1,7 +1,8 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.CycleWS
--- Copyright   :  (c) Joachim Breitner <mail@joachim-breitner.de>
+-- Copyright   :  (c) Joachim Breitner <mail@joachim-breitner.de>,
+--                    Nelson Elhage <nelhage@mit.edu> (`toggleWS' function)
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Joachim Breitner <mail@joachim-breitner.de>
