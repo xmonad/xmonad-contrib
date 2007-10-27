@@ -15,7 +15,8 @@
 module XMonadContrib.XMonadPrompt (
                              -- * Usage
                              -- $usage
-                             xmonadPrompt
+                             xmonadPrompt,
+			     xmonadPromptC
                               ) where
 
 import XMonad
@@ -45,3 +46,7 @@ instance XPrompt XMonad where
 
 xmonadPrompt :: XPConfig -> X ()
 xmonadPrompt c = mkXPrompt XMonad c (mkComplFunFromList (map fst defaultCommands)) runCommand'
+
+-- xmonad prompt with custom command list
+xmonadPromptC :: [(String, X ())] -> XPConfig -> X ()
+xmonadPromptC commands c = mkXPrompt XMonad c (mkComplFunFromList (map fst commands)) runCommand'
