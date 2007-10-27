@@ -24,7 +24,7 @@ import XMonadContrib.Anneal ()
 import XMonadContrib.Circle ()
 import XMonadContrib.Commands ()
 import XMonadContrib.Combo () -- broken under ghc head
-import XMonadContrib.ConstrainedResize
+import XMonadContrib.ConstrainedResize ()
 import XMonadContrib.CopyWindow ()
 import XMonadContrib.CycleWS ()
 import XMonadContrib.DeManage ()
