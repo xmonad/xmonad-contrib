@@ -45,7 +45,7 @@ import XMonadContrib.XUtils
 --
 -- or perhaps
 --
--- > layoutHook = Layout $ configurableNavigation (navigateBorder "green") $ Select ...
+-- > layoutHook = Layout $ configurableNavigation (navigateColor "green") $ Select ...
 --
 -- In keybindings:
 --
@@ -67,7 +67,7 @@ import XMonadContrib.XUtils
 -- %layout -- just before the list, like the following (don't uncomment next line):
 -- %layout -- layoutHook = Layout $ windowNavigation $ ...
 -- %layout -- or
--- %layout -- layoutHook = Layout $ configurableNavigation (navigateBorder "green") $ ...
+-- %layout -- layoutHook = Layout $ configurableNavigation (navigateColor "green") $ ...
 
 data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeable )
 instance Typeable a => Message (MoveWindowToWindow a)
