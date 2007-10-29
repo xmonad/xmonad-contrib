@@ -29,8 +29,9 @@ module XMonadContrib.DynamicLog (
     pprWindowSet,
     pprWindowSetXinerama,
 
-    PP(..), defaultPP, sjanssenPP,
-    wrap, dzenColor, xmobarColor, shorten
+    PP(..), defaultPP, dzenPP, sjanssenPP,
+    wrap, pad, shorten,
+    xmobarColor, dzenColor, dzenEscape
   ) where
 
 -- 
@@ -69,30 +70,6 @@ import XMonadContrib.NamedWindows
 dynamicLog :: X ()
 dynamicLog = dynamicLogWithPP defaultPP
 
--- | An example log hook that emulates dwm's status bar, using colour codes printed to dzen
--- Requires dzen. Workspaces, xinerama, layouts and the window title are handled.
---
-dynamicLogDzen :: X ()
-dynamicLogDzen = dynamicLogWithPP dzenPP
- where
-  dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
-                       , ppVisible  = dzenColor "black" "#999999" . pad
-                       , ppHidden   = dzenColor "black" "#cccccc" . pad
-                       , ppHiddenNoWindows = const ""
-                       , ppWsSep    = ""
-                       , ppSep      = ""
-                       , ppLayout   = dzenColor "black" "#cccccc" .
-                                      (\ x -> case x of
-                                                "TilePrime Horizontal" -> " TTT "
-                                                "TilePrime Vertical"   -> " []= "
-                                                "Hinted Full"          -> " [ ] "
-                                                _                      -> pad x
-                                      )
-                       , ppTitle    = ("^bg(#324c80) " ++) . escape
-                       }
-  escape = concatMap (\x -> if x == '^' then "^^" else [x])
-  pad = wrap " " " "
-
 -- |
 -- A log function that uses the 'PP' hooks to customize output.
 dynamicLogWithPP :: PP -> X ()
@@ -109,6 +86,13 @@ dynamicLogWithPP pp = do
                         , ppLayout pp ld
                         , ppTitle  pp wt
                         ]
+
+-- | An example log hook that emulates dwm's status bar, using colour codes printed to dzen
+-- Requires dzen. Workspaces, xinerama, layouts and the window title are handled.
+--
+dynamicLogDzen :: X ()
+dynamicLogDzen = dynamicLogWithPP dzenPP
+
 
 pprWindowSet :: PP -> WindowSet -> String
 pprWindowSet pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
@@ -153,6 +137,9 @@ wrap :: String -> String -> String -> String
 wrap _ _ "" = ""
 wrap l r m  = l ++ m ++ r
 
+pad :: String -> String
+pad = wrap " " " "
+
 shorten :: Int -> String -> String
 shorten n xs | length xs < n = xs
              | otherwise     = (take (n - length end) xs) ++ end
@@ -168,6 +155,10 @@ dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
                  | otherwise = ("^fg(" ++ fg ++ ")","^fg()")
        (bg1,bg2) | null bg = ("","")
                  | otherwise = ("^bg(" ++ bg ++ ")","^bg()")
+
+-- | Escape any dzen metacharaters.
+dzenEscape :: String -> String
+dzenEscape = concatMap (\x -> if x == '^' then "^^" else [x])
 
 xmobarColor :: String -> String -> String -> String
 xmobarColor fg bg = wrap t "</fc>"
@@ -193,6 +184,24 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppTitle           = shorten 80
                , ppLayout          = id
                , ppOrder           = id }
+
+-- | Settings to emulate dwm's statusbar, dzen only
+dzenPP :: PP
+dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
+                     , ppVisible  = dzenColor "black" "#999999" . pad
+                     , ppHidden   = dzenColor "black" "#cccccc" . pad
+                     , ppHiddenNoWindows = const ""
+                     , ppWsSep    = ""
+                     , ppSep      = ""
+                     , ppLayout   = dzenColor "black" "#cccccc" .
+                                    (\ x -> case x of
+                                              "TilePrime Horizontal" -> " TTT "
+                                              "TilePrime Vertical"   -> " []= "
+                                              "Hinted Full"          -> " [ ] "
+                                              _                      -> pad x
+                                    )
+                     , ppTitle    = ("^bg(#324c80) " ++) . dzenEscape
+                     }
 
 -- | The options that sjanssen likes to use, as an example.  Note the use of
 -- 'xmobarColor' and the record update on defaultPP
