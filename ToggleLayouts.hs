@@ -76,8 +76,8 @@ instance (LayoutClass lt a, LayoutClass lf a) => LayoutClass (ToggleLayouts lt l
         | Just ToggleLayout <- fromMessage m = do mlf' <- handleMessage lf (SomeMessage Hide)
                                                   let lf' = maybe lf id mlf'
                                                   return $ Just $ ToggleLayouts True lt lf'
-        | Just (Toggle d),
-          d == description lt || d == description lf <- fromMessage m =
+        | Just (Toggle d) <- fromMessage m,
+          d == description lt || d == description lf =
               do mlf' <- handleMessage lf (SomeMessage Hide)
                  let lf' = maybe lf id mlf'
                  return $ Just $ ToggleLayouts True lt lf'
