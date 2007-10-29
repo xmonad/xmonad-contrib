@@ -42,7 +42,7 @@ import XMonadContrib.Commands (defaultCommands, runCommand')
 data XMonad = XMonad
 
 instance XPrompt XMonad where
-    showXPrompt XMonad = "XMonad:   "
+    showXPrompt XMonad = "XMonad: "
 
 xmonadPrompt :: XPConfig -> X ()
 xmonadPrompt c = mkXPrompt XMonad c (mkComplFunFromList (map fst defaultCommands)) runCommand'
