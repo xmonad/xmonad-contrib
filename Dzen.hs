@@ -12,7 +12,9 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonadContrib.Dzen (dzen, dzenScreen, dzenUrgencyHook, seconds) where
+module XMonadContrib.Dzen (dzen, dzenWithArgs, dzenScreen,
+                           dzenUrgencyHook, dzenUrgencyHookWithArgs,
+                           seconds) where
 
 import Control.Monad (when)
 import Control.Monad.State (gets)
@@ -44,14 +46,18 @@ dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
 -- XMonadContrib.UrgencyHook. Usage:
 -- > urgencyHook = dzenUrgencyHook (5 `seconds`)
 dzenUrgencyHook :: Int -> Window -> X ()
-dzenUrgencyHook duration w = do
+dzenUrgencyHook = dzenUrgencyHookWithArgs []
+
+dzenUrgencyHookWithArgs :: [String] -> Int -> Window -> X ()
+dzenUrgencyHookWithArgs args duration w = do
     visibles <- gets mapped
     name <- getName w
     ws <- gets windowset
     whenJust (W.findTag w ws) (flash name visibles)
   where flash name visibles index =
               when (not $ S.member w visibles) $
-              dzen (show name ++ " requests your attention on workspace " ++ index) duration
+              dzenWithArgs (show name ++ " requests your attention on workspace " ++ index)
+                           args duration
 
 dzenWithArgs :: String -> [String] -> Int -> X ()
 dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
