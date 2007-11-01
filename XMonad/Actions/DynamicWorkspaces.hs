@@ -21,10 +21,11 @@ module XMonad.Actions.DynamicWorkspaces (
                                          toNthWorkspace, withNthWorkspace
                                        ) where
 
+import Control.Monad.Reader ( asks )
 import Control.Monad.State ( gets )
 import Data.List ( sort )
 
-import XMonad ( X, XState(..), Layout, WorkspaceId, WindowSet )
+import XMonad ( X, XState(..), Layout, WorkspaceId, WindowSet, config, layoutHook )
 import XMonad.Operations
 import XMonad.StackSet hiding (filter, modify, delete)
 import Graphics.X11.Xlib ( Window )
@@ -36,7 +37,7 @@ import XMonad.Prompt ( XPConfig )
 -- 
 -- > import XMonad.Actions.DynamicWorkspaces
 --
--- >   , ((modMask .|. shiftMask, xK_n), selectWorkspace defaultXPConfig layoutHook)
+-- >   , ((modMask .|. shiftMask, xK_n), selectWorkspace defaultXPConfig)
 -- >   , ((modMask .|. shiftMask, xK_BackSpace), removeWorkspace)
 -- >   , ((modMask .|. shiftMask .|. controlMask, xK_r), renameWorkspace defaultXPConfig)
 -- 
@@ -69,11 +70,12 @@ withNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windows
                                  (w:_) -> windows $ job w
                                  [] -> return ()
 
-selectWorkspace :: XPConfig -> Layout Window -> X ()
-selectWorkspace conf l = workspacePrompt conf $ \w ->
-                         windows $ \s -> if tagMember w s
-                                         then greedyView w s
-                                         else addWorkspace' w l s
+selectWorkspace :: XPConfig -> X ()
+selectWorkspace conf = workspacePrompt conf $ \w ->
+                       do l <- asks (layoutHook . config)
+                          windows $ \s -> if tagMember w s
+                                          then greedyView w s
+                                          else addWorkspace' w l s
 
 addWorkspace :: Layout Window -> X ()
 addWorkspace l = do s <- gets windowset
