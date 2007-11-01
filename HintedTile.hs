@@ -19,8 +19,8 @@ module XMonadContrib.HintedTile (
                                  tall, wide) where
 
 import XMonad
-import Operations (Resize(..), IncMasterN(..), applySizeHints)
-import qualified StackSet as W
+import XMonad.Operations (Resize(..), IncMasterN(..), applySizeHints)
+import qualified XMonad.StackSet as W
 import {-# SOURCE #-} Config (borderWidth)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras

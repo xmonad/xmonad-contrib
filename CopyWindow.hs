@@ -23,8 +23,8 @@ import Prelude hiding ( filter )
 import Control.Monad.State ( gets )
 import qualified Data.List as L
 import XMonad
-import Operations ( windows, kill )
-import StackSet
+import XMonad.Operations ( windows, kill )
+import XMonad.StackSet
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

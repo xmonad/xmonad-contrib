@@ -21,7 +21,7 @@ module XMonadContrib.Dmenu (
                            ) where
 
 import XMonad
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Control.Monad.State
 import XMonadContrib.Run

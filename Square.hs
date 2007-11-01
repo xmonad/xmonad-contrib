@@ -26,7 +26,7 @@ module XMonadContrib.Square (
 
 import XMonad
 import Graphics.X11.Xlib
-import StackSet ( integrate )
+import XMonad.StackSet ( integrate )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

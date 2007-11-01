@@ -21,7 +21,7 @@ module XMonadContrib.Submap (
 import Control.Monad.Reader
 
 import XMonad
-import Operations (cleanMask)
+import XMonad.Operations (cleanMask)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import qualified Data.Map as M

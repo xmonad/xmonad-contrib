@@ -19,7 +19,7 @@ module XMonadContrib.FloatKeys (
                 keysResizeWindow,
                 keysAbsResizeWindow) where
 
-import Operations
+import XMonad.Operations
 import XMonad
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras

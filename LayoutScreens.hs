@@ -21,8 +21,8 @@ module XMonadContrib.LayoutScreens (
 import Control.Monad.Reader ( asks )
 
 import XMonad
-import qualified StackSet as W
-import qualified Operations as O
+import qualified XMonad.StackSet as W
+import qualified XMonad.Operations as O
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 

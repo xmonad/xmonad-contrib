@@ -31,9 +31,9 @@ module XMonadContrib.DeManage (
                                  demanage
                                 ) where
 
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import XMonad
-import Operations
+import XMonad.Operations
 import Control.Monad.State
 import Graphics.X11 (Window)
 

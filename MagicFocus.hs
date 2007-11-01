@@ -21,7 +21,7 @@ module XMonadContrib.MagicFocus
 
 import Graphics.X11.Xlib
 import XMonad
-import StackSet
+import XMonad.StackSet
 
 -- $usage
 -- > import XMonadContrib.MagicFocus

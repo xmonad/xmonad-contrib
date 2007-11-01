@@ -29,9 +29,9 @@ module XMonadContrib.MosaicAlt (
     ) where
 
 import XMonad
-import Layouts
+import XMonad.Layouts
 import Graphics.X11.Xlib
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.List ( sortBy )
 import Data.Ratio

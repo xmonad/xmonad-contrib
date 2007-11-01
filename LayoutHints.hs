@@ -19,7 +19,7 @@ module XMonadContrib.LayoutHints (
     layoutHints,
     LayoutHints) where
 
-import Operations ( applySizeHints, D )
+import XMonad.Operations ( applySizeHints, D )
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras ( getWMNormalHints )
 import {-#SOURCE#-} Config (borderWidth)

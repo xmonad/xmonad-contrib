@@ -42,7 +42,7 @@ import Control.Monad.Reader
 import Data.Maybe ( isJust )
 import Data.List
 import Data.Ord ( comparing )
-import qualified StackSet as S
+import qualified XMonad.StackSet as S
 import Data.Monoid
 import XMonadContrib.NamedWindows
 

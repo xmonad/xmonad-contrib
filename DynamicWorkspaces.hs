@@ -25,8 +25,8 @@ import Control.Monad.State ( gets )
 import Data.List ( sort )
 
 import XMonad ( X, XState(..), Layout, WorkspaceId, WindowSet )
-import Operations
-import StackSet hiding (filter, modify, delete)
+import XMonad.Operations
+import XMonad.StackSet hiding (filter, modify, delete)
 import Graphics.X11.Xlib ( Window )
 import XMonadContrib.WorkspacePrompt
 import XMonadContrib.XPrompt ( XPConfig )

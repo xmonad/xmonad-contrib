@@ -31,7 +31,7 @@ import Graphics.X11.Xlib
 
 import XMonad
 import XMonadContrib.LayoutModifier
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import Data.List ((\\))
 
 -- $usage

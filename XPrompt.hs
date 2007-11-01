@@ -44,8 +44,8 @@ module XMonadContrib.XPrompt (
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import XMonad  hiding (config, io)
-import Operations (initColor)
-import qualified StackSet as W
+import XMonad.Operations (initColor)
+import qualified XMonad.StackSet as W
 import XMonadContrib.XUtils
 import XMonadContrib.XSelection (getSelection)
 

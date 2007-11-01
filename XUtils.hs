@@ -36,7 +36,7 @@ import Graphics.X11.Xlib.Extras
 import Control.Monad.Reader
 import Data.Maybe
 import XMonad
-import Operations
+import XMonad.Operations
 
 -- $usage
 -- See Tabbed or DragPane for usage examples

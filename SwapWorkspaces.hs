@@ -20,7 +20,7 @@ module XMonadContrib.SwapWorkspaces (
                                      swapWorkspaces
                                     ) where
 
-import StackSet
+import XMonad.StackSet
 
 -- $usage
 -- Add this import to your Config.hs:
@@ -46,7 +46,7 @@ import StackSet
 swapWithCurrent :: Eq i => i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWithCurrent t s = swapWorkspaces t (tag $ workspace $ current s) s
 
--- | Takes two workspace tags and an existing StackSet and returns a new
+-- | Takes two workspace tags and an existing XMonad.StackSet and returns a new
 --   one with the two corresponding workspaces' tags swapped.
 swapWorkspaces :: Eq i => i -> i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWorkspaces t1 t2 = mapWorkspace swap

@@ -23,7 +23,7 @@ import Data.Maybe   (fromMaybe)
 
 import Control.Monad.Reader
 import XMonad
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 

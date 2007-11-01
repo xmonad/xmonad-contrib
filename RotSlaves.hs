@@ -17,8 +17,8 @@ module XMonadContrib.RotSlaves (
 	rotAll', rotAllUp, rotAllDown
 	) where
 
-import StackSet
-import Operations
+import XMonad.StackSet
+import XMonad.Operations
 import XMonad
 
 -- $usage

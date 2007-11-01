@@ -24,9 +24,9 @@ import Control.Monad (mplus)
 import Data.List (mapAccumL)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras (getWMNormalHints)
-import Operations
+import XMonad.Operations
 import XMonad hiding (trace)
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import {-#SOURCE#-} Config (borderWidth)
 
 -- $usage

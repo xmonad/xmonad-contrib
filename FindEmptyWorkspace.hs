@@ -23,9 +23,9 @@ import Data.List
 import Data.Maybe ( isNothing )
 
 import XMonad
-import StackSet
+import XMonad.StackSet
 
-import Operations
+import XMonad.Operations
 
 -- $usage
 -- 

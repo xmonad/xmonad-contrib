@@ -14,9 +14,9 @@ module XMonadContrib.SinkAll (
     -- $usage
     sinkAll) where
 
-import Operations
+import XMonad.Operations
 import XMonad
-import StackSet
+import XMonad.StackSet
 
 import Graphics.X11.Xlib
 

@@ -21,7 +21,7 @@ module XMonadContrib.Grid (
 ) where
 
 import XMonad
-import StackSet
+import XMonad.StackSet
 import Graphics.X11.Xlib.Types
 
 -- $usage

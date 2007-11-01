@@ -21,8 +21,8 @@ module XMonadContrib.ThreeColumns (
                              ) where
 
 import XMonad
-import qualified StackSet as W
-import Layouts ( Resize(..), IncMasterN(..), splitVertically, splitHorizontallyBy )
+import qualified XMonad.StackSet as W
+import XMonad.Layouts ( Resize(..), IncMasterN(..), splitVertically, splitHorizontallyBy )
 
 import Data.Ratio
 

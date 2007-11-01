@@ -26,10 +26,10 @@ module XMonadContrib.Commands (
                               ) where
 
 import XMonad
-import Operations
-import StackSet hiding (workspaces)
+import XMonad.Operations
+import XMonad.StackSet hiding (workspaces)
 import XMonadContrib.Dmenu (dmenu)
-import Layouts
+import XMonad.Layouts
 
 import Control.Monad.Reader
 import qualified Data.Map as M

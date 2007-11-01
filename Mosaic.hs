@@ -28,8 +28,8 @@ import System.Random ( StdGen, mkStdGen )
 import Data.Ratio
 import Graphics.X11.Xlib
 import XMonad hiding ( trace )
-import Operations ( full, Resize(Shrink, Expand) )
-import qualified StackSet as W
+import XMonad.Operations ( full, Resize(Shrink, Expand) )
+import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.List ( sort )
 import Data.Typeable ( Typeable )

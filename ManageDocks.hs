@@ -27,8 +27,8 @@ module XMonadContrib.ManageDocks (
 
 import Control.Monad.Reader
 import XMonad
-import Operations
-import qualified StackSet as W
+import XMonad.Operations
+import qualified XMonad.StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import Data.Word (Word32)

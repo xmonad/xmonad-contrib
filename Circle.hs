@@ -23,7 +23,7 @@ module XMonadContrib.Circle (
 import Data.List
 import Graphics.X11.Xlib
 import XMonad
-import StackSet (integrate, peek)
+import XMonad.StackSet (integrate, peek)
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

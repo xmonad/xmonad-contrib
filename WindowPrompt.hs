@@ -25,9 +25,9 @@ module XMonadContrib.WindowPrompt
 import qualified Data.Map as M
 import Data.List
 
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import XMonad
-import Operations (windows)
+import XMonad.Operations (windows)
 import XMonadContrib.XPrompt
 import XMonadContrib.WindowBringer
 

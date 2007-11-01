@@ -25,9 +25,9 @@ import Data.List
 import Control.Monad.RWS
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
-import Operations
+import XMonad.Operations
 import XMonad
-import StackSet as W
+import XMonad.StackSet as W
 
 {- $usage
 This can be used to make a keybinding that warps the pointer to a given

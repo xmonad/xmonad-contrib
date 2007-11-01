@@ -24,8 +24,8 @@ import Data.Maybe ( isJust )
 import Data.Ord ( comparing )
 
 import XMonad
-import StackSet hiding (filter)
-import Operations
+import XMonad.StackSet hiding (filter)
+import XMonad.Operations
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

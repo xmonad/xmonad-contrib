@@ -76,7 +76,7 @@ module XMonadContrib.SwitchTrans (
 ) where
 
 import XMonad
-import Operations
+import XMonad.Operations
 
 import qualified Data.Map as M
 import Data.Map (Map)

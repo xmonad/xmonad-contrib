@@ -25,8 +25,8 @@ import Data.Char (toLower)
 import qualified Data.Map as M
 import Graphics.X11.Xlib (Window())
 
-import Operations (windows)
-import qualified StackSet as W
+import XMonad.Operations (windows)
+import qualified XMonad.StackSet as W
 import XMonad (X)
 import qualified XMonad as X
 import XMonadContrib.Dmenu (dmenuMap)

@@ -21,7 +21,7 @@ import Control.Monad.State (gets)
 import qualified Data.Set as S
 import Graphics.X11.Types (Window)
 
-import qualified StackSet as W
+import qualified XMonad.StackSet as W
 import XMonad
 
 import XMonadContrib.NamedWindows (getName)

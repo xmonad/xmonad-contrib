@@ -23,8 +23,8 @@ module XMonadContrib.Dishes (
 
 import Data.List
 import XMonad
-import Layouts
-import StackSet (integrate)
+import XMonad.Layouts
+import XMonad.StackSet (integrate)
 import Control.Monad (ap)
 import Graphics.X11.Xlib
 

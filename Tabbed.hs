@@ -32,8 +32,8 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
 import XMonad
-import Operations
-import qualified StackSet as W
+import XMonad.Operations
+import qualified XMonad.StackSet as W
 
 import XMonadContrib.NamedWindows
 import XMonadContrib.Invisible

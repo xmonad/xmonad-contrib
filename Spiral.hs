@@ -24,11 +24,11 @@ module XMonadContrib.Spiral (
                             ) where
 
 import Graphics.X11.Xlib
-import Operations
+import XMonad.Operations
 import Data.Ratio
 import XMonad
-import Layouts
-import StackSet ( integrate )
+import XMonad.Layouts
+import XMonad.StackSet ( integrate )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

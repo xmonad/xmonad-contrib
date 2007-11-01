@@ -22,7 +22,7 @@ import Control.Monad.State ( gets )
 import Data.List ( sort )
 import XMonad hiding ( workspaces )
 import XMonadContrib.XPrompt
-import StackSet ( workspaces, tag )
+import XMonad.StackSet ( workspaces, tag )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

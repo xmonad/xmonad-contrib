@@ -28,8 +28,8 @@ module XMonadContrib.TagWindows (
 import Data.List (nub,concat,sortBy)
 
 import Control.Monad.State
-import StackSet hiding (filter)
-import Operations (windows, withFocused)
+import XMonad.StackSet hiding (filter)
+import XMonad.Operations (windows, withFocused)
 
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras

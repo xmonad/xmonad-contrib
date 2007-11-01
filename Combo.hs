@@ -25,10 +25,10 @@ import Control.Arrow ( first )
 import Data.List ( delete, intersect, (\\) )
 import Data.Maybe ( isJust )
 import XMonad
-import StackSet ( integrate, Stack(..) )
+import XMonad.StackSet ( integrate, Stack(..) )
 import XMonadContrib.Invisible
 import XMonadContrib.WindowNavigation ( MoveWindowToWindow(..) )
-import qualified StackSet as W ( differentiate )
+import qualified XMonad.StackSet as W ( differentiate )
 
 -- $usage
 --

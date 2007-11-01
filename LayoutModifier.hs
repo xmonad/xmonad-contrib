@@ -22,7 +22,7 @@ module XMonadContrib.LayoutModifier (
 
 import Graphics.X11.Xlib ( Rectangle )
 import XMonad
-import StackSet ( Stack )
+import XMonad.StackSet ( Stack )
 
 -- $usage
 -- Use LayoutHelpers to help write easy Layouts.
