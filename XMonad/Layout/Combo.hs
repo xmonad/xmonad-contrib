@@ -21,12 +21,10 @@ module XMonad.Layout.Combo (
                             CombineTwo
                            ) where
 
-import Control.Arrow ( first )
 import Data.List ( delete, intersect, (\\) )
 import Data.Maybe ( isJust )
 import XMonad
 import XMonad.StackSet ( integrate, Stack(..) )
-import XMonad.Util.Invisible
 import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )
 
