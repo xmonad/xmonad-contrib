@@ -11,7 +11,7 @@
 -- Stability    : unstable
 -- Portability  : portable
 --
--- A module for combining Layouts
+-- A module for combining XMonad.Layouts
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.LayoutCombinators (
@@ -23,7 +23,7 @@ module XMonad.Layout.LayoutCombinators (
 import Data.Maybe ( isJust )
 
 import XMonad
-import Layouts ( Tall(..), Mirror(..), ChangeLayout(NextLayout) )
+import XMonad.Layouts ( Tall(..), Mirror(..), ChangeLayout(NextLayout) )
 import XMonad.Layout.Combo
 import XMonad.Layout.DragPane
 
