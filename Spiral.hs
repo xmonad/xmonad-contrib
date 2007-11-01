@@ -27,6 +27,7 @@ import Graphics.X11.Xlib
 import Operations
 import Data.Ratio
 import XMonad
+import Layouts
 import StackSet ( integrate )
 
 -- $usage
