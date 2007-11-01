@@ -45,7 +45,7 @@ import XMonad.Operations
 import qualified XMonad.StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
-import Data.Word (Word32)
+import Foreign.C.Types (CLong)
 import Data.Maybe (catMaybes)
 
 -- $usage
@@ -109,7 +109,7 @@ getStrut w = do
 
 -- |
 -- Helper to read a property
-getProp :: Atom -> Window -> X (Maybe [Word32])
+getProp :: Atom -> Window -> X (Maybe [CLong])
 getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 
 -- |
