@@ -23,7 +23,7 @@ module XMonadContrib.TwoPane (
                              ) where
 
 import XMonad
-import Operations ( Resize(..), splitHorizontallyBy )
+import Layouts ( Resize(..), splitHorizontallyBy )
 import StackSet ( focus, up, down)
 
 -- $usage
