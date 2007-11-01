@@ -57,14 +57,15 @@ submap keys = do
 
     io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
 
-    keyspec <- io $ allocaXEvent $ \p -> fix $ \nextkey -> do
+    (m, s) <- io $ allocaXEvent $ \p -> fix $ \nextkey -> do
         maskEvent d keyPressMask p
         KeyEvent { ev_keycode = code, ev_state = m } <- getEvent p
         keysym <- keycodeToKeysym d code 0
         if isModifierKey keysym
             then nextkey
-            else return (cleanMask m, keysym)
+            else return (m, keysym)
 
     io $ ungrabKeyboard d currentTime
 
-    whenJust (M.lookup keyspec keys) id
+    m' <- cleanMask m
+    whenJust (M.lookup (m', s) keys) id
