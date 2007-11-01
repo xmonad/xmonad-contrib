@@ -108,8 +108,8 @@ unsafeSpawn = spawn
 
 -- | Run a given program in the preferred terminal emulator. This uses safeSpawn.
 safeRunInTerm :: String -> X ()
-safeRunInTerm command = asks terminal >>= \t -> safeSpawn t ("-e " ++ command)
+safeRunInTerm command = asks (terminal . config) >>= \t -> safeSpawn t ("-e " ++ command)
 
 unsafeRunInTerm, runInTerm :: String -> X ()
-unsafeRunInTerm command = asks terminal >>= \t -> unsafeSpawn $ t ++ " -e " ++ command
+unsafeRunInTerm command = asks (terminal . config) >>= \t -> unsafeSpawn $ t ++ " -e " ++ command
 runInTerm = unsafeRunInTerm

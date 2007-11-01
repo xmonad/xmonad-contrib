@@ -56,10 +56,10 @@ instance LayoutModifier WithBorder Window where
     modifierDescription (WithBorder 0 _) = "NoBorders"
     modifierDescription (WithBorder n _) = "Borders " ++ show n
 
-    unhook (WithBorder _ s) = asks borderWidth >>= setBorders s
+    unhook (WithBorder _ s) = asks (borderWidth . config) >>= setBorders s
 
     redoLayout (WithBorder n s) _ _ wrs = do
-        asks borderWidth >>= setBorders (s \\ ws)
+        asks (borderWidth . config) >>= setBorders (s \\ ws)
         setBorders ws n
         return (wrs, Just $ WithBorder n ws)
      where
@@ -79,18 +79,18 @@ data SmartBorder a = SmartBorder [a] deriving (Read, Show)
 instance LayoutModifier SmartBorder Window where
     modifierDescription _ = "SmartBorder"
 
-    unhook (SmartBorder s) = asks borderWidth >>= setBorders s
+    unhook (SmartBorder s) = asks (borderWidth . config) >>= setBorders s
 
     redoLayout (SmartBorder s) _ _ wrs = do
         ss <- gets (W.screens . windowset)
 
         if singleton ws && singleton ss
             then do
-                asks borderWidth >>= setBorders (s \\ ws)
+                asks (borderWidth . config) >>= setBorders (s \\ ws)
                 setBorders ws 0
                 return (wrs, Just $ SmartBorder ws)
             else do
-                asks borderWidth >>= setBorders s
+                asks (borderWidth . config) >>= setBorders s
                 return (wrs, Just $ SmartBorder [])
      where
         ws = map fst wrs
