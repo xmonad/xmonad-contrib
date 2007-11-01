@@ -22,7 +22,7 @@ module XMonadContrib.ResizableTile (
                                    ) where
 
 import XMonad
-import Operations (Resize(..), IncMasterN(..))
+import Layouts (Resize(..), IncMasterN(..))
 import qualified StackSet as W
 import Graphics.X11.Xlib
 import Control.Monad.State
