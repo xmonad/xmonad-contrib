@@ -58,7 +58,6 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
                                               return (wrs, (\l2' -> NewSelect False l1 l2') `fmap` ml2')
     description (NewSelect True l1 _) = description l1
     description (NewSelect False _ l2) = description l2
-    descriptions (NewSelect _ l1 l2) = descriptions l1 ++ descriptions l2
     handleMessage (NewSelect False l1 l2) m
         | Just Wrap <- fromMessage m =
                        do ml2' <- handleMessage l2 (SomeMessage Hide)
@@ -82,26 +81,6 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
                       Nothing -> do ml2' <- handleMessage l2 (SomeMessage Hide)
                                     ml1' <- handleMessage l1 (SomeMessage Wrap)
                                     return $ Just $ NewSelect True (maybe l1 id ml1') (maybe l2 id ml2')
-    handleMessage (NewSelect True l1 l2) m
-        | Just (JumpToLayout d) <- fromMessage m =
-                 if d `elem` descriptions l2
-                 then do ml1' <- handleMessage l1 (SomeMessage Hide)
-                         ml2' <- handleMessage l2 m
-                         return $ Just $ NewSelect False (maybe l1 id ml1') (maybe l2 id ml2')
-                 else if d `elem` descriptions l1
-                      then do ml1' <- handleMessage l1 m
-                              return $ (\l1' -> NewSelect True l1' l2) `fmap` ml1'
-                      else return Nothing
-    handleMessage (NewSelect False l1 l2) m
-        | Just (JumpToLayout d) <- fromMessage m =
-                 if d `elem` descriptions l1
-                 then do ml2' <- handleMessage l2 (SomeMessage Hide)
-                         ml1' <- handleMessage l1 m
-                         return $ Just $ NewSelect False (maybe l1 id ml1') (maybe l2 id ml2')
-                 else if d `elem` descriptions l2
-                      then do ml2' <- handleMessage l2 m
-                              return $ (\l2' -> NewSelect True l1 l2') `fmap` ml2'
-                      else return Nothing
     handleMessage (NewSelect b l1 l2) m
         | Just ReleaseResources  <- fromMessage m =
         do ml1' <- handleMessage l1 m
