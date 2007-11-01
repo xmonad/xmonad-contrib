@@ -34,7 +34,8 @@ import XMonad
 import Data.Bits
 import Data.Unique
 
-import Operations 
+import Layouts
+import Operations
 import qualified StackSet as W 
 import XMonadContrib.Invisible
 import XMonadContrib.XUtils
