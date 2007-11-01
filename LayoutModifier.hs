@@ -23,7 +23,6 @@ module XMonadContrib.LayoutModifier (
 import Graphics.X11.Xlib ( Rectangle )
 import XMonad
 import StackSet ( Stack )
-import Operations ( LayoutMessages(Hide, ReleaseResources) )
 
 -- $usage
 -- Use LayoutHelpers to help write easy Layouts.
