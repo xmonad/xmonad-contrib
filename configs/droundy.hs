@@ -25,7 +25,6 @@ import qualified XMonad (workspaces, manageHook, numlockMask)
 import XMonad.Layouts hiding ( (|||) )
 import XMonad.Operations
 import qualified XMonad.StackSet as W
-import Data.Ratio
 import Data.Bits ((.|.))
 import qualified Data.Map as M
 import System.Exit
@@ -37,7 +36,6 @@ import XMonad.EventLoop
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Combo
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.TwoPane
 import XMonad.Layout.Square
 import XMonad.Layout.LayoutScreens
 import XMonad.Layout.WindowNavigation
@@ -158,22 +156,11 @@ layout = -- tiled ||| Mirror tiled ||| Full
      -- Add extra layouts you want to use here:
      -- % Extension-provided layouts
      workspaceDir "~" $ windowNavigation $ toggleLayouts (noBorders Full) $
-     (noBorders mytab) |||
-     (combineTwo (Mirror $ TwoPane 0.03 0.8) mytab (combineTwo Square mytab mytab)) |||
-     (mytab <//> mytab)
+     noBorders mytab |||
+     mytab <-/> combineTwo Square mytab mytab |||
+     mytab <//> mytab
   where
      mytab = tabbed shrinkText defaultTConf
-     -- default tiling algorithm partitions the screen into two panes
-     tiled   = Tall nmaster delta ratio
-
-     -- The default number of windows in the master pane
-     nmaster = 1
-
-     -- Default proportion of screen occupied by master pane
-     ratio   = 1%2
-
-     -- Percent of screen to increment by when resizing panes
-     delta   = 3%100
 
 ------------------------------------------------------------------------
 -- Key bindings:
@@ -213,16 +200,12 @@ keys = M.fromList $
     -- floating layer support
     , ((modMask,               xK_t     ), withFocused $ windows . W.sink) -- %! Push window back into tiling
 
-    -- increase or decrease number of windows in the master area
-    , ((modMask              , xK_comma ), sendMessage (IncMasterN 1)) -- %! Increment the number of windows in the master area
-    , ((modMask              , xK_period), sendMessage (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
-
     -- toggle the status bar gap
     , ((modMask              , xK_b     ), modifyGap (\i n -> let x = (defaultGaps defaultConfig ++ repeat (0,0,0,0)) !! i in if n == x then (0,0,0,0) else x)) -- %! Toggle the status bar gap
 
     -- quit, or restart
     , ((modMask .|. shiftMask, xK_Escape), io (exitWith ExitSuccess)) -- %! Quit xmonad
-    , ((modMask              , xK_Escape), broadcastMessage ReleaseResources >> restart Nothing True) -- %! Restart xmonad
+    , ((modMask              , xK_Escape), broadcastMessage ReleaseResources >> restart (Just "xmonad-droundy") True) -- %! Restart xmonad
 
     -- % Extension-provided key bindings
 
@@ -308,7 +291,7 @@ defaultConfig = XConfig { borderWidth = 1 -- Width of the window border in pixel
                         , layoutHook = Layout layout
                         , terminal = "xterm" -- The preferred terminal program.
                         , normalBorderColor = "#dddddd" -- Border color for unfocused windows.
-                        , focusedBorderColor = "#ff0000" -- Border color for focused windows.
+                        , focusedBorderColor = "#00ff00" -- Border color for focused windows.
                         , XMonad.numlockMask = numlockMask
                         , XMonad.keys = Main.keys
                         , XMonad.mouseBindings = Main.mouseBindings
@@ -322,4 +305,5 @@ defaultConfig = XConfig { borderWidth = 1 -- Width of the window border in pixel
                         , XMonad.manageHook = manageHook
                         }
 
+main :: IO ()
 main = makeMain defaultConfig

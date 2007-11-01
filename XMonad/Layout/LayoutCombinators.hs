@@ -17,7 +17,10 @@
 module XMonad.Layout.LayoutCombinators (
     -- * Usage
     -- $usage
-    (<|>), (</>), (<||>), (<//>), (|||), JumpToLayout(JumpToLayout)
+    (<|>), (</>), (<||>), (<//>), (|||), JumpToLayout(JumpToLayout),
+    (<-/>), (</->), (<-|>), (<|->),
+    (<-//>), (<//->), (<-||>), (<||->),
+
     ) where
 
 import Data.Maybe ( isJust )
@@ -30,18 +33,30 @@ import XMonad.Layout.DragPane
 -- $usage
 -- Use LayoutCombinators to easily combine Layouts.
 
-(<||>), (<//>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-                  l1 a -> l2 a -> CombineTwo DragPane l1 l2 a
-(<|>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-         => l1 a -> l2 a -> CombineTwo Tall l1 l2 a
-(</>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-         => l1 a -> l2 a -> CombineTwo (Mirror Tall) l1 l2 a
+infixr 6 <||>, <//>, <-||>, <-//>, <||->, <//->, <|>, <-|>, <|->, </>, <-/>, </->
+
+(<||>), (<//>), (<-||>), (<-//>), (<||->), (<//->)
+    :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+       l1 a -> l2 a -> CombineTwo DragPane l1 l2 a
+(<|>), (<-|>), (<|->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+                         => l1 a -> l2 a -> CombineTwo Tall l1 l2 a
+(</>), (<-/>), (</->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+                         => l1 a -> l2 a -> CombineTwo (Mirror Tall) l1 l2 a
 
 (<||>) = combineTwo (dragPane Vertical 0.1 0.5)
+(<-||>) = combineTwo (dragPane Vertical 0.1 0.2)
+(<||->) = combineTwo (dragPane Vertical 0.1 0.8)
 (<//>) = combineTwo (dragPane Horizontal 0.1 0.5)
+(<-//>) = combineTwo (dragPane Horizontal 0.1 0.2)
+(<//->) = combineTwo (dragPane Horizontal 0.1 0.8)
 (<|>) = combineTwo (Tall 1 0.1 0.5)
+(<-|>) = combineTwo (Tall 1 0.1 0.8)
+(<|->) = combineTwo (Tall 1 0.1 0.1)
 (</>) = combineTwo (Mirror $ Tall 1 0.1 0.5)
+(<-/>) = combineTwo (Mirror $ Tall 1 0.1 0.8)
+(</->) = combineTwo (Mirror $ Tall 1 0.1 0.2)
 
+infixr 5 |||
 (|||) :: (LayoutClass l1 a, LayoutClass l2 a) => l1 a -> l2 a -> NewSelect l1 l2 a
 (|||) = NewSelect True
 
@@ -88,7 +103,7 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
           d == description l2 = do ml1' <- handleMessage l1 (SomeMessage Hide)
                                    return $ Just $ NewSelect False (maybe l1 id ml1') l2
     handleMessage (NewSelect True l1 l2) m
-        | Just (JumpToLayout d) <- fromMessage m
+        | Just (JumpToLayout _) <- fromMessage m
         = do ml1' <- handleMessage l1 m
              case ml1' of
                Just l1' -> return $ Just $ NewSelect True l1' l2
@@ -103,7 +118,7 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
           d == description l1 = do ml2' <- handleMessage l2 (SomeMessage Hide)
                                    return $ Just $ NewSelect True l1 (maybe l2 id ml2')
     handleMessage (NewSelect False l1 l2) m
-        | Just (JumpToLayout d) <- fromMessage m
+        | Just (JumpToLayout _) <- fromMessage m
         = do ml2' <- handleMessage l2 m
              case ml2' of
                Just l2' -> return $ Just $ NewSelect False l1 l2'
