@@ -22,7 +22,7 @@ module XMonadContrib.ThreeColumns (
 
 import XMonad
 import qualified StackSet as W
-import Operations ( Resize(..), IncMasterN(..), splitVertically, splitHorizontallyBy )
+import Layouts ( Resize(..), IncMasterN(..), splitVertically, splitHorizontallyBy )
 
 import Data.Ratio
 
