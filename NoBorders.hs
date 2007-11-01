@@ -25,12 +25,12 @@ module XMonadContrib.NoBorders (
                                 withBorder
                                ) where
 
-import Control.Monad.State ( gets )
+import Control.Monad.State (gets)
+import Control.Monad.Reader (asks)
 import Graphics.X11.Xlib
 
 import XMonad
 import XMonadContrib.LayoutModifier
-import {-# SOURCE #-} Config (borderWidth)
 import qualified StackSet as W
 import Data.List ((\\))
 
@@ -43,7 +43,7 @@ import Data.List ((\\))
 -- borders
 --
 -- > layouts = [ Layout (noBorders Full), ... ]
--- 
+--
 
 -- %import XMonadContrib.NoBorders
 -- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
@@ -56,11 +56,11 @@ instance LayoutModifier WithBorder Window where
     modifierDescription (WithBorder 0 _) = "NoBorders"
     modifierDescription (WithBorder n _) = "Borders " ++ show n
 
-    unhook (WithBorder _ s) = setBorders borderWidth s
+    unhook (WithBorder _ s) = asks borderWidth >>= setBorders s
 
     redoLayout (WithBorder n s) _ _ wrs = do
-        setBorders borderWidth (s \\ ws)
-        setBorders n ws
+        asks borderWidth >>= setBorders (s \\ ws)
+        setBorders ws n
         return (wrs, Just $ WithBorder n ws)
      where
         ws = map fst wrs
@@ -71,26 +71,26 @@ noBorders = ModifiedLayout $ WithBorder 0 []
 withBorder :: LayoutClass l a => Dimension -> l a -> ModifiedLayout WithBorder l a
 withBorder b = ModifiedLayout $ WithBorder b []
 
-setBorders :: Dimension -> [Window] -> X ()
-setBorders bw ws = withDisplay $ \d -> mapM_ (\w -> io $ setWindowBorderWidth d w bw) ws
+setBorders :: [Window] -> Dimension -> X ()
+setBorders ws bw = withDisplay $ \d -> mapM_ (\w -> io $ setWindowBorderWidth d w bw) ws
 
 data SmartBorder a = SmartBorder [a] deriving (Read, Show)
 
 instance LayoutModifier SmartBorder Window where
     modifierDescription _ = "SmartBorder"
 
-    unhook (SmartBorder s) = setBorders borderWidth s
+    unhook (SmartBorder s) = asks borderWidth >>= setBorders s
 
     redoLayout (SmartBorder s) _ _ wrs = do
         ss <- gets (W.screens . windowset)
 
         if singleton ws && singleton ss
             then do
-                setBorders borderWidth (s \\ ws)
-                setBorders 0 ws
+                asks borderWidth >>= setBorders (s \\ ws)
+                setBorders ws 0
                 return (wrs, Just $ SmartBorder ws)
             else do
-                setBorders borderWidth s
+                asks borderWidth >>= setBorders s
                 return (wrs, Just $ SmartBorder [])
      where
         ws = map fst wrs
