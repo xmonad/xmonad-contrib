@@ -35,7 +35,7 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
 import XMonadContrib.XPrompt
-import XMonad
+import XMonad hiding (workspaces)
 
 -- $usage
 -- 
