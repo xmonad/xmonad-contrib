@@ -19,8 +19,8 @@ module XMonadContrib.CycleWS (
                               -- $usage
                               nextWS,
                               prevWS,
-			      shiftToNext,
-			      shiftToPrev,
+                              shiftToNext,
+                              shiftToPrev,
                               toggleWS,
                              ) where
 
