@@ -38,8 +38,7 @@ module XMonadContrib.DynamicLog (
 -- Useful imports
 --
 import XMonad
-import {-# SOURCE #-} Config (workspaces)
-import Operations () -- for ReadableSomeLayout instance
+import Control.Monad.Reader
 import Data.Maybe ( isJust )
 import Data.List
 import Data.Ord ( comparing )
@@ -74,10 +73,11 @@ dynamicLog = dynamicLogWithPP defaultPP
 -- A log function that uses the 'PP' hooks to customize output.
 dynamicLogWithPP :: PP -> X ()
 dynamicLogWithPP pp = do
+    spaces <- asks (workspaces . config)
     -- layout description
     ld <- withWindowSet $ return . description . S.layout . S.workspace . S.current
     -- workspace list
-    ws <- withWindowSet $ return . pprWindowSet pp
+    ws <- withWindowSet $ return . pprWindowSet spaces pp
     -- window title
     wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek
 
@@ -94,15 +94,15 @@ dynamicLogDzen :: X ()
 dynamicLogDzen = dynamicLogWithPP dzenPP
 
 
-pprWindowSet :: PP -> WindowSet -> String
-pprWindowSet pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
+pprWindowSet :: [String] -> PP -> WindowSet -> String
+pprWindowSet spaces pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
    where f Nothing Nothing   = EQ
          f (Just _) Nothing  = LT
          f Nothing (Just _)  = GT
          f (Just x) (Just y) = compare x y
 
-         wsIndex = flip elemIndex workspaces . S.tag
+         wsIndex = flip elemIndex spaces . S.tag
 
          cmp a b = f (wsIndex a) (wsIndex b) `mappend` compare (S.tag a) (S.tag b)
 
