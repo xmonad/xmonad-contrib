@@ -29,8 +29,9 @@ import XMonad
 import Operations
 import StackSet hiding (workspaces)
 import XMonadContrib.Dmenu (dmenu)
-import {-# SOURCE #-} Config (workspaces,serialisedLayouts, terminal)
+import Layouts
 
+import Control.Monad.Reader
 import qualified Data.Map as M
 import System.Exit
 import Data.Maybe
@@ -63,11 +64,11 @@ import Data.Maybe
 commandMap :: [(String, X ())] -> M.Map String (X ())
 commandMap c = M.fromList c
 
-workspaceCommands :: [(String, X ())]
-workspaceCommands = [((m ++ show i), windows $ f i)
-                         | i <- workspaces
-                         , (f, m) <- [(view, "view"), (shift, "shift")]
-                    ]
+workspaceCommands :: X [(String, X ())]
+workspaceCommands = asks (workspaces . config) >>= \spaces -> return
+                            [((m ++ show i), windows $ f i)
+                                | i <- spaces
+                                , (f, m) <- [(view, "view"), (shift, "shift")] ]
 
 screenCommands :: [(String, X ())]
 screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip whenJust (windows . f))
@@ -75,28 +76,31 @@ screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip wh
                       , (f, m) <- [(view, "screen"), (shift, "screen-to-")]
                  ]
 
-defaultCommands :: [(String, X ())]
-defaultCommands = workspaceCommands ++ screenCommands
-                  ++ [ ("shrink"              , sendMessage Shrink                               )
-                     , ("expand"              , sendMessage Expand                               )
-                     , ("next-layout"         , sendMessage NextLayout                           )
-                     , ("previous-layout"     , sendMessage PrevLayout                           )
-                     , ("default-layout"      , setLayout (head serialisedLayouts)                 )
-                     , ("restart-wm"          , sr >> restart Nothing True                       )
-                     , ("restart-wm-no-resume", sr >> restart Nothing False                      )
-                     , ("xterm"               , spawn terminal                                   )
-                     , ("run"                 , spawn "exe=`dmenu_path | dmenu -b` && exec $exe" )
-                     , ("kill"                , kill                                             )
-                     , ("refresh"             , refresh                                          )
-                     , ("focus-up"            , windows $ focusUp                                )
-                     , ("focus-down"          , windows $ focusDown                              )
-                     , ("swap-up"             , windows $ swapUp                                 )
-                     , ("swap-down"           , windows $ swapDown                               )
-                     , ("swap-master"         , windows $ swapMaster                             )
-                     , ("sink"                , withFocused $ windows . sink                     )
-                     , ("quit-wm"             , io $ exitWith ExitSuccess                        )
-                     ]
-    where sr = broadcastMessage ReleaseResources
+defaultCommands :: X [(String, X ())]
+defaultCommands = do
+    wscmds <- workspaceCommands
+    return $ wscmds ++ screenCommands ++ otherCommands
+ where
+    sr = broadcastMessage ReleaseResources
+    otherCommands =
+        [ ("shrink"              , sendMessage Shrink                               )
+        , ("expand"              , sendMessage Expand                               )
+        , ("next-layout"         , sendMessage NextLayout                           )
+        , ("default-layout"      , asks (layoutHook . config) >>= setLayout         )
+        , ("restart-wm"          , sr >> restart Nothing True                       )
+        , ("restart-wm-no-resume", sr >> restart Nothing False                      )
+        , ("xterm"               , spawn =<< asks (terminal .  config)              )
+        , ("run"                 , spawn "exe=`dmenu_path | dmenu -b` && exec $exe" )
+        , ("kill"                , kill                                             )
+        , ("refresh"             , refresh                                          )
+        , ("focus-up"            , windows $ focusUp                                )
+        , ("focus-down"          , windows $ focusDown                              )
+        , ("swap-up"             , windows $ swapUp                                 )
+        , ("swap-down"           , windows $ swapDown                               )
+        , ("swap-master"         , windows $ swapMaster                             )
+        , ("sink"                , withFocused $ windows . sink                     )
+        , ("quit-wm"             , io $ exitWith ExitSuccess                        )
+        ]
 
 runCommand :: [(String, X ())] -> X ()
 runCommand cl = do
@@ -106,5 +110,5 @@ runCommand cl = do
 
 runCommand' :: String -> X ()
 runCommand' c = do
-  let m = commandMap defaultCommands
+  m <- fmap commandMap defaultCommands
   fromMaybe (return ()) (M.lookup c m)
