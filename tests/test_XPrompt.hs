@@ -10,8 +10,8 @@ import Test.QuickCheck
 
 import Data.List
 
-import XMonadContrib.XPrompt
-import qualified XMonadContrib.ShellPrompt as S
+import XMonad.XPrompt
+import qualified XMonad.ShellPrompt as S
  
 instance Arbitrary Char where
     arbitrary     = choose ('\32', '\255')

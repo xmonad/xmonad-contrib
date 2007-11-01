@@ -6,7 +6,7 @@ import Test.QuickCheck
 
 import StackSet
 import Properties(T, NonNegative)
-import XMonadContrib.SwapWorkspaces
+import XMonad.SwapWorkspaces
 
 -- Ensures that no "loss of information" can happen from a swap.
 prop_double_swap (ss :: T) (t1 :: NonNegative Int) (t2 :: NonNegative Int) =
