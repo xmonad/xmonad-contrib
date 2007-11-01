@@ -29,7 +29,7 @@ module XMonadContrib.MosaicAlt (
     ) where
 
 import XMonad
-import Operations
+import Layouts
 import Graphics.X11.Xlib
 import qualified StackSet as W
 import qualified Data.Map as M
