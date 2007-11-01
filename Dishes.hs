@@ -23,7 +23,7 @@ module XMonadContrib.Dishes (
 
 import Data.List
 import XMonad
-import Operations
+import Layouts
 import StackSet (integrate)
 import Control.Monad (ap)
 import Graphics.X11.Xlib
