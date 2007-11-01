@@ -20,7 +20,7 @@ module XMonadContrib.Accordion (
     Accordion(Accordion)) where
 
 import XMonad
-import Operations
+import Layouts
 import qualified StackSet as W
 import Graphics.X11.Xlib
 import Data.Ratio
