@@ -27,7 +27,6 @@ module XMonadContrib.Run (
                           seconds
                          ) where
 
-import Control.Monad.State
 import Control.Monad.Reader
 import System.Posix.Process (createSession, forkProcess, executeFile,
                              getProcessStatus)
