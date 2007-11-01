@@ -21,7 +21,6 @@ module XMonadContrib.ToggleLayouts (
     ) where
 
 import XMonad
-import Operations ( LayoutMessages(Hide, ReleaseResources) )
 
 -- $usage
 -- Use toggleLayouts to toggle between two layouts.
