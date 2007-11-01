@@ -31,7 +31,7 @@ import Control.Monad.State ( gets )
 import Data.List ( nub, sortBy, (\\) )
 import XMonad
 import qualified StackSet as W
-import Operations ( windows, focus, LayoutMessages(..) )
+import Operations ( windows, focus )
 import XMonadContrib.LayoutModifier
 import XMonadContrib.Invisible
 import XMonadContrib.XUtils
