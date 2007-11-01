@@ -29,7 +29,7 @@ module XMonad.Layout.WorkspaceDir (
                                    changeDir
                                   ) where
 
-import System.Directory ( setCurrentDirectory )
+import System.Directory ( setCurrentDirectory, getCurrentDirectory )
 
 import XMonad
 import XMonad.Operations ( sendMessage )
@@ -63,12 +63,17 @@ data WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
 
 instance LayoutModifier WorkspaceDir a where
     hook (WorkspaceDir s) = scd s
-    handleMess (WorkspaceDir _) m = return $ do Chdir wd <- fromMessage m
-                                                Just (WorkspaceDir wd)
+    handleMess (WorkspaceDir _) m
+        | Just (Chdir wd) <- fromMessage m = do wd' <- cleanDir wd
+                                                return $ Just $ WorkspaceDir wd'
+        | otherwise = return Nothing
 
 workspaceDir :: LayoutClass l a => String -> l a
              -> ModifiedLayout WorkspaceDir l a
 workspaceDir s = ModifiedLayout (WorkspaceDir s)
+
+cleanDir :: String -> X String
+cleanDir x = scd x >> io getCurrentDirectory
 
 scd :: String -> X ()
 scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
