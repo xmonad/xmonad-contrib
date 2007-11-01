@@ -20,7 +20,7 @@ module XMonadContrib.WorkspacePrompt (
 
 import Control.Monad.State ( gets )
 import Data.List ( sort )
-import XMonad
+import XMonad hiding ( workspaces )
 import XMonadContrib.XPrompt
 import StackSet ( workspaces, tag )
 
