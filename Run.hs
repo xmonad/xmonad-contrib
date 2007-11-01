@@ -27,16 +27,16 @@ module XMonadContrib.Run (
                           seconds
                          ) where
 
-import Control.Monad.State (Monad((>>), return), when)
+import Control.Monad.State
+import Control.Monad.Reader
 import System.Posix.Process (createSession, forkProcess, executeFile,
-			    getProcessStatus)
+                             getProcessStatus)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try)
 import System.Exit (ExitCode(ExitSuccess), exitWith)
 import System.IO (IO, FilePath, hPutStr, hGetContents, hFlush, hClose)
 import System.Process (runInteractiveProcess, waitForProcess)
-import XMonad (X, io, spawn)
-import {-# SOURCE #-} Config (terminal)
+import XMonad
 
 -- $usage
 -- For an example usage of runInTerm see XMonadContrib.SshPrompt
@@ -108,8 +108,8 @@ unsafeSpawn = spawn
 
 -- | Run a given program in the preferred terminal emulator. This uses safeSpawn.
 safeRunInTerm :: String -> X ()
-safeRunInTerm command = safeSpawn terminal ("-e " ++ command)
+safeRunInTerm command = asks terminal >>= \t -> safeSpawn t ("-e " ++ command)
 
 unsafeRunInTerm, runInTerm :: String -> X ()
-unsafeRunInTerm command = unsafeSpawn $ terminal ++ " -e " ++ command
+unsafeRunInTerm command = asks terminal >>= \t -> unsafeSpawn $ t ++ " -e " ++ command
 runInTerm = unsafeRunInTerm
