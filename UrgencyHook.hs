@@ -20,11 +20,14 @@ module XMonadContrib.UrgencyHook (
                                  -- * Usage
                                  -- $usage
                                  withUrgencyHook,
+                                 focusUrgent,
                                  readUrgents,
                                  withUrgents
                                  ) where
 
 import {-# SOURCE #-} Config (urgencyHook, logHook)
+import Operations (windows)
+import qualified StackSet as W
 import XMonad
 import XMonadContrib.LayoutModifier
 
@@ -71,6 +74,12 @@ import Foreign (unsafePerformIO)
 -- You can also modify your logHook to print out information about urgent windows.
 -- The functions readUrgents and withUrgents are there to help you with that.
 -- No example for you.
+
+-- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
+-- Example keybinding:
+-- > , ((modMask              , xK_BackSpace), focusUrgent)
+focusUrgent :: X ()
+focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
 
 -- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
 -- @readUrgents@ or @withUrgents@ instead.
