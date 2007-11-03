@@ -35,7 +35,7 @@ dzen str timeout = dzenWithArgs str [] timeout
 
 -- | @dzen str args timeout@ pipes @str@ to dzen2 for @timeout@ seconds, passing @args@ to dzen.
 -- Example usage:
--- > dzen "Hi, dons!" ["-ta", "r"] (5 `seconds`)
+-- > dzenWithArgs "Hi, dons!" ["-ta", "r"] (5 `seconds`)
 dzenWithArgs :: String -> [String] -> Int -> X ()
 dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
   -- dzen seems to require the input to terminate with exactly one newline.
@@ -58,7 +58,7 @@ dzenUrgencyHook = dzenUrgencyHookWithArgs []
 
 -- | Flashes when a window requests your attention and you can't see it. For use with
 -- XMonadContrib.UrgencyHook. Usage:
--- > urgencyHook = dzenUrgencyHook ["-bg", "darkgreen"] (5 `seconds`)
+-- > urgencyHook = dzenUrgencyHookWithArgs ["-bg", "darkgreen"] (5 `seconds`)
 dzenUrgencyHookWithArgs :: [String] -> Int -> Window -> X ()
 dzenUrgencyHookWithArgs args duration w = do
     visibles <- gets mapped
