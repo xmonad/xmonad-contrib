@@ -35,7 +35,7 @@ import Control.Monad (when)
 import Control.Monad.State (gets)
 import Data.Bits (testBit, clearBit)
 import Data.IORef
-import Data.List ((\\))
+import Data.List ((\\), delete)
 import Data.Maybe (listToMaybe)
 import qualified Data.Set as S
 import Graphics.X11.Xlib
@@ -97,7 +97,7 @@ data WithUrgencyHook a = WithUrgencyHook deriving (Read, Show)
 
 instance LayoutModifier WithUrgencyHook Window where
     handleMess _ mess
-      | Just (PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w }) <- fromMessage mess = do
+      | Just PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } <- fromMessage mess = do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               wmh@WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               when (testBit flags urgencyHintBit) $ do
@@ -114,6 +114,9 @@ instance LayoutModifier WithUrgencyHook Window where
               -- cleared, so we ignore that message. This has the potentially wrong
               -- effect of ignoring *all* urgency-clearing messages, some of which might
               -- be legitimate. Let's wait for bug reports on that, though.
+          return Nothing
+      | Just DestroyWindowEvent {ev_window = w} <- fromMessage mess = do
+          adjustUrgents (delete w)
           return Nothing
       | otherwise =
           return Nothing
