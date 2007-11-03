@@ -27,20 +27,28 @@ import XMonad
 import XMonadContrib.NamedWindows (getName)
 import XMonadContrib.Run (runProcessWithInputAndWait, seconds)
 
-toXineramaArg :: ScreenId -> String
-toXineramaArg n = show ( ((fromIntegral n)+1)::Int )
-
 -- | @dzen str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds.
 -- Example usage:
 -- > dzen "Hi, mom!" (5 `seconds`)
 dzen :: String -> Int -> X ()
 dzen str timeout = dzenWithArgs str [] timeout
 
+-- | @dzen str args timeout@ pipes @str@ to dzen2 for @timeout@ seconds, passing @args@ to dzen.
+-- Example usage:
+-- > dzen "Hi, dons!" ["-ta", "r"] (5 `seconds`)
+dzenWithArgs :: String -> [String] -> Int -> X ()
+dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
+  -- dzen seems to require the input to terminate with exactly one newline.
+  where unchomp s@['\n'] = s
+        unchomp []       = ['\n']
+        unchomp (c:cs)   = c : unchomp cs
+
 -- | @dzenScreen sc str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds, and on screen @sc@.
 -- Requires dzen to be compiled with Xinerama support.
 dzenScreen :: ScreenId -> String -> Int -> X()
 dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
     where screen  = toXineramaArg sc
+          toXineramaArg n = show ( ((fromIntegral n)+1)::Int )
 
 -- | Flashes when a window requests your attention and you can't see it. For use with
 -- XMonadContrib.UrgencyHook. Usage:
@@ -48,6 +56,9 @@ dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
 dzenUrgencyHook :: Int -> Window -> X ()
 dzenUrgencyHook = dzenUrgencyHookWithArgs []
 
+-- | Flashes when a window requests your attention and you can't see it. For use with
+-- XMonadContrib.UrgencyHook. Usage:
+-- > urgencyHook = dzenUrgencyHook ["-bg", "darkgreen"] (5 `seconds`)
 dzenUrgencyHookWithArgs :: [String] -> Int -> Window -> X ()
 dzenUrgencyHookWithArgs args duration w = do
     visibles <- gets mapped
@@ -58,10 +69,3 @@ dzenUrgencyHookWithArgs args duration w = do
               when (not $ S.member w visibles) $
               dzenWithArgs (show name ++ " requests your attention on workspace " ++ index)
                            args duration
-
-dzenWithArgs :: String -> [String] -> Int -> X ()
-dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
-  -- dzen seems to require the input to terminate with exactly one newline.
-  where unchomp s@['\n'] = s
-        unchomp []       = ['\n']
-        unchomp (c:cs)   = c : unchomp cs
