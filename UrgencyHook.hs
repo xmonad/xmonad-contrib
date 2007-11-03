@@ -32,7 +32,8 @@ import Control.Monad (when)
 import Control.Monad.State (gets)
 import Data.Bits (testBit, clearBit)
 import Data.IORef
-import Data.Set (Set)
+import Data.List ((\\))
+import Data.Maybe (listToMaybe)
 import qualified Data.Set as S
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
@@ -74,13 +75,13 @@ import Foreign (unsafePerformIO)
 -- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
 -- @readUrgents@ or @withUrgents@ instead.
 {-# NOINLINE urgents #-}
-urgents :: IORef (Set Window)
-urgents = unsafePerformIO (newIORef S.empty)
+urgents :: IORef [Window]
+urgents = unsafePerformIO (newIORef [])
 
-readUrgents :: X (Set Window)
+readUrgents :: X [Window]
 readUrgents = io $ readIORef urgents
 
-withUrgents :: (Set Window -> X a) -> X a
+withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
 data WithUrgencyHook a = WithUrgencyHook deriving (Read, Show)
@@ -98,7 +99,7 @@ instance LayoutModifier WithUrgencyHook Window where
                   -- times (e.g. causing the dzen to blink) unless it's cleared. XMonad is
                   -- not a typical WM, so we're just breaking one more rule, here.
                   io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
-                  adjustUrgents (S.insert w)
+                  adjustUrgents (\ws -> if elem w ws then ws else w : ws)
                   logHook -- call logHook after IORef has been modified
               -- Doing the setWMHints triggers another propertyNotify with the bit
               -- cleared, so we ignore that message. This has the potentially wrong
@@ -111,10 +112,10 @@ instance LayoutModifier WithUrgencyHook Window where
     -- Clear the urgency bit and remove from the urgent list when the window becomes visible.
     redoLayout _ _ _ windowRects = do
       visibles <- gets mapped
-      adjustUrgents (S.\\ visibles)
+      adjustUrgents (\\ (S.toList visibles))
       return (windowRects, Nothing)
 
-adjustUrgents :: (Set Window -> Set Window) -> X ()
+adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents f = io $ modifyIORef urgents f
 
 withUrgencyHook :: LayoutClass l Window => l Window -> ModifiedLayout WithUrgencyHook l Window
