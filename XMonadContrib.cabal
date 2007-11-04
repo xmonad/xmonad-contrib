@@ -88,11 +88,3 @@ exposed-modules:    XMonad.Actions.Commands
                     XMonad.Util.Run
                     XMonad.Util.XSelection
                     XMonad.Util.XUtils
-
-
-executable:         xmonad-droundy
-main-is:            configs/droundy.hs
-ghc-options:        -funbox-strict-fields -O2 -fasm -Wall -optl-Wl,-s
-ghc-prof-options:   -prof -auto-all
-extensions:         GeneralizedNewtypeDeriving
--- Also requires deriving Typeable, PatternGuards
