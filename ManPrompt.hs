@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wall #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.ManPrompt
@@ -6,7 +7,7 @@
 --
 -- Maintainer  :  valery.vv@gmail.com
 -- Stability   :  unstable
--- Portability :  unportable
+-- Portability :  non-portable (uses \"manpath\" and \"bash\")
 --
 -- A manual page prompt for XMonad window manager.
 --
@@ -15,9 +16,7 @@
 --   * narrow completions by section number, if the one is specified
 --     (like @\/etc\/bash_completion@ does)
 --
---   * handle explicit paths (e.g., @~\/src\/xmonad\/man\/xmonad.1@)
---
---   * quickcheck properties
+--   * test with QuickCheck
 -----------------------------------------------------------------------------
 
 module XMonadContrib.ManPrompt (
@@ -48,7 +47,7 @@ import Data.Maybe
 --
 -- 2. In your keybindings add something like:
 --
--- >     , ((modMask, xK_F1), manPrompt defaultXPConfig)
+-- >     , ((modMask, xK_F1), manPrompt defaultXPConfig) -- mod-f1 %! Query for manual page to be displayed
 
 -- %import XMonadContrib.XPrompt
 -- %import XMonadContrib.ManPrompt
@@ -64,33 +63,36 @@ manPrompt :: XPConfig -> X ()
 manPrompt c = mkXPrompt Man c manCompl $ runInTerm . (++) "man "
 
 manCompl :: String -> IO [String]
-manCompl s = getManpages >>= flip mkComplFunFromList s
-
--- | Obtain the list of manual pages.
---
--- /XXX Code duplication!/
--- Adopted from 'ShellPrompt.getCommands'.
-getManpages :: IO [String]
-getManpages = do
-  p <- getCommandOutput "manpath -g 2>/dev/null" `E.catch` const (return [])
-  let sections = ["man" ++ show n | n <- [1..9 :: Int]] -- XXX "cat1".."cat9"?
-      ds       = [d ++ "/" ++ s | d <- split ':' p, s <- sections]
-      stripSec = reverse . drop 1 . dropWhile (/= '.') . reverse
-  ms <- forM ds $ \d -> do
-              exists <- doesDirectoryExist d
-              if exists
-                then map (stripSec . stripSuffixes [".gz", ".bz2"]) `fmap`
-                     getDirectoryContents d
-                else return []
-  return . uniqSort . concat $ ms
+manCompl str | '/' `elem` str = do
+  -- XXX It may be better to use readline instead of bash's compgen...
+  lines `fmap` getCommandOutput ("bash -c 'compgen -A file " ++ str ++ "'")
+             | otherwise      = do
+  mp <- getCommandOutput "manpath -g 2>/dev/null" `E.catch` \_ -> return []
+  let sects    = ["man" ++ show n | n <- [1..9 :: Int]]
+      dirs     = [d ++ "/" ++ s | d <- split ':' mp, s <- sects]
+      stripExt = reverse . drop 1 . dropWhile (/= '.') . reverse
+  mans <- forM dirs $ \d -> do
+            exists <- doesDirectoryExist d
+            if exists
+              then map (stripExt . stripSuffixes [".gz", ".bz2"]) `fmap`
+                   getDirectoryContents d
+              else return []
+  mkComplFunFromList (uniqSort $ concat mans) str
 
 -- | Run a command using shell and return its output.
+--
+-- XXX merge with 'Run.runProcessWithInput'?
+--
+--   * update documentation of the latter (there is no 'Maybe' in result)
+--
+--   * ask \"gurus\" whether @evaluate (length ...)@ approach is
+--     better\/more idiomatic
 getCommandOutput :: String -> IO String
 getCommandOutput s = do
   (pin, pout, perr, ph) <- runInteractiveCommand s
   hClose pin
   output <- hGetContents pout
-  E.evaluate (null output)
+  E.evaluate (length output)
   hClose perr
   waitForProcess ph
   return output
