@@ -38,6 +38,7 @@ exposed-modules:    XMonad.Actions.Commands
                     XMonad.Actions.Warp
                     XMonad.Actions.WindowBringer
                     XMonad.Actions.WmiiActions
+                    XMonad.Config.Sjanssen
                     XMonad.Hooks.DynamicLog
                     -- XMonad.Hooks.ManageDocks
                     XMonad.Hooks.SetWMName
