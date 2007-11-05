@@ -20,7 +20,7 @@ module XMonad.Actions.Submap (
 
 import Control.Monad.Reader
 
-import XMonad
+import XMonad hiding (keys)
 import XMonad.Operations (cleanMask)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras

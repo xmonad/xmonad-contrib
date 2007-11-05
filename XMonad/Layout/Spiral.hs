@@ -24,7 +24,6 @@ module XMonad.Layout.Spiral (
                             ) where
 
 import Graphics.X11.Xlib
-import XMonad.Operations
 import Data.Ratio
 import XMonad
 import XMonad.Layouts

@@ -28,7 +28,7 @@ import Data.List
 import System.Directory
 import System.IO
 import XMonad.Util.Run
-import XMonad
+import XMonad hiding (config)
 import XMonad.Prompt
 
 -- $usage
