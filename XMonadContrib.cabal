@@ -51,7 +51,7 @@ library
                         XMonad.Actions.WmiiActions
                         XMonad.Config.Sjanssen
                         XMonad.Config.Dons
-                        --  XMonad.Config.Droundy
+                        XMonad.Config.Droundy
                         XMonad.Hooks.DynamicLog
                         -- XMonad.Hooks.ManageDocks
                         XMonad.Hooks.SetWMName
