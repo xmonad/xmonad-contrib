@@ -9,85 +9,96 @@ license:            BSD3
 license-file:       LICENSE
 author:             Spencer Janssen
 maintainer:         sjanssen@cse.unl.edu
-build-depends:      base>=2.0, mtl, unix, X11==1.3.0, xmonad==0.4
 extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c tests/test_SwapWorkspaces.hs
                     tests/tests_XPrompt.hs
-ghc-options:        -Wall
-exposed-modules:    XMonad.Actions.Commands
-                    XMonad.Actions.ConstrainedResize
-                    XMonad.Actions.CopyWindow
-                    XMonad.Actions.CycleWS
-                    XMonad.Actions.DeManage
-                    XMonad.Actions.DwmPromote
-                    XMonad.Actions.DynamicWorkspaces
-                    XMonad.Actions.FindEmptyWorkspace
-                    XMonad.Actions.FlexibleManipulate
-                    XMonad.Actions.FlexibleResize
-                    XMonad.Actions.FloatKeys
-                    XMonad.Actions.FocusNth
-                    XMonad.Actions.MouseGestures
-                    XMonad.Actions.RotSlaves
-                    XMonad.Actions.RotView
-                    XMonad.Actions.SimpleDate
-                    XMonad.Actions.SinkAll
-                    XMonad.Actions.Submap
-                    XMonad.Actions.SwapWorkspaces
-                    XMonad.Actions.TagWindows
-                    XMonad.Actions.Warp
-                    XMonad.Actions.WindowBringer
-                    XMonad.Actions.WmiiActions
-                    XMonad.Config.Sjanssen
-                    XMonad.Config.Dons
-                --  XMonad.Config.Droundy
-                    XMonad.Hooks.DynamicLog
-                    -- XMonad.Hooks.ManageDocks
-                    XMonad.Hooks.SetWMName
-                    -- XMonad.Hooks.UrgencyHook
-                    XMonad.Hooks.XPropManage
-                    XMonad.Layout.Accordion
-                    XMonad.Layout.Circle
-                    XMonad.Layout.Combo
-                    XMonad.Layout.Dishes
-                    XMonad.Layout.DragPane
-                    XMonad.Layout.Grid
-                    -- XMonad.Layout.HintedTile
-                    -- XMonad.Layout.LayoutCombinators
-                    -- XMonad.Layout.LayoutHints
-                    XMonad.Layout.LayoutModifier
-                    XMonad.Layout.LayoutScreens
-                    XMonad.Layout.MagicFocus
-                    -- XMonad.Layout.Magnifier
-                    XMonad.Layout.Maximize
-                    XMonad.Layout.MosaicAlt
-                    -- XMonad.Layout.Mosaic
-                    XMonad.Layout.NoBorders
-                    XMonad.Layout.ResizableTile
-                    XMonad.Layout.Roledex
-                    XMonad.Layout.Spiral
-                    XMonad.Layout.Square
-                    -- XMonad.Layout.SwitchTrans
-                    XMonad.Layout.Tabbed
-                    XMonad.Layout.ThreeColumns
-                    -- XMonad.Layout.TilePrime
-                    XMonad.Layout.ToggleLayouts
-                    XMonad.Layout.TwoPane
-                    XMonad.Layout.WindowNavigation
-                    XMonad.Layout.WorkspaceDir
-                    XMonad.Prompt.Directory
-                    XMonad.Prompt
-                    XMonad.Prompt.Man
-                    XMonad.Prompt.Shell
-                    XMonad.Prompt.Ssh
-                    XMonad.Prompt.Window
-                    XMonad.Prompt.Workspace
-                    XMonad.Prompt.XMonad
-                    XMonad.Util.Anneal
-                    XMonad.Util.Dmenu
-                    XMonad.Util.Dzen
-                    XMonad.Util.Invisible
-                    XMonad.Util.NamedWindows
-                    XMonad.Util.Run
-                    XMonad.Util.XSelection
-                    XMonad.Util.XUtils
+cabal-version:      >= 1.2
+
+flag small_base
+  description: Choose the new smaller, split-up base package.
+
+library
+    if flag(small_base)
+        build-depends: base >= 3, containers, directory, process, random
+    else
+        build-depends: base < 3
+
+    build-depends:      mtl, unix, X11==1.3.0, xmonad==0.4
+    ghc-options:        -Wall
+    exposed-modules:    XMonad.Actions.Commands
+                        XMonad.Actions.ConstrainedResize
+                        XMonad.Actions.CopyWindow
+                        XMonad.Actions.CycleWS
+                        XMonad.Actions.DeManage
+                        XMonad.Actions.DwmPromote
+                        XMonad.Actions.DynamicWorkspaces
+                        XMonad.Actions.FindEmptyWorkspace
+                        XMonad.Actions.FlexibleManipulate
+                        XMonad.Actions.FlexibleResize
+                        XMonad.Actions.FloatKeys
+                        XMonad.Actions.FocusNth
+                        XMonad.Actions.MouseGestures
+                        XMonad.Actions.RotSlaves
+                        XMonad.Actions.RotView
+                        XMonad.Actions.SimpleDate
+                        XMonad.Actions.SinkAll
+                        XMonad.Actions.Submap
+                        XMonad.Actions.SwapWorkspaces
+                        XMonad.Actions.TagWindows
+                        XMonad.Actions.Warp
+                        XMonad.Actions.WindowBringer
+                        XMonad.Actions.WmiiActions
+                        XMonad.Config.Sjanssen
+                        XMonad.Config.Dons
+                        --  XMonad.Config.Droundy
+                        XMonad.Hooks.DynamicLog
+                        -- XMonad.Hooks.ManageDocks
+                        XMonad.Hooks.SetWMName
+                        -- XMonad.Hooks.UrgencyHook
+                        XMonad.Hooks.XPropManage
+                        XMonad.Layout.Accordion
+                        XMonad.Layout.Circle
+                        -- XMonad.Layout.Combo
+                        XMonad.Layout.Dishes
+                        XMonad.Layout.DragPane
+                        XMonad.Layout.Grid
+                        -- XMonad.Layout.HintedTile
+                        -- XMonad.Layout.LayoutCombinators
+                        -- XMonad.Layout.LayoutHints
+                        XMonad.Layout.LayoutModifier
+                        XMonad.Layout.LayoutScreens
+                        XMonad.Layout.MagicFocus
+                        -- XMonad.Layout.Magnifier
+                        XMonad.Layout.Maximize
+                        XMonad.Layout.MosaicAlt
+                        -- XMonad.Layout.Mosaic
+                        XMonad.Layout.NoBorders
+                        XMonad.Layout.ResizableTile
+                        XMonad.Layout.Roledex
+                        XMonad.Layout.Spiral
+                        XMonad.Layout.Square
+                        -- XMonad.Layout.SwitchTrans
+                        XMonad.Layout.Tabbed
+                        XMonad.Layout.ThreeColumns
+                        -- XMonad.Layout.TilePrime
+                        XMonad.Layout.ToggleLayouts
+                        XMonad.Layout.TwoPane
+                        XMonad.Layout.WindowNavigation
+                        XMonad.Layout.WorkspaceDir
+                        XMonad.Prompt.Directory
+                        XMonad.Prompt
+                        XMonad.Prompt.Man
+                        XMonad.Prompt.Shell
+                        XMonad.Prompt.Ssh
+                        XMonad.Prompt.Window
+                        XMonad.Prompt.Workspace
+                        XMonad.Prompt.XMonad
+                        XMonad.Util.Anneal
+                        XMonad.Util.Dmenu
+                        XMonad.Util.Dzen
+                        XMonad.Util.Invisible
+                        XMonad.Util.NamedWindows
+                        XMonad.Util.Run
+                        XMonad.Util.XSelection
+                        XMonad.Util.XUtils
