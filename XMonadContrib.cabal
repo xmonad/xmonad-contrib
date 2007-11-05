@@ -65,7 +65,7 @@ library
                         XMonad.Layout.Grid
                         -- XMonad.Layout.HintedTile
                         XMonad.Layout.LayoutCombinators
-                        -- XMonad.Layout.LayoutHints
+                        XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
                         XMonad.Layout.LayoutScreens
                         XMonad.Layout.MagicFocus
