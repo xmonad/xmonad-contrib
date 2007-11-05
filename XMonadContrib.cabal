@@ -10,11 +10,12 @@ license-file:       LICENSE
 author:             Spencer Janssen
 maintainer:         sjanssen@cse.unl.edu
 build-depends:      base>=2.0, mtl, unix, X11==1.3.0, xmonad==0.4
+ghc-options:        -funbox-strict-fields -O2 -fasm -Wall -optl-Wl,-s
+ghc-prof-options:   -prof -auto-all
 extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c tests/test_SwapWorkspaces.hs
                     tests/tests_XPrompt.hs
-                    configs/droundy.hs
 exposed-modules:    XMonad.Actions.Commands
                     XMonad.Actions.ConstrainedResize
                     XMonad.Actions.CopyWindow
@@ -39,6 +40,8 @@ exposed-modules:    XMonad.Actions.Commands
                     XMonad.Actions.WindowBringer
                     XMonad.Actions.WmiiActions
                     XMonad.Config.Sjanssen
+                    XMonad.Config.Dons
+                --  XMonad.Config.Droundy
                     XMonad.Hooks.DynamicLog
                     -- XMonad.Hooks.ManageDocks
                     XMonad.Hooks.SetWMName

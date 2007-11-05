@@ -5,7 +5,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Layouts
 import XMonad.Layout.Tabbed
 import XMonad.Operations
-import XMonad.DefaultConfig (defaultConfig)
+import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog
 import XMonad.Prompt

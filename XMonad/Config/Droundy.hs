@@ -1,6 +1,5 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  DefaultConfig.hs
 -- Copyright   :  (c) Spencer Janssen 2007
 -- License     :  BSD3-style (see LICENSE)
 --
@@ -14,14 +13,18 @@
 --
 ------------------------------------------------------------------------
 
-module Main (main) where
+module XMonad.Config.Droundy where
 
 --
 -- Useful imports
 --
 import Control.Monad.Reader ( asks )
-import XMonad hiding (workspaces, manageHook, numlockMask)
-import qualified XMonad (workspaces, manageHook, numlockMask)
+
+import XMonad hiding
+    (workspaces,manageHook,numlockMask,keys,mouseBindings)
+import qualified XMonad
+    (workspaces,manageHook,numlockMask,keys,mouseBindings)
+
 import XMonad.Layouts hiding ( (|||) )
 import XMonad.Operations
 import qualified XMonad.StackSet as W
@@ -29,7 +32,7 @@ import Data.Bits ((.|.))
 import qualified Data.Map as M
 import System.Exit
 import Graphics.X11.Xlib
-import XMonad.EventLoop
+import XMonad.Core
 
 -- % Extension-provided imports
 
@@ -293,8 +296,8 @@ defaultConfig = XConfig { borderWidth = 1 -- Width of the window border in pixel
                         , normalBorderColor = "#dddddd" -- Border color for unfocused windows.
                         , focusedBorderColor = "#00ff00" -- Border color for focused windows.
                         , XMonad.numlockMask = numlockMask
-                        , XMonad.keys = Main.keys
-                        , XMonad.mouseBindings = Main.mouseBindings
+                        , XMonad.keys = keys
+                        , XMonad.mouseBindings = mouseBindings
                         -- | Perform an arbitrary action on each internal state change or X event.
                         -- Examples include:
                         --      * do nothing
@@ -305,5 +308,5 @@ defaultConfig = XConfig { borderWidth = 1 -- Width of the window border in pixel
                         , XMonad.manageHook = manageHook
                         }
 
-main :: IO ()
-main = makeMain defaultConfig
+-- main :: IO ()
+-- main = makeMain defaultConfig
