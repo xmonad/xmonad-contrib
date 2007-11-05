@@ -81,7 +81,7 @@ library
                         -- XMonad.Layout.SwitchTrans
                         XMonad.Layout.Tabbed
                         XMonad.Layout.ThreeColumns
-                        -- XMonad.Layout.TilePrime
+                        XMonad.Layout.TilePrime
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TwoPane
                         XMonad.Layout.WindowNavigation

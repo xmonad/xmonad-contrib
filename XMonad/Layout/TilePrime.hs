@@ -21,13 +21,14 @@ module XMonad.Layout.TilePrime (
     ) where
 
 import Control.Monad (mplus)
+import Control.Monad.Reader (asks)
 import Data.List (mapAccumL)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras (getWMNormalHints)
 import XMonad.Operations
+import XMonad.Layouts
 import XMonad hiding (trace)
 import qualified XMonad.StackSet as W
-import {-#SOURCE#-} Config (borderWidth)
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -61,6 +62,7 @@ instance LayoutClass TilePrime Window where
     incmastern (IncMasterN d) = c { nmaster = max 0 $ nmaster c + d }
 
   doLayout TilePrime { frac = f, nmaster = m, flipped = flp } rect s = do
+    bW <- asks (borderWidth . config)
     let xs = W.integrate s
     hints <- withDisplay $ \ disp -> io (mapM (getWMNormalHints disp) xs)
     let xs' = zip xs hints
@@ -70,20 +72,20 @@ instance LayoutClass TilePrime Window where
           | null leftXs  = (Rectangle 0 0 0 0, rect)
           | flp          = splitVerticallyBy f rect
           | otherwise    = splitHorizontallyBy f rect
-        masters = fillWindows leftRect leftXs
-        slaves  = fillWindows rightRect rightXs
+        masters = fillWindows bW leftRect leftXs
+        slaves  = fillWindows bW rightRect rightXs
     return (masters ++ slaves, Nothing)
 
     where
-    fillWindows r xs = snd $ mapAccumL aux (r,n) xs
+    fillWindows bW r xs = snd $ mapAccumL (aux bW) (r,n) xs
       where n = fromIntegral (length xs) :: Rational
 
-    aux (r,n) (x,hint) = ((rest,n-1),(x,r'))
+    aux bW (r,n) (x,hint) = ((rest,n-1),(x,r'))
       where
       (allocated, _) | flp       = splitHorizontallyBy (recip n) r
                      | otherwise = splitVerticallyBy (recip n) r
 
-      (w,h) = applySizeHints hint `underBorders` rect_D allocated
+      (w,h) = underBorders bW (applySizeHints hint) (rect_D allocated)
 
       r'   = r { rect_width = w, rect_height = h }
 
@@ -96,9 +98,9 @@ rect_D :: Rectangle -> D
 rect_D Rectangle { rect_width = w, rect_height = h } = (w,h)
 
 -- | Transform a function on dimensions into one without regard for borders
-underBorders :: (D -> D) -> D -> D
-underBorders f = adjBorders 1 . f . adjBorders (-1)
+underBorders :: Dimension -> (D -> D) -> D -> D
+underBorders bW f = adjBorders bW 1 . f . adjBorders bW (-1)
 
 -- | Modify dimensions by a multiple of the current borders
-adjBorders             :: Dimension -> D -> D
-adjBorders mult (w,h)  = (w+2*mult*borderWidth, h+2*mult*borderWidth)
+adjBorders                :: Dimension -> Dimension -> D -> D
+adjBorders bW mult (w,h)  = (w+2*mult*bW, h+2*mult*bW)
