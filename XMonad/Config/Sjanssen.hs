@@ -30,7 +30,7 @@ sjanssenConfig = defaultConfig
         , layoutHook = Layout (smartBorders (tiled ||| Mirror tiled ||| Full ||| tabbed shrinkText defaultTConf))
         }
  where
-    tiled   = Tall 1 0.5 0.03
+    tiled   = Tall 1 0.03 0.5
 
     mykeys (XConfig {modMask = modm}) = M.fromList $
         [((modm,               xK_p     ), shellPrompt myPromptConfig)]
