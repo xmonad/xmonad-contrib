@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.XPrompt
+-- Module      :  XMonad.Prompt
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --
@@ -62,8 +62,8 @@ import System.IO
 import System.Posix.Files
 
 -- $usage
--- For usage examples see "XMonadContrib.ShellPrompt",
--- "XMonadContrib.XMonadPrompt" or "XMonadContrib.SshPrompt"
+-- For usage examples see "XMonad.Prompt.Shell",
+-- "XMonad.Prompt.XMonad" or "XMonad.Prompt.Ssh"
 --
 -- TODO:
 --
