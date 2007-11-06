@@ -53,13 +53,13 @@ dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
           toXineramaArg n = show ( ((fromIntegral n)+1)::Int )
 
 -- | Flashes when a window requests your attention and you can't see it. For use with
--- XMonadContrib.UrgencyHook. Usage:
+-- XMonad.Hooks.UrgencyHook. Usage:
 -- > urgencyHook = dzenUrgencyHook (5 `seconds`)
 dzenUrgencyHook :: Int -> Window -> X ()
 dzenUrgencyHook = dzenUrgencyHookWithArgs []
 
 -- | Flashes when a window requests your attention and you can't see it. For use with
--- XMonadContrib.UrgencyHook. Usage:
+-- XMonad.Hooks.UrgencyHook. Usage:
 -- > urgencyHook = dzenUrgencyHookWithArgs ["-bg", "darkgreen"] (5 `seconds`)
 dzenUrgencyHookWithArgs :: [String] -> Int -> Window -> X ()
 dzenUrgencyHookWithArgs args duration w = do
