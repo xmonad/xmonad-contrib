@@ -73,6 +73,7 @@ library
                         XMonad.Layout.Maximize
                         XMonad.Layout.MosaicAlt
                         -- XMonad.Layout.Mosaic
+                        XMonad.Layout.MultiToggle
                         XMonad.Layout.NoBorders
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.Roledex
