@@ -79,7 +79,6 @@ library
                         XMonad.Layout.Roledex
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
-                        -- XMonad.Layout.SwitchTrans
                         XMonad.Layout.Tabbed
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.TilePrime
