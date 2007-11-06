@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module       : XmonadContrib.SinkAll
+-- Module       : Xmonad.Actions.SinkAll
 -- License      : BSD3-style (see LICENSE)
 -- Stability    : unstable
 -- Portability  : unportable
