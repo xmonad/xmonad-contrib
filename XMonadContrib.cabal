@@ -53,7 +53,7 @@ library
                         XMonad.Config.Dons
                         XMonad.Config.Droundy
                         XMonad.Hooks.DynamicLog
-                        -- XMonad.Hooks.ManageDocks
+                        XMonad.Hooks.ManageDocks
                         XMonad.Hooks.SetWMName
                         -- XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.XPropManage
