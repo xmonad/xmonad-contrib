@@ -23,7 +23,7 @@ module XMonad.Util.XSelection (
                                  safePromptSelection,
                                  putSelection) where
 
-import Graphics.X11.Xlib.Extras (Graphics.X11.Xlib.Extras.Event(ev_event_display,
+import Graphics.X11.Xlib.Extras (Event(ev_event_display,
 							       ev_time, ev_property, ev_target, ev_selection,
 							       ev_requestor, ev_event_type),
 				xConvertSelection, xGetSelectionOwner, xSetSelectionOwner, getEvent,
@@ -37,7 +37,8 @@ import Control.Exception as E (catch)
 import Control.Monad(Monad (return, (>>)), Functor(..), liftM, join)
 import Data.Char (chr, ord)
 import Data.Maybe (fromMaybe)
-import Foreign(Word8, Data.Bits.Bits (shiftL, (.&.), (.|.)))
+import Foreign (Word8)
+import Data.Bits (shiftL, (.&.), (.|.))
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 import XMonad (X, io)
 

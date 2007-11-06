@@ -29,12 +29,14 @@ import XMonad.Util.Run (runProcessWithInputAndWait, seconds)
 
 -- | @dzen str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds.
 -- Example usage:
+--
 -- > dzen "Hi, mom!" (5 `seconds`)
 dzen :: String -> Int -> X ()
 dzen str timeout = dzenWithArgs str [] timeout
 
 -- | @dzen str args timeout@ pipes @str@ to dzen2 for @timeout@ seconds, passing @args@ to dzen.
 -- Example usage:
+--
 -- > dzenWithArgs "Hi, dons!" ["-ta", "r"] (5 `seconds`)
 dzenWithArgs :: String -> [String] -> Int -> X ()
 dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
@@ -52,12 +54,14 @@ dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
 
 -- | Flashes when a window requests your attention and you can't see it. For use with
 -- XMonadContrib.UrgencyHook. Usage:
+--
 -- > urgencyHook = dzenUrgencyHook (5 `seconds`)
 dzenUrgencyHook :: Int -> Window -> X ()
 dzenUrgencyHook = dzenUrgencyHookWithArgs []
 
 -- | Flashes when a window requests your attention and you can't see it. For use with
 -- XMonadContrib.UrgencyHook. Usage:
+--
 -- > urgencyHook = dzenUrgencyHookWithArgs ["-bg", "darkgreen"] (5 `seconds`)
 dzenUrgencyHookWithArgs :: [String] -> Int -> Window -> X ()
 dzenUrgencyHookWithArgs args duration w = do

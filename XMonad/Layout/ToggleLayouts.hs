@@ -32,9 +32,11 @@ import XMonad
 -- > layoutHook = Layout $ toggleLayouts (noBorders Full) $ Select layouts
 --
 -- and a key binding like
+--
 -- >    , ((modMask .|. controlMask, xK_space), sendMessage ToggleLayout)
 --
 -- or a key binding like
+--
 -- >    , ((modMask .|. controlMask, xK_space), sendMessage (Toggle "Full"))
 
 data ToggleLayouts lt lf a = ToggleLayouts Bool (lt a) (lf a) deriving (Read,Show)

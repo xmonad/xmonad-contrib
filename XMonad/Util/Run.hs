@@ -10,7 +10,7 @@
 --
 -- This modules provides several commands to run an external process.
 -- It is composed of functions formerly defined in XMonad.Util.Dmenu (by
--- Spenver Jannsen), XMonad.Util.Dzen (by glasser@mit.edu) and
+-- Spenver Jannsen), XMonad.Util.Dzen (by glasser\@mit.edu) and
 -- XMonad.Util.RunInXTerm (by Andrea Rossato).
 --
 -----------------------------------------------------------------------------
@@ -81,6 +81,7 @@ runProcessWithInputAndWait cmd args input timeout = do
 
 {- | Multiplies by ONE MILLION, for use with runProcessWithInputAndWait.
      Use like:
+
      > (5.5 `seconds`)
 -}
 seconds :: Rational -> Int
@@ -93,6 +94,7 @@ seconds = fromEnum . (* 1000000)
    as to bypass the shell and be certain the program will receive the string as you typed it.
    unsafeSpawn is an alias for XMonad's 'spawn', to remind one that use of it can be, well, unsafe.
    Examples:
+
    >     , ((modMask,               xK_Print ), unsafeSpawn "import -window root png:$HOME/xwd-$(date +%s)$$.png")
    >     , ((modMask,               xK_d     ), safeSpawn "firefox" "")
 
