@@ -16,10 +16,10 @@
 module XMonad.Util.NamedWindows (
                                    -- * Usage
                                    -- $usage
-                                   NamedWindow, 
-                                   getName, 
-                                   withNamedWindow, 
-                                   unName 
+                                   NamedWindow,
+                                   getName,
+                                   withNamedWindow,
+                                   unName
                                   ) where
 
 import Control.Monad.Reader ( asks )
@@ -33,7 +33,7 @@ import Graphics.X11.Xlib.Extras
 import XMonad
 
 -- $usage
---   See "XMonadContrib.Mosaic" for an example of its use.
+--   See "XMonad.Layout.Mosaic" for an example of its use.
 
 
 data NamedWindow = NW !String !Window

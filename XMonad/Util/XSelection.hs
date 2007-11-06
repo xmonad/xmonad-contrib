@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.XSelection
+-- Module      :  XMonad.Util.XSelection
 -- Copyright   :  (C) 2007 Andrea Rossato, Matthew Sackman
 -- License     :  BSD3
 --
@@ -43,7 +43,7 @@ import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 import XMonad (X, io)
 
 {- $usage
-    Add 'import XMonadContrib.XSelection' to the top of Config.hs
+    Add 'import XMonad.Util.XSelection' to the top of Config.hs
     Then make use of getSelection or promptSelection as needed; if
     one wanted to run Firefox with the selection as an argument (say,
     the selection is an URL you just highlighted), then one could add
