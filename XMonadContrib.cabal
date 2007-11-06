@@ -59,7 +59,7 @@ library
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.Circle
-                        -- XMonad.Layout.Combo
+                        XMonad.Layout.Combo
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.Grid
