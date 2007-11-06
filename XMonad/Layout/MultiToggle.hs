@@ -9,18 +9,22 @@
 -- Maintainer  :  <l.mai@web.de>
 -- Stability   :  unstable
 -- Portability :  unportable
+--
+-- Dynamically apply and unapply transformers to your window layout. This can
+-- be used to rotate your window layout by 90 degrees, or to make the
+-- currently focused window occupy the whole screen (\"zoom in\") then undo
+-- the transformation (\"zoom out\").
 
 
 module XMonad.Layout.MultiToggle (
-    EL(..),
-    unEL,
-    LayoutTransformer(..),
+    -- * Usage
+    -- $usage
+    Transformer(..),
     Toggle(..),
-    (.*.),
-    HNil(..),
+    (??),
+    EOT(..),
     mkToggle
 ) where
-
 
 import XMonad
 
@@ -28,15 +32,87 @@ import Control.Arrow
 import Data.Typeable
 import Data.Maybe
 
+-- $usage
+-- The basic idea is to have a base layout and a set of layout transformers,
+-- of which at most one is active at any time. Enabling another transformer
+-- first disables any currently active transformer; i.e. it works like a
+-- group of radio buttons.
+--
+-- A side effect of this meta-layout is that layout transformers no longer
+-- receive any messages; any message not handled by SwitchTrans itself will
+-- undo the current layout transformer, pass the message on to the base
+-- layout, then reapply the transformer.
+--
+-- To use this module, you first have to define the transformers that you
+-- want to be handled by @MultiToggle@. For example, if the transformer is
+-- 'XMonad.Layouts.Mirror':
+--
+-- > data MIRROR = MIRROR deriving (Read, Show, Eq, Typeable)
+-- > instance Transformer MIRROR Window where
+-- >     transform _ x k = k (Mirror x)
+--
+-- @MIRROR@ can be any identifier (it has to start with an uppercase letter,
+-- of course); I've chosen an all-uppercase version of the transforming
+-- function's name here. You need to put @{-\# OPTIONS_GHC -fglasgow-exts \#-}@
+-- at the beginning of your file to be able to derive "Data.Typeable".
+--
+-- Somewhere else in your file you probably have a definition of @layout@;
+-- the default looks like this:
+--
+-- > layout = tiled ||| Mirror tiled ||| Full
+--
+-- After changing this to
+--
+-- > layout = mkToggle (MIRROR ?? EOT) (tiled ||| Full)
+--
+-- you can now dynamically apply the 'XMonad.Layouts.Mirror' transformation:
+--
+-- > ...
+-- >   , ((modMask,               xK_x     ), sendMessage $ Toggle MIRROR)
+-- > ...
+--
+-- (That should be part of your key bindings.) When you press @mod-x@, the
+-- active layout is mirrored. Another @mod-x@ and it's back to normal.
+--
+-- It's also possible to stack @MultiToggle@s. Let's define a few more
+-- transformers ('XMonad.Layout.NoBorders.noBorders' is in
+-- "XMonad.Layout.NoBorders"):
+--
+-- > data NOBORDERS = NOBORDERS deriving (Read, Show, Eq, Typeable)
+-- > instance Transformer NOBORDERS Window where
+-- >     transform _ x k = k (noBorders x)
+-- > 
+-- > data FULL = FULL deriving (Read, Show, Eq, Typeable)
+-- > instance Transformer FULL Window where
+-- >     transform _ x k = k Full
+--
+-- @
+-- layout = id
+--     . 'XMonad.Layout.NoBorders.smartBorders'
+--     . mkToggle (NOBORDERS ?? FULL ?? EOT)
+--     . mkToggle (MIRROR ?? EOT)
+--     $ tiled ||| 'XMonad.Layout.Grid.Grid' ||| 'XMonad.Layout.Circle.Circle'
+-- @
+--
+-- By binding a key to @(sendMessage $ Toggle FULL)@ you can temporarily
+-- maximize windows, in addition to being able to rotate layouts and remove
+-- window borders.
+
+-- | A class to identify custom transformers (and look up transforming
+-- functions by type).
+class (Eq t, Typeable t) => Transformer t a | t -> a where
+    transform :: (LayoutClass l a) => t -> l a -> (forall l'. (LayoutClass l' a) => l' a -> b) -> b
+
 data EL a = forall l. (LayoutClass l a) => EL (l a)
 
 unEL :: EL a -> (forall l. (LayoutClass l a) => l a -> b) -> b
 unEL (EL x) k = k x
 
-class (Eq t, Typeable t) => LayoutTransformer t a | t -> a where
-    transform :: t -> EL a -> EL a
+transform' :: (Transformer t a) => t -> EL a -> EL a
+transform' t el = el `unEL` \l -> transform t l EL
 
-data Toggle a = forall t. (LayoutTransformer t a) => Toggle t
+-- | Toggle the specified layout transformer.
+data Toggle a = forall t. (Transformer t a) => Toggle t
     deriving (Typeable)
 
 instance (Typeable a) => Message (Toggle a)
@@ -56,7 +132,7 @@ expand :: (LayoutClass l a, HList ts a) => MultiToggleS ts l a -> MultiToggle ts
 expand (MultiToggleS b i ts) =
     resolve ts (fromMaybe (-1) i) id
         (\x mt ->
-            let g = transform x in
+            let g = transform' x in
             mt{
                 currLayout = g . EL $ baseLayout mt,
                 currTrans = g
@@ -73,25 +149,30 @@ instance (LayoutClass l a, Read (l a), HList ts a, Read ts) => Read (MultiToggle
 instance (Show ts, Show (l a)) => Show (MultiToggle ts l a) where
     showsPrec p = showsPrec p . collapse
 
+-- | Construct a @MultiToggle@ layout from a transformer table and a base
+-- layout.
 mkToggle :: (LayoutClass l a) => ts -> l a -> MultiToggle ts l a
 mkToggle ts l = MultiToggle l (EL l) Nothing id ts
 
-data HNil = HNil deriving (Read, Show)
+-- | Marks the end of a transformer list.
+data EOT = EOT deriving (Read, Show)
 data HCons a b = HCons a b deriving (Read, Show)
 
-infixr 0 .*.
-(.*.) :: (HList b w) => a -> b -> HCons a b
-(.*.) = HCons
+infixr 0 ??
+-- | Prepend an element to a heterogenuous list. Used to build transformer
+-- tables for 'mkToggle'.
+(??) :: (HList b w) => a -> b -> HCons a b
+(??) = HCons
 
 class HList c a where
-    find :: (LayoutTransformer t a) => c -> t -> Maybe Int
-    resolve :: c -> Int -> b -> (forall t. (LayoutTransformer t a) => t -> b) -> b
+    find :: (Transformer t a) => c -> t -> Maybe Int
+    resolve :: c -> Int -> b -> (forall t. (Transformer t a) => t -> b) -> b
 
-instance HList HNil w where
-    find HNil _ = Nothing
-    resolve HNil _ d _ = d
+instance HList EOT w where
+    find EOT _ = Nothing
+    resolve EOT _ d _ = d
 
-instance (LayoutTransformer a w, HList b w) => HList (HCons a b) w where
+instance (Transformer a w, HList b w) => HList (HCons a b) w where
     find (HCons x xs) t
         | t `geq` x = Just 0
         | otherwise = fmap succ (find xs t)
@@ -129,7 +210,7 @@ instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (Mult
                         }
                 else do
                     handleMessage l (SomeMessage ReleaseResources)
-                    let f = transform t
+                    let f = transform' t
                     return . Just $
                         mt{
                             currLayout = f . EL $ baseLayout mt,
