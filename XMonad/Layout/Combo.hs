@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
+             UndecidableInstances, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -63,15 +64,15 @@ import qualified XMonad.StackSet as W ( differentiate )
 -- %import XMonad.Layout.Combo
 -- %layout , combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf)
 
-data CombineTwo l l1 l2 a = C2 [a] [a] (l ()) (l1 a) (l2 a)
+data CombineTwo l l1 l2 a = C2 [a] [a] l (l1 a) (l2 a)
                             deriving (Read, Show)
 
 combineTwo :: (Read a, Eq a, LayoutClass super (), LayoutClass l1 a, LayoutClass l2 a) =>
-              super () -> l1 a -> l2 a -> CombineTwo super l1 l2 a
+              super () -> l1 a -> l2 a -> CombineTwo (super ()) l1 l2 a
 combineTwo = C2 [] []
 
 instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a)
-    => LayoutClass (CombineTwo l l1 l2) a where
+    => LayoutClass (CombineTwo (l ()) l1 l2) a where
     doLayout (C2 f w2 super l1 l2) rinput s = arrange (integrate s)
         where arrange [] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage Hide)
                               l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage Hide)

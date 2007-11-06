@@ -37,11 +37,11 @@ infixr 6 <||>, <//>, <-||>, <-//>, <||->, <//->, <|>, <-|>, <|->, </>, <-/>, </-
 
 (<||>), (<//>), (<-||>), (<-//>), (<||->), (<//->)
     :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-       l1 a -> l2 a -> CombineTwo DragPane l1 l2 a
+       l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
 (<|>), (<-|>), (<|->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-                         => l1 a -> l2 a -> CombineTwo Tall l1 l2 a
+                         => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
 (</>), (<-/>), (</->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-                         => l1 a -> l2 a -> CombineTwo (Mirror Tall) l1 l2 a
+                         => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
 
 (<||>) = combineTwo (dragPane Vertical 0.1 0.5)
 (<-||>) = combineTwo (dragPane Vertical 0.1 0.2)
