@@ -25,7 +25,7 @@ module XMonad.Layout.Magnifier (
 import Graphics.X11.Xlib (Window, Rectangle(..))
 import XMonad
 import XMonad.StackSet
-import XMonad.Layout.LayoutHelpers
+-- import XMonad.Layout.LayoutHelpers
 
 -- $usage
 -- > import XMonad.Layout.Magnifier

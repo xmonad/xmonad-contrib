@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module       : XMonadContrib.EwmhDesktops
+-- Module       : XMonad.Hooks.EwmhDesktops
 -- Copyright    : (c) Joachim Breitner <mail@joachim-breitner.de>
 -- License      : BSD
 --
@@ -11,7 +11,7 @@
 -- Makes xmonad use the EWMH hints to tell panel applications about its
 -- workspaces and the windows therein.
 -----------------------------------------------------------------------------
-module XMonadContrib.EwmhDesktops (
+module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
     ewmhDesktopsLogHook
@@ -27,18 +27,18 @@ import qualified XMonad.StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
-import XMonadContrib.SetWMName
+import XMonad.Hooks.SetWMName
 
 -- $usage
 -- Add the imports to your configuration file and add the logHook:
 --
--- > import XMonadContrib.EwmhDesktops
+-- > import XMonad.Hooks.EwmhDesktops
 --
 -- > logHook :: X()
 -- > logHook = do ewmhDesktopsLogHook
 -- >              return ()
 
--- %import XMonadContrib.EwmhDesktops
+-- %import XMonad.Hooks.EwmhDesktops
 -- %def -- comment out default logHook definition above if you uncomment this:
 -- %def logHook = ewmhDesktopsLogHook
 
