@@ -66,7 +66,8 @@ makeSimpleDzenConfig :: IO XConfig
 makeSimpleDzenConfig = do
   h <- spawnPipe "dzen2"
   return defaultConfig
-           { logHook = dynamicLogWithPP defaultPP
+           { defaultGaps = [(18,0,0,0)]
+           , logHook = dynamicLogWithPP defaultPP
                                           { ppOutput = hPutStrLn h } }
 
 -- |
