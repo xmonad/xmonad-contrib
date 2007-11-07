@@ -31,7 +31,8 @@ module XMonad.Hooks.DynamicLog (
 
     PP(..), defaultPP, dzenPP, sjanssenPP,
     wrap, pad, shorten,
-    xmobarColor, dzenColor, dzenEscape
+    xmobarColor, dzenColor, dzenEscape,
+    makeSimpleDzenConfig
   ) where
 
 -- 
@@ -44,7 +45,9 @@ import Data.List
 import Data.Ord ( comparing )
 import qualified XMonad.StackSet as S
 import Data.Monoid
+import System.IO
 import XMonad.Util.NamedWindows
+import XMonad.Util.Run
 
 -- $usage 
 --
@@ -57,6 +60,14 @@ import XMonad.Util.NamedWindows
 -- %def -- comment out default logHook definition above if you uncomment any of these:
 -- %def logHook = dynamicLog
 
+-- | An example xmonad config that spawns a new dzen toolbar and uses the default
+-- dynamic log output
+makeSimpleDzenConfig :: IO XConfig
+makeSimpleDzenConfig = do
+  h <- spawnPipe "dzen2"
+  return defaultConfig
+           { logHook = dynamicLogWithPP defaultPP
+                                          { ppOutput = hPutStrLn h } }
 
 -- |
 -- An example log hook, print a status bar output to stdout, in the form:
