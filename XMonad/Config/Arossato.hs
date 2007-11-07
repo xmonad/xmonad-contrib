@@ -18,7 +18,6 @@ import XMonad
 import XMonad.Layouts
 import XMonad.Operations
 import qualified XMonad.StackSet as W
-import Data.Ratio
 import Data.Bits ((.|.))
 import qualified Data.Map as M
 import Graphics.X11.Xlib
