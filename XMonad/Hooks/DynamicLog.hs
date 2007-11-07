@@ -25,6 +25,7 @@ module XMonad.Hooks.DynamicLog (
     dynamicLogDzen,
     dynamicLogWithPP,
     dynamicLogXinerama,
+    dzen,
 
     pprWindowSet,
     pprWindowSetXinerama,
@@ -67,8 +68,30 @@ makeSimpleDzenConfig = do
   h <- spawnPipe "dzen2"
   return defaultConfig
            { defaultGaps = [(18,0,0,0)]
-           , logHook = dynamicLogWithPP defaultPP
+           , logHook = dynamicLogWithPP dzenPP
                                           { ppOutput = hPutStrLn h } }
+
+-- | 
+--
+-- Run xmonad with a dzen status bar set to some nice defaults. Output 
+-- it taken fromthe dynamicLogWithPP hook.
+--
+-- > main = dzen xmonad
+--
+-- The intent is that the avove config file should provide a nice status
+-- bar with minimal effort.
+--
+dzen :: (XConfig -> IO ()) -> IO ()
+dzen f = do
+  h <- spawnPipe ("dzen2" ++ " " ++ flags)
+  f $ defaultConfig
+           { defaultGaps = [(18,0,0,0)]
+           , logHook = dynamicLogWithPP dzenPP
+                          { ppOutput = hPutStrLn h } }
+ where
+    fg      = "'#a8a3f7'" -- n.b quoting
+    bg      = "'#3f3c6d'"
+    flags   = "-e '' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
 
 -- |
 -- An example log hook, print a status bar output to stdout, in the form:

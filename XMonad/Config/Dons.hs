@@ -13,15 +13,12 @@
 module XMonad.Config.Dons where
 
 import XMonad
-import XMonad.Config
 import XMonad.Hooks.DynamicLog
 
-config :: XConfig
-config = defaultConfig
-    { borderWidth        = 2
-    , defaultGaps        = [(18,0,0,0)]
-    , terminal           = "term"
-    , normalBorderColor  = "#cccccc"
-    , focusedBorderColor = "#cd8b00"
-    , logHook            = dynamicLogDzen }
+donsMain :: IO ()
+donsMain = dzen $ \conf -> xmonad $ conf
+        { borderWidth        = 2
+        , terminal           = "term"
+        , normalBorderColor  = "#cccccc"
+        , focusedBorderColor = "#cd8b00" }
 
