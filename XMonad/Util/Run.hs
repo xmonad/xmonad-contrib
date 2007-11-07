@@ -24,16 +24,18 @@ module XMonad.Util.Run (
                           unsafeSpawn,
                           runInTerm,
                           safeRunInTerm,
-                          seconds
+                          seconds,
+                          spawnPipe
                          ) where
 
 import Control.Monad.Reader
+import System.Posix.IO
 import System.Posix.Process (createSession, forkProcess, executeFile,
                              getProcessStatus)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try)
 import System.Exit (ExitCode(ExitSuccess), exitWith)
-import System.IO (IO, FilePath, hPutStr, hGetContents, hFlush, hClose)
+import System.IO
 import System.Process (runInteractiveProcess, waitForProcess)
 import XMonad
 
@@ -114,3 +116,19 @@ safeRunInTerm command = asks (terminal . config) >>= \t -> safeSpawn t ("-e " ++
 unsafeRunInTerm, runInTerm :: String -> X ()
 unsafeRunInTerm command = asks (terminal . config) >>= \t -> unsafeSpawn $ t ++ " -e " ++ command
 runInTerm = unsafeRunInTerm
+
+-- | Launch an external application and return a 'Handle' to its standard input.
+spawnPipe :: String -> IO Handle
+spawnPipe x = do
+    (rd, wr) <- createPipe
+    setFdOption wr CloseOnExec True
+    h <- fdToHandle wr
+    hSetBuffering h LineBuffering
+    pid <- forkProcess $ do
+        forkProcess $ do
+            dupTo rd stdInput
+            createSession
+            executeFile "/bin/sh" False ["-c", x] Nothing
+        exitWith ExitSuccess
+    getProcessStatus True False pid
+    return h
