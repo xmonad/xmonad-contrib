@@ -40,7 +40,7 @@ import XMonad.StackSet ( integrate )
 -- %layout , Layout $ spiral (1 % 1)
 
 fibs :: [Integer]
-fibs = 1 : 1 : (zipWith (+) fibs (tail fibs))
+fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 
 mkRatios :: [Integer] -> [Rational]
 mkRatios (x1:x2:xs) = (x1 % x2) : mkRatios (x2:xs)
