@@ -65,7 +65,7 @@ myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
 keys :: XConfig -> M.Map (KeyMask, KeySym) (X ())
 keys x = M.fromList $
     -- launching and killing programs
-    [ ((modMask x .|. shiftMask, xK_c     ), kill) -- %! Close the focused window
+    [ ((modMask x .|. shiftMask, xK_c     ), kill1) -- %! Close the focused window
 
     , ((modMask x,               xK_space ), sendMessage NextLayout) -- %! Rotate through the available layout algorithms
     , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x) -- %!  Reset the layouts on the current workspace to default
@@ -76,7 +76,6 @@ keys x = M.fromList $
     , ((modMask x,               xK_Tab   ), windows W.focusDown) -- %! Move focus to the next window
     , ((modMask x,               xK_j     ), windows W.focusDown) -- %! Move focus to the next window
     , ((modMask x,               xK_k     ), windows W.focusUp  ) -- %! Move focus to the previous window
-    , ((modMask x,               xK_m     ), windows W.focusMaster  ) -- %! Move focus to the master window
 
     , ((modMask x .|. shiftMask, xK_j     ), windows W.swapDown  ) -- %! Swap the focused window with the next window
     , ((modMask x .|. shiftMask, xK_k     ), windows W.swapUp    ) -- %! Swap the focused window with the previous window
@@ -86,7 +85,7 @@ keys x = M.fromList $
 
     -- quit, or restart
     , ((modMask x .|. shiftMask, xK_Escape), io (exitWith ExitSuccess)) -- %! Quit xmonad
-    , ((modMask x              , xK_Escape), broadcastMessage ReleaseResources >> restart (Just "xmonad-droundy") True) -- %! Restart xmonad
+    , ((modMask x              , xK_Escape), broadcastMessage ReleaseResources >> restart (Just "xmonad") True) -- %! Restart xmonad
 
     , ((modMask x .|. shiftMask, xK_z     ),
        layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
@@ -113,6 +112,7 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_x     ), changeDir myXPConfig)
     , ((modMask x .|. shiftMask, xK_BackSpace), removeWorkspace)
     , ((modMask x .|. shiftMask, xK_v     ), selectWorkspace myXPConfig)
+    , ((modMask x, xK_m     ), workspacePrompt myXPConfig (windows . W.shift))
     , ((modMask x .|. shiftMask, xK_m     ), workspacePrompt myXPConfig (windows . copy))
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
