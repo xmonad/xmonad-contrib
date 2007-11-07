@@ -51,6 +51,7 @@ library
                         XMonad.Actions.WmiiActions
                         XMonad.Config.Sjanssen
                         XMonad.Config.Dons
+                        XMonad.Config.Arossato
                         XMonad.Config.Droundy
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
