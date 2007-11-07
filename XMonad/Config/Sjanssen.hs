@@ -10,17 +10,21 @@ import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog
 import XMonad.Prompt
 import XMonad.Prompt.Shell
+import XMonad.Util.Run (spawnPipe)
 
 import Data.Bits
 import qualified Data.Map as M
 import Graphics.X11
+import System.IO (hPutStrLn)
 
-sjanssenConfig :: XConfig
-sjanssenConfig = defaultConfig
+sjanssenConfig :: IO XConfig
+sjanssenConfig = do
+    xmobar <- spawnPipe "xmobar"
+    return $ defaultConfig
         { defaultGaps = [(15,0,0,0)]
         , terminal = "urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 7 :: Int] ++ ["mail", "im"]
-        , logHook = dynamicLogWithPP sjanssenPP
+        , logHook = dynamicLogWithPP $ sjanssenPP { ppOutput = hPutStrLn xmobar }
         , modMask = mod4Mask
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
                 [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w))
