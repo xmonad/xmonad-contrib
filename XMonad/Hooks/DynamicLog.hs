@@ -81,7 +81,7 @@ dynamicLogWithPP pp = do
     -- window title
     wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek
 
-    io . putStrLn . sepBy (ppSep pp) . ppOrder pp $
+    io . ppOutput pp . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp wt
@@ -171,7 +171,9 @@ data PP = PP { ppCurrent, ppVisible
              , ppSep, ppWsSep :: String
              , ppTitle :: String -> String
              , ppLayout :: String -> String
-             , ppOrder :: [String] -> [String] }
+             , ppOrder :: [String] -> [String]
+             , ppOutput :: String -> IO ()
+             }
 
 -- | The default pretty printing options, as seen in dynamicLog
 defaultPP :: PP
@@ -183,7 +185,9 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppWsSep           = " "
                , ppTitle           = shorten 80
                , ppLayout          = id
-               , ppOrder           = id }
+               , ppOrder           = id
+               , ppOutput          = putStrLn
+               }
 
 -- | Settings to emulate dwm's statusbar, dzen only
 dzenPP :: PP
