@@ -16,6 +16,19 @@
 -- It also allows you to reset the gap to reflect the state of current STRUT
 -- windows (for example, after you resized or closed a panel), and to toggle the Gap
 -- in a STRUT-aware fashion.
+
+-- The avoidStruts layout modifier allows you to make xmonad dynamically
+-- avoid overlapping windows with panels.  You can (optionally) enable this
+-- on a selective basis, so that some layouts will effectively hide the
+-- panel, by placing windows on top of it.  An example use of avoidStruts
+-- would be:
+
+-- > layoutHook = Layout $ toggleLayouts (noBorders Full) $ avoidStruts $
+-- >                       your actual layouts here ||| ...
+
+-- This would enable a full-screen mode that overlaps the panel, while all
+-- other layouts avoid the panel.
+
 -----------------------------------------------------------------------------
 module XMonad.Hooks.ManageDocks (
     -- * Usage
@@ -144,7 +157,7 @@ data AvoidStruts l a = AvoidStruts (l a) deriving ( Read, Show )
 instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
     doLayout (AvoidStruts lo) (Rectangle x y w h) s =
         do (t,l,b,r) <- calcGap
-           let rect = Rectangle (x+10+fromIntegral l) (y+fromIntegral t)
+           let rect = Rectangle (x+fromIntegral l) (y+fromIntegral t)
                       (w-fromIntegral l-fromIntegral r) (h-fromIntegral t-fromIntegral b)
            (wrs,mlo') <- doLayout lo rect s
            return (wrs, AvoidStruts `fmap` mlo')
