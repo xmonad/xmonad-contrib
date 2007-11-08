@@ -37,7 +37,7 @@ import Control.Exception as E (catch)
 import Control.Monad(Monad (return, (>>)), Functor(..), liftM, join)
 import Data.Char (chr, ord)
 import Data.Maybe (fromMaybe)
-import Foreign (Word8)
+import Foreign.C.Types (CChar)
 import Data.Bits (shiftL, (.&.), (.|.))
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 import XMonad (X, io)
@@ -146,7 +146,7 @@ unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ "
    <http://code.haskell.org/utf8-string/> (version 0.1), which is BSD-3 licensed, as is this module.
    It'd be better to just import Codec.Binary.UTF8.String (decode), but then users of this would need to install it; Xmonad has enough
    dependencies already. -}
-decode :: [Word8] -> String
+decode :: [CChar] -> String
 decode [    ] = ""
 decode (c:cs)
   | c < 0x80  = chr (fromEnum c) : decode cs
@@ -161,10 +161,10 @@ decode (c:cs)
     replacement_character :: Char
     replacement_character = '\xfffd'
 
-    multi_byte :: Int -> Word8 -> Int -> [Char]
+    multi_byte :: Int -> CChar -> Int -> [Char]
     multi_byte i mask overlong = aux i cs (fromEnum (c .&. mask))
       where
-        aux :: Int -> [Word8] -> Int -> [Char]
+        aux :: Int -> [CChar] -> Int -> [Char]
         aux 0 rs acc
           | overlong <= acc && acc <= 0x10ffff &&
             (acc < 0xd800 || 0xdfff < acc)     &&
