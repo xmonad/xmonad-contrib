@@ -5,7 +5,7 @@
 -- Module      :  XMonad.Layout.Magnifier
 -- Copyright   :  (c) Peter De Wachter 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
--- 
+--
 -- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -20,12 +20,14 @@
 module XMonad.Layout.Magnifier (
     -- * Usage
     -- $usage
-    magnifier, magnifier') where
+    magnifier,
+    Magnifier(..),
+    Magnifier'(..)) where
 
 import Graphics.X11.Xlib (Window, Rectangle(..))
 import XMonad
 import XMonad.StackSet
--- import XMonad.Layout.LayoutHelpers
+import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- > import XMonad.Layout.Magnifier
@@ -36,18 +38,25 @@ import XMonad.StackSet
 -- %layout , magnifier $ mirror tiled
 
 -- | Increase the size of the window that has focus, unless it is the master window.
-magnifier :: Layout Window -> Layout Window
-magnifier = layoutModify (unlessMaster applyMagnifier) idModMod
+data Magnifier a = Magnifier deriving (Read, Show)
+instance LayoutModifier Magnifier Window where
+    modifierDescription _ = "Magnifier"
+    redoLayout _ = unlessMaster applyMagnifier
 
 -- | Increase the size of the window that has focus, even if it is the master window.
-magnifier' :: Layout Window -> Layout Window
-magnifier' = layoutModify applyMagnifier idModMod
+data Magnifier' a = Magnifier' deriving (Read, Show)
+instance LayoutModifier Magnifier' Window where
+    modifierDescription _ = "Magnifier'"
+    redoLayout _ = applyMagnifier
 
-unlessMaster :: ModDo Window -> ModDo Window
+magnifier :: l a -> ModifiedLayout Magnifier l a
+magnifier = ModifiedLayout Magnifier
+
+unlessMaster :: forall t t1 a a1 (m :: * -> *). (Monad m) => (t -> Stack a -> t1 -> m (t1, Maybe a1)) -> t -> Stack a -> t1 -> m (t1, Maybe a1)
 unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
                                               else mainmod r s wrs
 
-applyMagnifier :: ModDo Window
+applyMagnifier :: Rectangle -> t -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe a)
 applyMagnifier r _ wrs = do focused <- withWindowSet (return . peek)
                             let mag (w,wr) ws | focused == Just w = ws ++ [(w, shrink r $ magnify wr)]
                                               | otherwise         = (w,wr) : ws
@@ -63,7 +72,7 @@ magnify (Rectangle x y w h) = Rectangle x' y' w' h'
 
 shrink :: Rectangle -> Rectangle -> Rectangle
 shrink (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'
-    where x' = max sx x 
+    where x' = max sx x
           y' = max sy y
           w' = min w (fromIntegral sx + sw - fromIntegral x')
           h' = min h (fromIntegral sy + sh - fromIntegral y')
