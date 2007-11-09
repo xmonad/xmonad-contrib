@@ -85,7 +85,8 @@ collect :: IORef (Pos, [(Direction, Pos, Pos)]) -> Position -> Position -> X ()
 collect st nx ny = do
     let np = (nx, ny)
     stx@(op, ds) <- io $ readIORef st
-    when (debugging > 0) $ io $ putStrLn $ show "Mouse Gesture" ++ unwords (map show (extract stx)) ++ (if debugging > 1 then "; " ++ show op ++ "-" ++ show np else "")
+    when (debugging > 0)
+        . io . hPutStrLn stderr $ show "Mouse Gesture" ++ unwords (map show (extract stx)) ++ (if debugging > 1 then "; " ++ show op ++ "-" ++ show np else "")
     case ds of
         []
             | insignificant np op -> return ()
@@ -110,15 +111,19 @@ extract (_, xs) = reverse . map (\(x, _, _) -> x) $ xs
 --   the corresponding action.
 mouseGesture :: Map [Direction] (Window -> X ()) -> Window -> X ()
 mouseGesture tbl win = withDisplay $ \dpy -> do
+    when (debugging > 1)
+        . io . hPutStrLn stderr $ "mouseGesture " ++ show (win, dpy)
     root <- asks theRoot
     let win' = if win == none then root else win
     acc <- io $ do
         qp@(_, _, _, ix, iy, _, _, _) <- queryPointer dpy win'
-        when (debugging > 1) $ putStrLn $ show "queryPointer" ++ show qp
-        when (debugging > 1 && win' == none) $ putStrLn $ show "mouseGesture" ++ "zomg none"
+        when (debugging > 1)
+            . hPutStrLn stderr $ show "queryPointer" ++ show qp
+        when (debugging > 1 && win' == none)
+            . hPutStrLn stderr $ show "mouseGesture" ++ "zomg none"
         newIORef ((fromIntegral ix, fromIntegral iy), [])
     mouseDrag (collect acc) $ do
-        when (debugging > 0) $ io $ putStrLn $ show ""
+        when (debugging > 0) . io . hPutStrLn stderr $ show ""
         gest <- io $ liftM extract $ readIORef acc
         case M.lookup gest tbl of
             Nothing -> return ()
