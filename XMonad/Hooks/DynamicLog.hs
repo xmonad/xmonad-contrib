@@ -85,7 +85,7 @@ dzen :: (XConfig -> IO ()) -> IO ()
 dzen f = do
   h <- spawnPipe ("dzen2" ++ " " ++ flags)
   f $ defaultConfig
-           { defaultGaps = [(18,0,0,0)]
+           { defaultGaps = [(15,0,0,0)] -- for fixed
            , logHook = dynamicLogWithPP dzenPP
                           { ppOutput = hPutStrLn h } }
  where
