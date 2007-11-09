@@ -37,9 +37,11 @@ import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )
 -- 
 -- > import XMonad.Actions.DynamicWorkspaces
 --
--- >   , ((modMask .|. shiftMask, xK_n), selectWorkspace defaultXPConfig)
 -- >   , ((modMask .|. shiftMask, xK_BackSpace), removeWorkspace)
--- >   , ((modMask .|. shiftMask .|. controlMask, xK_r), renameWorkspace defaultXPConfig)
+-- >   , ((modMask x .|. shiftMask, xK_v      ), selectWorkspace defaultXPConfig)
+-- >   , ((modMask x, xK_m                    ), withWorkspace defaultXPConfig (windows . W.shift))
+-- >   , ((modMask x .|. shiftMask, xK_m      ), withWorkspace defaultXPConfig (windows . copy))
+-- >   , ((modMask x .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
 -- 
 -- > -- mod-[1..9] %! Switch to workspace N
 -- > -- mod-shift-[1..9] %! Move client to workspace N
