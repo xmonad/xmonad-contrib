@@ -104,9 +104,9 @@ seconds = fromEnum . (* 1000000)
    $HOME and interpolation, whereas the safeSpawn example can be safe because Firefox doesn't need any arguments if it is
    just being started.
 -}
-safeSpawn :: FilePath -> String -> X ()
-safeSpawn prog arg = io (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
-unsafeSpawn :: String -> X ()
+safeSpawn :: MonadIO m => FilePath -> String -> m ()
+safeSpawn prog arg = liftIO (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
+unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
 
 -- | Run a given program in the preferred terminal emulator. This uses safeSpawn.
