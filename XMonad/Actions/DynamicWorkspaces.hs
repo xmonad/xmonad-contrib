@@ -17,6 +17,7 @@ module XMonad.Actions.DynamicWorkspaces (
                                          -- * Usage
                                          -- $usage
                                          addWorkspace, removeWorkspace,
+                                         withWorkspace,
                                          selectWorkspace, renameWorkspace,
                                          toNthWorkspace, withNthWorkspace
                                        ) where
@@ -25,12 +26,11 @@ import Control.Monad.Reader ( asks )
 import Control.Monad.State ( gets )
 import Data.List ( sort )
 
-import XMonad ( X, XState(..), Layout, WorkspaceId, WindowSet, config, layoutHook )
+import XMonad ( X, XState(..), WindowSet, config, layoutHook )
 import XMonad.Operations
 import XMonad.StackSet hiding (filter, modify, delete)
-import Graphics.X11.Xlib ( Window )
 import XMonad.Prompt.Workspace
-import XMonad.Prompt ( XPConfig )
+import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -48,8 +48,20 @@ import XMonad.Prompt ( XPConfig )
 -- >    ++
 -- >    zip (zip (repeat (modMask .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
 
-allPossibleTags :: [WorkspaceId]
-allPossibleTags = map (:"") ['0'..]
+data Wor = Wor String
+
+instance XPrompt Wor where
+    showXPrompt (Wor x) = x
+
+mkCompl :: [String] -> String -> IO [String]
+mkCompl l s = return $ filter (\x -> take (length s) x == s) l
+
+withWorkspace :: XPConfig -> (String -> X ()) -> X ()
+withWorkspace c job = do ws <- gets (workspaces . windowset)
+                         let ts = sort $ map tag ws
+                             job' t | t `elem` ts = job t
+                                    | otherwise = addHiddenWorkspace t >> job t
+                         mkXPrompt (Wor "") c (mkCompl ts) job'
 
 renameWorkspace :: XPConfig -> X ()
 renameWorkspace conf = workspacePrompt conf $ \w ->
@@ -72,15 +84,17 @@ withNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windows
 
 selectWorkspace :: XPConfig -> X ()
 selectWorkspace conf = workspacePrompt conf $ \w ->
-                       do l <- asks (layoutHook . config)
-                          windows $ \s -> if tagMember w s
-                                          then greedyView w s
-                                          else addWorkspace' w l s
+                       do s <- gets windowset
+                          if tagMember w s
+                            then windows $ greedyView w
+                            else addWorkspace w
 
-addWorkspace :: Layout Window -> X ()
-addWorkspace l = do s <- gets windowset
-                    let newtag:_ = filter (not . (`tagMember` s)) allPossibleTags
-                    windows (addWorkspace' newtag l)
+addWorkspace :: String -> X ()
+addWorkspace newtag = addHiddenWorkspace newtag >> windows (greedyView newtag)
+
+addHiddenWorkspace :: String -> X ()
+addHiddenWorkspace newtag = do l <- asks (layoutHook . config)
+                               windows (addHiddenWorkspace' newtag l)
 
 removeWorkspace :: X ()
 removeWorkspace = do s <- gets windowset
@@ -91,11 +105,8 @@ removeWorkspace = do s <- gets windowset
                                  windows (removeWorkspace' (tag torem))
                        _ -> return ()
 
-addWorkspace' :: i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
-addWorkspace' newtag l s@(StackSet { current = scr@(Screen { workspace = w })
-                                   , hidden = ws })
-    = s { current = scr { workspace = Workspace newtag l Nothing }
-        , hidden = w:ws }
+addHiddenWorkspace' :: i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
+addHiddenWorkspace' newtag l s@(StackSet { hidden = ws }) = s { hidden = Workspace newtag l Nothing:ws }
 
 removeWorkspace' :: (Eq i) => i -> StackSet i l a sid sd -> StackSet i l a sid sd
 removeWorkspace' torem s@(StackSet { current = scr@(Screen { workspace = wc })

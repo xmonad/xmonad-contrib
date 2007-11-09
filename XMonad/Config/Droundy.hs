@@ -43,7 +43,6 @@ import XMonad.Layout.WorkspaceDir
 import XMonad.Layout.ToggleLayouts
 
 import XMonad.Prompt
-import XMonad.Prompt.Workspace
 import XMonad.Prompt.Shell
 
 import XMonad.Actions.CopyWindow
@@ -69,8 +68,6 @@ keys x = M.fromList $
 
     , ((modMask x,               xK_space ), sendMessage NextLayout) -- %! Rotate through the available layout algorithms
     , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x) -- %!  Reset the layouts on the current workspace to default
-
-    , ((modMask x,               xK_n     ), refresh) -- %! Resize viewed windows to the correct size
 
     -- move focus up or down the window stack
     , ((modMask x,               xK_Tab   ), windows W.focusDown) -- %! Move focus to the next window
@@ -112,14 +109,11 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_x     ), changeDir myXPConfig)
     , ((modMask x .|. shiftMask, xK_BackSpace), removeWorkspace)
     , ((modMask x .|. shiftMask, xK_v     ), selectWorkspace myXPConfig)
-    , ((modMask x, xK_m     ), workspacePrompt myXPConfig (windows . W.shift))
-    , ((modMask x .|. shiftMask, xK_m     ), workspacePrompt myXPConfig (windows . copy))
+    , ((modMask x, xK_m     ), withWorkspace myXPConfig (windows . W.shift))
+    , ((modMask x .|. shiftMask, xK_m     ), withWorkspace myXPConfig (windows . copy))
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
-    , ((modMask x .|. controlMask, xK_f), sendMessage (JumpToLayout "Full"))
     ]
- 
-    -- % Extension-provided key bindings lists
  
     ++
     zip (zip (repeat $ modMask x) [xK_F1..xK_F12]) (map (withNthWorkspace W.greedyView) [0..])
@@ -137,11 +131,7 @@ mouseBindings x = M.fromList $
     -- mod-button3 %! Set the window to floating mode and resize by dragging
     , ((modMask x, button3), (\w -> focus w >> mouseResizeWindow w))
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
-
-    -- % Extension-provided mouse bindings
     ]
-
--- % Extension-provided definitions
 
 config :: XConfig
 config = defaultConfig
