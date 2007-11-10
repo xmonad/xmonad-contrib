@@ -22,7 +22,8 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook,
                                  focusUrgent,
                                  readUrgents, withUrgents,
-                                 dzenUrgencyHook, seconds
+                                 dzenUrgencyHook, DzenUrgencyHook(..),
+                                 seconds
                                  ) where
 
 import XMonad
