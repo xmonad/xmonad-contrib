@@ -13,18 +13,9 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Dzen (dzen, dzenWithArgs, dzenScreen,
-                           dzenUrgencyHook, dzenUrgencyHookWithArgs,
-                           seconds) where
+                         seconds) where
 
-import Control.Monad (when)
-import Control.Monad.State (gets)
-import qualified Data.Set as S
-import Graphics.X11.Types (Window)
-
-import qualified XMonad.StackSet as W
 import XMonad
-
-import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Run (runProcessWithInputAndWait, seconds)
 
 -- | @dzen str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds.
@@ -51,23 +42,3 @@ dzenScreen :: ScreenId -> String -> Int -> X()
 dzenScreen sc str timeout = dzenWithArgs str ["-xs", screen] timeout
     where screen  = toXineramaArg sc
           toXineramaArg n = show ( ((fromIntegral n)+1)::Int )
-
--- | Flashes when a window requests your attention and you can't see it. For use with
--- XMonad.Hooks.UrgencyHook. Usage:
--- > urgencyHook = dzenUrgencyHook (5 `seconds`)
-dzenUrgencyHook :: Int -> Window -> X ()
-dzenUrgencyHook = dzenUrgencyHookWithArgs []
-
--- | Flashes when a window requests your attention and you can't see it. For use with
--- XMonad.Hooks.UrgencyHook. Usage:
--- > urgencyHook = dzenUrgencyHookWithArgs ["-bg", "darkgreen"] (5 `seconds`)
-dzenUrgencyHookWithArgs :: [String] -> Int -> Window -> X ()
-dzenUrgencyHookWithArgs args duration w = do
-    visibles <- gets mapped
-    name <- getName w
-    ws <- gets windowset
-    whenJust (W.findTag w ws) (flash name visibles)
-  where flash name visibles index =
-              when (not $ S.member w visibles) $
-              dzenWithArgs (show name ++ " requests your attention on workspace " ++ index)
-                           args duration
