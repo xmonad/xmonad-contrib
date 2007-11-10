@@ -25,13 +25,13 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgents
                                  ) where
 
-import {-# SOURCE #-} Config (urgencyHook, logHook)
-import Operations (windows)
-import qualified StackSet as W
+import XMonad.Operations (windows)
+import qualified XMonad.StackSet as W
 import XMonad
 import XMonad.Layout.LayoutModifier
 
 import Control.Monad (when)
+import Control.Monad.Reader (asks)
 import Control.Monad.State (gets)
 import Data.Bits (testBit, clearBit)
 import Data.IORef
@@ -86,6 +86,7 @@ focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMayb
 {-# NOINLINE urgents #-}
 urgents :: IORef [Window]
 urgents = unsafePerformIO (newIORef [])
+-- (Hey, I don't like it any more than you do.)
 
 readUrgents :: X [Window]
 readUrgents = io $ readIORef urgents
@@ -93,15 +94,15 @@ readUrgents = io $ readIORef urgents
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
-data WithUrgencyHook a = WithUrgencyHook deriving (Read, Show)
+data WithUrgencyHook h a = WithUrgencyHook h deriving (Read, Show)
 
-instance LayoutModifier WithUrgencyHook Window where
-    handleMess _ mess
+instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
+    handleMess (WithUrgencyHook theHook) mess
       | Just PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } <- fromMessage mess = do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               wmh@WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               when (testBit flags urgencyHintBit) $ do
-                  urgencyHook w
+                  urgencyHook theHook w
                   -- Clear the urgency bit in the WMHints flags field. According to the
                   -- Xlib manual, the *client* is supposed to clear this flag when the urgency
                   -- has been resolved, but, Xchat2, for example, sets the WMHints several
@@ -109,7 +110,9 @@ instance LayoutModifier WithUrgencyHook Window where
                   -- not a typical WM, so we're just breaking one more rule, here.
                   io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                  logHook -- call logHook after IORef has been modified
+                  -- Call logHook after IORef has been modified.
+                  theLogHook <- asks (logHook . config)
+                  theLogHook
               -- Doing the setWMHints triggers another propertyNotify with the bit
               -- cleared, so we ignore that message. This has the potentially wrong
               -- effect of ignoring *all* urgency-clearing messages, some of which might
@@ -130,5 +133,9 @@ instance LayoutModifier WithUrgencyHook Window where
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents f = io $ modifyIORef urgents f
 
-withUrgencyHook :: LayoutClass l Window => l Window -> ModifiedLayout WithUrgencyHook l Window
-withUrgencyHook = ModifiedLayout WithUrgencyHook
+withUrgencyHook :: (UrgencyHook h Window, LayoutClass l Window) =>
+                   h -> l Window -> ModifiedLayout (WithUrgencyHook h) l Window
+withUrgencyHook theHook = ModifiedLayout $ WithUrgencyHook theHook
+
+class (Read h, Show h) => UrgencyHook h a where
+  urgencyHook :: h -> a -> X ()

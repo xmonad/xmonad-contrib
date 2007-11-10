@@ -57,7 +57,7 @@ library
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.SetWMName
-                        -- XMonad.Hooks.UrgencyHook
+                        XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.Circle
