@@ -22,6 +22,7 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook,
                                  focusUrgent,
                                  readUrgents, withUrgents,
+                                 NoUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
                                  seconds
                                  ) where
@@ -143,6 +144,11 @@ withUrgencyHook theHook = ModifiedLayout $ WithUrgencyHook theHook
 
 class (Read h, Show h) => UrgencyHook h a where
     urgencyHook :: h -> a -> X ()
+
+data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
+
+instance UrgencyHook NoUrgencyHook Window where
+    urgencyHook _ _ = return ()
 
 data DzenUrgencyHook = DzenUrgencyHook { duration :: Int, args :: [String] }
     deriving (Read, Show)
