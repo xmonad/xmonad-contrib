@@ -10,7 +10,7 @@
 --
 -- This modules provides several commands to run an external process.
 -- It is composed of functions formerly defined in XMonad.Util.Dmenu (by
--- Spenver Jannsen), XMonad.Util.Dzen (by glasser\@mit.edu) and
+-- Spencer Jannsen), XMonad.Util.Dzen (by glasser\@mit.edu) and
 -- XMonad.Util.RunInXTerm (by Andrea Rossato).
 --
 -----------------------------------------------------------------------------
