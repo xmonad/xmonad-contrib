@@ -21,14 +21,17 @@ module XMonad.Hooks.UrgencyHook (
                                  -- $usage
                                  withUrgencyHook,
                                  focusUrgent,
-                                 readUrgents,
-                                 withUrgents
+                                 readUrgents, withUrgents,
+                                 dzenUrgencyHook, seconds
                                  ) where
 
+import XMonad
 import XMonad.Operations (windows)
 import qualified XMonad.StackSet as W
-import XMonad
+
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.Dzen (dzenWithArgs, seconds)
+import XMonad.Util.NamedWindows (getName)
 
 import Control.Monad (when)
 import Control.Monad.Reader (asks)
@@ -138,4 +141,24 @@ withUrgencyHook :: (UrgencyHook h Window, LayoutClass l Window) =>
 withUrgencyHook theHook = ModifiedLayout $ WithUrgencyHook theHook
 
 class (Read h, Show h) => UrgencyHook h a where
-  urgencyHook :: h -> a -> X ()
+    urgencyHook :: h -> a -> X ()
+
+data DzenUrgencyHook = DzenUrgencyHook { duration :: Int, args :: [String] }
+    deriving (Read, Show)
+
+instance UrgencyHook DzenUrgencyHook Window where
+    urgencyHook DzenUrgencyHook { duration = d, args = a } w = do
+        visibles <- gets mapped
+        name <- getName w
+        ws <- gets windowset
+        whenJust (W.findTag w ws) (flash name visibles)
+      where flash name visibles index =
+                  when (not $ S.member w visibles) $
+                  dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
+
+-- | Flashes when a window requests your attention and you can't see it. For use with
+-- XMonad.Hooks.UrgencyHook. Usage:
+-- > urgencyHook = dzenUrgencyHook (5 `seconds`)
+-- > urgencyHook = dzenUrgencyHookWithArgs ["-bg", "darkgreen"] (5 `seconds`)
+dzenUrgencyHook :: DzenUrgencyHook
+dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
