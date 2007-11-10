@@ -156,7 +156,7 @@ data AvoidStruts l a = AvoidStruts (l a) deriving ( Read, Show )
 
 instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
     doLayout (AvoidStruts lo) (Rectangle x y w h) s =
-        do (t,l,b,r) <- calcGap
+        do (t,b,l,r) <- calcGap
            let rect = Rectangle (x+fromIntegral l) (y+fromIntegral t)
                       (w-fromIntegral l-fromIntegral r) (h-fromIntegral t-fromIntegral b)
            (wrs,mlo') <- doLayout lo rect s
