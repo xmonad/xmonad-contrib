@@ -34,6 +34,7 @@ import Graphics.X11.Xlib
 
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Combo
+import XMonad.Layout.Named
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Square
 import XMonad.Layout.LayoutScreens
@@ -43,6 +44,7 @@ import XMonad.Layout.WorkspaceDir
 import XMonad.Layout.ToggleLayouts
 
 import XMonad.Prompt
+import XMonad.Prompt.Layout
 import XMonad.Prompt.Shell
 
 import XMonad.Actions.CopyWindow
@@ -112,6 +114,7 @@ keys x = M.fromList $
     , ((modMask x, xK_m     ), withWorkspace myXPConfig (windows . W.shift))
     , ((modMask x .|. shiftMask, xK_m     ), withWorkspace myXPConfig (windows . copy))
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
+    , ((modMask x, xK_l ), layoutPrompt myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
     ]
  
@@ -138,8 +141,8 @@ config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
          , layoutHook = Layout $ workspaceDir "~" $ windowNavigation $ toggleLayouts (noBorders Full) $
-                        noBorders mytab |||
-                        mytab <-/> combineTwo Square mytab mytab |||
+                        Named "tabbed" (noBorders mytab) |||
+                        Named "xclock" (mytab <-/> combineTwo Square mytab mytab) |||
                         mytab <//> mytab
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#dddddd" -- Border color for unfocused windows.

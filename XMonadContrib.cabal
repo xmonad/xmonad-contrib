@@ -76,6 +76,7 @@ library
                         XMonad.Layout.MosaicAlt
                         -- XMonad.Layout.Mosaic
                         XMonad.Layout.MultiToggle
+                        XMonad.Layout.Named
                         XMonad.Layout.NoBorders
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.Roledex
@@ -90,6 +91,7 @@ library
                         XMonad.Layout.WorkspaceDir
                         XMonad.Prompt.Directory
                         XMonad.Prompt
+                        XMonad.Prompt.Layout
                         XMonad.Prompt.Man
                         XMonad.Prompt.Shell
                         XMonad.Prompt.Ssh
