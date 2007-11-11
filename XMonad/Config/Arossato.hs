@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Config.Arossato
@@ -52,7 +53,7 @@ myTabConfig = defaultTConf {
 -- 
 -- Key bindings:
 -- I want to remove some of the default key bindings, such as those to exit XMonad
-defaultKeys :: XConfig -> M.Map (KeyMask, KeySym) (X ())
+defaultKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 defaultKeys x = M.fromList $
     -- launching and killing programs
     [ ((modMask x .|. shiftMask, xK_Return), spawn "xterm") -- %! Launch an xterm
@@ -105,7 +106,7 @@ defaultKeys x = M.fromList $
     ++ mykeys x
 
 -- These are my personal key bindings
-mykeys :: XConfig -> [((KeyMask, KeySym), (X ()))]
+mykeys :: XConfig Layout -> [((KeyMask, KeySym), (X ()))]
 mykeys x = 
     [ ((modMask x                 , xK_F12   ), xmonadPrompt myXPConfig               )
     , ((modMask x                 , xK_F3    ), shellPrompt  myXPConfig               )
@@ -126,7 +127,6 @@ mykeys x =
     ]
 
 
-arossatoConfig :: XConfig
 arossatoConfig = defaultConfig
          { borderWidth        = 1
          , workspaces         = map show [1 .. 9 :: Int]

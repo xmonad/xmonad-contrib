@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module XMonad.Config.Sjanssen (sjanssenConfig) where
 
 import XMonad
@@ -17,7 +18,6 @@ import qualified Data.Map as M
 import Graphics.X11
 import System.IO (hPutStrLn)
 
-sjanssenConfig :: IO XConfig
 sjanssenConfig = do
     xmobar <- spawnPipe "xmobar"
     return $ defaultConfig
@@ -31,7 +31,7 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
-        , layoutHook = Layout (smartBorders (tiled ||| Mirror tiled ||| Full ||| tabbed shrinkText defaultTConf))
+        , layoutHook = smartBorders (tiled ||| Mirror tiled ||| Full ||| tabbed shrinkText defaultTConf)
         }
  where
     tiled   = Tall 1 0.03 0.5

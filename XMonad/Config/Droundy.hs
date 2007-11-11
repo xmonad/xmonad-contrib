@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   :  (c) Spencer Janssen 2007
@@ -63,7 +64,7 @@ myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
 --
 -- (The comment formatting character is used when generating the manpage)
 --
-keys :: XConfig -> M.Map (KeyMask, KeySym) (X ())
+keys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 keys x = M.fromList $
     -- launching and killing programs
     [ ((modMask x .|. shiftMask, xK_c     ), kill1) -- %! Close the focused window
@@ -125,7 +126,7 @@ keys x = M.fromList $
 
 -- | Mouse bindings: default actions bound to mouse events
 --
-mouseBindings :: XConfig -> M.Map (KeyMask, Button) (Window -> X ())
+mouseBindings :: XConfig Layout -> M.Map (KeyMask, Button) (Window -> X ())
 mouseBindings x = M.fromList $
     -- mod-button1 %! Set the window to floating mode and move by dragging
     [ ((modMask x, button1), (\w -> focus w >> mouseMoveWindow w))
@@ -136,11 +137,10 @@ mouseBindings x = M.fromList $
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
     ]
 
-config :: XConfig
 config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
-         , layoutHook = Layout $ workspaceDir "~" $ windowNavigation $ toggleLayouts (noBorders Full) $
+         , layoutHook = workspaceDir "~" $ windowNavigation $ toggleLayouts (noBorders Full) $
                         Named "tabbed" (noBorders mytab) |||
                         Named "xclock" (mytab <-/> combineTwo Square mytab mytab) |||
                         mytab <//> mytab

@@ -40,6 +40,7 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 --
 import XMonad
+import XMonad.Layouts
 import Control.Monad.Reader
 import Data.Maybe ( isJust )
 import Data.List
@@ -63,7 +64,7 @@ import XMonad.Util.Run
 
 -- | An example xmonad config that spawns a new dzen toolbar and uses the default
 -- dynamic log output
-makeSimpleDzenConfig :: IO XConfig
+makeSimpleDzenConfig :: IO (XConfig (Choose Tall (Choose (Mirror Tall) Full)))
 makeSimpleDzenConfig = do
   h <- spawnPipe "dzen2"
   return defaultConfig
@@ -81,7 +82,7 @@ makeSimpleDzenConfig = do
 -- The intent is that the avove config file should provide a nice status
 -- bar with minimal effort.
 --
-dzen :: (XConfig -> IO ()) -> IO ()
+dzen :: (XConfig (Choose Tall (Choose (Mirror Tall) Full)) -> IO ()) -> IO ()
 dzen f = do
   h <- spawnPipe ("dzen2" ++ " " ++ flags)
   f $ defaultConfig
