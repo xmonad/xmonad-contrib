@@ -58,11 +58,10 @@ import Foreign (unsafePerformIO)
 -- dzenUrgencyHook, or write your own.
 --
 -- Wire your urgency hook into the layoutHook by use of the withUrgencyHook
--- function. My setup, for example:
+-- function. For example, add this to your config record:
 --
--- > layoutHook' = Layout $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
--- >                      $ configurableNavigation noNavigateBorders
--- >                      $ layouts
+-- > , layoutHook = Layout $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
+-- >                       $ layout
 --
 -- It shouldn't hurt to have the "withUrgencyHook $" at the outermost layer,
 -- as above, as UrgencyHook is a LayoutModifier, and hence passes on any
