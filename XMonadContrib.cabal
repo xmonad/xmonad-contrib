@@ -99,6 +99,7 @@ library
                         XMonad.Util.Anneal
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
+                        XMonad.Util.EZConfig
                         XMonad.Util.Invisible
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
