@@ -154,9 +154,7 @@ instance UrgencyHook DzenUrgencyHook Window where
                   when (not $ S.member w visibles) $
                   dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
 
--- | Flashes when a window requests your attention and you can't see it. For use with
--- XMonad.Hooks.UrgencyHook. Usage:
--- > urgencyHook = dzenUrgencyHook (5 `seconds`)
--- > urgencyHook = dzenUrgencyHookWithArgs ["-bg", "darkgreen"] (5 `seconds`)
+-- | Flashes when a window requests your attention and you can't see it. Configurable
+-- duration and args to dzen.
 dzenUrgencyHook :: DzenUrgencyHook
 dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
