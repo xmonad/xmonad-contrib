@@ -32,24 +32,24 @@ import Graphics.X11.Xlib
 -- Note that, unlike in xmonad 0.4 and previous, you can't use modMask to refer
 -- to the modMask you configured earlier. You must specify mod1Mask (or
 -- whichever), or add your own @myModMask = mod1Mask@ line.
-additionalKeys :: XConfig -> [((ButtonMask, KeySym), X ())] -> XConfig
+additionalKeys :: XConfig a -> [((ButtonMask, KeySym), X ())] -> XConfig a
 additionalKeys conf keysList =
     conf { keys = \cnf -> M.union (M.fromList keysList) (keys conf cnf) }
 
 -- Remove standard keybidings you're not using. Example use:
 -- > main = xmonad $ defaultConfig { terminal = "urxvt" }
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]
-removeKeys :: XConfig -> [(ButtonMask, KeySym)] -> XConfig
+removeKeys :: XConfig a -> [(ButtonMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
     conf { keys = \cnf -> keys conf cnf `M.difference` M.fromList (zip keyList $ return ()) }
 
 -- Like additionalKeys, but for mouseBindings.
-additionalMouseBindings :: XConfig -> [((ButtonMask, Button), Window -> X ())] -> XConfig
+additionalMouseBindings :: XConfig a -> [((ButtonMask, Button), Window -> X ())] -> XConfig a
 additionalMouseBindings conf mouseBindingsList =
     conf { mouseBindings = \cnf -> M.union (M.fromList mouseBindingsList) (mouseBindings conf cnf) }
 
 -- Like removeKeys, but for mouseBindings.
-removeMouseBindings :: XConfig -> [(ButtonMask, Button)] -> XConfig
+removeMouseBindings :: XConfig a -> [(ButtonMask, Button)] -> XConfig a
 removeMouseBindings conf mouseBindingList =
     conf { mouseBindings = \cnf -> mouseBindings conf cnf `M.difference`
                                    M.fromList (zip mouseBindingList $ return ()) }
