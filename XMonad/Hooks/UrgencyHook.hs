@@ -98,7 +98,7 @@ instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               wmh@WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               when (testBit flags urgencyHintBit) $ do
-                  urgencyHook theHook w
+                  userCode $ urgencyHook theHook w
                   -- Clear the urgency bit in the WMHints flags field. According to the
                   -- Xlib manual, the *client* is supposed to clear this flag when the urgency
                   -- has been resolved, but, Xchat2, for example, sets the WMHints several
@@ -107,8 +107,7 @@ instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
                   io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
                   -- Call logHook after IORef has been modified.
-                  theLogHook <- asks (logHook . config)
-                  theLogHook
+                  userCode =<< asks (logHook . config)
               -- Doing the setWMHints triggers another propertyNotify with the bit
               -- cleared, so we ignore that message. This has the potentially wrong
               -- effect of ignoring *all* urgency-clearing messages, some of which might
