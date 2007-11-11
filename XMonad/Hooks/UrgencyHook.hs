@@ -38,9 +38,9 @@ import XMonad.Util.NamedWindows (getName)
 import Control.Monad (when)
 import Control.Monad.Reader (asks)
 import Control.Monad.State (gets)
-import Data.Bits (testBit, clearBit)
+import Data.Bits (testBit)
 import Data.IORef
-import Data.List ((\\), delete)
+import Data.List (delete)
 import Data.Maybe (listToMaybe)
 import qualified Data.Set as S
 import Graphics.X11.Xlib
@@ -96,34 +96,26 @@ instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
     handleMess (WithUrgencyHook theHook) mess
       | Just PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } <- fromMessage mess = do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
-              wmh@WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
-              when (testBit flags urgencyHintBit) $ do
+              WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
+              if (testBit flags urgencyHintBit)
+                then do
+                  -- Note: Broken clients, such as Xchat2, will set the urgency flag multiple
+                  -- times (perhaps in an effort to get the task bar to "flash"). If this
+                  -- bothers you, please submit a bug report.
                   userCode $ urgencyHook theHook w
-                  -- Clear the urgency bit in the WMHints flags field. According to the
-                  -- Xlib manual, the *client* is supposed to clear this flag when the urgency
-                  -- has been resolved, but, Xchat2, for example, sets the WMHints several
-                  -- times (e.g. causing the dzen to blink) unless it's cleared. XMonad is
-                  -- not a typical WM, so we're just breaking one more rule, here.
-                  io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                  -- Call logHook after IORef has been modified.
-                  userCode =<< asks (logHook . config)
-              -- Doing the setWMHints triggers another propertyNotify with the bit
-              -- cleared, so we ignore that message. This has the potentially wrong
-              -- effect of ignoring *all* urgency-clearing messages, some of which might
-              -- be legitimate. Let's wait for bug reports on that, though.
+                else
+                  -- Remove window from urgents list when client removes urgency status.
+                  -- The client should do this, e.g., when it receives focus.
+                  adjustUrgents (delete w)
+              -- Call logHook after IORef has been modified.
+              userCode =<< asks (logHook . config)
           return Nothing
       | Just DestroyWindowEvent {ev_window = w} <- fromMessage mess = do
           adjustUrgents (delete w)
           return Nothing
       | otherwise =
           return Nothing
-
-    -- Clear the urgency bit and remove from the urgent list when the window becomes visible.
-    redoLayout _ _ _ windowRects = do
-      visibles <- gets mapped
-      adjustUrgents (\\ (S.toList visibles))
-      return (windowRects, Nothing)
 
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents f = io $ modifyIORef urgents f
