@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
