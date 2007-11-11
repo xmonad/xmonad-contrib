@@ -48,36 +48,28 @@ import Graphics.X11.Xlib.Extras
 import Foreign (unsafePerformIO)
 
 -- $usage
--- To wire this up, add:
+-- To wire this up, first add:
 --
 -- > import XMonad.Hooks.UrgencyHook
 --
--- to your import list in Config. Change your defaultLayout such that
--- withUrgencyHook is applied along the chain. Mine, for example:
+-- to your import list in your config file. Now, choose an urgency hook. If
+-- you're just interested in displaying the urgency state in your custom
+-- logHook, then choose NoUrgencyHook. Otherwise, you may use the provided
+-- dzenUrgencyHook, or write your own.
 --
--- > layoutHook = Layout $ withUrgencyHook $ windowNavigation $
--- >                       Select layouts
+-- Wire your urgency hook into the layoutHook by use of the withUrgencyHook
+-- function. My setup, for example:
+--
+-- > layoutHook' = Layout $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
+-- >                      $ configurableNavigation noNavigateBorders
+-- >                      $ layouts
 --
 -- It shouldn't hurt to have the "withUrgencyHook $" at the outermost layer,
 -- as above, as UrgencyHook is a LayoutModifier, and hence passes on any
--- messages sent to it. Next, add your actual urgencyHook to Config. This
--- needs to take a Window and return an X () action. Here's an example:
+-- messages sent to it.
 --
--- > import XMonad.Util.Dzen
--- ...
--- > urgencyHook :: Window -> X ()
--- > urgencyHook = dzenUrgencyHook (5 `seconds`)
---
--- If you're comfortable with programming in the X monad, then you can build
--- whatever urgencyHook you like.  Finally, in order to make this compile,
--- open up your Config.hs-boot file and add the following to it:
---
--- > urgencyHook :: Window -> X ()
---
--- Compile!
---
--- You can also modify your logHook to print out information about urgent windows.
--- The functions readUrgents and withUrgents are there to help you with that.
+-- If you want to modify your logHook to print out information about urgent windows,
+-- the functions readUrgents and withUrgents are there to help you with that.
 -- No example for you.
 
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
