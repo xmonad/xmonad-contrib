@@ -22,6 +22,7 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook,
                                  focusUrgent,
                                  readUrgents, withUrgents,
+                                 urgencyLayoutHook,
                                  NoUrgencyHook(..), StdoutUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
                                  seconds
@@ -31,21 +32,21 @@ import XMonad
 import XMonad.Operations (windows)
 import qualified XMonad.StackSet as W
 
-import XMonad.Layout.LayoutModifier
+import XMonad.Layout.LayoutModifier hiding (hook)
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import XMonad.Util.NamedWindows (getName)
 
 import Control.Monad (when)
 import Control.Monad.Reader (asks)
 import Control.Monad.State (gets)
-import Data.Bits (testBit)
+import Data.Bits (testBit, clearBit)
 import Data.IORef
-import Data.List (delete)
+import Data.List ((\\), delete)
 import Data.Maybe (listToMaybe)
 import qualified Data.Set as S
+import Foreign (unsafePerformIO)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
-import Foreign (unsafePerformIO)
 
 -- $usage
 -- To wire this up, first add:
@@ -71,6 +72,21 @@ import Foreign (unsafePerformIO)
 -- the functions readUrgents and withUrgents are there to help you with that.
 -- No example for you.
 
+-- | This is the preferred method of enabling an urgency hook. It will prepend
+-- an action to your logHook that remove visible windows from the list of urgent
+-- windows. If you don't like that behavior, use urgencyLayoutHook instead.
+withUrgencyHook :: (LayoutClass l Window, UrgencyHook h Window) =>
+                   h -> XConfig l -> XConfig (ModifiedLayout (WithUrgencyHook h) l)
+withUrgencyHook hook conf = conf { layoutHook = urgencyLayoutHook hook $ layoutHook conf
+                                 , logHook = removeVisiblesFromUrgents >> logHook conf
+                                 }
+
+-- | The logHook action used by withUrgencyHook.
+removeVisiblesFromUrgents :: X ()
+removeVisiblesFromUrgents = do
+    visibles <- gets mapped
+    adjustUrgents (\\ (S.toList visibles))
+
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
 -- > , ((modMask              , xK_BackSpace), focusUrgent)
@@ -92,25 +108,36 @@ withUrgents f = readUrgents >>= f
 
 data WithUrgencyHook h a = WithUrgencyHook h deriving (Read, Show)
 
+-- The Non-ICCCM Manifesto:
+-- Note: Some non-standard choices have been made in this implementation to
+-- account for the fact that things are different in a tiling window manager:
+--   1. Several clients (e.g. Xchat2, rxvt-unicode) set the urgency flag
+--      9 or 10 times in a row. This would, in turn, trigger urgencyHook repeatedly.
+--      so in order to prevent that, we immediately clear the urgency flag.
+--   2. In normal window managers, windows may overlap, so clients wait for focus to
+--      be set before urgency is cleared. In a tiling WM, it's sufficient to be able
+--      see the window, since we know that means you can see it completely.
+--   3. The urgentOnBell setting in rxvt-unicode sets urgency even when the window
+--      has focus, and won't clear until it loses and regains focus. This is stupid.
+-- In order to account for these quirks, we clear the urgency bit immediately upon
+-- receiving notification (thus suppressing the repeated notifications) and track
+-- the list of urgent windows ourselves, allowing us to clear urgency when a window
+-- is visible, and not to set urgency if a window is visible.
+-- If you have a better idea, please, let us know!
 instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
-    handleMess (WithUrgencyHook theHook) mess
+    handleMess (WithUrgencyHook hook) mess
       | Just PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } <- fromMessage mess = do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
-              WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
-              if (testBit flags urgencyHintBit)
-                then do
-                  -- Note: Broken clients, such as Xchat2, will set the urgency flag multiple
-                  -- times (perhaps in an effort to get the task bar to "flash"). If this
-                  -- bothers you, please submit a bug report.
-                  userCode $ urgencyHook theHook w
+              wmh@WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
+              when (testBit flags urgencyHintBit) $ do
+                  -- Call the urgencyHook.
+                  userCode $ urgencyHook hook w
+                  -- Clear the bit to prevent repeated notifications, as described above.
+                  io $ setWMHints dpy w wmh { wmh_flags = clearBit flags urgencyHintBit }
+                  -- Add to list of urgents.
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                else do
-                  -- Remove window from urgents list when client removes urgency status.
-                  -- The client should do this, e.g., when it receives focus.
-                  userCode $ nonUrgencyHook theHook w
-                  adjustUrgents (delete w)
-              -- Call logHook after IORef has been modified.
-              userCode =<< asks (logHook . config)
+                  -- Call logHook after IORef has been modified.
+                  userCode =<< asks (logHook . config)
           return Nothing
       | Just DestroyWindowEvent {ev_window = w} <- fromMessage mess = do
           adjustUrgents (delete w)
@@ -121,9 +148,14 @@ instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents f = io $ modifyIORef urgents f
 
-withUrgencyHook :: (UrgencyHook h Window, LayoutClass l Window) =>
+urgencyLayoutHook :: (UrgencyHook h Window, LayoutClass l Window) =>
                    h -> l Window -> ModifiedLayout (WithUrgencyHook h) l Window
-withUrgencyHook theHook = ModifiedLayout $ WithUrgencyHook theHook
+urgencyLayoutHook hook = ModifiedLayout $ WithUrgencyHook hook
+
+--------------------------------------------------------------------------------
+-- Urgency Hooks
+
+-- | The class definition, and some pre-defined instances.
 
 class (Read h, Show h) => UrgencyHook h a where
     urgencyHook, nonUrgencyHook :: h -> a -> X ()
