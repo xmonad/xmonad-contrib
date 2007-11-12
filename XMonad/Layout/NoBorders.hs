@@ -35,14 +35,14 @@ import qualified XMonad.StackSet as W
 import Data.List ((\\))
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your ~/.xmonad/xmonad.hs file:
 --
 -- > import XMonad.Layout.NoBorders
 --
 -- and modify the layouts to call noBorders on the layouts you want to lack
--- borders
+-- borders:
 --
--- > layouts = [ Layout (noBorders Full), ... ]
+-- > layoutHook = ... ||| noBorders Full ||| ...
 --
 
 -- %import XMonad.Layout.NoBorders
@@ -100,7 +100,7 @@ instance LayoutModifier SmartBorder Window where
 -- | You can cleverly set no borders on a range of layouts, using a
 -- layoutHook like so:
 --
--- > layoutHook = Layout $ smartBorders $ Select layouts
+-- > layoutHook = smartBorders $ tiled ||| Mirror tiled ||| ...
 --
 smartBorders :: LayoutClass l a => l a -> ModifiedLayout SmartBorder l a
 smartBorders = ModifiedLayout (SmartBorder [])
