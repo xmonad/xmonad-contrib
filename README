@@ -1,12 +1,21 @@
-3rd party xmonad extensions and contributions.
+3rd party XMonad extensions and contributions.
 
-Build and install as for other haskell packages:
+Build and install through Cabal as for other Haskell packages:
 
-        runhaskell Setup.lhs configure --user --prefix=$HOME
-        runhaskell Setup.lhs build
-        runhaskell Setup.lhs install --user
+        runhaskell Setup configure --user --prefix=$HOME
+        runhaskell Setup build
+        runhaskell Setup install --user
+
+(You may want to remove the --user flag when installing as root.)
+
+scripts/ contains further external programs useful with xmonad.
+
+Haskell code contributed to this repo should live under the appropriate subdivision of the 'XMonad.' namespace (currently includes Actions, Config, Hooks, Layout, Prompt, and Util). For example, to use the Mosaic layout, one would import:
+
+ XMonad.Layout.Mosaic
+
 
 ------------------------------------------------------------------------
 
 Code submitted to the contrib repo is licensed under the same license as
-xmonad itself, with copyright held by the authors.
+XMonad itself, with copyright held by the authors.
