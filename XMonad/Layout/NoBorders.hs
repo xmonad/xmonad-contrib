@@ -53,9 +53,6 @@ import Data.List ((\\))
 data WithBorder a = WithBorder Dimension [a] deriving ( Read, Show )
 
 instance LayoutModifier WithBorder Window where
-    modifierDescription (WithBorder 0 _) = "NoBorders"
-    modifierDescription (WithBorder n _) = "Borders " ++ show n
-
     unhook (WithBorder _ s) = asks (borderWidth . config) >>= setBorders s
 
     redoLayout (WithBorder n s) _ _ wrs = do
@@ -77,8 +74,6 @@ setBorders ws bw = withDisplay $ \d -> mapM_ (\w -> io $ setWindowBorderWidth d 
 data SmartBorder a = SmartBorder [a] deriving (Read, Show)
 
 instance LayoutModifier SmartBorder Window where
-    modifierDescription _ = "SmartBorder"
-
     unhook (SmartBorder s) = asks (borderWidth . config) >>= setBorders s
 
     redoLayout (SmartBorder s) _ _ wrs = do
