@@ -4,14 +4,6 @@
 -- Copyright   :  (c) Spencer Janssen 2007
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  dons@galois.com
--- Stability   :  stable
--- Portability :  portable
---
--- This module specifies configurable defaults for xmonad. If you change
--- values here, be sure to recompile and restart (mod-q) xmonad,
--- for the changes to take effect.
---
 ------------------------------------------------------------------------
 
 module XMonad.Config.Droundy where
@@ -19,8 +11,8 @@ module XMonad.Config.Droundy where
 --
 -- Useful imports
 --
-import XMonad hiding (keys,mouseBindings)
-import qualified XMonad (keys,mouseBindings)
+import XMonad hiding (keys)
+import qualified XMonad (keys)
 import XMonad.Config ( defaultConfig )
 
 import XMonad.Layouts hiding ( (|||) )
@@ -124,19 +116,6 @@ keys x = M.fromList $
     ++
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
--- | Mouse bindings: default actions bound to mouse events
---
-mouseBindings :: XConfig Layout -> M.Map (KeyMask, Button) (Window -> X ())
-mouseBindings x = M.fromList $
-    -- mod-button1 %! Set the window to floating mode and move by dragging
-    [ ((modMask x, button1), (\w -> focus w >> mouseMoveWindow w))
-    -- mod-button2 %! Raise the window to the top of the stack
-    , ((modMask x, button2), (\w -> focus w >> windows W.swapMaster))
-    -- mod-button3 %! Set the window to floating mode and resize by dragging
-    , ((modMask x, button3), (\w -> focus w >> mouseResizeWindow w))
-    -- you may also bind events to the mouse scroll wheel (button4 and button5)
-    ]
-
 config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
@@ -149,7 +128,6 @@ config = defaultConfig
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
          , XMonad.modMask = mod1Mask
          , XMonad.keys = keys
-         , XMonad.mouseBindings = mouseBindings
          }
     where mytab = tabbed shrinkText defaultTConf
 
