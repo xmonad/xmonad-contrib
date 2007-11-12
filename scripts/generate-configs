@@ -50,8 +50,8 @@
 #     the end of the default import list in Config.sh and automatically
 #     prefixed with "import ".
 #
-# -- %import XMonadContrib.Accordion
-# -- %import qualified XMonadContrib.FlexibleManipulate as Flex
+# -- %import XMonad.Layout.Accordion
+# -- %import qualified XMonad.Actions.FlexibleManipulate as Flex
 #
 # %keybind
 #
