@@ -1,18 +1,10 @@
 3rd party xmonad extensions and contributions.
 
-This repository can be overlayed on an xmonad repository.
-Users may then import Haskell src from here, to extend their config
-files.
+Build and install as for other haskell packages:
 
-scripts/ contains further external programs useful with xmonad.
-
-Haskell code contributed to this repo should live under the
-
-    XMonadContrib.
-
-name space. For example:
-
-    XMonadContrib.Mosaic
+        runhaskell Setup.lhs configure --user --prefix=$HOME
+        runhaskell Setup.lhs build
+        runhaskell Setup.lhs install --user
 
 ------------------------------------------------------------------------
 

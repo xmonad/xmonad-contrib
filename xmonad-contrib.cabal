@@ -1,9 +1,9 @@
-name:               XMonadContrib
+name:               xmonad-contrib
 version:            0.4
-homepage:           http://xmonad.org
-synopsis:           third party extensions for xmonad
+homepage:           http://xmonad.org/
+synopsis:           Third party extensions for xmonad
 description:
-    third party extensions for xmonad
+    Third party tiling algorithms, configurations and scripts to xmonad.
 category:           System
 license:            BSD3
 license-file:       LICENSE
