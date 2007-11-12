@@ -154,9 +154,7 @@ urgencyLayoutHook hook = ModifiedLayout $ WithUrgencyHook hook
 -- | The class definition, and some pre-defined instances.
 
 class (Read h, Show h) => UrgencyHook h a where
-    urgencyHook, nonUrgencyHook :: h -> a -> X ()
-
-    nonUrgencyHook _ _ = return ()
+    urgencyHook :: h -> a -> X ()
 
 data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 
@@ -186,4 +184,3 @@ data StdoutUrgencyHook = StdoutUrgencyHook deriving (Read, Show)
 
 instance UrgencyHook StdoutUrgencyHook Window where
     urgencyHook    _ w = io $ putStrLn $ "Urgent: " ++ show w
-    nonUrgencyHook _ w = io $ putStrLn $ "Not Urgent: " ++ show w
