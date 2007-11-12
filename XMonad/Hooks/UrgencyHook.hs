@@ -22,7 +22,7 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook,
                                  focusUrgent,
                                  readUrgents, withUrgents,
-                                 NoUrgencyHook(..),
+                                 NoUrgencyHook(..), StdoutUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
                                  seconds
                                  ) where
@@ -104,9 +104,10 @@ instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
                   -- bothers you, please submit a bug report.
                   userCode $ urgencyHook theHook w
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                else
+                else do
                   -- Remove window from urgents list when client removes urgency status.
                   -- The client should do this, e.g., when it receives focus.
+                  userCode $ nonUrgencyHook theHook w
                   adjustUrgents (delete w)
               -- Call logHook after IORef has been modified.
               userCode =<< asks (logHook . config)
@@ -125,7 +126,9 @@ withUrgencyHook :: (UrgencyHook h Window, LayoutClass l Window) =>
 withUrgencyHook theHook = ModifiedLayout $ WithUrgencyHook theHook
 
 class (Read h, Show h) => UrgencyHook h a where
-    urgencyHook :: h -> a -> X ()
+    urgencyHook, nonUrgencyHook :: h -> a -> X ()
+
+    nonUrgencyHook _ _ = return ()
 
 data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 
@@ -149,3 +152,10 @@ instance UrgencyHook DzenUrgencyHook Window where
 -- duration and args to dzen.
 dzenUrgencyHook :: DzenUrgencyHook
 dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
+
+-- For debugging purposes, really.
+data StdoutUrgencyHook = StdoutUrgencyHook deriving (Read, Show)
+
+instance UrgencyHook StdoutUrgencyHook Window where
+    urgencyHook    _ w = io $ putStrLn $ "Urgent: " ++ show w
+    nonUrgencyHook _ w = io $ putStrLn $ "Not Urgent: " ++ show w
