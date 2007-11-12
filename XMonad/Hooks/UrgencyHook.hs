@@ -58,15 +58,11 @@ import Graphics.X11.Xlib.Extras
 -- logHook, then choose NoUrgencyHook. Otherwise, you may use the provided
 -- dzenUrgencyHook, or write your own.
 --
--- Wire your urgency hook into the layoutHook by use of the withUrgencyHook
--- function. For example, add this to your config record:
+-- Enable your urgency hook by wrapping your config record in a call to
+-- withUrgencyHook. For example:
 --
--- > , layoutHook = Layout $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
--- >                       $ layout
---
--- It shouldn't hurt to have the "withUrgencyHook $" at the outermost layer,
--- as above, as UrgencyHook is a LayoutModifier, and hence passes on any
--- messages sent to it.
+-- > main = xmonad $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
+-- >               $ defaultConfig
 --
 -- If you want to modify your logHook to print out information about urgent windows,
 -- the functions readUrgents and withUrgents are there to help you with that.
@@ -74,7 +70,7 @@ import Graphics.X11.Xlib.Extras
 
 -- | This is the preferred method of enabling an urgency hook. It will prepend
 -- an action to your logHook that remove visible windows from the list of urgent
--- windows. If you don't like that behavior, use urgencyLayoutHook instead.
+-- windows. If you don't like that behavior, you may use urgencyLayoutHook instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h Window) =>
                    h -> XConfig l -> XConfig (ModifiedLayout (WithUrgencyHook h) l)
 withUrgencyHook hook conf = conf { layoutHook = urgencyLayoutHook hook $ layoutHook conf
