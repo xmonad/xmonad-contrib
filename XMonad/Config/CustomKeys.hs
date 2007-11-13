@@ -12,9 +12,10 @@
 --------------------------------------------------------------------
 
 module XMonad.Config.CustomKeys (
-                                 -- * Usage
-                                 -- $usage
-                                 customKeys
+                                  -- * Usage
+                                  -- $usage
+                                  customKeys
+                                , customKeysFrom
                                 ) where
 
 import XMonad
@@ -46,16 +47,26 @@ import qualified Data.Map as M
 -- >           , ((mod1Mask,             xK_Up  ), spawn "amixer set Master 1+")
 -- >           ]
 
--- | XXX comment me (no tautology please)
-customKeys :: (XConfig Layout -> [(KeyMask, KeySym)]) -- ^ unused shortcuts
-           -> (XConfig Layout -> [((KeyMask, KeySym), X ())]) -- ^ new bindings
+-- | Customize 'XMonad.Config.defaultConfig' -- delete needless
+-- shortcuts and insert the ones you use.
+customKeys :: (XConfig Layout -> [(KeyMask, KeySym)]) -- ^ shortcuts to delete
+           -> (XConfig Layout -> [((KeyMask, KeySym), X ())]) -- ^ key bindings to insert
            -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-customKeys = (runReader .) . customize
+customKeys = customKeysFrom defaultConfig
 
-customize :: (XConfig Layout -> [(KeyMask, KeySym)])
+-- | General variant of 'customKeys': customize key bindings of
+-- third-party configuration.
+customKeysFrom :: XConfig l -- ^ original configuration
+               -> (XConfig Layout -> [(KeyMask, KeySym)]) -- ^ shortcuts to delete
+               -> (XConfig Layout -> [((KeyMask, KeySym), X ())]) -- ^ key bindings to insert
+               -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
+customKeysFrom conf = (runReader .) . customize conf
+
+customize :: XConfig l
+          -> (XConfig Layout -> [(KeyMask, KeySym)])
           -> (XConfig Layout -> [((KeyMask, KeySym), X ())])
           -> Reader (XConfig Layout) (M.Map (KeyMask, KeySym) (X ()))
-customize ds is = Reader (keys defaultConfig) >>= delete ds >>= insert is
+customize conf ds is = Reader (keys conf) >>= delete ds >>= insert is
 
 delete :: (MonadReader r m, Ord a) => (r -> [a]) -> M.Map a b -> m (M.Map a b)
 delete dels kmap = asks dels >>= return . foldr M.delete kmap
