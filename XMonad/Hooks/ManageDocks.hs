@@ -26,6 +26,9 @@
 -- > layoutHook = Layout $ toggleLayouts (noBorders Full) $ avoidStruts $
 -- >                       your actual layouts here ||| ...
 
+-- You may also wish to bind a key to sendMessage ToggleStruts, which will
+-- toggle the avoidStruts behavior, so you can hide your panel at will.
+
 -- This would enable a full-screen mode that overlaps the panel, while all
 -- other layouts avoid the panel.
 
@@ -36,7 +39,7 @@ module XMonad.Hooks.ManageDocks (
     manageDocksHook
     ,resetGap
     ,toggleGap
-    ,avoidStruts
+    ,avoidStruts, ToggleStruts(ToggleStruts)
     ) where
 
 import Control.Monad.Reader
@@ -150,18 +153,24 @@ max4 (a1,a2,a3,a4) (b1,b2,b3,b4) = (max a1 b1, max a2 b2, max a3 b3, max a4 b4)
 
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> AvoidStruts l a
-avoidStruts = AvoidStruts
+avoidStruts = AvoidStruts True
 
-data AvoidStruts l a = AvoidStruts (l a) deriving ( Read, Show )
+data AvoidStruts l a = AvoidStruts Bool (l a) deriving ( Read, Show )
+
+data ToggleStruts = ToggleStruts deriving (Read,Show,Typeable)
+instance Message ToggleStruts
 
 instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
-    doLayout (AvoidStruts lo) (Rectangle x y w h) s =
+    doLayout (AvoidStruts True lo) (Rectangle x y w h) s =
         do (t,b,l,r) <- calcGap
            let rect = Rectangle (x+fromIntegral l) (y+fromIntegral t)
                       (w-fromIntegral l-fromIntegral r) (h-fromIntegral t-fromIntegral b)
            (wrs,mlo') <- doLayout lo rect s
-           return (wrs, AvoidStruts `fmap` mlo')
-    handleMessage (AvoidStruts l) m =
-        do ml' <- handleMessage l m
-           return (AvoidStruts `fmap` ml')
-    description (AvoidStruts l) = description l
+           return (wrs, AvoidStruts True `fmap` mlo')
+    doLayout (AvoidStruts False lo) r s = do (wrs,mlo') <- doLayout lo r s
+                                             return (wrs, AvoidStruts False `fmap` mlo')
+    handleMessage (AvoidStruts b l) m
+        | Just ToggleStruts <- fromMessage m = return $ Just $ AvoidStruts (not b) l
+        | otherwise = do ml' <- handleMessage l m
+                         return (AvoidStruts b `fmap` ml')
+    description (AvoidStruts _ l) = description l
