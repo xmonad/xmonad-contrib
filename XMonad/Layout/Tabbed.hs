@@ -18,8 +18,9 @@ module XMonad.Layout.Tabbed (
                              -- * Usage:
                              -- $usage
                              tabbed
-                            , shrinkText
+                            , shrinkText, CustomShrink(CustomShrink)
                             , TConf (..), defaultTConf
+                            , Shrinker(..)
                             ) where
 
 import Control.Monad.State ( gets )
@@ -68,8 +69,8 @@ import XMonad.Util.XUtils
 -- %import XMonad.Layout.Tabbed
 -- %layout , tabbed shrinkText defaultTConf
 
-tabbed :: Shrinker -> TConf -> Tabbed a
-tabbed s t = Tabbed (I Nothing) (I (Just s)) t
+tabbed :: Shrinker s => s -> TConf -> Tabbed s a
+tabbed s t = Tabbed (I Nothing) s t
 
 data TConf = 
     TConf { activeColor         :: String
@@ -100,17 +101,17 @@ data TabState =
              , fontS       :: FontStruct -- FontSet
     }
 
-data Tabbed a = 
-    Tabbed (Invisible Maybe TabState) (Invisible Maybe Shrinker) TConf
+data Tabbed s a =
+    Tabbed (Invisible Maybe TabState) s TConf
     deriving (Show, Read)
 
-instance LayoutClass Tabbed Window where
+instance Shrinker s => LayoutClass (Tabbed s) Window where
     doLayout (Tabbed ist ishr conf) = doLay ist ishr conf
     handleMessage                   = handleMess
     description _                   = "Tabbed"
 
-doLay :: Invisible Maybe TabState -> Invisible Maybe Shrinker -> TConf 
-      -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed Window))
+doLay :: Shrinker s => Invisible Maybe TabState -> s -> TConf 
+      -> Rectangle -> W.Stack Window -> X ([(Window, Rectangle)], Maybe (Tabbed s Window))
 doLay ist ishr c sc (W.Stack w [] []) = do
   whenIJust ist $ \st -> mapM_ deleteWindow (map fst $ tabsWindows st)
   return ([(w,sc)], Just $ Tabbed (I Nothing) ishr c)
@@ -129,16 +130,16 @@ doLay ist ishr conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   mapM_ (updateTab ishr conf (fontS st) width) $ tabsWindows st
   return ([(w,shrink conf sc)], Just (Tabbed (I (Just st)) ishr conf))
 
-handleMess :: Tabbed Window -> SomeMessage -> X (Maybe (Tabbed Window))
+handleMess :: Shrinker s => Tabbed s Window -> SomeMessage -> X (Maybe (Tabbed s Window))
 handleMess (Tabbed (I (Just st@(TabState {tabsWindows = tws}))) ishr conf) m
     | Just e <- fromMessage m :: Maybe Event = handleEvent ishr conf st e     >> return Nothing
     | Just Hide             == fromMessage m = mapM_ hideWindow (map fst tws) >> return Nothing
     | Just ReleaseResources == fromMessage m = do mapM_ deleteWindow $ map fst tws
                                                   releaseFont (fontS st)
-                                                  return $ Just $ Tabbed (I Nothing) (I Nothing) conf
+                                                  return $ Just $ Tabbed (I Nothing) ishr conf
 handleMess _ _  = return Nothing
 
-handleEvent :: Invisible Maybe Shrinker -> TConf -> TabState -> Event -> X ()
+handleEvent :: Shrinker s => s -> TConf -> TabState -> Event -> X ()
 -- button press
 handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, fontS         = fs }) 
                       (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
@@ -181,7 +182,7 @@ createTabs c (Rectangle x y wh ht) owl@(ow:ows) = do
   ws <- createTabs c (Rectangle (x + fromIntegral wid) y (wh - wid) ht) ows
   return (w:ws)
 
-updateTab :: Invisible Maybe Shrinker -> TConf -> FontStruct -> Dimension -> (Window,Window) -> X ()
+updateTab :: Shrinker s => s -> TConf -> FontStruct -> Dimension -> (Window,Window) -> X ()
 updateTab ishr c fs wh (tabw,ow) = do
   nw <- getName ow
   let ht                   = fromIntegral $ tabSize c :: Dimension
@@ -191,7 +192,7 @@ updateTab ishr c fs wh (tabw,ow) = do
   (bc',borderc',tc') <- focusColor ow
                            (inactiveColor c, inactiveBorderColor c, inactiveTextColor c) 
                            (activeColor   c, activeBorderColor   c, activeTextColor   c)
-  let s    = fromIMaybe shrinkText ishr 
+  let s    = shrinkIt ishr
       name = shrinkWhile s (\n -> textWidth fs n >
                             fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
   paintAndWrite tabw fs wh ht 1 bc' borderc' tc' bc' AlignCenter name
@@ -200,15 +201,27 @@ shrink :: TConf -> Rectangle -> Rectangle
 shrink c (Rectangle x y w h) = 
     Rectangle x (y + fromIntegral (tabSize c)) w (h - fromIntegral (tabSize c))
 
-type Shrinker = String -> [String]
-
-shrinkWhile :: Shrinker -> (String -> Bool) -> String -> String
+shrinkWhile :: (String -> [String]) -> (String -> Bool) -> String -> String
 shrinkWhile sh p x = sw $ sh x
     where sw [n] = n
           sw [] = ""
           sw (n:ns) | p n = sw ns
                     | otherwise = n
 
-shrinkText :: Shrinker
-shrinkText "" = [""]
-shrinkText cs = cs : shrinkText (init cs)
+
+data CustomShrink = CustomShrink
+instance Show CustomShrink where show _ = ""
+instance Read CustomShrink where readsPrec _ s = [(CustomShrink,s)]
+
+class (Read s, Show s) => Shrinker s where
+    shrinkIt :: s -> String -> [String]
+
+data DefaultShrinker = DefaultShrinker
+instance Show DefaultShrinker where show _ = ""
+instance Read DefaultShrinker where readsPrec _ s = [(DefaultShrinker,s)]
+instance Shrinker DefaultShrinker where
+    shrinkIt _ "" = [""]
+    shrinkIt s cs = cs : shrinkIt s (init cs)
+
+shrinkText :: DefaultShrinker
+shrinkText = DefaultShrinker

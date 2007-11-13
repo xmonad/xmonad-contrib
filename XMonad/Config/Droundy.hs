@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   :  (c) Spencer Janssen 2007
@@ -6,12 +6,12 @@
 --
 ------------------------------------------------------------------------
 
-module XMonad.Config.Droundy where
+module XMonad.Config.Droundy ( config, mytab ) where
 
 --
 -- Useful imports
 --
-import XMonad hiding (keys)
+import XMonad hiding (keys, config)
 import qualified XMonad (keys)
 import XMonad.Config ( defaultConfig )
 
@@ -129,5 +129,19 @@ config = defaultConfig
          , XMonad.modMask = mod1Mask
          , XMonad.keys = keys
          }
-    where mytab = tabbed shrinkText defaultTConf
 
+mytab = tabbed CustomShrink defaultTConf
+
+instance Shrinker CustomShrink where
+    shrinkIt shr s | Just s' <- dropFromTail " " s = shrinkIt shr s' 
+    shrinkIt shr s | Just s' <- dropFromTail "- Iceweasel" s = shrinkIt shr s' 
+    shrinkIt _ s | n > 9 = s : map cut [2..(halfn-3)] ++ shrinkIt shrinkText s
+                 where n = length s
+                       halfn = n `div` 2
+                       rs = reverse s
+                       cut x = take (halfn - x) s ++ "..." ++ reverse (take (halfn-x) rs)
+    shrinkIt _ s = shrinkIt shrinkText s
+
+dropFromTail :: String -> String -> Maybe String
+dropFromTail t s | drop (length s - length t) s == t = Just $ take (length s - length t) s
+                 | otherwise = Nothing
