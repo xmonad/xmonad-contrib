@@ -50,44 +50,44 @@ myTabConfig = defaultTConf {
               }
 
 ------------------------------------------------------------------------
--- 
+-- |
 -- Key bindings:
--- I want to remove some of the default key bindings, such as those to exit XMonad
+--
+-- I want to remove some of the default key bindings, such as those to
+-- exit XMonad
 defaultKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
 defaultKeys x = M.fromList $
     -- launching and killing programs
-    [ ((modMask x .|. shiftMask, xK_Return), spawn "xterm") -- %! Launch an xterm
-    , ((modMask x,               xK_p     ), spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\"") -- %! Launch dmenu
-    , ((modMask x .|. shiftMask, xK_p     ), spawn "gmrun") -- %! Launch gmrun
-    , ((modMask x .|. shiftMask, xK_c     ), kill) -- %! Close the focused window
+    [ ((modMask x .|. shiftMask, xK_Return), spawn "xterm"                  )
+    , ((modMask x .|. shiftMask, xK_c     ), kill                           )
 
-    , ((modMask x,               xK_space ), sendMessage NextLayout) -- %! Rotate through the available layout algorithms
-    , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x) -- %!  Reset the layouts on the current workspace to default
+    , ((modMask x,               xK_space ), sendMessage NextLayout         )
+    , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x       )
 
-    , ((modMask x,               xK_n     ), refresh) -- %! Resize viewed windows to the correct size
+    , ((modMask x,               xK_n     ), refresh                        )
 
     -- move focus up or down the window stack
-    , ((modMask x,               xK_Tab   ), windows W.focusDown) -- %! Move focus to the next window
-    , ((modMask x,               xK_m     ), windows W.focusMaster  ) -- %! Move focus to the master window
+    , ((modMask x,               xK_Tab   ), windows W.focusDown            )
+    , ((modMask x,               xK_m     ), windows W.focusMaster          )
 
     -- modifying the window order
-    , ((modMask x,               xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
-    , ((modMask x .|. shiftMask, xK_j     ), windows W.swapDown  ) -- %! Swap the focused window with the next window
-    , ((modMask x .|. shiftMask, xK_k     ), windows W.swapUp    ) -- %! Swap the focused window with the previous window
+    , ((modMask x,               xK_Return), windows W.swapMaster           )
+    , ((modMask x .|. shiftMask, xK_j     ), windows W.swapDown             )
+    , ((modMask x .|. shiftMask, xK_k     ), windows W.swapUp               )
 
     -- resizing the master/slave ratio
-    , ((modMask x,               xK_h     ), sendMessage Shrink) -- %! Shrink the master area
-    , ((modMask x,               xK_l     ), sendMessage Expand) -- %! Expand the master area
+    , ((modMask x,               xK_h     ), sendMessage Shrink             )
+    , ((modMask x,               xK_l     ), sendMessage Expand             )
 
     -- floating layer support
-    , ((modMask x,               xK_t     ), withFocused $ windows . W.sink) -- %! Push window back into tiling
+    , ((modMask x,               xK_t     ), withFocused $ windows . W.sink )
 
     -- increase or decrease number of windows in the master area
-    , ((modMask x              , xK_comma ), sendMessage (IncMasterN 1)) -- %! Increment the number of windows in the master area
-    , ((modMask x              , xK_period), sendMessage (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
+    , ((modMask x .|. shiftMask, xK_comma ), sendMessage (IncMasterN   1 )  )
+    , ((modMask x .|. shiftMask, xK_period), sendMessage (IncMasterN (-1))  )
 
     -- toggle the status bar gap
-    , ((modMask x              , xK_b     ), modifyGap (\i n -> let s = (defaultGaps x ++ repeat (0,0,0,0)) !! i in if n == s then (0,0,0,0) else s)) -- %! Toggle the status bar gap
+    , ((modMask x              , xK_b     ), modifyGap (\i n -> let s = (defaultGaps x ++ repeat (0,0,0,0)) !! i in if n == s then (0,0,0,0) else s))
 
     ]
     ++
@@ -130,15 +130,21 @@ mykeys x =
 arossatoConfig = defaultConfig
          { borderWidth        = 1
          , workspaces         = map show [1 .. 9 :: Int]
-         , logHook            = dynamicLogWithPP sjanssenPP 
-         , layoutHook         = Layout $ noBorders mytab |||
-                                noBorders Full ||| tiled ||| 
-                                Mirror tiled ||| Accordion
+         , logHook            = dynamicLogWithPP myPP
+         , layoutHook         = noBorders mytab |||
+                                noBorders Full  |||
+                                tiled           ||| 
+                                Mirror tiled    ||| 
+                                Accordion
          , terminal           = "xterm"
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , modMask            = mod1Mask
          , keys               = defaultKeys
+         , defaultGaps        = [(15,0,0,0)]
          }
     where mytab = tabbed shrinkText myTabConfig
           tiled = Tall 1 0.03 0.5
+          myPP  = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
+                            , ppTitle   = xmobarColor "#00ee00" "" . shorten 80
+                            }
