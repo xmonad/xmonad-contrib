@@ -15,24 +15,25 @@
 
 module XMonad.Config.Arossato where
 
-import XMonad
-import XMonad.Layouts
-import XMonad.Operations
-import qualified XMonad.StackSet as W
 import Data.Bits ((.|.))
 import qualified Data.Map as M
 import Graphics.X11.Xlib
 
-import XMonad.Layout.Accordion
-import XMonad.Hooks.DynamicLog
-import XMonad.Layout.Tabbed
-import XMonad.Layout.NoBorders
+import XMonad
+import XMonad.Layouts
+import XMonad.Operations
+import qualified XMonad.StackSet as W
+
 import XMonad.Actions.CycleWS
+import XMonad.Hooks.DynamicLog
+import XMonad.Layout.Accordion
+import XMonad.Layout.NoBorders
+import XMonad.Layout.Tabbed
 import XMonad.Prompt
-import XMonad.Prompt.XMonad
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
 import XMonad.Prompt.Window
+import XMonad.Prompt.XMonad
 
 -- The Ion3 clean style
 myTabConfig :: TConf
