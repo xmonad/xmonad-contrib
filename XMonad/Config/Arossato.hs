@@ -86,10 +86,8 @@ arossatoConfig = defaultConfig
           , (modMask x .|. shiftMask, xK_p     )
           , (modMask x .|. shiftMask, xK_q     )
           , (modMask x              , xK_q     )
-          , (modMask x              , xK_comma )
-          , (modMask x              , xK_period)
           ] ++
-          -- I want modMask .|. shiftMusk 1-9 to be free!
+          -- I want modMask .|. shiftMask 1-9 to be free!
           [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
 
       -- These are my personal key bindings
@@ -116,4 +114,3 @@ arossatoConfig = defaultConfig
            | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
           ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
           ]
-
