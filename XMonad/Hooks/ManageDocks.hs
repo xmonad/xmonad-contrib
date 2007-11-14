@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
+{-# OPTIONS -fglasgow-exts #-}
+-- ^ deriving Typeable
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
