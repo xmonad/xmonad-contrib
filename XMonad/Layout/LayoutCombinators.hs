@@ -23,7 +23,7 @@ module XMonad.Layout.LayoutCombinators (
 
     ) where
 
-import Data.Maybe ( isJust )
+import Data.Maybe ( isJust, isNothing )
 
 import XMonad
 import XMonad.Layouts ( Tall(..), Mirror(..), ChangeLayout(NextLayout) )
@@ -75,59 +75,26 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
                                               return (wrs, (\l2' -> NewSelect False l1 l2') `fmap` ml2')
     description (NewSelect True l1 _) = description l1
     description (NewSelect False _ l2) = description l2
-    handleMessage (NewSelect False l1 l2) m
-        | Just Wrap <- fromMessage m =
-                       do ml2' <- handleMessage l2 (SomeMessage Hide)
-                          ml1' <- handleMessage l1 m
-                          return $ Just $ NewSelect True (maybe l1 id ml1') (maybe l2 id ml2')
-    handleMessage (NewSelect True l1 l2) m
+    handleMessage l@(NewSelect False _ _) m
+        | Just Wrap <- fromMessage m = fmap Just $ swap l >>= passOn m
+    handleMessage l@(NewSelect amfirst _ _) m
         | Just NextLayoutNoWrap <- fromMessage m =
-                 do ml1' <- handleMessage l1 m
-                    case ml1' of
-                      Just l1' -> return $ Just (NewSelect True l1' l2)
-                      Nothing -> do ml1'' <- handleMessage l1 (SomeMessage Hide)
-                                    ml2' <- handleMessage l2 (SomeMessage Wrap)
-                                    return $ Just $ NewSelect False (maybe l1 id ml1'') (maybe l2 id ml2')
-    handleMessage l@(NewSelect True _ _) m
-        | Just NextLayout <- fromMessage m = handleMessage l (SomeMessage NextLayoutNoWrap)
-    handleMessage l@(NewSelect False l1 l2) m
-        | Just NextLayout <- fromMessage m =
-                 do ml' <- handleMessage l (SomeMessage NextLayoutNoWrap)
-                    case ml' of
-                      Just l' -> return $ Just l'
-                      Nothing -> do ml2' <- handleMessage l2 (SomeMessage Hide)
-                                    ml1' <- handleMessage l1 (SomeMessage Wrap)
-                                    return $ Just $ NewSelect True (maybe l1 id ml1') (maybe l2 id ml2')
-    handleMessage (NewSelect True l1 l2) m
-        | Just (JumpToLayout d) <- fromMessage m,
-          d == description l2 = do ml1' <- handleMessage l1 (SomeMessage Hide)
-                                   return $ Just $ NewSelect False (maybe l1 id ml1') l2
-    handleMessage (NewSelect True l1 l2) m
-        | Just (JumpToLayout _) <- fromMessage m
-        = do ml1' <- handleMessage l1 m
-             case ml1' of
-               Just l1' -> return $ Just $ NewSelect True l1' l2
-               Nothing ->
-                   do ml2' <- handleMessage l2 m
-                      case ml2' of
-                        Nothing -> return Nothing
-                        Just l2' -> do ml1'' <- handleMessage l1 (SomeMessage Hide)
-                                       return $ Just $ NewSelect False (maybe l1 id ml1'') l2'
-    handleMessage (NewSelect False l1 l2) m
-        | Just (JumpToLayout d) <- fromMessage m,
-          d == description l1 = do ml2' <- handleMessage l2 (SomeMessage Hide)
-                                   return $ Just $ NewSelect True l1 (maybe l2 id ml2')
-    handleMessage (NewSelect False l1 l2) m
-        | Just (JumpToLayout _) <- fromMessage m
-        = do ml2' <- handleMessage l2 m
-             case ml2' of
-               Just l2' -> return $ Just $ NewSelect False l1 l2'
-               Nothing ->
-                   do ml1' <- handleMessage l1 m
-                      case ml1' of
-                        Nothing -> return Nothing
-                        Just l1' -> do ml2'' <- handleMessage l2 (SomeMessage Hide)
-                                       return $ Just $ NewSelect True l1' (maybe l2 id ml2'')
+                  if amfirst then when' isNothing (passOnM m l) $
+                                  fmap Just $ swap l >>= passOn (SomeMessage Wrap)
+                             else passOnM m l
+    handleMessage l m
+        | Just NextLayout <- fromMessage m = when' isNothing (passOnM (SomeMessage NextLayoutNoWrap) l) $
+                                             fmap Just $ swap l >>= passOn (SomeMessage Wrap)
+    handleMessage l@(NewSelect True _ l2) m
+        | Just (JumpToLayout d) <- fromMessage m, d == description l2 = Just `fmap` swap l
+    handleMessage l@(NewSelect False l1 _) m
+        | Just (JumpToLayout d) <- fromMessage m, d == description l1 = Just `fmap` swap l
+    handleMessage l m
+        | Just (JumpToLayout _) <- fromMessage m = when' isNothing (passOnM m l) $
+                                                   do ml' <- passOnM m $ sw l
+                                                      case ml' of
+                                                        Nothing -> return Nothing
+                                                        Just l' -> Just `fmap` swap (sw l')
     handleMessage (NewSelect b l1 l2) m
         | Just ReleaseResources  <- fromMessage m =
         do ml1' <- handleMessage l1 m
@@ -135,9 +102,24 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
            return $ if isJust ml1' || isJust ml2'
                     then Just $ NewSelect b (maybe l1 id ml1') (maybe l2 id ml2')
                     else Nothing
-    handleMessage (NewSelect True l1 l2) m =
-        do ml1' <- handleMessage l1 m
-           return $ (\l1' -> NewSelect True l1' l2) `fmap` ml1'
-    handleMessage (NewSelect False l1 l2) m =
-        do ml2' <- handleMessage l2 m
-           return $ (\l2' -> NewSelect False l1 l2') `fmap` ml2'
+    handleMessage l m = passOnM m l
+
+swap :: (LayoutClass l1 a, LayoutClass l2 a) => NewSelect l1 l2 a -> X (NewSelect l1 l2 a)
+swap l = sw `fmap` passOn (SomeMessage Hide) l
+
+sw :: NewSelect l1 l2 a -> NewSelect l1 l2 a
+sw (NewSelect b lt lf) = NewSelect (not b) lt lf
+
+passOn :: (LayoutClass l1 a, LayoutClass l2 a) =>
+          SomeMessage -> NewSelect l1 l2 a -> X (NewSelect l1 l2 a)
+passOn m l = maybe l id `fmap` passOnM m l
+
+passOnM :: (LayoutClass l1 a, LayoutClass l2 a) =>
+           SomeMessage -> NewSelect l1 l2 a -> X (Maybe (NewSelect l1 l2 a))
+passOnM m (NewSelect True lt lf) = do mlt' <- handleMessage lt m
+                                      return $ (\lt' -> NewSelect True lt' lf) `fmap` mlt'
+passOnM m (NewSelect False lt lf) = do mlf' <- handleMessage lf m
+                                       return $ (\lf' -> NewSelect False lt lf') `fmap` mlf'
+
+when' :: Monad m => (a -> Bool) -> m a -> m a -> m a
+when' f a b = do a1 <- a; if f a1 then b else return a1
