@@ -34,102 +34,22 @@ import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
 import XMonad.Prompt.Window
 
-myXPConfig :: XPConfig
-myXPConfig = defaultXPConfig 
-
--- ion3 clean style
+-- The Ion3 clean style
 myTabConfig :: TConf
-myTabConfig = defaultTConf {
-                activeColor         = "#8a999e" 
-              , inactiveColor       = "#545d75"
-              , activeBorderColor   = "white"
-              , inactiveBorderColor = "grey"
-              , activeTextColor     = "white"
-              , inactiveTextColor   = "grey"
-              , tabSize             = 15
-              }
-
-------------------------------------------------------------------------
--- |
--- Key bindings:
---
--- I want to remove some of the default key bindings, such as those to
--- exit XMonad
-defaultKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-defaultKeys x = M.fromList $
-    -- launching and killing programs
-    [ ((modMask x .|. shiftMask, xK_Return), spawn "xterm"                  )
-    , ((modMask x .|. shiftMask, xK_c     ), kill                           )
-
-    , ((modMask x,               xK_space ), sendMessage NextLayout         )
-    , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x       )
-
-    , ((modMask x,               xK_n     ), refresh                        )
-
-    -- move focus up or down the window stack
-    , ((modMask x,               xK_Tab   ), windows W.focusDown            )
-    , ((modMask x,               xK_m     ), windows W.focusMaster          )
-
-    -- modifying the window order
-    , ((modMask x,               xK_Return), windows W.swapMaster           )
-    , ((modMask x .|. shiftMask, xK_j     ), windows W.swapDown             )
-    , ((modMask x .|. shiftMask, xK_k     ), windows W.swapUp               )
-
-    -- resizing the master/slave ratio
-    , ((modMask x,               xK_h     ), sendMessage Shrink             )
-    , ((modMask x,               xK_l     ), sendMessage Expand             )
-
-    -- floating layer support
-    , ((modMask x,               xK_t     ), withFocused $ windows . W.sink )
-
-    -- increase or decrease number of windows in the master area
-    , ((modMask x .|. shiftMask, xK_comma ), sendMessage (IncMasterN   1 )  )
-    , ((modMask x .|. shiftMask, xK_period), sendMessage (IncMasterN (-1))  )
-
-    -- toggle the status bar gap
-    , ((modMask x              , xK_b     ), modifyGap (\i n -> let s = (defaultGaps x ++ repeat (0,0,0,0)) !! i in if n == s then (0,0,0,0) else s))
-
-    ]
-    ++
-    -- mod-[1..9] %! Switch to workspace N
-    -- mod-shift-[1..9] %! Move client to workspace N
-    [((m .|. modMask x, k), windows $ f i)
-        | (i, k) <- zip (workspaces x) [xK_1 ..]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]]
-    ++
-    -- mod-{w,e,r} %! Switch to physical/Xinerama screens 1, 2, or 3
-    -- mod-shift-{w,e,r} %! Move client to screen 1, 2, or 3
-    [((m .|. modMask x, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
-        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
-
-    ++ mykeys x
-
--- These are my personal key bindings
-mykeys :: XConfig Layout -> [((KeyMask, KeySym), (X ()))]
-mykeys x = 
-    [ ((modMask x                 , xK_F12   ), xmonadPrompt myXPConfig               )
-    , ((modMask x                 , xK_F3    ), shellPrompt  myXPConfig               )
-    , ((modMask x                 , xK_F4    ), sshPrompt    myXPConfig               )
-    , ((modMask x                 , xK_F5    ), windowPromptGoto  myXPConfig          )
-    , ((modMask x .|. shiftMask   , xK_F5    ), windowPromptBring myXPConfig          )
-    -- mod . mod ,
-    , ((modMask x                 , xK_comma ), prevWS                                )
-    , ((modMask x                 , xK_period), nextWS                                )
-    -- mod left mod right
-    , ((modMask x                 , xK_Right ), windows W.focusDown                   )
-    , ((modMask x                 , xK_Left  ), windows W.focusUp                     )
-    -- other stuff: launch some useful utilities
-    , ((modMask x                 , xK_F2    ), spawn "urxvt -fg white -bg black +sb" )
-    , ((modMask x .|. shiftMask   , xK_F4    ), spawn "~/bin/dict.sh"                 )
-    , ((modMask x .|. shiftMask   , xK_F5    ), spawn "~/bin/urlOpen.sh"              )
-    , ((modMask x                 , xK_c     ), kill                                  )
-    ]
-
+myTabConfig = 
+    defaultTConf { activeColor         = "#8a999e" 
+                 , inactiveColor       = "#545d75"
+                 , activeBorderColor   = "white"
+                 , inactiveBorderColor = "grey"
+                 , activeTextColor     = "white"
+                 , inactiveTextColor   = "grey"
+                 , tabSize             = 15
+                 }
 
 arossatoConfig = defaultConfig
-         { borderWidth        = 1
-         , workspaces         = map show [1 .. 9 :: Int]
+         { workspaces         = ["1", "2"] ++
+                                ["dev","mail","web"] ++
+                                map show [6 .. 9 :: Int]
          , logHook            = dynamicLogWithPP myPP
          , layoutHook         = noBorders mytab |||
                                 noBorders Full  |||
@@ -140,11 +60,45 @@ arossatoConfig = defaultConfig
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , modMask            = mod1Mask
-         , keys               = defaultKeys
+         , keys               = newKeys
          , defaultGaps        = [(15,0,0,0)]
          }
-    where mytab = tabbed shrinkText myTabConfig
-          tiled = Tall 1 0.03 0.5
-          myPP  = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
-                            , ppTitle   = xmobarColor "#00ee00" "" . shorten 80
-                            }
+    where 
+      mytab = tabbed shrinkText myTabConfig
+      tiled = Tall 1 0.03 0.5
+      myPP  = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
+                        , ppTitle   = xmobarColor "green"  "" . shorten 80
+                        }
+
+      -- key bindings stuff
+      defKeys    = keys defaultConfig
+      newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
+      delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
+      -- remove some of the default key bindings
+      toRemove x = 
+          [ (modMask x              , xK_j     )
+          , (modMask x              , xK_k     )
+          , (modMask x              , xK_p     )
+          , (modMask x .|. shiftMask, xK_p     )
+          , (modMask x              , xK_comma )
+          , (modMask x              , xK_period)
+          ]
+      -- These are my personal key bindings
+      toAdd x   = 
+          [ ((modMask x                 , xK_F12   ), xmonadPrompt      defaultXPConfig     )
+          , ((modMask x                 , xK_F3    ), shellPrompt       defaultXPConfig     )
+          , ((modMask x                 , xK_F4    ), sshPrompt         defaultXPConfig     )
+          , ((modMask x                 , xK_F5    ), windowPromptGoto  defaultXPConfig     )
+          , ((modMask x .|. shiftMask   , xK_F5    ), windowPromptBring defaultXPConfig     )
+          , ((modMask x                 , xK_comma ), prevWS                                )
+          , ((modMask x                 , xK_period), nextWS                                )
+          , ((modMask x                 , xK_Right ), windows W.focusDown                   )
+          , ((modMask x                 , xK_Left  ), windows W.focusUp                     )
+          -- other stuff: launch some useful utilities
+          , ((modMask x                 , xK_F2    ), spawn "urxvt -fg white -bg black +sb" )
+          , ((modMask x .|. shiftMask   , xK_F4    ), spawn "~/bin/dict.sh"                 )
+          , ((modMask x .|. shiftMask   , xK_F5    ), spawn "~/bin/urlOpen.sh"              )
+          , ((modMask x                 , xK_c     ), kill                                  )
+          , ((modMask x .|. shiftMask   , xK_comma ), sendMessage (IncMasterN   1 )         )
+          , ((modMask x .|. shiftMask   , xK_period), sendMessage (IncMasterN (-1))         )
+          ]
