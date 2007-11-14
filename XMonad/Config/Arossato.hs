@@ -64,16 +64,19 @@ arossatoConfig = defaultConfig
          , defaultGaps        = [(15,0,0,0)]
          }
     where 
+      -- layouts
       mytab = tabbed shrinkText myTabConfig
       tiled = Tall 1 0.03 0.5
+      
+      -- the logHook pretty-printer
       myPP  = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
                         , ppTitle   = xmobarColor "green"  "" . shorten 80
                         }
 
       -- key bindings stuff
       defKeys    = keys defaultConfig
-      newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
       delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
+      newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
       -- remove some of the default key bindings
       toRemove x = 
           [ (modMask x              , xK_j     )
@@ -85,20 +88,20 @@ arossatoConfig = defaultConfig
           ]
       -- These are my personal key bindings
       toAdd x   = 
-          [ ((modMask x                 , xK_F12   ), xmonadPrompt      defaultXPConfig     )
-          , ((modMask x                 , xK_F3    ), shellPrompt       defaultXPConfig     )
-          , ((modMask x                 , xK_F4    ), sshPrompt         defaultXPConfig     )
-          , ((modMask x                 , xK_F5    ), windowPromptGoto  defaultXPConfig     )
-          , ((modMask x .|. shiftMask   , xK_F5    ), windowPromptBring defaultXPConfig     )
-          , ((modMask x                 , xK_comma ), prevWS                                )
-          , ((modMask x                 , xK_period), nextWS                                )
-          , ((modMask x                 , xK_Right ), windows W.focusDown                   )
-          , ((modMask x                 , xK_Left  ), windows W.focusUp                     )
+          [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
+          , ((modMask x              , xK_F3    ), shellPrompt       defaultXPConfig    )
+          , ((modMask x              , xK_F4    ), sshPrompt         defaultXPConfig    )
+          , ((modMask x              , xK_F5    ), windowPromptGoto  defaultXPConfig    )
+          , ((modMask x .|. shiftMask, xK_F5    ), windowPromptBring defaultXPConfig    )
+          , ((modMask x              , xK_comma ), prevWS                               )
+          , ((modMask x              , xK_period), nextWS                               )
+          , ((modMask x              , xK_Right ), windows W.focusDown                  )
+          , ((modMask x              , xK_Left  ), windows W.focusUp                    )
           -- other stuff: launch some useful utilities
-          , ((modMask x                 , xK_F2    ), spawn "urxvt -fg white -bg black +sb" )
-          , ((modMask x .|. shiftMask   , xK_F4    ), spawn "~/bin/dict.sh"                 )
-          , ((modMask x .|. shiftMask   , xK_F5    ), spawn "~/bin/urlOpen.sh"              )
-          , ((modMask x                 , xK_c     ), kill                                  )
-          , ((modMask x .|. shiftMask   , xK_comma ), sendMessage (IncMasterN   1 )         )
-          , ((modMask x .|. shiftMask   , xK_period), sendMessage (IncMasterN (-1))         )
+          , ((modMask x              , xK_F2    ), spawn "urxvt -fg white -bg black +sb")
+          , ((modMask x .|. shiftMask, xK_F4    ), spawn "~/bin/dict.sh"                )
+          , ((modMask x .|. shiftMask, xK_F5    ), spawn "~/bin/urlOpen.sh"             )
+          , ((modMask x              , xK_c     ), kill                                 )
+          , ((modMask x .|. shiftMask, xK_comma ), sendMessage (IncMasterN   1 )        )
+          , ((modMask x .|. shiftMask, xK_period), sendMessage (IncMasterN (-1))        )
           ]
