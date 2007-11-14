@@ -8,6 +8,8 @@
 --
 -- Useful helper functions for amending the defaultConfig.
 --
+-- (See also "XMonad.Config.CustomKeys" in xmonad-contrib.)
+--
 --------------------------------------------------------------------
 
 module XMonad.Util.EZConfig (
@@ -21,6 +23,7 @@ import XMonad
 import qualified Data.Map as M
 import Graphics.X11.Xlib
 
+-- |
 -- Add or override keybindings from the existing set. Example use:
 -- > main = xmonad $ defaultConfig { terminal = "urxvt" }
 -- >                 `additionalKeys`
@@ -36,6 +39,7 @@ additionalKeys :: XConfig a -> [((ButtonMask, KeySym), X ())] -> XConfig a
 additionalKeys conf keysList =
     conf { keys = \cnf -> M.union (M.fromList keysList) (keys conf cnf) }
 
+-- |
 -- Remove standard keybidings you're not using. Example use:
 -- > main = xmonad $ defaultConfig { terminal = "urxvt" }
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]
@@ -43,12 +47,12 @@ removeKeys :: XConfig a -> [(ButtonMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
     conf { keys = \cnf -> keys conf cnf `M.difference` M.fromList (zip keyList $ return ()) }
 
--- Like additionalKeys, but for mouseBindings.
+-- | Like additionalKeys, but for mouseBindings.
 additionalMouseBindings :: XConfig a -> [((ButtonMask, Button), Window -> X ())] -> XConfig a
 additionalMouseBindings conf mouseBindingsList =
     conf { mouseBindings = \cnf -> M.union (M.fromList mouseBindingsList) (mouseBindings conf cnf) }
 
--- Like removeKeys, but for mouseBindings.
+-- | Like removeKeys, but for mouseBindings.
 removeMouseBindings :: XConfig a -> [(ButtonMask, Button)] -> XConfig a
 removeMouseBindings conf mouseBindingList =
     conf { mouseBindings = \cnf -> mouseBindings conf cnf `M.difference`

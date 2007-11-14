@@ -8,7 +8,7 @@
 --
 -- Customized key bindings.
 --
--- (See also "XMonad.Util.EZConfig" in XMonadContrib.)
+-- (See also "XMonad.Util.EZConfig" in xmonad-contrib.)
 --------------------------------------------------------------------
 
 module XMonad.Config.CustomKeys (
