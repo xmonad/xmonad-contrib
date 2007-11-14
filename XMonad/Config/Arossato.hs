@@ -83,9 +83,14 @@ arossatoConfig = defaultConfig
           , (modMask x              , xK_k     )
           , (modMask x              , xK_p     )
           , (modMask x .|. shiftMask, xK_p     )
+          , (modMask x .|. shiftMask, xK_q     )
+          , (modMask x              , xK_q     )
           , (modMask x              , xK_comma )
           , (modMask x              , xK_period)
-          ]
+          ] ++
+          -- I want modMask .|. shiftMusk 1-9 to be free!
+          [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
+
       -- These are my personal key bindings
       toAdd x   = 
           [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
@@ -104,4 +109,10 @@ arossatoConfig = defaultConfig
           , ((modMask x              , xK_c     ), kill                                 )
           , ((modMask x .|. shiftMask, xK_comma ), sendMessage (IncMasterN   1 )        )
           , ((modMask x .|. shiftMask, xK_period), sendMessage (IncMasterN (-1))        )
+          ] ++
+          -- Use modMask .|. shiftMusk .|. controlMask 1-9 instead
+          [( (m .|. modMask x, k), windows $ f i)
+           | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
+          ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
           ]
+
