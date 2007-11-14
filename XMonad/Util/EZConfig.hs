@@ -25,11 +25,13 @@ import Graphics.X11.Xlib
 
 -- |
 -- Add or override keybindings from the existing set. Example use:
+--
 -- > main = xmonad $ defaultConfig { terminal = "urxvt" }
 -- >                 `additionalKeys`
 -- >                 [ ((mod1Mask, xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
 -- >                 , ((mod1Mask, xK_BackSpace), withFocused hide) -- N.B. this is an absurd thing to do
 -- >                 ]
+--
 -- This overrides the previous definition of mod-m.
 --
 -- Note that, unlike in xmonad 0.4 and previous, you can't use modMask to refer
@@ -41,6 +43,7 @@ additionalKeys conf keysList =
 
 -- |
 -- Remove standard keybidings you're not using. Example use:
+--
 -- > main = xmonad $ defaultConfig { terminal = "urxvt" }
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]
 removeKeys :: XConfig a -> [(ButtonMask, KeySym)] -> XConfig a
