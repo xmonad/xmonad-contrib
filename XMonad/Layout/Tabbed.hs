@@ -26,7 +26,6 @@ module XMonad.Layout.Tabbed (
 import Control.Monad.State ( gets )
 import Control.Monad.Reader
 import Data.Maybe
-import Data.Bits
 import Data.List
 
 import Graphics.X11.Xlib
