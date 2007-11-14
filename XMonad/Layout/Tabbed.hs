@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
-
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Tabbed
