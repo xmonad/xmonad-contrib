@@ -110,7 +110,7 @@ arossatoConfig = defaultConfig
           , ((modMask x .|. shiftMask, xK_comma ), sendMessage (IncMasterN   1 )        )
           , ((modMask x .|. shiftMask, xK_period), sendMessage (IncMasterN (-1))        )
           ] ++
-          -- Use modMask .|. shiftMusk .|. controlMask 1-9 instead
+          -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
           [( (m .|. modMask x, k), windows $ f i)
            | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
           ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
