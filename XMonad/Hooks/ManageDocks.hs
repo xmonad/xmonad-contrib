@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
 {-# OPTIONS -fglasgow-exts #-}
--- ^ deriving Typeable
+-- deriving Typeable
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
@@ -18,23 +18,24 @@
 -- It also allows you to reset the gap to reflect the state of current STRUT
 -- windows (for example, after you resized or closed a panel), and to toggle the Gap
 -- in a STRUT-aware fashion.
-
+--
 -- The avoidStruts layout modifier allows you to make xmonad dynamically
 -- avoid overlapping windows with panels.  You can (optionally) enable this
 -- on a selective basis, so that some layouts will effectively hide the
 -- panel, by placing windows on top of it.  An example use of avoidStruts
 -- would be:
-
+--
 -- > layoutHook = Layout $ toggleLayouts (noBorders Full) $ avoidStruts $
 -- >                       your actual layouts here ||| ...
-
+--
 -- You may also wish to bind a key to sendMessage ToggleStruts, which will
 -- toggle the avoidStruts behavior, so you can hide your panel at will.
-
+--
 -- This would enable a full-screen mode that overlaps the panel, while all
 -- other layouts avoid the panel.
-
+--
 -----------------------------------------------------------------------------
+
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
