@@ -27,11 +27,11 @@ module XMonad.Layout.WindowNavigation (
 
 import Graphics.X11.Xlib ( Rectangle(..), Window, Pixel, setWindowBorder )
 import Control.Monad.Reader ( ask )
-import Control.Monad.State ( gets )
+import Control.Monad.State ( gets, modify )
 import Data.List ( nub, sortBy, (\\) )
 import XMonad
 import qualified XMonad.StackSet as W
-import XMonad.Operations ( windows, focus )
+import XMonad.Operations ( windows )
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils
@@ -144,9 +144,19 @@ instance LayoutModifier WindowNavigation Window where
         | Just (Go d) <- fromMessage m =
                          case sortby d $ filter (inr d pt . snd) wrs of
                          []        -> return Nothing
-                         ((w,r):_) -> do focus w
+                         ((w,r):_) -> do modify focusWindowHere
                                          return $ Just $ Left $ WindowNavigation conf $ I $ Just $
                                                 NS (centerd d pt r) wrs
+                             where focusWindowHere :: XState -> XState
+                                   focusWindowHere s
+                                       | Just w == W.peek (windowset s) = s
+                                       | has w $ W.stack $ W.workspace $ W.current $ windowset s =
+                                           s { windowset = until ((Just w ==) . W.peek)
+                                                           W.focusUp $ windowset s }
+                                       | otherwise = s
+                                   has _ Nothing         = False
+                                   has x (Just (W.Stack t l rr)) = x `elem` (t : l ++ rr)
+
         | Just (Swap d) <- fromMessage m =
              case sortby d $ filter (inr d pt . snd) wrs of
              []        -> return Nothing
