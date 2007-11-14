@@ -85,6 +85,7 @@ removeVisiblesFromUrgents = do
 
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
+--
 -- > , ((modMask              , xK_BackSpace), focusUrgent)
 focusUrgent :: X ()
 focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
