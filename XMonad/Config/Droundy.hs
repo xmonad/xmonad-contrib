@@ -133,8 +133,12 @@ config = defaultConfig
 mytab = tabbed CustomShrink defaultTConf
 
 instance Shrinker CustomShrink where
+    shrinkIt shr s | Just s' <- dropFromHead " " s = shrinkIt shr s' 
     shrinkIt shr s | Just s' <- dropFromTail " " s = shrinkIt shr s' 
     shrinkIt shr s | Just s' <- dropFromTail "- Iceweasel" s = shrinkIt shr s' 
+    shrinkIt shr s | Just s' <- dropFromTail "- KPDF" s = shrinkIt shr s' 
+    shrinkIt shr s | Just s' <- dropFromHead "file://" s = shrinkIt shr s' 
+    shrinkIt shr s | Just s' <- dropFromHead "http://" s = shrinkIt shr s' 
     shrinkIt _ s | n > 9 = s : map cut [2..(halfn-3)] ++ shrinkIt shrinkText s
                  where n = length s
                        halfn = n `div` 2
@@ -144,4 +148,8 @@ instance Shrinker CustomShrink where
 
 dropFromTail :: String -> String -> Maybe String
 dropFromTail t s | drop (length s - length t) s == t = Just $ take (length s - length t) s
+                 | otherwise = Nothing
+
+dropFromHead :: String -> String -> Maybe String
+dropFromHead h s | take (length h) s == h = Just $ drop (length h) s
                  | otherwise = Nothing
