@@ -8,7 +8,7 @@
 --
 -- Useful helper functions for amending the defaultConfig.
 --
--- (See also "XMonad.Config.CustomKeys" in xmonad-contrib.)
+-- (See also "XMonad.Util.CustomKeys" in xmonad-contrib.)
 --
 --------------------------------------------------------------------
 

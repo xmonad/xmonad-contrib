@@ -53,7 +53,6 @@ library
                         XMonad.Config.Dons
                         XMonad.Config.Arossato
                         XMonad.Config.Droundy
-                        XMonad.Config.CustomKeys
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.ManageDocks
@@ -100,6 +99,7 @@ library
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
                         XMonad.Util.Anneal
+                        XMonad.Util.CustomKeys
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
                         XMonad.Util.EZConfig

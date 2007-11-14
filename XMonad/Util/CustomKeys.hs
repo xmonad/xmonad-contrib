@@ -1,6 +1,6 @@
 --------------------------------------------------------------------
 -- |
--- Module     : XMonad.Config.CustomKeys
+-- Module     : XMonad.Util.CustomKeys
 -- Copyright  : (c) 2007 Valery V. Vorotyntsev
 -- License    : BSD3-style (see LICENSE)
 --
@@ -11,12 +11,12 @@
 -- (See also "XMonad.Util.EZConfig" in xmonad-contrib.)
 --------------------------------------------------------------------
 
-module XMonad.Config.CustomKeys (
-                                  -- * Usage
-                                  -- $usage
-                                  customKeys
-                                , customKeysFrom
-                                ) where
+module XMonad.Util.CustomKeys (
+                              -- * Usage
+                              -- $usage
+                               customKeys
+                              , customKeysFrom
+                              ) where
 
 import XMonad
 import Graphics.X11.Xlib
@@ -28,7 +28,7 @@ import qualified Data.Map as M
 --
 -- 1. In @~\/.xmonad\/xmonad.hs@ add:
 --
--- > import XMonad.Config.CustomKeys
+-- > import XMonad.Util.CustomKeys
 --
 -- 2. Set key bindings with 'customKeys':
 --
@@ -48,7 +48,7 @@ import qualified Data.Map as M
 -- >           ]
 
 -- | Customize 'XMonad.Config.defaultConfig' -- delete needless
--- shortcuts and insert the ones you use.
+-- shortcuts and insert those you will use.
 customKeys :: (XConfig Layout -> [(KeyMask, KeySym)]) -- ^ shortcuts to delete
            -> (XConfig Layout -> [((KeyMask, KeySym), X ())]) -- ^ key bindings to insert
            -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
