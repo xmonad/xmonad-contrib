@@ -270,11 +270,13 @@ keyPressHandle mask (ks,_)
     | mask == controlMask =
         -- control sequences
         case () of
-          _ | ks == xK_u -> killBefore  >> go
-            | ks == xK_k -> killAfter   >> go
-            | ks == xK_a -> startOfLine >> go
-            | ks == xK_e -> endOfLine   >> go
-            | ks == xK_y -> pasteString >> go
+          _ | ks == xK_u               -> killBefore    >> go
+            | ks == xK_k               -> killAfter     >> go
+            | ks == xK_a               -> startOfLine   >> go
+            | ks == xK_e               -> endOfLine     >> go
+            | ks == xK_y               -> pasteString   >> go
+            | ks == xK_Delete          -> killWord Next >> go
+            | ks == xK_BackSpace       -> killWord Prev >> go
             | ks == xK_g || ks == xK_c -> quit
             | otherwise  -> eventLoop handle -- unhandled control sequence
     | ks == xK_Return    = historyPush       >> return ()
@@ -309,6 +311,22 @@ killBefore =
 killAfter :: XP ()
 killAfter =
   modify $ \s -> s { command = take (offset s) (command s) }
+
+-- | Kill the next/previous word
+killWord :: Direction -> XP ()
+killWord d = do
+  XPS { command = c, offset = o } <- get
+  let (f,ss)        = splitAt o c
+      delNextWord w = 
+          case w of
+            ' ':x -> x
+            word  -> snd . break isSpace $ word
+      delPrevWord   = reverse . delNextWord . reverse
+      (ncom,noff)   = 
+          case d of
+            Next -> (f ++ delNextWord ss, o)
+            Prev -> (delPrevWord f ++ ss, length $ delPrevWord f) -- laziness!!
+  modify $ \s -> s { command = ncom, offset = noff}
 
 -- | Put the cursor at the end of line
 endOfLine :: XP ()
