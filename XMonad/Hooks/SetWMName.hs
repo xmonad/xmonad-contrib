@@ -37,6 +37,7 @@ module XMonad.Hooks.SetWMName (
 
 import Control.Monad (join)
 import Control.Monad.Reader (asks)
+import Data.Bits ((.|.))
 import Data.Char (ord)
 import Data.List (nub)
 import Data.Maybe (fromJust, listToMaybe, maybeToList)
