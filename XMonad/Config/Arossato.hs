@@ -13,7 +13,12 @@
 --
 ------------------------------------------------------------------------
 
-module XMonad.Config.Arossato where
+module XMonad.Config.Arossato 
+    ( -- * Usage
+      -- $usage
+      arossatoConfig
+    , arossatoTabbedConfig
+    ) where
 
 import qualified Data.Map as M
 import Graphics.X11.Xlib
@@ -34,9 +39,46 @@ import XMonad.Prompt.Ssh
 import XMonad.Prompt.Window
 import XMonad.Prompt.XMonad
 
--- The Ion3 clean style
-myTabConfig :: TConf
-myTabConfig = 
+-- $usage 
+-- The simplest way to use this configuration module is to use an
+-- @~\/.xmonad\/xmonad.hs@ like this:
+--
+-- > module Main (main) where
+-- >  
+-- > import XMonad
+-- > import XMonad.Config.Arossato (arossatoConfig)
+-- >  
+-- > main :: IO ()
+-- > main = xmonad arossatoConfig
+--
+--
+-- You can use this module also as a starting point for writing your
+-- own configuration module from scratch. Save it as your
+-- @~\/.xmonad\/xmonad.hs@ and:
+--
+-- 1. Change the module name from
+--
+-- > module XMonad.Config.Arossato 
+-- >     ( -- * Usage
+-- >       -- $usage
+-- >       arossatoConfig
+-- >     , arossatoTabbedConfig
+-- >     ) where
+--
+-- to
+--
+-- > module Main where
+--
+-- 2. Add a line like:
+--
+-- > main = xmonad arossatoConfig
+--
+-- 3. Start playing with the configuration options...;)
+
+-- | My configuration for the Tabbed Layout. Basically this is the
+-- Ion3 clean style.
+arossatoTabbedConfig :: TConf
+arossatoTabbedConfig =
     defaultTConf { activeColor         = "#8a999e" 
                  , inactiveColor       = "#545d75"
                  , activeBorderColor   = "white"
@@ -65,7 +107,7 @@ arossatoConfig = defaultConfig
          }
     where 
       -- layouts
-      mytab = tabbed shrinkText myTabConfig
+      mytab = tabbed shrinkText arossatoTabbedConfig
       tiled = Tall 1 0.03 0.5
       
       -- the logHook pretty-printer
@@ -88,7 +130,6 @@ arossatoConfig = defaultConfig
           ] ++
           -- I want modMask .|. shiftMask 1-9 to be free!
           [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
-
       -- These are my personal key bindings
       toAdd x   = 
           [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
