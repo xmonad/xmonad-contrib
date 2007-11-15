@@ -68,8 +68,6 @@ import System.Posix.Files
 -- TODO:
 --
 -- * scrolling the completions that don't fit in the window (?)
---
--- * commands to edit the command line
 
 type XP = StateT XPState IO
 
@@ -312,7 +310,7 @@ killAfter :: XP ()
 killAfter =
   modify $ \s -> s { command = take (offset s) (command s) }
 
--- | Kill the next/previous word
+-- | Kill the next\/previous word
 killWord :: Direction -> XP ()
 killWord d = do
   XPS { command = c, offset = o } <- get
