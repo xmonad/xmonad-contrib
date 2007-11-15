@@ -46,6 +46,19 @@ import qualified Data.Map as M
 -- >           , ((mod1Mask,             xK_Down), spawn "amixer set Master 1-")
 -- >           , ((mod1Mask,             xK_Up  ), spawn "amixer set Master 1+")
 -- >           ]
+--
+-- 0 (/hidden feature/). You can always replace bindings map
+--   entirely. No need to import "CustomKeys" this time:
+--
+-- > import XMonad
+-- > import Graphics.X11.Xlib
+-- > import System.Exit
+-- > import qualified Data.Map as M
+-- >
+-- > main = xmonad defaultConfig {
+-- >          keys = \_ -> M.fromList [
+-- >                  -- Let me out of here! I want my KDE back! Help! Help!
+-- >                  ( (0, xK_Escape), io (exitWith ExitSuccess) ) ] }
 
 -- | Customize 'XMonad.Config.defaultConfig' -- delete needless
 -- shortcuts and insert those you will use.
