@@ -286,8 +286,8 @@ keyPressHandle mask (ks,_)
     | ks == xK_Right     = moveCursor   Next >> go
     | ks == xK_Up        = moveHistory  Prev >> go
     | ks == xK_Down      = moveHistory  Next >> go
-    | ks == xK_Home      = startOfLine >> go
-    | ks == xK_End       = endOfLine   >> go
+    | ks == xK_Home      = startOfLine       >> go
+    | ks == xK_End       = endOfLine         >> go
     | ks == xK_Escape    = quit
     where
       go   = updateWindows >> eventLoop handle
@@ -331,7 +331,7 @@ killWord d = do
 -- | Put the cursor at the end of line
 endOfLine :: XP ()
 endOfLine  =
-    modify $ \s -> s { offset = length (command s) }
+    modify $ \s -> s { offset = length (command s)}
 
 -- | Put the cursor at the start of line
 startOfLine :: XP ()
@@ -341,12 +341,12 @@ startOfLine  =
 -- |  Flush the command string and reset the offest
 flushString :: XP ()
 flushString = do
-  modify (\s -> s { command = "", offset = 0} )
+  modify $ \s -> s { command = "", offset = 0}
 
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
 insertString str =
-  modify (\s -> s { command = c (command s) (offset s), offset = o (offset s)} )
+  modify $ \s -> s { command = c (command s) (offset s), offset = o (offset s)}
   where o oo = oo + length str
         c oc oo | oo >= length oc = oc ++ str
                 | otherwise = f ++ str ++ ss
@@ -359,7 +359,7 @@ pasteString = join $ io $ liftM insertString $ getSelection
 -- | Remove a character at the cursor position
 deleteString :: Direction -> XP ()
 deleteString d =
-  modify (\s -> s { command = c (command s) (offset s), offset = o (offset s)} )
+  modify $ \s -> s { command = c (command s) (offset s), offset = o (offset s)}
   where o oo = if d == Prev then max 0 (oo - 1) else oo
         c oc oo
             | oo >= length oc && d == Prev = take (oo - 1) oc
@@ -371,7 +371,7 @@ deleteString d =
 -- | move the cursor one position
 moveCursor :: Direction -> XP ()
 moveCursor d =
-  modify (\s -> s { offset = o (offset s) (command s)} )
+  modify $ \s -> s { offset = o (offset s) (command s)}
   where o oo c = if d == Prev then max 0 (oo - 1) else min (length c) (oo + 1)
 
 moveHistory :: Direction -> XP ()
@@ -384,7 +384,7 @@ moveHistory d = do
                          Prev -> h !! (if (i + 1) > (length h - 1) then 0 else i + 1)
                          Next -> h !! (max (i - 1) 0)
              Nothing -> str
-  modify (\s -> s { command = nc, offset = length nc })
+  modify $ \s -> s { command = nc, offset = length nc}
 
 -- X Stuff
 
