@@ -15,7 +15,6 @@
 
 module XMonad.Config.Arossato where
 
-import Data.Bits ((.|.))
 import qualified Data.Map as M
 import Graphics.X11.Xlib
 

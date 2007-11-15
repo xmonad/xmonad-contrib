@@ -26,7 +26,6 @@ import Control.Monad.State ( gets )
 import Control.Monad.Reader
 import Data.Maybe
 import Data.List
-import Data.Bits ((.|.))
 
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
