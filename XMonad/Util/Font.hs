@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Font
@@ -30,17 +32,22 @@ module XMonad.Util.Font  (
 
 
 import Graphics.X11.Xlib
-import Graphics.X11.Xft
-import Graphics.X11.Xrender
-
 import Control.Monad.Reader
-import Data.List
 import XMonad
 import Foreign
 import XMonad.Operations
 
+#ifdef XFT
+import Data.List
+import Graphics.X11.Xft
+import Graphics.X11.Xrender
+#endif
+
 -- Hide the Core Font/Xft switching here
-type XMonadFont = Either FontStruct XftFont
+data XMonadFont = Core FontStruct
+#ifdef XFT
+                | Xft  XftFont
+#endif
 
 -- $usage
 -- See Tabbed or Prompt for usage examples
@@ -73,33 +80,43 @@ releaseCoreFont fs = do
 -- Example: 'xft: Sans-10'
 initXMF :: String -> X XMonadFont
 initXMF s =
+#ifdef XFT
   if xftPrefix `isPrefixOf` s then
      do
        dpy <- asks display
        xftdraw <- io $ xftFontOpen dpy (defaultScreenOfDisplay dpy) (drop (length xftPrefix) s)
        return (Right xftdraw)
   else
-      (initCoreFont s >>= (return . Left))
+#endif
+      (initCoreFont s >>= (return . Core))
+#ifdef XFT
   where xftPrefix = "xft:"
+#endif
 
 releaseXMF :: XMonadFont -> X ()
-releaseXMF (Left fs) = releaseCoreFont fs
-releaseXMF (Right xftfont) = do
+releaseXMF (Core fs) = releaseCoreFont fs
+#ifdef XFT
+releaseXMF (Xft xftfont) = do
   dpy <- asks display
   io $ xftFontClose dpy xftfont
+#endif
 
 textWidthXMF :: Display -> XMonadFont -> String -> IO Int
-textWidthXMF _   (Left fs) s = return $ fi $ textWidth fs s
+textWidthXMF _   (Core fs) s = return $ fi $ textWidth fs s
+#ifdef XFT
 textWidthXMF dpy (Right xftdraw) s = do
     gi <- xftTextExtents dpy xftdraw s
     return $ xglyphinfo_width gi
+#endif
 
 textExtentsXMF :: Display -> XMonadFont -> String -> IO (FontDirection,Int32,Int32,CharStruct)
-textExtentsXMF _ (Left fs) s = return $ textExtents fs s
+textExtentsXMF _ (Core fs) s = return $ textExtents fs s
+#ifdef XFT
 textExtentsXMF _ (Right xftfont) _ = do
     ascent <- xftfont_ascent xftfont
     descent <- xftfont_descent xftfont
     return (error "Font direction touched", fi ascent, fi descent, error "Font overall size touched")
+#endif
 
 -- | String position
 data Align = AlignCenter | AlignRight | AlignLeft
@@ -121,13 +138,14 @@ stringPosition fs (Rectangle _ _ w h) al s = do
 
 printStringXMF :: Display -> Drawable -> XMonadFont -> GC -> String -> String
             -> Position -> Position -> String  -> X ()
-printStringXMF d p (Left fs) gc fc bc x y s = do
+printStringXMF d p (Core fs) gc fc bc x y s = do
          io $ setFont d gc $ fontFromFontStruct fs
          [fc',bc'] <- mapM stringToPixel [fc,bc]
          io $ setForeground   d gc fc'
          io $ setBackground   d gc bc'
          io $ drawImageString d p gc x y s
 
+#ifdef XFT
 printStringXMF dpy drw (Right font) _ fc _ x y s = do
   let screen = defaultScreenOfDisplay dpy;
       colormap = defaultColormapOfScreen screen;
@@ -135,6 +153,7 @@ printStringXMF dpy drw (Right font) _ fc _ x y s = do
   io $ withXftDraw dpy drw visual colormap $
          \draw -> withXftColorName dpy visual colormap fc $
                    \color -> xftDrawString draw color font x y s
+#endif
 
 
 -- | Short-hand for 'fromIntegral'
