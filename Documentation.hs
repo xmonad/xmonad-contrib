@@ -14,7 +14,7 @@
 
 module Documentation
     ( 
-    -- * Configuring XMonad: A Quick Start 
+    -- * Configuring XMonad
     -- $configure
       
     -- ** A simple example
@@ -47,7 +47,6 @@ module Documentation
     -- *** Adding and Removing Key Bindings
     -- $keyAddDel
 
-
     -- ** Adding\/Removing Layouts
     -- $layout
 
@@ -66,7 +65,7 @@ module Documentation
 
 {- $configure
 
-xmonad is configure by creating and editing the Haskell file:
+xmonad is configured by creating and editing the Haskell file:
 
 >    ~/.xmonad/xmonad.hs
 
@@ -77,8 +76,8 @@ window manager.
 
 {- $example
 
-Here is a basic example, which takes defaults from xmonad, and overrides 
-the border width, default terminal, and some colours:
+Here is a basic example, which takes defaults from xmonad, and
+overrides the border width, default terminal, and some colours:
 
 >    --
 >    -- An example, simple ~/.xmonad/xmonad.hs file.
@@ -93,16 +92,17 @@ the border width, default terminal, and some colours:
 >        , normalBorderColor  = "#cccccc"
 >        , focusedBorderColor = "#cd8b00" }
 
-This will run \'xmonad\', the window manager, with your settings passed as
-arguments.
+This will run \'xmonad\', the window manager, with your settings
+passed as arguments.
 
-Overriding default settings like this (using \"record update syntax\"),
-will yield the shortest config file, as you only have to describe values
-that differ from the defaults.
+Overriding default settings like this (using \"record update
+syntax\"), will yield the shortest config file, as you only have to
+describe values that differ from the defaults.
 
-An alternative is to inline the entire default config file from xmonad,
-and edit values you wish to change. This is requires more work, but some
-users may find this easier. You can find the defaults in the file:
+An alternative is to inline the entire default config file from
+xmonad, and edit values you wish to change. This is requires more
+work, but some users may find this easier. You can find the defaults
+in the file:
 
 >    XMonad/Config.hs
 
@@ -154,6 +154,7 @@ the 'XMonad.Core.XConfig' data structure itself is defined in:
 >    XMonad/Core.hs
 
 See "XMonad.Core".
+
 -}
 
 --------------------------------------------------------------------------------
@@ -164,8 +165,26 @@ See "XMonad.Core".
 
 {- $library
 
-Put here an overview of the library with a description of the various
-directories: Actions, Config, Hooks, Layout, Prompt, and Util.
+The xmonad-contrib (xmc) library is a set of modules contributed by
+xmonad hackers and users. Examples include an ion3-like tabbed layout,
+a prompt\/program launcher, and various other useful modules.
+
+Some of these modules provide libraries and other useful functions to
+write other modules and extensions.
+
+Here is a short overview of the xmc content:
+ 
+   [@Actions@] The content of Action
+
+   [@Config@] The content of Config
+
+   [@Hooks@] The content of Hooks
+
+   [@Layout@] The content of Layout
+
+   [@Prompt@] The content of Prompt
+
+   [@Util@] The content of Util
 
 -}
 
@@ -194,8 +213,8 @@ record of the 'XMonad.Core.XConfig' data type, like:
 and providing a proper definition of @myKeys@ such as:
 
 >       myKeys x   = 
->          [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
->          , ((modMask x              , xK_F3    ), shellPrompt       defaultXPConfig    )
+>          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
+>          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >          ]
 
 Remember that this definition requires importing "Graphics.X11.Xlib",
@@ -210,8 +229,9 @@ of "XMonad.Core.XConfig.keys" is:
 
 > keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
 
-which means you need to use 'Data.Map.insert' in order to add some
-bindings to the map of the existing key bindings.
+which means you need to create a 'Data.Map.Map' from the list of your
+bindings, with 'Data.Map.fromList', and join it with the exist one
+with 'Data.Map.union'.
 
 For instance, if you have defined some additional key bindings like
 these:
@@ -221,15 +241,20 @@ these:
 >          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >          ]
 
-you may wish to edit accordingly the default configuration
+
+then you create a new map by joining the default one with yours:
+
+>    newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+
+Finally you need to update accordingly the default configuration
 'XMonad.Core.XConfig.keys' record:
 
 >    main = xmonad defaultConfig { keys = newKeys }
->           where newKeys x  = foldr (uncurry Data.Map.insert) (keys defaultConfig x) (myKeys x)
+
 
 And that's it.
 
-At the end you @~\/.xmonad\/xmonad.hs@ would look like this:
+At the end your @~\/.xmonad\/xmonad.hs@ would look like this:
 
 
 > module Main (main) where
@@ -244,25 +269,64 @@ At the end you @~\/.xmonad\/xmonad.hs@ would look like this:
 >
 > main :: IO ()
 > main = xmonad defaultConfig { keys = newKeys }
->        where newKeys x  = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
 >
-> myKeys x   =
+> newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+>
+> myKeys x =
 >          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
 >          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >          ]
 
 
-Alternatively you may wish to use some of the utilities provided by
-the xmonad-contrib library.
+Obviously there are other ways of defining @newKeys@. For instance,
+you could define it like this:
 
-For instance, "XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys"
-provide useful functions to edit you key bindings.
+> newKeys x = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
+
+A simpler way to add new keybindings is the use of some of the
+utilities provided by the xmonad-contrib library. For instance,
+"XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys" both provide
+useful functions for editing your key bindings. Look, for instance, at
+'XMonad.Util.EZConfig.additionalKeys'.
 
  -}
 
 {- $keyDel
 
-keyDel
+Removing key bindings requires modifying the binding 'Data.Map.Map'.
+This can be done with 'Data.Map.difference' or with 'Data.Map.delete'.
+
+Suppose you wan to get rid of @mod-q@ and @mod-shift-q@. To do this
+you just need to define a @newKeys@ as a 'Data.Map.difference' between
+the default map and the map of the key bindings you want to remove.
+
+> newKeys x = M.difference (keys defaultConfig x) (M.fromList $ keysToRemove x)
+> 
+> keysToRemove :: XConfig Layout -> [((KeyMask, KeySym),X ())]
+> keysToRemove x =
+>          [ ((modMask x              , xK_q ), return ())
+>          , ((modMask x .|. shiftMask, xK_q ), return ())
+>          ]                                              
+
+As you may see we do not need to define an action for the key bindings
+we want to get rid of. We just build a map of keys to remove.
+
+It is also possible to define a list of key bindings and then use
+'Data.Map.delete' to remove them from the default key bindings, in
+which case we should write something like:
+
+> newKeys x = foldr M.delete (keys defaultConfig x) (keysToRemove x)
+> 
+> keysToRemove :: XConfig Layout -> [(KeyMask, KeySym)]
+> keysToRemove x =
+>          [ (modMask x              , xK_q )
+>          , (modMask x .|. shiftMask, xK_q )
+>          ]                                              
+
+Another even simpler possibility is the use of some of the utilities
+provided by the xmonad-contrib library. Look, for instance, at
+'XMonad.Util.EZConfig.removeKeys'.
+
 -}
 
 {- $keyAddDel
@@ -273,11 +337,12 @@ keyAddDel
 
 {- $layout
 
-layouts
+Layouts
 -}
 
 {- $hooks
 
+Hooks
 -}
 
 --------------------------------------------------------------------------------
