@@ -10,7 +10,10 @@ Build and install through Cabal as for other Haskell packages:
 
 scripts/ contains further external programs useful with xmonad.
 
-Haskell code contributed to this repo should live under the appropriate subdivision of the 'XMonad.' namespace (currently includes Actions, Config, Hooks, Layout, Prompt, and Util). For example, to use the Mosaic layout, one would import:
+Haskell code contributed to this repo should live under the
+appropriate subdivision of the 'XMonad.' namespace (currently includes
+Actions, Config, Hooks, Layout, Prompt, and Util). For example, to use
+the Mosaic layout, one would import:
 
  XMonad.Layout.Mosaic
 
