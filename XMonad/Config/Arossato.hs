@@ -101,7 +101,6 @@ arossatoConfig = defaultConfig
          , terminal           = "xterm"
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
-         , modMask            = mod1Mask
          , keys               = newKeys
          , defaultGaps        = [(15,0,0,0)]
          }
