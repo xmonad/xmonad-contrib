@@ -98,7 +98,7 @@ arossatoConfig = defaultConfig
                                 tiled           ||| 
                                 Mirror tiled    ||| 
                                 Accordion
-         , terminal           = "xterm"
+         , terminal           = "urxvt -fg white -bg black +sb"
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , keys               = newKeys
