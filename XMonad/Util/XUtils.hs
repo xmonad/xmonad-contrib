@@ -15,18 +15,14 @@
 module XMonad.Util.XUtils  ( 
                              -- * Usage:
                              -- $usage
-                             stringToPixel
-                             , averagePixels
-                             , initFont
-                             , releaseFont
+                               averagePixels
                              , createNewWindow
                              , showWindow
                              , hideWindow
                              , deleteWindow
                              , paintWindow
-                             , Align (..)
-                             , stringPosition
                              , paintAndWrite
+			     , stringToPixel
                             ) where
 
 
@@ -36,11 +32,10 @@ import Graphics.X11.Xlib.Extras
 import Control.Monad.Reader
 import Data.Maybe
 import XMonad
-import XMonad.Operations
+import XMonad.Util.Font
 
 -- $usage
--- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" for usage
--- examples
+-- See Tabbed or DragPane for usage examples
 
 -- | Get the Pixel value for a named color: if an invalid name is
 -- given the black pixel will be returned.
@@ -60,21 +55,6 @@ averagePixels p1 p2 f =
        let mn x1 x2 = round (fromIntegral x1 * f + fromIntegral x2 * (1-f))
        Color p _ _ _ _ <- io $ allocColor d cm (Color 0 (mn r1 r2) (mn g1 g2) (mn b1 b2) 0)
        return p
-
--- | Given a fontname returns the fonstructure. If the font name is
---  not valid the default font will be loaded and returned.
-initFont :: String -> X FontStruct
-initFont s = do
-  d <- asks display
-  io $ catch (getIt d) (fallBack d)
-      where getIt    d = loadQueryFont d s
-            fallBack d = const $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-
-releaseFont :: FontStruct -> X ()
-releaseFont fs = do
-  d <- asks display
-  io $ freeFont d fs
-
 -- | Create a simple window given a rectangle. If Nothing is given
 -- only the exposureMask will be set, otherwise the Just value.
 -- Use 'showWindow' to map and hideWindow to unmap.
@@ -118,24 +98,9 @@ paintWindow :: Window     -- ^ The window where to draw
 paintWindow w wh ht bw c bc =
     paintWindow' w (Rectangle 0 0 wh ht) bw c bc Nothing
 
--- | String position
-data Align = AlignCenter | AlignRight | AlignLeft
-
--- | Return the string x and y 'Position' in a 'Rectangle', given a
--- 'FontStruct' and the 'Align'ment
-stringPosition :: FontStruct -> Rectangle -> Align -> String -> (Position,Position)
-stringPosition fs (Rectangle _ _ w h) al s = (x,y)
-    where width     = textWidth   fs s
-          (_,a,d,_) = textExtents fs s
-          y         = fi $ ((h - fi (a + d)) `div` 2) + fi a
-          x         = case al of 
-                        AlignCenter -> fi (w `div` 2) - fi (width `div` 2)
-                        AlignLeft   -> 1
-                        AlignRight  -> fi (w - (fi width + 1))
-
 -- | Fill a window with a rectangle and a border, and write a string at given position
 paintAndWrite :: Window     -- ^ The window where to draw 
-              -> FontStruct -- ^ The FontStruct
+              -> XMonadFont -- ^ XMonad Font for drawing
               -> Dimension  -- ^ Window width
               -> Dimension  -- ^ Window height 
               -> Dimension  -- ^ Border width
@@ -146,46 +111,35 @@ paintAndWrite :: Window     -- ^ The window where to draw
               -> Align      -- ^ String 'Align'ment
               -> String     -- ^ String to be printed
               -> X ()
-paintAndWrite w fs wh ht bw bc borc ffc fbc al str =
-    paintWindow' w r bw bc borc ms
+paintAndWrite w fs wh ht bw bc borc ffc fbc al str = do
+    (x,y) <- stringPosition fs (Rectangle 0 0 wh ht) al str
+    paintWindow' w (Rectangle x y wh ht) bw bc borc ms
     where ms    = Just (fs,ffc,fbc,str)
-          r     = Rectangle x y wh ht
-          (x,y) = stringPosition fs (Rectangle 0 0 wh ht) al str
 
 -- This stuf is not exported
 
-paintWindow' :: Window -> Rectangle -> Dimension -> String -> String -> Maybe (FontStruct,String,String,String) -> X ()
+paintWindow' :: Window -> Rectangle -> Dimension -> String -> String -> Maybe (XMonadFont,String,String,String) -> X ()
 paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
   d  <- asks display
   p  <- io $ createPixmap d win wh ht (defaultDepthOfScreen $ defaultScreenOfDisplay d)
   gc <- io $ createGC d p
   -- draw
   io $ setGraphicsExposures d gc False
-  [c',bc'] <- mapM stringToPixel [color,b_color]
+  [color',b_color'] <- mapM stringToPixel [color,b_color]
   -- we start with the border
-  io $ setForeground d gc bc'
+  io $ setForeground d gc b_color'
   io $ fillRectangle d p gc 0 0 wh ht
   -- and now again
-  io $ setForeground d gc c'
+  io $ setForeground d gc color'
   io $ fillRectangle d p gc (fi bw) (fi bw) ((wh - (bw * 2))) (ht - (bw * 2))
   when (isJust str) $ do
-    let (fs,fc,bc,s) = fromJust str
-    io $ setFont d gc $ fontFromFontStruct fs
-    printString d p gc fc bc x y s
+    let (xmf,fc,bc,s) = fromJust str
+    printStringXMF d p xmf gc fc bc x y s
   -- copy the pixmap over the window
   io $ copyArea      d p win gc 0 0 wh ht 0 0
   -- free the pixmap and GC
   io $ freePixmap    d p
   io $ freeGC        d gc
-
--- | Prints a string on a 'Drawable'
-printString :: Display -> Drawable -> GC -> String -> String
-            -> Position -> Position -> String  -> X ()
-printString d drw gc fc bc x y s = do
-  [fc',bc'] <- mapM stringToPixel [fc,bc]
-  io $ setForeground   d gc fc'
-  io $ setBackground   d gc bc'
-  io $ drawImageString d drw gc x y s
 
 -- | Short-hand for 'fromIntegral'
 fi :: (Integral a, Num b) => a -> b

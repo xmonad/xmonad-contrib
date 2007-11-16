@@ -37,6 +37,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.NamedWindows
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils
+import XMonad.Util.Font
 
 -- $usage
 -- You can use this module with the following in your configuration file:
@@ -96,7 +97,7 @@ defaultTConf =
 data TabState =
     TabState { tabsWindows :: [(Window,Window)]
              , scr         :: Rectangle
-             , fontS       :: FontStruct -- FontSet
+             , font        :: XMonadFont
     }
 
 data Tabbed s a =
@@ -125,7 +126,7 @@ doLay ist ishr conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
                                    tws <- createTabs conf sc ws
                                    return (ts {scr = sc, tabsWindows = zip tws ws})
   mapM_ showWindow $ map fst $ tabsWindows st
-  mapM_ (updateTab ishr conf (fontS st) width) $ tabsWindows st
+  mapM_ (updateTab ishr conf (font st) width) $ tabsWindows st
   return ([(w,shrink conf sc)], Just (Tabbed (I (Just st)) ishr conf))
 
 handleMess :: Shrinker s => Tabbed s Window -> SomeMessage -> X (Maybe (Tabbed s Window))
@@ -133,29 +134,39 @@ handleMess (Tabbed (I (Just st@(TabState {tabsWindows = tws}))) ishr conf) m
     | Just e <- fromMessage m :: Maybe Event = handleEvent ishr conf st e     >> return Nothing
     | Just Hide             == fromMessage m = mapM_ hideWindow (map fst tws) >> return Nothing
     | Just ReleaseResources == fromMessage m = do mapM_ deleteWindow $ map fst tws
-                                                  releaseFont (fontS st)
+                                                  releaseXMF (font st)
                                                   return $ Just $ Tabbed (I Nothing) ishr conf
 handleMess _ _  = return Nothing
 
 handleEvent :: Shrinker s => s -> TConf -> TabState -> Event -> X ()
 -- button press
-handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, fontS         = fs })
+handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, font         = fs }) 
                       (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
     | t == buttonPress, tl <- map fst tws, thisw `elem` tl || thisbw `elem` tl  = do
   case lookup thisw tws of
     Just x  -> do focus x
                   updateTab ishr conf fs width (thisw, x)
     Nothing -> return ()
-    where width = rect_width screen `div` fromIntegral (length tws)
+    where
+      width = rect_width screen`div` fromIntegral (length tws)
+
+handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, font = fs }) 
+                      (AnyEvent {ev_window   = thisw, ev_event_type = t                 })
+-- expose
+    | thisw `elem` (map fst tws) && t == expose         = do
+  updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
+    where
+      width = rect_width screen`div` fromIntegral (length tws)
+
 -- propertyNotify
-handleEvent ishr conf (TabState      {tabsWindows = tws, scr = screen, fontS = fs })
+handleEvent ishr conf (TabState      {tabsWindows = tws, scr = screen, font = fs }) 
                       (PropertyEvent {ev_window   = thisw })
     | thisw `elem` (map snd tws) = do
   let tabwin = (fst $ fromJust $ find ((== thisw) . snd) tws, thisw)
   updateTab ishr conf fs width tabwin
     where width = rect_width screen `div` fromIntegral (length tws)
 -- expose
-handleEvent ishr conf (TabState {tabsWindows = tws, scr = screen, fontS = fs })
+handleEvent ishr conf (TabState {tabsWindows = tws, scr = screen, font = fs }) 
                       (ExposeEvent {ev_window   = thisw })
     | thisw `elem` (map fst tws) = do
   updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
@@ -164,7 +175,7 @@ handleEvent _ _ _ _ =  return ()
 
 initState :: TConf -> Rectangle -> [Window] -> X TabState
 initState conf sc ws = do
-  fs  <- initFont (fontName conf)
+  fs  <- initXMF (fontName conf)
   tws <- createTabs conf sc ws
   return $ TabState (zip tws ws) sc fs
 
@@ -180,7 +191,7 @@ createTabs c (Rectangle x y wh ht) owl@(ow:ows) = do
   ws <- createTabs c (Rectangle (x + fromIntegral wid) y (wh - wid) ht) ows
   return (w:ws)
 
-updateTab :: Shrinker s => s -> TConf -> FontStruct -> Dimension -> (Window,Window) -> X ()
+updateTab :: Shrinker s => s -> TConf -> XMonadFont -> Dimension -> (Window,Window) -> X ()
 updateTab ishr c fs wh (tabw,ow) = do
   nw <- getName ow
   let ht                   = fromIntegral $ tabSize c :: Dimension
@@ -190,22 +201,26 @@ updateTab ishr c fs wh (tabw,ow) = do
   (bc',borderc',tc') <- focusColor ow
                            (inactiveColor c, inactiveBorderColor c, inactiveTextColor c)
                            (activeColor   c, activeBorderColor   c, activeTextColor   c)
-  let s    = shrinkIt ishr
-      name = shrinkWhile s (\n -> textWidth fs n >
-                            fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
+  dpy <- asks display
+  let s = shrinkIt ishr
+  name <- shrinkWhile s (\n -> do
+			   size <- io $ textWidthXMF dpy fs n
+			   return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
   paintAndWrite tabw fs wh ht 1 bc' borderc' tc' bc' AlignCenter name
 
 shrink :: TConf -> Rectangle -> Rectangle
 shrink c (Rectangle x y w h) =
     Rectangle x (y + fromIntegral (tabSize c)) w (h - fromIntegral (tabSize c))
 
-shrinkWhile :: (String -> [String]) -> (String -> Bool) -> String -> String
+shrinkWhile :: (String -> [String]) -> (String -> X Bool) -> String -> X String
 shrinkWhile sh p x = sw $ sh x
-    where sw [n] = n
-          sw [] = ""
-          sw (n:ns) | p n = sw ns
-                    | otherwise = n
-
+    where sw [n] = return n
+          sw [] = return ""
+          sw (n:ns) = do
+	                cond <- p n
+			if cond
+			  then sw ns
+			  else return n
 
 data CustomShrink = CustomShrink
 instance Show CustomShrink where show _ = ""

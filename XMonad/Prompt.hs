@@ -46,7 +46,7 @@ import Graphics.X11.Xlib.Extras
 import XMonad  hiding (config, io)
 import XMonad.Operations (initColor)
 import qualified XMonad.StackSet as W
-import XMonad.Util.XUtils
+import XMonad.Util.Font
 import XMonad.Util.XSelection (getSelection)
 
 import Control.Arrow ((***),(&&&))
@@ -169,12 +169,12 @@ mkXPrompt t conf compl action = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   (hist,h) <- liftIO $ readHistory
-  fs <- initFont (font conf)
+  fs <- initCoreFont (font conf)
   liftIO $ setFont d gc $ fontFromFontStruct fs
   let st = initState d rw w s compl gc fs (XPT t) hist conf
   st' <- liftIO $ execStateT runXP st
 
-  releaseFont fs
+  releaseCoreFont fs
   liftIO $ freeGC d gc
   liftIO $ hClose h
   when (command st' /= "") $ do
@@ -445,8 +445,8 @@ printPrompt drw = do
                       in (prt ++ a, [head b], tail b)
       ht = height c
       (fsl,psl) = (textWidth fs *** textWidth fs) (f,p)
-      (_,asc,desc,_) = textExtents fs str
-      y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
+  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Left fs) str
+  let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
   fgcolor <- io $ initColor d $ fgColor c
   bgcolor <- io $ initColor d $ bgColor c
@@ -511,9 +511,8 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
-
-  let (_,asc,desc,_) = textExtents fs $ head compl
-      yp = fi $ (ht + fi (asc - desc)) `div` 2
+  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Left fs) $ head compl
+  let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
       xx = take (fi columns) [xp,(xp + max_compl_len)..]
