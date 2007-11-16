@@ -85,7 +85,7 @@ initXMF s =
      do
        dpy <- asks display
        xftdraw <- io $ xftFontOpen dpy (defaultScreenOfDisplay dpy) (drop (length xftPrefix) s)
-       return (Right xftdraw)
+       return (Xft xftdraw)
   else
 #endif
       (initCoreFont s >>= (return . Core))
@@ -104,7 +104,7 @@ releaseXMF (Xft xftfont) = do
 textWidthXMF :: Display -> XMonadFont -> String -> IO Int
 textWidthXMF _   (Core fs) s = return $ fi $ textWidth fs s
 #ifdef XFT
-textWidthXMF dpy (Right xftdraw) s = do
+textWidthXMF dpy (Xft xftdraw) s = do
     gi <- xftTextExtents dpy xftdraw s
     return $ xglyphinfo_width gi
 #endif
@@ -112,7 +112,7 @@ textWidthXMF dpy (Right xftdraw) s = do
 textExtentsXMF :: Display -> XMonadFont -> String -> IO (FontDirection,Int32,Int32,CharStruct)
 textExtentsXMF _ (Core fs) s = return $ textExtents fs s
 #ifdef XFT
-textExtentsXMF _ (Right xftfont) _ = do
+textExtentsXMF _ (Xft xftfont) _ = do
     ascent <- xftfont_ascent xftfont
     descent <- xftfont_descent xftfont
     return (error "Font direction touched", fi ascent, fi descent, error "Font overall size touched")
@@ -146,7 +146,7 @@ printStringXMF d p (Core fs) gc fc bc x y s = do
          io $ drawImageString d p gc x y s
 
 #ifdef XFT
-printStringXMF dpy drw (Right font) _ fc _ x y s = do
+printStringXMF dpy drw (Xft font) _ fc _ x y s = do
   let screen = defaultScreenOfDisplay dpy;
       colormap = defaultColormapOfScreen screen;
       visual = defaultVisualOfScreen screen;
