@@ -53,7 +53,7 @@ createNewWindow :: Rectangle -> Maybe EventMask -> String -> X Window
 createNewWindow (Rectangle x y w h) m col = do
   d   <- asks display
   rw  <- asks theRoot
-  c <- stringToPixel col
+  c <- stringToPixel d col
   win <- io $ createSimpleWindow d rw x y w h 0 c c
   case m of
     Just em -> io $ selectInput d win em
@@ -116,7 +116,7 @@ paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
   gc <- io $ createGC d p
   -- draw
   io $ setGraphicsExposures d gc False
-  [color',b_color'] <- mapM stringToPixel [color,b_color]
+  [color',b_color'] <- mapM (stringToPixel d) [color,b_color]
   -- we start with the border
   io $ setForeground d gc b_color'
   io $ fillRectangle d p gc 0 0 wh ht

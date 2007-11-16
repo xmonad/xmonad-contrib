@@ -29,7 +29,6 @@ module XMonad.Prompt (
                              -- $xutils
                              , mkUnmanagedWindow
                              , fillDrawable
-                             , printString
                              -- * Other Utilities
                              -- $utils
                              , getLastWord
@@ -49,7 +48,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.XSelection (getSelection)
 
-import Control.Arrow ((***),(&&&))
+import Control.Arrow ((&&&))
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Bits
@@ -80,7 +79,7 @@ data XPState =
         , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
         , gcon               :: GC
-        , fontS              :: FontStruct
+        , fontS              :: XMonadFont
         , xptype             :: XPType
         , command            :: String
         , offset             :: Int
@@ -143,7 +142,7 @@ defaultXPConfig =
 type ComplFunction = String -> IO [String]
 
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
-          -> GC -> FontStruct -> p -> [History] -> XPConfig -> XPState
+          -> GC -> XMonadFont -> p -> [History] -> XPConfig -> XPState
 initState d rw w s compl gc fonts pt h c =
     XPS d rw w s Nothing Nothing compl gc fonts (XPT pt) "" 0 h c
 
@@ -169,12 +168,11 @@ mkXPrompt t conf compl action = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   (hist,h) <- liftIO $ readHistory
-  fs <- initCoreFont (font conf)
-  liftIO $ setFont d gc $ fontFromFontStruct fs
+  fs <- initXMF (font conf)
   let st = initState d rw w s compl gc fs (XPT t) hist conf
   st' <- liftIO $ execStateT runXP st
 
-  releaseCoreFont fs
+  releaseXMF fs
   liftIO $ freeGC d gc
   liftIO $ hClose h
   when (command st' /= "") $ do
@@ -444,18 +442,19 @@ printPrompt drw = do
                  else let (a,b) = (splitAt off com)
                       in (prt ++ a, [head b], tail b)
       ht = height c
-      (fsl,psl) = (textWidth fs *** textWidth fs) (f,p)
-  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Core fs) str
+  fsl <- io $ textWidthXMF (dpy st) fs f
+  psl <- io $ textWidthXMF (dpy st) fs p
+  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) fs str
   let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
-  fgcolor <- io $ initColor d $ fgColor c
-  bgcolor <- io $ initColor d $ bgColor c
+
+  let draw = printStringXMF d drw fs gc
   -- print the first part
-  io $ printString d drw gc fgcolor bgcolor x y f
+  draw (fgColor c) (bgColor c) x y f
   -- reverse the colors and print the "cursor" ;-)
-  io $ printString d drw gc bgcolor fgcolor (x + fsl) y p
+  draw (bgColor c) (fgColor c) (x + fromIntegral fsl) y p
   -- reverse the colors and print the rest of the string
-  io $ printString d drw gc fgcolor bgcolor (x + fsl + psl) y ss
+  draw (fgColor c) (bgColor c) (x + fromIntegral (fsl + psl)) y ss
 
 -- Completions
 
@@ -500,7 +499,8 @@ getComplWinDim compl = do
       wh = rect_width scr
       ht = height c
 
-  let max_compl_len =  (fi ht `div` 2) + (maximum . map (textWidth fs) $ compl)
+  tws <- mapM (textWidthXMF (dpy st) fs) compl
+  let max_compl_len =  fromIntegral ((fi ht `div` 2) + maximum tws)
       columns = max 1 $ wh `div` (fi max_compl_len)
       rem_height =  rect_height scr - ht
       (rows,r) = (length compl) `divMod` fi columns
@@ -511,7 +511,7 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
-  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Core fs) $ head compl
+  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
@@ -528,7 +528,6 @@ drawComplWin w compl = do
       bw = promptBorderWidth c
       gc = gcon st
   bgcolor <- io $ initColor d (bgColor c)
-  fgcolor <- io $ initColor d (fgColor c)
   border  <- io $ initColor d (borderColor c)
 
   (_,_,wh,ht,xx,yy) <- getComplWinDim compl
@@ -537,7 +536,7 @@ drawComplWin w compl = do
                          (defaultDepthOfScreen scr)
   io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
   let ac = splitInSubListsAt (length yy) (take ((length xx) * (length yy)) compl)
-  printComplList d p gc fgcolor bgcolor xx yy ac
+  printComplList d p gc (fgColor c) (bgColor c) xx yy ac
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
 
@@ -558,7 +557,7 @@ redrawComplWin compl = do
             Nothing -> recreate
      else destroyComplWin
 
-printComplList :: Display -> Drawable -> GC -> Pixel -> Pixel
+printComplList :: Display -> Drawable -> GC -> String -> String
                -> [Position] -> [Position] -> [[String]] -> XP ()
 printComplList _ _ _ _ _ _ _ [] = return ()
 printComplList _ _ _ _ _ [] _ _ = return ()
@@ -566,7 +565,7 @@ printComplList d drw gc fc bc (x:xs) y (s:ss) = do
   printComplColumn d drw gc fc bc x y s
   printComplList d drw gc fc bc xs y ss
 
-printComplColumn :: Display -> Drawable -> GC -> Pixel -> Pixel
+printComplColumn :: Display -> Drawable -> GC -> String -> String
                  -> Position -> [Position] -> [String] -> XP ()
 printComplColumn _ _ _ _ _ _ _ [] = return ()
 printComplColumn _ _ _ _ _ _ [] _ = return ()
@@ -574,15 +573,14 @@ printComplColumn d drw gc fc bc x (y:yy) (s:ss) = do
   printComplString d drw gc fc bc x y s
   printComplColumn d drw gc fc bc x yy ss
 
-printComplString :: Display -> Drawable -> GC -> Pixel -> Pixel
+printComplString :: Display -> Drawable -> GC -> String -> String
                  -> Position -> Position -> String  -> XP ()
 printComplString d drw gc fc bc x y s = do
   st <- get
   if s == getLastWord (command st)
-     then do bhc <- io $ initColor d (bgHLight $ config st)
-             fhc <- io $ initColor d (fgHLight $ config st)
-             io $ printString d drw gc fhc bhc x y s
-     else io $ printString d drw gc fc bc x y s
+     then printStringXMF d drw (fontS st) gc
+                            (fgHLight $ config st) (bgHLight $ config st) x y s
+     else printStringXMF d drw (fontS st) gc fc bc x y s
 
 -- History
 
@@ -623,14 +621,6 @@ writeHistory hist = do
   catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
 
 -- $xutils
-
--- | Prints a string on a 'Drawable'
-printString :: Display -> Drawable -> GC -> Pixel -> Pixel
-            -> Position -> Position -> String -> IO ()
-printString d drw gc fc bc x y s = do
-  setForeground d gc fc
-  setBackground d gc bc
-  drawImageString d drw gc x y s
 
 -- | Fills a 'Drawable' with a rectangle and a border
 fillDrawable :: Display -> Drawable -> GC -> Pixel -> Pixel

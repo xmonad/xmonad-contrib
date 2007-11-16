@@ -52,12 +52,10 @@ data XMonadFont = Core FontStruct
 
 -- | Get the Pixel value for a named color: if an invalid name is
 -- given the black pixel will be returned.
-stringToPixel :: String -> X Pixel
-stringToPixel s = do
-  d <- asks display
-  io $ catch (getIt d) (fallBack d)
-    where getIt    d = initColor d s
-          fallBack d = const $ return $ blackPixel d (defaultScreen d)
+stringToPixel :: MonadIO m => Display -> String -> m Pixel
+stringToPixel d s = liftIO $ catch getIt fallBack
+    where getIt    = initColor d s
+          fallBack = const $ return $ blackPixel d (defaultScreen d)
 
 
 -- | Given a fontname returns the font structure. If the font name is
@@ -99,18 +97,18 @@ releaseXMF (Xft xftfont) = do
   io $ xftFontClose dpy xftfont
 #endif
 
-textWidthXMF :: Display -> XMonadFont -> String -> IO Int
+textWidthXMF :: MonadIO m => Display -> XMonadFont -> String -> m Int
 textWidthXMF _   (Core fs) s = return $ fi $ textWidth fs s
 #ifdef XFT
-textWidthXMF dpy (Xft xftdraw) s = do
+textWidthXMF dpy (Xft xftdraw) s = liftIO $ do
     gi <- xftTextExtents dpy xftdraw s
     return $ xglyphinfo_width gi
 #endif
 
-textExtentsXMF :: Display -> XMonadFont -> String -> IO (FontDirection,Int32,Int32,CharStruct)
+textExtentsXMF :: MonadIO m => Display -> XMonadFont -> String -> m (FontDirection,Int32,Int32,CharStruct)
 textExtentsXMF _ (Core fs) s = return $ textExtents fs s
 #ifdef XFT
-textExtentsXMF _ (Xft xftfont) _ = do
+textExtentsXMF _ (Xft xftfont) _ = liftIO $ do
     ascent <- xftfont_ascent xftfont
     descent <- xftfont_descent xftfont
     return (error "Font direction touched", fi ascent, fi descent, error "Font overall size touched")
@@ -134,21 +132,21 @@ stringPosition fs (Rectangle _ _ w h) al s = do
   return (x,y)
 
 
-printStringXMF :: Display -> Drawable -> XMonadFont -> GC -> String -> String
-            -> Position -> Position -> String  -> X ()
-printStringXMF d p (Core fs) gc fc bc x y s = do
-         io $ setFont d gc $ fontFromFontStruct fs
-         [fc',bc'] <- mapM stringToPixel [fc,bc]
-         io $ setForeground   d gc fc'
-         io $ setBackground   d gc bc'
-         io $ drawImageString d p gc x y s
+printStringXMF :: MonadIO m => Display -> Drawable -> XMonadFont -> GC -> String -> String
+            -> Position -> Position -> String  -> m ()
+printStringXMF d p (Core fs) gc fc bc x y s = liftIO $ do
+         setFont d gc $ fontFromFontStruct fs
+         [fc',bc'] <- mapM (stringToPixel d) [fc,bc]
+         setForeground   d gc fc'
+         setBackground   d gc bc'
+         drawImageString d p gc x y s
 
 #ifdef XFT
 printStringXMF dpy drw (Xft font) _ fc _ x y s = do
   let screen = defaultScreenOfDisplay dpy;
       colormap = defaultColormapOfScreen screen;
       visual = defaultVisualOfScreen screen;
-  io $ withXftDraw dpy drw visual colormap $
+  liftIO $ withXftDraw dpy drw visual colormap $
          \draw -> withXftColorName dpy visual colormap fc $
                    \color -> xftDrawString draw color font x y s
 #endif

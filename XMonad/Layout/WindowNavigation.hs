@@ -112,13 +112,13 @@ configurableNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
 
 instance LayoutModifier WindowNavigation Window where
     redoLayout (WindowNavigation conf (I state)) rscr s wrs =
-        do XConf { normalBorder = nbc, focusedBorder = fbc } <- ask
+        do XConf { normalBorder = nbc, focusedBorder = fbc, display = dpy } <- ask
            [uc,dc,lc,rc] <-
                case brightness conf of
                Just frac -> do myc <- averagePixels fbc nbc frac
                                return [myc,myc,myc,myc]
-               Nothing -> mapM stringToPixel [upColor conf, downColor conf,
-                                              leftColor conf, rightColor conf]
+               Nothing -> mapM (stringToPixel dpy) [upColor conf, downColor conf,
+                                                    leftColor conf, rightColor conf]
            let dirc U = uc
                dirc D = dc
                dirc L = lc
