@@ -12,7 +12,7 @@
 -- and keep the focus in place.
 -----------------------------------------------------------------------------
 module XMonad.Actions.RotSlaves (
-	-- $usag
+	-- $usage
 	rotSlaves', rotSlavesUp, rotSlavesDown,
 	rotAll', rotAllUp, rotAllDown
 	) where
