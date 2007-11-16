@@ -37,15 +37,6 @@ import XMonad.Util.Font
 -- $usage
 -- See Tabbed or DragPane for usage examples
 
--- | Get the Pixel value for a named color: if an invalid name is
--- given the black pixel will be returned.
-stringToPixel :: String -> X Pixel
-stringToPixel s = do
-  d <- asks display
-  io $ catch (getIt d) (fallBack d)
-    where getIt    d = initColor d s
-          fallBack d = const $ return $ blackPixel d (defaultScreen d)
-
 -- | Compute the weighted average the colors of two given Pixel values.
 averagePixels :: Pixel -> Pixel -> Double -> X Pixel
 averagePixels p1 p2 f =
