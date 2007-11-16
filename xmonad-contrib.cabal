@@ -5,7 +5,7 @@ synopsis:           Third party extensions for xmonad
 description:
     Third party tiling algorithms, configurations and scripts to xmonad.
     .
-    As a starting point you can have a look at the "Documentation".
+    As a starting point you can have a look at the Haddock "Documentation".
 category:           System
 license:            BSD3
 license-file:       LICENSE
