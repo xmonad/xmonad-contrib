@@ -4,6 +4,8 @@ homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
     Third party tiling algorithms, configurations and scripts to xmonad.
+    .
+    As a starting point you can have a look at the "Documentation".
 category:           System
 license:            BSD3
 license-file:       LICENSE
@@ -26,7 +28,8 @@ library
 
     build-depends:      mtl, unix, X11==1.3.0.20071111, xmonad==0.4
     ghc-options:        -Wall -Werror
-    exposed-modules:    XMonad.Actions.Commands
+    exposed-modules:    Documentation
+                        XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
                         XMonad.Actions.CopyWindow
                         XMonad.Actions.CycleWS
