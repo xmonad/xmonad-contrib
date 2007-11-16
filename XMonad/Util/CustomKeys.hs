@@ -37,7 +37,7 @@ import qualified Data.Map as M
 -- >       delkeys :: XConfig l -> [(KeyMask, KeySym)]
 -- >       delkeys XConfig {modMask = modm} =
 -- >           -- we're preferring Futurama to Xinerama here
--- >           [ (modm .|. m, k) | (m, k) <- zip [0, shiftMas] [xK_w, xK_e, xK_r] ]
+-- >           [ (modm .|. m, k) | (m, k) <- zip [0, shiftMask] [xK_w, xK_e, xK_r] ]
 -- >
 -- >       inskeys :: XConfig l -> [((KeyMask, KeySym), X ())]
 -- >       inskeys conf@(XConfig {modMask = modm}) =
