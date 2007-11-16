@@ -39,7 +39,8 @@ import XMonad
 import XMonad.Operations
 
 -- $usage
--- See Tabbed or DragPane for usage examples
+-- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" for usage
+-- examples
 
 -- | Get the Pixel value for a named color: if an invalid name is
 -- given the black pixel will be returned.
