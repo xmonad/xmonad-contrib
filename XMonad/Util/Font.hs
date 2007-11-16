@@ -15,17 +15,17 @@
 module XMonad.Util.Font  (
                              -- * Usage:
                              -- $usage
-			     XMonadFont
+                             XMonadFont
                              , initXMF
                              , releaseXMF
                              , initCoreFont
                              , releaseCoreFont
                              , Align (..)
                              , stringPosition
-			     , textWidthXMF
-			     , textExtentsXMF
-			     , printStringXMF
-			     , stringToPixel
+                             , textWidthXMF
+                             , textExtentsXMF
+                             , printStringXMF
+                             , stringToPixel
                             ) where
 
 
@@ -122,19 +122,19 @@ stringPosition fs (Rectangle _ _ w h) al s = do
 printStringXMF :: Display -> Drawable -> XMonadFont -> GC -> String -> String
             -> Position -> Position -> String  -> X ()
 printStringXMF d p (Left fs) gc fc bc x y s = do
-	 io $ setFont d gc $ fontFromFontStruct fs
+         io $ setFont d gc $ fontFromFontStruct fs
          [fc',bc'] <- mapM stringToPixel [fc,bc]
-	 io $ setForeground   d gc fc'
-	 io $ setBackground   d gc bc'
-	 io $ drawImageString d p gc x y s
+         io $ setForeground   d gc fc'
+         io $ setBackground   d gc bc'
+         io $ drawImageString d p gc x y s
 
 printStringXMF dpy drw (Right font) _ fc _ x y s = do
   let screen = defaultScreenOfDisplay dpy;
       colormap = defaultColormapOfScreen screen;
       visual = defaultVisualOfScreen screen;
   io $ withXftDraw dpy drw visual colormap $
-	 \draw -> withXftColorName dpy visual colormap fc $
-		    \color -> xftDrawString draw color font x y s
+         \draw -> withXftColorName dpy visual colormap fc $
+                   \color -> xftDrawString draw color font x y s
 
 
 -- | Short-hand for 'fromIntegral'
