@@ -31,7 +31,7 @@ library
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
-        ghc-options: -DXFT
+        cpp-options: -DXFT
 
     build-depends:      mtl, unix, X11==1.3.0.20071111, xmonad==0.4
     ghc-options:        -Wall -Werror
