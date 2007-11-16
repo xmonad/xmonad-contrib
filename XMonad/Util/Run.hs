@@ -9,8 +9,8 @@
 -- Portability :  unportable
 --
 -- This modules provides several commands to run an external process.
--- It is composed of functions formerly defined in XMonad.Util.Dmenu (by
--- Spencer Jannsen), XMonad.Util.Dzen (by glasser\@mit.edu) and
+-- It is composed of functions formerly defined in "XMonad.Util.Dmenu" (by
+-- Spencer Jannsen), "XMonad.Util.Dzen" (by glasser\@mit.edu) and
 -- XMonad.Util.RunInXTerm (by Andrea Rossato).
 --
 -----------------------------------------------------------------------------
@@ -40,12 +40,15 @@ import System.Process (runInteractiveProcess, waitForProcess)
 import XMonad
 
 -- $usage
--- For an example usage of runInTerm see XMonad.Prompt.Ssh
+-- For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh"
 --
--- For an example usage of runProcessWithInput see
--- XMonad.Prompt.{DirectoryPrompt,Dmenu,ShellPrompt,WmiiActions,WorkspaceDir}
+-- For an example usage of 'runProcessWithInput' see
+-- "XMonad.Prompt.DirectoryPrompt", "XMonad.Util.Dmenu",
+-- "XMonad.Prompt.ShellPrompt", "XMonad.Actions.WmiiActions",
+-- "XMonad.Prompt.WorkspaceDir"
 --
--- For an example usage of runProcessWithInputAndWait see XMonad.Util.Dzen
+-- For an example usage of 'runProcessWithInputAndWait' see
+-- "XMonad.Util.Dzen"
 
 -- | Returns Just output if the command succeeded, and Nothing if it didn't.
 -- This corresponds to dmenu's notion of exit code 1 for a cancelled invocation.
@@ -61,7 +64,7 @@ runProcessWithInput cmd args input = do
     waitForProcess ph
     return output
 
--- wait is in us
+-- | Wait is in us
 runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
 runProcessWithInputAndWait cmd args input timeout = do
     pid <- forkProcess $ do
@@ -81,35 +84,42 @@ runProcessWithInputAndWait cmd args input timeout = do
     getProcessStatus True False pid
     return ()
 
-{- | Multiplies by ONE MILLION, for use with runProcessWithInputAndWait.
-     Use like:
-
-     > (5.5 `seconds`)
--}
+-- | Multiplies by ONE MILLION, for use with
+-- 'runProcessWithInputAndWait'.
+--
+-- Use like:
+--
+-- > (5.5 `seconds`)
 seconds :: Rational -> Int
 seconds = fromEnum . (* 1000000)
 
-{- | safeSpawn bypasses XMonad's 'spawn' command, because spawn passes strings to /bin/sh to be interpreted as shell
-   commands. This is often what one wants, but in many cases the passed string will contain shell metacharacters
-   which one does not want interpreted as such (URLs particularly often have shell metacharacters like '&' in them).
-   In this case, it is more useful to specify a file or program to be run and a string to give it as an argument so
-   as to bypass the shell and be certain the program will receive the string as you typed it.
-   unsafeSpawn is an alias for XMonad's 'spawn', to remind one that use of it can be, well, unsafe.
-   Examples:
-
-   >     , ((modMask,               xK_Print ), unsafeSpawn "import -window root png:$HOME/xwd-$(date +%s)$$.png")
-   >     , ((modMask,               xK_d     ), safeSpawn "firefox" "")
-
-   Note that the unsafeSpawn example must be unsafe and not safe because it makes use of shell interpretation by relying on
-   $HOME and interpolation, whereas the safeSpawn example can be safe because Firefox doesn't need any arguments if it is
-   just being started.
--}
+-- | safeSpawn bypasses XMonad's 'spawn' command, because 'spawn' passes
+-- strings to \/bin\/sh to be interpreted as shell commands. This is
+-- often what one wants, but in many cases the passed string will contain
+-- shell metacharacters which one does not want interpreted as such (URLs
+-- particularly often have shell metacharacters like \'&\' in them). In
+-- this case, it is more useful to specify a file or program to be run
+-- and a string to give it as an argument so as to bypass the shell and
+-- be certain the program will receive the string as you typed it.
+-- unsafeSpawn is an alias for XMonad's 'spawn', to remind one that use
+-- of it can be, well, unsafe.
+-- Examples:
+-- 
+-- >     , ((modMask, xK_Print), unsafeSpawn "import -window root png:$HOME/xwd-$(date +%s)$$.png")
+-- >     , ((modMask, xK_d    ), safeSpawn "firefox" "")
+-- 
+-- Note that the unsafeSpawn example must be unsafe and not safe because
+-- it makes use of shell interpretation by relying on @$HOME@ and
+-- interpolation, whereas the safeSpawn example can be safe because
+-- Firefox doesn't need any arguments if it is just being started.
 safeSpawn :: MonadIO m => FilePath -> String -> m ()
 safeSpawn prog arg = liftIO (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
+
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
 
--- | Run a given program in the preferred terminal emulator. This uses safeSpawn.
+-- | Run a given program in the preferred terminal emulator. This uses
+-- 'safeSpawn'.
 safeRunInTerm :: String -> X ()
 safeRunInTerm command = asks (terminal . config) >>= \t -> safeSpawn t ("-e " ++ command)
 
