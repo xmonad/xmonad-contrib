@@ -177,8 +177,6 @@ directories: Actions, Config, Hooks, Layout, Prompt, and Util.
 
 {- $extending
 
-Extending XMonad
-
 Since the @xmonad.hs@ file is just another Haskell module, you may
 import and use any Haskell code or libraries you wish, such as
 extensions from the xmonad-contrib library, or other code you write
@@ -193,7 +191,7 @@ record of the 'XMonad.Core.XConfig' data type, like:
 
 >    main = xmonad defaultConfig { keys = myKeys }
 
-and by providing a proper definition of @myKeys@ such as:
+and providing a proper definition of @myKeys@ such as:
 
 >       myKeys x   = 
 >          [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
@@ -219,15 +217,15 @@ For instance, if you have defined some additional key bindings like
 these:
 
 >       myKeys x   = 
->          [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
->          , ((modMask x              , xK_F3    ), shellPrompt       defaultXPConfig    )
+>          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
+>          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >          ]
 
 you may wish to edit accordingly the default configuration
 'XMonad.Core.XConfig.keys' record:
 
 >    main = xmonad defaultConfig { keys = newKeys }
->           where newKeys x  = foldr (uncurry Data.Map.insert) (keys defaultKeys) (myKeys x)
+>           where newKeys x  = foldr (uncurry Data.Map.insert) (keys defaultConfig x) (myKeys x)
 
 And that's it.
 
@@ -249,16 +247,16 @@ At the end you @~\/.xmonad\/xmonad.hs@ would look like this:
 >        where newKeys x  = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
 >
 > myKeys x   =
->         [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig    )
->         , ((modMask x              , xK_F3    ), shellPrompt       defaultXPConfig    )
->          ]                                                                             
+>          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
+>          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>          ]
 
 
 Alternatively you may wish to use some of the utilities provided by
 the xmonad-contrib library.
 
 For instance, "XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys"
-provide useful function to edit you key bindings.
+provide useful functions to edit you key bindings.
 
  -}
 
