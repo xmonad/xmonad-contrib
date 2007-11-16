@@ -331,7 +331,39 @@ provided by the xmonad-contrib library. Look, for instance, at
 
 {- $keyAddDel
 
-keyAddDel
+Adding and removing key bindings requires to compose the action of
+removing and, after that, the action of adding.
+
+This is an example you may find in "XMonad.Config.Arossato":
+
+
+>      defKeys    = keys defaultConfig
+>      delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
+>      newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
+>      -- remove some of the default key bindings
+>      toRemove x = 
+>          [ (modMask x              , xK_j     )
+>          , (modMask x              , xK_k     )
+>          , (modMask x              , xK_p     )
+>          , (modMask x .|. shiftMask, xK_p     )
+>          , (modMask x .|. shiftMask, xK_q     )
+>          , (modMask x              , xK_q     )
+>          ] ++
+>          -- I want modMask .|. shiftMask 1-9 to be free!
+>          [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
+>      -- These are my personal key bindings
+>      toAdd x   = 
+>          [ ((modMask x              , xK_F12   ), xmonadPrompt defaultXPConfig )
+>          , ((modMask x              , xK_F3    ), shellPrompt  defaultXPConfig )
+>          ] ++
+>          -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
+>          [( (m .|. modMask x, k), windows $ f i)
+>           | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
+>          ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
+>          ]
+
+You can achieve the same result by using "XMonad.Util.CustomKeys" and,
+specifically, 'XMonad.Util.CustomKeys.customKeys'.
 
 -}
 
