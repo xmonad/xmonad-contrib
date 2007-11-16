@@ -110,7 +110,7 @@ in the file:
 
 {- $check
 
-Place this text in @~/.xmonad/xmonad.hs@, and then check that it is
+Place this text in @~\/.xmonad\/xmonad.hs@, and then check that it is
 syntactically and type correct, by loading it in the Haskell
 interpreter:
 
@@ -212,7 +212,7 @@ record of the 'XMonad.Core.XConfig' data type, like:
 
 and providing a proper definition of @myKeys@ such as:
 
->       myKeys x   = 
+> myKeys x =
 >          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
 >          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >          ]
@@ -229,27 +229,29 @@ of "XMonad.Core.XConfig.keys" is:
 
 > keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
 
-which means you need to create a 'Data.Map.Map' from the list of your
-bindings, with 'Data.Map.fromList', and join it with the exist one
-with 'Data.Map.union'.
+which means thatm in order to add new bindings you need to create a
+'Data.Map.Map' from the list of your new key bindings, you can do that
+with 'Data.Map.fromList', and then join this newly created map with
+the one of the existing bindings. This can be done with
+'Data.Map.union'.
 
 For instance, if you have defined some additional key bindings like
 these:
 
->       myKeys x   = 
+> myKeys x =
 >          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
 >          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >          ]
 
+then you create a new key bindings map by joining the default one with
+yours:
 
-then you create a new map by joining the default one with yours:
-
->    newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+> newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
 
 Finally you need to update accordingly the default configuration
 'XMonad.Core.XConfig.keys' record:
 
->    main = xmonad defaultConfig { keys = newKeys }
+> main = xmonad defaultConfig { keys = newKeys }
 
 
 And that's it.
@@ -283,7 +285,7 @@ you could define it like this:
 
 > newKeys x = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
 
-A simpler way to add new keybindings is the use of some of the
+An even simpler way to add new key bindings is the use of some of the
 utilities provided by the xmonad-contrib library. For instance,
 "XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys" both provide
 useful functions for editing your key bindings. Look, for instance, at
