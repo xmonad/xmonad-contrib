@@ -17,7 +17,7 @@
 module XMonad.Util.Font  (
                              -- * Usage:
                              -- $usage
-                             XMonadFont
+                             XMonadFont(..)
                              , initXMF
                              , releaseXMF
                              , initCoreFont

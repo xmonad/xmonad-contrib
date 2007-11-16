@@ -445,7 +445,7 @@ printPrompt drw = do
                       in (prt ++ a, [head b], tail b)
       ht = height c
       (fsl,psl) = (textWidth fs *** textWidth fs) (f,p)
-  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Left fs) str
+  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Core fs) str
   let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
   fgcolor <- io $ initColor d $ fgColor c
@@ -511,7 +511,7 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
-  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Left fs) $ head compl
+  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) (Core fs) $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
