@@ -13,28 +13,46 @@
 -----------------------------------------------------------------------------
 
 module Documentation
-    ( 
+    (
     -- * Configuring XMonad
     -- $configure
-      
+
     -- ** A simple example
     -- $example
-    
+
     -- ** Checking your xmonad.hs is correct
     -- $check
-    
+
     -- ** Loading your configuration
     -- $load
-    
+
     -- ** Where are the defaults?
     -- $where
-    
+
     -- * The XmonadContrib Library
     -- $library
-    
+
+    -- ** Actions
+    -- $actions
+
+    -- ** Configurations
+    -- $configs
+
+    -- ** Hooks
+    -- $hooks
+
+    -- ** Layouts
+    -- $layouts
+
+    -- ** Prompts
+    -- $prompts
+
+    -- ** Utilities
+    -- $utils
+
     -- * Extending XMonad
     -- $extending
-    
+
     -- ** Editing Key Bindings
     -- $keys
 
@@ -47,15 +65,37 @@ module Documentation
     -- *** Adding and Removing Key Bindings
     -- $keyAddDel
 
-    -- ** Adding\/Removing Layouts
-    -- $layout
+    -- ** Editing the Layout Hook
+    -- $layoutHook
 
-    -- ** Hooks Management
-    -- $hooks
+    -- ** Editing the Manage Hook
+    -- $manageHook
+
+    -- ** The Log Hook and External Status Bars
+    -- $logHook
 
     -- * Writing Other Extensions
     -- $writing
+
+    -- ** XMonad Internals
+    -- $internals
+
+    -- *** The 'LayoutClass'
+    -- $layoutClass
+
+    -- *** The X Monad and the Internal State
+    -- $internalState
+
+    -- *** Event Handling and Messages
+    -- $events
+
+    -- ** Coding Style
+    -- $style
+
+    -- ** License Policy
+    -- $license
     ) where
+
 
 --------------------------------------------------------------------------------
 --
@@ -82,7 +122,7 @@ overrides the border width, default terminal, and some colours:
 >    --
 >    -- An example, simple ~/.xmonad/xmonad.hs file.
 >    -- It overrides a few basic settings, reusing all the other defaults,
->    -- 
+>    --
 >
 >    import XMonad
 >
@@ -114,7 +154,7 @@ Place this text in @~\/.xmonad\/xmonad.hs@, and then check that it is
 syntactically and type correct, by loading it in the Haskell
 interpreter:
 
->    $ ghci ~/.xmonad/xmonad.hs  
+>    $ ghci ~/.xmonad/xmonad.hs
 >    GHCi, version 6.8.1: http://www.haskell.org/ghc/  :? for help
 >    Loading package base ... linking ... done.
 >    Ok, modules loaded: Main.
@@ -122,7 +162,7 @@ interpreter:
 >    Prelude Main> :t main
 >    main :: IO ()
 
-Ok, looks good.  
+Ok, looks good.
 
 -}
 
@@ -147,11 +187,11 @@ When you hit @mod-q@, this newly compiled xmonad will be used.
 
 The default configuration values are defined in the source file:
 
->   XMonad/Config.hs 
+>    XMonad/Config.hs
 
 the 'XMonad.Core.XConfig' data structure itself is defined in:
 
->    XMonad/Core.hs
+>     XMonad/Core.hs
 
 See "XMonad.Core".
 
@@ -172,19 +212,66 @@ a prompt\/program launcher, and various other useful modules.
 Some of these modules provide libraries and other useful functions to
 write other modules and extensions.
 
-Here is a short overview of the xmc content:
- 
-   [@Actions@] The content of Action
+This is a short overview of the xmc content.
 
-   [@Config@] The content of Config
+-}
 
-   [@Hooks@] The content of Hooks
+{- $actions
 
-   [@Layout@] The content of Layout
+In the @XMonad.Actions@ name space you can find modules exporting
+functions that can be usually attached to, and thus called with, some
+key bindings.
 
-   [@Prompt@] The content of Prompt
+Each module should come with extensive documentation.
 
-   [@Util@] The content of Util
+There are many examples. Just to name two of them:
+
+* "XMonad.Actions.CycleWS" provides functions to switch to the next or
+   the previous workspace ('XMonad.Actions.CycleWS.nextWS' and
+   'XMonad.Actions.CycleWS.prevWS', or to move the focused window to
+   the next of previous workspace
+   ('XMonad.Actions.CycleWS.shiftToNext' and
+   'XMonad.Actions.CycleWS.shiftToPrev')
+
+* "XMonad.Actions.DeManage" provides an a method to cease management
+  of a window, without unmapping it
+  ('XMonad.Actions.DeManage.demanage')
+
+
+-}
+
+{- $configs
+
+In the @XMonad.Config@ name space you can find modules exporting the
+default configuration of some of the XMonad and XMonadContrig
+libraries developers.
+
+You can use the source code of these configuration examples also as
+starting points for writing your own personal configuration.
+
+-}
+
+{- $hooks
+
+TODO
+
+-}
+
+{- $layouts
+
+TODO
+
+-}
+
+{- $prompts
+
+TODO
+
+-}
+
+{- $utils
+
+TODO
 
 -}
 
@@ -212,10 +299,10 @@ record of the 'XMonad.Core.XConfig' data type, like:
 
 and providing a proper definition of @myKeys@ such as:
 
-> myKeys x =
->          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
->          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
->          ]
+>    myKeys x =
+>             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
+>             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>             ]
 
 Remember that this definition requires importing "Graphics.X11.Xlib",
 "XMonad.Prompt", "XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad"
@@ -227,7 +314,7 @@ Remember that this definition requires importing "Graphics.X11.Xlib",
 Adding key bindings can be done in different ways. The type signature
 of "XMonad.Core.XConfig.keys" is:
 
-> keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
+>    keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
 
 which means thatm in order to add new bindings you need to create a
 'Data.Map.Map' from the list of your new key bindings, you can do that
@@ -238,20 +325,20 @@ the one of the existing bindings. This can be done with
 For instance, if you have defined some additional key bindings like
 these:
 
-> myKeys x =
->          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
->          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
->          ]
+>    myKeys x =
+>             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
+>             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>             ]
 
 then you create a new key bindings map by joining the default one with
 yours:
 
-> newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+>    newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
 
 Finally you need to update accordingly the default configuration
 'XMonad.Core.XConfig.keys' record:
 
-> main = xmonad defaultConfig { keys = newKeys }
+>    main = xmonad defaultConfig { keys = newKeys }
 
 
 And that's it.
@@ -259,31 +346,31 @@ And that's it.
 At the end your @~\/.xmonad\/xmonad.hs@ would look like this:
 
 
-> module Main (main) where
-> 
-> import XMonad
-> 
-> import qualified Data.Map as M
-> import Graphics.X11.Xlib
-> import XMonad.Prompt
-> import XMonad.Prompt.Shell
-> import XMonad.Prompt.XMonad
+>    module Main (main) where
 >
-> main :: IO ()
-> main = xmonad defaultConfig { keys = newKeys }
+>    import XMonad
 >
-> newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+>    import qualified Data.Map as M
+>    import Graphics.X11.Xlib
+>    import XMonad.Prompt
+>    import XMonad.Prompt.Shell
+>    import XMonad.Prompt.XMonad
 >
-> myKeys x =
->          [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
->          , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
->          ]
+>    main :: IO ()
+>    main = xmonad defaultConfig { keys = newKeys }
+>
+>    newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+>
+>    myKeys x =
+>             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
+>             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>             ]
 
 
 Obviously there are other ways of defining @newKeys@. For instance,
 you could define it like this:
 
-> newKeys x = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
+>    newKeys x = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
 
 An even simpler way to add new key bindings is the use of some of the
 utilities provided by the xmonad-contrib library. For instance,
@@ -302,13 +389,13 @@ Suppose you wan to get rid of @mod-q@ and @mod-shift-q@. To do this
 you just need to define a @newKeys@ as a 'Data.Map.difference' between
 the default map and the map of the key bindings you want to remove.
 
-> newKeys x = M.difference (keys defaultConfig x) (M.fromList $ keysToRemove x)
-> 
-> keysToRemove :: XConfig Layout -> [((KeyMask, KeySym),X ())]
-> keysToRemove x =
->          [ ((modMask x              , xK_q ), return ())
->          , ((modMask x .|. shiftMask, xK_q ), return ())
->          ]                                              
+>    newKeys x = M.difference (keys defaultConfig x) (M.fromList $ keysToRemove x)
+>
+>    keysToRemove :: XConfig Layout ->    [((KeyMask, KeySym),X ())]
+>    keysToRemove x =
+>             [ ((modMask x              , xK_q ), return ())
+>             , ((modMask x .|. shiftMask, xK_q ), return ())
+>             ]
 
 As you may see we do not need to define an action for the key bindings
 we want to get rid of. We just build a map of keys to remove.
@@ -317,13 +404,13 @@ It is also possible to define a list of key bindings and then use
 'Data.Map.delete' to remove them from the default key bindings, in
 which case we should write something like:
 
-> newKeys x = foldr M.delete (keys defaultConfig x) (keysToRemove x)
-> 
-> keysToRemove :: XConfig Layout -> [(KeyMask, KeySym)]
-> keysToRemove x =
->          [ (modMask x              , xK_q )
->          , (modMask x .|. shiftMask, xK_q )
->          ]                                              
+>    newKeys x = foldr M.delete (keys defaultConfig x) (keysToRemove x)
+>
+>    keysToRemove :: XConfig Layout -> [(KeyMask, KeySym)]
+>    keysToRemove x =
+>             [ (modMask x              , xK_q )
+>             , (modMask x .|. shiftMask, xK_q )
+>             ]
 
 Another even simpler possibility is the use of some of the utilities
 provided by the xmonad-contrib library. Look, for instance, at
@@ -339,44 +426,52 @@ removing and, after that, the action of adding.
 This is an example you may find in "XMonad.Config.Arossato":
 
 
->      defKeys    = keys defaultConfig
->      delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
->      newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
->      -- remove some of the default key bindings
->      toRemove x = 
->          [ (modMask x              , xK_j     )
->          , (modMask x              , xK_k     )
->          , (modMask x              , xK_p     )
->          , (modMask x .|. shiftMask, xK_p     )
->          , (modMask x .|. shiftMask, xK_q     )
->          , (modMask x              , xK_q     )
->          ] ++
->          -- I want modMask .|. shiftMask 1-9 to be free!
->          [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
->      -- These are my personal key bindings
->      toAdd x   = 
->          [ ((modMask x              , xK_F12   ), xmonadPrompt defaultXPConfig )
->          , ((modMask x              , xK_F3    ), shellPrompt  defaultXPConfig )
->          ] ++
->          -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
->          [( (m .|. modMask x, k), windows $ f i)
->           | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
->          ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
->          ]
+>    defKeys    = keys defaultConfig
+>    delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
+>    newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
+>    -- remove some of the default key bindings
+>    toRemove x =
+>        [ (modMask x              , xK_j     )
+>        , (modMask x              , xK_k     )
+>        , (modMask x              , xK_p     )
+>        , (modMask x .|. shiftMask, xK_p     )
+>        , (modMask x .|. shiftMask, xK_q     )
+>        , (modMask x              , xK_q     )
+>        ] ++
+>        -- I want modMask .|. shiftMask 1-9 to be free!
+>        [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
+>    -- These are my personal key bindings
+>    toAdd x   =
+>        [ ((modMask x              , xK_F12   ), xmonadPrompt defaultXPConfig )
+>        , ((modMask x              , xK_F3    ), shellPrompt  defaultXPConfig )
+>        ] ++
+>        -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
+>        [( (m .|. modMask x, k), windows $ f i)
+>         | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
+>        ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
+>        ]
 
 You can achieve the same result by using "XMonad.Util.CustomKeys" and,
 specifically, 'XMonad.Util.CustomKeys.customKeys'.
 
 -}
 
-{- $layout
+{- $layoutHook
 
-Layouts
+TODO: Layouts
+
 -}
 
-{- $hooks
+{- $manageHook
 
-Hooks
+TODO: Manage Hook
+
+-}
+
+{- $logHook
+
+TODO: Log Hook
+
 -}
 
 --------------------------------------------------------------------------------
@@ -386,7 +481,44 @@ Hooks
 --------------------------------------------------------------------------------
 
 {- $writing
-
+#label#
 Writing Other Extensions
+
+-}
+
+{- $internals
+
+TODO
+
+-}
+
+
+{- $layoutClass
+
+TODO
+
+-}
+
+{- $internalState
+
+TODO
+
+-}
+
+{- $events
+
+TODO
+
+-}
+
+{- $style
+
+TODO
+
+-}
+
+{- $license
+
+TODO
 
 -}
