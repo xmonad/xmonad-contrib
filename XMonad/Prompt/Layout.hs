@@ -28,7 +28,8 @@ import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
--- 
+--
+-- > import XMonad.Prompt
 -- > import XMonad.Prompt.Layout
 --
 -- >   , ((modMask .|. shiftMask, xK_m     ), layoutPrompt defaultXPConfig)
