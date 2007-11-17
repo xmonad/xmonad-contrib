@@ -44,7 +44,7 @@ import XMonad.Prompt
 --
 
 -- %import XMonad.Prompt
--- %import XMonad.Prompt.ShellPrompt
+-- %import XMonad.Prompt.Shell
 -- %keybind , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 
 data Shell = Shell
