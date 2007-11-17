@@ -42,14 +42,15 @@ import Data.Maybe
 -- $usage
 -- 1. In Config.hs add:
 --
--- > import XMonad.Prompt.ManPrompt
+-- > import XMonad.Prompt
+-- > import XMonad.Prompt.Man
 --
 -- 2. In your keybindings add something like:
 --
 -- >     , ((modMask, xK_F1), manPrompt defaultXPConfig) -- mod-f1 %! Query for manual page to be displayed
 
--- %import XMonad.Prompt.XPrompt
--- %import XMonad.Prompt.ManPrompt
+-- %import XMonad.Prompt
+-- %import XMonad.Prompt.Man
 -- %keybind , ((modMask, xK_F1), manPrompt defaultXPConfig)
 
 data Man = Man
