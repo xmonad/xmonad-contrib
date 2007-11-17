@@ -33,7 +33,7 @@ import Data.Maybe
 -- 1. In Config.hs add:
 --
 -- > import XMonad.Prompt
--- > import XMonad.Prompt.SshPrompt
+-- > import XMonad.Prompt.Ssh
 --
 -- 2. In your keybindings add something like:
 --
@@ -41,7 +41,7 @@ import Data.Maybe
 --
 
 -- %import XMonad.Prompt
--- %import XMonad.Prompt.SshPrompt
+-- %import XMonad.Prompt.Ssh
 -- %keybind , ((modMask .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 
 data Ssh = Ssh
