@@ -14,7 +14,7 @@
 
 module Documentation
     (
-    -- * Configuring XMonad
+    -- * Configuring xmonad
     -- $configure
 
     -- ** A simple example
@@ -29,7 +29,7 @@ module Documentation
     -- ** Where are the defaults?
     -- $where
 
-    -- * The XmonadContrib Library
+    -- * The xmonad-contrib library
     -- $library
 
     -- ** Actions
@@ -50,49 +50,49 @@ module Documentation
     -- ** Utilities
     -- $utils
 
-    -- * Extending XMonad
+    -- * Extending xmonad
     -- $extending
 
-    -- ** Editing Key Bindings
+    -- ** Editing key bindings
     -- $keys
 
-    -- *** Adding Key Bindings
+    -- *** Adding key bindings
     -- $keyAdding
 
-    -- *** Removing Key Bindings
+    -- *** Removing key bindings
     -- $keyDel
 
-    -- *** Adding and Removing Key Bindings
+    -- *** Adding and removing key bindings
     -- $keyAddDel
 
-    -- ** Editing the Layout Hook
+    -- ** Editing the layout hook
     -- $layoutHook
 
-    -- ** Editing the Manage Hook
+    -- ** Editing the manage hook
     -- $manageHook
 
-    -- ** The Log Hook and External Status Bars
+    -- ** The log hook and external status bars
     -- $logHook
 
-    -- * Writing Other Extensions
+    -- * Writing new extensions
     -- $writing
 
-    -- ** XMonad Internals
+    -- ** xmonad internals
     -- $internals
 
     -- *** The 'LayoutClass'
     -- $layoutClass
 
-    -- *** The X Monad and the Internal State
+    -- *** The X monad and the internal state
     -- $internalState
 
-    -- *** Event Handling and Messages
+    -- *** Event handling and messages
     -- $events
 
-    -- ** Coding Style
+    -- ** Coding style
     -- $style
 
-    -- ** License Policy
+    -- ** Licensing policy
     -- $license
     ) where
 
@@ -237,13 +237,15 @@ There are many examples. Just to name two of them:
   of a window, without unmapping it
   ('XMonad.Actions.DeManage.demanage')
 
+See "Documentation#keys" for instruction on how to edit key bindings
+for adding actions.
 
 -}
 
 {- $configs
 
 In the @XMonad.Config@ name space you can find modules exporting the
-default configuration of some of the XMonad and XMonadContrig
+default configuration of some of the xmonad and xmonad-contrig
 libraries developers.
 
 You can use the source code of these configuration examples also as
@@ -253,25 +255,86 @@ starting points for writing your own personal configuration.
 
 {- $hooks
 
-TODO
+In the @XMonad.Hooks@ name space you can find modules exporting hooks.
+
+Hooks are actions that xmonad performs when some events occur. The two
+most important hooks are:
+
+* 'XMonad.Core.manageHook': this hook is called when a new window
+  xmonad must take care of is created. This is a very powerful hook,
+  since it let us look at the new window's properties and act
+  accordingly. For instance, we can configure xmonad to put windows
+  belonging to a given application in the float layer, not to manage
+  dock applications, or open them in a given workspace. See
+  "Documentation#manageHook" for more information on customizing the
+  'XMonad.Core.manageHook'.
+
+* 'XMonad.Core.logHook': this hook is called when the stack of windows
+  managed by xmonad has been changed, by calling the
+  'XMonad.Operations.windows' function. For instance
+  "XMonad.Hooks.DynamicLog" will produce a string (whose format can be
+  configured) to be printed to the standard output. This can be used
+  to display some information about the xmonad state in a Status Bar.
+  See "Documentation#StatusBar" for more information.
 
 -}
 
 {- $layouts
 
-TODO
+In the @XMonad.Layout@ name space you can find modules exporting
+contributed tiling algorithms, such as a tabbed layout, a circle and a
+three columns ones, etc.
+
+Other modules provide facilities for combining different layouts, such
+as "XMonad.Layout.Combo", or a complete set of layout combinators,
+like "XMonad.Layout.LayoutCombinators"
+
+Layouts can be also modified with layout modifiers. A general
+interface for writing layout modifiers is implemented in
+"XMonad.Layout.LayoutModifier".
+
+For more information on using those modules for customizing your
+'XMonad.Core.layoutHook' see "Documentation#layout".
 
 -}
 
 {- $prompts
 
-TODO
+In the @XMonad.Prompt@ name space you can find modules exporting
+graphical prompts for getting user input and performing, with it,
+different actions.
+
+"XMonad.Prompt" provides a library for easily writing prompts.
+
+These are the available prompts:
+
+* "XMonad.Prompt.Directory"
+
+* "XMonad.Prompt.Layout"
+
+* "XMonad.Prompt.Man"
+
+* "XMonad.Prompt.Shell"
+
+* "XMonad.Prompt.Ssh"
+
+* "XMonad.Prompt.Window"
+
+* "XMonad.Prompt.Workspace"
+
+* "XMonad.Prompt.XMonad"
+
+Usually a prompt is called by some key binding. See
+"Documentation#keys" on how to configure xmonad to use some prompts.
+The give examples include adding some prompts.
 
 -}
 
 {- $utils
 
-TODO
+In the @XMonad.Util@ name space you can find modules exporting various
+utility functions that are used by the othe modules of the
+xmonad-contrib library.
 
 -}
 
@@ -291,7 +354,7 @@ yourself.
 -}
 
 {- $keys
-
+#keys#
 Editing key bindings means changing the 'XMonad.Core.XConfig.keys'
 record of the 'XMonad.Core.XConfig' data type, like:
 
@@ -306,6 +369,10 @@ and providing a proper definition of @myKeys@ such as:
 
 Remember that this definition requires importing "Graphics.X11.Xlib",
 "XMonad.Prompt", "XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad"
+
+Sometimes, more than complitely redifining the key bindings, as we did
+above, we may want to add some new bindings, or\/and remove existing
+ones.
 
 -}
 
@@ -457,18 +524,19 @@ specifically, 'XMonad.Util.CustomKeys.customKeys'.
 -}
 
 {- $layoutHook
-
+#layout#
 TODO: Layouts
 
 -}
 
 {- $manageHook
-
+#manageHook#
 TODO: Manage Hook
 
 -}
 
 {- $logHook
+#StatusBar#
 
 TODO: Log Hook
 
@@ -481,7 +549,7 @@ TODO: Log Hook
 --------------------------------------------------------------------------------
 
 {- $writing
-#label#
+
 Writing Other Extensions
 
 -}
@@ -513,12 +581,31 @@ TODO
 
 {- $style
 
-TODO
+These are the coding guidelines for contributing to xmonad and the
+xmonad contributed extensions.
+
+* Comment every top level function (particularly exported funtions), and
+  provide a type signature.
+
+* Use Haddock syntax in the comments.
+
+* Follow the coding style of the other modules.
+
+* Code should be compilable with -Wall -Werror. There should be no warnings.
+
+* Partial functions should be avoided: the window manager should not
+  crash, so do not call 'error' or 'undefined'
+
+* Tabs are /illegal/. Use 4 spaces for indenting.
+
+* Any pure function added to the core should have QuickCheck properties
+  precisely defining its behaviour.
 
 -}
 
 {- $license
 
-TODO
+New modules should identify the author, and be submitted under the
+same license as xmonad (BSD3 license or freer).
 
 -}
