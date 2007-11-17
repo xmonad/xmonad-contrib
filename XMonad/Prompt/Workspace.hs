@@ -27,9 +27,10 @@ import XMonad.StackSet ( workspaces, tag )
 -- $usage
 -- You can use this module with the following in your Config.hs file:
 -- 
--- > import XMonad.Prompt.WorkspacePrompt
+-- > import XMonad.Prompt
+-- > import XMonad.Prompt.Workspace
 --
--- >   , ((modMask .|. shiftMask, xK_m     ), workspacePrompt myXPConfig (windows . W.shift))
+-- >   , ((modMask .|. shiftMask, xK_m     ), workspacePrompt defaultXPConfig (windows . W.shift))
 
 data Wor = Wor String
 
