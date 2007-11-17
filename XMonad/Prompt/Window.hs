@@ -39,7 +39,7 @@ import XMonad.Actions.WindowBringer
 -- Place in your Config.hs:
 --
 -- > import XMonad.Prompt
--- > import XMonad.Prompt.WindowPrompt
+-- > import XMonad.Prompt.Window
 --
 -- and in the keys definition:
 --
@@ -47,7 +47,7 @@ import XMonad.Actions.WindowBringer
 -- > , ((modMask .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
 
 -- %import XMonad.Prompt
--- %import XMonad.Prompt.WindowPrompt
+-- %import XMonad.Prompt.Window
 -- %keybind , ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
 -- %keybind , ((modMask .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
 
