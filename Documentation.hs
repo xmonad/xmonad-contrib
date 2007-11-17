@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This is a module for documenting the xmonad-contrib library
+-- This is a module for documenting the xmonad-contrib library.
 --
 -----------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ module Documentation
     -- ** A simple example
     -- $example
 
-    -- ** Checking your xmonad.hs is correct
+    -- ** Checking whether your xmonad.hs is correct
     -- $check
 
     -- ** Loading your configuration
@@ -105,23 +105,36 @@ module Documentation
 
 {- $configure
 
-xmonad is configured by creating and editing the Haskell file:
+xmonad can be configured by creating and editing the Haskell file:
 
 >    ~/.xmonad/xmonad.hs
 
-xmonad then uses default settings from this file as arguments to the
-window manager.
+If this file does not exist, xmonad will simply use default settings;
+if it does exist, xmonad will use whatever settings you specify.  Note
+that this file can contain arbitrary Haskell code, which means that
+you have quite a lot of flexibility in configuring xmonad.
+
+NOTE for users of previous versions (< 0.5) of xmonad: this is a major
+change in the way xmonad is configured.  Prior to version 0.5,
+configuring xmonad required editing an xmonad source file called
+Config.hs, recompiling xmonad, and then restarting.  From version 0.5
+onwards, however, all you have to do is edit xmonad.hs and restart
+with @mod-q@; xmonad does the recompiling itself.  The format of the
+configuration file has also changed; it is now simpler and much
+shorter, only requiring you to list those settings which are different
+from the defaults.
 
 -}
 
 {- $example
 
-Here is a basic example, which takes defaults from xmonad, and
-overrides the border width, default terminal, and some colours:
+Here is a basic example, which starts with the default xmonad
+configuration and overrides the border width, default terminal, and
+some colours:
 
 >    --
 >    -- An example, simple ~/.xmonad/xmonad.hs file.
->    -- It overrides a few basic settings, reusing all the other defaults,
+>    -- It overrides a few basic settings, reusing all the other defaults.
 >    --
 >
 >    import XMonad
@@ -146,13 +159,15 @@ in the file:
 
 >    XMonad/Config.hs
 
+However, note that you should not edit Config.hs itself.
+
 -}
 
 {- $check
 
-Place this text in @~\/.xmonad\/xmonad.hs@, and then check that it is
-syntactically and type correct, by loading it in the Haskell
-interpreter:
+After changing your configuration, it is a good idea to check that it
+is syntactically and type correct.  You can do this easily by loading
+your configuration file in the Haskell interpreter:
 
 >    $ ghci ~/.xmonad/xmonad.hs
 >    GHCi, version 6.8.1: http://www.haskell.org/ghc/  :? for help
@@ -168,14 +183,16 @@ Ok, looks good.
 
 {- $load
 
-To have xmonad start using your settings, try @mod-q@. xmonad will
-attempt to compile this file, and run it. If it is unable to, the
-defaults are used. This requires GHC and xmonad are in your @$PATH@
-settings. If GHC isn't in your path, you can still compile the
-@xmonad.hs@ file yourself:
+To get xmonad to use your new settings, type @mod-q@. xmonad will
+attempt to compile this file, and run it.  If everything goes well,
+xmonad will seamlessly restart itself with the new settings, keeping
+all your windows, layouts, etc. intact.  If something goes wrong, the
+previous (default) settings will be used.  Note this requires
+that GHC and xmonad are in your @$PATH@. If GHC isn't in your
+path, you can still compile @xmonad.hs@ yourself:
 
 >    $ cd ~/.xmonad
->    $ ghc --make xmonad.hs
+>    $ /path/to/ghc --make xmonad.hs
 >    $ ls
 >    xmonad    xmonad.hi xmonad.hs xmonad.o
 
