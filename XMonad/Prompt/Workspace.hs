@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A directory prompt for XMonad
+-- A workspace prompt for XMonad
 --
 -----------------------------------------------------------------------------
 
