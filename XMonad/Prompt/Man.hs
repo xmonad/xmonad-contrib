@@ -47,11 +47,11 @@ import Data.Maybe
 --
 -- 2. In your keybindings add something like:
 --
--- >     , ((modMask, xK_F1), manPrompt defaultXPConfig)
+-- >     , ((modMask x, xK_F1), manPrompt defaultXPConfig)
 
 -- %import XMonad.Prompt
 -- %import XMonad.Prompt.Man
--- %keybind , ((modMask, xK_F1), manPrompt defaultXPConfig)
+-- %keybind , ((modMask x, xK_F1), manPrompt defaultXPConfig)
 
 data Man = Man
 

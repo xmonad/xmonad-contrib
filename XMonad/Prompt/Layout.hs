@@ -32,7 +32,7 @@ import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Layout
 --
--- >   , ((modMask .|. shiftMask, xK_m     ), layoutPrompt defaultXPConfig)
+-- >   , ((modMask x .|. shiftMask, xK_m     ), layoutPrompt defaultXPConfig)
 
 -- WARNING: This prompt won't display all possible layouts, because the
 -- code to enable this was rejected from xmonad core.  It only displays

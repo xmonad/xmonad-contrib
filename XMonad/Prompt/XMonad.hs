@@ -32,12 +32,12 @@ import XMonad.Actions.Commands (defaultCommands, runCommand')
 --
 -- in your keybindings add:
 --
--- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+-- >   , ((modMask x .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
 --
 
 -- %import XMonad.Prompt
 -- %import XMonad.Prompt.XMonad
--- %keybind , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+-- %keybind , ((modMask x .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
 
 data XMonad = XMonad
 

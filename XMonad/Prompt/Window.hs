@@ -43,13 +43,13 @@ import XMonad.Actions.WindowBringer
 --
 -- and in the keys definition:
 --
--- > , ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- > , ((modMask .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
+-- > , ((modMask x .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
+-- > , ((modMask x .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
 
 -- %import XMonad.Prompt
 -- %import XMonad.Prompt.Window
--- %keybind , ((modMask .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- %keybind , ((modMask .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
+-- %keybind , ((modMask x .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
+-- %keybind , ((modMask x .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
 
 
 data WindowPrompt = Goto | Bring

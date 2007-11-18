@@ -30,7 +30,7 @@ import XMonad.StackSet ( workspaces, tag )
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Workspace
 --
--- >   , ((modMask .|. shiftMask, xK_m     ), workspacePrompt defaultXPConfig (windows . W.shift))
+-- >   , ((modMask x .|. shiftMask, xK_m     ), workspacePrompt defaultXPConfig (windows . W.shift))
 
 data Wor = Wor String
 

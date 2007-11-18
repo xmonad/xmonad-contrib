@@ -40,12 +40,12 @@ import XMonad.Prompt
 --
 -- 2. In your keybindings add something like:
 --
--- >   , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+-- >   , ((modMask x .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 --
 
 -- %import XMonad.Prompt
 -- %import XMonad.Prompt.Shell
--- %keybind , ((modMask .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+-- %keybind , ((modMask x .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 
 data Shell = Shell
 
