@@ -47,7 +47,7 @@ import Data.Maybe
 --
 -- 2. In your keybindings add something like:
 --
--- >     , ((modMask, xK_F1), manPrompt defaultXPConfig) -- mod-f1 %! Query for manual page to be displayed
+-- >     , ((modMask, xK_F1), manPrompt defaultXPConfig)
 
 -- %import XMonad.Prompt
 -- %import XMonad.Prompt.Man
