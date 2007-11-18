@@ -77,17 +77,23 @@ module Documentation
     -- * Writing new extensions
     -- $writing
 
+    -- ** Libraries for writing window managers
+    -- $xmonad-libs
+
     -- ** xmonad internals
     -- $internals
 
-    -- *** The 'LayoutClass'
-    -- $layoutClass
+    -- *** The @main@ entry point
+    -- $main
 
     -- *** The X monad and the internal state
     -- $internalState
 
     -- *** Event handling and messages
     -- $events
+
+    -- *** The 'LayoutClass'
+    -- $layoutClass
 
     -- ** Coding style
     -- $style
@@ -104,7 +110,7 @@ module Documentation
 --------------------------------------------------------------------------------
 
 {- $configure
-
+#Configuring_xmonad#
 xmonad can be configured by creating and editing the Haskell file:
 
 >    ~/.xmonad/xmonad.hs
@@ -127,6 +133,7 @@ from the defaults.
 -}
 
 {- $example
+#A_simple_example#
 
 Here is a basic example, which starts with the default xmonad
 configuration and overrides the border width, default terminal, and
@@ -164,6 +171,7 @@ However, note that you should not edit Config.hs itself.
 -}
 
 {- $check
+#Checking_whether_your_xmonad.hs_is_correct#
 
 After changing your configuration, it is a good idea to check that it
 is syntactically and type correct.  You can do this easily by loading
@@ -182,6 +190,7 @@ Ok, looks good.
 -}
 
 {- $load
+#Loading_your_configuration#
 
 To get xmonad to use your new settings, type @mod-q@. xmonad will
 attempt to compile this file, and run it.  If everything goes well,
@@ -201,6 +210,7 @@ When you hit @mod-q@, this newly compiled xmonad will be used.
 -}
 
 {- $where
+#Where_are_the_defaults?#
 
 The default configuration values are defined in the source file:
 
@@ -254,8 +264,8 @@ There are many examples. Just to name two of them:
   of a window, without unmapping it
   ('XMonad.Actions.DeManage.demanage')
 
-See "Documentation#keys" for instruction on how to edit key bindings
-for adding actions.
+See "Documentation#Editing_key_bindings" for instruction on how to
+edit key bindings for adding actions.
 
 -}
 
@@ -283,8 +293,8 @@ most important hooks are:
   accordingly. For instance, we can configure xmonad to put windows
   belonging to a given application in the float layer, not to manage
   dock applications, or open them in a given workspace. See
-  "Documentation#manageHook" for more information on customizing the
-  'XMonad.Core.manageHook'.
+  "Documentation#Editing_the_manage_hook" for more information on
+  customizing the 'XMonad.Core.manageHook'.
 
 * 'XMonad.Core.logHook': this hook is called when the stack of windows
   managed by xmonad has been changed, by calling the
@@ -292,7 +302,8 @@ most important hooks are:
   "XMonad.Hooks.DynamicLog" will produce a string (whose format can be
   configured) to be printed to the standard output. This can be used
   to display some information about the xmonad state in a Status Bar.
-  See "Documentation#StatusBar" for more information.
+  See "Documentation#The_log_hook_and_external_status_bars" for more
+  information.
 
 -}
 
@@ -311,7 +322,7 @@ interface for writing layout modifiers is implemented in
 "XMonad.Layout.LayoutModifier".
 
 For more information on using those modules for customizing your
-'XMonad.Core.layoutHook' see "Documentation#layout".
+'XMonad.Core.layoutHook' see "Documentation#Editing_the_layout_hook".
 
 -}
 
@@ -342,16 +353,33 @@ These are the available prompts:
 * "XMonad.Prompt.XMonad"
 
 Usually a prompt is called by some key binding. See
-"Documentation#keys" on how to configure xmonad to use some prompts.
-The give examples include adding some prompts.
+"Documentation#Editing_key_bindings" on how to configure xmonad to use
+some prompts. The give examples include adding some prompts.
 
 -}
 
 {- $utils
 
 In the @XMonad.Util@ name space you can find modules exporting various
-utility functions that are used by the othe modules of the
+utility functions that are used by the other modules of the
 xmonad-contrib library.
+
+There are also utilities for helping in configuring xmonad or using
+external utilities.
+
+A non complete list with a brief description:
+
+* "XMonad.Util.CustomKeys" or "XMonad.Util.EZConfig" can be used to
+  configure key bindings (see "Documentation#Editing_key_bindings");
+
+* "XMonad.Util.Dzen" "XMonad.Util.Dmenu" provide useful functions for
+  running dzen as a xmonad status bar and dmenu as a program launcher;
+
+* "XMonad.Util.XSelection" provide utilities for using the mouse
+  selection;
+
+* "XMonad.Util.XUtils" and "XMonad.Util.Font" are libraries for
+  accessing Xlib and XFT function in a convenient way.
 
 -}
 
@@ -362,6 +390,7 @@ xmonad-contrib library.
 --------------------------------------------------------------------------------
 
 {- $extending
+#Extending_xmonad#
 
 Since the @xmonad.hs@ file is just another Haskell module, you may
 import and use any Haskell code or libraries you wish, such as
@@ -371,7 +400,8 @@ yourself.
 -}
 
 {- $keys
-#keys#
+#Editing_key_bindings#
+
 Editing key bindings means changing the 'XMonad.Core.XConfig.keys'
 record of the 'XMonad.Core.XConfig' data type, like:
 
@@ -387,13 +417,14 @@ and providing a proper definition of @myKeys@ such as:
 Remember that this definition requires importing "Graphics.X11.Xlib",
 "XMonad.Prompt", "XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad"
 
-Sometimes, more than complitely redifining the key bindings, as we did
+Sometimes, more than completely redefining the key bindings, as we did
 above, we may want to add some new bindings, or\/and remove existing
 ones.
 
 -}
 
 {- $keyAdding
+#Adding_key_bindings#
 
 Adding key bindings can be done in different ways. The type signature
 of "XMonad.Core.XConfig.keys" is:
@@ -465,6 +496,7 @@ useful functions for editing your key bindings. Look, for instance, at
  -}
 
 {- $keyDel
+#Removing_key_bindings#
 
 Removing key bindings requires modifying the binding 'Data.Map.Map'.
 This can be done with 'Data.Map.difference' or with 'Data.Map.delete'.
@@ -503,6 +535,7 @@ provided by the xmonad-contrib library. Look, for instance, at
 -}
 
 {- $keyAddDel
+#Adding_and_removing_key_bindings#
 
 Adding and removing key bindings requires to compose the action of
 removing and, after that, the action of adding.
@@ -541,19 +574,89 @@ specifically, 'XMonad.Util.CustomKeys.customKeys'.
 -}
 
 {- $layoutHook
-#layout#
-TODO: Layouts
+#Editing_the_layout_hook#
+
+When you start an application that opens a new window, when you change
+the focused window, or move it to another workspace, or change that
+workspace's layout, xmonad will use the 'XMonad.Core.layoutHook' for
+reordering the visible windows on the visible workspace(s).
+
+Since different layouts may be attached to different workspaces, and
+you can change them, xmonad needs to know which one to pick up, so,
+the layoutHook may be thought as a stack, or even better a combination
+of layouts. This also means an order, i.e. a list.
+
+The problem is that the layout subsystem is implemented with an
+advanced feature of the Haskell programming language: type classes.
+This allows us to very easily write new layouts, combine or modify
+existing layouts, have some of them with a state, etc. See
+"Documentation#The_LayoutClass" for more information.
+
+The price we have to pay to get all that for free - which is something
+that makes xmonad so powerful with such a ridiculously low number of
+lines - is that we cannot simply have a list of layouts as we used to
+have before the 0.5 release.
+
+Instead the combination of layouts to be used by xmonad is created
+with a specific layout combinator: 'XMonad.Layouts.|||'
+
+Suppose we want a list with the 'XMonad.Layouts.Full', the
+'XMonad.Layout.Tabbed.tabbed' and the
+'XMonad.Layout.Accordion.Accordion' layouts. First we import, in our
+@~\/.xmonad\/xmonad.hs@, all the needed module:
+
+>    import XMonad
+>    import XMonad.Layouts
+>
+>    import XMonad.Layout.Tabbed
+>    import XMonad.Layout.Accordion
+
+Then we create the combination of layouts we need:
+
+>    mylayoutHook = Full ||| tabbed shrinkText defaultTConf ||| Accordion
+
+
+Now, all we need to do is to change the 'XMonad.Core.layoutHook'
+record of the 'XMonad.Core.XConfig' data type, like:
+
+>    main = xmonad defaultConfig { layoutHook = mylayoutHook }
+
+Thanks to the new combinator we can apply a layout modifier to the
+combination of layouts, instead of applying it to each one. Suppose we
+want to use the 'XMonad.Layout.NoBorders.noBorders' layout modifier,
+from the "XMonad.Layout.NoBorders" module (which must be imported):
+
+>    mylayoutHook = noBorders (Full ||| tabbed shrinkText defaultTConf ||| Accordion)
+
+Obviously, if we want only the tabbed layout without borders, then we
+may write:
+
+>    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
+
+The @~\/.xmonad\/xmonad.hs@ will now look like this:
+
+>    import XMonad.Layouts
+>    
+>    import XMonad.Layout.Tabbed
+>    import XMonad.Layout.Accordion
+>    import XMonad.Layout.NoBorders
+>    
+>    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
+>    
+>    main = xmonad defaultConfig { layoutHook = mylayoutHook }
+
+That's it!
 
 -}
 
 {- $manageHook
-#manageHook#
+#Editing_the_manage_hook#
 TODO: Manage Hook
 
 -}
 
 {- $logHook
-#StatusBar#
+#The_log_hook_and_external_status_bars#
 
 TODO: Log Hook
 
@@ -571,14 +674,34 @@ Writing Other Extensions
 
 -}
 
+{- $xmonad-libs
+
+xmonad and xmonad-contrib are just libraries for letting users write
+their own window managers. This is what makes xmonad such a powerful
+and still simple application.
+
+Give some examples:
+arossato_vm
+droundy_wm
+
+In the previous sections we show how simple it can be to write your
+own window manager by using the core code (xmonad) and some of the
+contributed code (xmonad-contrib).
+
+In this section we will give you a brief overview of the programming
+techniques that have been used in order to make writing new extensions
+very simple.
+
+-}
+
 {- $internals
 
 TODO
 
 -}
 
-
-{- $layoutClass
+{- $main
+#The_main_entry_point#
 
 TODO
 
@@ -592,6 +715,12 @@ TODO
 
 {- $events
 
+TODO
+
+-}
+
+{- $layoutClass
+#The_LayoutClass#
 TODO
 
 -}
