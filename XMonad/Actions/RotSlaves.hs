@@ -8,7 +8,7 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Rotate all windows except the master window 
+-- Rotate all windows except the master window
 -- and keep the focus in place.
 -----------------------------------------------------------------------------
 module XMonad.Actions.RotSlaves (
@@ -33,7 +33,7 @@ import XMonad
 --
 --
 -- This operation will rotate all windows except the master window, while the focus
--- stays where it is. It is useful together with the TwoPane-Layout (see XMonad.Actions.TwoPane).
+-- stays where it is. It is useful together with the TwoPane-Layout (see "XMonad.Layout.TwoPane").
 
 -- %import XMonad.Actions.RotSlaves
 -- %keybind , ((modMask .|. shiftMask, xK_Tab   ), rotSlavesUp)
