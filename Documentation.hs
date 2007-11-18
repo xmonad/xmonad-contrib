@@ -195,10 +195,12 @@ Ok, looks good.
 To get xmonad to use your new settings, type @mod-q@. xmonad will
 attempt to compile this file, and run it.  If everything goes well,
 xmonad will seamlessly restart itself with the new settings, keeping
-all your windows, layouts, etc. intact.  If something goes wrong, the
-previous (default) settings will be used.  Note this requires
-that GHC and xmonad are in your @$PATH@. If GHC isn't in your
-path, you can still compile @xmonad.hs@ yourself:
+all your windows, layouts, etc. intact.  (If you change anything
+related to your layouts, you may need to hit @mod-shift-space@ after
+restarting to see the changes take effect.)  If something goes wrong,
+the previous (default) settings will be used.  Note this requires that
+GHC and xmonad are in your @$PATH@. If GHC isn't in your path, you can
+still compile @xmonad.hs@ yourself:
 
 >    $ cd ~/.xmonad
 >    $ /path/to/ghc --make xmonad.hs
@@ -232,57 +234,103 @@ See "XMonad.Core".
 
 {- $library
 
-The xmonad-contrib (xmc) library is a set of modules contributed by
-xmonad hackers and users. Examples include an ion3-like tabbed layout,
-a prompt\/program launcher, and various other useful modules.
+The xmonad-contrib (xmc) library is a set of extension modules
+contributed by xmonad hackers and users, which provide additional
+xmonad features.  Examples include various layout modes (tabbed,
+spiral, three-column...), prompts, program launchers, the ability to
+manipulate windows and workspaces in various ways, alternate
+navigation modes, and much more.  There are also \"meta-modules\"
+which make it easier to write new modules and extensions.
 
-Some of these modules provide libraries and other useful functions to
-write other modules and extensions.
-
-This is a short overview of the xmc content.
+This is a short overview of the xmonad-contrib modules.  For more
+information about any particular module, just click on its name to
+view its Haddock documentation; each module should come with extensive
+documentation.  If you find a module that could be better documented,
+or has incorrect documentation, please report it as a bug
+(<http://code.google.com/p/xmonad/issues/list>)!
 
 -}
 
 {- $actions
 
-In the @XMonad.Actions@ name space you can find modules exporting
-functions that can be usually attached to, and thus called with, some
-key bindings.
+In the @XMonad.Actions@ namespace you can find modules exporting
+various functions that are usually intended to be bound to key
+combinations or mouse actions, in order to provide functionality
+beyond the standard keybindings provided by xmonad.
 
-Each module should come with extensive documentation.
+See "Documentation#Editing_key_bindings" for instructions on how to
+edit your key bindings.
 
-There are many examples. Just to name two of them:
+* "XMonad.Actions.Commands": running internal xmonad actions
+  interactively.
 
-* "XMonad.Actions.CycleWS" provides functions to switch to the next or
-   the previous workspace ('XMonad.Actions.CycleWS.nextWS' and
-   'XMonad.Actions.CycleWS.prevWS', or to move the focused window to
-   the next of previous workspace
-   ('XMonad.Actions.CycleWS.shiftToNext' and
-   'XMonad.Actions.CycleWS.shiftToPrev')
+* "XMonad.Actions.ConstrainedResize": an aspect-ratio-constrained
+  window resizing mode.
 
-* "XMonad.Actions.DeManage" provides an a method to cease management
-  of a window, without unmapping it
-  ('XMonad.Actions.DeManage.demanage')
+* "XMonad.Actions.CopyWindow": duplicating windows on multiple
+  workspaces.
 
-See "Documentation#Editing_key_bindings" for instruction on how to
-edit key bindings for adding actions.
+* "XMonad.Actions.CycleWS": move between workspaces.
+
+* "XMonad.Actions.DeManage": cease management of a window without
+  unmapping it.
+
+* "XMonad.Actions.DwmPromote": dwm-like master window swapping.
+
+* "XMonad.Actions.DynamicWorkspaces": add and delete workspaces.
+
+* "XMonad.Actions.FindEmptyWorkspace": find an empty workspace.
+
+* "XMonad.Actions.FlexibleManipulate": move\/resize windows without
+  warping the mouse.
+
+* "XMonad.Actions.FlexibleResize": resize windows from any corner.
+
+* "XMonad.Actions.FloatKeys": move\/resize floating windows with
+  keybindings.
+
+* "XMonad.Actions.FocusNth": focus the nth window on the screen.
+
+* "XMonad.Actions.MouseGestures": bind mouse gestures to actions.
+
+* "XMonad.Actions.RotSlaves": rotate non-master windows.
+
+* "XMonad.Actions.RotView": cycle through non-empty workspaces.
+
+* "XMonad.Actions.SimpleDate": display the date in a popup menu.
+
+* "XMonad.Actions.SinkAll": sink all floating windows.
+
+* "XMonad.Actions.Submap": create key submaps, i.e. the ability to
+  bind actions to key sequences rather than being limited to single
+  key combinations.
+
+* "XMonad.Actions.SwapWorkspaces": swap workspace tags.
+
+* "XMonad.Actions.TagWindows": tag windows and select by tag.
+
+* "XMonad.Actions.Warp": warp the pointer.
+
+* "XMonad.Actions.WindowBringer": bring windows to you, and you to
+  windows.
+
+* "XMonad.Actions.WmiiActions": wmii-style actions.
 
 -}
 
 {- $configs
 
-In the @XMonad.Config@ name space you can find modules exporting the
-default configuration of some of the xmonad and xmonad-contrig
-libraries developers.
-
-You can use the source code of these configuration examples also as
-starting points for writing your own personal configuration.
+In the @XMonad.Config@ namespace you can find modules exporting the
+configurations used by some of the xmonad and xmonad-contrib
+developers.  You can look at them for examples while creating your own
+configuration; you can also simply import them and use them as your
+own configuration, possibly with some modifications.
 
 -}
 
 {- $hooks
 
-In the @XMonad.Hooks@ name space you can find modules exporting hooks.
+In the @XMonad.Hooks@ namespace you can find modules exporting hooks.
 
 Hooks are actions that xmonad performs when some events occur. The two
 most important hooks are:
@@ -360,7 +408,7 @@ some prompts. The give examples include adding some prompts.
 
 {- $utils
 
-In the @XMonad.Util@ name space you can find modules exporting various
+In the @XMonad.Util@ namespace you can find modules exporting various
 utility functions that are used by the other modules of the
 xmonad-contrib library.
 
@@ -636,13 +684,13 @@ may write:
 The @~\/.xmonad\/xmonad.hs@ will now look like this:
 
 >    import XMonad.Layouts
->    
+>
 >    import XMonad.Layout.Tabbed
 >    import XMonad.Layout.Accordion
 >    import XMonad.Layout.NoBorders
->    
+>
 >    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
->    
+>
 >    main = xmonad defaultConfig { layoutHook = mylayoutHook }
 
 That's it!
