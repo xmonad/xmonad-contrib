@@ -55,7 +55,7 @@ import Foreign.C.Types (CLong)
 import Data.Maybe (catMaybes)
 
 -- $usage
--- Add the imports to your configuration file and add the mangeHook:
+-- Add the imports to your configuration file and add the manageHook:
 --
 -- > import XMonad.Hooks.ManageDocks
 --

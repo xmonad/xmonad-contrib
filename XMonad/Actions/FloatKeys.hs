@@ -53,7 +53,7 @@ import Graphics.X11.Xlib.Extras
 --                keysResizeWindow (-10, -10) (0, 1) shrinks the window in direction of the bottom-left corner
 --              
 --  keysAbsResizeWindow (dx, dy) (ax, ay) changes the width by dx and the height by dy leaving the screen
---      absolut point (ax, ay) fixed
+--      absolute point (ax, ay) fixed
 --
 --      examples on a 1024x768 screen: keysAbsResizeWindow (10, 10) (0, 0) enlarge the window and if it is not in the top-left corner it will also be moved away
 --

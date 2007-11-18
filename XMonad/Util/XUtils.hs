@@ -107,7 +107,7 @@ paintAndWrite w fs wh ht bw bc borc ffc fbc al str = do
     paintWindow' w (Rectangle x y wh ht) bw bc borc ms
     where ms    = Just (fs,ffc,fbc,str)
 
--- This stuf is not exported
+-- This stuff is not exported
 
 paintWindow' :: Window -> Rectangle -> Dimension -> String -> String -> Maybe (XMonadFont,String,String,String) -> X ()
 paintWindow' win (Rectangle x y wh ht) bw color b_color str = do

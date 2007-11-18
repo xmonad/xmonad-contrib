@@ -42,7 +42,7 @@ additionalKeys conf keysList =
     conf { keys = \cnf -> M.union (M.fromList keysList) (keys conf cnf) }
 
 -- |
--- Remove standard keybidings you're not using. Example use:
+-- Remove standard keybindings you're not using. Example use:
 --
 -- > main = xmonad $ defaultConfig { terminal = "urxvt" }
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]

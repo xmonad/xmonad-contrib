@@ -64,7 +64,7 @@ copy n = copy'
           insertUp' a s = modify (Just $ Stack a [] [])
                           (\(Stack t l r) -> Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
 
--- | Remove the focussed window from this workspace.  If it's present in no
+-- | Remove the focused window from this workspace.  If it's present in no
 -- other workspace, then kill it instead. If we do kill it, we'll get a
 -- delete notify back from X.
 --

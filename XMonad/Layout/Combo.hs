@@ -55,11 +55,11 @@ import qualified XMonad.StackSet as W ( differentiate )
 
 -- These bindings will move a window into the sublayout that is
 -- up/down/left/right of its current position.  Note that there is some
--- weirdness in combineTwo, in that the mod-tab focus order is not very
--- closely related to the layout order.  This is because we're forced to
--- keep track of the window positions sparately, and this is ugly.  If you
--- don't like this, lobby for hierarchical stacks in core xmonad or go
--- reimelement the core of xmonad yourself.
+-- weirdness in combineTwo, in that the mod-tab focus order is not very closely
+-- related to the layout order. This is because we're forced to keep track of
+-- the window positions separately, and this is ugly.  If you don't like this,
+-- lobby for hierarchical stacks in core xmonad or go reim:lement the core of
+-- xmonad yourself.
 
 -- %import XMonad.Layout.Combo
 -- %layout , combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf)

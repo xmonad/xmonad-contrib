@@ -159,7 +159,7 @@ data EOT = EOT deriving (Read, Show)
 data HCons a b = HCons a b deriving (Read, Show)
 
 infixr 0 ??
--- | Prepend an element to a heterogenuous list. Used to build transformer
+-- | Prepend an element to a heterogeneous list. Used to build transformer
 -- tables for 'mkToggle'.
 (??) :: (HList b w) => a -> b -> HCons a b
 (??) = HCons

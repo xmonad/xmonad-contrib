@@ -59,7 +59,7 @@ import XMonad hiding (workspaces)
 -- >   , ((modWinMask .|. shiftMask, xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobalP s shiftHere))
 -- >   , ((modWinMask .|. controlMask, xK_g), tagPrompt defaultXPConfig (\s -> focusUpTaggedGlobal s)) 
 --
--- NOTE: Tags are saved as space seperated string and split with 'unwords' thus
+-- NOTE: Tags are saved as space separated string and split with 'unwords' thus
 --       if you add a tag "a b" the window will have the tags "a" and "b" but not "a b".
 
 -- %import XMonad.Actions.TagWindows

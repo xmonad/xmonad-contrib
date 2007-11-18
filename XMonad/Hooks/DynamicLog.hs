@@ -79,7 +79,7 @@ makeSimpleDzenConfig = do
 --
 -- > main = dzen xmonad
 --
--- The intent is that the avove config file should provide a nice status
+-- The intent is that the above config file should provide a nice status
 -- bar with minimal effort.
 --
 dzen :: (XConfig (Choose Tall (Choose (Mirror Tall) Full)) -> IO ()) -> IO ()
@@ -192,7 +192,7 @@ dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
        (bg1,bg2) | null bg = ("","")
                  | otherwise = ("^bg(" ++ bg ++ ")","^bg()")
 
--- | Escape any dzen metacharaters.
+-- | Escape any dzen metacharacters.
 dzenEscape :: String -> String
 dzenEscape = concatMap (\x -> if x == '^' then "^^" else [x])
 
