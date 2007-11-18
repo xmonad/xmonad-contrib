@@ -30,7 +30,7 @@ import XMonad.Actions.Commands (defaultCommands, runCommand')
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.XMonad
 --
--- in you keybindings add:
+-- in your keybindings add:
 --
 -- >   , ((modMask .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
 --
