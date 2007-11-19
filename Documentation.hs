@@ -6,7 +6,7 @@
 --
 -- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
--- Portability :  unportable
+-- Portability :  portable
 --
 -- This is a module for documenting the xmonad-contrib library.
 --
@@ -14,6 +14,9 @@
 
 module Documentation
     (
+    -- * Overview
+    -- $overview
+
     -- * Configuring xmonad
     -- $configure
 
@@ -102,6 +105,23 @@ module Documentation
     -- $license
     ) where
 
+--------------------------------------------------------------------------------
+--
+--  Overview
+--
+--------------------------------------------------------------------------------
+
+{- $overview
+#Overview#
+
+xmonad is a tiling window manager for X. This library collects 
+third party tiling algorithms, hooks, configurations and scripts to
+xmonad. The source for this library is available via darcs get <http://code.haskell.org/XMonadContrib>
+
+Each stable release of xmonad comes with a stable release of the contrib
+library too, which should be used if you're using the stable release.
+You can find the tarball here (<http://www.xmonad.org/XMonadContrib-0.4.tar.gz>) (Oct 2007) 
+-}
 
 --------------------------------------------------------------------------------
 --

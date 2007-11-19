@@ -17,8 +17,12 @@ the Mosaic layout, one would import:
 
  XMonad.Layout.Mosaic
 
-
 ------------------------------------------------------------------------
 
 Code submitted to the contrib repo is licensed under the same license as
 XMonad itself, with copyright held by the authors.
+
+------------------------------------------------------------------------
+
+Documentation for the extensions and configuration system available in
+Documentatoin.hs (a haddock source file).

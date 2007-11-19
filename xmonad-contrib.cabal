@@ -3,9 +3,10 @@ version:            0.4
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
-    Third party tiling algorithms, configurations and scripts to xmonad.
+    Third party tiling algorithms, configurations and scripts to xmonad,
+    a tiling window manager for X.
     .
-    As a starting point you can have a look at the Haddock "Documentation".
+    "Documentation" on building, configuring and using xmonad extensions.
 category:           System
 license:            BSD3
 license-file:       LICENSE
