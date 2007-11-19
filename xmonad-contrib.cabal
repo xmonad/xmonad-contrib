@@ -109,7 +109,7 @@ library
                         XMonad.Prompt.Window
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
-                        XMonad.Util.Anneal
+                        -- XMonad.Util.Anneal
                         XMonad.Util.CustomKeys
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
