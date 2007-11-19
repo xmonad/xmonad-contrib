@@ -9,7 +9,7 @@
 -- Maintainer  :  Devin Mullins <me@twifkak.com>,
 --                David Roundy <droundy@darcs.net>
 -- Stability   :  experimental
--- Portability :  not portable, uses mtl, X11, posix
+-- Portability :  not portable, uses mtl, X11, posix, pattern guards
 --
 -- Provides an alternative main event loop that unifies event handlers into
 -- the concept of a message filter chain. This module is experimental.
@@ -32,7 +32,7 @@
 --  * ability to modify a message during transport?
 --  * xmonad sends an InitMessage once?
 
-module XMonad.Hooks.MessageHooks (xmonad) where
+module XMonad.Hooks.MessageHooks (xmonad, MessageHook) where
 
 import Data.Bits
 import qualified Data.Map as M
@@ -61,9 +61,13 @@ type MessageHook = SomeMessage -> X Bool
 -- The main entry point
 --
 xmonad :: (LayoutClass l Window, Read (l Window)) => [MessageHook] -> XConfig l -> IO ()
-xmonad messageHooks initxmc = do
+xmonad mhs initxmc = do
     -- First, wrap the layout in an existential, to keep things pretty:
     let xmc = initxmc { layoutHook = Layout $ layoutHook initxmc }
+
+    -- Add handle as last messageHook.
+    let mhs' = mhs ++ [builtinMessageHook]
+
     dpy   <- openDisplay ""
     let dflt = defaultScreen dpy
 
@@ -130,17 +134,21 @@ xmonad messageHooks initxmc = do
             mapM_ manage ws
 
             -- main loop, for all you HOF/recursion fans out there.
-            forever_ $ processMessage messageHooks . SomeMessage =<< io (nextEvent dpy e >> getEvent e)
+            forever_ $ processMessage mhs' . SomeMessage =<< io (nextEvent dpy e >> getEvent e)
 
     return ()
       where forever_ a = a >> forever_ a
 
 
 processMessage :: [MessageHook] -> SomeMessage -> X ()
-processMessage (mh : mhs) msg       = whenX (mh msg) $ processMessage mhs msg
-processMessage []         msg
-    | Just event <- fromMessage msg = handle event
-processMessage []         _         = return ()
+processMessage (mh : mhs) msg = whenX (mh msg) $ processMessage mhs msg
+processMessage []         _   = return ()
+
+-- MessageHook version of handle
+-- TODO: just modify handle to return True in place of broadcastMessage
+builtinMessageHook :: MessageHook
+builtinMessageHook msg | Just event <- fromMessage msg = handle event >> return False
+                       | otherwise                     = return True
 
 -- ---------------------------------------------------------------------
 -- | Event handler. Map X events onto calls into Operations.hs, which
