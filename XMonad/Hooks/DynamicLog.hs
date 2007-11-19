@@ -75,7 +75,7 @@ makeSimpleDzenConfig = do
 -- | 
 --
 -- Run xmonad with a dzen status bar set to some nice defaults. Output 
--- it taken from the dynamicLogWithPP hook.
+-- is taken from the dynamicLogWithPP hook.
 --
 -- > main = dzen xmonad
 --
