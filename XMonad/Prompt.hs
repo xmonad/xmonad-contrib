@@ -436,7 +436,7 @@ printPrompt drw = do
   let (gc,(c,(d,fs))) = (gcon &&& config &&& dpy &&& fontS) st
       (prt,(com,off)) = (show . xptype &&& command &&& offset) st
       str = prt ++ com
-      -- compose the string in 3 parts: till the cursor, the cursor and the rest
+      -- break the string in 3 parts: till the cursor, the cursor and the rest
       (f,p,ss) = if off >= length com
                  then (str, " ","") -- add a space: it will be our cursor ;-)
                  else let (a,b) = (splitAt off com)
