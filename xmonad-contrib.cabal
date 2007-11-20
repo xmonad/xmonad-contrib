@@ -88,6 +88,7 @@ library
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
+                        XMonad.Layout.PerWorkspace
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.Roledex
                         XMonad.Layout.Spiral
