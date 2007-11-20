@@ -28,22 +28,18 @@ module XMonad.Doc
 
     -- * Configuring xmonad
     -- $configuring
-    module XMonad.Doc.Configuring,
 
     -- * Extending xmonad with the xmonad-contrib library
     -- $extending
-    module XMonad.Doc.Extending,
 
     -- * Developing xmonad: an brief code commentary
     -- $developing
-    module XMonad.Doc.Developing
 
     ) where
 
-
-import XMonad.Doc.Configuring
-import XMonad.Doc.Extending
-import XMonad.Doc.Developing
+import XMonad.Doc.Configuring ()
+import XMonad.Doc.Extending ()
+import XMonad.Doc.Developing ()
 
 --------------------------------------------------------------------------------
 --
@@ -68,23 +64,24 @@ release. You can find the tarball here
 
 {- $configuring
 
-This module is dedicated at configuring xmonad. A brief tutorial will
-guide you through the basic configuration steps.
+"XMonad.Doc.Configuring" is dedicated at configuring xmonad. A brief
+tutorial will guide you through the basic configuration steps.
 
 -}
 
 {- $extending
 
-This module is dedicated at extending xmonad with the xmonad-contrib
-library. You will find an overview of the library and instruction on
-installing contributed extensions.
+"XMonad.Doc.Extending" is dedicated at extending xmonad with the
+xmonad-contrib library. You will find an overview of the library and
+instruction on installing contributed extensions.
 
 -}
 
 {- $developing
 
-This module consists of a brief description of the xmonad internals.
-It is mainly intended for contributors and basically provides a brief
-code commentary with link to the source code documentation.
+"XMonad.Doc.Developing" consists of a brief description of the xmonad
+internals.  It is mainly intended for contributors and basically
+provides a brief code commentary with link to the source code
+documentation.
 
 -}
