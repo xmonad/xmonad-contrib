@@ -1,4 +1,4 @@
-3rd party XMonad extensions and contributions.
+3rd party xmonad extensions and contributions.
 
 Build and install through Cabal as for other Haskell packages:
 
@@ -20,9 +20,9 @@ the Mosaic layout, one would import:
 ------------------------------------------------------------------------
 
 Code submitted to the contrib repo is licensed under the same license as
-XMonad itself, with copyright held by the authors.
+xmonad itself, with copyright held by the authors.
 
 ------------------------------------------------------------------------
 
-Documentation for the extensions and configuration system available in
-Documentatoin.hs (a haddock source file).
+Documentation for the extensions and configuration system is available in
+Documentation.hs (a haddock source file).
