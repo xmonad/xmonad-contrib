@@ -45,11 +45,6 @@ import Data.Maybe (fromMaybe)
 -- layout D instead of C.  You could do that as follows:
 --
 -- > layoutHook = A ||| B ||| onWorkspace "foo" D C
---
-
--- %import XMonad.Layout.PerWorkspace
--- %layout onWorkspace "foo" l1 l2 $  -- l1 used on workspace foo,
--- %layout                            -- l2 used on all others.
 
 -- | Specify one layout to use on a particular workspace, and another
 --   to use on all others.  The second layout can be another call to
@@ -63,7 +58,7 @@ onWorkspace wsId l1 l2 = PerWorkspace wsId Nothing l1 l2
 
 -- | Structure for representing a workspace-specific layout along with
 --   a layout for all other workspaces.  We store the tag of the workspace
---   to be matched, and the two layouts.  Since layouts are stored/tracked
+--   to be matched, and the two layouts.  Since layouts are stored\/tracked
 --   per workspace, once we figure out which workspace we are on, we can
 --   cache that information using a (Maybe Bool).  This is necessary
 --   to be able to correctly implement the 'description' method of
