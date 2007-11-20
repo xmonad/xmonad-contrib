@@ -6,7 +6,8 @@ description:
     Third party tiling algorithms, configurations and scripts to xmonad,
     a tiling window manager for X.
     .
-    "Documentation" on building, configuring and using xmonad extensions.
+    Documentation on building, configuring and using xmonad
+    extensions: "XMonad.Doc"
 category:           System
 license:            BSD3
 license-file:       LICENSE
@@ -36,7 +37,10 @@ library
 
     build-depends:      mtl, unix, X11==1.3.0.20071111, xmonad==0.4
     ghc-options:        -Wall -Werror
-    exposed-modules:    Documentation
+    exposed-modules:    XMonad.Doc
+                        XMonad.Doc.Configuring
+                        XMonad.Doc.Extending
+                        XMonad.Doc.Developing
                         XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
                         XMonad.Actions.CopyWindow

@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Documentation
+-- Module      :  XMonad.Doc.Extending
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --
@@ -8,30 +8,24 @@
 -- Stability   :  unstable
 -- Portability :  portable
 --
--- This is a module for documenting the xmonad-contrib library.
+-- This is a module for documenting the xmonad-contrib library and
+-- describing how to use it to extend xmonad capabilities.
+--
+-- While it should not require a deep knowledge of Haskell. this
+-- document is intended also for the more advanced users, which
+-- requires a reference to some features of Haskell. Still we hope the
+-- examples may be useful also for those users who do not Haskell and
+-- do not want to start learning it.
+--
+-- More configuration examples may be fond on the Haskell wiki at this
+-- address:
+--
+-- <http://haskell.org/haskellwiki/Xmonad/Config_archive>
 --
 -----------------------------------------------------------------------------
 
-module Documentation
+module XMonad.Doc.Extending
     (
-    -- * Overview
-    -- $overview
-
-    -- * Configuring xmonad
-    -- $configure
-
-    -- ** A simple example
-    -- $example
-
-    -- ** Checking whether your xmonad.hs is correct
-    -- $check
-
-    -- ** Loading your configuration
-    -- $load
-
-    -- ** Where are the defaults?
-    -- $where
-
     -- * The xmonad-contrib library
     -- $library
 
@@ -76,175 +70,7 @@ module Documentation
 
     -- ** The log hook and external status bars
     -- $logHook
-
-    -- * Writing new extensions
-    -- $writing
-
-    -- ** Libraries for writing window managers
-    -- $xmonad-libs
-
-    -- ** xmonad internals
-    -- $internals
-
-    -- *** The @main@ entry point
-    -- $main
-
-    -- *** The X monad and the internal state
-    -- $internalState
-
-    -- *** Event handling and messages
-    -- $events
-
-    -- *** The 'LayoutClass'
-    -- $layoutClass
-
-    -- ** Coding style
-    -- $style
-
-    -- ** Licensing policy
-    -- $license
     ) where
-
---------------------------------------------------------------------------------
---
---  Overview
---
---------------------------------------------------------------------------------
-
-{- $overview
-#Overview#
-
-xmonad is a tiling window manager for X. This library collects 
-third party tiling algorithms, hooks, configurations and scripts to
-xmonad. The source for this library is available via darcs get <http://code.haskell.org/XMonadContrib>
-
-Each stable release of xmonad comes with a stable release of the contrib
-library too, which should be used if you're using the stable release.
-You can find the tarball here (<http://www.xmonad.org/XMonadContrib-0.4.tar.gz>) (Oct 2007) 
--}
-
---------------------------------------------------------------------------------
---
---  Configuring Xmonad
---
---------------------------------------------------------------------------------
-
-{- $configure
-#Configuring_xmonad#
-xmonad can be configured by creating and editing the Haskell file:
-
->    ~/.xmonad/xmonad.hs
-
-If this file does not exist, xmonad will simply use default settings;
-if it does exist, xmonad will use whatever settings you specify.  Note
-that this file can contain arbitrary Haskell code, which means that
-you have quite a lot of flexibility in configuring xmonad.
-
-NOTE for users of previous versions (< 0.5) of xmonad: this is a major
-change in the way xmonad is configured.  Prior to version 0.5,
-configuring xmonad required editing an xmonad source file called
-Config.hs, recompiling xmonad, and then restarting.  From version 0.5
-onwards, however, all you have to do is edit xmonad.hs and restart
-with @mod-q@; xmonad does the recompiling itself.  The format of the
-configuration file has also changed; it is now simpler and much
-shorter, only requiring you to list those settings which are different
-from the defaults.
-
--}
-
-{- $example
-#A_simple_example#
-
-Here is a basic example, which starts with the default xmonad
-configuration and overrides the border width, default terminal, and
-some colours:
-
->    --
->    -- An example, simple ~/.xmonad/xmonad.hs file.
->    -- It overrides a few basic settings, reusing all the other defaults.
->    --
->
->    import XMonad
->
->    main = xmonad $ defaultConfig
->        { borderWidth        = 2
->        , terminal           = "urxvt"
->        , normalBorderColor  = "#cccccc"
->        , focusedBorderColor = "#cd8b00" }
-
-This will run \'xmonad\', the window manager, with your settings
-passed as arguments.
-
-Overriding default settings like this (using \"record update
-syntax\"), will yield the shortest config file, as you only have to
-describe values that differ from the defaults.
-
-An alternative is to inline the entire default config file from
-xmonad, and edit values you wish to change. This is requires more
-work, but some users may find this easier. You can find the defaults
-in the file:
-
->    XMonad/Config.hs
-
-However, note that you should not edit Config.hs itself.
-
--}
-
-{- $check
-#Checking_whether_your_xmonad.hs_is_correct#
-
-After changing your configuration, it is a good idea to check that it
-is syntactically and type correct.  You can do this easily by loading
-your configuration file in the Haskell interpreter:
-
->    $ ghci ~/.xmonad/xmonad.hs
->    GHCi, version 6.8.1: http://www.haskell.org/ghc/  :? for help
->    Loading package base ... linking ... done.
->    Ok, modules loaded: Main.
->
->    Prelude Main> :t main
->    main :: IO ()
-
-Ok, looks good.
-
--}
-
-{- $load
-#Loading_your_configuration#
-
-To get xmonad to use your new settings, type @mod-q@. xmonad will
-attempt to compile this file, and run it.  If everything goes well,
-xmonad will seamlessly restart itself with the new settings, keeping
-all your windows, layouts, etc. intact.  (If you change anything
-related to your layouts, you may need to hit @mod-shift-space@ after
-restarting to see the changes take effect.)  If something goes wrong,
-the previous (default) settings will be used.  Note this requires that
-GHC and xmonad are in your @$PATH@. If GHC isn't in your path, you can
-still compile @xmonad.hs@ yourself:
-
->    $ cd ~/.xmonad
->    $ /path/to/ghc --make xmonad.hs
->    $ ls
->    xmonad    xmonad.hi xmonad.hs xmonad.o
-
-When you hit @mod-q@, this newly compiled xmonad will be used.
-
--}
-
-{- $where
-#Where_are_the_defaults?#
-
-The default configuration values are defined in the source file:
-
->    XMonad/Config.hs
-
-the 'XMonad.Core.XConfig' data structure itself is defined in:
-
->     XMonad/Core.hs
-
-See "XMonad.Core".
-
--}
 
 --------------------------------------------------------------------------------
 --
@@ -278,7 +104,7 @@ various functions that are usually intended to be bound to key
 combinations or mouse actions, in order to provide functionality
 beyond the standard keybindings provided by xmonad.
 
-See "Documentation#Editing_key_bindings" for instructions on how to
+See "XMonad.Doc.Extending#Editing_key_bindings" for instructions on how to
 edit your key bindings.
 
 * "XMonad.Actions.Commands": running internal xmonad actions
@@ -361,7 +187,7 @@ most important hooks are:
   accordingly. For instance, we can configure xmonad to put windows
   belonging to a given application in the float layer, not to manage
   dock applications, or open them in a given workspace. See
-  "Documentation#Editing_the_manage_hook" for more information on
+  "XMonad.Doc.Extending#Editing_the_manage_hook" for more information on
   customizing the 'XMonad.Core.manageHook'.
 
 * 'XMonad.Core.logHook': this hook is called when the stack of windows
@@ -370,7 +196,7 @@ most important hooks are:
   "XMonad.Hooks.DynamicLog" will produce a string (whose format can be
   configured) to be printed to the standard output. This can be used
   to display some information about the xmonad state in a Status Bar.
-  See "Documentation#The_log_hook_and_external_status_bars" for more
+  See "XMonad.Doc.Extending#The_log_hook_and_external_status_bars" for more
   information.
 
 -}
@@ -390,7 +216,8 @@ interface for writing layout modifiers is implemented in
 "XMonad.Layout.LayoutModifier".
 
 For more information on using those modules for customizing your
-'XMonad.Core.layoutHook' see "Documentation#Editing_the_layout_hook".
+'XMonad.Core.layoutHook' see "XMonad.Doc.Extending#Editing_the_layout_hook".
+
 
 -}
 
@@ -421,7 +248,7 @@ These are the available prompts:
 * "XMonad.Prompt.XMonad"
 
 Usually a prompt is called by some key binding. See
-"Documentation#Editing_key_bindings" on how to configure xmonad to use
+"XMonad.Doc.Extending#Editing_key_bindings" on how to configure xmonad to use
 some prompts. The give examples include adding some prompts.
 
 -}
@@ -438,7 +265,7 @@ external utilities.
 A non complete list with a brief description:
 
 * "XMonad.Util.CustomKeys" or "XMonad.Util.EZConfig" can be used to
-  configure key bindings (see "Documentation#Editing_key_bindings");
+  configure key bindings (see "XMonad.Doc.Extending#Editing_key_bindings");
 
 * "XMonad.Util.Dzen" "XMonad.Util.Dmenu" provide useful functions for
   running dzen as a xmonad status bar and dmenu as a program launcher;
@@ -650,20 +477,22 @@ workspace's layout, xmonad will use the 'XMonad.Core.layoutHook' for
 reordering the visible windows on the visible workspace(s).
 
 Since different layouts may be attached to different workspaces, and
-you can change them, xmonad needs to know which one to pick up, so,
-the layoutHook may be thought as a stack, or even better a combination
-of layouts. This also means an order, i.e. a list.
+you can change them, xmonad needs to know which one to pick up. In
+this sense the layoutHook may be thought as the combination, or the
+list, of layouts that xmonad will use for ordering windows on the
+screen(s)
 
 The problem is that the layout subsystem is implemented with an
 advanced feature of the Haskell programming language: type classes.
 This allows us to very easily write new layouts, combine or modify
 existing layouts, have some of them with a state, etc. See
-"Documentation#The_LayoutClass" for more information.
+"XMonad.Doc.Extending#The_LayoutClass" for more information.
 
 The price we have to pay to get all that for free - which is something
 that makes xmonad so powerful with such a ridiculously low number of
 lines - is that we cannot simply have a list of layouts as we used to
-have before the 0.5 release.
+have before the 0.5 release: a list requires every member to belong to
+the same type!
 
 Instead the combination of layouts to be used by xmonad is created
 with a specific layout combinator: 'XMonad.Layouts.|||'
@@ -701,7 +530,7 @@ may write:
 
 >    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
 
-The @~\/.xmonad\/xmonad.hs@ will now look like this:
+Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 
 >    import XMonad.Layouts
 >
@@ -727,99 +556,5 @@ TODO: Manage Hook
 #The_log_hook_and_external_status_bars#
 
 TODO: Log Hook
-
--}
-
---------------------------------------------------------------------------------
---
---  Writing Extensions
---
---------------------------------------------------------------------------------
-
-{- $writing
-
-Writing Other Extensions
-
--}
-
-{- $xmonad-libs
-
-xmonad and xmonad-contrib are just libraries for letting users write
-their own window managers. This is what makes xmonad such a powerful
-and still simple application.
-
-Give some examples:
-arossato_vm
-droundy_wm
-
-In the previous sections we show how simple it can be to write your
-own window manager by using the core code (xmonad) and some of the
-contributed code (xmonad-contrib).
-
-In this section we will give you a brief overview of the programming
-techniques that have been used in order to make writing new extensions
-very simple.
-
--}
-
-{- $internals
-
-TODO
-
--}
-
-{- $main
-#The_main_entry_point#
-
-TODO
-
--}
-
-{- $internalState
-
-TODO
-
--}
-
-{- $events
-
-TODO
-
--}
-
-{- $layoutClass
-#The_LayoutClass#
-TODO
-
--}
-
-{- $style
-
-These are the coding guidelines for contributing to xmonad and the
-xmonad contributed extensions.
-
-* Comment every top level function (particularly exported funtions), and
-  provide a type signature.
-
-* Use Haddock syntax in the comments.
-
-* Follow the coding style of the other modules.
-
-* Code should be compilable with -Wall -Werror. There should be no warnings.
-
-* Partial functions should be avoided: the window manager should not
-  crash, so do not call 'error' or 'undefined'
-
-* Tabs are /illegal/. Use 4 spaces for indenting.
-
-* Any pure function added to the core should have QuickCheck properties
-  precisely defining its behaviour.
-
--}
-
-{- $license
-
-New modules should identify the author, and be submitted under the
-same license as xmonad (BSD3 license or freer).
 
 -}
