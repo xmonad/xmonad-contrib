@@ -35,7 +35,7 @@ import qualified XMonad.StackSet as W
 import Data.List ((\\))
 
 -- $usage
--- You can use this module with the following in your ~/.xmonad/xmonad.hs file:
+-- You can use this module with the following in your ~\/.xmonad\/xmonad.hs file:
 --
 -- > import XMonad.Layout.NoBorders
 --
