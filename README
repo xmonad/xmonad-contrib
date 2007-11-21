@@ -24,5 +24,5 @@ xmonad itself, with copyright held by the authors.
 
 ------------------------------------------------------------------------
 
-Documentation for the extensions and configuration system is available in
-Documentation.hs (a haddock source file).
+Documentation for the extensions and configuration system is available
+in Haddock form in the XMonad.Doc module and submodules.
