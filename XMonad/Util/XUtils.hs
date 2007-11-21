@@ -35,7 +35,8 @@ import XMonad
 import XMonad.Util.Font
 
 -- $usage
--- See Tabbed or DragPane for usage examples
+-- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" for usage
+-- examples
 
 -- | Compute the weighted average the colors of two given Pixel values.
 averagePixels :: Pixel -> Pixel -> Double -> X Pixel
