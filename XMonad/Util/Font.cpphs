@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Font
--- Copyright   :  (c) 2007 Andrea Rossato
+-- Copyright   :  (c) 2007 Andrea Rossato and Spencer Janssen
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
 -- Maintainer  :  andrea.rossato@unibz.it
@@ -48,7 +48,7 @@ data XMonadFont = Core FontStruct
 #endif
 
 -- $usage
--- See Tabbed or Prompt for usage examples
+-- See "Xmonad.Layout.Tabbed" or "XMonad.Prompt" for usage examples
 
 -- | Get the Pixel value for a named color: if an invalid name is
 -- given the black pixel will be returned.
