@@ -9,16 +9,12 @@
 -- Portability :  portable
 --
 -- This is the main documentation module for the xmonad-contrib
--- library.
+-- library. It provides a brief overview of xmonad and a link to
+-- documentation for configuring and extending xmonad.
 --
--- The module provides a brief overview of xmonad and a link to the
--- documentation for configuring and extending your xmonad window
--- manager.
---
--- A link to the module describing xmonad internals is also provided.
--- This module is mainly dedicated to those wanting to contribute code
--- for this library and for the curious ones, who want to know what's
--- going on behind the scene.
+-- A link to documentation describing xmonad internals is also provided.
+-- This module is mainly intended for those wanting to contribute code,
+-- or for those who are curious to know what's going on behind the scenes.
 -----------------------------------------------------------------------------
 
 module XMonad.Doc
@@ -50,38 +46,41 @@ import XMonad.Doc.Developing ()
 {- $overview
 #Overview#
 
-xmonad is a tiling window manager for X. This library collects third
-party tiling algorithms, hooks, configurations and scripts to xmonad.
-The source for this library is available via darcs get
-<http://code.haskell.org/XMonadContrib>
+xmonad is a tiling window manager for X. The xmonad-contrib library
+collects third party tiling algorithms, hooks, configurations,
+scripts, and other extensions to xmonad.  The source for this library
+is available from <http://code.haskell.org/XMonadContrib> via darcs:
 
-Each stable release of xmonad comes with a stable release of the
-contrib library too, which should be used if you're using the stable
-release. You can find the tarball here
-(<http://www.xmonad.org/XMonadContrib-0.4.tar.gz>) (Oct 2007)
+> darcs get http://code.haskell.org/XMonadContrib
+
+Each stable release of xmonad is accompanied by a stable release of
+the contrib library, which you should use if (and only if) you're
+using a stable release of xmonad.  You can find the most recent
+(Oct. 2007) tarball here:
+<http://www.xmonad.org/XMonadContrib-0.4.tar.gz>.
 
 -}
 
 {- $configuring
 
-"XMonad.Doc.Configuring" is dedicated at configuring xmonad. A brief
-tutorial will guide you through the basic configuration steps.
+"XMonad.Doc.Configuring" documents the process of configuring
+xmonad. A brief tutorial will guide you through the basic
+configuration steps.
 
 -}
 
 {- $extending
 
-"XMonad.Doc.Extending" is dedicated at extending xmonad with the
-xmonad-contrib library. You will find an overview of the library and
-instruction on installing contributed extensions.
+"XMonad.Doc.Extending" is dedicated to the xmonad-contrib library
+itself. You will find an overview of extensions available in the
+library and instructions for using them.
 
 -}
 
 {- $developing
 
 "XMonad.Doc.Developing" consists of a brief description of the xmonad
-internals.  It is mainly intended for contributors and basically
-provides a brief code commentary with link to the source code
-documentation.
+internals.  It is mainly intended for contributors and provides a
+brief code commentary with links to the source documentation.
 
 -}
