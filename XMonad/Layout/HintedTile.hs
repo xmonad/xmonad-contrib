@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.HintedTile
@@ -5,10 +7,11 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>
+--                Andrea Rossato <andrea.rossato@unibz.it>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A gapless tiled layout that attempts to obey window size hints, 
+-- A gapless tiled layout that attempts to obey window size hints,
 -- rather than simply ignoring them.
 --
 -----------------------------------------------------------------------------
@@ -16,72 +19,86 @@
 module XMonad.Layout.HintedTile (
                                  -- * Usage
                                  -- $usage
-                                 tall, wide) where
+                                 tall, wide ) where
 
 import XMonad
-import XMonad.Operations (Resize(..), IncMasterN(..), applySizeHints)
+import XMonad.Layouts    ( Resize(..), IncMasterN(..) )
+import XMonad.Operations ( applySizeHints             )
 import qualified XMonad.StackSet as W
-import {-# SOURCE #-} Config (borderWidth)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
-import Control.Monad
+import Control.Monad.Reader
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import qualified XMonad.Layout.HintedTile
+-- > import XMonad.Layout.HintedTile
 --
--- > layouts = [ XMonad.Layout.HintedTile.tall nmaster delta ratio, ... ]
-
--- %import qualified XMonad.Layout.HintedTile
+-- The edit your @layoutHook@ by adding the HintedTile layout:
 --
--- %layout , XMonad.Layout.HintedTile.tall nmaster delta ratio
+-- > mylayout = tall 1 0.1 0.5 ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = mylayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
--- this sucks
-addBorder, substractBorder :: (Dimension, Dimension) -> (Dimension, Dimension)
-addBorder (w, h) = (w + 2 * borderWidth, h + 2 * borderWidth)
-substractBorder (w, h) = (w - 2 * borderWidth, h - 2 * borderWidth)
+data HintedTile a =
+    HT { nmaster     :: Int
+       , delta, frac :: Rational
+       , orientation :: Orientation
+       } deriving ( Show, Read )
 
+data Orientation = Wide | Tall deriving ( Show, Read )
 
-tall, wide :: Int -> Rational -> Rational -> Layout Window
-wide = tile splitVertically divideHorizontally
-tall = tile splitHorizontally divideVertically
+tall, wide :: Int -> Rational -> Rational -> HintedTile Window
+wide n d f = HT {nmaster = n, delta = d, frac = f, orientation = Tall }
+tall n d f = HT {nmaster = n, delta = d, frac = f, orientation = Wide }
 
-tile split divide nmaster delta frac =
-    Layout { doLayout     = \r w' -> let w = W.integrate w'
-                                     in do { hints <- sequence (map getHints w)
-                                           ; return (zip w (tiler frac r `uncurry` splitAt nmaster hints)
-                                                    , Nothing) }
-           , modifyLayout = \m -> return $ fmap resize     (fromMessage m) `mplus`
-                                           fmap incmastern (fromMessage m) }
+instance LayoutClass HintedTile Window where
+    doLayout c rect w' = let w = W.integrate w'
+                         in do { hints <- sequence (map getHints w)
+                               ; b <- asks (borderWidth . config)
+                               ; return (zip w (tiler b (frac c) rect `uncurry` splitAt (nmaster c) hints)
+                                        , Nothing) }
+        where
+          (split, divide) =
+              case orientation c of
+                Wide -> (splitHorizontally, divideHorizontally)
+                Tall -> (splitVertically,   divideVertically  )
+          tiler b f r masters slaves =
+              if null masters || null slaves
+              then divide b (masters ++ slaves) r
+              else split f r (divide b masters) (divide b slaves)
 
-    where resize Shrink = tile split divide nmaster delta (frac-delta)
-          resize Expand = tile split divide nmaster delta (frac+delta)
-          incmastern (IncMasterN d) = tile split divide (max 0 (nmaster+d)) delta frac
+    pureMessage c m = fmap resize (fromMessage m) `mplus`
+                      fmap incmastern (fromMessage m)
+        where
+          resize Shrink = c { frac = max 0 $ frac c - delta c }
+          resize Expand = c { frac = min 1 $ frac c + delta c }
+          incmastern (IncMasterN d) = c { nmaster = max 0 $ nmaster c + d }
 
-          tiler f r masters slaves = if null masters || null slaves
-              then divide (masters ++ slaves) r
-              else split f r (divide masters) (divide slaves)
+    description l = "HintedTile " ++ show (orientation l)
+
+addBorder, substractBorder :: Dimension -> (Dimension, Dimension) -> (Dimension, Dimension)
+addBorder       b (w, h) = (w + 2 * b, h + 2 * b)
+substractBorder b (w, h) = (w - 2 * b, h - 2 * b)
 
 getHints :: Window -> X SizeHints
 getHints w = withDisplay $ \d -> io $ getWMNormalHints d w
 
---
 -- Divide the screen vertically (horizontally) into n subrectangles
---
-divideVertically, divideHorizontally :: [SizeHints] -> Rectangle -> [Rectangle]
-divideVertically [] _ = [] -- there's a fold here, struggling to get out
-divideVertically (hints:rest) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
-      (divideVertically rest (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
-    where (w, h) = addBorder $ applySizeHints hints $ substractBorder
+divideVertically, divideHorizontally :: Dimension -> [SizeHints] -> Rectangle -> [Rectangle]
+divideVertically _ [] _ = [] -- there's a fold here, struggling to get out
+divideVertically b (hints:rest) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
+      (divideVertically b rest (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
+    where (w, h) = addBorder b $ applySizeHints hints $ substractBorder b
                    (sw, sh `div` fromIntegral (1 + (length rest)))
 
-divideHorizontally [] _ = []
-divideHorizontally (hints:rest) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
-      (divideHorizontally rest (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
-    where (w, h) = addBorder $ applySizeHints hints $ substractBorder
+divideHorizontally _ [] _ = []
+divideHorizontally b (hints:rest) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
+      (divideHorizontally b rest (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
+    where (w, h) = addBorder b $ applySizeHints hints $ substractBorder b
                    (sw `div` fromIntegral (1 + (length rest)), sh)
-
 
 -- Split the screen into two rectangles, using a rational to specify the ratio
 splitHorizontally, splitVertically :: Rational -> Rectangle -> (Rectangle -> [Rectangle]) -> (Rectangle -> [Rectangle]) -> [Rectangle]

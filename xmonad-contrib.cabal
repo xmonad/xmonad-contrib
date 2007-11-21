@@ -80,7 +80,7 @@ library
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.Grid
-                        -- XMonad.Layout.HintedTile
+                        XMonad.Layout.HintedTile
                         XMonad.Layout.LayoutCombinators
                         XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
