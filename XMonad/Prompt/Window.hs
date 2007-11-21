@@ -17,7 +17,7 @@
 module XMonad.Prompt.Window
     (
     -- * Usage
-    -- $usage 
+    -- $usage
     windowPromptGoto,
     windowPromptBring
     ) where
@@ -36,7 +36,7 @@ import XMonad.Actions.WindowBringer
 -- That is to say, it pops up a prompt with window names, in case you forgot
 -- where you left your XChat.
 --
--- Place in your Config.hs:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Window
@@ -45,15 +45,12 @@ import XMonad.Actions.WindowBringer
 --
 -- > , ((modMask x .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
 -- > , ((modMask x .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
-
--- %import XMonad.Prompt
--- %import XMonad.Prompt.Window
--- %keybind , ((modMask x .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- %keybind , ((modMask x .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
-
+--
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data WindowPrompt = Goto | Bring
-instance XPrompt WindowPrompt where 
+instance XPrompt WindowPrompt where
     showXPrompt Goto  = "Go to window:  "
     showXPrompt Bring = "Bring me here:  "
 
@@ -66,14 +63,14 @@ windowPromptBring c = doPrompt Bring c
 doPrompt :: WindowPrompt -> XPConfig -> X ()
 doPrompt t c = do
   a <- case t of
-         Goto  -> return . gotoAction  =<< windowMapWith (W.tag . fst)                     
+         Goto  -> return . gotoAction  =<< windowMapWith (W.tag . fst)
          Bring -> return . bringAction =<< windowMapWith snd
   wm <- windowMapWith id
   mkXPrompt t c (compList wm) a
 
     where
 
-      winAction a m    = flip whenJust (windows . a) . flip M.lookup m . unescape   
+      winAction a m    = flip whenJust (windows . a) . flip M.lookup m . unescape
       gotoAction       = winAction W.greedyView
       bringAction      = winAction bringWindow
       bringWindow w ws = W.shiftWin (W.tag . W.workspace . W.current $ ws) w ws

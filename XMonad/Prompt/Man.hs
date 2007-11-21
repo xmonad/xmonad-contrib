@@ -40,7 +40,7 @@ import Data.List
 import Data.Maybe
 
 -- $usage
--- 1. In Config.hs add:
+-- 1. In your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Man
@@ -48,10 +48,9 @@ import Data.Maybe
 -- 2. In your keybindings add something like:
 --
 -- >     , ((modMask x, xK_F1), manPrompt defaultXPConfig)
-
--- %import XMonad.Prompt
--- %import XMonad.Prompt.Man
--- %keybind , ((modMask x, xK_F1), manPrompt defaultXPConfig)
+--
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Man = Man
 

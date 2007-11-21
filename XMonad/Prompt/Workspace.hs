@@ -3,7 +3,7 @@
 -- Module      :  XMonad.Prompt.Workspace
 -- Copyright   :  (C) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD3
--- 
+--
 -- Maintainer  :  droundy@darcs.net
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -25,12 +25,15 @@ import XMonad.Prompt
 import XMonad.StackSet ( workspaces, tag )
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
--- 
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Workspace
 --
 -- >   , ((modMask x .|. shiftMask, xK_m     ), workspacePrompt defaultXPConfig (windows . W.shift))
+--
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Wor = Wor String
 

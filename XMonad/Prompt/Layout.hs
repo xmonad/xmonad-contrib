@@ -3,7 +3,7 @@
 -- Module      :  XMonad.Prompt.Layout
 -- Copyright   :  (C) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD3
--- 
+--
 -- Maintainer  :  droundy@darcs.net
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -27,13 +27,16 @@ import XMonad.StackSet ( workspaces, layout )
 import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Layout
 --
 -- >   , ((modMask x .|. shiftMask, xK_m     ), layoutPrompt defaultXPConfig)
-
+--
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
+--
 -- WARNING: This prompt won't display all possible layouts, because the
 -- code to enable this was rejected from xmonad core.  It only displays
 -- layouts that are actually in use.  Also, you can only select layouts if

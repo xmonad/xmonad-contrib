@@ -30,7 +30,7 @@ import Data.List
 import Data.Maybe
 
 -- $usage
--- 1. In Config.hs add:
+-- 1. In your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Ssh
@@ -39,10 +39,8 @@ import Data.Maybe
 --
 -- >   , ((modMask x .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 --
-
--- %import XMonad.Prompt
--- %import XMonad.Prompt.Ssh
--- %keybind , ((modMask x .|. controlMask, xK_s), sshPrompt defaultXPConfig)
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Ssh = Ssh
 

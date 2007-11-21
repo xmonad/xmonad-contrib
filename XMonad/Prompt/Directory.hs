@@ -3,7 +3,7 @@
 -- Module      :  XMonad.Prompt.Directory
 -- Copyright   :  (C) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD3
--- 
+--
 -- Maintainer  :  droundy@darcs.net
 -- Stability   :  unstable
 -- Portability :  unportable

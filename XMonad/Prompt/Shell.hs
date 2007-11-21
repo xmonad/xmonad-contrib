@@ -32,8 +32,7 @@ import XMonad hiding (config)
 import XMonad.Prompt
 
 -- $usage
---
--- 1. In Config.hs add:
+-- 1. In your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Shell
@@ -42,10 +41,8 @@ import XMonad.Prompt
 --
 -- >   , ((modMask x .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 --
-
--- %import XMonad.Prompt
--- %import XMonad.Prompt.Shell
--- %keybind , ((modMask x .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Shell = Shell
 
