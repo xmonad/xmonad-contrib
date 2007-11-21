@@ -1,5 +1,4 @@
 {-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.HintedTile
@@ -34,7 +33,7 @@ import Control.Monad.Reader
 --
 -- > import XMonad.Layout.HintedTile
 --
--- The edit your @layoutHook@ by adding the HintedTile layout:
+-- Then edit your @layoutHook@ by adding the HintedTile layout:
 --
 -- > mylayout = tall 1 0.1 0.5 ||| Full ||| etc..
 -- > main = xmonad dafaultConfig { layoutHook = mylayouts }
