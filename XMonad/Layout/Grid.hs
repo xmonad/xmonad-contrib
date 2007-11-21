@@ -25,16 +25,18 @@ import XMonad.StackSet
 import Graphics.X11.Xlib.Types
 
 -- $usage
--- Put the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Grid
--- > ...
--- > layouts = [ ...
--- >                  , Layout Grid
--- >                  ]
-
--- %import XMonad.Layout.Grid
--- %layout , Layout Grid
+--
+-- Then edit your @layoutHook@ by adding the Grid layout:
+--
+-- > myLayouts = Grid ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Grid a = Grid deriving (Read, Show)
 
