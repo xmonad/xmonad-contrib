@@ -26,12 +26,18 @@ import XMonad
 import XMonad.StackSet (integrate, peek)
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Circle
--- > layouts = [ Layout Circle ]
-
--- %import XMonad.Layout.Circle
+--
+-- Then edit your @layoutHook@ by adding the Circle layout:
+--
+-- > myLayouts = Circle ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Circle a = Circle deriving ( Read, Show )
 
