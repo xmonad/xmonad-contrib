@@ -33,7 +33,7 @@ import Graphics.X11.Xlib.Extras
 import XMonad
 
 -- $usage
---   See "XMonad.Layout.Mosaic" for an example of its use.
+-- See "XMonad.Layout.Tabbed" for an example of its use.
 
 
 data NamedWindow = NW !String !Window
