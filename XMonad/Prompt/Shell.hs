@@ -64,8 +64,8 @@ shellPrompt c = do
 -- is the program to be run with the interactive input.
 -- You would use these like this:
 --
--- >     , ((modMask,               xK_b     ), safePrompt "firefox" greenXPConfig)
--- >     , ((modMask .|. shiftMask, xK_c     ), prompt ("xterm" ++ " -e") greenXPConfig)
+-- >     , ((modMask,               xK_b), safePrompt "firefox" greenXPConfig)
+-- >     , ((modMask .|. shiftMask, xK_c), prompt ("xterm" ++ " -e") greenXPConfig)
 --
 -- Note that you want to use safePrompt for Firefox input, as Firefox
 -- wants URLs, and unsafePrompt for the XTerm example because this allows
