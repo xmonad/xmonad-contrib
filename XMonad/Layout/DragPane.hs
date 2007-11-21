@@ -41,14 +41,18 @@ import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 
 -- $usage
---
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.DragPane
 --
---  and add, to the list of layouts:
+-- Then edit your @layoutHook@ by adding the DragPane layout:
 --
--- > Layout $ dragPane Horizontal 0.1 0.5
+-- > myLayouts = dragPane Horizontal 0.1 0.5 ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 halfHandleWidth :: Integral a => a
 halfHandleWidth = 1
