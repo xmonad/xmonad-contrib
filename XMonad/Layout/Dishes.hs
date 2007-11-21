@@ -29,16 +29,18 @@ import Control.Monad (ap)
 import Graphics.X11.Xlib
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Dishes
 --
--- and add the following line to your 'layouts'
+-- Then edit your @layoutHook@ by adding the Dishes layout:
 --
--- > , Layout $ Dishes 2 (1%6)
-
--- %import XMonad.Layout.Dishes
--- %layout , Layout $ Dishes 2 (1%6)
+-- > myLayouts = Dishes 2 (1/6) ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Dishes a = Dishes Int Rational deriving (Show, Read)
 instance LayoutClass Dishes a where
