@@ -8,11 +8,11 @@
 -- Stability   :  unstable
 -- Portability :  portable
 --
--- This is a brief tutorial that will teach you how to quickly write a
--- basic and simple xmonad configuration and cutomization.
+-- This is a brief tutorial that will teach you how to create a
+-- basic xmonad configuration.
 --
 -- For more detailed instructions on extending xmonad with the
--- xmonad-contrib library see "XMonad.Doc.Extending"
+-- xmonad-contrib library, see "XMonad.Doc.Extending".
 --
 -----------------------------------------------------------------------------
 
@@ -30,8 +30,6 @@ module XMonad.Doc.Configuring
     -- * Loading your configuration
     -- $load
 
-    -- * Where are the defaults?
-    -- $where
     ) where
 
 --------------------------------------------------------------------------------
@@ -93,11 +91,14 @@ describe values that differ from the defaults.
 An alternative is to inline the entire default config file from
 xmonad, and edit values you wish to change. This is requires more
 work, but some users may find this easier. You can find the defaults
-in the file:
+in the "XMonad.Config" module of the core xmonad library.
 
->    XMonad/Config.hs
+However, note that (unlike previous versions of xmonad) you should not
+edit Config.hs itself.
 
-However, note that you should not edit Config.hs itself.
+To see what fields can be customized beyond the ones in the example
+above, the definition of the 'XMonad.Core.XConfig' data structure can
+be found in "XMonad.Core".
 
 -}
 
@@ -117,6 +118,11 @@ your configuration file in the Haskell interpreter:
 >    main :: IO ()
 
 Ok, looks good.
+
+Note, however, that if you skip this step and try restarting xmonad
+with errors in your xmonad.hs, it's not the end of the world; xmonad
+will simply display a window showing the errors and continue with the
+previous configuration settings.
 
 -}
 
@@ -139,21 +145,6 @@ still compile @xmonad.hs@ yourself:
 >    xmonad    xmonad.hi xmonad.hs xmonad.o
 
 When you hit @mod-q@, this newly compiled xmonad will be used.
-
--}
-
-{- $where
-#Where_are_the_defaults?#
-
-The default configuration values are defined in the source file:
-
->    XMonad/Config.hs
-
-the 'XMonad.Core.XConfig' data structure itself is defined in:
-
->     XMonad/Core.hs
-
-See "XMonad.Core".
 
 -}
 
