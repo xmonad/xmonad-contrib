@@ -40,16 +40,17 @@ import XMonad.Util.XUtils
 import XMonad.Util.Font
 
 -- $usage
--- You can use this module with the following in your configuration file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Tabbed
 --
 -- Then edit your @layoutHook@ by adding the Tabbed layout:
 --
--- > mylayout = tabbed shrinkText defaultTConf ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = mylayouts }
+-- > myLayouts = tabbed shrinkText defaultTConf ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
+--
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
 -- You can also edit the default configuration options.
