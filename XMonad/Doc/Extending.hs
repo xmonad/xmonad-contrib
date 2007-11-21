@@ -8,17 +8,23 @@
 -- Stability   :  unstable
 -- Portability :  portable
 --
--- This is a module for documenting the xmonad-contrib library and
--- describing how to use it to extend xmonad capabilities.
+-- This module documents the xmonad-contrib library and
+-- how to use it to extend the capabilities of xmonad.
 --
--- While it should not require a deep knowledge of Haskell. this
--- document is intended also for the more advanced users, which
--- requires a reference to some features of Haskell. Still we hope the
--- examples may be useful also for those users who do not Haskell and
--- do not want to start learning it.
+-- Reading this document should not require a deep knowledge of
+-- Haskell; the examples are intended to be useful and understandable
+-- for those users who do not know Haskell and don't want to have to
+-- learn it just to configure xmonad.  You should be able to get by
+-- just fine by ignoring anything you don't understand and using the
+-- provided examples as templates.  However, relevant Haskell features
+-- are discussed when appropriate, so this document will hopefully be
+-- useful for more advanced Haskell users as well.
 --
--- More configuration examples may be fond on the Haskell wiki at this
--- address:
+-- Those wishing to be totally hardcore and develop their own xmonad
+-- extensions (it's easier than it sounds, we promise!) should read
+-- the documentation in "XMonad.Doc.Developing".
+--
+-- More configuration examples may be found on the Haskell wiki:
 --
 -- <http://haskell.org/haskellwiki/Xmonad/Config_archive>
 --
@@ -88,11 +94,11 @@ manipulate windows and workspaces in various ways, alternate
 navigation modes, and much more.  There are also \"meta-modules\"
 which make it easier to write new modules and extensions.
 
-This is a short overview of the xmonad-contrib modules.  For more
-information about any particular module, just click on its name to
-view its Haddock documentation; each module should come with extensive
-documentation.  If you find a module that could be better documented,
-or has incorrect documentation, please report it as a bug
+This is a concise yet complete overview of the xmonad-contrib modules.
+For more information about any particular module, just click on its
+name to view its Haddock documentation; each module should come with
+extensive documentation.  If you find a module that could be better
+documented, or has incorrect documentation, please report it as a bug
 (<http://code.google.com/p/xmonad/issues/list>)!
 
 -}
@@ -172,44 +178,71 @@ developers.  You can look at them for examples while creating your own
 configuration; you can also simply import them and use them as your
 own configuration, possibly with some modifications.
 
+* "XMonad.Config.Arossato"
+
+* "XMonad.Config.Dons"
+
+* "XMonad.Config.Droundy"
+
+* "XMonad.Config.Sjanssen"
+
 -}
 
 {- $hooks
 
-In the @XMonad.Hooks@ namespace you can find modules exporting hooks.
-
-Hooks are actions that xmonad performs when some events occur. The two
-most important hooks are:
+In the @XMonad.Hooks@ namespace you can find modules exporting
+hooks. Hooks are actions that xmonad performs when certain events
+occur. The two most important hooks are:
 
 * 'XMonad.Core.manageHook': this hook is called when a new window
   xmonad must take care of is created. This is a very powerful hook,
-  since it let us look at the new window's properties and act
+  since it lets us examine the new window's properties and act
   accordingly. For instance, we can configure xmonad to put windows
   belonging to a given application in the float layer, not to manage
   dock applications, or open them in a given workspace. See
   "XMonad.Doc.Extending#Editing_the_manage_hook" for more information on
-  customizing the 'XMonad.Core.manageHook'.
+  customizing 'XMonad.Core.manageHook'.
 
 * 'XMonad.Core.logHook': this hook is called when the stack of windows
   managed by xmonad has been changed, by calling the
   'XMonad.Operations.windows' function. For instance
   "XMonad.Hooks.DynamicLog" will produce a string (whose format can be
   configured) to be printed to the standard output. This can be used
-  to display some information about the xmonad state in a Status Bar.
+  to display some information about the xmonad state in a status bar.
   See "XMonad.Doc.Extending#The_log_hook_and_external_status_bars" for more
   information.
+
+Here is a list of the modules found in @XMonad.Hooks@:
+
+* "XMonad.Hooks.DynamicLog": for use with 'XMonad.Core.logHook'; send
+  information about xmonad's state to standard output, suitable for
+  putting in a status bar of some sort. See
+  "XMonad.Doc.Extending#The_log_hook_and_external_status_bars".
+
+* "XMonad.Hooks.EwmhDesktops": support for pagers in panel applications.
+
+* "XMonad.Hooks.ManageDocks": handle DOCK and STRUT windows appropriately.
+
+* "XMonad.Hooks.SetWMName": set the WM name.  Useful when e.g. running
+  Java GUI programs.
+
+* "XMonad.Hooks.UrgencyHook": configure an action to occur when a window
+  sets the urgent flag.
+
+* "XMonad.Hooks.XPropManage": match on XProperties in your
+  'XMonad.Core.manageHook'.
 
 -}
 
 {- $layouts
 
-In the @XMonad.Layout@ name space you can find modules exporting
-contributed tiling algorithms, such as a tabbed layout, a circle and a
-three columns ones, etc.
+In the @XMonad.Layout@ namespace you can find modules exporting
+contributed tiling algorithms, such as a tabbed layout, a circle, a spiral,
+three columns, and so on.
 
-Other modules provide facilities for combining different layouts, such
-as "XMonad.Layout.Combo", or a complete set of layout combinators,
-like "XMonad.Layout.LayoutCombinators"
+You will also find modules which provide facilities for combining
+different layouts, such as "XMonad.Layout.Combo", or
+"XMonad.Layout.LayoutCombinators".
 
 Layouts can be also modified with layout modifiers. A general
 interface for writing layout modifiers is implemented in
@@ -218,16 +251,85 @@ interface for writing layout modifiers is implemented in
 For more information on using those modules for customizing your
 'XMonad.Core.layoutHook' see "XMonad.Doc.Extending#Editing_the_layout_hook".
 
+* "XMonad.Layout.Accordion": put non-focused windows in ribbons at the
+  top and bottom of the screen.
+
+* "XMonad.Layout.Circle": an elliptical, overlapping layout.
+
+* "XMonad.Layout.Combo": combine multiple layouts into one.
+
+* "XMonad.Layout.Dishes": stack extra windows underneath the master windows.
+
+* "XMonad.Layout.DragPane": split the screen into two windows with a
+  draggable divider.
+
+* "XMonad.Layout.Grid": put windows in a square grid.
+
+* "XMonad.Layout.LayoutCombinators": general layout combining.
+
+* "XMonad.Layout.LayoutHints": make layouts respect window size hints.
+
+* "XMonad.Layout.LayoutModifier": a general framework for creating
+  layout \"modifiers\"; useful for creating new layout modules.
+
+* "XMonad.Layout.LayoutScreens": divide the screen into multiple
+  virtual \"screens\".
+
+* "XMonad.Layout.MagicFocus": automagically put the focused window in
+  the master area.
+
+* "XMonad.Layout.Maximize": temporarily maximize the focused window.
+
+* "XMonad.Layout.MosaicAlt": give each window a specified relative
+  amount of screen space.
+
+* "XMonad.Layout.MultiToggle": dynamically apply and unapply layout
+  transformers.
+
+* "XMonad.Layout.Named": change the names of layouts (as reported by
+  e.g. "XMonad.Hooks.DynamicLog").
+
+* "XMonad.Layout.NoBorders": display windows without borders.
+
+* "XMonad.Layout.PerWorkspace": configure layouts on a per-workspace basis.
+
+* "XMonad.Layout.ResizableTile": tiled layout allowing you to change
+  width and height of windows.
+
+* "XMonad.Layout.Roledex": a \"completely pointless layout which acts
+  like Microsoft's Flip 3D\".
+
+* "XMonad.Layout.Spiral": Fibonacci spiral layout.
+
+* "XMonad.Layout.Square": split the screen into a square area plus the rest.
+
+* "XMonad.Layout.Tabbed": a tabbed layout.
+
+* "XMonad.Layout.ThreeColumns": a layout with three columns instead of two.
+
+* "XMonad.Layout.TilePrime": fill gaps created by resize hints.
+
+* "XMonad.Layout.ToggleLayouts": toggle between two layouts.
+
+* "XMonad.Layout.TwoPane": split the screen horizontally and show two
+  windows.
+
+* "XMonad.Layout.WindowNavigation": navigate around a workspace
+  directionally instead of using mod-j\/k.
+
+* "XMonad.Layout.WorkspaceDir": set the current working directory in a
+  workspace.
 
 -}
 
 {- $prompts
 
-In the @XMonad.Prompt@ name space you can find modules exporting
-graphical prompts for getting user input and performing, with it,
-different actions.
+In the @XMonad.Prompt@ name space you can find modules providing
+graphical prompts for getting user input and using it to perform
+various actions.
 
-"XMonad.Prompt" provides a library for easily writing prompts.
+The "XMonad.Prompt" provides a library for easily writing new prompt
+modules.
 
 These are the available prompts:
 
@@ -248,8 +350,8 @@ These are the available prompts:
 * "XMonad.Prompt.XMonad"
 
 Usually a prompt is called by some key binding. See
-"XMonad.Doc.Extending#Editing_key_bindings" on how to configure xmonad to use
-some prompts. The give examples include adding some prompts.
+"XMonad.Doc.Extending#Editing_key_bindings", which includes examples
+of adding some prompts.
 
 -}
 
@@ -309,8 +411,12 @@ and providing a proper definition of @myKeys@ such as:
 >             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
-Remember that this definition requires importing "Graphics.X11.Xlib",
-"XMonad.Prompt", "XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad"
+This particular definition also requires importing "Graphics.X11.Xlib"
+(for the symbols such as @xK_F12@), "XMonad.Prompt",
+"XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad":
+
+> import Graphics.X11.Xlib
+> import ...
 
 Sometimes, more than completely redefining the key bindings, as we did
 above, we may want to add some new bindings, or\/and remove existing
