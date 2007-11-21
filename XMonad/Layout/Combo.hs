@@ -30,8 +30,7 @@ import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )
 
 -- $usage
---
--- To use this layout write, in your Config.hs:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 -- 
 -- > import XMonad.Layout.Combo 
 -- 
@@ -40,29 +39,33 @@ import qualified XMonad.StackSet as W ( differentiate )
 -- > combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf)
 --
 -- to your layouts.
-
--- combineTwo is a new simple layout combinator.  It allows the combination
--- of two layouts using a third to split the screen between the two, but
--- has the advantage of allowing you to dynamically adjust the layout, in
--- terms of the number of windows in each sublayout.  To do this, use
--- WindowNavigation, and add the following key bindings (or something
--- similar):
-
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- combineTwo is a new simple layout combinator. It allows the
+-- combination of two layouts using a third to split the screen
+-- between the two, but has the advantage of allowing you to
+-- dynamically adjust the layout, in terms of the number of windows in
+-- each sublayout. To do this, use "XMonad.Layout.WindowNavigation",
+-- and add the following key bindings (or something similar):
+--
 --     , ((modMask .|. controlMask .|. shiftMask, xK_Right), sendMessage $ Move R)
 --     , ((modMask .|. controlMask .|. shiftMask, xK_Left), sendMessage $ Move L)
 --     , ((modMask .|. controlMask .|. shiftMask, xK_Up), sendMessage $ Move U)
 --     , ((modMask .|. controlMask .|. shiftMask, xK_Down), sendMessage $ Move D)
-
+--
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
+--
 -- These bindings will move a window into the sublayout that is
--- up/down/left/right of its current position.  Note that there is some
+-- up\/down\/left\/right of its current position.  Note that there is some
 -- weirdness in combineTwo, in that the mod-tab focus order is not very closely
 -- related to the layout order. This is because we're forced to keep track of
 -- the window positions separately, and this is ugly.  If you don't like this,
--- lobby for hierarchical stacks in core xmonad or go reim:lement the core of
+-- lobby for hierarchical stacks in core xmonad or go reimplement the core of
 -- xmonad yourself.
-
--- %import XMonad.Layout.Combo
--- %layout , combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf)
 
 data CombineTwo l l1 l2 a = C2 [a] [a] l (l1 a) (l2 a)
                             deriving (Read, Show)
