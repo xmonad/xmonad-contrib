@@ -44,16 +44,13 @@ import XMonad.Util.Font
 --
 -- > import XMonad.Layout.Tabbed
 --
--- > layouts :: [Layout Window]
--- > layouts = [ Layout tiled
--- >           , Layout $ Mirror tiled
--- >           , Layout Full
--- >
--- >           -- Extension-provided layouts
--- >           , Layout $ tabbed shrinkText defaultTConf
--- >           ]
--- >
--- >                  , ... ]
+-- Then edit your @layoutHook@ by adding the Tabbed layout:
+--
+-- > mylayout = tabbed shrinkText defaultTConf ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = mylayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
 -- You can also edit the default configuration options.
 --
@@ -62,11 +59,7 @@ import XMonad.Util.Font
 --
 -- and
 --
--- > layouts = [ ...
--- >           , Layout $ tabbed shrinkText myTabConfig ]
-
--- %import XMonad.Layout.Tabbed
--- %layout , tabbed shrinkText defaultTConf
+-- > mylayout = tabbed shrinkText myTabConfig ||| Full ||| etc..
 
 tabbed :: Shrinker s => s -> TConf -> Tabbed s a
 tabbed s t = Tabbed (I Nothing) s t
@@ -114,20 +107,20 @@ doLay :: Shrinker s => Invisible Maybe TabState -> s -> TConf
 doLay ist ishr c sc (W.Stack w [] []) = do
   whenIJust ist $ \st -> mapM_ deleteWindow (map fst $ tabsWindows st)
   return ([(w,sc)], Just $ Tabbed (I Nothing) ishr c)
-doLay ist ishr conf sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
+doLay ist ishr c sc@(Rectangle _ _ wid _) s@(W.Stack w _ _) = do
   let ws = W.integrate s
       width = wid `div` fromIntegral (length ws)
-      -- initialize state
+  -- initialize state
   st <- case ist of
-          (I Nothing  ) -> initState conf sc ws
+          (I Nothing  ) -> initState c sc ws
           (I (Just ts)) -> if map snd (tabsWindows ts) == ws && scr ts == sc
                            then return ts
                            else do mapM_ deleteWindow (map fst $ tabsWindows ts)
-                                   tws <- createTabs conf sc ws
+                                   tws <- createTabs c sc ws
                                    return (ts {scr = sc, tabsWindows = zip tws ws})
   mapM_ showWindow $ map fst $ tabsWindows st
-  mapM_ (updateTab ishr conf (font st) width) $ tabsWindows st
-  return ([(w,shrink conf sc)], Just (Tabbed (I (Just st)) ishr conf))
+  mapM_ (updateTab ishr c (font st) width) $ tabsWindows st
+  return ([(w,shrink c sc)], Just (Tabbed (I (Just st)) ishr c))
 
 handleMess :: Shrinker s => Tabbed s Window -> SomeMessage -> X (Maybe (Tabbed s Window))
 handleMess (Tabbed (I (Just st@(TabState {tabsWindows = tws}))) ishr conf) m
@@ -140,8 +133,8 @@ handleMess _ _  = return Nothing
 
 handleEvent :: Shrinker s => s -> TConf -> TabState -> Event -> X ()
 -- button press
-handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, font         = fs }) 
-                      (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t  })
+handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, font         = fs})
+                      (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t})
     | t == buttonPress, tl <- map fst tws, thisw `elem` tl || thisbw `elem` tl  = do
   case lookup thisw tws of
     Just x  -> do focus x
@@ -150,8 +143,8 @@ handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, 
     where
       width = rect_width screen`div` fromIntegral (length tws)
 
-handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, font = fs }) 
-                      (AnyEvent {ev_window   = thisw, ev_event_type = t                 })
+handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, font = fs})
+                      (AnyEvent {ev_window   = thisw, ev_event_type = t                })
 -- expose
     | thisw `elem` (map fst tws) && t == expose         = do
   updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
@@ -159,15 +152,15 @@ handleEvent ishr conf (TabState {tabsWindows = tws,   scr           = screen, fo
       width = rect_width screen`div` fromIntegral (length tws)
 
 -- propertyNotify
-handleEvent ishr conf (TabState      {tabsWindows = tws, scr = screen, font = fs }) 
-                      (PropertyEvent {ev_window   = thisw })
+handleEvent ishr conf (TabState      {tabsWindows = tws, scr = screen, font = fs})
+                      (PropertyEvent {ev_window   = thisw})
     | thisw `elem` (map snd tws) = do
   let tabwin = (fst $ fromJust $ find ((== thisw) . snd) tws, thisw)
   updateTab ishr conf fs width tabwin
     where width = rect_width screen `div` fromIntegral (length tws)
 -- expose
-handleEvent ishr conf (TabState {tabsWindows = tws, scr = screen, font = fs }) 
-                      (ExposeEvent {ev_window   = thisw })
+handleEvent ishr conf (TabState {tabsWindows = tws, scr = screen, font = fs})
+                      (ExposeEvent {ev_window   = thisw})
     | thisw `elem` (map fst tws) = do
   updateTab ishr conf fs width (thisw, fromJust $ lookup thisw tws)
     where width = rect_width screen `div` fromIntegral (length tws)
