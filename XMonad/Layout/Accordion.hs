@@ -26,11 +26,18 @@ import Graphics.X11.Xlib
 import Data.Ratio
 
 -- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
 -- > import XMonad.Layout.Accordion
--- > layouts = [ Layout Accordion ]
-
--- %import XMonad.Layout.Accordion
--- %layout , Layout Accordion
+--
+-- Then edit your @layoutHook@ by adding the Accordion layout:
+--
+-- > myLayouts = Accordion ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Accordion a = Accordion deriving ( Read, Show )
 
