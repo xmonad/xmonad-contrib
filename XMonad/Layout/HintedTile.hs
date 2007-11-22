@@ -69,7 +69,7 @@ instance LayoutClass HintedTile Window where
         resize Expand = c { frac = min 1 $ frac c + delta c }
         incmastern (IncMasterN d) = c { nmaster = max 0 $ nmaster c + d }
 
-    description l = "HintedTile " ++ show (orientation l)
+    description l = show (orientation l)
 
 adjBorder :: Dimension -> Dimension -> D -> D
 adjBorder n b (w, h) = (w + n * 2 * b, h + n * 2 * b)
