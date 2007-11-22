@@ -88,6 +88,7 @@ library
                         XMonad.Layout.MagicFocus
                         -- XMonad.Layout.Magnifier
                         XMonad.Layout.Maximize
+                        XMonad.Layout.Mosaic
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.Named
@@ -113,6 +114,7 @@ library
                         XMonad.Prompt.Window
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
+                        XMonad.Util.Anneal
                         XMonad.Util.CustomKeys
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
