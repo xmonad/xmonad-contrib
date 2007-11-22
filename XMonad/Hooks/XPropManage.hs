@@ -19,12 +19,15 @@ module XMonad.Hooks.XPropManage (
 
 import Data.Char (chr)
 import Data.List (concat)
+import Data.Monoid (mconcat, Endo(..))
+    
+import Control.Monad.Reader
 
-import Control.Monad.State
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
 import XMonad
+import XMonad.ManageHook ((-->))
 
 -- $usage
 -- 
@@ -64,17 +67,12 @@ pmX f w = f w >> return id
 pmP :: (WindowSet -> WindowSet) -> Window -> X (WindowSet -> WindowSet)
 pmP f _ = return f
 
-xPropManageHook :: [XPropMatch] -> Window -> X (WindowSet -> WindowSet)
-xPropManageHook tms w = withDisplay $ \d -> do
-    fs <- mapM (matchProp d w `uncurry`) tms
-    return (foldr (.) id fs)
-
-matchProp :: Display -> Window -> [(Atom, [String] -> Bool)] -> (Window -> X (WindowSet -> WindowSet)) -> X (WindowSet -> WindowSet)
-matchProp d w tm tf = do
-    m <- and `liftM` sequence (map (\(k,f) -> f `liftM` getProp d w k) tm)
-    case m of
-        True   -> tf w
-        False  -> return id
+xPropManageHook :: [XPropMatch] -> ManageHook
+xPropManageHook tms = mconcat $ map propToHook tms
+    where
+      propToHook (ms, f) = liftM and (mapM mkQuery ms) --> mkHook f
+      mkQuery (a, tf)    = fmap tf (getQuery a)
+      mkHook func        = ask >>= Query . lift . fmap Endo . func 
 
 getProp :: Display -> Window -> Atom -> X ([String])
 getProp d w p = do
@@ -83,9 +81,11 @@ getProp d w p = do
                | otherwise       = id
     return (filt p prop)
 
+getQuery ::  Atom -> Query [String]
+getQuery p = ask >>= \w ->  Query . lift $ withDisplay $ \d -> getProp d w p
+
 splitAtNull :: String -> [String]
 splitAtNull s = case dropWhile (== (chr 0)) s of
     "" -> []
     s' -> w : splitAtNull s''
           where (w, s'') = break (== (chr 0)) s'
-
