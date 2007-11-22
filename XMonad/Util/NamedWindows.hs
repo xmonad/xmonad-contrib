@@ -36,7 +36,7 @@ import XMonad
 -- See "XMonad.Layout.Tabbed" for an example of its use.
 
 
-data NamedWindow = NW !String !Window deriving ( Read )
+data NamedWindow = NW !String !Window
 instance Eq NamedWindow where
     (NW s _) == (NW s' _) = s == s'
 instance Ord NamedWindow where

@@ -93,10 +93,10 @@ defaultArea = 1
 flexibility :: Double
 flexibility = 0.1
 
-mosaic :: Double -> Double -> M.Map NamedWindow [WindowHint] -> MosaicLayout Window
-mosaic d t h = Mosaic d t h
+mosaic :: Double -> Double -> MosaicLayout Window
+mosaic d t = Mosaic d t M.empty
 
-data MosaicLayout a = Mosaic Double Double (M.Map NamedWindow [WindowHint])
+data MosaicLayout a = Mosaic Double Double (M.Map String [WindowHint])
               deriving ( Show, Read )
 
 instance LayoutClass MosaicLayout Window where
@@ -112,47 +112,47 @@ instance LayoutClass MosaicLayout Window where
           m2 (FlexibleWindow w) = Mosaic d t (make_flexible w h)
           m2 (TallWindow w)     = Mosaic d t (multiply_aspect (1/(1+d)) w h)
           m2 (WideWindow w)     = Mosaic d t (multiply_aspect (1+d) w h)
-          m2 (ClearWindow w)    = Mosaic d t (M.delete w h)
+          m2 (ClearWindow w)    = Mosaic d t (M.delete (show w) h)
 
     description _ = "The Original Mosaic"
 
 multiply_area :: Double -> NamedWindow
-              -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+              -> M.Map String [WindowHint] -> M.Map String [WindowHint]
 multiply_area a = alterlist f where f [] = [RelArea (defaultArea*a)]
                                     f (RelArea a':xs) = RelArea (a'*a) : xs
                                     f (x:xs) = x : f xs
 
 set_aspect_ratio :: Double -> NamedWindow
-                 -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+                 -> M.Map String [WindowHint] -> M.Map String [WindowHint]
 set_aspect_ratio r = alterlist f where f [] = [AspectRatio r]
                                        f (FlexibleAspectRatio _:x) = AspectRatio r:x
                                        f (AspectRatio _:x) = AspectRatio r:x
                                        f (x:xs) = x:f xs
 
 make_flexible :: NamedWindow
-              -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+              -> M.Map String [WindowHint] -> M.Map String [WindowHint]
 make_flexible = alterlist (map f) where f (AspectRatio r) = FlexibleAspectRatio r
                                         f (FlexibleAspectRatio r) = AspectRatio r
                                         f x = x
 
 multiply_aspect :: Double -> NamedWindow
-                -> M.Map NamedWindow [WindowHint] -> M.Map NamedWindow [WindowHint]
+                -> M.Map String [WindowHint] -> M.Map String [WindowHint]
 multiply_aspect r = alterlist f where f [] = [FlexibleAspectRatio r]
                                       f (AspectRatio r':x) = AspectRatio (r*r'):x
                                       f (FlexibleAspectRatio r':x) = FlexibleAspectRatio (r*r'):x
                                       f (x:xs) = x:f xs
 
-findlist :: Ord k => k -> M.Map k [a] -> [a]
-findlist = M.findWithDefault []
+findlist :: NamedWindow -> M.Map String [a] -> [a]
+findlist = M.findWithDefault [] . show
 
-alterlist :: (Ord k, Ord a) => ([a] -> [a]) -> k -> M.Map k [a] -> M.Map k [a]
-alterlist f k = M.alter f' k
+alterlist :: (Ord a) => ([a] -> [a]) -> NamedWindow -> M.Map String [a] -> M.Map String [a]
+alterlist f k = M.alter f' $ show k
     where f' Nothing = f' (Just [])
           f' (Just xs) = case f xs of
                            [] -> Nothing
                            xs' -> Just xs'
 
-mosaicL :: Double -> M.Map NamedWindow [WindowHint]
+mosaicL :: Double -> M.Map String [WindowHint]
         -> Rectangle -> [Window] -> X ([(Window, Rectangle)],Maybe (MosaicLayout Window))
 mosaicL _ _ _ [] = return ([], Nothing)
 mosaicL f hints origRect origws
@@ -237,7 +237,7 @@ mosaicL f hints origRect origws
           theareas = hints2area `fmap` hints
           sumareas ws = sum $ map findarea ws
           findarea :: NamedWindow -> Double
-          findarea w = M.findWithDefault 1 w theareas
+          findarea w = M.findWithDefault 1 (show w) theareas
           meanarea =  area origRect / fromIntegral (length origws)
 
 maxL :: Ord a => [a] -> a
