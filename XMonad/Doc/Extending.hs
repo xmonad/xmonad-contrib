@@ -400,11 +400,12 @@ yourself.
 #Editing_key_bindings#
 
 Editing key bindings means changing the 'XMonad.Core.XConfig.keys'
-record of the 'XMonad.Core.XConfig' data type, like:
+field of the 'XMonad.Core.XConfig' record used by xmonad.  For
+example, you could write:
 
->    main = xmonad defaultConfig { keys = myKeys }
+>    main = xmonad $ defaultConfig { keys = myKeys }
 
-and providing a proper definition of @myKeys@ such as:
+and provide an appropriate definition of @myKeys@, such as:
 
 >    myKeys x =
 >             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
@@ -416,10 +417,10 @@ This particular definition also requires importing "Graphics.X11.Xlib"
 "XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad":
 
 > import Graphics.X11.Xlib
-> import ...
+> import ...  -- and so on
 
-Sometimes, more than completely redefining the key bindings, as we did
-above, we may want to add some new bindings, or\/and remove existing
+Usually, rather than completely redefining the key bindings, as we did
+above, we want to simply add some new bindings and\/or remove existing
 ones.
 
 -}
@@ -428,14 +429,14 @@ ones.
 #Adding_key_bindings#
 
 Adding key bindings can be done in different ways. The type signature
-of "XMonad.Core.XConfig.keys" is:
+of 'XMonad.Core.XConfig.keys' is:
 
 >    keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
 
-which means thatm in order to add new bindings you need to create a
-'Data.Map.Map' from the list of your new key bindings, you can do that
-with 'Data.Map.fromList', and then join this newly created map with
-the one of the existing bindings. This can be done with
+In order to add new key bindings, you need to first create an
+appropriate 'Data.Map.Map' from a list of key bindings using
+'Data.Map.fromList'.  This 'Data.Map.Map' of new key bindings then
+needs to be joined to a 'Data.Map.Map' of existing bindings using
 'Data.Map.union'.
 
 For instance, if you have defined some additional key bindings like
@@ -446,20 +447,17 @@ these:
 >             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
-then you create a new key bindings map by joining the default one with
-yours:
+then you can create a new key bindings map by joining the default one
+with yours:
 
 >    newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
 
-Finally you need to update accordingly the default configuration
-'XMonad.Core.XConfig.keys' record:
+Finally, you can use @newKeys@ in the 'XMonad.Core.XConfig.keys' field
+of the configuration:
 
->    main = xmonad defaultConfig { keys = newKeys }
+>    main = xmonad $ defaultConfig { keys = newKeys }
 
-
-And that's it.
-
-At the end your @~\/.xmonad\/xmonad.hs@ would look like this:
+All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 
 
 >    module Main (main) where
@@ -473,7 +471,7 @@ At the end your @~\/.xmonad\/xmonad.hs@ would look like this:
 >    import XMonad.Prompt.XMonad
 >
 >    main :: IO ()
->    main = xmonad defaultConfig { keys = newKeys }
+>    main = xmonad $ defaultConfig { keys = newKeys }
 >
 >    newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
 >
@@ -483,15 +481,15 @@ At the end your @~\/.xmonad\/xmonad.hs@ would look like this:
 >             ]
 
 
-Obviously there are other ways of defining @newKeys@. For instance,
+There are other ways of defining @newKeys@; for instance,
 you could define it like this:
 
 >    newKeys x = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
 
-An even simpler way to add new key bindings is the use of some of the
-utilities provided by the xmonad-contrib library. For instance,
+However, the simplest way to add new key bindings is to use some
+utilities provided by the xmonad-contrib library.  For instance,
 "XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys" both provide
-useful functions for editing your key bindings. Look, for instance, at
+useful functions for editing your key bindings.  Look, for instance, at
 'XMonad.Util.EZConfig.additionalKeys'.
 
  -}
@@ -499,12 +497,14 @@ useful functions for editing your key bindings. Look, for instance, at
 {- $keyDel
 #Removing_key_bindings#
 
-Removing key bindings requires modifying the binding 'Data.Map.Map'.
-This can be done with 'Data.Map.difference' or with 'Data.Map.delete'.
+Removing key bindings requires modifying the 'Data.Map.Map' which
+stores the key bindings.  This can be done with 'Data.Map.difference'
+or with 'Data.Map.delete'.
 
-Suppose you wan to get rid of @mod-q@ and @mod-shift-q@. To do this
-you just need to define a @newKeys@ as a 'Data.Map.difference' between
-the default map and the map of the key bindings you want to remove.
+For example, suppose you want to get rid of @mod-q@ and @mod-shift-q@
+(you just want to leave xmonad running forever). To do this you need
+to define @newKeys@ as a 'Data.Map.difference' between the default
+map and the map of the key bindings you want to remove.  Like so:
 
 >    newKeys x = M.difference (keys defaultConfig x) (M.fromList $ keysToRemove x)
 >
@@ -514,12 +514,13 @@ the default map and the map of the key bindings you want to remove.
 >             , ((modMask x .|. shiftMask, xK_q ), return ())
 >             ]
 
-As you may see we do not need to define an action for the key bindings
-we want to get rid of. We just build a map of keys to remove.
+As you can see, it doesn't matter what actions we associate with the
+keys listed in @keysToRemove@, so we just use @return ()@ (the
+\"null\" action).
 
-It is also possible to define a list of key bindings and then use
-'Data.Map.delete' to remove them from the default key bindings, in
-which case we should write something like:
+It is also possible to simply define a list of keys we want to unbind
+and then use 'Data.Map.delete' to remove them. In that case we would
+write something like:
 
 >    newKeys x = foldr M.delete (keys defaultConfig x) (keysToRemove x)
 >
@@ -538,11 +539,9 @@ provided by the xmonad-contrib library. Look, for instance, at
 {- $keyAddDel
 #Adding_and_removing_key_bindings#
 
-Adding and removing key bindings requires to compose the action of
-removing and, after that, the action of adding.
-
-This is an example you may find in "XMonad.Config.Arossato":
-
+Adding and removing key bindings requires simply combining the steps
+for removing and adding.  Here is an example from
+"XMonad.Config.Arossato":
 
 >    defKeys    = keys defaultConfig
 >    delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
@@ -569,8 +568,9 @@ This is an example you may find in "XMonad.Config.Arossato":
 >        ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
 >        ]
 
-You can achieve the same result by using "XMonad.Util.CustomKeys" and,
-specifically, 'XMonad.Util.CustomKeys.customKeys'.
+You can achieve the same result using the "XMonad.Util.CustomKeys"
+module; take a look at the 'XMonad.Util.CustomKeys.customKeys'
+function in particular.
 
 -}
 
@@ -583,30 +583,26 @@ workspace's layout, xmonad will use the 'XMonad.Core.layoutHook' for
 reordering the visible windows on the visible workspace(s).
 
 Since different layouts may be attached to different workspaces, and
-you can change them, xmonad needs to know which one to pick up. In
-this sense the layoutHook may be thought as the combination, or the
-list, of layouts that xmonad will use for ordering windows on the
-screen(s)
+you can change them, xmonad needs to know which one to use. In this
+sense the layoutHook may be thought as the list of layouts that
+xmonad will use for laying out windows on the screen(s).
 
 The problem is that the layout subsystem is implemented with an
 advanced feature of the Haskell programming language: type classes.
 This allows us to very easily write new layouts, combine or modify
-existing layouts, have some of them with a state, etc. See
-"XMonad.Doc.Extending#The_LayoutClass" for more information.
-
-The price we have to pay to get all that for free - which is something
-that makes xmonad so powerful with such a ridiculously low number of
-lines - is that we cannot simply have a list of layouts as we used to
-have before the 0.5 release: a list requires every member to belong to
-the same type!
+existing layouts, create layouts with internal state, etc. See
+"XMonad.Doc.Extending#The_LayoutClass" for more information. This
+means that we cannot simply have a list of layouts as we used to have
+before the 0.5 release: a list requires every member to belong to the
+same type!
 
 Instead the combination of layouts to be used by xmonad is created
-with a specific layout combinator: 'XMonad.Layouts.|||'
+with a specific layout combinator: 'XMonad.Layouts.|||'.
 
-Suppose we want a list with the 'XMonad.Layouts.Full', the
-'XMonad.Layout.Tabbed.tabbed' and the
+Suppose we want a list with the 'XMonad.Layouts.Full',
+'XMonad.Layout.Tabbed.tabbed' and
 'XMonad.Layout.Accordion.Accordion' layouts. First we import, in our
-@~\/.xmonad\/xmonad.hs@, all the needed module:
+@~\/.xmonad\/xmonad.hs@, all the needed modules:
 
 >    import XMonad
 >    import XMonad.Layouts
@@ -619,20 +615,20 @@ Then we create the combination of layouts we need:
 >    mylayoutHook = Full ||| tabbed shrinkText defaultTConf ||| Accordion
 
 
-Now, all we need to do is to change the 'XMonad.Core.layoutHook'
-record of the 'XMonad.Core.XConfig' data type, like:
+Now, all we need to do is change the 'XMonad.Core.layoutHook'
+field of the 'XMonad.Core.XConfig' record, like so:
 
->    main = xmonad defaultConfig { layoutHook = mylayoutHook }
+>    main = xmonad $ defaultConfig { layoutHook = mylayoutHook }
 
-Thanks to the new combinator we can apply a layout modifier to the
-combination of layouts, instead of applying it to each one. Suppose we
-want to use the 'XMonad.Layout.NoBorders.noBorders' layout modifier,
-from the "XMonad.Layout.NoBorders" module (which must be imported):
+Thanks to the new combinator, we can apply a layout modifier to a
+whole combination of layouts, instead of applying it to each one. For
+example, suppose we want to use the
+'XMonad.Layout.NoBorders.noBorders' layout modifier, from the
+"XMonad.Layout.NoBorders" module (which must be imported):
 
 >    mylayoutHook = noBorders (Full ||| tabbed shrinkText defaultTConf ||| Accordion)
 
-Obviously, if we want only the tabbed layout without borders, then we
-may write:
+If we want only the tabbed layout without borders, then we may write:
 
 >    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
 
@@ -646,7 +642,7 @@ Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 >
 >    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
 >
->    main = xmonad defaultConfig { layoutHook = mylayoutHook }
+>    main = xmonad $ defaultConfig { layoutHook = mylayoutHook }
 
 That's it!
 
