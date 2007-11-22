@@ -86,7 +86,7 @@ library
                         XMonad.Layout.LayoutModifier
                         XMonad.Layout.LayoutScreens
                         XMonad.Layout.MagicFocus
-                        -- XMonad.Layout.Magnifier
+                        XMonad.Layout.Magnifier
                         XMonad.Layout.Maximize
                         XMonad.Layout.Mosaic
                         XMonad.Layout.MosaicAlt
