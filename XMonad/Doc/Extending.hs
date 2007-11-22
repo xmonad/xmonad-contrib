@@ -439,6 +439,12 @@ appropriate 'Data.Map.Map' from a list of key bindings using
 needs to be joined to a 'Data.Map.Map' of existing bindings using
 'Data.Map.union'.
 
+Since we are going to need functions from the "Data.Map" module, it
+must be imported first:
+
+> import qualified Data.Map as M
+
+
 For instance, if you have defined some additional key bindings like
 these:
 
