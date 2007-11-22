@@ -11,8 +11,8 @@
 -- Portability :  unportable
 --
 -- UrgencyHook lets you configure an action to occur when a window demands
--- your attention. (In traditional WMs, this takes the form of "flashing"
--- on your "taskbar." Blech.)
+-- your attention. (In traditional WMs, this takes the form of \"flashing\"
+-- on your \"taskbar.\" Blech.)
 --
 -----------------------------------------------------------------------------
 
@@ -56,28 +56,28 @@ import Graphics.X11.Xlib.Extras
 -- to your import list in your config file. Now, choose an urgency hook. If
 -- you're just interested in displaying the urgency state in your custom
 -- logHook, then choose NoUrgencyHook. Otherwise, you may use the provided
--- dzenUrgencyHook, or write your own.
+-- 'dzenUrgencyHook', or write your own.
 --
 -- Enable your urgency hook by wrapping your config record in a call to
--- withUrgencyHook. For example:
+-- 'withUrgencyHook'. For example:
 --
 -- > main = xmonad $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
 -- >               $ defaultConfig
 --
 -- If you want to modify your logHook to print out information about urgent windows,
--- the functions readUrgents and withUrgents are there to help you with that.
+-- the functions 'readUrgents' and 'withUrgents' are there to help you with that.
 -- No example for you.
 
 -- | This is the preferred method of enabling an urgency hook. It will prepend
--- an action to your logHook that remove visible windows from the list of urgent
--- windows. If you don't like that behavior, you may use urgencyLayoutHook instead.
+-- an action to your logHook that removes visible windows from the list of urgent
+-- windows. If you don't like that behavior, you may use 'urgencyLayoutHook' instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h Window) =>
                    h -> XConfig l -> XConfig (ModifiedLayout (WithUrgencyHook h) l)
 withUrgencyHook hook conf = conf { layoutHook = urgencyLayoutHook hook $ layoutHook conf
                                  , logHook = removeVisiblesFromUrgents >> logHook conf
                                  }
 
--- | The logHook action used by withUrgencyHook.
+-- | The logHook action used by 'withUrgencyHook'.
 removeVisiblesFromUrgents :: X ()
 removeVisiblesFromUrgents = do
     visibles <- gets mapped
@@ -91,15 +91,19 @@ focusUrgent :: X ()
 focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
 
 -- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
--- @readUrgents@ or @withUrgents@ instead.
+-- 'readUrgents' or 'withUrgents' instead.
 {-# NOINLINE urgents #-}
 urgents :: IORef [Window]
 urgents = unsafePerformIO (newIORef [])
 -- (Hey, I don't like it any more than you do.)
 
+-- | X action that returns a list of currently urgent windows. You might use
+-- it, or 'withUrgents', in your custom logHook, to display the workspaces that
+-- contain urgent windows.
 readUrgents :: X [Window]
 readUrgents = io $ readIORef urgents
 
+-- | An HOF version of 'readUrgents', for those who prefer that sort of thing.
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
