@@ -4,9 +4,8 @@
 -- Copyright   :  (c) 2007 Valery V. Vorotyntsev
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  valery.vv@gmail.com
--- Stability   :  unstable
--- Portability :  non-portable (uses \"manpath\" and \"bash\")
+-- Maintainer  :  Valery V. Vorotyntsev <valery.vv@gmail.com>
+-- Portability :  non-portable (uses "manpath" and "bash")
 --
 -- A manual page prompt for XMonad window manager.
 --
@@ -15,15 +14,15 @@
 --   * narrow completions by section number, if the one is specified
 --     (like @\/etc\/bash_completion@ does)
 --
---   * test with QuickCheck
+--   * write QuickCheck properties
 -----------------------------------------------------------------------------
 
 module XMonad.Prompt.Man (
-                                -- * Usage
-                                -- $usage
-                                manPrompt
-                               , getCommandOutput
-                               ) where
+                          -- * Usage
+                          -- $usage
+                          manPrompt
+                         , getCommandOutput
+                         ) where
 
 import XMonad
 import XMonad.Prompt
@@ -80,7 +79,7 @@ manCompl str | '/' `elem` str = do
 
 -- | Run a command using shell and return its output.
 --
--- XXX merge with 'Run.runProcessWithInput'?
+-- XXX merge with 'XMonad.Util.Run.runProcessWithInput'?
 --
 --   * update documentation of the latter (there is no 'Maybe' in result)
 --
