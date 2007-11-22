@@ -25,7 +25,6 @@ module XMonad.Layout.Mosaic (
 import Control.Monad.State ( State, put, get, runState )
 import System.Random ( StdGen, mkStdGen )
 
-import Data.Ratio
 import Graphics.X11.Xlib
 import XMonad hiding ( trace )
 import XMonad.Layouts ( Resize(Shrink, Expand) )
