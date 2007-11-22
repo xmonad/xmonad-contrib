@@ -18,7 +18,7 @@
 module XMonad.Layout.HintedTile (
                                  -- * Usage
                                  -- $usage
-                                 tall, wide ) where
+                                 HintedTile(..), Orientation(..)) where
 
 import XMonad
 import XMonad.Layouts    ( Resize(..), IncMasterN(..) )
@@ -35,24 +35,20 @@ import Control.Monad.Reader
 --
 -- Then edit your @layoutHook@ by adding the HintedTile layout:
 --
--- > myLayouts = tall 1 0.1 0.5 ||| Full ||| etc..
+-- > myLayouts = HintedTile 1 0.1 0.5 Tall ||| Full ||| etc..
 -- > main = xmonad dafaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data HintedTile a =
-    HT { nmaster     :: Int
-       , delta, frac :: Rational
-       , orientation :: Orientation
-       } deriving ( Show, Read )
+data HintedTile a = HintedTile
+    { nmaster     :: Int
+    , delta, frac :: Rational
+    , orientation :: Orientation
+    } deriving ( Show, Read )
 
 data Orientation = Wide | Tall deriving ( Show, Read )
-
-tall, wide :: Int -> Rational -> Rational -> HintedTile Window
-wide n d f = HT {nmaster = n, delta = d, frac = f, orientation = Tall }
-tall n d f = HT {nmaster = n, delta = d, frac = f, orientation = Wide }
 
 instance LayoutClass HintedTile Window where
     doLayout c rect w' = let w = W.integrate w'
@@ -63,8 +59,8 @@ instance LayoutClass HintedTile Window where
         where
           (split, divide) =
               case orientation c of
-                Wide -> (splitHorizontally, divideHorizontally)
-                Tall -> (splitVertically,   divideVertically  )
+                Tall -> (splitHorizontally, divideVertically)
+                Wide -> (splitVertically,   divideHorizontally)
           tiler b f r masters slaves =
               if null masters || null slaves
               then divide b (masters ++ slaves) r
