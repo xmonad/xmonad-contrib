@@ -1,18 +1,19 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Magnifier
 -- Copyright   :  (c) Peter De Wachter 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
--- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>
+-- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>,
+--                andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
 --
 -- Screenshot  :  <http://caladan.rave.org/magnifier.png>
 --
--- This layout hack increases the size of the window that has focus.
+-- This is a layout modifier that will make a layout increase the size
+-- of the window that has focus.
 --
 -----------------------------------------------------------------------------
 
@@ -21,8 +22,7 @@ module XMonad.Layout.Magnifier (
     -- * Usage
     -- $usage
     magnifier,
-    Magnifier(..),
-    Magnifier'(..)) where
+    magnifier') where
 
 import Graphics.X11.Xlib (Window, Rectangle(..))
 import XMonad
@@ -30,29 +30,41 @@ import XMonad.StackSet
 import XMonad.Layout.LayoutModifier
 
 -- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
 -- > import XMonad.Layout.Magnifier
--- > layouts = [ magnifier tiled , magnifier $ mirror tiled ]
+--
+-- Then edit your @layoutHook@ by adding the Magnifier layout modifier
+-- to some layout:
+--
+-- > myLayouts = magnifier (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
--- %import XMonad.Layout.Magnifier
--- %layout , magnifier tiled
--- %layout , magnifier $ mirror tiled
-
--- | Increase the size of the window that has focus, unless it is the master window.
-data Magnifier a = Magnifier deriving (Read, Show)
-instance LayoutModifier Magnifier Window where
-    modifierDescription _ = "Magnifier"
-    redoLayout _ = unlessMaster applyMagnifier
-
--- | Increase the size of the window that has focus, even if it is the master window.
-data Magnifier' a = Magnifier' deriving (Read, Show)
-instance LayoutModifier Magnifier' Window where
-    modifierDescription _ = "Magnifier'"
-    redoLayout _ = applyMagnifier
-
+-- | Increase the size of the window that has focus, unless it is the
+-- master window.
 magnifier :: l a -> ModifiedLayout Magnifier l a
-magnifier = ModifiedLayout Magnifier
+magnifier = ModifiedLayout (M True)
 
-unlessMaster :: forall t t1 a a1 (m :: * -> *). (Monad m) => (t -> Stack a -> t1 -> m (t1, Maybe a1)) -> t -> Stack a -> t1 -> m (t1, Maybe a1)
+-- | Increase the size of the window that has focus, even if it is the
+-- master window.
+magnifier' :: l a -> ModifiedLayout Magnifier l a
+magnifier' = ModifiedLayout (M False)
+
+data Magnifier a = M Bool deriving (Read, Show)
+
+instance LayoutModifier Magnifier Window where
+    modifierDescription (M b) = (if b then "" else "All") ++ "Magnifier"
+    redoLayout          (M b) = if b
+                                then unlessMaster applyMagnifier
+                                else applyMagnifier
+
+type NewLayout a = Rectangle -> Stack a -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe (Magnifier a))
+
+unlessMaster :: NewLayout a -> NewLayout a
 unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
                                               else mainmod r s wrs
 
