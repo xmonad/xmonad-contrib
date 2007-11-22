@@ -52,18 +52,15 @@ data HintedTile a = HintedTile
 data Orientation = Wide | Tall deriving ( Show, Read )
 
 instance LayoutClass HintedTile Window where
-    doLayout c rect w' = do
+    doLayout (HintedTile { orientation = o, nmaster = nm, frac = f }) r w' = do
         bhs <- mapM getHints w
-        let (masters, slaves) = splitAt (nmaster c) bhs
-        return (zip w (tiler (frac c) rect masters slaves), Nothing)
+        let (masters, slaves) = splitAt nm bhs
+        return (zip w (tiler masters slaves), Nothing)
      where
         w = W.integrate w'
-        (split, divide) = case orientation c of
-                            Tall -> (splitHorizontally, divideVertically)
-                            Wide -> (splitVertically,   divideHorizontally)
-        tiler f r masters slaves
-            | null masters || null slaves = divide (masters ++ slaves) r
-            | otherwise = split f r (divide masters) (divide slaves)
+        tiler masters slaves
+            | null masters || null slaves = divide o (masters ++ slaves) r
+            | otherwise = split o f r (divide o masters) (divide o slaves)
 
     pureMessage c m = fmap resize (fromMessage m) `mplus`
                       fmap incmastern (fromMessage m)
@@ -87,29 +84,28 @@ getHints w = withDisplay $ \d -> io $ liftM2 (,)
     (getWMNormalHints d w)
 
 -- Divide the screen vertically (horizontally) into n subrectangles
-divideVertically, divideHorizontally :: [(Dimension, SizeHints)] -> Rectangle -> [Rectangle]
-divideVertically [] _ = [] -- there's a fold here, struggling to get out
-divideVertically (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
-      (divideVertically bhs (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
+divide :: Orientation -> [(Dimension, SizeHints)] -> Rectangle -> [Rectangle]
+divide _ [] _ = []
+divide Tall (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
+      (divide Tall bhs (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
  where (w, h) = hintsUnderBorder bh (sw, sh `div` fromIntegral (1 + (length bhs)))
 
-divideHorizontally [] _ = []
-divideHorizontally (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
-      (divideHorizontally bhs (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
+divide Wide (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
+      (divide Wide bhs (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
  where
     (w, h) = hintsUnderBorder bh (sw `div` fromIntegral (1 + (length bhs)), sh)
 
 -- Split the screen into two rectangles, using a rational to specify the ratio
-splitHorizontally, splitVertically :: Rational -> Rectangle -> (Rectangle -> [Rectangle])
-                                   -> (Rectangle -> [Rectangle]) -> [Rectangle]
-splitHorizontally f (Rectangle sx sy sw sh) left right = leftRects ++ rightRects
+split :: Orientation -> Rational -> Rectangle -> (Rectangle -> [Rectangle])
+      -> (Rectangle -> [Rectangle]) -> [Rectangle]
+split Tall f (Rectangle sx sy sw sh) left right = leftRects ++ rightRects
  where
     leftw = floor $ fromIntegral sw * f
     leftRects = left $ Rectangle sx sy leftw sh
     rightx = (maximum . map rect_width) leftRects
     rightRects = right $ Rectangle (sx + fromIntegral rightx) sy (sw - rightx) sh
 
-splitVertically f (Rectangle sx sy sw sh) top bottom = topRects ++ bottomRects
+split Wide f (Rectangle sx sy sw sh) top bottom = topRects ++ bottomRects
  where
     toph = floor $ fromIntegral sh * f
     topRects = top $ Rectangle sx sy sw toph
