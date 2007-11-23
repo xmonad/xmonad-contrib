@@ -36,7 +36,7 @@ import XMonad.StackSet hiding (filter)
 import XMonad.Operations
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Actions.CycleWS
 --
@@ -51,13 +51,8 @@ import XMonad.Operations
 -- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext >> nextWS)
 -- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev >> prevWS)
 --
-
--- %import XMonad.Actions.CycleWS
--- %keybind , ((modMask,               xK_Right), nextWS)
--- %keybind , ((modMask,               xK_Left),  prevWS)
--- %keybind , ((modMask .|. shiftMask, xK_Right), shiftToNext)
--- %keybind , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
--- %keybind , ((modMask,               xK_t),     toggleWS)
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 
 -- | Switch to next workspace
