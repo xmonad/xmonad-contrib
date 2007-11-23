@@ -24,6 +24,7 @@ module XMonad.Layout.Mosaic (
 
 import Control.Monad.State ( State, put, get, runState )
 import System.Random ( StdGen, mkStdGen )
+import Data.Maybe ( isJust )
 
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras ( SizeHints, getWMNormalHints, sh_aspect, sh_min_size, sh_max_size )
@@ -100,7 +101,19 @@ data MosaicLayout a = Mosaic Double Double (M.Map Window [WindowHint])
               deriving ( Show, Read )
 
 instance LayoutClass MosaicLayout Window where
-    doLayout (Mosaic _ t h) r w = mosaicL t h r (W.integrate w)
+    doLayout (Mosaic _ t h) r st = do all_hints <- add_hints (W.integrate st) h
+                                      mosaicL t all_hints r (W.integrate st)
+        where add_hints [] x = return x
+              add_hints (w:ws) x =
+                  do z <- withDisplay $ \d -> io $ getWMNormalHints d w
+                     let set_asp = case map4 `fmap` sh_aspect z of
+                                   Just ((minx,miny),(maxx,maxy))
+                                       | or [minx < 1, miny < 1, maxx < 1, maxy < 1] -> id
+                                       | minx/miny == maxx/maxy -> set_aspect_ratio (minx/miny) w
+                                   _ -> id
+                     add_hints ws $ set_MinX z w $ set_MinY z w $ set_MaxX z w $ set_MaxY z w $ set_asp x
+              map4 :: Integral a => ((a,a),(a,a)) -> ((Double,Double),(Double,Double))
+              map4 ((a,b),(c,d)) = ((fromIntegral a,fromIntegral b),(fromIntegral c,fromIntegral d))
 
     pureMessage (Mosaic d t h) m = (m1 `fmap` fromMessage m) `mplus` (m2 `fmap` fromMessage m)
         where
@@ -143,16 +156,18 @@ multiply_aspect r = alterlist f where f [] = [FlexibleAspectRatio r]
                                       f (x:xs) = x:f xs
 
 set_MaxX :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
-set_MaxX h | Just (mx,_) <- sh_max_size h = replaceinmap isMaxX (MaxX $ fromIntegral mx)
+set_MaxX h | Just (_,mx) <- sh_max_size h = replaceinmap (isJust . isMaxX) (MaxX $ fromIntegral mx)
            | otherwise = const id
-    where isMaxX (MaxX _) = True
-          isMaxX _ = False
 
 set_MaxY :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
-set_MaxY h | Just (_,mx) <- sh_max_size h = replaceinmap isMaxY (MaxY $ fromIntegral mx)
+set_MaxY h | Just (_,mx) <- sh_max_size h = replaceinmap (isJust . isMaxY) (MaxY $ fromIntegral mx)
            | otherwise = const id
-    where isMaxY (MaxY _) = True
-          isMaxY _ = False
+
+isMaxX,isMaxY :: WindowHint -> Maybe Dimension
+isMaxX (MaxX x) = Just x
+isMaxX _ = Nothing
+isMaxY (MaxY x) = Just x
+isMaxY _ = Nothing
 
 set_MinX :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
 set_MinX h | Just (mx,_) <- sh_min_size h = replaceinmap isMinX (MinX $ fromIntegral mx)
@@ -197,13 +212,12 @@ mosaicL f hints origRect origws
 --             myh2 = maxL $ runCountDown largeNumber $
 --                    sequence $ replicate mediumNumber $
 --                    mosaic_splits one_split origRect Horizontal sortedws
-         all_hints <- add_hints origws hints
          return (map (\(w,r)->(--trace ("rate1:"++ unlines [show nw,
                                  --                           show $ rate f meanarea (findlist nw hints) r,
                                  --                           show r,
                                  --                           show $ area r/meanarea,
                                  --                           show $ findlist nw hints]) $
-                                 w,crop' (findlist w all_hints) r)) $
+                                 w,crop' (findlist w hints) r)) $
                 flattenMosaic $ the_value $ maxL [myh,myv,myh2,myv2], Nothing)
     where mosaic_splits _ _ _ [] = return $ Rated 0 $ M []
           mosaic_splits _ r _ [w] = return $ Rated (rate f meanarea (findlist w hints) r) $ OM (w,r)
@@ -213,8 +227,9 @@ mosaicL f hints origRect origws
           even_split r d [ws] = even_split r d $ map (:[]) ws
           even_split r d wss =
               do let areas = map sumareas wss
+                     maxds = map (maxd d) wss
                  let wsr_s :: [([Window], Rectangle)]
-                     wsr_s = zip wss (partitionR d r areas)
+                     wsr_s = zip wss (partitionR d r maxds areas)
                  submosaics <- mapM (\(ws',r') ->
                                      mosaic_splits even_split r' (otherDirection d) ws') wsr_s
                  return $ fmap M $ catRated submosaics
@@ -240,7 +255,8 @@ mosaicL f hints origRect origws
           rect_mosaic r _ (OM (w,_)) = OM (w,r)
           rect_mosaic r d (M ws) = M $ zipWith (\w' r' -> rect_mosaic r' d' w') ws rs
               where areas = map (sum . map snd . flattenMosaic) ws
-                    rs = partitionR d r areas
+                    maxds = repeat 1
+                    rs = partitionR d r maxds areas
                     d' = otherDirection d
           rate_mosaic :: ((Window,Rectangle) -> Double)
                       -> Mosaic (Window,Rectangle) -> Rated Double (Mosaic (Window,Rectangle))
@@ -257,28 +273,33 @@ mosaicL f hints origRect origws
                                      mosaic_splits even_split r' (otherDirection d) ws') wsr_s
                  return $ fmap M $ catRated submosaics
 -}
-          partitionR :: CutDirection -> Rectangle -> [Double] -> [Rectangle]
-          partitionR _ _ [] = []
-          partitionR _ r [_] = [r]
-          partitionR d r (a:ars) = r1 : partitionR d r2 ars
+          partitionR :: CutDirection -> Rectangle -> [Dimension] -> [Double] -> [Rectangle]
+          partitionR _ _ _ [] = []
+          partitionR _ _ [] _ = []
+          partitionR _ r _ [_] = [r]
+          partitionR d r (m:ms) (a:ars) = r1 : partitionR d r2 ms ars
               where totarea = sum (a:ars)
-                    (r1,r2) = split d (a/totarea) r
+                    totd = fromIntegral $ dimR d r
+                    (r1,r2) = if a/totarea > fromIntegral m / totd
+                              then if a/totarea > 1 - fromIntegral (sum ms) / totd
+                                   then split d (1 - fromIntegral (sum ms) / totd) r
+                                   else split d (a/totarea) r
+                              else split d (fromIntegral m / totd) r
           theareas = hints2area `fmap` hints
           sumareas ws = sum $ map findarea ws
+          maxd Vertical ws = maximum $ map (findhinted isMaxY 3) ws
+          maxd Horizontal ws = maximum $ map (findhinted isMaxX 3) ws
           findarea :: Window -> Double
           findarea w = M.findWithDefault 1 w theareas
+          findhinted fh d w = fh' $ M.findWithDefault [] w hints
+              where fh' [] = d
+                    fh' (h:hs) | Just x <- fh h = x
+                               | otherwise = fh' hs
           meanarea =  area origRect / fromIntegral (length origws)
-          add_hints [] x = return x
-          add_hints (w:ws) x =
-              do h <- withDisplay $ \d -> io $ getWMNormalHints d w
-                 let set_asp = case map4 `fmap` sh_aspect h of
-                               Just ((minx,miny),(maxx,maxy))
-                                   | or [minx < 1, miny < 1, maxx < 1, maxy < 1] -> id
-                                   | minx/miny == maxx/maxy -> set_aspect_ratio (minx/miny) w
-                               _ -> id
-                 add_hints ws $ set_MinX h w $ set_MinY h w $ set_MaxX h w $ set_MaxY h w $ set_asp x
-          map4 :: Integral a => ((a,a),(a,a)) -> ((Double,Double),(Double,Double))
-          map4 ((a,b),(c,d)) = ((fromIntegral a,fromIntegral b),(fromIntegral c,fromIntegral d))
+
+dimR :: CutDirection -> Rectangle -> Dimension
+dimR Vertical (Rectangle _ _ _ h) = h
+dimR Horizontal (Rectangle _ _ w _) = w
 
 maxL :: Ord a => [a] -> a
 maxL [] = error "maxL on empty list"
@@ -315,10 +336,10 @@ run_with_only limit j =
                                return x
 
 data WindowHint = RelArea Double
-                | MaxX Double
-                | MaxY Double
-                | MinX Double
-                | MinY Double
+                | MaxX Dimension
+                | MaxY Dimension
+                | MinX Dimension
+                | MinY Dimension
                 | AspectRatio Double
                 | FlexibleAspectRatio Double
                   deriving ( Show, Read, Eq, Ord )
@@ -342,9 +363,9 @@ crop1 h r = crop1' h r
 crop1' :: WindowHint -> Rectangle -> Rectangle
 crop1' (AspectRatio f) r = cropit f r
 crop1' (FlexibleAspectRatio f) r = cropit f r
-crop1' (MaxX xm) (Rectangle x y w h) | fromIntegral w > xm = Rectangle x y (floor xm) h
+crop1' (MaxX xm) (Rectangle x y w h) | w > xm = Rectangle x y xm h
                                      | otherwise = Rectangle x y w h
-crop1' (MaxY xm) (Rectangle x y w h) | fromIntegral h > xm = Rectangle x y w (floor xm)
+crop1' (MaxY xm) (Rectangle x y w h) | h > xm = Rectangle x y w xm
                                      | otherwise = Rectangle x y w h
 crop1' _ r = r
 
@@ -378,6 +399,7 @@ a -/ b = fromIntegral a / b
 a -* b = fromIntegral a * b
 
 split :: CutDirection -> Double -> Rectangle -> (Rectangle, Rectangle)
+split d frac r | frac <= 0 || frac >= 1 = split d 0.5 r
 split Vertical frac (Rectangle sx sy sw sh) = (Rectangle sx sy sw h,
                                                Rectangle sx (sy+fromIntegral h) sw (sh-h))
     where h = floor $ fromIntegral sh * frac
