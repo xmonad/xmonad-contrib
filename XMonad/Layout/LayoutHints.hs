@@ -27,12 +27,19 @@ import XMonad.Layout.LayoutModifier
 import Control.Monad.Reader ( asks )
 
 -- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
 -- > import XMonad.Layout.LayoutHints
--- > layouts = [ layoutHints tiled , layoutHints $ Mirror tiled ]
-
--- %import XMonad.Layout.LayoutHints
--- %layout , layoutHints $ tiled
--- %layout , layoutHints $ Mirror tiled
+--
+-- Then edit your @layoutHook@ by adding the LayoutHints layout modifier
+-- to some layout:
+--
+-- > myLayouts = layoutHints (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 layoutHints :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHints l a
 layoutHints = ModifiedLayout LayoutHints
