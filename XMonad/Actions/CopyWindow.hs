@@ -29,9 +29,12 @@ import XMonad.Operations ( windows, kill )
 import XMonad.StackSet
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
--- 
+--
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+--
 -- > import XMonad.Actions.CopyWindow
+--
+-- Then add something like this to your keybindings:
 --
 -- > -- mod-[1..9] @@ Switch to workspace N
 -- > -- mod-shift-[1..9] @@ Move client to workspace N
@@ -40,21 +43,13 @@ import XMonad.StackSet
 -- >     | (i, k) <- zip workspaces [xK_1 ..]
 -- >     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
 --
--- you may also wish to redefine the binding to kill a window so it only
+-- You may also wish to redefine the binding to kill a window so it only
 -- removes it from the current workspace, if it's present elsewhere:
 --
 -- >  , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
-
--- %import XMonad.Actions.CopyWindow
--- %keybind -- comment out default close window binding above if you uncomment this:
--- %keybind , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
--- %keybindlist ++
--- %keybindlist -- mod-[1..9] @@ Switch to workspace N
--- %keybindlist -- mod-shift-[1..9] @@ Move client to workspace N
--- %keybindlist -- mod-control-shift-[1..9] @@ Copy client to workspace N
--- %keybindlist [((m .|. modMask, k), f i)
--- %keybindlist     | (i, k) <- zip workspaces [xK_1 ..]
--- %keybindlist     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | copy. Copy the focussed window to a new workspace.
 copy :: WorkspaceId -> WindowSet -> WindowSet
