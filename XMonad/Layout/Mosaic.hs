@@ -47,7 +47,7 @@ import XMonad.Util.Anneal
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --
 -- > myLayouts = mosaic 0.25 0.5 ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

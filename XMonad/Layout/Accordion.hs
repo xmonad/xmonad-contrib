@@ -33,7 +33,7 @@ import Data.Ratio
 -- Then edit your @layoutHook@ by adding the Accordion layout:
 --
 -- > myLayouts = Accordion ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

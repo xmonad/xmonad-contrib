@@ -36,7 +36,7 @@ import Data.List ( partition )
 -- Then edit your @layoutHook@ by adding the Maximize layout modifier:
 --
 -- > myLayouts = maximize (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

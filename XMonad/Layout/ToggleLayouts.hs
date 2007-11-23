@@ -30,7 +30,7 @@ import XMonad
 -- Then edit your @layoutHook@ by adding the ToggleLayouts layout:
 --
 -- > myLayouts = toggleLayouts Full (Tall 1 (3/100) (1/2)) ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

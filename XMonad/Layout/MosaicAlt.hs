@@ -46,7 +46,7 @@ import Graphics.X11.Types ( Window )
 -- Then edit your @layoutHook@ by adding the MosaicAlt layout:
 --
 -- > myLayouts = MosaicAlt M.empty ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

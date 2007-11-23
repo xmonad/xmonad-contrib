@@ -32,7 +32,7 @@ import Graphics.X11.Xlib.Types
 -- Then edit your @layoutHook@ by adding the Grid layout:
 --
 -- > myLayouts = Grid ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

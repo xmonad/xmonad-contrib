@@ -31,7 +31,7 @@ import XMonad
 -- to some layout:
 --
 -- > myLayouts = Named "real big" Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

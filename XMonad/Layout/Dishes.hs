@@ -36,7 +36,7 @@ import Graphics.X11.Xlib
 -- Then edit your @layoutHook@ by adding the Dishes layout:
 --
 -- > myLayouts = Dishes 2 (1/6) ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

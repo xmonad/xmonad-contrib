@@ -47,7 +47,7 @@ import XMonad.Layout.LayoutModifier
 -- to some layout:
 --
 -- > myLayouts = workspaceDir "~" (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

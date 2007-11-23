@@ -38,7 +38,7 @@ import qualified XMonad.StackSet as W
 -- Then edit your @layoutHook@ by adding the TilePrime layout:
 --
 -- > myLayouts = TilePrime 1 (3/100) (1/2) False ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- Use @True@ as the last argument to get a wide layout.
 --

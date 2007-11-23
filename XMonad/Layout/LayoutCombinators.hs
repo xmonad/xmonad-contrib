@@ -39,7 +39,7 @@ import XMonad.Layout.DragPane
 -- Then edit your @layoutHook@ by using the new layout combinators:
 --
 -- > myLayouts = (Tall 1 (3/100) (1/2) <-/> Full)  ||| (Tall 1 (3/100) (1/2) <||-> Full) ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

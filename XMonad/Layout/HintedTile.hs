@@ -37,7 +37,7 @@ import Control.Monad.Reader
 -- Then edit your @layoutHook@ by adding the HintedTile layout:
 --
 -- > myLayouts = HintedTile 1 0.1 0.5 Tall ||| Full ||| etc..
--- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
