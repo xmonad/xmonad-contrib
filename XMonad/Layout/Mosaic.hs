@@ -40,13 +40,12 @@ import XMonad.Util.Anneal
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import qualified Data.Map as M
 -- > import XMonad.Layout.Mosaic
 -- > import XMonad.Operations
 --
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --
--- > myLayouts = mosaic 0.25 0.5 M.empty ||| Full ||| etc..
+-- > myLayouts = mosaic 0.25 0.5 ||| Full ||| etc..
 -- > main = xmonad dafaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
