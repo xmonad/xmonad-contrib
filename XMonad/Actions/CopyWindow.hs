@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fglasgow-exts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CopyWindow
@@ -16,10 +17,11 @@
 module XMonad.Actions.CopyWindow (
                                  -- * Usage
                                  -- $usage
-                                 copy, kill1
+                                 copy, copyWindow, kill1
                                 ) where
 
 import Prelude hiding ( filter )
+import Graphics.X11.Xlib ( Window )
 import Control.Monad.State ( gets )
 import qualified Data.List as L
 import XMonad
@@ -54,15 +56,22 @@ import XMonad.StackSet
 -- %keybindlist     | (i, k) <- zip workspaces [xK_1 ..]
 -- %keybindlist     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
 
--- | copy. Copy a window to a new workspace.
+-- | copy. Copy the focussed window to a new workspace.
 copy :: WorkspaceId -> WindowSet -> WindowSet
-copy n = copy'
-    where copy' s = if n `tagMember` s && n /= tag (workspace (current s))
-                    then maybe s (go s) (peek s)
+copy n s | Just w <- peek s = copyWindow w n s
+         | otherwise = s
+
+-- | copyWindow.  Copy a window to a new workspace
+copyWindow :: Window -> WorkspaceId -> WindowSet -> WindowSet
+copyWindow w n = copy'
+    where copy' s = if n `tagMember` s
+                    then view (tag (workspace (current s))) $ insertUp' w $ view n s
                     else s
-          go s w = view (tag (workspace (current s))) $ insertUp' w $ view n s
           insertUp' a s = modify (Just $ Stack a [] [])
-                          (\(Stack t l r) -> Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
+                          (\(Stack t l r) -> if a `elem` t:l++r
+                                             then Just $ Stack t l r
+                                             else Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
+
 
 -- | Remove the focused window from this workspace.  If it's present in no
 -- other workspace, then kill it instead. If we do kill it, we'll get a
