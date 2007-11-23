@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Find an empty workspace in XMonad.
+-- Find an empty workspace.
 --
 -----------------------------------------------------------------------------
 
@@ -28,23 +28,21 @@ import XMonad.StackSet
 import XMonad.Operations
 
 -- $usage
--- 
--- To use, modify your Config.hs to:
+--
+-- To use, import this module into your @~\/.xmonad\/xmonad.hs@:
 --
 -- >   import XMonad.Actions.FindEmptyWorkspace
 --
--- and add a keybinding:
+-- and add the desired keybindings, for example:
 --
 --  >   , ((modMask,                xK_m    ), viewEmptyWorkspace)
 --  >   , ((modMask .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
 --
--- Now you can jump to an empty workspace with mod-m. Mod-shift-m will
--- tag the current window to an empty workspace and view it.
-
--- %import XMonad.Actions.FindEmptyWorkspace
--- %keybind , ((modMask,                xK_m    ), viewEmptyWorkspace)
--- %keybind , ((modMask .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
-
+-- Now you can jump to an empty workspace with @mod-m@. @Mod-shift-m@
+-- will tag the current window to an empty workspace and view it.
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | Find the first hidden empty workspace in a StackSet. Returns
 -- Nothing if all workspaces are in use. Function searches currently
