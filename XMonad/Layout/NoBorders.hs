@@ -44,10 +44,9 @@ import Data.List ((\\))
 --
 -- > layoutHook = ... ||| noBorders Full ||| ...
 --
-
--- %import XMonad.Layout.NoBorders
--- %layout -- prepend noBorders to default layouts above to remove their borders, like so:
--- %layout , noBorders Full
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 -- todo, use an InvisibleList.
 data WithBorder a = WithBorder Dimension [a] deriving ( Read, Show )
