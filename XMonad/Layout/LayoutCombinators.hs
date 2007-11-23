@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutCombinators
@@ -11,16 +10,18 @@
 -- Stability    : unstable
 -- Portability  : portable
 --
--- A module for combining XMonad.Layouts
+-- A module for combining other layouts.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.LayoutCombinators (
     -- * Usage
     -- $usage
-    (<|>), (</>), (<||>), (<//>), (|||), JumpToLayout(JumpToLayout),
-    (<-/>), (</->), (<-|>), (<|->),
-    (<-//>), (<//->), (<-||>), (<||->),
-
+    (<||>),(<-||>),(<||->),
+    (<//>),(<-//>),(<//->),
+    (<|>),(<-|>),(<|->),
+    (</>),(<-/>),(</->),
+    (|||),
+    JumpToLayout(JumpToLayout)
     ) where
 
 import Data.Maybe ( isJust, isNothing )
@@ -31,32 +32,96 @@ import XMonad.Layout.Combo
 import XMonad.Layout.DragPane
 
 -- $usage
--- Use LayoutCombinators to easily combine Layouts.
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Layout.LayoutCombinators
+--
+-- Then edit your @layoutHook@ by using the new layout combinators:
+--
+-- > myLayouts = (Tall 1 (3/100) (1/2) <-/> Full)  ||| (Tall 1 (3/100) (1/2) <||-> Full) ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 infixr 6 <||>, <//>, <-||>, <-//>, <||->, <//->, <|>, <-|>, <|->, </>, <-/>, </->
 
-(<||>), (<//>), (<-||>), (<-//>), (<||->), (<//->)
-    :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-       l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
-(<|>), (<-|>), (<|->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-                         => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
-(</>), (<-/>), (</->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-                         => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
+-- | Combines two layouts vertically using dragPane
+(<||>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
 
-(<||>) = combineTwo (dragPane Vertical 0.1 0.5)
+-- | Combines two layouts vertically using dragPane giving more screen
+-- to the first layout
+(<-||>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
+
+-- | Combines two layouts vertically using dragPane giving more screen
+-- to the second layout
+(<||->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
+
+-- | Combines two layouts horizzontally using dragPane
+(<//>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
+
+-- | Combines two layouts horizzontally using dragPane giving more screen
+-- to the first layout
+(<-//>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
+
+-- | Combines two layouts horizzontally using dragPane giving more screen
+-- to the first layout
+(<//->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
+
+-- | Combines two layouts vertically using Tall
+(<|>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+          => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
+
+-- | Combines two layouts vertically using Tall giving more screen
+-- to the first layout
+(<-|>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+          => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
+
+-- | Combines two layouts vertically using Tall giving more screen
+-- to the second layout
+(<|->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+          => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
+
+-- | Combines two layouts horizzontally using Mirror Tall (a wide
+-- layout)
+(</>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+          => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
+
+-- | Combines two layouts horizzontally using Mirror Tall (a wide
+-- layout) giving more screen to the first layout
+(<-/>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+          => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
+
+-- | Combines two layouts horizzontally using Mirror Tall (a wide
+-- layout) giving more screen to the second layout
+(</->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+          => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
+
+-- implementation
+(<||>)  = combineTwo (dragPane Vertical 0.1 0.5)
 (<-||>) = combineTwo (dragPane Vertical 0.1 0.2)
 (<||->) = combineTwo (dragPane Vertical 0.1 0.8)
-(<//>) = combineTwo (dragPane Horizontal 0.1 0.5)
+(<//>)  = combineTwo (dragPane Horizontal 0.1 0.5)
 (<-//>) = combineTwo (dragPane Horizontal 0.1 0.8)
 (<//->) = combineTwo (dragPane Horizontal 0.1 0.2)
-(<|>) = combineTwo (Tall 1 0.1 0.5)
-(<-|>) = combineTwo (Tall 1 0.1 0.8)
-(<|->) = combineTwo (Tall 1 0.1 0.1)
-(</>) = combineTwo (Mirror $ Tall 1 0.1 0.5)
-(<-/>) = combineTwo (Mirror $ Tall 1 0.1 0.8)
-(</->) = combineTwo (Mirror $ Tall 1 0.1 0.2)
+(<|>)   = combineTwo (Tall 1 0.1 0.5)
+(<-|>)  = combineTwo (Tall 1 0.1 0.8)
+(<|->)  = combineTwo (Tall 1 0.1 0.1)
+(</>)   = combineTwo (Mirror $ Tall 1 0.1 0.5)
+(<-/>)  = combineTwo (Mirror $ Tall 1 0.1 0.8)
+(</->)  = combineTwo (Mirror $ Tall 1 0.1 0.2)
 
 infixr 5 |||
+
+-- | A new layout combinator that allows the use of a prompt to change
+-- layout. For more information see "Xmonad.Prompt.Layout"
 (|||) :: (LayoutClass l1 a, LayoutClass l2 a) => l1 a -> l2 a -> NewSelect l1 l2 a
 (|||) = NewSelect True
 
@@ -123,3 +188,5 @@ passOnM m (NewSelect False lt lf) = do mlf' <- handleMessage lf m
 
 when' :: Monad m => (a -> Bool) -> m a -> m a -> m a
 when' f a b = do a1 <- a; if f a1 then b else return a1
+
+--  LocalWords:  horizzontally
