@@ -10,6 +10,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
+-- A module for assigning a name to a given layout.
+--
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Named (
@@ -21,13 +23,19 @@ module XMonad.Layout.Named (
 import XMonad
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Named
 --
--- and change the name of a given layout by
+-- Then edit your @layoutHook@ by adding the Named layout modifier
+-- to some layout:
 --
--- > layout = Named "real big" Full ||| ...
+-- > myLayouts = Named "real big" Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Named l a = Named String (l a) deriving ( Read, Show )
 
