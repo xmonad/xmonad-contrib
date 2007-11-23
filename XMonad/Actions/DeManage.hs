@@ -8,17 +8,19 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This module provides a method to cease management of a window, without
--- unmapping it.  This is especially useful for applications like kicker and
--- gnome-panel.
+-- This module provides a method to cease management of a window
+-- without unmapping it.  This is especially useful for applications
+-- like kicker and gnome-panel.
 --
 -- To make a panel display correctly with xmonad:
 --
---  * Determine the pixel size of the panel, add that value to defaultGaps
+--  * Determine the pixel size of the panel, add that value to
+--    'XMonad.Core.XConfig.defaultGaps'
 --
 --  * Launch the panel
 --
---  * Give the panel window focus, then press mod-d
+--  * Give the panel window focus, then press @mod-d@ (or whatever key
+--    you have bound 'demanage' to)
 --
 --  * Convince the panel to move\/resize to the correct location.  Changing the
 --  panel's position setting several times seems to work.
@@ -38,19 +40,18 @@ import Control.Monad.State
 import Graphics.X11 (Window)
 
 -- $usage
--- To use demanage, add this import:
+-- To use demanage, add this import to your @~\/.xmonad\/xmonad.hs@:
 --
 -- >     import XMonad.Actions.DeManage
 --
--- And add a keybinding to it:
+-- And add a keybinding, such as:
 --
 -- > , ((modMask,               xK_d     ), withFocused demanage)
 --
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Actions.DeManage
--- %keybind , ((modMask,               xK_d     ), withFocused demanage)
-
--- | Stop managing the current focused window.
+-- | Stop managing the currently focused window.
 demanage :: Window -> X ()
 demanage w = do
     -- use modify to defeat automatic 'unmanage' calls.
