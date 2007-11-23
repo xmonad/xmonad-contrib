@@ -34,7 +34,7 @@ import XMonad.Layout.DragPane
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import XMonad.Layout.LayoutCombinators
+-- > import XMonad.Layout.LayoutCombinators hiding ( (|||) )
 --
 -- Then edit your @layoutHook@ by using the new layout combinators:
 --
