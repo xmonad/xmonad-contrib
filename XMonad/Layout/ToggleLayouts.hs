@@ -11,7 +11,7 @@
 -- Stability    : unstable
 -- Portability  : portable
 --
--- A module for writing easy Layouts
+-- A module to toggle between two layouts.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.ToggleLayouts (
@@ -23,21 +23,30 @@ module XMonad.Layout.ToggleLayouts (
 import XMonad
 
 -- $usage
--- Use toggleLayouts to toggle between two layouts.
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- import XMonad.Layout.ToggleLayouts
+-- > import XMonad.Layout.ToggleLayouts
 --
--- and add to your layoutHook something like
+-- Then edit your @layoutHook@ by adding the ToggleLayouts layout:
 --
--- > layoutHook = Layout $ toggleLayouts (noBorders Full) $ Select layouts
+-- > myLayouts = toggleLayouts Full (Tall 1 (3/100) (1/2)) ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
 --
--- and a key binding like
+-- For more detailed instructions on editing the layoutHook see:
 --
--- >    , ((modMask .|. controlMask, xK_space), sendMessage ToggleLayout)
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- To toggle between layouts add a key binding like
+--
+-- >    , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
 --
 -- or a key binding like
 --
--- >    , ((modMask .|. controlMask, xK_space), sendMessage (Toggle "Full"))
+-- >    , ((modMask x .|. controlMask, xK_space), sendMessage (Toggle "Full"))
+--
+-- For detailed instruction on editing the key binding see:
+--
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data ToggleLayouts lt lf a = ToggleLayouts Bool (lt a) (lf a) deriving (Read,Show)
 data ToggleLayout = ToggleLayout | Toggle String deriving (Read,Show,Typeable)
