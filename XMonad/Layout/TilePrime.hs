@@ -31,18 +31,20 @@ import XMonad hiding (trace)
 import qualified XMonad.StackSet as W
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.TilePrime
 --
--- and add the following line to your 'layouts'
+-- Then edit your @layoutHook@ by adding the TilePrime layout:
 --
--- > , Layout $ TilePrime nmaster delta ratio False
+-- > myLayouts = TilePrime 1 (3/100) (1/2) False ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
 --
--- Use True as the last argument to get a wide layout.
-
--- %import XMonad.Layout.TilePrime
--- %layout , Layout $ TilePrime nmaster delta ratio False
+-- Use @True@ as the last argument to get a wide layout.
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data TilePrime a = TilePrime
                          { nmaster     :: Int
