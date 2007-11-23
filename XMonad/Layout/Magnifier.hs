@@ -2,11 +2,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Magnifier
--- Copyright   :  (c) Peter De Wachter 2007
+-- Copyright   :  (c) Peter De Wachter and Andrea Rossato 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
--- Maintainer  :  Peter De Wachter <pdewacht@gmail.com>,
---                andrea.rossato@unibz.it
+-- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -18,11 +17,13 @@
 -----------------------------------------------------------------------------
 
 
-module XMonad.Layout.Magnifier (
-    -- * Usage
-    -- $usage
-    magnifier,
-    magnifier') where
+module XMonad.Layout.Magnifier
+    ( -- * Usage
+      -- $usage
+      magnifier,
+      magnifier',
+      MagnifyMsg (..)
+    ) where
 
 import Graphics.X11.Xlib (Window, Rectangle(..))
 import XMonad
@@ -43,24 +44,54 @@ import XMonad.Layout.LayoutModifier
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- Magnifier supports some commands. To used them add something like
+-- that to your key bindings:
+--
+-- >    , ((modMask x .|. controlMask              , xK_plus ), sendMessage MagnifyMore)
+-- >    , ((modMask x .|. controlMask              , xK_minus), sendMessage MagnifyLess)
+-- >    , ((modMask x .|. controlMask              , xK_o    ), sendMessage ToggleOff  )
+-- >    , ((modMask x .|. controlMask .|. shiftMask, xK_o    ), sendMessage ToggleOn   )
+--
+-- For detailed instruction on editing the key binding see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- | Increase the size of the window that has focus, unless it is the
--- master window.
+-- | Increase the size of the window that has focus
 magnifier :: l a -> ModifiedLayout Magnifier l a
-magnifier = ModifiedLayout (M True)
+magnifier = ModifiedLayout (Mag 1.5 On All)
 
--- | Increase the size of the window that has focus, even if it is the
+-- | Increase the size of the window that has focus, unless if it is the
 -- master window.
 magnifier' :: l a -> ModifiedLayout Magnifier l a
-magnifier' = ModifiedLayout (M False)
+magnifier' = ModifiedLayout (Mag 1.5 On NoMaster)
 
-data Magnifier a = M Bool deriving (Read, Show)
+data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff deriving ( Typeable )
+instance Message MagnifyMsg
+
+data Magnifier a = Mag Zoom Toggle MagnifyMaster deriving (Read, Show)
+
+type Zoom = Double
+
+data Toggle        = On  | Off      deriving  (Read, Show)
+data MagnifyMaster = All | NoMaster deriving  (Read, Show)
 
 instance LayoutModifier Magnifier Window where
-    modifierDescription (M b) = (if b then "" else "All") ++ "Magnifier"
-    redoLayout          (M b) = if b
-                                then unlessMaster applyMagnifier
-                                else applyMagnifier
+    redoLayout  (Mag z On All     ) = applyMagnifier z
+    redoLayout  (Mag z On NoMaster) = unlessMaster $ applyMagnifier z
+    redoLayout  _                   = nothing
+        where nothing _ _ wrs = return (wrs, Nothing)
+
+    handleMess (Mag z On  t) m
+                    | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z + 0.1) On  t)
+                    | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z - 0.1) On  t)
+                    | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z + 0.1) Off t)
+    handleMess (Mag z Off t) m
+                    | Just ToggleOn    <- fromMessage m = return . Just $ (Mag z         On  t)
+    handleMess _ _ = return Nothing
+
+    modifierDescription (Mag _ On  All     ) = "Magnifier"
+    modifierDescription (Mag _ On  NoMaster) = "Magnifier NoMaster"
+    modifierDescription (Mag _ Off _       ) = "Magnifier (off)"
 
 type NewLayout a = Rectangle -> Stack a -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe (Magnifier a))
 
@@ -68,19 +99,18 @@ unlessMaster :: NewLayout a -> NewLayout a
 unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
                                               else mainmod r s wrs
 
-applyMagnifier :: Rectangle -> t -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe a)
-applyMagnifier r _ wrs = do focused <- withWindowSet (return . peek)
-                            let mag (w,wr) ws | focused == Just w = ws ++ [(w, shrink r $ magnify wr)]
-                                              | otherwise         = (w,wr) : ws
-                            return (reverse $ foldr mag [] wrs, Nothing)
+applyMagnifier :: Double -> Rectangle -> t -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe a)
+applyMagnifier z r _ wrs = do focused <- withWindowSet (return . peek)
+                              let mag (w,wr) ws | focused == Just w = ws ++ [(w, shrink r $ magnify z wr)]
+                                                | otherwise         = (w,wr) : ws
+                              return (reverse $ foldr mag [] wrs, Nothing)
 
-magnify :: Rectangle -> Rectangle
-magnify (Rectangle x y w h) = Rectangle x' y' w' h'
+magnify :: Double -> Rectangle -> Rectangle
+magnify zoom (Rectangle x y w h) = Rectangle x' y' w' h'
     where x' = x - fromIntegral (w' - w) `div` 2
           y' = y - fromIntegral (h' - h) `div` 2
           w' = round $ fromIntegral w * zoom
           h' = round $ fromIntegral h * zoom
-          zoom = 1.5 :: Double
 
 shrink :: Rectangle -> Rectangle -> Rectangle
 shrink (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'
