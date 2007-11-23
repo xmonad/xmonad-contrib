@@ -6,7 +6,7 @@
 -- Module      :  XMonad.Layout.WindowNavigation
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  David Roundy <droundy@darcs.net>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -15,7 +15,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.WindowNavigation ( 
+module XMonad.Layout.WindowNavigation (
                                    -- * Usage
                                    -- $usage
                                    windowNavigation, configurableNavigation,
@@ -37,37 +37,35 @@ import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.WindowNavigation
--- >
--- > layoutHook = Layout $ windowNavigation $ Select ...
 --
--- or perhaps
+-- Then edit your @layoutHook@ by adding the WindowNavigation layout modifier
+-- to some layout:
 --
--- > layoutHook = Layout $ configurableNavigation (navigateColor "green") $ Select ...
+-- > myLayouts = windowNavigation (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
 -- In keybindings:
 --
--- >    , ((modMask, xK_Right), sendMessage $ Go R)
--- >    , ((modMask, xK_Left ), sendMessage $ Go L)
--- >    , ((modMask, xK_Up   ), sendMessage $ Go U)
--- >    , ((modMask, xK_Down ), sendMessage $ Go D)
+-- >    , ((modMask x,                 xK_Right), sendMessage $ Go R)
+-- >    , ((modMask x,                 xK_Left ), sendMessage $ Go L)
+-- >    , ((modMask x,                 xK_Up   ), sendMessage $ Go U)
+-- >    , ((modMask x,                 xK_Down ), sendMessage $ Go D)
+-- >    , ((modMask x .|. controlMask, xK_Right), sendMessage $ Swap R)
+-- >    , ((modMask x .|. controlMask, xK_Left ), sendMessage $ Swap L)
+-- >    , ((modMask x .|. controlMask, xK_Up   ), sendMessage $ Swap U)
+-- >    , ((modMask x .|. controlMask, xK_Down ), sendMessage $ Swap D)
+--
+-- For detailed instruction on editing the key binding see:
+--
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Layout.WindowNavigation
--- %keybind , ((modMask,                 xK_Right), sendMessage $ Go R)
--- %keybind , ((modMask,                 xK_Left ), sendMessage $ Go L)
--- %keybind , ((modMask,                 xK_Up   ), sendMessage $ Go U)
--- %keybind , ((modMask,                 xK_Down ), sendMessage $ Go D)
--- %keybind , ((modMask .|. controlMask, xK_Right), sendMessage $ Swap R)
--- %keybind , ((modMask .|. controlMask, xK_Left ), sendMessage $ Swap L)
--- %keybind , ((modMask .|. controlMask, xK_Up   ), sendMessage $ Swap U)
--- %keybind , ((modMask .|. controlMask, xK_Down ), sendMessage $ Swap D)
--- %layout -- include 'windowNavigation' in layoutHook definition above.
--- %layout -- just before the list, like the following (don't uncomment next line):
--- %layout -- layoutHook = Layout $ windowNavigation $ ...
--- %layout -- or
--- %layout -- layoutHook = Layout $ configurableNavigation (navigateColor "green") $ ...
 
 data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeable )
 instance Typeable a => Message (MoveWindowToWindow a)
@@ -76,7 +74,7 @@ data Navigate = Go Direction | Swap Direction | Move Direction deriving ( Read, 
 data Direction = U | D | R | L deriving ( Read, Show, Eq )
 instance Message Navigate
 
-data WNConfig = 
+data WNConfig =
     WNC { brightness    :: Maybe Double -- Indicates a fraction of the focus color.
         , upColor       :: String
         , downColor     :: String
@@ -85,7 +83,7 @@ data WNConfig =
         } deriving (Show, Read)
 
 noNavigateBorders :: WNConfig
-noNavigateBorders = 
+noNavigateBorders =
     defaultWNConfig {brightness = Just 0}
 
 navigateColor :: String -> WNConfig
