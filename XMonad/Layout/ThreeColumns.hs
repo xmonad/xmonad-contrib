@@ -32,17 +32,20 @@ import Control.Monad.Reader
 import Graphics.X11.Xlib
 
 -- $usage
---
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.ThreeColumns
 --
---  and add, to the list of layouts:
+-- Then edit your @layoutHook@ by adding the ThreeCol layout:
 --
--- > ThreeCol nmaster delta ratio
-
--- %import XMonad.Layout.ThreeColumns
--- %layout , ThreeCol nmaster delta ratio
+-- > myLayouts = ThreeCol 1 (3/100) (1/2) False ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- Use @True@ as the last argument to get a wide layout.
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data ThreeCol a = ThreeCol Int Rational Rational deriving (Show,Read)
 
