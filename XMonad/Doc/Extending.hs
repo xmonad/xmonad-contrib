@@ -68,6 +68,9 @@ module XMonad.Doc.Extending
     -- *** Adding and removing key bindings
     -- $keyAddDel
 
+    -- ** Editing mouse bindings
+    -- $mouse
+
     -- ** Editing the layout hook
     -- $layoutHook
 
@@ -577,6 +580,29 @@ for removing and adding.  Here is an example from
 You can achieve the same result using the "XMonad.Util.CustomKeys"
 module; take a look at the 'XMonad.Util.CustomKeys.customKeys'
 function in particular.
+
+-}
+
+{- $mouse
+#Editing_mouse_bindings#
+
+Most of the previous discussion of key bindings applies to mouse
+bindings as well.  For example, you could configure button4 to close
+the window you click on like so:
+
+>    import qualified Data.Map as M
+>
+>    myMouse x  = [ (0, button4), (\w -> focus w >> kill) ]
+>
+>    newMouse x = M.union (mouseBindings defaultConfig x) (M.fromList (myMouse x))
+>
+>    main = xmonad $ defaultConfig { ..., mouseBindings = newMouse, ... }
+
+Overriding or deleting mouse bindings works similarly.  You can also
+configure mouse bindings much more easily using the
+'XMonad.Util.EZConfig.additionalMouseBindings' and
+'XMonad.Util.EZConfig.removeMouseBindings' functions from the
+"XMonad.Util.EZConfig" module.
 
 -}
 
