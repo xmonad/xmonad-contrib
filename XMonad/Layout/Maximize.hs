@@ -29,20 +29,27 @@ import XMonad.Layout.LayoutModifier
 import Data.List ( partition )
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Maximize
 --
--- > layouts = ...
--- >                  , Layout $ maximize $ tiled ...
--- >                  ...
+-- Then edit your @layoutHook@ by adding the Maximize layout modifier:
 --
--- > keys = ...
--- >        , ((modMask, xK_backslash), withFocused (sendMessage . maximizeRestore))
+-- > myLayouts = maximize (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- In the key-bindings, do something like:
+--
+-- >        , ((modMask x, xK_backslash), withFocused (sendMessage . maximizeRestore))
 -- >        ...
-
--- %import XMonad.Layout.Maximize
--- %layout , Layout $ maximize $ tiled
+--
+-- For detailed instruction on editing the key binding see:
+--
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Maximize a = Maximize (Maybe Window) deriving ( Read, Show )
 maximize :: LayoutClass l Window => l Window -> ModifiedLayout Maximize l Window
