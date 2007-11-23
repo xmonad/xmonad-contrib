@@ -9,7 +9,7 @@
 -- Portability :  unportable
 --
 -- Dwm-like swap function for xmonad.
--- 
+--
 -- Swaps focused window with the master window. If focus is in the
 -- master, swap it with the next window in the stack. Focus stays in the
 -- master.
@@ -18,7 +18,7 @@
 
 module XMonad.Actions.DwmPromote (
                                  -- * Usage
-                                 -- $usage 
+                                 -- $usage
                                  dwmpromote
                                 ) where
 
@@ -28,17 +28,20 @@ import XMonad.StackSet
 
 -- $usage
 --
--- To use, modify your Config.hs to:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- >    import XMonad.Actions.DwmPromote
 --
--- and add a keybinding or substitute promote with dwmpromote:
+-- then add a keybinding or substitute 'dwmpromote' in place of promote:
 --
 -- >   , ((modMask,               xK_Return), dwmpromote)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Actions.DwmPromote
--- %keybind , ((modMask,               xK_Return), dwmpromote)
-
+-- | Swap the focused window with the master window. If focus is in
+--   the master, swap it with the next window in the stack. Focus
+--   stays in the master.
 dwmpromote :: X ()
 dwmpromote = windows $ modify' $
              \c -> case c of
