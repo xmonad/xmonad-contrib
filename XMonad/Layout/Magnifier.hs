@@ -45,8 +45,8 @@ import XMonad.Layout.LayoutModifier
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
--- Magnifier supports some commands. To used them add something like
--- that to your key bindings:
+-- Magnifier supports some commands. To use them add something like
+-- this to your key bindings:
 --
 -- >    , ((modMask x .|. controlMask              , xK_plus ), sendMessage MagnifyMore)
 -- >    , ((modMask x .|. controlMask              , xK_minus), sendMessage MagnifyLess)
