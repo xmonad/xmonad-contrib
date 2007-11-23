@@ -692,21 +692,22 @@ That's it!
 {- $manageHook
 #Editing_the_manage_hook#
 
-Whenever a new window which must be managed is created, xmonad calls
-the 'XMonad.Core.manageHook', which can thus be used to perform some
-tasks with the new window, such as placing it in a specific workspace,
-or ignoring it, or placing it in the float layer.
+The 'XMonad.Core.manageHook' is a very powerful tool for customizing
+the behavior of xmonad with regard to new windows.  Whenever a new
+window is created, xmonad calls the 'XMonad.Core.manageHook', which
+can thus be used to perform certain actions on the new window, such as
+placing it in a specific workspace, ignoring it, or placing it in the
+float layer.
 
-In other words, the 'XMonad.Core.manageHook' is a very powerful tool
-for customizing the behavior of xmonad with regard to new windows.
+The default 'XMonad.Core.manageHook' causes xmonad to float MPlayer
+and Gimp, and to ignore gnome-panel, desktop_window, kicker, and
+kdesktop.
 
-By default xmonad will place on the float layer Mplayer and Gimp and
-will ignore gnome-panel, desktop_window, kicker, kdesktop.
+The "XMonad.ManageHook" module provides some simple combinators that
+can be used to alter the 'XMonad.Core.manageHook' by replacing or adding
+to the default actions.
 
-"XMonad.ManageHook" provides some simple combinators that can be used
-to extend the manageHook and add custom actions to the default one.
-
-We can start analyzing the default 'XMonad.Config.manageHook', defined
+Let's start by analyzing the default 'XMonad.Config.manageHook', defined
 in "XMonad.Config":
 
 >    manageHook :: ManageHook
@@ -718,18 +719,17 @@ in "XMonad.Config":
 >           ignore = ["gnome-panel", "desktop_window", "kicker", "kdesktop"]
 
 'XMonad.ManageHook.composeAll' can be used to compose a list of
-different 'XMonad.Config.manageHook's. In this example with have three
-lists of 'XMonad.Config.manageHook's: the first one is the list of the
+different 'XMonad.Config.ManageHook's. In this example we have three
+lists of 'XMonad.Config.ManageHook's: the first one is the list of the
 windows to be placed in the float layer with the
 'XMonad.ManageHook.doFloat' function (MPlayer and Gimp); the second
-one is the list of windows the be ignored by xmonad, which can be done
-by using 'XMonad.ManageHook.doIgnore'. The third one, with just one,
-is a 'XMonad.Config.manageHook' that will match firefox, or mozilla,
-and will put them in the workspace named \"web\", with
-'XMonad.ManageHook.doF' and 'XMonad.StackSet.shift'.
+one is the list of windows to be ignored; the third (which contains
+only one 'XMonad.Config.ManageHook') will match firefox, or mozilla,
+and put them in the workspace named \"web\", with
+'XMonad.ManageHook.doF' and 'XMonad.StackSet.shift'. (@concat@ simply
+combines these three lists into a single list.)
 
-
-Each manageHook has the form
+Each 'XMonad.Config.ManageHook' has the form
 
 >    property =? match --> action
 
@@ -739,24 +739,29 @@ Where @property@ can be:
 
 * 'XMonad.ManageHook.resource': the resource name
 
- 'XMonad.ManageHook.className': the resource class name.
+* 'XMonad.ManageHook.className': the resource class name.
 
-You can retrieve the needed information using the X utility named
-@xprop@.
+(You can retrieve the needed information using the X utility named
+@xprop@; for example, to find the resource class name, you can type
+
+> xprop | grep WM_CLASS
+
+at a prompt, then click on the window whose resource class you want to
+know.)
 
 @match@ is string that will match the property value;
 
-And  @action@ can be:
+and @action@ can be:
 
 * 'XMonad.ManageHook.doFloat': to place the window in the float layer;
 
-* 'XMonad.ManageHook.doIgnore': to ignore the window
+* 'XMonad.ManageHook.doIgnore': to ignore the window;
 
-* 'XMonad.ManageHook.doF': execute a function with the window.
+* 'XMonad.ManageHook.doF': to execute a function with the window.
 
-Suppose we want to add a 'XMonad.Config.manageHook' to float
-RealPlayer, which usually has a 'XMonad.ManageHook.resource' name with
-the string \"realplay.bin\".
+For example, suppose we want to add a 'XMonad.Config.manageHook' to
+float RealPlayer, which usually has a 'XMonad.ManageHook.resource'
+name of \"realplay.bin\".
 
 First we need to import "XMonad.ManageHook":
 
@@ -764,41 +769,45 @@ First we need to import "XMonad.ManageHook":
 
 Then we create our own 'XMonad.Config.manageHook':
 
->    myManageHook = resource =? "realplay.bin" --> doFloat  
+>    myManageHook = resource =? "realplay.bin" --> doFloat
 
 We can now use the 'XMonad.ManageHook.<+>' combinator to add our
 'XMonad.Config.manageHook' to the default one:
 
 >    newManageHook = myManageHook <+> (manageHook defaultConfig)
 
-Now, all we need to do is change the 'XMonad.Core.manageHook' field of
-the 'XMonad.Core.XConfig' record, like so:
+(Of course, if we wanted to completely replace the default
+'XMonad.Config.manageHook', this step would not be necessary.) Now,
+all we need to do is change the 'XMonad.Core.manageHook' field of the
+'XMonad.Core.XConfig' record, like so:
 
->    main = xmonad defaultConfig { manageHook = newManageHook }
+>    main = xmonad defaultConfig { ..., manageHook = newManageHook, ... }
 
-And we are done.
+And we are done.  One more thing to note about this system is that if
+a window matches multiple rules in a 'XMonad.Config.manageHook', /all/
+of the corresponding actions will be run (in the order in which they
+are defined).  This is a change from versions before 0.5, when only
+the first rule that matched was run.
 
 -}
 
 {- $logHook
 #The_log_hook_and_external_status_bars#
 
-When the stack of the windows managed by xmonad changes, for any
+When the stack of the windows managed by xmonad changes for any
 reason, xmonad will call 'XMonad.Core.logHook', which can be used to
-dump some information of the internal state of xmonad, such as the
+output some information about the internal state of xmonad, such as the
 layout that is presently in use, the workspace we are in, the focused
 window's title, and so on.
 
-Dumping the internal xmonad state can be somehow difficult, if you are
-not familiar with the source code. It can be helpful to use a module
-that has been designed specifically for logging some of the most
-interesting information about the internal state of xmonad:
-"XMonad.Hooks.DynamicLog".
-
-This module can be used with some external status bar that can be
-configure to print, in a convenient way, the produced logs.
-
-dzen and xmobar are the most common status bars used by xmonad users.
+Extracting information about the internal xmonad state can be somewhat
+difficult if you are not familiar with the source code. Therefore,
+it's usually easiest to use a module that has been designed
+specifically for logging some of the most interesting information
+about the internal state of xmonad: "XMonad.Hooks.DynamicLog".  This
+module can be used with an external status bar to print the produced
+logs in a convenient way; the most commonly used status bars are dzen
+and xmobar.
 
 XXX add some examples.
 
@@ -808,9 +817,13 @@ enable it you need first to import "XMonad.Hooks.DynamicLog":
 >    import XMonad.Hooks.DynamicLog
 
 Then you just need to update the 'XMonad.Core.logHook' field of the
-'XMonad.Core.XConfig' record, like so:
+'XMonad.Core.XConfig' record with one of the provided functions. For
+example:
 
 >    main = xmonad defaultConfig { logHook = dynamicLog }
+
+More interesting configurations are also possible; see the
+"XMonad.Hooks.DynamicLog" module for more possibilities.
 
 You may now enjoy your extended xmonad experience.
 
