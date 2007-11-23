@@ -38,24 +38,32 @@ import Data.Ratio
 import Graphics.X11.Types ( Window )
 
 -- $usage
--- You can use this module with the following in your configuration file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.MosaicAlt
+-- > import qualified Data.Map as M
 --
--- > layouts = ...
--- >                  , Layout $ MosaicAlt M.empty
--- >                  ...
+-- Then edit your @layoutHook@ by adding the MosaicAlt layout:
 --
--- > keys = ...
--- >     , ((modMask .|. shiftMask, xK_a), withFocused (sendMessage . expandWindowAlt))
--- >     , ((modMask .|. shiftMask, xK_z), withFocused (sendMessage . shrinkWindowAlt))
--- >     , ((modMask .|. shiftMask, xK_s), withFocused (sendMessage . tallWindowAlt))
--- >     , ((modMask .|. shiftMask, xK_d), withFocused (sendMessage . wideWindowAlt))
--- >     , ((modMask .|. controlMask, xK_space), sendMessage resetAlt)
+-- > myLayouts = MosaicAlt M.empty ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- In the key-bindings, do something like:
+--
+-- >     , ((modMask x .|. shiftMask  , xK_a    ), withFocused (sendMessage . expandWindowAlt))
+-- >     , ((modMask x .|. shiftMask  , xK_z    ), withFocused (sendMessage . shrinkWindowAlt))
+-- >     , ((modMask x .|. shiftMask  , xK_s    ), withFocused (sendMessage . tallWindowAlt))
+-- >     , ((modMask x .|. shiftMask  , xK_d    ), withFocused (sendMessage . wideWindowAlt))
+-- >     , ((modMask x .|. controlMask, xK_space), sendMessage resetAlt)
 -- >     ...
-
--- %import XMonad.Layout.MosaicAlt
--- %layout , Layout $ MosaicAlt M.empty
+--
+-- For detailed instruction on editing the key binding see:
+--
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data HandleWindowAlt =
     ShrinkWindowAlt Window
