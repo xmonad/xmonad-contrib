@@ -27,17 +27,18 @@ import XMonad.Layouts ( Resize(..), splitHorizontallyBy )
 import XMonad.StackSet ( focus, up, down)
 
 -- $usage
---
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.TwoPane
 --
---  and add, to the list of layouts:
+-- Then edit your @layoutHook@ by adding the TwoPane layout:
 --
--- > , (Layout $ TwoPane 0.03 0.5)
-
--- %import XMonad.Layout.TwoPane
--- %layout , (Layout $ TwoPane 0.03 0.5)
+-- > myLayouts = TwoPane (3/100) (1/2)  ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data TwoPane a = 
     TwoPane Rational Rational 
