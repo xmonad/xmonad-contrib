@@ -27,6 +27,7 @@ import Graphics.X11.Xlib
 
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Combo
+import XMonad.Layout.Mosaic
 import XMonad.Layout.Named
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Square
@@ -109,6 +110,16 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
     , ((modMask x, xK_l ), layoutPrompt myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
+
+-- keybindings for Mosaic:
+    , ((controlMask .|. modMask x .|. shiftMask, xK_h), withFocused (sendMessage . tallWindow))
+    , ((controlMask .|. modMask x .|. shiftMask, xK_l), withFocused (sendMessage . wideWindow))
+    , ((modMask x .|. shiftMask, xK_h     ), withFocused (sendMessage . shrinkWindow))
+    , ((modMask x .|. shiftMask, xK_l     ), withFocused (sendMessage . expandWindow))
+    , ((modMask x .|. shiftMask, xK_s     ), withFocused (sendMessage . squareWindow))
+    , ((modMask x .|. shiftMask, xK_o     ), withFocused (sendMessage . myclearWindow))
+    , ((controlMask .|. modMask x .|. shiftMask, xK_o     ), withFocused (sendMessage . flexibleWindow))
+
     ]
  
     ++
@@ -119,10 +130,13 @@ keys x = M.fromList $
 config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
-         , layoutHook = workspaceDir "~" $ windowNavigation $ toggleLayouts (noBorders Full) $
+         , layoutHook = workspaceDir "~" $ windowNavigation $
+                        toggleLayouts (noBorders Full) $ -- avoidStruts $
                         Named "tabbed" (noBorders mytab) |||
-                        Named "xclock" (mytab <-/> combineTwo Square mytab mytab) |||
-                        mytab <//> mytab
+                        Named "xclock" (mytab <-//> combineTwo Square mytab mytab) |||
+                        Named "widescreen" ((mytab <||> mytab)
+                                                <-//> combineTwo Square mytab mytab) |||
+                        mosaic 0.25 0.5
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#dddddd" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
