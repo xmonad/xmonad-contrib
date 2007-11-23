@@ -24,13 +24,19 @@ import XMonad
 import XMonad.StackSet
 
 -- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
 -- > import XMonad.Layout.MagicFocus
--- > layouts = [ Layout $ MagicFocus tiled , Layout $ MagicFocus $ Mirror tiled ]
-
--- %import XMonad.Layout.MagicFocus
--- %layout , Layout $ MagicFocus tiled
--- %layout , Layout $ MagicFocus $ Mirror tiled
-
+--
+-- Then edit your @layoutHook@ by adding the MagicFocus layout
+-- modifier:
+--
+-- > myLayouts = MagicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data MagicFocus l a = MagicFocus (l a) deriving ( Show , Read )
 
