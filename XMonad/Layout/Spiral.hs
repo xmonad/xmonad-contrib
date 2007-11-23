@@ -5,7 +5,7 @@
 -- Module      :  XMonad.Layout.Spiral
 -- Copyright   :  (c) Joe Thornber <joe.thornber@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Joe Thornber <joe.thornber@gmail.com>
 -- Stability   :  stable
 -- Portability :  portable
@@ -30,14 +30,19 @@ import XMonad.Layouts
 import XMonad.StackSet ( integrate )
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- >   import XMonad.Layout.Spiral
+-- > import XMonad.Layout.Spiral
+-- > import Data.Ratio
 --
--- >   layouts = [ ..., Layout $ spiral (1 % 1), ... ]
-
--- %import XMonad.Layout.Spiral
--- %layout , Layout $ spiral (1 % 1)
+-- Then edit your @layoutHook@ by adding the Spiral layout:
+--
+-- > myLayouts =  spiral (1 % 1) ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
@@ -71,7 +76,7 @@ instance LayoutClass SpiralWithDir a where
               ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
               rects = divideRects (zip ratios dirs) sc
               dirs  = dropWhile (/= dir) $ case rot of
-                                           CW  -> cycle [East .. North] 
+                                           CW  -> cycle [East .. North]
                                            CCW -> cycle [North, West, South, East]
     handleMessage (SpiralWithDir dir rot scale) = return . fmap resize . fromMessage
         where resize Expand = spiralWithDir dir rot $ (21 % 20) * scale
