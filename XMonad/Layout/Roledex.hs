@@ -27,12 +27,18 @@ import Graphics.X11.Xlib
 import Data.Ratio
 
 -- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Roledex 
--- > layouts = [ Layout Roledex ]
-
--- %import XMonad.Layout.Roledex
--- %layout , Layout Roledex
+--
+-- Then edit your @layoutHook@ by adding the Roledex layout:
+--
+-- > myLayouts =  Roledex ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Roledex a = Roledex deriving ( Show, Read )
 
