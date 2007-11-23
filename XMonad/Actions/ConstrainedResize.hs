@@ -3,13 +3,13 @@
 -- Module      :  XMonad.Actions.ConstrainedResize
 -- Copyright   :  (c) Dougal Stanton
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  <dougal@dougalstanton.net>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
 -- Lets you constrain the aspect ratio of a floating
--- window by holding shift while you resize.
+-- window (by, say, holding shift while you resize).
 --
 -- Useful for making a nice circular XClock window.
 --
@@ -27,20 +27,22 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
 -- $usage
--- Put something like this in your Config.hs file:
+--
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import qualified XMonad.Actions.ConstrainedResize as Sqr
--- > mouseBindings = M.fromList
--- >     [ ...
--- >     , ((modMask, button3),               (\w -> focus w >> Sqr.mouseResizeWindow w False))
--- >     , ((modMask .|. shiftMask, button3), (\w -> focus w >> Sqr.mouseResizeWindow w True )) ]
 --
--- The line without the shiftMask replaces the standard mouse resize function call, so it's
--- not completely necessary but seems neater this way.
-
--- %import qualified XMonad.Actions.ConstrainedResize as Sqr
--- %mousebind , ((modMask, button3), (\\w -> focus w >> Sqr.mouseResizeWindow w False))
--- %mousebind , ((modMask .|. shiftMask, button3), (\\w -> focus w >> Sqr.mouseResizeWindow w True))
+-- Then add something like the following to your mouse bindings:
+--
+-- >     , ((modMask, button3),               (\w -> focus w >> Sqr.mouseResizeWindow w False))
+-- >     , ((modMask .|. shiftMask, button3), (\w -> focus w >> Sqr.mouseResizeWindow w True ))
+--
+-- The line without the shiftMask replaces the standard mouse resize
+-- function call, so it's not completely necessary but seems neater
+-- this way.
+--
+-- For detailed instructions on editing your mouse bindings, see
+-- "XMonad.Doc.Extending#Editing_mouse_bindings".
 
 -- | Resize (floating) window with optional aspect ratio constraints.
 mouseResizeWindow :: Window -> Bool -> X ()
