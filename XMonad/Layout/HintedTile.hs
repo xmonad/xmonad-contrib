@@ -62,7 +62,7 @@ instance LayoutClass HintedTile Window where
             | null masters || null slaves = divide o (masters ++ slaves) r
             | otherwise = split o f r (divide o masters) (divide o slaves)
 
-    pureMessage c m = fmap resize (fromMessage m) `mplus`
+    pureMessage c m = fmap resize     (fromMessage m) `mplus`
                       fmap incmastern (fromMessage m)
      where
         resize Shrink = c { frac = max 0 $ frac c - delta c }
