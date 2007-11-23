@@ -11,7 +11,7 @@
 -- Stability    : unstable
 -- Portability  : portable
 --
--- A module for writing easy Layouts
+-- A module for writing easy Llayouts and layout modifiers
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.LayoutModifier (
@@ -25,13 +25,19 @@ import XMonad
 import XMonad.StackSet ( Stack )
 
 -- $usage
--- Use LayoutHelpers to help write easy Layouts.
+-- Use LayoutModifier to help write easy Layouts.
+--
+-- LayouModifier defines a class 'LayoutModifier'. Each method as a
+-- default implementation.
+--
+-- For usage examples you can see "XMonad.Layout.WorkspaceDir",
+-- "XMonad.Layout.Magnifier", "XMonad.Layout.NoBorder",
 
 class (Show (m a), Read (m a)) => LayoutModifier m a where
     handleMess :: m a -> SomeMessage -> X (Maybe (m a))
     handleMess m mess | Just Hide <- fromMessage mess             = doUnhook
-                        | Just ReleaseResources <- fromMessage mess = doUnhook
-                        | otherwise = return Nothing
+                      | Just ReleaseResources <- fromMessage mess = doUnhook
+                      | otherwise = return Nothing
      where doUnhook = do unhook m; return Nothing
     handleMessOrMaybeModifyIt :: m a -> SomeMessage -> X (Maybe (Either (m a) SomeMessage))
     handleMessOrMaybeModifyIt m mess = do mm' <- handleMess m mess
