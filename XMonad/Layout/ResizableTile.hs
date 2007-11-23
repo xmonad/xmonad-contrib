@@ -29,19 +29,27 @@ import Control.Monad.State
 import Control.Monad
 
 -- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- To use, modify your Config.hs to:
+-- > import XMonad.Layout.ResizableTile
 --
--- >    import XMonad.Layout.ResizableTile
+-- Then edit your @layoutHook@ by adding the ResizableTile layout:
 --
--- and add a keybinding:
+-- > myLayouts =  ResizableTall 1 (3/100) (1/2) [] ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
 --
--- >    , ((modMask,               xK_a     ), sendMessage MirrorShrink)
--- >    , ((modMask,               xK_z     ), sendMessage MirrorExpand)
+-- For more detailed instructions on editing the layoutHook see:
 --
--- and redefine "tiled" as:
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
--- >     tiled   = ResizableTall nmaster delta ratio []
+-- You may also want to add the following key bindings:
+--
+-- > , ((modMask x,               xK_a), sendMessage MirrorShrink)
+-- > , ((modMask x,               xK_z), sendMessage MirrorExpand)
+--
+-- For detailed instruction on editing the key binding see:
+--
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data MirrorResize = MirrorShrink | MirrorExpand deriving Typeable
 instance Message MirrorResize
