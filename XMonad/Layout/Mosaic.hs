@@ -26,7 +26,7 @@ import Control.Monad.State ( State, put, get, runState )
 import System.Random ( StdGen, mkStdGen )
 
 import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras ( getWMNormalHints, sh_aspect )
+import Graphics.X11.Xlib.Extras ( SizeHints, getWMNormalHints, sh_aspect, sh_min_size, sh_max_size )
 import XMonad hiding ( trace )
 import XMonad.Layouts ( Resize(Shrink, Expand) )
 import qualified XMonad.StackSet as W
@@ -142,6 +142,35 @@ multiply_aspect r = alterlist f where f [] = [FlexibleAspectRatio r]
                                       f (FlexibleAspectRatio r':x) = FlexibleAspectRatio (r*r'):x
                                       f (x:xs) = x:f xs
 
+set_MaxX :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
+set_MaxX h | Just (mx,_) <- sh_max_size h = replaceinmap isMaxX (MaxX $ fromIntegral mx)
+           | otherwise = const id
+    where isMaxX (MaxX _) = True
+          isMaxX _ = False
+
+set_MaxY :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
+set_MaxY h | Just (_,mx) <- sh_max_size h = replaceinmap isMaxY (MaxY $ fromIntegral mx)
+           | otherwise = const id
+    where isMaxY (MaxY _) = True
+          isMaxY _ = False
+
+set_MinX :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
+set_MinX h | Just (mx,_) <- sh_min_size h = replaceinmap isMinX (MinX $ fromIntegral mx)
+           | otherwise = const id
+    where isMinX (MinX _) = True
+          isMinX _ = False
+
+set_MinY :: SizeHints -> Window -> M.Map Window [WindowHint] -> M.Map Window [WindowHint]
+set_MinY h | Just (_,mx) <- sh_min_size h = replaceinmap isMinY (MinY $ fromIntegral mx)
+           | otherwise = const id
+    where isMinY (MinY _) = True
+          isMinY _ = False
+
+replaceinmap :: Ord a => (a -> Bool) -> a -> Window -> M.Map Window [a] -> M.Map Window [a]
+replaceinmap repl v = alterlist f where f [] = [v]
+                                        f (x:xs) | repl x = v:xs
+                                                 | otherwise = x:f xs
+
 findlist :: Window -> M.Map Window [a] -> [a]
 findlist = M.findWithDefault []
 
@@ -197,7 +226,7 @@ mosaicL f hints origRect origws
                                 zipML (example_mosaic ws) (map findarea ws)
           -}
           mc_mosaic :: [Window] -> CutDirection
-                         -> Rated Double (Mosaic (Window,Rectangle))
+                    -> Rated Double (Mosaic (Window,Rectangle))
           mc_mosaic ws d = fmap (rect_mosaic origRect d) $
                            annealMax (zipML (example_mosaic ws) (map findarea ws))
                            (the_rating . rate_mosaic ratew . rect_mosaic origRect d )
@@ -242,13 +271,12 @@ mosaicL f hints origRect origws
           add_hints [] x = return x
           add_hints (w:ws) x =
               do h <- withDisplay $ \d -> io $ getWMNormalHints d w
-                 case map4 `fmap` sh_aspect h of
-                   Just ((minx,miny),(maxx,maxy))
-                       | or [minx < 1, miny < 1, maxx < 1, maxy < 1] -> add_hints ws x
-                       | minx/miny == maxx/maxy -> add_hints ws $ set_aspect_ratio (minx/miny) w x
-                       | otherwise -> add_hints ws $ make_flexible w $
-                                      set_aspect_ratio (sqrt $ minx*maxx/miny/maxy) w x
-                   Nothing -> add_hints ws x
+                 let set_asp = case map4 `fmap` sh_aspect h of
+                               Just ((minx,miny),(maxx,maxy))
+                                   | or [minx < 1, miny < 1, maxx < 1, maxy < 1] -> id
+                                   | minx/miny == maxx/maxy -> set_aspect_ratio (minx/miny) w
+                               _ -> id
+                 add_hints ws $ set_MinX h w $ set_MinY h w $ set_MaxX h w $ set_MaxY h w $ set_asp x
           map4 :: Integral a => ((a,a),(a,a)) -> ((Double,Double),(Double,Double))
           map4 ((a,b),(c,d)) = ((fromIntegral a,fromIntegral b),(fromIntegral c,fromIntegral d))
 
@@ -287,6 +315,10 @@ run_with_only limit j =
                                return x
 
 data WindowHint = RelArea Double
+                | MaxX Double
+                | MaxY Double
+                | MinX Double
+                | MinY Double
                 | AspectRatio Double
                 | FlexibleAspectRatio Double
                   deriving ( Show, Read, Eq, Ord )
@@ -303,15 +335,25 @@ rate defaulta meanarea xs rr
                   * (area (crop (xs++[FlexibleAspectRatio defaulta]) rr) / meanarea)**flexibility
      where weight = hints2area xs
 
+crop1 :: WindowHint -> Rectangle -> Rectangle
+crop1 (FlexibleAspectRatio f) r = cropit f r
+crop1 h r = crop1' h r
+
+crop1' :: WindowHint -> Rectangle -> Rectangle
+crop1' (AspectRatio f) r = cropit f r
+crop1' (FlexibleAspectRatio f) r = cropit f r
+crop1' (MaxX xm) (Rectangle x y w h) | fromIntegral w > xm = Rectangle x y (floor xm) h
+                                     | otherwise = Rectangle x y w h
+crop1' (MaxY xm) (Rectangle x y w h) | fromIntegral h > xm = Rectangle x y w (floor xm)
+                                     | otherwise = Rectangle x y w h
+crop1' _ r = r
+
 crop :: [WindowHint] -> Rectangle -> Rectangle
-crop (AspectRatio f:_) = cropit f
-crop (FlexibleAspectRatio f:_) = cropit f
-crop (_:hs) = crop hs
+crop (h:hs) = crop hs . crop1 h
 crop [] = id
 
 crop' :: [WindowHint] -> Rectangle -> Rectangle
-crop' (AspectRatio f:_) = cropit f
-crop' (_:hs) = crop' hs
+crop' (h:hs) = crop' hs . crop1' h
 crop' [] = id
 
 cropit :: Double -> Rectangle -> Rectangle
