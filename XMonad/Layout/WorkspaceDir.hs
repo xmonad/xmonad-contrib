@@ -6,7 +6,7 @@
 -- Module      :  XMonad.Layout.WorkspaceDir
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  David Roundy <droundy@darcs.net>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -17,15 +17,15 @@
 -- know of to attach a behavior to a workspace.  This means that any terminals
 -- (or other programs) pulled up in that workspace (with that layout) will
 -- execute in that working directory.  Sort of handy, I think.
--- 
+--
 -- Requires the 'directory' package
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.WorkspaceDir ( 
+module XMonad.Layout.WorkspaceDir (
                                    -- * Usage
                                    -- $usage
-                                   workspaceDir, 
+                                   workspaceDir,
                                    changeDir
                                   ) where
 
@@ -39,22 +39,28 @@ import XMonad.Prompt.Directory ( directoryPrompt )
 import XMonad.Layout.LayoutModifier
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.WorkspaceDir
--- >
--- > layouts = map (workspaceDir "~") [ tiled, ... ]
 --
--- In keybindings:
+-- Then edit your @layoutHook@ by adding the Workspace layout modifier
+-- to some layout:
 --
--- >  , ((modMask .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
-
--- %import XMonad.Layout.WorkspaceDir
--- %keybind , ((modMask .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
--- %layout -- prepend 'map (workspaceDir "~")' to layouts definition above,
--- %layout -- just before the list, like the following (don't uncomment next line):
--- %layout -- layouts = map (workspaceDir "~") [ tiled, ... ]
-
+-- > myLayouts = workspaceDir "~" (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad dafaultConfig { layoutHook = myLayouts }
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- WorkspaceDir provides also a prompt. To use it you need to import
+-- "XMonad.Prompt" and add something like this to your key bindings:
+--
+-- >  , ((modMask x .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
+--
+-- For detailed instruction on editing the key binding see:
+--
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Chdir = Chdir String deriving ( Typeable )
 instance Message Chdir
