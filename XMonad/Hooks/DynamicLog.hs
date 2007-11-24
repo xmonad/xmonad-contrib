@@ -23,6 +23,7 @@ module XMonad.Hooks.DynamicLog (
     -- $usage 
     dynamicLog,
     dynamicLogDzen,
+    dynamicLogXmobar,
     dynamicLogWithPP,
     dynamicLogXinerama,
     dzen,
@@ -249,3 +250,11 @@ sjanssenPP :: PP
 sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
                        , ppTitle = xmobarColor "#00ee00" "" . shorten 80
                        }
+
+-- | These are good defaults to be used with the xmobar status bar
+dynamicLogXmobar :: X ()
+dynamicLogXmobar = 
+    dynamicLogWithPP defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
+                               , ppTitle   = xmobarColor "green"  "" . shorten 40
+                               , ppVisible = wrap "(" ")"
+                               }
