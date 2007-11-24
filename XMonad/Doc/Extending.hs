@@ -729,7 +729,7 @@ and put them in the workspace named \"web\", with
 'XMonad.ManageHook.doF' and 'XMonad.StackSet.shift'. (@concat@ simply
 combines these three lists into a single list.)
 
-Each 'XMonad.Config.ManageHook' has the form
+Each 'XMonad.Config.ManageHook' has the form:
 
 >    property =? match --> action
 
@@ -749,15 +749,17 @@ Where @property@ can be:
 at a prompt, then click on the window whose resource class you want to
 know.)
 
-@match@ is string that will match the property value;
+@match@ is the string that will match the property value (for instance
+the one you retrieved with @xprop@).
 
-and @action@ can be:
+An  @action@ can be:
 
 * 'XMonad.ManageHook.doFloat': to place the window in the float layer;
 
 * 'XMonad.ManageHook.doIgnore': to ignore the window;
 
-* 'XMonad.ManageHook.doF': to execute a function with the window.
+* 'XMonad.ManageHook.doF': to execute a function with the window as
+  argument.
 
 For example, suppose we want to add a 'XMonad.Config.manageHook' to
 float RealPlayer, which usually has a 'XMonad.ManageHook.resource'
@@ -774,7 +776,7 @@ Then we create our own 'XMonad.Config.manageHook':
 We can now use the 'XMonad.ManageHook.<+>' combinator to add our
 'XMonad.Config.manageHook' to the default one:
 
->    newManageHook = myManageHook <+> (manageHook defaultConfig)
+>    newManageHook = myManageHook <+> manageHook defaultConfig
 
 (Of course, if we wanted to completely replace the default
 'XMonad.Config.manageHook', this step would not be necessary.) Now,
@@ -788,6 +790,26 @@ a window matches multiple rules in a 'XMonad.Config.manageHook', /all/
 of the corresponding actions will be run (in the order in which they
 are defined).  This is a change from versions before 0.5, when only
 the first rule that matched was run.
+
+Obviously we may be willing to add more then one
+'XMonad.Config.manageHook'. In this case we can use a list of hooks,
+compose them all with 'XMonad.ManageHook.composeAll', and add the
+composed to the default one.
+
+For instance, if we want RealPlayer to float and thunderbird always
+opened in the workspace named "mail" we can do like this:
+
+>    myManageHook = composeAll [ resource =? "realplay.bin"    --> doFloat
+>                              , resource =? "thunderbird-bin" --> doF (W.shift "mail")
+>                              ]
+
+Remember to import the module that defines the 'XMonad.StackSet.shift'
+function, "XMonad.StackSet", like this:
+
+>    import qualified XMonad.StackSet as W
+
+And then we can add @myManageHook@ to the default one to create
+@newManageHook@ as we did in the previous example.
 
 -}
 
