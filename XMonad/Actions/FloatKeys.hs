@@ -25,38 +25,23 @@ import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
 -- $usage
--- > import XMonad.Actions.FloatKeys
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- >  , ((modMask,               xK_d     ), withFocused (keysResizeWindow (-10,-10) (1,1))) 
--- >  , ((modMask,               xK_s     ), withFocused (keysResizeWindow (10,10) (1,1))) 
--- >  , ((modMask .|. shiftMask, xK_d     ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752))) 
--- >  , ((modMask .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752))) 
+-- >    import XMonad.Actions.FloatKeys
+--
+-- Then add appropriate key bindings, for example:
+--
+-- >  , ((modMask,               xK_d     ), withFocused (keysResizeWindow (-10,-10) (1,1)))
+-- >  , ((modMask,               xK_s     ), withFocused (keysResizeWindow (10,10) (1,1)))
+-- >  , ((modMask .|. shiftMask, xK_d     ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752)))
+-- >  , ((modMask .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
 -- >  , ((modMask,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
 --
---
--- keysMoveWindow (dx, dy) moves the window by dx pixels to the right and dy pixels down
---
--- keysMoveWindowTo (x, y) (gx, gy) moves the window relative point (gx, gy) to the point (x,y)
---      where (gx,gy) gives a position relative to the window border, i.e.
---      gx = 0 is the left border and gx = 1 the right border
---      gy = 0 is the top border  and gy = 1 the bottom border
---
---      examples on a 1024x768 screen: keysMoveWindowTo (512,384) (1%2, 1%2) centers the window on screen
---                                     keysMoveWindowTo (1024,0) (1, 0) puts it into the top right corner
---
--- keysResizeWindow (dx, dy) (gx, gy) changes the width by dx and the height by dy leaving the window
---      relative point (gx, gy) fixed
---
---      examples: keysResizeWindow (10, 0) (0, 0) makes the window 10 pixels larger to the right
---                keysResizeWindow (10, 0) (0, 1%2) does the same, unless sizeHints are applied
---                keysResizeWindow (10, 10) (1%2, 1%2) adds 5 pixels on each side
---                keysResizeWindow (-10, -10) (0, 1) shrinks the window in direction of the bottom-left corner
---              
---  keysAbsResizeWindow (dx, dy) (ax, ay) changes the width by dx and the height by dy leaving the screen
---      absolute point (ax, ay) fixed
---
---      examples on a 1024x768 screen: keysAbsResizeWindow (10, 10) (0, 0) enlarge the window and if it is not in the top-left corner it will also be moved away
---
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
+
+-- | @keysMoveWindow (dx, dy)@ moves the window by @dx@ pixels to the
+--   right and @dy@ pixels down.
 keysMoveWindow :: D -> Window -> X ()
 keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w
@@ -65,6 +50,16 @@ keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
                         (fromIntegral (fromIntegral (wa_y wa) + dy))
     float w
 
+-- | @keysMoveWindowTo (x, y) (gx, gy)@ moves the window relative
+--   point @(gx, gy)@ to the point @(x,y)@, where @(gx,gy)@ gives a
+--   position relative to the window border, i.e.  @gx = 0@ is the left
+--   border, @gx = 1@ is the right border, @gy = 0@ is the top border, and
+--   @gy = 1@ the bottom border.
+--
+--   For example, on a 1024x768 screen:
+--
+-- > keysMoveWindowTo (512,384) (1%2, 1%2) -- center the window on screen
+-- > keysMoveWindowTo (1024,0) (1, 0)      -- put window in the top right corner
 keysMoveWindowTo :: P -> G -> Window -> X ()
 keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w
@@ -76,9 +71,26 @@ keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d -> do
 type G = (Rational, Rational)
 type P = (Position, Position)
 
+-- | @keysResizeWindow (dx, dy) (gx, gy)@ changes the width by @dx@
+--   and the height by @dy@, leaving the window-relative point @(gx,
+--   gy)@ fixed.
+--
+--   For example:
+--
+-- > keysResizeWindow (10, 0) (0, 0)      -- make the window 10 pixels larger to the right
+-- > keysResizeWindow (10, 0) (0, 1%2)    -- does the same, unless sizeHints are applied
+-- > keysResizeWindow (10, 10) (1%2, 1%2) -- add 5 pixels on each side
+-- > keysResizeWindow (-10, -10) (0, 1)   -- shrink the window in direction of the bottom-left corner
 keysResizeWindow :: D -> G -> Window -> X ()
 keysResizeWindow = keysMoveResize keysResizeWindow'
 
+-- | @keysAbsResizeWindow (dx, dy) (ax, ay)@ changes the width by @dx@
+--   and the height by @dy@, leaving the screen absolute point @(ax,
+--   ay)@ fixed.
+--
+--   For example:
+--
+-- > keysAbsResizeWindow (10, 10) (0, 0)   -- enlarge the window; if it is not in the top-left corner it will also be moved down and to the right.
 keysAbsResizeWindow :: D -> D -> Window -> X ()
 keysAbsResizeWindow = keysMoveResize keysAbsResizeWindow'
 
@@ -105,7 +117,7 @@ keysMoveResize f move resize w = whenX (isClient w) $ withDisplay $ \d -> do
     sh <- io $ getWMNormalHints d w
     let wa_dim = (fromIntegral $ wa_width wa, fromIntegral $ wa_height wa)
         wa_pos = (fromIntegral $ wa_x wa, fromIntegral $ wa_y wa)
-        (wn_pos, wn_dim) = f sh wa_pos wa_dim move resize 
+        (wn_pos, wn_dim) = f sh wa_pos wa_dim move resize
     io $ resizeWindow d w `uncurry` wn_dim
     io $ moveWindow d w `uncurry` wn_pos
     float w
