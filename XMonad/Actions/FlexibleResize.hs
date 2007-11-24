@@ -3,12 +3,12 @@
 -- Module      :  XMonad.Actions.FlexibleResize
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  <l.mai@web.de>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Lets you resize floating windows from any corner.
+-- Resize floating windows from any corner.
 --
 -----------------------------------------------------------------------------
 
@@ -25,16 +25,19 @@ import Graphics.X11.Xlib.Extras
 import Foreign.C.Types
 
 -- $usage
--- Put something like this in your Config.hs file:
+-- To use, first import this module into your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import qualified XMonad.Actions.FlexibleResize as Flex
--- > mouseBindings = M.fromList
--- >     [ ...
--- >     , ((modMask, button3), (\w -> focus w >> Flex.mouseResizeWindow w)) ]
+--
+-- Then add an appropriate mouse binding:
+--
+-- >     , ((modMask, button3), (\w -> focus w >> Flex.mouseResizeWindow w))
+--
+-- For detailed instructions on editing your mouse bindings, see
+-- "XMonad.Doc.Extending#Editing_mouse_bindings".
 
--- %import qualified XMonad.Actions.FlexibleResize as Flex
--- %mousebind , ((modMask, button3), (\\w -> focus w >> Flex.mouseResizeWindow w))
-
+-- | Resize a floating window from whichever corner the mouse is
+--   closest to.
 mouseResizeWindow :: Window -> X ()
 mouseResizeWindow w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w
