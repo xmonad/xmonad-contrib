@@ -34,7 +34,7 @@ import Graphics.X11.Xlib.Extras
 --
 -- Now set up the desired mouse binding, for example:
 --
--- >     , ((modMask, button1), (\w -> focus w >> Flex.mouseWindow Flex.linear w))
+-- >     , ((modMask x, button1), (\w -> focus w >> Flex.mouseWindow Flex.linear w))
 --
 -- * Flex.'linear' indicates that positions between the edges and the
 --   middle indicate a combination scale\/position.

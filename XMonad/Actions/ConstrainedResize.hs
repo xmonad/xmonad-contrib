@@ -34,8 +34,8 @@ import Graphics.X11.Xlib.Extras
 --
 -- Then add something like the following to your mouse bindings:
 --
--- >     , ((modMask, button3),               (\w -> focus w >> Sqr.mouseResizeWindow w False))
--- >     , ((modMask .|. shiftMask, button3), (\w -> focus w >> Sqr.mouseResizeWindow w True ))
+-- >     , ((modMask x, button3),               (\w -> focus w >> Sqr.mouseResizeWindow w False))
+-- >     , ((modMask x .|. shiftMask, button3), (\w -> focus w >> Sqr.mouseResizeWindow w True ))
 --
 -- The line without the shiftMask replaces the standard mouse resize
 -- function call, so it's not completely necessary but seems neater

@@ -40,16 +40,16 @@ import XMonad.Operations
 --
 -- > import XMonad.Actions.CycleWS
 --
--- >   , ((modMask,               xK_Right), nextWS)
--- >   , ((modMask,               xK_Left),  prevWS)
--- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext)
--- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev)
--- >   , ((modMask,               xK_t),     toggleWS)
+-- >   , ((modMask x,               xK_Right), nextWS)
+-- >   , ((modMask x,               xK_Left),  prevWS)
+-- >   , ((modMask x .|. shiftMask, xK_Right), shiftToNext)
+-- >   , ((modMask x .|. shiftMask, xK_Left),  shiftToPrev)
+-- >   , ((modMask x,               xK_t),     toggleWS)
 --
 -- If you want to follow the moved window, you can use both actions:
 --
--- >   , ((modMask .|. shiftMask, xK_Right), shiftToNext >> nextWS)
--- >   , ((modMask .|. shiftMask, xK_Left),  shiftToPrev >> prevWS)
+-- >   , ((modMask x .|. shiftMask, xK_Right), shiftToNext >> nextWS)
+-- >   , ((modMask x .|. shiftMask, xK_Left),  shiftToPrev >> prevWS)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

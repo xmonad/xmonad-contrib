@@ -35,8 +35,8 @@ import XMonad.Operations
 --
 -- and add the desired keybindings, for example:
 --
---  >   , ((modMask,                xK_m    ), viewEmptyWorkspace)
---  >   , ((modMask .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
+--  >   , ((modMask x,                xK_m    ), viewEmptyWorkspace)
+--  >   , ((modMask x .|. shiftMask,  xK_m    ), tagToEmptyWorkspace)
 --
 -- Now you can jump to an empty workspace with @mod-m@. @Mod-shift-m@
 -- will tag the current window to an empty workspace and view it.

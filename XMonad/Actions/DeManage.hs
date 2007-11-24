@@ -46,7 +46,7 @@ import Graphics.X11 (Window)
 --
 -- And add a keybinding, such as:
 --
--- > , ((modMask,               xK_d     ), withFocused demanage)
+-- > , ((modMask x,               xK_d     ), withFocused demanage)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

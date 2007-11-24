@@ -31,11 +31,11 @@ import Graphics.X11.Xlib.Extras
 --
 -- Then add appropriate key bindings, for example:
 --
--- >  , ((modMask,               xK_d     ), withFocused (keysResizeWindow (-10,-10) (1,1)))
--- >  , ((modMask,               xK_s     ), withFocused (keysResizeWindow (10,10) (1,1)))
--- >  , ((modMask .|. shiftMask, xK_d     ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752)))
--- >  , ((modMask .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
--- >  , ((modMask,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
+-- >  , ((modMask x,               xK_d     ), withFocused (keysResizeWindow (-10,-10) (1,1)))
+-- >  , ((modMask x,               xK_s     ), withFocused (keysResizeWindow (10,10) (1,1)))
+-- >  , ((modMask x .|. shiftMask, xK_d     ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752)))
+-- >  , ((modMask x .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
+-- >  , ((modMask x,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

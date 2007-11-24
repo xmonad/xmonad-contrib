@@ -44,7 +44,7 @@ import Data.Maybe
 --
 -- Then add a keybinding to the runCommand action:
 --
--- >    , ((modMask .|. controlMask, xK_y), runCommand commands)
+-- >    , ((modMask x .|. controlMask, xK_y), runCommand commands)
 --
 -- and define the list of commands you want to use:
 --

@@ -39,14 +39,14 @@ import XMonad.StackSet
 -- > -- mod-[1..9] @@ Switch to workspace N
 -- > -- mod-shift-[1..9] @@ Move client to workspace N
 -- > -- mod-control-shift-[1..9] @@ Copy client to workspace N
--- > [((m .|. modMask, k), f i)
+-- > [((m .|. modMask x, k), f i)
 -- >     | (i, k) <- zip workspaces [xK_1 ..]
 -- >     , (f, m) <- [(view, 0), (shift, shiftMask), (copy, shiftMask .|. controlMask)]]
 --
 -- You may also wish to redefine the binding to kill a window so it only
 -- removes it from the current workspace, if it's present elsewhere:
 --
--- >  , ((modMask .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
+-- >  , ((modMask x .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

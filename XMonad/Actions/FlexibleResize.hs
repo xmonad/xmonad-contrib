@@ -31,7 +31,7 @@ import Foreign.C.Types
 --
 -- Then add an appropriate mouse binding:
 --
--- >     , ((modMask, button3), (\w -> focus w >> Flex.mouseResizeWindow w))
+-- >     , ((modMask x, button3), (\w -> focus w >> Flex.mouseResizeWindow w))
 --
 -- For detailed instructions on editing your mouse bindings, see
 -- "XMonad.Doc.Extending#Editing_mouse_bindings".

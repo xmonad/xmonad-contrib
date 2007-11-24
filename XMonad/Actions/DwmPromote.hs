@@ -34,7 +34,7 @@ import XMonad.StackSet
 --
 -- then add a keybinding or substitute 'dwmpromote' in place of promote:
 --
--- >   , ((modMask,               xK_Return), dwmpromote)
+-- >   , ((modMask x,               xK_Return), dwmpromote)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
