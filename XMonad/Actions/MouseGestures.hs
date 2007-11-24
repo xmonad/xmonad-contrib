@@ -3,12 +3,12 @@
 -- Module      :  XMonad.Actions.MouseGestures
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  <l.mai@web.de>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Support for simple mouse gestures
+-- Support for simple mouse gestures.
 --
 -----------------------------------------------------------------------------
 
@@ -32,15 +32,19 @@ import Data.Map (Map)
 import System.IO
 
 -- $usage
--- In your Config.hs:
 --
--- > import XMonad.Actions.MouseGestures
--- > ...
--- > mouseBindings = M.fromList $
--- >     [ ...
--- >     , ((modMask .|. shiftMask, button3), mouseGesture gestures)
--- >     ]
--- >     where
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Actions.Commands
+-- > import qualified XMonad.StackSet as W
+--
+-- then add an appropriate mouse binding:
+--
+-- >     , ((modMask x .|. shiftMask, button3), mouseGesture gestures)
+--
+-- where @gestures@ is a 'Data.Map.Map' from gestures to actions on
+-- windows, for example:
+--
 -- >     gestures = M.fromList
 -- >         [ ([], focus)
 -- >         , ([U], \w -> focus w >> windows W.swapUp)
@@ -48,9 +52,14 @@ import System.IO
 -- >         , ([R, D], \_ -> sendMessage NextLayout)
 -- >         ]
 --
--- This is just an example, of course. You can use any mouse button and
+-- This is just an example, of course; you can use any mouse button and
 -- gesture definitions you want.
+--
+-- For detailed instructions on editing your mouse bindings, see
+-- "XMonad.Doc.Extending#Editing_mouse_bindings".
 
+-- | The four cardinal screen directions. A \"gesture\" is a sequence of
+--   directions.
 data Direction = L | U | R | D
     deriving (Eq, Ord, Show, Read, Enum, Bounded)
 
@@ -99,6 +108,9 @@ collect st nx ny = do
 extract :: (Pos, [(Direction, Pos, Pos)]) -> [Direction]
 extract (_, xs) = reverse . map (\(x, _, _) -> x) $ xs
 
+-- | Given a 'Data.Map.Map' from lists of directions to actions with
+--   windows, figure out which one the user is performing, and return
+--   the corresponding action.
 mouseGesture :: Map [Direction] (Window -> X ()) -> Window -> X ()
 mouseGesture tbl win = withDisplay $ \dpy -> do
     root <- asks theRoot
