@@ -785,19 +785,15 @@ all we need to do is change the 'XMonad.Core.manageHook' field of the
 
 >    main = xmonad defaultConfig { ..., manageHook = newManageHook, ... }
 
-And we are done.  One more thing to note about this system is that if
-a window matches multiple rules in a 'XMonad.Config.manageHook', /all/
-of the corresponding actions will be run (in the order in which they
-are defined).  This is a change from versions before 0.5, when only
-the first rule that matched was run.
+And we are done.
 
-Obviously we may be willing to add more then one
+Obviously, we may wish to add more then one
 'XMonad.Config.manageHook'. In this case we can use a list of hooks,
 compose them all with 'XMonad.ManageHook.composeAll', and add the
 composed to the default one.
 
 For instance, if we want RealPlayer to float and thunderbird always
-opened in the workspace named "mail" we can do like this:
+opened in the workspace named "mail", we can do so like this:
 
 >    myManageHook = composeAll [ resource =? "realplay.bin"    --> doFloat
 >                              , resource =? "thunderbird-bin" --> doF (W.shift "mail")
@@ -810,6 +806,12 @@ function, "XMonad.StackSet", like this:
 
 And then we can add @myManageHook@ to the default one to create
 @newManageHook@ as we did in the previous example.
+
+One more thing to note about this system is that if
+a window matches multiple rules in a 'XMonad.Config.manageHook', /all/
+of the corresponding actions will be run (in the order in which they
+are defined).  This is a change from versions before 0.5, when only
+the first rule that matched was run.
 
 -}
 
