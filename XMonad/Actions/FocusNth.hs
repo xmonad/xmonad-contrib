@@ -8,7 +8,7 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Focus the nth window on the screen.
+-- Focus the nth window of the current workspace.
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.FocusNth (
@@ -21,18 +21,20 @@ import XMonad.Operations
 import XMonad
 
 -- $usage
+-- Add the import to your @~\/.xmonad\/xmonad.hs@:
+--
 -- > import XMonad.Actions.FocusNth
-
+--
+-- Then add appropriate keybindings, for example:
+--
 -- > -- mod4-[1..9] @@ Switch to window N
--- > ++ [((mod4Mask, k), focusNth i)
+-- > ++ [((modMask x, k), focusNth i)
 -- >     | (i, k) <- zip [0 .. 8] [xK_1 ..]]
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Actions.FocusNth
--- %keybdindextra ++
--- %keybdindextra -- mod4-[1..9] @@ Switch to window N
--- %keybdindextra [((mod4Mask, k), focusNth i)
--- %keybdindextra     | (i, k) <- zip [0 .. 8] [xK_1 ..]]
-
+-- | Give focus to the nth window of the current workspace.
 focusNth :: Int -> X ()
 focusNth = windows . modify' . focusNth'
 
