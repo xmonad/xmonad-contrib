@@ -51,6 +51,9 @@ import Graphics.X11.Xlib.Extras
 -- You can also write your own function for this parameter. It should take
 -- a value between 0 and 1 indicating position, and return a value indicating
 -- the corresponding position if plain Flex.'linear' was used.
+--
+-- For detailed instructions on editing your mouse bindings, see
+-- "XMonad.Doc.Extending#Editing_mouse_bindings".
 
 discrete, linear, resize, position :: Double -> Double
 
