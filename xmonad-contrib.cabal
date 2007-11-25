@@ -7,7 +7,14 @@ description:
     a tiling window manager for X.
     .
     For an introduction to building, configuring and using xmonad
-    extensions, see "XMonad.Doc"
+    extensions, see "XMonad.Doc". In particular:
+    .
+    "XMonad.Doc.Configuring", a guide to configuring xmonad
+    .
+    "XMonad.Doc.Developing", introduction to xmonad internals
+    .
+    "XMonad.Doc.Extending", how to extend xmonad yourself
+    .
 category:           System
 license:            BSD3
 license-file:       LICENSE
