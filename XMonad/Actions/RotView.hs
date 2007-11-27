@@ -28,17 +28,22 @@ import XMonad.StackSet hiding (filter)
 import XMonad.Operations
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+--
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Actions.RotView
 --
--- >   , ((modMask .|. shiftMask, xK_Right), rotView True)
--- >   , ((modMask .|. shiftMask, xK_Left), rotView False)
+-- Then add appropriate key bindings, such as:
+--
+-- >   , ((modMask x .|. shiftMask, xK_Right), rotView True)
+-- >   , ((modMask x .|. shiftMask, xK_Left), rotView False)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Actions.RotView
--- %keybind , ((modMask .|. shiftMask, xK_Right), rotView True)
--- %keybind , ((modMask .|. shiftMask, xK_Left), rotView False)
-
+-- | Cycle through non-empty workspaces.  True --> cycle in the forward
+--   direction.  Note that workspaces cycle in order by tag, so if your
+--   workspaces are not in tag-order, the cycling might seem wonky.
 rotView :: Bool -> X ()
 rotView forward = do
     ws <- gets windowset
