@@ -34,18 +34,18 @@ import XMonad.Util.NamedWindows (getName)
 
 -- $usage
 --
--- Place in your Config.hs:
+-- Import the module into your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Actions.WindowBringer
 --
--- and in the keys definition:
+-- and define appropriate key bindings:
 --
--- > , ((modMask .|. shiftMask, xK_g     ), gotoMenu)
--- > , ((modMask .|. shiftMask, xK_b     ), bringMenu)
+-- > , ((modMask x .|. shiftMask, xK_g     ), gotoMenu)
+-- > , ((modMask x .|. shiftMask, xK_b     ), bringMenu)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Actions.WindowBringer
--- %keybind , ((modMask .|. shiftMask, xK_g     ), gotoMenu)
--- %keybind , ((modMask .|. shiftMask, xK_b     ), bringMenu)
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
 --   taken to the corresponding workspace.
@@ -65,8 +65,8 @@ bringMenu = windowMap >>= actionMenu (windows . bringWindow)
 actionMenu :: (a -> X ()) -> M.Map String a -> X ()
 actionMenu action windowMap = dmenuMap windowMap >>= flip X.whenJust action
 
--- | Generates a Map from window name to <whatever you specify>. For use with
---   dmenuMap.
+-- | Generates a Map from window name to \<whatever you specify\>. For
+--   use with dmenuMap.
 windowMapWith :: ((X.WindowSpace, Window) -> a) -> X (M.Map String a)
 windowMapWith value = do -- TODO: extract the pure, creamy center.
   ws <- gets X.windowset
