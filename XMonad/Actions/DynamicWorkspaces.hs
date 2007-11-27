@@ -33,22 +33,28 @@ import XMonad.Prompt.Workspace
 import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
--- 
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+--
 -- > import XMonad.Actions.DynamicWorkspaces
 --
--- >   , ((modMask .|. shiftMask, xK_BackSpace), removeWorkspace)
+-- Then add keybindings like the following:
+--
+-- >   , ((modMask x .|. shiftMask, xK_BackSpace), removeWorkspace)
 -- >   , ((modMask x .|. shiftMask, xK_v      ), selectWorkspace defaultXPConfig)
 -- >   , ((modMask x, xK_m                    ), withWorkspace defaultXPConfig (windows . W.shift))
 -- >   , ((modMask x .|. shiftMask, xK_m      ), withWorkspace defaultXPConfig (windows . copy))
 -- >   , ((modMask x .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
--- 
--- > -- mod-[1..9] %! Switch to workspace N
+--
+-- > -- mod-[1..9]       %! Switch to workspace N
 -- > -- mod-shift-[1..9] %! Move client to workspace N
 -- >    ++
--- >    zip (zip (repeat modMask) [xK_1..xK_9]) (map (withNthWorkspace W.greedyView) [0..])
+-- >    zip (zip (repeat (modMask x)) [xK_1..xK_9]) (map (withNthWorkspace W.greedyView) [0..])
 -- >    ++
--- >    zip (zip (repeat (modMask .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
+-- >    zip (zip (repeat (modMask x .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
+
 
 data Wor = Wor String
 
@@ -91,6 +97,7 @@ selectWorkspace conf = workspacePrompt conf $ \w ->
                             then windows $ greedyView w
                             else addWorkspace w
 
+-- | Add a new workspace with the given name.
 addWorkspace :: String -> X ()
 addWorkspace newtag = addHiddenWorkspace newtag >> windows (greedyView newtag)
 
@@ -98,6 +105,7 @@ addHiddenWorkspace :: String -> X ()
 addHiddenWorkspace newtag = do l <- asks (layoutHook . config)
                                windows (addHiddenWorkspace' newtag l)
 
+-- | Remove the current workspace if it contains no windows.
 removeWorkspace :: X ()
 removeWorkspace = do s <- gets windowset
                      case s of
