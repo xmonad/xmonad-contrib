@@ -26,7 +26,7 @@ module XMonad.Layout.LayoutCombinators (
 
 import Data.Maybe ( isJust, isNothing )
 
-import XMonad
+import XMonad.Core
 import XMonad.Layouts ( Tall(..), Mirror(..), ChangeLayout(NextLayout) )
 import XMonad.Layout.Combo
 import XMonad.Layout.DragPane
