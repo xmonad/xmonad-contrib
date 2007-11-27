@@ -8,12 +8,13 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Provides `actions' as known from Wmii window manager (
--- <http://wmii.suckless.org>). It also provides slightly better interface for
--- running dmenu on xinerama screens. If you want to use xinerama functions,
--- you have to apply following patch (see Dmenu.hs extension):
--- <http://www.jcreigh.com/dmenu/dmenu-3.2-xinerama.patch>.  Don't forget to
--- recompile dmenu afterwards ;-).
+-- Provides \"actions\" as in the Wmii window manager
+-- (<http://wmii.suckless.org>). It also provides a slightly better
+-- interface for running dmenu on xinerama screens. If you want to use
+-- xinerama functions, you have to apply the following patch (see the
+-- "XMonad.Util.Dmenu" module):
+-- <http://www.jcreigh.com/dmenu/dmenu-3.2-xinerama.patch>.  Don't
+-- forget to recompile dmenu afterwards ;-).
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.WmiiActions (
@@ -34,29 +35,32 @@ import System.Directory (getDirectoryContents, doesFileExist, getPermissions, ex
 
 -- $usage
 --
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Actions.WmiiActions
 --
---  and add following to the list of keyboard bindings:
+--  and add something like the following to your key bindings:
 --
--- > ,((modMask, xK_a), wmiiActions "/home/joe/.wmii-3.5/")
+-- > ,((modMask x, xK_a), wmiiActions "/home/joe/.wmii-3.5/")
 --
 -- or, if you are using xinerama, you can use
 --
--- > ,((modMask, xK_a), wmiiActionsXinerama "/home/joe/.wmii-3.5/")
+-- > ,((modMask x, xK_a), wmiiActionsXinerama "/home/joe/.wmii-3.5/")
 --
--- however, make sure you have also xinerama build of dmenu (for more
--- information see "XMonad.Util.Dmenu" extension).
+-- However, make sure you also have the xinerama build of dmenu (for more
+-- information see the "XMonad.Util.Dmenu" extension).
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | The 'wmiiActions' function takes the file path as a first argument and
--- executes dmenu with all executables found in the provided path.
+-- executes dmenu with all the executables found in the provided path.
 wmiiActions :: FilePath -> X ()
 wmiiActions path =
         wmiiActionsDmenu path dmenu
 
 -- | The 'wmiiActionsXinerama'  does the same as 'wmiiActions', but it shows
--- dmenu only on workspace which currently owns focus.
+-- dmenu only on the currently focused workspace.
 wmiiActionsXinerama :: FilePath -> X ()
 wmiiActionsXinerama path =
         wmiiActionsDmenu path dmenuXinerama
@@ -82,13 +86,13 @@ getExecutableFileList path =
              filterM (liftM executable . getPermissions . (path ++))
 -}
 
--- | The 'executables' function runs dmenu_path script providing list of
--- executable files accessible from $PATH variable.
+-- | The 'executables' function runs the dmenu_path script, providing list of
+-- executable files accessible from the $PATH variable.
 executables :: X ()
 executables = executablesDmenu dmenu
 
--- | The 'executablesXinerama' function does the same as 'executables' function
--- but on workspace which currently owns focus.
+-- | The 'executablesXinerama' function does the same as the
+-- 'executables' function, but on the workspace which currently has focus.
 executablesXinerama :: X ()
 executablesXinerama = executablesDmenu dmenuXinerama
 
