@@ -16,10 +16,29 @@
 module XMonad.Layout.LayoutCombinators (
     -- * Usage
     -- $usage
-    (<||>),(<-||>),(<||->),
-    (<//>),(<-//>),(<//->),
-    (<|>),(<-|>),(<|->),
-    (</>),(<-/>),(</->),
+
+    -- * Combinators using DragPane vertical
+    -- $dpv
+    (*||*), (**||*),(***||*),(****||*),(***||**),(****||***),
+    (***||****),(*||****),(**||***),(*||***),(*||**),
+
+    -- * Combinators using DragPane Horizontal
+    -- $dph
+    (*//*), (**//*),(***//*),(****//*),(***//**),(****//***),
+    (***//****),(*//****),(**//***),(*//***),(*//**),
+
+    -- * Combinators using Mirror Tall Vertical
+    -- $mtv
+    (*|*), (**|*),(***|*),(****|*),(***|**),(****|***),
+    (***|****),(*|****),(**|***),(*|***),(*|**),
+
+    -- * Combinators using Mirror Tall Horizontal
+    -- $mth
+    (*/*), (**/*),(***/*),(****/*),(***/**),(****/***),
+    (***/****),(*/****),(**/***),(*/***),(*/**),
+
+    -- * A new combinator
+    -- $nc
     (|||),
     JumpToLayout(JumpToLayout)
     ) where
@@ -38,89 +57,97 @@ import XMonad.Layout.DragPane
 --
 -- Then edit your @layoutHook@ by using the new layout combinators:
 --
--- > myLayouts = (Tall 1 (3/100) (1/2) <-/> Full)  ||| (Tall 1 (3/100) (1/2) <||-> Full) ||| Full ||| etc..
+-- > myLayouts = (Tall 1 (3/100) (1/2) *//* Full)  ||| (Tall 1 (3/100) (1/2) ***||** Full) ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-infixr 6 <||>, <//>, <-||>, <-//>, <||->, <//->, <|>, <-|>, <|->, </>, <-/>, </->
+infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, **||***, *||***, *||**,
+         *//*, **//*, ***//*, ****//*, ***//**, ****//***, ***//****, *//****, **//***, *//***, *//**,
+         *|* , **|* , ***|* , ****|* , ***|** , ****|*** , ***|**** , *|**** , **|*** , *|*** , *|** ,
+         */* , **/* , ***/* , ****/* , ***/** , ****/*** , ***/**** , */**** , **/*** , */*** , */**
 
--- | Combines two layouts vertically using dragPane
-(<||>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+-- $dpv
+-- These combinators combine 2 layouts using "XMonad.DragPane" in
+-- vertical mode.
+(*||*),(**||*),(***||*),(****||*), (***||**),(****||***),
+       (***||****),(*||****),(**||***),(*||***),(*||**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
           l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
 
--- | Combines two layouts vertically using dragPane giving more screen
--- to the first layout
-(<-||>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
+(*||*)      = combineTwo (dragPane Vertical 0.1 (1/2))
+(**||*)     = combineTwo (dragPane Vertical 0.1 (2/3))
+(***||*)    = combineTwo (dragPane Vertical 0.1 (3/4))
+(****||*)   = combineTwo (dragPane Vertical 0.1 (4/5))
+(***||**)   = combineTwo (dragPane Vertical 0.1 (3/5))
+(****||***) = combineTwo (dragPane Vertical 0.1 (4/7))
+(***||****) = combineTwo (dragPane Vertical 0.1 (3/7))
+(*||****)   = combineTwo (dragPane Vertical 0.1 (1/5))
+(**||***)   = combineTwo (dragPane Vertical 0.1 (2/5))
+(*||***)    = combineTwo (dragPane Vertical 0.1 (1/4))
+(*||**)     = combineTwo (dragPane Vertical 0.1 (1/3))
+
+-- $dph
+-- These combinators combine 2 layouts using "XMonad.DragPane" in
+-- horizontal mode.
+(*//*),(**//*),(***//*),(****//*), (***//**),(****//***),
+       (***//****),(*//****),(**//***),(*//***),(*//**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
           l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
 
--- | Combines two layouts vertically using dragPane giving more screen
--- to the second layout
-(<||->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
+(*//*)      = combineTwo (dragPane Horizontal 0.1 (1/2))
+(**//*)     = combineTwo (dragPane Horizontal 0.1 (2/3))
+(***//*)    = combineTwo (dragPane Horizontal 0.1 (3/4))
+(****//*)   = combineTwo (dragPane Horizontal 0.1 (4/5))
+(***//**)   = combineTwo (dragPane Horizontal 0.1 (3/5))
+(****//***) = combineTwo (dragPane Horizontal 0.1 (4/7))
+(***//****) = combineTwo (dragPane Horizontal 0.1 (3/7))
+(*//****)   = combineTwo (dragPane Horizontal 0.1 (1/5))
+(**//***)   = combineTwo (dragPane Horizontal 0.1 (2/5))
+(*//***)    = combineTwo (dragPane Horizontal 0.1 (1/4))
+(*//**)     = combineTwo (dragPane Horizontal 0.1 (1/3))
 
--- | Combines two layouts horizzontally using dragPane
-(<//>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
-
--- | Combines two layouts horizzontally using dragPane giving more screen
--- to the first layout
-(<-//>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
-
--- | Combines two layouts horizzontally using dragPane giving more screen
--- to the first layout
-(<//->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
-          l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
-
--- | Combines two layouts vertically using Tall
-(<|>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+-- $mtv
+-- These combinators combine two layouts vertivally using Mirror
+-- Tall.
+(*|*),(**|*),(***|*),(****|*), (***|**),(****|***),
+       (***|****),(*|****),(**|***),(*|***),(*|**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
           => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
+(*|*)      = combineTwo (Tall 1 0.1 (1/2))
+(**|*)     = combineTwo (Tall 1 0.1 (2/3))
+(***|*)    = combineTwo (Tall 1 0.1 (3/4))
+(****|*)   = combineTwo (Tall 1 0.1 (4/5))
+(***|**)   = combineTwo (Tall 1 0.1 (3/5))
+(****|***) = combineTwo (Tall 1 0.1 (4/7))
+(***|****) = combineTwo (Tall 1 0.1 (3/7))
+(*|****)   = combineTwo (Tall 1 0.1 (1/5))
+(**|***)   = combineTwo (Tall 1 0.1 (2/5))
+(*|***)    = combineTwo (Tall 1 0.1 (1/4))
+(*|**)     = combineTwo (Tall 1 0.1 (1/3))
 
--- | Combines two layouts vertically using Tall giving more screen
--- to the first layout
-(<-|>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-          => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
 
--- | Combines two layouts vertically using Tall giving more screen
--- to the second layout
-(<|->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-          => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
-
--- | Combines two layouts horizzontally using Mirror Tall (a wide
--- layout)
-(</>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
+-- $mtv
+-- These combinators combine two layouts horizzontally using Mirror
+-- Tall (a wide layout)
+(*/*),(**/*),(***/*),(****/*), (***/**),(****/***),
+       (***/****),(*/****),(**/***),(*/***),(*/**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
           => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
-
--- | Combines two layouts horizzontally using Mirror Tall (a wide
--- layout) giving more screen to the first layout
-(<-/>) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-          => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
-
--- | Combines two layouts horizzontally using Mirror Tall (a wide
--- layout) giving more screen to the second layout
-(</->) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
-          => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
-
--- implementation
-(<||>)  = combineTwo (dragPane Vertical 0.1 0.5)
-(<-||>) = combineTwo (dragPane Vertical 0.1 0.2)
-(<||->) = combineTwo (dragPane Vertical 0.1 0.8)
-(<//>)  = combineTwo (dragPane Horizontal 0.1 0.5)
-(<-//>) = combineTwo (dragPane Horizontal 0.1 0.8)
-(<//->) = combineTwo (dragPane Horizontal 0.1 0.2)
-(<|>)   = combineTwo (Tall 1 0.1 0.5)
-(<-|>)  = combineTwo (Tall 1 0.1 0.8)
-(<|->)  = combineTwo (Tall 1 0.1 0.1)
-(</>)   = combineTwo (Mirror $ Tall 1 0.1 0.5)
-(<-/>)  = combineTwo (Mirror $ Tall 1 0.1 0.8)
-(</->)  = combineTwo (Mirror $ Tall 1 0.1 0.2)
+(*/*)      = combineTwo (Mirror $ Tall 1 0.1 (1/2))
+(**/*)     = combineTwo (Mirror $ Tall 1 0.1 (2/3))
+(***/*)    = combineTwo (Mirror $ Tall 1 0.1 (3/4))
+(****/*)   = combineTwo (Mirror $ Tall 1 0.1 (4/5))
+(***/**)   = combineTwo (Mirror $ Tall 1 0.1 (3/5))
+(****/***) = combineTwo (Mirror $ Tall 1 0.1 (4/7))
+(***/****) = combineTwo (Mirror $ Tall 1 0.1 (3/7))
+(*/****)   = combineTwo (Mirror $ Tall 1 0.1 (1/5))
+(**/***)   = combineTwo (Mirror $ Tall 1 0.1 (2/5))
+(*/***)    = combineTwo (Mirror $ Tall 1 0.1 (1/4))
+(*/**)     = combineTwo (Mirror $ Tall 1 0.1 (1/3))
 
 infixr 5 |||
 
--- | A new layout combinator that allows the use of a prompt to change
+-- $nc
+-- A new layout combinator that allows the use of a prompt to change
 -- layout. For more information see "Xmonad.Prompt.Layout"
 (|||) :: (LayoutClass l1 a, LayoutClass l2 a) => l1 a -> l2 a -> NewSelect l1 l2 a
 (|||) = NewSelect True
