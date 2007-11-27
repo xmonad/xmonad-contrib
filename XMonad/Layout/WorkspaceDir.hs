@@ -18,7 +18,7 @@
 -- (or other programs) pulled up in that workspace (with that layout) will
 -- execute in that working directory.  Sort of handy, I think.
 --
--- Requires the 'directory' package
+-- Note this extension requires the 'directory' package to be installed.
 --
 -----------------------------------------------------------------------------
 
