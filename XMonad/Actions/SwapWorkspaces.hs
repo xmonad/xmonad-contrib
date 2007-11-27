@@ -22,24 +22,23 @@ module XMonad.Actions.SwapWorkspaces (
 
 import XMonad.StackSet
 
+
 -- $usage
--- Add this import to your Config.hs:
+-- Add this import to your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Actions.SwapWorkspaces
 --
--- Throw this in your keys definition:
+-- Then throw something like this in your keys definition:
 --
 -- > ++
--- > [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
+-- > [((modMask x .|. controlMask, k), windows $ swapWithCurrent i)
 -- >     | (i, k) <- zip workspaces [xK_1 ..]]
-
--- %import XMonad.Actions.SwapWorkspaces
--- %keybindlist ++
--- %keybindlist [((modMask .|. controlMask, k), windows $ swapWithCurrent i)
--- %keybindlist     | (i, k) <- zip workspaces [xK_1 ..]]
 --
 -- After installing this update, if you're on workspace 1, hitting mod-ctrl-5
 -- will swap workspaces 1 and 5.
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | Swaps the currently focused workspace with the given workspace tag, via
 --   @swapWorkspaces@.
