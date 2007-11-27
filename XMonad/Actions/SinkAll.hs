@@ -15,24 +15,28 @@ module XMonad.Actions.SinkAll (
     sinkAll) where
 
 import XMonad.Operations
-import XMonad
+import XMonad.Core
 import XMonad.StackSet
 
 import Graphics.X11.Xlib
-
 -- $usage
--- > import XMonad.Actions.SinkAll
--- > keys x = [ ((modMask x .|. shiftMask, xK_t), sinkAll) ]
 --
--- where 'x' is your XConfig.
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Actions.SinkAll
+--
+-- then add a keybinding; for example:
+--
+--     , ((modMask x .|. shiftMask, xK_t), sinkAll)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- %import XMonad.Actions.SinkAll
--- %keybind , ((modMask x .|. shiftMask, xK_t), sinkAll)
-
+-- | Un-float all floating windows on the current workspace.
 sinkAll :: X ()
 sinkAll = withAll sink
 
--- Apply a function to all windows on current workspace.
+-- | Apply a function to all windows on current workspace.
 withAll :: (Window -> WindowSet -> WindowSet) -> X ()
 withAll f = windows $ \ws -> let all' = integrate' . stack . workspace . current $ ws
                              in foldr f ws all'
