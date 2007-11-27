@@ -3,7 +3,7 @@
 -- Module      :  XMonad.Actions.SimpleDate
 -- Copyright   :  (c) Don Stewart 2007
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  dons@cse.unsw.edu.au
 -- Stability   :  stable
 -- Portability :  portable
@@ -19,21 +19,22 @@ module XMonad.Actions.SimpleDate (
                                  date
                                 ) where
 
-import XMonad
+import XMonad.Core
+import XMonad.Util.Run
 
 -- $usage
--- To use, modify your Config.hs to:
+-- To use, import this module into @~\/.xmonad\/xmonad.hs@:
 --
 -- >     import XMonad.Actions.SimpleDate
 --
--- and add a keybinding:
+-- and add a keybinding, for example:
 --
 -- >    , ((modMask,               xK_d     ), date)
 --
--- a popup date menu will now be bound to mod-d
-
--- %import XMonad.Actions.SimpleDate
--- %keybind , ((modMask,               xK_d     ), date)
+-- In this example, a popup date menu will now be bound to @mod-d@.
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 date :: X ()
-date = spawn "(date; sleep 10) | dzen2"
+date = unsafeSpawn "(date; sleep 10) | dzen2"
