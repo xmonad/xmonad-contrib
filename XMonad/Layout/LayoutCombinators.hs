@@ -22,17 +22,17 @@ module XMonad.Layout.LayoutCombinators (
     (*||*), (**||*),(***||*),(****||*),(***||**),(****||***),
     (***||****),(*||****),(**||***),(*||***),(*||**),
 
-    -- * Combinators using DragPane Horizontal
+    -- * Combinators using DragPane horizontal
     -- $dph
     (*//*), (**//*),(***//*),(****//*),(***//**),(****//***),
     (***//****),(*//****),(**//***),(*//***),(*//**),
 
-    -- * Combinators using Mirror Tall Vertical
-    -- $mtv
+    -- * Combinators using Tall (vertical)
+    -- $tv
     (*|*), (**|*),(***|*),(****|*),(***|**),(****|***),
     (***|****),(*|****),(**|***),(*|***),(*|**),
 
-    -- * Combinators using Mirror Tall Horizontal
+    -- * Combinators using Mirror Tall (horizontal)
     -- $mth
     (*/*), (**/*),(***/*),(****/*),(***/**),(****/***),
     (***/****),(*/****),(**/***),(*/***),(*/**),
@@ -70,7 +70,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
          */* , **/* , ***/* , ****/* , ***/** , ****/*** , ***/**** , */**** , **/*** , */*** , */**
 
 -- $dpv
--- These combinators combine 2 layouts using "XMonad.DragPane" in
+-- These combinators combine two layouts using "XMonad.DragPane" in
 -- vertical mode.
 (*||*),(**||*),(***||*),(****||*), (***||**),(****||***),
        (***||****),(*||****),(**||***),(*||***),(*||**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
@@ -89,7 +89,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 (*||**)     = combineTwo (dragPane Vertical 0.1 (1/3))
 
 -- $dph
--- These combinators combine 2 layouts using "XMonad.DragPane" in
+-- These combinators combine two layouts using "XMonad.DragPane" in
 -- horizontal mode.
 (*//*),(**//*),(***//*),(****//*), (***//**),(****//***),
        (***//****),(*//****),(**//***),(*//***),(*//**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
@@ -107,9 +107,8 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 (*//***)    = combineTwo (dragPane Horizontal 0.1 (1/4))
 (*//**)     = combineTwo (dragPane Horizontal 0.1 (1/3))
 
--- $mtv
--- These combinators combine two layouts vertivally using Mirror
--- Tall.
+-- $tv
+-- These combinators combine two layouts vertically using Tall.
 (*|*),(**|*),(***|*),(****|*), (***|**),(****|***),
        (***|****),(*|****),(**|***),(*|***),(*|**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
           => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
@@ -126,9 +125,9 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 (*|**)     = combineTwo (Tall 1 0.1 (1/3))
 
 
--- $mtv
--- These combinators combine two layouts horizzontally using Mirror
--- Tall (a wide layout)
+-- $mth
+-- These combinators combine two layouts horizontally using Mirror
+-- Tall (a wide layout).
 (*/*),(**/*),(***/*),(****/*), (***/**),(****/***),
        (***/****),(*/****),(**/***),(*/***),(*/**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
           => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
@@ -216,4 +215,3 @@ passOnM m (NewSelect False lt lf) = do mlf' <- handleMessage lf m
 when' :: Monad m => (a -> Bool) -> m a -> m a -> m a
 when' f a b = do a1 <- a; if f a1 then b else return a1
 
---  LocalWords:  horizzontally
