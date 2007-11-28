@@ -18,6 +18,7 @@ module XMonad.Prompt (
                              -- * Usage
                              -- $usage
                              mkXPrompt
+                             , mkXPromptWithReturn
                              , defaultXPConfig
                              , mkComplFunFromList
                              , XPType (..)
@@ -51,6 +52,7 @@ import XMonad.Util.XSelection (getSelection)
 import Control.Arrow ((&&&))
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Applicative ((<$>))
 import Data.Bits
 import Data.Char
 import Data.Maybe
@@ -146,19 +148,14 @@ initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunct
 initState d rw w s compl gc fonts pt h c =
     XPS d rw w s Nothing Nothing compl gc fonts (XPT pt) "" 0 h c
 
--- | Creates a prompt given:
---
--- * a prompt type, instance of the 'XPrompt' class.
---
--- * a prompt configuration ('defaultXPConfig' can be used as a
--- starting point)
---
--- * a completion function ('mkComplFunFromList' can be used to
--- create a completions function given a list of possible completions)
---
--- * an action to be run: the action must take a string and return 'XMonad.X' ()
-mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ())  -> X ()
-mkXPrompt t conf compl action = do
+-- | Same as 'mkXPrompt', except that the action function can have
+--   type @String -> X a@, for any @a@, and the final action returned
+--   by 'mkXPromptWithReturn' will have type @X (Maybe a)@.  @Nothing@
+--   is yielded if the user cancels the prompt (by e.g. hitting Esc or
+--   Ctrl-G).  For an example of use, see the 'XMonad.Prompt.Input'
+--   module.
+mkXPromptWithReturn :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X a)  -> X (Maybe a)
+mkXPromptWithReturn t conf compl action = do
   c <- ask
   let d = display c
       rw = theRoot c
@@ -175,10 +172,27 @@ mkXPrompt t conf compl action = do
   releaseXMF fs
   liftIO $ freeGC d gc
   liftIO $ hClose h
-  when (command st' /= "") $ do
-    let htw = take (historySize conf) (history st')
-    liftIO $ writeHistory htw
-    action (command st')
+  if (command st' /= "")
+    then do
+      let htw = take (historySize conf) (history st')
+      liftIO $ writeHistory htw
+      Just <$> action (command st')
+    else
+      return Nothing
+
+-- | Creates a prompt given:
+--
+-- * a prompt type, instance of the 'XPrompt' class.
+--
+-- * a prompt configuration ('defaultXPConfig' can be used as a
+-- starting point)
+--
+-- * a completion function ('mkComplFunFromList' can be used to
+-- create a completions function given a list of possible completions)
+--
+-- * an action to be run: the action must take a string and return 'XMonad.X' ()
+mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ()) -> X ()
+mkXPrompt t conf compl action = mkXPromptWithReturn t conf compl action >> return ()
 
 runXP :: XP ()
 runXP = do
@@ -313,12 +327,12 @@ killWord :: Direction -> XP ()
 killWord d = do
   XPS { command = c, offset = o } <- get
   let (f,ss)        = splitAt o c
-      delNextWord w = 
+      delNextWord w =
           case w of
             ' ':x -> x
             word  -> snd . break isSpace $ word
       delPrevWord   = reverse . delNextWord . reverse
-      (ncom,noff)   = 
+      (ncom,noff)   =
           case d of
             Next -> (f ++ delNextWord ss, o)
             Prev -> (delPrevWord f ++ ss, length $ delPrevWord f) -- laziness!!

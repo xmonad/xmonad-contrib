@@ -123,6 +123,8 @@ library
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
                         XMonad.Prompt.AppendFile
+                        XMonad.Prompt.Input
+                        XMonad.Prompt.Email
                         XMonad.Util.Anneal
                         XMonad.Util.CustomKeys
                         XMonad.Util.Dmenu
