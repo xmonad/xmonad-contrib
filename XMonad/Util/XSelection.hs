@@ -23,24 +23,24 @@ module XMonad.Util.XSelection (
                                  safePromptSelection,
                                  putSelection) where
 
-import Graphics.X11.Xlib.Extras (Event(ev_event_display,
-							       ev_time, ev_property, ev_target, ev_selection,
-							       ev_requestor, ev_event_type),
-				xConvertSelection, xGetSelectionOwner, xSetSelectionOwner, getEvent,
-				currentTime, setSelectionNotify, getWindowProperty8, changeProperty8,
-				propModeReplace)
-import Graphics.X11.Xlib (destroyWindow, createSimpleWindow, Display, XEventPtr,
-			 sendEvent, nextEvent, sync, allocaXEvent, openDisplay, rootWindow,
-			 defaultScreen, internAtom, Atom, selectionNotify, selectionRequest, noEventMask)
 import Control.Concurrent (forkIO)
 import Control.Exception as E (catch)
 import Control.Monad(Monad (return, (>>)), Functor(..), liftM, join)
+import Data.Bits (shiftL, (.&.), (.|.))
 import Data.Char (chr, ord)
 import Data.Maybe (fromMaybe)
-import Foreign.C.Types (CChar)
-import Data.Bits (shiftL, (.&.), (.|.))
-import XMonad.Util.Run (safeSpawn, unsafeSpawn)
+import Data.Word (Word8)
+import Graphics.X11.Xlib.Extras (Event(ev_event_display,
+                                       ev_time, ev_property, ev_target, ev_selection,
+                                       ev_requestor, ev_event_type),
+                                xConvertSelection, xGetSelectionOwner, xSetSelectionOwner, getEvent,
+                                currentTime, setSelectionNotify, getWindowProperty8, changeProperty8,
+                                propModeReplace)
+import Graphics.X11.Xlib (destroyWindow, createSimpleWindow, Display, XEventPtr,
+                         sendEvent, nextEvent, sync, allocaXEvent, openDisplay, rootWindow,
+                         defaultScreen, internAtom, Atom, selectionNotify, selectionRequest, noEventMask)
 import XMonad (X, io)
+import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
 {- $usage
     Add 'import XMonad.Util.XSelection' to the top of Config.hs
@@ -52,7 +52,6 @@ import XMonad (X, io)
 >  , ((modMask .|. shiftMask, xK_b     ), promptSelection "firefox")
 
     TODO:
-
              * Fix Unicode handling. Currently it's still better than calling
                'chr' to translate to ASCII, though.
                As near as I can tell, the mangling happens when the String is
@@ -63,8 +62,7 @@ import XMonad (X, io)
                <http://www.haskell.org/pipermail/xmonad/2007-September/001967.html>
                and <http://www.haskell.org/pipermail/xmonad/2007-September/001966.html>.
 
-             * Possibly add some more elaborate functionality: Emacs' registers are nice.
--}
+             * Possibly add some more elaborate functionality: Emacs' registers are nice. -}
 
 -- | Returns a String corresponding to the current mouse selection in X; if there is none, an empty string is returned. Note that this is
 -- really only reliable for ASCII text and currently escapes or otherwise mangles more complex UTF-8 characters.
@@ -87,7 +85,7 @@ getSelection = do
     ev <- getEvent e
     if ev_event_type ev == selectionNotify
        then do res <- getWindowProperty8 dpy clp win
-               return $ decode  . fromMaybe [] $ res
+               return $ decode . map fromIntegral . fromMaybe [] $ res
        else destroyWindow dpy win >> return ""
 
 -- | Set the current X Selection to a given String.
@@ -112,9 +110,6 @@ putSelection text = do
                                                       ev <- getEvent e
                                                       if ev_event_type ev == selectionRequest
                                                        then do print ev
-                                                    -- selection == eg PRIMARY
-                                                    -- target == type eg UTF8
-                                                    -- property == property name or None
                                                                allocaXEvent $ \replyPtr -> do
                                                                  changeProperty8 (ev_event_display ev)
                                                                                  (ev_requestor ev)
@@ -122,7 +117,8 @@ putSelection text = do
                                                                                  ty
                                                                                  propModeReplace
                                                                                  (map (fromIntegral . ord) txt)
-                                                                 setSelectionNotify replyPtr (ev_requestor ev) (ev_selection ev) (ev_target ev) (ev_property ev) (ev_time ev)
+                                                                 setSelectionNotify replyPtr (ev_requestor ev) (ev_selection ev)
+                                                                                        (ev_target ev) (ev_property ev) (ev_time ev)
                                                                  sendEvent dpy (ev_requestor ev) False noEventMask replyPtr
                                                                  sync dpy False
                                                        else do putStrLn "Unexpected Message Received"
@@ -142,11 +138,13 @@ promptSelection = unsafePromptSelection
 safePromptSelection app = join $ io $ liftM (safeSpawn app) (getSelection)
 unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) getSelection
 
-{- UTF-8 decoding for internal use in getSelection. This code is copied from Eric Mertens's utf-string library
+{- | Decode a UTF8 string packed into a list of Word8 values, directly to
+   String; does not deal with CChar, hence you will want the counter-intuitive 'map fromIntegral'.
+   UTF-8 decoding for internal use in getSelection. This code is copied from Eric Mertens's utf-string library
    <http://code.haskell.org/utf8-string/> (version 0.1), which is BSD-3 licensed, as is this module.
    It'd be better to just import Codec.Binary.UTF8.String (decode), but then users of this would need to install it; Xmonad has enough
    dependencies already. -}
-decode :: [CChar] -> String
+decode :: [Word8] -> String
 decode [    ] = ""
 decode (c:cs)
   | c < 0x80  = chr (fromEnum c) : decode cs
@@ -158,19 +156,21 @@ decode (c:cs)
   | c < 0xfe  = multi_byte 5 0x1  0x4000000
   | otherwise = replacement_character : decode cs
   where
+
     replacement_character :: Char
     replacement_character = '\xfffd'
 
-    multi_byte :: Int -> CChar -> Int -> [Char]
+    multi_byte :: Int -> Word8 -> Int -> [Char]
     multi_byte i mask overlong = aux i cs (fromEnum (c .&. mask))
       where
-        aux :: Int -> [CChar] -> Int -> [Char]
         aux 0 rs acc
           | overlong <= acc && acc <= 0x10ffff &&
             (acc < 0xd800 || 0xdfff < acc)     &&
             (acc < 0xfffe || 0xffff < acc)      = chr acc : decode rs
           | otherwise = replacement_character : decode rs
+
         aux n (r:rs) acc
           | r .&. 0xc0 == 0x80 = aux (n-1) rs
                                $ shiftL acc 6 .|. fromEnum (r .&. 0x3f)
+
         aux _ rs     _ = replacement_character : decode rs
