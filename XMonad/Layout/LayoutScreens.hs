@@ -36,7 +36,7 @@ import Graphics.X11.Xlib.Extras
 -- email window at all times, a crude mimic of sticky windows).
 --
 -- You can use this module with the following in your Config.hs file:
--- 
+--
 -- > import XMonad.Layout.LayoutScreens
 --
 -- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (TwoPane 0.5 0.5))
@@ -45,11 +45,11 @@ import Graphics.X11.Xlib.Extras
 -- Another example use would be to handle a scenario where xrandr didn't
 -- work properly (e.g. a VNC X server in my case) and you want to be able
 -- to resize your screen (e.g. to match the size of a remote VNC client):
--- 
+--
 -- > import XMonad.Layout.LayoutScreens
 --
 -- >   , ((modMask .|. shiftMask, xK_space),
--- >        layoutScreens 1 (fixedLayout $ Rectangle 0 0 1024 768))
+-- >        layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
 
 -- %import XMonad.Layout.LayoutScreens
