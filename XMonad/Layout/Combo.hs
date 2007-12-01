@@ -77,12 +77,16 @@ combineTwo = C2 [] []
 instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a)
     => LayoutClass (CombineTwo (l ()) l1 l2) a where
     doLayout (C2 f w2 super l1 l2) rinput s = arrange (integrate s)
-        where arrange [] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage Hide)
-                              l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage Hide)
-                              return ([], Just $ C2 [] [] super l1' l2')
-              arrange [w] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage Hide)
-                               l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage Hide)
-                               return ([(w,rinput)], Just $ C2 [w] [w] super l1' l2')
+        where arrange [] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage ReleaseResources)
+                              l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage ReleaseResources)
+                              super' <- maybe super id `fmap`
+                                        handleMessage super (SomeMessage ReleaseResources)
+                              return ([], Just $ C2 [] [] super' l1' l2')
+              arrange [w] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage ReleaseResources)
+                               l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage ReleaseResources)
+                               super' <- maybe super id `fmap`
+                                         handleMessage super (SomeMessage ReleaseResources)
+                               return ([(w,rinput)], Just $ C2 [w] [w] super' l1' l2')
               arrange origws =
                   do let w2' = case origws `intersect` w2 of [] -> [head origws]
                                                              [x] -> [x]
