@@ -45,7 +45,7 @@ import XMonad.Actions.CopyWindow
 import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.RotView
 
-import XMonad.Hooks.ManageDocks
+--import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
 
 myXPConfig :: XPConfig
@@ -134,7 +134,7 @@ config = withUrgencyHook FocusUrgencyHook $ defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
          , layoutHook = workspaceDir "~" $ windowNavigation $
-                        toggleLayouts (noBorders Full) $ avoidStruts $
+                        toggleLayouts (noBorders Full) $ -- avoidStruts $
                         Named "tabbed" (noBorders mytab) |||
                         Named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
                         Named "widescreen" ((mytab *||* mytab)
