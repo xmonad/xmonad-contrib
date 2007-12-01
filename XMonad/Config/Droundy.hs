@@ -8,13 +8,13 @@
 
 module XMonad.Config.Droundy ( config, mytab ) where
 
-import Control.Monad.State ( modify )
+--import Control.Monad.State ( modify )
 
 import XMonad hiding (keys, config)
 import qualified XMonad (keys)
 import XMonad.Config ( defaultConfig )
 
-import XMonad.Core ( windowset )
+--import XMonad.Core ( windowset )
 import XMonad.Layouts hiding ( (|||) )
 import XMonad.Operations
 import qualified XMonad.StackSet as W
@@ -46,7 +46,7 @@ import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.RotView
 
 --import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.UrgencyHook
+--import XMonad.Hooks.UrgencyHook
 
 myXPConfig :: XPConfig
 myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
@@ -130,7 +130,8 @@ keys x = M.fromList $
     ++
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
-config = withUrgencyHook FocusUrgencyHook $ defaultConfig
+config = -- withUrgencyHook FocusUrgencyHook $
+         defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
          , layoutHook = workspaceDir "~" $ windowNavigation $
@@ -171,6 +172,7 @@ dropFromHead :: String -> String -> Maybe String
 dropFromHead h s | take (length h) s == h = Just $ drop (length h) s
                  | otherwise = Nothing
 
+{-
 data FocusUrgencyHook = FocusUrgencyHook deriving (Read, Show)
 
 instance UrgencyHook FocusUrgencyHook Window where
@@ -187,3 +189,4 @@ instance UrgencyHook FocusUrgencyHook Window where
               has _ Nothing         = False
               has x (Just (W.Stack t l rr)) = x `elem` (t : l ++ rr)
 
+-}
