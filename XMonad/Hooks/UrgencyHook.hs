@@ -25,6 +25,7 @@ module XMonad.Hooks.UrgencyHook (
                                  urgencyLayoutHook,
                                  NoUrgencyHook(..), StdoutUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
+                                 UrgencyHook(urgencyHook),
                                  seconds
                                  ) where
 
