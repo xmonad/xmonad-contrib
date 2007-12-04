@@ -12,8 +12,12 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.Dzen (dzen, dzenWithArgs, dzenScreen,
-                         seconds) where
+module XMonad.Util.Dzen (
+    dzen,
+    dzenWithArgs,
+    dzenScreen,
+    seconds
+  ) where
 
 import XMonad
 import XMonad.Util.Run (runProcessWithInputAndWait, seconds)
