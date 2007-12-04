@@ -35,9 +35,11 @@ import Graphics.X11.Xlib.Extras
 -- screen and long for greater flexibility (e.g. being able to see your
 -- email window at all times, a crude mimic of sticky windows).
 --
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Layout.LayoutScreens
+--
+-- Then add some keybindings; for example:
 --
 -- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (TwoPane 0.5 0.5))
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
@@ -51,10 +53,9 @@ import Graphics.X11.Xlib.Extras
 -- >   , ((modMask .|. shiftMask, xK_space),
 -- >        layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
 -- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
-
--- %import XMonad.Layout.LayoutScreens
--- %keybind , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (twoPane 0.5 0.5))
--- %keybind , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 layoutScreens :: LayoutClass l Int => Int -> l Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."

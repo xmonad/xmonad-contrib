@@ -5,14 +5,14 @@
 -- Module      :  XMonad.Layout.Square
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  David Roundy <droundy@darcs.net>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
 -- A layout that splits the screen into a square area and the rest of the
 -- screen.
--- This is probably only ever useful in combination with 
+-- This is probably only ever useful in combination with
 -- "XMonad.Layout.Combo".
 -- It sticks one window in a square region, and makes the rest
 -- of the windows live with what's left (in a full-screen sense).
@@ -29,7 +29,7 @@ import Graphics.X11.Xlib
 import XMonad.StackSet ( integrate )
 
 -- $usage
--- You can use this module with the following in your Config.hs file:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- >   import XMonad.Layout.Square
 --
@@ -40,7 +40,8 @@ import XMonad.StackSet ( integrate )
 -- >                [(twoPane 0.03 0.2,1),(combo [(twoPane 0.03 0.8,1),(square,1)]
 -- >         [(tabbed,3),(tabbed,30),(tabbed,1),(tabbed,1)]
 
--- %import XMonad.Layout.Square
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data Square a = Square deriving ( Read, Show )
 
