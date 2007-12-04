@@ -139,7 +139,7 @@ config = -- withUrgencyHook FocusUrgencyHook $
                         Named "tabbed" (noBorders mytab) |||
                         Named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
                         Named "widescreen" ((mytab *||* mytab)
-                                                ****//* combineTwo Square mytab mytab) -- |||
+                                                ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#dddddd" -- Border color for unfocused windows.
