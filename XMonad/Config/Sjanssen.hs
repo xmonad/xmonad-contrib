@@ -3,8 +3,9 @@ module XMonad.Config.Sjanssen (sjanssenConfig) where
 
 import XMonad
 import qualified XMonad.StackSet as W
-import XMonad.Layouts
+import XMonad.Layouts hiding (Tall)
 import XMonad.Layout.Tabbed
+import XMonad.Layout.HintedTile
 import XMonad.Operations
 import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
@@ -31,14 +32,17 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
-        , layoutHook = smartBorders (tiled ||| Mirror tiled ||| Full ||| tabbed shrinkText defaultTConf)
+        , layoutHook = smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTConf)
         }
  where
-    tiled   = Tall 1 0.03 0.5
+    tiled   = HintedTile 1 0.03 0.5
 
     mykeys (XConfig {modMask = modm}) = M.fromList $
         [((modm,               xK_p     ), shellPrompt myPromptConfig)]
 
+    myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
+    myTConf = defaultTConf { fontName = myFont }
     myPromptConfig = defaultXPConfig
                         { position = Top
+                        , font = myFont
                         , promptBorderWidth = 0 }
