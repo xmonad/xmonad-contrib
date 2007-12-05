@@ -24,7 +24,7 @@ maintainer:         sjanssen@cse.unl.edu
 extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c tests/test_SwapWorkspaces.hs
-                    tests/tests_XPrompt.hs
+                    tests/test_XPrompt.hs
 cabal-version:      >= 1.2.1
 
 flag small_base
