@@ -108,7 +108,6 @@ library
                         XMonad.Layout.Square
                         XMonad.Layout.Tabbed
                         XMonad.Layout.ThreeColumns
-                        XMonad.Layout.TilePrime
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TwoPane
                         XMonad.Layout.WindowNavigation
