@@ -18,10 +18,8 @@ import XMonad.Config ( defaultConfig )
 import XMonad.Layouts hiding ( (|||) )
 import XMonad.Operations
 import qualified XMonad.StackSet as W
-import Data.Bits ((.|.))
 import qualified Data.Map as M
 import System.Exit
-import Graphics.X11.Xlib
 
 -- % Extension-provided imports
 

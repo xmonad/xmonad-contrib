@@ -29,7 +29,6 @@ module XMonad.Layout.DragPane (
                               ) where
 
 import XMonad
-import Data.Bits
 import Data.Unique
 
 import XMonad.Layouts

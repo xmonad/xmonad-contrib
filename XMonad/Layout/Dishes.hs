@@ -26,7 +26,6 @@ import XMonad
 import XMonad.Layouts
 import XMonad.StackSet (integrate)
 import Control.Monad (ap)
-import Graphics.X11.Xlib
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

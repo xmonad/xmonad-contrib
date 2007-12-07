@@ -24,7 +24,6 @@ module XMonad.Layout.ResizableTile (
 import XMonad
 import XMonad.Layouts (Resize(..), IncMasterN(..))
 import qualified XMonad.StackSet as W
-import Graphics.X11.Xlib
 import Control.Monad
 
 -- $usage

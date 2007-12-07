@@ -20,7 +20,6 @@ module XMonad.Util.CustomKeys (
 
 import XMonad
 import Control.Monad.Reader
-import Graphics.X11.Xlib
 
 import qualified Data.Map as M
 
@@ -51,7 +50,6 @@ import qualified Data.Map as M
 --   entirely. No need to import "CustomKeys" this time:
 --
 -- > import XMonad
--- > import Graphics.X11.Xlib
 -- > import System.Exit
 -- > import qualified Data.Map as M
 -- >

@@ -22,7 +22,6 @@ module XMonad.Layout.Accordion (
 import XMonad
 import XMonad.Layouts
 import qualified XMonad.StackSet as W
-import Graphics.X11.Xlib
 import Data.Ratio
 
 -- $usage

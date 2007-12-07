@@ -24,8 +24,6 @@ module XMonad.Actions.FlexibleManipulate (
 
 import XMonad
 import XMonad.Operations
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 -- $usage
 -- First, add this import to your @~\/.xmonad\/xmonad.hs@:

@@ -48,8 +48,6 @@ module XMonad.Hooks.ManageDocks (
 import XMonad
 import XMonad.Operations
 import qualified XMonad.StackSet as W
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 import Foreign.C.Types (CLong)
 import Data.Maybe (catMaybes)
 

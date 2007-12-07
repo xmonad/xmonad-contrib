@@ -21,8 +21,6 @@ module XMonad.Actions.MouseGestures (
 
 import XMonad
 import XMonad.Operations
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 import Data.IORef
 import qualified Data.Map as M

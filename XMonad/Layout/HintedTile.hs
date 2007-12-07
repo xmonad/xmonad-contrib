@@ -24,8 +24,6 @@ import XMonad
 import XMonad.Layouts    (Resize(..), IncMasterN(..))
 import XMonad.Operations (applySizeHints, D)
 import qualified XMonad.StackSet as W
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 import Control.Applicative ((<$>))
 import Control.Monad
 

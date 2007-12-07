@@ -36,7 +36,6 @@ module XMonad.Actions.DeManage (
 import qualified XMonad.StackSet as W
 import XMonad
 import XMonad.Operations
-import Graphics.X11 (Window)
 
 -- $usage
 -- To use demanage, add this import to your @~\/.xmonad\/xmonad.hs@:

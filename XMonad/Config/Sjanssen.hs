@@ -15,9 +15,7 @@ import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.Run (spawnPipe)
 
-import Data.Bits
 import qualified Data.Map as M
-import Graphics.X11
 import System.IO (hPutStrLn)
 
 sjanssenConfig = do

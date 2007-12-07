@@ -25,7 +25,6 @@ module XMonad.Layout.Square (
                              Square(..) ) where
 
 import XMonad
-import Graphics.X11.Xlib
 import XMonad.StackSet ( integrate )
 
 -- $usage

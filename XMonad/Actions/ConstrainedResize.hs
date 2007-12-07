@@ -23,8 +23,6 @@ module XMonad.Actions.ConstrainedResize (
 
 import XMonad
 import XMonad.Operations
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 -- $usage
 --

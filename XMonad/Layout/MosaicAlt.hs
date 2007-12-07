@@ -30,12 +30,10 @@ module XMonad.Layout.MosaicAlt (
 
 import XMonad
 import XMonad.Layouts
-import Graphics.X11.Xlib
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.List ( sortBy )
 import Data.Ratio
-import Graphics.X11.Types ( Window )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

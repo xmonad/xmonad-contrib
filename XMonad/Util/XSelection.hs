@@ -30,16 +30,7 @@ import Data.Bits (shiftL, (.&.), (.|.))
 import Data.Char (chr, ord)
 import Data.Maybe (fromMaybe)
 import Data.Word (Word8)
-import Graphics.X11.Xlib.Extras (Event(ev_event_display,
-                                       ev_time, ev_property, ev_target, ev_selection,
-                                       ev_requestor, ev_event_type),
-                                xConvertSelection, xGetSelectionOwner, xSetSelectionOwner, getEvent,
-                                currentTime, setSelectionNotify, getWindowProperty8, changeProperty8,
-                                propModeReplace)
-import Graphics.X11.Xlib (destroyWindow, createSimpleWindow, Display, XEventPtr,
-                         sendEvent, nextEvent, sync, allocaXEvent, openDisplay, rootWindow,
-                         defaultScreen, internAtom, Atom, selectionNotify, selectionRequest, noEventMask)
-import XMonad (X, io)
+import XMonad
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
 {- $usage

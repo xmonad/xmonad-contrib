@@ -22,7 +22,6 @@ module XMonad.Layout.Grid (
 
 import XMonad
 import XMonad.StackSet
-import Graphics.X11.Xlib.Types
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

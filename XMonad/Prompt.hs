@@ -51,7 +51,6 @@ import Control.Arrow ((&&&))
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
-import Data.Bits
 import Data.Char
 import Data.Maybe
 import Data.List

@@ -44,9 +44,6 @@ import Foreign.C.Types (CChar)
 import Foreign.Marshal.Alloc (alloca)
 
 import XMonad
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Atom
-import Graphics.X11.Xlib.Extras
 
 -- | sets WM name
 setWMName :: String -> X ()

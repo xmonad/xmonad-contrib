@@ -20,8 +20,6 @@ module XMonad.Actions.FlexibleResize (
 
 import XMonad
 import XMonad.Operations
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 import Foreign.C.Types
 
 -- $usage

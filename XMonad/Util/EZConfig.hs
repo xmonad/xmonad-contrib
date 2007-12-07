@@ -21,7 +21,6 @@ module XMonad.Util.EZConfig (
 import XMonad
 
 import qualified Data.Map as M
-import Graphics.X11.Xlib
 
 -- |
 -- Add or override keybindings from the existing set. Example use:

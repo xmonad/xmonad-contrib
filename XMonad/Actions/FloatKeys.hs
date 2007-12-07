@@ -21,8 +21,6 @@ module XMonad.Actions.FloatKeys (
 
 import XMonad.Operations
 import XMonad
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

@@ -15,10 +15,9 @@ module XMonad.Actions.SinkAll (
     sinkAll) where
 
 import XMonad.Operations
-import XMonad.Core
+import XMonad
 import XMonad.StackSet
 
-import Graphics.X11.Xlib
 -- $usage
 --
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

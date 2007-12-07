@@ -44,8 +44,6 @@ import Data.List ((\\), delete)
 import Data.Maybe (listToMaybe)
 import qualified Data.Set as S
 import Foreign (unsafePerformIO)
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 -- $usage
 -- To wire this up, first add:
