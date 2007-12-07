@@ -21,8 +21,8 @@ import Data.List    (elemIndex, sortBy)
 import Data.Ord     (comparing)
 import Data.Maybe   (fromMaybe)
 
-import Control.Monad.Reader
 import XMonad
+import Control.Monad
 import qualified XMonad.StackSet as W
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras

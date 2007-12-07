@@ -22,11 +22,9 @@ module XMonad.Actions.DynamicWorkspaces (
                                          toNthWorkspace, withNthWorkspace
                                        ) where
 
-import Control.Monad.Reader ( asks )
-import Control.Monad.State ( gets )
 import Data.List ( sort )
 
-import XMonad ( X, XState(..), WindowSet, config, layoutHook )
+import XMonad hiding (workspaces)
 import XMonad.Operations
 import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace

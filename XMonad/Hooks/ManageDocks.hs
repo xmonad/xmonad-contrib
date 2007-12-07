@@ -45,7 +45,6 @@ module XMonad.Hooks.ManageDocks (
     ,avoidStruts, ToggleStruts(ToggleStruts)
     ) where
 
-import Control.Monad.Reader
 import XMonad
 import XMonad.Operations
 import qualified XMonad.StackSet as W

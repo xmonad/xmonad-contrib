@@ -20,7 +20,6 @@ module XMonad.Layout.LayoutModifier (
     LayoutModifier(..), ModifiedLayout(..)
     ) where
 
-import Graphics.X11.Xlib ( Rectangle )
 import XMonad
 import XMonad.StackSet ( Stack )
 

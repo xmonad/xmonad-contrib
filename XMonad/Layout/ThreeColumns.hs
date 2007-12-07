@@ -26,10 +26,7 @@ import XMonad.Layouts ( Resize(..), IncMasterN(..), splitVertically, splitHorizo
 
 import Data.Ratio
 
---import Control.Monad.State
-import Control.Monad.Reader
-
-import Graphics.X11.Xlib
+import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

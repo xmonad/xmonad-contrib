@@ -22,13 +22,8 @@ module XMonad.Layout.Tabbed (
                             , Shrinker(..)
                             ) where
 
-import Control.Monad.State ( gets )
-import Control.Monad.Reader
 import Data.Maybe
 import Data.List
-
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 import XMonad
 import XMonad.Operations

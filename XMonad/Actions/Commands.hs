@@ -31,7 +31,6 @@ import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Dmenu (dmenu)
 import XMonad.Layouts
 
-import Control.Monad.Reader
 import qualified Data.Map as M
 import System.Exit
 import Data.Maybe

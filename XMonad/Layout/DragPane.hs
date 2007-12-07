@@ -28,8 +28,6 @@ module XMonad.Layout.DragPane (
                               , DragPane, DragType (..)
                               ) where
 
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 import XMonad
 import Data.Bits
 import Data.Unique

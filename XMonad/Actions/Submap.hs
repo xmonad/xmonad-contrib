@@ -18,13 +18,12 @@ module XMonad.Actions.Submap (
                              submap
                             ) where
 
-import Control.Monad.Reader
-
 import XMonad hiding (keys)
 import XMonad.Operations (cleanMask)
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 import qualified Data.Map as M
+import Control.Monad.Fix (fix)
 
 {- $usage
 

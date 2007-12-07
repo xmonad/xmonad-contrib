@@ -20,14 +20,12 @@ module XMonad.Actions.WindowBringer (
                                     gotoMenu, bringMenu, windowMapWith
                                    ) where
 
-import Control.Monad.State (gets)
 import Data.Char (toLower)
 import qualified Data.Map as M
-import Graphics.X11.Xlib (Window())
 
 import XMonad.Operations (windows)
 import qualified XMonad.StackSet as W
-import XMonad (X)
+import XMonad
 import qualified XMonad as X
 import XMonad.Util.Dmenu (dmenuMap)
 import XMonad.Util.NamedWindows (getName)

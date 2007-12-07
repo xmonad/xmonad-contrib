@@ -41,8 +41,6 @@ module XMonad.Prompt (
                              , uniqSort
                              ) where
 
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 import XMonad  hiding (config, io)
 import XMonad.Operations (initColor)
 import qualified XMonad.StackSet as W

@@ -28,7 +28,6 @@ module XMonad.Util.Run (
                           spawnPipe
                          ) where
 
-import Control.Monad.Reader
 import System.Posix.IO
 import System.Posix.Process (createSession, forkProcess, executeFile,
                              getProcessStatus)
@@ -38,6 +37,7 @@ import System.Exit (ExitCode(ExitSuccess), exitWith)
 import System.IO
 import System.Process (runInteractiveProcess, waitForProcess)
 import XMonad
+import Control.Monad
 
 -- $usage
 -- For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh"

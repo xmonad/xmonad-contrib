@@ -24,10 +24,10 @@ import XMonad.Operations
 import Graphics.X11.Xlib
 import Graphics.X11.Xlib.Extras
 
-import Control.Monad.Reader
 import Data.IORef
 import qualified Data.Map as M
 import Data.Map (Map)
+import Control.Monad
 
 import System.IO
 

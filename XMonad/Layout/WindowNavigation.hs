@@ -25,11 +25,8 @@ module XMonad.Layout.WindowNavigation (
                                    noNavigateBorders, defaultWNConfig
                                   ) where
 
-import Graphics.X11.Xlib ( Rectangle(..), Window, Pixel, setWindowBorder )
-import Control.Monad.Reader ( ask )
-import Control.Monad.State ( gets, modify )
 import Data.List ( nub, sortBy, (\\) )
-import XMonad
+import XMonad hiding (Point)
 import qualified XMonad.StackSet as W
 import XMonad.Operations ( windows )
 import XMonad.Layout.LayoutModifier

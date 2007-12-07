@@ -18,7 +18,6 @@ module XMonad.Actions.FindEmptyWorkspace (
     viewEmptyWorkspace, tagToEmptyWorkspace
   ) where
 
-import Control.Monad.State
 import Data.List
 import Data.Maybe ( isNothing )
 

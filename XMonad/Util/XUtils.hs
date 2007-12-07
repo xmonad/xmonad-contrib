@@ -26,13 +26,10 @@ module XMonad.Util.XUtils  (
                             ) where
 
 
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
-
-import Control.Monad.Reader
 import Data.Maybe
 import XMonad
 import XMonad.Util.Font
+import Control.Monad
 
 -- $usage
 -- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" for usage

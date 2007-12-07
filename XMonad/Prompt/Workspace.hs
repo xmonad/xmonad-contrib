@@ -18,7 +18,6 @@ module XMonad.Prompt.Workspace (
                              workspacePrompt
                               ) where
 
-import Control.Monad.State ( gets )
 import Data.List ( sort )
 import XMonad hiding ( workspaces )
 import XMonad.Prompt

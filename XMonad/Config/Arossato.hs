@@ -21,7 +21,6 @@ module XMonad.Config.Arossato
     ) where
 
 import qualified Data.Map as M
-import Graphics.X11.Xlib
 
 import XMonad
 import XMonad.Layouts

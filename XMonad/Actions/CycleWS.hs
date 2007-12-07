@@ -24,8 +24,6 @@ module XMonad.Actions.CycleWS (
                               toggleWS,
                              ) where
 
-import Control.Monad.Reader ( asks )
-import Control.Monad.State ( gets )
 import Data.List ( sortBy, findIndex )
 import Data.Maybe ( fromMaybe )
 import Data.Ord ( comparing )

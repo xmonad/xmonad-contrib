@@ -23,7 +23,6 @@ module XMonad.Layout.Maximize (
         maximizeRestore
     ) where
 
-import Graphics.X11.Xlib
 import XMonad
 import XMonad.Layout.LayoutModifier
 import Data.List ( partition )

@@ -25,10 +25,6 @@ module XMonad.Layout.NoBorders (
                                 withBorder
                                ) where
 
-import Control.Monad.State (gets)
-import Control.Monad.Reader (asks)
-import Graphics.X11.Xlib
-
 import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W

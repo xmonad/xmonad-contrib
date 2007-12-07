@@ -18,7 +18,6 @@ module XMonad.Prompt.Layout (
                              layoutPrompt
                             ) where
 
-import Control.Monad.State ( gets )
 import Data.List ( sort, nub )
 import XMonad hiding ( workspaces )
 import XMonad.Operations ( sendMessage )

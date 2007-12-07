@@ -18,7 +18,6 @@ module XMonad.Actions.RotView (
                               rotView
                              ) where
 
-import Control.Monad.State ( gets )
 import Data.List ( sortBy, find )
 import Data.Maybe ( isJust )
 import Data.Ord ( comparing )

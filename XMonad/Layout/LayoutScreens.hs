@@ -18,13 +18,9 @@ module XMonad.Layout.LayoutScreens (
                                     layoutScreens, fixedLayout
                                    ) where
 
-import Control.Monad.Reader ( asks )
-
 import XMonad
 import qualified XMonad.StackSet as W
 import qualified XMonad.Operations as O
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 -- $usage
 -- This module allows you to pretend that you have more than one screen by

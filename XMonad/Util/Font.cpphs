@@ -29,8 +29,6 @@ module XMonad.Util.Font  (
                             ) where
 
 
-import Graphics.X11.Xlib
-import Control.Monad.Reader
 import XMonad
 import Foreign
 import XMonad.Operations

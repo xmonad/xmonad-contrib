@@ -20,11 +20,8 @@ module XMonad.Hooks.XPropManage (
 import Data.Char (chr)
 import Data.List (concat)
 import Data.Monoid (mconcat, Endo(..))
-    
-import Control.Monad.Reader
 
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
+import Control.Monad.Trans (lift)
 
 import XMonad
 import XMonad.ManageHook ((-->))
@@ -70,7 +67,7 @@ pmP f _ = return f
 xPropManageHook :: [XPropMatch] -> ManageHook
 xPropManageHook tms = mconcat $ map propToHook tms
     where
-      propToHook (ms, f) = liftM and (mapM mkQuery ms) --> mkHook f
+      propToHook (ms, f) = fmap and (mapM mkQuery ms) --> mkHook f
       mkQuery (a, tf)    = fmap tf (getQuery a)
       mkHook func        = ask >>= Query . lift . fmap Endo . func 
 

@@ -26,8 +26,6 @@ import Control.Monad.State ( State, put, get, runState )
 import System.Random ( StdGen, mkStdGen )
 import Data.Maybe ( isJust )
 
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras ( SizeHints, getWMNormalHints, sh_aspect, sh_min_size, sh_max_size )
 import XMonad hiding ( trace )
 import XMonad.Layouts ( Resize(Shrink, Expand) )
 import qualified XMonad.StackSet as W

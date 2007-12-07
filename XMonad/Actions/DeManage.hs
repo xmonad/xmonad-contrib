@@ -36,7 +36,6 @@ module XMonad.Actions.DeManage (
 import qualified XMonad.StackSet as W
 import XMonad
 import XMonad.Operations
-import Control.Monad.State
 import Graphics.X11 (Window)
 
 -- $usage

@@ -26,13 +26,10 @@ module XMonad.Actions.TagWindows (
                  ) where
 
 import Data.List (nub,concat,sortBy)
+import Control.Monad
 
-import Control.Monad.State
 import XMonad.StackSet hiding (filter)
 import XMonad.Operations (windows, withFocused)
-
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 import XMonad.Prompt
 import XMonad hiding (workspaces)
@@ -88,7 +85,7 @@ getTags w = withDisplay $ \d ->
 
 -- | check a window for the given tag
 hasTag :: String -> Window -> X Bool
-hasTag s w = (s `elem`) `liftM` getTags w
+hasTag s w = (s `elem`) `fmap` getTags w
 
 -- | add a tag to the existing ones
 addTag :: String -> Window -> X ()

@@ -38,8 +38,6 @@ import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import XMonad.Util.NamedWindows (getName)
 
 import Control.Monad (when)
-import Control.Monad.Reader (asks)
-import Control.Monad.State (gets)
 import Data.Bits (testBit, clearBit)
 import Data.IORef
 import Data.List ((\\), delete)

@@ -22,13 +22,8 @@ module XMonad.Util.NamedWindows (
                                    unName
                                   ) where
 
-import Control.Monad.Reader ( asks )
-import Control.Monad.State ( gets )
-
 import qualified XMonad.StackSet as W ( peek )
 
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras
 
 import XMonad
 

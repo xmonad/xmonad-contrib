@@ -20,11 +20,8 @@ module XMonad.Layout.LayoutHints (
     LayoutHints) where
 
 import XMonad.Operations ( applySizeHints, D )
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras ( getWMNormalHints )
 import XMonad hiding ( trace )
 import XMonad.Layout.LayoutModifier
-import Control.Monad.Reader ( asks )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

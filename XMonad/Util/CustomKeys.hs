@@ -19,9 +19,9 @@ module XMonad.Util.CustomKeys (
                               ) where
 
 import XMonad
+import Control.Monad.Reader
 import Graphics.X11.Xlib
 
-import Control.Monad.Reader
 import qualified Data.Map as M
 
 -- $usage

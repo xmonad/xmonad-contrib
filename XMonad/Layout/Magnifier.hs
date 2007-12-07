@@ -25,7 +25,6 @@ module XMonad.Layout.Magnifier
       MagnifyMsg (..)
     ) where
 
-import Graphics.X11.Xlib (Window, Rectangle(..))
 import XMonad
 import XMonad.StackSet
 import XMonad.Layout.LayoutModifier

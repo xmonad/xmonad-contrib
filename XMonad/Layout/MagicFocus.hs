@@ -19,7 +19,6 @@ module XMonad.Layout.MagicFocus
      MagicFocus(MagicFocus)
     ) where
 
-import Graphics.X11.Xlib
 import XMonad
 import XMonad.StackSet
 

@@ -23,7 +23,6 @@ module XMonad.Layout.Spiral (
                             , Direction (..)
                             ) where
 
-import Graphics.X11.Xlib
 import Data.Ratio
 import XMonad
 import XMonad.Layouts

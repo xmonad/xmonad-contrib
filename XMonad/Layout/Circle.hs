@@ -21,7 +21,6 @@ module XMonad.Layout.Circle (
                             ) where -- actually it's an ellipse
 
 import Data.List
-import Graphics.X11.Xlib
 import XMonad
 import XMonad.StackSet (integrate, peek)
 

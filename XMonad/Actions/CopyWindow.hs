@@ -21,10 +21,8 @@ module XMonad.Actions.CopyWindow (
                                 ) where
 
 import Prelude hiding ( filter )
-import Graphics.X11.Xlib ( Window )
-import Control.Monad.State ( gets )
 import qualified Data.List as L
-import XMonad
+import XMonad hiding (modify)
 import XMonad.Operations ( windows, kill )
 import XMonad.StackSet
 
