@@ -3,6 +3,7 @@ module XMonad.Config.Sjanssen (sjanssenConfig) where
 
 import XMonad
 import qualified XMonad.StackSet as W
+import XMonad.Actions.CopyWindow
 import XMonad.Layouts hiding (Tall)
 import XMonad.Layout.Tabbed
 import XMonad.Layout.HintedTile
@@ -37,8 +38,12 @@ sjanssenConfig = do
  where
     tiled   = HintedTile 1 0.03 0.5
 
-    mykeys (XConfig {modMask = modm}) = M.fromList $
-        [((modm,               xK_p     ), shellPrompt myPromptConfig)]
+    mykeys (XConfig {modMask = modm, workspaces = ws}) = M.fromList $
+        [((modm,               xK_p     ), shellPrompt myPromptConfig)
+        ,((modm .|. shiftMask, xK_c     ), kill1)
+        ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
+        ,((modm .|. shiftMask, xK_0     ), windows $ \w -> foldr copy w ws)
+        ]
 
     myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
     myTConf = defaultTConf { fontName = myFont }
