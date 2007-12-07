@@ -39,6 +39,9 @@ import Data.Maybe
 --
 -- >   , ((modMask x .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 --
+-- Keep in mind, that if you want to use the completion you have to
+-- disable the "HashKnownHosts" option in your ssh_config
+--
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
