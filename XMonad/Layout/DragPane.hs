@@ -31,7 +31,6 @@ module XMonad.Layout.DragPane (
 import XMonad
 import Data.Unique
 
-import XMonad.Layouts
 import qualified XMonad.StackSet as W 
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils

@@ -25,7 +25,6 @@ module XMonad.Layout.Spiral (
 
 import Data.Ratio
 import XMonad
-import XMonad.Layouts
 import XMonad.StackSet ( integrate )
 
 -- $usage

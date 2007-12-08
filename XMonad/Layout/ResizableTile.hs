@@ -21,8 +21,7 @@ module XMonad.Layout.ResizableTile (
                                     ResizableTall(..), MirrorResize(..)
                                    ) where
 
-import XMonad
-import XMonad.Layouts (Resize(..), IncMasterN(..))
+import XMonad hiding (splitVertically, splitHorizontallyBy)
 import qualified XMonad.StackSet as W
 import Control.Monad
 

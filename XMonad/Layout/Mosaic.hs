@@ -27,7 +27,6 @@ import System.Random ( StdGen, mkStdGen )
 import Data.Maybe ( isJust )
 
 import XMonad hiding ( trace )
-import XMonad.Layouts ( Resize(Shrink, Expand) )
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.List ( sort )

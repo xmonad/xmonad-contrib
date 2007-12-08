@@ -22,7 +22,6 @@ module XMonad.Layout.ThreeColumns (
 
 import XMonad
 import qualified XMonad.StackSet as W
-import XMonad.Layouts ( Resize(..), IncMasterN(..), splitVertically, splitHorizontallyBy )
 
 import Data.Ratio
 

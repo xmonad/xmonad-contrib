@@ -23,7 +23,6 @@ module XMonad.Layout.Dishes (
 
 import Data.List
 import XMonad
-import XMonad.Layouts
 import XMonad.StackSet (integrate)
 import Control.Monad (ap)
 

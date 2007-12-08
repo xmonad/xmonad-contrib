@@ -10,12 +10,11 @@ module XMonad.Config.Droundy ( config, mytab ) where
 
 --import Control.Monad.State ( modify )
 
-import XMonad hiding (keys, config)
+import XMonad hiding (keys, config, (|||))
 import qualified XMonad (keys)
 import XMonad.Config ( defaultConfig )
 
 --import XMonad.Core ( windowset )
-import XMonad.Layouts hiding ( (|||) )
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import System.Exit

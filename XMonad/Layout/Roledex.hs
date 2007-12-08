@@ -21,7 +21,6 @@ module XMonad.Layout.Roledex (
     Roledex(Roledex)) where
 
 import XMonad
-import XMonad.Layouts
 import qualified XMonad.StackSet as W
 import Data.Ratio
 

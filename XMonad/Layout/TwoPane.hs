@@ -23,7 +23,6 @@ module XMonad.Layout.TwoPane (
                              ) where
 
 import XMonad hiding (focus)
-import XMonad.Layouts ( Resize(..), splitHorizontallyBy )
 import XMonad.StackSet ( focus, up, down)
 
 -- $usage

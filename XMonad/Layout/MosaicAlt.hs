@@ -29,7 +29,6 @@ module XMonad.Layout.MosaicAlt (
     ) where
 
 import XMonad
-import XMonad.Layouts
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.List ( sortBy )

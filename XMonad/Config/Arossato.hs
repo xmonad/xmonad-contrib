@@ -23,7 +23,6 @@ module XMonad.Config.Arossato
 import qualified Data.Map as M
 
 import XMonad
-import XMonad.Layouts
 import XMonad.ManageHook
 import qualified XMonad.StackSet as W
 

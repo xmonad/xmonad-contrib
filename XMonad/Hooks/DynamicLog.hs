@@ -41,7 +41,6 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 --
 import XMonad
-import XMonad.Layouts
 import Data.Maybe ( isJust )
 import Data.List
 import Data.Ord ( comparing )

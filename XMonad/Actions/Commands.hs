@@ -28,7 +28,6 @@ module XMonad.Actions.Commands (
 import XMonad
 import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Dmenu (dmenu)
-import XMonad.Layouts
 
 import qualified Data.Map as M
 import System.Exit

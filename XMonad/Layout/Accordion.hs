@@ -20,7 +20,6 @@ module XMonad.Layout.Accordion (
     Accordion(Accordion)) where
 
 import XMonad
-import XMonad.Layouts
 import qualified XMonad.StackSet as W
 import Data.Ratio
 

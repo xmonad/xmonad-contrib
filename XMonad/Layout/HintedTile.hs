@@ -20,8 +20,7 @@ module XMonad.Layout.HintedTile (
                                  -- $usage
                                  HintedTile(..), Orientation(..)) where
 
-import XMonad
-import XMonad.Layouts    (Resize(..), IncMasterN(..))
+import XMonad hiding (Tall(..))
 import qualified XMonad.StackSet as W
 import Control.Applicative ((<$>))
 import Control.Monad

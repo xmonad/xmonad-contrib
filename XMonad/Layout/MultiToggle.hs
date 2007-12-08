@@ -45,7 +45,7 @@ import Data.Maybe
 --
 -- To use this module, you first have to define the transformers that you
 -- want to be handled by @MultiToggle@. For example, if the transformer is
--- 'XMonad.Layouts.Mirror':
+-- 'XMonad.Layout.Mirror':
 --
 -- > data MIRROR = MIRROR deriving (Read, Show, Eq, Typeable)
 -- > instance Transformer MIRROR Window where
@@ -65,7 +65,7 @@ import Data.Maybe
 --
 -- > layout = mkToggle (MIRROR ?? EOT) (tiled ||| Full)
 --
--- you can now dynamically apply the 'XMonad.Layouts.Mirror' transformation:
+-- you can now dynamically apply the 'XMonad.Layout.Mirror' transformation:
 --
 -- > ...
 -- >   , ((modMask,               xK_x     ), sendMessage $ Toggle MIRROR)
