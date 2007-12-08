@@ -19,7 +19,6 @@ module XMonad.Actions.FloatKeys (
                 keysResizeWindow,
                 keysAbsResizeWindow) where
 
-import XMonad.Operations
 import XMonad
 
 -- $usage

@@ -30,7 +30,6 @@ module XMonad.Hooks.UrgencyHook (
                                  ) where
 
 import XMonad
-import XMonad.Operations (windows)
 import qualified XMonad.StackSet as W
 
 import XMonad.Layout.LayoutModifier hiding (hook)

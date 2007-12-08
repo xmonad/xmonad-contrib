@@ -29,7 +29,6 @@ import Data.List (nub,concat,sortBy)
 import Control.Monad
 
 import XMonad.StackSet hiding (filter)
-import XMonad.Operations (windows, withFocused)
 
 import XMonad.Prompt
 import XMonad hiding (workspaces)

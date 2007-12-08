@@ -20,7 +20,6 @@ module XMonad.Layout.LayoutScreens (
 
 import XMonad
 import qualified XMonad.StackSet as W
-import qualified XMonad.Operations as O
 
 -- $usage
 -- This module allows you to pretend that you have more than one screen by
@@ -58,7 +57,7 @@ layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ sh
 layoutScreens nscr l =
     do rtrect <- asks theRoot >>= getWindowRectangle
        (wss, _) <- doLayout l rtrect W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] }
-       O.windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
+       windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
            let (x:xs, ys) = splitAt nscr $ map W.workspace (v:vs) ++ hs
                gaps = map (statusGap . W.screenDetail) $ v:vs
                (s:ss, g:gg) = (map snd wss, take nscr $ gaps ++ repeat (head gaps))

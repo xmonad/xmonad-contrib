@@ -26,7 +26,6 @@ import Data.Maybe
 import Data.List
 
 import XMonad
-import XMonad.Operations
 import qualified XMonad.StackSet as W
 
 import XMonad.Util.NamedWindows

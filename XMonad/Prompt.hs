@@ -42,7 +42,6 @@ module XMonad.Prompt (
                              ) where
 
 import XMonad  hiding (config, io)
-import XMonad.Operations (initColor)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.XSelection (getSelection)

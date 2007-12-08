@@ -20,7 +20,6 @@ module XMonad.Prompt.Layout (
 
 import Data.List ( sort, nub )
 import XMonad hiding ( workspaces )
-import XMonad.Operations ( sendMessage )
 import XMonad.Prompt
 import XMonad.StackSet ( workspaces, layout )
 import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )

@@ -24,7 +24,6 @@ import Data.Ord ( comparing )
 
 import XMonad
 import XMonad.StackSet hiding (filter)
-import XMonad.Operations
 
 -- $usage
 --

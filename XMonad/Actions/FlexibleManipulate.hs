@@ -23,7 +23,6 @@ module XMonad.Actions.FlexibleManipulate (
 ) where
 
 import XMonad
-import XMonad.Operations
 
 -- $usage
 -- First, add this import to your @~\/.xmonad\/xmonad.hs@:

@@ -16,7 +16,6 @@ import XMonad.Config ( defaultConfig )
 
 --import XMonad.Core ( windowset )
 import XMonad.Layouts hiding ( (|||) )
-import XMonad.Operations
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import System.Exit

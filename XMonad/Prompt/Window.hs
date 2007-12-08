@@ -27,7 +27,6 @@ import Data.List
 
 import qualified XMonad.StackSet as W
 import XMonad
-import XMonad.Operations (windows)
 import XMonad.Prompt
 import XMonad.Actions.WindowBringer
 

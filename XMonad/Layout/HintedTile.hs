@@ -22,7 +22,6 @@ module XMonad.Layout.HintedTile (
 
 import XMonad
 import XMonad.Layouts    (Resize(..), IncMasterN(..))
-import XMonad.Operations (applySizeHints, D)
 import qualified XMonad.StackSet as W
 import Control.Applicative ((<$>))
 import Control.Monad

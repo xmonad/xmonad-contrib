@@ -31,7 +31,6 @@ module XMonad.Util.Font  (
 
 import XMonad
 import Foreign
-import XMonad.Operations
 
 #ifdef XFT
 import Data.List

@@ -24,8 +24,6 @@ import Data.Maybe ( isNothing )
 import XMonad
 import XMonad.StackSet
 
-import XMonad.Operations
-
 -- $usage
 --
 -- To use, import this module into your @~\/.xmonad\/xmonad.hs@:

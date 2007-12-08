@@ -18,7 +18,6 @@ module XMonad.Actions.RotSlaves (
 	) where
 
 import XMonad.StackSet
-import XMonad.Operations
 import XMonad
 
 -- $usage

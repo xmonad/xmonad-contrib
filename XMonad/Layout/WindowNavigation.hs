@@ -28,7 +28,6 @@ module XMonad.Layout.WindowNavigation (
 import Data.List ( nub, sortBy, (\\) )
 import XMonad hiding (Point)
 import qualified XMonad.StackSet as W
-import XMonad.Operations ( windows )
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils

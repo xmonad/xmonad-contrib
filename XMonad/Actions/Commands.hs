@@ -26,7 +26,6 @@ module XMonad.Actions.Commands (
                               ) where
 
 import XMonad
-import XMonad.Operations
 import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Dmenu (dmenu)
 import XMonad.Layouts

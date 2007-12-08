@@ -35,7 +35,6 @@ module XMonad.Actions.DeManage (
 
 import qualified XMonad.StackSet as W
 import XMonad
-import XMonad.Operations
 
 -- $usage
 -- To use demanage, add this import to your @~\/.xmonad\/xmonad.hs@:

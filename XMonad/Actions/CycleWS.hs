@@ -31,7 +31,6 @@ import Data.Ord ( comparing )
 import XMonad hiding (workspaces)
 import qualified XMonad (workspaces)
 import XMonad.StackSet hiding (filter)
-import XMonad.Operations
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:

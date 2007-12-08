@@ -24,7 +24,7 @@ module XMonad.Layout.Combo (
 
 import Data.List ( delete, intersect, (\\) )
 import Data.Maybe ( isJust )
-import XMonad
+import XMonad hiding (focus)
 import XMonad.StackSet ( integrate, Stack(..) )
 import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )

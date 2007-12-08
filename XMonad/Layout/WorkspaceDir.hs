@@ -32,7 +32,6 @@ module XMonad.Layout.WorkspaceDir (
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
 
 import XMonad
-import XMonad.Operations ( sendMessage )
 import XMonad.Util.Run ( runProcessWithInput )
 import XMonad.Prompt ( XPConfig )
 import XMonad.Prompt.Directory ( directoryPrompt )

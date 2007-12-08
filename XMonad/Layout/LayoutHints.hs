@@ -19,7 +19,6 @@ module XMonad.Layout.LayoutHints (
     layoutHints,
     LayoutHints) where
 
-import XMonad.Operations ( applySizeHints, D )
 import XMonad hiding ( trace )
 import XMonad.Layout.LayoutModifier
 

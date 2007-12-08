@@ -20,7 +20,6 @@ module XMonad.Actions.MouseGestures (
 ) where
 
 import XMonad
-import XMonad.Operations
 
 import Data.IORef
 import qualified Data.Map as M

@@ -19,7 +19,6 @@ module XMonad.Actions.Submap (
                             ) where
 
 import XMonad hiding (keys)
-import XMonad.Operations (cleanMask)
 import qualified Data.Map as M
 import Control.Monad.Fix (fix)
 

@@ -23,7 +23,6 @@ module XMonad.Actions.WindowBringer (
 import Data.Char (toLower)
 import qualified Data.Map as M
 
-import XMonad.Operations (windows)
 import qualified XMonad.StackSet as W
 import XMonad
 import qualified XMonad as X

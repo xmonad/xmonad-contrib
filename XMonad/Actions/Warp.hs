@@ -21,7 +21,6 @@ module XMonad.Actions.Warp (
 
 import Data.Ratio
 import Data.List
-import XMonad.Operations
 import XMonad
 import XMonad.StackSet as W
 

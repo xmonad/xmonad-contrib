@@ -46,7 +46,6 @@ module XMonad.Hooks.ManageDocks (
     ) where
 
 import XMonad
-import XMonad.Operations
 import qualified XMonad.StackSet as W
 import Foreign.C.Types (CLong)
 import Data.Maybe (catMaybes)

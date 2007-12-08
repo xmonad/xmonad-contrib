@@ -7,7 +7,6 @@ import XMonad.Actions.CopyWindow
 import XMonad.Layouts hiding (Tall)
 import XMonad.Layout.Tabbed
 import XMonad.Layout.HintedTile
-import XMonad.Operations
 import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog

@@ -23,7 +23,6 @@ module XMonad.Actions.CopyWindow (
 import Prelude hiding ( filter )
 import qualified Data.List as L
 import XMonad hiding (modify)
-import XMonad.Operations ( windows, kill )
 import XMonad.StackSet
 
 -- $usage

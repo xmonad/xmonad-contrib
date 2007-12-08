@@ -32,7 +32,6 @@ import XMonad
 import Data.Unique
 
 import XMonad.Layouts
-import XMonad.Operations
 import qualified XMonad.StackSet as W 
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils

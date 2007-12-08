@@ -25,7 +25,6 @@ module XMonad.Actions.DynamicWorkspaces (
 import Data.List ( sort )
 
 import XMonad hiding (workspaces)
-import XMonad.Operations
 import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace
 import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )

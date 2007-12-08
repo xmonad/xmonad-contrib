@@ -19,7 +19,6 @@ module XMonad.Actions.FlexibleResize (
 ) where
 
 import XMonad
-import XMonad.Operations
 import Foreign.C.Types
 
 -- $usage

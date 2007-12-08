@@ -41,7 +41,6 @@ import XMonad.Util.Anneal
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Mosaic
--- > import XMonad.Operations
 --
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --

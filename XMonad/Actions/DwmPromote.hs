@@ -23,7 +23,6 @@ module XMonad.Actions.DwmPromote (
                                 ) where
 
 import XMonad
-import XMonad.Operations (windows)
 import XMonad.StackSet
 
 -- $usage

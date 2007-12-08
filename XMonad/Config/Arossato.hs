@@ -25,7 +25,6 @@ import qualified Data.Map as M
 import XMonad
 import XMonad.Layouts
 import XMonad.ManageHook
-import XMonad.Operations
 import qualified XMonad.StackSet as W
 
 import XMonad.Actions.CycleWS

@@ -17,7 +17,6 @@ module XMonad.Actions.FocusNth (
                  focusNth) where
 
 import XMonad.StackSet
-import XMonad.Operations
 import XMonad
 
 -- $usage

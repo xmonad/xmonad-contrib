@@ -14,7 +14,6 @@ module XMonad.Actions.SinkAll (
     -- $usage
     sinkAll) where
 
-import XMonad.Operations
 import XMonad
 import XMonad.StackSet
 

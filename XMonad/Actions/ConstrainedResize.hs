@@ -22,7 +22,6 @@ module XMonad.Actions.ConstrainedResize (
 ) where
 
 import XMonad
-import XMonad.Operations
 
 -- $usage
 --
