@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.4
+version:            0.5
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
@@ -43,7 +43,7 @@ library
         build-depends: X11-xft >= 0.2
         cpp-options: -DXFT
 
-    build-depends:      mtl, unix, X11>=1.4.0, xmonad==0.4
+    build-depends:      mtl, unix, X11>=1.4.0, xmonad==0.5
     ghc-options:        -Wall -Werror
     exposed-modules:    XMonad.Doc
                         XMonad.Doc.Configuring
