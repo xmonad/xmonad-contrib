@@ -638,9 +638,9 @@ before the 0.5 release: a list requires every member to belong to the
 same type!
 
 Instead the combination of layouts to be used by xmonad is created
-with a specific layout combinator: 'XMonad.Layouts.|||'.
+with a specific layout combinator: 'XMonad.Layout.|||'.
 
-Suppose we want a list with the 'XMonad.Layouts.Full',
+Suppose we want a list with the 'XMonad.Layout.Full',
 'XMonad.Layout.Tabbed.tabbed' and
 'XMonad.Layout.Accordion.Accordion' layouts. First we import, in our
 @~\/.xmonad\/xmonad.hs@, all the needed modules:
@@ -832,8 +832,6 @@ about the internal state of xmonad: "XMonad.Hooks.DynamicLog".  This
 module can be used with an external status bar to print the produced
 logs in a convenient way; the most commonly used status bars are dzen
 and xmobar.
-
-XXX add some examples.
 
 By default the 'XMonad.Core.logHook' doesn't produce anything. To
 enable it you need first to import "XMonad.Hooks.DynamicLog":
