@@ -11,83 +11,52 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Makes xmonad detect windows with type DOCK and does not put them in
--- layouts. It also detects window with STRUT set and modifies the
--- gap accordingly.
---
--- It also allows you to reset the gap to reflect the state of current STRUT
--- windows (for example, after you resized or closed a panel), and to toggle the Gap
--- in a STRUT-aware fashion.
---
--- The avoidStruts layout modifier allows you to make xmonad dynamically
--- avoid overlapping windows with panels.  You can (optionally) enable this
--- on a selective basis, so that some layouts will effectively hide the
--- panel, by placing windows on top of it.  An example use of avoidStruts
--- would be:
---
--- > layoutHook = Layout $ toggleLayouts (noBorders Full) $ avoidStruts $
--- >                       your actual layouts here ||| ...
---
--- You may also wish to bind a key to sendMessage ToggleStruts, which will
--- toggle the avoidStruts behavior, so you can hide your panel at will.
---
--- This would enable a full-screen mode that overlaps the panel, while all
--- other layouts avoid the panel.
---
------------------------------------------------------------------------------
+-- This module provides tools to automatically manage 'dock' type programs,
+-- such as gnome-panel, kicker, dzen, and xmobar.
 
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    manageDocksHook
-    ,resetGap
-    ,toggleGap
-    ,avoidStruts, ToggleStruts(ToggleStruts)
+    manageDocks, AvoidStruts, avoidStruts, ToggleStruts(ToggleStruts)
     ) where
 
+
+-----------------------------------------------------------------------------
 import XMonad
-import qualified XMonad.StackSet as W
 import Foreign.C.Types (CLong)
 import Data.Maybe (catMaybes)
-
 -- $usage
--- Add the imports to your configuration file and add the manageHook:
+-- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Hooks.ManageDocks
 --
--- > manageHook w _ _ _  = manageDocksHook w
+-- The first component is a 'ManageHook' which recognizes these windows.  To
+-- enable it:
 --
--- and comment out the default `manageHook _ _ _ _ = return id` line.
+-- > manageHook = ... <+> manageDocks
 --
--- Then you can bind resetGap or toggleGap as you wish:
+-- The second component is a layout modifier that prevents windows from
+-- overlapping these dock windows.  It is intended to replace xmonad's
+-- so-called "gap" support.  First, you must add it to your list of layouts:
 --
--- > , ((modMask,               xK_b), toggleGap)
-
--- %import XMonad.Hooks.ManageDocks
--- %def -- comment out default manageHook definition above if you uncomment this:
--- %def manageHook w _ _ _ = manageDocksHook w
--- %keybind , ((modMask,               xK_b), toggleGap)
-
+-- > layoutHook = avoidStruts (tall ||| mirror tall ||| ...)
+--
+-- 'AvoidStruts' also supports toggling the dock gap, add a keybinding similar
+-- to:
+--
+-- > ,((modMask,               xK_b     ), sendMessage ToggleStruts)
+--
 
 -- |
 -- Detects if the given window is of type DOCK and if so, reveals it, but does
 -- not manage it. If the window has the STRUT property set, adjust the gap accordingly.
-manageDocksHook :: Window -> X (WindowSet -> WindowSet)
-manageDocksHook w = do
-    hasStrut <- getStrut w
-    maybe (return ()) setGap hasStrut
-
-    isDock <- checkDock w
-    if isDock then do
-        reveal w
-        return (W.delete w)
-     else do
-        return id
+manageDocks :: ManageHook
+manageDocks = checkDock --> doIgnore
 
 -- |
 -- Checks if a window is a DOCK window
-checkDock :: Window -> X (Bool)
-checkDock w = do
+checkDock :: Query Bool
+checkDock = ask >>= \w -> liftX $ do
     a <- getAtom "_NET_WM_WINDOW_TYPE"
     d <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
     mbr <- getProp a w
@@ -115,40 +84,50 @@ getProp :: Atom -> Window -> X (Maybe [CLong])
 getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 
 -- |
--- Modifies the gap, setting new max
-setGap :: (Int, Int, Int, Int) -> X ()
-setGap gap = modifyGap (\_ -> max4 gap)
-
-
--- |
 -- Goes through the list of windows and find the gap so that all STRUT
 -- settings are satisfied.
-calcGap :: X (Int, Int, Int, Int)
+calcGap :: X Rectangle
 calcGap = withDisplay $ \dpy -> do
-	rootw <- asks theRoot
-	-- We don’t keep track of dock like windows, so we find all of them here
-	(_,_,wins) <- io $ queryTree dpy rootw
-	struts <- catMaybes `fmap` mapM getStrut wins
-	return $ foldl max4 (0,0,0,0) struts
+    rootw <- asks theRoot
+    -- We don't keep track of dock like windows, so we find all of them here
+    (_,_,wins) <- io $ queryTree dpy rootw
+    struts <- catMaybes `fmap` mapM getStrut wins
 
--- |
--- Adjusts the gap to the STRUTs of all current Windows 
-resetGap :: X ()
-resetGap = do
-	newGap <- calcGap
-	modifyGap (\_ _ -> newGap)
-
--- |
--- Removes the gap or, if already removed, sets the gap according to the windows’ STRUT
-toggleGap :: X ()
-toggleGap = do
-	newGap <- calcGap
-	modifyGap (\_ old -> if old == (0,0,0,0) then newGap else (0,0,0,0))
+    -- we grab the window attributes of the root window rather than checking
+    -- the width of the screen because xlib caches this info and it tends to
+    -- be incorrect after RAndR
+    wa <- io $ getWindowAttributes dpy rootw
+    return $ reduceScreen (foldl max4 (0,0,0,0) struts)
+                $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
 
 -- |
 -- Piecewise maximum of a 4-tuple of Ints
 max4 :: (Int, Int, Int, Int) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
 max4 (a1,a2,a3,a4) (b1,b2,b3,b4) = (max a1 b1, max a2 b2, max a3 b3, max a4 b4)
+
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral
+
+-- | Given strut values and the screen rectangle, compute a reduced screen
+-- rectangle.
+reduceScreen :: (Int, Int, Int, Int) -> Rectangle -> Rectangle
+reduceScreen (t, b, l, r) (Rectangle rx ry rw rh)
+ = Rectangle (rx + fi l) (ry + fi t) (rw - fi r) (rh - fi b)
+
+r2c :: Rectangle -> (Position, Position, Position, Position)
+r2c (Rectangle x y w h) = (x, y, x + fi w, y + fi h)
+
+c2r :: (Position, Position, Position, Position) -> Rectangle
+c2r (x1, y1, x2, y2) = Rectangle x1 y1 (fi $ x2 - x1) (fi $ y2 - y1)
+
+-- | Given a bounding rectangle 's' and another rectangle 'r', compute a
+-- rectangle 'r' that fits inside 's'.
+fitRect :: Rectangle -> Rectangle -> Rectangle
+fitRect s r
+ = c2r (max sx1 rx1, max sy1 ry1, min sx2 rx2, min sy2 ry2)
+ where
+    (sx1, sy1, sx2, sy2) = r2c s
+    (rx1, ry1, rx2, ry2) = r2c r
 
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> AvoidStruts l a
@@ -160,10 +139,8 @@ data ToggleStruts = ToggleStruts deriving (Read,Show,Typeable)
 instance Message ToggleStruts
 
 instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
-    doLayout (AvoidStruts True lo) (Rectangle x y w h) s =
-        do (t,b,l,r) <- calcGap
-           let rect = Rectangle (x+fromIntegral l) (y+fromIntegral t)
-                      (w-fromIntegral l-fromIntegral r) (h-fromIntegral t-fromIntegral b)
+    doLayout (AvoidStruts True lo) r s =
+        do rect <- fmap (flip fitRect r) calcGap
            (wrs,mlo') <- doLayout lo rect s
            return (wrs, AvoidStruts True `fmap` mlo')
     doLayout (AvoidStruts False lo) r s = do (wrs,mlo') <- doLayout lo r s
