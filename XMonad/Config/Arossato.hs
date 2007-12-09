@@ -146,6 +146,7 @@ arossatoConfig = defaultConfig
           , ((modMask x              , xK_F2    ), spawn "urxvt -fg white -bg black +sb" )
           , ((modMask x .|. shiftMask, xK_F4    ), spawn "~/bin/dict.sh"                 )
           , ((modMask x .|. shiftMask, xK_F5    ), spawn "~/bin/urlOpen.sh"              )
+          , ((modMask x .|. shiftMask, xK_t     ), spawn "~/bin/teaTime.sh"              )
           , ((modMask x              , xK_c     ), kill                                  )
           , ((modMask x .|. shiftMask, xK_comma ), sendMessage (IncMasterN   1 )         )
           , ((modMask x .|. shiftMask, xK_period), sendMessage (IncMasterN (-1))         )
