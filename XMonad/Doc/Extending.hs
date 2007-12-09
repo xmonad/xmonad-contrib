@@ -710,24 +710,42 @@ to the default actions.
 Let's start by analyzing the default 'XMonad.Config.manageHook', defined
 in "XMonad.Config":
 
+
 >    manageHook :: ManageHook
->    manageHook = composeAll . concat $
->                    [ [ className =? c --> doFloat | c <- floats]
->                    , [ resource =? r --> doIgnore | r <- ignore]
->                    , [ resource =? "Gecko" --> doF (W.shift "web") ]]
->     where floats = ["MPlayer", "Gimp"]
->           ignore = ["gnome-panel", "desktop_window", "kicker", "kdesktop"]
+>    manageHook = composeAll
+>                    [ className =? "MPlayer"        --> doFloat
+>                    , className =? "Gimp"           --> doFloat
+>                    , resource  =? "desktop_window" --> doIgnore
+>                    , resource  =? "kdesktop"       --> doIgnore ]
 
 'XMonad.ManageHook.composeAll' can be used to compose a list of
-different 'XMonad.Config.ManageHook's. In this example we have three
-lists of 'XMonad.Config.ManageHook's: the first one is the list of the
-windows to be placed in the float layer with the
-'XMonad.ManageHook.doFloat' function (MPlayer and Gimp); the second
-one is the list of windows to be ignored; the third (which contains
-only one 'XMonad.Config.ManageHook') will match firefox, or mozilla,
-and put them in the workspace named \"web\", with
-'XMonad.ManageHook.doF' and 'XMonad.StackSet.shift'. (@concat@ simply
-combines these three lists into a single list.)
+different 'XMonad.Config.ManageHook's. In this example we have a list
+of 'XMonad.Config.ManageHook's formed by the following commands: the
+Mplayer's and the Gimp's windows, whose 'XMonad.ManageHook.className'
+are, respectively \"Mplayer\" and \"Gimp\", are to be placed in the
+float layer with the 'XMonad.ManageHook.doFloat' function; the windows
+whose resource names are respectively \"desktop_window\" and
+\kdesktop\" are to be ignored with the 'XMonad.ManageHook.doIgnore'
+function.
+
+This is another example of 'XMonad.Config.manageHook', taken from
+"XMonad.Config.Arossato":
+
+>    myManageHook  = composeAll [ resource =? "realplay.bin" --> doFloat
+>                               , resource =? "win"          --> doF (W.shift "doc") -- xpdf
+>                               , resource =? "firefox-bin"  --> doF (W.shift "web")
+>                               ]
+>    newManageHook = myManageHook <+> manageHook defaultConfig
+
+
+Again we use 'XMonad.ManageHook.composeAll' to compose a list of
+different 'XMonad.Config.ManageHook's. The first one will put
+RealPlayer on the float layer, the second one will put the xpdf
+windows in the workspace named \"doc\", with 'XMonad.ManageHook.doF'
+and 'XMonad.StackSet.shift' functions, and the third one will put all
+firefox windows on the workspace called "web". Then we use the
+'XMonad.ManageHook.<+>' combinator to compose @myManageHook@ with the
+default 'XMonad.Config.manageHook' to form @newManageHook@.
 
 Each 'XMonad.Config.ManageHook' has the form:
 
