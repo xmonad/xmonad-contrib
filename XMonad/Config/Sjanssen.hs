@@ -9,6 +9,7 @@ import XMonad.Layout.HintedTile
 import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.ManageDocks
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.Run (spawnPipe)
@@ -19,8 +20,7 @@ import System.IO (hPutStrLn)
 sjanssenConfig = do
     xmobar <- spawnPipe "xmobar"
     return $ defaultConfig
-        { defaultGaps = [(15,0,0,0)]
-        , terminal = "urxvt"
+        { terminal = "urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 7 :: Int] ++ ["mail", "im"]
         , logHook = dynamicLogWithPP $ sjanssenPP { ppOutput = hPutStrLn xmobar }
         , modMask = mod4Mask
@@ -29,7 +29,8 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
-        , layoutHook = smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTConf)
+        , layoutHook = avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTConf)
+        , manageHook = manageHook defaultConfig <+> manageDocks
         }
  where
     tiled   = HintedTile 1 0.03 0.5
@@ -39,6 +40,7 @@ sjanssenConfig = do
         ,((modm .|. shiftMask, xK_c     ), kill1)
         ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
         ,((modm .|. shiftMask, xK_0     ), windows $ \w -> foldr copy w ws)
+        ,((modm,               xK_b     ), sendMessage ToggleStruts)
         ]
 
     myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
