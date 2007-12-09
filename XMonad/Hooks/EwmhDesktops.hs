@@ -28,20 +28,22 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.SetWMName
 
 -- $usage
--- Add the imports to your configuration file and add the logHook:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
+-- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
+-- >
+-- > myLogHook :: X ()
+-- > myLogHook = do ewmhDesktopsLogHook
+-- >                return ()
+-- >
+-- > main = xmonad defaultConfig { logHook = myLogHook }
+-- 
+-- For more detailed instructions on editing the layoutHook see:
 --
--- > logHook :: X()
--- > logHook = do ewmhDesktopsLogHook
--- >              return ()
+-- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
 
--- %import XMonad.Hooks.EwmhDesktops
--- %def -- comment out default logHook definition above if you uncomment this:
--- %def logHook = ewmhDesktopsLogHook
-
-
--- |
+-- | 
 -- Notifies pagers and window lists, such as those in the gnome-panel
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
