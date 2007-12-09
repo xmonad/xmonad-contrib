@@ -27,15 +27,17 @@ import XMonad
 import XMonad.ManageHook ((-->))
 
 -- $usage
--- 
--- Add something like the following lines to Config.hs to use this module
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Hooks.XPropManage
--- 
+-- > import qualified XMonad.StackSet as W
+-- > import XMonad.Actions.TagWindows
+-- > import Data.List
+--
 -- > manageHook = xPropManageHook xPropMatches 
 -- >
 -- > xPropMatches :: [XPropMatch]
--- > xPropMatches = [ ([ (wM_CLASS, any ("gimp"==)))], (\w -> float w >> return (W.shift "2")))
+-- > xPropMatches = [ ([ (wM_CLASS, any ("gimp"==))], (\w -> float w >> return (W.shift "2")))
 -- >                , ([ (wM_COMMAND, any ("screen" ==)), (wM_CLASS, any ("xterm" ==))], pmX (addTag "screen"))
 -- >                , ([ (wM_NAME, any ("Iceweasel" `isInfixOf`))], pmP (W.shift "3"))
 -- >                ]
