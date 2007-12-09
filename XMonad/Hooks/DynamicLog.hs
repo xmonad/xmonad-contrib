@@ -51,15 +51,11 @@ import XMonad.Util.NamedWindows
 import XMonad.Util.Run
 
 -- $usage 
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- To use, set:
---
+-- >    import XMonad
 -- >    import XMonad.Hooks.DynamicLog
--- >    logHook = dynamicLog
-
--- %import XMonad.Hooks.DynamicLog
--- %def -- comment out default logHook definition above if you uncomment any of these:
--- %def logHook = dynamicLog
+-- >    main = xmonad defaultConfig { logHook = dynamicLog }
 
 -- | An example xmonad config that spawns a new dzen toolbar and uses the default
 -- dynamic log output
