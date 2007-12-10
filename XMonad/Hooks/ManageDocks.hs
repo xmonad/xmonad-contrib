@@ -111,8 +111,9 @@ fi = fromIntegral
 -- | Given strut values and the screen rectangle, compute a reduced screen
 -- rectangle.
 reduceScreen :: (Int, Int, Int, Int) -> Rectangle -> Rectangle
-reduceScreen (t, b, l, r) (Rectangle rx ry rw rh)
- = Rectangle (rx + fi l) (ry + fi t) (rw - fi r) (rh - fi b)
+reduceScreen (t, b, l, r) s
+ = case r2c s of
+    (x1, y1, x2, y2) -> c2r (x1 + fi l, y1 + fi t, x2 - fi r, y2 - fi b)
 
 r2c :: Rectangle -> (Position, Position, Position, Position)
 r2c (Rectangle x y w h) = (x, y, x + fi w, y + fi h)
