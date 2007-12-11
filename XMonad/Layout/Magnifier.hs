@@ -35,23 +35,23 @@ import XMonad.Layout.LayoutModifier
 --
 -- > import XMonad.Layout.Magnifier
 --
--- Then edit your @layoutHook@ by adding the Magnifier layout modifier
+-- Then edit your @layoutHook@ by adding the 'magnifier' layout modifier
 -- to some layout:
 --
 -- > myLayouts = magnifier (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
--- 
--- By default magnifier increases the focused windows size by 1.5
--- you can do:
 --
--- > magnifiercz (12%10) 
+-- By default magnifier increases the focused window's size by 1.5.
+-- You can also use:
 --
--- to use a custom level of magification.  You can even make the focused
+-- > magnifiercz (12%10)
+--
+-- to use a custom level of magnification.  You can even make the focused
 -- window smaller for a pop in effect. Keep in mind, you must
 --
--- > import Data.Ratio 
+-- > import Data.Ratio
 --
--- For to use rationals in your config.
+-- in order to use rationals (such as @12%10@) in your config.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
