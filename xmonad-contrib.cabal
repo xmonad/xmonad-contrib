@@ -79,6 +79,7 @@ library
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.ManageDocks
+                        XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.SetWMName
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.XPropManage
