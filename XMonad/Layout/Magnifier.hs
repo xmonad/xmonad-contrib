@@ -23,6 +23,7 @@ module XMonad.Layout.Magnifier
       magnifier,
       magnifier',
       magnifiercz,
+      magnifiercz',
       MagnifyMsg (..)
     ) where
 
@@ -80,6 +81,11 @@ magnifiercz cz = ModifiedLayout (Mag ((fromRational cz)*1.0::Double) On All)
 -- master window.
 magnifier' :: l a -> ModifiedLayout Magnifier l a
 magnifier' = ModifiedLayout (Mag 1.5 On NoMaster)
+
+-- | Increase the size of the window that has focus by a custom zoom,
+-- unless if it is the master window.
+magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
+magnifiercz' cz = ModifiedLayout (Mag ((fromRational cz)*1.0::Double) On NoMaster)
 
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff deriving ( Typeable )
 instance Message MagnifyMsg
