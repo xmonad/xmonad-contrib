@@ -13,8 +13,6 @@
 --
 --   * narrow completions by section number, if the one is specified
 --     (like @\/etc\/bash_completion@ does)
---
---   * write QuickCheck properties
 -----------------------------------------------------------------------------
 
 module XMonad.Prompt.Man (
@@ -58,33 +56,36 @@ instance XPrompt Man where
 
 -- | Query for manual page to be displayed.
 manPrompt :: XPConfig -> X ()
-manPrompt c = mkXPrompt Man c manCompl $ runInTerm . (++) "man "
+manPrompt c = do
+  mans <- io getMans
+  mkXPrompt Man c (manCompl mans) $ runInTerm . (++) "man "
 
-manCompl :: String -> IO [String]
-manCompl str | '/' `elem` str = do
-  -- XXX It may be better to use readline instead of bash's compgen...
-  lines `fmap` getCommandOutput ("bash -c 'compgen -A file " ++ str ++ "'")
-             | otherwise      = do
-  mp <- getCommandOutput "manpath -g 2>/dev/null" `E.catch` \_ -> return []
+getMans :: IO [String]
+getMans = do
+  paths <- getCommandOutput "manpath -g 2>/dev/null" `E.catch` \_ -> return []
   let sects    = ["man" ++ show n | n <- [1..9 :: Int]]
-      dirs     = [d ++ "/" ++ s | d <- split ':' mp, s <- sects]
-      stripExt = reverse . drop 1 . dropWhile (/= '.') . reverse
+      dirs     = [d ++ "/" ++ s | d <- split ':' paths, s <- sects]
   mans <- forM dirs $ \d -> do
             exists <- doesDirectoryExist d
             if exists
               then map (stripExt . stripSuffixes [".gz", ".bz2"]) `fmap`
                    getDirectoryContents d
               else return []
-  mkComplFunFromList (uniqSort $ concat mans) str
+  return $ uniqSort $ concat mans
+
+manCompl :: [String] -> String -> IO [String]
+manCompl mans s | s == "" || last s == ' ' = return []
+                | otherwise                = do
+  -- XXX readline instead of bash's compgen?
+  f <- lines `fmap` getCommandOutput ("bash -c 'compgen -A file " ++ s ++ "'")
+  mkComplFunFromList (f ++ mans) s
 
 -- | Run a command using shell and return its output.
 --
--- XXX merge with 'XMonad.Util.Run.runProcessWithInput'?
+-- XXX Merge into 'XMonad.Util.Run'?
 --
---   * update documentation of the latter (there is no 'Maybe' in result)
---
---   * ask \"gurus\" whether @evaluate (length ...)@ approach is
---     better\/more idiomatic
+-- (Ask \"gurus\" whether @evaluate (length ...)@ approach is
+-- better\/more idiomatic.)
 getCommandOutput :: String -> IO String
 getCommandOutput s = do
   (pin, pout, perr, ph) <- runInteractiveCommand s
@@ -94,6 +95,9 @@ getCommandOutput s = do
   hClose perr
   waitForProcess ph
   return output
+
+stripExt :: String -> String
+stripExt = reverse . drop 1 . dropWhile (/= '.') . reverse
 
 stripSuffixes :: Eq a => [[a]] -> [a] -> [a]
 stripSuffixes sufs fn =
