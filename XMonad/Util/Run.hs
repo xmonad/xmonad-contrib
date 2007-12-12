@@ -50,7 +50,7 @@ import Control.Monad
 -- For an example usage of 'runProcessWithInputAndWait' see
 -- "XMonad.Util.Dzen"
 
--- | Returns Just output if the command succeeded, and Nothing if it didn't.
+-- | Return output if the command succeeded, otherwise return @()@.
 -- This corresponds to dmenu's notion of exit code 1 for a cancelled invocation.
 runProcessWithInput :: FilePath -> [String] -> String -> IO String
 runProcessWithInput cmd args input = do
@@ -104,10 +104,10 @@ seconds = fromEnum . (* 1000000)
 -- unsafeSpawn is an alias for XMonad's 'spawn', to remind one that use
 -- of it can be, well, unsafe.
 -- Examples:
--- 
+--
 -- >     , ((modMask, xK_Print), unsafeSpawn "import -window root png:$HOME/xwd-$(date +%s)$$.png")
 -- >     , ((modMask, xK_d    ), safeSpawn "firefox" "")
--- 
+--
 -- Note that the unsafeSpawn example must be unsafe and not safe because
 -- it makes use of shell interpretation by relying on @$HOME@ and
 -- interpolation, whereas the safeSpawn example can be safe because
