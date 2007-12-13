@@ -25,6 +25,8 @@ module XMonad.Hooks.ManageDocks (
 import XMonad
 import Foreign.C.Types (CLong)
 import Data.Maybe (catMaybes)
+import Control.Monad
+
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
 --
@@ -68,15 +70,15 @@ checkDock = ask >>= \w -> liftX $ do
 -- Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X (Maybe (Int, Int, Int, Int))
 getStrut w = do
-    a <- getAtom "_NET_WM_STRUT"
-    mbr <- getProp a w
-    case mbr of
-        Just [l,r,t,b] -> return (Just (
-                    fromIntegral t,
-                    fromIntegral b,
-                    fromIntegral l,
-                    fromIntegral r))
-        _              -> return Nothing
+    s <- getAtom "_NET_WM_STRUT"
+    sp <- getAtom "_NET_WM_STRUT_PARTIAL"
+    liftM2 (\a b -> mplus (parse a) (parse b))
+        (getProp s w)
+        (getProp sp w)
+ where
+    parse xs = case xs of
+        Just (l : r : t : b : _) -> Just (fi t, fi b, fi l, fi r)
+        _ -> Nothing
 
 -- |
 -- Helper to read a property
