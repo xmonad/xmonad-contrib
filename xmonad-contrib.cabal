@@ -35,7 +35,7 @@ flag use_xft
 
 library
     if flag(small_base)
-        build-depends: base >= 3, containers, directory, process, random
+        build-depends: base >= 3, containers, directory, network, process, random
     else
         build-depends: base < 3
 
@@ -134,5 +134,6 @@ library
                         XMonad.Util.Invisible
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
+                        XMonad.Util.Search
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
