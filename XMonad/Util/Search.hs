@@ -25,10 +25,8 @@ module XMonad.Util.Search (      -- * Usage
                                  search
                           ) where
 
-import Data.Char (isAlpha, isDigit, isMark)
 import XMonad (io, X())
 import XMonad.Util.Run (safeSpawn)
-import Network.URI (escapeURIString)
 import XMonad.Prompt.Shell (getShellCompl)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig())
 import XMonad.Util.XSelection (getSelection)
@@ -43,7 +41,7 @@ instance XPrompt Search where
 -- funny, but that produces obfuscated search queries. So we merely escape
 -- anything that doesn't look unfunny.
 escape :: String -> String
-escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
+escape = id
 
 -- | Given the base search URL, a browser to use, and the actual query, escape
 -- the query, prepend the base URL, and hand it off to the browser.

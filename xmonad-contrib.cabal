@@ -35,7 +35,7 @@ flag use_xft
 
 library
     if flag(small_base)
-        build-depends: base >= 3, containers, directory, network, process, random
+        build-depends: base >= 3, containers, directory, process, random
     else
         build-depends: base < 3
 
