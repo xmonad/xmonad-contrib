@@ -49,6 +49,7 @@ import Data.Monoid
 import System.IO
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
+import XMonad.Hooks.UrgencyHook
 
 -- $usage 
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -104,13 +105,15 @@ dynamicLog = dynamicLogWithPP defaultPP
 -- A log function that uses the 'PP' hooks to customize output.
 dynamicLogWithPP :: PP -> X ()
 dynamicLogWithPP pp = do
+    winset <- gets windowset
+    urgents <- readUrgents
     spaces <- asks (workspaces . config)
     -- layout description
-    ld <- withWindowSet $ return . description . S.layout . S.workspace . S.current
+    let ld = description . S.layout . S.workspace . S.current $ winset
     -- workspace list
-    ws <- withWindowSet $ return . pprWindowSet spaces pp
+    let ws = pprWindowSet spaces urgents pp winset
     -- window title
-    wt <- withWindowSet $ maybe (return "") (fmap show . getName) . S.peek
+    wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
 
     io . ppOutput pp . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
@@ -124,9 +127,8 @@ dynamicLogWithPP pp = do
 dynamicLogDzen :: X ()
 dynamicLogDzen = dynamicLogWithPP dzenPP
 
-
-pprWindowSet :: [String] -> PP -> WindowSet -> String
-pprWindowSet spaces pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
+pprWindowSet :: [String] -> [Window] -> PP -> WindowSet -> String
+pprWindowSet spaces urgents pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
             (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
    where f Nothing Nothing   = EQ
          f (Just _) Nothing  = LT
@@ -141,10 +143,11 @@ pprWindowSet spaces pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w = printer pp (S.tag w)
-          where printer | S.tag w == this         = ppCurrent
-                        | S.tag w `elem` visibles = ppVisible
-                        | isJust (S.stack w)      = ppHidden
-                        | otherwise               = ppHiddenNoWindows
+          where printer | S.tag w == this                                               = ppCurrent
+                        | S.tag w `elem` visibles                                       = ppVisible
+                        | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = \pp -> ppUrgent pp . ppHidden pp
+                        | isJust (S.stack w)                                            = ppHidden
+                        | otherwise                                                     = ppHiddenNoWindows
 
 -- |
 -- Workspace logger with a format designed for Xinerama:
@@ -198,7 +201,8 @@ xmobarColor fg bg = wrap t "</fc>"
 -- | The 'PP' type allows the user to customize various behaviors of
 -- dynamicLogPP
 data PP = PP { ppCurrent, ppVisible
-             , ppHidden, ppHiddenNoWindows :: WorkspaceId -> String
+             , ppHidden, ppHiddenNoWindows
+             , ppUrgent :: WorkspaceId -> String
              , ppSep, ppWsSep :: String
              , ppTitle :: String -> String
              , ppLayout :: String -> String
@@ -212,6 +216,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppVisible         = wrap "<" ">"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
+               , ppUrgent          = id
                , ppSep             = " : "
                , ppWsSep           = " "
                , ppTitle           = shorten 80
@@ -226,6 +231,7 @@ dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                      , ppVisible  = dzenColor "black" "#999999" . pad
                      , ppHidden   = dzenColor "black" "#cccccc" . pad
                      , ppHiddenNoWindows = const ""
+                     , ppUrgent   = dzenColor "red" "yellow"
                      , ppWsSep    = ""
                      , ppSep      = ""
                      , ppLayout   = dzenColor "black" "#cccccc" .
