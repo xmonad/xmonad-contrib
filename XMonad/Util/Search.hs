@@ -48,7 +48,7 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
 -- | Given the base search URL, a browser to use, and the actual query, escape
 -- the query, prepend the base URL, and hand it off to the browser.
 search :: String -> FilePath -> String -> IO ()
-search site browser search = safeSpawn browser $ site ++ escape search
+search site browser query = safeSpawn browser $ site ++ escape query
 
 promptSearch :: (String -> String -> IO ()) -> String -> XPConfig -> X ()
 promptSearch engine browser config = mkXPrompt Search config (getShellCompl []) $ io . (engine browser)
@@ -63,14 +63,16 @@ wikipediaSearch = search "https://secure.wikimedia.org/wikipedia/en/wiki/Special
 waybackSearch = search "http://web.archive.org/"
 
 -- | Search the particular site; these are suitable for binding to a key. Use them like this:
+--
 -- > , ((modm,               xK_g     ), google "firefox" defaultXPConfig)
+--
 -- First argument is the browser you want to use, the second the prompt configuration
 google, wayback, wikipedia :: String -> XPConfig -> X ()
 google    = promptSearch googleSearch
 wikipedia = promptSearch wikipediaSearch
 wayback   = promptSearch waybackSearch
 
--- | See previous. Like google/wikipedia, but one less argument - the query is
+-- | See previous. Like google\/wikipedia, but one less argument - the query is
 -- extracted from the copy-paste buffer of X Windows.
 googleSelection, waybackSelection, wikipediaSelection :: String -> X ()
 googleSelection browser    = io $ googleSearch browser =<< getSelection
