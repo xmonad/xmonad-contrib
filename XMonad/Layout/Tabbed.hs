@@ -33,6 +33,8 @@ import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 import XMonad.Util.Font
 
+import XMonad.Hooks.UrgencyHook
+
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -62,10 +64,13 @@ tabbed s t = Tabbed (I Nothing) s t
 data TConf =
     TConf { activeColor         :: String
           , inactiveColor       :: String
+          , urgentColor         :: String
           , activeBorderColor   :: String
-          , inactiveTextColor   :: String
           , inactiveBorderColor :: String
+          , urgentBorderColor   :: String
           , activeTextColor     :: String
+          , inactiveTextColor   :: String
+          , urgentTextColor     :: String
           , fontName            :: String
           , tabSize             :: Int
           } deriving (Show, Read)
@@ -74,10 +79,13 @@ defaultTConf :: TConf
 defaultTConf =
     TConf { activeColor         = "#999999"
           , inactiveColor       = "#666666"
+          , urgentColor         = "#FFFF00"
           , activeBorderColor   = "#FFFFFF"
           , inactiveBorderColor = "#BBBBBB"
+          , urgentBorderColor   = "##00FF00"
           , activeTextColor     = "#FFFFFF"
           , inactiveTextColor   = "#BFBFBF"
+          , urgentTextColor     = "#FF0000"
           , fontName            = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
           , tabSize             = 20
           }
@@ -182,13 +190,17 @@ createTabs c (Rectangle x y wh ht) owl@(ow:ows) = do
 updateTab :: Shrinker s => s -> TConf -> XMonadFont -> Dimension -> (Window,Window) -> X ()
 updateTab ishr c fs wh (tabw,ow) = do
   nw <- getName ow
+  ur <- readUrgents
   let ht                   = fromIntegral $ tabSize c :: Dimension
-      focusColor win ic ac = (maybe ic (\focusw -> if focusw == win
-                                                   then ac else ic) . W.peek)
-                             `fmap` gets windowset
+      focusColor win ic ac uc = (maybe ic (\focusw -> case () of
+                                                       _ | focusw == win -> ac
+                                                         | win `elem` ur -> uc
+                                                         | otherwise     -> ic) . W.peek)
+                                `fmap` gets windowset
   (bc',borderc',tc') <- focusColor ow
                            (inactiveColor c, inactiveBorderColor c, inactiveTextColor c)
                            (activeColor   c, activeBorderColor   c, activeTextColor   c)
+                           (urgentColor   c, urgentBorderColor   c, urgentTextColor   c)
   dpy <- asks display
   let s = shrinkIt ishr
   name <- shrinkWhile s (\n -> do
