@@ -145,7 +145,7 @@ pprWindowSet spaces urgents pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
          fmt w = printer pp (S.tag w)
           where printer | S.tag w == this                                               = ppCurrent
                         | S.tag w `elem` visibles                                       = ppVisible
-                        | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = \pp -> ppUrgent pp . ppHidden pp
+                        | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = \ppC -> ppUrgent ppC . ppHidden ppC
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
