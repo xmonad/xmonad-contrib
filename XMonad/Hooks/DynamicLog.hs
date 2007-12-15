@@ -10,17 +10,18 @@
 --
 -- DynamicLog
 --
--- Log events in:
+-- By default, log events in:
 --
 -- >     1 2 [3] 4 8
 --
--- format. Suitable to pipe into dzen.
+-- format, although the format is highly customizable.
+-- Suitable to pipe into dzen or xmobar.
 --
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.DynamicLog (
     -- * Usage
-    -- $usage 
+    -- $usage
     dynamicLog,
     dynamicLogDzen,
     dynamicLogXmobar,
@@ -37,7 +38,7 @@ module XMonad.Hooks.DynamicLog (
     makeSimpleDzenConfig
   ) where
 
--- 
+--
 -- Useful imports
 --
 import XMonad
@@ -51,7 +52,7 @@ import XMonad.Util.NamedWindows
 import XMonad.Util.Run
 import XMonad.Hooks.UrgencyHook
 
--- $usage 
+-- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- >    import XMonad
@@ -68,9 +69,9 @@ makeSimpleDzenConfig = do
            , logHook = dynamicLogWithPP dzenPP
                                           { ppOutput = hPutStrLn h } }
 
--- | 
+-- |
 --
--- Run xmonad with a dzen status bar set to some nice defaults. Output 
+-- Run xmonad with a dzen status bar set to some nice defaults. Output
 -- is taken from the dynamicLogWithPP hook.
 --
 -- > main = dzen xmonad
@@ -253,7 +254,7 @@ sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
 
 -- | These are good defaults to be used with the xmobar status bar
 dynamicLogXmobar :: X ()
-dynamicLogXmobar = 
+dynamicLogXmobar =
     dynamicLogWithPP defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
                                , ppTitle   = xmobarColor "green"  "" . shorten 40
                                , ppVisible = wrap "(" ")"
