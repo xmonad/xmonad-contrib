@@ -30,6 +30,8 @@ import XMonad.Util.Run (safeSpawn)
 import XMonad.Prompt.Shell (getShellCompl)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig())
 import XMonad.Util.XSelection (getSelection)
+import Data.Char (chr, ord)
+import Numeric (showIntAtBase)
 
 -- A customized prompt
 data Search = Search
@@ -37,11 +39,31 @@ instance XPrompt Search where
     showXPrompt Search = "Search: "
 
 -- | Escape the search string so search engines understand it.
--- We could just go (const False) and escape anything that even looks at us
--- funny, but that produces obfuscated search queries. So we merely escape
--- anything that doesn't look unfunny.
+-- Note that everything is escaped; we could be smarter and use 'isAllowedInURI'
+-- but then that'd be hard enough to copy-and-paste we'd need to depend on 'network'.
 escape :: String -> String
-escape = id
+escape = escapeURIString (const False)
+         where
+           escapeURIString ::
+               (Char -> Bool)     -- ^ a predicate which returns 'False'
+                               --   if the character should be escaped
+               -> String           -- ^ the string to process
+               -> String           -- ^ the resulting URI string
+           escapeURIString p s = concatMap (escapeURIChar p) s
+
+           escapeURIChar :: (Char->Bool) -> Char -> String
+           escapeURIChar p c
+               | p c       = [c]
+               | otherwise = '%' : myShowHex (ord c) ""
+               where
+                 myShowHex :: Int -> ShowS
+                 myShowHex n r =  case showIntAtBase 16 (toChrHex) n r of
+                                    []  -> "00"
+                                    [c] -> ['0',c]
+                                    cs  -> cs
+                 toChrHex d
+                   | d < 10    = chr (ord '0' + fromIntegral d)
+                   | otherwise = chr (ord 'A' + fromIntegral (d - 10))
 
 -- | Given the base search URL, a browser to use, and the actual query, escape
 -- the query, prepend the base URL, and hand it off to the browser.
