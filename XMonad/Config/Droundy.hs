@@ -41,8 +41,8 @@ import XMonad.Actions.CopyWindow
 import XMonad.Actions.DynamicWorkspaces
 import XMonad.Actions.RotView
 
---import XMonad.Hooks.ManageDocks
---import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.UrgencyHook
 
 myXPConfig :: XPConfig
 myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
@@ -127,13 +127,15 @@ keys x = M.fromList $
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
 config = -- withUrgencyHook FocusUrgencyHook $
+         withUrgencyHook NoUrgencyHook $
          defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
          , layoutHook = workspaceDir "~" $ windowNavigation $
-                        toggleLayouts (noBorders Full) $ -- avoidStruts $
+                        toggleLayouts (noBorders Full) $ avoidStruts $
                         Named "tabbed" (noBorders mytab) |||
                         Named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
+                        Named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
                         Named "widescreen" ((mytab *||* mytab)
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
