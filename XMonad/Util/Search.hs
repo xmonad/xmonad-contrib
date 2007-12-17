@@ -17,10 +17,13 @@ module XMonad.Util.Search (      -- * Usage
                                  -- $usage
                                  google,
                                  googleSelection,
+                                 googleSearch,
                                  wayback,
                                  waybackSelection,
+                                 waybackSearch,
                                  wikipedia,
                                  wikipediaSelection,
+                                 wikipediaSearch,
                                  promptSearch,
                                  search
                           ) where
@@ -30,7 +33,7 @@ import XMonad.Util.Run (safeSpawn)
 import XMonad.Prompt.Shell (getShellCompl)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig())
 import XMonad.Util.XSelection (getSelection)
-import Data.Char (chr, ord)
+import Data.Char (chr, ord, isAlpha, isMark, isDigit)
 import Numeric (showIntAtBase)
 
 -- A customized prompt
@@ -42,7 +45,7 @@ instance XPrompt Search where
 -- Note that everything is escaped; we could be smarter and use 'isAllowedInURI'
 -- but then that'd be hard enough to copy-and-paste we'd need to depend on 'network'.
 escape :: String -> String
-escape = escapeURIString (const False)
+escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
          where
            escapeURIString ::
                (Char -> Bool)     -- ^ a predicate which returns 'False'
@@ -59,7 +62,7 @@ escape = escapeURIString (const False)
                  myShowHex :: Int -> ShowS
                  myShowHex n r =  case showIntAtBase 16 (toChrHex) n r of
                                     []  -> "00"
-                                    [c] -> ['0',c]
+                                    [ch] -> ['0',ch]
                                     cs  -> cs
                  toChrHex d
                    | d < 10    = chr (ord '0' + fromIntegral d)
