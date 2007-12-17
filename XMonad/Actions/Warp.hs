@@ -47,12 +47,6 @@ which moves the mouse pointer to a corner; you could define:
 > banish :: X ()
 > banish = warpToWindow 1 1 -- lower left
 
-And if you wanted to run it on every window or focus movement, you
-could put it into your @xmonad.hs@'s logHook (which activates on every
-change) like thus:
-
->        , logHook = banish
-
 -}
 
 -- For detailed instructions on editing your key bindings, see
