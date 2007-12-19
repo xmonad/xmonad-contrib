@@ -178,7 +178,7 @@ a (possibly empty) 'XMonad.StackSet.stack' of windows.
 "XMonad.StackSet" (which should usually be imported qualified, to
 avoid name clashes with Prelude functions such as 'Prelude.delete' and
 'Prelude.filter') provides many pure functions to manipulate the
-'XMonad.StackSet.StackSet'. These functions are most commonlyq used as
+'XMonad.StackSet.StackSet'. These functions are most commonly used as
 an argument to 'XMonad.Operations.windows', which takes a pure
 function to manipulate the 'XMonad.Core.WindowSet' and does all the
 needed operations to refresh the screen and save the modified
