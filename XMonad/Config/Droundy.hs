@@ -77,7 +77,7 @@ keys x = M.fromList $
 
     -- quit, or restart
     , ((modMask x .|. shiftMask, xK_Escape), io (exitWith ExitSuccess)) -- %! Quit xmonad
-    , ((modMask x              , xK_Escape), broadcastMessage ReleaseResources >> restart (Just "xmonad") True) -- %! Restart xmonad
+    , ((modMask x              , xK_Escape), restart "xmonad" True) -- %! Restart xmonad
 
     , ((modMask x .|. shiftMask, xK_z     ),
        layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
