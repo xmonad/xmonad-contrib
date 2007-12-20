@@ -62,6 +62,7 @@ library
                         XMonad.Actions.FloatKeys
                         XMonad.Actions.FocusNth
                         XMonad.Actions.MouseGestures
+                        XMonad.Actions.NoBorders
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.RotView
                         XMonad.Actions.SimpleDate
