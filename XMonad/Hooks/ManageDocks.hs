@@ -24,7 +24,7 @@ module XMonad.Hooks.ManageDocks (
 -----------------------------------------------------------------------------
 import XMonad
 import Foreign.C.Types (CLong)
-import Data.Maybe (catMaybes)
+-- import Data.Maybe (catMaybes, fromMaybe)
 import Control.Monad
 
 -- $usage
@@ -69,17 +69,22 @@ checkDock = ask >>= \w -> liftX $ do
 
 -- |
 -- Gets the STRUT config, if present, in xmonad gap order
-getStrut :: Window -> X (Maybe (Int, Int, Int, Int))
+getStrut :: Window -> X [Strut]
 getStrut w = do
-    s <- getAtom "_NET_WM_STRUT"
-    sp <- getAtom "_NET_WM_STRUT_PARTIAL"
-    liftM2 (\a b -> mplus (parse a) (parse b))
-        (getProp s w)
-        (getProp sp w)
+    spa <- getAtom "_NET_WM_STRUT_PARTIAL"
+    sa  <- getAtom "_NET_WM_STRUT"
+    msp <- getProp spa w
+    case msp of
+        Just sp -> return $ parseStrutPartial sp
+        Nothing -> fmap (maybe [] parseStrut) $ getProp sa w
  where
-    parse xs = case xs of
-        Just (l : r : t : b : _) -> Just (fi t, fi b, fi l, fi r)
-        _ -> Nothing
+    parseStrut xs@[_, _, _, _] = parseStrutPartial . take 12 $ xs ++ cycle [minBound, maxBound]
+    parseStrut _ = []
+
+    parseStrutPartial [l, r, t, b, ly1, ly2, ry1, ry2, tx1, tx2, bx1, bx2]
+     = filter (\(_, n, _, _) -> n /= 0)
+        [(L, l, ly1, ly2), (R, r, ry1, ry2), (T, t, tx1, tx2), (B, b, bx1, bx2)]
+    parseStrutPartial _ = []
 
 -- |
 -- Helper to read a property
@@ -89,49 +94,28 @@ getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 -- |
 -- Goes through the list of windows and find the gap so that all STRUT
 -- settings are satisfied.
-calcGap :: X Rectangle
+calcGap :: X (Rectangle -> Rectangle)
 calcGap = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     -- We don't keep track of dock like windows, so we find all of them here
     (_,_,wins) <- io $ queryTree dpy rootw
-    struts <- catMaybes `fmap` mapM getStrut wins
+    struts <- concat `fmap` mapM getStrut wins
 
     -- we grab the window attributes of the root window rather than checking
     -- the width of the screen because xlib caches this info and it tends to
     -- be incorrect after RAndR
     wa <- io $ getWindowAttributes dpy rootw
-    return $ reduceScreen (foldl max4 (0,0,0,0) struts)
-                $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
-
--- |
--- Piecewise maximum of a 4-tuple of Ints
-max4 :: (Int, Int, Int, Int) -> (Int, Int, Int, Int) -> (Int, Int, Int, Int)
-max4 (a1,a2,a3,a4) (b1,b2,b3,b4) = (max a1 b1, max a2 b2, max a3 b3, max a4 b4)
+    let screen = r2c $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
+    return $ \r -> c2r $ foldr (reduce screen) (r2c r) struts
 
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 
--- | Given strut values and the screen rectangle, compute a reduced screen
--- rectangle.
-reduceScreen :: (Int, Int, Int, Int) -> Rectangle -> Rectangle
-reduceScreen (t, b, l, r) s
- = case r2c s of
-    (x1, y1, x2, y2) -> c2r (x1 + fi l, y1 + fi t, x2 - fi r, y2 - fi b)
+r2c :: Rectangle -> RectC
+r2c (Rectangle x y w h) = (fi x, fi y, fi x + fi w, fi y + fi h)
 
-r2c :: Rectangle -> (Position, Position, Position, Position)
-r2c (Rectangle x y w h) = (x, y, x + fi w, y + fi h)
-
-c2r :: (Position, Position, Position, Position) -> Rectangle
-c2r (x1, y1, x2, y2) = Rectangle x1 y1 (fi $ x2 - x1) (fi $ y2 - y1)
-
--- | Given a bounding rectangle 's' and another rectangle 'r', compute a
--- rectangle 'r' that fits inside 's'.
-fitRect :: Rectangle -> Rectangle -> Rectangle
-fitRect s r
- = c2r (max sx1 rx1, max sy1 ry1, min sx2 rx2, min sy2 ry2)
- where
-    (sx1, sy1, sx2, sy2) = r2c s
-    (rx1, ry1, rx2, ry2) = r2c r
+c2r :: RectC -> Rectangle
+c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1) (fi $ y2 - y1)
 
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> AvoidStruts l a
@@ -144,7 +128,7 @@ instance Message ToggleStruts
 
 instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
     doLayout (AvoidStruts True lo) r s =
-        do rect <- fmap (flip fitRect r) calcGap
+        do rect <- fmap ($ r) calcGap
            (wrs,mlo') <- doLayout lo rect s
            return (wrs, AvoidStruts True `fmap` mlo')
     doLayout (AvoidStruts False lo) r s = do (wrs,mlo') <- doLayout lo r s
@@ -154,3 +138,22 @@ instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
         | otherwise = do ml' <- handleMessage l m
                          return (AvoidStruts b `fmap` ml')
     description (AvoidStruts _ l) = description l
+
+data Side = L | R | T | B
+
+type Strut = (Side, CLong, CLong, CLong)
+
+type RectC = (CLong, CLong, CLong, CLong)
+
+reduce :: RectC -> Strut -> RectC -> RectC
+reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
+    L | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
+    R | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
+    T | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
+    B | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
+    _              -> (x0           , y0       , x1       , y1       )
+ where
+    mx a b = max a (b + n)
+    mn a b = min a (b - n)
+    inRange (a, b) c = c > a && c < b
+    p (a, b) = inRange (a, b) l || inRange (a, b) h || inRange (a, b) l || inRange (l, h) b
