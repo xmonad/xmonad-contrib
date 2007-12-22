@@ -15,7 +15,9 @@
 --------------------------------------------------------------------------- -}
 module XMonad.Util.Search (      -- * Usage
                                  -- $usage
+                                 amazon, amazonSelection, amazonSearch,
                                  google, googleSelection, googleSearch,
+                                 imdb, imdbSelection, imdbSearch,
                                  wayback, waybackSelection, waybackSearch,
                                  wikipedia, wikipediaSelection, wikipediaSearch,
                                  promptSearch,
@@ -67,8 +69,10 @@ search :: String -> FilePath -> String -> IO ()
 search site browser query = safeSpawn browser $ site ++ escape query
 
 -- The engines
-googleSearch, waybackSearch, wikipediaSearch :: String -> String -> IO ()
+amazonSearch, googleSearch, imdbSearch, waybackSearch, wikipediaSearch :: String -> String -> IO ()
+amazonSearch    = search "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 googleSearch    = search "http://www.google.com/search?num=100&q="
+imdbSearch      = search "http://www.imdb.com/Find?select=all&for="
 wikipediaSearch = search "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
 waybackSearch   = search "http://web.archive.org/"
 {- This doesn't seem to work, but nevertheless, it seems to be the official
@@ -85,8 +89,10 @@ promptSearch searchEngine browser config = mkXPrompt Search config (getShellComp
 -- > , ((modm,               xK_g     ), google "firefox" defaultXPConfig)
 --
 -- First argument is the browser you want to use, the second the prompt configuration.
-google, wayback, wikipedia :: String -> XPConfig -> X ()
+amazon, google, imdb, wayback, wikipedia :: String -> XPConfig -> X ()
+amazon    = promptSearch amazonSearch
 google    = promptSearch googleSearch
+imdb      = promptSearch imdbSearch
 wikipedia = promptSearch wikipediaSearch
 wayback   = promptSearch waybackSearch
 
@@ -99,7 +105,9 @@ select browser searchEngine = io $ browser searchEngine =<< getSelection
 
 -- | Like the google\/wikipedia functions, but one less argument - the query is
 -- extracted from the copy-paste buffer of X Windows.
-googleSelection, waybackSelection, wikipediaSelection :: String -> X ()
+amazonSelection, googleSelection, imdbSelection, waybackSelection, wikipediaSelection :: String -> X ()
+amazonSelection    = select amazonSearch
 googleSelection    = select googleSearch
+imdbSelection      = select imdbSearch
 wikipediaSelection = select wikipediaSearch
 waybackSelection   = select waybackSearch
