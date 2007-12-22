@@ -57,8 +57,8 @@ import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
 -- | Returns a String corresponding to the current mouse selection in X; if there is none, an empty string is returned. Note that this is
 -- really only reliable for ASCII text and currently escapes or otherwise mangles more complex UTF-8 characters.
-getSelection :: IO String
-getSelection = do
+getSelection :: MonadIO m => m String
+getSelection = io $ do
   dpy <- openDisplay ""
   let dflt = defaultScreen dpy
   rootw  <- rootWindow dpy dflt
@@ -80,8 +80,8 @@ getSelection = do
        else destroyWindow dpy win >> return ""
 
 -- | Set the current X Selection to a given String.
-putSelection :: String -> IO ()
-putSelection text = do
+putSelection :: MonadIO m => String -> m ()
+putSelection text = io $ do
   dpy <- openDisplay ""
   let dflt = defaultScreen dpy
   rootw  <- rootWindow dpy dflt
