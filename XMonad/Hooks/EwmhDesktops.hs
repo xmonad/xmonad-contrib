@@ -73,6 +73,8 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
         forM_ (W.integrate' (W.stack w)) $ \win -> do
             setWindowDesktop win wn
 
+    setActiveWindow
+
     return ()
 
 
@@ -126,4 +128,9 @@ setSupported = withDisplay $ \dpy -> do
 
     setWMName "xmonad"
 
-
+setActiveWindow :: X ()
+setActiveWindow = withFocused $ \w -> withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_ACTIVE_WINDOW"
+    c <- getAtom "WINDOW"
+    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral w]
