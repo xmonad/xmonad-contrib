@@ -56,14 +56,15 @@ manageDocks :: ManageHook
 manageDocks = checkDock --> doIgnore
 
 -- |
--- Checks if a window is a DOCK window
+-- Checks if a window is a DOCK or DESKTOP window
 checkDock :: Query Bool
 checkDock = ask >>= \w -> liftX $ do
     a <- getAtom "_NET_WM_WINDOW_TYPE"
-    d <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
+    dock <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
+    desk <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
     mbr <- getProp a w
     case mbr of
-        Just [r] -> return (fromIntegral r == d)
+        Just [r] -> return $ elem (fromIntegral r) [dock, desk]
         _        -> return False
 
 -- |
