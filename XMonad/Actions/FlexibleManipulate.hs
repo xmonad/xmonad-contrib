@@ -17,9 +17,9 @@
 -- Based on the FlexibleResize code by Lukas Mai (mauke).
 
 module XMonad.Actions.FlexibleManipulate (
-	-- * Usage
-	-- $usage
-	mouseWindow, discrete, linear, resize, position
+        -- * Usage
+        -- $usage
+        mouseWindow, discrete, linear, resize, position
 ) where
 
 import XMonad

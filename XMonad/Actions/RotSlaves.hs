@@ -12,10 +12,10 @@
 -- place.
 -----------------------------------------------------------------------------
 module XMonad.Actions.RotSlaves (
-	-- $usage
-	rotSlaves', rotSlavesUp, rotSlavesDown,
-	rotAll', rotAllUp, rotAllDown
-	) where
+        -- $usage
+        rotSlaves', rotSlavesUp, rotSlavesDown,
+        rotAll', rotAllUp, rotAllDown
+        ) where
 
 import XMonad.StackSet
 import XMonad

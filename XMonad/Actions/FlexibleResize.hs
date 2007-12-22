@@ -13,9 +13,9 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.FlexibleResize (
-	-- * Usage
-	-- $usage
-	XMonad.Actions.FlexibleResize.mouseResizeWindow
+        -- * Usage
+        -- $usage
+        XMonad.Actions.FlexibleResize.mouseResizeWindow
 ) where
 
 import XMonad

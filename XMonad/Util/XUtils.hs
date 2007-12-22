@@ -22,7 +22,7 @@ module XMonad.Util.XUtils  (
                              , deleteWindow
                              , paintWindow
                              , paintAndWrite
-			     , stringToPixel
+                             , stringToPixel
                             ) where
 
 

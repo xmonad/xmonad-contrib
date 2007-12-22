@@ -38,12 +38,13 @@ focusNth :: Int -> X ()
 focusNth = windows . modify' . focusNth'
 
 focusNth' :: Int -> Stack a -> Stack a
-focusNth' n s@(Stack _ ls rs)	| (n < 0) || (n > length(ls) + length(rs)) = s
-				| otherwise = listToStack n (integrate s)
+focusNth' n s@(Stack _ ls rs) | (n < 0) || (n > length(ls) + length(rs)) = s
+                              | otherwise = listToStack n (integrate s)
 
 listToStack :: Int -> [a] -> Stack a
 listToStack n l = Stack t ls rs
-	where	(t:rs)	= drop n l
-		ls	= reverse (take n l)
+ where
+    (t:rs)    = drop n l
+    ls        = reverse (take n l)
 
 

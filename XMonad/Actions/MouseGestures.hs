@@ -15,7 +15,7 @@
 module XMonad.Actions.MouseGestures (
     -- * Usage
     -- $usage
-	Direction(..),
+        Direction(..),
     mouseGesture
 ) where
 

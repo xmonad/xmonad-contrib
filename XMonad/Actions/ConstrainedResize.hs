@@ -16,9 +16,9 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.ConstrainedResize (
-	-- * Usage
-	-- $usage
-	XMonad.Actions.ConstrainedResize.mouseResizeWindow
+        -- * Usage
+        -- $usage
+        XMonad.Actions.ConstrainedResize.mouseResizeWindow
 ) where
 
 import XMonad

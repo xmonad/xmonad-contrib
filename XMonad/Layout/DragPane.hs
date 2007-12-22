@@ -107,7 +107,7 @@ doLay mirror (DragPane mw ty delta split) r s = do
                                mirror $ Rectangle x y (w-halfHandleWidth) h
       right = case right' of
                 Rectangle x y w h ->
-		    mirror $ Rectangle (x+halfHandleWidth) y (w-halfHandleWidth) h
+                    mirror $ Rectangle (x+halfHandleWidth) y (w-halfHandleWidth) h
       handr = case left' of
                 Rectangle x y w h ->
                     mirror $ Rectangle (x + fromIntegral w - halfHandleWidth) y (2*halfHandleWidth) h

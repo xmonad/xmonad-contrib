@@ -204,8 +204,8 @@ updateTab ishr c fs wh (tabw,ow) = do
   dpy <- asks display
   let s = shrinkIt ishr
   name <- shrinkWhile s (\n -> do
-			   size <- io $ textWidthXMF dpy fs n
-			   return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
+                                size <- io $ textWidthXMF dpy fs n
+                                return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
   paintAndWrite tabw fs wh ht 1 bc' borderc' tc' bc' AlignCenter name
 
 shrink :: TConf -> Rectangle -> Rectangle
@@ -217,10 +217,10 @@ shrinkWhile sh p x = sw $ sh x
     where sw [n] = return n
           sw [] = return ""
           sw (n:ns) = do
-	                cond <- p n
-			if cond
-			  then sw ns
-			  else return n
+                        cond <- p n
+                        if cond
+                          then sw ns
+                          else return n
 
 data CustomShrink = CustomShrink
 instance Show CustomShrink where show _ = ""
