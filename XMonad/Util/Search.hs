@@ -23,7 +23,8 @@ module XMonad.Util.Search (      -- * Usage
                                  google,
                                  imdb,
                                  wayback,
-                                 wikipedia
+                                 wikipedia,
+                                 hoogle
                           ) where
 
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
@@ -76,7 +77,7 @@ simpleEngine :: String -> SearchEngine
 simpleEngine site query = site ++ escape query
 
 -- The engines
-amazon, google, imdb, wayback, wikipedia :: SearchEngine
+amazon, google, imdb, wayback, wikipedia, hoogle :: SearchEngine
 amazon    = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 google    = simpleEngine "http://www.google.com/search?num=100&q="
 imdb      = simpleEngine "http://www.imdb.com/Find?select=all&for="
@@ -85,6 +86,7 @@ wayback   = simpleEngine "http://web.archive.org/"
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
+hoogle    = simpleEngine "http://www.haskell.org/hoogle/?q="
 
 -- | Like 'search', but in this case, the string is not specified but grabbed
 -- from the user's response to a prompt.
