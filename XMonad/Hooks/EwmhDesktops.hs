@@ -97,7 +97,7 @@ setDesktopNames names = withDisplay $ \dpy -> do
     a <- getAtom "_NET_DESKTOP_NAMES"
     c <- getAtom "UTF8_STRING"
     let names' = map (fromIntegral.fromEnum) $
-            concatMap (("Workspace "++) . (++['\0'])) names
+            concatMap ((++['\0'])) names
     io $ changeProperty8 dpy r a c propModeReplace names'
 
 setClientList :: [Window] -> X ()
