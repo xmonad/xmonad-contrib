@@ -135,5 +135,6 @@ library
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
                         XMonad.Util.Search
+                        XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils

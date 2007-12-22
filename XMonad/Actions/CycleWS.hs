@@ -24,13 +24,12 @@ module XMonad.Actions.CycleWS (
                               toggleWS,
                              ) where
 
-import Data.List ( sortBy, findIndex )
+import Data.List ( findIndex )
 import Data.Maybe ( fromMaybe )
-import Data.Ord ( comparing )
 
 import XMonad hiding (workspaces)
-import qualified XMonad (workspaces)
 import XMonad.StackSet hiding (filter)
+import XMonad.Util.WorkspaceCompare
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -81,14 +80,11 @@ shiftBy d = wsBy d >>= windows . shift
 wsBy :: Int -> X (WorkspaceId)
 wsBy d = do
     ws <- gets windowset
-    spaces <- asks (XMonad.workspaces . config)
-    let orderedWs = sortBy (comparing (wsIndex spaces)) (workspaces ws)
+    sort' <- getSortByTag
+    let orderedWs = sort' (workspaces ws)
     let now = fromMaybe 0 $ findWsIndex (workspace (current ws)) orderedWs
     let next = orderedWs !! ((now + d) `mod` length orderedWs)
     return $ tag next
-
-wsIndex :: [WorkspaceId] -> WindowSpace -> Maybe Int
-wsIndex spaces ws = findIndex (== tag ws) spaces
 
 findWsIndex :: WindowSpace -> [WindowSpace] -> Maybe Int
 findWsIndex ws wss = findIndex ((== tag ws) . tag) wss

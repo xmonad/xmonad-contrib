@@ -46,8 +46,8 @@ import Data.Maybe ( isJust )
 import Data.List
 import Data.Ord ( comparing )
 import qualified XMonad.StackSet as S
-import Data.Monoid
 import System.IO
+import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
 import XMonad.Hooks.UrgencyHook
@@ -108,11 +108,11 @@ dynamicLogWithPP :: PP -> X ()
 dynamicLogWithPP pp = do
     winset <- gets windowset
     urgents <- readUrgents
-    spaces <- asks (workspaces . config)
+    sort' <- getSortByTag
     -- layout description
     let ld = description . S.layout . S.workspace . S.current $ winset
     -- workspace list
-    let ws = pprWindowSet spaces urgents pp winset
+    let ws = pprWindowSet sort' urgents pp winset
     -- window title
     wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
 
@@ -128,19 +128,10 @@ dynamicLogWithPP pp = do
 dynamicLogDzen :: X ()
 dynamicLogDzen = dynamicLogWithPP dzenPP
 
-pprWindowSet :: [String] -> [Window] -> PP -> WindowSet -> String
-pprWindowSet spaces urgents pp s =  sepBy (ppWsSep pp) $ map fmt $ sortBy cmp
-            (map S.workspace (S.current s : S.visible s) ++ S.hidden s)
-   where f Nothing Nothing   = EQ
-         f (Just _) Nothing  = LT
-         f Nothing (Just _)  = GT
-         f (Just x) (Just y) = compare x y
-
-         wsIndex = flip elemIndex spaces . S.tag
-
-         cmp a b = f (wsIndex a) (wsIndex b) `mappend` compare (S.tag a) (S.tag b)
-
-         this     = S.tag (S.workspace (S.current s))
+pprWindowSet :: ([WindowSpace] -> [WindowSpace]) -> [Window] -> PP -> WindowSet -> String
+pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
+            map S.workspace (S.current s : S.visible s) ++ S.hidden s
+   where this     = S.tag (S.workspace (S.current s))
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w = printer pp (S.tag w)

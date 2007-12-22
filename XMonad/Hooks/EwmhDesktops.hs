@@ -17,15 +17,15 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsLogHook
     ) where
 
-import Data.List    (elemIndex, sortBy)
-import Data.Ord     (comparing)
-import Data.Maybe   (fromMaybe)
+import Data.List
+import Data.Maybe
 
 import XMonad
 import Control.Monad
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
+import XMonad.Util.WorkspaceCompare
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -48,9 +48,8 @@ import XMonad.Hooks.SetWMName
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = withWindowSet $ \s -> do
-    -- Bad hack because xmonad forgets the original order of things, it seems
-    -- see http://code.google.com/p/xmonad/issues/detail?id=53
-    let ws = sortBy (comparing W.tag) $ W.workspaces s
+    sort' <- getSortByTag
+    let ws = sort' $ W.workspaces s
     let wins = W.allWindows s
 
     setSupported
@@ -70,8 +69,8 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
     setClientList wins
 
     -- Per window Desktop
-    forM (zip ws [(0::Int)..]) $ \(w, wn) ->
-        forM (W.integrate' (W.stack w)) $ \win -> do
+    forM_ (zip ws [(0::Int)..]) $ \(w, wn) ->
+        forM_ (W.integrate' (W.stack w)) $ \win -> do
             setWindowDesktop win wn
 
     return ()
