@@ -16,11 +16,14 @@ import qualified XMonad.StackSet as S
 import Data.List
 import Data.Monoid
 
+-- | Lookup the index of a workspace id in the user's config, return Nothing
+-- if that workspace does not exist in the config.
 getWsIndex :: X (WorkspaceId -> Maybe Int)
 getWsIndex = do
     spaces <- asks (workspaces . config)
     return $ flip elemIndex spaces
 
+-- | A comparison function for WorkspaceId
 getWsCompare :: X (WorkspaceId -> WorkspaceId -> Ordering)
 getWsCompare = do
     wsIndex <- getWsIndex
@@ -31,6 +34,7 @@ getWsCompare = do
    f Nothing (Just _)  = GT
    f (Just x) (Just y) = compare x y
 
+-- | Sort several workspaces according to the order in getWsCompare
 getSortByTag :: X ([WindowSpace] -> [WindowSpace])
 getSortByTag = do
     cmp <- getWsCompare
