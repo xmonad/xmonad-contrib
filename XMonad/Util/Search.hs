@@ -15,19 +15,20 @@
 --------------------------------------------------------------------------- -}
 module XMonad.Util.Search (      -- * Usage
                                  -- $usage
-                                 amazon, amazonSelection, amazonSearch,
-                                 google, googleSelection, googleSearch,
-                                 imdb, imdbSelection, imdbSearch,
-                                 wayback, waybackSelection, waybackSearch,
-                                 wikipedia, wikipediaSelection, wikipediaSearch,
+                                 search,
                                  promptSearch,
-                                 search
+                                 selectSearch,
+
+                                 amazon,
+                                 google,
+                                 imdb,
+                                 wayback,
+                                 wikipedia
                           ) where
 
-import Control.Monad.Trans (MonadIO()) -- for select's type signature
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
 import Numeric (showIntAtBase)
-import XMonad (io, X())
+import XMonad (X(), MonadIO)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig())
 import XMonad.Prompt.Shell (getShellCompl)
 import XMonad.Util.Run (safeSpawn)
@@ -63,51 +64,36 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
                    | d < 10    = chr (ord '0' + fromIntegral d)
                    | otherwise = chr (ord 'A' + fromIntegral (d - 10))
 
--- | Given the base search URL, a browser to use, and the actual query, escape
--- the query, prepend the base URL, and hand it off to the browser.
-search :: String -> FilePath -> String -> IO ()
-search site browser query = safeSpawn browser $ site ++ escape query
+type Browser      = FilePath
+type SearchEngine = String -> String
+
+search :: MonadIO m => Browser -> SearchEngine -> String -> m ()
+search browser site query = safeSpawn browser $ site query
+
+-- | Given a base URL, create the SearchEngine that escapes the query and
+-- appends it to the base
+simpleEngine :: String -> SearchEngine
+simpleEngine site query = site ++ escape query
 
 -- The engines
-amazonSearch, googleSearch, imdbSearch, waybackSearch, wikipediaSearch :: String -> String -> IO ()
-amazonSearch    = search "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
-googleSearch    = search "http://www.google.com/search?num=100&q="
-imdbSearch      = search "http://www.imdb.com/Find?select=all&for="
-wikipediaSearch = search "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
-waybackSearch   = search "http://web.archive.org/"
+amazon, google, imdb, wayback, wikipedia :: SearchEngine
+amazon    = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+google    = simpleEngine "http://www.google.com/search?num=100&q="
+imdb      = simpleEngine "http://www.imdb.com/Find?select=all&for="
+wikipedia = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+wayback   = simpleEngine "http://web.archive.org/"
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
 
 -- | Like 'search', but in this case, the string is not specified but grabbed
 -- from the user's response to a prompt.
-promptSearch :: (String -> String -> IO ()) -> String -> XPConfig -> X ()
-promptSearch searchEngine browser config = mkXPrompt Search config (getShellCompl []) $ io . (searchEngine browser)
-
--- | Search the particular site; these are suitable for binding to a key. Use them like this:
---
--- > , ((modm,               xK_g     ), google "firefox" defaultXPConfig)
---
--- First argument is the browser you want to use, the second the prompt configuration.
-amazon, google, imdb, wayback, wikipedia :: String -> XPConfig -> X ()
-amazon    = promptSearch amazonSearch
-google    = promptSearch googleSearch
-imdb      = promptSearch imdbSearch
-wikipedia = promptSearch wikipediaSearch
-wayback   = promptSearch waybackSearch
+promptSearch :: XPConfig -> Browser -> SearchEngine -> X ()
+promptSearch config browser site = mkXPrompt Search config (getShellCompl []) $ search browser site
 
 -- | Like search, but for use with the X selection; it grabs the selection,
 -- passes it to a given searchEngine and opens it in a browser. The various
 -- *Selection functions specialize this to a particular search engine to make
 -- things easier.
-select :: (Control.Monad.Trans.MonadIO m) => (t -> String -> IO a) -> t -> m a
-select browser searchEngine = io $ browser searchEngine =<< getSelection
-
--- | Like the google\/wikipedia functions, but one less argument - the query is
--- extracted from the copy-paste buffer of X Windows.
-amazonSelection, googleSelection, imdbSelection, waybackSelection, wikipediaSelection :: String -> X ()
-amazonSelection    = select amazonSearch
-googleSelection    = select googleSearch
-imdbSelection      = select imdbSearch
-wikipediaSelection = select wikipediaSearch
-waybackSelection   = select waybackSearch
+selectSearch :: MonadIO m => Browser -> SearchEngine -> m ()
+selectSearch browser searchEngine = search browser searchEngine =<< getSelection
