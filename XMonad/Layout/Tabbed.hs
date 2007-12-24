@@ -94,7 +94,7 @@ data TabState =
     TabState { tabsWindows :: [(Window,Window)]
              , scr         :: Rectangle
              , font        :: XMonadFont
-    }
+             }
 
 data Tabbed s a =
     Tabbed (Invisible Maybe TabState) s TConf
@@ -136,8 +136,8 @@ handleMess _ _  = return Nothing
 
 handleEvent :: Shrinker s => s -> TConf -> TabState -> Event -> X ()
 -- button press
-handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, font         = fs})
-                      (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t})
+handleEvent ishr conf (TabState    {tabsWindows = tws,   scr          = screen, font          = fs})
+                      (ButtonEvent {ev_window   = thisw, ev_subwindow = thisbw, ev_event_type = t })
     | t == buttonPress, tl <- map fst tws, thisw `elem` tl || thisbw `elem` tl  = do
   case lookup thisw tws of
     Just x  -> do focus x
@@ -182,7 +182,7 @@ createTabs c (Rectangle x y wh ht) owl@(ow:ows) = do
       height = fromIntegral $ tabSize c
       mask   = Just (exposureMask .|. buttonPressMask)
   d  <- asks display
-  w  <- createNewWindow (Rectangle x y wid height) mask (inactiveColor c)
+  w  <- createNewWindow (Rectangle x y wid height) mask (inactiveColor c) True
   io $ restackWindows d $ w : [ow]
   ws <- createTabs c (Rectangle (x + fromIntegral wid) y (wh - wid) ht) ows
   return (w:ws)

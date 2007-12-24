@@ -3,7 +3,7 @@
 -- Module      :  XMonad.Util.XUtils
 -- Copyright   :  (c) 2007 Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
--- 
+--
 -- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.XUtils  ( 
+module XMonad.Util.XUtils  (
                              -- * Usage:
                              -- $usage
                                averagePixels
@@ -44,15 +44,16 @@ averagePixels p1 p2 f =
        let mn x1 x2 = round (fromIntegral x1 * f + fromIntegral x2 * (1-f))
        Color p _ _ _ _ <- io $ allocColor d cm (Color 0 (mn r1 r2) (mn g1 g2) (mn b1 b2) 0)
        return p
+
 -- | Create a simple window given a rectangle. If Nothing is given
 -- only the exposureMask will be set, otherwise the Just value.
 -- Use 'showWindow' to map and hideWindow to unmap.
-createNewWindow :: Rectangle -> Maybe EventMask -> String -> X Window
-createNewWindow (Rectangle x y w h) m col = do
+createNewWindow :: Rectangle -> Maybe EventMask -> String -> Bool -> X Window
+createNewWindow (Rectangle x y w h) m col o = do
   d   <- asks display
   rw  <- asks theRoot
-  c <- stringToPixel d col
-  win <- io $ createSimpleWindow d rw x y w h 0 c c
+  c   <- stringToPixel d col
+  win <- io $ mkWindow d (defaultScreenOfDisplay d) rw x y w h c o
   case m of
     Just em -> io $ selectInput d win em
     Nothing -> io $ selectInput d win exposureMask
@@ -77,9 +78,9 @@ deleteWindow w = do
   io $ destroyWindow d w
 
 -- | Fill a window with a rectangle and a border
-paintWindow :: Window     -- ^ The window where to draw 
+paintWindow :: Window     -- ^ The window where to draw
             -> Dimension  -- ^ Window width
-            -> Dimension  -- ^ Window height 
+            -> Dimension  -- ^ Window height
             -> Dimension  -- ^ Border width
             -> String     -- ^ Window background color
             -> String     -- ^ Border color
@@ -88,10 +89,10 @@ paintWindow w wh ht bw c bc =
     paintWindow' w (Rectangle 0 0 wh ht) bw c bc Nothing
 
 -- | Fill a window with a rectangle and a border, and write a string at given position
-paintAndWrite :: Window     -- ^ The window where to draw 
+paintAndWrite :: Window     -- ^ The window where to draw
               -> XMonadFont -- ^ XMonad Font for drawing
               -> Dimension  -- ^ Window width
-              -> Dimension  -- ^ Window height 
+              -> Dimension  -- ^ Window height
               -> Dimension  -- ^ Border width
               -> String     -- ^ Window background color
               -> String     -- ^ Border color
@@ -129,6 +130,21 @@ paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
   -- free the pixmap and GC
   io $ freePixmap    d p
   io $ freeGC        d gc
+
+-- | Creates a window with the possibility of setting some attributes.
+-- Not exported.
+mkWindow :: Display -> Screen -> Window -> Position
+         -> Position -> Dimension -> Dimension -> Pixel -> Bool -> IO Window
+mkWindow d s rw x y w h p o = do
+  let visual = defaultVisualOfScreen s
+      attrmask = cWOverrideRedirect .|. cWBackPixel .|. cWBorderPixel
+  allocaSetWindowAttributes $
+         \attributes -> do
+           set_override_redirect attributes o
+           set_border_pixel      attributes p
+           set_background_pixel  attributes p
+           createWindow d rw x y w h 0 (defaultDepthOfScreen s)
+                        inputOutput visual attrmask attributes
 
 -- | Short-hand for 'fromIntegral'
 fi :: (Integral a, Num b) => a -> b

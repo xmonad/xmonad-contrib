@@ -131,6 +131,6 @@ doLay mirror (DragPane mw ty delta split) r s = do
 newDragWin :: Rectangle -> X Window
 newDragWin r = do
   let mask = Just $ exposureMask .|. buttonPressMask
-  w <- createNewWindow r mask handleColor
+  w <- createNewWindow r mask handleColor False
   showWindow  w
   return      w
