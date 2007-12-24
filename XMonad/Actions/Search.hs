@@ -1,5 +1,5 @@
 {- |
- Module      :  XMonad.Util.Search
+ Module      :  XMonad.Actions.Search
  Copyright   :  (C) 2007 Gwern Branwen
  License     :  None; public domain
 
@@ -13,7 +13,7 @@
 
  Additional sites welcomed.
 --------------------------------------------------------------------------- -}
-module XMonad.Util.Search (      -- * Usage
+module XMonad.Actions.Search (      -- * Usage
                                  -- $usage
                                  search,
                                  promptSearch,

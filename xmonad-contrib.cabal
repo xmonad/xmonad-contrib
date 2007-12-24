@@ -65,6 +65,7 @@ library
                         XMonad.Actions.NoBorders
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.RotView
+                        XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll
                         XMonad.Actions.Submap
@@ -135,7 +136,6 @@ library
                         XMonad.Util.Invisible
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
-                        XMonad.Util.Search
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
