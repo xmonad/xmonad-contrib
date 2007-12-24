@@ -613,7 +613,7 @@ getHistory = do
 readHistory :: IO ([History],Handle)
 readHistory = do
   home <- getEnv "HOME"
-  let path = home ++ "/.xmonad_history"
+  let path = home ++ "/.xmonad/history"
   f <- fileExist path
   if f then do h <- openFile path ReadMode
                str <- hGetContents h
@@ -627,7 +627,7 @@ readHistory = do
 writeHistory :: [History] -> IO ()
 writeHistory hist = do
   home <- getEnv "HOME"
-  let path = home ++ "/.xmonad_history"
+  let path = home ++ "/.xmonad/history"
   catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
 
 -- $xutils
