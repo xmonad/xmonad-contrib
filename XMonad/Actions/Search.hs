@@ -43,7 +43,7 @@ import XMonad.Util.XSelection (getSelection)
    query string and the browser to use must come from somewhere. There are two
    places the query string can come from - the user can type it into a prompt
    which pops up, or the query could be available already in the X Windows
-   copy/paste buffer (perhaps you just highlighted the string of interest).
+   copy\/paste buffer (perhaps you just highlighted the string of interest).
 
    Thus, there are two main functions: 'promptSearch', and 'selectSearch'
    (implemented using the more primitive 'search'). To each of these is passed an
