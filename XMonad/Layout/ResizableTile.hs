@@ -24,6 +24,8 @@ module XMonad.Layout.ResizableTile (
 import XMonad hiding (splitVertically, splitHorizontallyBy)
 import qualified XMonad.StackSet as W
 import Control.Monad
+import qualified Data.Map as M
+import Data.List ((\\))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -58,12 +60,16 @@ instance LayoutClass ResizableTall a where
         ap zip (tile frac (mfrac ++ repeat 1) r nmaster . length) . W.integrate
     handleMessage (ResizableTall nmaster delta frac mfrac) m =
         do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
-           case ms of
-             Nothing -> return Nothing
-             Just s -> return $ msum [fmap resize (fromMessage m)
-                                     ,fmap (\x -> mresize x s) (fromMessage m)
-                                     ,fmap incmastern (fromMessage m)]
-        where resize Shrink = ResizableTall nmaster delta (max 0 $ frac-delta) mfrac
+           fs <- (M.keys . W.floating) `fmap` gets windowset
+           return $ ms >>= unfloat fs >>= handleMesg
+        where handleMesg s = msum [fmap resize (fromMessage m)
+                                  ,fmap (\x -> mresize x s) (fromMessage m)
+                                  ,fmap incmastern (fromMessage m)]
+              unfloat fs s = if W.focus s `elem` fs
+                               then Nothing
+                               else Just (s { W.up = (W.up s) \\ fs
+                                            , W.down = (W.down s) \\ fs })
+              resize Shrink = ResizableTall nmaster delta (max 0 $ frac-delta) mfrac
               resize Expand = ResizableTall nmaster delta (min 1 $ frac+delta) mfrac
               mresize MirrorShrink s = mresize' s delta
               mresize MirrorExpand s = mresize' s (0-delta)
