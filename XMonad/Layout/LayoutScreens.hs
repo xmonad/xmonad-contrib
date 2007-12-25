@@ -30,14 +30,16 @@ import qualified XMonad.StackSet as W
 -- screen and long for greater flexibility (e.g. being able to see your
 -- email window at all times, a crude mimic of sticky windows).
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module with the following in your
+-- @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Layout.LayoutScreens
+-- > import XMonad.Layout.TwoPane
 --
 -- Then add some keybindings; for example:
 --
--- >   , ((modMask .|. shiftMask, xK_space), layoutScreens 2 (TwoPane 0.5 0.5))
--- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
+-- >   , ((modMask x .|. shiftMask,                 xK_space), layoutScreens 2 (TwoPane 0.5 0.5))
+-- >   , ((modMask x .|. controlMask .|. shiftMask, xK_space), rescreen)
 --
 -- Another example use would be to handle a scenario where xrandr didn't
 -- work properly (e.g. a VNC X server in my case) and you want to be able
@@ -45,9 +47,9 @@ import qualified XMonad.StackSet as W
 --
 -- > import XMonad.Layout.LayoutScreens
 --
--- >   , ((modMask .|. shiftMask, xK_space),
+-- >   , ((modMask x .|. shiftMask, xK_space),
 -- >        layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
--- >   , ((controlMask .|. modMask .|. shiftMask, xK_space), rescreen)
+-- >   , ((modMask x .|. controlMask .|. shiftMask, xK_space), rescreen)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
