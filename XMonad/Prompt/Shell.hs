@@ -89,20 +89,12 @@ getCommands :: IO [String]
 getCommands = do
     p  <- getEnv "PATH" `catch` const (return [])
     let ds = split ':' p
-        fp d f = d ++ "/" ++ f
     es <- forM ds $ \d -> do
         exists <- doesDirectoryExist d
         if exists
-            then getDirectoryContents d >>= filterM (isExecutable . fp d)
+            then getDirectoryContents d
             else return []
-    return . uniqSort . concat $ es
-
-isExecutable :: FilePath ->IO Bool
-isExecutable f = do
-    fe <- doesFileExist f
-    if fe
-        then fmap executable $ getPermissions f
-        else return False
+    return . uniqSort . filter ((/= '.') . head) . concat $ es
 
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []
