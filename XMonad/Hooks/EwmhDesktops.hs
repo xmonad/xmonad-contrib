@@ -68,7 +68,14 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
     setClientList wins
 
     -- Per window Desktop
-    forM_ (zip ws [(0::Int)..]) $ \(w, wn) ->
+    -- To make gnome-panel accept our xinerama stuff, we display
+    -- all visible windows on the current desktop.
+    forM_ (W.current s : W.visible s) $ \s -> 
+        forM_ (W.integrate' (W.stack (W.workspace s))) $ \win -> do
+            setWindowDesktop win curr
+
+    forM_ (W.hidden s) $ \w -> 
+        let wn = fromJust $ elemIndex (W.tag w) (map W.tag ws) in
         forM_ (W.integrate' (W.stack w)) $ \win -> do
             setWindowDesktop win wn
 
