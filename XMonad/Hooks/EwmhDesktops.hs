@@ -61,10 +61,9 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
     setDesktopNames (map W.tag ws)
 
     -- Current desktop
-    fromMaybe (return ()) $ do
-        n <- W.lookupWorkspace 0 s
-        i <- elemIndex n $ map W.tag ws
-        return $ setCurrentDesktop i
+    let curr = fromJust $ elemIndex (W.tag (W.workspace (W.current s))) $ map W.tag ws
+    
+    setCurrentDesktop curr
 
     setClientList wins
 
