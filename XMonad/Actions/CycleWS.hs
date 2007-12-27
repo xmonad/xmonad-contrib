@@ -10,7 +10,7 @@
 -- Portability :  unportable
 --
 -- Provides bindings to cycle forward or backward through the list
--- of workspaces, and to move windows there.
+-- of workspaces, and to move windows there, and to cycle between the screens.
 --
 -----------------------------------------------------------------------------
 
@@ -22,9 +22,11 @@ module XMonad.Actions.CycleWS (
                               shiftToNext,
                               shiftToPrev,
                               toggleWS,
+                              nextScreen,
+                              prevScreen
                              ) where
 
-import Data.List ( findIndex )
+import Data.List ( findIndex, sortBy )
 import Data.Maybe ( fromMaybe )
 
 import XMonad hiding (workspaces)
@@ -36,16 +38,18 @@ import XMonad.Util.WorkspaceCompare
 --
 -- > import XMonad.Actions.CycleWS
 --
--- >   , ((modMask x,               xK_Right), nextWS)
--- >   , ((modMask x,               xK_Left),  prevWS)
--- >   , ((modMask x .|. shiftMask, xK_Right), shiftToNext)
--- >   , ((modMask x .|. shiftMask, xK_Left),  shiftToPrev)
+-- >   , ((modMask x,               xK_Down),  nextWS)
+-- >   , ((modMask x,               xK_Up),    prevWS)
+-- >   , ((modMask x .|. shiftMask, xK_Down),  shiftToNext)
+-- >   , ((modMask x .|. shiftMask, xK_Up),    shiftToPrev)
+-- >   , ((modMask x,               xK_Right), nextScreen)
+-- >   , ((modMask x,               xK_Left),  prevScreen)
 -- >   , ((modMask x,               xK_t),     toggleWS)
 --
 -- If you want to follow the moved window, you can use both actions:
 --
--- >   , ((modMask x .|. shiftMask, xK_Right), shiftToNext >> nextWS)
--- >   , ((modMask x .|. shiftMask, xK_Left),  shiftToPrev >> prevWS)
+-- >   , ((modMask x .|. shiftMask, xK_Down), shiftToNext >> nextWS)
+-- >   , ((modMask x .|. shiftMask, xK_Up),   shiftToPrev >> prevWS)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
@@ -88,3 +92,24 @@ wsBy d = do
 
 findWsIndex :: WindowSpace -> [WindowSpace] -> Maybe Int
 findWsIndex ws wss = findIndex ((== tag ws) . tag) wss
+
+-- | View next screen
+nextScreen :: X ()
+nextScreen = switchScreen 1
+
+-- | View prev screen
+prevScreen :: X ()
+prevScreen = switchScreen (-1)
+
+switchScreen :: Int -> X ()
+switchScreen d = do s <- screenBy d
+                    mws <- screenWorkspace s
+                    case mws of
+                         Nothing -> return ()
+                         Just ws -> windows (view ws)
+
+screenBy :: Int -> X (ScreenId)
+screenBy d = do ws <- gets windowset
+                --let ss = sortBy screen (screens ws)
+                let now = screen (current ws)
+                return $ (now + fromIntegral d) `mod` fromIntegral (length (screens ws))
