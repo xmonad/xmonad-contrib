@@ -70,8 +70,8 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
     -- Per window Desktop
     -- To make gnome-panel accept our xinerama stuff, we display
     -- all visible windows on the current desktop.
-    forM_ (W.current s : W.visible s) $ \s -> 
-        forM_ (W.integrate' (W.stack (W.workspace s))) $ \win -> do
+    forM_ (W.current s : W.visible s) $ \x -> 
+        forM_ (W.integrate' (W.stack (W.workspace x))) $ \win -> do
             setWindowDesktop win curr
 
     forM_ (W.hidden s) $ \w -> 
