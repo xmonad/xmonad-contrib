@@ -26,7 +26,7 @@ module XMonad.Actions.CycleWS (
                               prevScreen
                              ) where
 
-import Data.List ( findIndex, sortBy )
+import Data.List ( findIndex )
 import Data.Maybe ( fromMaybe )
 
 import XMonad hiding (workspaces)
