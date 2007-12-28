@@ -454,7 +454,7 @@ printPrompt drw = do
       ht = height c
   fsl <- io $ textWidthXMF (dpy st) fs f
   psl <- io $ textWidthXMF (dpy st) fs p
-  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) fs str
+  (_,asc,desc,_) <- io $ textExtentsXMF fs str
   let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
 
@@ -521,7 +521,7 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
-  (_,asc,desc,_) <- io $ textExtentsXMF (dpy st) fs $ head compl
+  (_,asc,desc,_) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]

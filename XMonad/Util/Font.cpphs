@@ -102,10 +102,10 @@ textWidthXMF dpy (Xft xftdraw) s = liftIO $ do
     return $ xglyphinfo_width gi
 #endif
 
-textExtentsXMF :: MonadIO m => Display -> XMonadFont -> String -> m (FontDirection,Int32,Int32,CharStruct)
-textExtentsXMF _ (Core fs) s = return $ textExtents fs s
+textExtentsXMF :: MonadIO m => XMonadFont -> String -> m (FontDirection,Int32,Int32,CharStruct)
+textExtentsXMF (Core fs) s = return $ textExtents fs s
 #ifdef XFT
-textExtentsXMF _ (Xft xftfont) _ = liftIO $ do
+textExtentsXMF (Xft xftfont) _ = liftIO $ do
     ascent <- xftfont_ascent xftfont
     descent <- xftfont_descent xftfont
     return (error "Font direction touched", fi ascent, fi descent, error "Font overall size touched")
@@ -120,7 +120,7 @@ stringPosition :: XMonadFont -> Rectangle -> Align -> String -> X (Position,Posi
 stringPosition fs (Rectangle _ _ w h) al s = do
   dpy <- asks display
   width <- io $ textWidthXMF dpy fs s
-  (_,a,d,_) <- io $ textExtentsXMF dpy fs s
+  (_,a,d,_) <- io $ textExtentsXMF fs s
   let y         = fi $ ((h - fi (a + d)) `div` 2) + fi a;
       x         = case al of
                      AlignCenter -> fi (w `div` 2) - fi (width `div` 2)
