@@ -129,7 +129,8 @@ setSupported = withDisplay $ \dpy -> do
     setWMName "xmonad"
 
 setActiveWindow :: X ()
-setActiveWindow = withFocused $ \w -> withDisplay $ \dpy -> do
+setActiveWindow = withWindowSet $ \s -> withDisplay $ \dpy -> do
+    let w = fromMaybe 0 (W.peek s)
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
     c <- getAtom "WINDOW"
