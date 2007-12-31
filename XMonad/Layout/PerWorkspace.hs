@@ -12,6 +12,13 @@
 --
 -- Configure layouts on a per-workspace basis.  NOTE that this module
 -- does not (yet) work in conjunction with multiple screens! =(
+--
+-- Note also that when using PerWorkspace, on initial startup workspaces
+-- may not respond to messages properly until a window has been opened.
+-- This is due to a limitation inherent in the way PerWorkspace is
+-- implemented: it cannot decide which layout to use until actually
+-- required to lay out some windows (which does not happen until a window
+-- is opened).
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.PerWorkspace (
