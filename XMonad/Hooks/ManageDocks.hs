@@ -42,12 +42,15 @@ import Control.Monad
 -- so-called "gap" support.  First, you must add it to your list of layouts:
 --
 -- > layoutHook = avoidStruts (tall ||| mirror tall ||| ...)
+-- >                   where  tall = Tall 1 (3/100) (1/2)
 --
 -- 'AvoidStruts' also supports toggling the dock gap, add a keybinding similar
 -- to:
 --
--- > ,((modMask,               xK_b     ), sendMessage ToggleStruts)
+-- > ,((modMask x, xK_b     ), sendMessage ToggleStruts)
 --
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- |
 -- Detects if the given window is of type DOCK and if so, reveals it, but does
