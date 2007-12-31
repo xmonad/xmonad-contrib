@@ -23,7 +23,9 @@ module XMonad.Actions.CycleWS (
                               shiftToPrev,
                               toggleWS,
                               nextScreen,
-                              prevScreen
+                              prevScreen,
+                              shiftNextScreen,
+                              shiftPrevScreen
                              ) where
 
 import Data.List ( findIndex )
@@ -44,6 +46,8 @@ import XMonad.Util.WorkspaceCompare
 -- >   , ((modMask x .|. shiftMask, xK_Up),    shiftToPrev)
 -- >   , ((modMask x,               xK_Right), nextScreen)
 -- >   , ((modMask x,               xK_Left),  prevScreen)
+-- >   , ((modMask x .|. shiftMask, xK_Right), shiftNextScreen)
+-- >   , ((modMask x .|. shiftMask, xK_Left),  shiftPrevScreen)
 -- >   , ((modMask x,               xK_t),     toggleWS)
 --
 -- If you want to follow the moved window, you can use both actions:
@@ -113,3 +117,18 @@ screenBy d = do ws <- gets windowset
                 --let ss = sortBy screen (screens ws)
                 let now = screen (current ws)
                 return $ (now + fromIntegral d) `mod` fromIntegral (length (screens ws))
+
+-- | Move focused window to workspace on next screen
+shiftNextScreen :: X ()
+shiftNextScreen = shiftScreenBy 1
+
+-- | Move focused window to workspace on prev screen
+shiftPrevScreen :: X ()
+shiftPrevScreen = shiftScreenBy (-1)
+
+shiftScreenBy :: Int -> X ()
+shiftScreenBy d = do s <- screenBy d
+                     mws <- screenWorkspace s
+                     case mws of
+                         Nothing -> return ()
+                         Just ws -> windows (shift ws)
