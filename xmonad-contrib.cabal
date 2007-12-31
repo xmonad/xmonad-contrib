@@ -109,6 +109,7 @@ library
                         XMonad.Layout.Roledex
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
+                        XMonad.Layout.ShowWName
                         XMonad.Layout.Tabbed
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.ToggleLayouts
