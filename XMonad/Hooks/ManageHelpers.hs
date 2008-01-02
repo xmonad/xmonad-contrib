@@ -117,11 +117,9 @@ transience :: MaybeManageHook
 transience = transientTo </=? Nothing 
              -?>> move
                  where move :: Maybe Window -> ManageHook
-                       move mw = do 
-                         case mw of
-                           Just w -> do return . Endo $ \s ->
-                                            maybe s (`W.shift` s) (W.findTag w s)
-                           Nothing -> do return . Endo $ \s -> s
+                       move mw = maybe idHook (doF . move') mw
+                                 where move' :: Window -> (WindowSet -> WindowSet)
+                                       move' w = \s -> maybe s (`W.shift` s) (W.findTag w s)
 
 -- | 'transience' set to a 'ManageHook'
 transience' :: ManageHook
