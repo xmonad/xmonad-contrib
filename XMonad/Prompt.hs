@@ -96,6 +96,7 @@ data XPConfig =
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
         , height            :: Dimension  -- ^ Window height
         , historySize       :: Int        -- ^ The number of history entries to be saved
+        , defaultText       :: String     -- ^ The text by default in the prompt line
         } deriving (Show, Read)
 
 data XPType = forall p . XPrompt p => XPT p
@@ -135,6 +136,7 @@ defaultXPConfig =
         , position          = Bottom
         , height            = 18
         , historySize       = 256
+        , defaultText       = []
         }
 
 type ComplFunction = String -> IO [String]
@@ -142,7 +144,7 @@ type ComplFunction = String -> IO [String]
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
           -> GC -> XMonadFont -> p -> [History] -> XPConfig -> XPState
 initState d rw w s compl gc fonts pt h c =
-    XPS d rw w s Nothing Nothing compl gc fonts (XPT pt) "" 0 h c
+    XPS d rw w s Nothing Nothing compl gc fonts (XPT pt) (defaultText c) 0 h c
 
 -- | Same as 'mkXPrompt', except that the action function can have
 --   type @String -> X a@, for any @a@, and the final action returned
