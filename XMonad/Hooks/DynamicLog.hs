@@ -108,7 +108,7 @@ dynamicLogWithPP :: PP -> X ()
 dynamicLogWithPP pp = do
     winset <- gets windowset
     urgents <- readUrgents
-    sort' <- getSortByTag
+    sort' <- ppSort pp
     -- layout description
     let ld = description . S.layout . S.workspace . S.current $ winset
     -- workspace list
@@ -200,6 +200,7 @@ data PP = PP { ppCurrent, ppVisible
              , ppLayout :: String -> String
              , ppOrder :: [String] -> [String]
              , ppOutput :: String -> IO ()
+             , ppSort :: X ([WindowSpace] -> [WindowSpace])
              }
 
 -- | The default pretty printing options, as seen in dynamicLog
@@ -215,6 +216,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppLayout          = id
                , ppOrder           = id
                , ppOutput          = putStrLn
+               , ppSort            = getSortByTag
                }
 
 -- | Settings to emulate dwm's statusbar, dzen only
