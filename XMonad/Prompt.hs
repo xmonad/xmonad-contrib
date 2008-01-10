@@ -144,7 +144,21 @@ type ComplFunction = String -> IO [String]
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
           -> GC -> XMonadFont -> p -> [History] -> XPConfig -> XPState
 initState d rw w s compl gc fonts pt h c =
-    XPS d rw w s Nothing Nothing compl gc fonts (XPT pt) (defaultText c) 0 h c
+    XPS { dpy                = d
+        , rootw              = rw
+        , win                = w
+        , screen             = s
+        , complWin           = Nothing
+        , complWinDim        = Nothing
+        , completionFunction = compl
+        , gcon               = gc
+        , fontS              = fonts
+        , xptype             = XPT pt
+        , command            = defaultText c
+        , offset             = length (defaultText c)
+        , history            = h
+        , config             = c
+        }
 
 -- | Same as 'mkXPrompt', except that the action function can have
 --   type @String -> X a@, for any @a@, and the final action returned
