@@ -297,6 +297,8 @@ keyPressHandle mask (ks,_)
             | ks == xK_a               -> startOfLine   >> go
             | ks == xK_e               -> endOfLine     >> go
             | ks == xK_y               -> pasteString   >> go
+            | ks == xK_Right           -> moveWord Next >> go
+            | ks == xK_Left            -> moveWord Prev >> go
             | ks == xK_Delete          -> killWord Next >> go
             | ks == xK_BackSpace       -> killWord Prev >> go
             | ks == xK_g || ks == xK_c -> quit
@@ -395,6 +397,25 @@ moveCursor :: Direction -> XP ()
 moveCursor d =
   modify $ \s -> s { offset = o (offset s) (command s)}
   where o oo c = if d == Prev then max 0 (oo - 1) else min (length c) (oo + 1)
+
+-- | move the cursor one word
+moveWord :: Direction -> XP ()
+moveWord d = do
+  c <- gets command
+  o <- gets offset
+  let (f,ss) = splitAt o c
+      lp     = length . reverse . fst . break isSpace
+      ln     = length . fst . break isSpace
+      prev s = case reverse s of
+                 ' ':x -> 1 + (lp x)
+                 x     -> lp x
+      next s = case s of
+                 ' ':x -> 1 + (ln x)
+                 x     -> ln x
+      newoff = case d of
+                 Prev -> o - prev f
+                 _    -> o + next ss
+  modify $ \s -> s { offset = newoff }
 
 moveHistory :: Direction -> XP ()
 moveHistory d = do
