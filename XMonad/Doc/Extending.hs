@@ -152,6 +152,9 @@ edit your key bindings.
 
 * "XMonad.Actions.RotView": cycle through non-empty workspaces.
 
+* "XMonad.Actions.Search": provide helpful functions for easily
+  running web searchs.
+
 * "XMonad.Actions.SimpleDate": display the date in a popup menu.
 
 * "XMonad.Actions.SinkAll": sink all floating windows.
@@ -225,6 +228,9 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.EwmhDesktops": support for pagers in panel applications.
 
 * "XMonad.Hooks.ManageDocks": handle DOCK and STRUT windows appropriately.
+
+* "XMonad.Hooks.ManageHelpers": provide helper functions to be used
+  in @manageHook@.
 
 * "XMonad.Hooks.SetWMName": set the WM name.  Useful when e.g. running
   Java GUI programs.
@@ -306,6 +312,8 @@ For more information on using those modules for customizing your
 
 * "XMonad.Layout.Roledex": a \"completely pointless layout which acts
   like Microsoft's Flip 3D\".
+
+* "XMonad.Layout.ShowWName": Show the name of the current workspace when switching.
 
 * "XMonad.Layout.Spiral": Fibonacci spiral layout.
 
