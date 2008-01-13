@@ -404,17 +404,13 @@ moveWord d = do
   c <- gets command
   o <- gets offset
   let (f,ss) = splitAt o c
-      lp     = length . reverse . fst . break isSpace
-      ln     = length . fst . break isSpace
-      prev s = case reverse s of
-                 ' ':x -> 1 + (lp x)
-                 x     -> lp x
-      next s = case s of
-                 ' ':x -> 1 + (ln x)
-                 x     -> ln x
+      lenToS = length . fst . break isSpace
+      ln p s = case p s of
+                 ' ':x -> 1 + lenToS x
+                 x     -> lenToS x
       newoff = case d of
-                 Prev -> o - prev f
-                 _    -> o + next ss
+                 Prev -> o - (ln reverse f )
+                 _    -> o + (ln id      ss)
   modify $ \s -> s { offset = newoff }
 
 moveHistory :: Direction -> XP ()
