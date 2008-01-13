@@ -12,7 +12,7 @@
  <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
 
  Additional sites welcomed.
---------------------------------------------------------------------------- -}
+-}
 module XMonad.Actions.Search (      -- * Usage
                                  -- $usage
                                  search,
@@ -49,6 +49,7 @@ import XMonad.Util.XSelection (getSelection)
    (implemented using the more primitive 'search'). To each of these is passed an
    engine function; this is a function that knows how to search a particular
    site.
+
    For example, the 'google' function knows how to search Google, and so on. You pass
    promptSearch and selectSearch the engine you want, the browser you want, and
    anything special they might need; this whole line is then bound to a key of
