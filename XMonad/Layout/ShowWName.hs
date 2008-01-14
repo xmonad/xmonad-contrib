@@ -53,7 +53,7 @@ type ShowWNState = Maybe (TimerId, Window)
 data ShowWName a = SWN Bool SWNConfig ShowWNState deriving (Read, Show)
 
 data SWNConfig =
-    SWNC { swn_font    :: String   -- ^ Font name 
+    SWNC { swn_font    :: String   -- ^ Font name
          , swn_bgcolor :: String   -- ^ Backgorund color
          , swn_color   :: String   -- ^ String color
          , swn_fade    :: Rational -- ^ Time in seconds of the name visibility
@@ -93,7 +93,7 @@ flashName c (Rectangle _ _ wh ht) wrs = do
       x     = (fi wh - width + 2) `div` 2
   w <- createNewWindow (Rectangle (fi x) (fi y) (fi width) (fi hight)) Nothing "" True
   showWindow w
-  paintAndWrite w f (fi width) (fi hight) 0 "" "" (swn_bgcolor c) (swn_color c) AlignCenter n
+  paintAndWrite w f (fi width) (fi hight) 0 "" "" (swn_color c) (swn_bgcolor c) AlignCenter n
   releaseXMF f
   io $ sync d False
   i <- startTimer (swn_fade c)
