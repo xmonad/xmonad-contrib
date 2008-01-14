@@ -23,7 +23,6 @@ import XMonad
 import Control.Applicative
 import Control.Concurrent
 import Data.Unique
-import System.Environment
 
 -- $usage
 -- This module can be used to setup a timer to handle deferred events.
@@ -35,18 +34,17 @@ type TimerId = Int
 -- time (in seconds).
 startTimer :: Rational -> X TimerId
 startTimer s = io $ do
-  dpy <- catch (getEnv "DISPLAY") (const $ return [])
-  d   <- openDisplay dpy
-  rw  <- rootWindow d $ defaultScreen d
   u   <- hashUnique <$> newUnique
   doubleFork $ do
-     threadDelay (fromEnum $ s * 1000000)
-     a <- internAtom d "XMONAD_TIMER" False
-     allocaXEvent $ \e -> do
+    d   <- openDisplay ""
+    rw  <- rootWindow d $ defaultScreen d
+    threadDelay (fromEnum $ s * 1000000)
+    a <- internAtom d "XMONAD_TIMER" False
+    allocaXEvent $ \e -> do
          setEventType e clientMessage
          setClientMessageEvent e rw a 32 (fromIntegral u) currentTime
          sendEvent d rw False structureNotifyMask e
-     sync d False
+    sync d False
   return u
 
 -- | Given a 'TimerId' and an 'Event', run an action when the 'Event'
@@ -55,7 +53,7 @@ handleTimer :: TimerId -> Event -> X (Maybe a) -> X (Maybe a)
 handleTimer ti (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) action = do
   d <- asks display
   a <- io $ internAtom d "XMONAD_TIMER" False
-  if dt /= [] && fromIntegral (head dt) == ti && mt == a
+  if mt == a && dt /= [] && fromIntegral (head dt) == ti
      then action
      else return Nothing
 handleTimer _ _ _ = return Nothing
