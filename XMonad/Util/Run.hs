@@ -29,11 +29,9 @@ module XMonad.Util.Run (
                          ) where
 
 import System.Posix.IO
-import System.Posix.Process (createSession, forkProcess, executeFile,
-                             getProcessStatus)
+import System.Posix.Process (executeFile)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try)
-import System.Exit (ExitCode(ExitSuccess), exitWith)
 import System.IO
 import System.Process (runInteractiveProcess, waitForProcess)
 import XMonad
@@ -67,22 +65,16 @@ runProcessWithInput cmd args input = do
 -- | Wait is in us
 runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
 runProcessWithInputAndWait cmd args input timeout = do
-    pid <- forkProcess $ do
-       forkProcess $ do -- double fork it over to init
-         createSession
-         (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
-         hPutStr pin input
-         hFlush pin
-         threadDelay timeout
-         hClose pin
-         hClose pout
-         hClose perr
-         waitForProcess ph
-         return ()
-       exitWith ExitSuccess
-       return ()
-    getProcessStatus True False pid
-    return ()
+    doubleFork $ do
+        (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
+        hPutStr pin input
+        hFlush pin
+        threadDelay timeout
+        hClose pin
+        hClose pout
+        hClose perr
+        waitForProcess ph
+        return ()
 
 -- | Multiplies by ONE MILLION, for use with
 -- 'runProcessWithInputAndWait'.
@@ -113,7 +105,7 @@ seconds = fromEnum . (* 1000000)
 -- interpolation, whereas the safeSpawn example can be safe because
 -- Firefox doesn't need any arguments if it is just being started.
 safeSpawn :: MonadIO m => FilePath -> String -> m ()
-safeSpawn prog arg = liftIO (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
+safeSpawn prog arg = liftIO (try (doubleFork $ executeFile prog True [arg] Nothing) >> return ())
 
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
@@ -134,11 +126,7 @@ spawnPipe x = do
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr
     hSetBuffering h LineBuffering
-    pid <- forkProcess $ do
-        forkProcess $ do
-            dupTo rd stdInput
-            createSession
-            executeFile "/bin/sh" False ["-c", x] Nothing
-        exitWith ExitSuccess
-    getProcessStatus True False pid
+    doubleFork $ do
+        dupTo rd stdInput
+        executeFile "/bin/sh" False ["-c", x] Nothing
     return h

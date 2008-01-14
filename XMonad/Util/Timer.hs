@@ -24,7 +24,6 @@ import Control.Applicative
 import Control.Concurrent
 import Data.Unique
 import System.Environment
-import System.Posix.Process
 
 -- $usage
 -- This module can be used to setup a timer to handle deferred events.
@@ -40,7 +39,7 @@ startTimer s = io $ do
   d   <- openDisplay dpy
   rw  <- rootWindow d $ defaultScreen d
   u   <- hashUnique <$> newUnique
-  forkProcess $ do
+  doubleFork $ do
      threadDelay (fromEnum $ s * 1000000)
      a <- internAtom d "XMONAD_TIMER" False
      allocaXEvent $ \e -> do
