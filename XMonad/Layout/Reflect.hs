@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -17,14 +17,17 @@ module XMonad.Layout.Reflect (
                                -- * Usage
                                -- $usage
 
-                               reflectHoriz, reflectVert
+                               reflectHoriz, reflectVert,
+                               REFLECTX(..), REFLECTY(..)
 
                              ) where
 
 import XMonad.Core
-import Graphics.X11 (Rectangle(..))
+import Graphics.X11 (Rectangle(..), Window)
 import Control.Arrow ((***), second)
 import Control.Applicative ((<$>))
+
+import XMonad.Layout.MultiToggle
 
 -- $usage
 -- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@ file:
@@ -35,9 +38,29 @@ import Control.Applicative ((<$>))
 --
 -- > layoutHook = reflectHoriz $ Tall 1 (3/100) (1/2)  -- put master pane on the right
 --
--- 'reflectHoriz' and 'reflectVert' can be applied to any sort of layout,
--- and will simply flip the physical layout of the windows vertically or
--- horizontally.
+-- 'reflectHoriz' and 'reflectVert' can be applied to any sort of
+-- layout (including Mirrored layouts) and will simply flip the
+-- physical layout of the windows vertically or horizontally.
+--
+-- "XMonad.Layout.MultiToggle" transformers are also provided for
+-- toggling layouts between reflected/non-reflected with a keybinding.
+-- To use this feature, you will also need to import the MultiToggle
+-- module:
+--
+-- > import XMonad.Layout.MultiToggle
+--
+-- Next, add one or more toggles to your layout.  For example, to allow
+-- separate toggling of both vertical and horizontal reflection:
+--
+-- > layoutHook = mkToggle (REFLECTX ?? EOT) $
+-- >              mkToggle (REFLECTY ?? EOT) $
+-- >                (tiled ||| Mirror tiled ||| ...) -- whatever layouts you use
+--
+-- Finally, add some keybindings to do the toggling, for example:
+--
+-- > , ((modMask x .|. controlMask, xK_x), sendMessage $ Toggle REFLECTX)
+-- > , ((modMask x .|. controlMask, xK_y), sendMessage $ Toggle REFLECTY)
+--
 
 -- | Apply a horizontal reflection (left \<--\> right) to a
 --   layout.
@@ -79,3 +102,14 @@ instance LayoutClass l a => LayoutClass (Reflect l) a where
     description (Reflect d l) = "Reflect" ++ xy ++ " " ++ description l
       where xy = case d of { Horiz -> "X" ; Vert -> "Y" }
 
+
+-------- instances for MultiToggle ------------------
+
+data REFLECTX = REFLECTX deriving (Read, Show, Eq, Typeable)
+data REFLECTY = REFLECTY deriving (Read, Show, Eq, Typeable)
+
+instance Transformer REFLECTX Window where
+    transform REFLECTX x k = k (reflectHoriz x)
+
+instance Transformer REFLECTY Window where
+    transform REFLECTY x k = k (reflectVert x)
