@@ -1,4 +1,8 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
+
+-- for now, use -fglasgow-exts for compatibility with ghc 6.6, which chokes
+-- on some of the LANGUAGE pragmas below
+{- LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances -}
 
 -----------------------------------------------------------------------------
 -- |
