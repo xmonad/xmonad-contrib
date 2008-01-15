@@ -81,7 +81,7 @@ import Data.Maybe
 -- > data NOBORDERS = NOBORDERS deriving (Read, Show, Eq, Typeable)
 -- > instance Transformer NOBORDERS Window where
 -- >     transform _ x k = k (noBorders x)
--- > 
+-- >
 -- > data FULL = FULL deriving (Read, Show, Eq, Typeable)
 -- > instance Transformer FULL Window where
 -- >     transform _ x k = k Full
@@ -189,7 +189,7 @@ acceptChange :: (LayoutClass l' a) => MultiToggle ts l a -> ((l' a -> MultiToggl
 acceptChange mt f = fmap (f (\x -> mt{ currLayout = EL x }))
 
 instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (MultiToggle ts l) a where
-    description _ = "MultiToggle"
+    description (MultiToggle { currLayout = (EL l) }) = description l
 
     pureLayout mt r s = currLayout mt `unEL` \l -> pureLayout l r s
 
