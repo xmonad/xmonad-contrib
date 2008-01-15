@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, TypeSynonymInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ShowWName
@@ -67,7 +67,7 @@ defaultSWNConfig =
          , swn_fade    = 1
          }
 
-instance LayoutModifier ShowWName Window where
+instance LayoutModifier ShowWName a where
     redoLayout (SWN True  c (Just (_,w))) r _ wrs = deleteWindow w >> flashName c r wrs
     redoLayout (SWN True  c  Nothing    ) r _ wrs = flashName c r wrs
     redoLayout (SWN False _  _          ) _ _ wrs = return (wrs, Nothing)
