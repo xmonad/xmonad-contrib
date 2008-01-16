@@ -47,7 +47,7 @@ import XMonad.Layout.MultiToggle
 -- physical layout of the windows vertically or horizontally.
 --
 -- "XMonad.Layout.MultiToggle" transformers are also provided for
--- toggling layouts between reflected/non-reflected with a keybinding.
+-- toggling layouts between reflected\/non-reflected with a keybinding.
 -- To use this feature, you will also need to import the MultiToggle
 -- module:
 --
