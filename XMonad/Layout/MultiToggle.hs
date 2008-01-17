@@ -23,6 +23,7 @@ module XMonad.Layout.MultiToggle (
     Toggle(..),
     (??),
     EOT(..),
+    single,
     mkToggle
 ) where
 
@@ -63,7 +64,7 @@ import Data.Maybe
 --
 -- After changing this to
 --
--- > layout = mkToggle (MIRROR ?? EOT) (tiled ||| Full)
+-- > layout = mkToggle (single MIRROR) (tiled ||| Full)
 --
 -- you can now dynamically apply the 'XMonad.Layout.Mirror' transformation:
 --
@@ -90,7 +91,7 @@ import Data.Maybe
 -- layout = id
 --     . 'XMonad.Layout.NoBorders.smartBorders'
 --     . mkToggle (NOBORDERS ?? FULL ?? EOT)
---     . mkToggle (MIRROR ?? EOT)
+--     . mkToggle (single MIRROR)
 --     $ tiled ||| 'XMonad.Layout.Grid.Grid' ||| 'XMonad.Layout.Circle.Circle'
 -- @
 --
@@ -163,6 +164,10 @@ infixr 0 ??
 -- tables for 'mkToggle'.
 (??) :: (HList b w) => a -> b -> HCons a b
 (??) = HCons
+
+-- | Construct a singleton transformer table.
+single :: a -> HCons a EOT
+single = (?? EOT)
 
 class HList c a where
     find :: (Transformer t a) => c -> t -> Maybe Int
