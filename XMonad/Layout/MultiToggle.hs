@@ -39,7 +39,7 @@ import Data.Maybe
 -- group of radio buttons.
 --
 -- A side effect of this meta-layout is that layout transformers no longer
--- receive any messages; any message not handled by SwitchTrans itself will
+-- receive any messages; any message not handled by MultiToggle itself will
 -- undo the current layout transformer, pass the message on to the base
 -- layout, then reapply the transformer.
 --
