@@ -189,7 +189,7 @@ acceptChange :: (LayoutClass l' a) => MultiToggle ts l a -> ((l' a -> MultiToggl
 acceptChange mt f = fmap (f (\x -> mt{ currLayout = EL x }))
 
 instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (MultiToggle ts l) a where
-    description (MultiToggle { currLayout = (EL l) }) = description l
+    description mt = currLayout mt `unEL` \l -> description l
 
     pureLayout mt r s = currLayout mt `unEL` \l -> pureLayout l r s
 
