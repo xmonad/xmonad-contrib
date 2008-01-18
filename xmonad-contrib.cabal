@@ -33,6 +33,10 @@ flag small_base
 flag use_xft
   description: Use Xft to render text
 
+flag testing
+  description: Testing mode
+  default: False
+
 library
     if flag(small_base)
         build-depends: base >= 3, containers, directory, process, random
@@ -44,7 +48,11 @@ library
         cpp-options: -DXFT
 
     build-depends:      mtl, unix, X11>=1.4.1, xmonad==0.5
-    ghc-options:        -Wall -Werror
+    ghc-options:        -Wall
+
+    if flag(testing)
+        ghc-options:    -Werror
+
     exposed-modules:    XMonad.Doc
                         XMonad.Doc.Configuring
                         XMonad.Doc.Extending
