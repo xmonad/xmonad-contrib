@@ -36,14 +36,19 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     handleMess :: m a -> SomeMessage -> X (Maybe (m a))
     handleMess m mess | Just Hide <- fromMessage mess             = doUnhook
                       | Just ReleaseResources <- fromMessage mess = doUnhook
-                      | otherwise = return Nothing
+                      | otherwise = return $ pureMess m mess
      where doUnhook = do unhook m; return Nothing
     handleMessOrMaybeModifyIt :: m a -> SomeMessage -> X (Maybe (Either (m a) SomeMessage))
     handleMessOrMaybeModifyIt m mess = do mm' <- handleMess m mess
                                           return (Left `fmap` mm')
+    pureMess :: m a -> SomeMessage -> Maybe (m a)
+    pureMess _ _ = Nothing
     redoLayout :: m a -> Rectangle -> Stack a -> [(a, Rectangle)]
                -> X ([(a, Rectangle)], Maybe (m a))
-    redoLayout m _ _ wrs = do hook m; return (wrs, Nothing)
+    redoLayout m r s wrs = do hook m; return $ pureModifier m r s wrs
+    pureModifier :: m a -> Rectangle -> Stack a -> [(a, Rectangle)]
+                 -> ([(a, Rectangle)], Maybe (m a))
+    pureModifier _ _ _ wrs = (wrs, Nothing)
     hook :: m a -> X ()
     hook _ = return ()
     unhook :: m a -> X ()
