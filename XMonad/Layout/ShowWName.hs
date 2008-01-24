@@ -98,7 +98,3 @@ flashName c (Rectangle _ _ wh ht) wrs = do
   io $ sync d False
   i <- startTimer (swn_fade c)
   return (wrs, Just $ SWN False c $ Just (i,w))
-
--- | Short-hand for 'fromIntegral'
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
