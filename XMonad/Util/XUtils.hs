@@ -12,19 +12,22 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.XUtils  (
-                             -- * Usage:
-                             -- $usage
-                               averagePixels
-                             , createNewWindow
-                             , showWindow
-                             , hideWindow
-                             , deleteWindow
-                             , paintWindow
-                             , paintAndWrite
-                             , stringToPixel
-                            ) where
-
+module XMonad.Util.XUtils
+    ( -- * Usage:
+      -- $usage
+      averagePixels
+    , createNewWindow
+    , showWindow
+    , showWindows
+    , hideWindow
+    , hideWindows
+    , deleteWindow
+    , deleteWindows
+    , paintWindow
+    , paintAndWrite
+    , stringToPixel
+    , fi
+    ) where
 
 import Data.Maybe
 import XMonad
@@ -65,17 +68,29 @@ showWindow w = do
   d <- asks display
   io $ mapWindow d w
 
+-- | the list version
+showWindows :: [Window] -> X ()
+showWindows = mapM_ showWindow
+
 -- | unmap a window
 hideWindow :: Window -> X ()
 hideWindow w = do
   d <- asks display
   io $ unmapWindow d w
 
+-- | the list version
+hideWindows :: [Window] -> X ()
+hideWindows = mapM_ hideWindow
+
 -- | destroy a window
 deleteWindow :: Window -> X ()
 deleteWindow w = do
   d <- asks display
   io $ destroyWindow d w
+
+-- | the list version
+deleteWindows :: [Window] -> X ()
+deleteWindows = mapM_ deleteWindow
 
 -- | Fill a window with a rectangle and a border
 paintWindow :: Window     -- ^ The window where to draw
