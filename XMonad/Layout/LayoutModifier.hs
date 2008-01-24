@@ -49,6 +49,9 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     pureModifier :: m a -> Rectangle -> Stack a -> [(a, Rectangle)]
                  -> ([(a, Rectangle)], Maybe (m a))
     pureModifier _ _ _ wrs = (wrs, Nothing)
+    emptyLayoutMod :: m a -> Rectangle -> [(a, Rectangle)]
+                   -> X ([(a, Rectangle)], Maybe (m a))
+    emptyLayoutMod _ _ _ = return ([], Nothing)
     hook :: m a -> X ()
     hook _ = return ()
     unhook :: m a -> X ()
@@ -60,6 +63,13 @@ instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m 
     doLayout (ModifiedLayout m l) r s =
         do (ws, ml') <- doLayout l r s
            (ws', mm') <- redoLayout m r s ws
+           let ml'' = case mm' of
+                      Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
+                      Nothing -> ModifiedLayout m `fmap` ml'
+           return (ws', ml'')
+    emptyLayout (ModifiedLayout m l) r =
+        do (ws, ml') <- emptyLayout l r
+           (ws',mm') <- emptyLayoutMod m r ws
            let ml'' = case mm' of
                       Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                       Nothing -> ModifiedLayout m `fmap` ml'
