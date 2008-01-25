@@ -96,6 +96,7 @@ library
                         XMonad.Layout.Accordion
                         XMonad.Layout.Circle
                         XMonad.Layout.Combo
+                        XMonad.Layout.Decoration
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.Grid
