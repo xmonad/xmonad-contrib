@@ -123,6 +123,7 @@ library
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TwoPane
+                        XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
                         XMonad.Layout.WorkspaceDir
                         XMonad.Prompt.Directory
