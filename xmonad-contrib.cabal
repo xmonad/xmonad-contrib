@@ -99,6 +99,7 @@ library
                         XMonad.Layout.Decoration
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
+                        XMonad.Layout.DwmStyle
                         XMonad.Layout.Grid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.LayoutCombinators
