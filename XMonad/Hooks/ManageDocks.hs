@@ -142,6 +142,9 @@ instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
                          return (AvoidStruts b `fmap` ml')
     description (AvoidStruts _ l) = description l
 
+    emptyLayout (AvoidStruts b l) r = do (wrs,ml) <- emptyLayout l r
+                                         return (wrs, AvoidStruts b `fmap` ml)
+
 data Side = L | R | T | B
 
 type Strut = (Side, CLong, CLong, CLong)
