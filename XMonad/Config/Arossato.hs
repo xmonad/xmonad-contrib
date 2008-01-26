@@ -76,16 +76,16 @@ import XMonad.Prompt.XMonad
 
 -- | My configuration for the Tabbed Layout. Basically this is the
 -- Ion3 clean style.
-arossatoTabbedConfig :: TConf
-arossatoTabbedConfig =
-    defaultTConf { activeColor         = "#8a999e"
-                 , inactiveColor       = "#545d75"
-                 , activeBorderColor   = "white"
-                 , inactiveBorderColor = "grey"
-                 , activeTextColor     = "white"
-                 , inactiveTextColor   = "grey"
-                 , tabSize             = 15
-                 }
+arossatoTabbedConfig :: DeConfig TabbedDecoration Window
+arossatoTabbedConfig = defaultTabbedConfig
+                       { activeColor         = "#8a999e"
+                       , inactiveColor       = "#545d75"
+                       , activeBorderColor   = "white"
+                       , inactiveBorderColor = "grey"
+                       , activeTextColor     = "white"
+                       , inactiveTextColor   = "grey"
+                       , decoHeight          = 15
+                       }
 
 arossatoConfig = defaultConfig
          { workspaces         = ["home","var","dev","mail","web","doc"] ++
@@ -106,7 +106,7 @@ arossatoConfig = defaultConfig
          }
     where
       -- layouts
-      mytab = tabbed shrinkText arossatoTabbedConfig
+      mytab = tabDeco shrinkText arossatoTabbedConfig
       tiled = Tall 1 (3/100) (1/2)
 
       -- manageHook

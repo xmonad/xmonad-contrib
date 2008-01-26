@@ -29,7 +29,7 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
-        , layoutHook = avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTConf)
+        , layoutHook = avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabDeco shrinkText myTConf)
         , manageHook = manageHook defaultConfig <+> manageDocks
         }
  where
@@ -44,7 +44,7 @@ sjanssenConfig = do
         ]
 
     myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
-    myTConf = defaultTConf { fontName = myFont }
+    myTConf = defaultTabbedConfig { fontName = myFont }
     myPromptConfig = defaultXPConfig
                         { position = Top
                         , font = myFont

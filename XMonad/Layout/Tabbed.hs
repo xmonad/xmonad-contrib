@@ -25,7 +25,8 @@ module XMonad.Layout.Tabbed
       -- $usage
       tabbed
     , tabDeco
-    , TConf (..), defaultTConf
+    , defaultTConf
+    , DeConfig (..)
     , TabbedDecoration (..), defaultTabbedConfig
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
