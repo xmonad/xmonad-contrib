@@ -68,9 +68,9 @@ defaultSWNConfig =
          }
 
 instance LayoutModifier ShowWName a where
-    redoLayout (SWN True  c (Just (_,w))) r _ wrs = deleteWindow w >> flashName c r wrs
-    redoLayout (SWN True  c  Nothing    ) r _ wrs = flashName c r wrs
-    redoLayout (SWN False _  _          ) _ _ wrs = return (wrs, Nothing)
+    redoLayout      sn r _ wrs = doShow sn r wrs
+
+    emptyLayoutMod  sn r   wrs = doShow sn r wrs
 
     handleMess (SWN _ c (Just (i,w))) m
         | Just e    <- fromMessage m = handleTimer i e (deleteWindow w >> return Nothing)
@@ -80,6 +80,11 @@ instance LayoutModifier ShowWName a where
     handleMess (SWN _ c s) m
         | Just Hide <- fromMessage m = return . Just $ SWN True c s
         | otherwise                  = return Nothing
+
+doShow :: ShowWName a -> Rectangle -> [(a,Rectangle)] -> X ([(a, Rectangle)], Maybe (ShowWName a))
+doShow (SWN True  c (Just (_,w))) r wrs = deleteWindow w >> flashName c r wrs
+doShow (SWN True  c  Nothing    ) r wrs = flashName c r wrs
+doShow (SWN False _  _          ) _ wrs = return (wrs, Nothing)
 
 flashName :: SWNConfig -> Rectangle -> [(a, Rectangle)] -> X ([(a, Rectangle)], Maybe (ShowWName a))
 flashName c (Rectangle _ _ wh ht) wrs = do
