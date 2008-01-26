@@ -16,6 +16,7 @@ module XMonad.Layout.DwmStyle
     ( -- * Usage:
       -- $usage
       dwmStyle
+    , DeConfig (..)
     , DwmStyle (..), defaultDwmStyleConfig
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)

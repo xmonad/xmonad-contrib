@@ -17,6 +17,7 @@ module XMonad.Layout.SimpleDecoration
     ( -- * Usage:
       -- $usage
       simpleDeco
+    , DeConfig (..)
     , SimpleDecoration (..), defaultSimpleConfig
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
