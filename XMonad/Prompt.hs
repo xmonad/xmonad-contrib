@@ -1,5 +1,4 @@
 {-# LANGUAGE ExistentialQuantification #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -14,32 +13,32 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Prompt (
-                             -- * Usage
-                             -- $usage
-                             mkXPrompt
-                             , mkXPromptWithReturn
-                             , defaultXPConfig
-                             , mkComplFunFromList
-                             , XPType (..)
-                             , XPPosition (..)
-                             , XPConfig (..)
-                             , XPrompt (..)
-                             , ComplFunction
-                             -- * X Utilities
-                             -- $xutils
-                             , mkUnmanagedWindow
-                             , fillDrawable
-                             -- * Other Utilities
-                             -- $utils
-                             , getLastWord
-                             , skipLastWord
-                             , splitInSubListsAt
-                             , breakAtSpace
-                             , newIndex
-                             , newCommand
-                             , uniqSort
-                             ) where
+module XMonad.Prompt
+    ( -- * Usage
+      -- $usage
+      mkXPrompt
+    , mkXPromptWithReturn
+    , defaultXPConfig
+    , mkComplFunFromList
+    , XPType (..)
+    , XPPosition (..)
+    , XPConfig (..)
+    , XPrompt (..)
+    , ComplFunction
+    -- * X Utilities
+    -- $xutils
+    , mkUnmanagedWindow
+    , fillDrawable
+    -- * Other Utilities
+    -- $utils
+    , getLastWord
+    , skipLastWord
+    , splitInSubListsAt
+    , breakAtSpace
+    , newIndex
+    , newCommand
+    , uniqSort
+    ) where
 
 import XMonad  hiding (config, io)
 import qualified XMonad.StackSet as W
@@ -410,7 +409,7 @@ moveWord d = do
                  x     -> lenToS x
       newoff = case d of
                  Prev -> o - (ln reverse f )
-                 _    -> o + (ln id      ss)
+                 Next -> o + (ln id      ss)
   modify $ \s -> s { offset = newoff }
 
 moveHistory :: Direction -> XP ()
@@ -441,7 +440,7 @@ redrawWindows :: [String] -> XP ()
 redrawWindows c = do
   d <- gets dpy
   drawWin
-  case c  of
+  case c of
     [] -> return ()
     l  -> redrawComplWin l
   io $ sync d False
