@@ -21,22 +21,26 @@ module XMonad.Config.Arossato
     ) where
 
 import qualified Data.Map as M
+import System.IO (hPutStrLn)
 
 import XMonad
-import XMonad.ManageHook
 import qualified XMonad.StackSet as W
 
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.ManageDocks
 import XMonad.Layout.Accordion
 import XMonad.Layout.Magnifier
 import XMonad.Layout.NoBorders
+import XMonad.Layout.SimpleFloat
 import XMonad.Layout.Tabbed
+import XMonad.Layout.WindowArranger
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
 import XMonad.Prompt.Window
 import XMonad.Prompt.XMonad
+import XMonad.Util.Run
 
 -- $usage
 -- The simplest way to use this configuration module is to use an
@@ -48,7 +52,7 @@ import XMonad.Prompt.XMonad
 -- > import XMonad.Config.Arossato (arossatoConfig)
 -- >
 -- > main :: IO ()
--- > main = xmonad arossatoConfig
+-- > main = xmonad =<< arossatoConfig
 --
 --
 -- You can use this module also as a starting point for writing your
@@ -70,7 +74,7 @@ import XMonad.Prompt.XMonad
 --
 -- 2. Add a line like:
 --
--- > main = xmonad arossatoConfig
+-- > main = xmonad =<< arossatoConfig
 --
 -- 3. Start playing with the configuration options...;)
 
@@ -84,37 +88,61 @@ arossatoTabbedConfig = defaultTabbedConfig
                        , inactiveBorderColor = "grey"
                        , activeTextColor     = "white"
                        , inactiveTextColor   = "grey"
-                       , decoHeight          = 15
+                       , decoHeight          = 14
                        }
 
-arossatoConfig = defaultConfig
+arossatoSFConfig :: DeConfig SimpleDecoration Window
+arossatoSFConfig = defaultSFConfig
+                   { activeColor         = "#8a999e"
+                   , inactiveColor       = "#545d75"
+                   , activeBorderColor   = "white"
+                   , inactiveBorderColor = "grey"
+                   , activeTextColor     = "white"
+                   , inactiveTextColor   = "grey"
+                   , decoHeight          = 14
+                   }
+
+arossatoConfig = do
+    xmobar <- spawnPipe "xmobar"
+    return $ defaultConfig
          { workspaces         = ["home","var","dev","mail","web","doc"] ++
                                 map show [7 .. 9 :: Int]
-         , logHook            = dynamicLogXmobar
+         , logHook            = myDynLog xmobar
          , manageHook         = newManageHook
-         , layoutHook         = noBorders mytab |||
-                                magnifier tiled |||
-                                noBorders Full  |||
-                                tiled           |||
-                                Mirror tiled    |||
-                                Accordion
+         , layoutHook         = avoidStruts $
+                                decorated        |||
+                                noBorders mytabs |||
+                                otherLays
          , terminal           = "urxvt +sb"
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , keys               = newKeys
-         , defaultGaps        = [(15,0,0,0)]
          }
     where
       -- layouts
-      mytab = tabDeco shrinkText arossatoTabbedConfig
-      tiled = Tall 1 (3/100) (1/2)
+      mytabs    =    tabDeco   shrinkText arossatoTabbedConfig
+      decorated = simpleFloat' shrinkText arossatoSFConfig
+      tiled     = Tall 1 (3/100) (1/2)
+      otherLays = windowArranger $
+                  magnifier tiled |||
+                  noBorders Full  |||
+                  Mirror tiled    |||
+                  Accordion
 
       -- manageHook
       myManageHook  = composeAll [ resource =? "realplay.bin" --> doFloat
                                  , resource =? "win"          --> doF (W.shift "doc") -- xpdf
                                  , resource =? "firefox-bin"  --> doF (W.shift "web")
                                  ]
-      newManageHook = myManageHook <+> manageHook defaultConfig
+      newManageHook = myManageHook
+
+      -- xmobar
+      myDynLog    h = dynamicLogWithPP defaultPP
+                      { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
+                      , ppTitle   = xmobarColor "green"  "" . shorten 40
+                      , ppVisible = wrap "(" ")"
+                      , ppOutput  = hPutStrLn h
+                      }
 
       -- key bindings stuff
       defKeys    = keys defaultConfig
@@ -155,6 +183,22 @@ arossatoConfig = defaultConfig
           , ((modMask x .|. controlMask              , xK_minus), sendMessage MagnifyLess)
           , ((modMask x .|. controlMask              , xK_o    ), sendMessage ToggleOff  )
           , ((modMask x .|. controlMask .|. shiftMask, xK_o    ), sendMessage ToggleOn   )
+          -- windowArranger
+          , ((modMask x .|. controlMask              , xK_a    ), sendMessage  Arrange           )
+          , ((modMask x .|. controlMask .|. shiftMask, xK_a    ), sendMessage  DeArrange         )
+          , ((modMask x .|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft   10))
+          , ((modMask x .|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight  10))
+          , ((modMask x .|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown   10))
+          , ((modMask x .|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp     10))
+          , ((modMask x .|. controlMask              , xK_Left ), sendMessage (IncreaseLeft   10))
+          , ((modMask x .|. controlMask              , xK_Right), sendMessage (IncreaseRight  10))
+          , ((modMask x .|. controlMask              , xK_Down ), sendMessage (IncreaseDown   10))
+          , ((modMask x .|. controlMask              , xK_Up   ), sendMessage (IncreaseUp     10))
+          , ((modMask x .|. shiftMask                , xK_Left ), sendMessage (MoveLeft       10))
+          , ((modMask x .|. shiftMask                , xK_Right), sendMessage (MoveRight      10))
+          , ((modMask x .|. shiftMask                , xK_Down ), sendMessage (MoveDown       10))
+          , ((modMask x .|. shiftMask                , xK_Up   ), sendMessage (MoveUp         10))
+
           ] ++
           -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
           [( (m .|. modMask x, k), windows $ f i)
