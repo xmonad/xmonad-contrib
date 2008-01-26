@@ -123,7 +123,7 @@ arossatoConfig = do
       mytabs    =    tabDeco   shrinkText arossatoTabbedConfig
       decorated = simpleFloat' shrinkText arossatoSFConfig
       tiled     = Tall 1 (3/100) (1/2)
-      otherLays = windowArranger $
+      otherLays = windowArrange $
                   magnifier tiled |||
                   noBorders Full  |||
                   Mirror tiled    |||

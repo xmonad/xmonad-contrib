@@ -17,7 +17,8 @@
 module XMonad.Layout.WindowArranger
     ( -- * Usage
       -- $usage
-      windowArranger
+      windowArrange
+    , windowArrangeAll
     , WindowArrangerMsg (..)
     , WindowArranger
     , memberFromList
@@ -68,8 +69,12 @@ import Data.Maybe
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | A layout modifier to float the windows in a workspace
-windowArranger :: l a -> ModifiedLayout WindowArranger l a
-windowArranger = ModifiedLayout (WA True [])
+windowArrange :: l a -> ModifiedLayout WindowArranger l a
+windowArrange = ModifiedLayout (WA True False [])
+
+-- | A layout modifier to float all the windows in a workspace
+windowArrangeAll :: l a -> ModifiedLayout WindowArranger l a
+windowArrangeAll = ModifiedLayout (WA True True [])
 
 data WindowArrangerMsg = DeArrange
                        | Arrange
@@ -92,21 +97,22 @@ data ArrangedWindow a = WR   (a, Rectangle)
                       | AWR  (a, Rectangle)
                         deriving (Read, Show)
 
-data WindowArranger a = WA Bool [ArrangedWindow a] deriving (Read, Show)
+type ArrangeAll = Bool
+data WindowArranger a = WA Bool ArrangeAll [ArrangedWindow a] deriving (Read, Show)
 
 instance (Show a, Read a, Eq a) => LayoutModifier WindowArranger a where
-    pureModifier (WA True []  ) _  _              wrs = arrangeWindows wrs
+    pureModifier (WA True b   []) _  _              wrs = arrangeWindows b wrs
 
-    pureModifier (WA True awrs) _ (S.Stack w _ _) wrs = curry process  wrs awrs
+    pureModifier (WA True b awrs) _ (S.Stack w _ _) wrs = curry process  wrs awrs
         where
-          wins         = map fst     *** map awrWin
-          update (a,r) = mkNewAWRs a *** removeAWRs r >>> uncurry (++)
-          process      = wins &&&  id  >>> first diff >>> uncurry update >>>
-                         replaceWR wrs >>> putOnTop w >>> map fromAWR &&& Just . WA True
+          wins         = map fst       *** map awrWin
+          update (a,r) = mkNewAWRs b a *** removeAWRs r >>> uncurry (++)
+          process      = wins &&&  id  >>> first diff   >>> uncurry update >>>
+                         replaceWR wrs >>> putOnTop w   >>> map fromAWR &&& Just . WA True b
 
     pureModifier _ _ _ wrs = (wrs, Nothing)
 
-    pureMess (WA True (wr:wrs)) m
+    pureMess (WA True b (wr:wrs)) m
         -- increase the window's size
         | Just (IncreaseRight i) <- fm, (win, Rectangle x y w h) <- fa = res win  x         y        (w + fi i) h
         | Just (IncreaseLeft  i) <- fm, (win, Rectangle x y w h) <- fa = res win (x - fi i) y        (w + fi i) h
@@ -123,18 +129,19 @@ instance (Show a, Read a, Eq a) => LayoutModifier WindowArranger a where
         | Just (MoveUp        i) <- fm, (win, Rectangle x y w h) <- fa = res win  x        (y - fi i) w         h
         | Just (MoveDown      i) <- fm, (win, Rectangle x y w h) <- fa = res win  x        (y + fi i) w         h
 
-        where res wi x y w h = Just . WA True $ AWR (wi,Rectangle x y w h):wrs
+        where res wi x y w h = Just . WA True b $ AWR (wi,Rectangle x y w h):wrs
               fm             = fromMessage m
               fa             = fromAWR     wr
               chk        x y = fi $ max 1 (fi x - y)
 
-    pureMess (WA _ l) m
-        | Just DeArrange <- fromMessage m = Just $ WA False l
-        | Just Arrange   <- fromMessage m = Just $ WA True  l
+    pureMess (WA _ b l) m
+        | Just DeArrange <- fromMessage m = Just $ WA False b l
+        | Just Arrange   <- fromMessage m = Just $ WA True  b l
         | otherwise                       = Nothing
 
-arrangeWindows :: [(a,Rectangle)] -> ([(a, Rectangle)], Maybe (WindowArranger a))
-arrangeWindows wrs = (wrs, Just $ WA True (map WR wrs))
+arrangeWindows :: ArrangeAll -> [(a,Rectangle)] -> ([(a, Rectangle)], Maybe (WindowArranger a))
+arrangeWindows b wrs = (wrs, Just $ WA True b (map t wrs))
+    where t = if b then AWR else WR
 
 fromAWR :: ArrangedWindow a -> (a, Rectangle)
 fromAWR (WR   x) = x
@@ -149,8 +156,9 @@ getAWR = memberFromList awrWin (==)
 getWR ::  Eq a => a -> [(a,Rectangle)] -> [(a,Rectangle)]
 getWR = memberFromList fst (==)
 
-mkNewAWRs :: Eq a => [a] -> [(a,Rectangle)] -> [ArrangedWindow a]
-mkNewAWRs w wrs = map WR . concatMap (flip getWR wrs) $ w
+mkNewAWRs :: Eq a => ArrangeAll -> [a] -> [(a,Rectangle)] -> [ArrangedWindow a]
+mkNewAWRs b w wrs = map t . concatMap (flip getWR wrs) $ w
+    where t = if b then AWR else WR
 
 removeAWRs :: Eq a => [a] -> [ArrangedWindow a] -> [ArrangedWindow a]
 removeAWRs = listFromList awrWin notElem

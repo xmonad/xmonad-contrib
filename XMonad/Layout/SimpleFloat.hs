@@ -46,13 +46,13 @@ import XMonad.Layout.WindowArranger
 -- | FIXME
 simpleFloat :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
 	       (ModifiedLayout WindowArranger SimpleFloat) a
-simpleFloat = decoration shrinkText defaultSFConfig (windowArranger $ SF 20)
+simpleFloat = decoration shrinkText defaultSFConfig (windowArrangeAll $ SF 20)
 
 -- | FIXME
 simpleFloat' :: Shrinker s => s -> DeConfig SimpleDecoration a -> 
                ModifiedLayout (Decoration SimpleDecoration s)
 	      (ModifiedLayout WindowArranger SimpleFloat) a
-simpleFloat' s c = decoration s c (windowArranger $ SF (decoHeight c))
+simpleFloat' s c = decoration s c (windowArrangeAll $ SF (decoHeight c))
 
 defaultSFConfig :: DeConfig SimpleDecoration a
 defaultSFConfig = mkDefaultDeConfig $ Simple False
@@ -69,8 +69,8 @@ getSize i (Rectangle rx ry _ _) w = do
   bw <- asks (borderWidth . config)
   wa <- io $ getWindowAttributes d w
   let ny = ry + fi i
-      x  =  max rx $ fi $ wa_x      wa
-      y  =  max ny $ fi $ wa_y      wa
+      x  =  max rx $ fi $ wa_x wa
+      y  =  max ny $ fi $ wa_y wa
       wh = (fi $ wa_width  wa) + (bw * 2)
       ht = (fi $ wa_height wa) + (bw * 2)
   return (w, Rectangle x y wh ht)
