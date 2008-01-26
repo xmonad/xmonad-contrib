@@ -19,6 +19,7 @@ module XMonad.Layout.WindowArranger
       -- $usage
       windowArranger
     , WindowArrangerMsg (..)
+    , WindowArranger
     , memberFromList
     , listFromList
     , diff
