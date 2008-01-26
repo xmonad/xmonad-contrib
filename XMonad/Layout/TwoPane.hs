@@ -59,3 +59,4 @@ instance LayoutClass TwoPane a where
                    Just Expand -> Just (TwoPane delta (split + delta))
                    _           -> Nothing
 
+    description _ = "TwoPane"
