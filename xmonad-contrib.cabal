@@ -120,6 +120,7 @@ library
                         XMonad.Layout.Roledex
                         XMonad.Layout.Simplest
                         XMonad.Layout.SimpleDecoration
+                        XMonad.Layout.SimpleFloat
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
                         XMonad.Layout.ShowWName

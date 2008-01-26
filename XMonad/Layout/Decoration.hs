@@ -22,7 +22,7 @@ module XMonad.Layout.Decoration
     , DecorationStyle (..)
     , DeConfig (..), defaultDeConfig, mkDefaultDeConfig
     , shrinkText, CustomShrink ( CustomShrink )
-    , Shrinker (..)
+    , Shrinker (..), DefaultShrinker
     , module XMonad.Layout.LayoutModifier
     , fi
     ) where
@@ -32,16 +32,13 @@ import Data.List
 
 import XMonad
 import qualified XMonad.StackSet as W
-
+import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.WindowArranger
-
 import XMonad.Util.NamedWindows
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 import XMonad.Util.Font
-
-import XMonad.Hooks.UrgencyHook
 
 -- $usage
 -- For usage examples you can see "XMonad.Layout.SimpleDecoration",
