@@ -20,7 +20,7 @@ import System.IO (hPutStrLn)
 sjanssenConfig = do
     xmobar <- spawnPipe "xmobar"
     return $ defaultConfig
-        { terminal = "urxvt"
+        { terminal = "urxvtc"
         , workspaces = ["irc", "web"] ++ map show [3 .. 7 :: Int] ++ ["mail", "im"]
         , logHook = dynamicLogWithPP $ sjanssenPP { ppOutput = hPutStrLn xmobar }
         , modMask = mod4Mask
