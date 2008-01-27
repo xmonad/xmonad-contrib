@@ -33,6 +33,9 @@ import XMonad.StackSet ( Stack )
 -- "XMonad.Layout.Magnifier", "XMonad.Layout.NoBorder",
 
 class (Show (m a), Read (m a)) => LayoutModifier m a where
+    modifyLayout :: (LayoutClass l a) => m a -> l a -> Rectangle
+                 -> Stack a -> X ([(a, Rectangle)], Maybe (l a))
+    modifyLayout _ l r s = doLayout l r s
     handleMess :: m a -> SomeMessage -> X (Maybe (m a))
     handleMess m mess | Just Hide <- fromMessage mess             = doUnhook
                       | Just ReleaseResources <- fromMessage mess = doUnhook
@@ -61,7 +64,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
 
 instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
     doLayout (ModifiedLayout m l) r s =
-        do (ws, ml') <- doLayout l r s
+        do (ws, ml') <- modifyLayout m l r s
            (ws', mm') <- redoLayout m r s ws
            let ml'' = case mm' of
                       Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
