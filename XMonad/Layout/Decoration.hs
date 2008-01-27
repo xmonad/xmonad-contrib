@@ -165,7 +165,8 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
 
     handleMess _ _ = return Nothing
 
-    emptyLayoutMod (Decoration (I (Just (DS dwrs _))) _ _) _ _ = deleteWindows (getDWs dwrs) >> return ([], Nothing)
+    emptyLayoutMod (Decoration (I (Just (DS dwrs _))) sh c) _ _ = do deleteWindows (getDWs dwrs)
+                                                                     return ([], Just $ Decoration (I Nothing) sh c)
     emptyLayoutMod _ _ _  = return ([], Nothing)
 
     modifierDescription (Decoration _ _ c) = describeDeco $ style c
