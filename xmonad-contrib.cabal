@@ -117,6 +117,7 @@ library
                         XMonad.Layout.PerWorkspace
                         XMonad.Layout.Reflect
                         XMonad.Layout.ResizableTile
+                        XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
                         XMonad.Layout.Simplest
                         XMonad.Layout.SimpleDecoration
