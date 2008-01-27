@@ -47,7 +47,7 @@ library
         build-depends: X11-xft >= 0.2
         cpp-options: -DXFT
 
-    build-depends:      mtl, unix, X11>=1.4.1, xmonad==0.5
+    build-depends:      mtl, unix, X11>=1.4.1, xmonad==0.6
     ghc-options:        -Wall
 
     if flag(testing)
