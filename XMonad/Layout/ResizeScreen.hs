@@ -22,11 +22,9 @@ module XMonad.Layout.ResizeScreen
     , ResizeScreen (..)
     ) where
 
-import Control.Arrow (second)
-import Control.Applicative ((<$>))
-
 import XMonad
 import XMonad.Util.XUtils (fi)
+import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- You can use this module by importing it into your
@@ -42,40 +40,24 @@ import XMonad.Util.XUtils (fi)
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-resizeHorizontal :: Int -> l a -> ResizeScreen l a
-resizeHorizontal = ResizeScreen H
+resizeHorizontal :: Int -> l a -> ModifiedLayout ResizeScreen l a
+resizeHorizontal i = ModifiedLayout (ResizeScreen H i)
 
-resizeVertical :: Int -> l a -> ResizeScreen l a
-resizeVertical = ResizeScreen V
+resizeVertical :: Int -> l a -> ModifiedLayout ResizeScreen l a
+resizeVertical i = ModifiedLayout (ResizeScreen V i)
 
-withNewRectangle  :: Rectangle -> l a -> ResizeScreen l a
-withNewRectangle = WithNewScreen
+withNewRectangle  :: Rectangle -> l a -> ModifiedLayout ResizeScreen l a
+withNewRectangle r = ModifiedLayout (WithNewScreen r)
 
-data ResizeScreen l a = ResizeScreen ResizeMode Int (l a)
-                      | WithNewScreen Rectangle (l a)
-                        deriving (Read, Show)
+data ResizeScreen a = ResizeScreen ResizeMode Int
+                    | WithNewScreen Rectangle
+                      deriving (Read, Show)
 data ResizeMode = H | V deriving (Read, Show)
 
-instance (LayoutClass l a) => LayoutClass (ResizeScreen l) a where
-    doLayout m (Rectangle x y w h ) s
-        | ResizeScreen H i l <- m = resize (ResizeScreen V i) l (Rectangle (x + fi i) y (w - fi i) h)
-        | ResizeScreen V i l <- m = resize (ResizeScreen H i) l (Rectangle x (y + fi i) w (h - fi i))
-        | WithNewScreen  r l <- m = resize (WithNewScreen  r) l r
-        | otherwise               = return ([],Nothing)
-       where resize t l' nr = second (fmap t) <$> doLayout l' nr s
-
-    handleMessage rs m
-        | ResizeScreen  t i l <- rs = go (ResizeScreen t i) l
-        | WithNewScreen r   l <- rs = go (WithNewScreen  r) l
-        | otherwise                 = return Nothing
-        where go tp lay = do ml' <- handleMessage lay m
-                             return (tp `fmap` ml')
-
-    emptyLayout rs re
-        | ResizeScreen  t i l <- rs = go (ResizeScreen t i) l
-        | WithNewScreen r   l <- rs = go (WithNewScreen  r) l
-        | otherwise                 = return ([],Nothing)
-        where go tp lay = do (wrs,ml) <- emptyLayout lay re
-                             return (wrs, tp `fmap` ml)
-
-    description _ = []
+instance LayoutModifier ResizeScreen a where
+    modifyLayout m l re@(Rectangle x y w h) s
+        | ResizeScreen H i <- m = resize (Rectangle (x + fi i) y (w - fi i) h)
+        | ResizeScreen V i <- m = resize (Rectangle x (y + fi i) w (h - fi i))
+        | WithNewScreen  r <- m = resize r
+        | otherwise             = resize re
+       where resize nr = doLayout l nr s
