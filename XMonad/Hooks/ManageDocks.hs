@@ -26,6 +26,7 @@ import XMonad
 import Foreign.C.Types (CLong)
 -- import Data.Maybe (catMaybes, fromMaybe)
 import Control.Monad
+import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -121,29 +122,22 @@ c2r :: RectC -> Rectangle
 c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1) (fi $ y2 - y1)
 
 -- | Adjust layout automagically.
-avoidStruts :: LayoutClass l a => l a -> AvoidStruts l a
-avoidStruts = AvoidStruts True
+avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
+avoidStruts = ModifiedLayout (AvoidStruts True)
 
-data AvoidStruts l a = AvoidStruts Bool (l a) deriving ( Read, Show )
+data AvoidStruts a = AvoidStruts Bool deriving ( Read, Show )
 
 data ToggleStruts = ToggleStruts deriving (Read,Show,Typeable)
 instance Message ToggleStruts
 
-instance LayoutClass l a => LayoutClass (AvoidStruts l) a where
-    doLayout (AvoidStruts True lo) r s =
-        do rect <- fmap ($ r) calcGap
-           (wrs,mlo') <- doLayout lo rect s
-           return (wrs, AvoidStruts True `fmap` mlo')
-    doLayout (AvoidStruts False lo) r s = do (wrs,mlo') <- doLayout lo r s
-                                             return (wrs, AvoidStruts False `fmap` mlo')
-    handleMessage (AvoidStruts b l) m
-        | Just ToggleStruts <- fromMessage m = return $ Just $ AvoidStruts (not b) l
-        | otherwise = do ml' <- handleMessage l m
-                         return (AvoidStruts b `fmap` ml')
-    description (AvoidStruts _ l) = description l
+instance LayoutModifier AvoidStruts a where
+    modifyLayout (AvoidStruts b) l r s = do
+        nr <- if b then fmap ($ r) calcGap else return r
+        doLayout l nr s
 
-    emptyLayout (AvoidStruts b l) r = do (wrs,ml) <- emptyLayout l r
-                                         return (wrs, AvoidStruts b `fmap` ml)
+    handleMess (AvoidStruts b ) m
+        | Just ToggleStruts <- fromMessage m = return $ Just $ AvoidStruts (not b)
+        | otherwise = return Nothing
 
 data Side = L | R | T | B
 
