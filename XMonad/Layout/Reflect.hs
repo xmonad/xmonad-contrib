@@ -28,9 +28,9 @@ module XMonad.Layout.Reflect (
 
 import XMonad.Core
 import Graphics.X11 (Rectangle(..), Window)
-import Control.Arrow ((***), second)
-import Control.Applicative ((<$>))
+import Control.Arrow (second)
 
+import XMonad.Layout.LayoutModifier
 import XMonad.Layout.MultiToggle
 
 -- $usage
@@ -68,13 +68,13 @@ import XMonad.Layout.MultiToggle
 
 -- | Apply a horizontal reflection (left \<--\> right) to a
 --   layout.
-reflectHoriz :: (LayoutClass l a) => (l a) -> Reflect l a
-reflectHoriz = Reflect Horiz
+reflectHoriz :: l a -> ModifiedLayout Reflect l a
+reflectHoriz = ModifiedLayout (Reflect Horiz)
 
 -- | Apply a vertical reflection (top \<--\> bottom) to a
 --   layout.
-reflectVert :: (LayoutClass l a) => (l a) -> Reflect l a
-reflectVert = Reflect Vert
+reflectVert :: l a -> ModifiedLayout Reflect l a
+reflectVert = ModifiedLayout (Reflect Vert)
 
 data ReflectDir = Horiz | Vert
   deriving (Read, Show)
@@ -92,18 +92,14 @@ fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 
 
-data Reflect l a = Reflect ReflectDir (l a) deriving (Show, Read)
+data Reflect a = Reflect ReflectDir deriving (Show, Read)
 
-instance LayoutClass l a => LayoutClass (Reflect l) a where
+instance LayoutModifier Reflect a where
 
-    -- do layout l, then reflect all the generated Rectangles.
-    doLayout (Reflect d l) r s = (map (second (reflectRect d r)) *** fmap (Reflect d))
-                                 <$> doLayout l r s
+    -- reflect all the generated Rectangles.
+    pureModifier (Reflect d) r _ wrs = (map (second $ reflectRect d r) wrs, Just $ Reflect d)
 
-    -- pass messages on to the underlying layout
-    handleMessage (Reflect d l) = fmap (fmap (Reflect d)) . handleMessage l
-
-    description (Reflect d l) = "Reflect" ++ xy ++ " " ++ description l
+    modifierDescription (Reflect d) = "Reflect" ++ xy
       where xy = case d of { Horiz -> "X" ; Vert -> "Y" }
 
 
