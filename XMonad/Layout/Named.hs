@@ -42,6 +42,9 @@ data Named l a = Named String (l a) deriving ( Read, Show )
 instance (LayoutClass l a) => LayoutClass (Named l) a where
     doLayout (Named n l) r s = do (ws, ml') <- doLayout l r s
                                   return (ws, Named n `fmap` ml')
+    emptyLayout (Named n l) r = do (ws, ml') <- emptyLayout l r
+                                   return (ws, Named n `fmap` ml')
     handleMessage (Named n l) mess = do ml' <- handleMessage l mess
                                         return $ Named n `fmap` ml'
     description (Named n _) = n
+
