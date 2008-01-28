@@ -26,6 +26,7 @@ extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     scripts/xmonad-clock.c tests/test_SwapWorkspaces.hs
                     tests/test_XPrompt.hs
 cabal-version:      >= 1.2.1
+build-type:         Simple
 
 flag small_base
   description: Choose the new smaller, split-up base package.
