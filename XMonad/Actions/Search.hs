@@ -7,7 +7,7 @@
  Stability   :  unstable
  Portability :  unportable
 
- A module for easily running Internet searches on web sites through XMonad.
+ A module for easily running Internet searches on web sites through xmonad.
  Modeled after the handy Surfraw CLI search tools
  <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
 
@@ -22,10 +22,12 @@ module XMonad.Actions.Search (      -- * Usage
 
                                  amazon,
                                  google,
+                                 hoogle,
                                  imdb,
+                                 mathworld,
+                                 scholar,
                                  wayback,
-                                 wikipedia,
-                                 hoogle
+                                 wikipedia
                           ) where
 
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
@@ -38,23 +40,46 @@ import XMonad.Util.XSelection (getSelection)
 
 {- $usage
 
-   This module is intended to allow easy access to databases on the Internet
-   through XMonad's interface. The idea is that one wants to run a search but the
-   query string and the browser to use must come from somewhere. There are two
-   places the query string can come from - the user can type it into a prompt
-   which pops up, or the query could be available already in the X Windows
-   copy\/paste buffer (perhaps you just highlighted the string of interest).
+   This module is intended to allow easy access to databases on the
+   Internet through xmonad's interface. The idea is that one wants to
+   run a search but the query string and the browser to use must come
+   from somewhere. There are two places the query string can come from
+   - the user can type it into a prompt which pops up, or the query
+   could be available already in the X Windows copy\/paste buffer
+   (perhaps you just highlighted the string of interest).
 
-   Thus, there are two main functions: 'promptSearch', and 'selectSearch'
-   (implemented using the more primitive 'search'). To each of these is passed an
-   engine function; this is a function that knows how to search a particular
-   site.
+   Thus, there are two main functions: 'promptSearch', and
+   'selectSearch' (implemented using the more primitive 'search'). To
+   each of these is passed an engine function; this is a function that
+   knows how to search a particular site.
 
-   For example, the 'google' function knows how to search Google, and so on. You pass
-   promptSearch and selectSearch the engine you want, the browser you want, and
-   anything special they might need; this whole line is then bound to a key of
-   you choosing in your xmonad.hs. For specific examples, see each function.
-   This module is easily extended to new sites by using 'simpleEngine'.
+   For example, the 'google' function knows how to search Google, and
+   so on. You pass 'promptSearch' and 'selectSearch' the engine you
+   want, the browser you want, and anything special they might need;
+   this whole line is then bound to a key of you choosing in your
+   xmonad.hs. For specific examples, see each function.  This module
+   is easily extended to new sites by using 'simpleEngine'.
+
+   The currently available search engines are:
+
+* 'amazon' -- Amazon keyword search.
+
+* 'google' -- basic Google search.
+
+* 'hoogle' -- Hoogle, the Haskell libraries search engine.
+
+* 'imdb'   -- the Internet Movie Database.
+
+* 'mathworld' -- Wolfram MathWorld search.
+
+* 'scholar' -- Google scholar academic search.
+
+* 'wayback' -- the Wayback Machine.
+
+* 'wikipedia' -- basic Wikipedia search.
+
+Feel free to add more!
+
 -}
 
 -- A customized prompt.
@@ -90,6 +115,8 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
 type Browser      = FilePath
 type SearchEngine = String -> String
 
+{- | Given a browser, a search engine, and a search term, perform the
+     requested search in the browser. -}
 search :: MonadIO m => Browser -> SearchEngine -> String -> m ()
 search browser site query = safeSpawn browser $ site query
 
@@ -107,12 +134,14 @@ search browser site query = safeSpawn browser $ site query
 simpleEngine :: String -> SearchEngine
 simpleEngine site query = site ++ escape query
 
--- The engines
-amazon, google, hoogle, imdb, wayback, wikipedia :: SearchEngine
+-- The engines.
+amazon, google, hoogle, imdb, mathworld, scholar, wayback, wikipedia :: SearchEngine
 amazon    = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 google    = simpleEngine "http://www.google.com/search?num=100&q="
 hoogle    = simpleEngine "http://www.haskell.org/hoogle/?q="
 imdb      = simpleEngine "http://www.imdb.com/Find?select=all&for="
+mathworld = simpleEngine "http://mathworld.wolfram.com/search/?query="
+scholar   = simpleEngine "http://scholar.google.com/scholar?q="
 wikipedia = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
 wayback   = simpleEngine "http://web.archive.org/"
 {- This doesn't seem to work, but nevertheless, it seems to be the official
@@ -128,7 +157,7 @@ wayback   = simpleEngine "http://web.archive.org/"
 promptSearch :: XPConfig -> Browser -> SearchEngine -> X ()
 promptSearch config browser site = mkXPrompt Search config (getShellCompl []) $ search browser site
 
-{- | Like search, but for use with the X selection; it grabs the selection,
+{- | Like 'search', but for use with the X selection; it grabs the selection,
    passes it to a given searchEngine and opens it in the given browser. Example:
 
 > , ((modm .|. shiftMask, xK_g     ), selectSearch "firefox" google)
