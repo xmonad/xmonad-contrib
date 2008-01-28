@@ -200,6 +200,8 @@ instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (Mult
 
     doLayout mt r s = currLayout mt `unEL` \l -> acceptChange mt (fmap . fmap) (doLayout l r s)
 
+    emptyLayout mt r = currLayout mt `unEL` \l -> acceptChange mt (fmap . fmap) (emptyLayout l r)
+
     handleMessage mt m
         | Just (Toggle t) <- fromMessage m
         , i@(Just _) <- find (transformers mt) t
