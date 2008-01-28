@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -14,13 +14,13 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.Named (
-                                -- * Usage
-                                -- $usage
-                                Named(Named)
-                               ) where
+module XMonad.Layout.Named
+    ( -- * Usage
+      -- $usage
+      named
+    ) where
 
-import XMonad
+import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -30,21 +30,17 @@ import XMonad
 -- Then edit your @layoutHook@ by adding the Named layout modifier
 -- to some layout:
 --
--- > myLayouts = Named "real big" Full ||| etc..
+-- > myLayouts = named "real big" Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data Named l a = Named String (l a) deriving ( Read, Show )
+named :: String -> l a -> ModifiedLayout Named l a
+named s = ModifiedLayout (Named s)
 
-instance (LayoutClass l a) => LayoutClass (Named l) a where
-    doLayout (Named n l) r s = do (ws, ml') <- doLayout l r s
-                                  return (ws, Named n `fmap` ml')
-    emptyLayout (Named n l) r = do (ws, ml') <- emptyLayout l r
-                                   return (ws, Named n `fmap` ml')
-    handleMessage (Named n l) mess = do ml' <- handleMessage l mess
-                                        return $ Named n `fmap` ml'
-    description (Named n _) = n
+data Named a = Named String deriving ( Read, Show )
 
+instance LayoutModifier Named a where
+    modifyDescription (Named n) _ = n

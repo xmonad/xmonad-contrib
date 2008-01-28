@@ -133,10 +133,10 @@ config = -- withUrgencyHook FocusUrgencyHook $
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
          , layoutHook = workspaceDir "~" $ windowNavigation $
                         toggleLayouts (noBorders Full) $ avoidStruts $
-                        Named "tabbed" (noBorders mytab) |||
-                        Named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
-                        Named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
-                        Named "widescreen" ((mytab *||* mytab)
+                        named "tabbed" (noBorders mytab) |||
+                        named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
+                        named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
+                        named "widescreen" ((mytab *||* mytab)
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
          , terminal = "xterm" -- The preferred terminal program.
