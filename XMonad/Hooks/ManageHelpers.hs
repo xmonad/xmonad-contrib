@@ -112,7 +112,7 @@ transientTo = do w <- ask
                  liftIO $ getTransientForHint d w
 
 -- | A convenience 'MaybeManageHook' that will check to see if a window
--- is transient, and then move it to it's parent.
+-- is transient, and then move it to its parent.
 transience :: MaybeManageHook
 transience = transientTo </=? Nothing 
              -?>> move
