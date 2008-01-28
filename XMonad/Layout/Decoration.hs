@@ -118,7 +118,9 @@ defaultDeConfig = mkDefaultDeConfig DefaultStyle
 
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
     redoLayout (Decoration st sh c) sc stack wrs
-        | decorate_first   = do whenIJust st $ \s -> deleteWindows (getDWs $ decos s)
+        | decorate_first   = do whenIJust st $ \s -> do
+                                    deleteWindows (getDWs $ decos s)
+                                    releaseXMF (font s)
                                 return (wrs, Just $ Decoration (I Nothing) sh c)
         | I Nothing  <- st = initState c wrs >>= processState
         | I (Just s) <- st = do let dwrs  = decos s
