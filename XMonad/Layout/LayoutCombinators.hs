@@ -43,7 +43,7 @@ module XMonad.Layout.LayoutCombinators
     , JumpToLayout(JumpToLayout)
     , LayoutCombinator (..)
     , CombinedLayout (..)
-    , ComboType (..)
+    , ComboChooser (..)
     ) where
 
 import Data.Maybe ( fromMaybe, isJust, isNothing )
@@ -222,15 +222,13 @@ when' :: Monad m => (a -> Bool) -> m a -> m a -> m a
 when' f a b = do a1 <- a; if f a1 then b else return a1
 
 
-data ComboType = DoFirst | DoSecond | DoBoth deriving ( Eq, Show )
+data ComboChooser = DoFirst | DoSecond | DoBoth deriving ( Eq, Show )
 
 class (Read (lc a), Show (lc a)) => LayoutCombinator lc a where
-    chooser :: lc a -> X ComboType
+    chooser :: lc a -> X ComboChooser
     chooser lc = return $ pureChooser lc 
-    pureChooser :: lc a -> ComboType
+    pureChooser :: lc a -> ComboChooser
     pureChooser _ =  DoFirst
---    doFirst lc = if (chooser lc) == DoSecond then False else True
-    doFirst :: lc a -> Bool
     combineResult :: lc a -> [(a,Rectangle)] -> [(a,Rectangle)] -> [(a,Rectangle)]
     combineResult _ wrs1 wrs2 = wrs1 ++ wrs2
     comboHandleMess :: (LayoutClass l1 a, LayoutClass l2 a) => lc a -> l1 a -> l2 a -> SomeMessage -> X (lc a)
@@ -239,10 +237,10 @@ class (Read (lc a), Show (lc a)) => LayoutCombinator lc a where
     pureComboHandleMess lc _ _ _ = lc
     sendToOther :: (LayoutClass l a) => lc a -> l a -> SomeMessage
     sendToOther _ _ = SomeMessage Hide
-    comboName :: lc a -> String
-    comboName = show
-    comboDescription :: (LayoutClass l1 a, LayoutClass l2 a) => lc a -> l1 a -> l2 a -> String
-    comboDescription lc l1 l2 = show lc <> if doFirst lc then description l1 else description l2
+    comboDescription :: lc a -> String
+    comboDescription _ = "Combine"
+    combineDescription :: (LayoutClass l1 a, LayoutClass l2 a) => lc a -> l1 a -> l2 a -> String
+    combineDescription lc l1 l2 = comboDescription lc <> description l1 <> description l2
         where "" <> x = x
               x  <> y = x ++ " " ++ y
 
@@ -270,7 +268,7 @@ instance (LayoutClass l1 a, LayoutClass l2 a, LayoutCombinator lc a) => LayoutCl
           _        -> do (wrs, nl1)  <- emptyLayout l1 r
                          return (wrs, Just $ CombinedLayout lc (fromMaybe l1 nl1) l2)
     handleMessage (CombinedLayout lc l1 l2) m = do
-      nc <- comboHandleMess lc l1 l2 m
+      nc     <- comboHandleMess lc l1 l2 m
       choose <- chooser nc
       case choose of
         DoFirst ->  do nl1 <- handleMessage l1 m
@@ -283,4 +281,4 @@ instance (LayoutClass l1 a, LayoutClass l2 a, LayoutCombinator lc a) => LayoutCl
                        nl2 <- handleMessage l2 m
                        return $ Just $ CombinedLayout nc (fromMaybe l1 nl1) (fromMaybe l2 nl2)
 
-    description (CombinedLayout lc l1 l2) = comboDescription lc l1 l2
+    description (CombinedLayout lc l1 l2) = combineDescription lc l1 l2

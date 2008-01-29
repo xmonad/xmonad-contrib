@@ -62,7 +62,7 @@ onWorkspace :: WorkspaceId  -- ^ tags of workspaces to match
                 -> (l1 a)         -- ^ layout to use on matched workspaces
                 -> (l2 a)         -- ^ layout to use everywhere else
                 -> CombinedLayout PerWorkspace l1 l2 a
-onWorkspace wsId l1 l2 = CombinedLayout (PerWorkspace [wsId]) l1 l2
+onWorkspace wsId = CombinedLayout (PerWorkspace [wsId])
 
 -- | Specify one layout to use on a particular set of workspaces, and
 --   another to use on all other workspaces.
@@ -70,7 +70,7 @@ onWorkspaces :: [WorkspaceId]  -- ^ tags of workspaces to match
                 -> (l1 a)         -- ^ layout to use on matched workspaces
                 -> (l2 a)         -- ^ layout to use everywhere else
                 -> CombinedLayout PerWorkspace l1 l2 a
-onWorkspaces wsIds l1 l2 = CombinedLayout (PerWorkspace wsIds) l1 l2
+onWorkspaces wsIds = CombinedLayout (PerWorkspace wsIds)
 
 -- | Structure for representing a workspace-specific layout along with
 --   a layout for all other workspaces.  We store the tags of workspaces
@@ -86,7 +86,6 @@ instance LayoutCombinator PerWorkspace a where
     chooser (PerWorkspace wsIds) = do
         t <- getCurrentTag
         return $ if t `elem` wsIds then DoFirst else DoSecond
-    doFirst (PerWorkspace _) = True
 
 -- | Get the tag of the currently active workspace.  Note that this
 --   is only guaranteed to be the same workspace for which doLayout
