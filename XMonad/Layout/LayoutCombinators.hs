@@ -13,37 +13,40 @@
 -- A module for combining other layouts.
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.LayoutCombinators (
-    -- * Usage
-    -- $usage
+module XMonad.Layout.LayoutCombinators
+    ( -- * Usage
+      -- $usage
 
-    -- * Combinators using DragPane vertical
-    -- $dpv
-    (*||*), (**||*),(***||*),(****||*),(***||**),(****||***),
-    (***||****),(*||****),(**||***),(*||***),(*||**),
+      -- * Combinators using DragPane vertical
+      -- $dpv
+      (*||*), (**||*),(***||*),(****||*),(***||**),(****||***)
+    , (***||****),(*||****),(**||***),(*||***),(*||**)
 
-    -- * Combinators using DragPane horizontal
-    -- $dph
-    (*//*), (**//*),(***//*),(****//*),(***//**),(****//***),
-    (***//****),(*//****),(**//***),(*//***),(*//**),
+      -- * Combinators using DragPane horizontal
+      -- $dph
+    , (*//*), (**//*),(***//*),(****//*),(***//**),(****//***)
+    , (***//****),(*//****),(**//***),(*//***),(*//**)
 
-    -- * Combinators using Tall (vertical)
-    -- $tv
-    (*|*), (**|*),(***|*),(****|*),(***|**),(****|***),
-    (***|****),(*|****),(**|***),(*|***),(*|**),
+      -- * Combinators using Tall (vertical)
+      -- $tv
+    , (*|*), (**|*),(***|*),(****|*),(***|**),(****|***)
+    , (***|****),(*|****),(**|***),(*|***),(*|**)
 
-    -- * Combinators using Mirror Tall (horizontal)
-    -- $mth
-    (*/*), (**/*),(***/*),(****/*),(***/**),(****/***),
-    (***/****),(*/****),(**/***),(*/***),(*/**),
+      -- * Combinators using Mirror Tall (horizontal)
+      -- $mth
+    , (*/*), (**/*),(***/*),(****/*),(***/**),(****/***)
+    , (***/****),(*/****),(**/***),(*/***),(*/**)
 
-    -- * A new combinator
-    -- $nc
-    (|||),
-    JumpToLayout(JumpToLayout)
+      -- * A new combinator
+      -- $nc
+    , (|||)
+    , JumpToLayout(JumpToLayout)
+    , LayoutCombinator (..)
+    , CombinedLayout (..)
+    , ComboType (..)
     ) where
 
-import Data.Maybe ( isJust, isNothing )
+import Data.Maybe ( fromMaybe, isJust, isNothing )
 
 import XMonad hiding ((|||))
 import XMonad.Layout.Combo
@@ -218,3 +221,66 @@ passOnM m (NewSelect False lt lf) = do mlf' <- handleMessage lf m
 when' :: Monad m => (a -> Bool) -> m a -> m a -> m a
 when' f a b = do a1 <- a; if f a1 then b else return a1
 
+
+data ComboType = DoFirst | DoSecond | DoBoth deriving ( Eq, Show )
+
+class (Read (lc a), Show (lc a)) => LayoutCombinator lc a where
+    chooser :: lc a -> X ComboType
+    chooser lc = return $ pureChooser lc 
+    pureChooser :: lc a -> ComboType
+    pureChooser _ =  DoFirst
+--    doFirst lc = if (chooser lc) == DoSecond then False else True
+    doFirst :: lc a -> Bool
+    combineResult :: lc a -> [(a,Rectangle)] -> [(a,Rectangle)] -> [(a,Rectangle)]
+    combineResult _ wrs1 wrs2 = wrs1 ++ wrs2
+    comboHandleMess :: (LayoutClass l1 a, LayoutClass l2 a) => lc a -> l1 a -> l2 a -> SomeMessage -> X (lc a)
+    comboHandleMess lc l1 l2 m = return $ pureComboHandleMess lc l1 l2 m
+    pureComboHandleMess :: (LayoutClass l1 a, LayoutClass l2 a) => lc a -> l1 a -> l2 a -> SomeMessage -> lc a
+    pureComboHandleMess lc _ _ _ = lc
+    sendToOther :: (LayoutClass l a) => lc a -> l a -> SomeMessage
+    sendToOther _ _ = SomeMessage Hide
+    comboName :: lc a -> String
+    comboName = show
+    comboDescription :: (LayoutClass l1 a, LayoutClass l2 a) => lc a -> l1 a -> l2 a -> String
+    comboDescription lc l1 l2 = show lc <> if doFirst lc then description l1 else description l2
+        where "" <> x = x
+              x  <> y = x ++ " " ++ y
+
+data CombinedLayout lc l1 l2 a = CombinedLayout (lc a) (l1 a) (l2 a) deriving ( Show,  Read )
+
+instance (LayoutClass l1 a, LayoutClass l2 a, LayoutCombinator lc a) => LayoutClass (CombinedLayout lc l1 l2) a where
+    doLayout (CombinedLayout lc l1 l2) r s = do
+        choose <- chooser lc
+        case choose of
+          DoSecond -> do (wrs, nl2)  <- doLayout l2 r s
+                         return (wrs, Just $ CombinedLayout lc l1 (fromMaybe l2 nl2))
+          DoBoth   -> do (wrs1, nl1) <- doLayout l1 r s
+                         (wrs2, nl2) <- doLayout l2 r s
+                         return (combineResult lc wrs1 wrs2  , Just $ CombinedLayout lc (fromMaybe l1 nl1) (fromMaybe l2 nl2))
+          _        -> do (wrs, nl1)  <- doLayout l1 r s
+                         return (wrs, Just $ CombinedLayout lc (fromMaybe l1 nl1) l2)
+    emptyLayout (CombinedLayout lc l1 l2) r = do 
+        choose <- chooser lc
+        case choose of
+          DoSecond -> do (wrs, nl2)  <- emptyLayout l2 r
+                         return (wrs, Just $ CombinedLayout lc l1 (fromMaybe l2 nl2))
+          DoBoth   -> do (wrs1, nl1) <- emptyLayout l1 r
+                         (wrs2, nl2) <- emptyLayout l2 r
+                         return (combineResult lc wrs1 wrs2  , Just $ CombinedLayout lc (fromMaybe l1 nl1) (fromMaybe l2 nl2))
+          _        -> do (wrs, nl1)  <- emptyLayout l1 r
+                         return (wrs, Just $ CombinedLayout lc (fromMaybe l1 nl1) l2)
+    handleMessage (CombinedLayout lc l1 l2) m = do
+      nc <- comboHandleMess lc l1 l2 m
+      choose <- chooser nc
+      case choose of
+        DoFirst ->  do nl1 <- handleMessage l1 m
+                       nl2 <- handleMessage l2 (sendToOther nc l2)
+                       return $ Just $ CombinedLayout nc (fromMaybe l1 nl1) (fromMaybe l2 nl2)
+        DoSecond -> do nl1 <- handleMessage l1 (sendToOther nc l1)
+                       nl2 <- handleMessage l2 m
+                       return $ Just $ CombinedLayout nc (fromMaybe l1 nl1) (fromMaybe l2 nl2)
+        DoBoth ->   do nl1 <- handleMessage l1 m
+                       nl2 <- handleMessage l2 m
+                       return $ Just $ CombinedLayout nc (fromMaybe l1 nl1) (fromMaybe l2 nl2)
+
+    description (CombinedLayout lc l1 l2) = comboDescription lc l1 l2
