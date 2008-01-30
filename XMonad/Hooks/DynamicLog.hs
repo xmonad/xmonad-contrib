@@ -8,34 +8,38 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- DynamicLog
---
--- By default, log events in:
---
--- >     1 2 [3] 4 8
---
--- format, although the format is highly customizable.
--- Suitable to pipe into dzen or xmobar.
+-- xmonad calls the logHook with every internal state update, which is
+-- useful for (among other things) outputting status information to an
+-- external status bar program such as xmobar or dzen.  DynamicLog
+-- provides several drop-in logHooks for this purpose, as well as
+-- flexible tools for specifying your own formatting.
 --
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.DynamicLog (
     -- * Usage
     -- $usage
+
+    -- * Drop-in loggers
+    makeSimpleDzenConfig,
+    dzen,
     dynamicLog,
     dynamicLogDzen,
     dynamicLogXmobar,
     dynamicLogWithPP,
     dynamicLogXinerama,
-    dzen,
 
-    pprWindowSet,
-    pprWindowSetXinerama,
+    -- * Build your own formatter
+    PP(..), defaultPP, dzenPP, sjanssenPP, byorgeyPP,
 
-    PP(..), defaultPP, dzenPP, sjanssenPP,
+    -- * Formatting utilities
     wrap, pad, shorten,
     xmobarColor, dzenColor, dzenEscape,
-    makeSimpleDzenConfig
+
+    -- * Internal formatting functions
+    pprWindowSet,
+    pprWindowSetXinerama
+
   ) where
 
 --
@@ -57,10 +61,20 @@ import XMonad.Hooks.UrgencyHook
 --
 -- >    import XMonad
 -- >    import XMonad.Hooks.DynamicLog
--- >    main = xmonad defaultConfig { logHook = dynamicLog }
+--
+-- Then set your logHook to an appropriate function, for example
+--
+-- >    logHook = dynamicLog
+--
+-- or, for more flexibility, something like
+--
+-- >    logHook = dynamicLogWithPP myDynamicLogPP
+-- > ...
+-- > myDynamicLogPP = defaultPP { ... -- override pretty-printer with specific settings
+--
 
--- | An example xmonad config that spawns a new dzen toolbar and uses the default
--- dynamic log output
+-- | An example xmonad config that spawns a new dzen toolbar and uses
+--   the default dynamic log output.
 makeSimpleDzenConfig :: IO (XConfig (Choose Tall (Choose (Mirror Tall) Full)))
 makeSimpleDzenConfig = do
   h <- spawnPipe "dzen2"
@@ -122,12 +136,14 @@ dynamicLogWithPP pp = do
                         , ppTitle  pp wt
                         ]
 
--- | An example log hook that emulates dwm's status bar, using colour codes printed to dzen
--- Requires dzen. Workspaces, xinerama, layouts and the window title are handled.
+-- | An example log hook that emulates dwm's status bar, using colour
+-- codes printed to dzen.  Requires dzen. Workspaces, xinerama,
+-- layouts and the window title are handled.
 --
 dynamicLogDzen :: X ()
 dynamicLogDzen = dynamicLogWithPP dzenPP
 
+-- | Do the actual status formatting, using a pretty-printer.
 pprWindowSet :: ([WindowSpace] -> [WindowSpace]) -> [Window] -> PP -> WindowSet -> String
 pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
             map S.workspace (S.current s : S.visible s) ++ S.hidden s
@@ -147,7 +163,7 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
 -- > [1 9 3] 2 7
 --
 -- where 1, 9, and 3 are the workspaces on screens 1, 2 and 3, respectively,
--- and 2 and 7 are non-visible, non-empty workspaces
+-- and 2 and 7 are non-visible, non-empty workspaces.
 --
 dynamicLogXinerama :: X ()
 dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
@@ -159,23 +175,38 @@ pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
         offscreen = map S.tag . filter (isJust . S.stack)
                         . sortBy (comparing S.tag) $ S.hidden ws
 
-wrap :: String -> String -> String -> String
+-- | Wrap a string in delimiters, unless it is empty.
+wrap :: String  -- ^ left delimiter
+     -> String  -- ^ right delimiter
+     -> String  -- ^ output string
+     -> String
 wrap _ _ "" = ""
 wrap l r m  = l ++ m ++ r
 
+-- | Pad a string with a leading and trailing space.
 pad :: String -> String
 pad = wrap " " " "
 
+-- | Limit a string to a certain length, adding "..." if truncated.
 shorten :: Int -> String -> String
 shorten n xs | length xs < n = xs
              | otherwise     = (take (n - length end) xs) ++ end
  where
     end = "..."
 
-sepBy :: String -> [String] -> String
+-- | Output a list of strings, ignoring empty ones and separating the
+--   rest with the given separator.
+sepBy :: String   -- ^ separator
+      -> [String] -- ^ fields to output
+      -> String
 sepBy sep = concat . intersperse sep . filter (not . null)
 
-dzenColor :: String -> String -> String -> String
+-- | Use dzen escape codes to output a string with given foreground
+--   and background colors.
+dzenColor :: String  -- ^ foreground color: a color name, or #rrggbb format
+          -> String  -- ^ background color
+          -> String  -- ^ output string
+          -> String
 dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
  where (fg1,fg2) | null fg = ("","")
                  | otherwise = ("^fg(" ++ fg ++ ")","^fg()")
@@ -186,24 +217,45 @@ dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
 dzenEscape :: String -> String
 dzenEscape = concatMap (\x -> if x == '^' then "^^" else [x])
 
-xmobarColor :: String -> String -> String -> String
+-- | Use xmobar escape codes to output a string with given foreground
+--   and background colors.
+xmobarColor :: String  -- ^ foreground color: a color name, or #rrggbb format
+            -> String  -- ^ background color
+            -> String  -- ^ output string
+            -> String
 xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
 
 -- | The 'PP' type allows the user to customize various behaviors of
--- dynamicLogPP
-data PP = PP { ppCurrent, ppVisible
-             , ppHidden, ppHiddenNoWindows
+--   dynamicLogPP.
+data PP = PP { ppCurrent :: WorkspaceId -> String
+               -- ^ how to print the tag of the currently focused workspace
+             , ppVisible :: WorkspaceId -> String
+               -- ^ how to print tags of visible but not focused workspaces (xinerama only)
+             , ppHidden  :: WorkspaceId -> String
+               -- ^ how to print tags of hidden workspaces which contain windows
+             , ppHiddenNoWindows :: WorkspaceId -> String
+               -- ^ how to print tags of empty hidden workspaces
              , ppUrgent :: WorkspaceId -> String
-             , ppSep, ppWsSep :: String
+               -- ^ format to be applied to tags of urgent workspaces.
+               -- NOTE that 'ppUrgent' is applied /in addition to/ 'ppHidden'!
+             , ppSep :: String
+               -- ^ separator to use between different log sections (window name, layout, workspaces)
+             , ppWsSep :: String
+               -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
+               -- ^ window title format
              , ppLayout :: String -> String
+               -- ^ layout name format
              , ppOrder :: [String] -> [String]
-             , ppOutput :: String -> IO ()
+               -- ^ how to order the different log sections
              , ppSort :: X ([WindowSpace] -> [WindowSpace])
+               -- ^ how to sort the workspaces.  See "XMonad.Util.WorkspaceCompare" for some useful sorts.
+             , ppOutput :: String -> IO ()
+               -- ^ formatter that gets applied to the entire log string before it is output.
              }
 
--- | The default pretty printing options, as seen in dynamicLog
+-- | The default pretty printing options, as seen in 'dynamicLog'.
 defaultPP :: PP
 defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppVisible         = wrap "<" ">"
@@ -219,7 +271,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppSort            = getSortByTag
                }
 
--- | Settings to emulate dwm's statusbar, dzen only
+-- | Settings to emulate dwm's statusbar, dzen only.
 dzenPP :: PP
 dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                      , ppVisible  = dzenColor "black" "#999999" . pad
@@ -239,13 +291,28 @@ dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                      }
 
 -- | The options that sjanssen likes to use, as an example.  Note the use of
--- 'xmobarColor' and the record update on defaultPP
+-- 'xmobarColor' and the record update on 'defaultPP'.
 sjanssenPP :: PP
 sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
                        , ppTitle = xmobarColor "#00ee00" "" . shorten 80
                        }
 
--- | These are good defaults to be used with the xmobar status bar
+-- | The options that byorgey likes to use with dzen, as another example.
+byorgeyPP :: PP
+byorgeyPP = defaultPP { ppHiddenNoWindows = showNamedWorkspaces
+                      , ppHidden  = dzenColor "black"  "#a8a3f7" . pad
+                      , ppCurrent = dzenColor "yellow" "#a8a3f7" . pad
+                      , ppUrgent  = dzenColor "red"    "yellow"
+                      , ppSep     = " | "
+                      , ppWsSep   = ""
+                      , ppTitle   = shorten 65
+                      , ppOrder   = reverse
+                      }
+  where showNamedWorkspaces wsId = if (':' `elem` wsId)
+                                       then pad wsId
+                                       else ""
+
+-- | These are good defaults to be used with the xmobar status bar.
 dynamicLogXmobar :: X ()
 dynamicLogXmobar =
     dynamicLogWithPP defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
