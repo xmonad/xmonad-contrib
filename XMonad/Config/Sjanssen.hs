@@ -13,6 +13,7 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.Run (spawnPipe)
+import XMonad.Layout.DwmStyle
 
 import qualified Data.Map as M
 import System.IO (hPutStrLn)
@@ -29,7 +30,7 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
-        , layoutHook = avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabDeco shrinkText myTConf)
+        , layoutHook = dwmStyle shrinkText myTheme $ avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTheme)
         , manageHook = manageHook defaultConfig <+> manageDocks
         }
  where
@@ -44,7 +45,7 @@ sjanssenConfig = do
         ]
 
     myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
-    myTConf = defaultTabbedConfig { fontName = myFont }
+    myTheme = defaultTheme { fontName = myFont }
     myPromptConfig = defaultXPConfig
                         { position = Top
                         , font = myFont

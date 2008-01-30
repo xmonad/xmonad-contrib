@@ -146,7 +146,7 @@ config = -- withUrgencyHook FocusUrgencyHook $
          , XMonad.keys = keys
          }
 
-mytab = tabbed CustomShrink defaultTConf
+mytab = tabbed CustomShrink defaultTheme
 
 instance Shrinker CustomShrink where
     shrinkIt shr s | Just s' <- dropFromHead " " s = shrinkIt shr s' 

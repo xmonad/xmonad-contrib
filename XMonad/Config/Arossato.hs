@@ -17,7 +17,7 @@ module XMonad.Config.Arossato
     ( -- * Usage
       -- $usage
       arossatoConfig
-    , arossatoTabbedConfig
+    , arossatoTheme
     ) where
 
 import qualified Data.Map as M
@@ -80,27 +80,16 @@ import XMonad.Util.Run
 
 -- | My configuration for the Tabbed Layout. Basically this is the
 -- Ion3 clean style.
-arossatoTabbedConfig :: DeConfig TabbedDecoration Window
-arossatoTabbedConfig = defaultTabbedConfig
-                       { activeColor         = "#8a999e"
-                       , inactiveColor       = "#545d75"
-                       , activeBorderColor   = "white"
-                       , inactiveBorderColor = "grey"
-                       , activeTextColor     = "white"
-                       , inactiveTextColor   = "grey"
-                       , decoHeight          = 14
-                       }
-
-arossatoSFConfig :: DeConfig SimpleDecoration Window
-arossatoSFConfig = defaultSFConfig
-                   { activeColor         = "#8a999e"
-                   , inactiveColor       = "#545d75"
-                   , activeBorderColor   = "white"
-                   , inactiveBorderColor = "grey"
-                   , activeTextColor     = "white"
-                   , inactiveTextColor   = "grey"
-                   , decoHeight          = 14
-                   }
+arossatoTheme :: Theme
+arossatoTheme = defaultTheme
+                { activeColor         = "#8a999e"
+                , inactiveColor       = "#545d75"
+                , activeBorderColor   = "white"
+                , inactiveBorderColor = "grey"
+                , activeTextColor     = "white"
+                , inactiveTextColor   = "grey"
+                , decoHeight          = 14
+                }
 
 arossatoConfig = do
     xmobar <- spawnPipe "xmobar"
@@ -120,8 +109,8 @@ arossatoConfig = do
          }
     where
       -- layouts
-      mytabs    =    tabDeco   shrinkText arossatoTabbedConfig
-      decorated = simpleFloat' shrinkText arossatoSFConfig
+      mytabs    =    tabbed    shrinkText arossatoTheme
+      decorated = simpleFloat' shrinkText arossatoTheme
       tiled     = Tall 1 (3/100) (1/2)
       otherLays = windowArrange $
                   magnifier tiled |||

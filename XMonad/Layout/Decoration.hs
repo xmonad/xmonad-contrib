@@ -20,7 +20,7 @@ module XMonad.Layout.Decoration
       decoration
     , Decoration
     , DecorationStyle (..)
-    , DeConfig (..), defaultDeConfig, mkDefaultDeConfig
+    , Theme (..), defaultTheme
     , shrinkText, CustomShrink ( CustomShrink )
     , Shrinker (..), DefaultShrinker
     , module XMonad.Layout.LayoutModifier
@@ -44,42 +44,40 @@ import XMonad.Util.Font
 -- For usage examples you can see "XMonad.Layout.SimpleDecoration",
 -- "XMonad.Layout.Tabbed", "XMonad.Layout.DwmStyle",
 
-decoration :: (DecorationStyle ds a, Shrinker s) => s -> DeConfig ds a
+decoration :: (DecorationStyle ds a, Shrinker s) => s -> Theme -> ds a
            -> l a -> ModifiedLayout (Decoration ds s) l a
-decoration s c = ModifiedLayout (Decoration (I Nothing) s c)
+decoration s t ds = ModifiedLayout (Decoration (I Nothing) s t ds)
 
-data DeConfig ds a =
-    DeConfig { activeColor         :: String
-             , inactiveColor       :: String
-             , urgentColor         :: String
-             , activeBorderColor   :: String
-             , inactiveBorderColor :: String
-             , urgentBorderColor   :: String
-             , activeTextColor     :: String
-             , inactiveTextColor   :: String
-             , urgentTextColor     :: String
-             , fontName            :: String
-             , decoWidth           :: Dimension
-             , decoHeight          :: Dimension
-             , style               :: ds a
-             } deriving (Show, Read)
+data Theme =
+    Theme { activeColor         :: String
+          , inactiveColor       :: String
+          , urgentColor         :: String
+          , activeBorderColor   :: String
+          , inactiveBorderColor :: String
+          , urgentBorderColor   :: String
+          , activeTextColor     :: String
+          , inactiveTextColor   :: String
+          , urgentTextColor     :: String
+          , fontName            :: String
+          , decoWidth           :: Dimension
+          , decoHeight          :: Dimension
+          } deriving (Show, Read)
 
-mkDefaultDeConfig :: DecorationStyle ds a => ds a -> DeConfig ds a
-mkDefaultDeConfig ds =
-    DeConfig { activeColor         = "#999999"
-             , inactiveColor       = "#666666"
-             , urgentColor         = "#FFFF00"
-             , activeBorderColor   = "#FFFFFF"
-             , inactiveBorderColor = "#BBBBBB"
-             , urgentBorderColor   = "##00FF00"
-             , activeTextColor     = "#FFFFFF"
-             , inactiveTextColor   = "#BFBFBF"
-             , urgentTextColor     = "#FF0000"
-             , fontName            = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-             , decoWidth           = 200
-             , decoHeight          = 20
-             , style               = ds
-             }
+defaultTheme :: Theme
+defaultTheme =
+    Theme { activeColor         = "#999999"
+          , inactiveColor       = "#666666"
+          , urgentColor         = "#FFFF00"
+          , activeBorderColor   = "#FFFFFF"
+          , inactiveBorderColor = "#BBBBBB"
+          , urgentBorderColor   = "##00FF00"
+          , activeTextColor     = "#FFFFFF"
+          , inactiveTextColor   = "#BFBFBF"
+          , urgentTextColor     = "#FF0000"
+          , fontName            = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+          , decoWidth           = 200
+          , decoHeight          = 20
+          }
 
 type DecoWin = (Window,Maybe Rectangle)
 type OrigWin = (Window,Rectangle)
@@ -89,7 +87,7 @@ data DecorationState =
        }
 
 data Decoration ds s a =
-    Decoration (Invisible Maybe DecorationState) s (DeConfig ds a)
+    Decoration (Invisible Maybe DecorationState) s Theme (ds a)
     deriving (Show, Read)
 
 class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
@@ -110,18 +108,12 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
              -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> X (Maybe Rectangle)
     decorate ds w h r s ars ar = return $ pureDecoration ds w h r s ars ar
 
-data DefaultStyle a = DefaultStyle deriving (Read, Show)
-instance DecorationStyle DefaultStyle a
-
-defaultDeConfig :: DeConfig DefaultStyle a
-defaultDeConfig = mkDefaultDeConfig DefaultStyle
-
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
-    redoLayout (Decoration st sh c) sc stack wrs
+    redoLayout (Decoration st sh c ds) sc stack wrs
         | decorate_first   = do whenIJust st $ \s -> do
                                     deleteWindows (getDWs $ decos s)
                                     releaseXMF (font s)
-                                return (wrs, Just $ Decoration (I Nothing) sh c)
+                                return (wrs, Just $ Decoration (I Nothing) sh c ds)
         | I Nothing  <- st = initState c wrs >>= processState
         | I (Just s) <- st = do let dwrs  = decos s
                                     (d,a) = curry diff (get_ws dwrs) ws
@@ -141,40 +133,41 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
           todel   d = filter (flip elem d . get_w)
           toadd   a = filter (flip elem a . fst  )
 
-          insert_dwr ((w,r),(dw,Just dr)) xs = (dw,dr):(w, shrink (style c) dr r):xs
+          insert_dwr ((w,r),(dw,Just dr)) xs = (dw,dr):(w, shrink ds dr r):xs
           insert_dwr (x    ,(_ ,Nothing)) xs = x:xs
 
           resync _         [] = return []
           resync d ((w,r):xs) = case  w `elemIndex` get_ws d of
-                                  Just i  -> do dr   <- decorate (style c) (decoWidth c) (decoHeight c) sc stack wrs (w,r)
+                                  Just i  -> do dr   <- decorate ds (decoWidth c) (decoHeight c) sc stack wrs (w,r)
                                                 dwrs <- resync d xs
                                                 return $ ((w,r),(find_dw i d, dr)) : dwrs
                                   Nothing -> resync d xs
 
-          decorate_first = length wrs == 1 && (not . decorateFirst . style $ c)
+          decorate_first = length wrs == 1 && (not . decorateFirst $ ds)
           processState s = do ndwrs <- resync (decos s) wrs
                               showWindows (getDWs ndwrs)
                               updateDecos sh c (font s) ndwrs
-                              return (foldr insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh c))
+                              return (foldr insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh c ds))
 
-    handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh c) m
+    handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh c ds) m
         | Just e <- fromMessage m :: Maybe Event = handleEvent sh c s e >> return Nothing
         | Just Hide             <- fromMessage m = hideWindows      dws >> return Nothing
         | Just ReleaseResources <- fromMessage m = do deleteWindows dws
                                                       releaseXMF (font s)
-                                                      return $ Just $ Decoration (I Nothing) sh c
+                                                      return $ Just $ Decoration (I Nothing) sh c ds
         where dws = getDWs dwrs
 
     handleMess _ _ = return Nothing
 
-    emptyLayoutMod (Decoration (I (Just (DS dwrs f))) sh c) _ _ = do deleteWindows (getDWs dwrs)
-                                                                     releaseXMF f
-                                                                     return ([], Just $ Decoration (I Nothing) sh c)
+    emptyLayoutMod (Decoration (I (Just (DS dwrs f))) sh c ds) _ _ = do
+        deleteWindows (getDWs dwrs)
+        releaseXMF f
+        return ([], Just $ Decoration (I Nothing) sh c ds)
     emptyLayoutMod _ _ _  = return ([], Nothing)
 
-    modifierDescription (Decoration _ _ c) = describeDeco $ style c
+    modifierDescription (Decoration _ _ _ ds) = describeDeco ds
 
-handleEvent :: (DecorationStyle ds a, Shrinker s) => s -> DeConfig ds a -> DecorationState-> Event -> X ()
+handleEvent :: Shrinker s => s -> Theme -> DecorationState -> Event -> X ()
 handleEvent sh c (DS dwrs fs) e
     | PropertyEvent {ev_window = w} <- e, w `elem` (map (fst . fst) dwrs) = updateDecos sh c fs dwrs
     | ExposeEvent   {ev_window = w} <- e, w `elem` (map (fst . snd) dwrs) = updateDecos sh c fs dwrs
@@ -183,13 +176,13 @@ handleEvent _ _ _ _ = return ()
 getDWs :: [(OrigWin,DecoWin)] -> [Window]
 getDWs = map (fst . snd)
 
-initState ::  DecorationStyle ds a => DeConfig ds a -> [(Window,Rectangle)] -> X DecorationState
+initState ::  Theme -> [(Window,Rectangle)] -> X DecorationState
 initState conf wrs = do
   fs   <- initXMF (fontName conf)
   dwrs <- createDecos conf wrs
   return $ DS dwrs fs
 
-createDecos :: DecorationStyle ds a => DeConfig ds a -> [(Window,Rectangle)] -> X [(OrigWin,DecoWin)]
+createDecos :: Theme -> [(Window,Rectangle)] -> X [(OrigWin,DecoWin)]
 createDecos _ [] = return []
 createDecos c (wr:wrs) = do
   let rect = Rectangle 0 0 1 1
@@ -198,10 +191,10 @@ createDecos c (wr:wrs) = do
   dwrs <- createDecos c wrs
   return ((wr,(dw,Nothing)):dwrs)
 
-updateDecos :: (DecorationStyle ds a, Shrinker s) => s -> DeConfig ds a -> XMonadFont -> [(OrigWin, DecoWin)] -> X ()
+updateDecos :: Shrinker s => s -> Theme -> XMonadFont -> [(OrigWin, DecoWin)] -> X ()
 updateDecos s c f = mapM_ $ updateDeco s c f
 
-updateDeco :: (DecorationStyle ds a, Shrinker s) => s -> DeConfig ds a -> XMonadFont -> (OrigWin, DecoWin) -> X ()
+updateDeco :: Shrinker s => s -> Theme -> XMonadFont -> (OrigWin, DecoWin) -> X ()
 updateDeco sh c fs ((w,_),(dw,Just (Rectangle _ _ wh ht))) = do
   nw  <- getName w
   ur  <- readUrgents

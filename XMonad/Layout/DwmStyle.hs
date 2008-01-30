@@ -16,8 +16,9 @@ module XMonad.Layout.DwmStyle
     ( -- * Usage:
       -- $usage
       dwmStyle
-    , DeConfig (..)
-    , DwmStyle (..), defaultDwmStyleConfig
+    , Theme (..)
+    , defaultTheme
+    , DwmStyle (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
     ) where
@@ -35,7 +36,7 @@ import XMonad.Layout.Decoration
 -- Then edit your @layoutHook@ by adding the DwmStyle decoration to
 -- your layout:
 --
--- > myL = dwmStyle shrinkText defaultDwmStyleConfig (layoutHook defaultConfig)
+-- > myL = dwmStyle shrinkText defaultTheme (layoutHook defaultConfig)
 -- > main = xmonad defaultConfig { layoutHook = myL }
 --
 -- For more detailed instructions on editing the layoutHook see:
@@ -44,7 +45,7 @@ import XMonad.Layout.Decoration
 --
 -- You can also edit the default configuration options.
 --
--- > myDWConfig = defaultDwmStyleConfig { inactiveBorderColor = "red"
+-- > myDWConfig = defaultTheme { inactiveBorderColor = "red"
 -- >                                    , inactiveTextColor   = "red"}
 --
 -- and
@@ -52,12 +53,9 @@ import XMonad.Layout.Decoration
 -- > myL = dwmStyle shrinkText myDWConfig (layoutHook defaultConfig)
 
 -- | Add simple old dwm-style decorations to windows of a layout.
-dwmStyle :: (Eq a, Shrinker s) => s -> DeConfig DwmStyle a
+dwmStyle :: (Eq a, Shrinker s) => s -> Theme
          -> l a -> ModifiedLayout (Decoration DwmStyle s) l a
-dwmStyle s c = decoration s c
-
-defaultDwmStyleConfig :: Eq a => DeConfig DwmStyle a
-defaultDwmStyleConfig= mkDefaultDeConfig Dwm
+dwmStyle s c = decoration s c Dwm
 
 data DwmStyle a = Dwm deriving (Show, Read)
 

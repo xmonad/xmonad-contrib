@@ -17,7 +17,7 @@ module XMonad.Layout.SimpleFloat
       -- $usage
       simpleFloat
     , simpleFloat'
-    , SimpleDecoration (..), defaultSFConfig
+    , SimpleDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
     ) where
@@ -46,16 +46,13 @@ import XMonad.Layout.WindowArranger
 -- | FIXME
 simpleFloat :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
 	       (ModifiedLayout WindowArranger SimpleFloat) a
-simpleFloat = decoration shrinkText defaultSFConfig (windowArrangeAll $ SF 20)
+simpleFloat = decoration shrinkText defaultTheme (Simple False) (windowArrangeAll $ SF 20)
 
 -- | FIXME
-simpleFloat' :: Shrinker s => s -> DeConfig SimpleDecoration a -> 
+simpleFloat' :: Shrinker s => s -> Theme -> 
                ModifiedLayout (Decoration SimpleDecoration s)
 	      (ModifiedLayout WindowArranger SimpleFloat) a
-simpleFloat' s c = decoration s c (windowArrangeAll $ SF (decoHeight c))
-
-defaultSFConfig :: DeConfig SimpleDecoration a
-defaultSFConfig = mkDefaultDeConfig $ Simple False
+simpleFloat' s c = decoration s c (Simple False) (windowArrangeAll $ SF (decoHeight c))
 
 data SimpleFloat a = SF Dimension deriving (Show, Read)
 instance LayoutClass SimpleFloat Window where
