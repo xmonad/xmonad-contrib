@@ -18,6 +18,7 @@ module XMonad.Layout.SimpleDecoration
       -- $usage
       simpleDeco
     , Theme (..)
+    , defaultTheme
     , SimpleDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
