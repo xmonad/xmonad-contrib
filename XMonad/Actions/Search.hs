@@ -28,6 +28,9 @@ module XMonad.Actions.Search (      -- * Usage
                                  scholar,
                                  wayback,
                                  wikipedia
+                                    -- * Tip
+                                    -- $tip
+
                           ) where
 
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
@@ -79,7 +82,50 @@ import XMonad.Util.XSelection (getSelection)
 * 'wikipedia' -- basic Wikipedia search.
 
 Feel free to add more!
+-}
 
+{- $tip
+
+In combination with "XMonad.Actions.Submap" you can create a powerfull
+and easy way to search without adding a whole bunch of bindings:
+
+First import the necessary modules:
+
+@
+import qualified XMonad.Prompt         as P
+import qualified XMonad.Actions.Submap as SM
+import qualified XMonad.Actions.Search as S
+@
+
+Then add the following to your key bindings:
+
+@
+    -- Search commands
+    , ((modm,               xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.defaultXPConfig)
+    , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
+@
+
+where:
+
+@
+    searchEngineMap method = M.fromList $ 
+          [ ((0, xK_g), method \"firefox\" S.google)
+          , ((0, xK_h), method \"firefox\" S.hoogle)
+          , ((0, xK_w), method \"firefox\" S.wikipedia)
+          ]
+@ 
+
+Make sure to set firefox to open new pages in a new window instead of in a new tab:
+Firefox -> Edit -> Preferences -> Tabs -> New pages should be opened in...
+
+Now /modm-s g/ \/ /h/ \/ /w/ prompts you for a search string, then opens a new
+firefox window that performs the search on Google, Hoogle or
+Wikipedia respectively.
+
+If you select something in whatever application and hit /modm-shift-s g/ \/ /h/ \/ /w/
+it will search the selected string with the specified engine.
+
+Happy searching!
 -}
 
 -- A customized prompt.
