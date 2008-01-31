@@ -53,11 +53,11 @@ NOTE for users of previous versions (< 0.5) of xmonad: this is a major
 change in the way xmonad is configured.  Prior to version 0.5,
 configuring xmonad required editing an xmonad source file called
 Config.hs, recompiling xmonad, and then restarting.  From version 0.5
-onwards, however, all you have to do is edit xmonad.hs and restart
-with @mod-q@; xmonad does the recompiling itself.  The format of the
-configuration file has also changed; it is now simpler and much
-shorter, only requiring you to list those settings which are different
-from the defaults.
+onwards, however, you should NOT edit this file.  All you have to do
+is edit xmonad.hs and restart with @mod-q@; xmonad does the
+recompiling itself.  The format of the configuration file has also
+changed; it is now simpler and much shorter, only requiring you to
+list those settings which are different from the defaults.
 
 -}
 
@@ -88,13 +88,13 @@ Overriding default settings like this (using \"record update
 syntax\"), will yield the shortest config file, as you only have to
 describe values that differ from the defaults.
 
-An alternative is to inline the entire default config file from
-xmonad, and edit values you wish to change. This is requires more
-work, but some users may find this easier. You can find the defaults
-in the "XMonad.Config" module of the core xmonad library.
-
-However, note that (unlike previous versions of xmonad) you should not
-edit Config.hs itself.
+As an alternative, you can copy the template @xmonad.hs@ file (found
+either in the @man@ directory, if you have the xmonad source, or on
+the xmonad wiki at
+@http:\/\/haskell.org\/haskellwiki\/Xmonad\/Config_archive\/Template_Config.hs@)
+into your @~\/.xmonad\/@ directory.  This template file contains all
+the default settings spelled out, and you should be able to simply
+change the ones you would like to change.
 
 To see what fields can be customized beyond the ones in the example
 above, the definition of the 'XMonad.Core.XConfig' data structure can
@@ -110,7 +110,7 @@ is syntactically and type correct.  You can do this easily by loading
 your configuration file in the Haskell interpreter:
 
 >    $ ghci ~/.xmonad/xmonad.hs
->    GHCi, version 6.8.1: http://www.haskell.org/ghc/  :? for help
+>    GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
 >    Loading package base ... linking ... done.
 >    Ok, modules loaded: Main.
 >

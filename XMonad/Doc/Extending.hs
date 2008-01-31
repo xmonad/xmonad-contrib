@@ -439,6 +439,9 @@ This particular definition also requires importing "Graphics.X11.Xlib"
 > import Graphics.X11.Xlib
 > import ...  -- and so on
 
+For a list of the names of particular keys (such as xK_F12, and so on), see
+<http://hackage.haskell.org/packages/archive/X11/1.4.1/doc/html/Graphics-X11-Types.html>.
+
 Usually, rather than completely redefining the key bindings, as we did
 above, we want to simply add some new bindings and\/or remove existing
 ones.
