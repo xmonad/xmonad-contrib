@@ -21,7 +21,7 @@ module XMonad.Layout.LayoutHints (
 
 import XMonad hiding ( trace )
 import XMonad.Layout.LayoutModifier
-
+import XMonad.Layout.Decoration ( isDecoration )
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -54,8 +54,9 @@ instance LayoutModifier LayoutHints Window where
                             xs' <- mapM (applyHint bW) xs
                             return (xs', Nothing)
      where
-        applyHint bW (w,Rectangle a b c d) =
+        applyHint bW (w,r@(Rectangle a b c d)) =
             withDisplay $ \disp -> do
-                sh <- io $ getWMNormalHints disp w
+                isd <- isDecoration w
+                sh  <- io $ getWMNormalHints disp w
                 let (c',d') = adjBorders 1 bW . applySizeHints sh . adjBorders bW (-1) $ (c,d)
-                return (w, Rectangle a b c' d')
+                return (w, if isd then r else Rectangle a b c' d')

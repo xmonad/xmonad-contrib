@@ -24,7 +24,7 @@ module XMonad.Layout.Decoration
     , shrinkText, CustomShrink ( CustomShrink )
     , Shrinker (..), DefaultShrinker
     , module XMonad.Layout.LayoutModifier
-    , fi
+    , isDecoration, fi
     ) where
 
 import Data.Maybe
@@ -214,6 +214,9 @@ updateDeco sh c fs ((w,_),(dw,Just (Rectangle _ _ wh ht))) = do
                                 return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
   paintAndWrite dw fs wh ht 1 bc borderc tc bc AlignCenter name
 updateDeco _ _ _ (_,(w,Nothing)) = hideWindow w
+
+isDecoration :: Window -> X Bool
+isDecoration w = withDisplay (io . flip getWindowAttributes w) >>= return . wa_override_redirect
 
 shrinkWhile :: (String -> [String]) -> (String -> X Bool) -> String -> X String
 shrinkWhile sh p x = sw $ sh x
