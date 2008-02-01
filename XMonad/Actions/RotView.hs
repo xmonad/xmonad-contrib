@@ -27,6 +27,8 @@ import XMonad.StackSet hiding (filter)
 
 -- $usage
 --
+-- NOTE: This module is deprecated; see "XMonad.Actions.CycleWS".
+--
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Actions.RotView
