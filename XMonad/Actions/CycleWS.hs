@@ -88,7 +88,7 @@ import XMonad.Util.WorkspaceCompare
 -- >   , ((modMask x,               xK_Left),  prevScreen)
 -- >   , ((modMask x .|. shiftMask, xK_Right), shiftNextScreen)
 -- >   , ((modMask x .|. shiftMask, xK_Left),  shiftPrevScreen)
--- >   , ((modMask x,               xK_t),     toggleWS)
+-- >   , ((modMask x,               xK_z),     toggleWS)
 --
 -- If you want to follow the moved window, you can use both actions:
 --
