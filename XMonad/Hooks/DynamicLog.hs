@@ -268,7 +268,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppLayout          = id
                , ppOrder           = id
                , ppOutput          = putStrLn
-               , ppSort            = getSortByTag
+               , ppSort            = getSortByIndex
                }
 
 -- | Settings to emulate dwm's statusbar, dzen only.
@@ -305,10 +305,10 @@ byorgeyPP = defaultPP { ppHiddenNoWindows = showNamedWorkspaces
                       , ppUrgent  = dzenColor "red"    "yellow"
                       , ppSep     = " | "
                       , ppWsSep   = ""
-                      , ppTitle   = shorten 65
+                      , ppTitle   = shorten 70
                       , ppOrder   = reverse
                       }
-  where showNamedWorkspaces wsId = if (':' `elem` wsId)
+  where showNamedWorkspaces wsId = if any (`elem` wsId) ['a'..'z']
                                        then pad wsId
                                        else ""
 

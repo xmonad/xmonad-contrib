@@ -38,17 +38,17 @@ import XMonad.Util.WorkspaceCompare
 -- >                return ()
 -- >
 -- > main = xmonad defaultConfig { logHook = myLogHook }
--- 
+--
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
 
--- | 
+-- |
 -- Notifies pagers and window lists, such as those in the gnome-panel
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = withWindowSet $ \s -> do
-    sort' <- getSortByTag
+    sort' <- getSortByIndex
     let ws = sort' $ W.workspaces s
     let wins = W.allWindows s
 
@@ -62,7 +62,7 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
 
     -- Current desktop
     let curr = fromJust $ elemIndex (W.tag (W.workspace (W.current s))) $ map W.tag ws
-    
+
     setCurrentDesktop curr
 
     setClientList wins
@@ -70,11 +70,11 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
     -- Per window Desktop
     -- To make gnome-panel accept our xinerama stuff, we display
     -- all visible windows on the current desktop.
-    forM_ (W.current s : W.visible s) $ \x -> 
+    forM_ (W.current s : W.visible s) $ \x ->
         forM_ (W.integrate' (W.stack (W.workspace x))) $ \win -> do
             setWindowDesktop win curr
 
-    forM_ (W.hidden s) $ \w -> 
+    forM_ (W.hidden s) $ \w ->
         let wn = fromJust $ elemIndex (W.tag w) (map W.tag ws) in
         forM_ (W.integrate' (W.stack w)) $ \win -> do
             setWindowDesktop win wn
