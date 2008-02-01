@@ -74,7 +74,6 @@ library
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.NoBorders
                         XMonad.Actions.RotSlaves
-                        XMonad.Actions.RotView
                         XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll

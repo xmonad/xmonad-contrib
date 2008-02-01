@@ -16,23 +16,18 @@
 -- subset of workspaces, and to cycle by more than one workspace at a
 -- time.
 --
--- Note that this module now subsumes the functionality of
--- "XMonad.Actions.RotView".  To wit, 'XMonad.Actions.RotView.rotView'
--- can be implemented in terms of "XMonad.Actions.CycleWS" functions as
+-- Note that this module now subsumes the functionality of the former
+-- @XMonad.Actions.RotView@.  Former users of @rotView@ can simply replace
+-- @rotView True@ with @moveTo Next NonEmptyWS@, and so on.
+--
+-- If you want to exactly replicate the action of @rotView@ (cycling
+-- through workspace in order lexicographically by tag, instead of in
+-- the order specified in the config), it can be implemented as:
 --
 -- > rotView b  = do t <- findWorkspace getSortByTag (bToDir b) NonEmptyWS 1
 -- >                 windows . greedyView $ t
 -- >   where bToDir True  = Next
 -- >         bToDir False = Prev
---
--- Of course, usually one would want to use
--- 'XMonad.Util.WorkspaceCompare.getSortByIndex' instead of
--- 'XMonad.Util.WorkspaceCompare.getSortByTag', to cycle through the
--- workspaces in the order in which they are listed in your config,
--- instead of alphabetical order (as is the default in
--- 'XMonad.Actions.RotView.rotView'). In this case one can simply use
--- @moveTo Next NonEmptyWS@ and @moveTo Prev NonEmptyWS@ in place of
--- @rotView True@ and @rotView False@, respectively.
 --
 -----------------------------------------------------------------------------
 
@@ -208,7 +203,7 @@ shiftTo dir t = findWorkspace getSortByIndex dir t 1 >>= windows . shift
 --
 --   For ideas of what to do with a workspace tag once obtained, note
 --   that 'moveTo' and 'shiftTo' are implemented by applying @(>>=
---   windows . greedyView)@ and @(>>= windows . shift)@, respectively,
+--   (windows . greedyView))@ and @(>>= (windows . shift))@, respectively,
 --   to the output of 'findWorkspace'.
 findWorkspace :: X WorkspaceSort -> WSDirection -> WSType -> Int -> X WorkspaceId
 findWorkspace s dir t n = findWorkspaceGen s (wsTypeToPred t) (maybeNegate dir n)

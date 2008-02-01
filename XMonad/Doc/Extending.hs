@@ -150,8 +150,6 @@ edit your key bindings.
 
 * "XMonad.Actions.RotSlaves": rotate non-master windows.
 
-* "XMonad.Actions.RotView": cycle through non-empty workspaces.
-
 * "XMonad.Actions.Search": provide helpful functions for easily
   running web searchs.
 
