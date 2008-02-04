@@ -176,7 +176,15 @@ handleEvent :: Shrinker s => s -> Theme -> DecorationState -> Event -> X ()
 handleEvent sh c (DS dwrs fs) e
     | PropertyEvent {ev_window = w} <- e, w `elem` (map (fst . fst) dwrs) = updateDecos sh c fs dwrs
     | ExposeEvent   {ev_window = w} <- e, w `elem` (map (fst . snd) dwrs) = updateDecos sh c fs dwrs
+    | ButtonEvent {ev_window = w,ev_event_type = t} <- e,
+      t == buttonPress,
+      Just ((mainw,_),_) <- lookFor w dwrs = focus mainw
 handleEvent _ _ _ _ = return ()
+
+lookFor :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,DecoWin)
+lookFor w ((x,(w',y)):zs) | w == w' = Just (x,(w',y))
+                          | otherwise = lookFor w zs
+lookFor _ [] = Nothing
 
 getDWs :: [(OrigWin,DecoWin)] -> [Window]
 getDWs = map (fst . snd)
