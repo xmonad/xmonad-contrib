@@ -133,8 +133,13 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
           todel   d = filter (flip elem d . get_w)
           toadd   a = filter (flip elem a . fst  )
 
-          insert_dwr ((w,r),(dw,Just dr)) xs = (dw,dr):(w, shrink ds dr r):xs
-          insert_dwr (x    ,(_ ,Nothing)) xs = x:xs
+          -- We drop any windows that are *precisely* stacked underneath
+          -- another window: these must be intended to be tabbed!
+          insert_dwr otherRs (((w,r),(dw,Just dr)):zzz)
+              | r `elem` otherRs = (dw,dr):insert_dwr otherRs zzz
+              | otherwise = (dw,dr):(w, shrink ds dr r):insert_dwr (r:otherRs)  zzz
+          insert_dwr otherRs (((w,r),(_ ,Nothing)):zzz) = (w,r):insert_dwr (r:otherRs) zzz
+          insert_dwr _ [] = []
 
           resync _         [] = return []
           resync d ((w,r):xs) = case  w `elemIndex` get_ws d of
@@ -147,7 +152,7 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
           processState s = do ndwrs <- resync (decos s) wrs
                               showWindows (getDWs ndwrs)
                               updateDecos sh c (font s) ndwrs
-                              return (foldr insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh c ds))
+                              return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh c ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh c ds) m
         | Just e <- fromMessage m :: Maybe Event = handleEvent sh c s e >> return Nothing
