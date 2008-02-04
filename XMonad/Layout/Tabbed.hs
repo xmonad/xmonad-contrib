@@ -31,6 +31,7 @@ import Data.List
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.Decoration
+import XMonad.Layout.Simplest ( Simplest(Simplest) )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -57,8 +58,8 @@ import XMonad.Layout.Decoration
 
 -- | This function is deprecated and will be removed before 0.7!!
 tabbed :: (Eq a, Shrinker s) => s -> Theme
-       -> ModifiedLayout (Decoration TabbedDecoration s) Full a
-tabbed s c = decoration s c Tabbed Full
+       -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbed s c = decoration s c Tabbed Simplest
 
 data TabbedDecoration a = Tabbed deriving (Read, Show)
 
