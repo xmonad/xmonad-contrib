@@ -43,6 +43,7 @@ import XMonad.Actions.CycleWS
 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook )
 
 myXPConfig :: XPConfig
 myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
@@ -139,6 +140,8 @@ config = -- withUrgencyHook FocusUrgencyHook $
                         named "widescreen" ((mytab *||* mytab)
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
+         , manageHook = manageHook defaultConfig <+> manageDocks -- add panel-handling
+         , logHook = ewmhDesktopsLogHook -- actually, no logging here, just other stuff
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#dddddd" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
