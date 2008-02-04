@@ -81,6 +81,7 @@ library
                         XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows
                         XMonad.Actions.Warp
+                        XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
                         XMonad.Actions.WmiiActions
                         XMonad.Config.Sjanssen
