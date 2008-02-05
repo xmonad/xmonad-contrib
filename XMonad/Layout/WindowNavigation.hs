@@ -122,7 +122,7 @@ instance LayoutModifier WindowNavigation Window where
                                                      []        -> rscr
                pt   = case state of Just (NS ptold _) | ptold `inrect` r -> ptold
                                     _ -> center r
-               wrs' = filter ((/=w) . fst) wrs
+               wrs' = filter ((/=r) . snd) $ filter ((/=w) . fst) wrs
                wnavigable = nub $ concatMap
                             (\d -> truncHead $ sortby d $ filter (inr d pt . snd) wrs') [U,D,R,L]
                wnavigablec = nub $ concatMap
