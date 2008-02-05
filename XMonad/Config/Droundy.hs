@@ -6,7 +6,7 @@
 --
 ------------------------------------------------------------------------
 
-module XMonad.Config.Droundy ( config ) where
+module XMonad.Config.Droundy ( config, mytab ) where
 
 --import Control.Monad.State ( modify )
 
@@ -21,7 +21,6 @@ import System.Exit
 
 -- % Extension-provided imports
 
-import XMonad.Layout.Simplest
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Combo
 import XMonad.Layout.Mosaic
@@ -33,7 +32,7 @@ import XMonad.Layout.WindowNavigation
 import XMonad.Layout.NoBorders
 import XMonad.Layout.WorkspaceDir
 import XMonad.Layout.ToggleLayouts
-import XMonad.Layout.ShowWName ( showWName )
+import XMonad.Layout.ShowWName
 
 import XMonad.Prompt
 import XMonad.Prompt.Layout
@@ -134,14 +133,13 @@ config = -- withUrgencyHook FocusUrgencyHook $
          defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["1:mutt","2:iceweasel"]
-         , layoutHook = addTabs CustomShrink defaultTheme $ showWName $ workspaceDir "~" $
-                        windowNavigation $
+         , layoutHook = showWName $ workspaceDir "~" $ windowNavigation $
                         toggleLayouts (noBorders Full) $ avoidStruts $
-                        named "tabbed" (noBorders Simplest) |||
-                        named "xclock" (Simplest ****//* combineTwo Square Simplest Simplest) |||
-                        named "three" (Simplest **//* Simplest *//* combineTwo Square Simplest Simplest) |||
-                        named "widescreen" ((Simplest *||* Simplest)
-                                                ****//* combineTwo Square Simplest Simplest) --   |||
+                        named "tabbed" (noBorders mytab) |||
+                        named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
+                        named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
+                        named "widescreen" ((mytab *||* mytab)
+                                                ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
          , manageHook = manageHook defaultConfig <+> manageDocks -- add panel-handling
          , logHook = ewmhDesktopsLogHook -- actually, no logging here, just other stuff
@@ -151,6 +149,8 @@ config = -- withUrgencyHook FocusUrgencyHook $
          , XMonad.modMask = mod1Mask
          , XMonad.keys = keys
          }
+
+mytab = tabbed CustomShrink defaultTheme
 
 instance Shrinker CustomShrink where
     shrinkIt shr s | Just s' <- dropFromHead " " s = shrinkIt shr s' 
