@@ -56,7 +56,7 @@ sshPrompt c = do
   mkXPrompt Ssh c (mkComplFunFromList sc) ssh
 
 ssh :: String -> X ()
-ssh s = runInTerm ("ssh " ++ s)
+ssh s = runInTerm "" ("ssh " ++ s)
 
 sshComplList :: IO [String]
 sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal

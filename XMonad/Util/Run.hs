@@ -56,7 +56,7 @@ runProcessWithInput cmd args input = do
     hPutStr pin input
     hClose pin
     output <- hGetContents pout
-    when (output==output) $ return ()
+    when (output == output) $ return ()
     hClose pout
     hClose perr
     waitForProcess ph
@@ -112,11 +112,11 @@ unsafeSpawn = spawn
 
 -- | Run a given program in the preferred terminal emulator. This uses
 -- 'safeSpawn'.
-safeRunInTerm :: String -> X ()
-safeRunInTerm command = asks (terminal . config) >>= \t -> safeSpawn t ("-e " ++ command)
+safeRunInTerm :: String -> String -> X ()
+safeRunInTerm options command = asks (terminal . config) >>= \t -> safeSpawn t (options ++ " -e " ++ command)
 
-unsafeRunInTerm, runInTerm :: String -> X ()
-unsafeRunInTerm command = asks (terminal . config) >>= \t -> unsafeSpawn $ t ++ " -e " ++ command
+unsafeRunInTerm, runInTerm :: String -> String -> X ()
+unsafeRunInTerm options command = asks (terminal . config) >>= \t -> unsafeSpawn $ t ++ " " ++ options ++ " -e " ++ command
 runInTerm = unsafeRunInTerm
 
 -- | Launch an external application and return a 'Handle' to its standard input.

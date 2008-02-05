@@ -58,7 +58,7 @@ instance XPrompt Man where
 manPrompt :: XPConfig -> X ()
 manPrompt c = do
   mans <- io getMans
-  mkXPrompt Man c (manCompl mans) $ runInTerm . (++) "man "
+  mkXPrompt Man c (manCompl mans) $ runInTerm "" . (++) "man "
 
 getMans :: IO [String]
 getMans = do
