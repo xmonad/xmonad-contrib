@@ -105,7 +105,7 @@ configurableNavigation :: LayoutClass l a => WNConfig -> l a -> ModifiedLayout W
 configurableNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
 
 instance LayoutModifier WindowNavigation Window where
-    redoLayout (WindowNavigation conf (I state)) rscr s wrs =
+    redoLayout (WindowNavigation conf (I state)) rscr s origwrs =
         do XConf { normalBorder = nbc, focusedBorder = fbc, display = dpy } <- ask
            [uc,dc,lc,rc] <-
                case brightness conf of
@@ -118,21 +118,23 @@ instance LayoutModifier WindowNavigation Window where
                dirc L = lc
                dirc R = rc
            let w    = W.focus s
-               r    = case filter ((==w).fst) wrs of ((_,x):_) -> x
-                                                     []        -> rscr
+               r    = case filter ((==w).fst) origwrs of ((_,x):_) -> x
+                                                         []        -> rscr
                pt   = case state of Just (NS ptold _) | ptold `inrect` r -> ptold
                                     _ -> center r
-               wrs' = filter ((/=r) . snd) $ filter ((/=w) . fst) wrs
+               existing_wins = W.integrate s
+               wrs = filter ((`elem` existing_wins) . fst) $ filter ((/=r) . snd) $
+                     filter ((/=w) . fst) origwrs
                wnavigable = nub $ concatMap
-                            (\d -> truncHead $ sortby d $ filter (inr d pt . snd) wrs') [U,D,R,L]
+                            (\d -> truncHead $ sortby d $ filter (inr d pt . snd) wrs) [U,D,R,L]
                wnavigablec = nub $ concatMap
                             (\d -> map (\(win,_) -> (win,dirc d)) $
-                                   truncHead $ sortby d $ filter (inr d pt . snd) wrs') [U,D,R,L]
+                                   truncHead $ sortby d $ filter (inr d pt . snd) wrs) [U,D,R,L]
                wothers = case state of Just (NS _ wo) -> map fst wo
                                        _              -> []
            mapM_ (sc nbc) (wothers \\ map fst wnavigable)
            mapM_ (\(win,c) -> sc c win) wnavigablec
-           return (wrs, Just $ WindowNavigation conf $ I $ Just $ NS pt wnavigable)
+           return (origwrs, Just $ WindowNavigation conf $ I $ Just $ NS pt wnavigable)
 
     handleMessOrMaybeModifyIt (WindowNavigation conf (I (Just (NS pt wrs)))) m
         | Just (Go d) <- fromMessage m =
