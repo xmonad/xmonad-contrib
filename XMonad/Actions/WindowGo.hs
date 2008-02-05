@@ -65,7 +65,14 @@ raise = raiseMaybe $ return ()
    the desired program if it isn't found. But you don't have to do that. Maybe
    you want to do nothing if the search fails (the definition of 'raise'), or
    maybe you want to write to a log file, or call some prompt function, or
-   something crazy like that. This hook gives you that flexibility.
+   something crazy like that. This hook gives you that flexibility. You can do
+   some cute things with this hook. Suppose you want to do the same thing for
+   Mutt which you just did for Firefox - but Mutt runs inside a terminal window?
+   No problem: you search for a terminal window calling itself 'mutt', and if
+   there isn't you run a terminal with a command to run mutt! Here's an example,
+   borrowing 'runInTerm' from XMonad.Utils.Run:
+
+  > , ((modm, xK_m                   ), raiseMaybe (runInTerm -title "mutt" "mutt") (title =? "mutt"))
 -}
 raiseMaybe :: X () -> Query Bool -> X ()
 raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
