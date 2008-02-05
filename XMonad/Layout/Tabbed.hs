@@ -17,7 +17,7 @@
 module XMonad.Layout.Tabbed
     ( -- * Usage:
       -- $usage
-      tabbed
+      tabbed, addTabs
     , Theme (..)
     , defaultTheme
     , TabbedDecoration (..)
@@ -61,13 +61,21 @@ tabbed :: (Eq a, Shrinker s) => s -> Theme
        -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbed s c = decoration s c Tabbed Simplest
 
+addTabs :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
+        -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabs s c l = decoration s c Tabbed l
+
 data TabbedDecoration a = Tabbed deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabbedDecoration a where
     describeDeco  _ = "Tabbed"
-    decorateFirst _ = False
-    pureDecoration _ _ ht (Rectangle x y wh _) s wrs (w,_) = Just $ Rectangle nx y nwh (fi ht)
-        where nwh = wh `div` max 1 (fi $ length wrs)
-              nx  = case w `elemIndex` (S.integrate s) of
+    decorateFirst _ = True
+    pureDecoration _ _ ht _ s wrs (w,r@(Rectangle x y wh _)) =
+            if length wrs' <= 1 then Nothing
+                                else Just $ Rectangle nx y nwh (fi ht)
+        where wrs' = filter ((==r) . snd) wrs
+              ws = map fst wrs'
+              nwh = wh `div` max 1 (fi $ length wrs')
+              nx  = case elemIndex w $ filter (`elem` ws) (S.integrate s) of
                       Just i  -> x + (fi nwh * fi i)
                       Nothing -> x
