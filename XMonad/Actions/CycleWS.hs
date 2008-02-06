@@ -50,6 +50,8 @@ module XMonad.Actions.CycleWS (
                               , prevScreen
                               , shiftNextScreen
                               , shiftPrevScreen
+                              , swapNextScreen
+                              , swapPrevScreen
 
                                 -- * Moving between workspaces, take two!
                                 -- $taketwo
@@ -253,6 +255,21 @@ screenBy d = do ws <- gets windowset
                 --let ss = sortBy screen (screens ws)
                 let now = screen (current ws)
                 return $ (now + fromIntegral d) `mod` fromIntegral (length (screens ws))
+
+-- | Swap current screen with next screen
+swapNextScreen :: X ()
+swapNextScreen = swapScreen 1
+
+-- | Swap current screen with previous screen
+swapPrevScreen :: X ()
+swapPrevScreen = swapScreen (-1)
+
+swapScreen :: Int -> X ()
+swapScreen d = do s <- screenBy d
+                  mws <- screenWorkspace s
+                  case mws of
+                    Nothing -> return ()
+                    Just ws -> windows (greedyView ws)
 
 -- | Move focused window to workspace on next screen
 shiftNextScreen :: X ()
