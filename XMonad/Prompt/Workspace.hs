@@ -18,10 +18,10 @@ module XMonad.Prompt.Workspace (
                              workspacePrompt
                               ) where
 
-import Data.List ( sort )
 import XMonad hiding ( workspaces )
 import XMonad.Prompt
 import XMonad.StackSet ( workspaces, tag )
+import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -41,7 +41,8 @@ instance XPrompt Wor where
 
 workspacePrompt :: XPConfig -> (String -> X ()) -> X ()
 workspacePrompt c job = do ws <- gets (workspaces . windowset)
-                           let ts = sort $ map tag ws
+                           sort <- getSortByIndex
+                           let ts = map tag $ sort ws
                            mkXPrompt (Wor "") c (mkCompl ts) job
 
 mkCompl :: [String] -> String -> IO [String]
