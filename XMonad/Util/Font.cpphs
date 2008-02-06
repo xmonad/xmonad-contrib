@@ -31,6 +31,8 @@ module XMonad.Util.Font  (
 
 import XMonad
 import Foreign
+import Control.Applicative
+import Data.Maybe
 
 #ifdef XFT
 import Data.List
@@ -49,10 +51,10 @@ data XMonadFont = Core FontStruct
 
 -- | Get the Pixel value for a named color: if an invalid name is
 -- given the black pixel will be returned.
-stringToPixel :: MonadIO m => Display -> String -> m Pixel
-stringToPixel d s = liftIO $ catch getIt fallBack
+stringToPixel :: (Functor m, MonadIO m) => Display -> String -> m Pixel
+stringToPixel d s = fromMaybe fallBack <$> liftIO getIt
     where getIt    = initColor d s
-          fallBack = const $ return $ blackPixel d (defaultScreen d)
+          fallBack = blackPixel d (defaultScreen d)
 
 
 -- | Given a fontname returns the font structure. If the font name is

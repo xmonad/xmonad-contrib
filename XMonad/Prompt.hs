@@ -463,8 +463,8 @@ drawWin = do
       wh = widthOfScreen scr
       ht = height c
       bw = promptBorderWidth c
-  bgcolor <- io $ initColor d (bgColor c)
-  border  <- io $ initColor d (borderColor c)
+  Just bgcolor <- io $ initColor d (bgColor c)
+  Just border  <- io $ initColor d (borderColor c)
   p <- io $ createPixmap d w wh ht
                          (defaultDepthOfScreen scr)
   io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
@@ -569,8 +569,8 @@ drawComplWin w compl = do
       scr = defaultScreenOfDisplay d
       bw = promptBorderWidth c
       gc = gcon st
-  bgcolor <- io $ initColor d (bgColor c)
-  border  <- io $ initColor d (borderColor c)
+  Just bgcolor <- io $ initColor d (bgColor c)
+  Just border  <- io $ initColor d (borderColor c)
 
   (_,_,wh,ht,xx,yy) <- getComplWinDim compl
 
