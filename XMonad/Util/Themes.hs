@@ -18,14 +18,32 @@ module XMonad.Util.Themes
       listOfThemes
     , xmonadTheme
     , smallClean
+    , deiflTheme
+    , oxymor00nTheme
     , ThemeInfo (..)
     ) where
 
 import XMonad.Layout.Decoration
 
 -- $usage
--- This module stores some user contributed themes. If you have a theme
--- you would like to share, adding it to this module is very easy.
+-- This module stores some user contributed themes.
+--
+-- If you want to use one of the as your default theme in some
+-- workspace, you need to substitute defaultTheme with, for instance,
+-- (theme smallClean).
+--
+-- This is an example:
+--
+-- > import XMonad
+-- > import XMonad.Util.Themes
+-- > import XMonad.Layout.Tabbed
+-- >
+-- > myLayout = tabbed shrinkText (theme smallClean)
+-- >
+-- > main = xmonad defaultConfig {layoutHook = myLayout}
+--
+-- If you have a theme you would like to share, adding it to this
+-- module is very easy.
 --
 -- You can use 'xmonadTheme' or 'smallClean' as a template.
 --
@@ -43,7 +61,7 @@ data ThemeInfo =
        , themeAuthor      :: String
        , themeDescription :: String
        , theme            :: Theme
-    }
+       }
 
 newTheme :: ThemeInfo
 newTheme = TI "" "" "" defaultTheme
@@ -55,6 +73,7 @@ listOfThemes = [ xmonadTheme
                , oxymor00nTheme
                ]
 
+-- | The default xmonad theme, by David Roundy.
 xmonadTheme :: ThemeInfo
 xmonadTheme =
     newTheme { themeName        = "xmonadTheme"
@@ -63,6 +82,7 @@ xmonadTheme =
              , theme            = defaultTheme
              }
 
+-- | Small decorations with a Ion3 remembrance, by Andrea Rossato.
 smallClean :: ThemeInfo
 smallClean =
     newTheme { themeName        = "smallClean"
@@ -78,11 +98,12 @@ smallClean =
                                                }
              }
 
+-- | deifl\'s Theme, by deifl.
 deiflTheme :: ThemeInfo
 deiflTheme =
     newTheme { themeName        = "deiflTheme"
-             , themeAuthor      = "deiflTheme"
-             , themeDescription = "deiflTheme"
+             , themeAuthor      = "deifl"
+             , themeDescription = "deifl's Theme"
              , theme            = defaultTheme { inactiveBorderColor = "#708090"
                                                , activeBorderColor   = "#5f9ea0"
                                                , activeColor         = "#000000"
@@ -94,18 +115,19 @@ deiflTheme =
                                                }
              }
 
+-- | oxymor00n\'s theme, by Tom Rauchenwald.
 oxymor00nTheme :: ThemeInfo
 oxymor00nTheme =
     newTheme { themeName        = "oxymor00nTheme"
              , themeAuthor      = "Tom Rauchenwald"
              , themeDescription = "oxymor00n's theme"
              , theme            = defaultTheme { inactiveBorderColor = "#000"
-                                               , activeBorderColor = "aquamarine3" 
+                                               , activeBorderColor = "aquamarine3"
                                                , activeColor = "aquamarine3"
                                                , inactiveColor = "DarkSlateGray4"
                                                , inactiveTextColor = "#222"
                                                , activeTextColor = "#222"
-                                               -- This font can be found in the package ttf-alee 
+                                               -- This font can be found in the package ttf-alee
                                                -- on debian-systems
                                                , fontName = "-*-Bandal-*-*-*-*-12-*-*-*-*-*-*-*"
                                                , decoHeight = 15
