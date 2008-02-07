@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A very simple layout. The simplest, afaik.
+-- A basic floating layout.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.SimpleFloat
