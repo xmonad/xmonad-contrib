@@ -28,9 +28,9 @@ import XMonad.Layout.Decoration
 -- $usage
 -- This module stores some user contributed themes.
 --
--- If you want to use one of the as your default theme in some
--- workspace, you need to substitute defaultTheme with, for instance,
--- (theme smallClean).
+-- If you want to use one of this them as your default theme for one
+-- of your layouts, you need to substitute defaultTheme with, for
+-- instance, (theme smallClean).
 --
 -- This is an example:
 --
