@@ -52,6 +52,7 @@ listOfThemes :: [ThemeInfo]
 listOfThemes = [ xmonadTheme
                , smallClean
                , deiflTheme
+               , oxymor00nTheme
                ]
 
 xmonadTheme :: ThemeInfo
@@ -90,5 +91,25 @@ deiflTheme =
                                                , activeTextColor     = "#87cefa"
                                                , fontName            = "-xos4-terminus-*-*-*-*-12-*-*-*-*-*-*-*"
                                                , decoHeight          = 15
+                                               }
+             }
+
+oxymor00nTheme :: ThemeInfo
+oxymor00nTheme =
+    newTheme { themeName        = "oxymor00nTheme"
+             , themeAuthor      = "Tom Rauchenwald"
+             , themeDescription = "oxymor00n's theme"
+             , theme            = defaultTheme { inactiveBorderColor = "#000"
+                                               , activeBorderColor = "aquamarine3" 
+                                               , activeColor = "aquamarine3"
+                                               , inactiveColor = "DarkSlateGray4"
+                                               , inactiveTextColor = "#222"
+                                               , activeTextColor = "#222"
+                                               -- This font can be found in the package ttf-alee 
+                                               -- on debian-systems
+                                               , fontName = "-*-Bandal-*-*-*-*-12-*-*-*-*-*-*-*"
+                                               , decoHeight = 15
+                                               , urgentColor = "#000"
+                                               , urgentTextColor = "#63b8ff"
                                                }
              }
