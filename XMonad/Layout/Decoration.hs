@@ -114,16 +114,16 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     decorate ds w h r s ars ar = return $ pureDecoration ds w h r s ars ar
 
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
-    redoLayout (Decoration st sh c ds) sc stack wrs
+    redoLayout (Decoration st sh t ds) sc stack wrs
         | decorate_first   = do whenIJust st releaseResources
-                                return (wrs, Just $ Decoration (I Nothing) sh c ds)
-        | I Nothing  <- st = initState c wrs >>= processState
+                                return (wrs, Just $ Decoration (I Nothing) sh t ds)
+        | I Nothing  <- st = initState t wrs >>= processState
         | I (Just s) <- st = do let dwrs  = decos s
                                     (d,a) = curry diff (get_ws dwrs) ws
                                     toDel = todel d dwrs
                                     toAdd = toadd a wrs
                                 deleteWindows (getDWs toDel)
-                                ndwrs <- createDecos c toAdd
+                                ndwrs <- createDecos t toAdd
                                 processState (s {decos = ndwrs ++ del_dwrs d dwrs })
         | otherwise        = return (wrs, Nothing)
 
@@ -146,7 +146,7 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
 
           resync _         [] = return []
           resync d ((w,r):xs) = case  w `elemIndex` get_ws d of
-                                  Just i  -> do dr   <- decorate ds (decoWidth c) (decoHeight c) sc stack wrs (w,r)
+                                  Just i  -> do dr   <- decorate ds (decoWidth t) (decoHeight t) sc stack wrs (w,r)
                                                 dwrs <- resync d xs
                                                 return $ ((w,r),(find_dw i d, dr)) : dwrs
                                   Nothing -> resync d xs
@@ -154,32 +154,32 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
           decorate_first = length wrs == 1 && (not . decorateFirst $ ds)
           processState s = do ndwrs <- resync (decos s) wrs
                               showWindows (getDWs ndwrs)
-                              updateDecos sh c (font s) ndwrs
-                              return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh c ds))
+                              updateDecos sh t (font s) ndwrs
+                              return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
 
-    handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh c ds) m
-        | Just e <- fromMessage m :: Maybe Event = handleEvent sh c s e      >> return Nothing
+    handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh t ds) m
+        | Just e <- fromMessage m :: Maybe Event = handleEvent sh t s e      >> return Nothing
         | Just Hide             <- fromMessage m = hideWindows (getDWs dwrs) >> return Nothing
-        | Just (SetTheme nc)    <- fromMessage m = do releaseResources s
-                                                      return $ Just $ Decoration (I Nothing) sh nc ds
+        | Just (SetTheme nt)    <- fromMessage m = do releaseResources s
+                                                      return $ Just $ Decoration (I Nothing) sh nt ds
         | Just ReleaseResources <- fromMessage m = do releaseResources s
-                                                      return $ Just $ Decoration (I Nothing) sh c  ds
+                                                      return $ Just $ Decoration (I Nothing) sh t  ds
     handleMess _ _ = return Nothing
 
-    emptyLayoutMod (Decoration (I (Just (DS dwrs f))) sh c ds) _ _ = do
+    emptyLayoutMod (Decoration (I (Just (DS dwrs f))) sh t ds) _ _ = do
         deleteWindows (getDWs dwrs)
         releaseXMF f
-        return ([], Just $ Decoration (I Nothing) sh c ds)
+        return ([], Just $ Decoration (I Nothing) sh t ds)
     emptyLayoutMod _ _ _  = return ([], Nothing)
 
     modifierDescription (Decoration _ _ _ ds) = describeDeco ds
 
 handleEvent :: Shrinker s => s -> Theme -> DecorationState -> Event -> X ()
-handleEvent sh c (DS dwrs fs) e
-    | PropertyEvent {ev_window = w} <- e, w `elem` (map (fst . fst) dwrs) = updateDecos sh c fs dwrs
-    | ExposeEvent   {ev_window = w} <- e, w `elem` (map (fst . snd) dwrs) = updateDecos sh c fs dwrs
-    | ButtonEvent {ev_window = w,ev_event_type = t} <- e,
-      t == buttonPress,
+handleEvent sh t (DS dwrs fs) e
+    | PropertyEvent {ev_window = w} <- e, w `elem` (map (fst . fst) dwrs) = updateDecos sh t fs dwrs
+    | ExposeEvent   {ev_window = w} <- e, w `elem` (map (fst . snd) dwrs) = updateDecos sh t fs dwrs
+    | ButtonEvent {ev_window = w,ev_event_type = ty} <- e,
+      ty == buttonPress,
       Just ((mainw,_),_) <- lookFor w dwrs = focus mainw
 handleEvent _ _ _ _ = return ()
 
@@ -192,9 +192,9 @@ getDWs :: [(OrigWin,DecoWin)] -> [Window]
 getDWs = map (fst . snd)
 
 initState ::  Theme -> [(Window,Rectangle)] -> X DecorationState
-initState conf wrs = do
-  fs   <- initXMF (fontName conf)
-  dwrs <- createDecos conf wrs
+initState t wrs = do
+  fs   <- initXMF (fontName t)
+  dwrs <- createDecos t wrs
   return $ DS dwrs fs
 
 releaseResources :: DecorationState -> X ()
@@ -204,18 +204,18 @@ releaseResources s = do
 
 createDecos :: Theme -> [(Window,Rectangle)] -> X [(OrigWin,DecoWin)]
 createDecos _ [] = return []
-createDecos c (wr:wrs) = do
+createDecos t (wr:wrs) = do
   let rect = Rectangle 0 0 1 1
       mask = Just (exposureMask .|. buttonPressMask)
-  dw   <- createNewWindow rect mask (inactiveColor c) True
-  dwrs <- createDecos c wrs
+  dw   <- createNewWindow rect mask (inactiveColor t) True
+  dwrs <- createDecos t wrs
   return ((wr,(dw,Nothing)):dwrs)
 
 updateDecos :: Shrinker s => s -> Theme -> XMonadFont -> [(OrigWin, DecoWin)] -> X ()
-updateDecos s c f = mapM_ $ updateDeco s c f
+updateDecos s t f = mapM_ $ updateDeco s t f
 
 updateDeco :: Shrinker s => s -> Theme -> XMonadFont -> (OrigWin, DecoWin) -> X ()
-updateDeco sh c fs ((w,_),(dw,Just (Rectangle _ _ wh ht))) = do
+updateDeco sh t fs ((w,_),(dw,Just (Rectangle _ _ wh ht))) = do
   nw  <- getName w
   ur  <- readUrgents
   dpy <- asks display
@@ -225,9 +225,9 @@ updateDeco sh c fs ((w,_),(dw,Just (Rectangle _ _ wh ht))) = do
                                                          | otherwise     -> ic) . W.peek)
                                 `fmap` gets windowset
   (bc,borderc,tc) <- focusColor w
-                     (inactiveColor c, inactiveBorderColor c, inactiveTextColor c)
-                     (activeColor   c, activeBorderColor   c, activeTextColor   c)
-                     (urgentColor   c, urgentBorderColor   c, urgentTextColor   c)
+                     (inactiveColor t, inactiveBorderColor t, inactiveTextColor t)
+                     (activeColor   t, activeBorderColor   t, activeTextColor   t)
+                     (urgentColor   t, urgentBorderColor   t, urgentTextColor   t)
   let s  = shrinkIt sh
   name <- shrinkWhile s (\n -> do
                                 size <- io $ textWidthXMF dpy fs n
