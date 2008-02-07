@@ -155,6 +155,7 @@ library
                         XMonad.Util.Invisible
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
+                        XMonad.Util.Themes
                         XMonad.Util.Timer
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
