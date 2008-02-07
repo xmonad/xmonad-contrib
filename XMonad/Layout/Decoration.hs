@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fglasgow-exts #-} -- for deriving Typeable
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
@@ -20,6 +21,7 @@ module XMonad.Layout.Decoration
       decoration
     , Decoration
     , DecorationStyle (..)
+    , DecorationMsg (..)
     , Theme (..), defaultTheme
     , shrinkText, CustomShrink ( CustomShrink )
     , Shrinker (..), DefaultShrinker
@@ -79,6 +81,9 @@ defaultTheme =
           , decoHeight          = 20
           }
 
+data DecorationMsg = SetTheme Theme deriving ( Typeable )
+instance Message DecorationMsg
+
 type DecoWin = (Window,Maybe Rectangle)
 type OrigWin = (Window,Rectangle)
 data DecorationState =
@@ -110,9 +115,7 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
 
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
     redoLayout (Decoration st sh c ds) sc stack wrs
-        | decorate_first   = do whenIJust st $ \s -> do
-                                    deleteWindows (getDWs $ decos s)
-                                    releaseXMF (font s)
+        | decorate_first   = do whenIJust st releaseResources
                                 return (wrs, Just $ Decoration (I Nothing) sh c ds)
         | I Nothing  <- st = initState c wrs >>= processState
         | I (Just s) <- st = do let dwrs  = decos s
@@ -155,13 +158,12 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                               return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh c ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh c ds) m
-        | Just e <- fromMessage m :: Maybe Event = handleEvent sh c s e >> return Nothing
-        | Just Hide             <- fromMessage m = hideWindows      dws >> return Nothing
-        | Just ReleaseResources <- fromMessage m = do deleteWindows dws
-                                                      releaseXMF (font s)
-                                                      return $ Just $ Decoration (I Nothing) sh c ds
-        where dws = getDWs dwrs
-
+        | Just e <- fromMessage m :: Maybe Event = handleEvent sh c s e      >> return Nothing
+        | Just Hide             <- fromMessage m = hideWindows (getDWs dwrs) >> return Nothing
+        | Just (SetTheme nc)    <- fromMessage m = do releaseResources s
+                                                      return $ Just $ Decoration (I Nothing) sh nc ds
+        | Just ReleaseResources <- fromMessage m = do releaseResources s
+                                                      return $ Just $ Decoration (I Nothing) sh c  ds
     handleMess _ _ = return Nothing
 
     emptyLayoutMod (Decoration (I (Just (DS dwrs f))) sh c ds) _ _ = do
@@ -194,6 +196,11 @@ initState conf wrs = do
   fs   <- initXMF (fontName conf)
   dwrs <- createDecos conf wrs
   return $ DS dwrs fs
+
+releaseResources :: DecorationState -> X ()
+releaseResources s = do
+  deleteWindows (getDWs $ decos s)
+  releaseXMF    (font s)
 
 createDecos :: Theme -> [(Window,Rectangle)] -> X [(OrigWin,DecoWin)]
 createDecos _ [] = return []
