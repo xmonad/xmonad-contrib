@@ -8,8 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A prompt for chnaging the theme of the current workspace
---
+-- A prompt for changing the theme of the current workspace
 -----------------------------------------------------------------------------
 
 module XMonad.Prompt.Theme
@@ -27,7 +26,8 @@ import XMonad.Layout.Decoration
 import XMonad.Util.Themes
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your
+-- @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Theme
@@ -45,8 +45,8 @@ instance XPrompt ThemePrompt where
     showXPrompt ThemePrompt = "Select a theme: "
 
 themePrompt :: XPConfig -> X ()
-themePrompt c = mkXPrompt ThemePrompt c (const $ return (map fst $ M.toList mapOfThemes)) changeTheme
-    where changeTheme t = sendMessage . SetTheme $ fromMaybe defaultTheme (M.lookup t mapOfThemes)
+themePrompt c = mkXPrompt ThemePrompt c (const . return . map themeName $ listOfThemes) changeTheme
+    where changeTheme t = sendMessage . SetTheme . fromMaybe defaultTheme $ M.lookup t mapOfThemes
 
 mapOfThemes :: M.Map String Theme
 mapOfThemes = M.fromList . uncurry zip . (map themeName &&& map theme) $ listOfThemes
