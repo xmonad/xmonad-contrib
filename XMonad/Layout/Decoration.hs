@@ -26,7 +26,7 @@ module XMonad.Layout.Decoration
     , shrinkText, CustomShrink ( CustomShrink )
     , Shrinker (..), DefaultShrinker
     , module XMonad.Layout.LayoutModifier
-    , isDecoration, fi
+    , isDecoration, fi, lookFor
     ) where
 
 import Data.Maybe
@@ -106,10 +106,16 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
 
     mouseEventHook :: ds a -> DecorationState -> Event -> X ()
-    mouseEventHook _ (DS dwrs _) e
-        | ButtonEvent {ev_window = w,ev_event_type = ty} <- e,
-        ty == buttonPress,
-        Just ((mainw,_),_) <- lookFor w dwrs = focus mainw
+    mouseEventHook _ (DS dwrs@(((_,r),(dw,_)):_) _) e
+        | ButtonEvent {ev_window = ew, ev_event_type = ty} <- e
+        , ty == buttonPress, dw == ew = mouseDrag (\ex ey -> do
+                                                     let rect = Rectangle ex ey (rect_width r) (rect_height r)
+                                                     sendMessage (SetGeometry rect))
+                                        (return ())
+        | ButtonEvent {ev_window = ew, ev_event_type = ty} <- e
+        , ty == buttonPress
+        , Just ((mainw,_),_) <- lookFor ew dwrs = focus mainw
+
     mouseEventHook _ _ _ = return ()
 
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
