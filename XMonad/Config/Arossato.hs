@@ -23,13 +23,14 @@ module XMonad.Config.Arossato
 import qualified Data.Map as M
 import System.IO (hPutStrLn)
 
-import XMonad
+import XMonad hiding ( (|||) )
 import qualified XMonad.StackSet as W
 
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Layout.Accordion
+import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Magnifier
 import XMonad.Layout.NoBorders
 import XMonad.Layout.SimpleFloat
@@ -38,6 +39,7 @@ import XMonad.Layout.WindowArranger
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
+import XMonad.Prompt.Theme
 import XMonad.Prompt.Window
 import XMonad.Prompt.XMonad
 import XMonad.Util.Run
@@ -54,6 +56,10 @@ import XMonad.Util.Run
 -- > main :: IO ()
 -- > main = xmonad =<< arossatoConfig
 --
+-- NOTE: that I'm using xmobar and, if you don't have xmobar in your
+-- PATH, this configuration will produce an error and xmonad will not
+-- start. If you don't want to install xmobar get rid of this line at
+-- the beginning of 'arossatoConfig'.
 --
 -- You can use this module also as a starting point for writing your
 -- own configuration module from scratch. Save it as your
@@ -92,7 +98,7 @@ arossatoTheme = defaultTheme
                 }
 
 arossatoConfig = do
-    xmobar <- spawnPipe "xmobar"
+    xmobar <- spawnPipe "xmobar" -- remove this line if you do not have xmobar installed!
     return $ defaultConfig
          { workspaces         = ["home","var","dev","mail","web","doc"] ++
                                 map show [7 .. 9 :: Int]
@@ -106,13 +112,14 @@ arossatoConfig = do
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , keys               = newKeys
+         , focusFollowsMouse  = False
          }
     where
       -- layouts
-      mytabs    =    tabbed    shrinkText arossatoTheme
+      mytabs    =       tabbed shrinkText arossatoTheme
       decorated = simpleFloat' shrinkText arossatoTheme
       tiled     = Tall 1 (3/100) (1/2)
-      otherLays = windowArrange $
+      otherLays = windowArrange   $
                   magnifier tiled |||
                   noBorders Full  |||
                   Mirror tiled    |||
@@ -153,8 +160,9 @@ arossatoConfig = do
           [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig     )
           , ((modMask x              , xK_F3    ), shellPrompt       defaultXPConfig     )
           , ((modMask x              , xK_F4    ), sshPrompt         defaultXPConfig     )
-          , ((modMask x              , xK_F5    ), windowPromptGoto  defaultXPConfig     )
-          , ((modMask x              , xK_F6    ), windowPromptBring defaultXPConfig     )
+          , ((modMask x              , xK_F5    ), themePrompt       defaultXPConfig     )
+          , ((modMask x              , xK_F6    ), windowPromptGoto  defaultXPConfig     )
+          , ((modMask x              , xK_F7    ), windowPromptBring defaultXPConfig     )
           , ((modMask x              , xK_comma ), prevWS                                )
           , ((modMask x              , xK_period), nextWS                                )
           , ((modMask x              , xK_Right ), windows W.focusDown                   )
@@ -175,18 +183,16 @@ arossatoConfig = do
           -- windowArranger
           , ((modMask x .|. controlMask              , xK_a    ), sendMessage  Arrange           )
           , ((modMask x .|. controlMask .|. shiftMask, xK_a    ), sendMessage  DeArrange         )
-          , ((modMask x .|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft   10))
-          , ((modMask x .|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight  10))
-          , ((modMask x .|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown   10))
-          , ((modMask x .|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp     10))
-          , ((modMask x .|. controlMask              , xK_Left ), sendMessage (IncreaseLeft   10))
+          , ((modMask x .|. controlMask              , xK_Left ), sendMessage (DecreaseLeft   10))
+          , ((modMask x .|. controlMask              , xK_Up   ), sendMessage (DecreaseUp     10))
           , ((modMask x .|. controlMask              , xK_Right), sendMessage (IncreaseRight  10))
           , ((modMask x .|. controlMask              , xK_Down ), sendMessage (IncreaseDown   10))
-          , ((modMask x .|. controlMask              , xK_Up   ), sendMessage (IncreaseUp     10))
           , ((modMask x .|. shiftMask                , xK_Left ), sendMessage (MoveLeft       10))
           , ((modMask x .|. shiftMask                , xK_Right), sendMessage (MoveRight      10))
           , ((modMask x .|. shiftMask                , xK_Down ), sendMessage (MoveDown       10))
           , ((modMask x .|. shiftMask                , xK_Up   ), sendMessage (MoveUp         10))
+          -- gaps
+          , ((modMask x                              , xK_b    ), sendMessage  ToggleStruts      )
 
           ] ++
           -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
