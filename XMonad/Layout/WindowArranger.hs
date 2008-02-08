@@ -90,6 +90,7 @@ data WindowArrangerMsg = DeArrange
                        | MoveRight     Int
                        | MoveUp        Int
                        | MoveDown      Int
+                       | SetGeometry   Rectangle
                          deriving ( Typeable )
 instance Message WindowArrangerMsg
 
@@ -103,7 +104,7 @@ data WindowArranger a = WA Bool ArrangeAll [ArrangedWindow a] deriving (Read, Sh
 instance (Show a, Read a, Eq a) => LayoutModifier WindowArranger a where
     pureModifier (WA True b   []) _  _              wrs = arrangeWindows b wrs
 
-    pureModifier (WA True b awrs) _ (S.Stack w _ _) wrs = curry process  wrs awrs
+    pureModifier (WA True b awrs) _ (S.Stack w _ _) wrs = curry process wrs awrs
         where
           wins         = map fst       *** map awrWin
           update (a,r) = mkNewAWRs b a *** removeAWRs r >>> uncurry (++)
@@ -133,6 +134,9 @@ instance (Show a, Read a, Eq a) => LayoutModifier WindowArranger a where
               fm             = fromMessage m
               fa             = fromAWR     wr
               chk        x y = fi $ max 1 (fi x - y)
+
+    pureMess (WA t b (wr:wrs)) m
+        | Just (SetGeometry   r) <- fromMessage m, (w,_) <- fromAWR wr = Just . WA t b $ AWR (w,r):wrs
 
     pureMess (WA _ b l) m
         | Just DeArrange <- fromMessage m = Just $ WA False b l
