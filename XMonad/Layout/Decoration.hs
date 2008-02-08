@@ -105,6 +105,13 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
 
+    mouseEventHook :: ds a -> DecorationState -> Event -> X ()
+    mouseEventHook _ (DS dwrs _) e
+        | ButtonEvent {ev_window = w,ev_event_type = ty} <- e,
+        ty == buttonPress,
+        Just ((mainw,_),_) <- lookFor w dwrs = focus mainw
+    mouseEventHook _ _ _ = return ()
+
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
     pureDecoration _ _ h _ _ _ (_,Rectangle x y w _) = Just $ Rectangle x y w h
@@ -158,8 +165,11 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                               return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh t ds) m
-        | Just e <- fromMessage m :: Maybe Event = handleEvent sh t s e      >> return Nothing
-        | Just Hide             <- fromMessage m = hideWindows (getDWs dwrs) >> return Nothing
+        | Just e <- fromMessage m :: Maybe Event = do mouseEventHook ds s e
+                                                      handleEvent  sh t s e
+                                                      return Nothing
+        | Just Hide             <- fromMessage m = do hideWindows (getDWs dwrs)
+                                                      return Nothing
         | Just (SetTheme nt)    <- fromMessage m = do releaseResources s
                                                       return $ Just $ Decoration (I Nothing) sh nt ds
         | Just ReleaseResources <- fromMessage m = do releaseResources s
@@ -178,9 +188,6 @@ handleEvent :: Shrinker s => s -> Theme -> DecorationState -> Event -> X ()
 handleEvent sh t (DS dwrs fs) e
     | PropertyEvent {ev_window = w} <- e, w `elem` (map (fst . fst) dwrs) = updateDecos sh t fs dwrs
     | ExposeEvent   {ev_window = w} <- e, w `elem` (map (fst . snd) dwrs) = updateDecos sh t fs dwrs
-    | ButtonEvent {ev_window = w,ev_event_type = ty} <- e,
-      ty == buttonPress,
-      Just ((mainw,_),_) <- lookFor w dwrs = focus mainw
 handleEvent _ _ _ _ = return ()
 
 lookFor :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,DecoWin)
