@@ -17,7 +17,7 @@
 module XMonad.Layout.Tabbed
     ( -- * Usage:
       -- $usage
-      tabbed, addTabs
+      simpleTabbed, tabbed, addTabs
     , Theme (..)
     , defaultTheme
     , TabbedDecoration (..)
@@ -40,7 +40,14 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- Then edit your @layoutHook@ by adding the Tabbed layout:
 --
--- > myLayouts = tabDeco shrinkText defaultTheme ||| Full ||| etc..
+-- > myLayouts = simpleTabbed ||| Full ||| etc..
+--
+-- or, if you want a specific theme for you tabbed layout:
+--
+-- > myLayouts = tabbed shrinkText defaultTheme ||| Full ||| etc..
+--
+-- and then:
+--
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
@@ -56,7 +63,21 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- > mylayout = tabDeco shrinkText myTabConfig ||| Full ||| etc..
 
--- | This function is deprecated and will be removed before 0.7!!
+-- | A tabbed layout with the default xmonad Theme. Here's a screen
+-- shot:
+--
+-- <http://code.haskell.org/~arossato/xmonadShots/simpleTabbed.png>
+--
+-- This is a minimal working configuration:
+--
+-- > import XMonad
+-- > import XMonad.Layout.DecorationMadness
+-- > main = xmonad defaultConfig { layoutHook = simpleTabbed }
+simpleTabbed :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
+simpleTabbed = decoration shrinkText defaultTheme Tabbed Simplest
+
+-- | A layout decorated with tabs and the possibility to set a custom
+-- shrinker and a custom theme.
 tabbed :: (Eq a, Shrinker s) => s -> Theme
        -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbed s c = decoration s c Tabbed Simplest
