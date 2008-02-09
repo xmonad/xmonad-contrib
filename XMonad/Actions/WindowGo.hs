@@ -72,7 +72,7 @@ raise = raiseMaybe $ return ()
    there isn't you run a terminal with a command to run mutt! Here's an example,
    borrowing 'runInTerm' from XMonad.Utils.Run:
 
-  > , ((modm, xK_m                   ), raiseMaybe (runInTerm -title "mutt" "mutt") (title =? "mutt"))
+  > , ((modm, xK_m                   ), raiseMaybe (runInTerm "-title mutt" "mutt") (title =? "mutt"))
 -}
 raiseMaybe :: X () -> Query Bool -> X ()
 raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
