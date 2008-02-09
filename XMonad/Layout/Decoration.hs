@@ -36,8 +36,8 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.LayoutModifier
-import XMonad.Layout.WindowArranger
-import XMonad.Util.NamedWindows
+import XMonad.Layout.WindowArranger (WindowArrangerMsg (..), diff, listFromList)
+import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 import XMonad.Util.Font
@@ -105,18 +105,21 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
 
-    mouseEventHook :: ds a -> DecorationState -> Event -> X ()
-    mouseEventHook _ (DS dwrs@(((_,r),(dw,_)):_) _) e
-        | ButtonEvent {ev_window = ew, ev_event_type = ty} <- e
-        , ty == buttonPress, dw == ew = mouseDrag (\ex ey -> do
-                                                     let rect = Rectangle ex ey (rect_width r) (rect_height r)
-                                                     sendMessage (SetGeometry rect))
-                                        (return ())
-        | ButtonEvent {ev_window = ew, ev_event_type = ty} <- e
-        , ty == buttonPress
+    decoEventHook :: ds a -> DecorationState -> Event -> X ()
+    decoEventHook _ (DS dwrs@(((_,r),(dw,_)):_) _) ButtonEvent { ev_window     = ew
+                                                               , ev_event_type = et
+                                                               , ev_x_root     = ex
+                                                               , ev_y_root     = ey }
+        | et == buttonPress
+        , ew == dw = mouseDrag (\x y -> do
+                                  let rect = Rectangle (x - (fi ex - rect_x r))
+                                                       (y - (fi ey - rect_y r))
+                                                       (rect_width  r)
+                                                       (rect_height r)
+                                  sendMessage (SetGeometry rect)) (return ())
+        | et == buttonPress
         , Just ((mainw,_),_) <- lookFor ew dwrs = focus mainw
-
-    mouseEventHook _ _ _ = return ()
+    decoEventHook _ _ _ = return ()
 
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
@@ -171,8 +174,8 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                               return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh t ds) m
-        | Just e <- fromMessage m :: Maybe Event = do mouseEventHook ds s e
-                                                      handleEvent  sh t s e
+        | Just e <- fromMessage m :: Maybe Event = do decoEventHook ds s e
+                                                      handleEvent sh t s e
                                                       return Nothing
         | Just Hide             <- fromMessage m = do hideWindows (getDWs dwrs)
                                                       return Nothing
