@@ -99,6 +99,7 @@ library
                         XMonad.Layout.Circle
                         XMonad.Layout.Combo
                         XMonad.Layout.Decoration
+                        XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.DwmStyle
