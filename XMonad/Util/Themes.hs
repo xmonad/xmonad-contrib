@@ -18,8 +18,10 @@ module XMonad.Util.Themes
       listOfThemes
     , xmonadTheme
     , smallClean
+    , robertTheme
     , deiflTheme
     , oxymor00nTheme
+    , donaldTheme
     , ThemeInfo (..)
     ) where
 
@@ -71,6 +73,8 @@ listOfThemes = [ xmonadTheme
                , smallClean
                , deiflTheme
                , oxymor00nTheme
+               , robertTheme
+               , donaldTheme
                ]
 
 -- | The default xmonad theme, by David Roundy.
@@ -95,6 +99,39 @@ smallClean =
                                                , activeTextColor     = "white"
                                                , inactiveTextColor   = "grey"
                                                , decoHeight          = 14
+                                               }
+             }
+
+-- | Don's prefered colors - fomr DynamicLog...;)
+donaldTheme  :: ThemeInfo
+donaldTheme =
+    newTheme { themeName        = "donaldTheme"
+             , themeAuthor      = "Andrea Rossato"
+             , themeDescription = "Don's prefered colors - fomr DynamicLog...;)"
+             , theme            = defaultTheme { activeColor         = "#2b4f98"
+                                               , inactiveColor       = "#cccccc"
+                                               , activeBorderColor   = "#2b4f98"
+                                               , inactiveBorderColor = "#cccccc"
+                                               , activeTextColor     = "white"
+                                               , inactiveTextColor   = "black"
+                                               , decoHeight          = 16
+                                               }
+             }
+
+-- | Ffrom Robert Manea's prompt theme.
+robertTheme  :: ThemeInfo
+robertTheme =
+    newTheme { themeName        = "robertTheme"
+             , themeAuthor      = "Andrea Rossato"
+             , themeDescription = "From Robert Manea's prompt theme"
+             , theme            = defaultTheme { activeColor         = "#aecf96"
+                                               , inactiveColor       = "#111111"
+                                               , activeBorderColor   = "#aecf96"
+                                               , inactiveBorderColor = "#111111"
+                                               , activeTextColor     = "black"
+                                               , inactiveTextColor   = "#d5d3a7"
+                                               , fontName            = "-*-profont-*-*-*-*-11-*-*-*-*-*-iso8859"
+                                               , decoHeight          = 16
                                                }
              }
 
