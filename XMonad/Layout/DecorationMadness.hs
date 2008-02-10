@@ -73,6 +73,16 @@ module XMonad.Layout.DecorationMadness
     , mirrorTallDwmStyle
     , mirrorTallSimpleTabbed
     , mirrorTallTabbed
+    -- * Floating decorated layouts
+    -- $float
+    , floatSimpleSimple
+    , floatSimple
+    , floatSimpleDefault
+    , floatDefault
+    , floatSimpleDwmStyle
+    , floatDwmStyle
+    , floatSimpleTabbed
+    , floatTabbed
     , defaultTheme, shrinkText
     ) where
 
@@ -87,6 +97,7 @@ import XMonad.Layout.Accordion
 import XMonad.Layout.Circle
 import XMonad.Layout.ResizeScreen
 import XMonad.Layout.WindowArranger
+import XMonad.Layout.SimpleFloat
 
 -- $usage
 -- You can use this module with the following in your
@@ -521,3 +532,73 @@ mirrorTallSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resize
 mirrorTallTabbed :: Shrinker s => s -> Theme
                  -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen (Mirror Tall)) Window
 mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) mirrorTall)
+
+-- $float
+-- Here you will find decorated layout based on the SimpleFloating
+-- layout
+
+-- | A simple floating layout where every window is placed according
+-- to the window's initial attributes.
+--
+-- Here you can find a screen shot:
+--
+-- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleSimple.png>
+floatSimpleSimple :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+	             (ModifiedLayout WindowArranger SimpleFloat) a
+floatSimpleSimple = simpleFloat
+
+floatSimple :: Shrinker s => s -> Theme ->
+               ModifiedLayout (Decoration SimpleDecoration s)
+	      (ModifiedLayout WindowArranger SimpleFloat) a
+floatSimple = simpleFloat'
+
+-- | This version is decorated with the 'DefaultDecoration' style.
+--
+-- Here you can find a screen shot:
+--
+-- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDefault.png>
+floatSimpleDefault :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+	              (ModifiedLayout WindowArranger SimpleFloat) a
+floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (windowArrangeAll $ SF 20)
+
+-- | Same as 'defaultFloat', but with the possibility of setting a
+-- custom shrinker and a custom theme.
+floatDefault :: Shrinker s => s -> Theme ->
+                ModifiedLayout (Decoration DefaultDecoration s)
+	       (ModifiedLayout WindowArranger SimpleFloat) a
+floatDefault s c = decoration s c DefaultDecoration (windowArrangeAll $ SF (decoHeight c))
+
+-- | This version is decorated with the 'DwmStyle'. Note that this is
+-- a keyboard only floating layout.
+--
+-- Here you can find a screen shot:
+--
+-- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDwmStyle.png>
+floatSimpleDwmStyle :: Eq a => ModifiedLayout (Decoration DwmStyle DefaultShrinker)
+	               (ModifiedLayout WindowArranger SimpleFloat) a
+floatSimpleDwmStyle = decoration shrinkText defaultTheme Dwm (windowArrangeAll $ SF 20)
+
+-- | Same as 'dwmStyleFloat', but with the possibility of setting a
+-- custom shrinker and a custom theme.
+floatDwmStyle :: (Eq a, Shrinker s) => s -> Theme ->
+                 ModifiedLayout (Decoration DwmStyle s)
+	        (ModifiedLayout WindowArranger SimpleFloat) a
+floatDwmStyle s c = decoration s c Dwm (windowArrangeAll $ SF (decoHeight c))
+
+-- | This version is decorated with the 'TabbedDecoration' style.
+-- | Mouse dragging is somehow weird.
+--
+-- Here you can find a screen shot:
+--
+-- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleTabbed.png>
+floatSimpleTabbed :: Eq a => ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker)
+	       (ModifiedLayout WindowArranger SimpleFloat) a
+floatSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (windowArrangeAll $ SF 20)
+
+-- | Same as 'tabbedFloat', but with the possibility of setting a
+-- custom shrinker and a custom theme.
+floatTabbed :: (Eq a, Shrinker s) => s -> Theme ->
+               ModifiedLayout (Decoration SimpleTabbedDecoration s)
+	      (ModifiedLayout WindowArranger SimpleFloat) a
+floatTabbed s c = decoration s c SimpleTabbed (windowArrangeAll $ SF (decoHeight c))
+
