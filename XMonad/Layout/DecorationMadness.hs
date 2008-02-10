@@ -236,7 +236,7 @@ circleSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeVert
 -- possibility of setting a custom shrinker and a custom theme.
 circleTabbed :: Shrinker s => s -> Theme
              -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen Circle) Window
-circleTabbed s t = decoration s t SimpleTabbed (resizeVertical 20 Circle)
+circleTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) Circle)
 
 
 -- $accordion
@@ -325,7 +325,7 @@ accordionSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeV
 -- possibility of setting a custom shrinker and a custom theme.
 accordionTabbed :: Shrinker s => s -> Theme
                 -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen Accordion) Window
-accordionTabbed s t = decoration s t SimpleTabbed (resizeVertical 20 Accordion)
+accordionTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) Accordion)
 
 
 -- $tall
@@ -425,7 +425,7 @@ tallSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeVertic
 -- possibility of setting a custom shrinker and a custom theme.
 tallTabbed :: Shrinker s => s -> Theme
            -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen Tall) Window
-tallTabbed s t = decoration s t SimpleTabbed (resizeVertical 20 tall)
+tallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) tall)
 
 -- $mirror
 -- In this section you will find decorated layouts based on the
@@ -524,4 +524,4 @@ mirrorTallSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resize
 -- possibility of setting a custom shrinker and a custom theme.
 mirrorTallTabbed :: Shrinker s => s -> Theme
                  -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen (Mirror Tall)) Window
-mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical 20 mirrorTall)
+mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) mirrorTall)
