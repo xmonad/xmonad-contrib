@@ -20,6 +20,7 @@ module XMonad.Layout.Decoration
       -- $usage
       decoration
     , Decoration
+    , DefaultDecoration (..)
     , DecorationStyle (..)
     , DecorationMsg (..)
     , Theme (..), defaultTheme
@@ -128,6 +129,9 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     decorate :: ds a -> Dimension -> Dimension -> Rectangle
              -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> X (Maybe Rectangle)
     decorate ds w h r s ars ar = return $ pureDecoration ds w h r s ars ar
+
+data DefaultDecoration a = DefaultDecoration deriving ( Read, Show )
+instance DecorationStyle DefaultDecoration a
 
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
     redoLayout (Decoration st sh t ds) sc stack wrs

@@ -125,10 +125,6 @@ import XMonad.Layout.WindowArranger
 -- WindowNavigation and with some layout combinators. I hope to fix
 -- this problem shortly!
 
--- The xmonad default decoration modifier!
-data DefaultDecoration a = DefaultDecoration deriving ( Read, Show )
-instance DecorationStyle DefaultDecoration a
-
 -- There may be a regression in Tabbed, and no tab is displayed when
 -- using it with other layouts. This is the reason for the following
 -- instance (to be removed!)
