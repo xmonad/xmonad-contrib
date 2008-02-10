@@ -112,24 +112,6 @@ calcGap = withDisplay $ \dpy -> do
     let screen = r2c $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
     return $ \r -> c2r $ foldr (reduce screen) (r2c r) struts
 
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
-
-r2c :: Rectangle -> RectC
-r2c (Rectangle x y w h) = (fi x, fi y, fi x + fi w - 1, fi y + fi h - 1)
-
-c2r :: RectC -> Rectangle
-c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y1 + 1)
-
--- TODO: Add these QuickCheck properties to the test suite, along with
--- suitable Arbitrary instances.
-
--- prop_r2c_c2r :: RectC -> Bool
--- prop_r2c_c2r r = r2c (c2r r) == r
-
--- prop_c2r_r2c :: Rectangle -> Bool
--- prop_c2r_r2c r = c2r (r2c r) == r
-
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
 avoidStruts = ModifiedLayout (AvoidStruts True)
@@ -159,6 +141,28 @@ type Strut = (Side, CLong, CLong, CLong)
 
 type RectC = (CLong, CLong, CLong, CLong)
 
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral
+
+-- | Invertible conversion.
+
+r2c :: Rectangle -> RectC
+r2c (Rectangle x y w h) = (fi x, fi y, fi x + fi w - 1, fi y + fi h - 1)
+
+-- | Invertible conversion.
+
+c2r :: RectC -> Rectangle
+c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y1 + 1)
+
+-- TODO: Add these QuickCheck properties to the test suite, along with
+-- suitable Arbitrary instances.
+
+-- prop_r2c_c2r :: RectC -> Bool
+-- prop_r2c_c2r r = r2c (c2r r) == r
+
+-- prop_c2r_r2c :: Rectangle -> Bool
+-- prop_c2r_r2c r = c2r (r2c r) == r
+
 reduce :: RectC -> Strut -> RectC -> RectC
 reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
     L | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
@@ -169,6 +173,16 @@ reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
  where
     mx a b = max a (b + n)
     mn a b = min a (b - n)
-    inRange (a, b) c = c >= a && c <= b
-    -- Does the strut range overlap (a, b)?
-    p (a, b) = inRange (a, b) l || inRange (a, b) h || inRange (l, h) a
+    p r = r `overlaps` (l, h)
+
+-- | Do the two ranges overlap?
+--
+-- Precondition for every input range @(x, y)@: @x '<=' y@.
+--
+-- A range @(x, y)@ is assumed to include every pixel from @x@ to @y@.
+
+overlaps :: Ord a => (a, a) -> (a, a) -> Bool
+(a, b) `overlaps` (x, y) =
+  inRange (a, b) x || inRange (a, b) y || inRange (x, y) a
+  where
+  inRange (i, j) k = i <= k && k <= j
