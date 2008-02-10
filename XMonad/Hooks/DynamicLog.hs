@@ -24,6 +24,7 @@ module XMonad.Hooks.DynamicLog (
     makeSimpleDzenConfig,
     dzen,
     dynamicLog,
+    dynamicLogString,
     dynamicLogDzen,
     dynamicLogXmobar,
     dynamicLogWithPP,
@@ -72,6 +73,11 @@ import XMonad.Hooks.UrgencyHook
 -- > ...
 -- > myDynamicLogPP = defaultPP { ... -- override pretty-printer with specific settings
 --
+-- If you don't use statusbar, you can use dynamicLogString to show on-screen
+-- notifications in response to some events. E.g. to show current layout when
+-- it's changed create apropriate PP and add to keybindings:
+--
+-- >    , ((mod1Mask, xK_a     ), sendMessage NextLayout >> (dynamicLogString myPP >>= \d->spawn $"xmessage "++d))
 
 -- | An example xmonad config that spawns a new dzen toolbar and uses
 --   the default dynamic log output.
@@ -117,9 +123,9 @@ dynamicLog :: X ()
 dynamicLog = dynamicLogWithPP defaultPP
 
 -- |
--- A log function that uses the 'PP' hooks to customize output.
-dynamicLogWithPP :: PP -> X ()
-dynamicLogWithPP pp = do
+-- Returns formatted log message.
+dynamicLogString :: PP -> X String
+dynamicLogString pp = do
     winset <- gets windowset
     urgents <- readUrgents
     sort' <- ppSort pp
@@ -130,11 +136,16 @@ dynamicLogWithPP pp = do
     -- window title
     wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
 
-    io . ppOutput pp . sepBy (ppSep pp) . ppOrder pp $
+    return $ sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp wt
                         ]
+
+-- |
+-- A log function that uses the 'PP' hooks to customize output.
+dynamicLogWithPP :: PP -> X ()
+dynamicLogWithPP pp = dynamicLogString pp >>= io . ppOutput pp 
 
 -- | An example log hook that emulates dwm's status bar, using colour
 -- codes printed to dzen.  Requires dzen. Workspaces, xinerama,
