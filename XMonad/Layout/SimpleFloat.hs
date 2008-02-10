@@ -18,6 +18,7 @@ module XMonad.Layout.SimpleFloat
       simpleFloat
     , simpleFloat'
     , SimpleDecoration (..)
+    , SimpleFloat (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
     ) where
@@ -43,13 +44,17 @@ import XMonad.Layout.WindowArranger
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
--- | FIXME
+-- | A simple floating layout where every window is placed according
+-- to the window's initial attributes.
+--
+-- This version is decorated with the 'SimpleDecoration' style.
 simpleFloat :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
 	       (ModifiedLayout WindowArranger SimpleFloat) a
 simpleFloat = decoration shrinkText defaultTheme (Simple False) (windowArrangeAll $ SF 20)
 
--- | FIXME
-simpleFloat' :: Shrinker s => s -> Theme -> 
+-- | Same as 'simpleFloat', but with the possibility of setting a
+-- custom shrinker and a custom theme.
+simpleFloat' :: Shrinker s => s -> Theme ->
                ModifiedLayout (Decoration SimpleDecoration s)
 	      (ModifiedLayout WindowArranger SimpleFloat) a
 simpleFloat' s c = decoration s c (Simple False) (windowArrangeAll $ SF (decoHeight c))
