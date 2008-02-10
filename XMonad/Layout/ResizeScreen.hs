@@ -10,7 +10,9 @@
 -- Portability :  unportable
 --
 -- A layout transformer to have a layout respect a given screen
--- geometry
+-- geometry. Mostly used with "Decoration" (the Horizontal and the
+-- Vertical version will react to SetTheme and change their dimension
+-- accordingly.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.ResizeScreen
@@ -23,8 +25,7 @@ module XMonad.Layout.ResizeScreen
     ) where
 
 import XMonad
-import XMonad.Util.XUtils (fi)
-import XMonad.Layout.LayoutModifier
+import XMonad.Layout.Decoration
 
 -- $usage
 -- You can use this module by importing it into your
@@ -61,3 +62,7 @@ instance LayoutModifier ResizeScreen a where
         | WithNewScreen  r <- m = resize r
         | otherwise             = resize re
        where resize nr = doLayout l nr s
+
+    pureMess (ResizeScreen d _) m
+        | Just (SetTheme t) <- fromMessage m = Just $ ResizeScreen d (fi $ decoHeight t)
+    pureMess _ _ = Nothing
