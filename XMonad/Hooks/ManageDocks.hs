@@ -116,10 +116,19 @@ fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 
 r2c :: Rectangle -> RectC
-r2c (Rectangle x y w h) = (fi x, fi y, fi x + fi w, fi y + fi h)
+r2c (Rectangle x y w h) = (fi x, fi y, fi x + fi w - 1, fi y + fi h - 1)
 
 c2r :: RectC -> Rectangle
-c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1) (fi $ y2 - y1)
+c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y1 + 1)
+
+-- TODO: Add these QuickCheck properties to the test suite, along with
+-- suitable Arbitrary instances.
+
+-- prop_r2c_c2r :: RectC -> Bool
+-- prop_r2c_c2r r = r2c (c2r r) == r
+
+-- prop_c2r_r2c :: Rectangle -> Bool
+-- prop_c2r_r2c r = c2r (r2c r) == r
 
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
@@ -141,7 +150,12 @@ instance LayoutModifier AvoidStruts a where
 
 data Side = L | R | T | B
 
+-- | (Side, height\/width, initial pixel, final pixel).
+
 type Strut = (Side, CLong, CLong, CLong)
+
+-- | (Initial x pixel, initial y pixel,
+--    final x pixel, final y pixel).
 
 type RectC = (CLong, CLong, CLong, CLong)
 
@@ -155,5 +169,6 @@ reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
  where
     mx a b = max a (b + n)
     mn a b = min a (b - n)
-    inRange (a, b) c = c > a && c < b
-    p (a, b) = inRange (a, b) l || inRange (a, b) h || inRange (a, b) l || inRange (l, h) b
+    inRange (a, b) c = c >= a && c <= b
+    -- Does the strut range overlap (a, b)?
+    p (a, b) = inRange (a, b) l || inRange (a, b) h || inRange (l, h) a
