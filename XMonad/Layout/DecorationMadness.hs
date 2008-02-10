@@ -561,7 +561,7 @@ floatSimpleDefault :: ModifiedLayout (Decoration DefaultDecoration DefaultShrink
 	              (ModifiedLayout WindowArranger SimpleFloat) a
 floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (windowArrangeAll $ SF 20)
 
--- | Same as 'defaultFloat', but with the possibility of setting a
+-- | Same as 'floatSimpleDefault', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatDefault :: Shrinker s => s -> Theme ->
                 ModifiedLayout (Decoration DefaultDecoration s)
@@ -578,7 +578,7 @@ floatSimpleDwmStyle :: Eq a => ModifiedLayout (Decoration DwmStyle DefaultShrink
 	               (ModifiedLayout WindowArranger SimpleFloat) a
 floatSimpleDwmStyle = decoration shrinkText defaultTheme Dwm (windowArrangeAll $ SF 20)
 
--- | Same as 'dwmStyleFloat', but with the possibility of setting a
+-- | Same as 'floatSimpleDwmStyle', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatDwmStyle :: (Eq a, Shrinker s) => s -> Theme ->
                  ModifiedLayout (Decoration DwmStyle s)
@@ -595,10 +595,9 @@ floatSimpleTabbed :: Eq a => ModifiedLayout (Decoration SimpleTabbedDecoration D
 	       (ModifiedLayout WindowArranger SimpleFloat) a
 floatSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (windowArrangeAll $ SF 20)
 
--- | Same as 'tabbedFloat', but with the possibility of setting a
+-- | Same as 'floatSimpleTabbed', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatTabbed :: (Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration SimpleTabbedDecoration s)
 	      (ModifiedLayout WindowArranger SimpleFloat) a
 floatTabbed s c = decoration s c SimpleTabbed (windowArrangeAll $ SF (decoHeight c))
-
