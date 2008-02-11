@@ -157,10 +157,10 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
 
           -- We drop any windows that are *precisely* stacked underneath
           -- another window: these must be intended to be tabbed!
-          insert_dwr otherRs (((w,r),(dw,Just dr)):zzz)
-              | r `elem` otherRs = (dw,dr):insert_dwr otherRs zzz
-              | otherwise = (dw,dr):(w, shrink ds dr r):insert_dwr (r:otherRs)  zzz
-          insert_dwr otherRs (((w,r),(_ ,Nothing)):zzz) = (w,r):insert_dwr (r:otherRs) zzz
+          insert_dwr otherRs (((w,r),(dw,Just dr)):dwrs)
+              | r `elem` otherRs = (dw,dr):insert_dwr otherRs dwrs
+              | otherwise = (dw,dr):(w, shrink ds dr r):insert_dwr (r:otherRs) dwrs
+          insert_dwr otherRs (((w,r),(_ ,Nothing)):dwrs) = (w,r):insert_dwr (r:otherRs) dwrs
           insert_dwr _ [] = []
 
           resync _         [] = return []
@@ -222,8 +222,8 @@ handleMouseResize :: DecorationState -> Event -> X ()
 handleMouseResize _ _ = return ()
 
 lookFor :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,DecoWin)
-lookFor w ((x,(w',y)):zs) | w == w' = Just (x,(w',y))
-                          | otherwise = lookFor w zs
+lookFor w ((wr,(dw,dr)):dwrs) | w == dw = Just (wr,(dw,dr))
+                              | otherwise = lookFor w dwrs
 lookFor _ [] = Nothing
 
 getDWs :: [(OrigWin,DecoWin)] -> [Window]
