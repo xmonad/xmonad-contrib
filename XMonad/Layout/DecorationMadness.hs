@@ -144,6 +144,7 @@ instance Eq a => DecorationStyle SimpleTabbedDecoration a where
     describeDeco  _ = "Tabbed"
     decorateFirst _ = True
     shrink    _ _ r = r
+    decorationMouseDragHook _ _ _ = return ()
     pureDecoration _ _ ht (Rectangle x y wh _) s wrs (w,_) = Just $ Rectangle nx y nwh (fi ht)
         where nwh = wh `div` max 1 (fi $ length wrs)
               nx  = case w `elemIndex` (S.integrate s) of
