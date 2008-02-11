@@ -30,6 +30,7 @@ module XMonad.Layout.Decoration
     , isDecoration, fi, lookFor
     ) where
 
+import Control.Monad (when)
 import Data.Maybe
 import Data.List
 
@@ -106,21 +107,19 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
 
-    decoEventHook :: ds a -> DecorationState -> Event -> X ()
-    decoEventHook _ (DS dwrs@(((_,r),(dw,_)):_) _) ButtonEvent { ev_window     = ew
-                                                               , ev_event_type = et
-                                                               , ev_x_root     = ex
-                                                               , ev_y_root     = ey }
-        | et == buttonPress
-        , ew == dw = mouseDrag (\x y -> do
-                                  let rect = Rectangle (x - (fi ex - rect_x r))
-                                                       (y - (fi ey - rect_y r))
-                                                       (rect_width  r)
-                                                       (rect_height r)
-                                  sendMessage (SetGeometry rect)) (return ())
-        | et == buttonPress
-        , Just ((mainw,_),_) <- lookFor ew dwrs = focus mainw
-    decoEventHook _ _ _ = return ()
+    decorationEventHook :: ds a -> DecorationState -> Event -> X ()
+    decorationEventHook ds s e = do decorationMouseFocusHook  ds s e
+                                    decorationMouseDragHook   ds s e
+                                    decorationMouseResizeHook ds s e
+
+    decorationMouseFocusHook :: ds a -> DecorationState -> Event -> X ()
+    decorationMouseFocusHook _ s e = handleMouseFocusDrag False s e
+
+    decorationMouseDragHook :: ds a -> DecorationState -> Event -> X ()
+    decorationMouseDragHook _ s e = handleMouseFocusDrag True s e
+
+    decorationMouseResizeHook :: ds a -> DecorationState -> Event -> X ()
+    decorationMouseResizeHook _ s e = handleMouseResize s e
 
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
@@ -178,7 +177,7 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                               return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh t ds) m
-        | Just e <- fromMessage m :: Maybe Event = do decoEventHook ds s e
+        | Just e <- fromMessage m :: Maybe Event = do decorationEventHook ds s e
                                                       handleEvent sh t s e
                                                       return Nothing
         | Just Hide             <- fromMessage m = do hideWindows (getDWs dwrs)
@@ -202,6 +201,25 @@ handleEvent sh t (DS dwrs fs) e
     | PropertyEvent {ev_window = w} <- e, w `elem` (map (fst . fst) dwrs) = updateDecos sh t fs dwrs
     | ExposeEvent   {ev_window = w} <- e, w `elem` (map (fst . snd) dwrs) = updateDecos sh t fs dwrs
 handleEvent _ _ _ _ = return ()
+
+handleMouseFocusDrag :: Bool -> DecorationState -> Event -> X ()
+handleMouseFocusDrag b (DS dwrs _) ButtonEvent { ev_window     = ew
+                                               , ev_event_type = et
+                                               , ev_x_root     = ex
+                                               , ev_y_root     = ey }
+    | et == buttonPress
+    , Just ((mainw,r),_) <- lookFor ew dwrs = do
+                              focus mainw
+                              when b $ mouseDrag (\x y -> do
+                                                    let rect = Rectangle (x - (fi ex - rect_x r))
+                                                                         (y - (fi ey - rect_y r))
+                                                                         (rect_width  r)
+                                                                         (rect_height r)
+                                                    sendMessage (SetGeometry rect)) (return ())
+handleMouseFocusDrag _ _ _ = return ()
+
+handleMouseResize :: DecorationState -> Event -> X ()
+handleMouseResize _ _ = return ()
 
 lookFor :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,DecoWin)
 lookFor w ((x,(w',y)):zs) | w == w' = Just (x,(w',y))
