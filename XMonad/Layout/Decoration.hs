@@ -110,16 +110,12 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
     decorationEventHook :: ds a -> DecorationState -> Event -> X ()
     decorationEventHook ds s e = do decorationMouseFocusHook  ds s e
                                     decorationMouseDragHook   ds s e
-                                    decorationMouseResizeHook ds s e
 
     decorationMouseFocusHook :: ds a -> DecorationState -> Event -> X ()
     decorationMouseFocusHook _ s e = handleMouseFocusDrag False s e
 
     decorationMouseDragHook :: ds a -> DecorationState -> Event -> X ()
     decorationMouseDragHook _ s e = handleMouseFocusDrag True s e
-
-    decorationMouseResizeHook :: ds a -> DecorationState -> Event -> X ()
-    decorationMouseResizeHook _ s e = handleMouseResize s e
 
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
@@ -148,20 +144,14 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
 
         where
           ws        = map fst wrs
-          del_dwrs  = listFromList get_w notElem
           get_w     = fst . fst
           get_ws    = map get_w
+          del_dwrs  = listFromList get_w notElem
           find_dw i = fst . snd . flip (!!) i
           todel   d = filter (flip elem d . get_w)
           toadd   a = filter (flip elem a . fst  )
 
-          -- We drop any windows that are *precisely* stacked underneath
-          -- another window: these must be intended to be tabbed!
-          insert_dwr otherRs (((w,r),(dw,Just dr)):dwrs)
-              | r `elem` otherRs = (dw,dr):insert_dwr otherRs dwrs
-              | otherwise = (dw,dr):(w, shrink ds dr r):insert_dwr (r:otherRs) dwrs
-          insert_dwr otherRs (((w,r),(_ ,Nothing)):dwrs) = (w,r):insert_dwr (r:otherRs) dwrs
-          insert_dwr _ [] = []
+          decorate_first = length wrs == 1 && (not . decorateFirst $ ds)
 
           resync _         [] = return []
           resync d ((w,r):xs) = case  w `elemIndex` get_ws d of
@@ -170,11 +160,22 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                                                 return $ ((w,r),(find_dw i d, dr)) : dwrs
                                   Nothing -> resync d xs
 
-          decorate_first = length wrs == 1 && (not . decorateFirst $ ds)
+          -- We drop any windows that are *precisely* stacked underneath
+          -- another window: these must be intended to be tabbed!
+          remove_stacked rs ((w,r):xs)
+              | r `elem` rs   = remove_stacked rs xs
+              | otherwise     = (w,r) : remove_stacked (r:rs) xs
+          remove_stacked _ [] = []
+
+          insert_dwr ((w,r),(dw,Just dr)) xs = (dw,dr):(w, shrink ds dr r):xs
+          insert_dwr (x    ,(_ ,Nothing)) xs = x:xs
+
+          dwrs_to_wrs    = remove_stacked [] . foldr insert_dwr []
+
           processState s = do ndwrs <- resync (decos s) wrs
                               showWindows (getDWs ndwrs)
                               updateDecos sh t (font s) ndwrs
-                              return (insert_dwr [] ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
+                              return (dwrs_to_wrs ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh t ds) m
         | Just e <- fromMessage m :: Maybe Event = do decorationEventHook ds s e
@@ -217,9 +218,6 @@ handleMouseFocusDrag b (DS dwrs _) ButtonEvent { ev_window     = ew
                                                                          (rect_height r)
                                                     sendMessage (SetGeometry rect)) (return ())
 handleMouseFocusDrag _ _ _ = return ()
-
-handleMouseResize :: DecorationState -> Event -> X ()
-handleMouseResize _ _ = return ()
 
 lookFor :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,DecoWin)
 lookFor w ((wr,(dw,dr)):dwrs) | w == dw = Just (wr,(dw,dr))
