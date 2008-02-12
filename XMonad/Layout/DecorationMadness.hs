@@ -89,6 +89,7 @@ module XMonad.Layout.DecorationMadness
 import Data.List
 import XMonad
 import qualified XMonad.StackSet as S
+import XMonad.Actions.MouseResize
 import XMonad.Layout.Decoration
 import XMonad.Layout.DwmStyle
 import XMonad.Layout.SimpleDecoration
@@ -191,14 +192,16 @@ circleDeco s t = decoration s t (Simple True) Circle
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDefaultResizable.png>
-circleSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker) (ModifiedLayout WindowArranger Circle) Window
-circleSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (windowArrange Circle)
+circleSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+                                (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
+circleSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrange Circle)
 
 -- | Similar to 'circleSimpleDefaultResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleDefaultResizable :: Shrinker s => s -> Theme
-                       -> ModifiedLayout (Decoration DefaultDecoration s) (ModifiedLayout WindowArranger Circle) Window
-circleDefaultResizable s t = decoration s t DefaultDecoration (windowArrange Circle)
+                       -> ModifiedLayout (Decoration DefaultDecoration s)
+                          (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
+circleDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ windowArrange Circle)
 
 -- | A 'Circle' layout with the xmonad simple decoration, default
 -- theme and default shrinker, but with the possibility of moving
@@ -207,14 +210,16 @@ circleDefaultResizable s t = decoration s t DefaultDecoration (windowArrange Cir
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDecoResizable.png>
-circleSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker) (ModifiedLayout WindowArranger Circle) Window
-circleSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (windowArrange Circle)
+circleSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+                             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
+circleSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (mouseResize $ windowArrange Circle)
 
 -- | Similar to 'circleSimpleDecoResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleDecoResizable :: Shrinker s => s -> Theme
-                    -> ModifiedLayout (Decoration SimpleDecoration s) (ModifiedLayout WindowArranger Circle) Window
-circleDecoResizable s t = decoration s t (Simple True) (windowArrange Circle)
+                    -> ModifiedLayout (Decoration SimpleDecoration s)
+                       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
+circleDecoResizable s t = decoration s t (Simple True) (mouseResize $ windowArrange Circle)
 
 -- | A 'Circle' layout with the xmonad DwmStyle decoration, default
 -- theme and default shrinker.
@@ -284,26 +289,30 @@ accordionDeco s t = decoration s t (Simple True) Accordion
 -- | An 'Accordion' layout with the xmonad default decoration, default
 -- theme and default shrinker, but with the possibility of moving
 -- windows with the mouse, and resize\/move them with the keyboard.
-accordionSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker) (ModifiedLayout WindowArranger Accordion) Window
-accordionSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (windowArrange Accordion)
+accordionSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+                                   (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Accordion)) Window
+accordionSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrange Accordion)
 
 -- | Similar to 'accordionSimpleDefaultResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 accordionDefaultResizable :: Shrinker s => s -> Theme
-                          -> ModifiedLayout (Decoration DefaultDecoration s) (ModifiedLayout WindowArranger Accordion) Window
-accordionDefaultResizable s t = decoration s t DefaultDecoration (windowArrange Accordion)
+                          -> ModifiedLayout (Decoration DefaultDecoration s)
+                             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Accordion)) Window
+accordionDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ windowArrange Accordion)
 
 -- | An 'Accordion' layout with the xmonad simple decoration, default
 -- theme and default shrinker, but with the possibility of moving
 -- windows with the mouse, and resize\/move them with the keyboard.
-accordionSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker) (ModifiedLayout WindowArranger Accordion) Window
-accordionSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (windowArrange Accordion)
+accordionSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+                                (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Accordion)) Window
+accordionSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (mouseResize $ windowArrange Accordion)
 
 -- | Similar to 'accordionSimpleDecoResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 accordionDecoResizable :: Shrinker s => s -> Theme
-                       -> ModifiedLayout (Decoration SimpleDecoration s) (ModifiedLayout WindowArranger Accordion) Window
-accordionDecoResizable s t = decoration s t (Simple True) (windowArrange Accordion)
+                       -> ModifiedLayout (Decoration SimpleDecoration s)
+                          (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Accordion)) Window
+accordionDecoResizable s t = decoration s t (Simple True) (mouseResize $ windowArrange Accordion)
 
 -- | An 'Accordion' layout with the xmonad DwmStyle decoration, default
 -- theme and default shrinker.
@@ -380,14 +389,16 @@ tallDeco s t = decoration s t (Simple True) tall
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/tallSimpleDefaultResizable.png>
-tallSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker) (ModifiedLayout WindowArranger Tall) Window
-tallSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (windowArrange tall)
+tallSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+                              (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Tall)) Window
+tallSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrange tall)
 
 -- | Similar to 'tallSimpleDefaultResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 tallDefaultResizable :: Shrinker s => s -> Theme
-                     -> ModifiedLayout (Decoration DefaultDecoration s) (ModifiedLayout WindowArranger Tall) Window
-tallDefaultResizable s t = decoration s t DefaultDecoration (windowArrange tall)
+                     -> ModifiedLayout (Decoration DefaultDecoration s)
+                        (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Tall)) Window
+tallDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ windowArrange tall)
 
 -- | A 'Tall' layout with the xmonad simple decoration, default
 -- theme and default shrinker, but with the possibility of moving
@@ -396,14 +407,16 @@ tallDefaultResizable s t = decoration s t DefaultDecoration (windowArrange tall)
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/tallSimpleDecoResizable.png>
-tallSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker) (ModifiedLayout WindowArranger Tall) Window
-tallSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (windowArrange tall)
+tallSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+                           (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Tall)) Window
+tallSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (mouseResize $ windowArrange tall)
 
 -- | Similar to 'tallSimpleDecoResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 tallDecoResizable :: Shrinker s => s -> Theme
-                  -> ModifiedLayout (Decoration SimpleDecoration s) (ModifiedLayout WindowArranger Tall) Window
-tallDecoResizable s t = decoration s t (Simple True) (windowArrange tall)
+                  -> ModifiedLayout (Decoration SimpleDecoration s)
+                     (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Tall)) Window
+tallDecoResizable s t = decoration s t (Simple True) (mouseResize $ windowArrange tall)
 
 -- | A 'Tall' layout with the xmonad DwmStyle decoration, default
 -- theme and default shrinker.
@@ -479,14 +492,16 @@ mirrorTallDeco s t = decoration s t (Simple True) mirrorTall
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/mirrorTallSimpleDefaultResizable.png>
-mirrorTallSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker) (ModifiedLayout WindowArranger (Mirror Tall)) Window
-mirrorTallSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (windowArrange mirrorTall)
+mirrorTallSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+                                    (ModifiedLayout MouseResize (ModifiedLayout WindowArranger (Mirror Tall))) Window
+mirrorTallSimpleDefaultResizable = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrange mirrorTall)
 
 -- | Similar to 'mirrorTallSimpleDefaultResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 mirrorTallDefaultResizable :: Shrinker s => s -> Theme
-                           -> ModifiedLayout (Decoration DefaultDecoration s) (ModifiedLayout WindowArranger (Mirror Tall)) Window
-mirrorTallDefaultResizable s t = decoration s t DefaultDecoration (windowArrange mirrorTall)
+                           -> ModifiedLayout (Decoration DefaultDecoration s)
+                              (ModifiedLayout MouseResize (ModifiedLayout WindowArranger (Mirror Tall))) Window
+mirrorTallDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ windowArrange mirrorTall)
 
 -- | A 'Mirror Tall' layout with the xmonad simple decoration, default
 -- theme and default shrinker, but with the possibility of moving
@@ -495,14 +510,16 @@ mirrorTallDefaultResizable s t = decoration s t DefaultDecoration (windowArrange
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/mirrorTallSimpleDecoResizable.png>
-mirrorTallSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker) (ModifiedLayout WindowArranger (Mirror Tall)) Window
-mirrorTallSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (windowArrange mirrorTall)
+mirrorTallSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+                                 (ModifiedLayout MouseResize (ModifiedLayout WindowArranger (Mirror Tall))) Window
+mirrorTallSimpleDecoResizable = decoration shrinkText defaultTheme (Simple True) (mouseResize $ windowArrange mirrorTall)
 
 -- | Similar to 'mirrorTallSimpleDecoResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 mirrorTallDecoResizable :: Shrinker s => s -> Theme
-                        -> ModifiedLayout (Decoration SimpleDecoration s) (ModifiedLayout WindowArranger (Mirror Tall)) Window
-mirrorTallDecoResizable s t = decoration s t (Simple True) (windowArrange mirrorTall)
+                        -> ModifiedLayout (Decoration SimpleDecoration s)
+                           (ModifiedLayout MouseResize (ModifiedLayout WindowArranger (Mirror Tall))) Window
+mirrorTallDecoResizable s t = decoration s t (Simple True) (mouseResize $ windowArrange mirrorTall)
 
 -- | A 'Mirror Tall' layout with the xmonad DwmStyle decoration, default
 -- theme and default shrinker.
@@ -545,12 +562,12 @@ mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHei
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleSimple.png>
 floatSimpleSimple :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
-	             (ModifiedLayout WindowArranger SimpleFloat) a
+	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleSimple = simpleFloat
 
 floatSimple :: Shrinker s => s -> Theme ->
                ModifiedLayout (Decoration SimpleDecoration s)
-	      (ModifiedLayout WindowArranger SimpleFloat) a
+	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimple = simpleFloat'
 
 -- | This version is decorated with the 'DefaultDecoration' style.
@@ -559,15 +576,15 @@ floatSimple = simpleFloat'
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDefault.png>
 floatSimpleDefault :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
-	              (ModifiedLayout WindowArranger SimpleFloat) a
-floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (windowArrangeAll $ SF 20)
+	              (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDefault', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatDefault :: Shrinker s => s -> Theme ->
                 ModifiedLayout (Decoration DefaultDecoration s)
-	       (ModifiedLayout WindowArranger SimpleFloat) a
-floatDefault s c = decoration s c DefaultDecoration (windowArrangeAll $ SF (decoHeight c))
+	       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+floatDefault s c = decoration s c DefaultDecoration (mouseResize $ windowArrangeAll $ SF (decoHeight c))
 
 -- | This version is decorated with the 'DwmStyle'. Note that this is
 -- a keyboard only floating layout.
@@ -576,15 +593,15 @@ floatDefault s c = decoration s c DefaultDecoration (windowArrangeAll $ SF (deco
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDwmStyle.png>
 floatSimpleDwmStyle :: Eq a => ModifiedLayout (Decoration DwmStyle DefaultShrinker)
-	               (ModifiedLayout WindowArranger SimpleFloat) a
-floatSimpleDwmStyle = decoration shrinkText defaultTheme Dwm (windowArrangeAll $ SF 20)
+	               (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+floatSimpleDwmStyle = decoration shrinkText defaultTheme Dwm (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDwmStyle', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatDwmStyle :: (Eq a, Shrinker s) => s -> Theme ->
                  ModifiedLayout (Decoration DwmStyle s)
-	        (ModifiedLayout WindowArranger SimpleFloat) a
-floatDwmStyle s c = decoration s c Dwm (windowArrangeAll $ SF (decoHeight c))
+	        (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+floatDwmStyle s c = decoration s c Dwm (mouseResize $ windowArrangeAll $ SF (decoHeight c))
 
 -- | This version is decorated with the 'TabbedDecoration' style.
 -- | Mouse dragging is somehow weird.
@@ -593,12 +610,12 @@ floatDwmStyle s c = decoration s c Dwm (windowArrangeAll $ SF (decoHeight c))
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleTabbed.png>
 floatSimpleTabbed :: Eq a => ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker)
-	       (ModifiedLayout WindowArranger SimpleFloat) a
-floatSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (windowArrangeAll $ SF 20)
+	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+floatSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleTabbed', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatTabbed :: (Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration SimpleTabbedDecoration s)
-	      (ModifiedLayout WindowArranger SimpleFloat) a
-floatTabbed s c = decoration s c SimpleTabbed (windowArrangeAll $ SF (decoHeight c))
+	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+floatTabbed s c = decoration s c SimpleTabbed (mouseResize $ windowArrangeAll $ SF (decoHeight c))
