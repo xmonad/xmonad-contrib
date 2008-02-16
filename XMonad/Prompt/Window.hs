@@ -50,8 +50,10 @@ import XMonad.Actions.WindowBringer
 
 data WindowPrompt = Goto | Bring
 instance XPrompt WindowPrompt where
-    showXPrompt Goto  = "Go to window:  "
-    showXPrompt Bring = "Bring me here:  "
+    showXPrompt Goto      = "Go to window: "
+    showXPrompt Bring     = "Bring me here: "
+    commandToComplete _ c = c
+    nextCompletion      _ = getNextCompletion
 
 windowPromptGoto, windowPromptBring :: XPConfig -> X ()
 windowPromptGoto  c = doPrompt Goto  c
@@ -69,17 +71,9 @@ doPrompt t c = do
 
     where
 
-      winAction a m    = flip whenJust (windows . a) . flip M.lookup m . unescape
+      winAction a m    = flip whenJust (windows . a) . flip M.lookup m
       gotoAction       = winAction W.greedyView
       bringAction      = winAction bringWindow
       bringWindow w ws = W.shiftWin (W.tag . W.workspace . W.current $ ws) w ws
 
-      compList m s = return . filter (isPrefixOf s) . map (escape . fst) . M.toList $ m
-
-      escape []       = []
-      escape (' ':xs) = "\\ " ++ escape xs
-      escape (x  :xs) = x : escape xs
-
-      unescape []            = []
-      unescape ('\\':' ':xs) = ' ' : unescape xs
-      unescape (x:xs)        = x   : unescape xs
+      compList m s = return . filter (isPrefixOf s) . map fst . M.toList $ m
