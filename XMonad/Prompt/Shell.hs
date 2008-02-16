@@ -27,6 +27,7 @@ import Control.Monad
 import Data.List
 import System.Directory
 import System.IO
+import System.Posix.Files
 import XMonad.Util.Run
 import XMonad hiding (config)
 import XMonad.Prompt
@@ -78,8 +79,13 @@ unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
                      | otherwise                = do
-    f <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ s ++ "\n")
-    return . map escape . uniqSort $ f ++ commandCompletionFunction cmds s
+    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ s ++ "\n")
+    files <- case f of
+               [x] -> do fs <- getFileStatus x
+                         if isDirectory fs then return [x ++ "/"]
+                                           else return [x]
+               _   -> return f
+    return . map escape . uniqSort $ files ++ commandCompletionFunction cmds s
 
 commandCompletionFunction :: [String] -> String -> [String]
 commandCompletionFunction cmds str | '/' `elem` str = []
