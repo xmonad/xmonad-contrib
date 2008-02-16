@@ -140,11 +140,13 @@ class XPrompt t where
     commandToComplete :: t -> String -> String
     commandToComplete _ c = getLastWord c
 
-    -- | If the prompt is using 'getNextOfLastWord' for implementing
-    -- 'nextCompletion' (the default implementation), this method is
-    -- used to process each completion in order to generate the string
-    -- that will be compared with the command presently displayed in
-    -- the command line.
+    -- | This method is used to process each completion in order to
+    -- generate the string that will be compared with the command
+    -- presently displayed in the command line. If the prompt is using
+    -- 'getNextOfLastWord' for implementing 'nextCompletion' (the
+    -- default implementation), this method is also used to generate,
+    -- from the returned completion, the string that will form the
+    -- next command line when tab is pressed.
     completionToCommand :: t -> String -> String
     completionToCommand _ c = c
 
