@@ -45,10 +45,7 @@ data ThemePrompt = ThemePrompt
 instance XPrompt ThemePrompt where
     showXPrompt ThemePrompt = "Select a theme: "
     commandToComplete _ c = c
-    nextCompletion _ c l = l !! idx
-        where idx = case c `elemIndex` l of
-                      Just i  -> if i >= length l - 1 then 0 else i + 1
-                      Nothing -> 0
+    nextCompletion      _ = getNextCompletion
 
 themePrompt :: XPConfig -> X ()
 themePrompt c = mkXPrompt ThemePrompt c (const . return . map ppThemeInfo $ listOfThemes) changeTheme
