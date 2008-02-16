@@ -48,7 +48,8 @@ import XMonad.Prompt
 data Shell = Shell
 
 instance XPrompt Shell where
-    showXPrompt Shell = "Run: "
+    showXPrompt Shell     = "Run: "
+    completionToCommand _ = escape
 
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
@@ -85,7 +86,7 @@ getShellCompl cmds s | s == "" || last s == ' ' = return []
                          if isDirectory fs then return [x ++ "/"]
                                            else return [x]
                _   -> return f
-    return . map escape . uniqSort $ files ++ commandCompletionFunction cmds s
+    return . uniqSort $ files ++ commandCompletionFunction cmds s
 
 commandCompletionFunction :: [String] -> String -> [String]
 commandCompletionFunction cmds str | '/' `elem` str = []
