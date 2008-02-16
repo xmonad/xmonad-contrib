@@ -19,8 +19,6 @@ module XMonad.Prompt
       mkXPrompt
     , mkXPromptWithReturn
     , defaultXPConfig
-    , mkComplFunFromList
-    , mkComplFunFromList'
     , XPType (..)
     , XPPosition (..)
     , XPConfig (..)
@@ -32,8 +30,12 @@ module XMonad.Prompt
     , fillDrawable
     -- * Other Utilities
     -- $utils
-    , getNextCompletion
+    , mkComplFunFromList
+    , mkComplFunFromList'
+    -- * @nextCompletion@ implementations
     , getNextOfLastWord
+    , getNextCompletion
+    -- * List utilities
     , getLastWord
     , skipLastWord
     , splitInSubListsAt
@@ -134,15 +136,17 @@ class XPrompt t where
     nextCompletion t c l = getNextOfLastWord t c l
 
     -- | If the prompt is using 'getNextOfLastWord' for implementing
-    -- 'nextCompletion' (the default implementation), this is used to
-    -- generate the string to be passed to the completion function.
+    -- 'nextCompletion' (the default implementation), this method is
+    -- used to generate the string to be passed to the completion
+    -- function.
     commandToComplete :: t -> String -> String
     commandToComplete _ c = getLastWord c
 
     -- | If the prompt is using 'getNextOfLastWord' for implementing
-    -- 'nextCompletion' (the default implementation), this is used to
-    -- generate the string to compare each completion with the
-    -- command presently in the command line.
+    -- 'nextCompletion' (the default implementation), this method is
+    -- used to process each completion in order to generate the string
+    -- that will be compared with the command presently displayed in
+    -- the command line.
     completionToCommand :: t -> String -> String
     completionToCommand _ c = c
 
@@ -718,6 +722,25 @@ mkComplFunFromList' l [] = return l
 mkComplFunFromList' l s =
   return $ filter (\x -> take (length s) x == s) l
 
+
+-- | Given the prompt type, the command line and the completion list,
+-- return the next completion in the list for the last word of the
+-- command line. This is the default 'nextCompletion' implementation.
+getNextOfLastWord :: XPrompt t => t -> String -> [String] -> String
+getNextOfLastWord t c l = skipLastWord c ++ completionToCommand t (l !! ni)
+    where ni = case commandToComplete t c `elemIndex` map (completionToCommand t) l of
+                 Just i -> if i >= length l - 1 then 0 else i + 1
+                 Nothing -> 0
+
+-- | An alternative 'nextCompletion' implementation: given a command
+-- and a completion list, get the next completion in the list matching
+-- the whole command line.
+getNextCompletion :: String -> [String] -> String
+getNextCompletion c l = l !! idx
+    where idx = case c `elemIndex` l of
+                  Just i  -> if i >= length l - 1 then 0 else i + 1
+                  Nothing -> 0
+
 -- Lift an IO action into the XP
 io :: IO a -> XP a
 io = liftIO
@@ -731,22 +754,6 @@ splitInSubListsAt :: Int -> [a] -> [[a]]
 splitInSubListsAt _ [] = []
 splitInSubListsAt i x = f : splitInSubListsAt i rest
     where (f,rest) = splitAt i x
-
--- | Given a command and a completion list, get the next completion in
--- the list.
-getNextCompletion :: String -> [String] -> String
-getNextCompletion c l = l !! idx
-    where idx = case c `elemIndex` l of
-                  Just i  -> if i >= length l - 1 then 0 else i + 1
-                  Nothing -> 0
-
--- | Given a completion and a list of possible completions, returns the
--- the next completion in the list
-getNextOfLastWord :: XPrompt t => t -> String -> [String] -> String
-getNextOfLastWord t c l = skipLastWord c ++ completionToCommand t (l !! ni)
-    where ni = case commandToComplete t c `elemIndex` map (completionToCommand t) l of
-                 Just i -> if i >= length l - 1 then 0 else i + 1
-                 Nothing -> 0
 
 -- | Gets the last word of a string or the whole string if formed by
 -- only one word
