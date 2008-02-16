@@ -16,6 +16,7 @@ module XMonad.Util.Themes
     ( -- * Usage
       -- $usage
       listOfThemes
+    , ppThemeInfo
     , xmonadTheme
     , smallClean
     , robertTheme
@@ -67,6 +68,12 @@ data ThemeInfo =
 
 newTheme :: ThemeInfo
 newTheme = TI "" "" "" defaultTheme
+
+ppThemeInfo :: ThemeInfo -> String
+ppThemeInfo t = themeName t <> themeDescription t <> "by" <> themeAuthor t
+    where "" <> x = x
+          x <> y = x ++ " - " ++ y
+
 
 listOfThemes :: [ThemeInfo]
 listOfThemes = [ xmonadTheme
