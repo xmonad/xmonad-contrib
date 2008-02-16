@@ -44,8 +44,8 @@ instance XPrompt XMonad where
 xmonadPrompt :: XPConfig -> X ()
 xmonadPrompt c = do
     cmds <- defaultCommands
-    mkXPrompt XMonad c (mkComplFunFromList (map fst cmds)) runCommand'
+    mkXPrompt XMonad c (mkComplFunFromList' (map fst cmds)) runCommand'
 
 -- | An xmonad prompt with a custom command list
 xmonadPromptC :: [(String, X ())] -> XPConfig -> X ()
-xmonadPromptC commands c = mkXPrompt XMonad c (mkComplFunFromList (map fst commands)) runCommand'
+xmonadPromptC commands c = mkXPrompt XMonad c (mkComplFunFromList' (map fst commands)) runCommand'
