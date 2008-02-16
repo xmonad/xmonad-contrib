@@ -105,6 +105,8 @@ instance Show XPType where
 
 instance XPrompt XPType where
     showXPrompt = show
+    nextCompletion    (XPT t) c l = nextCompletion    t c l
+    commandToComplete (XPT t) c   = commandToComplete t c
 
 -- | The class prompt types must be an instance of. In order to
 -- create a prompt you need to create a data type, without parameters,
@@ -118,6 +120,12 @@ instance XPrompt XPType where
 -- >          showXPrompt Shell = "Run: "
 class XPrompt t where
     showXPrompt :: t -> String
+
+    nextCompletion :: t -> String -> [String] -> String
+    nextCompletion t c l = newCommand t c l
+
+    commandToComplete :: t -> String -> String
+    commandToComplete _ c = getLastWord c
 
 data XPPosition = Top
                 | Bottom
@@ -255,7 +263,7 @@ completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
   case c of
     [] -> do updateWindows
              eventLoop handle
-    l  -> do let new_command = newCommand (command st) l
+    l  -> do let new_command = nextCompletion (xptype st) (command st) l --newCommand (command st) l
              modify $ \s ->  s { command = new_command, offset = length new_command }
              redrawWindows c
              eventLoop (completionHandle c)
@@ -266,20 +274,6 @@ completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
-
--- | Given a completion and a list of possible completions, returns the
--- index of the next completion in the list
-newIndex :: String -> [String] -> Int
-newIndex com cl =
-    case elemIndex (getLastWord com) cl of
-      Just i -> if i >= length cl - 1 then 0 else i + 1
-      Nothing -> 0
-
--- | Given a completion and a list of possible completions, returns the
--- the next completion in the list
-newCommand :: String -> [String] -> String
-newCommand com cl =
-    skipLastWord com ++ (cl !! (newIndex com cl))
 
 -- KeyPresses
 
@@ -503,7 +497,7 @@ printPrompt drw = do
 getCompletions :: XP [String]
 getCompletions = do
   s <- get
-  io $ (completionFunction s) (getLastWord $ command s)
+  io $ (completionFunction s) (commandToComplete (xptype s) (command s))
        `catch` \_ -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
@@ -564,11 +558,11 @@ getComplWinDim compl = do
 drawComplWin :: Window -> [String] -> XP ()
 drawComplWin w compl = do
   st <- get
-  let c = config st
-      d = dpy st
+  let c   = config st
+      d   = dpy st
       scr = defaultScreenOfDisplay d
-      bw = promptBorderWidth c
-      gc = gcon st
+      bw  = promptBorderWidth c
+      gc  = gcon st
   Just bgcolor <- io $ initColor d (bgColor c)
   Just border  <- io $ initColor d (borderColor c)
 
@@ -619,7 +613,7 @@ printComplString :: Display -> Drawable -> GC -> String -> String
                  -> Position -> Position -> String  -> XP ()
 printComplString d drw gc fc bc x y s = do
   st <- get
-  if s == getLastWord (command st)
+  if s == commandToComplete (xptype st) (command st)
      then printStringXMF d drw (fontS st) gc
                             (fgHLight $ config st) (bgHLight $ config st) x y s
      else printStringXMF d drw (fontS st) gc fc bc x y s
@@ -710,6 +704,20 @@ splitInSubListsAt :: Int -> [a] -> [[a]]
 splitInSubListsAt _ [] = []
 splitInSubListsAt i x = f : splitInSubListsAt i rest
     where (f,rest) = splitAt i x
+
+-- | Given a completion and a list of possible completions, returns the
+-- the next completion in the list
+newCommand :: XPrompt t => t -> String -> [String] -> String
+newCommand t com cl =
+    skipLastWord com ++ (cl !! (newIndex t com cl))
+
+-- | Given a completion and a list of possible completions, returns the
+-- index of the next completion in the list
+newIndex :: XPrompt t => t -> String -> [String] -> Int
+newIndex t com cl =
+    case elemIndex (commandToComplete t com) cl of
+      Just i -> if i >= length cl - 1 then 0 else i + 1
+      Nothing -> 0
 
 -- | Gets the last word of a string or the whole string if formed by
 -- only one word
