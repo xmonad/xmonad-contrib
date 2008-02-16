@@ -193,9 +193,3 @@ tagDelPrompt c = do
 
 tagDelComplList :: X [String]
 tagDelComplList = gets windowset >>= maybe (return []) getTags . peek
-
-
-mkComplFunFromList' :: [String] -> String -> IO [String]
-mkComplFunFromList' l [] = return l
-mkComplFunFromList' l s =
-  return $ filter (\x -> take (length s) x == s) l
