@@ -135,10 +135,8 @@ class XPrompt t where
     nextCompletion :: t -> String -> [String] -> String
     nextCompletion t c l = getNextOfLastWord t c l
 
-    -- | If the prompt is using 'getNextOfLastWord' for implementing
-    -- 'nextCompletion' (the default implementation), this method is
-    -- used to generate the string to be passed to the completion
-    -- function.
+    -- | This method is used to generate the string to be passed to
+    -- the completion function.
     commandToComplete :: t -> String -> String
     commandToComplete _ c = getLastWord c
 
