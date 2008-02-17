@@ -12,15 +12,15 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Prompt.Shell(
-                             -- * Usage
-                             -- $usage
-                             shellPrompt
-                             , getShellCompl
-                             , split
-                             , prompt
-                             , safePrompt
-                              ) where
+module XMonad.Prompt.Shell
+    ( -- * Usage
+      -- $usage
+      shellPrompt
+    , getShellCompl
+    , split
+    , prompt
+    , safePrompt
+    ) where
 
 import System.Environment
 import Control.Monad

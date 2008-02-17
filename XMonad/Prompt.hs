@@ -286,7 +286,7 @@ completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
   case c of
     [] -> do updateWindows
              eventLoop handle
-    l  -> do let new_command = nextCompletion (xptype st) (command st) l --newCommand (command st) l
+    l  -> do let new_command = nextCompletion (xptype st) (command st) l
              modify $ \s ->  s { command = new_command, offset = length new_command }
              redrawWindows c
              eventLoop (completionHandle c)
