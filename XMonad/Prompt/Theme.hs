@@ -48,7 +48,7 @@ instance XPrompt ThemePrompt where
     nextCompletion      _ = getNextCompletion
 
 themePrompt :: XPConfig -> X ()
-themePrompt c = mkXPrompt ThemePrompt c (const . return . map ppThemeInfo $ listOfThemes) changeTheme
+themePrompt c = mkXPrompt ThemePrompt c (mkComplFunFromList' . map ppThemeInfo $ listOfThemes) changeTheme
     where changeTheme t = sendMessage . SetTheme . fromMaybe defaultTheme $ M.lookup t mapOfThemes
 
 mapOfThemes :: M.Map String Theme
