@@ -283,13 +283,14 @@ completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
 completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab = do
   st <- get
+  let updateState l = do let new_command = nextCompletion (xptype st) (command st) l
+                         modify $ \s ->  s { command = new_command, offset = length new_command }
+      updateWins  l = do redrawWindows l
+                         eventLoop (completionHandle l)
   case c of
-    [] -> do updateWindows
-             eventLoop handle
-    l  -> do let new_command = nextCompletion (xptype st) (command st) l
-             modify $ \s ->  s { command = new_command, offset = length new_command }
-             redrawWindows c
-             eventLoop (completionHandle c)
+    []  -> updateWindows   >> eventLoop handle
+    [x] -> updateState [x] >> getCompletions >>= updateWins
+    l   -> updateState l   >> updateWins l
 -- key release
     | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
 -- other keys
