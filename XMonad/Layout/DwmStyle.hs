@@ -46,7 +46,7 @@ import XMonad.Layout.Decoration
 -- You can also edit the default configuration options.
 --
 -- > myDWConfig = defaultTheme { inactiveBorderColor = "red"
--- >                                    , inactiveTextColor   = "red"}
+-- >                           , inactiveTextColor   = "red"}
 --
 -- and
 --
