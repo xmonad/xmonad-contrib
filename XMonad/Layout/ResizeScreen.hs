@@ -18,8 +18,8 @@
 module XMonad.Layout.ResizeScreen
     ( -- * Usage:
       -- $usage
-      resizeHorizontal
-    , resizeVertical
+      resizeHorizontal, resizeVertical
+    , resizeHorizontalRight, resizeVerticalBottom
     , withNewRectangle
     , ResizeScreen (..)
     ) where
@@ -42,10 +42,16 @@ import XMonad.Layout.Decoration
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 resizeHorizontal :: Int -> l a -> ModifiedLayout ResizeScreen l a
-resizeHorizontal i = ModifiedLayout (ResizeScreen H i)
+resizeHorizontal i = ModifiedLayout (ResizeScreen L i)
 
 resizeVertical :: Int -> l a -> ModifiedLayout ResizeScreen l a
-resizeVertical i = ModifiedLayout (ResizeScreen V i)
+resizeVertical i = ModifiedLayout (ResizeScreen T i)
+
+resizeHorizontalRight :: Int -> l a -> ModifiedLayout ResizeScreen l a
+resizeHorizontalRight i = ModifiedLayout (ResizeScreen R i)
+
+resizeVerticalBottom :: Int -> l a -> ModifiedLayout ResizeScreen l a
+resizeVerticalBottom i = ModifiedLayout (ResizeScreen B i)
 
 withNewRectangle  :: Rectangle -> l a -> ModifiedLayout ResizeScreen l a
 withNewRectangle r = ModifiedLayout (WithNewScreen r)
@@ -53,14 +59,17 @@ withNewRectangle r = ModifiedLayout (WithNewScreen r)
 data ResizeScreen a = ResizeScreen ResizeMode Int
                     | WithNewScreen Rectangle
                       deriving (Read, Show)
-data ResizeMode = H | V deriving (Read, Show)
+
+data ResizeMode = T | B | L | R deriving (Read, Show)
 
 instance LayoutModifier ResizeScreen a where
-    modifyLayout m l re@(Rectangle x y w h) s
-        | ResizeScreen H i <- m = resize (Rectangle (x + fi i) y (w - fi i) h)
-        | ResizeScreen V i <- m = resize (Rectangle x (y + fi i) w (h - fi i))
+    modifyLayout m l rect@(Rectangle x y w h) s
+        | ResizeScreen L i <- m = resize $ Rectangle (x + fi i) y (w - fi i) h
+        | ResizeScreen R i <- m = resize $ Rectangle x          y (w - fi i) h
+        | ResizeScreen T i <- m = resize $ Rectangle x (y + fi i) w (h - fi i)
+        | ResizeScreen B i <- m = resize $ Rectangle x  y         w (h - fi i)
         | WithNewScreen  r <- m = resize r
-        | otherwise             = resize re
+        | otherwise             = resize rect
        where resize nr = doLayout l nr s
 
     pureMess (ResizeScreen d _) m
