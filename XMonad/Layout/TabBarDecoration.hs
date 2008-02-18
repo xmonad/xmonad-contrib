@@ -18,13 +18,16 @@ module XMonad.Layout.TabBarDecoration
       simpleTabBar, tabBar
     , defaultTheme, shrinkText
     , TabBarDecoration (..), XPPosition (..)
+    , module XMonad.Layout.ResizeScreen
     ) where
 
 import Data.List
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.Decoration
+import XMonad.Layout.ResizeScreen
 import XMonad.Prompt ( XPPosition (..) )
+
 -- $usage
 -- You can use this module with the following in your
 -- @~\/.xmonad\/xmonad.hs@:
@@ -46,9 +49,15 @@ import XMonad.Prompt ( XPPosition (..) )
 -- selector. See "XMonad.Prompt.Theme". For more themse, look at
 -- "XMonad.Util.Themes"
 
-simpleTabBar :: Eq a => l a -> ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) l a
-simpleTabBar = decoration shrinkText defaultTheme (TabBar Top)
+-- | Add, on the top of the screen, a simple bar of tabs to a given
+-- | layout, with the default theme and the default shrinker.
+simpleTabBar :: Eq a => l a -> ModifiedLayout (Decoration TabBarDecoration DefaultShrinker)
+                (ModifiedLayout ResizeScreen l) a
+simpleTabBar = decoration shrinkText defaultTheme (TabBar Top) . resizeVertical 20
 
+-- | Same of 'simpleTabBar', but with the possibility of setting a
+-- custom shrinker, a custom theme and the position: 'Top' or
+-- 'Bottom'.
 tabBar :: (Eq a, Shrinker s) => s -> Theme -> XPPosition -> l a -> ModifiedLayout (Decoration TabBarDecoration s) l a
 tabBar s t p = decoration s t (TabBar p)
 
@@ -61,10 +70,11 @@ instance Eq a => DecorationStyle TabBarDecoration a where
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration (TabBar p) _ dht (Rectangle x y wh ht) s _ (w,_) =
         if isInStack s w then Just $ Rectangle nx ny nwh (fi dht) else Nothing
-        where nwh = wh `div` max 1 (fi $ length $ S.integrate s)
-              ny = case p of
+        where wrs = S.integrate s
+              nwh = wh `div` max 1 (fi $ length wrs)
+              ny  = case p of
                      Top    -> y
                      Bottom -> y + fi ht - fi dht
-              nx  = case w `elemIndex` (S.integrate s) of
+              nx  = case w `elemIndex` wrs of
                       Just i  -> x + (fi nwh * fi i)
                       Nothing -> x
