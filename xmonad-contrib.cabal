@@ -130,6 +130,7 @@ library
                         XMonad.Layout.Square
                         XMonad.Layout.ShowWName
                         XMonad.Layout.Tabbed
+                        XMonad.Layout.TabBarDecoration
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TwoPane

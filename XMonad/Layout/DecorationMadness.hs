@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DecorationMadness
@@ -84,16 +83,14 @@ module XMonad.Layout.DecorationMadness
     , floatSimpleTabbed
     , floatTabbed
     , defaultTheme, shrinkText
-    , SimpleTabbedDecoration (..)
     ) where
 
-import Data.List
 import XMonad
-import qualified XMonad.StackSet as S
 import XMonad.Actions.MouseResize
 import XMonad.Layout.Decoration
 import XMonad.Layout.DwmStyle
 import XMonad.Layout.SimpleDecoration
+import XMonad.Layout.TabBarDecoration
 
 import XMonad.Layout.Accordion
 import XMonad.Layout.Circle
@@ -133,26 +130,6 @@ import XMonad.Layout.SimpleFloat
 -- The deafult theme can be dynamically change with the xmonad theme
 -- selector. See "XMonad.Prompt.Theme". For more themse, look at
 -- "XMonad.Util.Themes"
---
--- NOTE: some of these layouts may not be working correctly with
--- WindowNavigation and with some layout combinators. I hope to fix
--- this problem shortly!
-
--- There may be a regression in Tabbed, and no tab is displayed when
--- using it with other layouts. This is the reason for the following
--- instance (to be removed!)
-data SimpleTabbedDecoration a = SimpleTabbed deriving (Read, Show)
-instance Eq a => DecorationStyle SimpleTabbedDecoration a where
-    describeDeco  _ = "Tabbed"
-    decorateFirst _ = True
-    shrink    _ _ r = r
-    decorationMouseDragHook _ _ _ = return ()
-    pureDecoration _ _ ht (Rectangle x y wh _) s wrs (w,_) =
-        if isInStack s w then Just $ Rectangle nx y nwh (fi ht) else Nothing
-        where nwh = wh `div` max 1 (fi $ length wrs)
-              nx  = case w `elemIndex` (S.integrate s) of
-                      Just i  -> x + (fi nwh * fi i)
-                      Nothing -> x
 
 -- $circle
 -- Here you will find 'Circle' based decorated layouts.
@@ -244,14 +221,14 @@ circleDwmStyle s t = decoration s t Dwm Circle
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleTabbed.png>
-circleSimpleTabbed :: ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Circle) Window
-circleSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeVertical 20 Circle)
+circleSimpleTabbed :: ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Circle) Window
+circleSimpleTabbed = simpleTabBar (resizeVertical 20 Circle)
 
 -- | Similar to 'circleSimpleTabbed' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleTabbed :: Shrinker s => s -> Theme
-             -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen Circle) Window
-circleTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) Circle)
+             -> ModifiedLayout (Decoration TabBarDecoration s) (ModifiedLayout ResizeScreen Circle) Window
+circleTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) Circle)
 
 
 -- $accordion
@@ -337,14 +314,14 @@ accordionDwmStyle s t = decoration s t Dwm Accordion
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/accordionSimpleTabbed.png>
-accordionSimpleTabbed :: ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Accordion) Window
-accordionSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeVertical 20 Accordion)
+accordionSimpleTabbed :: ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Accordion) Window
+accordionSimpleTabbed = simpleTabBar (resizeVertical 20 Accordion)
 
 -- | Similar to 'accordionSimpleTabbed' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 accordionTabbed :: Shrinker s => s -> Theme
-                -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen Accordion) Window
-accordionTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) Accordion)
+                -> ModifiedLayout (Decoration TabBarDecoration s) (ModifiedLayout ResizeScreen Accordion) Window
+accordionTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) Accordion)
 
 
 -- $tall
@@ -441,14 +418,14 @@ tallDwmStyle s t = decoration s t Dwm tall
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/tallSimpleTabbed.png>
-tallSimpleTabbed :: ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Tall) Window
-tallSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeVertical 20 tall)
+tallSimpleTabbed :: ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Tall) Window
+tallSimpleTabbed = simpleTabBar (resizeVertical 20 tall)
 
 -- | Similar to 'tallSimpleTabbed' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 tallTabbed :: Shrinker s => s -> Theme
-           -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen Tall) Window
-tallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) tall)
+           -> ModifiedLayout (Decoration TabBarDecoration s) (ModifiedLayout ResizeScreen Tall) Window
+tallTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) tall)
 
 -- $mirror
 -- In this section you will find decorated layouts based on the
@@ -544,14 +521,14 @@ mirrorTallDwmStyle s t = decoration s t Dwm mirrorTall
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/mirrorTallSimpleTabbed.png>
-mirrorTallSimpleTabbed :: ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker) (ModifiedLayout ResizeScreen (Mirror Tall)) Window
-mirrorTallSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (resizeVertical 20 mirrorTall)
+mirrorTallSimpleTabbed :: ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) (ModifiedLayout ResizeScreen (Mirror Tall)) Window
+mirrorTallSimpleTabbed = simpleTabBar (resizeVertical 20 mirrorTall)
 
 -- | Similar to 'mirrorTallSimpleTabbed' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 mirrorTallTabbed :: Shrinker s => s -> Theme
-                 -> ModifiedLayout (Decoration SimpleTabbedDecoration s) (ModifiedLayout ResizeScreen (Mirror Tall)) Window
-mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHeight t) mirrorTall)
+                 -> ModifiedLayout (Decoration TabBarDecoration s) (ModifiedLayout ResizeScreen (Mirror Tall)) Window
+mirrorTallTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) mirrorTall)
 
 -- $float
 -- Here you will find decorated layout based on the SimpleFloating
@@ -563,11 +540,11 @@ mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHei
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleSimple.png>
-floatSimpleSimple :: Eq a => ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+floatSimpleSimple :: (Show a, Eq a) => ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
 	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleSimple = simpleFloat
 
-floatSimple :: (Eq a, Shrinker s) => s -> Theme ->
+floatSimple :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration SimpleDecoration s)
 	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimple = simpleFloat'
@@ -577,16 +554,16 @@ floatSimple = simpleFloat'
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDefault.png>
-floatSimpleDefault :: Eq a => ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+floatSimpleDefault :: (Show a, Eq a) => ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
 	              (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDefault', but with the possibility of setting a
 -- custom shrinker and a custom theme.
-floatDefault :: (Eq a, Shrinker s) => s -> Theme ->
+floatDefault :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                 ModifiedLayout (Decoration DefaultDecoration s)
 	       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
-floatDefault s c = decoration s c DefaultDecoration (mouseResize $ windowArrangeAll $ SF (decoHeight c))
+floatDefault s t = decoration s t DefaultDecoration (mouseResize $ windowArrangeAll $ SF (decoHeight t))
 
 -- | This version is decorated with the 'DwmStyle'. Note that this is
 -- a keyboard only floating layout.
@@ -594,16 +571,16 @@ floatDefault s c = decoration s c DefaultDecoration (mouseResize $ windowArrange
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDwmStyle.png>
-floatSimpleDwmStyle :: Eq a => ModifiedLayout (Decoration DwmStyle DefaultShrinker)
+floatSimpleDwmStyle :: (Show a, Eq a) => ModifiedLayout (Decoration DwmStyle DefaultShrinker)
 	               (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleDwmStyle = decoration shrinkText defaultTheme Dwm (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDwmStyle', but with the possibility of setting a
 -- custom shrinker and a custom theme.
-floatDwmStyle :: (Eq a, Shrinker s) => s -> Theme ->
+floatDwmStyle :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                  ModifiedLayout (Decoration DwmStyle s)
 	        (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
-floatDwmStyle s c = decoration s c Dwm (mouseResize $ windowArrangeAll $ SF (decoHeight c))
+floatDwmStyle s t = decoration s t Dwm (mouseResize $ windowArrangeAll $ SF (decoHeight t))
 
 -- | This version is decorated with the 'TabbedDecoration' style.
 -- | Mouse dragging is somehow weird.
@@ -611,13 +588,13 @@ floatDwmStyle s c = decoration s c Dwm (mouseResize $ windowArrangeAll $ SF (dec
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleTabbed.png>
-floatSimpleTabbed :: Eq a => ModifiedLayout (Decoration SimpleTabbedDecoration DefaultShrinker)
+floatSimpleTabbed :: (Show a, Eq a) => ModifiedLayout (Decoration TabBarDecoration DefaultShrinker)
 	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
-floatSimpleTabbed = decoration shrinkText defaultTheme SimpleTabbed (mouseResize $ windowArrangeAll $ SF 20)
+floatSimpleTabbed = simpleTabBar (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleTabbed', but with the possibility of setting a
 -- custom shrinker and a custom theme.
-floatTabbed :: (Eq a, Shrinker s) => s -> Theme ->
-               ModifiedLayout (Decoration SimpleTabbedDecoration s)
+floatTabbed :: (Show a, Eq a, Shrinker s) => s -> Theme ->
+               ModifiedLayout (Decoration TabBarDecoration s)
 	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
-floatTabbed s c = decoration s c SimpleTabbed (mouseResize $ windowArrangeAll $ SF (decoHeight c))
+floatTabbed s t = tabBar s t Top (mouseResize $ windowArrangeAll $ SF (decoHeight t))
