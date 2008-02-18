@@ -65,7 +65,6 @@ data TabBarDecoration a = TabBar XPPosition deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabBarDecoration a where
     describeDeco  _ = "TabBar"
-    decorateFirst _ = True
     shrink    _ _ r = r
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration (TabBar p) _ dht (Rectangle x y wh ht) s _ (w,_) =

@@ -90,7 +90,6 @@ data TabbedDecoration a = Tabbed deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabbedDecoration a where
     describeDeco  _ = "Tabbed"
-    decorateFirst _ = True
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration _ _ ht _ s wrs (w,r@(Rectangle x y wh _)) =
             if length wrs' <= 1 then Nothing
