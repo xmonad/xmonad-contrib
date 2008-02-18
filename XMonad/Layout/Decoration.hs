@@ -27,7 +27,8 @@ module XMonad.Layout.Decoration
     , shrinkText, CustomShrink ( CustomShrink )
     , Shrinker (..), DefaultShrinker
     , module XMonad.Layout.LayoutModifier
-    , isDecoration, fi, lookFor
+    , isInStack, isVisible, isInvisible, isWithin
+    , lookFor, lookFor', fi
     ) where
 
 import Control.Monad (when)
@@ -224,6 +225,11 @@ lookFor w ((wr,(dw,dr)):dwrs) | w == dw = Just (wr,(dw,dr))
                               | otherwise = lookFor w dwrs
 lookFor _ [] = Nothing
 
+lookFor' :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,DecoWin)
+lookFor' w (((w',r),dwr):dwrs) | w == w' = Just ((w,r),dwr)
+                               | otherwise = lookFor' w dwrs
+lookFor' _ [] = Nothing
+
 getDWs :: [(OrigWin,DecoWin)] -> [Window]
 getDWs = map (fst . snd)
 
@@ -271,8 +277,23 @@ updateDeco sh t fs ((w,_),(dw,Just (Rectangle _ _ wh ht))) = do
   paintAndWrite dw fs wh ht 1 bc borderc tc bc AlignCenter name
 updateDeco _ _ _ (_,(w,Nothing)) = hideWindow w
 
-isDecoration :: Window -> X Bool
-isDecoration w = withDisplay (io . flip getWindowAttributes w) >>= return . wa_override_redirect
+isInStack :: Eq a => W.Stack a -> a -> Bool
+isInStack s = flip elem (W.integrate s)
+
+isVisible :: Rectangle -> [Rectangle] -> Bool
+isVisible r = and . foldr f []
+    where f x xs = if r `isWithin` x then False : xs else True : xs
+
+isInvisible :: Rectangle -> [Rectangle] -> Bool
+isInvisible r = not . isVisible r
+
+isWithin :: Rectangle -> Rectangle -> Bool
+isWithin (Rectangle x y w h) (Rectangle rx ry rw rh)
+    | x >= rx, x <= rx + fi rw
+    , y >= ry, y <= ry + fi rh
+    , x + fi w <= rx + fi rw
+    , y + fi h <= ry + fi rh = True
+    | otherwise              = False
 
 shrinkWhile :: (String -> [String]) -> (String -> X Bool) -> String -> X String
 shrinkWhile sh p x = sw $ sh x

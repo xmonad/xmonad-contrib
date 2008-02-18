@@ -13,15 +13,17 @@
 -- Make layouts respect size hints.
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.LayoutHints (
-    -- * usage
-    -- $usage
-    layoutHints,
-    LayoutHints) where
+module XMonad.Layout.LayoutHints
+    ( -- * usage
+      -- $usage
+      layoutHints
+    , LayoutHints
+    ) where
 
 import XMonad hiding ( trace )
 import XMonad.Layout.LayoutModifier
-import XMonad.Layout.Decoration ( isDecoration )
+import XMonad.Layout.Decoration ( isInStack )
+
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -49,14 +51,13 @@ data LayoutHints a = LayoutHints deriving (Read, Show)
 
 instance LayoutModifier LayoutHints Window where
     modifierDescription _ = "Hinted"
-    redoLayout _ _ _ xs = do
+    redoLayout _ _ s xs = do
                             bW <- asks (borderWidth . config)
                             xs' <- mapM (applyHint bW) xs
                             return (xs', Nothing)
      where
         applyHint bW (w,r@(Rectangle a b c d)) =
             withDisplay $ \disp -> do
-                isd <- isDecoration w
                 sh  <- io $ getWMNormalHints disp w
                 let (c',d') = adjBorders 1 bW . applySizeHints sh . adjBorders bW (-1) $ (c,d)
-                return (w, if isd then r else Rectangle a b c' d')
+                return (w, if isInStack s w then r else Rectangle a b c' d')
