@@ -98,7 +98,7 @@ data Decoration ds s a =
     Decoration (Invisible Maybe DecorationState) s Theme (ds a)
     deriving (Show, Read)
 
-class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
+class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
     describeDeco :: ds a -> String
     describeDeco ds = show ds
 
@@ -120,14 +120,17 @@ class (Read (ds a), Show (ds a)) => DecorationStyle ds a where
 
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
-    pureDecoration _ _ h _ _ _ (_,Rectangle x y w _) = Just $ Rectangle x y w h
+    pureDecoration _ _ ht _ s _ (w,Rectangle x y wh _) = if isInStack s w
+                                                         then Just $ Rectangle x y wh ht
+                                                         else Nothing
+
 
     decorate :: ds a -> Dimension -> Dimension -> Rectangle
              -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> X (Maybe Rectangle)
     decorate ds w h r s ars ar = return $ pureDecoration ds w h r s ars ar
 
 data DefaultDecoration a = DefaultDecoration deriving ( Read, Show )
-instance DecorationStyle DefaultDecoration a
+instance Eq a => DecorationStyle DefaultDecoration a
 
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
     redoLayout (Decoration st sh t ds) sc stack wrs

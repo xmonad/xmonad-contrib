@@ -84,6 +84,7 @@ module XMonad.Layout.DecorationMadness
     , floatSimpleTabbed
     , floatTabbed
     , defaultTheme, shrinkText
+    , SimpleTabbedDecoration (..)
     ) where
 
 import Data.List
@@ -146,7 +147,8 @@ instance Eq a => DecorationStyle SimpleTabbedDecoration a where
     decorateFirst _ = True
     shrink    _ _ r = r
     decorationMouseDragHook _ _ _ = return ()
-    pureDecoration _ _ ht (Rectangle x y wh _) s wrs (w,_) = Just $ Rectangle nx y nwh (fi ht)
+    pureDecoration _ _ ht (Rectangle x y wh _) s wrs (w,_) =
+        if isInStack s w then Just $ Rectangle nx y nwh (fi ht) else Nothing
         where nwh = wh `div` max 1 (fi $ length wrs)
               nx  = case w `elemIndex` (S.integrate s) of
                       Just i  -> x + (fi nwh * fi i)
@@ -561,11 +563,11 @@ mirrorTallTabbed s t = decoration s t SimpleTabbed (resizeVertical (fi $ decoHei
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleSimple.png>
-floatSimpleSimple :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
+floatSimpleSimple :: Eq a => ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
 	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleSimple = simpleFloat
 
-floatSimple :: Shrinker s => s -> Theme ->
+floatSimple :: (Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration SimpleDecoration s)
 	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimple = simpleFloat'
@@ -575,13 +577,13 @@ floatSimple = simpleFloat'
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDefault.png>
-floatSimpleDefault :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
+floatSimpleDefault :: Eq a => ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
 	              (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDefault', but with the possibility of setting a
 -- custom shrinker and a custom theme.
-floatDefault :: Shrinker s => s -> Theme ->
+floatDefault :: (Eq a, Shrinker s) => s -> Theme ->
                 ModifiedLayout (Decoration DefaultDecoration s)
 	       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatDefault s c = decoration s c DefaultDecoration (mouseResize $ windowArrangeAll $ SF (decoHeight c))

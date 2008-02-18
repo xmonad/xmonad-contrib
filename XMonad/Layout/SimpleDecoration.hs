@@ -53,16 +53,20 @@ import XMonad.Layout.Decoration
 -- > myL = dwmStyle shrinkText mySDConfig (layoutHook defaultTheme)
 
 -- | Add simple decorations to windows of a layout.
-simpleDeco :: Shrinker s => s -> Theme
+simpleDeco :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration SimpleDecoration s) l a
 simpleDeco s c = decoration s c $ Simple True
 
 data SimpleDecoration a = Simple Bool deriving (Show, Read)
 
-instance DecorationStyle SimpleDecoration a where
+instance Eq a => DecorationStyle SimpleDecoration a where
     describeDeco _ = "Simple"
     shrink (Simple b) (Rectangle _ _ _ dh) r@(Rectangle x y w h) =
         if b then Rectangle x (y + fi dh) w (h - dh) else r
-    pureDecoration (Simple b) wh ht _ _ _ (_,Rectangle x y wid _) =
-        if b then Just $ Rectangle x y nwh ht else Just $ Rectangle x (y - fi ht) nwh ht
+    pureDecoration (Simple b) wh ht _ s _ (w,Rectangle x y wid _) =
+        if isInStack s w
+        then if b
+             then Just $ Rectangle x  y          nwh ht
+             else Just $ Rectangle x (y - fi ht) nwh ht
+        else Nothing
             where nwh = min wid wh

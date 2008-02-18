@@ -62,7 +62,7 @@ data DwmStyle a = Dwm deriving (Show, Read)
 instance Eq a => DecorationStyle DwmStyle a where
     describeDeco _ = "DwmStyle"
     shrink  _ _  r = r
-    pureDecoration _ wh ht _ (Stack fw _ _) _ (win,Rectangle x y wid _) =
-        if win == fw then Nothing else Just $ Rectangle (fi nx) y nwh (fi ht)
+    pureDecoration _ wh ht _ s@(Stack fw _ _) _ (w,Rectangle x y wid _) =
+        if w == fw || not (isInStack s w) then Nothing else Just $ Rectangle (fi nx) y nwh (fi ht)
             where nwh = min wid $ fi wh
                   nx  = fi x + wid - nwh
