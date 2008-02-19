@@ -60,4 +60,4 @@ instance LayoutModifier LayoutHints Window where
             withDisplay $ \disp -> do
                 sh  <- io $ getWMNormalHints disp w
                 let (c',d') = adjBorders 1 bW . applySizeHints sh . adjBorders bW (-1) $ (c,d)
-                return (w, if isInStack s w then r else Rectangle a b c' d')
+                return (w, if isInStack s w then Rectangle a b c' d' else r)
