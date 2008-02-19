@@ -18,15 +18,15 @@ module XMonad.Layout.Decoration
     ( -- * Usage:
       -- $usage
       decoration
-    , Decoration
-    , DefaultDecoration (..)
-    , DecorationStyle (..)
-    , DecorationMsg (..)
     , Theme (..), defaultTheme
-    , shrinkText, CustomShrink ( CustomShrink )
+    , Decoration
+    , DecorationMsg (..)
+    , DecorationStyle (..)
+    , DefaultDecoration (..)
     , Shrinker (..), DefaultShrinker
-    , module XMonad.Layout.LayoutModifier
+    , shrinkText, CustomShrink ( CustomShrink )
     , isInStack, isVisible, isInvisible, isWithin, fi
+    , module XMonad.Layout.LayoutModifier
     ) where
 
 import Control.Monad (when)
@@ -44,28 +44,42 @@ import XMonad.Util.XUtils
 import XMonad.Util.Font
 
 -- $usage
--- For usage examples you can see "XMonad.Layout.SimpleDecoration",
--- "XMonad.Layout.Tabbed", "XMonad.Layout.DwmStyle",
+-- This module is intended for layout developers, who want to decorate
+-- their layouts. End users will not find here very much for them.
+--
+-- For examples of 'DecorationStyle' instances you can have a look at
+-- "XMonad.Layout.SimpleDecoration", "XMonad.Layout.Tabbed",
+-- "XMonad.Layout.DwmStyle", or "XMonad.Layout.TabBarDecoration".
 
+-- | A layout modifier that, with a 'Shrinker', a 'Theme', a
+-- 'DecorationStyle', and a layout, will decorate this layout
+-- according to the decoration style provided.
+--
+-- For some usage examples see "XMonad.Layout.DecorationMadness".
 decoration :: (DecorationStyle ds a, Shrinker s) => s -> Theme -> ds a
            -> l a -> ModifiedLayout (Decoration ds s) l a
 decoration s t ds = ModifiedLayout (Decoration (I Nothing) s t ds)
 
+-- | A 'Theme' is a record of colors, font etc., to customize a
+-- 'DecorationStyle'.
+--
+-- For a collection of 'Theme's see "Xmonad.Util.Themes"
 data Theme =
-    Theme { activeColor         :: String
-          , inactiveColor       :: String
-          , urgentColor         :: String
-          , activeBorderColor   :: String
-          , inactiveBorderColor :: String
-          , urgentBorderColor   :: String
-          , activeTextColor     :: String
-          , inactiveTextColor   :: String
-          , urgentTextColor     :: String
-          , fontName            :: String
-          , decoWidth           :: Dimension
-          , decoHeight          :: Dimension
+    Theme { activeColor         :: String    -- ^ Color of the active window
+          , inactiveColor       :: String    -- ^ Color of the inactive window
+          , urgentColor         :: String    -- ^ Color of the urgent window
+          , activeBorderColor   :: String    -- ^ Color of the border of the active window
+          , inactiveBorderColor :: String    -- ^ Color of the border of the inactive window
+          , urgentBorderColor   :: String    -- ^ Color of the border of the urgent window
+          , activeTextColor     :: String    -- ^ Color of the text of the active window
+          , inactiveTextColor   :: String    -- ^ Color of the text of the inactive window
+          , urgentTextColor     :: String    -- ^ Color of the text of the urgent window
+          , fontName            :: String    -- ^ Font name
+          , decoWidth           :: Dimension -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
+          , decoHeight          :: Dimension -- ^ Height of the decorations
           } deriving (Show, Read)
 
+-- | The default xmonad 'Theme'.
 defaultTheme :: Theme
 defaultTheme =
     Theme { activeColor         = "#999999"
@@ -82,53 +96,117 @@ defaultTheme =
           , decoHeight          = 20
           }
 
+-- | A 'Decoration' layout modifier will handle 'SetTheme', a message
+-- to dynamically change the decoration 'Theme'.
 data DecorationMsg = SetTheme Theme deriving ( Typeable )
 instance Message DecorationMsg
 
-type DecoWin = (Maybe Window, Maybe Rectangle)
-type OrigWin = (Window,Rectangle)
+-- | The 'Decoration' state component, where the list of decorated
+-- window's is zipped with a list of decoration. A list of decoration
+-- is a list of tuples, a 'Maybe' 'Window' and a 'Maybe Rectangle'.
+-- The 'Window' will be displayed only if the rectangle is of type
+-- 'Just'.
 data DecorationState =
     DS { decos :: [(OrigWin,DecoWin)]
        , font  :: XMonadFont
        }
+type DecoWin = (Maybe Window, Maybe Rectangle)
+type OrigWin = (Window,Rectangle)
 
+-- | The 'Decoration' 'LayoutModifier'. This data type is an instance
+-- of the 'LayoutModifier' class. This data type will be passed,
+-- together with a layout, to the 'ModifiedLayout' type constructor
+-- to modify the layout by adding decorations according to a
+-- 'DecorationStyle'.
 data Decoration ds s a =
     Decoration (Invisible Maybe DecorationState) s Theme (ds a)
     deriving (Show, Read)
 
+-- | The 'DecorationStyle' class, defines methods used in the
+-- implementation of the 'Decoration' 'LayoutModifier' instance. A
+-- type instance of this class is passed to the 'Decoration' type in
+-- order to decorate a layout, by using these methods.
 class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
+
+    -- | The description that the 'Decoration' modifier will display.
     describeDeco :: ds a -> String
     describeDeco ds = show ds
 
+    -- | Whether to decorate a layout if there is only one window.
     decorateFirst :: ds a -> Bool
     decorateFirst _ = True
 
+    -- | Shrink the window's rectangle when applying a decoration.
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
 
+    -- | The decoration event hook, where the
+    -- 'decorationMouseFocusHook' and 'decorationMouseDragHook' are
+    -- called. If you reimplement it those methods will not be
+    -- called.
     decorationEventHook :: ds a -> DecorationState -> Event -> X ()
     decorationEventHook ds s e = do decorationMouseFocusHook  ds s e
                                     decorationMouseDragHook   ds s e
 
+    -- | This method is called when the user clicks the pointer over
+    -- the decoration.
     decorationMouseFocusHook :: ds a -> DecorationState -> Event -> X ()
     decorationMouseFocusHook _ s e = handleMouseFocusDrag False s e
 
+    -- | This method is called when the user starts grabbing the
+    -- decoration.
     decorationMouseDragHook :: ds a -> DecorationState -> Event -> X ()
     decorationMouseDragHook _ s e = handleMouseFocusDrag True s e
 
+    -- | The pure version of the main method, 'decorate'.
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
     pureDecoration _ _ ht _ s _ (w,Rectangle x y wh _) = if isInStack s w
                                                          then Just $ Rectangle x y wh ht
                                                          else Nothing
 
+    -- | Given the theme's decoration width and height, the screen
+    -- rectangle, the windows stack, the list of windows and
+    -- rectangles returned by the underlying layout and window to be
+    -- decorated, tupled with its rectangle, produce a 'Just'
+    -- 'Rectangle' or 'Nothing' if the window is not to be decorated.
     decorate :: ds a -> Dimension -> Dimension -> Rectangle
              -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> X (Maybe Rectangle)
-    decorate ds w h r s ars ar = return $ pureDecoration ds w h r s ars ar
+    decorate ds w h r s wrs wr = return $ pureDecoration ds w h r s wrs wr
 
+-- | The default 'DecorationStyle', with just the default methods'
+-- implementations.
 data DefaultDecoration a = DefaultDecoration deriving ( Read, Show )
 instance Eq a => DecorationStyle DefaultDecoration a
 
+-- | The long 'LayoutModifier' instance for the 'Decoration' type.
+--
+-- In 'redoLayout' we check if the decoration style requires
+-- decorating the first window. If not and the underlying layout
+-- produced just one window not we release the state.
+--
+-- If there's no state we initialize it.
+--
+-- The state is 'diff'ed against the list of windows produced by the
+-- underlying layout: removed windows get deleted and new ones
+-- decorated by 'createDecos', which will call 'decorate' to decide if
+-- a window must be given a 'Rectangle', in which case a decoration
+-- window will be created.
+--
+-- After that we resync the updated state with the windows' list and
+-- then we process the resynced stated (as we do with a new state).
+--
+-- First we map the decoration windows, we update each decoration to
+-- reflect any decorated window's change, and we insert, in the list
+-- of windows and rectangles returned by the underlying layout, the
+-- decoration for each window. This way xmonad will restack the
+-- decorations and their windows accordingly. At the end we remove
+-- invisible\/stacked windows.
+--
+-- Message handling is quite simple: we needed we release the state
+-- component of the 'Decoration' 'LayoutModifier'. Otherwise we call
+-- 'handleEvent', which will call the appropriate 'DecorationStyle'
+-- methods to perform its tasks.
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
     redoLayout (Decoration st sh t ds) sc stack wrs
         | decorate_first   = do whenIJust st releaseResources
@@ -198,6 +276,8 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
 
     modifierDescription (Decoration _ _ _ ds) = describeDeco ds
 
+-- | By default 'Decoration' handles 'PropertyEvent' and 'ExposeEvent'
+-- only.
 handleEvent :: Shrinker s => s -> Theme -> DecorationState -> Event -> X ()
 handleEvent sh t (DS dwrs fs) e
     | PropertyEvent {ev_window = w} <- e
@@ -206,6 +286,8 @@ handleEvent sh t (DS dwrs fs) e
     , w `elem` (catMaybes $ map (fst . snd) dwrs) = updateDecos sh t fs dwrs
 handleEvent _ _ _ _ = return ()
 
+-- | Mouse focus and mouse drag are handled by the same function, this
+-- way we can start dragging unfocused windows too.
 handleMouseFocusDrag :: Bool -> DecorationState -> Event -> X ()
 handleMouseFocusDrag b (DS dwrs _) ButtonEvent { ev_window     = ew
                                                , ev_event_type = et
@@ -222,12 +304,16 @@ handleMouseFocusDrag b (DS dwrs _) ButtonEvent { ev_window     = ew
                                                     sendMessage (SetGeometry rect)) (return ())
 handleMouseFocusDrag _ _ _ = return ()
 
+-- | Given a window and the state, if a matching decoration is in the
+-- state return it with its ('Maybe') 'Rectangle'.
 lookFor :: Window -> [(OrigWin,DecoWin)] -> Maybe (OrigWin,(Window,Maybe Rectangle))
 lookFor w ((wr,(Just dw,dr)):dwrs) | w == dw = Just (wr,(dw,dr))
                                    | otherwise = lookFor w dwrs
 lookFor w ((_, (Nothing, _)):dwrs) = lookFor w dwrs
 lookFor _ [] = Nothing
 
+-- | Initialize the 'DecorationState' by initializing the font
+-- structure and by creating the needed decorations.
 initState :: DecorationStyle ds Window => Theme -> ds Window -> Rectangle
           -> W.Stack Window -> [(Window,Rectangle)] -> X DecorationState
 initState t ds sc s wrs = do
@@ -235,11 +321,15 @@ initState t ds sc s wrs = do
   dwrs <- createDecos t ds sc s wrs wrs
   return $ DS dwrs fs
 
+-- | Delete windows stored in the state and release the font structure.
 releaseResources :: DecorationState -> X ()
 releaseResources s = do
   deleteDecos (map snd $ decos s)
   releaseXMF  (font s)
 
+-- | Create the decoration windows of a list of windows and their
+-- rectangles, by calling the 'decorate' method of the
+-- 'DecorationStyle' received.
 createDecos :: DecorationStyle ds Window => Theme -> ds Window -> Rectangle -> W.Stack Window
             -> [(Window,Rectangle)] -> [(Window,Rectangle)] -> X [(OrigWin,DecoWin)]
 createDecos t ds sc s wrs ((w,r):xs) = do
@@ -274,6 +364,8 @@ deleteDecos       []  = return ()
 updateDecos :: Shrinker s => s -> Theme -> XMonadFont -> [(OrigWin,DecoWin)] -> X ()
 updateDecos s t f = mapM_ $ updateDeco s t f
 
+-- | Update a decoration window given a shrinker, a theme, the font
+-- structure and the needed 'Rectangle's
 updateDeco :: Shrinker s => s -> Theme -> XMonadFont -> (OrigWin,DecoWin) -> X ()
 updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
   nw  <- getName w
@@ -294,16 +386,25 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
 updateDeco _ _ _ (_,(Just w,Nothing)) = hideWindow w
 updateDeco _ _ _ _ = return ()
 
+-- | True if the window is in the 'Stack'. The 'Window' comes second
+-- to facilitate list processing, even though @w \`isInStack\` s@ won't
+-- work...;)
 isInStack :: Eq a => W.Stack a -> a -> Bool
 isInStack s = flip elem (W.integrate s)
 
+-- | Given a 'Rectangle' and a list of 'Rectangle's is True if the
+-- 'Rectangle' is not completely contained by any 'Rectangle' of the
+-- list.
 isVisible :: Rectangle -> [Rectangle] -> Bool
 isVisible r = and . foldr f []
     where f x xs = if r `isWithin` x then False : xs else True : xs
 
+-- | The contrary of 'isVisible'.
 isInvisible :: Rectangle -> [Rectangle] -> Bool
 isInvisible r = not . isVisible r
 
+-- | True is the first 'Rectangle' is totally within the second
+-- 'Rectangle'.
 isWithin :: Rectangle -> Rectangle -> Bool
 isWithin (Rectangle x y w h) (Rectangle rx ry rw rh)
     | x >= rx, x <= rx + fi rw
