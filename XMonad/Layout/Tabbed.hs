@@ -61,7 +61,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- and
 --
--- > mylayout = tabDeco shrinkText myTabConfig ||| Full ||| etc..
+-- > mylayout = tabbed shrinkText myTabConfig ||| Full ||| etc..
 
 -- | A tabbed layout with the default xmonad Theme. Here's a screen
 -- shot:
