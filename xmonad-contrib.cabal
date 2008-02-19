@@ -40,7 +40,7 @@ flag testing
 
 library
     if flag(small_base)
-        build-depends: base >= 3, containers, directory, process, random
+        build-depends: base >= 3, containers, directory, process, random, old-time, old-locale
     else
         build-depends: base < 3
 
@@ -157,6 +157,7 @@ library
                         XMonad.Util.EZConfig
                         XMonad.Util.Font
                         XMonad.Util.Invisible
+                        XMonad.Util.Loggers
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
                         XMonad.Util.Themes
