@@ -17,7 +17,6 @@ module XMonad.Config.Arossato
     ( -- * Usage
       -- $usage
       arossatoConfig
-    , arossatoTheme
     ) where
 
 import qualified Data.Map as M
@@ -43,6 +42,7 @@ import XMonad.Prompt.Theme
 import XMonad.Prompt.Window
 import XMonad.Prompt.XMonad
 import XMonad.Util.Run
+import XMonad.Util.Themes
 
 -- $usage
 -- The simplest way to use this configuration module is to use an
@@ -71,7 +71,6 @@ import XMonad.Util.Run
 -- >     ( -- * Usage
 -- >       -- $usage
 -- >       arossatoConfig
--- >     , arossatoTabbedConfig
 -- >     ) where
 --
 -- to
@@ -84,25 +83,12 @@ import XMonad.Util.Run
 --
 -- 3. Start playing with the configuration options...;)
 
--- | My configuration for the Tabbed Layout. Basically this is the
--- Ion3 clean style.
-arossatoTheme :: Theme
-arossatoTheme = defaultTheme
-                { activeColor         = "#8a999e"
-                , inactiveColor       = "#545d75"
-                , activeBorderColor   = "white"
-                , inactiveBorderColor = "grey"
-                , activeTextColor     = "white"
-                , inactiveTextColor   = "grey"
-                , decoHeight          = 14
-                }
-
 arossatoConfig = do
-    xmobar <- spawnPipe "xmobar" -- remove this line if you do not have xmobar installed!
+    xmobar <- spawnPipe "xmobar" -- REMOVE this line if you do not have xmobar installed!
     return $ defaultConfig
          { workspaces         = ["home","var","dev","mail","web","doc"] ++
                                 map show [7 .. 9 :: Int]
-         , logHook            = myDynLog xmobar
+         , logHook            = myDynLog xmobar -- REMOVE this line if you do not have xmobar installed!
          , manageHook         = newManageHook
          , layoutHook         = avoidStruts $
                                 decorated        |||
@@ -116,8 +102,8 @@ arossatoConfig = do
          }
     where
       -- layouts
-      mytabs    =       tabbed shrinkText arossatoTheme
-      decorated = simpleFloat' shrinkText arossatoTheme
+      mytabs    =       tabbed shrinkText (theme smallClean)
+      decorated = simpleFloat' shrinkText (theme smallClean)
       tiled     = Tall 1 (3/100) (1/2)
       otherLays = windowArrange   $
                   magnifier tiled |||
@@ -126,8 +112,7 @@ arossatoConfig = do
                   Accordion
 
       -- manageHook
-      myManageHook  = composeAll [ resource =? "realplay.bin" --> doFloat
-                                 , resource =? "win"          --> doF (W.shift "doc") -- xpdf
+      myManageHook  = composeAll [ resource =? "win"          --> doF (W.shift "doc") -- xpdf
                                  , resource =? "firefox-bin"  --> doF (W.shift "web")
                                  ]
       newManageHook = myManageHook
