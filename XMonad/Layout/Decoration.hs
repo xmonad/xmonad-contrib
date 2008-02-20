@@ -177,11 +177,8 @@ instance Eq a => DecorationStyle DefaultDecoration a
 
 -- | The long 'LayoutModifier' instance for the 'Decoration' type.
 --
--- In 'redoLayout' we check if the decoration style requires
--- decorating the first window. If not and the underlying layout
--- produced just one window not we release the state.
---
--- If there's no state we initialize it.
+-- In 'redoLayout' we check the state: if there is no state we
+-- initialize it.
 --
 -- The state is 'diff'ed against the list of windows produced by the
 -- underlying layout: removed windows get deleted and new ones
