@@ -352,7 +352,7 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ applied to the entire formatted string in order to
                -- output it.  Can be used to specify an alternative
                -- output method (e.g. write to a pipe instead of
-               -- stdout), and/or to perform some last-minute
+               -- stdout), and\/or to perform some last-minute
                -- formatting.
              }
 
