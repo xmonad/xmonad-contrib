@@ -132,10 +132,6 @@ class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
     describeDeco :: ds a -> String
     describeDeco ds = show ds
 
-    -- | Whether to decorate a layout if there is only one window.
-    decorateFirst :: ds a -> Bool
-    decorateFirst _ = True
-
     -- | Shrink the window's rectangle when applying a decoration.
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
@@ -203,21 +199,19 @@ instance Eq a => DecorationStyle DefaultDecoration a
 -- decorations and their windows accordingly. At the end we remove
 -- invisible\/stacked windows.
 --
--- Message handling is quite simple: we needed we release the state
+-- Message handling is quite simple: when needed we release the state
 -- component of the 'Decoration' 'LayoutModifier'. Otherwise we call
 -- 'handleEvent', which will call the appropriate 'DecorationStyle'
 -- methods to perform its tasks.
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
     redoLayout (Decoration st sh t ds) sc stack wrs
-        | decorate_first   = do whenIJust st releaseResources
-                                return (wrs, Just $ Decoration (I Nothing) sh t ds)
         | I Nothing  <- st = initState t ds sc stack wrs >>= processState
         | I (Just s) <- st = do let dwrs  = decos s
                                     (d,a) = curry diff (get_ws dwrs) ws
                                     toDel = todel d dwrs
                                     toAdd = toadd a wrs
                                 deleteDecos (map snd toDel)
-                                ndwrs  <- createDecos t ds sc stack wrs toAdd
+                                let ndwrs = zip toAdd $ repeat (Nothing,Nothing)
                                 ndecos <- resync (ndwrs ++ del_dwrs d dwrs) wrs
                                 processState (s {decos = ndecos })
         | otherwise        = return (wrs, Nothing)
@@ -231,13 +225,17 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
           todel   d = filter (flip elem d . get_w)
           toadd   a = filter (flip elem a . fst  )
 
-          decorate_first = length wrs == 1 && (not . decorateFirst $ ds)
+          check_dwr dwr = case dwr of
+                            (Nothing, Just dr) -> do dw <- createDecoWindow t dr
+                                                     return (Just dw, Just dr)
+                            _                 -> return dwr
 
           resync _         [] = return []
           resync d ((w,r):xs) = case  w `elemIndex` get_ws d of
                                   Just i  -> do dr   <- decorate ds (decoWidth t) (decoHeight t) sc stack wrs (w,r)
+                                                dwr  <- check_dwr (find_dw i d, dr)
                                                 dwrs <- resync d xs
-                                                return $ ((w,r),(find_dw i d, dr)) : dwrs
+                                                return $ ((w,r),dwr) : dwrs
                                   Nothing -> resync d xs
 
           -- We drop any windows that are *precisely* stacked underneath
@@ -335,31 +333,25 @@ createDecos :: DecorationStyle ds Window => Theme -> ds Window -> Rectangle -> W
 createDecos t ds sc s wrs ((w,r):xs) = do
   deco <- decorate ds (decoWidth t) (decoHeight t) sc s wrs (w,r)
   case deco of
-    Just dr -> do let mask = Just (exposureMask .|. buttonPressMask)
-                  dw   <- createNewWindow dr mask (inactiveColor t) True
+    Just dr -> do dw   <- createDecoWindow t dr
                   dwrs <- createDecos t ds sc s wrs xs
                   return $ ((w,r), (Just dw, Just dr)) : dwrs
     Nothing -> do dwrs <- createDecos t ds sc s wrs xs
                   return $ ((w,r), (Nothing, Nothing)) : dwrs
 createDecos _ _ _ _ _ [] = return []
 
+createDecoWindow :: Theme -> Rectangle -> X Window
+createDecoWindow t r = let mask = Just (exposureMask .|. buttonPressMask) in
+                       createNewWindow r mask (inactiveColor t) True
+
 showDecos :: [DecoWin] -> X ()
-showDecos (m:mwrs)
-    | (Just w,_) <- m = showWindow w >> showDecos mwrs
-    | otherwise       = showDecos mwrs
-showDecos       []    = return ()
+showDecos = showWindows . catMaybes . map fst
 
 hideDecos :: [DecoWin] -> X ()
-hideDecos (m:mwrs)
-    | (Just w,_) <- m = hideWindow w >> hideDecos mwrs
-    | otherwise       = hideDecos mwrs
-hideDecos       []    = return ()
+hideDecos = hideWindows . catMaybes . map fst
 
 deleteDecos :: [DecoWin] -> X ()
-deleteDecos (m:mwrs)
-    | (Just w,_) <- m = deleteWindow w >> deleteDecos mwrs
-    | otherwise       = deleteDecos mwrs
-deleteDecos       []  = return ()
+deleteDecos = deleteWindows . catMaybes . map fst
 
 updateDecos :: Shrinker s => s -> Theme -> XMonadFont -> [(OrigWin,DecoWin)] -> X ()
 updateDecos s t f = mapM_ $ updateDeco s t f
