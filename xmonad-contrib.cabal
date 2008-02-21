@@ -106,6 +106,7 @@ library
                         XMonad.Layout.DwmStyle
                         XMonad.Layout.Grid
                         XMonad.Layout.HintedTile
+                        XMonad.Layout.IM
                         XMonad.Layout.LayoutCombinators
                         XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
