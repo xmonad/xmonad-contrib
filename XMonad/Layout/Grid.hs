@@ -17,7 +17,7 @@
 module XMonad.Layout.Grid (
     -- * Usage
     -- $usage
-        Grid(..)
+        Grid(..), arrange
 ) where
 
 import XMonad
