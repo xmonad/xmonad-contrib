@@ -25,7 +25,7 @@ module XMonad.Layout.Combo (
 import Data.List ( delete, intersect, (\\) )
 import Data.Maybe ( isJust )
 import XMonad hiding (focus)
-import XMonad.StackSet ( integrate, Stack(..) )
+import XMonad.StackSet ( integrate, Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )
 
@@ -100,8 +100,8 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                          s2 = differentiate f' w2'
                          f' = focus s:delete (focus s) f
                      ([((),r1),((),r2)], msuper') <- doLayout super rinput superstack
-                     (wrs1, ml1') <- runLayout l1 r1 s1
-                     (wrs2, ml2') <- runLayout l2 r2 s2
+                     (wrs1, ml1') <- runLayout (Workspace "" l1 s1) r1
+                     (wrs2, ml2') <- runLayout (Workspace "" l2 s2) r2
                      return (wrs1++wrs2, Just $ C2 f' w2'
                                      (maybe super id msuper') (maybe l1 id ml1') (maybe l2 id ml2'))
     handleMessage (C2 f ws2 super l1 l2) m
