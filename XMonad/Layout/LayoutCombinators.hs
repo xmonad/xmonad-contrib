@@ -46,6 +46,7 @@ module XMonad.Layout.LayoutCombinators
 import Data.Maybe ( isJust, isNothing )
 
 import XMonad hiding ((|||))
+import XMonad.StackSet (Workspace (..))
 import XMonad.Layout.Combo
 import XMonad.Layout.DragPane
 
@@ -159,14 +160,11 @@ data JumpToLayout = JumpToLayout String deriving ( Read, Show, Typeable )
 instance Message JumpToLayout
 
 instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a where
-    doLayout (NewSelect True l1 l2) r s = do (wrs, ml1') <- doLayout l1 r s
-                                             return (wrs, (\l1' -> NewSelect True l1' l2) `fmap` ml1')
-    doLayout (NewSelect False l1 l2) r s = do (wrs, ml2') <- doLayout l2 r s
-                                              return (wrs, (\l2' -> NewSelect False l1 l2') `fmap` ml2')
-    emptyLayout (NewSelect True  l1 l2) r = do (wrs, ml1') <- emptyLayout l1 r
-                                               return (wrs, (\l1' -> NewSelect True l1' l2) `fmap` ml1')
-    emptyLayout (NewSelect False l1 l2) r = do (wrs, ml2') <- emptyLayout l2 r
-                                               return (wrs, (\l2' -> NewSelect False l1 l2') `fmap` ml2')
+    runLayout (Workspace i (NewSelect True l1 l2) ms) r = do (wrs, ml1') <- runLayout (Workspace i l1 ms) r
+                                                             return (wrs, (\l1' -> NewSelect True l1' l2) `fmap` ml1')
+
+    runLayout (Workspace i (NewSelect False l1 l2) ms) r = do (wrs, ml2') <- runLayout (Workspace i l2 ms) r
+                                                              return (wrs, (\l2' -> NewSelect False l1 l2') `fmap` ml2')
     description (NewSelect True l1 _) = description l1
     description (NewSelect False _ l2) = description l2
     handleMessage l@(NewSelect False _ _) m
