@@ -122,9 +122,9 @@ data ToggleStruts = ToggleStruts deriving (Read,Show,Typeable)
 instance Message ToggleStruts
 
 instance LayoutModifier AvoidStruts a where
-    modifyLayout (AvoidStruts b) l r s = do
+    modifyLayout (AvoidStruts b) w r = do
         nr <- if b then fmap ($ r) calcGap else return r
-        doLayout l nr s
+        runLayout w nr
 
     handleMess (AvoidStruts b ) m
         | Just ToggleStruts <- fromMessage m = return $ Just $ AvoidStruts (not b)

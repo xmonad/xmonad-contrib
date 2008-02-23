@@ -21,7 +21,7 @@ module XMonad.Layout.LayoutModifier (
     ) where
 
 import XMonad
-import XMonad.StackSet ( Stack )
+import XMonad.StackSet ( Stack, Workspace (..) )
 
 -- $usage
 -- Use LayoutModifier to help write easy Layouts.
@@ -33,9 +33,9 @@ import XMonad.StackSet ( Stack )
 -- "XMonad.Layout.Magnifier", "XMonad.Layout.NoBorder",
 
 class (Show (m a), Read (m a)) => LayoutModifier m a where
-    modifyLayout :: (LayoutClass l a) => m a -> l a -> Rectangle
-                 -> Stack a -> X ([(a, Rectangle)], Maybe (l a))
-    modifyLayout _ l r s = doLayout l r s
+    modifyLayout :: (LayoutClass l a) => m a -> Workspace WorkspaceId (l a) a
+                 -> Rectangle -> X ([(a, Rectangle)], Maybe (l a))
+    modifyLayout _ w r = runLayout w r
     handleMess :: m a -> SomeMessage -> X (Maybe (m a))
     handleMess m mess | Just Hide <- fromMessage mess             = doUnhook
                       | Just ReleaseResources <- fromMessage mess = doUnhook
@@ -67,20 +67,16 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
               x <> y = x ++ " " ++ y
 
 instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
-    doLayout (ModifiedLayout m l) r s =
-        do (ws, ml') <- modifyLayout m l r s
-           (ws', mm') <- redoLayout m r s ws
+    runLayout (Workspace i (ModifiedLayout m l) ms) r =
+        do (ws, ml')  <- modifyLayout m (Workspace i l ms) r
+           (ws', mm') <- case ms of
+                           Just s  -> redoLayout m r s ws
+                           Nothing -> emptyLayoutMod m r ws
            let ml'' = case mm' of
-                      Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
-                      Nothing -> ModifiedLayout m `fmap` ml'
+                        Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
+                        Nothing -> ModifiedLayout m `fmap` ml'
            return (ws', ml'')
-    emptyLayout (ModifiedLayout m l) r =
-        do (ws, ml') <- emptyLayout l r
-           (ws',mm') <- emptyLayoutMod m r ws
-           let ml'' = case mm' of
-                      Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
-                      Nothing -> ModifiedLayout m `fmap` ml'
-           return (ws', ml'')
+
     handleMessage (ModifiedLayout m l) mess =
         do mm' <- handleMessOrMaybeModifyIt m mess
            ml' <- case mm' of
