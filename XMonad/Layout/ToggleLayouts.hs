@@ -21,6 +21,7 @@ module XMonad.Layout.ToggleLayouts (
     ) where
 
 import XMonad
+import XMonad.StackSet (Workspace (..))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -56,14 +57,11 @@ toggleLayouts :: (LayoutClass lt a, LayoutClass lf a) => lt a -> lf a -> ToggleL
 toggleLayouts = ToggleLayouts False
 
 instance (LayoutClass lt a, LayoutClass lf a) => LayoutClass (ToggleLayouts lt lf) a where
-    doLayout (ToggleLayouts True lt lf) r s = do (ws,mlt') <- doLayout lt r s
-                                                 return (ws,fmap (\lt' -> ToggleLayouts True lt' lf) mlt')
-    doLayout (ToggleLayouts False lt lf) r s = do (ws,mlf') <- doLayout lf r s
-                                                  return (ws,fmap (\lf' -> ToggleLayouts False lt lf') mlf')
-    emptyLayout (ToggleLayouts True lt lf) r = do (ws,mlt') <- emptyLayout lt r
-                                                  return (ws,fmap (\lt' -> ToggleLayouts True lt' lf) mlt')
-    emptyLayout (ToggleLayouts False lt lf) r = do (ws,mlf') <- emptyLayout lf r
-                                                   return (ws,fmap (\lf' -> ToggleLayouts False lt lf') mlf')
+    runLayout (Workspace i (ToggleLayouts True lt lf) ms) r = do (ws,mlt') <- runLayout (Workspace i lt ms) r
+                                                                 return (ws,fmap (\lt' -> ToggleLayouts True lt' lf) mlt')
+
+    runLayout (Workspace i (ToggleLayouts False lt lf) ms) r = do (ws,mlf') <- runLayout (Workspace i lf ms) r
+                                                                  return (ws,fmap (\lf' -> ToggleLayouts False lt lf') mlf')
     description (ToggleLayouts True lt _) = description lt
     description (ToggleLayouts False _ lf) = description lf
     handleMessage (ToggleLayouts bool lt lf) m
