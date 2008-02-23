@@ -52,7 +52,7 @@ onWorkspace :: (LayoutClass l1 a, LayoutClass l2 a)
                -> (l1 a)      -- ^ layout to use on the matched workspace
                -> (l2 a)      -- ^ layout to use everywhere else
                -> PerWorkspace l1 l2 a
-onWorkspace wsId l1 l2 = PerWorkspace [wsId] True l1 l2
+onWorkspace wsId l1 l2 = PerWorkspace [wsId] False l1 l2
 
 -- | Specify one layout to use on a particular set of workspaces, and
 --   another to use on all other workspaces.
@@ -61,7 +61,7 @@ onWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
                 -> (l1 a)         -- ^ layout to use on matched workspaces
                 -> (l2 a)         -- ^ layout to use everywhere else
                 -> PerWorkspace l1 l2 a
-onWorkspaces wsIds l1 l2 = PerWorkspace wsIds True l1 l2
+onWorkspaces wsIds l1 l2 = PerWorkspace wsIds False l1 l2
 
 -- | Structure for representing a workspace-specific layout along with
 -- a layout for all other workspaces. We store the tags of workspaces
