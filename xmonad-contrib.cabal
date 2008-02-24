@@ -101,6 +101,7 @@ library
                         XMonad.Config.Arossato
                         XMonad.Config.Droundy
                         XMonad.Hooks.DynamicLog
+                        XMonad.Hooks.EventHook
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
