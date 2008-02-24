@@ -19,7 +19,7 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.EventHook
-    ( -- * Usage:
+    ( -- * Usage
       -- $usage
 
       -- * Writing a hook
@@ -82,26 +82,26 @@ class (Read eh, Show eh) => EventHook eh where
 
 data HandleEvent eh l a = HandleEvent (Maybe WorkspaceId) Bool eh (l a) deriving ( Show, Read )
 
-data EventHandleMsg = ReceiverOff deriving ( Typeable )
+data EventHandleMsg = HandlerOff deriving ( Typeable )
 instance Message EventHandleMsg
 
 instance (EventHook eh, LayoutClass l a) => LayoutClass (HandleEvent eh l) a where
-    runLayout (Workspace i (HandleEvent Nothing _ eh l) ms) r = do
-      broadcastMessage ReceiverOff
-      iws <- (tag . workspace . current) <$> gets windowset
+    runLayout (Workspace i (HandleEvent Nothing True eh l) ms) r = do
+      broadcastMessage HandlerOff
+      iws       <- (tag . workspace . current) <$> gets windowset
       (wrs, ml) <- runLayout (Workspace i l ms) r
       return (wrs, Just $ HandleEvent (Just iws) True eh (fromMaybe l ml))
 
-    runLayout (Workspace i (HandleEvent j b eh l) ms) r = do
+    runLayout (Workspace i (HandleEvent mi b eh l) ms) r = do
       (wrs, ml) <- runLayout (Workspace i l ms) r
-      return (wrs, Just $ HandleEvent j b eh (fromMaybe l ml))
+      return (wrs, Just $ HandleEvent mi b eh (fromMaybe l ml))
 
-    handleMessage (HandleEvent mi True eh l) m
-        | Just ReceiverOff <- fromMessage m = return . Just $ HandleEvent mi False eh l
-        | Just e           <- fromMessage m = handleEvent eh e >>
-                                              handleMessage l (SomeMessage e) >>=
-                                              maybe (return Nothing) (\l' -> return . Just $ HandleEvent mi True eh l')
-    handleMessage (HandleEvent mi b eh l) m = handleMessage l m >>=
-                                              maybe (return Nothing) (\l' -> return . Just $ HandleEvent mi b eh l')
+    handleMessage (HandleEvent i True eh l) m
+        | Just HandlerOff <- fromMessage m = return . Just $ HandleEvent i False eh l
+        | Just e          <- fromMessage m = handleMessage l (SomeMessage e) >>= \ml ->
+                                             handleEvent eh e >>
+                                             maybe (return Nothing) (\l' -> return . Just $ HandleEvent i True eh l') ml
+    handleMessage (HandleEvent i b eh l) m = handleMessage l m >>=
+                                             maybe (return Nothing) (\l' -> return . Just $ HandleEvent i b    eh l')
 
     description (HandleEvent _ _ _ l) = description l
