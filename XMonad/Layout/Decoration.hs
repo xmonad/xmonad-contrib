@@ -63,7 +63,7 @@ decoration s t ds = ModifiedLayout (Decoration (I Nothing) s t ds)
 -- | A 'Theme' is a record of colors, font etc., to customize a
 -- 'DecorationStyle'.
 --
--- For a collection of 'Theme's see "Xmonad.Util.Themes"
+-- For a collection of 'Theme's see "XMonad.Util.Themes"
 data Theme =
     Theme { activeColor         :: String    -- ^ Color of the active window
           , inactiveColor       :: String    -- ^ Color of the inactive window
