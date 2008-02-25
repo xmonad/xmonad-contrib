@@ -31,7 +31,9 @@ module XMonad.Hooks.ManageHelpers (
     maybeToDefinite,
     MaybeManageHook,
     transience,
-    transience'
+    transience',
+    doRectFloat,
+    doCenterFloat
 ) where
 
 import XMonad
@@ -128,3 +130,17 @@ transience' = maybeToDefinite transience
 -- | converts 'MaybeManageHook's to 'ManageHook's
 maybeToDefinite :: MaybeManageHook -> ManageHook
 maybeToDefinite = fmap (fromMaybe mempty)
+
+
+-- | Floats the new window in the given rectangle.
+doRectFloat :: W.RationalRect  -- ^ The rectangle to float the window in. 0 to 1; x, y, w, h.
+            -> ManageHook
+doRectFloat r = ask >>= \w -> doF (W.float w r)
+
+
+-- | Floats a new window with its original size, but centered.
+doCenterFloat :: ManageHook
+doCenterFloat = ask >>= \w -> doF . W.float w . center . snd =<< liftX (floatLocation w)
+  where center (W.RationalRect _ _ w h)
+            = W.RationalRect ((1-w)/2) ((1-h)/2) w h
+
