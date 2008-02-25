@@ -41,7 +41,11 @@ import Data.Maybe
 --
 -- > import XMonad.Layout.WindowArranger
 -- > myLayout = layoutHook defaultConfig
--- > main = xmonad defaultConfig { layoutHook = windowArranger myLayout }
+-- > main = xmonad defaultConfig { layoutHook = windowArrange myLayout }
+--
+-- or
+--
+-- > main = xmonad defaultConfig { layoutHook = windowArrangeAll myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
