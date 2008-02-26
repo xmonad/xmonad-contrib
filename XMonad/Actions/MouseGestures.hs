@@ -15,8 +15,9 @@
 module XMonad.Actions.MouseGestures (
     -- * Usage
     -- $usage
-        Direction(..),
-    mouseGesture
+    Direction(..),
+    mouseGesture,
+    mouseGestureH
 ) where
 
 import XMonad
@@ -32,7 +33,7 @@ import System.IO
 --
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import XMonad.Actions.Commands
+-- > import XMonad.Actions.MouseGestures
 -- > import qualified XMonad.StackSet as W
 --
 -- then add an appropriate mouse binding:
@@ -81,36 +82,50 @@ dir (ax, ay) (bx, by) = trans . (/ pi) $ atan2 (fromIntegral $ ay - by) (fromInt
 debugging :: Int
 debugging = 0
 
-collect :: IORef (Pos, [(Direction, Pos, Pos)]) -> Position -> Position -> X ()
-collect st nx ny = do
+collect :: ([Direction] -> X ()) -> IORef (Pos, [(Direction, Pos, Pos)]) -> Position -> Position -> X ()
+collect hook st nx ny = do
     let np = (nx, ny)
     stx@(op, ds) <- io $ readIORef st
+    let
+        stx' =
+            case ds of
+            []
+                | insignificant np op -> stx
+                | otherwise -> (op, [(dir op np, np, op)])
+            (d, zp, ap_) : ds'
+                | insignificant np zp -> stx
+                | otherwise ->
+                    let
+                        d' = dir zp np
+                        ds''
+                            | d == d'   = (d, np, ap_) : ds'
+                            | otherwise = (d', np, zp) : ds
+                    in (op, ds'')
     when (debugging > 0)
-        . io . hPutStrLn stderr $ show "Mouse Gesture" ++ unwords (map show (extract stx)) ++ (if debugging > 1 then "; " ++ show op ++ "-" ++ show np else "")
-    case ds of
-        []
-            | insignificant np op -> return ()
-            | otherwise -> io $ writeIORef st (op, [(dir op np, np, op)])
-        (d, zp, ap_) : ds'
-            | insignificant np zp -> return ()
-            | otherwise -> do
-                let
-                    d' = dir zp np
-                    ds''
-                        | d == d'   = (d, np, ap_) : ds'
-                        | otherwise = (d', np, zp) : ds
-                io $ writeIORef st (op, ds'')
+        . io . hPutStrLn stderr $ show "Mouse Gesture" ++ unwords (map show (extract stx')) ++ (if debugging > 1 then "; " ++ show op ++ "-" ++ show np else "")
+    hook (extract stx')
+    io $ writeIORef st stx'
     where
     insignificant a b = delta a b < 10
 
 extract :: (Pos, [(Direction, Pos, Pos)]) -> [Direction]
 extract (_, xs) = reverse . map (\(x, _, _) -> x) $ xs
 
--- | Given a 'Data.Map.Map' from lists of directions to actions with
---   windows, figure out which one the user is performing, and return
---   the corresponding action.
+-- | A utility function on top of 'mouseGestureH'. It uses a 'Data.Map.Map' to
+-- look up the mouse gesture, then executes the corresponding action (if any).
 mouseGesture :: Map [Direction] (Window -> X ()) -> Window -> X ()
-mouseGesture tbl win = withDisplay $ \dpy -> do
+mouseGesture tbl =
+    mouseGestureH (const . const $ return ()) $ \win gest ->
+        case M.lookup gest tbl of
+            Nothing -> return ()
+            Just f -> f win
+
+-- | @'mouseGestureH' moveHook endHook gestures window@ is a mouse button
+-- event handler. It collects mouse movements, calling @moveHook@ for each
+-- update; when the button is released, it calls @endHook@ with the resulting
+-- gesture.
+mouseGestureH :: (Window -> [Direction] -> X ()) -> (Window -> [Direction] -> X ()) -> Window -> X ()
+mouseGestureH moveHook endHook win = withDisplay $ \dpy -> do
     when (debugging > 1)
         . io . hPutStrLn stderr $ "mouseGesture " ++ show (win, dpy)
     root <- asks theRoot
@@ -122,9 +137,7 @@ mouseGesture tbl win = withDisplay $ \dpy -> do
         when (debugging > 1 && win' == none)
             . hPutStrLn stderr $ show "mouseGesture" ++ "zomg none"
         newIORef ((fromIntegral ix, fromIntegral iy), [])
-    mouseDrag (collect acc) $ do
+    mouseDrag (collect (moveHook win') acc) $ do
         when (debugging > 0) . io . hPutStrLn stderr $ show ""
         gest <- io $ liftM extract $ readIORef acc
-        case M.lookup gest tbl of
-            Nothing -> return ()
-            Just f -> f win'
+        endHook win' gest
