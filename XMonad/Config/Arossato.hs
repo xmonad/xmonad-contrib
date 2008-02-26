@@ -28,6 +28,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ServerMode
 import XMonad.Layout.Accordion
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Magnifier
@@ -90,7 +91,8 @@ arossatoConfig = do
                                 map show [7 .. 9 :: Int]
          , logHook            = myDynLog xmobar -- REMOVE this line if you do not have xmobar installed!
          , manageHook         = newManageHook
-         , layoutHook         = avoidStruts $
+         , layoutHook         = eventHook ServerMode $
+                                avoidStruts $
                                 decorated        |||
                                 noBorders mytabs |||
                                 otherLays
