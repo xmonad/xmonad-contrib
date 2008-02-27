@@ -51,13 +51,13 @@ import qualified XMonad.StackSet
 
 
 -- | Complete key binding. Pops up the terminal on mod+s.
-scratchpadSpawnDefault :: XConfig Layout -- ^ The configuration, to retrieve terminal and modMask
+scratchpadSpawnDefault :: XConfig l -- ^ The configuration, to retrieve terminal and modMask
                        -> ((KeyMask, KeySym), X ())
 scratchpadSpawnDefault conf = ((modMask conf, xK_s), scratchpadSpawnAction conf)
 
 
 -- | Action to pop up the terminal, for the user to bind to a custom key.
-scratchpadSpawnAction :: XConfig Layout -- ^ The configuration, to retrieve the terminal
+scratchpadSpawnAction :: XConfig l -- ^ The configuration, to retrieve the terminal
                       -> X ()
 scratchpadSpawnAction conf = spawn $ terminal conf ++ " -title scratchpad"
 
