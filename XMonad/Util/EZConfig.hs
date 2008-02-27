@@ -24,7 +24,7 @@ module XMonad.Util.EZConfig (
                              removeKeys, removeKeysP,
                              additionalMouseBindings, removeMouseBindings,
 
-                             -- * Nicer keybinding specifications
+                             -- * Emacs-style keybinding specifications
 
                              mkKeymap, checkKeymap,
                             ) where
@@ -46,8 +46,20 @@ import Text.ParserCombinators.ReadP
 -- > import XMonad.Util.EZConfig
 --
 -- Then, use one of the provided functions to modify your
--- configuration. See the documentation provided with each exported
--- function for more information.
+-- configuration.  You can use 'additionalKeys', 'removeKeys',
+-- 'additionalMouseBindings', and 'removeMouseBindings' to easily add
+-- and remove keybindings or mouse bindings.  You can use 'mkKeymap'
+-- to create a keymap using emacs-style keybinding specifications
+-- like @\"M-x\"@ instead of @(modMask, xK_x)@, or 'additionalKeysP'
+-- and 'removeKeysP' to easily add or remove emacs-style keybindings.
+-- If you use emacs-style keybindings, the 'checkKeymap' function is
+-- provided, suitable for adding to your 'startupHook', which can warn
+-- you of any parse errors or duplicate bindings in your keymap.
+--
+-- For more information and usage eamples, see the documentation
+-- provided with each exported function, and check the xmonad config
+-- archive (<http://haskell.org/haskellwiki/Xmonad/Config_archive>)
+-- for some real examples of use.
 
 -- |
 -- Add or override keybindings from the existing set. Example use:
