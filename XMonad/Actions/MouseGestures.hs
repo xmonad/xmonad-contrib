@@ -16,8 +16,9 @@ module XMonad.Actions.MouseGestures (
     -- * Usage
     -- $usage
     Direction(..),
+    mouseGestureH,
     mouseGesture,
-    mouseGestureH
+    mkCollect
 ) where
 
 import XMonad
@@ -25,9 +26,8 @@ import XMonad
 import Data.IORef
 import qualified Data.Map as M
 import Data.Map (Map)
+import Data.Maybe
 import Control.Monad
-
-import System.IO
 
 -- $usage
 --
@@ -79,65 +79,63 @@ dir (ax, ay) (bx, by) = trans . (/ pi) $ atan2 (fromIntegral $ ay - by) (fromInt
         | otherwise          = L
     rg a z x = a <= x && x < z
 
-debugging :: Int
-debugging = 0
-
-collect :: ([Direction] -> X ()) -> IORef (Pos, [(Direction, Pos, Pos)]) -> Position -> Position -> X ()
-collect hook st nx ny = do
+gauge :: (Direction -> X ()) -> Pos -> IORef (Maybe (Direction, Pos)) -> Position -> Position -> X ()
+gauge hook op st nx ny = do
     let np = (nx, ny)
-    stx@(op, ds) <- io $ readIORef st
+    stx <- io $ readIORef st
     let
-        stx' =
-            case ds of
-            []
-                | insignificant np op -> stx
-                | otherwise -> (op, [(dir op np, np, op)])
-            (d, zp, ap_) : ds'
-                | insignificant np zp -> stx
-                | otherwise ->
-                    let
-                        d' = dir zp np
-                        ds''
-                            | d == d'   = (d, np, ap_) : ds'
-                            | otherwise = (d', np, zp) : ds
-                    in (op, ds'')
-    when (debugging > 0)
-        . io . hPutStrLn stderr $ show "Mouse Gesture" ++ unwords (map show (extract stx')) ++ (if debugging > 1 then "; " ++ show op ++ "-" ++ show np else "")
-    hook (extract stx')
-    io $ writeIORef st stx'
+        (~(Just od), pivot) = case stx of
+            Nothing -> (Nothing, op)
+            Just (d, zp) -> (Just d, zp)
+        cont = do
+            guard $ significant np pivot
+            return $ do
+                let d' = dir pivot np
+                when (isNothing stx || od /= d') $ hook d'
+                io $ writeIORef st (Just (d', np))
+    fromMaybe (return ()) cont
     where
-    insignificant a b = delta a b < 10
+    significant a b = delta a b >= 10
 
-extract :: (Pos, [(Direction, Pos, Pos)]) -> [Direction]
-extract (_, xs) = reverse . map (\(x, _, _) -> x) $ xs
+-- | @'mouseGestureH' moveHook endHook@ is a mouse button
+-- event handler. It collects mouse movements, calling @moveHook@ for each
+-- update; when the button is released, it calls @endHook@.
+mouseGestureH :: (Direction -> X ()) -> X () -> X ()
+mouseGestureH moveHook endHook = do
+    dpy <- asks display
+    root <- asks theRoot
+    (pos, acc) <- io $ do
+        (_, _, _, ix, iy, _, _, _) <- queryPointer dpy root
+        r <- newIORef Nothing
+        return ((fromIntegral ix, fromIntegral iy), r)
+    mouseDrag (gauge moveHook pos acc) endHook
 
 -- | A utility function on top of 'mouseGestureH'. It uses a 'Data.Map.Map' to
 -- look up the mouse gesture, then executes the corresponding action (if any).
 mouseGesture :: Map [Direction] (Window -> X ()) -> Window -> X ()
-mouseGesture tbl =
-    mouseGestureH (const . const $ return ()) $ \win gest ->
+mouseGesture tbl win = do
+    (mov, end) <- mkCollect
+    mouseGestureH (\d -> mov d >> return ()) $ end >>= \gest ->
         case M.lookup gest tbl of
             Nothing -> return ()
             Just f -> f win
 
--- | @'mouseGestureH' moveHook endHook gestures window@ is a mouse button
--- event handler. It collects mouse movements, calling @moveHook@ for each
--- update; when the button is released, it calls @endHook@ with the resulting
--- gesture.
-mouseGestureH :: (Window -> [Direction] -> X ()) -> (Window -> [Direction] -> X ()) -> Window -> X ()
-mouseGestureH moveHook endHook win = withDisplay $ \dpy -> do
-    when (debugging > 1)
-        . io . hPutStrLn stderr $ "mouseGesture " ++ show (win, dpy)
-    root <- asks theRoot
-    let win' = if win == none then root else win
-    acc <- io $ do
-        qp@(_, _, _, ix, iy, _, _, _) <- queryPointer dpy win'
-        when (debugging > 1)
-            . hPutStrLn stderr $ show "queryPointer" ++ show qp
-        when (debugging > 1 && win' == none)
-            . hPutStrLn stderr $ show "mouseGesture" ++ "zomg none"
-        newIORef ((fromIntegral ix, fromIntegral iy), [])
-    mouseDrag (collect (moveHook win') acc) $ do
-        when (debugging > 0) . io . hPutStrLn stderr $ show ""
-        gest <- io $ liftM extract $ readIORef acc
-        endHook win' gest
+-- | A callback generator for 'mouseGestureH'. 'mkCollect' returns two
+-- callback functions for passing to 'mouseGestureH'. The move hook will
+-- collect mouse movements (and return the current gesture as a list); the end
+-- hook will return a list of the completed gesture, which you can access with
+-- 'Control.Monad.>>='.
+mkCollect :: (MonadIO m) => m (Direction -> X [Direction], X [Direction])
+mkCollect = liftIO $ do
+    acc <- newIORef []
+    let
+        mov d = io $ do
+            ds <- readIORef acc
+            let ds' = d : ds
+            writeIORef acc ds'
+            return $ reverse ds'
+        end = io $ do
+            ds <- readIORef acc
+            writeIORef acc []
+            return $ reverse ds
+    return (mov, end)
