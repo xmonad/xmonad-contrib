@@ -12,11 +12,11 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Prompt.Ssh(
-                             -- * Usage
-                             -- $usage
-                             sshPrompt
-                              ) where
+module XMonad.Prompt.Ssh
+    ( -- * Usage
+      -- $usage
+      sshPrompt
+    ) where
 
 import XMonad
 import XMonad.Util.Run
