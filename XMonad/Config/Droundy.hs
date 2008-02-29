@@ -26,6 +26,7 @@ import XMonad.Layout.Combo
 import XMonad.Layout.Mosaic
 import XMonad.Layout.Named
 import XMonad.Layout.LayoutCombinators
+import XMonad.Layout.Simplest
 import XMonad.Layout.Square
 import XMonad.Layout.LayoutScreens
 import XMonad.Layout.WindowNavigation
@@ -33,6 +34,7 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.WorkspaceDir
 import XMonad.Layout.ToggleLayouts
 import XMonad.Layout.ShowWName
+import XMonad.Layout.ScratchWorkspace
 
 import XMonad.Prompt
 import XMonad.Prompt.Layout
@@ -111,6 +113,8 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
     , ((modMask x, xK_l ), layoutPrompt myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
+    , ((modMask x .|. controlMask .|. shiftMask, xK_space),
+       toggleScratchWorkspace (Simplest */* Simplest) )
 
 -- keybindings for Mosaic:
     , ((controlMask .|. modMask x .|. shiftMask, xK_h), withFocused (sendMessage . tallWindow))
@@ -132,7 +136,7 @@ config = -- withUrgencyHook FocusUrgencyHook $
          withUrgencyHook NoUrgencyHook $
          defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
-         , XMonad.workspaces = ["1:mutt","2:iceweasel"]
+         , XMonad.workspaces = ["mutt","iceweasel","*scratch*"]
          , layoutHook = showWName $ workspaceDir "~" $ windowNavigation $
                         toggleLayouts (noBorders Full) $ avoidStruts $
                         named "tabbed" (noBorders mytab) |||
@@ -167,10 +171,12 @@ instance Shrinker CustomShrink where
     shrinkIt _ s = shrinkIt shrinkText s
 
 dropFromTail :: String -> String -> Maybe String
+dropFromTail "" _ = Nothing
 dropFromTail t s | drop (length s - length t) s == t = Just $ take (length s - length t) s
                  | otherwise = Nothing
 
 dropFromHead :: String -> String -> Maybe String
+dropFromHead "" _ = Nothing
 dropFromHead h s | take (length h) s == h = Just $ drop (length h) s
                  | otherwise = Nothing
 

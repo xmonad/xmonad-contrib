@@ -124,6 +124,7 @@ library
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
+                        XMonad.Layout.ScratchWorkspace
                         XMonad.Layout.Simplest
                         XMonad.Layout.SimpleDecoration
                         XMonad.Layout.SimpleFloat
