@@ -48,7 +48,9 @@ import Data.Maybe
 data Ssh = Ssh
 
 instance XPrompt Ssh where
-    showXPrompt Ssh = "SSH to: "
+    showXPrompt       Ssh = "SSH to: "
+    commandToComplete _ c = c
+    nextCompletion      _ = getNextCompletion
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
@@ -88,7 +90,7 @@ sshComplListFile kh = do
 sshComplListFile' :: String -> IO [String]
 sshComplListFile' kh = do
   l <- readFile kh
-  return $ map (takeWhile (/= ',') . concat . take 1 . words)
+  return $ map (getWithPort . takeWhile (/= ',') . concat . take 1 . words)
          $ filter nonComment
          $ lines l
 
@@ -103,3 +105,11 @@ nonComment []      = False
 nonComment ('#':_) = False
 nonComment ('|':_) = False -- hashed, undecodeable
 nonComment _       = True
+
+getWithPort :: String -> String
+getWithPort ('[':str) = host ++ " -p " ++ port
+    where (host,p) = break (==']') str
+          port = case p of
+                   ']':':':x -> x
+                   _         -> "22"
+getWithPort  str = str
