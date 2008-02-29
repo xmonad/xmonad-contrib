@@ -18,6 +18,7 @@ module XMonad.Layout.Tabbed
     ( -- * Usage:
       -- $usage
       simpleTabbed, tabbed, addTabs
+    , simpleTabbedBottom, tabbedBottom, addTabsBottom
     , Theme (..)
     , defaultTheme
     , TabbedDecoration (..)
@@ -76,27 +77,50 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 simpleTabbed :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
 simpleTabbed = decoration shrinkText defaultTheme Tabbed Simplest
 
+-- | A bottom-tabbed layout with the default xmonad Theme.
+simpleTabbedBottom :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
+simpleTabbedBottom = decoration shrinkText defaultTheme TabbedBottom Simplest
+
 -- | A layout decorated with tabs and the possibility to set a custom
 -- shrinker and a custom theme.
 tabbed :: (Eq a, Shrinker s) => s -> Theme
        -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbed s c = decoration s c Tabbed Simplest
 
+-- | A layout decorated with tabs at the bottom and the possibility to set a custom
+-- shrinker and a custom theme.
+tabbedBottom :: (Eq a, Shrinker s) => s -> Theme
+       -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbedBottom s c = decoration s c TabbedBottom Simplest
+
 addTabs :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
         -> ModifiedLayout (Decoration TabbedDecoration s) l a
 addTabs s c l = decoration s c Tabbed l
 
-data TabbedDecoration a = Tabbed deriving (Read, Show)
+addTabsBottom :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
+        -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabsBottom s c l = decoration s c TabbedBottom l
+
+data TabbedDecoration a = Tabbed | TabbedBottom deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabbedDecoration a where
-    describeDeco  _ = "Tabbed"
+    describeDeco Tabbed = "Tabbed"
+    describeDeco TabbedBottom = "Tabbed Bottom"
     decorationMouseDragHook _ _ _ = return ()
-    pureDecoration _ _ ht _ s wrs (w,r@(Rectangle x y wh _)) =
-            if length wrs' <= 1 then Nothing
-                                else Just $ Rectangle nx y nwh (fi ht)
+    pureDecoration ds _ ht _ s wrs (w,r@(Rectangle x y wh hh)) =
+            if length wrs' <= 1
+                then Nothing
+                else Just $ case ds of
+                    Tabbed -> Rectangle nx y nwh (fi ht)
+                    TabbedBottom -> Rectangle nx (y+fi(hh-ht)) nwh (fi ht)
+
         where wrs' = filter ((==r) . snd) wrs
               ws = map fst wrs'
               nwh = wh `div` max 1 (fi $ length wrs')
               nx  = case elemIndex w $ filter (`elem` ws) (S.integrate s) of
                       Just i  -> x + (fi nwh * fi i)
                       Nothing -> x
+
+    shrink ds (Rectangle _ _ _ dh) (Rectangle x y w h) = case ds of
+        Tabbed -> Rectangle x (y + fi dh) w (h - dh)
+        TabbedBottom -> Rectangle x y w (h - dh)
