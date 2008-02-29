@@ -22,12 +22,11 @@ module XMonad.Actions.DynamicWorkspaces (
                                          toNthWorkspace, withNthWorkspace
                                        ) where
 
-import Data.List ( sort )
-
 import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace
 import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )
+import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -63,7 +62,8 @@ mkCompl l s = return $ filter (\x -> take (length s) x == s) l
 
 withWorkspace :: XPConfig -> (String -> X ()) -> X ()
 withWorkspace c job = do ws <- gets (workspaces . windowset)
-                         let ts = sort $ map tag ws
+                         sort <- getSortByIndex
+                         let ts = map tag $ sort ws
                              job' t | t `elem` ts = job t
                                     | otherwise = addHiddenWorkspace t >> job t
                          mkXPrompt (Wor "") c (mkCompl ts) job'
@@ -76,13 +76,15 @@ renameWorkspace conf = workspacePrompt conf $ \w ->
                                        in sets $ removeWorkspace' w s
 
 toNthWorkspace :: (String -> X ()) -> Int -> X ()
-toNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windowset)
+toNthWorkspace job wnum = do sort <- getSortByIndex
+                             ws <- gets (map tag . sort . workspaces . windowset)
                              case drop wnum ws of
                                (w:_) -> job w
                                [] -> return ()
 
 withNthWorkspace :: (String -> WindowSet -> WindowSet) -> Int -> X ()
-withNthWorkspace job wnum = do ws <- gets (sort . map tag . workspaces . windowset)
+withNthWorkspace job wnum = do sort <- getSortByIndex
+                               ws <- gets (map tag . sort . workspaces . windowset)
                                case drop wnum ws of
                                  (w:_) -> windows $ job w
                                  [] -> return ()
