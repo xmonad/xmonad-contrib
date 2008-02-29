@@ -125,16 +125,16 @@ mouseGesture tbl win = do
 -- collect mouse movements (and return the current gesture as a list); the end
 -- hook will return a list of the completed gesture, which you can access with
 -- 'Control.Monad.>>='.
-mkCollect :: (MonadIO m) => m (Direction -> X [Direction], X [Direction])
+mkCollect :: (MonadIO m, MonadIO m') => m (Direction -> m' [Direction], m' [Direction])
 mkCollect = liftIO $ do
     acc <- newIORef []
     let
-        mov d = io $ do
+        mov d = liftIO $ do
             ds <- readIORef acc
             let ds' = d : ds
             writeIORef acc ds'
             return $ reverse ds'
-        end = io $ do
+        end = liftIO $ do
             ds <- readIORef acc
             writeIORef acc []
             return $ reverse ds
