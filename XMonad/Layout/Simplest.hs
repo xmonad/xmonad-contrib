@@ -37,5 +37,5 @@ import qualified XMonad.StackSet as S
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data Simplest a = Simplest deriving (Show, Read)
-instance LayoutClass Simplest Window where
+instance LayoutClass Simplest a where
     pureLayout Simplest rec (S.Stack w l r) = zip (w : reverse l ++ r) (repeat rec)
