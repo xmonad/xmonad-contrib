@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Simplest
