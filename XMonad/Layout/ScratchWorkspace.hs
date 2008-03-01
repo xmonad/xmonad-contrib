@@ -39,9 +39,11 @@ toggleScratchWorkspace l =
                                 pickRect _ [z] = z
                                 pickRect i (z:zs) | i < 1 = z
                                                   | otherwise = pickRect (i-1) zs
+                                pickRect _ [] = error "XMonad.Layout.ScratchWorkspace.toggleScratchWorkspace: internal error"
                       s' = case catMaybes $ map modscr $ W.current s : W.visible s of
                            newc:newv -> s { W.current = newc, W.visible = newv,
                                             W.hidden = W.workspace scratch : W.hidden s}
+                           [] -> error "XMonad.Layout.ScratchWorkspace.toggleScratchWorkspace: internal error"
                   modify $ \st -> st { windowset = s' }
                   refresh
          Nothing ->
@@ -62,16 +64,15 @@ toggleScratchWorkspace l =
                                         W.hidden = filter (not . isScratchW) $ W.hidden s }
                            modify $ \st -> st { windowset = s' }
                            refresh
+    where visibleScratch s = listToMaybe $ filter isScratch $ W.current s : W.visible s
+          hiddenScratch s = listToMaybe $ filter isScratchW $ W.hidden s
+          isScratchW w = scratchName == W.tag w
+          isScratch scr = scratchName == W.tag (W.workspace scr)
+--          notScratch scr = scratchName /= W.tag (W.workspace scr)
+
 
 scratchName :: String
 scratchName = "*scratch*"
 
-visibleScratch s = listToMaybe $ filter isScratch $ W.current s : W.visible s
-hiddenScratch s = listToMaybe $ filter isScratchW $ W.hidden s
-
-isScratchW w = scratchName == W.tag w
-isScratch scr = scratchName == W.tag (W.workspace scr)
-notScratch scr = scratchName /= W.tag (W.workspace scr)
-
-isScratchVisible :: X Bool
-isScratchVisible = gets (elem scratchName . map (W.tag . W.workspace) . W.visible . windowset)
+-- isScratchVisible :: X Bool
+-- isScratchVisible = gets (elem scratchName . map (W.tag . W.workspace) . W.visible . windowset)
