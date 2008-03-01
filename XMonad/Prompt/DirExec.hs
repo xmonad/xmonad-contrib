@@ -20,7 +20,7 @@ module XMonad.Prompt.DirExec
     ( -- * Usage
       -- $usage
       dirExecPrompt
-    , dirExecPromptWithName
+    , dirExecPromptNamed
     ) where
 
 import System.Directory
@@ -36,16 +36,26 @@ import XMonad.Prompt
 --
 -- 2. In your keybindings add something like:
 --
--- >   , ("M-C-x", dirExecPrompt defaultXPConfig "/home/joe/.scipts")
+-- >   , ("M-C-x", dirExecPrompt defaultXPConfig spawn "/home/joe/.scipts")
 --
 -- or
 --
--- >   , ("M-C-x", dirExecPromptWithName defaultXPConfig "/home/joe/.scripts"
--- >                                                     "My Scripts: ")
+-- >   , ("M-C-x", dirExecPromptNamed defaultXPConfig spawn
+-- >                                  "/home/joe/.scripts" "My Scripts: ")
+--
+-- or add this after your default bindings:
+--
+-- >   ++
+-- >   [ ("M-x " ++ key, dirExecPrompt defaultXPConfig fn "/home/joe/.scripts")
+-- >     | (key, fn) <- [ ("x", spawn), ("M-x", runInTerm "-hold") ]
+-- >   ]
+-- >   ++
 --
 -- The first alternative uses the last element of the directory path for
 -- a name of prompt. The second alternative uses the provided string
--- for the name of the prompt.
+-- for the name of the prompt. The third alternative defines 2 key bindings,
+-- first one spawns the program by shell, second one runs the program in
+-- terminal
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
@@ -60,22 +70,24 @@ instance XPrompt DirExec where
 -- from the last element of the path. If you specify root directory - @/@ - as
 -- the path, name @Root:@ will be used as the name of the prompt instead. The
 -- 'XPConfig' parameter can be used to customize visuals of the prompt.
-dirExecPrompt :: XPConfig -> FilePath -> X ()
-dirExecPrompt cfg path = do
+-- The runner parameter specifies the function used to run the program - see
+-- usage for more information
+dirExecPrompt :: XPConfig -> (String -> X ()) -> FilePath -> X ()
+dirExecPrompt cfg runner path = do
     let name = (++ ": ") . last
                          . (["Root"] ++) -- handling of "/" path parameter
                          . words
                          . map (\x -> if x == '/' then ' ' else x)
                          $ path
-    dirExecPromptWithName cfg path name
+    dirExecPromptNamed cfg runner path name
 
--- | Function 'dirExecPromptWithName' does the same as 'dirExecPrompt' except
+-- | Function 'dirExecPromptNamed' does the same as 'dirExecPrompt' except
 -- the name of the prompt is specified by 'String' parameter.
-dirExecPromptWithName :: XPConfig -> FilePath -> String -> X ()
-dirExecPromptWithName cfg path name = do
+dirExecPromptNamed :: XPConfig -> (String -> X ()) -> FilePath -> String -> X ()
+dirExecPromptNamed cfg runner path name = do
     let path' = path ++ "/"
     cmds <- io $ getDirectoryExecutables path'
-    mkXPrompt (DirExec name) cfg (compList cmds) (spawn . (path' ++))
+    mkXPrompt (DirExec name) cfg (compList cmds) (runner . (path' ++))
     where
         compList cmds s = return . filter (isInfixOf s) $ cmds
 
