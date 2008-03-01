@@ -82,6 +82,7 @@ library
                         XMonad.Actions.Submap
                         XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows
+                        XMonad.Actions.UpdatePointer
                         XMonad.Actions.Warp
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
