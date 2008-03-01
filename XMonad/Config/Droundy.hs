@@ -137,9 +137,9 @@ config = -- withUrgencyHook FocusUrgencyHook $
          defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel","*scratch*"]
-         , layoutHook = showWName $ workspaceDir "~" $ windowNavigation $
-                        toggleLayouts (noBorders Full) $ avoidStruts $
-                        named "tabbed" (noBorders mytab) |||
+         , layoutHook = showWName $ workspaceDir "~" $ smartBorders $ windowNavigation $
+                        toggleLayouts Full $ avoidStruts $
+                        named "tabbed" mytab |||
                         named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
                         named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
                         named "widescreen" ((mytab *||* mytab)
