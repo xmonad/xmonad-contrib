@@ -117,7 +117,8 @@ paintAndWrite :: Window     -- ^ The window where to draw
               -> String     -- ^ String to be printed
               -> X ()
 paintAndWrite w fs wh ht bw bc borc ffc fbc al str = do
-    (x,y) <- stringPosition fs (Rectangle 0 0 wh ht) al str
+    d <- asks display
+    (x,y) <- stringPosition d fs (Rectangle 0 0 wh ht) al str
     paintWindow' w (Rectangle x y wh ht) bw bc borc ms
     where ms    = Just (fs,ffc,fbc,str)
 

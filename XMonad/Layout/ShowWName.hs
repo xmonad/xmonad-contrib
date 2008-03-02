@@ -91,8 +91,8 @@ flashName c (Rectangle _ _ wh ht) wrs = do
   d <- asks display
   n <- withWindowSet (return . S.tag . S.workspace . S.current)
   f <- initXMF (swn_font c)
-  width       <- textWidthXMF d f n
-  (_,as,ds,_) <- textExtentsXMF f n
+  width   <- textWidthXMF d f n
+  (as,ds) <- textExtentsXMF f n
   let hight = as + ds
       y     = (fi ht - hight + 2) `div` 2
       x     = (fi wh - width + 2) `div` 2

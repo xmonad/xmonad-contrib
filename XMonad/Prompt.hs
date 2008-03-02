@@ -41,6 +41,8 @@ module XMonad.Prompt
     , splitInSubListsAt
     , breakAtSpace
     , uniqSort
+    , decodeInput
+    , encodeOutput
     ) where
 
 import XMonad  hiding (config, io)
@@ -336,7 +338,7 @@ keyPressHandle mask (ks,_)
 -- insert a character
 keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
-    | otherwise = do insertString s
+    | otherwise = do insertString (decodeInput s)
                      updateWindows
                      eventLoop handle
 
@@ -504,7 +506,7 @@ printPrompt drw = do
       ht = height c
   fsl <- io $ textWidthXMF (dpy st) fs f
   psl <- io $ textWidthXMF (dpy st) fs p
-  (_,asc,desc,_) <- io $ textExtentsXMF fs str
+  (asc,desc) <- io $ textExtentsXMF fs str
   let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
       x = (asc + desc) `div` 2
 
@@ -571,7 +573,7 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
-  (_,asc,desc,_) <- io $ textExtentsXMF fs $ head compl
+  (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
