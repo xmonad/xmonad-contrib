@@ -74,6 +74,7 @@ library
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
                         XMonad.Actions.NoBorders
+                        XMonad.Actions.PerWorkspaceKeys
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
