@@ -12,7 +12,7 @@
 -- A module for accessing and manipulating the X Window mouse selection (used in copy and pasting).
 -- getSelection and putSelection are adaptations of Hxsel.hs and Hxput.hs from XMonad-utils, available:
 --
--- $ darcs get "http:\/\/gorgias.mine.nu\/repos\/xmonad-utils"
+-- $ darcs get <http://gorgias.mine.nu/repos/xmonad-utils>
 -----------------------------------------------------------------------------
 
 module XMonad.Util.XSelection (

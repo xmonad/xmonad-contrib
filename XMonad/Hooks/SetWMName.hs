@@ -23,7 +23,7 @@
 -- need to do it once per XMonad execution)
 --
 -- For details on the problems with running Java GUI programs in non-reparenting
--- WMs, see "http:\/\/bugs.sun.com\/bugdatabase\/view_bug.do?bug_id=6429775" and
+-- WMs, see <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6429775> and
 -- related bugs.
 --
 -- Setting WM name to "compiz" does not solve the problem, because of yet
