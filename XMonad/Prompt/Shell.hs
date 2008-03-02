@@ -54,7 +54,7 @@ instance XPrompt Shell where
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
     cmds <- io $ getCommands
-    mkXPrompt Shell c (getShellCompl cmds) spawn
+    mkXPrompt Shell c (getShellCompl cmds) (spawn . encodeOutput)
 
 -- | See safe and unsafeSpawn. prompt is an alias for safePrompt;
 -- safePrompt and unsafePrompt work on the same principles, but will use
@@ -73,20 +73,20 @@ shellPrompt c = do
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
 safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run = safeSpawn c
+    where run = safeSpawn c . encodeOutput
 unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run a = unsafeSpawn $ c ++ " " ++ a
+    where run a = unsafeSpawn $ c ++ " " ++ encodeOutput a
 
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
                      | otherwise                = do
-    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ s ++ "\n")
+    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ encodeOutput s ++ "\n")
     files <- case f of
                [x] -> do fs <- getFileStatus x
                          if isDirectory fs then return [x ++ "/"]
                                            else return [x]
                _   -> return f
-    return . uniqSort $ files ++ commandCompletionFunction cmds s
+    return . map decodeInput . uniqSort $ files ++ commandCompletionFunction cmds s
 
 commandCompletionFunction :: [String] -> String -> [String]
 commandCompletionFunction cmds str | '/' `elem` str = []
