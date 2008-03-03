@@ -62,7 +62,7 @@ runProcessWithInput cmd args input = do
     waitForProcess ph
     return output
 
--- | Wait is in us
+-- | Wait is in µs (microseconds)
 runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
 runProcessWithInputAndWait cmd args input timeout = do
     doubleFork $ do
