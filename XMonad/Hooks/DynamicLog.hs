@@ -30,7 +30,7 @@ module XMonad.Hooks.DynamicLog (
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
-    PP(..), defaultPP, dzenPP, sjanssenPP, byorgeyPP,
+    PP(..), defaultPP, dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
     -- * Formatting utilities
     wrap, pad, shorten,
