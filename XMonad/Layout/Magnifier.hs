@@ -123,7 +123,7 @@ unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
 
 applyMagnifier :: Double -> Rectangle -> t -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe a)
 applyMagnifier z r _ wrs = do focused <- withWindowSet (return . peek)
-                              let mag (w,wr) ws | focused == Just w = ws ++ [(w, shrink r $ magnify z wr)]
+                              let mag (w,wr) ws | focused == Just w = ws ++ [(w, fit r $ magnify z wr)]
                                                 | otherwise         = (w,wr) : ws
                               return (reverse $ foldr mag [] wrs, Nothing)
 
@@ -134,9 +134,12 @@ magnify zoom (Rectangle x y w h) = Rectangle x' y' w' h'
           w' = round $ fromIntegral w * zoom
           h' = round $ fromIntegral h * zoom
 
-shrink :: Rectangle -> Rectangle -> Rectangle
-shrink (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'
-    where x' = max sx x
-          y' = max sy y
-          w' = min w (fromIntegral sx + sw - fromIntegral x')
-          h' = min h (fromIntegral sy + sh - fromIntegral y')
+fit :: Rectangle -> Rectangle -> Rectangle
+fit (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'
+    where x' = max sx (x - (max 0 (x + fi w - sx - fi sw)))
+          y' = max sy (y - (max 0 (y + fi h - sy - fi sh)))
+          w' = min sw w
+          h' = min sh h
+
+fi :: (Num b, Integral a) => a -> b
+fi = fromIntegral
