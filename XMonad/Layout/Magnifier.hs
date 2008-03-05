@@ -106,7 +106,7 @@ instance LayoutModifier Magnifier Window where
     handleMess (Mag z On  t) m
                     | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z + 0.1) On  t)
                     | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z - 0.1) On  t)
-                    | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z + 0.1) Off t)
+                    | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z      ) Off t)
     handleMess (Mag z Off t) m
                     | Just ToggleOn    <- fromMessage m = return . Just $ (Mag z         On  t)
     handleMess _ _ = return Nothing
