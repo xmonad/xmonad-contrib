@@ -86,7 +86,6 @@ library
                         XMonad.Actions.Warp
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
-                        XMonad.Actions.WmiiActions
                         XMonad.Config.Sjanssen
                         XMonad.Config.Dons
                         XMonad.Config.Arossato
