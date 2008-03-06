@@ -29,7 +29,7 @@ import Control.Monad
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad
--- > import XMonad.Hooks.DynamicLog
+-- > import XMonad.Actions.UpdatePointer
 --
 -- Enable it by including it in your logHook definition. Eg:
 -- 
