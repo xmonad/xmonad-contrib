@@ -21,7 +21,8 @@ module XMonad.Prompt.XMonad (
 
 import XMonad
 import XMonad.Prompt
-import XMonad.Actions.Commands (defaultCommands, runCommand')
+import XMonad.Actions.Commands (defaultCommands)
+import Data.Maybe (fromMaybe)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -44,8 +45,10 @@ instance XPrompt XMonad where
 xmonadPrompt :: XPConfig -> X ()
 xmonadPrompt c = do
     cmds <- defaultCommands
-    mkXPrompt XMonad c (mkComplFunFromList' (map fst cmds)) runCommand'
+    xmonadPromptC cmds c
 
 -- | An xmonad prompt with a custom command list
 xmonadPromptC :: [(String, X ())] -> XPConfig -> X ()
-xmonadPromptC commands c = mkXPrompt XMonad c (mkComplFunFromList' (map fst commands)) runCommand'
+xmonadPromptC commands c =
+    mkXPrompt XMonad c (mkComplFunFromList' (map fst commands)) $
+        fromMaybe (return ()) . (`lookup` commands)
