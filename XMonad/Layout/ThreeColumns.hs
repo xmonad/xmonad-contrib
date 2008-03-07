@@ -34,10 +34,8 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the ThreeCol layout:
 --
--- > myLayouts = ThreeCol 1 (3/100) (1/2) False ||| etc..
+-- > myLayouts = ThreeCol 1 (3/100) (1/2) ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
---
--- Use @True@ as the last argument to get a wide layout.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
