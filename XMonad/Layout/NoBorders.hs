@@ -72,7 +72,7 @@ instance LayoutModifier SmartBorder Window where
     unhook (SmartBorder s) = asks (borderWidth . config) >>= setBorders s
 
     redoLayout (SmartBorder s) _ _ wrs = do
-        ss <- gets (W.screens . windowset)
+        ss <- gets (filter (nonzerorect . screenRect . W.screenDetail) . W.screens . windowset)
 
         if singleton ws && singleton ss
             then do
@@ -85,6 +85,8 @@ instance LayoutModifier SmartBorder Window where
      where
         ws = map fst wrs
         singleton = null . drop 1
+        nonzerorect (Rectangle _ _ 0 0) = False
+        nonzerorect _ = True
 
 --
 -- | You can cleverly set no borders on a range of layouts, using a
