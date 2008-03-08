@@ -87,8 +87,8 @@ keys x = M.fromList $
        layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
     , ((modMask x .|. shiftMask .|. controlMask, xK_z),
        layoutScreens 1 (fixedLayout [Rectangle 0 0 1440 900]))
-    , ((modMask x .|. shiftMask, xK_Right), moveTo Next NonEmptyWS)
-    , ((modMask x .|. shiftMask, xK_Left), moveTo Prev NonEmptyWS)
+    , ((modMask x .|. shiftMask, xK_Right), moveTo Next HiddenNonEmptyWS)
+    , ((modMask x .|. shiftMask, xK_Left), moveTo Prev HiddenNonEmptyWS)
     , ((modMask x, xK_Right), sendMessage $ Go R)
     , ((modMask x, xK_Left), sendMessage $ Go L)
     , ((modMask x, xK_Up), sendMessage $ Go U)
