@@ -11,68 +11,85 @@
 
 module XMonad.Layout.ScratchWorkspace ( toggleScratchWorkspace ) where
 
-import Data.Maybe ( listToMaybe, catMaybes )
-import Control.Monad ( guard, when )
+import Data.List ( partition )
+import Control.Monad ( guard )
 
 import XMonad
 import XMonad.Core
 import qualified XMonad.StackSet as W
 
-toggleScratchWorkspace :: LayoutClass l Int => l Int -> X ()
-toggleScratchWorkspace l =
-    do s <- gets windowset
-       when (scratchName `W.tagMember` s) $
-         case visibleScratch s of
-         Just oldscratch ->
-             do srs <- withDisplay getCleanedScreenInfo
-                when (length srs == length (W.visible s)) $ do
-                  ml <- handleMessage (W.layout $ W.workspace oldscratch) (SomeMessage Hide)
-                  let scratch = case ml of
-                                Nothing -> oldscratch
-                                Just l' -> oldscratch { W.workspace =
-                                                        (W.workspace oldscratch) { W.layout = l' } }
-                  mapM_ hide $ W.integrate' $ W.stack $ W.workspace scratch
-                  let modscr scr = do guard $ scratchName /= W.tag (W.workspace scr)
-                                      Just $ scr { W.screenDetail = newDetail }
-                          where newDetail = (W.screenDetail scr)
-                                            { screenRect = pickRect (W.screen scr) srs }
-                                pickRect _ [z] = z
-                                pickRect i (z:zs) | i < 1 = z
-                                                  | otherwise = pickRect (i-1) zs
-                                pickRect _ [] = error "XMonad.Layout.ScratchWorkspace.toggleScratchWorkspace: internal error"
-                      s' = case catMaybes $ map modscr $ W.current s : W.visible s of
-                           newc:newv -> s { W.current = newc, W.visible = newv,
-                                            W.hidden = W.workspace scratch : W.hidden s}
-                           [] -> error "XMonad.Layout.ScratchWorkspace.toggleScratchWorkspace: internal error"
-                  modify $ \st -> st { windowset = s' }
-                  refresh
-         Nothing ->
-             case hiddenScratch s of
-             Nothing -> return ()
-             Just hs -> do r <- gets (screenRect . W.screenDetail . W.current . windowset)
-                           (rs,_) <- doLayout l r (W.Stack 0 [1] [])
-                           let (r0, r1) = case rs of
-                                          [(0,ra),(1,rb)] -> (ra,rb)
-                                          [(1,ra),(0,rb)] -> (rb,ra)
-                                          [(1,ra)] -> (r,ra)
-                                          [(0,ra)] -> (ra,r)
-                                          _ -> (r,r)
-                               c' = (W.current s) { W.screenDetail =
-                                                    (W.screenDetail (W.current s)) { screenRect = r1 }}
-                           let s' = s { W.current = W.Screen hs (-1) (SD r0 (0,0,0,0)),
-                                        W.visible = c': W.visible s,
-                                        W.hidden = filter (not . isScratchW) $ W.hidden s }
-                           modify $ \st -> st { windowset = s' }
-                           refresh
-    where visibleScratch s = listToMaybe $ filter isScratch $ W.current s : W.visible s
-          hiddenScratch s = listToMaybe $ filter isScratchW $ W.hidden s
-          isScratchW w = scratchName == W.tag w
-          isScratch scr = scratchName == W.tag (W.workspace scr)
---          notScratch scr = scratchName /= W.tag (W.workspace scr)
-
+hiddenRect :: Rectangle
+hiddenRect = Rectangle (-1) (-1) 0 0
 
 scratchName :: String
 scratchName = "*scratch*"
 
--- isScratchVisible :: X Bool
--- isScratchVisible = gets (elem scratchName . map (W.tag . W.workspace) . W.visible . windowset)
+-- This module uses an ugly hack, which is to create a special screen for
+-- the scratch workspace.  This screen is then moved onto a visible area or
+-- away when you ask for the scratch workspace to be shown or hidden.
+
+-- This is a workaround for the fact that we don't have anything like
+-- proper support for hierarchical workspaces, so I use the only hierarchy
+-- we've got, which is at the screen level.
+
+toggleScratchWorkspace :: LayoutClass l Int => l Int -> X ()
+toggleScratchWorkspace l =
+    do s <- gets windowset
+       defaultl <- asks (layoutHook . config)
+       srs <- withDisplay getCleanedScreenInfo
+       if length srs == 1 + length (W.visible s)
+         then -- we don't yet have a scratch screen!
+             if scratchName `W.tagMember` s
+             then return () -- We'll just bail out of scratchName already exists...
+             else do let scratchscreen = W.Screen scratch (-1) (SD hiddenRect (0,0,0,0))
+                         scratch = W.Workspace scratchName defaultl Nothing
+                         s' = s { W.visible = scratchscreen: W.visible s }
+                     modify $ \st -> st { windowset = s' }
+                     refresh
+         else -- We've already got a scratch (we think)
+           if length srs /= length (W.visible s)
+           then -- Something is odd... too many screens are visible! Do nothing.
+                return ()
+           else -- Yes, it does seem there's a scratch screen already
+              case partition ((/= -1) . W.screen) $ W.current s : W.visible s of
+              (others@(c:vs),[scratchscreen]) ->
+                  if screenRect (W.screenDetail scratchscreen) == hiddenRect
+                  then -- we're hidden now, so let's display ourselves
+                      do let r = screenRect $ W.screenDetail c
+                         (rs,_) <- doLayout l r (W.Stack 0 [1] [])
+                         let (r0, r1) = case rs of
+                                        [(0,ra),(1,rb)] -> (ra,rb)
+                                        [(1,ra),(0,rb)] -> (rb,ra)
+                                        [(1,ra)] -> (r,ra)
+                                        [(0,ra)] -> (ra,r)
+                                        _ -> (r,r)
+                             s' = s { W.current = setrect r0 scratchscreen,
+                                      W.visible = setrect r1 c : vs }
+                         modify $ \st -> st { windowset = s' }
+                         refresh
+                  else -- we're visible, so now we want to hide
+                       do ml <- handleMessage (W.layout $ W.workspace scratchscreen) (SomeMessage Hide)
+                          let scratchscreen' = case ml of
+                                               Nothing -> scratchscreen
+                                               Just l' -> scratchscreen
+                                                          { W.workspace =
+                                                            (W.workspace scratchscreen) { W.layout = l' } }
+                          mapM_ hide $ W.integrate' $ W.stack $ W.workspace scratchscreen
+                          let modscr scr = do guard $ scratchName /= W.tag (W.workspace scr)
+                                              r' <- pickRect (W.screen scr) srs
+                                              Just $ setrect r' scr
+                              pickRect _ [z] = Just z
+                              pickRect i (z:zs) | i < 1 = Just z
+                                                | otherwise = pickRect (i-1) zs
+                              pickRect _ [] = Nothing
+                          case mapM modscr others of
+                            Just (c':vs') ->
+                                do let s' = s { W.current = c',
+                                                W.visible = setrect hiddenRect scratchscreen' : vs' }
+                                   modify $ \st -> st { windowset = s' }
+                                   refresh
+                            _ -> return () -- weird error!
+              _ -> -- Something is odd... there doesn't seem to *really* be a scratch screen...
+                   return ()
+    where setrect :: Rectangle -> W.Screen i l a sid ScreenDetail -> W.Screen i l a sid ScreenDetail
+          setrect x scr = scr {W.screenDetail = (W.screenDetail scr) {screenRect = x}}
