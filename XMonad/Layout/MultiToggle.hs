@@ -29,6 +29,8 @@ module XMonad.Layout.MultiToggle (
 
 import XMonad
 
+import XMonad.StackSet (Workspace(..))
+
 import Control.Arrow
 import Data.Typeable
 import Data.Maybe
@@ -196,11 +198,7 @@ acceptChange mt f = fmap (f (\x -> mt{ currLayout = EL x }))
 instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (MultiToggle ts l) a where
     description mt = currLayout mt `unEL` \l -> description l
 
-    pureLayout mt r s = currLayout mt `unEL` \l -> pureLayout l r s
-
-    doLayout mt r s = currLayout mt `unEL` \l -> acceptChange mt (fmap . fmap) (doLayout l r s)
-
-    emptyLayout mt r = currLayout mt `unEL` \l -> acceptChange mt (fmap . fmap) (emptyLayout l r)
+    runLayout (Workspace i mt s) r = currLayout mt `unEL` \l -> acceptChange mt (fmap . fmap) (runLayout (Workspace i l s) r)
 
     handleMessage mt m
         | Just (Toggle t) <- fromMessage m
