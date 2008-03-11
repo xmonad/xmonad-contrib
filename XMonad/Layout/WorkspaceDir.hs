@@ -30,12 +30,14 @@ module XMonad.Layout.WorkspaceDir (
                                   ) where
 
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
+import Control.Monad ( when )
 
-import XMonad
+import XMonad hiding ( focus )
 import XMonad.Util.Run ( runProcessWithInput )
 import XMonad.Prompt ( XPConfig )
 import XMonad.Prompt.Directory ( directoryPrompt )
 import XMonad.Layout.LayoutModifier
+import XMonad.StackSet ( Stack, peek, focus )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -66,8 +68,10 @@ instance Message Chdir
 
 data WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
 
-instance LayoutModifier WorkspaceDir a where
-    hook (WorkspaceDir s) = scd s
+instance LayoutModifier WorkspaceDir Window where
+    redoLayout (WorkspaceDir d) _ s wrs = do w <- gets windowset
+                                             when (Just (focus s) == peek w) $ scd d
+                                             return (wrs, Nothing)
     handleMess (WorkspaceDir _) m
         | Just (Chdir wd) <- fromMessage m = do wd' <- cleanDir wd
                                                 return $ Just $ WorkspaceDir wd'
