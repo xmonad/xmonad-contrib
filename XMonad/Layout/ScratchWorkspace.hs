@@ -56,7 +56,7 @@ toggleScratchWorkspace l =
                   if screenRect (W.screenDetail scratchscreen) == hiddenRect
                   then -- we're hidden now, so let's display ourselves
                       do let r = screenRect $ W.screenDetail c
-                         (rs,_) <- doLayout l r (W.Stack 0 [1] [])
+                         (rs,_) <- runLayout (W.Workspace "" l (Just $ W.Stack 0 [1] [])) r
                          let (r0, r1) = case rs of
                                         [(0,ra),(1,rb)] -> (ra,rb)
                                         [(1,ra),(0,rb)] -> (rb,ra)
