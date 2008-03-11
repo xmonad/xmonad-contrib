@@ -58,7 +58,7 @@ layoutScreens :: LayoutClass l Int => Int -> l Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
 layoutScreens nscr l =
     do rtrect <- asks theRoot >>= getWindowRectangle
-       (wss, _) <- doLayout l rtrect W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] }
+       (wss, _) <- runLayout (W.Workspace "" l (Just $ W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] })) rtrect
        windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
            let (x:xs, ys) = splitAt nscr $ map W.workspace (v:vs) ++ hs
                gaps = map (statusGap . W.screenDetail) $ v:vs
