@@ -6,7 +6,7 @@
 -- Module      :  XMonad.Layout.Combo
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD-style (see LICENSE)
--- 
+--
 -- Maintainer  :  David Roundy <droundy@darcs.net>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -17,7 +17,7 @@
 
 module XMonad.Layout.Combo (
                             -- * Usage
-                            -- $usage 
+                            -- $usage
                             combineTwo,
                             CombineTwo
                            ) where
@@ -31,11 +31,11 @@ import qualified XMonad.StackSet as W ( differentiate )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
--- 
--- > import XMonad.Layout.Combo 
--- 
+--
+-- > import XMonad.Layout.Combo
+--
 -- and add something like
--- 
+--
 -- > combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf)
 --
 -- to your layouts.
@@ -99,7 +99,7 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                          s1 = differentiate f' (origws \\ w2')
                          s2 = differentiate f' w2'
                          f' = focus s:delete (focus s) f
-                     ([((),r1),((),r2)], msuper') <- doLayout super rinput superstack
+                     ([((),r1),((),r2)], msuper') <- runLayout (Workspace "" super (Just superstack)) rinput
                      (wrs1, ml1') <- runLayout (Workspace "" l1 s1) r1
                      (wrs2, ml2') <- runLayout (Workspace "" l2 s2) r2
                      return (wrs1++wrs2, Just $ C2 f' w2'
