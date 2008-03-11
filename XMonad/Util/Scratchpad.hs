@@ -14,14 +14,14 @@
 -- into a launchpad for X apps.
 --
 -- By default, your xmonad terminal is used, and mod+s is the hotkey.
--- The default ManageHook uses a centered, half-screen-wide, 
+-- The default ManageHook uses a centered, half-screen-wide,
 -- quarter-screen-tall window.
 -- The key, position and size are configurable.
 --
 -- The terminal application must support the @-title@ argument.
 -- Known supported terminals: rxvt, rxvt-unicode, xterm.
--- Most others are likely to follow the lead set by xterm. 
--- 
+-- Most others are likely to follow the lead set by xterm.
+--
 -- Add the following to your xmonad.hs keybindings to use the default mod+s:
 --
 -- > scratchpadSpawnDefault conf
@@ -29,11 +29,11 @@
 -- Or specify your own key binding, with the action:
 --
 -- > scratchpadSpawnAction conf
--- 
+--
 -- And add one of the @scratchpadManageHook*@s to your ManageHook list.
 -- The default rectangle is half the screen wide and a quarter of the
 -- screen tall, centered.
--- 
+--
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Scratchpad (
