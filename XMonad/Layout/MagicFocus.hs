@@ -13,7 +13,7 @@
 -- Automagically put the focused window in the master area.
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.MagicFocus 
+module XMonad.Layout.MagicFocus
     (-- * Usage
      -- $usage
      MagicFocus(MagicFocus)
@@ -44,9 +44,9 @@ instance (LayoutClass l Window) => LayoutClass (MagicFocus l) Window where
 
 magicFocus :: LayoutClass l Window => MagicFocus l Window -> Rectangle
            -> Stack Window -> X ([(Window, Rectangle)], Maybe (MagicFocus l Window))
-magicFocus (MagicFocus l) r s = 
+magicFocus (MagicFocus l) r s =
     withWindowSet $ \wset -> do
-      (ws,nl) <- doLayout l r (swap s $ peek wset)
+      (ws,nl) <- runLayout (Workspace "" l (Just . swap s $ peek wset)) r
       case nl of
         Nothing -> return (ws, Nothing)
         Just l' -> return (ws, Just $ MagicFocus l')
