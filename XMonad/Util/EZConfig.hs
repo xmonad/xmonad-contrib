@@ -313,9 +313,20 @@ specialKeys = [ ("Backspace", xK_BackSpace)
 -- > myConfig = defaultConfig {
 -- >     ...
 -- >     keys = \c -> mkKeymap c myKeymap
--- >     startupHook = checkKeymap myConfig myKeymap
+-- >     startupHook = return () >> checkKeymap myConfig myKeymap
 -- >     ...
 -- > }
+--
+-- NOTE: the @return ()@ in the example above is very important!
+-- Otherwise, you might run into problems with infinite mutual
+-- recursion: the definition of myConfig depends on the definition of
+-- startupHook, which depends on the definition of myConfig, ... and
+-- so on.  Actually, it's likely that the above example in particular
+-- would be OK without the @return ()@, but making @myKeymap@ take
+-- @myConfig@ as a parameter would definitely lead to
+-- problems. Believe me.  It, uh, happened to my friend. In... a
+-- dream. Yeah. In any event, the @return () >>@ introduces enough
+-- laziness to break the deadlock.
 --
 checkKeymap :: XConfig l -> [(String, a)] -> X ()
 checkKeymap conf km = warn (doKeymapCheck conf km)
