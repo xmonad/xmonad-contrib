@@ -58,8 +58,6 @@ import System.IO
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
-
-import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.ManageDocks
 
@@ -221,7 +219,7 @@ dynamicLogString pp = do
     let ws = pprWindowSet sort' urgents pp winset
 
     -- window title
-    wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
+    wt <- maybe (return "") (fmap (encodeOutput . show) . getName) . S.peek $ winset
 
     -- run extra loggers, ignoring any that generate errors.
     extras <- sequence $ map (flip catchX (return Nothing)) $ ppExtras pp
