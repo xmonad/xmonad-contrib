@@ -132,6 +132,7 @@ setSupported = withDisplay $ \dpy -> do
     supp <- mapM getAtom ["_NET_WM_STATE_HIDDEN"
                          ,"_NET_NUMBER_OF_DESKTOPS"
                          ,"_NET_CLIENT_LIST"
+                         ,"_NET_CLIENT_LIST_STACKING"
                          ,"_NET_CURRENT_DESKTOP"
                          ,"_NET_DESKTOP_NAMES"
                          ,"_NET_ACTIVE_WINDOW"
