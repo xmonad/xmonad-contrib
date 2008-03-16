@@ -29,6 +29,7 @@ import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
 import Data.List ((\\))
+import qualified Data.Map as M
 
 -- $usage
 -- You can use this module with the following in your ~\/.xmonad\/xmonad.hs file:
@@ -72,18 +73,25 @@ instance LayoutModifier SmartBorder Window where
     unhook (SmartBorder s) = asks (borderWidth . config) >>= setBorders s
 
     redoLayout (SmartBorder s) _ _ wrs = do
-        ss <- gets (filter (nonzerorect . screenRect . W.screenDetail) . W.screens . windowset)
-
-        if singleton ws && singleton ss
-            then do
-                asks (borderWidth . config) >>= setBorders (s \\ ws)
-                setBorders ws 0
-                return (wrs, Just $ SmartBorder ws)
-            else do
-                asks (borderWidth . config) >>= setBorders s
-                return (wrs, Just $ SmartBorder [])
+        wset <- gets windowset
+        let
+            screens = filter (nonzerorect . screenRect . W.screenDetail) . W.screens $ wset
+            ws
+                | singleton screens = tiled ++ floating
+                | otherwise = []
+            tiled = case wrs of
+                [(w, _)] -> [w]
+                _ -> []
+            floating =
+                [ w |
+                    (w, W.RationalRect px py wx wy) <- M.toList . W.floating $ wset,
+                    px <= 0, py <= 0,
+                    wx >= 1, wy >= 1
+                ]
+        asks (borderWidth . config) >>= setBorders (s \\ ws)
+        setBorders ws 0
+        return (wrs, Just $ SmartBorder ws)
      where
-        ws = map fst wrs
         singleton = null . drop 1
         nonzerorect (Rectangle _ _ 0 0) = False
         nonzerorect _ = True
