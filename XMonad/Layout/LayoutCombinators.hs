@@ -10,35 +10,42 @@
 -- Stability    : unstable
 -- Portability  : portable
 --
--- A module for combining other layouts.
+-- The "XMonad.Layout.LayoutCombinators" module provides combinators
+-- for easily combining multiple layouts into one composite layout, as
+-- well as a way to jump directly to any particular layout (say, with
+-- a keybinding) without having to cycle through other layouts to get
+-- to it.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.LayoutCombinators
     ( -- * Usage
       -- $usage
 
-      -- * Combinators using DragPane vertical
+      -- * Layout combinators
+      -- $combine
+
+      -- ** Combinators using DragPane vertical
       -- $dpv
       (*||*), (**||*),(***||*),(****||*),(***||**),(****||***)
     , (***||****),(*||****),(**||***),(*||***),(*||**)
 
-      -- * Combinators using DragPane horizontal
+      -- ** Combinators using DragPane horizontal
       -- $dph
     , (*//*), (**//*),(***//*),(****//*),(***//**),(****//***)
     , (***//****),(*//****),(**//***),(*//***),(*//**)
 
-      -- * Combinators using Tall (vertical)
+      -- ** Combinators using Tall (vertical)
       -- $tv
     , (*|*), (**|*),(***|*),(****|*),(***|**),(****|***)
     , (***|****),(*|****),(**|***),(*|***),(*|**)
 
-      -- * Combinators using Mirror Tall (horizontal)
+      -- ** Combinators using Mirror Tall (horizontal)
       -- $mth
     , (*/*), (**/*),(***/*),(****/*),(***/**),(****/***)
     , (***/****),(*/****),(**/***),(*/***),(*/**)
 
-      -- * A new combinator
-      -- $nc
+      -- * New layout choice combinator and 'JumpToLayout'
+      -- $jtl
     , (|||)
     , JumpToLayout(JumpToLayout)
     ) where
@@ -55,14 +62,34 @@ import XMonad.Layout.DragPane
 --
 -- > import XMonad.Layout.LayoutCombinators hiding ( (|||) )
 --
--- Then edit your @layoutHook@ by using the new layout combinators:
+-- Then edit your @layoutHook@ to use the new layout combinators. For
+-- example:
 --
 -- > myLayouts = (Tall 1 (3/100) (1/2) *//* Full)  ||| (Tall 1 (3/100) (1/2) ***||** Full) ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
--- For more detailed instructions on editing the layoutHook see:
+-- For more detailed instructions on editing the @layoutHook@ see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- To use the 'JumpToLayout' message, hide the normal @|||@ operator instead:
+--
+-- > import XMonad hiding ( (|||) )
+-- > import XMonad.Layout.LayoutCombinators
+--
+-- Then bind some keys to a 'JumpToLayout' message:
+--
+-- >   , ((modMask x .|. controlMask, xK_f), sendMessage $ JumpToLayout "Full")  -- jump directly to the Full layout
+--
+-- See below for more detailed documentation.
+
+-- $combine
+-- Each of the following combinators combines two layouts into a
+-- single composite layout by splitting the screen into two regions,
+-- one governed by each layout.  Asterisks in the combinator names
+-- denote the relative amount of screen space given to the respective
+-- layouts.  For example, the '***||*' combinator gives three times as
+-- much space to the left-hand layout as to the right-hand layout.
 
 infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, **||***, *||***, *||**,
          *//*, **//*, ***//*, ****//*, ***//**, ****//***, ***//****, *//****, **//***, *//***, *//**,
@@ -72,6 +99,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 -- $dpv
 -- These combinators combine two layouts using "XMonad.DragPane" in
 -- vertical mode.
+
 (*||*),(**||*),(***||*),(****||*), (***||**),(****||***),
        (***||****),(*||****),(**||***),(*||***),(*||**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
           l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
@@ -91,6 +119,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 -- $dph
 -- These combinators combine two layouts using "XMonad.DragPane" in
 -- horizontal mode.
+
 (*//*),(**//*),(***//*),(****//*), (***//**),(****//***),
        (***//****),(*//****),(**//***),(*//***),(*//**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a) =>
           l1 a -> l2 a -> CombineTwo (DragPane ()) l1 l2 a
@@ -108,7 +137,8 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 (*//**)     = combineTwo (dragPane Horizontal 0.1 (1/3))
 
 -- $tv
--- These combinators combine two layouts vertically using Tall.
+-- These combinators combine two layouts vertically using @Tall@.
+
 (*|*),(**|*),(***|*),(****|*), (***|**),(****|***),
        (***|****),(*|****),(**|***),(*|***),(*|**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
           => l1 a -> l2 a -> CombineTwo (Tall ()) l1 l2 a
@@ -126,8 +156,9 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 
 
 -- $mth
--- These combinators combine two layouts horizontally using Mirror
--- Tall (a wide layout).
+-- These combinators combine two layouts horizontally using @Mirror
+-- Tall@.
+
 (*/*),(**/*),(***/*),(****/*), (***/**),(****/***),
        (***/****),(*/****),(**/***),(*/***),(*/**) :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a)
           => l1 a -> l2 a -> CombineTwo (Mirror Tall ()) l1 l2 a
@@ -145,9 +176,39 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 
 infixr 5 |||
 
--- $nc
--- A new layout combinator that allows the use of a prompt to change
--- layout. For more information see "Xmonad.Prompt.Layout"
+-- $jtl
+-- The standard xmonad core exports a layout combinator @|||@ which
+-- represents layout choice.  This is a reimplementation which also
+-- provides the capability to support 'JumpToLayout' messages.  To use
+-- it, be sure to hide the import of @|||@ from the xmonad core:
+--
+-- > import XMonad hiding ( (|||) )
+--
+-- The argument given to a 'JumpToLayout' message should be the
+-- @description@ of the layout to be selected.  If you use
+-- "XMonad.Hooks.DynamicLog", this is the name of the layout displayed
+-- in your status bar.  Alternatively, you can use GHCi to determine
+-- the proper name to use.  For example:
+--
+-- > $ ghci
+-- > GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
+-- > Loading package base ... linking ... done.
+-- > :set prompt "> "    -- don't show loaded module names
+-- > > :m +XMonad.Core   -- load the xmonad core
+-- > > :m +XMonad.Layout.Grid  -- load whatever module you want to use
+-- > > description Grid  -- find out what it's called
+-- > "Grid"
+--
+-- As yet another (possibly easier) alternative, you can use the
+-- "XMonad.Layout.Named" modifier to give custom names to your
+-- layouts, and use those.
+--
+-- For the ability to select a layout from a prompt, see
+-- "Xmonad.Prompt.Layout".
+
+-- | A reimplementation of the combinator of the same name from the
+--   xmonad core, providing layout choice, and the ability to support
+--   'JumpToLayout' messages.
 (|||) :: (LayoutClass l1 a, LayoutClass l2 a) => l1 a -> l2 a -> NewSelect l1 l2 a
 (|||) = NewSelect True
 
@@ -156,6 +217,8 @@ data NewSelect l1 l2 a = NewSelect Bool (l1 a) (l2 a) deriving ( Read, Show )
 data NoWrap = NextLayoutNoWrap | Wrap deriving ( Read, Show, Typeable )
 instance Message NoWrap
 
+-- | A message to jump to a particular layout, specified by its
+--   description string.
 data JumpToLayout = JumpToLayout String deriving ( Read, Show, Typeable )
 instance Message JumpToLayout
 
