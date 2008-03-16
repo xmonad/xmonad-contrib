@@ -8,8 +8,7 @@
  Portability :  unportable
 
  A module for easily running Internet searches on web sites through xmonad.
- Modeled after the handy Surfraw CLI search tools at
- <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
+ Modeled after the handy Surfraw CLI search tools at <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
 
  Additional sites welcomed.
 -}
@@ -98,17 +97,18 @@ First import the necessary modules:
 
 Then add the following to your key bindings:
 
->     -- Search commands
->     , ((modm,               xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.defaultXPConfig)
->     , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
+> ...
+> -- Search commands
+> , ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.defaultXPConfig)
+> , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
 >
 > ...
 >
->    searchEngineMap method = M.fromList $
->          [ ((0, xK_g), method \"firefox\" S.google)
->          , ((0, xK_h), method \"firefox\" S.hoogle)
->          , ((0, xK_w), method \"firefox\" S.wikipedia)
->          ]
+> searchEngineMap method = M.fromList $
+>       [ ((0, xK_g), method \"firefox\" S.google)
+>       , ((0, xK_h), method \"firefox\" S.hoogle)
+>       , ((0, xK_w), method \"firefox\" S.wikipedia)
+>       ]
 
 Make sure to set firefox to open new pages in a new window instead of
 in a new tab: @Firefox -> Edit -> Preferences -> Tabs -> New pages
@@ -194,7 +194,7 @@ wayback   = simpleEngine "http://web.archive.org/"
 {- | Like 'search', but in this case, the string is not specified but grabbed
  from the user's response to a prompt. Example:
 
- > , ((modm,               xK_g     ), promptSearch greenXPConfig "firefox" google)
+ > , ((modm, xK_g), promptSearch greenXPConfig "firefox" google)
 
 -}
 promptSearch :: XPConfig -> Browser -> SearchEngine -> X ()
@@ -203,7 +203,7 @@ promptSearch config browser site = mkXPrompt Search config (getShellCompl []) $ 
 {- | Like 'search', but for use with the X selection; it grabs the selection,
    passes it to a given searchEngine and opens it in the given browser. Example:
 
-> , ((modm .|. shiftMask, xK_g     ), selectSearch "firefox" google)
+> , ((modm .|. shiftMask, xK_g), selectSearch "firefox" google)
 
 -}
 selectSearch :: MonadIO m => Browser -> SearchEngine -> m ()
