@@ -67,7 +67,7 @@ instance XPrompt DirExec where
 
 -- | Function 'dirExecPrompt' starts the prompt with list of all executable
 -- files in directory specified by 'FilePath'. The name of the prompt is taken
--- from the last element of the path. If you specify root directory - @/@ - as
+-- from the last element of the path. If you specify root directory - @\/@ - as
 -- the path, name @Root:@ will be used as the name of the prompt instead. The
 -- 'XPConfig' parameter can be used to customize visuals of the prompt.
 -- The runner parameter specifies the function used to run the program - see
