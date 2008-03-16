@@ -156,11 +156,12 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
                    | otherwise = chr (ord 'A' + fromIntegral (d - 10))
 
 type Browser      = FilePath
+type Query        = String
 type SearchEngine = String -> String
 
 {- | Given a browser, a search engine, and a search term, perform the
      requested search in the browser. -}
-search :: MonadIO m => Browser -> SearchEngine -> String -> m ()
+search :: MonadIO m => Browser -> SearchEngine -> Query -> m ()
 search browser site query = safeSpawn browser $ site query
 
 {- | Given a base URL, create the SearchEngine that escapes the query and
@@ -174,7 +175,7 @@ search browser site query = safeSpawn browser $ site query
    from site to site, often considerably. Generally, examining the resultant URL
    of a search will allow you to reverse-engineer it if you can't find the
    necessary URL already described in other projects such as Surfraw. -}
-simpleEngine :: String -> SearchEngine
+simpleEngine :: Query -> SearchEngine
 simpleEngine site query = site ++ escape query
 
 -- The engines.
