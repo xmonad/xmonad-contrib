@@ -1,22 +1,20 @@
------------------------------------------------------------------------------
--- |
--- Module      :  XMonad.Util.XSelection
--- Copyright   :  (C) 2007 Andrea Rossato, Matthew Sackman
--- License     :  BSD3
---
--- Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>,
---                Matthew Sackman <matthew@wellquite.org>
--- Stability   :  unstable
--- Portability :  unportable
---
--- A module for accessing and manipulating the X Window mouse selection (used in copy and pasting).
--- getSelection and putSelection are adaptations of Hxsel.hs and Hxput.hs from XMonad-utils, available:
---
--- $ darcs get <http://gorgias.mine.nu/repos/xmonad-utils>
------------------------------------------------------------------------------
+{- |
+Module      :  XMonad.Util.XSelection
+Copyright   :  (C) 2007 Andrea Rossato, Matthew Sackman
+License     :  BSD3
 
-module XMonad.Util.XSelection (
-                                 -- * Usage
+Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>,
+               Matthew Sackman <matthew@wellquite.org>
+Stability   :  unstable
+Portability :  unportable
+
+A module for accessing and manipulating X Window's mouse selection (the buffer used in copy and pasting).
+'getSelection' and 'putSelection' are adaptations of Hxsel.hs and Hxput.hs from the XMonad-utils, available:
+
+> $ darcs get <http://gorgias.mine.nu/repos/xmonad-utils>
+-}
+
+module XMonad.Util.XSelection (  -- * Usage
                                  -- $usage
                                  getSelection,
                                  promptSelection,
@@ -34,26 +32,28 @@ import XMonad
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
 {- $usage
-    Add 'import XMonad.Util.XSelection' to the top of Config.hs
-    Then make use of getSelection or promptSelection as needed; if
-    one wanted to run Firefox with the selection as an argument (say,
-    the selection is an URL you just highlighted), then one could add
-    to the Config.hs a line like thus:
+   Add @import XMonad.Util.XSelection@ to the top of Config.hs
+   Then make use of getSelection or promptSelection as needed; if
+   one wanted to run Firefox with the selection as an argument (perhaps
+   the selection string is an URL you just highlighted), then one could add
+   to the xmonad.hs a line like thus:
 
->  , ((modMask .|. shiftMask, xK_b     ), promptSelection "firefox")
+   > , ((modMask .|. shiftMask, xK_b), promptSelection "firefox")
 
-    TODO:
-             * Fix Unicode handling. Currently it's still better than calling
-               'chr' to translate to ASCII, though.
-               As near as I can tell, the mangling happens when the String is
-               outputted somewhere, such as via promptSelection's passing through
-               the shell, or GHCi printing to the terminal. utf-string has IO functions
-               which can fix this, though I do not know have to use them here. It's
-               a complex issue; see
-               <http://www.haskell.org/pipermail/xmonad/2007-September/001967.html>
-               and <http://www.haskell.org/pipermail/xmonad/2007-September/001966.html>.
+   There are a number of known problems with XSelection:
 
-             * Possibly add some more elaborate functionality: Emacs' registers are nice. -}
+    * Unicode handling is busted. But it's still better than calling
+      'chr' to translate to ASCII, at least.
+      As near as I can tell, the mangling happens when the String is
+      outputted somewhere, such as via promptSelection's passing through
+      the shell, or GHCi printing to the terminal. utf-string has IO functions
+      which can fix this, though I do not know have to use them here. It's
+      a complex issue; see
+      <http://www.haskell.org/pipermail/xmonad/2007-September/001967.html>
+      and <http://www.haskell.org/pipermail/xmonad/2007-September/001966.html>.
+
+    * Needs more elaborate functionality: Emacs' registers are nice; if you
+      don't know what they are, see <http://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html#Registers> -}
 
 -- | Returns a String corresponding to the current mouse selection in X; if there is none, an empty string is returned. Note that this is
 -- really only reliable for ASCII text and currently escapes or otherwise mangles more complex UTF-8 characters.
@@ -79,7 +79,7 @@ getSelection = io $ do
                return $ decode . map fromIntegral . fromMaybe [] $ res
        else destroyWindow dpy win >> return ""
 
--- | Set the current X Selection to a given String.
+-- | Set the current X Selection to a specified string.
 putSelection :: MonadIO m => String -> m ()
 putSelection text = io $ do
   dpy <- openDisplay ""
@@ -116,24 +116,27 @@ putSelection text = io $ do
                                                                print ev
                                                       processEvent dpy ty text e
 
-{- | A wrapper around getSelection. Makes it convenient to run a program with the current selection as an argument.
+{- | A wrapper around 'getSelection'. Makes it convenient to run a program with the current selection as an argument.
 This is convenient for handling URLs, in particular. For example, in your Config.hs you could bind a key to
          @promptSelection \"firefox\"@;
 this would allow you to highlight a URL string and then immediately open it up in Firefox.
 
-promptSelection passes strings through the shell; if you do not wish your selected text to be interpreted/mangled
-by the shell, use safePromptSelection which will bypass the shell using safeSpawn from Run.hs; see Run.hs for more
-details on the advantages/disadvantages of this. -}
+'promptSelection' passes strings through the system shell, \/bin\/sh; if you do not wish your selected text
+to be interpreted or mangled by the shell, use 'safePromptSelection'. safePromptSelection will bypass the
+shell using 'safeSpawn' from "XMonad.Util.Run"; see its documentation for more
+details on the advantages and disadvantages of using safeSpawn. -}
 promptSelection, safePromptSelection, unsafePromptSelection :: String -> X ()
 promptSelection = unsafePromptSelection
 safePromptSelection app = join $ io $ liftM (safeSpawn app) (getSelection)
 unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) getSelection
 
 {- | Decode a UTF8 string packed into a list of Word8 values, directly to
-   String; does not deal with CChar, hence you will want the counter-intuitive 'map fromIntegral'.
-   UTF-8 decoding for internal use in getSelection. This code is copied from Eric Mertens's utf-string library
-   <http://code.haskell.org/utf8-string/> (version 0.1), which is BSD-3 licensed, as is this module.
-   It'd be better to just import Codec.Binary.UTF8.String (decode), but then users of this would need to install it; Xmonad has enough
+   String; does not deal with CChar, hence you will want the counter-intuitive @map fromIntegral@
+   UTF-8 decoding for internal use in getSelection.
+
+   This code is copied from Eric Mertens's "utf-string" library <http://code.haskell.org/utf8-string/>
+   (as of version 0.1),\which is BSD-3 licensed like this module.
+   It'd be better to just @import Codec.Binary.UTF8.String (decode)@, but then users of this would need to install it; XMonad has enough
    dependencies already. -}
 decode :: [Word8] -> String
 decode [    ] = ""
@@ -159,9 +162,7 @@ decode (c:cs)
             (acc < 0xd800 || 0xdfff < acc)     &&
             (acc < 0xfffe || 0xffff < acc)      = chr acc : decode rs
           | otherwise = replacement_character : decode rs
-
         aux n (r:rs) acc
           | r .&. 0xc0 == 0x80 = aux (n-1) rs
                                $ shiftL acc 6 .|. fromEnum (r .&. 0x3f)
-
         aux _ rs     _ = replacement_character : decode rs
