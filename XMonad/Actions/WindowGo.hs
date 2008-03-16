@@ -6,8 +6,12 @@ Maintainer  :  <gwern0@gmail.com>
 Stability   :  unstable
 Portability :  unportable
 
-Defines a few simple operations for raising windows based on XMonad's Query
-monad, such as 'runOrRaise'. -}
+Defines a few convenient operations for raising (traveling to) windows based on XMonad's Query
+monad, such as 'runOrRaise'. runOrRaise will run a shell command unless it can
+find a specified window; you would use this to automatically travel to your
+Firefox or Emacs session, or start a new one (for example), instead of trying to
+remember where you left it or whether you still have one running.
+-}
 
 module XMonad.Actions.WindowGo (
                  -- * Usage
