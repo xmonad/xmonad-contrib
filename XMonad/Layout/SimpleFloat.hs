@@ -50,14 +50,14 @@ import XMonad.Layout.WindowArranger
 --
 -- This version is decorated with the 'SimpleDecoration' style.
 simpleFloat :: Eq a => ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
-	       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+               (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 simpleFloat = decoration shrinkText defaultTheme (Simple False) (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'simpleFloat', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 simpleFloat' :: (Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration SimpleDecoration s)
-	       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+               (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 simpleFloat' s c = decoration s c (Simple False) (mouseResize $ windowArrangeAll $ SF (decoHeight c))
 
 data SimpleFloat a = SF Dimension deriving (Show, Read)
