@@ -76,11 +76,9 @@ instance LayoutModifier SmartBorder Window where
         wset <- gets windowset
         let
             screens = filter (nonzerorect . screenRect . W.screenDetail) . W.screens $ wset
-            ws
-                | singleton screens = tiled ++ floating
-                | otherwise = []
+            ws = tiled ++ floating
             tiled = case wrs of
-                [(w, _)] -> [w]
+                [(w, _)] | singleton screens -> [w]
                 _ -> []
             floating =
                 [ w |
