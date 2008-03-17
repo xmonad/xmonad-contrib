@@ -16,40 +16,39 @@
 module XMonad.Layout.MagicFocus
     (-- * Usage
      -- $usage
-     MagicFocus(MagicFocus)
+     magicFocus
     ) where
 
 import XMonad
 import XMonad.StackSet
+import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.MagicFocus
 --
--- Then edit your @layoutHook@ by adding the MagicFocus layout
+-- Then edit your @layoutHook@ by adding the magicFocus layout
 -- modifier:
 --
--- > myLayouts = MagicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
+-- > myLayouts = magicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data MagicFocus l a = MagicFocus (l a) deriving ( Show , Read )
+-- | Create a new layout which automagically puts the focused window
+--   in the master area.
+magicFocus :: l a -> ModifiedLayout MagicFocus l a
+magicFocus = ModifiedLayout MagicFocus
 
-instance (LayoutClass l Window) => LayoutClass (MagicFocus l) Window where
-          doLayout = magicFocus
+data MagicFocus a = MagicFocus deriving (Show, Read)
 
-magicFocus :: LayoutClass l Window => MagicFocus l Window -> Rectangle
-           -> Stack Window -> X ([(Window, Rectangle)], Maybe (MagicFocus l Window))
-magicFocus (MagicFocus l) r s =
-    withWindowSet $ \wset -> do
-      (ws,nl) <- runLayout (Workspace "" l (Just . swap s $ peek wset)) r
-      case nl of
-        Nothing -> return (ws, Nothing)
-        Just l' -> return (ws, Just $ MagicFocus l')
+instance LayoutModifier MagicFocus Window where
+  modifyLayout MagicFocus (Workspace i l s) r =
+    withWindowSet $ \wset ->
+      runLayout (Workspace i l (s >>= \st -> Just $ swap st (peek wset))) r
 
 swap :: (Eq a) => Stack a -> Maybe a -> Stack a
 swap (Stack f u d) focused | Just f == focused = Stack f [] (reverse u ++ d)
