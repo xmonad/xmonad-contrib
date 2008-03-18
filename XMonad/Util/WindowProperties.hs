@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Layout.WindowProperties
+-- Module      :  XMonad.Util.WindowProperties
 -- Copyright   :  (c) Roman Cheplyaka
 -- License     :  BSD-style (see LICENSE)
 --
