@@ -177,6 +177,7 @@ library
                         XMonad.Util.Scratchpad
                         XMonad.Util.Themes
                         XMonad.Util.Timer
+                        XMonad.Util.WindowProperties
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
