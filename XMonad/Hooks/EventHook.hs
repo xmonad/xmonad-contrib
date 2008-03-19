@@ -26,6 +26,7 @@ module XMonad.Hooks.EventHook
       -- $hook
       EventHook (..)
     , eventHook
+    , HandleEvent
     ) where
 
 import Control.Applicative ((<$>))
