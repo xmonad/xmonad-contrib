@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.EwmhDesktops
--- Copyright    : (c) Joachim Breitner <mail@joachim-breitner.de>
+-- Copyright    : (c) 2007, 2008 Joachim Breitner <mail@joachim-breitner.de>
 -- License      : BSD
 --
 -- Maintainer   : Joachim Breitner <mail@joachim-breitner.de>
@@ -9,12 +9,14 @@
 -- Portability  : unportable
 --
 -- Makes xmonad use the EWMH hints to tell panel applications about its
--- workspaces and the windows therein.
+-- workspaces and the windows therein. It also allows the user to interact
+-- with xmonad by clicking on panels and window lists.
 -----------------------------------------------------------------------------
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
-    ewmhDesktopsLogHook
+    ewmhDesktopsLogHook,
+    ewmhDesktopsLayout
     ) where
 
 import Data.List
@@ -26,6 +28,7 @@ import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
 import XMonad.Util.WorkspaceCompare
+import XMonad.Hooks.EventHook
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -37,11 +40,17 @@ import XMonad.Util.WorkspaceCompare
 -- > myLogHook = do ewmhDesktopsLogHook
 -- >                return ()
 -- >
--- > main = xmonad defaultConfig { logHook = myLogHook }
+-- > layoutHook = ewmhDesktopsLayout $ avoidStruts $ simpleTabbed ||| Full ||| etc..
+-- >
+-- > main = xmonad defaultConfig { layoutHook = myLayouts, logHook = myLogHook }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 -- |
 -- Notifies pagers and window lists, such as those in the gnome-panel
@@ -82,6 +91,51 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
     setActiveWindow
 
     return ()
+
+-- |
+-- Intercepts messages from pagers and similar applications and reacts on them.
+-- Currently supports:
+--
+--  * _NET_CURRENT_DESKTOP (switching desktops)
+--
+--  * _NET_WM_DESKTOP (move windows to other desktops)
+--
+--  * _NET_ACTIVE_WINDOW (activate another window)
+--
+ewmhDesktopsLayout :: layout a -> HandleEvent EwmhDesktopsHook layout a
+ewmhDesktopsLayout = eventHook EwmhDesktopsHook
+
+data EwmhDesktopsHook = EwmhDesktopsHook deriving ( Show, Read )
+instance EventHook EwmhDesktopsHook where
+	handleEvent _ e@ClientMessageEvent {} = do handle e
+	handleEvent _ _ = return ()
+
+handle :: Event -> X ()
+handle ClientMessageEvent {
+               ev_window = w,
+               ev_message_type = mt,
+               ev_data = d
+       } = withWindowSet $ \s -> do
+       sort' <- getSortByIndex
+       let ws = sort' $ W.workspaces s
+
+       a_cd <- getAtom "_NET_CURRENT_DESKTOP"
+       a_d <- getAtom "_NET_WM_DESKTOP"
+       a_aw <- getAtom "_NET_ACTIVE_WINDOW"
+       if  mt == a_cd then do
+               let n = fromIntegral (head d)
+               if 0 <= n && n < length ws then
+                       windows $ W.view (W.tag (ws !! n))
+                 else  trace $ "Bad _NET_CURRENT_DESKTOP with data[0]="++show n
+        else if mt == a_d then do
+               let n = fromIntegral (head d)
+               if 0 <= n && n < length ws then
+                       windows $ W.shiftWin (W.tag (ws !! n)) w
+                 else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
+        else if mt == a_aw then do
+               windows $ W.focusWindow w
+        else trace $ "Unknown ClientMessageEvent " ++ show mt
+handle _ = undefined -- does not happen, as otherwise ewmhDesktopsHook would not match
 
 
 setNumberOfDesktops :: (Integral a) => a -> X ()
