@@ -45,14 +45,10 @@ import XMonad.Layout.LayoutModifier
 -- By default magnifier increases the focused window's size by 1.5.
 -- You can also use:
 --
--- > magnifiercz (12%10)
+-- > magnifiercz 1.2
 --
 -- to use a custom level of magnification.  You can even make the focused
--- window smaller for a pop in effect. Keep in mind, you must
---
--- > import Data.Ratio
---
--- in order to use rationals (such as @12%10@) in your config.
+-- window smaller for a pop in effect.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
