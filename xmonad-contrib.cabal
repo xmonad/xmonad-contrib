@@ -127,7 +127,7 @@ library
                         XMonad.Layout.MagicFocus
                         XMonad.Layout.Magnifier
                         XMonad.Layout.Maximize
-                        XMonad.Layout.Mosaic
+                   --   XMonad.Layout.Mosaic
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.Named

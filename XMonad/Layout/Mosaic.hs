@@ -14,6 +14,8 @@
 -- user-configurable relative area, while also trying to give them aspect
 -- ratios configurable at run-time by the user.
 --
+-- Marked as broken, Mar 2008 (memory leaks)
+--
 -----------------------------------------------------------------------------
 module XMonad.Layout.Mosaic (
                              -- * Usage
