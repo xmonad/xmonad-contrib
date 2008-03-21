@@ -88,7 +88,7 @@ magnifierOff = ModifiedLayout (Mag 1.5 Off All)
 magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
 magnifiercz' cz = ModifiedLayout (Mag ((fromRational cz)*1.0::Double) On NoMaster)
 
-data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff deriving ( Typeable )
+data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
 
 data Magnifier a = Mag Zoom Toggle MagnifyMaster deriving (Read, Show)
@@ -108,8 +108,10 @@ instance LayoutModifier Magnifier Window where
                     | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z + 0.1) On  t)
                     | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z - 0.1) On  t)
                     | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z      ) Off t)
+                    | Just Toggle      <- fromMessage m = return . Just $ (Mag (z      ) Off t)
     handleMess (Mag z Off t) m
                     | Just ToggleOn    <- fromMessage m = return . Just $ (Mag z         On  t)
+                    | Just Toggle      <- fromMessage m = return . Just $ (Mag z         On  t)
     handleMess _ _ = return Nothing
 
     modifierDescription (Mag _ On  All     ) = "Magnifier"
