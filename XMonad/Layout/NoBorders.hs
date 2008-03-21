@@ -58,9 +58,12 @@ instance LayoutModifier WithBorder Window where
      where
         ws = map fst wrs
 
+-- | Removes all window borders from the specified layout.
 noBorders :: LayoutClass l Window => l Window -> ModifiedLayout WithBorder l Window
-noBorders = ModifiedLayout $ WithBorder 0 []
+noBorders = withBorder 0
 
+-- | Forces a layout to use the specified border width. 'noBorders' is
+-- equivalent to @'withBorder' 0@.
 withBorder :: LayoutClass l a => Dimension -> l a -> ModifiedLayout WithBorder l a
 withBorder b = ModifiedLayout $ WithBorder b []
 
@@ -94,11 +97,12 @@ instance LayoutModifier SmartBorder Window where
         nonzerorect (Rectangle _ _ 0 0) = False
         nonzerorect _ = True
 
+-- | Removes the borders from a window under one of the following conditions:
 --
--- | You can cleverly set no borders on a range of layouts, using a
--- layoutHook like so:
+--  * There is only one screen and only one window. In this case it's obvious
+--  that it has the focus, so no border is needed.
 --
--- > layoutHook = smartBorders $ tiled ||| Mirror tiled ||| ...
+--  * A floating window covers the entire screen (e.g. mplayer).
 --
 smartBorders :: LayoutClass l a => l a -> ModifiedLayout SmartBorder l a
 smartBorders = ModifiedLayout (SmartBorder [])
