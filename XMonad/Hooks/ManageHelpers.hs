@@ -140,7 +140,7 @@ doRectFloat r = ask >>= \w -> doF (W.float w r)
 
 -- | Floats a new window with its original size, but centered.
 doCenterFloat :: ManageHook
-doCenterFloat = ask >>= \w -> doF . W.float w . center =<< liftX (floatLocation w)
+doCenterFloat = ask >>= \w -> doF . W.float w . center . snd =<< liftX (floatLocation w)
   where center (W.RationalRect _ _ w h)
             = W.RationalRect ((1-w)/2) ((1-h)/2) w h
 
