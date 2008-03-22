@@ -23,7 +23,6 @@ import System.Exit
 
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Combo
-import XMonad.Layout.Mosaic
 import XMonad.Layout.Named
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Simplest
@@ -115,15 +114,6 @@ keys x = M.fromList $
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
     , ((modMask x .|. controlMask .|. shiftMask, xK_space),
        toggleScratchWorkspace (Simplest */* Simplest) )
-
--- keybindings for Mosaic:
-    , ((controlMask .|. modMask x .|. shiftMask, xK_h), withFocused (sendMessage . tallWindow))
-    , ((controlMask .|. modMask x .|. shiftMask, xK_l), withFocused (sendMessage . wideWindow))
-    , ((modMask x .|. shiftMask, xK_h     ), withFocused (sendMessage . shrinkWindow))
-    , ((modMask x .|. shiftMask, xK_l     ), withFocused (sendMessage . expandWindow))
-    , ((modMask x .|. shiftMask, xK_s     ), withFocused (sendMessage . squareWindow))
-    , ((modMask x .|. shiftMask, xK_o     ), withFocused (sendMessage . myclearWindow))
-    , ((controlMask .|. modMask x .|. shiftMask, xK_o     ), withFocused (sendMessage . flexibleWindow))
 
     ]
  
