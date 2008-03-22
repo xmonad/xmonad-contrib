@@ -22,6 +22,7 @@ module XMonad.Actions.MouseGestures (
 ) where
 
 import XMonad
+import XMonad.Layout.WindowNavigation (Direction(..))
 
 import Data.IORef
 import qualified Data.Map as M
@@ -55,11 +56,6 @@ import Control.Monad
 --
 -- For detailed instructions on editing your mouse bindings, see
 -- "XMonad.Doc.Extending#Editing_mouse_bindings".
-
--- | The four cardinal screen directions. A \"gesture\" is a sequence of
---   directions.
-data Direction = L | U | R | D
-    deriving (Eq, Ord, Show, Read, Enum, Bounded)
 
 type Pos = (Position, Position)
 

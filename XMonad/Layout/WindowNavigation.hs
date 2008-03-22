@@ -67,7 +67,7 @@ data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeab
 instance Typeable a => Message (MoveWindowToWindow a)
 
 data Navigate = Go Direction | Swap Direction | Move Direction deriving ( Read, Show, Typeable )
-data Direction = U | D | R | L deriving ( Read, Show, Eq )
+data Direction = U | D | R | L deriving ( Read, Show, Eq, Ord, Enum, Bounded )
 instance Message Navigate
 
 data WNConfig =
