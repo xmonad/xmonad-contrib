@@ -45,7 +45,8 @@ import XMonad.Actions.CycleWS
 
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook )
+import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook,
+                                   ewmhDesktopsLayout )
 
 myXPConfig :: XPConfig
 myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
@@ -127,7 +128,8 @@ config = -- withUrgencyHook FocusUrgencyHook $
          defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
-         , layoutHook = showWName $ workspaceDir "~" $ smartBorders $ windowNavigation $
+         , layoutHook = ewmhDesktopsLayout $ showWName $ workspaceDir "~" $
+                        smartBorders $ windowNavigation $
                         toggleLayouts Full $ avoidStruts $
                         named "tabbed" mytab |||
                         named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
