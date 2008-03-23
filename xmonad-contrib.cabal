@@ -159,6 +159,7 @@ library
                         XMonad.Prompt.Layout
                         XMonad.Prompt.Man
                         XMonad.Prompt.DirExec
+                        XMonad.Prompt.RunOrRaise
                         XMonad.Prompt.Shell
                         XMonad.Prompt.Ssh
                         XMonad.Prompt.Theme

@@ -16,6 +16,7 @@ module XMonad.Prompt.Shell
     ( -- * Usage
       -- $usage
       shellPrompt
+    , getCommands
     , getShellCompl
     , split
     , prompt
