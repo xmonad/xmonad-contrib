@@ -23,6 +23,7 @@ module XMonad.Actions.Search (      -- * Usage
                                  google,
                                  hoogle,
                                  imdb,
+                                 maps,
                                  mathworld,
                                  scholar,
                                  wayback,
@@ -72,6 +73,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'hoogle' -- Hoogle, the Haskell libraries search engine.
 
 * 'imdb'   -- the Internet Movie Database.
+
+* 'maps'   -- Google maps.
 
 * 'mathworld' -- Wolfram MathWorld search.
 
@@ -179,11 +182,12 @@ simpleEngine :: Query -> SearchEngine
 simpleEngine site query = site ++ escape query
 
 -- The engines.
-amazon, google, hoogle, imdb, mathworld, scholar, wayback, wikipedia :: SearchEngine
+amazon, google, hoogle, imdb, maps, mathworld, scholar, wayback, wikipedia :: SearchEngine
 amazon    = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 google    = simpleEngine "http://www.google.com/search?num=100&q="
 hoogle    = simpleEngine "http://www.haskell.org/hoogle/?q="
 imdb      = simpleEngine "http://www.imdb.com/Find?select=all&for="
+maps      = simpleEngine "http://maps.google.com/maps?q="
 mathworld = simpleEngine "http://mathworld.wolfram.com/search/?query="
 scholar   = simpleEngine "http://scholar.google.com/scholar?q="
 wikipedia = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
