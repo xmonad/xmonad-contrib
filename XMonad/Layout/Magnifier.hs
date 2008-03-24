@@ -62,6 +62,18 @@ import XMonad.Layout.LayoutModifier
 -- >    , ((modMask x .|. controlMask              , xK_minus), sendMessage MagnifyLess)
 -- >    , ((modMask x .|. controlMask              , xK_o    ), sendMessage ToggleOff  )
 -- >    , ((modMask x .|. controlMask .|. shiftMask, xK_o    ), sendMessage ToggleOn   )
+-- >    , ((modMask x .|. controlMask              , xK_m    ), sendMessage Toggle     )
+--
+-- Note that a few other extension modules, such as
+-- "XMonad.Layout.MultiToggle" and "XMonad.Layout.ToggleLayouts", also
+-- define a message named 'Toggle'.  To avoid conflicts when using
+-- these modules together, you can import Magnifier qualified, like
+-- this:
+--
+-- > import qualified XMonad.Layout.Magnifier as Mag
+--
+-- and then prefix @Mag@ to the front of everything from this module,
+-- like @Mag.Toggle@, @Mag.magnifier@, and so on.
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
