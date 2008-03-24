@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A (hopefully) growing collection of themes for xmonad
+-- A (hopefully) growing collection of themes for decorated layouts.
 --
 -----------------------------------------------------------------------------
 
@@ -30,13 +30,17 @@ module XMonad.Util.Themes
 import XMonad.Layout.Decoration
 
 -- $usage
--- This module stores some user contributed themes.
+-- This module stores some user contributed themes which can be used
+-- with decorated layouts (such as Tabbed).  (Note that these themes
+-- only apply to decorated layouts, such as those found in
+-- "XMonad.Layout.Tabbed" and "XMonad.Layout.DecorationMadness"; they
+-- do not apply to xmonad as a whole.)
 --
--- If you want to use one of this them as your default theme for one
--- of your layouts, you need to substitute defaultTheme with, for
--- instance, (theme smallClean).
+-- If you want to use one of them with one of your decorated layouts,
+-- you need to substitute defaultTheme with, for instance, (theme
+-- smallClean).
 --
--- This is an example:
+-- Here is an example:
 --
 -- > import XMonad
 -- > import XMonad.Util.Themes
@@ -111,12 +115,12 @@ smallClean =
                                                }
              }
 
--- | Don's prefered colors - fomr DynamicLog...;)
+-- | Don's prefered colors - from DynamicLog...;)
 donaldTheme  :: ThemeInfo
 donaldTheme =
     newTheme { themeName        = "donaldTheme"
              , themeAuthor      = "Andrea Rossato"
-             , themeDescription = "Don's prefered colors - fomr DynamicLog...;)"
+             , themeDescription = "Don's prefered colors - from DynamicLog...;)"
              , theme            = defaultTheme { activeColor         = "#2b4f98"
                                                , inactiveColor       = "#cccccc"
                                                , activeBorderColor   = "#2b4f98"
