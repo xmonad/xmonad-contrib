@@ -23,6 +23,7 @@ module XMonad.Util.Themes
     , deiflTheme
     , oxymor00nTheme
     , donaldTheme
+    , wfarrTheme
     , ThemeInfo (..)
     ) where
 
@@ -82,6 +83,7 @@ listOfThemes = [ xmonadTheme
                , oxymor00nTheme
                , robertTheme
                , donaldTheme
+               , wfarrTheme
                ]
 
 -- | The default xmonad theme, by David Roundy.
@@ -177,5 +179,21 @@ oxymor00nTheme =
                                                , decoHeight = 15
                                                , urgentColor = "#000"
                                                , urgentTextColor = "#63b8ff"
+                                               }
+             }
+
+wfarrTheme :: ThemeInfo
+wfarrTheme =
+    newTheme { themeName        = "wfarrTheme"
+             , themeAuthor      = "Will Farrington"
+             , themeDescription = "A nice blue/black theme."
+             , theme            = defaultTheme { activeColor         = "#4c7899"
+                                               , inactiveColor       = "#333333"
+                                               , activeBorderColor   = "#285577"
+                                               , inactiveBorderColor = "#222222"
+                                               , activeTextColor     = "#ffffff"
+                                               , inactiveTextColor   = "#888888"
+                                               , fontName            = "-*-fixed-medium-r-*--10-*-*-*-*-*-iso8859-1"
+                                               , decoHeight          = 12
                                                }
              }
