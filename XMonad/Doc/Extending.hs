@@ -655,7 +655,6 @@ Suppose we want a list with the 'XMonad.Layout.Full',
 @~\/.xmonad\/xmonad.hs@, all the needed modules:
 
 >    import XMonad
->    import XMonad.Layouts
 >
 >    import XMonad.Layout.Tabbed
 >    import XMonad.Layout.Accordion
@@ -684,7 +683,7 @@ If we want only the tabbed layout without borders, then we may write:
 
 Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 
->    import XMonad.Layouts
+>    import XMonad
 >
 >    import XMonad.Layout.Tabbed
 >    import XMonad.Layout.Accordion
