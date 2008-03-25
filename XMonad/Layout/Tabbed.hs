@@ -108,19 +108,15 @@ instance Eq a => DecorationStyle TabbedDecoration a where
     describeDeco TabbedBottom = "Tabbed Bottom"
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration ds _ ht _ s wrs (w,r@(Rectangle x y wh hh)) =
-            if length wrs' <= 1
+            if length ws <= 1
                 then Nothing
                 else Just $ case ds of
-                    Tabbed -> Rectangle nx y nwh (fi ht)
-                    TabbedBottom -> Rectangle nx (y+fi(hh-ht)) nwh (fi ht)
-
-        where wrs' = filter ((==r) . snd) wrs
-              ws = map fst wrs'
-              nwh = wh `div` max 1 (fi $ length wrs')
-              nx  = case elemIndex w $ filter (`elem` ws) (S.integrate s) of
-                      Just i  -> x + (fi nwh * fi i)
-                      Nothing -> x
-
+                    Tabbed -> Rectangle nx y wid (fi ht)
+                    TabbedBottom -> Rectangle nx (y+fi(hh-ht)) wid (fi ht)
+        where ws = filter (`elem` map fst (filter ((==r) . snd) wrs)) (S.integrate s)
+              loc i = (wh * fi i) `div` max 1 (fi $ length ws)
+              wid = maybe (fi x) (\i -> loc (i+1) - loc i) $ w `elemIndex` ws
+              nx  = maybe x (fi . loc) $ w `elemIndex` ws
     shrink ds (Rectangle _ _ _ dh) (Rectangle x y w h) = case ds of
         Tabbed -> Rectangle x (y + fi dh) w (h - dh)
         TabbedBottom -> Rectangle x y w (h - dh)
