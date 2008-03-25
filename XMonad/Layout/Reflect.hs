@@ -56,8 +56,8 @@ import XMonad.Layout.MultiToggle
 -- Next, add one or more toggles to your layout.  For example, to allow
 -- separate toggling of both vertical and horizontal reflection:
 --
--- > layoutHook = mkToggle (REFLECTX ?? EOT) $
--- >              mkToggle (REFLECTY ?? EOT) $
+-- > layoutHook = mkToggle (single REFLECTX) $
+-- >              mkToggle (single REFLECTY) $
 -- >                (tiled ||| Mirror tiled ||| ...) -- whatever layouts you use
 --
 -- Finally, add some keybindings to do the toggling, for example:
