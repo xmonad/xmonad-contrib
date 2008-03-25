@@ -41,16 +41,16 @@ import Data.Maybe
 --
 -- Then add a keybinding to the runCommand action:
 --
--- >    , ((modMask x .|. controlMask, xK_y), runCommand commands)
+-- >    , ((modMask x .|. controlMask, xK_y), commands >>= runCommand)
 --
 -- and define the list of commands you want to use:
 --
--- >    commands :: [(String, X ())]
+-- >    commands :: X [(String, X ())]
 -- >    commands = defaultCommands
 --
 -- Whatever key you bound to will now cause a popup menu of internal
--- xmonad commands to appear.  You can change the commands by
--- changing the contents of the list 'commands'.  (If you like it
+-- xmonad commands to appear.  You can change the commands by changing
+-- the contents of the list returned by 'commands'.  (If you like it
 -- enough, you may even want to get rid of many of your other key
 -- bindings!)
 --
