@@ -16,9 +16,10 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.HintedTile (
-                                 -- * Usage
-                                 -- $usage
-                                 HintedTile(..), Orientation(..)) where
+    -- * Usage
+    -- $usage
+    HintedTile(..), Orientation(..), Alignment(..)
+) where
 
 import XMonad hiding (Tall(..))
 import qualified XMonad.StackSet as W
@@ -32,7 +33,7 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the HintedTile layout:
 --
--- > myLayouts = HintedTile 1 0.1 0.5 Tall ||| Full ||| etc..
+-- > myLayouts = HintedTile 1 0.1 0.5 TopLeft Tall ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
@@ -42,21 +43,26 @@ import Control.Monad
 data HintedTile a = HintedTile
     { nmaster     :: Int
     , delta, frac :: Rational
+    , alignment   :: Alignment
     , orientation :: Orientation
     } deriving ( Show, Read )
 
-data Orientation = Wide | Tall deriving ( Show, Read )
+data Orientation = Wide | Tall
+    deriving ( Show, Read, Eq, Ord )
+
+data Alignment = TopLeft | Center | BottomRight
+    deriving ( Show, Read, Eq, Ord )
 
 instance LayoutClass HintedTile Window where
-    doLayout (HintedTile { orientation = o, nmaster = nm, frac = f }) r w' = do
+    doLayout (HintedTile { orientation = o, nmaster = nm, frac = f, alignment = al }) r w' = do
         bhs <- mapM getHints w
         let (masters, slaves) = splitAt nm bhs
         return (zip w (tiler masters slaves), Nothing)
      where
         w = W.integrate w'
         tiler masters slaves
-            | null masters || null slaves = divide o (masters ++ slaves) r
-            | otherwise = split o f r (divide o masters) (divide o slaves)
+            | null masters || null slaves = divide al o (masters ++ slaves) r
+            | otherwise = split o f r (divide al o masters) (divide al o slaves)
 
     pureMessage c m = fmap resize     (fromMessage m) `mplus`
                       fmap incmastern (fromMessage m)
@@ -79,15 +85,25 @@ getHints w = withDisplay $ \d -> io $ liftM2 (,)
     (fromIntegral . wa_border_width <$> getWindowAttributes d w)
     (getWMNormalHints d w)
 
--- Divide the screen vertically (horizontally) into n subrectangles
-divide :: Orientation -> [(Dimension, SizeHints)] -> Rectangle -> [Rectangle]
-divide _ [] _ = []
-divide Tall (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
-      (divide Tall bhs (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
- where (w, h) = hintsUnderBorder bh (sw, sh `div` fromIntegral (1 + (length bhs)))
+align :: Alignment -> Position -> Dimension -> Dimension -> Position
+align TopLeft     p _ _ = p
+align Center      p a b = p + fromIntegral (a - b) `div` 2
+align BottomRight p a b = p + fromIntegral (a - b)
 
-divide Wide (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx sy w h) :
-      (divide Wide bhs (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
+-- Divide the screen vertically (horizontally) into n subrectangles
+divide :: Alignment -> Orientation -> [(Dimension, SizeHints)] -> Rectangle -> [Rectangle]
+divide _ _ [] _ = []
+divide al _ [bh] (Rectangle sx sy sw sh) = [Rectangle (align al sx sw w) (align al sy sh h) w h]
+    where
+    (w, h) = hintsUnderBorder bh (sw, sh)
+
+divide al Tall (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle (align al sx sw w) sy w h) :
+      (divide al Tall bhs (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
+ where
+    (w, h) = hintsUnderBorder bh (sw, sh `div` fromIntegral (1 + (length bhs)))
+
+divide al Wide (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx (align al sy sh h) w h) :
+      (divide al Wide bhs (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
  where
     (w, h) = hintsUnderBorder bh (sw `div` fromIntegral (1 + (length bhs)), sh)
 

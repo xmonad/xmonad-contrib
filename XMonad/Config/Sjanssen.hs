@@ -34,7 +34,7 @@ sjanssenConfig = do
         , manageHook = manageHook defaultConfig <+> manageDocks
         }
  where
-    tiled   = HintedTile 1 0.03 0.5
+    tiled   = HintedTile 1 0.03 0.5 TopLeft
 
     mykeys (XConfig {modMask = modm, workspaces = ws}) = M.fromList $
         [((modm,               xK_p     ), shellPrompt myPromptConfig)
