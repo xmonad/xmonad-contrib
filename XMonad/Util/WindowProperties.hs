@@ -14,9 +14,10 @@
 module XMonad.Util.WindowProperties (
     -- * Usage
     -- $usage
-    Property(..), hasProperty)
+    Property(..), hasProperty, focusedHasProperty)
 where
 import XMonad
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- This module allows to specify window properties, such as title, classname or
@@ -46,4 +47,13 @@ hasProperty (And p1 p2)   w = do { r1 <- hasProperty p1 w; r2 <- hasProperty p2 
 hasProperty (Or p1 p2)    w = do { r1 <- hasProperty p1 w; r2 <- hasProperty p2 w; return $ r1 || r2 }
 hasProperty (Not p1)      w = do { r1 <- hasProperty p1 w; return $ not r1 }
 hasProperty (Const b)     _ = return b
+
+-- | Does the focused window have this property?
+focusedHasProperty :: Property -> X Bool
+focusedHasProperty p = do
+    ws <- gets windowset
+    let ms = W.stack $ W.workspace $ W.current ws
+    case ms of
+        Just s  -> hasProperty p $ W.focus s
+        Nothing -> return False
 
