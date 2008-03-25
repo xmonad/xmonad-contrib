@@ -68,12 +68,11 @@ instance Eq a => DecorationStyle TabBarDecoration a where
     shrink    _ _ r = r
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration (TabBar p) _ dht (Rectangle x y wh ht) s _ (w,_) =
-        if isInStack s w then Just $ Rectangle nx ny nwh (fi dht) else Nothing
+        if isInStack s w then Just $ Rectangle nx ny wid (fi dht) else Nothing
         where wrs = S.integrate s
-              nwh = wh `div` max 1 (fi $ length wrs)
+              loc i = (wh * fi i) `div` max 1 (fi $ length wrs)
+              wid = maybe (fi x) (\i -> loc (i+1) - loc i) $ w `elemIndex` wrs
               ny  = case p of
                      Top    -> y
                      Bottom -> y + fi ht - fi dht
-              nx  = case w `elemIndex` wrs of
-                      Just i  -> x + (fi nwh * fi i)
-                      Nothing -> x
+              nx  = maybe x (fi . loc) $ w `elemIndex` wrs
