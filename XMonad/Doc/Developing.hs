@@ -8,22 +8,25 @@
 -- Stability   :  unstable
 -- Portability :  portable
 --
--- This module documents the xmonad internals. It is intended for
--- advanced users who are curious about the xmonad source code and
--- want an brief overview. This document may also be helpful for the
--- beginner\/intermediate Haskell programmer who is motivated to write
--- an xmonad extension as a way to deepen her understanding of this
--- powerful functional language; however, there is not space here to
--- go into much detail.  A more comprehensive document introducing
--- beginner\/intermediate Haskell programmers to the xmonad source is
--- planned for the xmonad users' wiki
--- (<http://haskell.org/haskellwiki/Xmonad>).
+-- This module gives a brief overview of the xmonad internals. It is
+-- intended for advanced users who are curious about the xmonad source
+-- code and want an brief overview. This document may also be helpful
+-- for the beginner\/intermediate Haskell programmer who is motivated
+-- to write an xmonad extension as a way to deepen her understanding
+-- of this powerful functional language; however, there is not space
+-- here to go into much detail.  For a more comprehensive document
+-- covering some of the same material in more depth, see the guided
+-- tour of the xmonad source on the xmonad wiki:
+-- <http://haskell.org/haskellwiki/Xmonad/Guided_tour_of_the_xmonad_source>.
 --
 -- If you write an extension module and think it may be useful for
 -- others, consider releasing it.  Coding guidelines and licensing
 -- policies are covered at the end of this document, and must be
 -- followed if you want your code to be included in the official
--- repositories.
+-- repositories.  For a basic tutorial on the nuts and bolts of
+-- developing a new extension for xmonad, see the tutorial on the
+-- wiki:
+-- <http://haskell.org/haskellwiki/Xmonad/xmonad_development_tutorial>.
 --
 -----------------------------------------------------------------------------
 
@@ -284,6 +287,10 @@ and then point your browser to @\/path\/to\/XMonadContrib\/dist\/doc\/html\/xmon
 
 For more information, see the Haddock documentation:
 <http://www.haskell.org/haddock/haddock-html-0.8/index.html>.
+
+For more information on the nuts and bolts of how to develop your own
+extension, see the tutorial on the wiki:
+<http://haskell.org/haskellwiki/Xmonad/xmonad_development_tutorial>.
 
 -}
 

@@ -91,7 +91,7 @@ describe values that differ from the defaults.
 As an alternative, you can copy the template @xmonad.hs@ file (found
 either in the @man@ directory, if you have the xmonad source, or on
 the xmonad wiki at
-@http:\/\/haskell.org\/haskellwiki\/Xmonad\/Config_archive\/Template_Config.hs@)
+@http:\/\/haskell.org\/haskellwiki\/Xmonad\/Config_archive\/Template_xmonad.hs@)
 into your @~\/.xmonad\/@ directory.  This template file contains all
 the default settings spelled out, and you should be able to simply
 change the ones you would like to change.
@@ -122,14 +122,17 @@ Ok, looks good.
 Note, however, that if you skip this step and try restarting xmonad
 with errors in your xmonad.hs, it's not the end of the world; xmonad
 will simply display a window showing the errors and continue with the
-previous configuration settings.
+previous configuration settings. (This assumes that you have the
+\'xmessage\' utility installed; you probably do.)
 
 -}
 
 {- $load
 #Loading_your_configuration#
 
-To get xmonad to use your new settings, type @mod-q@. xmonad will
+To get xmonad to use your new settings, type @mod-q@. (Remember, the
+mod key is \'alt\' by default, but you can configure it to be
+something else, such as your Windows key if you have one.) xmonad will
 attempt to compile this file, and run it.  If everything goes well,
 xmonad will seamlessly restart itself with the new settings, keeping
 all your windows, layouts, etc. intact.  (If you change anything

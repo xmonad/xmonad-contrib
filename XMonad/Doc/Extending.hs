@@ -125,14 +125,17 @@ edit your key bindings.
 * "XMonad.Actions.CopyWindow": duplicating windows on multiple
   workspaces.
 
-* "XMonad.Actions.CycleWS": move between workspaces.
+* "XMonad.Actions.CycleSelectedLayouts": bind a key to cycle through a
+  particular subset of your layouts.
+
+* "XMonad.Actions.CycleWS": move between workspaces in various ways.
 
 * "XMonad.Actions.DeManage": cease management of a window without
   unmapping it.
 
 * "XMonad.Actions.DwmPromote": dwm-like master window swapping.
 
-* "XMonad.Actions.DynamicWorkspaces": add and delete workspaces.
+* "XMonad.Actions.DynamicWorkspaces": add, delete, and rename workspaces.
 
 * "XMonad.Actions.FindEmptyWorkspace": find an empty workspace.
 
@@ -147,6 +150,19 @@ edit your key bindings.
 * "XMonad.Actions.FocusNth": focus the nth window on the screen.
 
 * "XMonad.Actions.MouseGestures": bind mouse gestures to actions.
+
+* "XMonad.Actions.MouseResize": use with
+  "XMonad.Layout.WindowArranger" to resize windows with the mouse when
+  using a floating layout.
+
+* "XMonad.Actions.NoBorders": forcibly remove borders from a window.
+  Not to be confused with "XMonad.Layout.NoBorders".
+
+* "XMonad.Actions.PerWorkspaceKeys": configure keybindings
+  per-workspace.
+
+* "XMonad.Actions.Promote": An action to move the focused window to
+  the master pane, or swap the master with the next window.
 
 * "XMonad.Actions.RotSlaves": rotate non-master windows.
 
@@ -165,12 +181,16 @@ edit your key bindings.
 
 * "XMonad.Actions.TagWindows": tag windows and select by tag.
 
+* "XMonad.Actions.UpdatePointer": mouse-follows-focus.
+
 * "XMonad.Actions.Warp": warp the pointer.
 
 * "XMonad.Actions.WindowBringer": bring windows to you, and you to
   windows.
 
-* "XMonad.Actions.WmiiActions": wmii-style actions.
+* "XMonad.Actions.WindowGo": travel to windows based on various
+  criteria; conditionally start a program if a window does not exist,
+  or travel to that window if it does.
 
 -}
 
@@ -223,12 +243,18 @@ Here is a list of the modules found in @XMonad.Hooks@:
   putting in a status bar of some sort. See
   "XMonad.Doc.Extending#The_log_hook_and_external_status_bars".
 
+* "XMonad.Hooks.EventHook": a hook to handle X events at the layout level.
+
 * "XMonad.Hooks.EwmhDesktops": support for pagers in panel applications.
 
-* "XMonad.Hooks.ManageDocks": handle DOCK and STRUT windows appropriately.
+* "XMonad.Hooks.ManageDocks": handle DOCK and STRUT windows (such as
+  status bars) appropriately, by de-managing them and creating
+  appropriate gaps so as not to place other windows covering them.
 
 * "XMonad.Hooks.ManageHelpers": provide helper functions to be used
   in @manageHook@.
+
+* "XMonad.Hooks.ServerMode": example use of "XMonad.Hooks.EventHook".
 
 * "XMonad.Hooks.SetWMName": set the WM name.  Useful when e.g. running
   Java GUI programs.
@@ -265,12 +291,23 @@ For more information on using those modules for customizing your
 
 * "XMonad.Layout.Combo": combine multiple layouts into one.
 
+* "XMonad.Layout.Decoration": decorated layouts.
+
+* "XMonad.Layout.DecorationMadness": some examples of decorated layouts.
+
 * "XMonad.Layout.Dishes": stack extra windows underneath the master windows.
 
 * "XMonad.Layout.DragPane": split the screen into two windows with a
   draggable divider.
 
+* "XMonad.Layout.DwmStyle": windows decorated in a dwm-like style.
+
 * "XMonad.Layout.Grid": put windows in a square grid.
+
+* "XMonad.Layout.HintedTile": gapless tiled layout that attempts to
+  obey window size hints.
+
+* "XMonad.Layout.IM": a layout for multi-window instant message clients.
 
 * "XMonad.Layout.LayoutCombinators": general layout combining.
 
@@ -289,9 +326,6 @@ For more information on using those modules for customizing your
 
 * "XMonad.Layout.Maximize": temporarily maximize the focused window.
 
-* "XMonad.Layout.Mosaic": tries to give each window a
-  user-configurable relative area
-
 * "XMonad.Layout.MosaicAlt": give each window a specified relative
   amount of screen space.
 
@@ -305,28 +339,47 @@ For more information on using those modules for customizing your
 
 * "XMonad.Layout.PerWorkspace": configure layouts on a per-workspace basis.
 
+* "XMonad.Layout.Reflect": reflect any layout vertically or horizontally.
+
 * "XMonad.Layout.ResizableTile": tiled layout allowing you to change
   width and height of windows.
+
+* "XMonad.Layout.ResizeScreen": a layout modifier to change the screen
+  geometry on one side.
 
 * "XMonad.Layout.Roledex": a \"completely pointless layout which acts
   like Microsoft's Flip 3D\".
 
+* "XMonad.Layout.ScratchWorkspace": implements a scratch workspace
+  which can be shown and hidden with keybindings.
+
 * "XMonad.Layout.ShowWName": Show the name of the current workspace when switching.
+
+* "XMonad.Layout.SimpleDecoration": add simple decorations to windows.
+
+* "XMonad.Layout.SimpleFloat": a basic floating layout.
+
+* "XMonad.Layout.Simplest": a basic, simple layout that just lays out
+  all windows with a fullscreen geometry.  Used by
+  "XMonad.Layout.Tabbed".
 
 * "XMonad.Layout.Spiral": Fibonacci spiral layout.
 
 * "XMonad.Layout.Square": split the screen into a square area plus the rest.
 
+* "XMonad.Layout.TabBarDecoration": add a bar of tabs to any layout.
+
 * "XMonad.Layout.Tabbed": a tabbed layout.
 
 * "XMonad.Layout.ThreeColumns": a layout with three columns instead of two.
-
-* "XMonad.Layout.TilePrime": fill gaps created by resize hints.
 
 * "XMonad.Layout.ToggleLayouts": toggle between two layouts.
 
 * "XMonad.Layout.TwoPane": split the screen horizontally and show two
   windows.
+
+* "XMonad.Layout.WindowArranger": make any layout into a
+  pseudo-floating layout by allowing you to move and resize windows.
 
 * "XMonad.Layout.WindowNavigation": navigate around a workspace
   directionally instead of using mod-j\/k.
@@ -347,21 +400,38 @@ modules.
 
 These are the available prompts:
 
-* "XMonad.Prompt.Directory"
+* "XMonad.Prompt.AppendFile": append lines of text to a file.
 
-* "XMonad.Prompt.Layout"
+* "XMonad.Prompt.Directory": prompt for a directory.
 
-* "XMonad.Prompt.Man"
+* "XMonad.Prompt.DirExec": put a bunch of scripts you want in a
+  directory, then choose from among them with this prompt.
 
-* "XMonad.Prompt.Shell"
+* "XMonad.Prompt.Email": an example of "XMonad.Prompt.Input", send
+  simple short e-mails from a prompt.
 
-* "XMonad.Prompt.Ssh"
+* "XMonad.Prompt.Input": useful for building general actions requiring
+  input from a prompt.
 
-* "XMonad.Prompt.Window"
+* "XMonad.Prompt.Layout": choose a layout from a prompt.
 
-* "XMonad.Prompt.Workspace"
+* "XMonad.Prompt.Man": open man pages.
 
-* "XMonad.Prompt.XMonad"
+* "XMonad.Prompt.RunOrRaise": choose a program, and run it if not
+  already running, or raise its window if it is.
+
+* "XMonad.Prompt.Shell": run a shell command.
+
+* "XMonad.Prompt.Ssh": open an ssh connection.
+
+* "XMonad.Prompt.Theme": choose a decoration theme.
+
+* "XMonad.Prompt.Window": choose an open window.
+
+* "XMonad.Prompt.Workspace": choose a workspace.
+
+* "XMonad.Prompt.XMonad": perform various xmonad actions by choosing
+  one from a prompt.
 
 Usually a prompt is called by some key binding. See
 "XMonad.Doc.Extending#Editing_key_bindings", which includes examples
@@ -380,15 +450,45 @@ external utilities.
 
 A non complete list with a brief description:
 
-* "XMonad.Util.Anneal": The goal is to bring the system, from an
-  arbitrary initial state, to a state with the minimum possible
-  energy.
+* "XMonad.Util.CustomKeys": configure key bindings (see
+  "XMonad.Doc.Extending#Editing_key_bindings").
 
-* "XMonad.Util.CustomKeys" or "XMonad.Util.EZConfig" can be used to
-  configure key bindings (see "XMonad.Doc.Extending#Editing_key_bindings");
+* "XMonad.Util.Dmenu": a dmenu binding.
 
 * "XMonad.Util.Dzen" "XMonad.Util.Dmenu" provide useful functions for
   running dzen as a xmonad status bar and dmenu as a program launcher;
+
+* "XMonad.Util.EZConfig": configure key bindings easily, including a
+  parser for writing key bindings in "M-C-x" style.
+
+* "XMonad.Util.Font": A module for abstracting a font facility over
+  Core fonts and Xft
+
+* "XMonad.Util.Invisible": a wrapper data type to store layout state
+  which should not be persisted across restarts.
+
+* "XMonad.Util.Loggers": a collection of loggers that can be used in
+  conjunction with "XMonad.Hooks.DynamicLog".
+
+* "XMonad.Util.NamedWindows": associate windows with their X titles.
+  Used by, e.g. "XMonad.Layout.Tabbed".
+
+* "XMonad.Util.Run": a collection of functions for running external
+  processes.
+
+* "XMonad.Util.Scratchpad": hotkey-launched floating terminal window.
+
+* "XMonad.Util.Themes": a collection of themes to be used with
+  floating layouts.
+
+* "XMonad.Util.Timer": set up a timer to handle deferred events.
+
+* "XMonad.Util.WindowProperties": an EDSL for specifying and matching
+  on window properties.
+
+* "XMonad.Util.WorkspaceCompare": general combinators for sorting
+  workspaces in various ways, used by several other modules which need
+  to sort workspaces (e.g. "XMonad.Hooks.DynamicLog").
 
 * "XMonad.Util.XSelection" provide utilities for using the mouse
   selection;
@@ -421,6 +521,8 @@ Editing key bindings means changing the 'XMonad.Core.XConfig.keys'
 field of the 'XMonad.Core.XConfig' record used by xmonad.  For
 example, you could write:
 
+>    import XMonad
+>
 >    main = xmonad $ defaultConfig { keys = myKeys }
 
 and provide an appropriate definition of @myKeys@, such as:
@@ -430,14 +532,14 @@ and provide an appropriate definition of @myKeys@, such as:
 >             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
-This particular definition also requires importing "Graphics.X11.Xlib"
-(for the symbols such as @xK_F12@), "XMonad.Prompt",
+This particular definition also requires importing "XMonad.Prompt",
 "XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad":
 
-> import Graphics.X11.Xlib
+> import XMonadPrompt
 > import ...  -- and so on
 
-For a list of the names of particular keys (such as xK_F12, and so on), see
+For a list of the names of particular keys (such as xK_F12, and so
+on), see
 <http://hackage.haskell.org/packages/archive/X11/1.4.1/doc/html/Graphics-X11-Types.html>.
 
 Usually, rather than completely redefining the key bindings, as we did
@@ -507,17 +609,10 @@ All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 >             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
-
-There are other ways of defining @newKeys@; for instance,
-you could define it like this:
-
->    newKeys x = foldr (uncurry M.insert) (keys defaultConfig x) (myKeys x)
-
-However, the simplest way to add new key bindings is to use some
-utilities provided by the xmonad-contrib library.  For instance,
-"XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys" both provide
-useful functions for editing your key bindings.  Look, for instance, at
-'XMonad.Util.EZConfig.additionalKeys'.
+There are much simpler ways to accomplish this, however, if you are
+willing to use an extension module to help you configure your keys.
+For instance, "XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys" both
+provide useful functions for editing your key bindings; "XMonad.Util.EZConfig" even lets you use emacs-style keybinding descriptions like \"M-C-<F12>\".
 
  -}
 
@@ -767,6 +862,9 @@ Where @property@ can be:
 
 * 'XMonad.ManageHook.className': the resource class name.
 
+* 'XMonad.ManageHook.stringProperty' @somestring@: the contents of the
+  property @somestring@.
+
 (You can retrieve the needed information using the X utility named
 @xprop@; for example, to find the resource class name, you can type
 
@@ -838,6 +936,9 @@ a window matches multiple rules in a 'XMonad.Config.manageHook', /all/
 of the corresponding actions will be run (in the order in which they
 are defined).  This is a change from versions before 0.5, when only
 the first rule that matched was run.
+
+Finally, for additional rules and actions you can use in your
+manageHook, check out the contrib module "XMonad.Hooks.ManageHelpers".
 
 -}
 
