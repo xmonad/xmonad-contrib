@@ -14,11 +14,15 @@ module XMonad.Config.Dons where
 
 import XMonad
 import XMonad.Hooks.DynamicLog
+import XMonad.Layout.NoBorders
 
 donsMain :: IO ()
-donsMain = dzen $ \conf -> xmonad $ conf
-        { borderWidth        = 2
-        , terminal           = "term"
-        , normalBorderColor  = "#cccccc"
-        , focusedBorderColor = "#cd8b00" }
-
+donsMain = dzen $ \x -> xmonad $ x
+        { terminal           = "term"
+        , normalBorderColor  = "#333333"
+        , focusedBorderColor = "red"
+        , layoutHook         = smartBorders (layoutHook x)
+        , manageHook         =
+                manageHook x <+>
+                    (className =? "Toplevel" --> doFloat)
+        }
