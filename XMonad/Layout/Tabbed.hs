@@ -116,7 +116,7 @@ instance Eq a => DecorationStyle TabbedDecoration a where
         where ws = filter (`elem` map fst (filter ((==r) . snd) wrs)) (S.integrate s)
               loc i = (wh * fi i) `div` max 1 (fi $ length ws)
               wid = maybe (fi x) (\i -> loc (i+1) - loc i) $ w `elemIndex` ws
-              nx  = maybe x (fi . loc) $ w `elemIndex` ws
+              nx  = (x +) $ maybe 0 (fi . loc) $ w `elemIndex` ws
     shrink ds (Rectangle _ _ _ dh) (Rectangle x y w h) = case ds of
         Tabbed -> Rectangle x (y + fi dh) w (h - dh)
         TabbedBottom -> Rectangle x y w (h - dh)

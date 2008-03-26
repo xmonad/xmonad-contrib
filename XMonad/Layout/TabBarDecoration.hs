@@ -75,4 +75,4 @@ instance Eq a => DecorationStyle TabBarDecoration a where
               ny  = case p of
                      Top    -> y
                      Bottom -> y + fi ht - fi dht
-              nx  = maybe x (fi . loc) $ w `elemIndex` wrs
+              nx  = (x +) $ maybe 0 (fi . loc) $ w `elemIndex` wrs
