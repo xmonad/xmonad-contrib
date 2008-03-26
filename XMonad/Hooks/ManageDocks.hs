@@ -24,7 +24,6 @@ module XMonad.Hooks.ManageDocks (
 -----------------------------------------------------------------------------
 import XMonad
 import Foreign.C.Types (CLong)
--- import Data.Maybe (catMaybes, fromMaybe)
 import Control.Monad
 import XMonad.Layout.LayoutModifier
 
@@ -49,6 +48,13 @@ import XMonad.Layout.LayoutModifier
 -- to:
 --
 -- > ,((modMask x, xK_b     ), sendMessage ToggleStruts)
+--
+-- /Important note/: if you are switching from manual gaps
+-- (defaultGaps in your config) to avoidStruts (recommended, since
+-- manual gaps will probably be phased out soon), be sure to switch
+-- off all your gaps (with mod-b) /before/ reloading your config with
+-- avoidStruts!  Toggling struts with a 'ToggleStruts' message will
+-- not work unless your gaps are set to zero.
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
