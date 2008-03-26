@@ -10,17 +10,21 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Configure layouts on a per-workspace basis.
+-- Configure layouts on a per-workspace basis: use layouts and apply
+-- layout modifiers selectively, depending on the workspace.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.PerWorkspace
     ( -- * Usage
       -- $usage
-      onWorkspace, onWorkspaces
+      onWorkspace, onWorkspaces,
+      modWorkspace, modWorkspaces
     ) where
 
 import XMonad
 import qualified XMonad.StackSet as W
+
+import XMonad.Layout.LayoutModifier
 
 import Data.Maybe (fromMaybe)
 
@@ -31,12 +35,15 @@ import Data.Maybe (fromMaybe)
 --
 -- and modifying your layoutHook as follows (for example):
 --
--- > layoutHook = onWorkspace "foo" l1 $  -- layout l1 will be used on workspace "foo".
+-- > layoutHook = modWorkspace "baz" m1 $  -- apply layout modifier m1 to all layouts on workspace "baz"
+-- >              onWorkspace "foo" l1 $  -- layout l1 will be used on workspace "foo".
 -- >              onWorkspaces ["bar","6"] l2 $  -- layout l2 will be used on workspaces "bar" and "6".
 -- >              l3                      -- layout l3 will be used on all other workspaces.
 --
--- Note that @l1@, @l2@, and @l3@ can be arbitrarily complicated layouts,
--- e.g. @(Full ||| smartBorders $ tabbed shrinkText defaultTConf ||| ...)@
+-- Note that @l1@, @l2@, and @l3@ can be arbitrarily complicated
+-- layouts, e.g. @(Full ||| smartBorders $ tabbed shrinkText
+-- defaultTConf ||| ...)@, and @m1@ can be any layout modifier, i.e. a
+-- function of type @(l a -> ModifiedLayout lm l a)@.
 --
 -- In another scenario, suppose you wanted to have layouts A, B, and C
 -- available on all workspaces, except that on workspace foo you want
@@ -52,7 +59,7 @@ onWorkspace :: (LayoutClass l1 a, LayoutClass l2 a)
                -> (l1 a)      -- ^ layout to use on the matched workspace
                -> (l2 a)      -- ^ layout to use everywhere else
                -> PerWorkspace l1 l2 a
-onWorkspace wsId l1 l2 = PerWorkspace [wsId] False l1 l2
+onWorkspace wsId = onWorkspaces [wsId]
 
 -- | Specify one layout to use on a particular set of workspaces, and
 --   another to use on all other workspaces.
@@ -62,6 +69,25 @@ onWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
                 -> (l2 a)         -- ^ layout to use everywhere else
                 -> PerWorkspace l1 l2 a
 onWorkspaces wsIds l1 l2 = PerWorkspace wsIds False l1 l2
+
+-- | Specify a layout modifier to apply to a particular workspace; layouts
+--   on all other workspaces will remain unmodified.
+modWorkspace :: (LayoutClass l a)
+             => WorkspaceId                     -- ^ tag of the workspace to match
+             -> (l a -> ModifiedLayout lm l a)  -- ^ the modifier to apply on the matching workspace
+             -> l a                             -- ^ the base layout
+             -> PerWorkspace (ModifiedLayout lm l) l a
+modWorkspace wsId = modWorkspaces [wsId]
+
+-- | Specify a layout modifier to apply to a particular set of
+--   workspaces; layouts on all other workspaces will remain
+--   unmodified.
+modWorkspaces :: (LayoutClass l a)
+              => [WorkspaceId]                   -- ^ tags of the workspaces to match
+              -> (l a -> ModifiedLayout lm l a)  -- ^ the modifier to apply on the matching workspaces
+              -> l a                             -- ^ the base layout
+              -> PerWorkspace (ModifiedLayout lm l) l a
+modWorkspaces wsIds f l = PerWorkspace wsIds False (f l) l
 
 -- | Structure for representing a workspace-specific layout along with
 -- a layout for all other workspaces. We store the tags of workspaces
@@ -97,3 +123,4 @@ mkNewPerWorkspaceF :: PerWorkspace l1 l2 a -> Maybe (l2 a) ->
                       PerWorkspace l1 l2 a
 mkNewPerWorkspaceF (PerWorkspace wsIds _ lt lf) mlf' =
     (\lf' -> PerWorkspace wsIds False lt lf') $ fromMaybe lf mlf'
+
