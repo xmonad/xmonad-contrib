@@ -22,8 +22,8 @@ module XMonad.Util.NamedWindows (
                                    unName
                                   ) where
 
-import Control.Monad.Reader ( asks )
-import Control.Monad.State ( gets )
+import Prelude hiding ( catch )
+import Control.Exception ( bracket, catch )
 
 import qualified XMonad.StackSet as W ( peek )
 
