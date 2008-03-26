@@ -87,7 +87,7 @@ instance LayoutModifier SmartBorder Window where
                 [ w |
                     (w, W.RationalRect px py wx wy) <- M.toList . W.floating $ wset,
                     px <= 0, py <= 0,
-                    wx >= 1, wy >= 1
+                    wx + px >= 1, wy + py >= 1
                 ]
         asks (borderWidth . config) >>= setBorders (s \\ ws)
         setBorders ws 0
