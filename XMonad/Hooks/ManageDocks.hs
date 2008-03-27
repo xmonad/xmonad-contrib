@@ -17,7 +17,8 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    manageDocks, AvoidStruts, avoidStruts, ToggleStruts(ToggleStruts)
+    manageDocks, AvoidStruts, avoidStruts, ToggleStruts(..),
+    Side(..)
     ) where
 
 
@@ -26,6 +27,8 @@ import XMonad
 import Foreign.C.Types (CLong)
 import Control.Monad
 import XMonad.Layout.LayoutModifier
+
+import Data.List (delete)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -49,6 +52,14 @@ import XMonad.Layout.LayoutModifier
 --
 -- > ,((modMask x, xK_b     ), sendMessage ToggleStruts)
 --
+-- If you have multiple docks, you can toggle their gaps individually.
+-- For example, to toggle only the top gap:
+--
+-- > ,((modMask x .|. controlMask, xK_t), sendMessage $ ToggleStrut TT)
+--
+-- Similarly, you can use 'BB', 'LL', and 'RR' to individually toggle
+-- gaps on the bottom, left, or right.
+--
 -- /Important note/: if you are switching from manual gaps
 -- (defaultGaps in your config) to avoidStruts (recommended, since
 -- manual gaps will probably be phased out soon), be sure to switch
@@ -58,6 +69,7 @@ import XMonad.Layout.LayoutModifier
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
+--
 
 -- |
 -- Detects if the given window is of type DOCK and if so, reveals it, but does
@@ -93,7 +105,7 @@ getStrut w = do
 
     parseStrutPartial [l, r, t, b, ly1, ly2, ry1, ry2, tx1, tx2, bx1, bx2]
      = filter (\(_, n, _, _) -> n /= 0)
-        [(L, l, ly1, ly2), (R, r, ry1, ry2), (T, t, tx1, tx2), (B, b, bx1, bx2)]
+        [(LL, l, ly1, ly2), (RR, r, ry1, ry2), (TT, t, tx1, tx2), (BB, b, bx1, bx2)]
     parseStrutPartial _ = []
 
 -- |
@@ -104,12 +116,12 @@ getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 -- |
 -- Goes through the list of windows and find the gap so that all STRUT
 -- settings are satisfied.
-calcGap :: X (Rectangle -> Rectangle)
-calcGap = withDisplay $ \dpy -> do
+calcGap :: [Side] -> X (Rectangle -> Rectangle)
+calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     -- We don't keep track of dock like windows, so we find all of them here
     (_,_,wins) <- io $ queryTree dpy rootw
-    struts <- concat `fmap` mapM getStrut wins
+    struts <- (filter careAbout . concat) `fmap` mapM getStrut wins
 
     -- we grab the window attributes of the root window rather than checking
     -- the width of the screen because xlib caches this info and it tends to
@@ -117,26 +129,36 @@ calcGap = withDisplay $ \dpy -> do
     wa <- io $ getWindowAttributes dpy rootw
     let screen = r2c $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
     return $ \r -> c2r $ foldr (reduce screen) (r2c r) struts
+  where careAbout (s,_,_,_) = s `elem` ss
 
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
-avoidStruts = ModifiedLayout (AvoidStruts True)
+avoidStruts = ModifiedLayout (AvoidStruts [TT,BB,LL,RR])
 
-data AvoidStruts a = AvoidStruts Bool deriving ( Read, Show )
+data AvoidStruts a = AvoidStruts [Side] deriving ( Read, Show )
 
-data ToggleStruts = ToggleStruts deriving (Read,Show,Typeable)
+data ToggleStruts = ToggleStruts
+                  | ToggleStrut Side
+  deriving (Read,Show,Typeable)
+
 instance Message ToggleStruts
 
 instance LayoutModifier AvoidStruts a where
-    modifyLayout (AvoidStruts b) w r = do
-        nr <- if b then fmap ($ r) calcGap else return r
+    modifyLayout (AvoidStruts ss) w r = do
+        nr <- fmap ($ r) (calcGap ss)
         runLayout w nr
 
-    handleMess (AvoidStruts b ) m
-        | Just ToggleStruts <- fromMessage m = return $ Just $ AvoidStruts (not b)
+    handleMess (AvoidStruts ss) m
+        | Just ToggleStruts    <- fromMessage m = return $ Just $ AvoidStruts (toggleAll ss)
+        | Just (ToggleStrut s) <- fromMessage m = return $ Just $ AvoidStruts (toggleOne s ss)
         | otherwise = return Nothing
+      where toggleAll []   = [TT,BB,LL,RR]
+            toggleAll _    = []
+            toggleOne x xs | x `elem` xs = delete x xs
+                           | otherwise   = x : xs
 
-data Side = L | R | T | B
+data Side = LL | RR | TT | BB
+  deriving (Read, Show, Eq)
 
 -- | (Side, height\/width, initial pixel, final pixel).
 
@@ -171,10 +193,10 @@ c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y
 
 reduce :: RectC -> Strut -> RectC -> RectC
 reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
-    L | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
-    R | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
-    T | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
-    B | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
+    LL | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
+    RR | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
+    TT | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
+    BB | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
     _              -> (x0           , y0       , x1       , y1       )
  where
     mx a b = max a (b + n)
