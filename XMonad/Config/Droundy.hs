@@ -8,43 +8,40 @@
 
 module XMonad.Config.Droundy ( config, mytab ) where
 
---import Control.Monad.State ( modify )
-
 import XMonad hiding (keys, config, (|||))
 import qualified XMonad (keys)
 import XMonad.Config ( defaultConfig )
 
---import XMonad.Core ( windowset )
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
-import System.Exit
+import System.Exit ( exitWith, ExitCode(ExitSuccess) )
 
--- % Extension-provided imports
-
-import XMonad.Layout.Tabbed
-import XMonad.Layout.Combo
-import XMonad.Layout.Named
+import XMonad.Layout.Tabbed ( tabbed, defaultTheme,
+                              shrinkText, Shrinker, shrinkIt, CustomShrink(CustomShrink) )
+import XMonad.Layout.Combo ( combineTwo )
+import XMonad.Layout.Named ( named )
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.Simplest
-import XMonad.Layout.Square
-import XMonad.Layout.LayoutScreens
-import XMonad.Layout.WindowNavigation
-import XMonad.Layout.NoBorders
-import XMonad.Layout.WorkspaceDir
-import XMonad.Layout.ToggleLayouts
-import XMonad.Layout.ShowWName
-import XMonad.Layout.ScratchWorkspace
+import XMonad.Layout.Simplest ( Simplest(Simplest) )
+import XMonad.Layout.Square ( Square(Square) )
+import XMonad.Layout.WindowNavigation ( Navigate(Move,Swap,Go), Direction(U,D,R,L),
+                                        windowNavigation )
+import XMonad.Layout.NoBorders ( smartBorders )
+import XMonad.Layout.WorkspaceDir ( changeDir, workspaceDir )
+import XMonad.Layout.ToggleLayouts ( toggleLayouts, ToggleLayout(ToggleLayout) )
+import XMonad.Layout.ShowWName ( showWName )
+import XMonad.Layout.ScratchWorkspace ( toggleScratchWorkspace )
 
-import XMonad.Prompt
-import XMonad.Prompt.Layout
-import XMonad.Prompt.Shell
+import XMonad.Prompt ( defaultXPConfig, font, height, XPConfig )
+import XMonad.Prompt.Layout ( layoutPrompt )
+import XMonad.Prompt.Shell ( shellPrompt )
 
-import XMonad.Actions.CopyWindow
-import XMonad.Actions.DynamicWorkspaces
-import XMonad.Actions.CycleWS
+import XMonad.Actions.CopyWindow ( kill1, copy )
+import XMonad.Actions.DynamicWorkspaces ( withNthWorkspace, withWorkspace,
+                                          selectWorkspace, renameWorkspace, removeWorkspace )
+import XMonad.Actions.CycleWS ( moveTo, WSType( HiddenNonEmptyWS ),
+                                WSDirection( Prev, Next) )
 
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
 import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook,
                                    ewmhDesktopsLayout )
 
@@ -83,10 +80,6 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_Escape), io (exitWith ExitSuccess)) -- %! Quit xmonad
     , ((modMask x              , xK_Escape), restart "xmonad" True) -- %! Restart xmonad
 
-    , ((modMask x .|. shiftMask, xK_z     ),
-       layoutScreens 1 (fixedLayout [Rectangle 0 0 1024 768]))
-    , ((modMask x .|. shiftMask .|. controlMask, xK_z),
-       layoutScreens 1 (fixedLayout [Rectangle 0 0 1440 900]))
     , ((modMask x .|. shiftMask, xK_Right), moveTo Next HiddenNonEmptyWS)
     , ((modMask x .|. shiftMask, xK_Left), moveTo Prev HiddenNonEmptyWS)
     , ((modMask x, xK_Right), sendMessage $ Go R)
@@ -123,9 +116,7 @@ keys x = M.fromList $
     ++
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
-config = -- withUrgencyHook FocusUrgencyHook $
-         withUrgencyHook NoUrgencyHook $
-         defaultConfig
+config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
          , layoutHook = ewmhDesktopsLayout $ showWName $ workspaceDir "~" $
