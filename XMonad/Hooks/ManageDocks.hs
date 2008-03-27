@@ -17,7 +17,7 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    manageDocks, AvoidStruts, avoidStruts, ToggleStruts(..),
+    manageDocks, AvoidStruts, avoidStruts, avoidStrutsOn, ToggleStruts(..),
     Side(..)
     ) where
 
@@ -59,6 +59,12 @@ import Data.List (delete)
 --
 -- Similarly, you can use 'BB', 'LL', and 'RR' to individually toggle
 -- gaps on the bottom, left, or right.
+--
+-- If you want certain docks to be avoided but others to be covered by
+-- default, you can manually specify the sides of the screen on which
+-- docks should be avoided, using 'avoidStrutsOn'.  For example:
+--
+-- > layoutHook = avoidStrutsOn [TT,LL] (tall ||| mirror tall ||| ...)
 --
 -- /Important note/: if you are switching from manual gaps
 -- (defaultGaps in your config) to avoidStruts (recommended, since
@@ -133,7 +139,16 @@ calcGap ss = withDisplay $ \dpy -> do
 
 -- | Adjust layout automagically.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
-avoidStruts = ModifiedLayout (AvoidStruts [TT,BB,LL,RR])
+avoidStruts = avoidStrutsOn [TT,BB,LL,RR]
+
+-- | Adjust layout automagically: don't cover up docks, status bars,
+--   etc. on the indicated sides of the screen.  Valid sides are TT
+--   (top), BB (bottom), RR (right), or LL (left).
+avoidStrutsOn :: LayoutClass l a =>
+                 [Side]
+              -> l a
+              -> ModifiedLayout AvoidStruts l a
+avoidStrutsOn ss = ModifiedLayout (AvoidStruts ss)
 
 data AvoidStruts a = AvoidStruts [Side] deriving ( Read, Show )
 
