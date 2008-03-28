@@ -10,7 +10,7 @@
 -- Stability   :  stable
 -- Portability :  portable
 --
--- Spiral adds a spiral tiling layout
+-- A spiral tiling layout.
 --
 -----------------------------------------------------------------------------
 
@@ -31,11 +31,10 @@ import XMonad.StackSet ( integrate )
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Spiral
--- > import Data.Ratio
 --
 -- Then edit your @layoutHook@ by adding the Spiral layout:
 --
--- > myLayouts =  spiral (1 % 1) ||| etc..
+-- > myLayouts =  spiral (6/7) ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
@@ -59,9 +58,18 @@ blend scale ratios = zipWith (+) ratios scaleFactors
       step = (scale - (1 % 1)) / (fromIntegral len)
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
+-- | A spiral layout.  The parameter controls the size ratio between
+--   successive windows in the spiral.  Sensible values range from 0
+--   up to the aspect ratio of your monitor (often 4/3).
+--
+--   By default, the spiral is counterclockwise, starting to the east.
+--   See also 'spiralWithDir'.
 spiral :: Rational -> SpiralWithDir a
 spiral = spiralWithDir East CW
 
+-- | Create a spiral layout, specifying the starting cardinal direction,
+--   the spiral direction (clockwise or counterclockwise), and the
+--   size ratio.
 spiralWithDir :: Direction -> Rotation -> Rational -> SpiralWithDir a
 spiralWithDir = SpiralWithDir
 
