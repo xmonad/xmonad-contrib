@@ -198,7 +198,11 @@ acceptChange mt f = fmap (f (\x -> mt{ currLayout = EL x }))
 instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (MultiToggle ts l) a where
     description mt = currLayout mt `unEL` \l -> description l
 
-    runLayout (Workspace i mt s) r = currLayout mt `unEL` \l -> acceptChange mt (fmap . fmap) (runLayout (Workspace i l s) r)
+    runLayout (Workspace i mt s) r
+        | isNothing (currIndex mt) =
+            acceptChange mt (fmap . fmap . \f x -> (f x){ baseLayout = x }) $ runLayout (Workspace i (baseLayout mt) s) r
+        | otherwise = currLayout mt `unEL` \l ->
+            acceptChange mt (fmap . fmap) $ runLayout (Workspace i l s) r
 
     handleMessage mt m
         | Just (Toggle t) <- fromMessage m
