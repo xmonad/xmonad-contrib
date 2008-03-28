@@ -101,6 +101,8 @@ import XMonad.Hooks.UrgencyHook
 -- appropriately, either by putting it in your @.xsession@ or similar
 -- file, or by using @spawnPipe@ in your @main@ function, for example:
 --
+-- > import XMonad.Util.Run   -- for spawnPipe and hPutStrLn
+-- >
 -- > main = do
 -- >     h <- spawnPipe "xmobar -options -foo -bar"
 -- >     xmonad $ defaultConfig {

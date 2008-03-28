@@ -25,7 +25,9 @@ module XMonad.Util.Run (
                           runInTerm,
                           safeRunInTerm,
                           seconds,
-                          spawnPipe
+                          spawnPipe,
+
+                          hPutStr, hPutStrLn  -- re-export for convenience
                          ) where
 
 import System.Posix.IO

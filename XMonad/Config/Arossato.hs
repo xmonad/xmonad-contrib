@@ -20,7 +20,6 @@ module XMonad.Config.Arossato
     ) where
 
 import qualified Data.Map as M
-import System.IO (hPutStrLn)
 
 import XMonad hiding ( (|||) )
 import qualified XMonad.StackSet as W
