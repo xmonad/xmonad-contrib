@@ -219,12 +219,12 @@ dynamicLogString pp = do
     let ws = pprWindowSet sort' urgents pp winset
 
     -- window title
-    wt <- maybe (return "") (fmap (encodeOutput . show) . getName) . S.peek $ winset
+    wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
 
     -- run extra loggers, ignoring any that generate errors.
     extras <- sequence $ map (flip catchX (return Nothing)) $ ppExtras pp
 
-    return $ sepBy (ppSep pp) . ppOrder pp $
+    return $ encodeOutput . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp wt
