@@ -41,7 +41,7 @@ toggleScratchWorkspace l =
          then -- we don't yet have a scratch screen!
              if scratchName `W.tagMember` s
              then return () -- We'll just bail out of scratchName already exists...
-             else do let scratchscreen = W.Screen scratch (-1) (SD hiddenRect (0,0,0,0))
+             else do let scratchscreen = W.Screen scratch (-1) (SD hiddenRect)
                          scratch = W.Workspace scratchName defaultl Nothing
                          s' = s { W.visible = scratchscreen: W.visible s }
                      modify $ \st -> st { windowset = s' }

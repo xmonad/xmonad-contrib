@@ -144,8 +144,7 @@ dzen :: (XConfig (Choose Tall (Choose (Mirror Tall) Full)) -> IO ()) -> IO ()
 dzen f = do
   h <- spawnPipe ("dzen2" ++ " " ++ flags)
   f $ defaultConfig
-           { defaultGaps = [(15,0,0,0)] -- for fixed
-           , logHook = dynamicLogWithPP dzenPP
+           { logHook = dynamicLogWithPP dzenPP
                           { ppOutput = hPutStrLn h } }
  where
     fg      = "'#a8a3f7'" -- n.b quoting

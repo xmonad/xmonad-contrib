@@ -61,10 +61,9 @@ layoutScreens nscr l =
        (wss, _) <- runLayout (W.Workspace "" l (Just $ W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] })) rtrect
        windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
            let (x:xs, ys) = splitAt nscr $ map W.workspace (v:vs) ++ hs
-               gaps = map (statusGap . W.screenDetail) $ v:vs
-               (s:ss, g:gg) = (map snd wss, take nscr $ gaps ++ repeat (head gaps))
-           in  ws { W.current = W.Screen x 0 (SD s g)
-                  , W.visible = zipWith3 W.Screen xs [1 ..] $ zipWith SD ss gg
+               s:ss = map snd wss
+           in  ws { W.current = W.Screen x 0 (SD s)
+                  , W.visible = zipWith3 W.Screen xs [1 ..] $ map SD ss
                   , W.hidden  = ys }
 
 getWindowRectangle :: Window -> X Rectangle
