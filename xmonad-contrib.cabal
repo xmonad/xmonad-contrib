@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.6
+version:            0.7
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
@@ -57,7 +57,7 @@ library
         extensions: ForeignFunctionInterface
         cpp-options: -DUTF8
 
-    build-depends:      mtl, unix, X11>=1.4.1, xmonad==0.6
+    build-depends:      mtl, unix, X11>=1.4.1, xmonad==0.7
     ghc-options:        -Wall
 
     if flag(testing)
