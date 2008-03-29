@@ -60,7 +60,7 @@ blend scale ratios = zipWith (+) ratios scaleFactors
 
 -- | A spiral layout.  The parameter controls the size ratio between
 --   successive windows in the spiral.  Sensible values range from 0
---   up to the aspect ratio of your monitor (often 4/3).
+--   up to the aspect ratio of your monitor (often 4\/3).
 --
 --   By default, the spiral is counterclockwise, starting to the east.
 --   See also 'spiralWithDir'.
