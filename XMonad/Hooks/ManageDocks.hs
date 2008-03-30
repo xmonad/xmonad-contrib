@@ -39,7 +39,7 @@ import XMonad.Layout.LayoutModifier
 --
 -- The second component is a layout modifier that prevents windows from
 -- overlapping these dock windows.  It is intended to replace xmonad's
--- so-called "gap" support.  First, you must add it to your list of layouts:
+-- so-called \"gap\" support.  First, you must add it to your list of layouts:
 --
 -- > layoutHook = avoidStruts (tall ||| mirror tall ||| ...)
 -- >                   where  tall = Tall 1 (3/100) (1/2)
