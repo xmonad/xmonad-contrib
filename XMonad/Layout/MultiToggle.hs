@@ -15,7 +15,6 @@
 -- currently focused window occupy the whole screen (\"zoom in\") then undo
 -- the transformation (\"zoom out\").
 
-
 module XMonad.Layout.MultiToggle (
     -- * Usage
     -- $usage
@@ -24,7 +23,8 @@ module XMonad.Layout.MultiToggle (
     (??),
     EOT(..),
     single,
-    mkToggle
+    mkToggle,
+    mkToggle1
 ) where
 
 import XMonad
@@ -46,18 +46,10 @@ import Data.Maybe
 -- undo the current layout transformer, pass the message on to the base
 -- layout, then reapply the transformer.
 --
--- To use this module, you first have to define the transformers that you
--- want to be handled by @MultiToggle@. For example, if the transformer is
--- 'XMonad.Layout.Mirror':
---
--- > data MIRROR = MIRROR deriving (Read, Show, Eq, Typeable)
--- > instance Transformer MIRROR Window where
--- >     transform _ x k = k (Mirror x)
---
--- @MIRROR@ can be any identifier (it has to start with an uppercase letter,
--- of course); I've chosen an all-uppercase version of the transforming
--- function's name here. You need to put @{-\# OPTIONS_GHC -fglasgow-exts \#-}@
--- at the beginning of your file to be able to derive "Data.Typeable".
+-- To use this module, you need some data types which represent
+-- transformers; for some commonly used transformers (including
+-- MIRROR, NOBORDERS, and FULL used in the examples below) you can
+-- simply import "XMonad.Layout.MultiToggle.Instances".
 --
 -- Somewhere else in your file you probably have a definition of @layout@;
 -- the default looks like this:
@@ -77,17 +69,7 @@ import Data.Maybe
 -- (That should be part of your key bindings.) When you press @mod-x@, the
 -- active layout is mirrored. Another @mod-x@ and it's back to normal.
 --
--- It's also possible to stack @MultiToggle@s. Let's define a few more
--- transformers ('XMonad.Layout.NoBorders.noBorders' is in
--- "XMonad.Layout.NoBorders"):
---
--- > data NOBORDERS = NOBORDERS deriving (Read, Show, Eq, Typeable)
--- > instance Transformer NOBORDERS Window where
--- >     transform _ x k = k (noBorders x)
--- >
--- > data FULL = FULL deriving (Read, Show, Eq, Typeable)
--- > instance Transformer FULL Window where
--- >     transform _ x k = k Full
+-- It's also possible to stack @MultiToggle@s.  For example:
 --
 -- @
 -- layout = id
@@ -100,6 +82,20 @@ import Data.Maybe
 -- By binding a key to @(sendMessage $ Toggle FULL)@ you can temporarily
 -- maximize windows, in addition to being able to rotate layouts and remove
 -- window borders.
+--
+-- You can also define your own transformers by creating a data type
+-- which is an instance of the 'Transformer' class.  For example, here
+-- is the definition of @MIRROR@:
+--
+-- > data MIRROR = MIRROR deriving (Read, Show, Eq, Typeable)
+-- > instance Transformer MIRROR Window where
+-- >     transform _ x k = k (Mirror x)
+--
+-- Note, you need to put @{-\# LANGUAGE DeriveDataTypeable \#-}@ at the
+-- beginning of your file (ghc 6.8 only; with ghc 6.6 you can use
+-- @{-\# OPTIONS_GHC -fglasgow-exts \#-}@ instead) to be able to
+-- derive "Data.Typeable".
+--
 
 -- | A class to identify custom transformers (and look up transforming
 -- functions by type).
@@ -156,6 +152,11 @@ instance (Show ts, Show (l a)) => Show (MultiToggle ts l a) where
 -- layout.
 mkToggle :: (LayoutClass l a) => ts -> l a -> MultiToggle ts l a
 mkToggle ts l = MultiToggle l (EL l) Nothing id ts
+
+-- | Construct a @MultiToggle@ layout from a single transformer and a base
+-- layout.
+mkToggle1 :: (LayoutClass l a) => t -> l a -> MultiToggle (HCons t EOT) l a
+mkToggle1 t = mkToggle (single t)
 
 -- | Marks the end of a transformer list.
 data EOT = EOT deriving (Read, Show)

@@ -130,6 +130,7 @@ library
                         XMonad.Layout.Maximize
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MultiToggle
+                        XMonad.Layout.MultiToggle.Instances
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
                         XMonad.Layout.PerWorkspace
