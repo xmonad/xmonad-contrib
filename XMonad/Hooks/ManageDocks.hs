@@ -35,20 +35,22 @@ import Data.List (delete)
 --
 -- > import XMonad.Hooks.ManageDocks
 --
--- The first component is a 'ManageHook' which recognizes these windows.  To
--- enable it:
+-- The first component is a 'ManageHook' which recognizes these
+-- windows and de-manages them, so that xmonad does not try to tile
+-- them.  To enable it:
 --
 -- > manageHook = ... <+> manageDocks
 --
--- The second component is a layout modifier that prevents windows from
--- overlapping these dock windows.  It is intended to replace xmonad's
--- so-called \"gap\" support.  First, you must add it to your list of layouts:
+-- The second component is a layout modifier that prevents windows
+-- from overlapping these dock windows.  It is intended to replace
+-- xmonad's so-called \"gap\" support.  First, you must add it to your
+-- list of layouts:
 --
 -- > layoutHook = avoidStruts (tall ||| mirror tall ||| ...)
 -- >                   where  tall = Tall 1 (3/100) (1/2)
 --
--- 'AvoidStruts' also supports toggling the dock gap, add a keybinding similar
--- to:
+-- 'AvoidStruts' also supports toggling the dock gaps; add a keybinding
+-- similar to:
 --
 -- > ,((modMask x, xK_b     ), sendMessage ToggleStruts)
 --
@@ -77,14 +79,13 @@ import Data.List (delete)
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
 
--- |
--- Detects if the given window is of type DOCK and if so, reveals it, but does
--- not manage it. If the window has the STRUT property set, adjust the gap accordingly.
+-- | Detects if the given window is of type DOCK and if so, reveals
+--   it, but does not manage it. If the window has the STRUT property
+--   set, adjust the gap accordingly.
 manageDocks :: ManageHook
 manageDocks = checkDock --> doIgnore
 
--- |
--- Checks if a window is a DOCK or DESKTOP window
+-- | Checks if a window is a DOCK or DESKTOP window
 checkDock :: Query Bool
 checkDock = ask >>= \w -> liftX $ do
     a <- getAtom "_NET_WM_WINDOW_TYPE"
@@ -95,8 +96,7 @@ checkDock = ask >>= \w -> liftX $ do
         Just [r] -> return $ elem (fromIntegral r) [dock, desk]
         _        -> return False
 
--- |
--- Gets the STRUT config, if present, in xmonad gap order
+-- | Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X [Strut]
 getStrut w = do
     spa <- getAtom "_NET_WM_STRUT_PARTIAL"
@@ -114,14 +114,12 @@ getStrut w = do
         [(LL, l, ly1, ly2), (RR, r, ry1, ry2), (TT, t, tx1, tx2), (BB, b, bx1, bx2)]
     parseStrutPartial _ = []
 
--- |
--- Helper to read a property
+-- | Helper to read a property
 getProp :: Atom -> Window -> X (Maybe [CLong])
 getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 
--- |
--- Goes through the list of windows and find the gap so that all STRUT
--- settings are satisfied.
+-- | Goes through the list of windows and find the gap so that all
+--   STRUT settings are satisfied.
 calcGap :: [Side] -> X (Rectangle -> Rectangle)
 calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
@@ -137,7 +135,8 @@ calcGap ss = withDisplay $ \dpy -> do
     return $ \r -> c2r $ foldr (reduce screen) (r2c r) struts
   where careAbout (s,_,_,_) = s `elem` ss
 
--- | Adjust layout automagically.
+-- | Adjust layout automagically: don't cover up any docks, status
+--   bars, etc.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
 avoidStruts = avoidStrutsOn [TT,BB,LL,RR]
 
@@ -152,6 +151,8 @@ avoidStrutsOn ss = ModifiedLayout (AvoidStruts ss)
 
 data AvoidStruts a = AvoidStruts [Side] deriving ( Read, Show )
 
+-- | Message type which can be sent to an 'AvoidStruts' layout
+--   modifier to alter its behavior.
 data ToggleStruts = ToggleStruts
                   | ToggleStrut Side
   deriving (Read,Show,Typeable)
@@ -172,6 +173,7 @@ instance LayoutModifier AvoidStruts a where
             toggleOne x xs | x `elem` xs = delete x xs
                            | otherwise   = x : xs
 
+-- | An enumeration of the sides of the screen.
 data Side = LL | RR | TT | BB
   deriving (Read, Show, Eq)
 
@@ -212,7 +214,7 @@ reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
     RR | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
     TT | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
     BB | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
-    _              -> (x0           , y0       , x1       , y1       )
+    _               -> (x0           , y0       , x1       , y1       )
  where
     mx a b = max a (b + n)
     mn a b = min a (b - n)
