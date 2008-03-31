@@ -18,7 +18,7 @@ module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
     manageDocks, AvoidStruts, avoidStruts, avoidStrutsOn, ToggleStruts(..),
-    Side(..)
+    Direction(..)
     ) where
 
 
@@ -57,16 +57,16 @@ import Data.List (delete)
 -- If you have multiple docks, you can toggle their gaps individually.
 -- For example, to toggle only the top gap:
 --
--- > ,((modMask x .|. controlMask, xK_t), sendMessage $ ToggleStrut TT)
+-- > ,((modMask x .|. controlMask, xK_t), sendMessage $ ToggleStrut U)
 --
--- Similarly, you can use 'BB', 'LL', and 'RR' to individually toggle
+-- Similarly, you can use 'D', 'L', and 'R' to individually toggle
 -- gaps on the bottom, left, or right.
 --
 -- If you want certain docks to be avoided but others to be covered by
 -- default, you can manually specify the sides of the screen on which
 -- docks should be avoided, using 'avoidStrutsOn'.  For example:
 --
--- > layoutHook = avoidStrutsOn [TT,LL] (tall ||| mirror tall ||| ...)
+-- > layoutHook = avoidStrutsOn [U,L] (tall ||| mirror tall ||| ...)
 --
 -- /Important note/: if you are switching from manual gaps
 -- (defaultGaps in your config) to avoidStruts (recommended, since
@@ -78,6 +78,14 @@ import Data.List (delete)
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
+
+-- | An enumeration of the four cardinal directions\/sides of the
+--   screen.
+--
+--   Ideally this would go in its own separate module in Util,
+--   but ManageDocks is angling for inclusion into the xmonad core,
+--   so keep the dependencies to a minimum.
+data Direction = U | D | R | L deriving ( Read, Show, Eq, Ord, Enum, Bounded )
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it. If the window has the STRUT property
@@ -111,7 +119,7 @@ getStrut w = do
 
     parseStrutPartial [l, r, t, b, ly1, ly2, ry1, ry2, tx1, tx2, bx1, bx2]
      = filter (\(_, n, _, _) -> n /= 0)
-        [(LL, l, ly1, ly2), (RR, r, ry1, ry2), (TT, t, tx1, tx2), (BB, b, bx1, bx2)]
+        [(L, l, ly1, ly2), (R, r, ry1, ry2), (U, t, tx1, tx2), (D, b, bx1, bx2)]
     parseStrutPartial _ = []
 
 -- | Helper to read a property
@@ -120,7 +128,7 @@ getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.
-calcGap :: [Side] -> X (Rectangle -> Rectangle)
+calcGap :: [Direction] -> X (Rectangle -> Rectangle)
 calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     -- We don't keep track of dock like windows, so we find all of them here
@@ -138,23 +146,23 @@ calcGap ss = withDisplay $ \dpy -> do
 -- | Adjust layout automagically: don't cover up any docks, status
 --   bars, etc.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
-avoidStruts = avoidStrutsOn [TT,BB,LL,RR]
+avoidStruts = avoidStrutsOn [U,D,L,R]
 
 -- | Adjust layout automagically: don't cover up docks, status bars,
---   etc. on the indicated sides of the screen.  Valid sides are TT
---   (top), BB (bottom), RR (right), or LL (left).
+--   etc. on the indicated sides of the screen.  Valid sides are U
+--   (top), D (bottom), R (right), or L (left).
 avoidStrutsOn :: LayoutClass l a =>
-                 [Side]
+                 [Direction]
               -> l a
               -> ModifiedLayout AvoidStruts l a
 avoidStrutsOn ss = ModifiedLayout (AvoidStruts ss)
 
-data AvoidStruts a = AvoidStruts [Side] deriving ( Read, Show )
+data AvoidStruts a = AvoidStruts [Direction] deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
 --   modifier to alter its behavior.
 data ToggleStruts = ToggleStruts
-                  | ToggleStrut Side
+                  | ToggleStrut Direction
   deriving (Read,Show,Typeable)
 
 instance Message ToggleStruts
@@ -168,18 +176,15 @@ instance LayoutModifier AvoidStruts a where
         | Just ToggleStruts    <- fromMessage m = return $ Just $ AvoidStruts (toggleAll ss)
         | Just (ToggleStrut s) <- fromMessage m = return $ Just $ AvoidStruts (toggleOne s ss)
         | otherwise = return Nothing
-      where toggleAll []   = [TT,BB,LL,RR]
+      where toggleAll []   = [U,D,L,R]
             toggleAll _    = []
             toggleOne x xs | x `elem` xs = delete x xs
                            | otherwise   = x : xs
 
--- | An enumeration of the sides of the screen.
-data Side = LL | RR | TT | BB
-  deriving (Read, Show, Eq)
 
--- | (Side, height\/width, initial pixel, final pixel).
+-- | (Direction, height\/width, initial pixel, final pixel).
 
-type Strut = (Side, CLong, CLong, CLong)
+type Strut = (Direction, CLong, CLong, CLong)
 
 -- | (Initial x pixel, initial y pixel,
 --    final x pixel, final y pixel).
@@ -210,11 +215,11 @@ c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y
 
 reduce :: RectC -> Strut -> RectC -> RectC
 reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
-    LL | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
-    RR | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
-    TT | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
-    BB | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
-    _               -> (x0           , y0       , x1       , y1       )
+    L | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
+    R | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
+    U | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
+    D | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
+    _              -> (x0           , y0       , x1       , y1       )
  where
     mx a b = max a (b + n)
     mn a b = min a (b - n)
