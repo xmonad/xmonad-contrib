@@ -17,8 +17,8 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    manageDocks, AvoidStruts, avoidStruts, avoidStrutsOn, ToggleStruts(..),
-    Direction(..)
+    manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
+    ToggleStruts(..), Direction(..)
     ) where
 
 
