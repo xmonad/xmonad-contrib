@@ -70,6 +70,7 @@ library
                         XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
                         XMonad.Actions.CopyWindow
+                        XMonad.Actions.CycleRecentWS
                         XMonad.Actions.CycleSelectedLayouts
                         XMonad.Actions.CycleWS
                         XMonad.Actions.DeManage
