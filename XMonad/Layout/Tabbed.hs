@@ -64,10 +64,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- > mylayout = tabbed shrinkText myTabConfig ||| Full ||| etc..
 
--- | A tabbed layout with the default xmonad Theme. Here's a screen
--- shot:
---
--- <http://code.haskell.org/~arossato/xmonadShots/simpleTabbed.png>
+-- | A tabbed layout with the default xmonad Theme.
 --
 -- This is a minimal working configuration:
 --
