@@ -139,5 +139,6 @@ env variable fallthrough = getEnv variable `catch` \_ -> return fallthrough
 getBrowser :: IO String
 getBrowser = env "BROWSER" "firefox"
 
+-- | Like 'getBrowser', but should be of a text editor. This gets the $EDITOR variable, defaulting to \"emacs\".
 getEditor :: IO String
 getEditor = env "EDITOR" "emacs"
