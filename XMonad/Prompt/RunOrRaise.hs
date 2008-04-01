@@ -29,18 +29,18 @@ import Control.Monad (liftM2)
 import Data.Maybe
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
--- $usage
--- 1. In your @~\/.xmonad\/xmonad.hs@:
---
--- > import XMonad.Prompt
--- > import XMonad.Prompt.RunOrRaise
---
--- 2. In your keybindings add something like:
---
--- >   , ((modMask x .|. controlMask, xK_x), runOrRaisePrompt defaultXPConfig)
---
--- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+{- $usage
+1. In your @~\/.xmonad\/xmonad.hs@:
+
+> import XMonad.Prompt
+> import XMonad.Prompt.RunOrRaise
+
+2. In your keybindings add something like:
+
+>   , ((modMask x .|. controlMask, xK_x), runOrRaisePrompt defaultXPConfig)
+
+For detailed instruction on editing the key binding see
+"XMonad.Doc.Extending#Editing_key_bindings". -}
 
 data RunOrRaisePrompt = RRP
 instance XPrompt RunOrRaisePrompt where
@@ -61,8 +61,8 @@ open path = (io $ isNormalFile path) >>= \b ->
       getTarget x = (x,isApp x)
 
 isApp :: String -> Query Bool
-isApp "firefox" = className =? "Firefox-bin"
-isApp "thunderbird" = className =? "Thunderbird-bin"
+isApp "firefox"     = className =? "Firefox-bin"     <||> className =? "Firefox"
+isApp "thunderbird" = className =? "Thunderbird-bin" <||> className =? "Thunderbird"
 isApp x = liftM2 (==) pid $ pidof x
 
 pidof :: String -> Query Int
