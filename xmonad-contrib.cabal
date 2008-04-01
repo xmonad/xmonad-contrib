@@ -119,6 +119,7 @@ library
                         XMonad.Layout.DragPane
                         XMonad.Layout.DwmStyle
                         XMonad.Layout.Grid
+                        XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
                         XMonad.Layout.LayoutCombinators
