@@ -12,33 +12,35 @@
 
  Additional sites welcomed.
 -}
-module XMonad.Actions.Search (      -- * Usage
-                                    -- $usage
-                                 search,
-                                 simpleEngine,
-                                 promptSearch,
-                                 selectSearch,
+module XMonad.Actions.Search (    -- * Usage
+                                  -- $usage
+                               search,
+                               simpleEngine,
+                               promptSearch,
+                               promptSearchBrowser,
+                               selectSearch,
+                               selectSearchBrowser,
 
-                                 amazon,
-                                 google,
-                                 hoogle,
-                                 imdb,
-                                 maps,
-                                 mathworld,
-                                 scholar,
-                                 wayback,
-                                 wikipedia
+                               amazon,
+                               google,
+                               hoogle,
+                               imdb,
+                               maps,
+                               mathworld,
+                               scholar,
+                               wayback,
+                               wikipedia
 
-                                    -- * Use case: searching with a submap
-                                    -- $tip
+                                  -- * Use case: searching with a submap
+                                  -- $tip
 
                           ) where
 
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
 import Numeric (showIntAtBase)
-import XMonad (X(), MonadIO)
+import XMonad (X(), MonadIO, liftIO)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig())
-import XMonad.Prompt.Shell (getShellCompl)
+import XMonad.Prompt.Shell (getBrowser, getShellCompl)
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.XSelection (getSelection)
 
@@ -84,8 +86,7 @@ import XMonad.Util.XSelection (getSelection)
 
 * 'wikipedia' -- basic Wikipedia search.
 
-Feel free to add more!
--}
+Feel free to add more! -}
 
 {- $tip
 
@@ -108,9 +109,9 @@ Then add the following to your key bindings:
 > ...
 >
 > searchEngineMap method = M.fromList $
->       [ ((0, xK_g), method \"firefox\" S.google)
->       , ((0, xK_h), method \"firefox\" S.hoogle)
->       , ((0, xK_w), method \"firefox\" S.wikipedia)
+>       [ ((0, xK_g), method S.google)
+>       , ((0, xK_h), method S.hoogle)
+>       , ((0, xK_w), method S.wikipedia)
 >       ]
 
 Make sure to set firefox to open new pages in a new window instead of
@@ -125,17 +126,16 @@ If you select something in whatever application and hit /mod-shift-s/ +
 /g/\//h/\//w/ it will search the selected string with the specified
 engine.
 
-Happy searching!
--}
+Happy searching! -}
 
--- A customized prompt.
+-- | A customized prompt indicating we are searching, and not anything else.
 data Search = Search
 instance XPrompt Search where
     showXPrompt Search = "Search: "
 
 -- | Escape the search string so search engines understand it.
 -- Note that everything is escaped; we could be smarter and use 'isAllowedInURI'
--- but then that'd be hard enough to copy-and-paste we'd need to depend on 'network'.
+-- but then that'd be hard enough to copy-and-paste we'd need to depend on @network@.
 escape :: String -> String
 escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
          where -- Copied from Network.URI.
@@ -162,9 +162,9 @@ type Browser      = FilePath
 type Query        = String
 type SearchEngine = String -> String
 
-{- | Given a browser, a search engine, and a search term, perform the
-     requested search in the browser. -}
-search :: MonadIO m => Browser -> SearchEngine -> Query -> m ()
+-- | Given a browser, a search engine, and a search term, perform the
+--   requested search in the browser.
+search :: Browser -> SearchEngine -> Query -> X ()
 search browser site query = safeSpawn browser $ site query
 
 {- | Given a base URL, create the SearchEngine that escapes the query and
@@ -191,25 +191,39 @@ maps      = simpleEngine "http://maps.google.com/maps?q="
 mathworld = simpleEngine "http://mathworld.wolfram.com/search/?query="
 scholar   = simpleEngine "http://scholar.google.com/scholar?q="
 wikipedia = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
-wayback   = simpleEngine "http://web.archive.org/"
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
+wayback   = simpleEngine "http://web.archive.org/"
+
+{- | Like 'search', but for use with the output from a Prompt; it grabs the
+   Prompt's result, passes it to a given searchEngine and opens it in a given
+   browser. -}
+promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
+promptSearchBrowser config browser engine = mkXPrompt Search config (getShellCompl []) $ search browser engine
 
 {- | Like 'search', but in this case, the string is not specified but grabbed
  from the user's response to a prompt. Example:
 
- > , ((modm, xK_g), promptSearch greenXPConfig "firefox" google)
+> , ((modm, xK_g), promptSearch greenXPConfig google)
 
--}
-promptSearch :: XPConfig -> Browser -> SearchEngine -> X ()
-promptSearch config browser site = mkXPrompt Search config (getShellCompl []) $ search browser site
+   This specializes "promptSearchBrowser" by supplying the browser argument as
+   supplied by 'getBrowser' from "XMonad.Prompt.Shell". -}
+promptSearch :: XPConfig -> SearchEngine -> X ()
+promptSearch config engine = liftIO getBrowser >>= \ browser -> promptSearchBrowser config browser engine
+
+-- | Like 'search', but for use with the X selection; it grabs the selection,
+--   passes it to a given searchEngine and opens it in a given browser.
+-- selectSearchBrowser :: Browser -> SearchEngine -> IO ()
+selectSearchBrowser :: Browser -> SearchEngine -> X ()
+selectSearchBrowser browser searchengine = search browser searchengine =<< getSelection
 
 {- | Like 'search', but for use with the X selection; it grabs the selection,
-   passes it to a given searchEngine and opens it in the given browser. Example:
+   passes it to a given searchEngine and opens it in the default browser . Example:
 
-> , ((modm .|. shiftMask, xK_g), selectSearch "firefox" google)
+> , ((modm .|. shiftMask, xK_g), selectSearch google)
 
--}
-selectSearch :: MonadIO m => Browser -> SearchEngine -> m ()
-selectSearch browser searchEngine = search browser searchEngine =<< getSelection
+   This specializes "selectSearchBrowser" by supplying the browser argument as
+   supplied by 'getBrowser' from "XMonad.Prompt.Shell". -}
+selectSearch :: SearchEngine -> X ()
+selectSearch engine = liftIO getBrowser >>= \browser -> selectSearchBrowser browser engine
