@@ -57,13 +57,15 @@ import XMonad.Util.WindowProperties
 -- $hints
 --
 -- To launch IM layout automatically on your IM workspace use "XMonad.Layout.PerWorkspace".
+--
+-- By default the roster window will appear on the left side.
+-- To place roster window on the right side, use @reflectHoriz@ from
+-- "XMonad.Layout.Reflect" module.
 
 -- $todo
 -- All these items are questionable. Please let me know if you find them useful.
 --
 -- * shrink\/expand
---
--- * allow roster placement on the right side or even on top\/bottom
 --
 -- * use arbitrary layout instead of grid
 
