@@ -17,6 +17,8 @@ module XMonad.Prompt.Shell
       -- $usage
       shellPrompt
     , getCommands
+    , getBrowser
+    , getEditor
     , getShellCompl
     , split
     , prompt
@@ -122,3 +124,20 @@ escape (x:xs)
 
 isSpecialChar :: Char -> Bool
 isSpecialChar =  flip elem "\\@\"'#?$*()[]{};"
+
+-- | Ask the shell environment for
+env :: String -> String -> IO String
+env variable fallthrough = getEnv variable `catch` \_ -> return fallthrough
+
+{- | Ask the shell what browser the user likes. If the user hasn't defined any
+   $BROWSER, defaults to returning \"firefox\", since that seems to be the most
+   common X web browser.
+   Note that if you don't specify a GUI browser but a textual one, that'll be a problem
+   as 'getBrowser' will be called by functions expecting to be able to just execute the string
+   or pass it to a shell; so in that case, define $BROWSER as something like \"xterm -e elinks\"
+   or as the name of a shell script doing much the same thing. -}
+getBrowser :: IO String
+getBrowser = env "BROWSER" "firefox"
+
+getEditor :: IO String
+getEditor = env "EDITOR" "emacs"
