@@ -27,6 +27,8 @@ import XMonad hiding (windows)
 import XMonad.StackSet
 
 import Control.Monad.State
+import Data.List
+import Data.Ord
 
 infixr 9 .
 (.) :: (Functor f) => (a -> b) -> f a -> f b
@@ -62,10 +64,10 @@ replicateS n = runState . replicateM n . State
 doColumn :: Dimension -> Dimension -> Dimension -> [(D -> D)] -> [D]
 doColumn width height k adjs =
     let
-        (h1, d1) = doC height k adjs
-        (h2, d2) = doC height k (reverse adjs)
+        (ind, fs) = unzip . sortBy (comparing $ snd . ($ (width, height)) . snd) . zip [0 :: Int ..] $ adjs
+        (_, ds) = doC height k fs
     in
-    if h2 < h1 then reverse d2 else d1
+    map snd . sortBy (comparing fst) . zip ind $ ds
     where
     doC h _ [] = (h, [])
     doC h n (f : fs) = (adj :) . doC (h - h') (n - 1) fs
