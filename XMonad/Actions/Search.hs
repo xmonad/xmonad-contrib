@@ -22,6 +22,7 @@ module XMonad.Actions.Search (    -- * Usage
                                selectSearchBrowser,
 
                                amazon,
+                               dictionary,
                                google,
                                hoogle,
                                imdb,
@@ -69,6 +70,8 @@ import XMonad.Util.XSelection (getSelection)
    The currently available search engines are:
 
 * 'amazon' -- Amazon keyword search.
+
+* 'dictionary' -- dictionary.com search.
 
 * 'google' -- basic Google search.
 
@@ -182,15 +185,17 @@ simpleEngine :: Query -> SearchEngine
 simpleEngine site query = site ++ escape query
 
 -- The engines.
-amazon, google, hoogle, imdb, maps, mathworld, scholar, wayback, wikipedia :: SearchEngine
-amazon    = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
-google    = simpleEngine "http://www.google.com/search?num=100&q="
-hoogle    = simpleEngine "http://www.haskell.org/hoogle/?q="
-imdb      = simpleEngine "http://www.imdb.com/Find?select=all&for="
-maps      = simpleEngine "http://maps.google.com/maps?q="
-mathworld = simpleEngine "http://mathworld.wolfram.com/search/?query="
-scholar   = simpleEngine "http://scholar.google.com/scholar?q="
-wikipedia = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+amazon, dictionary, google, hoogle, imdb, maps, mathworld,
+  scholar, wayback, wikipedia :: SearchEngine
+amazon     = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+dictionary = simpleEngine "http://dictionary.reference.com/browse/"
+google     = simpleEngine "http://www.google.com/search?num=100&q="
+hoogle     = simpleEngine "http://www.haskell.org/hoogle/?q="
+imdb       = simpleEngine "http://www.imdb.com/Find?select=all&for="
+maps       = simpleEngine "http://maps.google.com/maps?q="
+mathworld  = simpleEngine "http://mathworld.wolfram.com/search/?query="
+scholar    = simpleEngine "http://scholar.google.com/scholar?q="
+wikipedia  = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
@@ -214,7 +219,6 @@ promptSearch config engine = liftIO getBrowser >>= \ browser -> promptSearchBrow
 
 -- | Like 'search', but for use with the X selection; it grabs the selection,
 --   passes it to a given searchEngine and opens it in a given browser.
--- selectSearchBrowser :: Browser -> SearchEngine -> IO ()
 selectSearchBrowser :: Browser -> SearchEngine -> X ()
 selectSearchBrowser browser searchengine = search browser searchengine =<< getSelection
 
