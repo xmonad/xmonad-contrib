@@ -60,12 +60,17 @@ replicateS :: Int -> (a -> (b, a)) -> a -> ([b], a)
 replicateS n = runState . replicateM n . State
 
 doColumn :: Dimension -> Dimension -> Dimension -> [(D -> D)] -> [D]
-doColumn width = doC
+doColumn width height k adjs =
+    let
+        (h1, d1) = doC height k adjs
+        (h2, d2) = doC height k (reverse adjs)
+    in
+    if h2 < h1 then reverse d2 else d1
     where
-    doC _ _ [] = []
-    doC height n (f : fs) = adj : doC (height - h') (n - 1) fs
+    doC h _ [] = (h, [])
+    doC h n (f : fs) = (adj :) . doC (h - h') (n - 1) fs
         where
-        adj@(_, h') = f (width, height `div` n)
+        adj@(_, h') = f (width, h `div` n)
 
 doRect :: Dimension -> Dimension -> Dimension -> [[D -> D]] -> [Rectangle]
 doRect height = doR
