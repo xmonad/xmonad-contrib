@@ -100,7 +100,7 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
 --
 --  * _NET_WM_DESKTOP (move windows to other desktops)
 --
---  * _NET_ACTIVE_WINDOW (activate another window, possibly moving to the current desktop)
+--  * _NET_ACTIVE_WINDOW (activate another window)
 --
 ewmhDesktopsLayout :: layout a -> HandleEvent EwmhDesktopsHook layout a
 ewmhDesktopsLayout = eventHook EwmhDesktopsHook
@@ -133,7 +133,7 @@ handle ClientMessageEvent {
                        windows $ W.shiftWin (W.tag (ws !! n)) w
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
         else if mt == a_aw then do
-               windows $ W.focusWindow w . W.shiftWin (W.tag (W.workspace (W.current s))) w
+               windows $ W.focusWindow w
         else trace $ "Unknown ClientMessageEvent " ++ show mt
 handle _ = undefined -- does not happen, as otherwise ewmhDesktopsHook would not match
 
