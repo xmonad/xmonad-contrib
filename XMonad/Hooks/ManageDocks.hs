@@ -85,7 +85,11 @@ import Data.List (delete)
 --   Ideally this would go in its own separate module in Util,
 --   but ManageDocks is angling for inclusion into the xmonad core,
 --   so keep the dependencies to a minimum.
-data Direction = U | D | R | L deriving ( Read, Show, Eq, Ord, Enum, Bounded )
+data Direction = U   -- ^ Up/top
+               | D   -- ^ Down/bottom
+               | R   -- ^ Right
+               | L   -- ^ Left
+  deriving ( Read, Show, Eq, Ord, Enum, Bounded )
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it. If the window has the STRUT property
