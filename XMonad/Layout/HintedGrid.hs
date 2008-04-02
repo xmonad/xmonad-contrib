@@ -56,9 +56,6 @@ instance LayoutClass Grid Window where
 adjBorders :: Dimension -> D -> D
 adjBorders b (w, h) = (w + 2 * b, h + 2 * b)
 
-isqrt :: (Integral a) => a -> a
-isqrt = ceiling . (sqrt :: Double -> Double) . fromIntegral
-
 replicateS :: Int -> (a -> (b, a)) -> a -> ([b], a)
 replicateS n = runState . replicateM n . State
 
@@ -110,7 +107,7 @@ arrange' :: D -> [D -> D] -> [Rectangle]
 arrange' (rw, rh) adjs = reverse $ doRect rh rw (fromIntegral ncolumns) (ecols ++ cols)
     where
     nwindows = length adjs
-    ncolumns = isqrt nwindows
+    ncolumns = max 1 . round . sqrt $ fromIntegral nwindows * fromIntegral rw / (fromIntegral rh :: Double)
     nrows = nwindows `div` ncolumns
     nextras = nwindows - ncolumns * nrows
     (ecols, adjs') = replicateS nextras (splitAt (nrows + 1)) $ reverse adjs
