@@ -51,13 +51,17 @@ module XMonad.Hooks.DynamicLog (
 import XMonad
 import Data.Maybe ( isJust, catMaybes )
 import Data.List
+import qualified Data.Map as M
 import Data.Ord ( comparing )
 import qualified XMonad.StackSet as S
 import System.IO
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
+
+import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.ManageDocks
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -128,6 +132,8 @@ import XMonad.Hooks.UrgencyHook
 --
 --   * add an xmobarEscape function
 
+------------------------------------------------------------------------
+
 -- | Run xmonad with a dzen status bar set to some nice defaults. Output
 -- is taken from the dynamicLogWithPP hook.
 --
@@ -142,16 +148,32 @@ import XMonad.Hooks.UrgencyHook
 -- If you wish to customize the status bar format at all, you'll have to
 -- use something like 'dynamicLogWithPP' instead.
 --
-dzen :: (XConfig (Choose Tall (Choose (Mirror Tall) Full)) -> IO ()) -> IO ()
+-- The binding uses the XMonad.Hooks.ManageDocks module to automatically
+-- handle screen placement for dzen, and enables 'mod-b' for toggling 
+-- the menu bar.
+--
+dzen ::
+    (XConfig
+       (ModifiedLayout AvoidStruts
+          (Choose Tall (Choose (Mirror Tall) Full))) -> IO t) -> IO t
 dzen f = do
   h <- spawnPipe ("dzen2" ++ " " ++ flags)
   f $ defaultConfig
-           { logHook = dynamicLogWithPP dzenPP
-                          { ppOutput = hPutStrLn h } }
+           { logHook   = dynamicLogWithPP dzenPP
+                          { ppOutput = hPutStrLn h }
+           ,layoutHook = avoidStrutsOn [U] (layoutHook defaultConfig)
+           ,keys       = \c -> mykeys c `M.union` keys defaultConfig c
+           ,manageHook = manageHook defaultConfig <+> manageDocks
+           }
  where
+    mykeys (XConfig{modMask=modm}) = M.fromList
+        [((modm, xK_b ), sendMessage ToggleStruts)
+        ]
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
     flags   = "-e '' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
+
+------------------------------------------------------------------------
 
 -- | An example log hook, which prints status information to stdout in
 -- the default format:
