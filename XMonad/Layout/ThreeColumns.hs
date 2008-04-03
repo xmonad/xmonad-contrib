@@ -41,7 +41,7 @@ import Control.Monad
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data ThreeCol a = ThreeCol Int Rational Rational deriving (Show,Read)
+data ThreeCol a = ThreeCol !Int !Rational !Rational deriving (Show,Read)
 
 instance LayoutClass ThreeCol a where
     doLayout (ThreeCol nmaster _ frac) r =
