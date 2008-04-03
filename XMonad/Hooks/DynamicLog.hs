@@ -171,7 +171,7 @@ dzen f = do
         ]
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
-    flags   = "-e '' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
+    flags   = "-e 'onstart=lower' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
 
 ------------------------------------------------------------------------
 
