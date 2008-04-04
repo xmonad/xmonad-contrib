@@ -100,7 +100,7 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
 --
 --  * _NET_WM_DESKTOP (move windows to other desktops)
 --
---  * _NET_ACTIVE_WINDOW (activate another window)
+--  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
 --
 ewmhDesktopsLayout :: layout a -> HandleEvent EwmhDesktopsHook layout a
 ewmhDesktopsLayout = eventHook EwmhDesktopsHook
