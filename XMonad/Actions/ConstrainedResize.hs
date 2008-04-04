@@ -53,5 +53,5 @@ mouseResizeWindow w c = whenX (isClient w) $ withDisplay $ \d -> do
                      y = ey - fromIntegral (wa_y wa)
                      sz = if c then (max x y, max x y) else (x,y)
                  io $ resizeWindow d w `uncurry`
-                    applySizeHints sh sz)
+                    applySizeHintsContents sh sz)
               (float w)

@@ -94,7 +94,7 @@ keysAbsResizeWindow = keysMoveResize keysAbsResizeWindow'
 keysAbsResizeWindow' :: SizeHints -> P -> D -> D -> D -> (P,D)
 keysAbsResizeWindow' sh (x,y) (w,h) (dx,dy) (ax, ay) = ((round nx, round ny), (nw, nh))
     where
-        (nw, nh) = applySizeHints sh (w + dx, h + dy)
+        (nw, nh) = applySizeHintsContents sh (w + dx, h + dy)
         nx :: Rational
         nx = fromIntegral (ax * w + nw * (fromIntegral x - ax)) / fromIntegral w
         ny :: Rational
@@ -103,7 +103,7 @@ keysAbsResizeWindow' sh (x,y) (w,h) (dx,dy) (ax, ay) = ((round nx, round ny), (n
 keysResizeWindow' :: SizeHints -> P -> D -> D -> G -> (P,D)
 keysResizeWindow' sh (x,y) (w,h) (dx,dy) (gx, gy) = ((nx, ny), (nw, nh))
     where
-        (nw, nh) = applySizeHints sh (w + dx, h + dy)
+        (nw, nh) = applySizeHintsContents sh (w + dx, h + dy)
         nx = round $ fromIntegral x + gx * fromIntegral w - gx * fromIntegral nw
         ny = round $ fromIntegral y + gy * fromIntegral h - gy * fromIntegral nh
 

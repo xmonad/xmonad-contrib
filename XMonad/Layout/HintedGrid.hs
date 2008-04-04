@@ -23,7 +23,7 @@ module XMonad.Layout.HintedGrid (
 
 import Prelude hiding ((.))
 
-import XMonad hiding (windows)
+import XMonad
 import XMonad.StackSet
 
 import Control.Monad.State
@@ -54,9 +54,6 @@ data Grid a = Grid Bool deriving (Read, Show)
 
 instance LayoutClass Grid Window where
     doLayout (Grid m) r w = flip (,) Nothing . arrange m r (integrate w)
-
-adjBorders :: Dimension -> D -> D
-adjBorders b (w, h) = (w + 2 * b, h + 2 * b)
 
 replicateS :: Int -> (a -> (b, a)) -> a -> ([b], a)
 replicateS n = runState . replicateM n . State
@@ -96,15 +93,13 @@ doRect height = doR
 
 -- | The internal function for computing the grid layout.
 arrange :: Bool -> Rectangle -> [Window] -> X [(Window, Rectangle)]
-arrange mirror (Rectangle rx ry rw rh) windows = do
-    dpy <- asks display
-    hints <- mapM (io . getWMNormalHints dpy) windows
-    borders <- mapM (io . fmap (fromIntegral . wa_border_width) . getWindowAttributes dpy) windows
+arrange mirror (Rectangle rx ry rw rh) wins = do
+    proto <- mapM mkAdjust wins
     let
-        adjs = zipWith (\h b -> twist . adjBorders b . applySizeHints h . adjBorders (negate b) . twist) hints borders
+        adjs = map (\f -> twist . f . twist) proto
         rs = arrange' (twist (rw, rh)) adjs
         rs' = map (\(Rectangle x y w h) -> uncurry (uncurry Rectangle (twist (x, y))) (twist (w, h))) rs
-    return . zip windows . map (\r -> r{ rect_x = rect_x r + rx, rect_y = rect_y r + ry }) $ rs'
+    return . zip wins . map (\r -> r{ rect_x = rect_x r + rx, rect_y = rect_y r + ry }) $ rs'
     where
     twist
         | mirror = \(a, b) -> (b, a)

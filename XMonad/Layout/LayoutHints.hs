@@ -42,22 +42,15 @@ import XMonad.Layout.Decoration ( isInStack )
 layoutHints :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHints l a
 layoutHints = ModifiedLayout LayoutHints
 
--- | Expand a size by the given multiple of the border width.  The
--- multiple is most commonly 1 or -1.
-adjBorders                :: Dimension -> Dimension -> D -> D
-adjBorders bW mult (w,h)  = (w+2*mult*bW, h+2*mult*bW)
-
 data LayoutHints a = LayoutHints deriving (Read, Show)
 
 instance LayoutModifier LayoutHints Window where
     modifierDescription _ = "Hinted"
     redoLayout _ _ s xs = do
-                            bW <- asks (borderWidth . config)
-                            xs' <- mapM (applyHint bW) xs
+                            xs' <- mapM applyHint xs
                             return (xs', Nothing)
      where
-        applyHint bW (w,r@(Rectangle a b c d)) =
-            withDisplay $ \disp -> do
-                sh  <- io $ getWMNormalHints disp w
-                let (c',d') = adjBorders 1 bW . applySizeHints sh . adjBorders bW (-1) $ (c,d)
-                return (w, if isInStack s w then Rectangle a b c' d' else r)
+        applyHint (w,r@(Rectangle a b c d)) = do
+            adj <- mkAdjust w
+            let (c',d') = adj (c,d)
+            return (w, if isInStack s w then Rectangle a b c' d' else r)

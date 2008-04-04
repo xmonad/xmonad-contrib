@@ -23,7 +23,6 @@ module XMonad.Layout.HintedTile (
 
 import XMonad hiding (Tall(..))
 import qualified XMonad.StackSet as W
-import Control.Applicative ((<$>))
 import Control.Monad
 
 -- $usage
@@ -55,7 +54,7 @@ data Alignment = TopLeft | Center | BottomRight
 
 instance LayoutClass HintedTile Window where
     doLayout (HintedTile { orientation = o, nmaster = nm, frac = f, alignment = al }) r w' = do
-        bhs <- mapM getHints w
+        bhs <- mapM mkAdjust w
         let (masters, slaves) = splitAt nm bhs
         return (zip w (tiler masters slaves), Nothing)
      where
@@ -73,39 +72,27 @@ instance LayoutClass HintedTile Window where
 
     description l = show (orientation l)
 
-adjBorder :: Dimension -> Dimension -> D -> D
-adjBorder n b (w, h) = (w + n * 2 * b, h + n * 2 * b)
-
--- | Transform a function on dimensions into one without regard for borders
-hintsUnderBorder :: (Dimension, SizeHints) -> D -> D
-hintsUnderBorder (bW, h) = adjBorder bW 1 . applySizeHints h . adjBorder bW (-1)
-
-getHints :: Window -> X (Dimension, SizeHints)
-getHints w = withDisplay $ \d -> io $ liftM2 (,)
-    (fromIntegral . wa_border_width <$> getWindowAttributes d w)
-    (getWMNormalHints d w)
-
 align :: Alignment -> Position -> Dimension -> Dimension -> Position
 align TopLeft     p _ _ = p
 align Center      p a b = p + fromIntegral (a - b) `div` 2
 align BottomRight p a b = p + fromIntegral (a - b)
 
 -- Divide the screen vertically (horizontally) into n subrectangles
-divide :: Alignment -> Orientation -> [(Dimension, SizeHints)] -> Rectangle -> [Rectangle]
+divide :: Alignment -> Orientation -> [D -> D] -> Rectangle -> [Rectangle]
 divide _ _ [] _ = []
 divide al _ [bh] (Rectangle sx sy sw sh) = [Rectangle (align al sx sw w) (align al sy sh h) w h]
     where
-    (w, h) = hintsUnderBorder bh (sw, sh)
+    (w, h) = bh (sw, sh)
 
 divide al Tall (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle (align al sx sw w) sy w h) :
       (divide al Tall bhs (Rectangle sx (sy + fromIntegral h) sw (sh - h)))
  where
-    (w, h) = hintsUnderBorder bh (sw, sh `div` fromIntegral (1 + (length bhs)))
+    (w, h) = bh (sw, sh `div` fromIntegral (1 + (length bhs)))
 
 divide al Wide (bh:bhs) (Rectangle sx sy sw sh) = (Rectangle sx (align al sy sh h) w h) :
       (divide al Wide bhs (Rectangle (sx + fromIntegral w) sy (sw - w) sh))
  where
-    (w, h) = hintsUnderBorder bh (sw `div` fromIntegral (1 + (length bhs)), sh)
+    (w, h) = bh (sw `div` fromIntegral (1 + (length bhs)), sh)
 
 -- Split the screen into two rectangles, using a rational to specify the ratio
 split :: Orientation -> Rational -> Rectangle -> (Rectangle -> [Rectangle])

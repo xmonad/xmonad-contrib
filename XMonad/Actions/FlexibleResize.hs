@@ -53,7 +53,7 @@ mouseResizeWindow w = whenX (isClient w) $ withDisplay $ \d -> do
                  let [px, py] = map (fromIntegral . ($ wa')) [wa_x, wa_y]
                  io $ moveResizeWindow d w (fx px (fromIntegral ex))
                                            (fy py (fromIntegral ey))
-                            `uncurry` applySizeHints sh (gx $ fromIntegral ex, gy $ fromIntegral ey))
+                            `uncurry` applySizeHintsContents sh (gx $ fromIntegral ex, gy $ fromIntegral ey))
               (float w)
     where
     firstHalf :: CInt -> Position -> Bool
