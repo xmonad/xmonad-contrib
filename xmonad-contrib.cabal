@@ -129,6 +129,7 @@ library
                         XMonad.Layout.LayoutScreens
                         XMonad.Layout.MagicFocus
                         XMonad.Layout.Magnifier
+                        XMonad.Layout.Master
                         XMonad.Layout.Maximize
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MultiToggle
