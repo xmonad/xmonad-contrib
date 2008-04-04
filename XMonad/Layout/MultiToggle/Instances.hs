@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fglasgow-exts #-}
 -- above is for compatibility with GHC 6.6.
-{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable #-}
+{- LANGUAGE TypeSynonymInstances, DeriveDataTypeable -}
 
 -----------------------------------------------------------------------------
 -- |
