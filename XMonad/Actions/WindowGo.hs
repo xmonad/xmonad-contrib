@@ -16,8 +16,11 @@ module XMonad.Actions.WindowGo (
                  -- * Usage
                  -- $usage
                  raise,
+                 raiseNext,
                  runOrRaise,
+                 runOrRaiseNext,
                  raiseMaybe,
+                 raiseNextMaybe,
 
                  raiseBrowser,
                  raiseEditor,
@@ -30,7 +33,7 @@ import Data.Char (toLower)
 import XMonad (Query(), X(), withWindowSet, spawn, runQuery, liftIO, focus)
 import XMonad.ManageHook
 import XMonad.Prompt.Shell (getBrowser, getEditor)
-import qualified XMonad.StackSet as W (allWindows)
+import qualified XMonad.StackSet as W (allWindows, peek)
 
 {- $usage
 
@@ -92,6 +95,33 @@ raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
     case maybeResult of
       []     -> f
       (x:_)  -> focus x
+
+-- | See 'runOrRaise' and 'raiseNextMaybe'. Version that allows cycling through matches.
+runOrRaiseNext :: String -> Query Bool -> X ()
+runOrRaiseNext action = raiseNextMaybe $ spawn action
+
+-- | See 'raise' and 'raiseNextMaybe'. Version that allows cycling through matches.
+raiseNext :: Query Bool -> X ()
+raiseNext = raiseNextMaybe $ return ()
+
+{- | See 'raiseMaybe'.
+     'raiseNextMaybe' is an alternative version that allows cycling
+     through the matching windows. If the focused window matches the
+     query the next matching window is raised. If no matches are found
+     the function f is executed.
+-}
+raiseNextMaybe :: X () -> Query Bool -> X ()
+raiseNextMaybe f thatUserQuery = withWindowSet $ \s -> do
+  ws <- filterM (runQuery thatUserQuery) (W.allWindows s)
+  case ws of
+    []    -> f
+    (x:_) -> let go (Just w) | (w `elem` ws) = next w $ cycle ws
+                 go _ = focus x
+             in go $ W.peek s
+  where
+    next w (x:y:_) | x==w = focus y
+    next w (_:xs)         = next w xs
+    next _ _ = error "raiseNextMaybe: empty list"
 
 -- | Given a function which gets us a String, we try to raise a window with that classname,
 --   or we then interpret that String as a executable name.
