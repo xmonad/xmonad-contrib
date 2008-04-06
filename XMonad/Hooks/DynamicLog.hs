@@ -58,6 +58,9 @@ import System.IO
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
+
+import XMonad.Layout.LayoutModifier
+import XMonad.Util.Font
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.ManageDocks
 
