@@ -45,7 +45,6 @@ import Graphics.X11.Xrender
 
 #if defined XFT || defined UTF8
 import Codec.Binary.UTF8.String (encodeString, decodeString)
-import Foreign.C
 #endif
 
 -- Hide the Core Font/Xft switching here
@@ -99,14 +98,13 @@ initXMF :: String -> X XMonadFont
 initXMF s =
 #ifdef XFT
   if xftPrefix `isPrefixOf` s then
-     do io setupLocale
-        dpy <- asks display
+     do dpy <- asks display
         xftdraw <- io $ xftFontOpen dpy (defaultScreenOfDisplay dpy) (drop (length xftPrefix) s)
         return (Xft xftdraw)
   else
 #endif
 #ifdef UTF8
-      (io setupLocale >> initUtf8Font s >>= (return . Utf8))
+      (initUtf8Font s >>= (return . Utf8))
 #else
       (initCoreFont s >>= (return . Core))
 #endif
@@ -213,14 +211,3 @@ encodeOutput = id
 -- | Short-hand for 'fromIntegral'
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
-
-#if defined XFT || defined UTF8
-#include <locale.h>
-foreign import ccall unsafe "locale.h setlocale"
-    setlocale :: CInt -> CString -> IO CString
-
-setupLocale :: IO ()
-setupLocale = withCString "" $ \s -> do
-                setlocale (#const LC_ALL) s
-                return ()
-#endif
