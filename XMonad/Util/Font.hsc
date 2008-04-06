@@ -104,9 +104,9 @@ initXMF s =
   else
 #endif
 #ifdef UTF8
-      (initUtf8Font s >>= (return . Utf8))
+      fmap Utf8 $ initUtf8Font s
 #else
-      (initCoreFont s >>= (return . Core))
+      fmap Core $ initCoreFont s
 #endif
 #ifdef XFT
   where xftPrefix = "xft:"
