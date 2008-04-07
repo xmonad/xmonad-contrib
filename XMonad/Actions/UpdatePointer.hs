@@ -45,7 +45,7 @@ import Control.Monad
 -- To use this with an existing logHook, use >> :
 --
 -- > logHook = dynamicLog
--- >           >> updatePointer (RelativePosition 1 1)
+-- >           >> updatePointer (Relative 1 1)
 --
 -- which moves the pointer to the bottom-right corner of the focused window.
 
