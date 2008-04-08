@@ -65,16 +65,16 @@ import XMonad.StackSet
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | copy. Copy the focussed window to a new workspace.
-copy :: WorkspaceId -> WindowSet -> WindowSet
+copy :: (Eq s, Eq i, Eq a) => i -> StackSet i l a s sd -> StackSet i l a s sd
 copy n s | Just w <- peek s = copyWindow w n s
          | otherwise = s
 
 -- | copyToAll. Copy the focused window to all of workspaces.
-copyToAll :: WindowSet -> WindowSet
-copyToAll s = foldr ($) s $ map (copy . tag) (workspaces s)
+copyToAll :: (Eq s, Eq i, Eq a) => StackSet i l a s sd -> StackSet i l a s sd
+copyToAll s = foldr copy s $ map tag (workspaces s)
 
 -- | copyWindow.  Copy a window to a new workspace
-copyWindow :: Window -> WorkspaceId -> WindowSet -> WindowSet
+copyWindow :: (Eq a, Eq i, Eq s) => a -> i -> StackSet i l a s sd -> StackSet i l a s sd
 copyWindow w n = copy'
     where copy' s = if n `tagMember` s
                     then view (tag (workspace (current s))) $ insertUp' w $ view n s
