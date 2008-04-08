@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CopyWindow
--- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- Copyright   :  (c) David Roundy <droundy@darcs.net>, Ivan Veselov <veselov@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  David Roundy <droundy@darcs.net>
@@ -17,12 +17,12 @@
 module XMonad.Actions.CopyWindow (
                                  -- * Usage
                                  -- $usage
-                                 copy, copyWindow, kill1
+                                 copy, copyToAll, copyWindow, killAllOtherCopies, kill1
                                 ) where
 
-import Prelude hiding ( filter )
+import Prelude hiding (filter)
 import qualified Data.List as L
-import XMonad hiding (modify)
+import XMonad hiding (modify, workspaces)
 import XMonad.StackSet
 
 -- $usage
@@ -50,6 +50,17 @@ import XMonad.StackSet
 --
 -- >  , ((modMask x .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
 --
+-- Another possibility which this extension provides is 'making window
+-- always visible' (i.e. always on current workspace), similar to corresponding
+-- metacity functionality. This behaviour is emulated through copying given
+-- window to all the workspaces and then removing it when it's unneeded on
+-- all workspaces any more.
+--
+-- Here is the example of keybindings which provide these actions:
+--
+-- >  , ((modMask x, xK_v )", windows copyToAll) -- @@ Make focused window always visible
+-- >  , ((modMask x .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
+--
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
@@ -57,6 +68,10 @@ import XMonad.StackSet
 copy :: WorkspaceId -> WindowSet -> WindowSet
 copy n s | Just w <- peek s = copyWindow w n s
          | otherwise = s
+
+-- | copyToAll. Copy the focused window to all of workspaces.
+copyToAll :: WindowSet -> WindowSet
+copyToAll s = foldr ($) s $ map (copy . tag) (workspaces s)
 
 -- | copyWindow.  Copy a window to a new workspace
 copyWindow :: Window -> WorkspaceId -> WindowSet -> WindowSet
@@ -83,3 +98,19 @@ kill1 = do ss <- gets windowset
                                       then windows $ delete'' w
                                       else kill
     where delete'' w = modify Nothing (filter (/= w))
+
+-- | Kill all other copies of focused window (if they're present)
+-- 'All other' means here 'copies, which are not on current workspace'
+--
+-- Consider calling this function after copyToAll
+--
+killAllOtherCopies :: X ()
+killAllOtherCopies = do ss <- gets windowset
+                        whenJust (peek ss) $ \w -> windows $
+                                                   view (tag (workspace (current ss))) .
+                                                   delFromAllButCurrent w
+    where
+      delFromAllButCurrent w ss = foldr ($) ss $
+                                  map (delWinFromWorkspace w . tag) $
+                                  hidden ss ++ map workspace (visible ss)
+      delWinFromWorkspace w wid ss = modify Nothing (filter (/= w)) $ view wid ss
