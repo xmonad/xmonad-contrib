@@ -5,7 +5,7 @@
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>, Ivan Veselov <veselov@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  David Roundy <droundy@darcs.net>
+-- Maintainer  :  ???
 -- Stability   :  unstable
 -- Portability :  unportable
 --
