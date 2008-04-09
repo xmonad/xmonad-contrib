@@ -26,10 +26,11 @@ import qualified XMonad.StackSet as W
 -- In contrast to ManageHook properties, these are instances of Show and Read,
 -- so they can be used in layout definitions etc. For example usage see "XMonad.Layout.IM"
 
--- | Property constructors are quite self-explaining.
+-- | Most of the property constructors are quite self-explaining.
 data Property = Title String
               | ClassName String
               | Resource String
+              | Role String -- ^ WM_WINDOW_ROLE property
               | And Property Property  
               | Or  Property Property
               | Not Property
@@ -43,6 +44,7 @@ hasProperty :: Property -> Window -> X Bool
 hasProperty (Title s)     w = withDisplay $ \d -> fmap (Just s ==) $ io $ fetchName d w
 hasProperty (Resource s)  w = withDisplay $ \d -> fmap ((==) s . resName ) $ io $ getClassHint d w
 hasProperty (ClassName s) w = withDisplay $ \d -> fmap ((==) s . resClass) $ io $ getClassHint d w
+hasProperty (Role s) w = withDisplay $ \d -> fmap ((==) (Just s)) $ getStringProperty d w "WM_WINDOW_ROLE"
 hasProperty (And p1 p2)   w = do { r1 <- hasProperty p1 w; r2 <- hasProperty p2 w; return $ r1 && r2 }
 hasProperty (Or p1 p2)    w = do { r1 <- hasProperty p1 w; r2 <- hasProperty p2 w; return $ r1 || r2 }
 hasProperty (Not p1)      w = do { r1 <- hasProperty p1 w; return $ not r1 }
