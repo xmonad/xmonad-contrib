@@ -59,7 +59,6 @@ ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = withWindowSet $ \s -> do
     sort' <- getSortByIndex
     let ws = sort' $ W.workspaces s
-    let wins = W.allWindows s
 
     setSupported
 
@@ -74,6 +73,8 @@ ewmhDesktopsLogHook = withWindowSet $ \s -> do
 
     setCurrentDesktop curr
 
+    -- all windows, with focused windows last
+    let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
     setClientList wins
 
     -- Per window Desktop
