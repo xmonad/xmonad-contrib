@@ -73,18 +73,18 @@ import System.Posix.Files
 type XP = StateT XPState IO
 
 data XPState =
-    XPS { dpy                :: Display
-        , rootw              :: Window
-        , win                :: Window
-        , screen             :: Rectangle
+    XPS { dpy                :: !Display
+        , rootw              :: !Window
+        , win                :: !Window
+        , screen             :: !Rectangle
         , complWin           :: Maybe Window
         , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
-        , gcon               :: GC
-        , fontS              :: XMonadFont
-        , xptype             :: XPType
+        , gcon               :: !GC
+        , fontS              :: !XMonadFont
+        , xptype             :: !XPType
         , command            :: String
-        , offset             :: Int
+        , offset             :: !Int
         , history            :: [History]
         , config             :: XPConfig
         }
@@ -96,10 +96,10 @@ data XPConfig =
         , fgHLight          :: String     -- ^ Font color of a highlighted completion entry
         , bgHLight          :: String     -- ^ Background color of a highlighted completion entry
         , borderColor       :: String     -- ^ Border color
-        , promptBorderWidth :: Dimension  -- ^ Border width
+        , promptBorderWidth :: !Dimension  -- ^ Border width
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
-        , height            :: Dimension  -- ^ Window height
-        , historySize       :: Int        -- ^ The number of history entries to be saved
+        , height            :: !Dimension  -- ^ Window height
+        , historySize       :: !Int        -- ^ The number of history entries to be saved
         , defaultText       :: String     -- ^ The text by default in the prompt line
         } deriving (Show, Read)
 
