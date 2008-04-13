@@ -40,10 +40,10 @@ import Control.Monad
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data HintedTile a = HintedTile
-    { nmaster     :: Int
-    , delta, frac :: Rational
-    , alignment   :: Alignment
-    , orientation :: Orientation
+    { nmaster     :: !Int
+    , delta, frac :: !Rational
+    , alignment   :: !Alignment
+    , orientation :: !Orientation
     } deriving ( Show, Read )
 
 data Orientation = Wide | Tall
