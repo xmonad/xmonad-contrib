@@ -97,12 +97,13 @@ applyIM :: (LayoutClass l Window) =>
             -> Rectangle
             -> X ([(Window, Rectangle)], Maybe (l Window))
 applyIM ratio prop wksp rect = do
-    let ws = S.integrate' $ S.stack wksp
+    let stack = S.stack wksp
+    let ws = S.integrate' $ stack
     let (masterRect, slaveRect) = splitHorizontallyBy ratio rect
     master <- findM (hasProperty prop) ws
     case master of
         Just w -> do
-            let filteredStack = S.differentiate $ filter (w /=) ws
+            let filteredStack = stack >>= S.filter (w /=)
             wrs <- runLayout (wksp {S.stack = filteredStack}) slaveRect
             return ((w, masterRect) : fst wrs, snd wrs)
         Nothing -> runLayout wksp rect
