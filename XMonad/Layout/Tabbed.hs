@@ -18,7 +18,9 @@ module XMonad.Layout.Tabbed
     ( -- * Usage:
       -- $usage
       simpleTabbed, tabbed, addTabs
+    , simpleTabbedAlways, tabbedAlways, addTabsAlways
     , simpleTabbedBottom, tabbedBottom, addTabsBottom
+    , simpleTabbedBottomAlways, tabbedBottomAlways, addTabsBottomAlways
     , Theme (..)
     , defaultTheme
     , TabbedDecoration (..)
@@ -51,6 +53,10 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
+-- The default Tabbar behaviour is to hide it when only one window is open
+-- on the workspace.  To have it always shown, use one of the layouts or
+-- modifiers ending in "Always".
+--
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
@@ -64,6 +70,8 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- > mylayout = tabbed shrinkText myTabConfig ||| Full ||| etc..
 
+-- Layouts
+
 -- | A tabbed layout with the default xmonad Theme.
 --
 -- This is a minimal working configuration:
@@ -72,48 +80,91 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 -- > import XMonad.Layout.DecorationMadness
 -- > main = xmonad defaultConfig { layoutHook = simpleTabbed }
 simpleTabbed :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
-simpleTabbed = decoration shrinkText defaultTheme Tabbed Simplest
+simpleTabbed = tabbed shrinkText defaultTheme
+
+simpleTabbedAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
+simpleTabbedAlways = tabbedAlways shrinkText defaultTheme
 
 -- | A bottom-tabbed layout with the default xmonad Theme.
 simpleTabbedBottom :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
-simpleTabbedBottom = decoration shrinkText defaultTheme TabbedBottom Simplest
+simpleTabbedBottom = tabbedBottom shrinkText defaultTheme
+
+-- | A bottom-tabbed layout with the default xmonad Theme.
+simpleTabbedBottomAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
+simpleTabbedBottomAlways = tabbedBottomAlways shrinkText defaultTheme
 
 -- | A layout decorated with tabs and the possibility to set a custom
--- shrinker and a custom theme.
-tabbed :: (Eq a, Shrinker s) => s -> Theme
-       -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
-tabbed s c = decoration s c Tabbed Simplest
+-- shrinker and theme.
+tabbed     :: (Eq a, Shrinker s) => s -> Theme 
+           -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbed s c = addTabs s c Simplest
+
+tabbedAlways     :: (Eq a, Shrinker s) => s -> Theme 
+                 -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbedAlways s c = addTabsAlways s c Simplest
 
 -- | A layout decorated with tabs at the bottom and the possibility to set a custom
--- shrinker and a custom theme.
-tabbedBottom :: (Eq a, Shrinker s) => s -> Theme
-       -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
-tabbedBottom s c = decoration s c TabbedBottom Simplest
+-- shrinker and theme.
+tabbedBottom     :: (Eq a, Shrinker s) => s -> Theme 
+                 -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbedBottom s c = addTabsBottom s c Simplest
 
+tabbedBottomAlways     :: (Eq a, Shrinker s) => s -> Theme 
+                       -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbedBottomAlways s c = addTabsBottomAlways s c Simplest
+
+-- Layout Modifiers
+
+-- | A layout modifier that uses the provided shrinker and theme to add tabs to any layout.
 addTabs :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
         -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabs s c l = decoration s c Tabbed l
+addTabs = createTabs WhenPlural Top
 
+addTabsAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
+              -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabsAlways = createTabs Always Top
+
+-- | A layout modifier that uses the provided shrinker and theme to add tabs to the bottom of any layout.
 addTabsBottom :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
-        -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabsBottom s c l = decoration s c TabbedBottom l
+              -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabsBottom = createTabs WhenPlural Bottom
 
-data TabbedDecoration a = Tabbed | TabbedBottom deriving (Read, Show)
+addTabsBottomAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
+                    -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabsBottomAlways = createTabs Always Bottom
+
+
+-- Tab creation abstractions.  Internal use only.
+
+-- Create tabbar when required at the given location with the given
+-- shrinker and theme to the supplied layout.
+createTabs                ::(Eq a, LayoutClass l a, Shrinker s) => TabbarShown -> TabbarLocation -> s
+                          -> Theme -> l a -> ModifiedLayout (Decoration TabbedDecoration s) l a
+createTabs sh loc tx th l = decoration tx th (Tabbed loc sh) l
+
+data TabbarLocation = Top | Bottom deriving (Read,Show)
+
+data TabbarShown = Always | WhenPlural deriving (Read, Show, Eq)
+
+data TabbedDecoration a = Tabbed TabbarLocation TabbarShown deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabbedDecoration a where
-    describeDeco Tabbed = "Tabbed"
-    describeDeco TabbedBottom = "Tabbed Bottom"
+    describeDeco (Tabbed Top _ ) = "Tabbed"
+    describeDeco (Tabbed Bottom _ ) = "Tabbed Bottom"
     decorationMouseDragHook _ _ _ = return ()
-    pureDecoration ds _ ht _ s wrs (w,r@(Rectangle x y wh hh)) =
-            if length ws <= 1
-                then Nothing
-                else Just $ case ds of
-                    Tabbed -> Rectangle nx y wid (fi ht)
-                    TabbedBottom -> Rectangle nx (y+fi(hh-ht)) wid (fi ht)
+    pureDecoration (Tabbed lc sh) _ ht _ s wrs (w,r@(Rectangle x y wh hh)) 
+        = if ((sh == Always) || length ws > 1)
+          then Just $ case lc of
+                        Top -> upperTab
+                        Bottom -> lowerTab
+          else Nothing
         where ws = filter (`elem` map fst (filter ((==r) . snd) wrs)) (S.integrate s)
               loc i = x + fi ((wh * fi i) `div` max 1 (fi $ length ws))
               wid = fi $ maybe x (\i -> loc (i+1) - loc i) $ w `elemIndex` ws
               nx  = maybe x loc $ w `elemIndex` ws
-    shrink ds (Rectangle _ _ _ dh) (Rectangle x y w h) = case ds of
-        Tabbed -> Rectangle x (y + fi dh) w (h - dh)
-        TabbedBottom -> Rectangle x y w (h - dh)
+              upperTab = Rectangle nx y wid (fi ht)
+              lowerTab = Rectangle nx (y+fi(hh-ht)) wid (fi ht)
+    shrink (Tabbed loc _ ) (Rectangle _ _ _ dh) (Rectangle x y w h) 
+        = case loc of
+            Top -> Rectangle x (y + fi dh) w (h - dh)
+            Bottom -> Rectangle x y w (h - dh)
