@@ -73,7 +73,7 @@ import System.Posix.Files
 type XP = StateT XPState IO
 
 data XPState =
-    XPS { dpy                :: !Display
+    XPS { dpy                :: Display
         , rootw              :: !Window
         , win                :: !Window
         , screen             :: !Rectangle
