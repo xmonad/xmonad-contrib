@@ -106,6 +106,7 @@ library
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
+                        XMonad.Hooks.Script
                         XMonad.Hooks.SetWMName
                         XMonad.Hooks.ServerMode
                         XMonad.Hooks.UrgencyHook
