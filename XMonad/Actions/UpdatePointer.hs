@@ -52,15 +52,17 @@ import Control.Monad
 data PointerPosition = Nearest | Relative Rational Rational
 
 -- | Update the pointer's location to the currently focused
--- window unless it's already there
+-- window unless it's already there, or unless the user was changing
+-- focus with the mouse
 updatePointer :: PointerPosition -> X ()
 updatePointer p = withFocused $ \w -> do
   dpy <- asks display
   root <- asks theRoot
+  mouseIsMoving <- asks mouseFocused
   wa <- io $ getWindowAttributes dpy w
   (_sameRoot,_,w',rootx,rooty,_,_,_) <- io $ queryPointer dpy root
   -- Can sameRoot ever be false in this case? I'm going to assume not
-  unless (w == w') $
+  unless (w == w' || mouseIsMoving) $
     case p of
     Nearest -> do
       let x = moveWithin rootx (wa_x wa) ((wa_x wa) + (wa_width  wa))
