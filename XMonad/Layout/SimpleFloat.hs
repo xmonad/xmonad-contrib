@@ -62,9 +62,10 @@ simpleFloat' s c = decoration s c (Simple False) (mouseResize $ windowArrangeAll
 
 data SimpleFloat a = SF Dimension deriving (Show, Read)
 instance LayoutClass SimpleFloat Window where
-    doLayout (SF i) sc (S.Stack w l r) = do wrs <- mapM (getSize i sc) (w : reverse l ++ r)
-                                            return (wrs, Nothing)
     description _ = "Float"
+    doLayout (SF i) sc (S.Stack w l r) = do
+        wrs <- mapM (getSize i sc) (w : reverse l ++ r)
+        return (wrs, Nothing)
 
 getSize :: Dimension -> Rectangle -> Window -> X (Window,Rectangle)
 getSize i (Rectangle rx ry _ _) w = do
