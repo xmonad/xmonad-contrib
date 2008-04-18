@@ -10,7 +10,9 @@
 -- Portability :  unportable
 --
 -- A layout modifier for adding simple decorations to the windows of a
--- given layout.
+-- given layout. The decorations are in the form of ion-like tabs
+-- for window titles.
+--
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.SimpleDecoration
