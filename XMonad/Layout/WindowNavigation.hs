@@ -127,10 +127,10 @@ instance LayoutModifier WindowNavigation Window where
                wrs = filter ((`elem` existing_wins) . fst) $ filter ((/=r) . snd) $
                      filter ((/=w) . fst) origwrs
                wnavigable = nub $ concatMap
-                            (\d -> truncHead $ sortby d $ filter (inr d pt . snd) wrs) [U,D,R,L]
+                            (\d -> truncHead $ navigable d pt wrs) [U,D,R,L]
                wnavigablec = nub $ concatMap
                             (\d -> map (\(win,_) -> (win,dirc d)) $
-                                   truncHead $ sortby d $ filter (inr d pt . snd) wrs) [U,D,R,L]
+                                   truncHead $ navigable d pt wrs) [U,D,R,L]
                wothers = case state of Just (NS _ wo) -> map fst wo
                                        _              -> []
            mapM_ (sc nbc) (wothers \\ map fst wnavigable)
@@ -139,7 +139,7 @@ instance LayoutModifier WindowNavigation Window where
 
     handleMessOrMaybeModifyIt (WindowNavigation conf (I (Just (NS pt wrs)))) m
         | Just (Go d) <- fromMessage m =
-                         case sortby d $ filter (inr d pt . snd) wrs of
+                         case navigable d pt wrs of
                          []        -> return Nothing
                          ((w,r):_) -> do modify focusWindowHere
                                          return $ Just $ Left $ WindowNavigation conf $ I $ Just $
@@ -155,7 +155,7 @@ instance LayoutModifier WindowNavigation Window where
                                    has x (Just (W.Stack t l rr)) = x `elem` (t : l ++ rr)
 
         | Just (Swap d) <- fromMessage m =
-             case sortby d $ filter (inr d pt . snd) wrs of
+             case navigable d pt wrs of
              []        -> return Nothing
              ((w,_):_) -> do let swap st = unint (W.focus st) $ map (swapw (W.focus st)) $ W.integrate st
                                  swapw y x | x == w = y
@@ -171,7 +171,7 @@ instance LayoutModifier WindowNavigation Window where
                              windows $ W.modify' swap
                              return Nothing
         | Just (Move d) <- fromMessage m =
-             case sortby d $ filter (inr d pt . snd) wrs of
+             case navigable d pt wrs of
              []        -> return Nothing
              ((w,_):_) -> do mst <- gets (W.stack . W.workspace . W.current . windowset)
                              return $ do st <- mst
@@ -183,6 +183,9 @@ instance LayoutModifier WindowNavigation Window where
         | Just ReleaseResources <- fromMessage m =
                handleMessOrMaybeModifyIt (WindowNavigation conf (I $ Just (NS pt wrs))) (SomeMessage Hide)
     handleMessOrMaybeModifyIt _ _ = return Nothing
+
+navigable :: Direction -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
+navigable d pt = sortby d . filter (inr d pt . snd)
 
 truncHead :: [a] -> [a]
 truncHead (x:_) = [x]
