@@ -153,7 +153,7 @@ instance Eq a => DecorationStyle TabbedDecoration a where
     describeDeco (Tabbed Bottom _ ) = "Tabbed Bottom"
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration (Tabbed lc sh) _ ht _ s wrs (w,r@(Rectangle x y wh hh)) 
-        = if ((sh == Always) || length ws > 1)
+        = if ((sh == Always && numWindows > 0) || numWindows > 1)
           then Just $ case lc of
                         Top -> upperTab
                         Bottom -> lowerTab
@@ -164,6 +164,7 @@ instance Eq a => DecorationStyle TabbedDecoration a where
               nx  = maybe x loc $ w `elemIndex` ws
               upperTab = Rectangle nx y wid (fi ht)
               lowerTab = Rectangle nx (y+fi(hh-ht)) wid (fi ht)
+              numWindows = length ws
     shrink (Tabbed loc _ ) (Rectangle _ _ _ dh) (Rectangle x y w h) 
         = case loc of
             Top -> Rectangle x (y + fi dh) w (h - dh)
