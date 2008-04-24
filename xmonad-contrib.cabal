@@ -156,6 +156,7 @@ library
                         XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
                         XMonad.Layout.WorkspaceDir
+                        XMonad.Layout.SimplestFloat
                         XMonad.Prompt.Directory
                         XMonad.Prompt
                         XMonad.Prompt.AppendFile
