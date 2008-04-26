@@ -8,8 +8,8 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- This module provides helper functions to be used in @manageHook@. Here's how you
--- might use this:
+-- This module provides helper functions to be used in @manageHook@. Here's
+-- how you might use this:
 --
 -- > import XMonad.Hooks.ManageHelpers
 -- > main =
@@ -18,6 +18,7 @@
 -- >         manageHook = composeOne [
 -- >             isKDETrayWindow -?> doIgnore,
 -- >             transience,
+-- >             isFullscreen -?> doFullFloat,
 -- >             resource =? "stalonetray" -?> doIgnore
 -- >         ],
 -- >         ...
@@ -27,12 +28,14 @@ module XMonad.Hooks.ManageHelpers (
     composeOne,
     (-?>), (/=?), (<==?), (</=?), (-->>), (-?>>),
     isKDETrayWindow,
+    isFullscreen,
     transientTo,
     maybeToDefinite,
     MaybeManageHook,
     transience,
     transience',
     doRectFloat,
+    doFullFloat,
     doCenterFloat
 ) where
 
@@ -109,6 +112,18 @@ isKDETrayWindow = ask >>= \w -> liftX $ do
         Just [_] -> True
         _ -> False
 
+-- | A predicate to check whether a window wants to fill the whole screen.
+-- See also 'doFullFloat'.
+isFullscreen :: Query Bool
+isFullscreen = ask >>= \w -> liftX $ do
+    dpy <- asks display
+    state <- getAtom "_NET_WM_STATE"
+    full <- getAtom "_NET_WM_STATE_FULLSCREEN"
+    r <- io $ getWindowProperty32 dpy state w
+    return $ case r of
+        Just xs -> fromIntegral full `elem` xs
+        _ -> False
+
 -- | A predicate to check whether a window is Transient.
 -- It holds the result which might be the window it is transient to
 -- or it might be 'Nothing'.
@@ -140,6 +155,10 @@ doRectFloat :: W.RationalRect  -- ^ The rectangle to float the window in. 0 to 1
             -> ManageHook
 doRectFloat r = ask >>= \w -> doF (W.float w r)
 
+-- | Floats the window and makes it use the whole screen. Equivalent to
+-- @'doRectFloat' $ 'W.RationalRect' 0 0 1 1@.
+doFullFloat :: ManageHook
+doFullFloat = doRectFloat $ W.RationalRect 0 0 1 1
 
 -- | Floats a new window with its original size, but centered.
 doCenterFloat :: ManageHook
