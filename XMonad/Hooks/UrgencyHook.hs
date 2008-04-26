@@ -121,6 +121,10 @@ data WithUrgencyHook h a = WithUrgencyHook h deriving (Read, Show)
 -- the list of urgent windows ourselves, allowing us to clear urgency when a window
 -- is visible, and not to set urgency if a window is visible.
 -- If you have a better idea, please, let us know!
+--
+-- Update: I'm a doofus. Thanks to arossato's EventHook I see that the "9-10
+-- times" thing was an Urgencyhook bug. If you fix it, and make UrgencyHook
+-- ICCCM-compliant, you will win a prize.
 instance UrgencyHook h Window => LayoutModifier (WithUrgencyHook h) Window where
     handleMess (WithUrgencyHook hook) mess
       | Just PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } <- fromMessage mess = do
