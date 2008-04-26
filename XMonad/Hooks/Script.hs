@@ -8,7 +8,7 @@
 -- Stability   : unstable
 -- Portability : unportable
 --
--- Provides a simple interface for running a ~/.xmonad/hooks script with the
+-- Provides a simple interface for running a ~\/.xmonad\/hooks script with the
 -- name of a hook.
 --
 -----------------------------------------------------------------------------
@@ -43,8 +43,8 @@ import System.Directory
 -- >   ...
 -- >   }
 --
--- Now, everytime the startup hook runs, the command "~\/.xmonad/hooks startup"
--- will also.
+-- Now, everytime the startup hook runs, the command
+-- @~\/.xmonad\/hooks startup@ will also.
 
 -- | Execute a named script hook
 execScriptHook :: MonadIO m => String -> m ()
