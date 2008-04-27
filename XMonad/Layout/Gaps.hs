@@ -93,9 +93,9 @@ data Gaps a = Gaps GapSpec [Direction]
 
 -- | Messages which can be sent to a gap modifier.
 data GapMessage = ToggleGaps              -- ^ Toggle all gaps.
-                | ToggleGap  Direction    -- ^ Toggle a single gap.
-                | IncGap Int Direction    -- ^ Increase a gap by a certain number of pixels.
-                | DecGap Int Direction    -- ^ Decrease a gap.
+                | ToggleGap  !Direction    -- ^ Toggle a single gap.
+                | IncGap !Int !Direction    -- ^ Increase a gap by a certain number of pixels.
+                | DecGap !Int !Direction    -- ^ Decrease a gap.
   deriving (Typeable)
 
 instance Message GapMessage
