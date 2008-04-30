@@ -253,7 +253,7 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                               return (dwrs_to_wrs ndwrs, Just (Decoration (I (Just (s {decos = ndwrs}))) sh t ds))
 
     handleMess (Decoration (I (Just s@(DS {decos = dwrs}))) sh t ds) m
-        | Just e <- fromMessage m :: Maybe Event = do decorationEventHook ds s e
+        | Just e <- fromMessage m                = do decorationEventHook ds s e
                                                       handleEvent sh t s e
                                                       return Nothing
         | Just Hide             <- fromMessage m = do hideDecos (map snd dwrs)
