@@ -97,9 +97,9 @@ library
                         XMonad.Actions.Warp
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
-                        XMonad.Config.Sjanssen
                         XMonad.Config.Arossato
                         XMonad.Config.Droundy
+                        XMonad.Config.Sjanssen
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EventHook
                         XMonad.Hooks.EwmhDesktops
