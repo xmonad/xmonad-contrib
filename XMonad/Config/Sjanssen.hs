@@ -30,7 +30,10 @@ sjanssenConfig = do
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
         , layoutHook = avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTheme)
-        , manageHook = manageHook defaultConfig <+> manageDocks
+        , manageHook = composeAll [className =? x --> doF (W.shift w)
+                                    | (x, w) <- [ ("Firefox", "web"), ("Pidgin", "im")
+                                                , ("Ktorrent", "7")]]
+                       <+> manageHook defaultConfig <+> manageDocks
         }
  where
     tiled   = HintedTile 1 0.03 0.5 TopLeft
