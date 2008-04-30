@@ -98,7 +98,9 @@ library
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
                         XMonad.Config.Arossato
+                        XMonad.Config.Desktop
                         XMonad.Config.Droundy
+                        XMonad.Config.Gnome
                         XMonad.Config.Sjanssen
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EventHook
