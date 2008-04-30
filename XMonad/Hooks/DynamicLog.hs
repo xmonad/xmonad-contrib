@@ -428,7 +428,7 @@ xmobarPP = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
 -- 'defaultPP'.
 sjanssenPP :: PP
 sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
-                       , ppTitle = xmobarColor "#00ee00" "" . shorten 80
+                       , ppTitle = xmobarColor "#00ee00" "" . shorten 120
                        }
 
 -- | The options that byorgey likes to use with dzen, as another example.
