@@ -276,9 +276,9 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
 handleEvent :: Shrinker s => s -> Theme -> DecorationState -> Event -> X ()
 handleEvent sh t (DS dwrs fs) e
     | PropertyEvent {ev_window = w} <- e
-    , w `elem`             (map (fst . fst) dwrs) = updateDecos sh t fs dwrs
+    , Just i <- w `elemIndex`             (map (fst . fst) dwrs) = updateDeco sh t fs (dwrs !! i)
     | ExposeEvent   {ev_window = w} <- e
-    , w `elem` (catMaybes $ map (fst . snd) dwrs) = updateDecos sh t fs dwrs
+    , Just i <- w `elemIndex` (catMaybes $ map (fst . snd) dwrs) = updateDeco sh t fs (dwrs !! i)
 handleEvent _ _ _ _ = return ()
 
 -- | Mouse focus and mouse drag are handled by the same function, this
