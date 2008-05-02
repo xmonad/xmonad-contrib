@@ -44,12 +44,17 @@ instance Show NamedWindow where
 
 getName :: Window -> X NamedWindow
 getName w = withDisplay $ \d -> do
+    -- TODO, this code is ugly and convoluted -- clean it up
     let getIt = bracket getProp (xFree . tp_value) (fmap (`NW` w) . copy)
 
         getProp = (internAtom d "_NET_WM_NAME" False >>= getTextProperty d w)
                       `catch` \_ -> getTextProperty d w wM_NAME
 
-        copy prop = head `fmap` wcTextPropertyToTextList d prop
+        copy prop = do
+            xs <- wcTextPropertyToTextList d prop
+            return $ case xs of
+                []    -> ""
+                (x:_) -> x
 
     io $ getIt `catch` \_ ->  ((`NW` w) . resName) `fmap` getClassHint d w
 
