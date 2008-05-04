@@ -96,6 +96,7 @@ library
                         XMonad.Actions.TagWindows
                         XMonad.Actions.UpdatePointer
                         XMonad.Actions.Warp
+                        XMonad.Actions.WindowNavigation
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
                         XMonad.Config.Arossato
