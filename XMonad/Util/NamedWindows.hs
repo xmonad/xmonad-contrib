@@ -23,7 +23,9 @@ module XMonad.Util.NamedWindows (
                                   ) where
 
 import Prelude hiding ( catch )
+import Control.Applicative ( (<$>) )
 import Control.Exception ( bracket, catch )
+import Data.Maybe ( fromMaybe, listToMaybe )
 
 import qualified XMonad.StackSet as W ( peek )
 
@@ -50,11 +52,7 @@ getName w = withDisplay $ \d -> do
         getProp = (internAtom d "_NET_WM_NAME" False >>= getTextProperty d w)
                       `catch` \_ -> getTextProperty d w wM_NAME
 
-        copy prop = do
-            xs <- wcTextPropertyToTextList d prop
-            return $ case xs of
-                []    -> ""
-                (x:_) -> x
+        copy prop = fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
 
     io $ getIt `catch` \_ ->  ((`NW` w) . resName) `fmap` getClassHint d w
 
