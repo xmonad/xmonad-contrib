@@ -1,5 +1,8 @@
 {-# OPTIONS_GHC -fglasgow-exts #-} -- for deriving Typeable
-{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE PatternGuards  #-}
+{-# FlexibleInstancesi      #-}
+{-# MultiParamTypeClasses   #-}
+{-# TypeSynonymInstances    #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowArranger

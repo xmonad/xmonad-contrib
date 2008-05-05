@@ -51,6 +51,19 @@ import XMonad.Layout.Decoration
 -- and
 --
 -- > myL = dwmStyle shrinkText myDWConfig (layoutHook defaultConfig)
+--
+-- A complete xmonad.hs file for this would therefore be:
+--
+-- > import XMonad
+-- > import XMonad.Layout.DwmStyle
+-- >
+-- > main = xmonad defaultConfig {
+-- >                    layoutHook =
+-- >                        dwmStyle shrinkText defaultTheme
+-- >                            (layoutHook defaultConfig)
+-- >              }
+--
+
 
 -- | Add simple old dwm-style decorations to windows of a layout.
 dwmStyle :: (Eq a, Shrinker s) => s -> Theme
