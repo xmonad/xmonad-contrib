@@ -11,7 +11,7 @@
 -- use that one for now.
 --
 -- WindowNavigation lets you assign keys to move up/down/left/right, based on
--- actual window geometry, rather than just going j/k on the stack.
+-- actual cartesian window coordinates, rather than just going j/k on the stack.
 --
 -----------------------------------------------------------------------------
 
@@ -93,7 +93,7 @@ navigable d pt = sortby d . filter (inr d (fromPoint pt) . snd)
 -- adjusted based on screen position relative to the current screen, because I'm
 -- bad like that.
 -- TODO: only the visible windows
--- TODO: adjust rectangles based on screen position :P
+-- TODO: adjust rectangles based on screen position? (perhaps this is already handled)
 windowRects :: X [(Window, Rectangle)]
 windowRects = do
     dpy <- asks display
