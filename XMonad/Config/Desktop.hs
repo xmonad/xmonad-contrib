@@ -35,4 +35,3 @@ desktopKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_b), sendMessage ToggleStruts) ]
 
 desktopLayoutModifiers = avoidStruts . ewmhDesktopsLayout
-
