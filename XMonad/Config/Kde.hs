@@ -20,6 +20,8 @@ module XMonad.Config.Kde (
 import XMonad
 import XMonad.Config.Desktop
 
+import qualified Data.Map as M
+
 -- $usage
 -- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
 --
@@ -29,4 +31,11 @@ import XMonad.Config.Desktop
 -- > main = xmonad kdeConfig
 -- 
 
-kdeConfig = desktopConfig { terminal = "konsole" }
+kdeConfig = desktopConfig
+    { terminal = "konsole"
+    , keys     = \c -> kdeKeys c `M.union` keys desktopConfig c }
+
+kdeKeys (XConfig {modMask = modm}) = M.fromList $
+    [ ((modm,               xK_p), spawn "dcop kdesktop default popupExecuteCommand")
+    , ((modm .|. shiftMask, xK_q), spawn "dcop kdesktop default logout")
+    ]
