@@ -200,7 +200,7 @@ setSupported = withDisplay $ \dpy -> do
 
 setActiveWindow :: X ()
 setActiveWindow = withWindowSet $ \s -> withDisplay $ \dpy -> do
-    let w = fromMaybe 0 (W.peek s)
+    let w = fromMaybe none (W.peek s)
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
     c <- getAtom "WINDOW"
