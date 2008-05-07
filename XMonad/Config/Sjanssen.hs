@@ -29,14 +29,16 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
-        , layoutHook = avoidStruts $ smartBorders (tiled Tall ||| tiled Wide ||| Full ||| tabbed shrinkText myTheme)
+        , layoutHook = modifiers layouts
         , manageHook = composeAll [className =? x --> doF (W.shift w)
                                     | (x, w) <- [ ("Firefox", "web"), ("Pidgin", "im")
                                                 , ("Ktorrent", "7")]]
                        <+> manageHook defaultConfig <+> manageDocks
         }
  where
-    tiled   = HintedTile 1 0.03 0.5 TopLeft
+    tiled     = HintedTile 1 0.03 0.5 TopLeft
+    layouts   = (tiled Tall ||| (tiled Wide ||| Full)) ||| tabbed shrinkText myTheme
+    modifiers = avoidStruts . smartBorders
 
     mykeys (XConfig {modMask = modm, workspaces = ws}) = M.fromList $
         [((modm,               xK_p     ), shellPrompt myPromptConfig)
