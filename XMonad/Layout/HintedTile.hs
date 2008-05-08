@@ -32,8 +32,18 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the HintedTile layout:
 --
--- > myLayouts = HintedTile 1 0.1 0.5 TopLeft Tall ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = hintedTile Tall ||| hintedTile Wide ||| Full ||| etc..
+-- >   where
+-- >      tiled   = HintedTile nmaster delta ratio TopLeft
+-- >      nmaster = 1
+-- >      ratio   = 1/2
+-- >      delta   = 3/100
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
+--
+-- Because both Xmonad and Xmonad.Layout.HintedTile define Tall,
+-- you need to disambiguate Tall. If you are replacing the
+-- built-in Tall with HintedTile, change @import Xmonad@ to
+-- @import Xmonad hiding (Tall)@.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -42,11 +52,14 @@ import Control.Monad
 data HintedTile a = HintedTile
     { nmaster     :: !Int
     , delta, frac :: !Rational
-    , alignment   :: !Alignment
+    , alignment   :: !Alignment   -- ^ Where to place windows that are smaller
+                                  --   than their preordained rectangles.
     , orientation :: !Orientation
     } deriving ( Show, Read )
 
-data Orientation = Wide | Tall
+data Orientation
+     = Wide -- ^ Lay out windows similarly to Mirror tiled.
+     | Tall -- ^ Lay out windows similarly to tiled.
     deriving ( Show, Read, Eq, Ord )
 
 data Alignment = TopLeft | Center | BottomRight
