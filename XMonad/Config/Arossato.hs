@@ -25,7 +25,7 @@ import XMonad hiding ( (|||) )
 import qualified XMonad.StackSet as W
 
 import XMonad.Actions.CycleWS
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ServerMode
 import XMonad.Layout.Accordion

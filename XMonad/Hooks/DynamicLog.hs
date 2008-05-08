@@ -22,6 +22,7 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Drop-in loggers
     dzen,
+    xmobar,
     dynamicLog,
     dynamicLogDzen,
     dynamicLogXmobar,
@@ -79,6 +80,9 @@ import XMonad.Hooks.ManageDocks
 -- or, to use this with your own custom xmonad configuration,
 --
 -- > main = dzen $ \conf -> xmonad $ conf { <your customizations> }
+--
+-- Also you can use 'xmobar' function instead of 'dzen' in the examples above,
+-- if you have xmobar installed.
 --
 -- Alternatively, you can choose among several default status bar
 -- formats ('dynamicLog', 'dynamicLogDzen', 'dynamicLogXmobar', or
@@ -150,7 +154,7 @@ import XMonad.Hooks.ManageDocks
 -- use something like 'dynamicLogWithPP' instead.
 --
 -- The binding uses the XMonad.Hooks.ManageDocks module to automatically
--- handle screen placement for dzen, and enables 'mod-b' for toggling 
+-- handle screen placement for dzen, and enables 'mod-b' for toggling
 -- the menu bar.
 --
 dzen ::
@@ -163,16 +167,41 @@ dzen f = do
            { logHook   = dynamicLogWithPP dzenPP
                           { ppOutput = hPutStrLn h }
            ,layoutHook = avoidStrutsOn [U] (layoutHook defaultConfig)
-           ,keys       = \c -> mykeys c `M.union` keys defaultConfig c
+           ,keys       = \c -> toggleStrutsKey c `M.union` keys defaultConfig c
            ,manageHook = manageHook defaultConfig <+> manageDocks
            }
  where
-    mykeys (XConfig{modMask=modm}) = M.fromList
-        [((modm, xK_b ), sendMessage ToggleStruts)
-        ]
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
     flags   = "-e 'onstart=lower' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
+
+
+-- | Run xmonad with a xmobar status bar set to some nice defaults. Output
+-- is taken from the dynamicLogWithPP hook.
+--
+-- > main = xmobar xmonad
+--
+-- This works pretty much the same as 'dzen' function above
+--
+xmobar ::
+    (XConfig
+       (ModifiedLayout AvoidStruts
+          (Choose Tall (Choose (Mirror Tall) Full))) -> IO t) -> IO t
+xmobar f = do
+  h <- spawnPipe "xmobar"
+  f $ defaultConfig
+           { logHook    = dynamicLogWithPP xmobarPP { ppOutput = hPutStrLn h }
+           , layoutHook = avoidStruts $ layoutHook defaultConfig
+           , keys       = \c -> toggleStrutsKey c `M.union` keys defaultConfig c
+           , manageHook = manageHook defaultConfig <+> manageDocks
+           }
+
+-- |
+-- Helper function which provides ToggleStruts keybinding
+--
+toggleStrutsKey :: XConfig t -> M.Map (KeyMask, KeySym) (X ())
+toggleStrutsKey XConfig{modMask = modm} = M.fromList
+        [ ((modm, xK_b ), sendMessage ToggleStruts) ]
 
 ------------------------------------------------------------------------
 

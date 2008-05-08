@@ -8,7 +8,7 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.HintedTile
 import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Prompt
 import XMonad.Prompt.Shell
