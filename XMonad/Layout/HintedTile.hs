@@ -34,10 +34,10 @@ import Control.Monad
 --
 -- > myLayout = hintedTile Tall ||| hintedTile Wide ||| Full ||| etc..
 -- >   where
--- >      tiled   = HintedTile nmaster delta ratio TopLeft
--- >      nmaster = 1
--- >      ratio   = 1/2
--- >      delta   = 3/100
+-- >      hintedTile = HintedTile nmaster delta ratio TopLeft
+-- >      nmaster    = 1
+-- >      ratio      = 1/2
+-- >      delta      = 3/100
 -- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- Because both Xmonad and Xmonad.Layout.HintedTile define Tall,
