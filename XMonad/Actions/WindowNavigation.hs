@@ -38,8 +38,13 @@ import Graphics.X11.Xlib
 --
 -- Don't use it! What, are you crazy?
 
--- TODO: solve the 2+3, middle right to bottom left problem
---       logHook to update currentPosition?
+-- TODO:
+--  - withWindowNavigation :: XConfig l -> XConfig l
+--  - cleanup
+--  - actually deal with multiple screens
+--  - documentation :)
+--  - tests? (esp. for edge cases in currentPosition)
+--  - solve the 2+3, middle right to bottom left problem
 
 -- go:
 -- 1. get current position, verifying it matches the current window
@@ -83,6 +88,7 @@ currentPosition posRef = do
 navigableTargets :: Point -> Direction -> X [(Window, Rectangle)]
 navigableTargets point dir = navigable dir point <$> windowRects
 
+-- TODO: use a smarter algorithm (with memory of last position)
 setPosition :: IORef WNState -> Point -> Rectangle -> X ()
 setPosition posRef _ (Rectangle x y w h) = do
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
