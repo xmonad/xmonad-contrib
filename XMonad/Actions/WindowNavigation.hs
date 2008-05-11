@@ -18,6 +18,7 @@
 module XMonad.Actions.WindowNavigation (
                                        -- * Usage
                                        -- $usage
+                                       withWindowNavigation,
                                        go, swap,
                                        Direction(..)
                                        ) where
@@ -39,7 +40,6 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - withWindowNavigation :: XConfig l -> XConfig l
 --  - cleanup
 --  - actually deal with multiple screens
 --  - documentation :)
@@ -47,6 +47,15 @@ import Graphics.X11.Xlib
 --  - solve the 2+3, middle right to bottom left problem
 --  - manageHook to draw window decos?
 
+withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
+withWindowNavigation (u,l,d,r) conf = do
+    posRef <- newIORef M.empty
+    return conf { keys = \cnf -> M.fromList [
+                                   ((modMask cnf, u), go posRef U),
+                                   ((modMask cnf, l), go posRef L),
+                                   ((modMask cnf, d), go posRef D),
+                                   ((modMask cnf, r), go posRef R)
+                                 ] `M.union` (keys conf cnf) }
 
 type WNState = Map WorkspaceId Point
 
