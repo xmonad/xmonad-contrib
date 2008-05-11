@@ -60,9 +60,9 @@ updatePointer p = withFocused $ \w -> do
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   wa <- io $ getWindowAttributes dpy w
-  (_sameRoot,_,w',rootx,rooty,_,_,_) <- io $ queryPointer dpy root
-  -- Can sameRoot ever be false in this case? I'm going to assume not
-  unless (w == w' || mouseIsMoving) $
+  (_sameRoot,_,_,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
+  unless (pointWithinRegion rootx rooty (wa_x wa) (wa_y wa) (wa_width wa) (wa_height wa)
+          || mouseIsMoving) $
     case p of
     Nearest -> do
       let x = moveWithin rootx (wa_x wa) ((wa_x wa) + (wa_width  wa))
@@ -81,3 +81,9 @@ moveWithin current lower upper =
          then upper
          else current
 
+-- Test that a point resides within a region. 
+-- This belongs somewhere more generally accessible than this module.
+pointWithinRegion :: Integral a => a -> a -> a -> a -> a -> a -> Bool
+pointWithinRegion px py rx ry rw rh =
+    within px rx (rx + rw) && within py ry (ry + rh)
+    where within x left right = x >= left && x <= right
