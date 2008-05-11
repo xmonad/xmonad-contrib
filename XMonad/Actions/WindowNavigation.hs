@@ -29,6 +29,8 @@ import qualified XMonad.StackSet as W
 import Control.Applicative ((<$>))
 import Data.IORef
 import Data.List (sortBy)
+import Data.Map (Map())
+import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
 import Graphics.X11.Xlib
 
@@ -36,7 +38,6 @@ import Graphics.X11.Xlib
 --
 -- Don't use it! What, are you crazy?
 
--- TODO: IORef should be a map from WorkspaceId to Point
 -- TODO: solve the 2+3, middle right to bottom left problem
 --       logHook to update currentPosition?
 
@@ -48,11 +49,13 @@ import Graphics.X11.Xlib
 
 -- key bindings to do the important stuff
 
+type WNState = Map WorkspaceId Point
+
 -- 1. Get current position, window
 -- 2. Determine list of windows in dir from pos, except window
 -- 3. Grab closest one
 
-go :: IORef (Maybe Point) -> Direction -> X ()
+go :: IORef WNState -> Direction -> X ()
 go posRef dir = fromCurrentPoint $ \win pos -> do
     targets <- filter ((/= win) . fst) <$> navigableTargets pos dir
     io $ putStrLn $ "pos: " ++ show pos ++ "; tgts: " ++ show targets
@@ -62,7 +65,7 @@ go posRef dir = fromCurrentPoint $ \win pos -> do
   where fromCurrentPoint f = withFocused $ \win -> do
                                  currentPosition posRef >>= f win
 
-swap :: IORef (Maybe Point) -> Direction -> X ()
+swap :: IORef WNState -> Direction -> X ()
 swap _ _ = return ()
 
 -- Gets the current position from the IORef passed in, or if nothing (say, from
@@ -71,18 +74,20 @@ swap _ _ = return ()
 -- used mod-j/k or mouse or something).
 -- TODO: replace 0 0 0 0 with 'middle of current window'
 -- TODO: correct if not in window, or add logHook
-currentPosition :: IORef (Maybe Point) -> X Point
+currentPosition :: IORef WNState -> X Point
 currentPosition posRef = do
-    mp <- io $ readIORef posRef
+    wsid <- gets (W.tag . W.workspace . W.current . windowset)
+    mp <- M.lookup wsid <$> io (readIORef posRef)
     return $ fromMaybe (Point 0 0) mp
 
 navigableTargets :: Point -> Direction -> X [(Window, Rectangle)]
 navigableTargets point dir = navigable dir point <$> windowRects
 
-setPosition :: IORef (Maybe Point) -> Point -> Rectangle -> X ()
-setPosition posRef _ (Rectangle x y w h) =
-    let position = Point (x + (fromIntegral w `div` 2)) (y + (fromIntegral h `div` 2)) in
-    io $ writeIORef posRef (Just position)
+setPosition :: IORef WNState -> Point -> Rectangle -> X ()
+setPosition posRef _ (Rectangle x y w h) = do
+    wsid <- gets (W.tag . W.workspace . W.current . windowset)
+    let position = Point (x + (fromIntegral w `div` 2)) (y + (fromIntegral h `div` 2))
+    io $ modifyIORef posRef $ M.insert wsid position
 
 -- Filters and sorts the windows in terms of what is closest from the Point in
 -- the Direction.
