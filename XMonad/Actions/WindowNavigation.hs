@@ -45,25 +45,19 @@ import Graphics.X11.Xlib
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)
 --  - solve the 2+3, middle right to bottom left problem
+--  - manageHook to draw window decos?
+
+
+type WNState = Map WorkspaceId Point
 
 -- go:
 -- 1. get current position, verifying it matches the current window
 -- 2. get target windowrect
 -- 3. focus window
 -- 4. set new position
-
--- key bindings to do the important stuff
-
-type WNState = Map WorkspaceId Point
-
--- 1. Get current position, window
--- 2. Determine list of windows in dir from pos, except window
--- 3. Grab closest one
-
 go :: IORef WNState -> Direction -> X ()
 go posRef dir = fromCurrentPoint $ \win pos -> do
     targets <- filter ((/= win) . fst) <$> navigableTargets pos dir
-    io $ putStrLn $ "pos: " ++ show pos ++ "; tgts: " ++ show targets
     whenJust (listToMaybe targets) $ \(tw, tr) -> do
       windows (W.focusWindow tw)
       setPosition posRef pos tr
@@ -77,16 +71,27 @@ swap _ _ = return ()
 -- a restart), derives the current position from the current window. Also,
 -- verifies that the position is congruent with the current window (say, if you
 -- used mod-j/k or mouse or something).
--- TODO: replace 0 0 0 0 with 'middle of current window'
--- TODO: correct if not in window, or add logHook
+-- TODO: worry about off-by-one issues with inside definition
 currentPosition :: IORef WNState -> X Point
 currentPosition posRef = do
+    root <- asks theRoot
+    currentWindow <- gets (W.peek . windowset)
+    currentRect <- maybe (Rectangle 0 0 0 0) snd <$> windowRect (fromMaybe root currentWindow)
+
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
     mp <- M.lookup wsid <$> io (readIORef posRef)
-    return $ fromMaybe (Point 0 0) mp
 
-navigableTargets :: Point -> Direction -> X [(Window, Rectangle)]
-navigableTargets point dir = navigable dir point <$> windowRects
+    case mp of
+        Just p | p `inside` currentRect -> return p
+        _                               -> return (middleOf currentRect)
+
+  where Point px py `inside` Rectangle rx ry rw rh =
+            px >= rx && px < rx + fromIntegral rw &&
+            py >= rx && py < ry + fromIntegral rh
+
+        middleOf (Rectangle x y w h) =
+            Point (x + fromIntegral w `div` 2) (y + fromIntegral h `div` 2)
+    -- return $ fromMaybe (Point 0 0) mp
 
 -- TODO: use a smarter algorithm (with memory of last position)
 setPosition :: IORef WNState -> Point -> Rectangle -> X ()
@@ -94,6 +99,9 @@ setPosition posRef _ (Rectangle x y w h) = do
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
     let position = Point (x + (fromIntegral w `div` 2)) (y + (fromIntegral h `div` 2))
     io $ modifyIORef posRef $ M.insert wsid position
+
+navigableTargets :: Point -> Direction -> X [(Window, Rectangle)]
+navigableTargets point dir = navigable dir point <$> windowRects
 
 -- Filters and sorts the windows in terms of what is closest from the Point in
 -- the Direction.
@@ -107,25 +115,22 @@ navigable d pt = sortby d . filter (inr d (fromPoint pt) . snd)
 -- TODO: adjust rectangles based on screen position? (perhaps this is already handled)
 windowRects :: X [(Window, Rectangle)]
 windowRects = do
-    dpy <- asks display
     wins <- gets (visibleWindows . windowset)
-    catMaybes <$> mapM (windowRect dpy) wins
+    catMaybes <$> mapM windowRect wins
   where visibleWindows wset = concatMap (W.integrate' . W.stack . W.workspace)
                                         (W.current wset : W.visible wset)
 
-windowRect :: Display -> Window -> X (Maybe (Window, Rectangle))
-windowRect dpy win = do
+windowRect :: Window -> X (Maybe (Window, Rectangle))
+windowRect win = withDisplay $ \dpy -> do
     (_, x, y, w, h, _, _) <- io $ getGeometry dpy win
     return $ Just $ (win, Rectangle x y w h)
     `catchX` return Nothing
 
--- manageHook to draw window decos?
-
 fromPoint :: Point -> FPoint
 fromPoint p = P (fromIntegral $ pt_x p) (fromIntegral $ pt_y p)
 
--- Stolen from droundy's implementation of WindowNavigation. I should probably take the time
--- to understand the black magic below at some point.
+-- Stolen from droundy's implementation of WindowNavigation.
+-- TODO: refactor, perhaps
 
 data FPoint = P Double Double
 
