@@ -47,6 +47,7 @@ import Graphics.X11.Xlib
 --  - solve the 2+3, middle right to bottom left problem
 --  - manageHook to draw window decos?
 
+-- TODO: more flexible api
 withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
 withWindowNavigation (u,l,d,r) conf = do
     posRef <- newIORef M.empty
