@@ -36,6 +36,7 @@ import Data.List (sortBy)
 import Data.Map (Map())
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
+import Data.Ord (comparing)
 import Graphics.X11.Xlib
 
 -- $usage
@@ -181,7 +182,7 @@ inr L (P a x) (Rectangle b l c w)  = x >= fromIntegral l && x < fromIntegral l +
                                      a >  fromIntegral b + fromIntegral c
 
 sortby :: Direction -> [(a,Rectangle)] -> [(a,Rectangle)]
-sortby U = sortBy (\(_,Rectangle _ y _ _) (_,Rectangle _ y' _ _) -> compare y' y)
-sortby D = sortBy (\(_,Rectangle _ y _ _) (_,Rectangle _ y' _ _) -> compare y y')
-sortby R = sortBy (\(_,Rectangle x _ _ _) (_,Rectangle x' _ _ _) -> compare x x')
-sortby L = sortBy (\(_,Rectangle x _ _ _) (_,Rectangle x' _ _ _) -> compare x' x)
+sortby D = sortBy $ comparing (rect_y . snd)
+sortby R = sortBy $ comparing (rect_x . snd)
+sortby U = reverse . sortby D
+sortby L = reverse . sortby R
