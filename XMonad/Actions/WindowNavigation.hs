@@ -43,6 +43,7 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
+--  - 1. 2x2, top right; 2. a,j,d 3. error!
 --  - implement swap
 --  - cleanup
 --  - documentation :)
@@ -53,10 +54,14 @@ import Graphics.X11.Xlib
 -- TODO: more flexible api
 withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
 withWindowNavigation (u,l,d,r) conf =
-    withWindowNavigationKeys [ ((modMask conf, u), WNGo U),
-                               ((modMask conf, l), WNGo L),
-                               ((modMask conf, d), WNGo D),
-                               ((modMask conf, r), WNGo R) ]
+    withWindowNavigationKeys [ ((modMask conf              , u), WNGo   U),
+                               ((modMask conf              , l), WNGo   L),
+                               ((modMask conf              , d), WNGo   D),
+                               ((modMask conf              , r), WNGo   R),
+                               ((modMask conf .|. shiftMask, u), WNSwap U),
+                               ((modMask conf .|. shiftMask, l), WNSwap L),
+                               ((modMask conf .|. shiftMask, d), WNSwap D),
+                               ((modMask conf .|. shiftMask, r), WNSwap R) ]
                              conf
 
 withWindowNavigationKeys :: [((KeyMask, KeySym), WNAction)] -> XConfig l -> IO (XConfig l)
@@ -77,16 +82,28 @@ type WNState = Map WorkspaceId Point
 -- 3. focus window
 -- 4. set new position
 go :: IORef WNState -> Direction -> X ()
-go posRef dir = fromCurrentPoint $ \win pos -> do
-    targets <- filter ((/= win) . fst) <$> navigableTargets pos dir
-    whenJust (listToMaybe targets) $ \(tw, tr) -> do
-      windows (W.focusWindow tw)
-      setPosition posRef pos tr
-  where fromCurrentPoint f = withFocused $ \win -> do
-                                 currentPosition posRef >>= f win
+go = withTargetWindow W.focusWindow
 
 swap :: IORef WNState -> Direction -> X ()
-swap _ _ = return ()
+swap = withTargetWindow swapWithFocused
+  where swapWithFocused targetWin winSet =
+            case W.peek winSet of
+                Just currentWin -> W.focusWindow currentWin $
+                                   mapWindows (swapWin currentWin targetWin) winSet
+                Nothing -> winSet
+        mapWindows f ss = W.mapWorkspace (mapWindows' f) ss
+        mapWindows' f ws@(W.Workspace { W.stack = s }) = ws { W.stack = mapWindows'' f <$> s }
+        mapWindows'' f (W.Stack focused up down) = W.Stack (f focused) (map f up) (map f down)
+        swapWin win1 win2 win = if win == win1 then win2 else if win == win2 then win1 else win
+
+withTargetWindow :: (Window -> WindowSet -> WindowSet) -> IORef WNState -> Direction -> X ()
+withTargetWindow adj posRef dir = fromCurrentPoint $ \win pos -> do
+    targets <- filter ((/= win) . fst) <$> navigableTargets pos dir
+    whenJust (listToMaybe targets) $ \(targetWin, targetRect) -> do
+      windows (adj targetWin)
+      setPosition posRef pos targetRect
+  where fromCurrentPoint f = withFocused $ \win -> do
+                                 currentPosition posRef >>= f win
 
 -- Gets the current position from the IORef passed in, or if nothing (say, from
 -- a restart), derives the current position from the current window. Also,
