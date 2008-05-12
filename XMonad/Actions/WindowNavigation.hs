@@ -43,8 +43,6 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - 1. 2x2, top right; 2. a,j,d 3. error!
---  - implement swap
 --  - cleanup
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)
@@ -125,7 +123,7 @@ currentPosition posRef = do
 
   where Point px py `inside` Rectangle rx ry rw rh =
             px >= rx && px < rx + fromIntegral rw &&
-            py >= rx && py < ry + fromIntegral rh
+            py >= ry && py < ry + fromIntegral rh
 
         middleOf (Rectangle x y w h) =
             Point (x + fromIntegral w `div` 2) (y + fromIntegral h `div` 2)
