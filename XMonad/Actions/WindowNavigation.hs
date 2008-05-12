@@ -143,7 +143,7 @@ navigableTargets point dir = navigable dir point <$> windowRects
 -- Filters and sorts the windows in terms of what is closest from the Point in
 -- the Direction.
 navigable :: Direction -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
-navigable d pt = sortby d . filter (inr d (fromPoint pt) . snd)
+navigable d pt = sortby d . filter (inr d pt . snd)
 
 -- Produces a list of normal-state windows, on any screen. Rectangles are
 -- adjusted based on screen position relative to the current screen, because I'm
@@ -163,23 +163,18 @@ windowRect win = withDisplay $ \dpy -> do
     return $ Just $ (win, Rectangle x y w h)
     `catchX` return Nothing
 
-fromPoint :: Point -> FPoint
-fromPoint p = P (fromIntegral $ pt_x p) (fromIntegral $ pt_y p)
+-- Modified from droundy's implementation of WindowNavigation.
 
--- Stolen from droundy's implementation of WindowNavigation.
--- TODO: refactor, perhaps
-
-data FPoint = P Double Double
-
-inr :: Direction -> FPoint -> Rectangle -> Bool
-inr D (P x y) (Rectangle l yr w h) = x >= fromIntegral l && x < fromIntegral l + fromIntegral w &&
-                                     y <  fromIntegral yr + fromIntegral h
-inr U (P x y) (Rectangle l yr w _) = x >= fromIntegral l && x < fromIntegral l + fromIntegral w &&
-                                     y >  fromIntegral yr
-inr R (P a x) (Rectangle b l _ w)  = x >= fromIntegral l && x < fromIntegral l + fromIntegral w &&
-                                     a <  fromIntegral b
-inr L (P a x) (Rectangle b l c w)  = x >= fromIntegral l && x < fromIntegral l + fromIntegral w &&
-                                     a >  fromIntegral b + fromIntegral c
+-- TODO: simplify this
+inr :: Direction -> Point -> Rectangle -> Bool
+inr D (Point px py) (Rectangle rx ry w h) = px >= rx && px < rx + fromIntegral w &&
+                                                        py < ry + fromIntegral h
+inr U (Point px py) (Rectangle rx ry w _) = px >= rx && px < rx + fromIntegral w &&
+                                            py >  ry
+inr R (Point px py) (Rectangle rx ry _ h) = px <  rx &&
+                                            py >= ry && py < ry + fromIntegral h
+inr L (Point px py) (Rectangle rx ry w h) =             px > rx + fromIntegral w &&
+                                            py >= ry && py < ry + fromIntegral h
 
 sortby :: Direction -> [(a,Rectangle)] -> [(a,Rectangle)]
 sortby D = sortBy $ comparing (rect_y . snd)
