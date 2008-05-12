@@ -24,6 +24,7 @@ module XMonad.Hooks.UrgencyHook (
                                  readUrgents, withUrgents,
                                  urgencyLayoutHook,
                                  NoUrgencyHook(..), StdoutUrgencyHook(..),
+                                 SpawnUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
                                  UrgencyHook(urgencyHook),
                                  seconds
@@ -177,6 +178,14 @@ instance UrgencyHook DzenUrgencyHook where
 -- duration and args to dzen.
 dzenUrgencyHook :: DzenUrgencyHook
 dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
+
+-- | Spawn a commandline thing, appending the window id to the prefix string
+-- you provide. (Make sure to add a space if you need it.) Do your crazy compiz
+-- thing.
+newtype SpawnUrgencyHook = SpawnUrgencyHook String deriving (Read, Show)
+
+instance UrgencyHook SpawnUrgencyHook where
+    urgencyHook (SpawnUrgencyHook prefix) w = spawn $ prefix ++ show w
 
 -- For debugging purposes, really.
 data StdoutUrgencyHook = StdoutUrgencyHook deriving (Read, Show)
