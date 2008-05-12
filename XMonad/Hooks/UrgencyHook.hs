@@ -185,8 +185,8 @@ dzenUrgencyHook :: DzenUrgencyHook
 dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
 
 -- | Spawn a commandline thing, appending the window id to the prefix string
--- you provide. (Make sure to add a space if you need it.) Do your crazy compiz
--- thing.
+-- you provide. (Make sure to add a space if you need it.) Do your crazy
+-- xcompmgr thing.
 newtype SpawnUrgencyHook = SpawnUrgencyHook String deriving (Read, Show)
 
 instance UrgencyHook SpawnUrgencyHook where
