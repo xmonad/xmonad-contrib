@@ -37,6 +37,7 @@ import Data.Map (Map())
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
 import Data.Ord (comparing)
+import qualified Data.Set as S
 import Graphics.X11.Xlib
 
 -- $usage
@@ -44,13 +45,14 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
+--  - screen 1: 2x2, screen 2: 1 fs, move from scr 2 to scr 1
+--  - fix setPosition to use WNState
 --  - cleanup
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)
 --  - solve the 2+3, middle right to bottom left problem
 --  - manageHook to draw window decos?
 
--- TODO: more flexible api
 withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
 withWindowNavigation (u,l,d,r) conf =
     withWindowNavigationKeys [ ((modMask conf              , u), WNGo   U),
@@ -148,14 +150,8 @@ navigable d pt = sortby d . filter (inr d pt . snd)
 -- Produces a list of normal-state windows, on any screen. Rectangles are
 -- adjusted based on screen position relative to the current screen, because I'm
 -- bad like that.
--- TODO: only the visible windows
--- TODO: adjust rectangles based on screen position? (perhaps this is already handled)
 windowRects :: X [(Window, Rectangle)]
-windowRects = do
-    wins <- gets (visibleWindows . windowset)
-    catMaybes <$> mapM windowRect wins
-  where visibleWindows wset = concatMap (W.integrate' . W.stack . W.workspace)
-                                        (W.current wset : W.visible wset)
+windowRects = fmap catMaybes . mapM windowRect . S.toList =<< gets mapped
 
 windowRect :: Window -> X (Maybe (Window, Rectangle))
 windowRect win = withDisplay $ \dpy -> do
