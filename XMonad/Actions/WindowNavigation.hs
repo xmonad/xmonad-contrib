@@ -19,6 +19,8 @@ module XMonad.Actions.WindowNavigation (
                                        -- * Usage
                                        -- $usage
                                        withWindowNavigation,
+                                       withWindowNavigationKeys,
+                                       WNAction(..),
                                        go, swap,
                                        Direction(..)
                                        ) where
@@ -28,6 +30,7 @@ import XMonad.Hooks.ManageDocks (Direction(..))
 import qualified XMonad.StackSet as W
 
 import Control.Applicative ((<$>))
+import Control.Arrow (second)
 import Data.IORef
 import Data.List (sortBy)
 import Data.Map (Map())
@@ -40,8 +43,8 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
+--  - implement swap
 --  - cleanup
---  - actually deal with multiple screens
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)
 --  - solve the 2+3, middle right to bottom left problem
@@ -49,14 +52,22 @@ import Graphics.X11.Xlib
 
 -- TODO: more flexible api
 withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
-withWindowNavigation (u,l,d,r) conf = do
+withWindowNavigation (u,l,d,r) conf =
+    withWindowNavigationKeys [ ((modMask conf, u), WNGo U),
+                               ((modMask conf, l), WNGo L),
+                               ((modMask conf, d), WNGo D),
+                               ((modMask conf, r), WNGo R) ]
+                             conf
+
+withWindowNavigationKeys :: [((KeyMask, KeySym), WNAction)] -> XConfig l -> IO (XConfig l)
+withWindowNavigationKeys wnKeys conf = do
     posRef <- newIORef M.empty
-    return conf { keys = \cnf -> M.fromList [
-                                   ((modMask cnf, u), go posRef U),
-                                   ((modMask cnf, l), go posRef L),
-                                   ((modMask cnf, d), go posRef D),
-                                   ((modMask cnf, r), go posRef R)
-                                 ] `M.union` (keys conf cnf) }
+    return conf { keys = \cnf -> M.fromList (map (second (fromWNAction posRef)) wnKeys)
+                                 `M.union` keys conf cnf }
+  where fromWNAction posRef (WNGo dir)   = go   posRef dir
+        fromWNAction posRef (WNSwap dir) = swap posRef dir
+
+data WNAction = WNGo Direction | WNSwap Direction
 
 type WNState = Map WorkspaceId Point
 
