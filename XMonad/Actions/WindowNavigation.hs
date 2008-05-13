@@ -45,7 +45,6 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - screen 1: 2x2, screen 2: 1 fs, move from scr 2 to scr 1: center -> border
 --  - fix setPosition to use WNState
 --  - cleanup
 --  - documentation :)
@@ -70,6 +69,7 @@ withWindowNavigationKeys wnKeys conf = do
     posRef <- newIORef M.empty
     return conf { keys = \cnf -> M.fromList (map (second (fromWNAction posRef)) wnKeys)
                                  `M.union` keys conf cnf }
+                  -- logHook = windowRects >>= io . print }
   where fromWNAction posRef (WNGo dir)   = go   posRef dir
         fromWNAction posRef (WNSwap dir) = swap posRef dir
 
@@ -155,8 +155,8 @@ windowRects = fmap catMaybes . mapM windowRect . S.toList =<< gets mapped
 
 windowRect :: Window -> X (Maybe (Window, Rectangle))
 windowRect win = withDisplay $ \dpy -> do
-    (_, x, y, w, h, _, _) <- io $ getGeometry dpy win
-    return $ Just $ (win, Rectangle x y w h)
+    (_, x, y, w, h, bw, _) <- io $ getGeometry dpy win
+    return $ Just $ (win, Rectangle x y (w + 2 * bw) (h + 2 * bw))
     `catchX` return Nothing
 
 -- Modified from droundy's implementation of WindowNavigation.
