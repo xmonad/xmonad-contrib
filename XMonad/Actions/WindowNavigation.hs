@@ -45,8 +45,8 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - fix setPosition to use WNState
---  - cleanup
+--  - fix setPosition to use WNState smartly
+--  - cleanup (including inr)
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)
 --  - solve the 2+3, middle right to bottom left problem
@@ -69,7 +69,6 @@ withWindowNavigationKeys wnKeys conf = do
     posRef <- newIORef M.empty
     return conf { keys = \cnf -> M.fromList (map (second (fromWNAction posRef)) wnKeys)
                                  `M.union` keys conf cnf }
-                  -- logHook = windowRects >>= io . print }
   where fromWNAction posRef (WNGo dir)   = go   posRef dir
         fromWNAction posRef (WNSwap dir) = swap posRef dir
 
@@ -110,7 +109,6 @@ withTargetWindow adj posRef dir = fromCurrentPoint $ \win pos -> do
 -- a restart), derives the current position from the current window. Also,
 -- verifies that the position is congruent with the current window (say, if you
 -- used mod-j/k or mouse or something).
--- TODO: worry about off-by-one issues with inside definition
 currentPosition :: IORef WNState -> X Point
 currentPosition posRef = do
     root <- asks theRoot
@@ -130,9 +128,7 @@ currentPosition posRef = do
 
         middleOf (Rectangle x y w h) =
             Point (x + fromIntegral w `div` 2) (y + fromIntegral h `div` 2)
-    -- return $ fromMaybe (Point 0 0) mp
 
--- TODO: use a smarter algorithm (with memory of last position)
 setPosition :: IORef WNState -> Point -> Rectangle -> X ()
 setPosition posRef _ (Rectangle x y w h) = do
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
@@ -159,9 +155,8 @@ windowRect win = withDisplay $ \dpy -> do
     return $ Just $ (win, Rectangle x y (w + 2 * bw) (h + 2 * bw))
     `catchX` return Nothing
 
--- Modified from droundy's implementation of WindowNavigation.
+-- Modified from droundy's implementation of WindowNavigation:
 
--- TODO: simplify this
 inr :: Direction -> Point -> Rectangle -> Bool
 inr D (Point px py) (Rectangle rx ry w h) = px >= rx && px < rx + fromIntegral w &&
                                                         py < ry + fromIntegral h
