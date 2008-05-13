@@ -30,7 +30,8 @@ module XMonad.Actions.Search (    -- * Usage
                                mathworld,
                                scholar,
                                wayback,
-                               wikipedia
+                               wikipedia,
+                               youtube
 
                                   -- * Use case: searching with a submap
                                   -- $tip
@@ -88,6 +89,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'wayback' -- the Wayback Machine.
 
 * 'wikipedia' -- basic Wikipedia search.
+
+* 'youtube' -- Youtube video search.
 
 Feel free to add more! -}
 
@@ -186,7 +189,7 @@ simpleEngine site query = site ++ escape query
 
 -- The engines.
 amazon, dictionary, google, hoogle, imdb, maps, mathworld,
-  scholar, wayback, wikipedia :: SearchEngine
+  scholar, wayback, wikipedia, youtube :: SearchEngine
 amazon     = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 dictionary = simpleEngine "http://dictionary.reference.com/browse/"
 google     = simpleEngine "http://www.google.com/search?num=100&q="
@@ -196,6 +199,7 @@ maps       = simpleEngine "http://maps.google.com/maps?q="
 mathworld  = simpleEngine "http://mathworld.wolfram.com/search/?query="
 scholar    = simpleEngine "http://scholar.google.com/scholar?q="
 wikipedia  = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+youtube    = simpleEngine "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
