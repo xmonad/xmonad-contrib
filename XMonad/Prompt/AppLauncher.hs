@@ -1,16 +1,18 @@
-{- |
- Module      :  XMonad.Actions.AppLauncher
- Copyright   :  (C) 2008 Luis Cabellos
- License     :  None; public domain
-
- Maintainer  :  <zhen.sydow@gmail.com>
- Stability   :  unstable
- Portability :  unportable
-
- A module for launch applicationes that receive parameters in the command line.
- The launcher call a prompt to get the parameters.
--}
-module XMonad.Actions.AppLauncher ( -- * Usage
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Prompt.AppLauncher
+-- Copyright   :  (C) 2008 Luis Cabellos
+-- License     :  BSD3
+--
+-- Maintainer  :  zhen.sydow@gmail.com
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- A module for launch applicationes that receive parameters in the command 
+-- line. The launcher call a prompt to get the parameters.
+--
+-----------------------------------------------------------------------------
+module XMonad.Prompt.AppLauncher ( -- * Usage
                                     -- $usage
                                     launchApp
                                    
@@ -40,7 +42,7 @@ First, you need to import necessary modules. Prompt is used to get the promp
 configuration and the AppLauncher module itself.
 
 > import XMonad.Prompt
-> import XMonad.Actions.AppLauncher as AL
+> import XMonad.Prompt.AppLauncher as AL
 
 Then you can add the bindings to the applications.
 

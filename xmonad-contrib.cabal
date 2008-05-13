@@ -67,7 +67,6 @@ library
                         XMonad.Doc.Configuring
                         XMonad.Doc.Extending
                         XMonad.Doc.Developing
-                        XMonad.Actions.AppLauncher
                         XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
                         XMonad.Actions.CopyWindow
@@ -165,6 +164,7 @@ library
                         XMonad.Prompt.Directory
                         XMonad.Prompt
                         XMonad.Prompt.AppendFile
+                        XMonad.Prompt.AppLauncher
                         XMonad.Prompt.Input
                         XMonad.Prompt.Email
                         XMonad.Prompt.Layout
