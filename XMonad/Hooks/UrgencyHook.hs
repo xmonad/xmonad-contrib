@@ -27,7 +27,7 @@ module XMonad.Hooks.UrgencyHook (
                                  SpawnUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
                                  UrgencyHook(urgencyHook),
-                                 whenShouldTrigger, seconds,
+                                 seconds,
                                  SuppressWhen(..)
                                  ) where
 
@@ -127,16 +127,14 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then do
                   -- Call the urgencyHook.
-                  userCode $ urgencyHook hook w
+                  callUrgencyHook hook w
                   -- Add to list of urgents.
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                  -- Call logHook after IORef has been modified.
-                  userCode =<< asks (logHook . config)
                 else do
                   -- Remove from list of urgents.
                   adjustUrgents (delete w)
-                  -- Call logHook after IORef has been modified.
-                  userCode =<< asks (logHook . config)
+              -- Call logHook after IORef has been modified.
+              userCode =<< asks (logHook . config)
         DestroyWindowEvent {ev_window = w} -> do
           adjustUrgents (delete w)
         _ ->
@@ -149,12 +147,10 @@ urgencyLayoutHook :: (UrgencyHook h, LayoutClass l Window) =>
                    h -> l Window -> HandleEvent (WithUrgencyHook h) l Window
 urgencyLayoutHook hook = eventHook $ WithUrgencyHook hook
 
---------------------------------------------------------------------------------
--- Urgency Hooks
-
--- | The class definition, and some pre-defined instances.
-
--- TODO: factor SuppressWhen stuff into WithUrgencyHook
+callUrgencyHook :: UrgencyHook h => h -> Window -> X ()
+callUrgencyHook hook w =
+    whenX (not `fmap` shouldSuppress (suppressWhenSetting hook) w)
+          (userCode $ urgencyHook hook w)
 
 data SuppressWhen = Visible | OnScreen | Focused | Never deriving (Read, Show)
 
@@ -164,12 +160,16 @@ shouldSuppress OnScreen w = gets $ elem w . W.index . windowset
 shouldSuppress Focused  w = gets $ maybe False (w ==) . W.peek . windowset
 shouldSuppress Never    _ = return False
 
--- | Convenience method for those writing UrgencyHooks.
-whenShouldTrigger :: SuppressWhen -> Window -> X () -> X ()
-whenShouldTrigger sw w = whenX (not `fmap` shouldSuppress sw w)
+--------------------------------------------------------------------------------
+-- Urgency Hooks
+
+-- | The class definition, and some pre-defined instances.
 
 class (Read h, Show h) => UrgencyHook h where
     urgencyHook :: h -> Window -> X ()
+
+    suppressWhenSetting :: h -> SuppressWhen
+    suppressWhenSetting _ = Visible
 
 data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 
@@ -182,13 +182,14 @@ data DzenUrgencyHook = DzenUrgencyHook { duration :: Int,
                        deriving (Read, Show)
 
 instance UrgencyHook DzenUrgencyHook where
-    urgencyHook DzenUrgencyHook { duration = d, args = a, suppressWhen = sw } w = do
+    urgencyHook DzenUrgencyHook { duration = d, args = a } w = do
         name <- getName w
         ws <- gets windowset
         whenJust (W.findTag w ws) (flash name)
       where flash name index =
-                  whenShouldTrigger sw w $
                   dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
+
+    suppressWhenSetting = suppressWhen
 
 -- | Flashes when a window requests your attention and you can't see it. Configurable
 -- duration and args to dzen, and when to suppress the urgency flash.
