@@ -27,7 +27,8 @@ module XMonad.Hooks.UrgencyHook (
                                  SpawnUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
                                  UrgencyHook(urgencyHook),
-                                 whenNotVisible, seconds
+                                 whenShouldTrigger, seconds,
+                                 SuppressWhen(..)
                                  ) where
 
 import XMonad
@@ -153,11 +154,19 @@ urgencyLayoutHook hook = eventHook $ WithUrgencyHook hook
 
 -- | The class definition, and some pre-defined instances.
 
+-- TODO: factor SuppressWhen stuff into WithUrgencyHook
+
+data SuppressWhen = Visible | OnScreen | Focused | Never deriving (Read, Show)
+
+shouldSuppress :: SuppressWhen -> Window -> X Bool
+shouldSuppress Visible  w = gets $ S.member w . mapped
+shouldSuppress OnScreen w = gets $ elem w . W.index . windowset
+shouldSuppress Focused  w = gets $ maybe False (w ==) . W.peek . windowset
+shouldSuppress Never    _ = return False
+
 -- | Convenience method for those writing UrgencyHooks.
-whenNotVisible :: Window -> X () -> X ()
-whenNotVisible w act = do
-    visibles <- gets mapped
-    when (not $ S.member w visibles) act
+whenShouldTrigger :: SuppressWhen -> Window -> X () -> X ()
+whenShouldTrigger sw w = whenX (not `fmap` shouldSuppress sw w)
 
 class (Read h, Show h) => UrgencyHook h where
     urgencyHook :: h -> Window -> X ()
@@ -167,22 +176,24 @@ data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 instance UrgencyHook NoUrgencyHook where
     urgencyHook _ _ = return ()
 
-data DzenUrgencyHook = DzenUrgencyHook { duration :: Int, args :: [String] }
-    deriving (Read, Show)
+data DzenUrgencyHook = DzenUrgencyHook { duration :: Int,
+                                         args :: [String],
+                                         suppressWhen :: SuppressWhen }
+                       deriving (Read, Show)
 
 instance UrgencyHook DzenUrgencyHook where
-    urgencyHook DzenUrgencyHook { duration = d, args = a } w = do
+    urgencyHook DzenUrgencyHook { duration = d, args = a, suppressWhen = sw } w = do
         name <- getName w
         ws <- gets windowset
         whenJust (W.findTag w ws) (flash name)
       where flash name index =
-                  whenNotVisible w $
+                  whenShouldTrigger sw w $
                   dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
 
 -- | Flashes when a window requests your attention and you can't see it. Configurable
--- duration and args to dzen.
+-- duration and args to dzen, and when to suppress the urgency flash.
 dzenUrgencyHook :: DzenUrgencyHook
-dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
+dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [], suppressWhen = Visible }
 
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
