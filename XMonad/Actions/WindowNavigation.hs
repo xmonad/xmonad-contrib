@@ -45,7 +45,7 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - screen 1: 2x2, screen 2: 1 fs, move from scr 2 to scr 1
+--  - screen 1: 2x2, screen 2: 1 fs, move from scr 2 to scr 1: center -> border
 --  - fix setPosition to use WNState
 --  - cleanup
 --  - documentation :)
