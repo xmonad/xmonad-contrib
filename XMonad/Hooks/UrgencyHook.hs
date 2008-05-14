@@ -20,9 +20,9 @@ module XMonad.Hooks.UrgencyHook (
                                  -- * Usage
                                  -- $usage
                                  withUrgencyHook,
+                                 withUrgencyHookC, suppressWhen,
                                  focusUrgent,
                                  readUrgents, withUrgents,
-                                 urgencyLayoutHook,
                                  NoUrgencyHook(..), StdoutUrgencyHook(..),
                                  SpawnUrgencyHook(..),
                                  dzenUrgencyHook, DzenUrgencyHook(..),
@@ -64,18 +64,31 @@ import Foreign (unsafePerformIO)
 --
 -- If you want to modify your logHook to print out information about urgent windows,
 -- the functions 'readUrgents' and 'withUrgents' are there to help you with that.
--- No example for you.
 
--- | This is the preferred method of enabling an urgency hook. It will prepend
--- an action to your logHook that removes visible windows from the list of urgent
--- windows. If you don't like that behavior, you may use 'urgencyLayoutHook' instead.
+-- TODO: provide logHook example
+-- TODO: provide irssi + urxvt example
+
+-- | This is the method to enable an urgency hook. It suppresses urgency status
+-- for windows that are currently visible. If you'd like to change that behavior,
+-- use withUrgencyHookC.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
-withUrgencyHook hook conf = conf { layoutHook = urgencyLayoutHook hook $ layoutHook conf
-                                 , logHook = removeVisiblesFromUrgents >> logHook conf
-                                 }
+withUrgencyHook hook conf = withUrgencyHookC hook id conf
+
+-- TODO: document this
+withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
+                    h -> (WithUrgencyHook h -> WithUrgencyHook h) -> XConfig l
+                      -> XConfig (HandleEvent (WithUrgencyHook h) l)
+withUrgencyHookC hook hookMod conf = conf {
+        layoutHook = eventHook (hookMod $ WithUrgencyHook hook Visible) $ layoutHook conf,
+        logHook = removeVisiblesFromUrgents >> logHook conf
+    }
+
+suppressWhen :: UrgencyHook h => SuppressWhen -> WithUrgencyHook h -> WithUrgencyHook h
+suppressWhen sw (WithUrgencyHook hook _) = WithUrgencyHook hook sw
 
 -- | The logHook action used by 'withUrgencyHook'.
+-- TODO: should be based on suppressWhen
 removeVisiblesFromUrgents :: X ()
 removeVisiblesFromUrgents = do
     visibles <- gets mapped
@@ -105,7 +118,7 @@ readUrgents = io $ readIORef urgents
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
-data WithUrgencyHook h = WithUrgencyHook h deriving (Read, Show)
+data WithUrgencyHook h = WithUrgencyHook h SuppressWhen deriving (Read, Show)
 
 -- The Non-ICCCM Manifesto:
 -- Note: Some non-standard choices have been made in this implementation to
@@ -120,14 +133,14 @@ data WithUrgencyHook h = WithUrgencyHook h deriving (Read, Show)
 -- set urgency if a window is visible. If you have a better idea, please, let us
 -- know!
 instance UrgencyHook h => EventHook (WithUrgencyHook h) where
-    handleEvent (WithUrgencyHook hook) event =
+    handleEvent wuh event =
       case event of
         PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then do
                   -- Call the urgencyHook.
-                  callUrgencyHook hook w
+                  callUrgencyHook wuh w
                   -- Add to list of urgents.
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
                 else do
@@ -143,13 +156,9 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents f = io $ modifyIORef urgents f
 
-urgencyLayoutHook :: (UrgencyHook h, LayoutClass l Window) =>
-                   h -> l Window -> HandleEvent (WithUrgencyHook h) l Window
-urgencyLayoutHook hook = eventHook $ WithUrgencyHook hook
-
-callUrgencyHook :: UrgencyHook h => h -> Window -> X ()
-callUrgencyHook hook w =
-    whenX (not `fmap` shouldSuppress (suppressWhenSetting hook) w)
+callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
+callUrgencyHook (WithUrgencyHook hook sw) w =
+    whenX (not `fmap` shouldSuppress sw w)
           (userCode $ urgencyHook hook w)
 
 data SuppressWhen = Visible | OnScreen | Focused | Never deriving (Read, Show)
@@ -168,18 +177,13 @@ shouldSuppress Never    _ = return False
 class (Read h, Show h) => UrgencyHook h where
     urgencyHook :: h -> Window -> X ()
 
-    suppressWhenSetting :: h -> SuppressWhen
-    suppressWhenSetting _ = Visible
-
 data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 
 instance UrgencyHook NoUrgencyHook where
     urgencyHook _ _ = return ()
 
-data DzenUrgencyHook = DzenUrgencyHook { duration :: Int,
-                                         args :: [String],
-                                         suppressWhen :: SuppressWhen }
-                       deriving (Read, Show)
+data DzenUrgencyHook = DzenUrgencyHook { duration :: Int, args :: [String] }
+    deriving (Read, Show)
 
 instance UrgencyHook DzenUrgencyHook where
     urgencyHook DzenUrgencyHook { duration = d, args = a } w = do
@@ -189,12 +193,10 @@ instance UrgencyHook DzenUrgencyHook where
       where flash name index =
                   dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
 
-    suppressWhenSetting = suppressWhen
-
 -- | Flashes when a window requests your attention and you can't see it. Configurable
 -- duration and args to dzen, and when to suppress the urgency flash.
 dzenUrgencyHook :: DzenUrgencyHook
-dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [], suppressWhen = Visible }
+dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
 
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
