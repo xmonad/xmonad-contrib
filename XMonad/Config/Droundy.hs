@@ -25,6 +25,8 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 import XMonad.Layout.Square ( Square(Square) )
 import XMonad.Layout.WindowNavigation ( Navigate(Move,Swap,Go), Direction(U,D,R,L),
                                         windowNavigation )
+import XMonad.Layout.BoringWindows ( boringWindows, markBoring, clearBoring,
+                                     focusUp, focusDown )
 import XMonad.Layout.NoBorders ( smartBorders )
 import XMonad.Layout.WorkspaceDir ( changeDir, workspaceDir )
 import XMonad.Layout.ToggleLayouts ( toggleLayouts, ToggleLayout(ToggleLayout) )
@@ -66,9 +68,9 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x) -- %!  Reset the layouts on the current workspace to default
 
     -- move focus up or down the window stack
-    , ((modMask x,               xK_Tab   ), windows W.focusDown) -- %! Move focus to the next window
-    , ((modMask x,               xK_j     ), windows W.focusDown) -- %! Move focus to the next window
-    , ((modMask x,               xK_k     ), windows W.focusUp  ) -- %! Move focus to the previous window
+    , ((modMask x,               xK_Tab   ), focusDown) -- %! Move focus to the next window
+    , ((modMask x,               xK_j     ), focusDown) -- %! Move focus to the next window
+    , ((modMask x,               xK_k     ), focusUp  ) -- %! Move focus to the previous window
 
     , ((modMask x .|. shiftMask, xK_j     ), windows W.swapDown  ) -- %! Swap the focused window with the next window
     , ((modMask x .|. shiftMask, xK_k     ), windows W.swapUp    ) -- %! Swap the focused window with the previous window
@@ -98,6 +100,8 @@ keys x = M.fromList $
     , ((0, xK_F2  ), spawn "gnome-terminal") -- %! Launch gnome-terminal
     , ((0, xK_F3  ), shellPrompt myXPConfig) -- %! Launch program
     , ((0, xK_F11   ), spawn "ksnapshot") -- %! Take snapshot
+    , ((modMask x .|. shiftMask, xK_b     ), markBoring)
+    , ((controlMask .|. modMask x .|. shiftMask, xK_b     ), clearBoring)
     , ((modMask x .|. shiftMask, xK_x     ), changeDir myXPConfig)
     , ((modMask x .|. shiftMask, xK_BackSpace), removeWorkspace)
     , ((modMask x .|. shiftMask, xK_v     ), selectWorkspace myXPConfig)
@@ -120,7 +124,7 @@ config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
          , layoutHook = ewmhDesktopsLayout $ showWName $ workspaceDir "~" $
-                        smartBorders $ windowNavigation $
+                        boringWindows $ smartBorders $ windowNavigation $
                         toggleLayouts Full $ avoidStruts $
                         named "tabbed" mytab |||
                         named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
