@@ -62,11 +62,27 @@ import Foreign (unsafePerformIO)
 -- > main = xmonad $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
 -- >               $ defaultConfig
 --
--- If you want to modify your logHook to print out information about urgent windows,
--- the functions 'readUrgents' and 'withUrgents' are there to help you with that.
+-- If you would like your dzen instance (configured with "XMonad.Hooks.DynamicLog")
+-- to hilight urgent windows, make sure you're using dzen, dzenPP, or ppUrgents.
+--
+-- If you'd like your dzen to update, but don't care about triggering any other
+-- action, then wire in NoUrgencyHook as so:
+--
+-- > main = xmonad $ withUrgencyHook NoUrgencyHook
+-- >               $ defaultConfig
+--
 
--- TODO: provide logHook example
--- TODO: provide irssi + urxvt example
+-- * Setting up Irssi + rxvt-unicode
+--
+-- This is one common example. YMMV. To make messages to you trigger a dzen flash,
+-- four things need to happen:
+--  1. irssi needs to send a bell
+--  2. screen needs *not* to convert that into a stupid visual bell
+--  3. urxvt needs to convert bell into urgency flag
+--  4. xmonad needs to trigger some action based on the bell
+
+-- TODO: provide irssi + urxvt example detail
+-- TODO: examine haddock formatting
 
 -- | This is the method to enable an urgency hook. It suppresses urgency status
 -- for windows that are currently visible. If you'd like to change that behavior,
@@ -75,7 +91,12 @@ withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
 withUrgencyHook hook conf = withUrgencyHookC hook id conf
 
--- TODO: document this
+-- | If you'd like to configure *when* to trigger the urgency hook, call this
+-- function with an extra mutator function. Or, by example:
+--
+-- > withUrgencyHookC dzenUrgencyHook { ... } (suppressWhen Focused)
+--
+-- (Don't type ..., you dolt.) See documentation on your options at SuppressWhen.
 withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
                     h -> (WithUrgencyHook h -> WithUrgencyHook h) -> XConfig l
                       -> XConfig (HandleEvent (WithUrgencyHook h) l)
@@ -161,6 +182,7 @@ callUrgencyHook (WithUrgencyHook hook sw) w =
     whenX (not `fmap` shouldSuppress sw w)
           (userCode $ urgencyHook hook w)
 
+-- TODO: document
 data SuppressWhen = Visible | OnScreen | Focused | Never deriving (Read, Show)
 
 shouldSuppress :: SuppressWhen -> Window -> X Bool
