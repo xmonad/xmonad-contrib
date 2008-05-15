@@ -69,11 +69,12 @@ import XMonad.Hooks.EventHook
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import XMonad.Util.NamedWindows (getName)
 
+import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
 import Data.IORef
 import Data.List ((\\), delete)
-import Data.Maybe (listToMaybe)
+import Data.Maybe (listToMaybe, maybeToList)
 import qualified Data.Set as S
 import Foreign (unsafePerformIO)
 
@@ -182,10 +183,14 @@ withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
                     h -> (WithUrgencyHook h -> WithUrgencyHook h) -> XConfig l
                       -> XConfig (HandleEvent (WithUrgencyHook h) l)
 withUrgencyHookC hook hookMod conf = conf {
-        layoutHook = eventHook (hookMod $ WithUrgencyHook hook Visible) $ layoutHook conf,
-        logHook = removeVisiblesFromUrgents >> logHook conf
+        layoutHook = eventHook withUrgency $ layoutHook conf,
+        logHook = cleanupUrgents sw >> logHook conf
     }
+  where withUrgency@(WithUrgencyHook _ sw) = hookMod $ WithUrgencyHook hook Visible
 
+-- | See 'withUrgencyHookC' for an example use. 'suppressWhen' is a global configuration
+-- option, applicable to all urgency hooks, whereas the stuff inside the @{ ... }@ is
+-- type-specific.
 suppressWhen :: UrgencyHook h => SuppressWhen -> WithUrgencyHook h -> WithUrgencyHook h
 suppressWhen sw (WithUrgencyHook hook _) = WithUrgencyHook hook sw
 
@@ -197,13 +202,6 @@ data SuppressWhen = Visible  -- ^ the window is currently visible
                   | Never    -- ^ ... aww, heck, go ahead and bug me, just in case.
                   deriving (Read, Show)
 
--- | The logHook action used by 'withUrgencyHook'.
-removeVisiblesFromUrgents :: X ()
-removeVisiblesFromUrgents = do
-    visibles <- gets mapped
-    adjustUrgents (\\ (S.toList visibles))
--- TODO: ^ should be based on suppressWhen
-
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
 --
@@ -211,7 +209,7 @@ removeVisiblesFromUrgents = do
 focusUrgent :: X ()
 focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
 
--- Stores the global set of all urgent windows, across workspaces. Not exported -- use
+-- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
 -- 'readUrgents' or 'withUrgents' instead.
 {-# NOINLINE urgents #-}
 urgents :: IORef [Window]
@@ -268,14 +266,22 @@ adjustUrgents f = io $ modifyIORef urgents f
 
 callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
 callUrgencyHook (WithUrgencyHook hook sw) w =
-    whenX (not `fmap` shouldSuppress sw w)
+    whenX (not <$> shouldSuppress sw w)
           (userCode $ urgencyHook hook w)
 
 shouldSuppress :: SuppressWhen -> Window -> X Bool
-shouldSuppress Visible  w = gets $ S.member w . mapped
-shouldSuppress OnScreen w = gets $ elem w . W.index . windowset
-shouldSuppress Focused  w = gets $ maybe False (w ==) . W.peek . windowset
-shouldSuppress Never    _ = return False
+shouldSuppress sw w = elem w <$> suppressibleWindows sw
+
+cleanupUrgents :: SuppressWhen -> X ()
+cleanupUrgents sw = do
+    suppressibles <- suppressibleWindows sw
+    adjustUrgents (\\ suppressibles)
+
+suppressibleWindows :: SuppressWhen -> X [Window]
+suppressibleWindows Visible  = gets $ S.toList . mapped
+suppressibleWindows OnScreen = gets $ W.index . windowset
+suppressibleWindows Focused  = gets $ maybeToList . W.peek . windowset
+suppressibleWindows Never    = return []
 
 --------------------------------------------------------------------------------
 -- Urgency Hooks
