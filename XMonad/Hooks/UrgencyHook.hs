@@ -19,16 +19,47 @@
 module XMonad.Hooks.UrgencyHook (
                                  -- * Usage
                                  -- $usage
-                                 withUrgencyHook,
-                                 withUrgencyHookC, suppressWhen,
+
+                                 -- ** Pop up a temporary dzen
+                                 -- $temporary
+
+                                 -- ** Highlight in existing dzen
+                                 -- $existing
+
+                                 -- ** Useful keybinding
+                                 -- $keybinding
+
+                                 -- ** Note
+                                 -- $note
+
+                                 -- * Example: Setting up irssi + rxvt-unicode
+                                 -- $example
+
+                                 -- ** Configuring irssi
+                                 -- $irssi
+
+                                 -- ** Configuring screen
+                                 -- $screen
+
+                                 -- ** Configuring rxvt-unicode
+                                 -- $urxvt
+
+                                 -- ** Configuring xmonad
+                                 -- $xmonad
+
+                                 -- * Stuff for your config file:
+                                 withUrgencyHook, withUrgencyHookC,
+                                 suppressWhen, SuppressWhen(..),
                                  focusUrgent,
+                                 dzenUrgencyHook,
+                                 DzenUrgencyHook(..), seconds,
+                                 NoUrgencyHook(..),
+
+                                 -- * Stuff for developers:
                                  readUrgents, withUrgents,
-                                 NoUrgencyHook(..), StdoutUrgencyHook(..),
+                                 StdoutUrgencyHook(..),
                                  SpawnUrgencyHook(..),
-                                 dzenUrgencyHook, DzenUrgencyHook(..),
-                                 UrgencyHook(urgencyHook),
-                                 seconds,
-                                 SuppressWhen(..)
+                                 UrgencyHook(urgencyHook)
                                  ) where
 
 import XMonad
@@ -47,14 +78,17 @@ import qualified Data.Set as S
 import Foreign (unsafePerformIO)
 
 -- $usage
+--
 -- To wire this up, first add:
 --
 -- > import XMonad.Hooks.UrgencyHook
 --
--- to your import list in your config file. Now, choose an urgency hook. If
--- you're just interested in displaying the urgency state in your custom
--- logHook, then choose NoUrgencyHook. Otherwise, you may use the provided
--- 'dzenUrgencyHook', or write your own.
+-- to your import list in your config file. Now, you have a decision to make:
+-- When a window deems itself urgent, do you want to pop up a temporary dzen
+-- bar telling you so, or do you have an existing dzen wherein you would like to
+-- highlight urgent workspaces?
+
+-- $temporary
 --
 -- Enable your urgency hook by wrapping your config record in a call to
 -- 'withUrgencyHook'. For example:
@@ -62,29 +96,74 @@ import Foreign (unsafePerformIO)
 -- > main = xmonad $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
 -- >               $ defaultConfig
 --
--- If you would like your dzen instance (configured with "XMonad.Hooks.DynamicLog")
--- to hilight urgent windows, make sure you're using dzen, dzenPP, or ppUrgents.
+-- This will pop up a dzen bar for five seconds telling you you've got an
+-- urgent window.
+
+-- $existing
 --
--- If you'd like your dzen to update, but don't care about triggering any other
--- action, then wire in NoUrgencyHook as so:
+-- In order for xmonad to track urgent windows, you must install an urgency hook.
+-- You can use the above 'dzenUrgencyHook', or if you're not interested in the
+-- extra popup, install NoUrgencyHook, as so:
 --
 -- > main = xmonad $ withUrgencyHook NoUrgencyHook
 -- >               $ defaultConfig
 --
+-- Now, your "XMonad.Hooks.DynamicLog" must be set up to display the urgent
+-- windows. If you're using the 'dzen' or 'dzenPP' functions from that module,
+-- then you should be good. Otherwise, you want to figure out how to set
+-- 'ppUrgents'.
 
--- TODO: note mod-shift-space
-
--- * Setting up Irssi + rxvt-unicode
+-- $keybinding
 --
--- This is one common example. YMMV. To make messages to you trigger a dzen flash,
--- four things need to happen:
---  1. irssi needs to send a bell
---  2. screen needs *not* to convert that into a stupid visual bell
---  3. urxvt needs to convert bell into urgency flag
---  4. xmonad needs to trigger some action based on the bell
+-- You can set up a keybinding to jump to the window that was recently marked
+-- urgent. See an example at 'focusUrgent'.
 
--- TODO: provide irssi + urxvt example detail
--- TODO: examine haddock formatting
+-- $note
+-- Note: UrgencyHook installs itself as a LayoutModifier, so if you modify your
+-- urgency hook and restart xmonad, you may need to rejigger your layout by
+-- hitting mod-shift-space.
+
+-- $example
+--
+-- This is a commonly asked example. By default, the window doesn't get flagged
+-- urgent when somebody messages you in irssi. You will have to configure some
+-- things. If you're using different tools than this, your mileage will almost
+-- certainly vary. (For example, in Xchat2, it's just a simple checkbox.)
+
+-- $irssi
+-- @Irssi@ is not an X11 app, so it can't set the @UrgencyHint@ flag on @XWMHints@.
+-- However, on all console applications is bestown the greatest of all notification
+-- systems: the bell. That's right, Ctrl+G, ASCII code 7, @echo -e '\a'@, your
+-- friend, the bell. To configure @irssi@ to send a bell when you receive a message:
+--
+-- > /set beep_msg_level MSGS NOTICES INVITES DCC DCCMSGS HILIGHT
+--
+-- Consult your local @irssi@ documentation for more detail.
+
+-- $screen
+-- A common way to run @irssi@ is within the lovable giant, @screen@. Some distros
+-- (e.g. Ubuntu) like to configure @screen@ to trample on your poor console
+-- applications -- in particular, to turn bell characters into evil, smelly
+-- \"visual bells.\" To turn this off, add:
+--
+-- > vbell off # or remove the existing 'vbell on' line
+--
+-- to your .screenrc, or hit @C-a C-g@ within a running @screen@ session for a
+-- temporary fix.
+
+-- $urxvt
+-- Rubber, meet road. Urxvt is the gateway between console apps and X11. To tell
+-- urxvt to set an @UrgencyHint@ when it receives a bell character, first, have
+-- an urxvt version 8.3 or newer, and second, set the following in your
+-- @.Xdefaults@:
+--
+-- > urxvt.urgentOnBell: true
+--
+-- Depending on your setup, you may need to @xrdb@ that.
+
+-- $xmonad
+-- Hopefully you already read the section on how to configure xmonad. If not,
+-- hopefully you know where to find it.
 
 -- | This is the method to enable an urgency hook. It suppresses urgency status
 -- for windows that are currently visible. If you'd like to change that behavior,
@@ -98,7 +177,7 @@ withUrgencyHook hook conf = withUrgencyHookC hook id conf
 --
 -- > withUrgencyHookC dzenUrgencyHook { ... } (suppressWhen Focused)
 --
--- (Don't type ..., you dolt.) See documentation on your options at SuppressWhen.
+-- (Don't type the @...@, you dolt.) See documentation on your options at 'SuppressWhen'.
 withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
                     h -> (WithUrgencyHook h -> WithUrgencyHook h) -> XConfig l
                       -> XConfig (HandleEvent (WithUrgencyHook h) l)
@@ -110,12 +189,20 @@ withUrgencyHookC hook hookMod conf = conf {
 suppressWhen :: UrgencyHook h => SuppressWhen -> WithUrgencyHook h -> WithUrgencyHook h
 suppressWhen sw (WithUrgencyHook hook _) = WithUrgencyHook hook sw
 
+-- | A set of choices as to /when/ you should (or rather, shouldn't) be notified of an urgent window.
+-- The default is 'Visible'. Prefix each of the following with \"don't bug me when\":
+data SuppressWhen = Visible  -- ^ the window is currently visible
+                  | OnScreen -- ^ the window is on the currently focused physical screen
+                  | Focused  -- ^ the window is currently focused
+                  | Never    -- ^ ... aww, heck, go ahead and bug me, just in case.
+                  deriving (Read, Show)
+
 -- | The logHook action used by 'withUrgencyHook'.
--- TODO: should be based on suppressWhen
 removeVisiblesFromUrgents :: X ()
 removeVisiblesFromUrgents = do
     visibles <- gets mapped
     adjustUrgents (\\ (S.toList visibles))
+-- TODO: ^ should be based on suppressWhen
 
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
@@ -124,7 +211,7 @@ removeVisiblesFromUrgents = do
 focusUrgent :: X ()
 focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
 
--- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
+-- Stores the global set of all urgent windows, across workspaces. Not exported -- use
 -- 'readUrgents' or 'withUrgents' instead.
 {-# NOINLINE urgents #-}
 urgents :: IORef [Window]
@@ -184,9 +271,6 @@ callUrgencyHook (WithUrgencyHook hook sw) w =
     whenX (not `fmap` shouldSuppress sw w)
           (userCode $ urgencyHook hook w)
 
--- TODO: document
-data SuppressWhen = Visible | OnScreen | Focused | Never deriving (Read, Show)
-
 shouldSuppress :: SuppressWhen -> Window -> X Bool
 shouldSuppress Visible  w = gets $ S.member w . mapped
 shouldSuppress OnScreen w = gets $ elem w . W.index . windowset
@@ -206,7 +290,12 @@ data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 instance UrgencyHook NoUrgencyHook where
     urgencyHook _ _ = return ()
 
-data DzenUrgencyHook = DzenUrgencyHook { duration :: Int, args :: [String] }
+-- | Your set of options for configuring a dzenUrgencyHook.
+data DzenUrgencyHook = DzenUrgencyHook {
+                         duration :: Int, -- ^ number of microseconds to display the dzen
+                                          --   (hence, you'll probably want to use 'seconds')
+                         args :: [String] -- ^ list of extra args (as 'String's) to pass to dzen
+                       }
     deriving (Read, Show)
 
 instance UrgencyHook DzenUrgencyHook where
@@ -217,8 +306,9 @@ instance UrgencyHook DzenUrgencyHook where
       where flash name index =
                   dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
 
--- | Flashes when a window requests your attention and you can't see it. Configurable
--- duration and args to dzen, and when to suppress the urgency flash.
+-- | Flashes when a window requests your attention and you can't see it.
+-- Defaults to a duration of five seconds, and no extra args to dzen.
+-- See 'DzenUrgencyHook'.
 dzenUrgencyHook :: DzenUrgencyHook
 dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
 

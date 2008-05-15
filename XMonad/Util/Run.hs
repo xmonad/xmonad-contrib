@@ -78,8 +78,7 @@ runProcessWithInputAndWait cmd args input timeout = do
         waitForProcess ph
         return ()
 
--- | Multiplies by ONE MILLION, for use with
--- 'runProcessWithInputAndWait'.
+-- | Multiplies by ONE MILLION, for functions that take microseconds.
 --
 -- Use like:
 --
