@@ -31,6 +31,7 @@ data BoringMessage = FocusUp | FocusDown | IsBoring Window | ClearBoring
                        deriving ( Read, Show, Typeable )
 instance Message BoringMessage
 
+markBoring, clearBoring, focusUp, focusDown :: X ()
 markBoring = withFocused (sendMessage . IsBoring)
 clearBoring = sendMessage ClearBoring
 focusUp = sendMessage FocusUp
