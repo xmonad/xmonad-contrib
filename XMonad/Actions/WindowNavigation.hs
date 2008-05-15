@@ -45,7 +45,7 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - fix setPosition to use WNState smartly
+--  - logHook?
 --  - cleanup (including inr)
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)
@@ -109,33 +109,33 @@ withTargetWindow adj posRef dir = fromCurrentPoint $ \win pos -> do
 -- a restart), derives the current position from the current window. Also,
 -- verifies that the position is congruent with the current window (say, if you
 -- used mod-j/k or mouse or something).
--- TODO: factor x + fromIntegral w `div` 2 duplication out
 currentPosition :: IORef WNState -> X Point
 currentPosition posRef = do
     root <- asks theRoot
     currentWindow <- gets (W.peek . windowset)
-    currentRect@(Rectangle rx ry rw rh) <- maybe (Rectangle 0 0 0 0) snd <$>
-                                                 windowRect (fromMaybe root currentWindow)
+    currentRect <- maybe (Rectangle 0 0 0 0) snd <$> windowRect (fromMaybe root currentWindow)
 
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
     mp <- M.lookup wsid <$> io (readIORef posRef)
 
-    case mp of
-        Just (Point x y) -> return $ Point (x `inside` (rx, rw)) (y `inside` (ry, rh))
-        _                -> return (middleOf currentRect)
+    return $ maybe (middleOf currentRect) (`inside` currentRect) mp
 
-  where pos `inside` (lower, dim) = if pos >= lower && pos < lower + fromIntegral dim
-                                    then pos
-                                    else lower + fromIntegral dim `div` 2
-
-        middleOf (Rectangle x y w h) =
-            Point (x + fromIntegral w `div` 2) (y + fromIntegral h `div` 2)
+  where middleOf (Rectangle x y w h) = Point (midPoint x w) (midPoint y h)
 
 setPosition :: IORef WNState -> Point -> Rectangle -> X ()
-setPosition posRef _ (Rectangle x y w h) = do
+setPosition posRef oldPos newRect = do
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
-    let position = Point (x + (fromIntegral w `div` 2)) (y + (fromIntegral h `div` 2))
-    io $ modifyIORef posRef $ M.insert wsid position
+    io $ modifyIORef posRef $ M.insert wsid (oldPos `inside` newRect)
+
+inside :: Point -> Rectangle -> Point
+Point x y `inside` Rectangle rx ry rw rh =
+    Point (x `within` (rx, rw)) (y `within` (ry, rh))
+  where pos `within` (lower, dim) = if pos >= lower && pos < lower + fromIntegral dim
+                                    then pos
+                                    else midPoint lower dim
+
+midPoint :: Position -> Dimension -> Position
+midPoint pos dim = pos + fromIntegral dim `div` 2
 
 navigableTargets :: Point -> Direction -> X [(Window, Rectangle)]
 navigableTargets point dir = navigable dir point <$> windowRects
