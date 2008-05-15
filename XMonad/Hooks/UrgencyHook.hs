@@ -72,6 +72,8 @@ import Foreign (unsafePerformIO)
 -- >               $ defaultConfig
 --
 
+-- TODO: note mod-shift-space
+
 -- * Setting up Irssi + rxvt-unicode
 --
 -- This is one common example. YMMV. To make messages to you trigger a dzen flash,

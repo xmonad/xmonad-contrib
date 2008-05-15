@@ -109,22 +109,24 @@ withTargetWindow adj posRef dir = fromCurrentPoint $ \win pos -> do
 -- a restart), derives the current position from the current window. Also,
 -- verifies that the position is congruent with the current window (say, if you
 -- used mod-j/k or mouse or something).
+-- TODO: factor x + fromIntegral w `div` 2 duplication out
 currentPosition :: IORef WNState -> X Point
 currentPosition posRef = do
     root <- asks theRoot
     currentWindow <- gets (W.peek . windowset)
-    currentRect <- maybe (Rectangle 0 0 0 0) snd <$> windowRect (fromMaybe root currentWindow)
+    currentRect@(Rectangle rx ry rw rh) <- maybe (Rectangle 0 0 0 0) snd <$>
+                                                 windowRect (fromMaybe root currentWindow)
 
     wsid <- gets (W.tag . W.workspace . W.current . windowset)
     mp <- M.lookup wsid <$> io (readIORef posRef)
 
     case mp of
-        Just p | p `inside` currentRect -> return p
-        _                               -> return (middleOf currentRect)
+        Just (Point x y) -> return $ Point (x `inside` (rx, rw)) (y `inside` (ry, rh))
+        _                -> return (middleOf currentRect)
 
-  where Point px py `inside` Rectangle rx ry rw rh =
-            px >= rx && px < rx + fromIntegral rw &&
-            py >= ry && py < ry + fromIntegral rh
+  where pos `inside` (lower, dim) = if pos >= lower && pos < lower + fromIntegral dim
+                                    then pos
+                                    else lower + fromIntegral dim `div` 2
 
         middleOf (Rectangle x y w h) =
             Point (x + fromIntegral w `div` 2) (y + fromIntegral h `div` 2)
