@@ -14,13 +14,13 @@
 -- May be useful for making Java GUI programs work, just set WM name to "LG3D"
 -- and use Java 1.6u1 (1.6.0_01-ea-b03 works for me) or later.
 --
--- Remember that you need to call the setWMName action yourself (at least until
--- we have startup hooks). E.g., you can bind it in your Config.hs:
+-- To your @~\/.xmonad\/xmonad.hs@ file, add the following line:
 --
--- > ((modMask x .|. controlMask .|. shiftMask, xK_z), setWMName "LG3D") -- @@ Java hack
+-- > import XMonad.Hooks.SetWMName
 --
--- and press the key combination before running the Java programs (you only
--- need to do it once per XMonad execution)
+-- Then edit your @startupHook@:
+--
+-- > startupHook = setWMName "LG3D"
 --
 -- For details on the problems with running Java GUI programs in non-reparenting
 -- WMs, see <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6429775> and
@@ -31,8 +31,8 @@
 -- set to 0, while for other WMs the insets are \"guessed\" and the algorithm
 -- fails miserably by guessing absolutely bogus values.
 --
--- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- For detailed instructions on editing your hooks, see
+-- "XMonad.Doc.Extending#4".
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.SetWMName (
