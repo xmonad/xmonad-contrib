@@ -21,7 +21,6 @@ import XMonad.Layout.Tabbed ( tabbed, defaultTheme,
 import XMonad.Layout.Combo ( combineTwo )
 import XMonad.Layout.Named ( named )
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.Simplest ( Simplest(Simplest) )
 import XMonad.Layout.Square ( Square(Square) )
 import XMonad.Layout.WindowNavigation ( Navigate(Move,Swap,Go), Direction(U,D,R,L),
                                         windowNavigation )
@@ -31,7 +30,6 @@ import XMonad.Layout.NoBorders ( smartBorders )
 import XMonad.Layout.WorkspaceDir ( changeDir, workspaceDir )
 import XMonad.Layout.ToggleLayouts ( toggleLayouts, ToggleLayout(ToggleLayout) )
 import XMonad.Layout.ShowWName ( showWName )
-import XMonad.Layout.ScratchWorkspace ( toggleScratchWorkspace )
 
 import XMonad.Prompt ( defaultXPConfig, font, height, XPConfig )
 import XMonad.Prompt.Layout ( layoutPrompt )
@@ -110,8 +108,6 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
     , ((modMask x, xK_l ), layoutPrompt myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
-    , ((modMask x .|. controlMask .|. shiftMask, xK_space),
-       toggleScratchWorkspace (Simplest */* Simplest) )
 
     ]
  
