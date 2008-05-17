@@ -103,6 +103,7 @@ library
                         XMonad.Config.Droundy
                         XMonad.Config.Gnome
                         XMonad.Config.Kde
+                        XMonad.Config.PlainConfig
                         XMonad.Config.Sjanssen
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EventHook
