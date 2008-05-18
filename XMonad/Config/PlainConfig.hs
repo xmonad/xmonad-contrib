@@ -471,7 +471,8 @@ baseConfig = defaultConfig{ layoutHook = Layout (layoutHook defaultConfig) }
 -- | Core function that attempts to parse @~\/.xmonad\/xmonad.conf@
 readConfig :: IO (Maybe (XConfig Layout))
 readConfig = do
-  cs <- bracket (openFile "/home/braden/.xmonad/xmonad.conf" ReadMode)
+  dir <- getXMonadDir
+  cs <- bracket (openFile (dir++"/xmonad.conf") ReadMode)
              (\h -> hClose h) -- vv force the lazy IO
              (\h -> (lines `fmap` hGetContents h) >>= \ss -> 
                     length ss `seq` return ss)
