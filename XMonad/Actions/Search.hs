@@ -15,7 +15,7 @@
 module XMonad.Actions.Search (    -- * Usage
                                   -- $usage
                                search,
-                               simpleEngine,
+                               SearchEngine,
                                promptSearch,
                                promptSearchBrowser,
                                selectSearch,
@@ -134,10 +134,10 @@ engine.
 
 Happy searching! -}
 
--- | A customized prompt indicating we are searching, and not anything else.
-data Search = Search
+-- | A customized prompt indicating we are searching, and the name of the site.
+data Search = Search Name
 instance XPrompt Search where
-    showXPrompt Search = "Search: "
+    showXPrompt (Search name)= "Search [" ++ name ++ "]: "
 
 -- | Escape the search string so search engines understand it.
 -- Note that everything is escaped; we could be smarter and use 'isAllowedInURI'
@@ -166,50 +166,52 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
 
 type Browser      = FilePath
 type Query        = String
-type SearchEngine = String -> String
+type Site         = String
+type Name         = String
+data SearchEngine = SearchEngine Name Site
 
 -- | Given a browser, a search engine, and a search term, perform the
 --   requested search in the browser.
-search :: Browser -> SearchEngine -> Query -> X ()
-search browser site query = safeSpawn browser $ site query
+search :: Browser -> Site -> Query -> X ()
+search browser site query = safeSpawn browser (site ++ (escape query))
 
 {- | Given a base URL, create the SearchEngine that escapes the query and
-   appends it to the base. You can easily define a new engine locally using simpleEngine
+   appends it to the base. You can easily define a new engine locally using SearchEngine
    without needing to modify Search.hs:
 
-   > newEngine = simpleEngine "http://site.com/search="
+   > newEngine = SearchEngine "site" "http://site.com/search="
 
    The important thing is that the site has a interface which accepts the query
    string as part of the URL. Alas, the exact URL to feed simpleEngine varies
    from site to site, often considerably. Generally, examining the resultant URL
    of a search will allow you to reverse-engineer it if you can't find the
    necessary URL already described in other projects such as Surfraw. -}
-simpleEngine :: Query -> SearchEngine
-simpleEngine site query = site ++ escape query
+--simpleEngine :: Name -> Query -> SearchEngine
+--simpleEngine site query = site ++ escape query
 
 -- The engines.
 amazon, dictionary, google, hoogle, imdb, maps, mathworld,
   scholar, wayback, wikipedia, youtube :: SearchEngine
-amazon     = simpleEngine "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
-dictionary = simpleEngine "http://dictionary.reference.com/browse/"
-google     = simpleEngine "http://www.google.com/search?num=100&q="
-hoogle     = simpleEngine "http://www.haskell.org/hoogle/?q="
-imdb       = simpleEngine "http://www.imdb.com/Find?select=all&for="
-maps       = simpleEngine "http://maps.google.com/maps?q="
-mathworld  = simpleEngine "http://mathworld.wolfram.com/search/?query="
-scholar    = simpleEngine "http://scholar.google.com/scholar?q="
-wikipedia  = simpleEngine "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
-youtube    = simpleEngine "http://www.youtube.com/results?search_type=search_videos&search_query="
+amazon     = SearchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+dictionary = SearchEngine "dictionary" "http://dictionary.reference.com/browse/"
+google     = SearchEngine "google"     "http://www.google.com/search?num=100&q="
+hoogle     = SearchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
+imdb       = SearchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
+maps       = SearchEngine "maps"       "http://maps.google.com/maps?q="
+mathworld  = SearchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
+scholar    = SearchEngine "scholar"    "http://scholar.google.com/scholar?q="
+wikipedia  = SearchEngine "wikipedia"  "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+youtube    = SearchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
-wayback   = simpleEngine "http://web.archive.org/"
+wayback   = SearchEngine "wayback" "http://web.archive.org/"
 
 {- | Like 'search', but for use with the output from a Prompt; it grabs the
    Prompt's result, passes it to a given searchEngine and opens it in a given
    browser. -}
 promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
-promptSearchBrowser config browser engine = mkXPrompt Search config (getShellCompl []) $ search browser engine
+promptSearchBrowser config browser (SearchEngine name site) = mkXPrompt (Search name) config (getShellCompl []) $ search browser site
 
 {- | Like 'search', but in this case, the string is not specified but grabbed
  from the user's response to a prompt. Example:
@@ -224,7 +226,7 @@ promptSearch config engine = liftIO getBrowser >>= \ browser -> promptSearchBrow
 -- | Like 'search', but for use with the X selection; it grabs the selection,
 --   passes it to a given searchEngine and opens it in a given browser.
 selectSearchBrowser :: Browser -> SearchEngine -> X ()
-selectSearchBrowser browser searchengine = search browser searchengine =<< getSelection
+selectSearchBrowser browser (SearchEngine _ site) = search browser site =<< getSelection
 
 {- | Like 'search', but for use with the X selection; it grabs the selection,
    passes it to a given searchEngine and opens it in the default browser . Example:
