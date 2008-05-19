@@ -54,7 +54,7 @@ data ShowWName a = SWN Bool SWNConfig ShowWNState deriving (Read, Show)
 
 data SWNConfig =
     SWNC { swn_font    :: String   -- ^ Font name
-         , swn_bgcolor :: String   -- ^ Backgorund color
+         , swn_bgcolor :: String   -- ^ Background color
          , swn_color   :: String   -- ^ String color
          , swn_fade    :: Rational -- ^ Time in seconds of the name visibility
     } deriving (Read, Show)
