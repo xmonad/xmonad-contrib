@@ -1,21 +1,20 @@
-{- |
- Module      :  XMonad.Actions.Search
- Copyright   :  (C) 2007 Gwern Branwen
- License     :  None; public domain
+{- | Module      :  XMonad.Actions.Search
+   Copyright   :  (C) 2007 Gwern Branwen
+   License     :  None; public domain
 
- Maintainer  :  <gwern0@gmail.com>
- Stability   :  unstable
- Portability :  unportable
+   Maintainer  :  <gwern0@gmail.com>
+   Stability   :  unstable
+   Portability :  unportable; depends on XSelection, XPrompt
 
- A module for easily running Internet searches on web sites through xmonad.
- Modeled after the handy Surfraw CLI search tools at <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
+   A module for easily running Internet searches on web sites through xmonad.
+   Modeled after the handy Surfraw CLI search tools at <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
 
- Additional sites welcomed.
--}
+   Additional sites welcomed. -}
 module XMonad.Actions.Search (    -- * Usage
                                   -- $usage
                                search,
                                SearchEngine,
+                               searchEngine,
                                promptSearch,
                                promptSearchBrowser,
                                selectSearch,
@@ -66,7 +65,7 @@ import XMonad.Util.XSelection (getSelection)
    want, the browser you want, and anything special they might need;
    this whole line is then bound to a key of you choosing in your
    xmonad.hs. For specific examples, see each function.  This module
-   is easily extended to new sites by using 'simpleEngine'.
+   is easily extended to new sites by using 'searchEngine'.
 
    The currently available search engines are:
 
@@ -175,37 +174,38 @@ data SearchEngine = SearchEngine Name Site
 search :: Browser -> Site -> Query -> X ()
 search browser site query = safeSpawn browser (site ++ (escape query))
 
-{- | Given a base URL, create the SearchEngine that escapes the query and
-   appends it to the base. You can easily define a new engine locally using SearchEngine
-   without needing to modify Search.hs:
+{- | Given a base URL, create the 'SearchEngine' that escapes the query and
+   appends it to the base. You can easily define a new engine locally using
+   exported functions without needing to modify "XMonad.Actions.Search":
 
-   > newEngine = SearchEngine "site" "http://site.com/search="
+> myNewEngine = searchEngine "site" "http://site.com/search="
 
-   The important thing is that the site has a interface which accepts the query
-   string as part of the URL. Alas, the exact URL to feed simpleEngine varies
-   from site to site, often considerably. Generally, examining the resultant URL
-   of a search will allow you to reverse-engineer it if you can't find the
-   necessary URL already described in other projects such as Surfraw. -}
---simpleEngine :: Name -> Query -> SearchEngine
---simpleEngine site query = site ++ escape query
+   The important thing is that the site has a interface which accepts the escaped query
+   string as part of the URL. Alas, the exact URL to feed searchEngine varies
+   from site to site, often considerably, so there's no general way to cover this.
+
+   Generally, examining the resultant URL of a search will allow you to reverse-engineer
+   it if you can't find the necessary URL already described in other projects such as Surfraw. -}
+searchEngine :: Name -> Site -> SearchEngine
+searchEngine name site = SearchEngine name site
 
 -- The engines.
 amazon, dictionary, google, hoogle, imdb, maps, mathworld,
   scholar, wayback, wikipedia, youtube :: SearchEngine
-amazon     = SearchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
-dictionary = SearchEngine "dictionary" "http://dictionary.reference.com/browse/"
-google     = SearchEngine "google"     "http://www.google.com/search?num=100&q="
-hoogle     = SearchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
-imdb       = SearchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
-maps       = SearchEngine "maps"       "http://maps.google.com/maps?q="
-mathworld  = SearchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
-scholar    = SearchEngine "scholar"    "http://scholar.google.com/scholar?q="
-wikipedia  = SearchEngine "wikipedia"  "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
-youtube    = SearchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
+amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+dictionary = searchEngine "dictionary" "http://dictionary.reference.com/browse/"
+google     = searchEngine "google"     "http://www.google.com/search?num=100&q="
+hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
+imdb       = searchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
+maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
+mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
+scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
+wikipedia  = searchEngine "wikipedia"  "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
-wayback   = SearchEngine "wayback" "http://web.archive.org/"
+wayback   = searchEngine "wayback" "http://web.archive.org/"
 
 {- | Like 'search', but for use with the output from a Prompt; it grabs the
    Prompt's result, passes it to a given searchEngine and opens it in a given
