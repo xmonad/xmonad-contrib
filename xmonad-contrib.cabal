@@ -153,6 +153,7 @@ library
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
                         XMonad.Layout.ShowWName
+                        XMonad.Layout.StackTile
                         XMonad.Layout.Tabbed
                         XMonad.Layout.TabBarDecoration
                         XMonad.Layout.ThreeColumns
