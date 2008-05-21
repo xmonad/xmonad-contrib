@@ -33,7 +33,7 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the ResizableTile layout:
 --
--- > myLayouts =  StackTile 1 (3/100) (1/2) [] ||| etc..
+-- > myLayouts =  StackTile 1 (3/100) (1/2) ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
