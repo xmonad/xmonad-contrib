@@ -85,6 +85,7 @@ library
                         XMonad.Actions.MouseResize
                         XMonad.Actions.NoBorders
                         XMonad.Actions.PerWorkspaceKeys
+                        XMonad.Actions.Plane
                         XMonad.Actions.Promote
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
