@@ -109,6 +109,7 @@ library
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EventHook
                         XMonad.Hooks.EwmhDesktops
+                        XMonad.Hooks.FadeInactive
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Script
