@@ -29,10 +29,12 @@ import Control.Monad (forM_)
 -- > import XMonad.Hooks.FadeInactive
 -- >
 -- > myLogHook :: X ()
--- > myLogHook = fadeInactiveLogHook
+-- > myLogHook = fadeInactiveLogHook fadeAmount
+-- >     where fadeAmount = 0xdddddddd
 -- >
 -- > main = xmonad defaultConfig { logHook = myLogHook }
 --
+-- fadeAmount can be any integer
 -- you will need to have xcompmgr <http://freedesktop.org/wiki/Software/xapps>
 -- or something similar for this to do anything
 --
@@ -53,9 +55,9 @@ setOpacity w t = withDisplay $ \dpy -> do
     io $ changeProperty32 dpy w a c propModeReplace [fromIntegral t]
 
 -- |
--- fades a window out by setting the opacity to an arbitrary amount
-fadeOut :: Window -> X ()
-fadeOut = flip setOpacity 0xdddddddd
+-- fades a window out by setting the opacity
+fadeOut :: Integer -> Window -> X ()
+fadeOut amt = flip setOpacity amt
 
 -- |
 -- makes a window completely opaque
@@ -63,10 +65,10 @@ fadeIn :: Window -> X ()
 fadeIn = flip setOpacity 0xffffffff
 
 -- |
--- lowers the opacity of inactive windows
-fadeInactiveLogHook :: X ()
-fadeInactiveLogHook = withWindowSet $ \s ->
-    forM_ (concatMap visibleWins $ W.current s : W.visible s) fadeOut >>
+-- lowers the opacity of inactive windows to the specified amount
+fadeInactiveLogHook :: Integer -> X ()
+fadeInactiveLogHook amt = withWindowSet $ \s ->
+    forM_ (concatMap visibleWins $ W.current s : W.visible s) (fadeOut amt) >>
     withFocused fadeIn
         where
           visibleWins = maybe [] unfocused . W.stack . W.workspace
