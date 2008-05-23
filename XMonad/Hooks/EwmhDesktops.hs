@@ -123,6 +123,7 @@ handle ClientMessageEvent {
        a_cd <- getAtom "_NET_CURRENT_DESKTOP"
        a_d <- getAtom "_NET_WM_DESKTOP"
        a_aw <- getAtom "_NET_ACTIVE_WINDOW"
+       a_cw <- getAtom "_NET_CLOSE_WINDOW"
        if  mt == a_cd then do
                let n = fromIntegral (head d)
                if 0 <= n && n < length ws then
@@ -135,6 +136,9 @@ handle ClientMessageEvent {
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
         else if mt == a_aw then do
                windows $ W.focusWindow w
+        else if mt == a_cw then do
+               windows $ W.focusWindow w
+               kill
         else trace $ "Unknown ClientMessageEvent " ++ show mt
 handle _ = undefined -- does not happen, as otherwise ewmhDesktopsHook would not match
 
