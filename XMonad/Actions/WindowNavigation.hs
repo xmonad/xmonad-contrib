@@ -45,7 +45,7 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - logHook?
+--  - logHook? (2+1, start at master, j,j,a)
 --  - cleanup (including inr)
 --  - documentation :)
 --  - tests? (esp. for edge cases in currentPosition)

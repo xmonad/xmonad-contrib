@@ -149,8 +149,8 @@ import Foreign (unsafePerformIO)
 --
 -- > vbell off # or remove the existing 'vbell on' line
 --
--- to your .screenrc, or hit @C-a C-g@ within a running @screen@ session for a
--- temporary fix.
+-- to your .screenrc, or hit @C-a C-g@ within a running @screen@ session for an
+-- immediate but temporary fix.
 
 -- $urxvt
 -- Rubber, meet road. Urxvt is the gateway between console apps and X11. To tell
