@@ -32,6 +32,9 @@ module XMonad.Hooks.UrgencyHook (
                                  -- ** Note
                                  -- $note
 
+                                 -- * Troubleshooting
+                                 -- $troubleshooting
+
                                  -- * Example: Setting up irssi + rxvt-unicode
                                  -- $example
 
@@ -123,6 +126,29 @@ import Foreign (unsafePerformIO)
 -- Note: UrgencyHook installs itself as a LayoutModifier, so if you modify your
 -- urgency hook and restart xmonad, you may need to rejigger your layout by
 -- hitting mod-shift-space.
+
+-- $troubleshooting
+--
+-- There are three steps to get right:
+--
+-- 1. The X client must set the UrgencyHint flag. How to configure this
+--    depends on the application. If you're using a terminal app, this is in
+--    two parts:
+--
+--      * The console app must send a ^G (bell). In bash, a helpful trick is
+--        @sleep 1; echo -e \'\a\'@.
+--
+--      * The terminal must convert the bell into UrgencyHint.
+--
+-- 2. XMonad must be configured to notice UrgencyHints. If you've added
+--    withUrgencyHook, you may need to hit mod-shift-space to reset the layout.
+--
+-- 3. The dzen must run when told. Run @dzen2 -help@ and make sure that it
+--    supports all of the arguments you told DzenUrgencyHook to pass it. Also,
+--    set up a keybinding to the 'dzen' action in "XMonad.Util.Dzen" to test
+--    if that works.
+--
+-- As best you can, try to isolate which one(s) of those is failing.
 
 -- $example
 --

@@ -1,17 +1,27 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Layout.WindowNavigation
+-- Module      :  XMonad.Actions.WindowNavigation
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>,
 --                          Devin Mullins <me@twifkak.com>
 -- Maintainer  :  Devin Mullins <me@twifkak.com>
 -- License     :  BSD3-style (see LICENSE)
 --
--- This is a rewrite of "XMonad.Layout.WindowNavigation", for the purposes of
--- code cleanup and Xinerama support. It's not complete, so you'll want to
--- use that one for now.
+-- This is a rewrite of "XMonad.Layout.WindowNavigation".  WindowNavigation
+-- lets you assign keys to move up\/down\/left\/right, based on actual cartesian
+-- window coordinates, rather than just going j\/k on the stack.
 --
--- WindowNavigation lets you assign keys to move up/down/left/right, based on
--- actual cartesian window coordinates, rather than just going j/k on the stack.
+-- This module differs from the other in a few ways:
+--
+--   (1) You can go up\/down\/left\/right across multiple screens.
+--
+--   (2) It doesn't provide little border colors for your neighboring windows.
+--
+--   (3) It doesn't provide the \'Move\' action, which seems to be related to
+--      the XMonad.Layout.Combo extension.
+--
+--   (4) It tries to be slightly smarter about tracking your current position.
+--
+--   (5) Configuration is different.
 --
 -----------------------------------------------------------------------------
 
@@ -42,12 +52,29 @@ import Graphics.X11.Xlib
 
 -- $usage
 --
--- Don't use it! What, are you crazy?
+-- To use it, you're going to apply the 'withWindowNavigation' function.
+-- 'withWindowNavigation' performs some IO operations, so the syntax you'll use
+-- is the same as the spawnPipe example in "XMonad.Hooks.DynamicLog".
+-- In particular:
+--
+-- > main = do
+-- >     config <- withWindowNavigation (xK_w, xK_a, xK_s, xK_d)
+-- >             $ defaultConfig { ... }
+-- >     xmonad config
+--
+-- Here, we pass in the keys for navigation in counter-clockwise order from up.
+-- It creates keybindings for @modMask@ to move to window, and @modMask .|. shiftMask@
+-- to swap windows.
+--
+-- If you want more flexibility over your keybindings, you can use
+-- 'withWindowNavigationKeys', which takes a list of @keys@-esque entries rather
+-- than a tuple of the four directional keys. See the source code of
+-- 'withWindowNavigation' for an example.
 
 -- TODO:
---  - documentation :)
 --  - monad for WNState?
 --  - cleanup (including inr)
+--  - more documentation
 --  - tests? (esp. for edge cases in currentPosition)
 --  - solve the 2+3, middle right to bottom left problem
 --  - manageHook to draw window decos?
