@@ -45,9 +45,9 @@ import Graphics.X11.Xlib
 -- Don't use it! What, are you crazy?
 
 -- TODO:
---  - logHook? (2+1, start at master, j,j,a)
---  - cleanup (including inr)
 --  - documentation :)
+--  - monad for WNState?
+--  - cleanup (including inr)
 --  - tests? (esp. for edge cases in currentPosition)
 --  - solve the 2+3, middle right to bottom left problem
 --  - manageHook to draw window decos?
@@ -68,7 +68,8 @@ withWindowNavigationKeys :: [((KeyMask, KeySym), WNAction)] -> XConfig l -> IO (
 withWindowNavigationKeys wnKeys conf = do
     posRef <- newIORef M.empty
     return conf { keys = \cnf -> M.fromList (map (second (fromWNAction posRef)) wnKeys)
-                                 `M.union` keys conf cnf }
+                                 `M.union` keys conf cnf,
+                  logHook = logHook conf >> trackMovement posRef }
   where fromWNAction posRef (WNGo dir)   = go   posRef dir
         fromWNAction posRef (WNSwap dir) = swap posRef dir
 
@@ -97,13 +98,19 @@ swap = withTargetWindow swapWithFocused
         swapWin win1 win2 win = if win == win1 then win2 else if win == win2 then win1 else win
 
 withTargetWindow :: (Window -> WindowSet -> WindowSet) -> IORef WNState -> Direction -> X ()
-withTargetWindow adj posRef dir = fromCurrentPoint $ \win pos -> do
+withTargetWindow adj posRef dir = fromCurrentPoint posRef $ \win pos -> do
     targets <- filter ((/= win) . fst) <$> navigableTargets pos dir
     whenJust (listToMaybe targets) $ \(targetWin, targetRect) -> do
       windows (adj targetWin)
       setPosition posRef pos targetRect
-  where fromCurrentPoint f = withFocused $ \win -> do
-                                 currentPosition posRef >>= f win
+
+trackMovement :: IORef WNState -> X ()
+trackMovement posRef = fromCurrentPoint posRef $ \win pos -> do
+                           windowRect win >>= flip whenJust (setPosition posRef pos . snd)
+
+fromCurrentPoint :: IORef WNState -> (Window -> Point -> X ()) -> X ()
+fromCurrentPoint posRef f = withFocused $ \win -> do
+                                currentPosition posRef >>= f win
 
 -- Gets the current position from the IORef passed in, or if nothing (say, from
 -- a restart), derives the current position from the current window. Also,
