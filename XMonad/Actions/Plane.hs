@@ -9,7 +9,7 @@
 -- Portability :  unportable
 --
 -- This module has functions to navigate through workspaces in a bidimensional
--- manner.  It allows the organization of workspaces in columns, and provides
+-- manner.  It allows the organization of workspaces in lines, and provides
 -- functions to move and shift windows in all four directions (left, up, right
 -- and down) possible in a surface.
 --
@@ -76,8 +76,8 @@ data Limits
 -- There're two parameters that must be provided to navigate, and it's a good
 -- idea to use them with the same values in each keybinding.
 --
--- The first is the number of columns in which the workspaces are going to be
--- organized.  It's possible to use a number of columns that is not a divisor
+-- The first is the number of lines in which the workspaces are going to be
+-- organized.  It's possible to use a number of lines that is not a divisor
 -- of the number of workspaces, but the results are better when using a
 -- divisor.  If it's not a divisor, the last line will have the remaining
 -- workspaces.
@@ -87,7 +87,7 @@ data Limits
 -- | Shift a window to the next workspace in 'Direction'.  Note that this will
 -- also move to the next workspace.
 planeShift
-    :: Int  -- ^ Number of columns.
+    :: Int  -- ^ Number of lines.
     -> Limits
     -> Direction
     -> X ()
@@ -108,30 +108,39 @@ planeMove = plane greedyView
 plane ::
     (WorkspaceId -> WindowSet -> WindowSet) -> Int -> Limits -> Direction ->
     X ()
-plane function columns limits direction = do
+plane function numberLines limits direction = do
     state <- get
     xconf <- ask
-    let vertical f =
-            if column >= areasColumn
-                then mod (f currentWS columns) $ areasLine * columns
-                else mod (f currentWS columns) $ (areasLine + 1) * columns
 
+    let
         horizontal f =
             if line < areasLine
                 then mod (f column) columns + lineNumber
                 else mod (f column) areasColumn + lineNumber
 
+        vertical f =
+            if column >= areasColumn
+                then mod (f currentWS columns) $ areasLine * columns
+                else mod (f currentWS columns) $ (areasLine + 1) * columns
+
+        lineNumber = line * columns
         areasLine = div areas columns
         areasColumn = mod areas columns
-        lineNumber = line * columns
         line = div currentWS columns
         column = mod currentWS columns
+
+        columns =
+            if mod areas numberLines == 0 then preColumns else preColumns + 1
+
         currentWS = fromJust mCurrentWS
+        preColumns = div areas numberLines
         mCurrentWS = elemIndex (currentTag $ windowset state) areaNames
+        areas = length areaNames
+
         run condition position =
             when (limits == Circular || condition) $
             windows $ function $ areaNames !! position
-        areas = length areaNames
+
         areaNames = workspaces $ config $ xconf
 
     when (isJust mCurrentWS) $
