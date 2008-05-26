@@ -112,10 +112,18 @@ plane function columns limits direction = do
     state <- get
     xconf <- ask
     let vertical f =
-            if mod currentWS columns >= mod areas columns
-                then mod (f currentWS columns) $ div areas columns * columns
-                else mod (f currentWS columns) $ ((div areas columns + 1) * columns)
-        horizontal f = mod (f currentWS) columns + line * columns
+            if column >= areasColumn
+                then mod (f currentWS columns) $ areasLine * columns
+                else mod (f currentWS columns) $ (areasLine + 1) * columns
+
+        horizontal f =
+            if line < areasLine
+                then mod (f column) columns + lineNumber
+                else mod (f column) areasColumn + lineNumber
+
+        areasLine = div areas columns
+        areasColumn = mod areas columns
+        lineNumber = line * columns
         line = div currentWS columns
         column = mod currentWS columns
         currentWS = fromJust mCurrentWS
