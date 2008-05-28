@@ -35,7 +35,7 @@ import XMonad.Actions.Submap
 import qualified Data.Map as M
 import Data.List (foldl', intersperse, sortBy, groupBy, nub)
 import Data.Ord (comparing)
-import Data.Maybe (catMaybes, isNothing, isJust, fromJust)
+import Data.Maybe
 import Control.Arrow (first, (&&&))
 
 import Text.ParserCombinators.ReadP
@@ -205,16 +205,14 @@ op `on` f = \x y -> f x `op` f y
 --   @(KeyMask,KeySym)@ pairs.  Key sequences which fail to parse will
 --   be ignored.
 readKeymap :: XConfig l -> [(String, X())] -> [([(KeyMask,KeySym)], X())]
-readKeymap c = catMaybes . map (maybeKeys . first (readKeySequence c))
+readKeymap c = mapMaybe (maybeKeys . first (readKeySequence c))
   where maybeKeys (Nothing,_) = Nothing
         maybeKeys (Just k, act) = Just (k, act)
 
 -- | Parse a sequence of keys, returning Nothing if there is
 --   a parse failure (no parse, or ambiguous parse).
 readKeySequence :: XConfig l -> String -> Maybe [(KeyMask, KeySym)]
-readKeySequence c s = case parses s of
-    [k] -> Just k
-    _   -> Nothing
+readKeySequence c = listToMaybe . parses
   where parses = map fst . filter (null.snd) . readP_to_S (parseKeySequence c)
 
 -- | Parse a sequence of key combinations separated by spaces, e.g.
@@ -271,30 +269,30 @@ functionKeys = [ ("F" ++ show n, k)
 
 -- | A list of special key names and their corresponding KeySyms.
 specialKeys :: [(String, KeySym)]
-specialKeys = [ ("Backspace", xK_BackSpace)
-              , ("Tab"      , xK_Tab      )
-              , ("Return"   , xK_Return)
-              , ("Pause"    , xK_Pause)
+specialKeys = [ ("Backspace"  , xK_BackSpace)
+              , ("Tab"        , xK_Tab)
+              , ("Return"     , xK_Return)
+              , ("Pause"      , xK_Pause)
               , ("Scroll_lock", xK_Scroll_Lock)
-              , ("Sys_Req"  , xK_Sys_Req)
-              , ("Escape"   , xK_Escape)
-              , ("Esc"      , xK_Escape)
-              , ("Delete"   , xK_Delete)
-              , ("Home"     , xK_Home)
-              , ("Left"     , xK_Left)
-              , ("Up"       , xK_Up)
-              , ("Right"    , xK_Right)
-              , ("Down"     , xK_Down)
-              , ("L"        , xK_Left)
-              , ("U"        , xK_Up)
-              , ("R"        , xK_Right)
-              , ("D"        , xK_Down)
-              , ("Page_Up"  , xK_Page_Up)
-              , ("Page_Down", xK_Page_Down)
-              , ("End"      , xK_End)
-              , ("Insert"   , xK_Insert)
-              , ("Break"    , xK_Break)
-              , ("Space"    , xK_space)
+              , ("Sys_Req"    , xK_Sys_Req)
+              , ("Escape"     , xK_Escape)
+              , ("Esc"        , xK_Escape)
+              , ("Delete"     , xK_Delete)
+              , ("Home"       , xK_Home)
+              , ("Left"       , xK_Left)
+              , ("Up"         , xK_Up)
+              , ("Right"      , xK_Right)
+              , ("Down"       , xK_Down)
+              , ("L"          , xK_Left)
+              , ("U"          , xK_Up)
+              , ("R"          , xK_Right)
+              , ("D"          , xK_Down)
+              , ("Page_Up"    , xK_Page_Up)
+              , ("Page_Down"  , xK_Page_Down)
+              , ("End"        , xK_End)
+              , ("Insert"     , xK_Insert)
+              , ("Break"      , xK_Break)
+              , ("Space"      , xK_space)
               ]
 
 -- | Given a configuration record and a list of (key sequence
