@@ -320,6 +320,7 @@ keyPressHandle mask (ks,_)
             | ks == xK_Left            -> moveWord Prev >> go
             | ks == xK_Delete          -> killWord Next >> go
             | ks == xK_BackSpace       -> killWord Prev >> go
+            | ks == xK_w               -> killWord Prev >> go
             | ks == xK_g || ks == xK_c -> quit
             | otherwise  -> eventLoop handle -- unhandled control sequence
     | ks == xK_Return    = historyPush       >> return ()
