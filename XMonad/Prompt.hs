@@ -43,6 +43,7 @@ module XMonad.Prompt
     , uniqSort
     , decodeInput
     , encodeOutput
+    , historyCompletion
     ) where
 
 import XMonad  hiding (config, io)
@@ -779,3 +780,15 @@ breakAtSpace s
 -- | Sort a list and remove duplicates.
 uniqSort :: Ord a => [a] -> [a]
 uniqSort = toList . fromList
+
+-- | 'historyCompletion' provides a canned completion function much like
+--   getShellCompl; you pass it to mkXPrompt, and it will make completions work
+--   from the query history stored in ~/.xmonad/history.
+historyCompletion :: ComplFunction
+historyCompletion = \x -> liftM (filter $ isInfixOf x) readHistoryIO
+
+-- We need to define this locally because there is no function with the type "XP a -> IO a", and
+-- 'getHistory' is uselessly of the type "XP [String]".
+readHistoryIO :: IO [String]
+readHistoryIO = do (hist,_) <- readHistory
+                   return $ map command_history hist
