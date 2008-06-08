@@ -36,6 +36,7 @@
 
 module XMonad.Util.Scratchpad (
   scratchpadSpawnAction
+  ,scratchpadSpawnActionTerminal
   ,scratchpadManageHookDefault
   ,scratchpadManageHook
   ) where
@@ -52,6 +53,11 @@ scratchpadSpawnAction :: XConfig l -- ^ The configuration, to retrieve the termi
                       -> X ()
 scratchpadSpawnAction conf = spawn $ terminal conf ++ " -title scratchpad"
 
+
+-- | Action to pop up the terminal, with a directly specified terminal.
+scratchpadSpawnActionTerminal :: String -- ^ Name of the terminal program
+                                 -> X ()
+scratchpadSpawnActionTerminal term = spawn $ term ++ " -title scratchpad"
 
 
 -- | The ManageHook, with the default rectangle:
