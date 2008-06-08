@@ -13,7 +13,7 @@
 -- A tool like detach (<http://detach.sourceforge.net>) turns it
 -- into a launchpad for X apps.
 --
--- By default, your xmonad terminal is used, and mod+s is the hotkey.
+-- By default, your xmonad terminal is used.
 -- The default ManageHook uses a centered, half-screen-wide,
 -- quarter-screen-tall window.
 -- The key, position and size are configurable.
@@ -22,14 +22,12 @@
 -- Known supported terminals: rxvt, rxvt-unicode, xterm.
 -- Most others are likely to follow the lead set by xterm.
 --
--- Add the following to your xmonad.hs keybindings to use the default mod+s:
---
--- > scratchpadSpawnDefault conf
---
--- Or specify your own key binding, with the action:
+-- Bind the following to a key in your xmonad.hs keybindings:
 --
 -- > scratchpadSpawnAction conf
 --
+-- Where @conf@ is the configuration.
+-- 
 -- And add one of the @scratchpadManageHook*@s to your ManageHook list.
 -- The default rectangle is half the screen wide and a quarter of the
 -- screen tall, centered.
@@ -37,8 +35,7 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Scratchpad (
-  scratchpadSpawnDefault
-  ,scratchpadSpawnAction
+  scratchpadSpawnAction
   ,scratchpadManageHookDefault
   ,scratchpadManageHook
   ) where
@@ -48,12 +45,6 @@ import XMonad.Core
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import qualified XMonad.StackSet
 
-
-
--- | Complete key binding. Pops up the terminal on mod+s.
-scratchpadSpawnDefault :: XConfig l -- ^ The configuration, to retrieve terminal and modMask
-                       -> ((KeyMask, KeySym), X ())
-scratchpadSpawnDefault conf = ((modMask conf, xK_s), scratchpadSpawnAction conf)
 
 
 -- | Action to pop up the terminal, for the user to bind to a custom key.
@@ -70,6 +61,10 @@ scratchpadManageHookDefault = scratchpadManageHook scratchpadDefaultRect
 
 
 -- | The ManageHook, with a user-specified StackSet.RationalRect.
+-- eg.
+--
+-- > scratchpadManageHook (W.RationalRect 0.25 0.375 0.5 0.25)
+--
 scratchpadManageHook :: XMonad.StackSet.RationalRect -- ^ User-specified screen rectangle.
                      -> ManageHook
 scratchpadManageHook rect = title =? "scratchpad" --> doRectFloat rect
