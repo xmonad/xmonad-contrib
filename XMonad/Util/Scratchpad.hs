@@ -50,7 +50,7 @@ import qualified XMonad.StackSet as W
 -- quarter-screen-tall window.
 -- The key, position and size are configurable.
 --
--- The terminal application must support the @-title@ argument.
+-- The terminal application must support the @-name@ argument.
 -- Known supported terminals: rxvt, rxvt-unicode, xterm.
 -- Most others are likely to follow the lead set by xterm.
 --
@@ -71,14 +71,14 @@ import qualified XMonad.StackSet as W
 scratchpadSpawnAction :: XConfig l -- ^ The configuration, to retrieve the terminal
                       -> X ()
 scratchpadSpawnAction conf = 
-    scratchpadAction $ spawn $ terminal conf ++ " -title scratchpad"
+    scratchpadAction $ spawn $ terminal conf ++ " -name scratchpad"
 
 
 -- | Action to pop up the terminal, with a directly specified terminal.
 scratchpadSpawnActionTerminal :: String -- ^ Name of the terminal program
                                  -> X ()
 scratchpadSpawnActionTerminal term = 
-    scratchpadAction $ spawn $ term ++ " -title scratchpad"
+    scratchpadAction $ spawn $ term ++ " -name scratchpad"
 
 
 
@@ -114,7 +114,7 @@ scratchpadWorkspaceTag = "SP"
 
 -- factored out since this is common to both the ManageHook and the action
 scratchpadQuery :: Query Bool
-scratchpadQuery = title =? "scratchpad"
+scratchpadQuery = resource =? "scratchpad"
 
 
 -- | The ManageHook, with the default rectangle:
