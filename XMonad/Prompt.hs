@@ -56,6 +56,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
 import Data.Char
+import Data.Bits ((.&.))
 import Data.Maybe
 import Data.List
 import Data.Set (fromList, toList)
@@ -309,7 +310,7 @@ data Direction = Prev | Next deriving (Eq,Show,Read)
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 -- commands: ctrl + ... todo
 keyPressHandle mask (ks,_)
-    | mask == controlMask =
+    | (mask .&. controlMask) > 0 =
         -- control sequences
         case () of
           _ | ks == xK_u               -> killBefore    >> go
