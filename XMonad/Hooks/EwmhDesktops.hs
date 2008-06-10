@@ -15,6 +15,7 @@
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
+    EwmhDesktopsHook,
     ewmhDesktopsLogHook,
     ewmhDesktopsLayout
     ) where
