@@ -25,6 +25,7 @@ module XMonad.Actions.UpdatePointer
 
 import XMonad
 import Control.Monad
+import XMonad.StackSet (member)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -56,13 +57,15 @@ data PointerPosition = Nearest | Relative Rational Rational
 -- focus with the mouse
 updatePointer :: PointerPosition -> X ()
 updatePointer p = withFocused $ \w -> do
+  ws <- gets windowset
   dpy <- asks display
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   wa <- io $ getWindowAttributes dpy w
-  (_sameRoot,_,_,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
+  (_sameRoot,_,currentWindow,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
   unless (pointWithinRegion rootx rooty (wa_x wa) (wa_y wa) (wa_width wa) (wa_height wa)
-          || mouseIsMoving) $
+          || mouseIsMoving
+          || not (currentWindow `member` ws)) $
     case p of
     Nearest -> do
       let x = moveWithin rootx (wa_x wa) ((wa_x wa) + (wa_width  wa))
