@@ -93,7 +93,7 @@ navigateBrightness f | f > 1 = navigateBrightness 1
 navigateBrightness f = defaultWNConfig { brightness = Just f }
 
 defaultWNConfig :: WNConfig
-defaultWNConfig = WNC (Just 0.5) "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
+defaultWNConfig = WNC (Just 0.4) "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
 
 data NavigationState a = NS Point [(a,Rectangle)]
 
