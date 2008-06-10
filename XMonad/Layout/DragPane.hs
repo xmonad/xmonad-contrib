@@ -133,4 +133,6 @@ newDragWin r = do
   let mask = Just $ exposureMask .|. buttonPressMask
   w <- createNewWindow r mask handleColor False
   showWindow  w
+  d <- asks display
+  liftIO $ lowerWindow d w
   return      w
