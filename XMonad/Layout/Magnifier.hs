@@ -25,6 +25,7 @@ module XMonad.Layout.Magnifier
       magnifierOff,
       magnifiercz,
       magnifiercz',
+      maximizeVertical,
       MagnifyMsg (..)
     ) where
 
@@ -80,32 +81,34 @@ import XMonad.Layout.LayoutModifier
 
 -- | Increase the size of the window that has focus
 magnifier :: l a -> ModifiedLayout Magnifier l a
-magnifier = ModifiedLayout (Mag 1.5 On All)
+magnifier = ModifiedLayout (Mag (1.5,1.5) On All)
 
 -- | Change the size of the window that has focus by a custom zoom
 magnifiercz :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz cz = ModifiedLayout (Mag ((fromRational cz)*1.0::Double) On All)
+magnifiercz cz = ModifiedLayout (Mag (fromRational cz, fromRational cz) On All)
 
 -- | Increase the size of the window that has focus, unless if it is the
 -- master window.
 magnifier' :: l a -> ModifiedLayout Magnifier l a
-magnifier' = ModifiedLayout (Mag 1.5 On NoMaster)
+magnifier' = ModifiedLayout (Mag (1.5,1.5) On NoMaster)
 
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
-magnifierOff = ModifiedLayout (Mag 1.5 Off All)
+magnifierOff = ModifiedLayout (Mag (1.5,1.5) Off All)
 
 -- | Increase the size of the window that has focus by a custom zoom,
 -- unless if it is the master window.
 magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz' cz = ModifiedLayout (Mag ((fromRational cz)*1.0::Double) On NoMaster)
+magnifiercz' cz = ModifiedLayout (Mag (fromRational cz, fromRational cz) On NoMaster)
+
+-- | A magnifier that greatly magnifies just the vertical direction
+maximizeVertical :: l a -> ModifiedLayout Magnifier l a
+maximizeVertical = ModifiedLayout (Mag (1,1000) Off All)
 
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
 
-data Magnifier a = Mag Zoom Toggle MagnifyMaster deriving (Read, Show)
-
-type Zoom = Double
+data Magnifier a = Mag (Double,Double) Toggle MagnifyMaster deriving (Read, Show)
 
 data Toggle        = On  | Off      deriving  (Read, Show)
 data MagnifyMaster = All | NoMaster deriving  (Read, Show)
@@ -117,10 +120,11 @@ instance LayoutModifier Magnifier Window where
         where nothing _ _ wrs = return (wrs, Nothing)
 
     handleMess (Mag z On  t) m
-                    | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z + 0.1) On  t)
-                    | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z - 0.1) On  t)
+                    | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z `addto` 0.1) On  t)
+                    | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z `addto` 0.1) On  t)
                     | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z      ) Off t)
                     | Just Toggle      <- fromMessage m = return . Just $ (Mag (z      ) Off t)
+                    where addto (x,y) i = (x+i,y+i)
     handleMess (Mag z Off t) m
                     | Just ToggleOn    <- fromMessage m = return . Just $ (Mag z         On  t)
                     | Just Toggle      <- fromMessage m = return . Just $ (Mag z         On  t)
@@ -136,18 +140,19 @@ unlessMaster :: NewLayout a -> NewLayout a
 unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
                                               else mainmod r s wrs
 
-applyMagnifier :: Double -> Rectangle -> t -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe a)
+applyMagnifier :: (Double,Double) -> Rectangle -> t -> [(Window, Rectangle)]
+               -> X ([(Window, Rectangle)], Maybe a)
 applyMagnifier z r _ wrs = do focused <- withWindowSet (return . peek)
                               let mag (w,wr) ws | focused == Just w = ws ++ [(w, fit r $ magnify z wr)]
                                                 | otherwise         = (w,wr) : ws
                               return (reverse $ foldr mag [] wrs, Nothing)
 
-magnify :: Double -> Rectangle -> Rectangle
-magnify zoom (Rectangle x y w h) = Rectangle x' y' w' h'
+magnify :: (Double, Double) -> Rectangle -> Rectangle
+magnify (zoomx,zoomy) (Rectangle x y w h) = Rectangle x' y' w' h'
     where x' = x - fromIntegral (w' - w) `div` 2
           y' = y - fromIntegral (h' - h) `div` 2
-          w' = round $ fromIntegral w * zoom
-          h' = round $ fromIntegral h * zoom
+          w' = round $ fromIntegral w * zoomx
+          h' = round $ fromIntegral h * zoomy
 
 fit :: Rectangle -> Rectangle -> Rectangle
 fit (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'

@@ -30,6 +30,7 @@ import XMonad.Layout.NoBorders ( smartBorders )
 import XMonad.Layout.WorkspaceDir ( changeDir, workspaceDir )
 import XMonad.Layout.ToggleLayouts ( toggleLayouts, ToggleLayout(ToggleLayout) )
 import XMonad.Layout.ShowWName ( showWName )
+import XMonad.Layout.Magnifier ( maximizeVertical, MagnifyMsg(Toggle) )
 
 import XMonad.Prompt ( defaultXPConfig, font, height, XPConfig )
 import XMonad.Prompt.Layout ( layoutPrompt )
@@ -62,8 +63,8 @@ keys x = M.fromList $
     -- launching and killing programs
     [ ((modMask x .|. shiftMask, xK_c     ), kill1) -- %! Close the focused window
 
-    , ((modMask x,               xK_space ), sendMessage NextLayout) -- %! Rotate through the available layout algorithms
-    , ((modMask x .|. shiftMask, xK_space ), setLayout $ layoutHook x) -- %!  Reset the layouts on the current workspace to default
+    , ((modMask x .|. shiftMask, xK_space ), sendMessage NextLayout) -- %! Rotate through the available layout algorithms
+    , ((modMask x .|. controlMask .|. shiftMask, xK_L ), setLayout $ layoutHook x) -- %!  Reset the layouts on the current workspace to default
 
     -- move focus up or down the window stack
     , ((modMask x,               xK_Tab   ), focusDown) -- %! Move focus to the next window
@@ -108,6 +109,7 @@ keys x = M.fromList $
     , ((modMask x .|. shiftMask, xK_r), renameWorkspace myXPConfig)
     , ((modMask x, xK_l ), layoutPrompt myXPConfig)
     , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
+    , ((modMask x, xK_space), sendMessage Toggle)
 
     ]
  
@@ -121,7 +123,7 @@ config = defaultConfig
          , XMonad.workspaces = ["mutt","iceweasel"]
          , layoutHook = ewmhDesktopsLayout $ showWName $ workspaceDir "~" $
                         boringWindows $ smartBorders $ windowNavigation $
-                        toggleLayouts Full $ avoidStruts $
+                        maximizeVertical $ toggleLayouts Full $ avoidStruts $
                         named "tabbed" mytab |||
                         named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
                         named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
@@ -131,7 +133,7 @@ config = defaultConfig
          , manageHook = manageHook defaultConfig <+> manageDocks -- add panel-handling
          , logHook = ewmhDesktopsLogHook -- actually, no logging here, just other stuff
          , terminal = "xterm" -- The preferred terminal program.
-         , normalBorderColor = "#dddddd" -- Border color for unfocused windows.
+         , normalBorderColor = "#222222" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
          , XMonad.modMask = mod1Mask
          , XMonad.keys = keys
