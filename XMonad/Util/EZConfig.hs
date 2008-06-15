@@ -181,6 +181,43 @@ removeMouseBindings conf mouseBindingList =
 -- > <Break>
 -- > <Space>
 -- > <F1>-<F12>
+-- > <KP_Space>
+-- > <KP_Tab>
+-- > <KP_Enter>
+-- > <KP_F1>
+-- > <KP_F2>
+-- > <KP_F3>
+-- > <KP_F4>
+-- > <KP_Home>
+-- > <KP_Left>
+-- > <KP_Up>
+-- > <KP_Right>
+-- > <KP_Down>
+-- > <KP_Prior>
+-- > <KP_Page_Up>
+-- > <KP_Next>
+-- > <KP_Page_Down>
+-- > <KP_End>
+-- > <KP_Begin>
+-- > <KP_Insert>
+-- > <KP_Delete>
+-- > <KP_Equal>
+-- > <KP_Multiply>
+-- > <KP_Add>
+-- > <KP_Separator>
+-- > <KP_Subtract>
+-- > <KP_Decimal>
+-- > <KP_Divide>
+-- > <KP_0>
+-- > <KP_1>
+-- > <KP_2>
+-- > <KP_3>
+-- > <KP_4>
+-- > <KP_5>
+-- > <KP_6>
+-- > <KP_7>
+-- > <KP_8>
+-- > <KP_9>
 
 mkKeymap :: XConfig l -> [(String, X ())] -> M.Map (KeyMask, KeySym) (X ())
 mkKeymap c = M.fromList . mkSubmaps . readKeymap c
@@ -293,6 +330,43 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("Insert"     , xK_Insert)
               , ("Break"      , xK_Break)
               , ("Space"      , xK_space)
+              , ("KP_Space"   , xK_KP_Space)
+              , ("KP_Tab"     , xK_KP_Tab)
+              , ("KP_Enter"   , xK_KP_Enter)
+              , ("KP_F1"      , xK_KP_F1)
+              , ("KP_F2"      , xK_KP_F2)
+              , ("KP_F3"      , xK_KP_F3)
+              , ("KP_F4"      , xK_KP_F4)
+              , ("KP_Home"    , xK_KP_Home)
+              , ("KP_Left"    , xK_KP_Left)
+              , ("KP_Up"      , xK_KP_Up)
+              , ("KP_Right"   , xK_KP_Right)
+              , ("KP_Down"    , xK_KP_Down)
+              , ("KP_Prior"   , xK_KP_Prior)
+              , ("KP_Page_Up" , xK_KP_Page_Up)
+              , ("KP_Next"    , xK_KP_Next)
+              , ("KP_Page_Down", xK_KP_Page_Down)
+              , ("KP_End"     , xK_KP_End)
+              , ("KP_Begin"   , xK_KP_Begin)
+              , ("KP_Insert"  , xK_KP_Insert)
+              , ("KP_Delete"  , xK_KP_Delete)
+              , ("KP_Equal"   , xK_KP_Equal)
+              , ("KP_Multiply", xK_KP_Multiply)
+              , ("KP_Add"     , xK_KP_Add)
+              , ("KP_Separator", xK_KP_Separator)
+              , ("KP_Subtract", xK_KP_Subtract)
+              , ("KP_Decimal" , xK_KP_Decimal)
+              , ("KP_Divide"  , xK_KP_Divide)
+              , ("KP_0"       , xK_KP_0)
+              , ("KP_1"       , xK_KP_1)
+              , ("KP_2"       , xK_KP_2)
+              , ("KP_3"       , xK_KP_3)
+              , ("KP_4"       , xK_KP_4)
+              , ("KP_5"       , xK_KP_5)
+              , ("KP_6"       , xK_KP_6)
+              , ("KP_7"       , xK_KP_7)
+              , ("KP_8"       , xK_KP_8)
+              , ("KP_9"       , xK_KP_9)
               ]
 
 -- | Given a configuration record and a list of (key sequence
