@@ -13,7 +13,7 @@
 module XMonad.Actions.Search (    -- * Usage
                                   -- $usage
                                search,
-                               SearchEngine,
+                               SearchEngine(..),
                                searchEngine,
                                promptSearch,
                                promptSearchBrowser,
