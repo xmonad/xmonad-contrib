@@ -17,6 +17,7 @@
 module XMonad.Layout.PerWorkspace
     ( -- * Usage
       -- $usage
+      PerWorkspace,
       onWorkspace, onWorkspaces,
       modWorkspace, modWorkspaces
     ) where
