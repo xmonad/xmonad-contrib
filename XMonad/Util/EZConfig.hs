@@ -180,7 +180,7 @@ removeMouseBindings conf mouseBindingList =
 -- > <Insert>
 -- > <Break>
 -- > <Space>
--- > <F1>-<F12>
+-- > <F1>-<F24>
 -- > <KP_Space>
 -- > <KP_Tab>
 -- > <KP_Enter>
@@ -302,7 +302,7 @@ keyNames = functionKeys ++ specialKeys
 --   the associated KeySyms.
 functionKeys :: [(String, KeySym)]
 functionKeys = [ ("F" ++ show n, k)
-               | (n,k) <- zip ([1..12] :: [Int]) [xK_F1..] ]
+               | (n,k) <- zip ([1..24] :: [Int]) [xK_F1..] ]
 
 -- | A list of special key names and their corresponding KeySyms.
 specialKeys :: [(String, KeySym)]
