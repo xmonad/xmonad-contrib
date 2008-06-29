@@ -45,7 +45,7 @@ ways. Suppose you wanted to emulate Ratpoison's \'banish\' command,
 which moves the mouse pointer to a corner; you could define:
 
 > banish :: X ()
-> banish = warpToWindow 1 1 -- lower left
+> banish = warpToWindow 1 1 -- lower right
 
 -}
 
