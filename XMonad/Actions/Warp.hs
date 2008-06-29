@@ -15,6 +15,8 @@
 module XMonad.Actions.Warp (
                            -- * Usage
                            -- $usage
+                           banish,
+                           Corner(..),
                            warpToScreen,
                            warpToWindow
                           ) where
@@ -39,18 +41,30 @@ then add appropriate keybindings to warp the pointer; for example:
 >       | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
 
 Note that warping to a particular screen may change the focus.
-
-'warpToScreen' and 'warpToWindow' can be used in a variety of
-ways. Suppose you wanted to emulate Ratpoison's \'banish\' command,
-which moves the mouse pointer to a corner; you could define:
-
-> banish :: X ()
-> banish = warpToWindow 1 1 -- lower right
-
 -}
 
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
+
+
+data Corner = UpperLeft | UpperRight | LowerLeft | LowerRight
+
+{- | Move the mouse cursor to a corner of the screen. Useful for
+   uncluttering things.
+
+   Internally, this uses numerical parameters. We parametrize on the 'Corner'
+   type so the user need not see the violence inherent in
+   the system.
+
+   'warpToScreen' and 'warpToWindow' can be used in a variety of
+   ways. Suppose you wanted to emulate Ratpoison's \'banish\' command,
+   which moves the mouse pointer to a corner? warpToWindow can do that! -}
+banish :: Corner -> X ()
+banish direction = case direction of
+                     LowerRight -> warpToWindow 1 1
+                     LowerLeft  -> warpToWindow 0 1
+                     UpperLeft  -> warpToWindow 0 0
+                     UpperRight  -> warpToWindow 1 0
 
 fraction :: (Integral a, Integral b) => Rational -> a -> b
 fraction f x = floor (f * fromIntegral x)
