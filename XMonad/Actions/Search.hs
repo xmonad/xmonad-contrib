@@ -21,6 +21,7 @@ module XMonad.Actions.Search (    -- * Usage
                                selectSearchBrowser,
 
                                amazon,
+                               codesearch,
                                dictionary,
                                google,
                                hoogle,
@@ -28,6 +29,7 @@ module XMonad.Actions.Search (    -- * Usage
                                maps,
                                mathworld,
                                scholar,
+                               thesaurus,
                                wayback,
                                wikipedia,
                                youtube
@@ -71,7 +73,9 @@ import XMonad.Util.XSelection (getSelection)
 
 * 'amazon' -- Amazon keyword search.
 
-* 'dictionary' -- dictionary.com search.
+* 'codesearch' -- Google Labs Code Search search.
+
+* 'dictionary' -- dictionary.reference.com search.
 
 * 'google' -- basic Google search.
 
@@ -84,6 +88,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'mathworld' -- Wolfram MathWorld search.
 
 * 'scholar' -- Google scholar academic search.
+
+* 'thesaurus' -- thesaurus.reference.com search.
 
 * 'wayback' -- the Wayback Machine.
 
@@ -190,9 +196,10 @@ searchEngine :: Name -> Site -> SearchEngine
 searchEngine name site = SearchEngine name site
 
 -- The engines.
-amazon, dictionary, google, hoogle, imdb, maps, mathworld,
-  scholar, wayback, wikipedia, youtube :: SearchEngine
+amazon, codesearch, dictionary, google, hoogle, imdb, maps, mathworld,
+  scholar, thesaurus, wayback, wikipedia, youtube :: SearchEngine
 amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+codesearch = searchEngine "codesearch" "http://www.google.com/codesearch?q="
 dictionary = searchEngine "dictionary" "http://dictionary.reference.com/browse/"
 google     = searchEngine "google"     "http://www.google.com/search?num=100&q="
 hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
@@ -200,6 +207,7 @@ imdb       = searchEngine "imdb"       "http://www.imdb.com/Find?select=all&for=
 maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
 mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
 scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
+thesaurus  = searchEngine "thesaurus"  "http://thesaurus.reference.com/search?q="
 wikipedia  = searchEngine "wikipedia"  "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
 youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
