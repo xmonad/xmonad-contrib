@@ -52,6 +52,7 @@ import XMonad.Util.Font
 import XMonad.Util.XSelection (getSelection)
 
 import Control.Arrow ((&&&))
+import Control.Concurrent (threadDelay)
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
@@ -98,11 +99,13 @@ data XPConfig =
         , fgHLight          :: String     -- ^ Font color of a highlighted completion entry
         , bgHLight          :: String     -- ^ Background color of a highlighted completion entry
         , borderColor       :: String     -- ^ Border color
-        , promptBorderWidth :: !Dimension  -- ^ Border width
+        , promptBorderWidth :: !Dimension -- ^ Border width
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
-        , height            :: !Dimension  -- ^ Window height
-        , historySize       :: !Int        -- ^ The number of history entries to be saved
+        , height            :: !Dimension -- ^ Window height
+        , historySize       :: !Int       -- ^ The number of history entries to be saved
         , defaultText       :: String     -- ^ The text by default in the prompt line
+        , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
+                                          --   and delay by x microseconds
         } deriving (Show, Read)
 
 data XPType = forall p . XPrompt p => XPT p
@@ -171,6 +174,7 @@ defaultXPConfig =
         , height            = 18
         , historySize       = 256
         , defaultText       = []
+        , autoComplete      = Nothing
         }
 
 type ComplFunction = String -> IO [String]
@@ -303,6 +307,25 @@ completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
 
+tryAutoComplete :: XP Bool
+tryAutoComplete = do
+    ac <- gets (autoComplete . config)
+    case ac of
+        Just d -> do cs <- getCompletions
+                     case cs of
+                         [c] -> runCompleted c d >> return True
+                         _   -> return False
+        Nothing    -> return False
+  where runCompleted cmd delay = do
+            st <- get
+            let new_command = nextCompletion (xptype st) (command st) [cmd]
+            modify $ \s -> s { command = "autocompleting..." }
+            updateWindows
+            io $ threadDelay delay
+            modify $ \s -> s { command = new_command }
+            historyPush
+            return True
+
 -- KeyPresses
 
 data Direction = Prev | Next deriving (Eq,Show,Read)
@@ -343,7 +366,8 @@ keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
     | otherwise = do insertString (decodeInput s)
                      updateWindows
-                     eventLoop handle
+                     completed <- tryAutoComplete
+                     unless completed $ eventLoop handle
 
 -- KeyPress and State
 
