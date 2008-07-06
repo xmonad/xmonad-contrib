@@ -17,6 +17,7 @@ module XMonad.Hooks.EwmhDesktops (
     -- $usage
     EwmhDesktopsHook,
     ewmhDesktopsLogHook,
+    ewmhDesktopsLogHookCustom,
     ewmhDesktopsLayout
     ) where
 
@@ -53,13 +54,23 @@ import XMonad.Hooks.EventHook
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
+
+
+
 -- |
 -- Notifies pagers and window lists, such as those in the gnome-panel
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
-ewmhDesktopsLogHook = withWindowSet $ \s -> do
+ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+
+
+-- |
+-- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
+-- user-specified function to transform the workspace list (post-sorting)
+ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
+ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let ws = sort' $ W.workspaces s
+    let ws = f $ sort' $ W.workspaces s
 
     setSupported
 
