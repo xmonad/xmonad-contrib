@@ -137,42 +137,86 @@ plane function numberLines_ limits direction = do
                                 return 1
 
     let
-        horizontal f =
-            if line < areasLine
-                then mod (f column) columns + lineNumber
-                else mod (f column) areasColumn + lineNumber
+        circular_ :: Int
+        circular_ = circular currentWS
 
-        vertical f =
-            if column >= areasColumn
-                then mod (f currentWS columns) $ areasLine * columns
-                else mod (f currentWS columns) $ (areasLine + 1) * columns
+        circular :: Int -> Int
+        circular =
+            [ onLine   pred
+            , onColumn pred
+            , onLine   succ
+            , onColumn succ
+            ]
+            !! fromEnum direction
 
-        lineNumber = line * columns
+        onLine :: (Int -> Int) -> Int -> Int
+        onLine f currentWS_
+            | line < areasLine = mod_ columns
+            | otherwise        = mod_ areasColumn
+            where
+                line, column :: Int
+                (line, column) = split currentWS_
+
+                mod_ :: Int -> Int
+                mod_ columns_ = compose line $ mod (f column) columns_
+
+        onColumn :: (Int -> Int) -> Int -> Int
+        onColumn f currentWS_
+            | column < areasColumn || areasColumn == 0  = mod_ numberLines
+            | otherwise                                 = mod_ $ pred numberLines
+            where
+                line, column :: Int
+                (line, column) = split currentWS_
+
+                mod_ :: Int -> Int
+                mod_ lines_ = compose (mod (f line) lines_) column
+
+        compose :: Int -> Int -> Int
+        compose line column = line * columns + column
+
+        split :: Int -> (Int, Int)
+        split currentWS_ =
+            (operation div, operation mod)
+            where
+                operation :: (Int -> Int -> Int) -> Int
+                operation f = f currentWS_ columns
+
+        areasLine :: Int
         areasLine = div areas columns
-        areasColumn = mod areas columns
-        line = div currentWS columns
-        column = mod currentWS columns
 
+        areasColumn :: Int
+        areasColumn = mod areas columns
+
+        columns :: Int
         columns =
             if mod areas numberLines == 0 then preColumns else preColumns + 1
 
+        currentWS :: Int
         currentWS = fromJust mCurrentWS
+
+        preColumns :: Int
         preColumns = div areas numberLines
+
+        mCurrentWS :: Maybe Int
         mCurrentWS = elemIndex (currentTag $ windowset state) areaNames
+
+        areas :: Int
         areas = length areaNames
 
-        run condition position =
-            when (limits == Circular || condition) $
-            windows $ function $ areaNames !! position
+        run :: (Int -> Int) -> X ()
+        run f = windows $ function $ areaNames !! f currentWS
 
-        areaNames = workspaces $ config $ xconf
+        areaNames :: [String]
+        areaNames = workspaces $ config xconf
 
     when (isJust mCurrentWS) $
-        case direction of
-            ToUp    -> run (line   /= 0                ) $ vertical (-)
-            ToDown  -> run (currentWS + columns < areas) $ vertical (+)
-            ToLeft  -> run (column /= 0                ) $ horizontal pred
-            ToRight -> run (column /= columns - 1      ) $ horizontal succ
+        case limits of
+        Finite   ->
+            when ((replicate 2 (circular_ < currentWS) ++ replicate 2 (circular_ > currentWS)) !! fromEnum direction)
+            $ run circular
+
+        Circular ->
+            run circular
 
 gconftool :: String
 gconftool = "gconftool-2"
