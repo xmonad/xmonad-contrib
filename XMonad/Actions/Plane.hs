@@ -71,6 +71,7 @@ data Limits
                -- to the next region.
     | Circular -- ^ If you try to move, you'll get to the other edge, on the
                -- other side.
+    | Linear   -- ^ The plan comes as a row.
     deriving Eq
 
 -- | The number of lines in which the workspaces will be arranged.  It's
@@ -137,6 +138,9 @@ plane function numberLines_ limits direction = do
                                 return 1
 
     let
+        notBorder :: Bool
+        notBorder = (replicate 2 (circular_ < currentWS) ++ replicate 2 (circular_ > currentWS)) !! fromEnum direction
+
         circular_ :: Int
         circular_ = circular currentWS
 
@@ -146,6 +150,15 @@ plane function numberLines_ limits direction = do
             , onColumn pred
             , onLine   succ
             , onColumn succ
+            ]
+            !! fromEnum direction
+
+        linear :: Int -> Int
+        linear =
+            [ onLine   pred . onColumn pred
+            , onColumn pred . onLine pred
+            , onLine   succ . onColumn succ
+            , onColumn succ . onLine succ
             ]
             !! fromEnum direction
 
@@ -211,12 +224,9 @@ plane function numberLines_ limits direction = do
 
     when (isJust mCurrentWS) $
         case limits of
-        Finite   ->
-            when ((replicate 2 (circular_ < currentWS) ++ replicate 2 (circular_ > currentWS)) !! fromEnum direction)
-            $ run circular
-
-        Circular ->
-            run circular
+        Finite   -> when notBorder $ run circular
+        Circular -> run circular
+        Linear -> if notBorder then run circular else run linear
 
 gconftool :: String
 gconftool = "gconftool-2"
