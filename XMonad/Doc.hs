@@ -56,8 +56,8 @@ is available from <http://code.haskell.org/XMonadContrib> via darcs:
 Each stable release of xmonad is accompanied by a stable release of
 the contrib library, which you should use if (and only if) you're
 using a stable release of xmonad.  You can find the most recent
-(Mar. 2008) tarball here:
-<http://hackage.haskell.org/cgi-bin/hackage-scripts/package/xmonad-contrib-0.7>
+tarball here:
+<http://hackage.haskell.org/cgi-bin/hackage-scripts/package/xmonad-contrib>
 
 -}
 
