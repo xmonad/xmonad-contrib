@@ -28,7 +28,6 @@ module XMonad.Actions.Plane
     , Limits (..)
 
     -- * Navigating through workspaces
-    -- $navigating
     , planeShift
     , planeMove
     )
