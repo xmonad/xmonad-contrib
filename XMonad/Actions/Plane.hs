@@ -65,13 +65,12 @@ import XMonad.Util.Run
 -- | Direction to go in the plane.
 data Direction =  ToLeft | ToUp | ToRight | ToDown deriving Enum
 
--- | Defines whether it's a finite or a circular organization of workspaces.
+-- | Defines the behaviour when you're trying to move out of the limits.
 data Limits
-    = Finite   -- ^ When you're at a edge of the plane, there's no way to move
-               -- to the next region.
-    | Circular -- ^ If you try to move, you'll get to the other edge, on the
-               -- other side.
-    | Linear   -- ^ The plan comes as a row.
+    = Finite   -- ^ Ignore the function call, and keep in the same workspace.
+    | Circular -- ^ Get on the other side, like in the Snake game.
+    | Linear   -- ^ The plan comes as a row, so it goes to the next or prev if
+               -- the workspaces were numbered.
     deriving Eq
 
 -- | The number of lines in which the workspaces will be arranged.  It's
@@ -82,26 +81,10 @@ data Lines
     = GConf     -- ^ Use @gconftool-2@ to find out the number of lines.
     | Lines Int -- ^ Specify the number of lines explicity.
 
--- $navigating
---
--- There're two parameters that must be provided to navigate, and it's a good
--- idea to use them with the same values in each keybinding.
---
--- The first is the number of lines in which the workspaces are going to be
--- organized.  It's possible to use a number of lines that is not a divisor
--- of the number of workspaces, but the results are better when using a
--- divisor.  If it's not a divisor, the last line will have the remaining
--- workspaces.
---
--- The other one is 'Limits'.
-
 -- | Shift a window to the next workspace in 'Direction'.  Note that this will
--- also move to the next workspace.
-planeShift
-    :: Lines
-    -> Limits
-    -> Direction
-    -> X ()
+-- also move to the next workspace.  It's a good idea to use the same 'Lines'
+-- and 'Limits' for all the bindings.
+planeShift :: Lines -> Limits -> Direction -> X ()
 planeShift = plane shift'
 
 shift' ::
