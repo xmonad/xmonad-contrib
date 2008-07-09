@@ -27,6 +27,7 @@ module XMonad.Actions.Plane
     -- * Data types
     Direction (..)
     , Limits (..)
+    , Lines (..)
 
     -- * Navigating through workspaces
     , planeShift
@@ -40,6 +41,7 @@ import Data.Maybe
 
 import XMonad
 import XMonad.StackSet hiding (workspaces)
+import XMonad.Util.Run
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -52,7 +54,7 @@ import XMonad.StackSet hiding (workspaces)
 -- >
 -- > myNewkeys (XConfig {modMask = m}) =
 -- >     fromList
--- >     [ ((keyMask .|. m, keySym), function 3 Finite direction)
+-- >     [ ((keyMask .|. m, keySym), function (Lines 3) Finite direction)
 -- >     | (keySym, direction) <- zip [xK_Left .. xK_Down] $ enumFrom ToLeft
 -- >     , (keyMask, function) <- [(0, planeMove), (shiftMask, planeShift)]
 -- >     ]
@@ -71,6 +73,14 @@ data Limits
                -- other side.
     deriving Eq
 
+-- | The number of lines in which the workspaces will be arranged.  It's
+-- possible to use a number of lines that is not a divisor of the number of
+-- workspaces, but the results are better when using a divisor.  If it's not a
+-- divisor, the last line will have the remaining workspaces.
+data Lines
+    = GConf     -- ^ Use @gconftool-2@ to find out the number of lines.
+    | Lines Int -- ^ Specify the number of lines explicity.
+
 -- $navigating
 --
 -- There're two parameters that must be provided to navigate, and it's a good
@@ -87,7 +97,7 @@ data Limits
 -- | Shift a window to the next workspace in 'Direction'.  Note that this will
 -- also move to the next workspace.
 planeShift
-    :: Int  -- ^ Number of lines.
+    :: Lines
     -> Limits
     -> Direction
     -> X ()
@@ -98,19 +108,27 @@ shift' ::
 shift' area = greedyView area . shift area
 
 -- | Move to the next workspace in 'Direction'.
-planeMove
-    :: Int  -- ^ Number of columns.
-    -> Limits
-    -> Direction
-    -> X ()
+planeMove :: Lines -> Limits -> Direction -> X ()
 planeMove = plane greedyView
 
 plane ::
-    (WorkspaceId -> WindowSet -> WindowSet) -> Int -> Limits -> Direction ->
+    (WorkspaceId -> WindowSet -> WindowSet) -> Lines -> Limits -> Direction ->
     X ()
-plane function numberLines limits direction = do
+plane function numberLines_ limits direction = do
     state <- get
     xconf <- ask
+
+    numberLines <-
+        liftIO $
+        case numberLines_ of
+            Lines numberLines__ ->
+                return numberLines__
+            GConf               ->
+                do
+                    numberLines__ <-
+                        runProcessWithInput "gconftool-2"
+                        ["--get", "/apps/panel/applets/workspace_switcher_screen0/prefs/num_rows"] ""
+                    return $ read numberLines__
 
     let
         horizontal f =
