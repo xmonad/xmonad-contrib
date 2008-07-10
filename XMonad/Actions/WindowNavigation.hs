@@ -10,6 +10,8 @@
 -- lets you assign keys to move up\/down\/left\/right, based on actual cartesian
 -- window coordinates, rather than just going j\/k on the stack.
 --
+-- This module is experimental. You'll have better luck with the original.
+--
 -- This module differs from the other in a few ways:
 --
 --   (1) You can go up\/down\/left\/right across multiple screens.
@@ -76,7 +78,9 @@ import Graphics.X11.Xlib
 --  - cleanup (including inr)
 --  - more documentation
 --  - tests? (esp. for edge cases in currentPosition)
+--  - screen 1, 1+2/w 3, M-d, M-w, M-2 (1+2/w 2), M-e, M-a - goes to w 3, should be w 2
 --  - solve the 2+3, middle right to bottom left problem
+--  - command to iteratively swapUp/swapDown instead of directly swapping with target
 --  - manageHook to draw window decos?
 
 withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
