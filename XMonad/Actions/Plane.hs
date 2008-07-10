@@ -126,9 +126,15 @@ plane function numberLines_ limits direction = do
             GConf               ->
                 do
                     numberLines__ <-
-                        runProcessWithInput "gconftool-2"
-                        ["--get", "/apps/panel/applets/workspace_switcher_screen0/prefs/num_rows"] ""
-                    return $ read numberLines__
+                        runProcessWithInput gconftool parameters ""
+                    case reads numberLines__ of
+                        [(numberRead, _)] -> return numberRead
+                        _                 ->
+                            do
+                                trace $
+                                    "XMonad.Actions.Plane: Could not parse the output of " ++ gconftool ++
+                                    unwords parameters ++ ": " ++ numberLines__ ++ "; assuming 1."
+                                return 1
 
     let
         horizontal f =
@@ -167,3 +173,9 @@ plane function numberLines_ limits direction = do
             ToDown  -> run (currentWS + columns < areas) $ vertical (+)
             ToLeft  -> run (column /= 0                ) $ horizontal pred
             ToRight -> run (column /= columns - 1      ) $ horizontal succ
+
+gconftool :: String
+gconftool = "gconftool-2"
+
+parameters :: [String]
+parameters = ["--get", "/apps/panel/applets/workspace_switcher_screen0/prefs/num_rows"]
