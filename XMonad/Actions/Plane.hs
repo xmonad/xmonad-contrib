@@ -36,7 +36,7 @@ module XMonad.Actions.Plane
     where
 
 import Control.Monad
-import Data.List hiding (union)
+import Data.List
 import Data.Maybe
 
 import XMonad
