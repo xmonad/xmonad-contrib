@@ -1,10 +1,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Dmenu
--- Copyright   :  (c) Spencer Janssen <sjanssen@cse.unl.edu>
+-- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --
--- Maintainer  :  Spencer Janssen <sjanssen@cse.unl.edu>
+-- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --

@@ -3,10 +3,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Kde
--- Copyright    : (c) Spencer Janssen <sjanssen@cse.unl.edu>
+-- Copyright    : (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License      : BSD
 --
--- Maintainer   : Spencer Janssen <sjanssen@cse.unl.edu>
+-- Maintainer   : Spencer Janssen <spencerjanssen@gmail.com>
 --
 -- This module provides a config suitable for use with the KDE desktop
 -- environment.

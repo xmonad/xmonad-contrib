@@ -4,7 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DragPane
--- Copyright   :  (c) Spencer Janssen <sjanssen@cse.unl.edu>
+-- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 --                    David Roundy <droundy@darcs.net>,
 --                    Andrea Rossato <andrea.rossato@unibz.it>
 -- License     :  BSD3-style (see LICENSE)
