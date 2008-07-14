@@ -273,10 +273,10 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then do
-                  -- Call the urgencyHook.
-                  callUrgencyHook wuh w
                   -- Add to list of urgents.
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
+                  -- Call the urgencyHook.
+                  callUrgencyHook wuh w
                 else do
                   -- Remove from list of urgents.
                   adjustUrgents (delete w)
