@@ -29,6 +29,9 @@ module XMonad.Actions.Plane
     , Limits (..)
     , Lines (..)
 
+    -- * Key bindings
+    , planeKeys
+
     -- * Navigating through workspaces
     , planeShift
     , planeMove
@@ -37,6 +40,7 @@ module XMonad.Actions.Plane
 
 import Control.Monad
 import Data.List
+import Data.Map hiding (split)
 import Data.Maybe
 
 import XMonad
@@ -52,12 +56,7 @@ import XMonad.Util.Run
 -- >
 -- > myKeys conf = union (keys defaultConfig conf) $ myNewKeys conf
 -- >
--- > myNewkeys (XConfig {modMask = m}) =
--- >     fromList
--- >     [ ((keyMask .|. m, keySym), function (Lines 3) Finite direction)
--- >     | (keySym, direction) <- zip [xK_Left .. xK_Down] $ enumFrom ToLeft
--- >     , (keyMask, function) <- [(0, planeMove), (shiftMask, planeShift)]
--- >     ]
+-- > myNewkeys (XConfig {modMask = modm}) = planeKeys modm (Lines 3) Finite
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
@@ -80,6 +79,18 @@ data Limits
 data Lines
     = GConf     -- ^ Use @gconftool-2@ to find out the number of lines.
     | Lines Int -- ^ Specify the number of lines explicity.
+
+-- | This is the way most people would like to use this module.  It ataches the
+-- 'KeyMask' passed as a parameter with 'xK_Left', 'xK_Up', 'xK_Right' and
+-- 'xK_Down', associating it with 'planeMove' to the corresponding 'Direction'.
+-- It also associates these bindings with 'shiftMask' to 'planeShift'.
+planeKeys :: KeyMask -> Lines -> Limits -> Map (KeyMask, KeySym) (X ())
+planeKeys modm ln limits =
+  fromList $
+  [ ((keyMask, keySym), function ln limits direction)
+  | (keySym, direction) <- zip [xK_Left .. xK_Down] $ enumFrom ToLeft
+  , (keyMask, function) <- [(modm, planeMove), (shiftMask .|. modm, planeShift)]
+  ]
 
 -- | Shift a window to the next workspace in 'Direction'.  Note that this will
 -- also move to the next workspace.  It's a good idea to use the same 'Lines'
