@@ -57,7 +57,7 @@ module XMonad.Hooks.UrgencyHook (
                                  dzenUrgencyHook,
                                  DzenUrgencyHook(..), seconds,
                                  NoUrgencyHook(..),
-
+                                 FocusHook(..),
                                  -- * Stuff for developers:
                                  readUrgents, withUrgents,
                                  StdoutUrgencyHook(..),
@@ -337,6 +337,17 @@ instance UrgencyHook DzenUrgencyHook where
         whenJust (W.findTag w ws) (flash name)
       where flash name index =
                   dzenWithArgs (show name ++ " requests your attention on workspace " ++ index) a d
+
+{- | A hook which will automatically send you to anything which sets the urgent
+  flag (as opposed to printing some sort of message. You would use this as
+  usual, eg.
+
+  > withUrgencyHook FocusHook $ myconfig { ...
+-}
+data FocusHook = FocusHook deriving (Read, Show)
+
+instance UrgencyHook FocusHook where
+    urgencyHook _ _ = focusUrgent
 
 -- | Flashes when a window requests your attention and you can't see it.
 -- Defaults to a duration of five seconds, and no extra args to dzen.
