@@ -46,7 +46,7 @@ arrange :: Rectangle -> [a] -> [(a, Rectangle)]
 arrange (Rectangle rx ry rw rh) st = zip st rectangles
     where
     nwins = length st
-    ncols = max 1 . round . sqrt $ fromIntegral nwins * fromIntegral rw / (fromIntegral rh :: Double)
+    ncols = max 1 . round . sqrt $ fromIntegral nwins * 9 * fromIntegral rw / (16 * fromIntegral rh :: Double)
     mincs = nwins `div` ncols
     extrs = nwins - ncols * mincs
     chop :: Int -> Dimension -> [(Position, Dimension)]

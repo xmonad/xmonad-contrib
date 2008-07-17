@@ -109,7 +109,7 @@ arrange' :: D -> [D -> D] -> [Rectangle]
 arrange' (rw, rh) adjs = reverse $ doRect rh rw (fromIntegral ncolumns) (ecols ++ cols)
     where
     nwindows = length adjs
-    ncolumns = max 1 . round . sqrt $ fromIntegral nwindows * fromIntegral rw / (fromIntegral rh :: Double)
+    ncolumns = max 1 . round . sqrt $ fromIntegral nwindows * 9 * fromIntegral rw / (16 * fromIntegral rh :: Double)
     nrows = nwindows `div` ncolumns
     nextras = nwindows - ncolumns * nrows
     (ecols, adjs') = replicateS nextras (splitAt (nrows + 1)) $ reverse adjs
