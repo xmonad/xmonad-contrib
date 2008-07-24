@@ -107,6 +107,7 @@ library
                         XMonad.Config.PlainConfig
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
+                        XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EventHook
                         XMonad.Hooks.EwmhDesktops
