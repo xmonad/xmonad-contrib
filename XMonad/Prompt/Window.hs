@@ -73,16 +73,14 @@ windowPromptBring c = doPrompt Bring c
 doPrompt :: WindowPrompt -> XPConfig -> X ()
 doPrompt t c = do
   a <- case t of
-         Goto  -> return . gotoAction  =<< windowMapWith (W.tag . fst)
-         Bring -> return . bringAction =<< windowMapWith snd
-  wm <- windowMapWith id
+         Goto  -> fmap gotoAction  windowMap
+         Bring -> fmap bringAction windowMap
+  wm <- windowMap
   mkXPrompt t c (compList wm) a
 
     where
-
       winAction a m    = flip whenJust (windows . a) . flip M.lookup m
-      gotoAction       = winAction W.greedyView
+      gotoAction       = winAction W.focusWindow
       bringAction      = winAction bringWindow
-      bringWindow w ws = W.shiftWin (W.tag . W.workspace . W.current $ ws) w ws
 
       compList m s = return . filter (isPrefixOf s) . map fst . M.toList $ m
