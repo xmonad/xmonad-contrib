@@ -21,9 +21,8 @@ sjanssenConfig = do
     xmobar <- spawnPipe "xmobar"
     return $ defaultConfig
         { terminal = "urxvtc"
-        , workspaces = ["irc", "web"] ++ map show [3 .. 7 :: Int] ++ ["mail", "im"]
+        , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
         , logHook = dynamicLogWithPP $ sjanssenPP { ppOutput = hPutStrLn xmobar }
-        , modMask = mod4Mask
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
                 [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w))
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
@@ -31,7 +30,7 @@ sjanssenConfig = do
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
         , layoutHook = modifiers layouts
         , manageHook = composeAll [className =? x --> doF (W.shift w)
-                                    | (x, w) <- [ ("Firefox", "web"), ("Pidgin", "im")
+                                    | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")]]
                        <+> manageHook defaultConfig <+> manageDocks
         }

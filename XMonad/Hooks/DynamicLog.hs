@@ -456,7 +456,7 @@ xmobarPP = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
 -- example.  Note the use of 'xmobarColor' and the record update on
 -- 'defaultPP'.
 sjanssenPP :: PP
-sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "#ff000000"
+sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "black"
                        , ppTitle = xmobarColor "#00ee00" "" . shorten 120
                        }
 
