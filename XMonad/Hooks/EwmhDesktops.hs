@@ -39,12 +39,14 @@ import XMonad.Hooks.EventHook
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
 -- > myLogHook :: X ()
--- > myLogHook = do ewmhDesktopsLogHook
--- >                return ()
+-- > myLogHook = ewmhDesktopsLogHook
 -- >
--- > layoutHook = ewmhDesktopsLayout $ avoidStruts $ simpleTabbed ||| Full ||| etc..
+-- > myLayoutHook = ewmhDesktopsLayout $ avoidStruts $ layoutHook defaultConfig
 -- >
 -- > main = xmonad defaultConfig { layoutHook = myLayouts, logHook = myLogHook }
+--
+-- 'avoidStruts' is used to automatically leave space for dock programs, and
+-- can be found in 'XMonad.Hooks.ManageDocks'.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
