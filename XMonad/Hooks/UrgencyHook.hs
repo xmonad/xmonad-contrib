@@ -52,7 +52,8 @@ module XMonad.Hooks.UrgencyHook (
 
                                  -- * Stuff for your config file:
                                  withUrgencyHook, withUrgencyHookC,
-                                 suppressWhen, SuppressWhen(..),
+                                 UrgencyConfig(..), urgencyConfig,
+                                 SuppressWhen(..),
                                  focusUrgent,
                                  dzenUrgencyHook,
                                  DzenUrgencyHook(..), seconds,
@@ -194,31 +195,33 @@ import Foreign (unsafePerformIO)
 
 -- | This is the method to enable an urgency hook. It suppresses urgency status
 -- for windows that are currently visible. If you'd like to change that behavior,
--- use withUrgencyHookC.
+-- use 'withUrgencyHookC'.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
-withUrgencyHook hook conf = withUrgencyHookC hook id conf
+withUrgencyHook hook conf = withUrgencyHookC hook urgencyConfig conf
 
 -- | If you'd like to configure *when* to trigger the urgency hook, call this
--- function with an extra mutator function. Or, by example:
+-- function with a custom 'UrgencyConfig'. Or, by example:
 --
--- > withUrgencyHookC dzenUrgencyHook { ... } (suppressWhen Focused)
+-- > withUrgencyHookC dzenUrgencyHook { ... } urgencyConfig { suppressWhen = Focused }
 --
 -- (Don't type the @...@, you dolt.) See documentation on your options at 'SuppressWhen'.
 withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
-                    h -> (WithUrgencyHook h -> WithUrgencyHook h) -> XConfig l
-                      -> XConfig (HandleEvent (WithUrgencyHook h) l)
-withUrgencyHookC hook hookMod conf = conf {
-        layoutHook = eventHook withUrgency $ layoutHook conf,
-        logHook = cleanupUrgents sw >> logHook conf
+                    h -> UrgencyConfig -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
+withUrgencyHookC hook urgConf conf = conf {
+        layoutHook = eventHook (WithUrgencyHook hook urgConf) $ layoutHook conf,
+        logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf
     }
-  where withUrgency@(WithUrgencyHook _ sw) = hookMod $ WithUrgencyHook hook Visible
 
--- | See 'withUrgencyHookC' for an example use. 'suppressWhen' is a global configuration
--- option, applicable to all urgency hooks, whereas the stuff inside the @{ ... }@ is
--- type-specific.
-suppressWhen :: UrgencyHook h => SuppressWhen -> WithUrgencyHook h -> WithUrgencyHook h
-suppressWhen sw (WithUrgencyHook hook _) = WithUrgencyHook hook sw
+-- | Global configuration, applicable to all types of 'UrgencyHook'.
+data UrgencyConfig = UrgencyConfig
+    { suppressWhen :: SuppressWhen -- ^ see 'SuppressWhen' for options
+    } deriving (Read, Show)
+
+-- | The default 'UrgencyConfig'. Use a variation of this in your config just
+-- as you use a variation of defaultConfig for your xmonad definition.
+urgencyConfig :: UrgencyConfig
+urgencyConfig = UrgencyConfig { suppressWhen = Visible }
 
 -- | A set of choices as to /when/ you should (or rather, shouldn't) be notified of an urgent window.
 -- The default is 'Visible'. Prefix each of the following with \"don't bug me when\":
@@ -252,7 +255,7 @@ readUrgents = io $ readIORef urgents
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
-data WithUrgencyHook h = WithUrgencyHook h SuppressWhen deriving (Read, Show)
+data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig deriving (Read, Show)
 
 -- The Non-ICCCM Manifesto:
 -- Note: Some non-standard choices have been made in this implementation to
@@ -291,7 +294,7 @@ adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents f = io $ modifyIORef urgents f
 
 callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
-callUrgencyHook (WithUrgencyHook hook sw) w =
+callUrgencyHook (WithUrgencyHook hook UrgencyConfig { suppressWhen = sw }) w =
     whenX (not <$> shouldSuppress sw w)
           (userCode $ urgencyHook hook w)
 
