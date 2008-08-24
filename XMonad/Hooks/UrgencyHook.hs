@@ -53,7 +53,8 @@ module XMonad.Hooks.UrgencyHook (
                                  -- * Stuff for your config file:
                                  withUrgencyHook, withUrgencyHookC,
                                  UrgencyConfig(..), urgencyConfig,
-                                 SuppressWhen(..),
+                                 SuppressWhen(..), RemindWhen(..),
+                                 minutes,
                                  focusUrgent,
                                  dzenUrgencyHook,
                                  DzenUrgencyHook(..), seconds,
@@ -72,6 +73,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.EventHook
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import XMonad.Util.NamedWindows (getName)
+import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 
 import Control.Applicative ((<$>))
 import Control.Monad (when)
@@ -193,19 +195,18 @@ import Foreign (unsafePerformIO)
 -- Hopefully you already read the section on how to configure xmonad. If not,
 -- hopefully you know where to find it.
 
--- | This is the method to enable an urgency hook. It suppresses urgency status
--- for windows that are currently visible. If you'd like to change that behavior,
--- use 'withUrgencyHookC'.
+-- | This is the method to enable an urgency hook. It uses the default
+-- 'urgencyConfig' to control behavior. To change this, use 'withUrgencyHook'
+-- instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
 withUrgencyHook hook conf = withUrgencyHookC hook urgencyConfig conf
 
--- | If you'd like to configure *when* to trigger the urgency hook, call this
--- function with a custom 'UrgencyConfig'. Or, by example:
+-- | This lets you modify the defaults set in 'urgencyConfig'. An example:
 --
 -- > withUrgencyHookC dzenUrgencyHook { ... } urgencyConfig { suppressWhen = Focused }
 --
--- (Don't type the @...@, you dolt.) See documentation on your options at 'SuppressWhen'.
+-- (Don't type the @...@, you dolt.) See 'UrgencyConfig' for details on configuration.
 withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
                     h -> UrgencyConfig -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
 withUrgencyHookC hook urgConf conf = conf {
@@ -213,15 +214,12 @@ withUrgencyHookC hook urgConf conf = conf {
         logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf
     }
 
--- | Global configuration, applicable to all types of 'UrgencyHook'.
+-- | Global configuration, applied to all types of 'UrgencyHook'. See
+-- 'urgencyConfig' for the defaults.
 data UrgencyConfig = UrgencyConfig
-    { suppressWhen :: SuppressWhen -- ^ see 'SuppressWhen' for options
+    { suppressWhen :: SuppressWhen -- ^ when to trigger the urgency hook
+    , remindWhen   :: RemindWhen   -- ^ when to re-trigger the urgency hook
     } deriving (Read, Show)
-
--- | The default 'UrgencyConfig'. Use a variation of this in your config just
--- as you use a variation of defaultConfig for your xmonad definition.
-urgencyConfig :: UrgencyConfig
-urgencyConfig = UrgencyConfig { suppressWhen = Visible }
 
 -- | A set of choices as to /when/ you should (or rather, shouldn't) be notified of an urgent window.
 -- The default is 'Visible'. Prefix each of the following with \"don't bug me when\":
@@ -230,6 +228,26 @@ data SuppressWhen = Visible  -- ^ the window is currently visible
                   | Focused  -- ^ the window is currently focused
                   | Never    -- ^ ... aww, heck, go ahead and bug me, just in case.
                   deriving (Read, Show)
+
+-- | A set of choices as to when you want to be re-notified of an urgent
+-- window. Perhaps you focused on something and you miss the dzen popup bar. Or
+-- you're AFK. Or you feel the need to be more distracted. I don't care.
+--
+-- The interval arguments are in seconds. See the 'minutes' helper.
+data RemindWhen = Dont                    -- ^ triggering once is enough
+                | Repeatedly Int Interval -- ^ repeat <arg1> times every <arg2> seconds
+                | Every Interval          -- ^ repeat every <arg1> until the urgency hint is cleared
+                deriving (Read, Show)
+
+-- | A prettified way of multiplying by 60. Use like: @(5 `minutes`)@.
+minutes :: Rational -> Rational
+minutes secs = secs * 60
+
+-- | The default 'UrgencyConfig'. suppressWhen = Visible, remindWhen = Dont.
+-- Use a variation of this in your config just as you use a variation of
+-- defaultConfig for your xmonad definition.
+urgencyConfig :: UrgencyConfig
+urgencyConfig = UrgencyConfig { suppressWhen = Visible, remindWhen = Dont }
 
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
@@ -255,7 +273,32 @@ readUrgents = io $ readIORef urgents
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
-data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig deriving (Read, Show)
+adjustUrgents :: ([Window] -> [Window]) -> X ()
+adjustUrgents f = io $ modifyIORef urgents f
+
+type Interval = Rational
+
+-- | An urgency reminder, as reified for 'RemindWhen'.
+-- The last value is the countdown number, for 'Repeatedly'.
+data Reminder = Reminder { timer     :: TimerId
+                         , window    :: Window
+                         , interval  :: Interval
+                         , remaining :: Maybe Int
+                         } deriving Eq
+
+-- | Stores the list of urgency reminders.
+{-# NOINLINE reminders #-}
+reminders :: IORef [Reminder]
+reminders = unsafePerformIO (newIORef [])
+
+readReminders :: X [Reminder]
+readReminders = io $ readIORef reminders
+
+adjustReminders :: ([Reminder] -> [Reminder]) -> X ()
+adjustReminders f = io $ modifyIORef reminders f
+
+data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
+    deriving (Read, Show)
 
 -- The Non-ICCCM Manifesto:
 -- Note: Some non-standard choices have been made in this implementation to
@@ -270,33 +313,48 @@ data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig deriving (Read, Show)
 -- set urgency if a window is visible. If you have a better idea, please, let us
 -- know!
 instance UrgencyHook h => EventHook (WithUrgencyHook h) where
-    handleEvent wuh event =
-      case event of
+    handleEvent wuh event = case event of
         PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then do
-                  -- Add to list of urgents.
                   adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                  -- Call the urgencyHook.
                   callUrgencyHook wuh w
-                else do
-                  -- Remove from list of urgents.
-                  adjustUrgents (delete w)
-              -- Call logHook after IORef has been modified.
-              userCode =<< asks (logHook . config)
-        DestroyWindowEvent {ev_window = w} -> do
-          adjustUrgents (delete w)
+                else
+                  clearUrgency w
+              userCode =<< asks (logHook . config) -- call *after* IORef has been modified
+        DestroyWindowEvent {ev_window = w} ->
+          clearUrgency w
         _ ->
-          return ()
-
-adjustUrgents :: ([Window] -> [Window]) -> X ()
-adjustUrgents f = io $ modifyIORef urgents f
+          mapM_ handleReminder =<< readReminders
+      where clearUrgency w = adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)
+            handleReminder reminder = handleTimer (timer reminder) event $ reminderHook wuh reminder
 
 callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
-callUrgencyHook (WithUrgencyHook hook UrgencyConfig { suppressWhen = sw }) w =
-    whenX (not <$> shouldSuppress sw w)
-          (userCode $ urgencyHook hook w)
+callUrgencyHook (WithUrgencyHook hook UrgencyConfig { suppressWhen = sw, remindWhen = rw }) w =
+    whenX (not <$> shouldSuppress sw w) $ do
+        userCode $ urgencyHook hook w
+        case rw of
+            Repeatedly times int -> addReminder w int $ Just times
+            Every int            -> addReminder w int Nothing
+            Dont                 -> return ()
+
+addReminder :: Window -> Rational -> Maybe Int -> X ()
+addReminder w int times = do
+    timerId <- startTimer int
+    let reminder = Reminder timerId w int times
+    adjustReminders (\rs -> if w `elem` map window rs then rs else reminder : rs)
+
+reminderHook :: UrgencyHook h => WithUrgencyHook h -> Reminder -> X (Maybe a)
+reminderHook (WithUrgencyHook hook _) reminder = do
+    case remaining reminder of
+        Just x | x > 0 -> remind $ Just (x - 1)
+        Just _         -> adjustReminders $ delete reminder
+        Nothing        -> remind Nothing
+    return Nothing
+  where remind remaining' = do userCode $ urgencyHook hook (window reminder)
+                               adjustReminders $ delete reminder
+                               addReminder (window reminder) (interval reminder) remaining'
 
 shouldSuppress :: SuppressWhen -> Window -> X Bool
 shouldSuppress sw w = elem w <$> suppressibleWindows sw
