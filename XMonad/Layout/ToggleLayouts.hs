@@ -7,7 +7,7 @@
 -- Copyright    : (c) David Roundy <droundy@darcs.net>
 -- License      : BSD
 --
--- Maintainer   : David Roundy <droundy@darcs.net>
+-- Maintainer   : none
 -- Stability    : unstable
 -- Portability  : portable
 --

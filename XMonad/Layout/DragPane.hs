@@ -9,8 +9,7 @@
 --                    Andrea Rossato <andrea.rossato@unibz.it>
 -- License     :  BSD3-style (see LICENSE)
 -- 
--- Maintainer  :  David Roundy <droundy@darcs.net>
---                Andrea Rossato <andrea.rossato@unibz.it>
+-- Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
