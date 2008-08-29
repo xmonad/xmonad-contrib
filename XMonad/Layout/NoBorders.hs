@@ -6,7 +6,7 @@
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  none
+-- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
