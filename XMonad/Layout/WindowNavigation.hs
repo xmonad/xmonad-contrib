@@ -7,7 +7,7 @@
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  none
+-- Maintainer  :  Devin Mullins <me@twifkak.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
