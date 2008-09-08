@@ -280,8 +280,8 @@ eventLoop action = do
 handle :: KeyStroke -> Event -> XP ()
 handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab    = do
-  modify $ \s -> s { showComplWin = True }
   c <- getCompletions
+  if length c > 1 then modify $ \s -> s { showComplWin = True } else return ()
   completionHandle c k e
 handle ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
