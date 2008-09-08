@@ -83,6 +83,7 @@ data XPState =
         , complWin           :: Maybe Window
         , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
+	, showComplWin	     :: Bool
         , gcon               :: !GC
         , fontS              :: !XMonadFont
         , xptype             :: !XPType
@@ -105,6 +106,7 @@ data XPConfig =
         , historySize       :: !Int       -- ^ The number of history entries to be saved
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
+	, showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
                                           --   and delay by x microseconds
         } deriving (Show, Read)
 
@@ -175,6 +177,7 @@ defaultXPConfig =
         , historySize       = 256
         , defaultText       = []
         , autoComplete      = Nothing
+	, showCompletionOnTab = False
         }
 
 type ComplFunction = String -> IO [String]
@@ -189,6 +192,7 @@ initState d rw w s compl gc fonts pt h c =
         , complWin           = Nothing
         , complWinDim        = Nothing
         , completionFunction = compl
+	, showComplWin       = not (showCompletionOnTab c)
         , gcon               = gc
         , fontS              = fonts
         , xptype             = XPT pt
@@ -276,6 +280,7 @@ eventLoop action = do
 handle :: KeyStroke -> Event -> XP ()
 handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab    = do
+  modify $ \s -> s { showComplWin = True }
   c <- getCompletions
   completionHandle c k e
 handle ks (KeyEvent {ev_event_type = t, ev_state = m})
@@ -636,7 +641,7 @@ redrawComplWin compl = do
   let recreate = do destroyComplWin
                     w <- createComplWin nwi
                     drawComplWin w compl
-  if (compl /= [] )
+  if (compl /= [] && showComplWin st)
      then case complWin st of
             Just w -> case complWinDim st of
                         Just wi -> if nwi == wi -- complWinDim did not change
