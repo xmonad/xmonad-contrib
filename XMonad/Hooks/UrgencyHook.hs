@@ -54,12 +54,12 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook, withUrgencyHookC,
                                  UrgencyConfig(..), urgencyConfig,
                                  SuppressWhen(..), RemindWhen(..),
-                                 minutes,
-                                 focusUrgent,
+                                 focusUrgent, clearUrgents,
                                  dzenUrgencyHook,
-                                 DzenUrgencyHook(..), seconds,
+                                 DzenUrgencyHook(..),
                                  NoUrgencyHook(..),
                                  FocusHook(..),
+                                 minutes, seconds,
                                  -- * Stuff for developers:
                                  readUrgents, withUrgents,
                                  StdoutUrgencyHook(..),
@@ -255,6 +255,13 @@ urgencyConfig = UrgencyConfig { suppressWhen = Visible, remindWhen = Dont }
 -- > , ((modMask              , xK_BackSpace), focusUrgent)
 focusUrgent :: X ()
 focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
+
+-- | Just makes the urgents go away.
+-- Example keybinding:
+--
+-- > , ((modMask .|. shiftMask, xK_BackSpace), clearUrgents)
+clearUrgents :: X ()
+clearUrgents = adjustUrgents (const []) >> adjustReminders (const [])
 
 -- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
 -- 'readUrgents' or 'withUrgents' instead.
