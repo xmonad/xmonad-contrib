@@ -13,7 +13,7 @@
 
 module XMonad.Config.Gnome (
     -- * Usage
-    -- -- $usage
+    -- $usage
     gnomeConfig,
     gnomeRun
     ) where

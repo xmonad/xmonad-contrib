@@ -13,7 +13,7 @@
 
 module XMonad.Config.Kde (
     -- * Usage
-    -- -- $usage
+    -- $usage
     kdeConfig
     ) where
 

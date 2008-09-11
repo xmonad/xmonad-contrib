@@ -13,7 +13,7 @@
 
 module XMonad.Config.Xfce (
     -- * Usage
-    -- -- $usage
+    -- $usage
     xfceConfig
     ) where
 

@@ -12,8 +12,6 @@
 -- environment such as KDE or GNOME.
 
 module XMonad.Config.Desktop (
-    -- * Usage
-    -- -- $usage
     desktopConfig,
     desktopLayoutModifiers
     ) where
