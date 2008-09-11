@@ -46,6 +46,8 @@ module XMonad.Prompt
     , historyCompletion
     ) where
 
+import Prelude hiding (catch)
+
 import XMonad  hiding (config, io)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
@@ -61,9 +63,12 @@ import Data.Bits ((.&.))
 import Data.Maybe
 import Data.List
 import Data.Set (fromList, toList)
-import System.Environment (getEnv)
+import System.Directory
 import System.IO
-import System.Posix.Files
+import Control.Exception hiding (handle)
+
+import qualified Data.Map as Map
+import Data.Map (Map)
 
 -- $usage
 -- For usage examples see "XMonad.Prompt.Shell",
@@ -87,10 +92,10 @@ data XPState =
         , gcon               :: !GC
         , fontS              :: !XMonadFont
         , xptype             :: !XPType
-        , command            :: String
+        , commandHistory     :: W.Stack String
         , offset             :: !Int
-        , history            :: [History]
         , config             :: XPConfig
+        , successful         :: Bool
         }
 
 data XPConfig =
@@ -183,7 +188,7 @@ defaultXPConfig =
 type ComplFunction = String -> IO [String]
 
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
-          -> GC -> XMonadFont -> p -> [History] -> XPConfig -> XPState
+          -> GC -> XMonadFont -> p -> [String] -> XPConfig -> XPState
 initState d rw w s compl gc fonts pt h c =
     XPS { dpy                = d
         , rootw              = rw
@@ -196,11 +201,20 @@ initState d rw w s compl gc fonts pt h c =
         , gcon               = gc
         , fontS              = fonts
         , xptype             = XPT pt
-        , command            = defaultText c
+        , commandHistory     = W.Stack { W.focus = defaultText c
+                                       , W.up    = []
+                                       , W.down  = h }
         , offset             = length (defaultText c)
-        , history            = h
         , config             = c
+        , successful         = False
         }
+
+-- this would be much easier with functional references
+command :: XPState -> String
+command = W.focus . commandHistory
+
+setCommand :: String -> XPState -> XPState
+setCommand xs s = s { commandHistory = (commandHistory s) { W.focus = xs }}
 
 -- | Same as 'mkXPrompt', except that the action function can have
 --   type @String -> X a@, for any @a@, and the final action returned
@@ -214,25 +228,25 @@ mkXPromptWithReturn t conf compl action = do
   let d = display c
       rw = theRoot c
   s <- gets $ screenRect . W.screenDetail . W.current . windowset
+  hist <- liftIO $ readHistory
   w <- liftIO $ createWin d rw conf s
   liftIO $ selectInput d w $ exposureMask .|. keyPressMask
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
-  (hist,h) <- liftIO $ readHistory
   fs <- initXMF (font conf)
-  let st = initState d rw w s compl gc fs (XPT t) hist conf
+  let hs = fromMaybe [] $ Map.lookup (showXPrompt t) hist
+      st = initState d rw w s compl gc fs (XPT t) hs conf
   st' <- liftIO $ execStateT runXP st
 
   releaseXMF fs
   liftIO $ freeGC d gc
-  liftIO $ hClose h
-  if (command st' /= "")
+  if successful st'
     then do
-      let htw = take (historySize conf) (history st')
-      liftIO $ writeHistory htw
+      liftIO $ writeHistory $ Map.insertWith
+                                (\xs ys -> take (historySize conf) $ xs ++ ys)
+                                (showXPrompt t) [command st'] hist
       Just <$> action (command st')
-    else
-      return Nothing
+    else return Nothing
 
 -- | Creates a prompt given:
 --
@@ -297,7 +311,7 @@ completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Tab = do
   st <- get
   let updateState l = do let new_command = nextCompletion (xptype st) (command st) l
-                         modify $ \s ->  s { command = new_command, offset = length new_command }
+                         modify $ \s ->  setCommand new_command $ s { offset = length new_command }
       updateWins  l = do redrawWindows l
                          eventLoop (completionHandle l)
   case c of
@@ -324,11 +338,10 @@ tryAutoComplete = do
   where runCompleted cmd delay = do
             st <- get
             let new_command = nextCompletion (xptype st) (command st) [cmd]
-            modify $ \s -> s { command = "autocompleting..." }
+            modify $ setCommand "autocompleting..."
             updateWindows
             io $ threadDelay delay
-            modify $ \s -> s { command = new_command }
-            historyPush
+            modify $ setCommand new_command
             return True
 
 -- KeyPresses
@@ -353,19 +366,20 @@ keyPressHandle mask (ks,_)
             | ks == xK_w               -> killWord Prev >> go
             | ks == xK_g || ks == xK_c -> quit
             | otherwise  -> eventLoop handle -- unhandled control sequence
-    | ks == xK_Return    = historyPush       >> return ()
+    | ks == xK_Return    = setSuccess True
     | ks == xK_BackSpace = deleteString Prev >> go
     | ks == xK_Delete    = deleteString Next >> go
     | ks == xK_Left      = moveCursor   Prev >> go
     | ks == xK_Right     = moveCursor   Next >> go
-    | ks == xK_Up        = moveHistory  Prev >> go
-    | ks == xK_Down      = moveHistory  Next >> go
+    | ks == xK_Up        = moveHistory  W.focusUp' >> go
+    | ks == xK_Down      = moveHistory  W.focusDown' >> go
     | ks == xK_Home      = startOfLine       >> go
     | ks == xK_End       = endOfLine         >> go
     | ks == xK_Escape    = quit
     where
       go   = updateWindows >> eventLoop handle
-      quit = flushString   >> return () -- quit and discard everything
+      quit = flushString >> setSuccess False -- quit and discard everything
+      setSuccess b = modify $ \s -> s { successful = b }
 -- insert a character
 keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
@@ -379,18 +393,18 @@ keyPressHandle _ (_,s)
 -- | Kill the portion of the command before the cursor
 killBefore :: XP ()
 killBefore =
-  modify $ \s -> s { command = drop (offset s) (command s)
-                   , offset  = 0 }
+  modify $ \s -> setCommand (drop (offset s) (command s)) $ s { offset  = 0 }
 
 -- | Kill the portion of the command including and after the cursor
 killAfter :: XP ()
 killAfter =
-  modify $ \s -> s { command = take (offset s) (command s) }
+  modify $ \s -> setCommand (take (offset s) (command s)) s
 
 -- | Kill the next\/previous word
 killWord :: Direction -> XP ()
 killWord d = do
-  XPS { command = c, offset = o } <- get
+  o <- gets offset
+  c <- gets command
   let (f,ss)        = splitAt o c
       delNextWord w =
           case w of
@@ -401,7 +415,7 @@ killWord d = do
           case d of
             Next -> (f ++ delNextWord ss, o)
             Prev -> (delPrevWord f ++ ss, length $ delPrevWord f) -- laziness!!
-  modify $ \s -> s { command = ncom, offset = noff}
+  modify $ \s -> setCommand ncom $ s { offset = noff}
 
 -- | Put the cursor at the end of line
 endOfLine :: XP ()
@@ -416,12 +430,12 @@ startOfLine  =
 -- |  Flush the command string and reset the offset
 flushString :: XP ()
 flushString = do
-  modify $ \s -> s { command = "", offset = 0}
+  modify $ \s -> setCommand "" $ s { offset = 0}
 
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
 insertString str =
-  modify $ \s -> s { command = c (command s) (offset s), offset = o (offset s)}
+  modify $ \s -> setCommand (c (command s) (offset s)) $ s { offset = o (offset s)}
   where o oo = oo + length str
         c oc oo | oo >= length oc = oc ++ str
                 | otherwise = f ++ str ++ ss
@@ -434,7 +448,7 @@ pasteString = join $ io $ liftM insertString $ getSelection
 -- | Remove a character at the cursor position
 deleteString :: Direction -> XP ()
 deleteString d =
-  modify $ \s -> s { command = c (command s) (offset s), offset = o (offset s)}
+  modify $ \s -> setCommand (c (command s) (offset s)) $ s { offset = o (offset s)}
   where o oo = if d == Prev then max 0 (oo - 1) else oo
         c oc oo
             | oo >= length oc && d == Prev = take (oo - 1) oc
@@ -464,17 +478,10 @@ moveWord d = do
                  Next -> o + (ln id      ss)
   modify $ \s -> s { offset = newoff }
 
-moveHistory :: Direction -> XP ()
-moveHistory d = do
-  h <- getHistory
-  c <- gets command
-  let str = if h /= [] then head h else c
-  let nc = case elemIndex c h of
-             Just i -> case d of
-                         Prev -> h !! (if (i + 1) > (length h - 1) then 0 else i + 1)
-                         Next -> h !! (max (i - 1) 0)
-             Nothing -> str
-  modify $ \s -> s { command = nc, offset = length nc}
+moveHistory :: (W.Stack String -> W.Stack String) -> XP ()
+moveHistory f = modify $ \s -> let ch = f $ commandHistory s
+                               in s { commandHistory = ch
+                                    , offset         = length $ W.focus ch }
 
 -- X Stuff
 
@@ -678,41 +685,26 @@ printComplString d drw gc fc bc x y s = do
 
 -- History
 
-data History =
-    H { prompt :: String
-      , command_history :: String
-      } deriving (Show, Read, Eq)
+type History = Map String [String]
 
-historyPush :: XP ()
-historyPush = do
-  c <- gets command
-  when (c /= []) $ modify (\s -> s { history = nub $ H (showXPrompt (xptype s)) c : history s })
+emptyHistory :: History
+emptyHistory = Map.empty
 
-getHistory :: XP [String]
-getHistory = do
-  hist <- gets history
-  pt <- gets xptype
-  return $ map command_history . filter (\h -> prompt h == showXPrompt pt) $ hist
+getHistoryFile :: IO FilePath
+getHistoryFile = fmap (++ "/history") $ getAppUserDataDirectory "xmonad"
 
-readHistory :: IO ([History],Handle)
-readHistory = do
-  home <- getEnv "HOME"
-  let path = home ++ "/.xmonad/history"
-  f <- fileExist path
-  if f then do h <- openFile path ReadMode
-               str <- hGetContents h
-               case (reads str) of
-                 [(hist,_)] -> return (hist,h)
-                 [] -> return ([],h)
-                 _ -> return ([],h)
-       else do h <- openFile path WriteMode
-               return ([],h)
+readHistory :: IO History
+readHistory = catch readHist (const (return emptyHistory))
+ where
+    readHist = do
+        path <- getHistoryFile
+        xs <- bracket (openFile path ReadMode) hClose hGetLine
+        readIO xs
 
-writeHistory :: [History] -> IO ()
+writeHistory :: History -> IO ()
 writeHistory hist = do
-  home <- getEnv "HOME"
-  let path = home ++ "/.xmonad/history"
-  catch (writeFile path (show hist)) (\_ -> do putStrLn "error in writing"; return ())
+  path <- getHistoryFile
+  catch (writeFile path (show hist)) $ const $ hPutStrLn stderr "error in writing"
 
 -- $xutils
 
@@ -815,10 +807,4 @@ uniqSort = toList . fromList
 --   getShellCompl; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in ~/.xmonad/history.
 historyCompletion :: ComplFunction
-historyCompletion = \x -> liftM (filter $ isInfixOf x) readHistoryIO
-
--- We need to define this locally because there is no function with the type "XP a -> IO a", and
--- 'getHistory' is uselessly of the type "XP [String]".
-readHistoryIO :: IO [String]
-readHistoryIO = do (hist,_) <- readHistory
-                   return $ map command_history hist
+historyCompletion x = fmap (filter (isInfixOf x) . Map.fold (++) []) readHistory
