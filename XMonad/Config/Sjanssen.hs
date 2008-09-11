@@ -52,4 +52,5 @@ sjanssenConfig = do
     myPromptConfig = defaultXPConfig
                         { position = Top
                         , font = myFont
+                        , showCompletionOnTab = True
                         , promptBorderWidth = 0 }
