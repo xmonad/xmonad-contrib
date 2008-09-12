@@ -24,6 +24,10 @@ module XMonad.Actions.WindowGo (
 
                  raiseBrowser,
                  raiseEditor,
+                 runOrRaiseAndDo,
+                 runOrRaiseMaster,
+                 raiseAndDo,
+                 raiseMaster,
                  module XMonad.ManageHook
                 ) where
 
@@ -33,8 +37,9 @@ import Data.Char (toLower)
 import XMonad (Query(), X(), withWindowSet, spawn, runQuery, liftIO, focus)
 import XMonad.ManageHook
 import XMonad.Prompt.Shell (getBrowser, getEditor)
-import qualified XMonad.StackSet as W (allWindows, peek)
-
+import qualified XMonad.StackSet as W (allWindows, peek, swapMaster)
+import XMonad.Operations (windows)
+import Graphics.X11 (Window)
 {- $usage
 
 Import the module into your @~\/.xmonad\/xmonad.hs@:
@@ -134,3 +139,38 @@ raiseVar getvar = liftIO getvar >>= \var -> runOrRaise var (fmap (map toLower) c
 raiseBrowser, raiseEditor :: X ()
 raiseBrowser = raiseVar getBrowser
 raiseEditor  = raiseVar getEditor
+
+{- | if the window is found the window is focused and the third argument is called
+     otherwise, the first argument is called
+     See 'raiseMaster' for an example -}
+raiseAndDo :: X () -> Query Bool -> (Window -> X ())-> X ()
+raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
+    maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
+    case maybeResult of
+      []     -> raisef
+      (x:_)  -> do
+        XMonad.focus x
+        afterRaise x
+
+{- | if the window is found the window is focused and the third argument is called
+     otherwise, raisef is called -}
+runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
+runOrRaiseAndDo run query afterRaise = raiseAndDo (spawn run) query afterRaise
+
+
+{- | if the window is found the window is focused and set to master
+     otherwise, the first argument is called
+
+     raiseMaster (runInTerm \"-title ghci\"  \"zsh -c \'ghci\'\") (title =? \"ghci\") -}
+raiseMaster :: X () -> Query Bool -> X ()
+raiseMaster raisef thatUserQuery = raiseAndDo raisef thatUserQuery (\_ -> windows W.swapMaster)
+
+{- |  if the window is found the window is focused and set to master
+      otherwise, action is run
+
+      runOrRaiseMaster \"firefox\" (className =? \"Firefox\")) 
+  -}
+runOrRaiseMaster :: String -> Query Bool -> X ()
+runOrRaiseMaster run query = runOrRaiseAndDo run query (\_ -> windows W.swapMaster)
+
+
