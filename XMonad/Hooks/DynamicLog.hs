@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicLog
@@ -23,15 +25,17 @@ module XMonad.Hooks.DynamicLog (
     -- * Drop-in loggers
     dzen,
     xmobar,
+    statusBar,
     dynamicLog,
-    dynamicLogDzen,
-    dynamicLogXmobar,
     dynamicLogXinerama,
 
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
-    PP(..), defaultPP, dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
+    PP(..), defaultPP,
+
+    -- * Example formatters
+    dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
     -- * Formatting utilities
     wrap, pad, shorten,
@@ -50,6 +54,7 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 --
 import XMonad
+import Control.Monad
 import Data.Maybe ( isJust, catMaybes )
 import Data.List
 import qualified Data.Map as M
@@ -72,21 +77,17 @@ import XMonad.Hooks.ManageDocks
 -- >    import XMonad.Hooks.DynamicLog
 --
 -- If you just want a quick-and-dirty status bar with zero effort, try
--- the 'dzen' function, which sets up a dzen status bar with a default
--- format:
+-- the 'xmobar' or 'dzen' functions:
 --
--- > main = dzen xmonad
+-- > main = xmonad =<< xmobar conf
 --
--- or, to use this with your own custom xmonad configuration,
+-- There is also 'statusBar' if you'd like to use another status bar, or would
+-- like to use different formatting options.  The 'xmobar', 'dzen', and
+-- 'statusBar' functions are preferred over the other options listed below, as
+-- they take care of all the necessary plumbing -- no shell scripting required!
 --
--- > main = dzen $ \conf -> xmonad $ conf { <your customizations> }
---
--- Also you can use 'xmobar' function instead of 'dzen' in the examples above,
--- if you have xmobar installed.
---
--- Alternatively, you can choose among several default status bar
--- formats ('dynamicLog', 'dynamicLogDzen', 'dynamicLogXmobar', or
--- 'dynamicLogXinerama') by simply setting your logHook to the
+-- Alternatively, you can choose among several default status bar formats
+-- ('dynamicLog' or 'dynamicLogXinerama') by simply setting your logHook to the
 -- appropriate function, for instance:
 --
 -- > main = xmonad $ defaultConfig {
@@ -139,69 +140,65 @@ import XMonad.Hooks.ManageDocks
 
 ------------------------------------------------------------------------
 
--- | Run xmonad with a dzen status bar set to some nice defaults. Output
--- is taken from the dynamicLogWithPP hook.
+-- | Run xmonad with a dzen status bar set to some nice defaults.
 --
--- > main = dzen xmonad
+-- > main = xmonad =<< xmonad conf
 --
 -- The intent is that the above config file should provide a nice
--- status bar with minimal effort.  If you want to customize your xmonad
--- configuration while using this, you'll have to do something like
---
--- > main = dzen $ \conf -> xmonad $ conf { <your customized settings...> }
+-- status bar with minimal effort.
 --
 -- If you wish to customize the status bar format at all, you'll have to
--- use something like 'dynamicLogWithPP' instead.
+-- use the 'statusBar' function instead.
 --
 -- The binding uses the XMonad.Hooks.ManageDocks module to automatically
 -- handle screen placement for dzen, and enables 'mod-b' for toggling
 -- the menu bar.
 --
-dzen ::
-    (XConfig
-       (ModifiedLayout AvoidStruts
-          (Choose Tall (Choose (Mirror Tall) Full))) -> IO t) -> IO t
-dzen f = do
-  h <- spawnPipe ("dzen2" ++ " " ++ flags)
-  f $ defaultConfig
-           { logHook   = dynamicLogWithPP dzenPP
-                          { ppOutput = hPutStrLn h }
-           ,layoutHook = avoidStrutsOn [U] (layoutHook defaultConfig)
-           ,keys       = \c -> toggleStrutsKey c `M.union` keys defaultConfig c
-           ,manageHook = manageHook defaultConfig <+> manageDocks
-           }
+dzen :: LayoutClass l Window
+     => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+dzen conf = statusBar ("dzen2" ++ flags) dzenPP toggleStrutsKey conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
     flags   = "-e 'onstart=lower' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
 
 
--- | Run xmonad with a xmobar status bar set to some nice defaults. Output
--- is taken from the dynamicLogWithPP hook.
+-- | Run xmonad with a xmobar status bar set to some nice defaults.
 --
--- > main = xmobar xmonad
+-- > main = xmonad =<< xmobar config
 --
--- This works pretty much the same as 'dzen' function above
+-- This works pretty much the same as 'dzen' function above.
 --
-xmobar ::
-    (XConfig
-       (ModifiedLayout AvoidStruts
-          (Choose Tall (Choose (Mirror Tall) Full))) -> IO t) -> IO t
-xmobar f = do
-  h <- spawnPipe "xmobar"
-  f $ defaultConfig
-           { logHook    = dynamicLogWithPP xmobarPP { ppOutput = hPutStrLn h }
-           , layoutHook = avoidStruts $ layoutHook defaultConfig
-           , keys       = \c -> toggleStrutsKey c `M.union` keys defaultConfig c
-           , manageHook = manageHook defaultConfig <+> manageDocks
-           }
+xmobar :: LayoutClass l Window
+       => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
+
+-- | Modifies the given base configuration to launch the given status bar,
+-- send status information to that bar, and allocate space on the screen edges
+-- for the bar.
+statusBar :: LayoutClass l Window
+          => String    -- ^ the command line to launch the status bar
+          -> PP        -- ^ the pretty printing options
+          -> (XConfig Layout -> ((KeyMask, KeySym), X ()))
+                       -- ^ the desired key binding to toggle bar visibility
+          -> XConfig l -- ^ the base config
+          -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBar cmd pp k conf = do
+    h <- spawnPipe cmd
+    return $ conf
+        { layoutHook = avoidStruts (layoutHook conf)
+        , logHook = do
+                        logHook conf
+                        dynamicLogWithPP pp { ppOutput = hPutStrLn h }
+        , manageHook = manageHook conf <+> manageDocks
+        , keys       = liftM2 M.union (uncurry M.singleton . k) (keys conf)
+        }
 
 -- |
 -- Helper function which provides ToggleStruts keybinding
 --
-toggleStrutsKey :: XConfig t -> M.Map (KeyMask, KeySym) (X ())
-toggleStrutsKey XConfig{modMask = modm} = M.fromList
-        [ ((modm, xK_b ), sendMessage ToggleStruts) ]
+toggleStrutsKey :: XConfig t -> ((KeyMask, KeySym), X ())
+toggleStrutsKey XConfig{modMask = modm} = ((modm, xK_b ), sendMessage ToggleStruts)
 
 ------------------------------------------------------------------------
 
@@ -217,16 +214,6 @@ toggleStrutsKey XConfig{modMask = modm} = M.fromList
 --
 dynamicLog :: X ()
 dynamicLog = dynamicLogWithPP defaultPP
-
--- | An example log hook that emulates dwm's status bar, using colour
--- codes printed to dzen.  Requires dzen. Workspaces, xinerama,
--- layouts and the window title are handled.
-dynamicLogDzen :: X ()
-dynamicLogDzen = dynamicLogWithPP dzenPP
-
--- | These are good defaults to be used with the xmobar status bar.
-dynamicLogXmobar :: X ()
-dynamicLogXmobar = dynamicLogWithPP xmobarPP
 
 -- | Format the current status using the supplied pretty-printing format,
 --   and write it to stdout.
