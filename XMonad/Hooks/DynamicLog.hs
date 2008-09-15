@@ -156,7 +156,7 @@ import XMonad.Hooks.ManageDocks
 --
 dzen :: LayoutClass l Window
      => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzen conf = statusBar ("dzen2" ++ flags) dzenPP toggleStrutsKey conf
+dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
