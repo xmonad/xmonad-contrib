@@ -179,7 +179,7 @@ xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
 statusBar :: LayoutClass l Window
           => String    -- ^ the command line to launch the status bar
           -> PP        -- ^ the pretty printing options
-          -> (XConfig Layout -> ((KeyMask, KeySym), X ()))
+          -> (XConfig Layout -> (KeyMask, KeySym))
                        -- ^ the desired key binding to toggle bar visibility
           -> XConfig l -- ^ the base config
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
@@ -191,14 +191,16 @@ statusBar cmd pp k conf = do
                         logHook conf
                         dynamicLogWithPP pp { ppOutput = hPutStrLn h }
         , manageHook = manageHook conf <+> manageDocks
-        , keys       = liftM2 M.union (uncurry M.singleton . k) (keys conf)
+        , keys       = liftM2 M.union keys' (keys conf)
         }
+ where
+    keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
 -- |
 -- Helper function which provides ToggleStruts keybinding
 --
-toggleStrutsKey :: XConfig t -> ((KeyMask, KeySym), X ())
-toggleStrutsKey XConfig{modMask = modm} = ((modm, xK_b ), sendMessage ToggleStruts)
+toggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
+toggleStrutsKey XConfig{modMask = modm} = (modm, xK_b )
 
 ------------------------------------------------------------------------
 
