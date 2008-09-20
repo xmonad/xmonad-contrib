@@ -1,15 +1,15 @@
 {- |
 Module      :  XMonad.Util.XPaste
+Author      :  Jérémy Bobbio
 Copyright   :  (C) 2008
 License     :  BSD3
 
-Maintainer  :  <gwern0@gmail.com
+Maintainer  :  <gwern0@gmail.com>
 Stability   :  unstable
 Portability :  unportable
 
 A module for sending key presses to windows. This modules provides generalized
 and specialized functions for this task.
-
 -}
 
 module XMonad.Util.XPaste where
