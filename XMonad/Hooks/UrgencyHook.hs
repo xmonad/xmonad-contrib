@@ -79,7 +79,7 @@ import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
 import Data.IORef
-import Data.List ((\\), delete)
+import Data.List (delete)
 import Data.Maybe (listToMaybe, maybeToList)
 import qualified Data.Set as S
 import Foreign (unsafePerformIO)
@@ -304,6 +304,9 @@ readReminders = io $ readIORef reminders
 adjustReminders :: ([Reminder] -> [Reminder]) -> X ()
 adjustReminders f = io $ modifyIORef reminders f
 
+clearUrgency :: Window -> X ()
+clearUrgency w = adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)
+
 data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
     deriving (Read, Show)
 
@@ -334,8 +337,7 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
           clearUrgency w
         _ ->
           mapM_ handleReminder =<< readReminders
-      where clearUrgency w = adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)
-            handleReminder reminder = handleTimer (timer reminder) event $ reminderHook wuh reminder
+      where handleReminder reminder = handleTimer (timer reminder) event $ reminderHook wuh reminder
 
 callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
 callUrgencyHook (WithUrgencyHook hook UrgencyConfig { suppressWhen = sw, remindWhen = rw }) w =
@@ -367,9 +369,7 @@ shouldSuppress :: SuppressWhen -> Window -> X Bool
 shouldSuppress sw w = elem w <$> suppressibleWindows sw
 
 cleanupUrgents :: SuppressWhen -> X ()
-cleanupUrgents sw = do
-    suppressibles <- suppressibleWindows sw
-    adjustUrgents (\\ suppressibles)
+cleanupUrgents sw = mapM_ clearUrgency =<< suppressibleWindows sw
 
 suppressibleWindows :: SuppressWhen -> X [Window]
 suppressibleWindows Visible  = gets $ S.toList . mapped
