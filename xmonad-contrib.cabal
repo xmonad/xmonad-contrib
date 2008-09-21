@@ -57,7 +57,7 @@ library
         extensions: ForeignFunctionInterface
         cpp-options: -DUTF8
 
-    build-depends:      mtl, unix, X11>=1.4.1, xmonad>=0.8, xmonad<0.9
+    build-depends:      mtl, unix, X11>=1.4.3, xmonad>=0.8, xmonad<0.9
     ghc-options:        -Wall
 
     if flag(testing)
