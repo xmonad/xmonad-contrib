@@ -30,8 +30,8 @@ Import this module into your xmonad.hs as usual:
 
 > import XMonad.Util.XPaste
 
-And use the functions. They all return "X ()", and so are appropriate for use as keybindings.
-Example:
+And use the functions. They all return "X ()", and so are appropriate
+for use as keybindings. Example:
 
 >          , ((m,              xK_d), pasteString "foo bar") ]
 
@@ -39,16 +39,19 @@ Don't expect too much of the functions; they probably don't work on complex
 texts.
 -}
 
--- | Paste the current X mouse selection. Note that this uses 'getSelection' from "XMonad.Util.XSelection" and so is heir to its flaws.
+-- | Paste the current X mouse selection. Note that this uses 'getSelection' from
+--   "XMonad.Util.XSelection" and so is heir to its flaws.
 pasteSelection :: X ()
 pasteSelection = getSelection >>= pasteString
 
--- | Send a string to the window with current focus. This function correctly handles capitalization.
+-- | Send a string to the window with current focus. This function correctly
+-- handles capitalization.
 pasteString :: String -> X ()
 pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteChar 0 x)
 
 {- | Send a character to the current window. This is more low-level.
-   Remember that you must handle the case of capitalization appropriately. That is, from the window's perspective:
+   Remember that you must handle the case of capitalization appropriately.
+   That is, from the window's perspective:
 
    > pasteChar mod2Mask 'F' ~> "f"
 
