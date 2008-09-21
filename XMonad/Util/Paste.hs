@@ -57,13 +57,13 @@ pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteCha
    > pasteChar shiftMask 'F'
 -}
 pasteChar :: KeyMask -> Char -> X ()
-pasteChar m c = pasteKey m $ stringToKeysym [c]
+pasteChar m c = sendKey m $ stringToKeysym [c]
 
-pasteKey :: KeyMask -> KeySym -> X ()
-pasteKey = (withFocused .) . pasteKeyWindow
+sendKey :: KeyMask -> KeySym -> X ()
+sendKey = (withFocused .) . sendKeyWindow
 
-pasteKeyWindow :: KeyMask -> KeySym -> Window -> X ()
-pasteKeyWindow mods key w = withDisplay $ \d -> do
+sendKeyWindow :: KeyMask -> KeySym -> Window -> X ()
+sendKeyWindow mods key w = withDisplay $ \d -> do
               rootw <- asks theRoot
               keycode <- io $ keysymToKeycode d key
               io $ allocaXEvent $ \ev -> do
