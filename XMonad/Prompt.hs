@@ -44,6 +44,9 @@ module XMonad.Prompt
     , decodeInput
     , encodeOutput
     , historyCompletion
+    -- * History filters
+    , deleteAllDuplicates
+    , deleteConsecutiveDuplicates
     ) where
 
 import Prelude hiding (catch)
@@ -109,11 +112,14 @@ data XPConfig =
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
         , height            :: !Dimension -- ^ Window height
         , historySize       :: !Int       -- ^ The number of history entries to be saved
+        , historyFilter     :: [String] -> [String]
+                                          -- ^ a filter to determine which
+                                          -- history entries to remember
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
 	, showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
                                           --   and delay by x microseconds
-        } deriving (Show, Read)
+        }
 
 data XPType = forall p . XPrompt p => XPT p
 
@@ -180,6 +186,7 @@ defaultXPConfig =
         , position          = Bottom
         , height            = 18
         , historySize       = 256
+        , historyFilter     = id
         , defaultText       = []
         , autoComplete      = Nothing
 	, showCompletionOnTab = False
@@ -808,3 +815,11 @@ uniqSort = toList . fromList
 --   from the query history stored in ~/.xmonad/history.
 historyCompletion :: ComplFunction
 historyCompletion x = fmap (filter (isInfixOf x) . Map.fold (++) []) readHistory
+
+-- | Functions to be used with the 'historyFilter' setting.
+-- 'deleteAllDuplicates' will remove all duplicate entries.
+-- 'deleteConsecutiveDuplicates' will remove duplicate elements which are
+-- immediately next to each other.
+deleteAllDuplicates, deleteConsecutiveDuplicates :: [String] -> [String]
+deleteAllDuplicates = nub
+deleteConsecutiveDuplicates = map head . group
