@@ -1,5 +1,5 @@
 {- |
-Module      :  XMonad.Util.XPaste
+Module      :  XMonad.Util.Paste
 Author      :  Jérémy Bobbio
 Copyright   :  (C) 2008
 License     :  BSD3
@@ -12,7 +12,7 @@ A module for sending key presses to windows. This modules provides generalized
 and specialized functions for this task.
 -}
 
-module XMonad.Util.XPaste where
+module XMonad.Util.Paste where
 
 import XMonad (io, theRoot, withDisplay, X ())
 import Graphics.X11

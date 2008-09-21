@@ -197,6 +197,6 @@ library
                         XMonad.Util.Timer
                         XMonad.Util.WindowProperties
                         XMonad.Util.WorkspaceCompare
-                        XMonad.Util.XPaste
+                        XMonad.Util.Paste
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils

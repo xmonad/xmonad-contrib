@@ -490,7 +490,7 @@ A non complete list with a brief description:
   workspaces in various ways, used by several other modules which need
   to sort workspaces (e.g. "XMonad.Hooks.DynamicLog").
 
-* "XMonad.Util.XPaste" provides utilities for pasting or sending keys and
+* "XMonad.Util.Paste" provides utilities for pasting or sending keys and
   strings to windows;
 
 * "XMonad.Util.XSelection" provide utilities for using the mouse
