@@ -55,7 +55,7 @@ library
     if flag(with_utf8)
         build-depends: utf8-string
         extensions: ForeignFunctionInterface
-        cpp-options: -DUTF8
+        cpp-options: -DUSE_UTF8
 
     build-depends:      mtl, unix, X11>=1.4.3, xmonad>=0.8, xmonad<0.9
     ghc-options:        -Wall

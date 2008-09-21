@@ -43,7 +43,7 @@ import Graphics.X11.Xft
 import Graphics.X11.Xrender
 #endif
 
-#if defined XFT || defined UTF8
+#if defined XFT || defined USE_UTF8
 import Codec.Binary.UTF8.String (encodeString, decodeString)
 #endif
 
@@ -103,7 +103,7 @@ initXMF s =
         return (Xft xftdraw)
   else
 #endif
-#ifdef UTF8
+#ifdef USE_UTF8
       fmap Utf8 $ initUtf8Font s
 #else
       fmap Core $ initCoreFont s

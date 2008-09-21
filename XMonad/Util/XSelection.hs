@@ -30,7 +30,7 @@ import Data.Maybe (fromMaybe)
 import XMonad
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
-#ifdef UTF8
+#ifdef USE_UTF8
 import Codec.Binary.UTF8.String (decode)
 #else
 import Data.Bits (shiftL, (.&.), (.|.))
