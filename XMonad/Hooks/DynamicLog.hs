@@ -142,7 +142,7 @@ import XMonad.Hooks.ManageDocks
 
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
--- > main = xmonad =<< xmonad conf
+-- > main = xmonad =<< dzen conf
 --
 -- The intent is that the above config file should provide a nice
 -- status bar with minimal effort.
@@ -165,7 +165,7 @@ dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
 
 -- | Run xmonad with a xmobar status bar set to some nice defaults.
 --
--- > main = xmonad =<< xmobar config
+-- > main = xmonad =<< xmobar conf
 --
 -- This works pretty much the same as 'dzen' function above.
 --
