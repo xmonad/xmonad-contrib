@@ -217,7 +217,7 @@ findWorkspace s dir t n = findWorkspaceGen s (wsTypeToPred t) (maybeNegate dir n
     maybeNegate Prev d = (-d)
 
 findWorkspaceGen :: X WorkspaceSort -> X (WindowSpace -> Bool) -> Int -> X WorkspaceId
-findWorkspaceGen _ _ 0 = (tag . workspace . current) `fmap` gets windowset
+findWorkspaceGen _ _ 0 = gets (currentTag . windowset)
 findWorkspaceGen sortX wsPredX d = do
     wsPred <- wsPredX
     sort   <- sortX

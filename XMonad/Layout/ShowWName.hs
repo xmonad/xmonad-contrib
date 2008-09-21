@@ -89,7 +89,7 @@ doShow (SWN False _  _          ) _ wrs = return (wrs, Nothing)
 flashName :: SWNConfig -> Rectangle -> [(a, Rectangle)] -> X ([(a, Rectangle)], Maybe (ShowWName a))
 flashName c (Rectangle _ _ wh ht) wrs = do
   d <- asks display
-  n <- withWindowSet (return . S.tag . S.workspace . S.current)
+  n <- withWindowSet (return . S.currentTag)
   f <- initXMF (swn_font c)
   width   <- textWidthXMF d f n
   (as,ds) <- textExtentsXMF f n

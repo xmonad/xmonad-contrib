@@ -57,7 +57,7 @@ bringMenu = actionMenu bringWindow
 
 -- | Brings the specified window into the current workspace.
 bringWindow :: Window -> X.WindowSet -> X.WindowSet
-bringWindow w ws = W.shiftWin (W.tag . W.workspace . W.current $ ws) w ws
+bringWindow w ws = W.shiftWin (W.currentTag ws) w ws
 
 -- | Calls dmenuMap to grab the appropriate Window, and hands it off to action
 --   if found.

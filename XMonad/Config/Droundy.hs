@@ -176,7 +176,7 @@ instance UrgencyHook FocusUrgencyHook Window where
                       s { windowset = until ((Just w ==) . W.peek)
                                       W.focusUp $ windowset s }
                   | otherwise =
-                      let t = W.tag $ W.workspace $ W.current $ windowset s
+                      let t = W.currentTag $ windowset s
                       in s { windowset = until ((Just w ==) . W.peek)
                              W.focusUp $ copyWindow w t $ windowset s }
               has _ Nothing         = False

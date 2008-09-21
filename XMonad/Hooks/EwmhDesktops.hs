@@ -83,7 +83,7 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     setDesktopNames (map W.tag ws)
 
     -- Current desktop
-    let curr = fromJust $ elemIndex (W.tag (W.workspace (W.current s))) $ map W.tag ws
+    let curr = fromJust $ elemIndex (W.currentTag s) $ map W.tag ws
 
     setCurrentDesktop curr
 

@@ -37,7 +37,7 @@ import XMonad.Util.Run ( runProcessWithInput )
 import XMonad.Prompt ( XPConfig )
 import XMonad.Prompt.Directory ( directoryPrompt )
 import XMonad.Layout.LayoutModifier
-import XMonad.StackSet ( tag, current, workspace )
+import XMonad.StackSet ( tag, currentTag )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -69,7 +69,7 @@ instance Message Chdir
 data WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
 
 instance LayoutModifier WorkspaceDir Window where
-    modifyLayout (WorkspaceDir d) w r = do tc <- gets (tag.workspace.current.windowset)
+    modifyLayout (WorkspaceDir d) w r = do tc <- gets (currentTag.windowset)
                                            when (tc == tag w) $ scd d
                                            runLayout w r
     handleMess (WorkspaceDir _) m

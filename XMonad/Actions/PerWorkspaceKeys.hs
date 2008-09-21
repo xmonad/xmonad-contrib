@@ -36,7 +36,7 @@ import Data.List (find)
 
 -- | Uses supplied function to decide which action to run depending on current workspace name.
 chooseAction :: (String->X()) -> X()
-chooseAction f = withWindowSet (f . S.tag . S.workspace . S.current)
+chooseAction f = withWindowSet (f . S.currentTag)
 
 -- | If current workspace is listed, run appropriate action (only the first match counts!)
 -- If it isn't listed, then run default action (marked with empty string, \"\"), or do nothing if default isn't supplied.

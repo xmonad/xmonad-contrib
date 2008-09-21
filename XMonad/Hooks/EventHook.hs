@@ -29,11 +29,10 @@ module XMonad.Hooks.EventHook
     , HandleEvent
     ) where
 
-import Control.Applicative ((<$>))
 import Data.Maybe
 
 import XMonad
-import XMonad.StackSet (StackSet (..), Screen (..), Workspace (..))
+import XMonad.StackSet (Workspace (..), currentTag)
 
 -- $usage
 -- You can use this module with the following in your
@@ -89,7 +88,7 @@ instance Message EventHandleMsg
 instance (EventHook eh, LayoutClass l a) => LayoutClass (HandleEvent eh l) a where
     runLayout (Workspace i (HandleEvent Nothing True eh l) ms) r = do
       broadcastMessage HandlerOff
-      iws       <- (tag . workspace . current) <$> gets windowset
+      iws       <- gets (currentTag . windowset)
       (wrs, ml) <- runLayout (Workspace i l ms) r
       return (wrs, Just $ HandleEvent (Just iws) True eh (fromMaybe l ml))
 

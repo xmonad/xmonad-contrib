@@ -77,7 +77,7 @@ copyToAll s = foldr copy s $ map tag (workspaces s)
 copyWindow :: (Eq a, Eq i, Eq s) => a -> i -> StackSet i l a s sd -> StackSet i l a s sd
 copyWindow w n = copy'
     where copy' s = if n `tagMember` s
-                    then view (tag (workspace (current s))) $ insertUp' w $ view n s
+                    then view (currentTag s) $ insertUp' w $ view n s
                     else s
           insertUp' a s = modify (Just $ Stack a [] [])
                           (\(Stack t l r) -> if a `elem` t:l++r
@@ -107,7 +107,7 @@ kill1 = do ss <- gets windowset
 killAllOtherCopies :: X ()
 killAllOtherCopies = do ss <- gets windowset
                         whenJust (peek ss) $ \w -> windows $
-                                                   view (tag (workspace (current ss))) .
+                                                   view (currentTag ss) .
                                                    delFromAllButCurrent w
     where
       delFromAllButCurrent w ss = foldr ($) ss $

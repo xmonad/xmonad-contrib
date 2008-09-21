@@ -256,7 +256,7 @@ dynamicLogString pp = do
 pprWindowSet :: WorkspaceSort -> [Window] -> PP -> WindowSet -> String
 pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
             map S.workspace (S.current s : S.visible s) ++ S.hidden s
-   where this     = S.tag (S.workspace (S.current s))
+   where this     = S.currentTag s
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w = printer pp (S.tag w)

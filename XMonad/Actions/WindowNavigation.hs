@@ -153,7 +153,7 @@ currentPosition posRef = do
     currentWindow <- gets (W.peek . windowset)
     currentRect <- maybe (Rectangle 0 0 0 0) snd <$> windowRect (fromMaybe root currentWindow)
 
-    wsid <- gets (W.tag . W.workspace . W.current . windowset)
+    wsid <- gets (W.currentTag . windowset)
     mp <- M.lookup wsid <$> io (readIORef posRef)
 
     return $ maybe (middleOf currentRect) (`inside` currentRect) mp
@@ -162,7 +162,7 @@ currentPosition posRef = do
 
 setPosition :: IORef WNState -> Point -> Rectangle -> X ()
 setPosition posRef oldPos newRect = do
-    wsid <- gets (W.tag . W.workspace . W.current . windowset)
+    wsid <- gets (W.currentTag . windowset)
     io $ modifyIORef posRef $ M.insert wsid (oldPos `inside` newRect)
 
 inside :: Point -> Rectangle -> Point

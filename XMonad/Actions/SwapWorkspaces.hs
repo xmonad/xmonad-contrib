@@ -48,7 +48,7 @@ import XMonad.Util.WorkspaceCompare
 -- | Swaps the currently focused workspace with the given workspace tag, via
 --   @swapWorkspaces@.
 swapWithCurrent :: Eq i => i -> StackSet i l a s sd -> StackSet i l a s sd
-swapWithCurrent t s = swapWorkspaces t (tag $ workspace $ current s) s
+swapWithCurrent t s = swapWorkspaces t (currentTag s) s
 
 -- | Say @swapTo Next@ or @swapTo Prev@ to move your current workspace.
 -- This is an @X ()@ so can be hooked up to your keybindings directly.

@@ -120,7 +120,7 @@ wsToList ws = crs ++ cls
 wsToListGlobal :: (Ord i) => StackSet i l a s sd -> [a]
 wsToListGlobal ws = concat ([crs] ++ rws ++ lws ++ [cls])
     where
-        curtag = tag . workspace . current $ ws
+        curtag = currentTag ws
         (crs, cls) = (cms down, cms (reverse . up))
         cms f = maybe [] f (stack . workspace . current $ ws)
         (lws, rws) = (mws (<), mws (>))
@@ -149,8 +149,7 @@ withTagged       t f = withTagged'       t (mapM_ f)
 withTaggedGlobal t f = withTaggedGlobal' t (mapM_ f)
 
 withTagged' :: String -> ([Window] -> X ()) -> X ()
-withTagged' t m = gets windowset >>=
-    filterM (hasTag t) . integrate' . stack . workspace . current >>= m
+withTagged' t m = gets windowset >>= filterM (hasTag t) . index >>= m
 
 withTaggedGlobal' :: String -> ([Window] -> X ()) -> X ()
 withTaggedGlobal' t m = gets windowset >>=
@@ -160,7 +159,7 @@ withFocusedP :: (Window -> WindowSet -> WindowSet) -> X ()
 withFocusedP f = withFocused $ windows . f
 
 shiftHere :: (Ord a, Eq s, Eq i) => a -> StackSet i l a s sd -> StackSet i l a s sd
-shiftHere w s = shiftWin (tag . workspace . current $ s) w s
+shiftHere w s = shiftWin (currentTag s) w s
 
 shiftToScreen :: (Ord a, Eq s, Eq i) => s -> a -> StackSet i l a s sd -> StackSet i l a s sd
 shiftToScreen sid w s = case filter (\m -> sid /= screen m) ((current s):(visible s)) of
