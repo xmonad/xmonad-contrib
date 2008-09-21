@@ -250,7 +250,8 @@ mkXPromptWithReturn t conf compl action = do
   if successful st'
     then do
       liftIO $ writeHistory $ Map.insertWith
-                                (\xs ys -> take (historySize conf) $ xs ++ ys)
+                                (\xs ys -> take (historySize conf)
+                                        . historyFilter conf $ xs ++ ys)
                                 (showXPrompt t) [command st'] hist
       Just <$> action (command st')
     else return Nothing
