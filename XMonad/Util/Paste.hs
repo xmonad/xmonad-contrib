@@ -58,6 +58,9 @@ pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteCha
    You would want to do something like:
 
    > pasteChar shiftMask 'F'
+
+   Note that this function makes use of 'stringToKeysym', and so will probably
+   have trouble with any Char outside ASCII.
 -}
 pasteChar :: KeyMask -> Char -> X ()
 pasteChar m c = sendKey m $ stringToKeysym [c]
