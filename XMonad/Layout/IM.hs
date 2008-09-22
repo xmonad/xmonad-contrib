@@ -122,6 +122,6 @@ instance LayoutClass IM Window where
         let (masterRect, slaveRect) = splitHorizontallyBy r rect
         master <- findM (hasProperty prop) ws
         let positions = case master of
-                Just w -> (w, masterRect) : arrange slaveRect (filter (w /=) ws)
-                Nothing -> arrange rect ws
+                Just w -> (w, masterRect) : arrange defaultRatio slaveRect (filter (w /=) ws)
+                Nothing -> arrange defaultRatio rect ws
         return (positions, Nothing)

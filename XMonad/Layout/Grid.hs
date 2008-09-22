@@ -17,7 +17,7 @@
 module XMonad.Layout.Grid (
     -- * Usage
     -- $usage
-    Grid(..), arrange
+    Grid(..), arrange, defaultRatio
 ) where
 
 import XMonad
@@ -33,20 +33,29 @@ import XMonad.StackSet
 -- > myLayouts = Grid ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
+-- You can also specify an aspect ratio for Grid to strive for with the
+-- GridRatio constructor:
+--
+-- > myLayouts = GridRatio (3/4) ||| etc.
+--
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data Grid a = Grid deriving (Read, Show)
+data Grid a = Grid | GridRatio Double deriving (Read, Show)
+
+defaultRatio :: Double
+defaultRatio = 9/16
 
 instance LayoutClass Grid a where
-    pureLayout Grid r s = arrange r (integrate s)
+    pureLayout Grid          r = pureLayout (GridRatio defaultRatio) r
+    pureLayout (GridRatio d) r = arrange d r . integrate
 
-arrange :: Rectangle -> [a] -> [(a, Rectangle)]
-arrange (Rectangle rx ry rw rh) st = zip st rectangles
+arrange :: Double -> Rectangle -> [a] -> [(a, Rectangle)]
+arrange aspectRatio (Rectangle rx ry rw rh) st = zip st rectangles
     where
     nwins = length st
-    ncols = max 1 . round . sqrt $ fromIntegral nwins * 9 * fromIntegral rw / (16 * fromIntegral rh :: Double)
+    ncols = max 1 . round . sqrt $ aspectRatio * fromIntegral nwins * fromIntegral rw / fromIntegral rh
     mincs = nwins `div` ncols
     extrs = nwins - ncols * mincs
     chop :: Int -> Dimension -> [(Position, Dimension)]
