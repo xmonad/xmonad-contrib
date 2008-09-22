@@ -36,7 +36,7 @@ import XMonad.StackSet
 -- You can also specify an aspect ratio for Grid to strive for with the
 -- GridRatio constructor:
 --
--- > myLayouts = GridRatio (3/4) ||| etc.
+-- > myLayouts = GridRatio (4/3) ||| etc.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -45,7 +45,7 @@ import XMonad.StackSet
 data Grid a = Grid | GridRatio Double deriving (Read, Show)
 
 defaultRatio :: Double
-defaultRatio = 9/16
+defaultRatio = 16/9
 
 instance LayoutClass Grid a where
     pureLayout Grid          r = pureLayout (GridRatio defaultRatio) r
@@ -55,7 +55,7 @@ arrange :: Double -> Rectangle -> [a] -> [(a, Rectangle)]
 arrange aspectRatio (Rectangle rx ry rw rh) st = zip st rectangles
     where
     nwins = length st
-    ncols = max 1 . round . sqrt $ aspectRatio * fromIntegral nwins * fromIntegral rw / fromIntegral rh
+    ncols = max 1 . round . sqrt $ fromIntegral nwins * fromIntegral rw / (fromIntegral rh * aspectRatio)
     mincs = nwins `div` ncols
     extrs = nwins - ncols * mincs
     chop :: Int -> Dimension -> [(Position, Dimension)]
