@@ -23,7 +23,6 @@ import Data.Char (isUpper)
 import Graphics.X11.Xlib.Misc (stringToKeysym)
 import XMonad.Util.XSelection (getSelection)
 
-
 {- $usage
 
 Import this module into your xmonad.hs as usual:
@@ -47,7 +46,7 @@ pasteSelection = getSelection >>= pasteString
 -- | Send a string to the window with current focus. This function correctly
 -- handles capitalization.
 pasteString :: String -> X ()
-pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteChar 0 x)
+pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteChar noModMask x)
 
 {- | Send a character to the current window. This is more low-level.
    Remember that you must handle the case of capitalization appropriately.
@@ -78,3 +77,8 @@ sendKeyWindow mods key w = withDisplay $ \d -> do
                   sendEvent d w True keyPressMask ev
                   setEventType ev keyRelease
                   sendEvent d w True keyReleaseMask ev
+
+-- | A null 'KeyMask'. Used when you don't want a character or string shifted, control'd, or what.
+--   TODO: This really should be a function in the X11 binding. When noModMask shows up there, remove.
+noModMask :: KeyMask
+noModMask = 0
