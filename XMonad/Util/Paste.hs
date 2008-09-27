@@ -12,7 +12,16 @@ A module for sending key presses to windows. This modules provides generalized
 and specialized functions for this task.
 -}
 
-module XMonad.Util.Paste where
+module XMonad.Util.Paste ( -- * Usage
+                           -- $usage
+                           pasteSelection,
+                           pasteString,
+                           pasteChar,
+                           sendKey,
+                           sendKeyWindow,
+                           noModMask
+                         )
+                           where
 
 import XMonad (io, theRoot, withDisplay, X ())
 import Graphics.X11
