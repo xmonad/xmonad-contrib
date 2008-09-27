@@ -1,10 +1,9 @@
 {- |
 Module      :  XMonad.Util.Paste
-Author      :  Jérémy Bobbio
-Copyright   :  (C) 2008
+Copyright   :  (C) 2008 Jérémy Bobbio, gwern
 License     :  BSD3
 
-Maintainer  :  <gwern0@gmail.com>
+Maintainer  :  gwern <gwern0@gmail.com>
 Stability   :  unstable
 Portability :  unportable
 
@@ -36,9 +35,9 @@ import XMonad.Util.XSelection (getSelection)
 
 Import this module into your xmonad.hs as usual:
 
-> import XMonad.Util.XPaste
+> import XMonad.Util.Paste
 
-And use the functions. They all return "X ()", and so are appropriate
+And use the functions. They all return 'X' (), and so are appropriate
 for use as keybindings. Example:
 
 >          , ((m,              xK_d), pasteString "foo bar") ]
@@ -52,7 +51,7 @@ texts.
 pasteSelection :: X ()
 pasteSelection = getSelection >>= pasteString
 
--- | Send a string to the window with current focus. This function correctly
+-- | Send a string to the window which is currently focused. This function correctly
 -- handles capitalization.
 pasteString :: String -> X ()
 pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteChar noModMask x)
@@ -68,7 +67,7 @@ pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteCha
    > pasteChar shiftMask 'F'
 
    Note that this function makes use of 'stringToKeysym', and so will probably
-   have trouble with any Char outside ASCII.
+   have trouble with any 'Char' outside ASCII.
 -}
 pasteChar :: KeyMask -> Char -> X ()
 pasteChar m c = sendKey m $ stringToKeysym [c]
@@ -76,6 +75,7 @@ pasteChar m c = sendKey m $ stringToKeysym [c]
 sendKey :: KeyMask -> KeySym -> X ()
 sendKey = (withFocused .) . sendKeyWindow
 
+-- | The primitive. Allows you to send any combination of 'KeyMask' and 'KeySym' to any 'Window' you specify.
 sendKeyWindow :: KeyMask -> KeySym -> Window -> X ()
 sendKeyWindow mods key w = withDisplay $ \d -> do
               rootw <- asks theRoot
@@ -88,6 +88,7 @@ sendKeyWindow mods key w = withDisplay $ \d -> do
                   sendEvent d w True keyReleaseMask ev
 
 -- | A null 'KeyMask'. Used when you don't want a character or string shifted, control'd, or what.
+--
 --   TODO: This really should be a function in the X11 binding. When noModMask shows up there, remove.
 noModMask :: KeyMask
 noModMask = 0
