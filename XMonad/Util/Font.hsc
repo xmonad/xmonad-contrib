@@ -195,14 +195,14 @@ printStringXMF dpy drw fs@(Xft font) gc fc bc x y s = do
 #endif
 
 decodeInput :: String -> String
-#if defined XFT || defined UTF8
+#if defined XFT || defined USE_UTF8
 decodeInput = decodeString
 #else
 decodeInput = id
 #endif
 
 encodeOutput :: String -> String
-#if defined XFT || defined UTF8
+#if defined XFT || defined USE_UTF8
 encodeOutput = encodeString
 #else
 encodeOutput = id
