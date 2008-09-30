@@ -18,7 +18,7 @@
 module XMonad.Layout.HintedGrid (
     -- * Usage
     -- $usage
-    Grid(..), arrange
+    Grid(..), arrange, defaultRatio
 ) where
 
 import Prelude hiding ((.))
@@ -44,16 +44,25 @@ infixr 9 .
 -- > myLayouts = Grid False ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
+-- You can also specify an aspect ratio for Grid to strive for with the
+-- GridRatio constructor:
+--
+-- > myLayouts = GridRatio (4/3) False ||| etc.
+--
 -- For more detailed instructions on editing the layoutHook see
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | Automatic mirroring of hinted layouts doesn't work very well, so this
 -- 'Grid' comes with built-in mirroring. @Grid False@ is the normal layout,
 -- @Grid True@ is the mirrored variant (rotated by 90 degrees).
-data Grid a = Grid Bool deriving (Read, Show)
+data Grid a = Grid Bool | GridRatio Double Bool deriving (Read, Show)
+
+defaultRatio :: Double
+defaultRatio = 16/9
 
 instance LayoutClass Grid Window where
-    doLayout (Grid m) r w = flip (,) Nothing . arrange m r (integrate w)
+    doLayout (Grid m)        r w = doLayout (GridRatio defaultRatio m) r w
+    doLayout (GridRatio d m) r w = flip (,) Nothing . arrange d m r (integrate w)
 
 replicateS :: Int -> (a -> (b, a)) -> a -> ([b], a)
 replicateS n = runState . replicateM n . State
@@ -92,12 +101,12 @@ doRect height = doR
         zipWith3 (\x y (w, h) -> Rectangle (fromIntegral x) (fromIntegral y) w h) xs ys c' ++ doR width' (n - 1) cs
 
 -- | The internal function for computing the grid layout.
-arrange :: Bool -> Rectangle -> [Window] -> X [(Window, Rectangle)]
-arrange mirror (Rectangle rx ry rw rh) wins = do
+arrange :: Double -> Bool -> Rectangle -> [Window] -> X [(Window, Rectangle)]
+arrange aspectRatio mirror (Rectangle rx ry rw rh) wins = do
     proto <- mapM mkAdjust wins
     let
         adjs = map (\f -> twist . f . twist) proto
-        rs = arrange' (twist (rw, rh)) adjs
+        rs = arrange' aspectRatio (twist (rw, rh)) adjs
         rs' = map (\(Rectangle x y w h) -> uncurry (uncurry Rectangle (twist (x, y))) (twist (w, h))) rs
     return . zip wins . map (\r -> r{ rect_x = rect_x r + rx, rect_y = rect_y r + ry }) $ rs'
     where
@@ -105,11 +114,11 @@ arrange mirror (Rectangle rx ry rw rh) wins = do
         | mirror = \(a, b) -> (b, a)
         | otherwise = id
 
-arrange' :: D -> [D -> D] -> [Rectangle]
-arrange' (rw, rh) adjs = reverse $ doRect rh rw (fromIntegral ncolumns) (ecols ++ cols)
+arrange' :: Double -> D -> [D -> D] -> [Rectangle]
+arrange' aspectRatio (rw, rh) adjs = reverse $ doRect rh rw (fromIntegral ncolumns) (ecols ++ cols)
     where
     nwindows = length adjs
-    ncolumns = max 1 . round . sqrt $ fromIntegral nwindows * 9 * fromIntegral rw / (16 * fromIntegral rh :: Double)
+    ncolumns = max 1 . round . sqrt $ fromIntegral nwindows * fromIntegral rw / (fromIntegral rh * aspectRatio)
     nrows = nwindows `div` ncolumns
     nextras = nwindows - ncolumns * nrows
     (ecols, adjs') = replicateS nextras (splitAt (nrows + 1)) $ reverse adjs
