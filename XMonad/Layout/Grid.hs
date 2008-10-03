@@ -34,7 +34,8 @@ import XMonad.StackSet
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- You can also specify an aspect ratio for Grid to strive for with the
--- GridRatio constructor:
+-- GridRatio constructor.  For example, if you want Grid to try to make a grid
+-- four windows wide and three windows tall, you could use
 --
 -- > myLayouts = GridRatio (4/3) ||| etc.
 --
