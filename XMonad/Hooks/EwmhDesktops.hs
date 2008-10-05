@@ -151,8 +151,7 @@ handle ClientMessageEvent {
         else if mt == a_aw then do
                windows $ W.focusWindow w
         else if mt == a_cw then do
-               windows $ W.focusWindow w
-               kill
+               killWindow w
         else trace $ "Unknown ClientMessageEvent " ++ show mt
 handle _ = undefined -- does not happen, as otherwise ewmhDesktopsHook would not match
 
