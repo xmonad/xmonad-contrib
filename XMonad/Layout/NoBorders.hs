@@ -75,10 +75,15 @@ data SmartBorder a = SmartBorder [a] deriving (Read, Show)
 instance LayoutModifier SmartBorder Window where
     unhook (SmartBorder s) = asks (borderWidth . config) >>= setBorders s
 
-    redoLayout (SmartBorder s) _ st wrs = do
+    redoLayout sb _ st wrs = genericLayoutMod sb (W.integrate st) wrs
+
+    emptyLayoutMod sb _ wrs = genericLayoutMod sb [] wrs
+ 
+genericLayoutMod :: (SmartBorder Window) -> [Window] -> [(Window, b)] -> 
+                    X ([(Window, b)], Maybe (SmartBorder Window))
+genericLayoutMod (SmartBorder s) managedwindows wrs = do
         wset <- gets windowset
-        let managedwindows = W.integrate st
-            screens = filter (nonzerorect . screenRect . W.screenDetail) . W.screens $ wset
+        let screens = filter (nonzerorect . screenRect . W.screenDetail) . W.screens $ wset
             ws = tiled ++ floating
             tiled = case filter (`elem` managedwindows) $ map fst wrs of
                 [w] | singleton screens -> [w]
