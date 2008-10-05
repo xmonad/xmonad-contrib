@@ -164,18 +164,17 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     --   consider implementing 'hook' and 'pureModifier' instead of
     --   'redoLayout'.
     --
-    --   If you also need to perform some action when 'runLayout' is
-    --   called on an empty workspace, see 'emptyLayoutMod'.
+    --   On empty workspaces, the Stack is Nothing.
     --
     --   The default implementation of 'redoLayout' calls 'hook' and
     --   then 'pureModifier'.
-    redoLayout :: m a          -- ^ the layout modifier
-               -> Rectangle    -- ^ screen rectangle
-               -> Stack a      -- ^ current window stack
+    redoLayout :: m a               -- ^ the layout modifier
+               -> Rectangle         -- ^ screen rectangle
+               -> Maybe (Stack a)   -- ^ current window stack
                -> [(a, Rectangle)]  -- ^ (window,rectangle) pairs returned
                                     -- by the underlying layout
                -> X ([(a, Rectangle)], Maybe (m a))
-    redoLayout m r s wrs = do hook m; return $ pureModifier m r s wrs
+    redoLayout m r ms wrs = do hook m; return $ pureModifier m r ms wrs
 
     -- | 'pureModifier' allows you to intercept a call to 'runLayout'
     --   /after/ it is called on the underlying layout, in order to
@@ -184,32 +183,13 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     --
     --   The default implementation of 'pureModifier' returns the
     --   window rectangles unmodified.
-    pureModifier :: m a        -- ^ the layout modifier
-                 -> Rectangle  -- ^ screen rectangle
-                 -> Stack a    -- ^ current window stack
+    pureModifier :: m a               -- ^ the layout modifier
+                 -> Rectangle         -- ^ screen rectangle
+                 -> Maybe (Stack a)   -- ^ current window stack
                  -> [(a, Rectangle)]  -- ^ (window, rectangle) pairs returned
                                       -- by the underlying layout
                  -> ([(a, Rectangle)], Maybe (m a))
     pureModifier _ _ _ wrs = (wrs, Nothing)
-
-    -- | 'emptyLayoutMod' allows you to intercept a call to
-    --   'runLayout' on an empty workspace, /after/ it is called on
-    --   the underlying layout, in order to perform some effect in the
-    --   X monad, possibly return a new layout modifier, and\/or
-    --   modify the results of 'runLayout' before returning them.
-    --
-    --   If you don't need access to the X monad, then tough luck.
-    --   There isn't a pure version of 'emptyLayoutMod'.
-    --
-    --   The default implementation of 'emptyLayoutMod' ignores its
-    --   arguments and returns an empty list of window\/rectangle
-    --   pairings.
-    --
-    --   /NOTE/: 'emptyLayoutMod' will likely be combined with
-    --   'redoLayout' soon!
-    emptyLayoutMod :: m a -> Rectangle -> [(a, Rectangle)]
-                   -> X ([(a, Rectangle)], Maybe (m a))
-    emptyLayoutMod _ _ _ = return ([], Nothing)
 
     -- | 'hook' is called by the default implementation of
     --   'redoLayout', and as such represents an X action which is to
@@ -256,9 +236,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
 instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
     runLayout (Workspace i (ModifiedLayout m l) ms) r =
         do (ws, ml')  <- modifyLayout m (Workspace i l ms) r
-           (ws', mm') <- case ms of
-                           Just s  -> redoLayout m r s ws
-                           Nothing -> emptyLayoutMod m r ws
+           (ws', mm') <- redoLayout m r ms ws
            let ml'' = case mm' of
                         Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                         Nothing -> ModifiedLayout m `fmap` ml'

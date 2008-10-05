@@ -65,7 +65,8 @@ instance Show (MouseResize a) where show        _ = ""
 instance Read (MouseResize a) where readsPrec _ s = [(MR [], s)]
 
 instance LayoutModifier MouseResize Window where
-    redoLayout (MR st) _ s wrs
+    redoLayout _       _ Nothing  wrs = return (wrs, Nothing)
+    redoLayout (MR st) _ (Just s) wrs
         | [] <- st  = initState    >>= \nst -> return (wrs, Just $ MR nst)
         | otherwise = processState >>= \nst -> return (wrs, Just $ MR nst)
         where

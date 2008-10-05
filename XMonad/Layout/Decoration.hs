@@ -201,7 +201,12 @@ instance Eq a => DecorationStyle DefaultDecoration a
 -- 'handleEvent', which will call the appropriate 'DecorationStyle'
 -- methods to perform its tasks.
 instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration ds s) Window where
-    redoLayout (Decoration st sh t ds) sc stack wrs
+    redoLayout (Decoration (I (Just s)) sh t ds) _ Nothing _ = do
+        releaseResources s
+        return ([], Just $ Decoration (I Nothing) sh t ds)
+    redoLayout _                                 _ Nothing _  = return ([], Nothing)
+
+    redoLayout (Decoration st sh t ds) sc (Just stack) wrs
         | I Nothing  <- st = initState t ds sc stack wrs >>= processState
         | I (Just s) <- st = do let dwrs  = decos s
                                     (d,a) = curry diff (get_ws dwrs) ws
@@ -263,11 +268,6 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
         | Just ReleaseResources <- fromMessage m = do releaseResources s
                                                       return $ Just $ Decoration (I Nothing) sh t  ds
     handleMess _ _ = return Nothing
-
-    emptyLayoutMod (Decoration (I (Just s)) sh t ds) _ _ = do
-        releaseResources s
-        return ([], Just $ Decoration (I Nothing) sh t ds)
-    emptyLayoutMod _ _ _  = return ([], Nothing)
 
     modifierDescription (Decoration _ _ _ ds) = describeDeco ds
 

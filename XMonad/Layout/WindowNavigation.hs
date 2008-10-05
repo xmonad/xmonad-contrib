@@ -106,7 +106,7 @@ configurableNavigation :: LayoutClass l a => WNConfig -> l a -> ModifiedLayout W
 configurableNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
 
 instance LayoutModifier WindowNavigation Window where
-    redoLayout (WindowNavigation conf (I state)) rscr s origwrs =
+    redoLayout (WindowNavigation conf (I state)) rscr (Just s) origwrs =
         do XConf { normalBorder = nbc, focusedBorder = fbc, display = dpy } <- ask
            [uc,dc,lc,rc] <-
                case brightness conf of
@@ -136,6 +136,7 @@ instance LayoutModifier WindowNavigation Window where
            mapM_ (sc nbc) (wothers \\ map fst wnavigable)
            mapM_ (\(win,c) -> sc c win) wnavigablec
            return (origwrs, Just $ WindowNavigation conf $ I $ Just $ NS pt wnavigable)
+    redoLayout _ _ _ origwrs = return (origwrs, Nothing)
 
     handleMessOrMaybeModifyIt (WindowNavigation conf (I (Just (NS pt wrs)))) m
         | Just (Go d) <- fromMessage m =

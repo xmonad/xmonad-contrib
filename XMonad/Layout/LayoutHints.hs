@@ -46,7 +46,8 @@ data LayoutHints a = LayoutHints deriving (Read, Show)
 
 instance LayoutModifier LayoutHints Window where
     modifierDescription _ = "Hinted"
-    redoLayout _ _ s xs = do
+    redoLayout _ _ Nothing  xs = return (xs, Nothing)
+    redoLayout _ _ (Just s) xs = do
                             xs' <- mapM applyHint xs
                             return (xs', Nothing)
      where

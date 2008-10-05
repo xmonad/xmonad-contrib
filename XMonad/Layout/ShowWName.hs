@@ -70,8 +70,6 @@ defaultSWNConfig =
 instance LayoutModifier ShowWName a where
     redoLayout      sn r _ wrs = doShow sn r wrs
 
-    emptyLayoutMod  sn r   wrs = doShow sn r wrs
-
     handleMess (SWN _ c (Just (i,w))) m
         | Just e    <- fromMessage m = handleTimer i e (deleteWindow w >> return Nothing)
         | Just Hide <- fromMessage m = do deleteWindow w

@@ -109,9 +109,9 @@ type ArrangeAll = Bool
 data WindowArranger a = WA Bool ArrangeAll [ArrangedWindow a] deriving (Read, Show)
 
 instance (Show a, Read a, Eq a) => LayoutModifier WindowArranger a where
-    pureModifier (WA True b   []) _  _              wrs = arrangeWindows b wrs
+    pureModifier (WA True b   []) _ (Just _)               wrs = arrangeWindows b wrs
 
-    pureModifier (WA True b awrs) _ (S.Stack w _ _) wrs = curry process wrs awrs
+    pureModifier (WA True b awrs) _ (Just (S.Stack w _ _)) wrs = curry process wrs awrs
         where
           wins         = map fst       *** map awrWin
           update (a,r) = mkNewAWRs b a *** removeAWRs r >>> uncurry (++)

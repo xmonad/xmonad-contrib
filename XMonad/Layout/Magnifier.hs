@@ -114,10 +114,9 @@ data Toggle        = On  | Off      deriving  (Read, Show)
 data MagnifyMaster = All | NoMaster deriving  (Read, Show)
 
 instance LayoutModifier Magnifier Window where
-    redoLayout  (Mag z On All     ) = applyMagnifier z
-    redoLayout  (Mag z On NoMaster) = unlessMaster $ applyMagnifier z
-    redoLayout  _                   = nothing
-        where nothing _ _ wrs = return (wrs, Nothing)
+    redoLayout  (Mag z On All     ) r (Just s) wrs = applyMagnifier z r s wrs
+    redoLayout  (Mag z On NoMaster) r (Just s) wrs = unlessMaster (applyMagnifier z) r s wrs
+    redoLayout  _                   _ _        wrs = return (wrs, Nothing)
 
     handleMess (Mag z On  t) m
                     | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z `addto` 0.1) On  t)
