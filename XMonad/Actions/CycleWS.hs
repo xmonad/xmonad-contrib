@@ -185,8 +185,9 @@ wsTypeToPred EmptyWS    = return (isNothing . stack)
 wsTypeToPred NonEmptyWS = return (isJust . stack)
 wsTypeToPred HiddenWS   = do hs <- gets (map tag . hidden . windowset)
                              return (\w -> tag w `elem` hs)
-wsTypeToPred HiddenNonEmptyWS = do hs <- gets (map tag . hidden . windowset)
-                                   return (\w -> isJust (stack w) && tag w `elem` hs)
+wsTypeToPred HiddenNonEmptyWS  = do ne <- wsTypeToPred NonEmptyWS
+			            hi <- wsTypeToPred HiddenWS
+                                    return (\w -> hi w && ne w)
 wsTypeToPred AnyWS      = return (const True)
 wsTypeToPred (WSIs p)   = p
 
