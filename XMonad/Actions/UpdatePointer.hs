@@ -25,7 +25,7 @@ module XMonad.Actions.UpdatePointer
 
 import XMonad
 import Control.Monad
-import XMonad.StackSet (member)
+import XMonad.StackSet (member, peek, screenDetail, current)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -53,40 +53,49 @@ import XMonad.StackSet (member)
 data PointerPosition = Nearest | Relative Rational Rational
 
 -- | Update the pointer's location to the currently focused
--- window unless it's already there, or unless the user was changing
+-- window or empty screen unless it's already there, or unless the user was changing
 -- focus with the mouse
 updatePointer :: PointerPosition -> X ()
-updatePointer p = withFocused $ \w -> do
+updatePointer p = do
   ws <- gets windowset
   dpy <- asks display
+  rect <- case peek ws of
+		Nothing -> return $ (screenRect . screenDetail .current) ws
+		Just w  -> windowAttributesToRectangle `fmap` io (getWindowAttributes dpy w)
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
-  wa <- io $ getWindowAttributes dpy w
   (_sameRoot,_,currentWindow,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
-  unless (pointWithinRegion rootx rooty (wa_x wa) (wa_y wa) (wa_width wa) (wa_height wa)
+  unless (pointWithin (fi rootx) (fi rooty) rect
           || mouseIsMoving
-          || not (currentWindow `member` ws)) $
+          || not (currentWindow `member` ws || currentWindow == none)) $
     case p of
     Nearest -> do
-      let x = moveWithin rootx (wa_x wa) ((wa_x wa) + (wa_width  wa))
-      let y = moveWithin rooty (wa_y wa) ((wa_y wa) + (wa_height wa))
-      io $ warpPointer dpy none root 0 0 0 0 (fromIntegral x) (fromIntegral y)
+      let x = moveWithin (fi rootx) (rect_x rect) (fi (rect_x rect) + fi (rect_width  rect))
+          y = moveWithin (fi rooty) (rect_y rect) (fi (rect_y rect) + fi (rect_height rect))
+      io $ warpPointer dpy none root 0 0 0 0 x y
     Relative h v ->
-      io $ warpPointer dpy none w 0 0 0 0
-           (fraction h (wa_width wa)) (fraction v (wa_height wa))
+      io $ warpPointer dpy none root 0 0 0 0
+           (rect_x rect + fraction h (rect_width rect))
+           (rect_y rect + fraction v (rect_height rect))
         where fraction x y = floor (x * fromIntegral y)
 
-moveWithin :: Integral a => a -> a -> a -> a
-moveWithin current lower upper =
-    if current < lower
+windowAttributesToRectangle :: WindowAttributes -> Rectangle
+windowAttributesToRectangle wa = Rectangle (fi (wa_x wa))     (fi (wa_y wa))
+                                           (fi (wa_width wa)) (fi (wa_height wa))
+moveWithin :: Ord a => a -> a -> a -> a
+moveWithin now lower upper =
+    if now < lower
     then lower
-    else if current > upper
+    else if now > upper
          then upper
-         else current
+         else now
 
--- Test that a point resides within a region. 
--- This belongs somewhere more generally accessible than this module.
-pointWithinRegion :: Integral a => a -> a -> a -> a -> a -> a -> Bool
-pointWithinRegion px py rx ry rw rh =
-    within px rx (rx + rw) && within py ry (ry + rh)
-    where within x left right = x >= left && x <= right
+pointWithin :: Position -> Position -> Rectangle -> Bool
+pointWithin x y r = x >= rect_x r &&
+		    x <  rect_x r + fi (rect_width r) &&
+		    y >= rect_y r &&
+		    y <  rect_y r + fi (rect_height r)
+
+fi :: (Num b, Integral a) => a -> b
+fi = fromIntegral 
+
