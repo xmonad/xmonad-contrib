@@ -90,12 +90,6 @@ moveWithin now lower upper =
          then upper
          else now
 
-pointWithin :: Position -> Position -> Rectangle -> Bool
-pointWithin x y r = x >= rect_x r &&
-		    x <  rect_x r + fi (rect_width r) &&
-		    y >= rect_y r &&
-		    y <  rect_y r + fi (rect_height r)
-
 fi :: (Num b, Integral a) => a -> b
 fi = fromIntegral 
 
