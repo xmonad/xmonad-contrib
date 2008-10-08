@@ -46,7 +46,7 @@ module XMonad.Prompt
     , historyCompletion
     -- * History filters
     , deleteAllDuplicates
-    , deleteConsecutiveDuplicates
+    , deleteConsecutive
     ) where
 
 import Prelude hiding (catch)
@@ -811,7 +811,7 @@ breakAtSpace s
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in ~\/.xmonad\/history.
 historyCompletion :: ComplFunction
-historyCompletion x = fmap (deleteConsecutiveDuplicates . filter (isInfixOf x) . Map.fold (++) []) readHistory
+historyCompletion x = fmap (deleteConsecutive . filter (isInfixOf x) . Map.fold (++) []) readHistory
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.
@@ -820,8 +820,8 @@ uniqSort = toList . fromList
 
 -- | Functions to be used with the 'historyFilter' setting.
 -- 'deleteAllDuplicates' will remove all duplicate entries.
--- 'deleteConsecutiveDuplicates' will only remove duplicate elements
+-- 'deleteConsecutive' will only remove duplicate elements
 -- immediately next to each other.
-deleteAllDuplicates, deleteConsecutiveDuplicates :: [String] -> [String]
+deleteAllDuplicates, deleteConsecutive :: [String] -> [String]
 deleteAllDuplicates = nub
-deleteConsecutiveDuplicates = map head . group
+deleteConsecutive = map head . group
