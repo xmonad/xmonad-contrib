@@ -807,15 +807,16 @@ breakAtSpace s
       where (s1, s2 ) = break isSpace s
             (s1',s2') = breakAtSpace $ tail s2
 
--- | Sort a list and remove duplicates.
-uniqSort :: Ord a => [a] -> [a]
-uniqSort = toList . fromList
-
 -- | 'historyCompletion' provides a canned completion function much like
 --   getShellCompl; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in ~/.xmonad/history.
 historyCompletion :: ComplFunction
 historyCompletion x = fmap (filter (isInfixOf x) . Map.fold (++) []) readHistory
+
+-- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
+--   laziness and stability for efficiency.
+uniqSort :: Ord a => [a] -> [a]
+uniqSort = toList . fromList
 
 -- | Functions to be used with the 'historyFilter' setting.
 -- 'deleteAllDuplicates' will remove all duplicate entries.
