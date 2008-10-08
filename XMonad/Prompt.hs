@@ -91,7 +91,7 @@ data XPState =
         , complWin           :: Maybe Window
         , complWinDim        :: Maybe ComplWindowDim
         , completionFunction :: String -> IO [String]
-	, showComplWin	     :: Bool
+        , showComplWin       :: Bool
         , gcon               :: !GC
         , fontS              :: !XMonadFont
         , xptype             :: !XPType
@@ -117,7 +117,7 @@ data XPConfig =
                                           -- history entries to remember
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
-	, showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
+        , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
                                           --   and delay by x microseconds
         }
 
@@ -189,7 +189,7 @@ defaultXPConfig =
         , historyFilter     = id
         , defaultText       = []
         , autoComplete      = Nothing
-	, showCompletionOnTab = False
+        , showCompletionOnTab = False
         }
 
 type ComplFunction = String -> IO [String]
@@ -204,7 +204,7 @@ initState d rw w s compl gc fonts pt h c =
         , complWin           = Nothing
         , complWinDim        = Nothing
         , completionFunction = compl
-	, showComplWin       = not (showCompletionOnTab c)
+        , showComplWin       = not (showCompletionOnTab c)
         , gcon               = gc
         , fontS              = fonts
         , xptype             = XPT pt
@@ -808,8 +808,8 @@ breakAtSpace s
             (s1',s2') = breakAtSpace $ tail s2
 
 -- | 'historyCompletion' provides a canned completion function much like
---   getShellCompl; you pass it to mkXPrompt, and it will make completions work
---   from the query history stored in ~/.xmonad/history.
+--   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
+--   from the query history stored in ~\/.xmonad\/history.
 historyCompletion :: ComplFunction
 historyCompletion x = fmap (filter (isInfixOf x) . Map.fold (++) []) readHistory
 
@@ -820,7 +820,7 @@ uniqSort = toList . fromList
 
 -- | Functions to be used with the 'historyFilter' setting.
 -- 'deleteAllDuplicates' will remove all duplicate entries.
--- 'deleteConsecutiveDuplicates' will remove duplicate elements which are
+-- 'deleteConsecutiveDuplicates' will only remove duplicate elements
 -- immediately next to each other.
 deleteAllDuplicates, deleteConsecutiveDuplicates :: [String] -> [String]
 deleteAllDuplicates = nub
