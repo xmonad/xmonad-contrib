@@ -22,10 +22,15 @@ module XMonad.Actions.Search (    -- * Usage
 
                                amazon,
                                codesearch,
+                               deb,
+                               debbts,
+                               debpts,
                                dictionary,
                                google,
                                hoogle,
+                               images,
                                imdb,
+                               isohunt,
                                maps,
                                mathworld,
                                scholar,
@@ -75,13 +80,23 @@ import XMonad.Util.XSelection (getSelection)
 
 * 'codesearch' -- Google Labs Code Search search.
 
+* 'deb'    -- Debian package search.
+
+* 'debbts' -- Debian Bug Tracking System.
+
+* 'debpts  -- Debian Package Tracking System.
+
 * 'dictionary' -- dictionary.reference.com search.
 
 * 'google' -- basic Google search.
 
 * 'hoogle' -- Hoogle, the Haskell libraries search engine.
 
+* 'images' -- Google images.
+
 * 'imdb'   -- the Internet Movie Database.
+
+* 'isohunt' -- isoHunt search.
 
 * 'maps'   -- Google maps.
 
@@ -196,14 +211,20 @@ searchEngine :: Name -> Site -> SearchEngine
 searchEngine name site = SearchEngine name site
 
 -- The engines.
-amazon, codesearch, dictionary, google, hoogle, imdb, maps, mathworld,
-  scholar, thesaurus, wayback, wikipedia, youtube :: SearchEngine
+amazon, codesearch, deb, debbts, debpts, dictionary, google, hoogle, images,
+  imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
+  youtube :: SearchEngine
 amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 codesearch = searchEngine "codesearch" "http://www.google.com/codesearch?q="
+deb        = searchEngine "deb"        "http://packages.debian.org/"
+debbts     = searchEngine "debbts"     "http://bugs.debian.org/"
+debpts     = searchEngine "debpts"     "http://packages.qa.debian.org/"
 dictionary = searchEngine "dictionary" "http://dictionary.reference.com/browse/"
 google     = searchEngine "google"     "http://www.google.com/search?num=100&q="
 hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
+images     = searchEngine "images"     "http://images.google.fr/images?q="
 imdb       = searchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
+isohunt    = searchEngine "isohunt"    "http://isohunt.com/torrents/?ihq="
 maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
 mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
 scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
