@@ -811,7 +811,7 @@ breakAtSpace s
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in ~\/.xmonad\/history.
 historyCompletion :: ComplFunction
-historyCompletion x = fmap (filter (isInfixOf x) . Map.fold (++) []) readHistory
+historyCompletion x = fmap (deleteConsecutiveDuplicates . filter (isInfixOf x) . Map.fold (++) []) readHistory
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.
