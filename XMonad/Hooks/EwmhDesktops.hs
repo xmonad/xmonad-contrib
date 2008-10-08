@@ -138,6 +138,7 @@ handle ClientMessageEvent {
        a_d <- getAtom "_NET_WM_DESKTOP"
        a_aw <- getAtom "_NET_ACTIVE_WINDOW"
        a_cw <- getAtom "_NET_CLOSE_WINDOW"
+       a_ignore <- mapM getAtom ["XMONAD_TIMER"]
        if  mt == a_cd then do
                let n = fromIntegral (head d)
                if 0 <= n && n < length ws then
@@ -152,6 +153,8 @@ handle ClientMessageEvent {
                windows $ W.focusWindow w
         else if mt == a_cw then do
                killWindow w
+        else if mt `elem` a_ignore then do
+	       return ()
         else trace $ "Unknown ClientMessageEvent " ++ show mt
 handle _ = undefined -- does not happen, as otherwise ewmhDesktopsHook would not match
 
