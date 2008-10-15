@@ -119,8 +119,8 @@ instance LayoutModifier Magnifier Window where
     redoLayout  _                   _ _        wrs = return (wrs, Nothing)
 
     handleMess (Mag z On  t) m
-                    | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z `addto` 0.1) On  t)
-                    | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z `addto` 0.1) On  t)
+                    | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z `addto`   0.1 ) On  t)
+                    | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z `addto` (-0.1)) On  t)
                     | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z      ) Off t)
                     | Just Toggle      <- fromMessage m = return . Just $ (Mag (z      ) Off t)
                     where addto (x,y) i = (x+i,y+i)
