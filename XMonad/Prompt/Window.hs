@@ -19,7 +19,8 @@ module XMonad.Prompt.Window
     -- * Usage
     -- $usage
     windowPromptGoto,
-    windowPromptBring
+    windowPromptBring,
+    windowPromptBringCopy
     ) where
 
 import qualified Data.Map as M
@@ -28,6 +29,7 @@ import Data.List
 import qualified XMonad.StackSet as W
 import XMonad
 import XMonad.Prompt
+import XMonad.Actions.CopyWindow
 import XMonad.Actions.WindowBringer
 
 -- $usage
@@ -57,16 +59,18 @@ import XMonad.Actions.WindowBringer
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data WindowPrompt = Goto | Bring
+data WindowPrompt = Goto | Bring | BringCopy
 instance XPrompt WindowPrompt where
     showXPrompt Goto      = "Go to window: "
-    showXPrompt Bring     = "Bring me here: "
+    showXPrompt Bring     = "Bring window: "
+    showXPrompt BringCopy = "Bring a copy: "
     commandToComplete _ c = c
     nextCompletion      _ = getNextCompletion
 
-windowPromptGoto, windowPromptBring :: XPConfig -> X ()
+windowPromptGoto, windowPromptBring, windowPromptBringCopy :: XPConfig -> X ()
 windowPromptGoto  c = doPrompt Goto  c
 windowPromptBring c = doPrompt Bring c
+windowPromptBringCopy c = doPrompt BringCopy c
 
 -- | Pops open a prompt with window titles. Choose one, and you will be
 -- taken to the corresponding workspace.
@@ -75,6 +79,7 @@ doPrompt t c = do
   a <- case t of
          Goto  -> fmap gotoAction  windowMap
          Bring -> fmap bringAction windowMap
+	 BringCopy -> fmap bringCopyAction windowMap
   wm <- windowMap
   mkXPrompt t c (compList wm) a
 
@@ -82,5 +87,11 @@ doPrompt t c = do
       winAction a m    = flip whenJust (windows . a) . flip M.lookup m
       gotoAction       = winAction W.focusWindow
       bringAction      = winAction bringWindow
+      bringCopyAction  = winAction bringCopyWindow
 
       compList m s = return . filter (isPrefixOf s) . map fst . M.toList $ m
+
+
+-- | Brings a copy of the specified window into the current workspace.
+bringCopyWindow :: Window -> WindowSet -> WindowSet
+bringCopyWindow w ws = copyWindow w (W.currentTag $ ws) ws
