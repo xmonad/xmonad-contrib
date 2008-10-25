@@ -52,4 +52,5 @@ sjanssenConfig =
                         { position = Top
                         , font = myFont
                         , showCompletionOnTab = True
+                        , historyFilter = deleteConsecutive
                         , promptBorderWidth = 0 }
