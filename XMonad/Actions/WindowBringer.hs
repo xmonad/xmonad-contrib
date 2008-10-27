@@ -15,11 +15,11 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.WindowBringer (
-                                    -- * Usage
-                                    -- $usage
-                                    gotoMenu, bringMenu, windowMap,
-                                    bringWindow
-                                   ) where
+				    -- * Usage
+				    -- $usage
+				    gotoMenu, gotoMenu', bringMenu, windowMap,
+				    bringWindow
+				   ) where
 
 import Data.Char (toLower)
 import qualified Data.Map as M
@@ -27,7 +27,7 @@ import qualified Data.Map as M
 import qualified XMonad.StackSet as W
 import XMonad
 import qualified XMonad as X
-import XMonad.Util.Dmenu (dmenuMap)
+import XMonad.Util.Dmenu (menuMap)
 import XMonad.Util.NamedWindows (getName)
 
 -- $usage
@@ -50,6 +50,9 @@ import XMonad.Util.NamedWindows (getName)
 gotoMenu :: X ()
 gotoMenu = actionMenu W.focusWindow
 
+gotoMenu' :: String -> X ()
+gotoMenu' menuCmd = actionMenu' menuCmd W.focusWindow
+
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace.
 bringMenu :: X ()
@@ -62,7 +65,13 @@ bringWindow w ws = W.shiftWin (W.currentTag ws) w ws
 -- | Calls dmenuMap to grab the appropriate Window, and hands it off to action
 --   if found.
 actionMenu :: (Window -> X.WindowSet -> X.WindowSet) -> X()
-actionMenu action = windowMap >>= dmenuMap >>= flip X.whenJust (windows . action)
+actionMenu action = actionMenu' "dmenu" action
+
+actionMenu' :: String -> (Window -> X.WindowSet -> X.WindowSet) -> X()
+actionMenu' menuCmd action = windowMap >>= menuMapFunction >>= flip X.whenJust (windows . action)
+    where
+      menuMapFunction :: M.Map String a -> X (Maybe a)
+      menuMapFunction selectionMap = menuMap menuCmd selectionMap
 
 -- | A map from window names to Windows.
 windowMap :: X (M.Map String Window)

@@ -15,10 +15,10 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Dmenu (
-                            -- * Usage
-                            -- $usage
-                            dmenu, dmenuXinerama, dmenuMap
-                           ) where
+			    -- * Usage
+			    -- $usage
+			    dmenu, dmenuXinerama, dmenuMap, menu, menuMap
+			   ) where
 
 import XMonad
 import qualified XMonad.StackSet as W
@@ -40,9 +40,17 @@ dmenuXinerama opts = do
     io $ runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
 
 dmenu :: [String] -> X String
-dmenu opts = io $ runProcessWithInput "dmenu" [] (unlines opts)
+dmenu opts = menu "dmenu" opts
+
+menu :: String -> [String] -> X String
+menu menuCmd opts = io $ runProcessWithInput menuCmd [] (unlines opts)
+
+menuMap :: String -> M.Map String a -> X (Maybe a)
+menuMap menuCmd selectionMap = do
+  selection <- menuFunction (M.keys selectionMap)
+  return $ M.lookup selection selectionMap
+      where
+        menuFunction = menu menuCmd
 
 dmenuMap :: M.Map String a -> X (Maybe a)
-dmenuMap selectionMap = do
-  selection <- dmenu (M.keys selectionMap)
-  return $ M.lookup selection selectionMap
+dmenuMap selectionMap = menuMap "dmenu" selectionMap
