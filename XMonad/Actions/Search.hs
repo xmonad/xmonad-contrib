@@ -27,6 +27,7 @@ module XMonad.Actions.Search (    -- * Usage
                                debpts,
                                dictionary,
                                google,
+                               hackage,
                                hoogle,
                                images,
                                imdb,
@@ -90,7 +91,9 @@ import XMonad.Util.XSelection (getSelection)
 
 * 'google' -- basic Google search.
 
-* 'hoogle' -- Hoogle, the Haskell libraries search engine.
+* 'hackage' -- Hackage, the Haskell package database.
+
+* 'hoogle' -- Hoogle, the Haskell libraries API search engine.
 
 * 'images' -- Google images.
 
@@ -211,7 +214,7 @@ searchEngine :: Name -> Site -> SearchEngine
 searchEngine name site = SearchEngine name site
 
 -- The engines.
-amazon, codesearch, deb, debbts, debpts, dictionary, google, hoogle, images,
+amazon, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images,
   imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
   youtube :: SearchEngine
 amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
@@ -221,6 +224,7 @@ debbts     = searchEngine "debbts"     "http://bugs.debian.org/"
 debpts     = searchEngine "debpts"     "http://packages.qa.debian.org/"
 dictionary = searchEngine "dictionary" "http://dictionary.reference.com/browse/"
 google     = searchEngine "google"     "http://www.google.com/search?num=100&q="
+hackage    = searchEngine "hackage" "http://hackage.haskell.org/cgi-bin/hackage-scripts/package/"
 hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
 images     = searchEngine "images"     "http://images.google.fr/images?q="
 imdb       = searchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
