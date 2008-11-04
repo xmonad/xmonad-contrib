@@ -45,7 +45,7 @@ library
     if flag(small_base)
         build-depends: base >= 3 && < 4, containers, directory, process, random, old-time, old-locale
     else
-        build-depends: base < 3 && < 4
+        build-depends: base < 3
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2, utf8-string
