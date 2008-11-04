@@ -30,7 +30,7 @@ import XMonad.Core
 
 import System.Time
 import System.IO
-import System.Process
+import System.Process (runInteractiveCommand, waitForProcess)
 import System.Locale
 
 -- $usage
