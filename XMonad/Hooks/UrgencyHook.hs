@@ -421,7 +421,7 @@ instance UrgencyHook FocusHook where
 -- Defaults to a duration of five seconds, and no extra args to dzen.
 -- See 'DzenUrgencyHook'.
 dzenUrgencyHook :: DzenUrgencyHook
-dzenUrgencyHook = DzenUrgencyHook { duration = (5 `seconds`), args = [] }
+dzenUrgencyHook = DzenUrgencyHook { duration = seconds 5, args = [] }
 
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
