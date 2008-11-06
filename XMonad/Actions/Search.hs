@@ -143,6 +143,22 @@ Then add the following to your key bindings:
 >       , ((0, xK_w), method S.wikipedia)
 >       ]
 
+Or in combination with XMonad.Util.EZConfig:
+
+> ...
+> ] -- end of regular keybindings
+> -- Search commands
+> ++ [("M-s " ++ k, S.promptSearch P.defaultXPConfig f) | (k,f) <- searchList ]
+> ++ [("M-S-s " ++ k, S.selectSearch f) | (k,f) <- searchList ]
+>
+> ...
+>
+> searchList :: [([Char], S.SearchEngine)]
+> searchList = [ ("g", S.google)
+>              , ("h", S.hoohle)
+>              , ("w", S.wikipedia)
+>              ]
+
 Make sure to set firefox to open new pages in a new window instead of
 in a new tab: @Firefox -> Edit -> Preferences -> Tabs -> New pages
 should be opened in...@
