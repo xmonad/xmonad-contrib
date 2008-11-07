@@ -81,6 +81,7 @@ library
                         XMonad.Actions.FlexibleResize
                         XMonad.Actions.FloatKeys
                         XMonad.Actions.FocusNth
+                        XMonad.Actions.GridSelect
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
                         XMonad.Actions.NoBorders
