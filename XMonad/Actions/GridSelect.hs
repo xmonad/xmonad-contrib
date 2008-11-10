@@ -13,7 +13,16 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.GridSelect where
+module XMonad.Actions.GridSelect (
+    -- * Usage
+    -- $usage
+    GSConfig(..),
+    defaultGSConfig,
+    gridselect,
+    withSelectedWindow,
+    bringSelected,
+    goToSelected
+    ) where
 import Data.Maybe
 import Data.Bits
 import Control.Monad.State
@@ -25,7 +34,19 @@ import XMonad.Prompt (mkUnmanagedWindow)
 import XMonad.StackSet as W
 import XMonad.Layout.Decoration
 import XMonad.Util.NamedWindows
+import XMonad.Actions.WindowBringer (bringWindow)
 import Text.Printf
+
+-- $usage
+--
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- >    import XMonad.Actions.GridSelect
+--
+-- Then add a keybinding, e.g.
+--
+-- >    , ((modMask x, xK_g), goToSelected defaultGSConfig)
+--
 
 data GSConfig = GSConfig {
       gs_cellheight :: Integer,
@@ -192,6 +213,8 @@ default_colorizer w active = do
     twodigitHex :: Integer -> String
     twodigitHex a = printf "%02x" a
 
+-- | Brings up a 2D grid of windows in the center of the screen, and one can
+-- select a window with cursors keys. The selected window is returned.
 gridselect :: GSConfig -> X (Maybe Window)
 gridselect gsconfig =
  withDisplay $ \dpy -> do
@@ -227,6 +250,16 @@ gridselect gsconfig =
     releaseXMF font
     return selectedWindow
 
+-- | Brings up a 2D grid of windows in the center of the screen, and one can
+-- select a window with cursors keys. The selected window is then passed to
+-- a callback function.
+withSelectedWindow :: (Window -> X ()) -> GSConfig -> X ()
+withSelectedWindow callback conf = do
+    mbWindow <- gridselect conf
+    case mbWindow of
+        Just w -> callback w
+        Nothing -> return ()
+    
 
 windowMap :: X [(String,Window)]
 windowMap = do
@@ -242,5 +275,17 @@ decorateName' w = do
 defaultGSConfig :: GSConfig
 defaultGSConfig = GSConfig 50 130 10 default_colorizer "xft:Sans-8"
 
-borderColor :: [Char]
+borderColor :: String
 borderColor = "white"
+
+-- | Brings selected window to the current workspace.
+bringSelected :: GSConfig -> X ()
+bringSelected = withSelectedWindow $ \w -> do
+    windows (bringWindow w)
+    XMonad.focus w
+    windows W.shiftMaster
+
+-- | Switches to selected window's workspace and focuses that window.
+goToSelected :: GSConfig -> X ()
+goToSelected = withSelectedWindow $ windows . W.focusWindow
+
