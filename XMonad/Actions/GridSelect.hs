@@ -47,6 +47,7 @@ import Text.Printf
 --
 -- >    , ((modMask x, xK_g), goToSelected defaultGSConfig)
 --
+-- Screenshot: <http://clemens.endorphin.org/gridselect.png>
 
 data GSConfig = GSConfig {
       gs_cellheight :: Integer,
