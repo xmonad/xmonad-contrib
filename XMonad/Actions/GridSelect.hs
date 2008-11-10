@@ -96,17 +96,6 @@ tupadd (a,b) (c,d) = (a+c,b+d)
 tupmul :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
 tupmul (a,b) (c,d) = (a*c,b*d)
 
--- shrinkWhile should be exported  from Decoration.hs
-shrinkWhile :: Monad m => (String -> [String]) -> (String -> m Bool) -> String -> m String
-shrinkWhile sh p x = sw $ sh x
-    where sw [n] = return n
-          sw [] = return ""
-          sw (n:ns) = do
-                        cond <- p n
-                        if cond
-                          then sw ns
-                          else return n
-
 drawWinBox :: Display -> Window -> XMonadFont -> (String, String) -> Integer -> Integer -> String -> Integer -> Integer -> Integer -> X ()
 drawWinBox dpy win font (fg,bg) ch cw text x y cp = do
   gc <- liftIO $ createGC dpy win

@@ -24,7 +24,7 @@ module XMonad.Layout.Decoration
     , DecorationStyle (..)
     , DefaultDecoration (..)
     , Shrinker (..), DefaultShrinker
-    , shrinkText, CustomShrink ( CustomShrink )
+    , shrinkText, CustomShrink ( CustomShrink ), shrinkWhile
     , isInStack, isVisible, isInvisible, isWithin, fi
     , module XMonad.Layout.LayoutModifier
     ) where
