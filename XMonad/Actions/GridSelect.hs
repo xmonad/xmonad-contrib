@@ -154,9 +154,11 @@ handle d win (ks,_) (KeyEvent {ev_event_type = t})
        (TwoDState pos win' _ _ _ _) <- get
        return $ fmap (snd . snd) $ find ((== pos) . fst) win'
   where diffAndRefresh diff = do
-          (TwoDState pos windowlist gsconfig font paneX paneY) <- get
-          put $ TwoDState (pos `tupadd` diff) windowlist gsconfig font paneX paneY
-          updateWindows d win
+          (TwoDState pos windowmap gsconfig font paneX paneY) <- get
+          let newpos = pos `tupadd` diff
+          when (isJust $ find ((newpos ==).fst) windowmap) $ do
+              put $ TwoDState newpos windowmap gsconfig font paneX paneY
+              updateWindows d win
           eventLoop d win
 
 handle d win _ _ = do
