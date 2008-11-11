@@ -79,17 +79,9 @@ diamondLayer n = let ul = [ (x,n-x) | x <- [0..n] ]
 diamond :: (Enum a, Num a) => [(a, a)]
 diamond = concatMap diamondLayer [0..]
 
-
--- FIXME this function returns a list an infinite list with finite
--- elements, so going beyond the last proper element causes a never
--- ending computation.
-
 diamondRestrict :: (Enum t, Num t, Ord t) => t -> t -> [(t, t)]
-diamondRestrict x y = L.filter f diamond
-    where f (x',y') = (x' <= x) &&
-                      (x' >= -x) &&
-                      (y' <= y) &&
-                      (y' >= -y)
+diamondRestrict x y = L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
+                      L.takeWhile (\(x',y') -> abs x' + abs y' <= x+y) $ diamond
 
 tupadd :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
 tupadd (a,b) (c,d) = (a+c,b+d)
