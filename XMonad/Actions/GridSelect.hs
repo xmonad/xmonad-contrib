@@ -59,12 +59,16 @@ data GSConfig = GSConfig {
 
 type TwoDPosition = (Integer, Integer)
 
+type TwoDWindowMap = [(TwoDPosition,(String,Window))]
+
 data TwoDState = TwoDState { td_curpos :: TwoDPosition,
                              td_windowmap :: [(TwoDPosition,(String,Window))],
                              td_gsconfig :: GSConfig,
                              td_font :: XMonadFont,
                              td_paneX :: Integer,
-                             td_paneY :: Integer }
+                             td_paneY :: Integer,
+                             td_drawingWin :: Window
+                           }
 
 
 type TwoD a = StateT TwoDState X a
@@ -85,11 +89,13 @@ diamondRestrict x y = L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
 
 tupadd :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
 tupadd (a,b) (c,d) = (a+c,b+d)
-tupmul :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
-tupmul (a,b) (c,d) = (a*c,b*d)
 
-drawWinBox :: Display -> Window -> XMonadFont -> (String, String) -> Integer -> Integer -> String -> Integer -> Integer -> Integer -> X ()
-drawWinBox dpy win font (fg,bg) ch cw text x y cp = do
+findInWindowMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
+findInWindowMap pos = find ((== pos) . fst)
+
+drawWinBox :: Window -> XMonadFont -> (String, String) -> Integer -> Integer -> String -> Integer -> Integer -> Integer -> X ()
+drawWinBox win font (fg,bg) ch cw text x y cp =
+  withDisplay $ \dpy -> do
   gc <- liftIO $ createGC dpy win
   bordergc <- liftIO $ createGC dpy win
   liftIO $ do
@@ -109,61 +115,77 @@ drawWinBox dpy win font (fg,bg) ch cw text x y cp = do
   liftIO $ freeGC dpy gc
   liftIO $ freeGC dpy bordergc
 
-updateWindows :: Display -> Window -> TwoD ()
-updateWindows dpy win = do
-    (TwoDState curpos windowList gsconfig font paneX paneY) <- get
+updateAllWindows :: TwoD ()
+updateAllWindows =
+    do
+      TwoDState { td_windowmap = wins } <- get
+      updateWindows wins
+
+updateWindows :: TwoDWindowMap -> TwoD ()
+updateWindows windowmap = do
+    TwoDState { td_curpos = curpos,
+                td_drawingWin = win,
+                td_gsconfig = gsconfig,
+                td_font = font,
+                td_paneX = paneX,
+                td_paneY = paneY} <- get
     let cellwidth = gs_cellwidth gsconfig
         cellheight = gs_cellheight gsconfig
         paneX' = div (paneX-cellwidth) 2
         paneY' = div (paneY-cellheight) 2
         updateWindow (pos@(x,y),(text, clientwindow)) = lift $ do
             colors <- (gs_colorizer gsconfig) clientwindow (pos == curpos)
-            drawWinBox dpy win font
+            drawWinBox win font
                        colors
-                       (gs_cellheight gsconfig)
-                       (gs_cellwidth gsconfig) text
-                                                 (paneX'+x*cellwidth)
-                                                 (paneY'+y*cellheight)
-                                                 (gs_cellpadding gsconfig)
-    mapM updateWindow windowList
+                       cellheight
+                       cellwidth
+                       text
+                       (paneX'+x*cellwidth)
+                       (paneY'+y*cellheight)
+                       (gs_cellpadding gsconfig)
+    mapM updateWindow windowmap
     return ()
 
-eventLoop :: Display -> Window -> TwoD (Maybe Window)
-eventLoop d win = do
-  (keysym,string,event) <- liftIO $ allocaXEvent $ \e -> do
+eventLoop :: TwoD (Maybe Window)
+eventLoop = do
+  (keysym,string,event) <- lift $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
                              nextEvent d e
                              ev <- getEvent e
                              (ks,s) <- if ev_event_type ev == keyPress
                                        then lookupString $ asKeyEvent e
                                        else return (Nothing, "")
                              return (ks,s,ev)
-  handle d win (fromMaybe xK_VoidSymbol keysym,string) event
+  handle (fromMaybe xK_VoidSymbol keysym,string) event
 
-handle :: Display
-       -> Window
-       -> (KeySym, String)
+handle :: (KeySym, String)
        -> Event
        -> StateT TwoDState X (Maybe Window)
-handle d win (ks,_) (KeyEvent {ev_event_type = t})
+handle (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Escape = return Nothing
     | t == keyPress && ks == xK_Left = diffAndRefresh (-1,0)
     | t == keyPress && ks == xK_Right = diffAndRefresh (1,0)
     | t == keyPress && ks == xK_Down = diffAndRefresh (0,1)
     | t == keyPress && ks == xK_Up = diffAndRefresh (0,-1)
     | t == keyPress && ks == xK_Return = do
-       (TwoDState pos win' _ _ _ _) <- get
-       return $ fmap (snd . snd) $ find ((== pos) . fst) win'
+       (TwoDState { td_curpos = pos, td_windowmap = winmap }) <- get
+       return $ fmap (snd . snd) $ findInWindowMap pos winmap
   where diffAndRefresh diff = do
-          (TwoDState pos windowmap gsconfig font paneX paneY) <- get
-          let newpos = pos `tupadd` diff
-          when (isJust $ find ((newpos ==).fst) windowmap) $ do
-              put $ TwoDState newpos windowmap gsconfig font paneX paneY
-              updateWindows d win
-          eventLoop d win
+          state <- get
+          let windowmap = td_windowmap state
+              oldPos = td_curpos state
+              newPos = oldPos `tupadd` diff
+              newSelectedWin = findInWindowMap newPos windowmap
+          when (isJust newSelectedWin) $ do
+                                put state { td_curpos =  newPos }
+                                updateWindows (catMaybes [(findInWindowMap oldPos windowmap), newSelectedWin])
+          eventLoop
 
-handle d win _ _ = do
-  updateWindows d win
-  eventLoop d win
+handle _ (ExposeEvent { }) = do
+  updateAllWindows
+  eventLoop
+
+handle _ _ = do
+  eventLoop
 
 -- FIXME probably move that into Utils?
 -- Conversion scheme as in http://en.wikipedia.org/wiki/HSV_color_space
@@ -217,13 +239,15 @@ gridselect gsconfig =
                           do
                             let restrictX = floor $ ((fromInteger screenWidth)/(fromInteger $ gs_cellwidth gsconfig)-1)/2 ;
                                 restrictY = floor $ ((fromInteger screenHeight)/(fromInteger $ gs_cellheight gsconfig)-1)/2 ;
-                            selectedWindow <- evalStateT (do updateWindows dpy win; eventLoop dpy win)
+                                winmap = zipWith (,) (diamondRestrict restrictX restrictY) windowList
+                            selectedWindow <- evalStateT (do updateAllWindows; eventLoop)
                                                    (TwoDState (0,0)
-                                                              (zipWith (,) (diamondRestrict restrictX restrictY) windowList)
+                                                              winmap
                                                               gsconfig
                                                               font
                                                               screenWidth
-                                                              screenHeight)
+                                                              screenHeight
+                                                              win)
                             return selectedWindow
                       else
                           return Nothing
@@ -243,7 +267,7 @@ withSelectedWindow callback conf = do
     case mbWindow of
         Just w -> callback w
         Nothing -> return ()
-    
+
 
 windowMap :: X [(String,Window)]
 windowMap = do
