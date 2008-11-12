@@ -21,7 +21,8 @@ module XMonad.Actions.GridSelect (
     gridselect,
     withSelectedWindow,
     bringSelected,
-    goToSelected
+    goToSelected,
+    default_colorizer
     ) where
 import Data.Maybe
 import Data.Bits
