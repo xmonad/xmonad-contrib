@@ -237,8 +237,10 @@ gridselect gsconfig =
         screenHeight = toInteger $ rect_height s;
     selectedWindow <- if (status == grabSuccess) then
                           do
-                            let restrictX = floor $ ((fromInteger screenWidth)/(fromInteger $ gs_cellwidth gsconfig)-1)/2 ;
-                                restrictY = floor $ ((fromInteger screenHeight)/(fromInteger $ gs_cellheight gsconfig)-1)/2 ;
+                            let restriction :: Integer -> (GSConfig -> Integer) -> Double
+                                restriction ss cs = ((fromInteger ss)/(fromInteger $ cs gsconfig)-1)/2
+                                restrictX = floor $ restriction screenWidth gs_cellwidth
+                                restrictY = floor $ restriction screenHeight gs_cellheight
                                 winmap = zipWith (,) (diamondRestrict restrictX restrictY) windowList
                             selectedWindow <- evalStateT (do updateAllWindows; eventLoop)
                                                    (TwoDState (0,0)
