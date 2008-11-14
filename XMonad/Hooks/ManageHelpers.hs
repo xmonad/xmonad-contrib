@@ -25,6 +25,7 @@
 -- >     }
 
 module XMonad.Hooks.ManageHelpers (
+    Side(..),
     composeOne,
     (-?>), (/=?), (<==?), (</=?), (-->>), (-?>>),
     isKDETrayWindow,
@@ -36,7 +37,8 @@ module XMonad.Hooks.ManageHelpers (
     transience',
     doRectFloat,
     doFullFloat,
-    doCenterFloat
+    doCenterFloat,
+    doSideFloat
 ) where
 
 import XMonad
@@ -44,6 +46,11 @@ import qualified XMonad.StackSet as W
 
 import Data.Maybe
 import Data.Monoid
+
+-- | Denotes a side of a screen. @S@ stands for South, @NE@ for Northwest
+-- etc. @C@ stands for Center.
+data Side = SC | NC | CE | CW | SE | SW | NE | NW | C
+    deriving (Read, Show, Eq)
 
 -- | A ManageHook that may or may not have been executed; the outcome is embedded in the Maybe
 type MaybeManageHook = Query (Maybe (Endo WindowSet))
@@ -160,8 +167,20 @@ doRectFloat r = ask >>= \w -> doF (W.float w r)
 doFullFloat :: ManageHook
 doFullFloat = doRectFloat $ W.RationalRect 0 0 1 1
 
+-- | Floats a new window with its original size on the specified side of a
+-- screen
+doSideFloat :: Side -> ManageHook
+doSideFloat side = ask >>= \w -> doF . W.float w . move . snd =<< liftX (floatLocation w)
+    where
+    move (W.RationalRect _ _ w h) = W.RationalRect cx cy w h
+        where
+        cx =      if side `elem` [SC,C ,NC] then (1-w)/2
+             else if side `elem` [SW,CW,NW] then 0
+             else {- side `elem` [SE,CE,NE] -}   1-w
+        cy =      if side `elem` [CE,C ,CW] then (1-h)/2
+             else if side `elem` [NE,NC,NW] then 0
+             else {- side `elem` [SE,SC,SW] -}   1-h
+
 -- | Floats a new window with its original size, but centered.
 doCenterFloat :: ManageHook
-doCenterFloat = ask >>= \w -> doF . W.float w . center . snd =<< liftX (floatLocation w)
-    where
-    center (W.RationalRect _ _ w h) = W.RationalRect ((1-w)/2) ((1-h)/2) w h
+doCenterFloat = doSideFloat C
