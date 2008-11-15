@@ -14,10 +14,11 @@
 module XMonad.Util.WindowProperties (
     -- * Usage
     -- $usage
-    Property(..), hasProperty, focusedHasProperty)
+    Property(..), hasProperty, focusedHasProperty, allWithProperty)
 where
 import XMonad
 import qualified XMonad.StackSet as W
+import Control.Monad
 
 -- $usage
 -- This module allows to specify window properties, such as title, classname or
@@ -59,3 +60,8 @@ focusedHasProperty p = do
         Just s  -> hasProperty p $ W.focus s
         Nothing -> return False
 
+allWithProperty :: Property -> X [Window]
+allWithProperty prop = withDisplay $ \dpy -> do
+    rootw <- asks theRoot
+    (_,_,wins) <- io $ queryTree dpy rootw
+    hasProperty prop `filterM` wins
