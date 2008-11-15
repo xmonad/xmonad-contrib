@@ -143,6 +143,7 @@ library
                         XMonad.Layout.Magnifier
                         XMonad.Layout.Master
                         XMonad.Layout.Maximize
+                        XMonad.Layout.Monitor
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.MultiToggle.Instances
