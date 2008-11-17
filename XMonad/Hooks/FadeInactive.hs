@@ -68,8 +68,9 @@ fadeIn = flip setOpacity 0xffffffff
 -- lowers the opacity of inactive windows to the specified amount
 fadeInactiveLogHook :: Integer -> X ()
 fadeInactiveLogHook amt = withWindowSet $ \s ->
-    forM_ (concatMap visibleWins $ W.current s : W.visible s) (fadeOut amt) >>
+    forM_ (visibleWins s) (fadeOut amt) >>
     withFocused fadeIn
         where
-          visibleWins = maybe [] unfocused . W.stack . W.workspace
+          visibleWins s = (maybe [] unfocused . W.stack . W.workspace) (W.current s) ++
+                          concatMap (W.integrate' . W.stack . W.workspace) (W.visible s)
           unfocused (W.Stack _ l r) = l ++ r
