@@ -44,6 +44,10 @@ import Control.Monad
 --
 -- > myLayouts = addMonitor (ClassName "Cairo-clock" `And` Title "MacSlow's Cairo-Clock") (Rectangle (1280-150) (800-150) 150 150) $ tall ||| Full ||| ...
 -- 
+-- And make the desired window unmanaged with ManageHook:
+--
+-- > , className =? "Cairo-clock"--> doIgnore
+--
 -- After that, if there exists a window with specified properties, it will be
 -- displayed on top of all /tiled/ (not floated) windows on specified
 -- position.
@@ -107,14 +111,16 @@ addNamedPersistentMonitor :: String -> Property -> Rectangle -> l a -> ModifiedL
 addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name) True)
 
 -- $hints
--- - This module assumes that there is only one window satisfying property exists. Also it's good idea to make it unmanaged and (optionally) hide it using ManageHook:
+-- - This module assumes that there is only one window satisfying property exists.
+--
+-- - If you want the monitor to be available on /all/ layouts, use
+-- 'addPersistentMonitor' instead of 'addMonitor' to avoid unnecessary
+-- flickering. You can still toggle monitor with a keybinding.
+--
+-- - On the other hand, if you use the monitor only with some of the layouts, you
+-- might want to hide it on the startup. Then change ManageHook to the following:
 --
 -- > className =? "Cairo-clock"--> (ask >>= \w -> liftX (hide w) >> doF (W.delete w))
---
--- - If you want monitor to be available on /all/ layouts, there's no point in
--- hiding it. Also use 'addPersistentMonitor' instead of
--- 'addMonitor' to avoid unnecessary flickering. You can still toggle
--- monitor with a keybinding.
 --
 -- - You can use several monitors with nested modifiers. Give them a name using
 -- 'addNamedMonitor' or 'addNamedPersistentMonitor' to be able to toggle
@@ -129,3 +135,5 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 -- - automatically unmanage the window?
 -- 
 -- - specify position relative to the screen
+--
+-- - toggle monitor on all workspaces (how?)
