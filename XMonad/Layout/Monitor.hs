@@ -54,7 +54,7 @@ import Control.Monad
 --
 -- It's also useful to add some keybinding to toggle monitor visibility:
 -- 
--- > , ((mod1Mask, xK_u     ), sendMessage ToggleMonitor)
+-- > , ((mod1Mask, xK_u     ), broadcastMessage ToggleMonitor >> refresh)
 --
 -- Screenshot: <http://www.haskell.org/haskellwiki/Image:Xmonad-clock.png>
 
@@ -113,9 +113,6 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 -- $hints
 -- - This module assumes that there is only one window satisfying property exists.
 --
--- - On multihead setup, since two layouts are shown at the same time, to hide
--- monitor you need to hide it on both layouts.
---
 -- - If you want the monitor to be available on /all/ layouts, use
 -- 'addPersistentMonitor' instead of 'addMonitor' to avoid unnecessary
 -- flickering. You can still toggle monitor with a keybinding.
@@ -138,5 +135,3 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 -- - automatically unmanage the window?
 -- 
 -- - specify position relative to the screen
---
--- - toggle monitor on all workspaces (how?)
