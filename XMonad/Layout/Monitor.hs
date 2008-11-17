@@ -17,7 +17,7 @@ module XMonad.Layout.Monitor (
     -- * Usage
     -- $usage
 
-    -- * Hints
+    -- * Hints and issues
     -- $hints
 
     -- * TODO
@@ -112,6 +112,9 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 
 -- $hints
 -- - This module assumes that there is only one window satisfying property exists.
+--
+-- - On multihead setup, since two layouts are shown at the same time, to hide
+-- monitor you need to hide it on both layouts.
 --
 -- - If you want the monitor to be available on /all/ layouts, use
 -- 'addPersistentMonitor' instead of 'addMonitor' to avoid unnecessary
