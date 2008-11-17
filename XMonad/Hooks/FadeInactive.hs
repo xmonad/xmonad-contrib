@@ -15,6 +15,7 @@
 module XMonad.Hooks.FadeInactive (
     -- * Usage
     -- $usage
+    setOpacity,
     fadeInactiveLogHook
     ) where
 

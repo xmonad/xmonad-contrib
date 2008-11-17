@@ -126,6 +126,11 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 -- 'addNamedMonitor' or 'addNamedPersistentMonitor' to be able to toggle
 -- them independently.
 --
+-- - To make monitor transparent, import "XMonad.Hooks.FadeInactive" and change
+-- ManageHook to (@0xAAAAAAAA@ is the level of opacity):
+--
+-- > className =? "Cairo-clock"--> (ask >>= liftX . flip setOpacity 0xAAAAAAAA >> doIgnore)
+--
 -- - You can display monitor only on specific workspaces with
 -- "XMonad.Layout.PerWorkspace".
 
