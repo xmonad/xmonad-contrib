@@ -176,7 +176,7 @@ data XPPosition = Top
 
 defaultXPConfig :: XPConfig
 defaultXPConfig =
-    XPC { font              = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+    XPC { font              = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
         , bgColor           = "grey22"
         , fgColor           = "grey80"
         , fgHLight          = "black"
