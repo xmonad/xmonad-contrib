@@ -18,7 +18,9 @@ module XMonad.Prompt
       -- $usage
       mkXPrompt
     , mkXPromptWithReturn
+    , amberXPConfig
     , defaultXPConfig
+    , greenXPConfig
     , XPType (..)
     , XPPosition (..)
     , XPConfig (..)
@@ -174,7 +176,7 @@ data XPPosition = Top
                 | Bottom
                   deriving (Show,Read)
 
-defaultXPConfig :: XPConfig
+amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
 defaultXPConfig =
     XPC { font              = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
         , bgColor           = "grey22"
@@ -189,8 +191,9 @@ defaultXPConfig =
         , historyFilter     = id
         , defaultText       = []
         , autoComplete      = Nothing
-        , showCompletionOnTab = False
-        }
+        , showCompletionOnTab = False }
+greenXPConfig = defaultXPConfig { fgColor = "green", bgColor = "black" }
+amberXPConfig = defaultXPConfig { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
 
 type ComplFunction = String -> IO [String]
 
