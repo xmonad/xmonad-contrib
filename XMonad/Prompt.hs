@@ -177,11 +177,11 @@ data XPPosition = Top
 defaultXPConfig :: XPConfig
 defaultXPConfig =
     XPC { font              = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
-        , bgColor           = "#333333"
-        , fgColor           = "#FFFFFF"
-        , fgHLight          = "#000000"
-        , bgHLight          = "#BBBBBB"
-        , borderColor       = "#FFFFFF"
+        , bgColor           = "grey22"
+        , fgColor           = "grey80"
+        , fgHLight          = "black"
+        , bgHLight          = "grey"
+        , borderColor       = "white"
         , promptBorderWidth = 1
         , position          = Bottom
         , height            = 18
