@@ -163,10 +163,10 @@ handle :: (KeySym, String)
        -> StateT TwoDState X (Maybe Window)
 handle (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Escape = return Nothing
-    | t == keyPress && ks == xK_Left || ks == xK_h  = diffAndRefresh (-1,0)
-    | t == keyPress && ks == xK_Right || ks == xK_l = diffAndRefresh (1,0)
-    | t == keyPress && ks == xK_Down || ks == xK_j = diffAndRefresh (0,1)
-    | t == keyPress && ks == xK_Up || ks == xK_k = diffAndRefresh (0,-1)
+    | t == keyPress && (ks == xK_Left || ks == xK_h)  = diffAndRefresh (-1,0)
+    | t == keyPress && (ks == xK_Right || ks == xK_l) = diffAndRefresh (1,0)
+    | t == keyPress && (ks == xK_Down || ks == xK_j) = diffAndRefresh (0,1)
+    | t == keyPress && (ks == xK_Up || ks == xK_k) = diffAndRefresh (0,-1)
     | t == keyPress && ks == xK_Return = do
        (TwoDState { td_curpos = pos, td_windowmap = winmap }) <- get
        return $ fmap (snd . snd) $ findInWindowMap pos winmap
