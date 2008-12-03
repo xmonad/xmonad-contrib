@@ -379,10 +379,10 @@ keyPressHandle mask (ks,_)
     | ks == xK_Delete    = deleteString Next >> go
     | ks == xK_Left      = moveCursor   Prev >> go
     | ks == xK_Right     = moveCursor   Next >> go
-    | ks == xK_Up        = moveHistory  W.focusUp' >> go
-    | ks == xK_Down      = moveHistory  W.focusDown' >> go
     | ks == xK_Home      = startOfLine       >> go
     | ks == xK_End       = endOfLine         >> go
+    | ks == xK_Down      = moveHistory  W.focusUp' >> go
+    | ks == xK_Up        = moveHistory  W.focusDown' >> go
     | ks == xK_Escape    = quit
     where
       go   = updateWindows >> eventLoop handle
