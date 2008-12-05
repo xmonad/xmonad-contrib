@@ -34,12 +34,12 @@ module XMonad.Actions.WindowGo (
 import Control.Monad (filterM)
 import Data.Char (toLower)
 
-import XMonad (Query(), X(), withWindowSet, spawn, runQuery, liftIO, focus)
-import XMonad.ManageHook
-import XMonad.Prompt.Shell (getBrowser, getEditor)
-import qualified XMonad.StackSet as W (allWindows, peek, swapMaster)
-import XMonad.Operations (windows)
+import XMonad (Query(), X(), withWindowSet, spawn, runQuery, liftIO)
 import Graphics.X11 (Window)
+import XMonad.ManageHook
+import XMonad.Operations (windows)
+import XMonad.Prompt.Shell (getBrowser, getEditor)
+import qualified XMonad.StackSet as W (allWindows, peek, swapMaster, focusWindow)
 {- $usage
 
 Import the module into your @~\/.xmonad\/xmonad.hs@:
@@ -99,7 +99,7 @@ raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
     maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
     case maybeResult of
       []     -> f
-      (x:_)  -> focus x
+      (x:_)  -> windows $ W.focusWindow x
 
 -- | See 'runOrRaise' and 'raiseNextMaybe'. Version that allows cycling through matches.
 runOrRaiseNext :: String -> Query Bool -> X ()
@@ -121,10 +121,10 @@ raiseNextMaybe f thatUserQuery = withWindowSet $ \s -> do
   case ws of
     []    -> f
     (x:_) -> let go (Just w) | (w `elem` ws) = next w $ cycle ws
-                 go _ = focus x
+                 go _ = windows $ W.focusWindow x
              in go $ W.peek s
   where
-    next w (x:y:_) | x==w = focus y
+    next w (x:y:_) | x==w = windows $ W.focusWindow y
     next w (_:xs)         = next w xs
     next _ _ = error "raiseNextMaybe: empty list"
 
@@ -148,15 +148,13 @@ raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
     maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
     case maybeResult of
       []     -> raisef
-      (x:_)  -> do
-        XMonad.focus x
-        afterRaise x
+      (x:_)  -> do windows $ W.focusWindow x
+                   afterRaise x
 
 {- | if the window is found the window is focused and the third argument is called
      otherwise, raisef is called -}
 runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
 runOrRaiseAndDo run query afterRaise = raiseAndDo (spawn run) query afterRaise
-
 
 {- | if the window is found the window is focused and set to master
      otherwise, the first argument is called
@@ -172,5 +170,3 @@ raiseMaster raisef thatUserQuery = raiseAndDo raisef thatUserQuery (\_ -> window
   -}
 runOrRaiseMaster :: String -> Query Bool -> X ()
 runOrRaiseMaster run query = runOrRaiseAndDo run query (\_ -> windows W.swapMaster)
-
-
