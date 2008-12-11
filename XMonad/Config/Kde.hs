@@ -14,7 +14,8 @@
 module XMonad.Config.Kde (
     -- * Usage
     -- $usage
-    kdeConfig
+    kdeConfig,
+    kde4Config
     ) where
 
 import XMonad
@@ -29,13 +30,24 @@ import qualified Data.Map as M
 -- > import XMonad.Config.Kde
 -- >
 -- > main = xmonad kdeConfig
+--
+-- For KDE 4, replace 'kdeConfig' with 'kde4Config'
 -- 
 
 kdeConfig = desktopConfig
     { terminal = "konsole"
     , keys     = \c -> kdeKeys c `M.union` keys desktopConfig c }
 
+kde4Config = desktopConfig
+    { terminal = "konsole"
+    , keys     = \c -> kde4Keys c `M.union` keys desktopConfig c }
+
 kdeKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm,               xK_p), spawn "dcop kdesktop default popupExecuteCommand")
     , ((modm .|. shiftMask, xK_q), spawn "dcop kdesktop default logout")
+    ]
+
+kde4Keys (XConfig {modMask = modm}) = M.fromList $
+    [ ((modm,               xK_p), spawn "krunner")
+    , ((modm .|. shiftMask, xK_q), spawn "dbus-send --print-reply --dest=org.kde.ksmserver /KSMServer org.kde.KSMServerInterface.logout int32:1 int32:0 int32:1")
     ]
