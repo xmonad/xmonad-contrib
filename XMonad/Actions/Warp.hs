@@ -49,7 +49,7 @@ Note that warping to a particular screen may change the focus.
 
 data Corner = UpperLeft | UpperRight | LowerLeft | LowerRight
 
-{- | Move the mouse cursor to a corner of the screen. Useful for
+{- | Move the mouse cursor to a corner of the focused window. Useful for
    uncluttering things.
 
    Internally, this uses numerical parameters. We parametrize on the 'Corner'
