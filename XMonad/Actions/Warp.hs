@@ -77,8 +77,10 @@ banishScreen direction = case direction of
                            UpperRight -> warpToCurrentScreen 1 0
     where
       warpToCurrentScreen h v =
-          do (StackSet { current = x }) <- gets windowset
-             warpToScreen (W.screen x) h v
+          do ws <- gets windowset
+             warpToScreen (W.screen $ current ws) h v
+             windows (const ws)
+
 
 fraction :: (Integral a, Integral b) => Rational -> a -> b
 fraction f x = floor (f * fromIntegral x)
