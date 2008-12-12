@@ -16,6 +16,7 @@ module XMonad.Actions.Warp (
                            -- * Usage
                            -- $usage
                            banish,
+                           banishScreen,
                            Corner(..),
                            warpToScreen,
                            warpToWindow
@@ -64,7 +65,20 @@ banish direction = case direction of
                      LowerRight -> warpToWindow 1 1
                      LowerLeft  -> warpToWindow 0 1
                      UpperLeft  -> warpToWindow 0 0
-                     UpperRight  -> warpToWindow 1 0
+                     UpperRight -> warpToWindow 1 0
+
+{- | Same as 'banish' but moves the mouse to the corner of the
+   currently focused screen -}
+banishScreen :: Corner -> X ()
+banishScreen direction = case direction of
+                           LowerRight -> warpToCurrentScreen 1 1
+                           LowerLeft  -> warpToCurrentScreen 0 1
+                           UpperLeft  -> warpToCurrentScreen 0 0
+                           UpperRight -> warpToCurrentScreen 1 0
+    where
+      warpToCurrentScreen h v =
+          do (StackSet { current = x }) <- gets windowset
+             warpToScreen (W.screen x) h v
 
 fraction :: (Integral a, Integral b) => Rational -> a -> b
 fraction f x = floor (f * fromIntegral x)
