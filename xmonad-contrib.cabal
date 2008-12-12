@@ -132,6 +132,7 @@ library
                         XMonad.Layout.FixedColumn
                         XMonad.Layout.Gaps
                         XMonad.Layout.Grid
+                        XMonad.Layout.GridVariants
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
