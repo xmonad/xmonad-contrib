@@ -129,6 +129,7 @@ library
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.DwmStyle
+                        XMonad.Layout.FixedColumn
                         XMonad.Layout.Gaps
                         XMonad.Layout.Grid
                         XMonad.Layout.HintedGrid
