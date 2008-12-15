@@ -22,6 +22,7 @@ module XMonad.Layout.Monitor (
 
     -- * TODO
     -- $todo
+    Monitor(..),
     Property(..),
     MonitorMessage(..),
     addMonitor,
