@@ -62,11 +62,11 @@ import Control.Monad
 -- Screenshot: <http://www.haskell.org/haskellwiki/Image:Xmonad-clock.png>
 
 data Monitor a = Monitor {
-    prop :: Property, -- a window which satisfies that property is chosen as monitor
-    rect :: Rectangle, -- where to put monitor
-    visible :: Bool, -- is it visible?
-    mbName :: (Maybe String), -- name of monitor (useful when we have many of them)
-    persistent :: Bool -- on all layouts?
+    prop :: Property, -- ^ a window which satisfies this property is chosen as monitor
+    rect :: Rectangle, -- ^ where to put monitor
+    visible :: Bool, -- ^ is it visible by default?
+    mbName :: (Maybe String), -- ^ name of monitor (useful when we have many of them)
+    persistent :: Bool -- ^ is it shown on all layouts?
     } deriving (Read, Show)
 
 data MonitorMessage = ToggleMonitor | ShowMonitor | HideMonitor
