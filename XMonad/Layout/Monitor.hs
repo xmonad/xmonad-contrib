@@ -123,7 +123,7 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 -- - On the other hand, if you use the monitor only with some of the layouts, you
 -- might want to hide it on the startup. Then change ManageHook to the following:
 --
--- > className =? "Cairo-clock"--> (ask >>= \w -> liftX (hide w) >> doF (W.delete w))
+-- > className =? "Cairo-clock"--> doHideIgnore
 --
 -- - You can use several monitors with nested modifiers. Give them a name using
 -- 'addNamedMonitor' or 'addNamedPersistentMonitor' to be able to toggle
