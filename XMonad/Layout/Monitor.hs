@@ -27,12 +27,14 @@ module XMonad.Layout.Monitor (
     addMonitor,
     addPersistentMonitor,
     addNamedMonitor,
-    addNamedPersistentMonitor
+    addNamedPersistentMonitor,
+    doHideIgnore
     ) where
 
 import XMonad
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
+import XMonad.Hooks.ManageHelpers (doHideIgnore)
 import Control.Monad
 
 -- $usage

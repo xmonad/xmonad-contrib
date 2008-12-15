@@ -38,7 +38,8 @@ module XMonad.Hooks.ManageHelpers (
     doRectFloat,
     doFullFloat,
     doCenterFloat,
-    doSideFloat
+    doSideFloat,
+    doHideIgnore
 ) where
 
 import XMonad
@@ -184,3 +185,7 @@ doSideFloat side = ask >>= \w -> doF . W.float w . move . snd =<< liftX (floatLo
 -- | Floats a new window with its original size, but centered.
 doCenterFloat :: ManageHook
 doCenterFloat = doSideFloat C
+
+-- | Hides window and ignores it.
+doHideIgnore :: ManageHook
+doHideIgnore = ask >>= \w -> liftX (hide w) >> doF (W.delete w)
