@@ -70,6 +70,7 @@ import Data.List
 import Data.Set (fromList, toList)
 import System.Directory
 import System.IO
+import System.Posix.Files
 import Control.Exception hiding (handle)
 
 import qualified Data.Map as Map
@@ -716,6 +717,8 @@ writeHistory :: History -> IO ()
 writeHistory hist = do
   path <- getHistoryFile
   catch (writeFile path (show hist)) $ const $ hPutStrLn stderr "error in writing"
+  setFileMode path mode 
+    where mode = ownerReadMode .|. ownerWriteMode
 
 -- $xutils
 
