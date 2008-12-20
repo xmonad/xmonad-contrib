@@ -62,7 +62,7 @@ For detailed instructions on editing your key bindings, see
 -- | 'action' is an executable to be run via 'spawn' (of "XMonad.Core") if the Window cannot be found.
 --   Presumably this executable is the same one that you were looking for.
 runOrRaise :: String -> Query Bool -> X ()
-runOrRaise action = raiseMaybe $ spawn action
+runOrRaise = raiseMaybe . spawn
 
 -- | See 'raiseMaybe'. If the Window can't be found, quietly give up and do nothing.
 raise :: Query Bool -> X ()
@@ -103,7 +103,7 @@ raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
 
 -- | See 'runOrRaise' and 'raiseNextMaybe'. Version that allows cycling through matches.
 runOrRaiseNext :: String -> Query Bool -> X ()
-runOrRaiseNext action = raiseNextMaybe $ spawn action
+runOrRaiseNext = raiseNextMaybe . spawn
 
 -- | See 'raise' and 'raiseNextMaybe'. Version that allows cycling through matches.
 raiseNext :: Query Bool -> X ()
@@ -154,7 +154,7 @@ raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
 {- | if the window is found the window is focused and the third argument is called
      otherwise, raisef is called -}
 runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
-runOrRaiseAndDo run query afterRaise = raiseAndDo (spawn run) query afterRaise
+runOrRaiseAndDo = raiseAndDo . spawn
 
 {- | if the window is found the window is focused and set to master
      otherwise, the first argument is called

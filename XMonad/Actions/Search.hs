@@ -188,14 +188,14 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
                (Char -> Bool)      -- a predicate which returns 'False' if should escape
                -> String           -- the string to process
                -> String           -- the resulting URI string
-           escapeURIString p s = concatMap (escapeURIChar p) s
+           escapeURIString = concatMap . escapeURIChar
            escapeURIChar :: (Char->Bool) -> Char -> String
            escapeURIChar p c
                | p c       = [c]
                | otherwise = '%' : myShowHex (ord c) ""
                where
                  myShowHex :: Int -> ShowS
-                 myShowHex n r =  case showIntAtBase 16 (toChrHex) n r of
+                 myShowHex n r =  case showIntAtBase 16 toChrHex n r of
                                     []  -> "00"
                                     [ch] -> ['0',ch]
                                     cs  -> cs
@@ -212,7 +212,7 @@ data SearchEngine = SearchEngine Name Site
 -- | Given a browser, a search engine, and a search term, perform the
 --   requested search in the browser.
 search :: Browser -> Site -> Query -> X ()
-search browser site query = safeSpawn browser (site ++ (escape query))
+search browser site query = safeSpawn browser $ site ++ escape query
 
 {- | Given a base URL, create the 'SearchEngine' that escapes the query and
    appends it to the base. You can easily define a new engine locally using
@@ -227,7 +227,7 @@ search browser site query = safeSpawn browser (site ++ (escape query))
    Generally, examining the resultant URL of a search will allow you to reverse-engineer
    it if you can't find the necessary URL already described in other projects such as Surfraw. -}
 searchEngine :: Name -> Site -> SearchEngine
-searchEngine name site = SearchEngine name site
+searchEngine = SearchEngine
 
 -- The engines.
 amazon, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images,
@@ -260,7 +260,7 @@ wayback   = searchEngine "wayback" "http://web.archive.org/"
    Prompt's result, passes it to a given searchEngine and opens it in a given
    browser. -}
 promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
-promptSearchBrowser config browser (SearchEngine name site) = mkXPrompt (Search name) config (historyCompletion) $ search browser site
+promptSearchBrowser config browser (SearchEngine name site) = mkXPrompt (Search name) config historyCompletion $ search browser site
 
 {- | Like 'search', but in this case, the string is not specified but grabbed
  from the user's response to a prompt. Example:

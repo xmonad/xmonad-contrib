@@ -137,7 +137,7 @@ paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
   io $ fillRectangle d p gc 0 0 wh ht
   -- and now again
   io $ setForeground d gc color'
-  io $ fillRectangle d p gc (fi bw) (fi bw) ((wh - (bw * 2))) (ht - (bw * 2))
+  io $ fillRectangle d p gc (fi bw) (fi bw) (wh - (bw * 2)) (ht - (bw * 2))
   when (isJust str) $ do
     let (xmf,fc,bc,s) = fromJust str
     printStringXMF d p xmf gc fc bc x y s

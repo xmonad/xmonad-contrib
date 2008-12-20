@@ -170,5 +170,5 @@ shell using 'safeSpawn' from "XMonad.Util.Run"; see its documentation for more
 details on the advantages and disadvantages of using safeSpawn. -}
 promptSelection, safePromptSelection, unsafePromptSelection :: String -> X ()
 promptSelection = unsafePromptSelection
-safePromptSelection app = join $ io $ liftM (safeSpawn app) (getSelection)
+safePromptSelection app = join $ io $ liftM (safeSpawn app) getSelection
 unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) getSelection
