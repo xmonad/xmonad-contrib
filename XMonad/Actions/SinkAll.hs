@@ -12,9 +12,14 @@
 module XMonad.Actions.SinkAll (
     -- * Usage
     -- $usage
-    sinkAll) where
+    sinkAll, withAll, 
+    withAll', killAll) where
+
+import Data.Foldable hiding (foldr)
 
 import XMonad
+import XMonad.Core
+import XMonad.Operations
 import XMonad.StackSet
 
 -- $usage
@@ -32,9 +37,16 @@ import XMonad.StackSet
 
 -- | Un-float all floating windows on the current workspace.
 sinkAll :: X ()
-sinkAll = withAll sink
+sinkAll = withAll' sink
 
 -- | Apply a function to all windows on current workspace.
-withAll :: (Window -> WindowSet -> WindowSet) -> X ()
-withAll f = windows $ \ws -> let all' = integrate' . stack . workspace . current $ ws
-                             in foldr f ws all'
+withAll' :: (Window -> WindowSet -> WindowSet) -> X ()
+withAll' f = windows $ \ws -> let all' = integrate' . stack . workspace . current $ ws
+                              in foldr f ws all'
+
+withAll :: (Window -> X ()) -> X()
+withAll f = withWindowSet $ \ws -> let all' = integrate' . stack . workspace . current $ ws
+                                   in forM_ all' f
+
+killAll :: X()
+killAll = withAll killWindow
