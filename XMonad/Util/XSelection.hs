@@ -20,6 +20,8 @@ module XMonad.Util.XSelection (  -- * Usage
                                  getSelection,
                                  promptSelection,
                                  safePromptSelection,
+                                 modifySelectionAndSafePromptSelection,
+                                 modifySelectionAndUnsafePromptSelection,
                                  putSelection) where
 
 import Control.Concurrent (forkIO)
@@ -172,3 +174,7 @@ promptSelection, safePromptSelection, unsafePromptSelection :: String -> X ()
 promptSelection = unsafePromptSelection
 safePromptSelection app = join $ io $ liftM (safeSpawn app) getSelection
 unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) getSelection
+
+modifySelectionAndSafePromptSelection, modifySelectionAndUnsafePromptSelection :: (String -> String) -> String -> X ()
+modifySelectionAndSafePromptSelection f app = join $ io $ liftM (safeSpawn app) (fmap f getSelection)
+modifySelectionAndUnsafePromptSelection f app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) (fmap f getSelection)
