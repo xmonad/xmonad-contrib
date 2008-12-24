@@ -82,26 +82,28 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     -- Names thereof
     setDesktopNames (map W.tag ws)
 
-    -- Current desktop
-    let curr = fromJust $ elemIndex (W.currentTag s) $ map W.tag ws
-
-    setCurrentDesktop curr
-
     -- all windows, with focused windows last
     let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
     setClientList wins
 
-    -- Per window Desktop
-    -- To make gnome-panel accept our xinerama stuff, we display
-    -- all visible windows on the current desktop.
-    forM_ (W.current s : W.visible s) $ \x ->
-        forM_ (W.integrate' (W.stack (W.workspace x))) $ \win -> do
-            setWindowDesktop win curr
+    -- Current desktop
+    case (elemIndex (W.currentTag s) $ map W.tag ws) of
+      Nothing -> return ()
+      Just curr -> do
+        setCurrentDesktop curr
+
+        -- Per window Desktop
+        -- To make gnome-panel accept our xinerama stuff, we display
+        -- all visible windows on the current desktop.
+        forM_ (W.current s : W.visible s) $ \x ->
+            forM_ (W.integrate' (W.stack (W.workspace x))) $ \win -> do
+                setWindowDesktop win curr
 
     forM_ (W.hidden s) $ \w ->
-        let wn = fromJust $ elemIndex (W.tag w) (map W.tag ws) in
-        forM_ (W.integrate' (W.stack w)) $ \win -> do
-            setWindowDesktop win wn
+        case elemIndex (W.tag w) (map W.tag ws) of 
+          Nothing -> return ()
+          Just wn -> forM_ (W.integrate' (W.stack w)) $ \win -> do
+                         setWindowDesktop win wn
 
     setActiveWindow
 
