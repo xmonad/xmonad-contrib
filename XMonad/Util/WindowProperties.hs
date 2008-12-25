@@ -14,7 +14,8 @@
 module XMonad.Util.WindowProperties (
     -- * Usage
     -- $usage
-    Property(..), hasProperty, focusedHasProperty, allWithProperty)
+    Property(..), hasProperty, focusedHasProperty, allWithProperty,
+    propertyToQuery)
 where
 import XMonad
 import qualified XMonad.StackSet as W
@@ -60,8 +61,20 @@ focusedHasProperty p = do
         Just s  -> hasProperty p $ W.focus s
         Nothing -> return False
 
+-- | Find all existing windows with specified property
 allWithProperty :: Property -> X [Window]
 allWithProperty prop = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     (_,_,wins) <- io $ queryTree dpy rootw
     hasProperty prop `filterM` wins
+
+-- | Convert property to 'Query' 'Bool' (see "XMonad.ManageHook")
+propertyToQuery :: Property -> Query Bool
+propertyToQuery (Title s) = title =? s
+propertyToQuery (Resource s) = resource =? s
+propertyToQuery (ClassName s) = className =? s
+propertyToQuery (Role s) = stringProperty "WM_WINDOW_ROLE" =? s
+propertyToQuery (And p1 p2) = propertyToQuery p1 <&&> propertyToQuery p2
+propertyToQuery (Or p1 p2) = propertyToQuery p1 <||> propertyToQuery p2
+propertyToQuery (Not p) = not `fmap` propertyToQuery p
+propertyToQuery (Const b) = return b
