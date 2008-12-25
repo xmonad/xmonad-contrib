@@ -47,7 +47,10 @@ import Control.Monad
 --
 -- > myLayouts = addMonitor (ClassName "Cairo-clock" `And` Title "MacSlow's Cairo-Clock") (Rectangle (1280-150) (800-150) 150 150) $ tall ||| Full ||| ...
 -- 
--- And make the desired window unmanaged with ManageHook:
+-- The first argument to addMonitor is property which uniquely identifies
+-- the monitor, the second is rectangle in which the monitor will be placed.
+--
+-- Then make the desired window unmanaged with ManageHook:
 --
 -- > , className =? "Cairo-clock"--> doIgnore
 --
