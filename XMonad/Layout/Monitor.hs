@@ -59,7 +59,7 @@ import Control.Monad
 -- >      -- Cairo-clock creates 2 windows with the same classname, thus also using title
 -- >      prop = ClassName "Cairo-clock" `And` Title "MacSlow's Cairo-Clock"
 -- >      -- rectangle 150x150 in lower right corner, assuming 1280x800 resolution
--- >    , rect = (Rectangle (1280-150) (800-150) 150 150)
+-- >    , rect = Rectangle (1280-150) (800-150) 150 150
 -- >      -- avoid flickering
 -- >    , persistent = True
 -- >      -- make the window transparent
@@ -67,7 +67,7 @@ import Control.Monad
 -- >      -- hide on start
 -- >    , visible = False
 -- >      -- assign it a name to be able to toggle it independently of others
--- >    , mbName = Just "clock"
+-- >    , name = "clock"
 -- >    }
 --
 -- Add ManageHook to de-manage monitor windows and apply opacity settings.
@@ -89,12 +89,12 @@ import Control.Monad
 -- Screenshot: <http://www.haskell.org/haskellwiki/Image:Xmonad-clock.png>
 
 data Monitor a = Monitor
-    { prop :: Property         -- ^ property which uniquely identifies monitor window
-    , rect :: Rectangle        -- ^ specifies where to put monitor
-    , visible :: Bool          -- ^ is it visible by default?
-    , mbName :: (Maybe String) -- ^ name of monitor (useful when we have many of them)
-    , persistent :: Bool       -- ^ is it shown on all layouts?
-    , opacity :: Integer       -- ^ opacity level
+    { prop :: Property   -- ^ property which uniquely identifies monitor window
+    , rect :: Rectangle  -- ^ specifies where to put monitor
+    , visible :: Bool    -- ^ is it visible by default?
+    , name :: String     -- ^ name of monitor (useful when we have many of them)
+    , persistent :: Bool -- ^ is it shown on all layouts?
+    , opacity :: Integer -- ^ opacity level
     } deriving (Read, Show)
 
 -- | Template for 'Monitor' record. At least 'prop' and 'rect' should be
@@ -104,11 +104,13 @@ monitor = Monitor
     { prop = Const False
     , rect = Rectangle 0 0 0 0
     , visible = True
-    , mbName = Nothing
+    , name = ""
     , persistent = False
     , opacity = 0xFFFFFFFF
     }
 
+-- | Messages without names affect all monitors. Messages with names affect only
+-- monitors whose names match.
 data MonitorMessage = ToggleMonitor | ShowMonitor | HideMonitor
                     | ToggleMonitorNamed String
                     | ShowMonitorNamed String
@@ -134,13 +136,13 @@ instance LayoutModifier Monitor Window where
     handleMess mon mess
         | Just ToggleMonitor <- fromMessage mess = return $ Just $ mon { visible = not $ visible mon }
         | Just (ToggleMonitorNamed n) <- fromMessage mess = return $
-            if mbName mon `elem` [Just n, Nothing] then Just $ mon { visible = not $ visible mon } else Nothing
+            if name mon == n then Just $ mon { visible = not $ visible mon } else Nothing
         | Just ShowMonitor <- fromMessage mess = return $ Just $ mon { visible = True }
         | Just (ShowMonitorNamed n) <- fromMessage mess = return $
-            if mbName mon `elem` [Just n, Nothing] then Just $ mon { visible = True } else Nothing
+            if name mon == n then Just $ mon { visible = True } else Nothing
         | Just HideMonitor <- fromMessage mess = return $ Just $ mon { visible = False }
         | Just (HideMonitorNamed n) <- fromMessage mess = return $
-            if mbName mon `elem` [Just n, Nothing] then Just $ mon { visible = False } else Nothing
+            if name mon == n then Just $ mon { visible = False } else Nothing
         | Just Hide <- fromMessage mess = do unless (persistent mon) $ withMonitor (prop mon) () hide; return Nothing
         | otherwise = return Nothing
         
