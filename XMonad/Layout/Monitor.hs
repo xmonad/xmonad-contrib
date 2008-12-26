@@ -20,22 +20,22 @@ module XMonad.Layout.Monitor (
     -- * Hints and issues
     -- $hints
 
-    -- * TODO
-    -- $todo
     Monitor(..),
+    monitor,
     Property(..),
     MonitorMessage(..),
-    addMonitor,
-    addPersistentMonitor,
-    addNamedMonitor,
-    addNamedPersistentMonitor,
-    doHideIgnore
+    doHideIgnore,
+    manageMonitor
+
+    -- * TODO
+    -- $todo
     ) where
 
 import XMonad
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
 import XMonad.Hooks.ManageHelpers (doHideIgnore)
+import XMonad.Hooks.FadeInactive (setOpacity)
 import Control.Monad
 
 -- $usage
@@ -43,17 +43,41 @@ import Control.Monad
 --
 -- > import XMonad.Layout.Monitor
 --
--- Then add monitor to desired layouts:
+-- Define 'Monitor' record. 'monitor' can be used as a template. At least 'prop'
+-- and 'rect' should be set here. Also consider setting 'persistent' to True.
 --
--- > myLayouts = addMonitor (ClassName "Cairo-clock" `And` Title "MacSlow's Cairo-Clock") (Rectangle (1280-150) (800-150) 150 150) $ tall ||| Full ||| ...
+-- Minimal example:
+--    
+-- > myMonitor = monitor
+-- >     { prop = ClassName "SomeClass"
+-- >     , rect = Rectangle 0 0 40 20 -- rectangle 40x20 in upper left corner
+-- >     } 
+--
+-- More interesting example:
+--         
+-- > clock = monitor {
+-- >      -- Cairo-clock creates 2 windows with the same classname, thus also using title
+-- >      prop = ClassName "Cairo-clock" `And` Title "MacSlow's Cairo-Clock"
+-- >      -- rectangle 150x150 in lower right corner, assuming 1280x800 resolution
+-- >    , rect = (Rectangle (1280-150) (800-150) 150 150)
+-- >      -- avoid flickering
+-- >    , persistent = True
+-- >      -- make the window transparent
+-- >    , opacity = 0xAAAAAAAA
+-- >      -- hide on start
+-- >    , visible = False
+-- >      -- assign it a name to be able to toggle it independently of others
+-- >    , mbName = Just "clock"
+-- >    }
+--
+-- Add ManageHook to de-manage monitor windows and apply opacity settings.
 -- 
--- The first argument to addMonitor is property which uniquely identifies
--- the monitor, the second is rectangle in which the monitor will be placed.
---
--- Then make the desired window unmanaged with ManageHook:
---
--- > , className =? "Cairo-clock"--> doIgnore
---
+-- > manageHook = myManageHook <+> manageMonitor clock
+-- 
+-- Apply layout modifier.
+-- 
+-- > myLayouts = ModifiedLayout clock $ tall ||| Full ||| ...
+-- 
 -- After that, if there exists a window with specified properties, it will be
 -- displayed on top of all /tiled/ (not floated) windows on specified
 -- position.
@@ -64,13 +88,26 @@ import Control.Monad
 --
 -- Screenshot: <http://www.haskell.org/haskellwiki/Image:Xmonad-clock.png>
 
-data Monitor a = Monitor {
-    prop :: Property, -- ^ a window which satisfies this property is chosen as monitor
-    rect :: Rectangle, -- ^ where to put monitor
-    visible :: Bool, -- ^ is it visible by default?
-    mbName :: (Maybe String), -- ^ name of monitor (useful when we have many of them)
-    persistent :: Bool -- ^ is it shown on all layouts?
+data Monitor a = Monitor
+    { prop :: Property         -- ^ property which uniquely identifies monitor window
+    , rect :: Rectangle        -- ^ specifies where to put monitor
+    , visible :: Bool          -- ^ is it visible by default?
+    , mbName :: (Maybe String) -- ^ name of monitor (useful when we have many of them)
+    , persistent :: Bool       -- ^ is it shown on all layouts?
+    , opacity :: Integer       -- ^ opacity level
     } deriving (Read, Show)
+
+-- | Template for 'Monitor' record. At least 'prop' and 'rect' should be
+-- redefined. Default settings: 'visible' is 'True', 'persistent' is 'False'.
+monitor :: Monitor a
+monitor = Monitor
+    { prop = Const False
+    , rect = Rectangle 0 0 0 0
+    , visible = True
+    , mbName = Nothing
+    , persistent = False
+    , opacity = 0xFFFFFFFF
+    }
 
 data MonitorMessage = ToggleMonitor | ShowMonitor | HideMonitor
                     | ToggleMonitorNamed String
@@ -107,35 +144,22 @@ instance LayoutModifier Monitor Window where
         | Just Hide <- fromMessage mess = do unless (persistent mon) $ withMonitor (prop mon) () hide; return Nothing
         | otherwise = return Nothing
         
-addMonitor :: Property -> Rectangle -> l a -> ModifiedLayout Monitor l a
-addMonitor p r = ModifiedLayout (Monitor p r True Nothing False)
-addPersistentMonitor :: Property -> Rectangle -> l a -> ModifiedLayout Monitor l a
-addPersistentMonitor p r = ModifiedLayout (Monitor p r True Nothing True)
-addNamedMonitor :: String -> Property -> Rectangle -> l a -> ModifiedLayout Monitor l a
-addNamedMonitor name p r = ModifiedLayout (Monitor p r True (Just name) False)
-addNamedPersistentMonitor :: String -> Property -> Rectangle -> l a -> ModifiedLayout Monitor l a
-addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name) True)
+-- | ManageHook which demanages monitor window and applies opacity settings.
+manageMonitor :: Monitor a -> ManageHook
+manageMonitor mon = propertyToQuery (prop mon) --> do
+    w <- ask
+    liftX $ setOpacity w $ opacity mon
+    if persistent mon then doIgnore else doHideIgnore
 
 -- $hints
 -- - This module assumes that there is only one window satisfying property exists.
 --
--- - If you want the monitor to be available on /all/ layouts, use
--- 'addPersistentMonitor' instead of 'addMonitor' to avoid unnecessary
+-- - If your monitor is available on /all/ layouts, set
+-- 'persistent' to 'True' to avoid unnecessary
 -- flickering. You can still toggle monitor with a keybinding.
 --
--- - On the other hand, if you use the monitor only with some of the layouts, you
--- might want to hide it on the startup. Then change ManageHook to the following:
---
--- > className =? "Cairo-clock"--> doHideIgnore
---
--- - You can use several monitors with nested modifiers. Give them a name using
--- 'addNamedMonitor' or 'addNamedPersistentMonitor' to be able to toggle
--- them independently.
---
--- - To make monitor transparent, import "XMonad.Hooks.FadeInactive" and change
--- ManageHook to (@0xAAAAAAAA@ is the level of opacity):
---
--- > className =? "Cairo-clock"--> (ask >>= liftX . flip setOpacity 0xAAAAAAAA >> doIgnore)
+-- - You can use several monitors with nested modifiers. Give them names
+---  to be able to toggle them independently.
 --
 -- - You can display monitor only on specific workspaces with
 -- "XMonad.Layout.PerWorkspace".
@@ -143,6 +167,4 @@ addNamedPersistentMonitor name p r = ModifiedLayout (Monitor p r True (Just name
 -- $todo
 -- - make Monitor remember the window it manages
 --
--- - automatically unmanage the window?
--- 
 -- - specify position relative to the screen
