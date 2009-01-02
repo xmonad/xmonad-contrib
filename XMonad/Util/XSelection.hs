@@ -175,7 +175,7 @@ promptSelection = unsafePromptSelection
 safePromptSelection app = join $ io $ liftM (safeSpawn app) getSelection
 unsafePromptSelection app = join $ io $ liftM unsafeSpawn $ fmap (\x -> app ++ " " ++ x) getSelection
 
-{- | A wrapper around promptSelection and its safe variant. They take two parameters, the first is a function that transforms strings, and the second is the application to run. The transformer essentially transforms the selection in X.
+{- | A wrapper around 'promptSelection' and its safe variant. They take two parameters, the first is a function that transforms strings, and the second is the application to run. The transformer essentially transforms the selection in X.
 One example is to wrap code, such as a command line action copied out of the browser to be run as '"sudo" ++ cmd' or '"su - -c \"" ++ cmd ++ "\"".
 -}
 transformPromptSelection, transformSafePromptSelection :: (String -> String) -> String -> X ()
