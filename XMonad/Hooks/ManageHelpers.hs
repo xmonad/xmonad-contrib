@@ -30,6 +30,7 @@ module XMonad.Hooks.ManageHelpers (
     (-?>), (/=?), (<==?), (</=?), (-->>), (-?>>),
     isKDETrayWindow,
     isFullscreen,
+    isDialog,
     transientTo,
     maybeToDefinite,
     MaybeManageHook,
@@ -130,6 +131,17 @@ isFullscreen = ask >>= \w -> liftX $ do
     r <- io $ getWindowProperty32 dpy state w
     return $ case r of
         Just xs -> fromIntegral full `elem` xs
+        _ -> False
+
+-- | A predicate to check whether a window is a dialog.
+isDialog :: Query Bool
+isDialog = ask >>= \w -> liftX $ do
+    dpy <- asks display
+    w_type <- getAtom "_NET_WM_WINDOW_TYPE"
+    w_dialog <- getAtom "_NET_WM_WINDOW_TYPE_DIALOG"
+    r <- io $ getWindowProperty32 dpy w_type w
+    return $ case r of
+        Just xs -> fromIntegral w_dialog `elem` xs
         _ -> False
 
 -- | A predicate to check whether a window is Transient.
