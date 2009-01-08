@@ -63,6 +63,9 @@ library
     if flag(testing)
         ghc-options:    -Werror
 
+    if impl (ghc >= 6.10.1) && arch (x86_64)
+        ghc-options:    -O0
+
     exposed-modules:    XMonad.Doc
                         XMonad.Doc.Configuring
                         XMonad.Doc.Extending
