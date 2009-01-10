@@ -4,8 +4,7 @@ Module      :  XMonad.Util.XSelection
 Copyright   :  (C) 2007 Andrea Rossato, Matthew Sackman
 License     :  BSD3
 
-Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>,
-               Matthew Sackman <matthew@wellquite.org>
+Maintainer  : Gwern Branwen <gwern0@gmail.com>
 Stability   :  unstable
 Portability :  unportable
 
