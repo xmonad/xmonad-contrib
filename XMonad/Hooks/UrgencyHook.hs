@@ -332,7 +332,7 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
                   callUrgencyHook wuh w
                 else
                   clearUrgency w
-              userCode =<< asks (logHook . config) -- call *after* IORef has been modified
+              userCodeDef () =<< asks (logHook . config) -- call *after* IORef has been modified
         DestroyWindowEvent {ev_window = w} ->
           clearUrgency w
         _ ->
@@ -342,7 +342,7 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
 callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
 callUrgencyHook (WithUrgencyHook hook UrgencyConfig { suppressWhen = sw, remindWhen = rw }) w =
     whenX (not <$> shouldSuppress sw w) $ do
-        userCode $ urgencyHook hook w
+        userCodeDef () $ urgencyHook hook w
         case rw of
             Repeatedly times int -> addReminder w int $ Just times
             Every int            -> addReminder w int Nothing
