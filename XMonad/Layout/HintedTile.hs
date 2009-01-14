@@ -50,11 +50,12 @@ import Control.Monad
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data HintedTile a = HintedTile
-    { nmaster     :: !Int
-    , delta, frac :: !Rational
+    { nmaster     :: !Int         -- ^ number of windows in the master pane
+    , delta       :: !Rational    -- ^ how much to change when resizing
+    , frac        :: !Rational    -- ^ ratio between master/nonmaster panes
     , alignment   :: !Alignment   -- ^ Where to place windows that are smaller
                                   --   than their preordained rectangles.
-    , orientation :: !Orientation
+    , orientation :: !Orientation -- ^ Tall or Wide (mirrored) layout?
     } deriving ( Show, Read )
 
 data Orientation
