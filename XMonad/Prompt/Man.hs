@@ -88,12 +88,12 @@ manCompl mans s | s == "" || last s == ' ' = return []
 -- better\/more idiomatic.)
 getCommandOutput :: String -> IO String
 getCommandOutput s = do
-  (pin, pout, perr, ph) <- runInteractiveCommand s
+  -- we can ignore the process handle because we ignor SIGCHLD
+  (pin, pout, perr, _) <- runInteractiveCommand s
   hClose pin
   output <- hGetContents pout
   E.evaluate (length output)
   hClose perr
-  waitForProcess ph
   return output
 
 stripExt :: String -> String

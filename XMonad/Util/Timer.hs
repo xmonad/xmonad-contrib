@@ -23,6 +23,7 @@ import XMonad
 import Control.Applicative
 import Control.Concurrent
 import Data.Unique
+import System.Posix.Process (forkProcess)
 
 -- $usage
 -- This module can be used to setup a timer to handle deferred events.
@@ -35,7 +36,7 @@ type TimerId = Int
 startTimer :: Rational -> X TimerId
 startTimer s = io $ do
   u   <- hashUnique <$> newUnique
-  doubleFork $ do
+  forkProcess $ do
     d   <- openDisplay ""
     rw  <- rootWindow d $ defaultScreen d
     threadDelay (fromEnum $ s * 1000000)

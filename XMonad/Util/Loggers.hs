@@ -30,7 +30,7 @@ import XMonad.Core
 
 import System.Time
 import System.IO
-import System.Process (runInteractiveCommand, waitForProcess)
+import System.Process (runInteractiveCommand)
 import System.Locale
 
 -- $usage
@@ -82,7 +82,7 @@ battery = logCmd "/usr/bin/acpi | sed -r 's/.*?: (.*%).*/\\1/; s/discharging, ([
 
 -- | Create a 'Logger' from an arbitrary shell command.
 logCmd :: String -> Logger
-logCmd c = io $ do (_, out, _, proc) <- runInteractiveCommand c
+logCmd c = io $ do (_, out, _, _) <- runInteractiveCommand c
                    output <- hGetLine out
-                   waitForProcess proc
+                   -- no need to waitForProcess, we ignore SIGCHLD
                    return $ Just output

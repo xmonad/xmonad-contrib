@@ -31,7 +31,7 @@ module XMonad.Util.Run (
                          ) where
 
 import System.Posix.IO
-import System.Posix.Process (executeFile)
+import System.Posix.Process (executeFile, forkProcess)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try)
 import System.IO
@@ -54,20 +54,20 @@ import Control.Monad
 -- This corresponds to dmenu's notion of exit code 1 for a cancelled invocation.
 runProcessWithInput :: FilePath -> [String] -> String -> IO String
 runProcessWithInput cmd args input = do
-    (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
+    (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
     hPutStr pin input
     hClose pin
     output <- hGetContents pout
     when (output == output) $ return ()
     hClose pout
     hClose perr
-    waitForProcess ph
+    -- no need to waitForProcess, we ignore SIGCHLD
     return output
 
 -- | Wait is in µs (microseconds)
 runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
 runProcessWithInputAndWait cmd args input timeout = do
-    doubleFork $ do
+    forkProcess $ do
         (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
         hPutStr pin input
         hFlush pin
@@ -77,6 +77,7 @@ runProcessWithInputAndWait cmd args input timeout = do
         hClose perr
         waitForProcess ph
         return ()
+    return ()
 
 -- | Multiplies by ONE MILLION, for functions that take microseconds.
 --
@@ -106,7 +107,7 @@ it makes use of shell interpretation by relying on @$HOME@ and
 interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
 safeSpawn :: MonadIO m => FilePath -> String -> m ()
-safeSpawn prog arg = liftIO (try (doubleFork $ executeFile prog True [arg] Nothing) >> return ())
+safeSpawn prog arg = liftIO (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
 
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
@@ -128,7 +129,7 @@ spawnPipe x = do
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr
     hSetBuffering h LineBuffering
-    doubleFork $ do
+    forkProcess $ do
         dupTo rd stdInput
         executeFile "/bin/sh" False ["-c", x] Nothing
     return h
