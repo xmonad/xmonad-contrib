@@ -10,8 +10,12 @@ import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.EwmhDesktops
 import XMonad.Prompt
 import XMonad.Prompt.Shell
+
+import XMonad.Layout.LayoutScreens
+import XMonad.Layout.TwoPane
 
 import qualified Data.Map as M
 
@@ -29,9 +33,11 @@ sjanssenConfig =
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys c `M.union` keys defaultConfig c
         , layoutHook = modifiers layouts
+        , logHook    = ewmhDesktopsLogHook
         , manageHook = composeAll [className =? x --> doF (W.shift w)
                                     | (x, w) <- [ ("Firefox", "web")
-                                                , ("Ktorrent", "7")]]
+                                                , ("Ktorrent", "7")
+                                                , ("Amarokapp", "7")]]
                        <+> manageHook defaultConfig <+> manageDocks
         }
  where
@@ -44,6 +50,8 @@ sjanssenConfig =
         ,((modm .|. shiftMask, xK_c     ), kill1)
         ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
         ,((modm .|. shiftMask, xK_0     ), windows $ \w -> foldr copy w ws)
+        ,((modm,               xK_z     ), layoutScreens 2 $ TwoPane 0.5 0.5)
+        ,((modm .|. shiftMask, xK_z     ), rescreen)
         ]
 
     myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
