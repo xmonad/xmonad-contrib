@@ -134,11 +134,16 @@ removeMouseBindings conf mouseBindingList =
 --   the key sequence descriptions contained in the Strings.  The key
 --   sequence descriptions are \"emacs-style\": @M-@, @C-@, @S-@, and
 --   @M\#-@ denote mod, control, shift, and mod1-mod5 (where @\#@ is
---   replaced by the appropriate number) respectively; some special
---   keys can be specified by enclosing their name in angle brackets.
+--   replaced by the appropriate number) respectively.  Note that if
+--   you want to make a keybinding using \'alt\' even though you use a
+--   different key (like the \'windows\' key) for \'mod\', you can use
+--   something like @\"M1-x\"@ for alt+x (check the output of @xmodmap@
+--   to see which mod key \'alt\' is bound to). Some special keys can
+--   also be specified by enclosing their name in angle brackets.
 --
---   For example, @\"M-C-x\"@ denotes mod+ctrl+x; @\"S-\<Escape\>\"@ denotes
---   shift-escape.
+--   For example, @\"M-C-x\"@ denotes mod+ctrl+x; @\"S-\<Escape\>\"@
+--   denotes shift-escape; @\"M1-C-\<Delete\>\"@ denotes alt+ctrl+delete
+--   (assuming alt is bound to mod1, which is common).
 --
 --   Sequences of keys can also be specified by separating the key
 --   descriptions with spaces. For example, @\"M-x y \<Down\>\"@ denotes the
@@ -159,7 +164,10 @@ removeMouseBindings conf mouseBindingList =
 -- create a keymap and add it to your config.
 --
 -- Here is a complete list of supported special keys.  Note that a few
--- keys, such as the arrow keys, have synonyms:
+-- keys, such as the arrow keys, have synonyms.  If there are other
+-- special keys you would like to see supported, feel free to submit a
+-- patch, or ask on the xmonad mailing list; adding special keys is
+-- quite simple.
 --
 -- > <Backspace>
 -- > <Tab>
