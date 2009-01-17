@@ -12,41 +12,42 @@ import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Prompt
-import XMonad.Prompt.Shell
+import XMonad.Actions.SpawnOn
 
 import XMonad.Layout.LayoutScreens
 import XMonad.Layout.TwoPane
 
 import qualified Data.Map as M
 
-sjanssenConfigXmobar = statusBar "xmobar" sjanssenPP strutkey sjanssenConfig
+sjanssenConfigXmobar = statusBar "xmobar" sjanssenPP strutkey =<< sjanssenConfig
  where
     strutkey (XConfig {modMask = modm}) = (modm, xK_b)
 
-sjanssenConfig = 
-    defaultConfig
+sjanssenConfig = do
+    sp <- mkSpawner
+    return $ defaultConfig
         { terminal = "urxvtc"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
                 [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w))
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
-        , keys = \c -> mykeys c `M.union` keys defaultConfig c
+        , keys = \c -> mykeys sp c `M.union` keys defaultConfig c
         , layoutHook = modifiers layouts
         , logHook    = ewmhDesktopsLogHook
         , manageHook = composeAll [className =? x --> doF (W.shift w)
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
-                       <+> manageHook defaultConfig <+> manageDocks
+                       <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn sp
         }
  where
     tiled     = HintedTile 1 0.03 0.5 TopLeft
     layouts   = (tiled Tall ||| (tiled Wide ||| Full)) ||| tabbed shrinkText myTheme
     modifiers = smartBorders
 
-    mykeys (XConfig {modMask = modm, workspaces = ws}) = M.fromList $
-        [((modm,               xK_p     ), shellPrompt myPromptConfig)
+    mykeys sp (XConfig {modMask = modm, workspaces = ws}) = M.fromList $
+        [((modm,               xK_p     ), shellPromptHere sp myPromptConfig)
         ,((modm .|. shiftMask, xK_c     ), kill1)
         ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
         ,((modm .|. shiftMask, xK_0     ), windows $ \w -> foldr copy w ws)
