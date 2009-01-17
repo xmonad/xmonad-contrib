@@ -31,6 +31,7 @@ module XMonad.Hooks.ManageHelpers (
     isKDETrayWindow,
     isFullscreen,
     isDialog,
+    pid,
     transientTo,
     maybeToDefinite,
     MaybeManageHook,
@@ -48,6 +49,8 @@ import qualified XMonad.StackSet as W
 
 import Data.Maybe
 import Data.Monoid
+
+import System.Posix (ProcessID)
 
 -- | Denotes a side of a screen. @S@ stands for South, @NE@ for Northwest
 -- etc. @C@ stands for Center.
@@ -143,6 +146,15 @@ isDialog = ask >>= \w -> liftX $ do
     return $ case r of
         Just xs -> fromIntegral w_dialog `elem` xs
         _ -> False
+
+pid :: Query (Maybe ProcessID)
+pid = ask >>= \w -> liftX $ do
+    dpy <- asks display
+    a <- getAtom "_NET_WM_PID"
+    p <- io $ getWindowProperty32 dpy a w
+    return $ case p of
+        Just [x] -> Just (fromIntegral x)
+        _        -> Nothing
 
 -- | A predicate to check whether a window is Transient.
 -- It holds the result which might be the window it is transient to

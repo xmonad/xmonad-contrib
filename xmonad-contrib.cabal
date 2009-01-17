@@ -95,6 +95,7 @@ library
                         XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll
+                        XMonad.Actions.SpawnOn
                         XMonad.Actions.Submap
                         XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows

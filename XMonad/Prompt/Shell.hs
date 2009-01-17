@@ -15,7 +15,8 @@
 module XMonad.Prompt.Shell
     ( -- * Usage
       -- $usage
-      shellPrompt
+      Shell (..)
+    , shellPrompt
     , getCommands
     , getBrowser
     , getEditor
