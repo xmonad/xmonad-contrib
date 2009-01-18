@@ -15,7 +15,8 @@
 module XMonad.Actions.Submap (
                              -- * Usage
                              -- $usage
-                             submap
+                             submap,
+                             submapDefault
                             ) where
 
 import XMonad hiding (keys)
@@ -57,7 +58,11 @@ For detailed instructions on editing your key bindings, see
 --   corresponding action, or does nothing if the key is not found in
 --   the map.
 submap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
-submap keys = do
+submap keys = submapDefault (return ()) keys
+
+-- | Like 'submap', but executes a default action if the key did not match.
+submapDefault :: X () -> M.Map (KeyMask, KeySym) (X ()) -> X ()
+submapDefault def keys = do
     XConf { theRoot = root, display = d } <- ask
 
     io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
@@ -73,4 +78,4 @@ submap keys = do
     io $ ungrabKeyboard d currentTime
 
     m' <- cleanMask m
-    whenJust (M.lookup (m', s) keys) id
+    maybe def id (M.lookup (m', s) keys)
