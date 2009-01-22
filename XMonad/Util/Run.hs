@@ -131,6 +131,7 @@ spawnPipe x = do
     hSetBuffering h LineBuffering
     forkProcess $ do
         createSession
+        uninstallSignalHandlers
         dupTo rd stdInput
         executeFile "/bin/sh" False ["-c", x] Nothing
     return h
