@@ -31,7 +31,7 @@ module XMonad.Util.Run (
                          ) where
 
 import System.Posix.IO
-import System.Posix.Process (executeFile, forkProcess)
+import System.Posix.Process (executeFile, forkProcess, createSession)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try)
 import System.IO
@@ -130,6 +130,7 @@ spawnPipe x = do
     h <- fdToHandle wr
     hSetBuffering h LineBuffering
     forkProcess $ do
+        createSession
         dupTo rd stdInput
         executeFile "/bin/sh" False ["-c", x] Nothing
     return h
