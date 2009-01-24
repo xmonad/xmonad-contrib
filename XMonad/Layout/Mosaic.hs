@@ -15,6 +15,7 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Mosaic (
+    -- $usage
     Mosaic(..)
     ,Aspect(..)
     )
@@ -49,10 +50,10 @@ import Data.Monoid(Monoid(mappend, mempty))
 --
 -- To change the choice in aspect ratio, add to your keybindings:
 --
---  , ((modMask, xK_a), sendMessage Taller)
---  , ((modMask, xK_z), sendMessage Wider)
---  , ((modMask, xK_s), sendMessage (SlopeMod (zipWith (*) [1..])))
---  , ((modMask, xK_d), sendMessage (SlopeMod (zipWith (flip (/)) [1..])))
+--  > , ((modMask, xK_a), sendMessage Taller)
+--  > , ((modMask, xK_z), sendMessage Wider)
+--  > , ((modMask, xK_s), sendMessage (SlopeMod (zipWith (*) [1..])))
+--  > , ((modMask, xK_d), sendMessage (SlopeMod (zipWith (flip (/)) [1..])))
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
