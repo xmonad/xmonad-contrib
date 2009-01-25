@@ -107,7 +107,7 @@ instance LayoutClass Mosaic a where
                                 = return (zip (integrate st) rect, newLayout)
         where rects = splits (length $ integrate st) r ss
               lrects = length rects
-              nix = if mix == 0 || ix `elem` [0,1] then fromIntegral $ lrects `div` 2
+              nix = if mix == 0 then fromIntegral $ lrects `div` 2
                         else max 0 $ min (fromIntegral $ pred lrects) $ fromIntegral (pred lrects) * ix / fromIntegral mix
               rect = rects !! round nix
               newLayout = Just $ MosaicSt nix (pred lrects) ss
