@@ -9,22 +9,25 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Based on MosaicAlt, but aspect ratio messages allways change the aspect
+-- Based on MosaicAlt, but aspect ratio messages always change the aspect
 -- ratios, and rearranging the window stack changes the window sizes.
 --
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Mosaic (
+    -- * Usage
     -- $usage
-    Mosaic(..)
+    Mosaic(Mosaic)
     ,Aspect(..)
+    ,shallower
+    ,steeper
     )
     where
 
 import Prelude hiding (sum)
 
 import XMonad(Typeable,
-              LayoutClass(pureLayout, pureMessage, description), Message,
+              LayoutClass(doLayout , pureMessage, description), Message,
               fromMessage, splitHorizontallyBy, splitVerticallyBy, Rectangle)
 import XMonad.StackSet(integrate)
 import Data.Foldable(Foldable(foldMap), sum)
@@ -37,23 +40,24 @@ import Data.Monoid(Monoid(mappend, mempty))
 --
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --
--- > myLayouts = Mosaic 0 [1..10] ||| Full ||| etc..
+-- > myLayouts = Mosaic [4..12] ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
--- The numbers are directly proportional to the area given, with the
--- master window getting the most if you have an ascending list.
+-- Adding windows tends to result in an excessively tall ratio, but
+-- approximately square ratios can be quickly had by sending a reset to the
+-- layout (alt-shift space), or sending the Reset message.
 --
--- Unfortunately, infinite lists break serialization, so
--- don't use them
+-- Unfortunately, infinite lists break serialization, so don't use them.
 --
--- The position of a window in the stack determines its size.
---
--- To change the choice in aspect ratio, add to your keybindings:
+-- To change the choice in aspect ratio and the relative sizes of windows, add
+-- to your keybindings:
 --
 --  > , ((modMask, xK_a), sendMessage Taller)
 --  > , ((modMask, xK_z), sendMessage Wider)
---  > , ((modMask, xK_s), sendMessage (SlopeMod (zipWith (*) [1..])))
---  > , ((modMask, xK_d), sendMessage (SlopeMod (zipWith (flip (/)) [1..])))
+--  > , ((modMask, xK_h), sendMessage Shrink >> sendMessage (SlopeMod shallower))
+--  > , ((modMask, xK_l), sendMessage Expand >> sendMessage (SlopeMod steeper))
+--
+--  > , ((modMask, xK_r), sendMessage Reset)
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -69,27 +73,61 @@ data Aspect
 instance Message Aspect
 
 data Mosaic a
-    = Mosaic Int [Rational]
+    {- | The relative magnitudes of the positive rational numbers provided
+         determine the relative sizes of the windows. If the numbers are all
+         the same, then the layout looks like Grid. An increasing list results
+         in the master window being the largest. Only as many windows are
+         displayed as there are elements in that list
+    -}
+    = Mosaic [Rational]
+    -- the current index, and the maximum index are carried along
+    | MosaicSt Rational Int [Rational]
     deriving (Read, Show)
 
 instance LayoutClass Mosaic a where
     description = const "Mosaic"
 
-    pureMessage (Mosaic i ss) msg = ixMod $ fromMessage msg
-        where ixMod (Just Wider) = Just $ Mosaic (succ i) ss
-              ixMod (Just Taller)  = if i <= 1 then Nothing else Just $ Mosaic (pred i) ss
-              ixMod (Just Reset) = Just $ Mosaic 0 ss
-              ixMod (Just (SlopeMod f)) = Just $ Mosaic i (f ss)
-              ixMod _ = Nothing
+    pureMessage (Mosaic _ss) _ms = Nothing
+    pureMessage (MosaicSt ix mix ss) ms = fromMessage ms >>= ixMod
+        where ixMod Taller | rix >= mix = Nothing
+                           | otherwise = Just $ MosaicSt (succ ix) mix ss
+              ixMod Wider  | rix <= 0   = Nothing
+                           | otherwise = Just $ MosaicSt (pred ix) mix ss
+              ixMod Reset              = Just $ Mosaic ss
+              ixMod (SlopeMod f)       = Just $ MosaicSt ix mix (f ss)
+              rix = round ix
 
-    pureLayout (Mosaic i ss) r st = zip (integrate st) (rect i)
+    doLayout (Mosaic ss) r st = return (zip (integrate st) rect, newLayout)
         where rects = splits (length $ integrate st) r ss
-              rect 0 = rects !! (length rects `div` 2)
-              rect n = if length rects < n then last rects else rects !! pred n
+              lrects = length rects
+              rect = rects !! (lrects `div` 2)
+              newLayout = Just $ MosaicSt (fromIntegral lrects / 2) (pred lrects) ss
+
+    doLayout (MosaicSt ix mix ss) r st
+                                = return (zip (integrate st) rect, newLayout)
+        where rects = splits (length $ integrate st) r ss
+              lrects = length rects
+              nix = if mix == 0 || ix `elem` [0,1] then fromIntegral $ lrects `div` 2
+                        else max 0 $ min (fromIntegral $ pred lrects) $ fromIntegral (pred lrects) * ix / fromIntegral mix
+              rect = rects !! round nix
+              newLayout = Just $ MosaicSt nix (pred lrects) ss
+
+-- | These sample functions scale the ratios of successive windows, other
+-- variations could also be useful.
+--
+-- The windows in each position of the stack should correspond to a specific
+-- element of the list, so it should be possible to resize individual windows,
+-- though it is not yet provided.
+steeper :: [Rational] -> [Rational]
+steeper [] = []
+steeper (x:xs) = map (subtract (x*0.8)) (x:xs)
+
+shallower :: [Rational] -> [Rational]
+shallower [] = []
+shallower (x:xs) = map (+(x/0.8)) (x:xs)
 
 splits :: Int -> Rectangle -> [Rational] -> [[Rectangle]]
 splits num rect sz = splitsL rect $ makeTree $ normalize $ take num sz
---    where --fas = normalize $ map (fromIntegral (sum fas')/) $ map fromIntegral fas'
 
 normalize :: Fractional a => [a] -> [a]
 normalize x = let s = sum x
@@ -101,7 +139,7 @@ splitsL _rect Empty = []
 splitsL rect (Leaf _) = [[rect]]
 splitsL rect (Branch l r) = do
     let mkSplit f = f (sum l / (sum l + sum r)) rect
-    (rl,rr) <- map mkSplit [splitHorizontallyBy,splitVerticallyBy]
+    (rl,rr) <- map mkSplit [splitVerticallyBy,splitHorizontallyBy]
     splitsL rl l `interleave` splitsL rr r
 
 interleave :: [[a]] -> [[a]] -> [[a]]
