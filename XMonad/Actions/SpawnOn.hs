@@ -68,8 +68,7 @@ shellPromptOn :: Spawner -> WorkspaceId -> XPConfig -> X ()
 shellPromptOn sp ws = mkPrompt (spawnOn sp ws)
 
 spawnHere :: Spawner -> String -> X ()
-spawnHere sp cmd = withWindowSet $ \ws -> spawnOn sp (currTag ws) cmd
- where currTag = W.tag . W.workspace . W.current
+spawnHere sp cmd = withWindowSet $ \ws -> spawnOn sp (W.currentTag ws) cmd
 
 spawnOn :: Spawner -> WorkspaceId -> String -> X ()
 spawnOn sp ws cmd = do
