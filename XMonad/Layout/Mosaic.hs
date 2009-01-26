@@ -43,10 +43,6 @@ import Data.Monoid(Monoid(mappend, mempty))
 -- > myLayouts = Mosaic [4..12] ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
--- Adding windows tends to result in an excessively tall ratio, but
--- approximately square ratios can be quickly had by sending a reset to the
--- layout (alt-shift space), or sending the Reset message.
---
 -- Unfortunately, infinite lists break serialization, so don't use them.
 --
 -- To change the choice in aspect ratio and the relative sizes of windows, add
@@ -80,37 +76,38 @@ data Mosaic a
          displayed as there are elements in that list
     -}
     = Mosaic [Rational]
-    -- the current index, and the maximum index are carried along
-    | MosaicSt Rational Int [Rational]
+    -- override the aspect? current index, maximum index
+    | MosaicSt Bool Rational Int [Rational]
     deriving (Read, Show)
 
 instance LayoutClass Mosaic a where
     description = const "Mosaic"
 
     pureMessage (Mosaic _ss) _ms = Nothing
-    pureMessage (MosaicSt ix mix ss) ms = fromMessage ms >>= ixMod
+    pureMessage (MosaicSt _ ix mix ss) ms = fromMessage ms >>= ixMod
         where ixMod Taller | rix >= mix = Nothing
-                           | otherwise = Just $ MosaicSt (succ ix) mix ss
+                           | otherwise = Just $ MosaicSt False (succ ix) mix ss
               ixMod Wider  | rix <= 0   = Nothing
-                           | otherwise = Just $ MosaicSt (pred ix) mix ss
+                           | otherwise = Just $ MosaicSt False (pred ix) mix ss
               ixMod Reset              = Just $ Mosaic ss
-              ixMod (SlopeMod f)       = Just $ MosaicSt ix mix (f ss)
+              ixMod (SlopeMod f)       = Just $ MosaicSt False ix mix (f ss)
               rix = round ix
 
     doLayout (Mosaic ss) r st = return (zip (integrate st) rect, newLayout)
         where rects = splits (length $ integrate st) r ss
               lrects = length rects
               rect = rects !! (lrects `div` 2)
-              newLayout = Just $ MosaicSt (fromIntegral lrects / 2) (pred lrects) ss
+              newLayout = Just $ MosaicSt True (fromIntegral lrects / 2) (pred lrects) ss
 
-    doLayout (MosaicSt ix mix ss) r st
+    doLayout (MosaicSt override ix mix ss) r st
                                 = return (zip (integrate st) rect, newLayout)
         where rects = splits (length $ integrate st) r ss
               lrects = length rects
-              nix = if mix == 0 then fromIntegral $ lrects `div` 2
-                        else max 0 $ min (fromIntegral $ pred lrects) $ fromIntegral (pred lrects) * ix / fromIntegral mix
+              nix = if mix == 0 || override then fromIntegral $ lrects `div` 2
+                        else max 0 $ min (fromIntegral $ pred lrects)
+                            $ fromIntegral (pred lrects) * ix / fromIntegral mix
               rect = rects !! round nix
-              newLayout = Just $ MosaicSt nix (pred lrects) ss
+              newLayout = Just $ MosaicSt override nix (pred lrects) ss
 
 -- | These sample functions scale the ratios of successive windows, other
 -- variations could also be useful.
