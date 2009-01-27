@@ -105,6 +105,7 @@ library
                         XMonad.Actions.WindowNavigation
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
+                        XMonad.Actions.WithAll
                         XMonad.Config.Arossato
                         XMonad.Config.Azerty
                         XMonad.Config.Desktop
