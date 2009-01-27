@@ -19,3 +19,16 @@ module XMonad.Actions.SinkAll (
     sinkAll) where
 
 import XMonad.Actions.WithAll (sinkAll)
+
+-- $usage
+--
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Actions.SinkAll
+--
+-- then add a keybinding; for example:
+--
+--     , ((modMask x .|. shiftMask, xK_t), sinkAll)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
