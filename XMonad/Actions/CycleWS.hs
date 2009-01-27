@@ -172,7 +172,7 @@ data WSDirection = Next | Prev
 -- | What type of workspaces should be included in the cycle?
 data WSType = EmptyWS     -- ^ cycle through empty workspaces
             | NonEmptyWS  -- ^ cycle through non-empty workspaces
-	    | HiddenWS    -- ^ cycle through non-visible workspaces
+            | HiddenWS    -- ^ cycle through non-visible workspaces
             | HiddenNonEmptyWS  -- ^ cycle through non-empty non-visible workspaces
             | AnyWS       -- ^ cycle through all workspaces
             | WSIs (X (WindowSpace -> Bool))
@@ -186,7 +186,7 @@ wsTypeToPred NonEmptyWS = return (isJust . stack)
 wsTypeToPred HiddenWS   = do hs <- gets (map tag . hidden . windowset)
                              return (\w -> tag w `elem` hs)
 wsTypeToPred HiddenNonEmptyWS  = do ne <- wsTypeToPred NonEmptyWS
-			            hi <- wsTypeToPred HiddenWS
+                                    hi <- wsTypeToPred HiddenWS
                                     return (\w -> hi w && ne w)
 wsTypeToPred AnyWS      = return (const True)
 wsTypeToPred (WSIs p)   = p
