@@ -391,14 +391,16 @@ keyPressHandle mask (ks,_)
     where
       go   = updateWindows >> eventLoop handle
       quit = flushString >> setSuccess False -- quit and discard everything
-      setSuccess b = modify $ \s -> s { successful = b }
 -- insert a character
 keyPressHandle _ (_,s)
     | s == "" = eventLoop handle
     | otherwise = do insertString (decodeInput s)
                      updateWindows
                      completed <- tryAutoComplete
-                     unless completed $ eventLoop handle
+                     if completed then setSuccess True else eventLoop handle
+
+setSuccess :: Bool -> XP ()
+setSuccess b = modify $ \s -> s { successful = b }
 
 -- KeyPress and State
 
