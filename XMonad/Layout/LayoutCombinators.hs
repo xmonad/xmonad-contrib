@@ -46,7 +46,7 @@ module XMonad.Layout.LayoutCombinators
       -- * New layout choice combinator and 'JumpToLayout'
       -- $jtl
     , (|||)
-    , JumpToLayout(JumpToLayout)
+    , JumpToLayout(..)
     ) where
 
 import Data.Maybe ( isJust, isNothing )
@@ -213,12 +213,12 @@ infixr 5 |||
 
 data NewSelect l1 l2 a = NewSelect Bool (l1 a) (l2 a) deriving ( Read, Show )
 
-data NoWrap = NextLayoutNoWrap | Wrap deriving ( Read, Show, Typeable )
-instance Message NoWrap
-
--- | A message to jump to a particular layout, specified by its
---   description string.
-data JumpToLayout = JumpToLayout String deriving ( Read, Show, Typeable )
+-- | 
+data JumpToLayout = JumpToLayout String -- ^ A message to jump to a particular layout
+                                        -- , specified by its description string..
+                  | NextLayoutNoWrap
+                  | Wrap
+                    deriving ( Read, Show, Typeable )
 instance Message JumpToLayout
 
 instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a where
