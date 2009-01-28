@@ -22,7 +22,8 @@ module XMonad.Actions.GridSelect (
     withSelectedWindow,
     bringSelected,
     goToSelected,
-    default_colorizer
+    fromClassName,
+    colorRangeFromClassName
     ) where
 import Data.Maybe
 import Data.Bits
@@ -37,6 +38,8 @@ import XMonad.Layout.Decoration
 import XMonad.Util.NamedWindows
 import XMonad.Actions.WindowBringer (bringWindow)
 import Text.Printf
+import System.Random (mkStdGen, genRange, next)
+import Data.Word (Word8)
 
 -- $usage
 --
@@ -206,8 +209,9 @@ hsv2rgb (h,s,v) =
          5 -> (v,p,q)
          _ -> error "The world is ending. x mod a >= a."
 
-default_colorizer :: Window -> Bool -> X (String, String)
-default_colorizer w active = do
+
+fromClassName :: Window -> Bool -> X (String, String)
+fromClassName w active = do
     classname <- runQuery className w
     let seed x = toInteger (sum $ map ((*x).fromEnum) classname) :: Integer
         (r,g,b) = hsv2rgb ((seed 83) `mod` 360,
@@ -215,10 +219,52 @@ default_colorizer w active = do
                            (fromInteger ((seed 121) `mod` 1000))/2500+0.4)
     if active
       then return ("#faff69", "black")
-      else return ("#" ++ concat (map (twodigitHex.(round :: Double -> Integer).(*256)) [r, g, b] ), "white")
-  where
-    twodigitHex :: Integer -> String
-    twodigitHex a = printf "%02x" a
+      else return ("#" ++ concat (map (twodigitHex.(round :: Double -> Word8).(*256)) [r, g, b] ), "white")
+  
+    
+twodigitHex :: Word8 -> String
+twodigitHex a = printf "%02x" a
+
+
+-- | A colorizer that picks a color inside a range, 
+-- and depending on the window's class.
+colorRangeFromClassName :: (Word8, Word8, Word8) -- ^ Beginning of the color range 
+                        -> (Word8, Word8, Word8) -- ^ End of the color range
+                        -> (Word8, Word8, Word8) -- ^ Background of the active window
+                        -> (Word8, Word8, Word8) -- ^ Inactive text color
+                        -> (Word8, Word8, Word8) -- ^ Active text color 
+                        -> Window -> Bool -> X (String, String)
+colorRangeFromClassName startC endC activeC inactiveT activeT w active = 
+    do classname <- runQuery className w
+       if active 
+         then return (rgbToHex activeC, rgbToHex activeT)
+         else return (rgbToHex $ mix startC endC 
+                  $ stringToRatio classname, rgbToHex inactiveT)
+    where rgbToHex :: (Word8, Word8, Word8) -> String
+          rgbToHex (r, g, b) = '#':twodigitHex r
+                               ++twodigitHex g++twodigitHex b
+
+-- | Creates a mix of two colors according to a ratio 
+-- (1 -> first color, 0 -> second color).
+mix :: (Word8, Word8, Word8) -> (Word8, Word8, Word8)
+        -> Double -> (Word8, Word8, Word8)
+mix (r1, g1, b1) (r2, g2, b2) r = (mix' r1 r2, mix' g1 g2, mix' b1 b2)
+    where  mix' a b = truncate $ (fi a * r) + (fi b * (1 - r))
+
+-- | Generates a Double from a string, trying to
+-- achieve a random distribution.
+-- We create a random seed from the sum of all characters
+-- in the string, and use it to generate a ratio between 0 and 1
+stringToRatio :: String -> Double
+stringToRatio "" = 0
+stringToRatio s = let gen = mkStdGen $ sum $ map fromEnum s
+                      range = (\(a, b) -> b - a) $ genRange gen
+                      randomInt = foldr1 combine $ replicate 20 next
+                      combine f1 f2 g = let (_, g') = f1 g in f2 g'
+                  in fi (fst $ randomInt gen) / fi range
+
+
+
 
 -- | Brings up a 2D grid of windows in the center of the screen, and one can
 -- select a window with cursors keys. The selected window is returned.
@@ -284,7 +330,7 @@ decorateName' w = do
   fmap show $ getName w
 
 defaultGSConfig :: GSConfig
-defaultGSConfig = GSConfig 50 130 10 default_colorizer "xft:Sans-8"
+defaultGSConfig = GSConfig 50 130 10 fromClassName "xft:Sans-8"
 
 borderColor :: String
 borderColor = "white"
