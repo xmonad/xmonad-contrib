@@ -161,6 +161,7 @@ library
                         XMonad.Layout.Magnifier
                         XMonad.Layout.Master
                         XMonad.Layout.Maximize
+                        XMonad.Layout.MessageControl
                         XMonad.Layout.Monitor
                         XMonad.Layout.Mosaic
                         XMonad.Layout.MosaicAlt
