@@ -10,15 +10,24 @@
    Modeled after the handy Surfraw CLI search tools at <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
 
    Additional sites welcomed. -}
-module XMonad.Actions.Search (    -- * Usage
+module XMonad.Actions.Search (   -- * Usage
                                   -- $usage
                                search,
                                SearchEngine(..),
                                searchEngine,
+															 searchEngineF,
                                promptSearch,
                                promptSearchBrowser,
                                selectSearch,
                                selectSearchBrowser,
+
+                               hasPrefix,
+															 escape,
+															 use,
+															 intelligent,
+															 (!>),
+															 prefixAware,
+															 namedEngine,
 
                                amazon,
                                codesearch,
@@ -38,7 +47,8 @@ module XMonad.Actions.Search (    -- * Usage
                                thesaurus,
                                wayback,
                                wikipedia,
-                               youtube
+                               youtube,
+															 multi
 
                                   -- * Use case: searching with a submap
                                   -- $tip
@@ -85,7 +95,7 @@ import XMonad.Util.XSelection (getSelection)
 
 * 'debbts' -- Debian Bug Tracking System.
 
-* 'debpts  -- Debian Package Tracking System.
+* 'debpts'  -- Debian Package Tracking System.
 
 * 'dictionary' -- dictionary.reference.com search.
 
@@ -114,6 +124,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'wikipedia' -- basic Wikipedia search.
 
 * 'youtube' -- Youtube video search.
+
+* 'multi' -- Search based on the prefix. \"amazon:Potter\" will use amazon, etc. With no prefix searches google.
 
 Feel free to add more! -}
 
@@ -153,7 +165,7 @@ Or in combination with XMonad.Util.EZConfig:
 >
 > ...
 >
-> searchList :: [([Char], S.SearchEngine)]
+> searchList :: [(String, S.SearchEngine)]
 > searchList = [ ("g", S.google)
 >              , ("h", S.hoohle)
 >              , ("w", S.wikipedia)
@@ -205,14 +217,21 @@ escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
 
 type Browser      = FilePath
 type Query        = String
-type Site         = String
+type Site         = String -> String
 type Name         = String
 data SearchEngine = SearchEngine Name Site
 
--- | Given a browser, a search engine, and a search term, perform the
+-- | Given an already defined search engine, extracts its transformation
+--   function, making it easy to create compound search engines.
+--   For an instance you can use @use google@ to get a function which
+--   makes the same transformation as the google search engine would.
+use :: SearchEngine -> Site
+use (SearchEngine _ engine) = engine
+
+-- | Given a browser, a search engine's transformation function, and a search term, perform the
 --   requested search in the browser.
 search :: Browser -> Site -> Query -> X ()
-search browser site query = safeSpawn browser $ site ++ escape query
+search browser site query = safeSpawn browser $ site query
 
 {- | Given a base URL, create the 'SearchEngine' that escapes the query and
    appends it to the base. You can easily define a new engine locally using
@@ -222,12 +241,34 @@ search browser site query = safeSpawn browser $ site ++ escape query
 
    The important thing is that the site has a interface which accepts the escaped query
    string as part of the URL. Alas, the exact URL to feed searchEngine varies
-   from site to site, often considerably, so there's no general way to cover this.
+   from site to site, often considerably, so there\'s no general way to cover this.
 
    Generally, examining the resultant URL of a search will allow you to reverse-engineer
    it if you can't find the necessary URL already described in other projects such as Surfraw. -}
-searchEngine :: Name -> Site -> SearchEngine
-searchEngine = SearchEngine
+searchEngine :: Name -> String -> SearchEngine
+searchEngine name site = searchEngineF name (\s -> site ++ (escape s))
+
+{- | If your search engine is more complex than this (you may want to identify
+   the kind of input and make the search URL dependent on the input or put the query
+   inside of a URL instead of in the end) you can use the alternative 'searchEngineF' function.
+
+> searchFunc :: String -> String
+> searchFunc s | s `hasPrefix` "wiki:"   = "http://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
+>              | s `hasPrefix` "http://" = s
+>              | otherwise               = (use google) s
+> myNewEngine = searchEngineF "mymulti" searchFunc
+
+   @searchFunc@ here searches for a word in wikipedia if it has a prefix
+   of \"wiki:\" (you can use the 'escape' function to escape any forbidden characters), opens an address
+   directly if it starts with \"http:\/\/\" and otherwise uses the provided google search engine.
+   You can use other engines inside of your own through the 'use' function as shown above to make
+   complex searches.
+
+   The user input will be automatically escaped in search engines created with 'searchEngine',
+   'searchEngineF', however, completely depends on the transformation function passed to it. -}
+searchEngineF :: Name -> Site -> SearchEngine
+searchEngineF = SearchEngine
+
 
 -- The engines.
 amazon, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images,
@@ -238,9 +279,9 @@ codesearch = searchEngine "codesearch" "http://www.google.com/codesearch?q="
 deb        = searchEngine "deb"        "http://packages.debian.org/"
 debbts     = searchEngine "debbts"     "http://bugs.debian.org/"
 debpts     = searchEngine "debpts"     "http://packages.qa.debian.org/"
-dictionary = searchEngine "dictionary" "http://dictionary.reference.com/browse/"
+dictionary = searchEngine "dict"       "http://dictionary.reference.com/browse/"
 google     = searchEngine "google"     "http://www.google.com/search?num=100&q="
-hackage    = searchEngine "hackage" "http://hackage.haskell.org/cgi-bin/hackage-scripts/package/"
+hackage    = searchEngine "hackage"    "http://hackage.haskell.org/cgi-bin/hackage-scripts/package/"
 hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
 images     = searchEngine "images"     "http://images.google.fr/images?q="
 imdb       = searchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
@@ -249,12 +290,59 @@ maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
 mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
 scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
 thesaurus  = searchEngine "thesaurus"  "http://thesaurus.reference.com/search?q="
-wikipedia  = searchEngine "wikipedia"  "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+wikipedia  = searchEngine "wiki"       "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
 youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
    latest backup. -}
 wayback   = searchEngine "wayback" "http://web.archive.org/"
+
+multi :: SearchEngine
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia, (prefixAware google)]
+
+{- | This function wraps up a search engine and creates a new one, which works
+   like the argument, but goes directly to a URL if one is given rather than
+   searching.
+
+> myIntelligentGoogleEngine = intelligent google 
+	
+   Now if you search for http:\/\/xmonad.org it will directly open in your browser-}
+intelligent :: SearchEngine -> SearchEngine
+intelligent (SearchEngine name site) = searchEngineF name (\s -> if (fst $ break (==':') s) `elem` ["http", "https", "ftp"] then s else (site s))
+
+{- | Checks if a string starts with a given prefix -}
+hasPrefix :: String -> String -> Bool
+hasPrefix _ [] = True
+hasPrefix [] (_:_) = False
+hasPrefix (t:ts) (p:ps) = if t == p then hasPrefix ts ps else False
+
+removeColonPrefix :: String -> String
+removeColonPrefix str = tail $ snd $ break (==':') str
+
+{- | Connects a few search engines into one. If the search engines\' names are
+   \"s1\", \"s2\" and \"s3\", then the resulting engine will use s1 if the query
+   is @s1:word@, s2 if you type @s2:word@ and s3 in all other cases. 
+	 
+   Example:
+	 
+> multiEngine = intelligent (wikipedia !> mathworld !> (prefixAware google)) 
+
+  Now if you type \"wiki:Haskell\" it will search for \"Haskell\" in Wikipedia,
+  \"mathworld:integral\" will search mathworld, and everything else will fall back to
+  google. The use of intelligent will make sure that URLs are opened directly. -}
+(!>) :: SearchEngine -> SearchEngine -> SearchEngine
+(SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if s `hasPrefix` (name1++":") then site1 (removeColonPrefix s) else site2 s)
+
+{- | Makes a search engine prefix-aware. Especially useful together with '!>'.
+   It will automatically remove the prefix from a query so that you don\'t end
+	 up searching for google:xmonad if google is your fallback engine and you
+	 explicitly add the prefix. -}
+prefixAware :: SearchEngine -> SearchEngine
+prefixAware (SearchEngine name site) = SearchEngine name (\s -> if s `hasPrefix` (name++":") then site $ removeColonPrefix s else site s)
+
+{- | Changes search engine's name -}
+namedEngine :: Name -> SearchEngine -> SearchEngine
+namedEngine name (SearchEngine _ site) = searchEngineF name site
 
 {- | Like 'search', but for use with the output from a Prompt; it grabs the
    Prompt's result, passes it to a given searchEngine and opens it in a given
