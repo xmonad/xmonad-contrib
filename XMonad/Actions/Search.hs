@@ -11,48 +11,45 @@
 
    Additional sites welcomed. -}
 module XMonad.Actions.Search (   -- * Usage
-                                  -- $usage
-                               search,
-                               SearchEngine(..),
-                               searchEngine,
-															 searchEngineF,
-                               promptSearch,
-                               promptSearchBrowser,
-                               selectSearch,
-                               selectSearchBrowser,
+                                 -- $usage
+                                 search,
+                                 SearchEngine(..),
+                                 searchEngine,
+                                 searchEngineF,
+                                 promptSearch,
+                                 promptSearchBrowser,
+                                 selectSearch,
+                                 selectSearchBrowser,
+                                 hasPrefix,
+                                 escape,
+                                 use,
+                                 intelligent,
+                                 (!>),
+                                 prefixAware,
+                                 namedEngine,
 
-                               hasPrefix,
-															 escape,
-															 use,
-															 intelligent,
-															 (!>),
-															 prefixAware,
-															 namedEngine,
-
-                               amazon,
-                               codesearch,
-                               deb,
-                               debbts,
-                               debpts,
-                               dictionary,
-                               google,
-                               hackage,
-                               hoogle,
-                               images,
-                               imdb,
-                               isohunt,
-                               maps,
-                               mathworld,
-                               scholar,
-                               thesaurus,
-                               wayback,
-                               wikipedia,
-                               youtube,
-															 multi
-
+                                 amazon,
+                                 codesearch,
+                                 deb,
+                                 debbts,
+                                 debpts,
+                                 dictionary,
+                                 google,
+                                 hackage,
+                                 hoogle,
+                                 images,
+                                 imdb,
+                                 isohunt,
+                                 maps,
+                                 mathworld,
+                                 scholar,
+                                 thesaurus,
+                                 wayback,
+                                 wikipedia,
+                                 youtube,
+                                 multi
                                   -- * Use case: searching with a submap
                                   -- $tip
-
                           ) where
 
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
@@ -304,8 +301,8 @@ multi = namedEngine "multi" $ foldr1 (!>) [amazon, codesearch, deb, debbts, debp
    like the argument, but goes directly to a URL if one is given rather than
    searching.
 
-> myIntelligentGoogleEngine = intelligent google 
-	
+> myIntelligentGoogleEngine = intelligent google
+
    Now if you search for http:\/\/xmonad.org it will directly open in your browser-}
 intelligent :: SearchEngine -> SearchEngine
 intelligent (SearchEngine name site) = searchEngineF name (\s -> if (fst $ break (==':') s) `elem` ["http", "https", "ftp"] then s else (site s))
@@ -321,11 +318,11 @@ removeColonPrefix str = tail $ snd $ break (==':') str
 
 {- | Connects a few search engines into one. If the search engines\' names are
    \"s1\", \"s2\" and \"s3\", then the resulting engine will use s1 if the query
-   is @s1:word@, s2 if you type @s2:word@ and s3 in all other cases. 
-	 
+   is @s1:word@, s2 if you type @s2:word@ and s3 in all other cases.
+
    Example:
-	 
-> multiEngine = intelligent (wikipedia !> mathworld !> (prefixAware google)) 
+
+> multiEngine = intelligent (wikipedia !> mathworld !> (prefixAware google))
 
   Now if you type \"wiki:Haskell\" it will search for \"Haskell\" in Wikipedia,
   \"mathworld:integral\" will search mathworld, and everything else will fall back to
