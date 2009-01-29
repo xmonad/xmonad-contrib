@@ -22,6 +22,8 @@ module XMonad.Layout.GridVariants ( -- * Usage
                                     ChangeMasterGeom(..)
                                   , Grid(..)
                                   , TallGrid(..)
+                                  , SplitGrid(..)
+                                  , Orientation(..)
                                   ) where
 
 import Control.Monad
@@ -31,7 +33,7 @@ import qualified XMonad.StackSet as W
 -- $usage
 -- This module can be used as follows:
 --
--- > import XMonad.Layout.Master
+-- > import XMonad.Layout.GridVariants
 --
 -- Then add something like this to your layouts:
 --
@@ -39,12 +41,12 @@ import qualified XMonad.StackSet as W
 --
 -- for a 16:10 aspect ratio grid, or
 --
--- > TallGrid 2 3 (2/3) (16/10) (5/100)
+-- > SplitGrid L 2 3 (2/3) (16/10) (5/100)
 --
 -- for a layout with a 2x3 master grid that uses 2/3 of the screen,
--- and a 16:10 aspect ratio slave grid.  The last parameter is again
--- the percentage by which the split between master and slave area
--- changes in response to Expand/Shrink messages.
+-- and a 16:10 aspect ratio slave grid to its right.  The last
+-- parameter is again the percentage by which the split between master
+-- and slave area changes in response to Expand/Shrink messages.
 --
 -- To be able to change the geometry of the master grid, add something
 -- like this to your keybindings:
@@ -68,29 +70,35 @@ instance LayoutClass Grid a where
 
     description _ = "Grid"
 
--- | TallGrid layout.  Parameters are
+-- | SplitGrid layout.  Parameters are
 --
+--   - side where the master is
 --   - number of master rows
 --   - number of master columns
 --   - portion of screen used for master grid
 --   - x:y aspect ratio of slave windows
 --   - increment for resize messages
-data TallGrid a = TallGrid !Int !Int !Rational !Rational !Rational
-                  deriving (Read, Show)
+data SplitGrid a = SplitGrid Orientation !Int !Int !Rational !Rational !Rational
+                   deriving (Read, Show)
 
-instance LayoutClass TallGrid a where
+-- | Type to specify the side of the screen that holds
+--   the master area of a SplitGrid.
+data Orientation = T | B | L | R
+                   deriving (Eq, Read, Show)
 
-    pureLayout (TallGrid mrows mcols mfrac saspect _) rect st = zip wins rects
+instance LayoutClass SplitGrid a where
+
+    pureLayout (SplitGrid o mrows mcols mfrac saspect _) rect st = zip wins rects
         where
           wins  = W.integrate st
           nwins = length wins
-          rects = arrangeTallGrid rect nwins mrows mcols mfrac saspect
+          rects = arrangeSplitGrid rect o nwins mrows mcols mfrac saspect
 
     pureMessage layout msg =
         msum [ fmap (resizeMaster layout) (fromMessage msg)
              , fmap (changeMasterGrid layout) (fromMessage msg) ]
 
-    description _ = "TallGrid"
+    description _ = "SplitGrid"
 
 -- |The geometry change message understood by the master grid
 data ChangeMasterGeom
@@ -100,19 +108,25 @@ data ChangeMasterGeom
 
 instance Message ChangeMasterGeom
 
-arrangeTallGrid :: Rectangle -> Int -> Int -> Int -> Rational -> Rational -> [Rectangle]
-arrangeTallGrid rect@(Rectangle rx ry rw rh) nwins mrows mcols mfrac saspect
+arrangeSplitGrid :: Rectangle -> Orientation -> Int -> Int -> Int -> Rational -> Rational -> [Rectangle]
+arrangeSplitGrid rect@(Rectangle rx ry rw rh) o nwins mrows mcols mfrac saspect
     | nwins <= mwins = arrangeMasterGrid rect nwins mcols
     | mwins == 0     = arrangeAspectGrid rect nwins saspect
     | otherwise      = (arrangeMasterGrid mrect mwins mcols) ++
                        (arrangeAspectGrid srect swins saspect)
     where
-      mwins = mrows * mcols
-      swins = nwins - mwins
-      mrect = Rectangle rx ry rw mh
-      srect = Rectangle rx (fromIntegral ry + fromIntegral mh) rw sh
-      mh    = ceiling (fromIntegral rh * mfrac)
-      sh    = rh - mh
+      mwins            = mrows * mcols
+      swins            = nwins - mwins
+      mrect            = Rectangle mx my mw mh
+      srect            = Rectangle sx sy sw sh
+      (mh, sh, mw, sw) = if o `elem` [T, B] then
+                             (ceiling (fromIntegral rh * mfrac), rh - mh, rw, rw)
+                         else
+                             (rh, rh, ceiling (fromIntegral rw * mfrac), rw - mw)
+      mx               = fromIntegral rx + if o == R then fromIntegral sw else 0
+      my               = fromIntegral ry + if o == B then fromIntegral sh else 0
+      sx               = fromIntegral rx + if o == L then fromIntegral mw else 0
+      sy               = fromIntegral ry + if o == T then fromIntegral mh else 0
 
 arrangeMasterGrid :: Rectangle -> Int -> Int -> [Rectangle]
 arrangeMasterGrid rect nwins mcols = arrangeGrid rect nwins (min nwins mcols)
@@ -153,14 +167,48 @@ splitEvenly n parts = [ sz-off | (sz,off) <- zip sizes offsets]
       sizes   = [i*size | i <- [1..parts]]
       offsets = (take (fromIntegral extra) [1..]) ++ [extra,extra..]
 
-resizeMaster :: TallGrid a -> Resize -> TallGrid a
-resizeMaster (TallGrid mrows mcols mfrac saspect delta) Shrink =
-    TallGrid mrows mcols (max 0 (mfrac - delta)) saspect delta
-resizeMaster (TallGrid mrows mcols mfrac saspect delta) Expand =
-    TallGrid mrows mcols (min 1 (mfrac + delta)) saspect delta
+resizeMaster :: SplitGrid a -> Resize -> SplitGrid a
+resizeMaster (SplitGrid o mrows mcols mfrac saspect delta) Shrink =
+    SplitGrid o mrows mcols (max 0 (mfrac - delta)) saspect delta
+resizeMaster (SplitGrid o mrows mcols mfrac saspect delta) Expand =
+    SplitGrid o mrows mcols (min 1 (mfrac + delta)) saspect delta
 
-changeMasterGrid :: TallGrid a -> ChangeMasterGeom -> TallGrid a
-changeMasterGrid (TallGrid mrows mcols mfrac saspect delta) (IncMasterRows d) =
-    TallGrid (max 0 (mrows + d)) mcols mfrac saspect delta
-changeMasterGrid (TallGrid mrows mcols mfrac saspect delta) (IncMasterCols d) =
-    TallGrid mrows (max 0 (mcols + d)) mfrac saspect delta
+changeMasterGrid :: SplitGrid a -> ChangeMasterGeom -> SplitGrid a
+changeMasterGrid (SplitGrid o mrows mcols mfrac saspect delta) (IncMasterRows d) =
+    SplitGrid o (max 0 (mrows + d)) mcols mfrac saspect delta
+changeMasterGrid (SplitGrid o mrows mcols mfrac saspect delta) (IncMasterCols d) =
+    SplitGrid o mrows (max 0 (mcols + d)) mfrac saspect delta
+
+-- | TallGrid layout.  Parameters are
+--
+--   - number of master rows
+--   - number of master columns
+--   - portion of screen used for master grid
+--   - x:y aspect ratio of slave windows
+--   - increment for resize messages
+--
+--   This exists mostly because it was introduced in an earlier version.
+--   It's a fairly thin wrapper around "SplitGrid L".
+data TallGrid a = TallGrid !Int !Int !Rational !Rational !Rational
+                  deriving (Read, Show)
+
+instance LayoutClass TallGrid a where
+
+    pureLayout (TallGrid mrows mcols mfrac saspect _) rect st = zip wins rects
+        where
+          wins  = W.integrate st
+          nwins = length wins
+          rects = arrangeSplitGrid rect L nwins mrows mcols mfrac saspect
+
+    pureMessage layout msg =
+        msum [ fmap ((tallGridAdapter resizeMaster) layout) (fromMessage msg)
+             , fmap ((tallGridAdapter changeMasterGrid) layout) (fromMessage msg) ]
+
+    description _ = "TallGrid"
+
+tallGridAdapter :: (SplitGrid a -> b -> SplitGrid a) -> TallGrid a -> b -> TallGrid a
+tallGridAdapter f (TallGrid mrows mcols mfrac saspect delta) msg =
+    TallGrid mrows' mcols' mfrac' saspect' delta'
+    where
+      SplitGrid _ mrows' mcols' mfrac' saspect' delta' =
+          f (SplitGrid L mrows mcols mfrac saspect delta) msg
