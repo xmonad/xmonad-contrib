@@ -42,7 +42,7 @@ import XMonad.StackSet as W
 --
 -- Then edit your @layoutHook@ by adding the FixedColumn layout:
 --
--- > myLayouts = FixedColumn 20 80 10 ||| Full ||| etc..
+-- > myLayouts = FixedColumn 1 20 80 10 ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- For more detailed instructions on editing the layoutHook see:
