@@ -16,7 +16,7 @@
 -- >     sp <- mkSpawner
 -- >     xmonad defaultConfig {
 -- >         ...
--- >         manageHook = spawnHook sp <+> manageHook defaultConfig
+-- >         manageHook = manageSpawn sp <+> manageHook defaultConfig
 -- >         ...
 -- >     }
 
