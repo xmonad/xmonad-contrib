@@ -59,16 +59,16 @@ module XMonad.Hooks.ServerMode
     ( -- * Usage
       -- $usage
       ServerMode (..)
-    , eventHook
+    , serverModeEventHook
     ) where
 
 import Control.Monad (when)
 import Data.List
+import Data.Monoid
 import System.IO
 
 import XMonad
 import XMonad.Actions.Commands
-import XMonad.Hooks.EventHook
 
 -- $usage
 -- You can use this module with the following in your
@@ -76,22 +76,15 @@ import XMonad.Hooks.EventHook
 --
 -- > import XMonad.Hooks.ServerMode
 --
--- Then edit your @layoutHook@ by adding the 'eventHook':
+-- Then edit your @handleEventHook@ by adding the 'serverModeEventHook':
 --
--- > layoutHook = eventHook ServerMode $ avoidStruts $ simpleTabbed ||| Full ||| etc..
+-- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook }
 --
--- and then:
---
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
---
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data ServerMode = ServerMode deriving ( Show, Read )
 
-instance EventHook ServerMode where
-    handleEvent _ (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
+serverModeEventHook :: Event -> X All
+serverModeEventHook (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
         d <- asks display
         a <- io $ internAtom d "XMONAD_COMMAND" False
         when (mt == a && dt /= []) $ do
@@ -100,4 +93,5 @@ instance EventHook ServerMode where
              case lookup (fromIntegral (head dt) :: Int) (zip [1..] cl) of
                   Just (c,_) -> runCommand' c
                   Nothing    -> mapM_ (io . hPutStrLn stderr) . listOfCommands $ cl
-    handleEvent _ _ = return ()
+        return (All True)
+serverModeEventHook _ = return (All True)

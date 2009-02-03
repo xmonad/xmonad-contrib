@@ -15,14 +15,14 @@
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
-    EwmhDesktopsHook,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
-    ewmhDesktopsLayout
+    ewmhDesktopsEventHook
     ) where
 
 import Data.List
 import Data.Maybe
+import Data.Monoid
 
 import XMonad
 import Control.Monad
@@ -30,7 +30,6 @@ import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
 import XMonad.Util.WorkspaceCompare
-import XMonad.Hooks.EventHook
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -41,9 +40,9 @@ import XMonad.Hooks.EventHook
 -- > myLogHook :: X ()
 -- > myLogHook = ewmhDesktopsLogHook
 -- >
--- > myLayoutHook = ewmhDesktopsLayout $ avoidStruts $ layoutHook defaultConfig
+-- > myHandleEventHook = ewmhDesktopsEventHook
 -- >
--- > main = xmonad defaultConfig { layoutHook = myLayouts, logHook = myLogHook }
+-- > main = xmonad defaultConfig { handleEventHook = myHandleEventHook, logHook = myLogHook }
 --
 -- 'avoidStruts' is used to automatically leave space for dock programs, and
 -- can be found in 'XMonad.Hooks.ManageDocks'.
@@ -119,13 +118,8 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
 --
 --  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
 --
-ewmhDesktopsLayout :: layout a -> HandleEvent EwmhDesktopsHook layout a
-ewmhDesktopsLayout = eventHook EwmhDesktopsHook
-
-data EwmhDesktopsHook = EwmhDesktopsHook deriving ( Show, Read )
-instance EventHook EwmhDesktopsHook where
-	handleEvent _ e@ClientMessageEvent {} = do handle e
-	handleEvent _ _ = return ()
+ewmhDesktopsEventHook :: Event -> X All
+ewmhDesktopsEventHook e = handle e >> return (All True)
 
 handle :: Event -> X ()
 handle ClientMessageEvent {

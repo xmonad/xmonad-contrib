@@ -90,8 +90,7 @@ arossatoConfig = do
                                 map show [7 .. 9 :: Int]
          , logHook            = myDynLog xmobar -- REMOVE this line if you do not have xmobar installed!
          , manageHook         = newManageHook
-         , layoutHook         = eventHook ServerMode $
-                                avoidStruts $
+         , layoutHook         = avoidStruts $
                                 decorated        |||
                                 noBorders mytabs |||
                                 otherLays
@@ -99,6 +98,7 @@ arossatoConfig = do
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , keys               = newKeys
+         , handleEventHook    = serverModeEventHook
          , focusFollowsMouse  = False
          }
     where

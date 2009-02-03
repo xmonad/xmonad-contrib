@@ -27,9 +27,10 @@ desktopConfig = defaultConfig
     { logHook    = ewmhDesktopsLogHook
     , layoutHook = desktopLayoutModifiers $ layoutHook defaultConfig
     , manageHook = manageHook defaultConfig <+> manageDocks
+    , handleEventHook = ewmhDesktopsEventHook
     , keys       = \c -> desktopKeys c `M.union` keys defaultConfig c }
 
 desktopKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_b), sendMessage ToggleStruts) ]
 
-desktopLayoutModifiers layout = avoidStruts $ ewmhDesktopsLayout layout
+desktopLayoutModifiers layout = avoidStruts layout

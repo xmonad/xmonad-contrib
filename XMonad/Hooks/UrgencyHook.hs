@@ -70,7 +70,6 @@ module XMonad.Hooks.UrgencyHook (
 import XMonad
 import qualified XMonad.StackSet as W
 
-import XMonad.Hooks.EventHook
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
@@ -199,7 +198,7 @@ import Foreign (unsafePerformIO)
 -- 'urgencyConfig' to control behavior. To change this, use 'withUrgencyHook'
 -- instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
-                   h -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
+                   h -> XConfig l -> XConfig l
 withUrgencyHook hook conf = withUrgencyHookC hook urgencyConfig conf
 
 -- | This lets you modify the defaults set in 'urgencyConfig'. An example:
@@ -208,9 +207,9 @@ withUrgencyHook hook conf = withUrgencyHookC hook urgencyConfig conf
 --
 -- (Don't type the @...@, you dolt.) See 'UrgencyConfig' for details on configuration.
 withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
-                    h -> UrgencyConfig -> XConfig l -> XConfig (HandleEvent (WithUrgencyHook h) l)
+                    h -> UrgencyConfig -> XConfig l -> XConfig l
 withUrgencyHookC hook urgConf conf = conf {
-        layoutHook = eventHook (WithUrgencyHook hook urgConf) $ layoutHook conf,
+        handleEventHook = \e -> handleEvent (WithUrgencyHook hook urgConf) e >> handleEventHook conf e,
         logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf
     }
 
@@ -322,9 +321,10 @@ data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
 -- ourselves, allowing us to clear urgency when a window is visible, and not to
 -- set urgency if a window is visible. If you have a better idea, please, let us
 -- know!
-instance UrgencyHook h => EventHook (WithUrgencyHook h) where
-    handleEvent wuh event = case event of
-        PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
+handleEvent :: UrgencyHook h => WithUrgencyHook h -> Event -> X ()
+handleEvent wuh event =
+    case event of
+      PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then do
@@ -333,9 +333,9 @@ instance UrgencyHook h => EventHook (WithUrgencyHook h) where
                 else
                   clearUrgency w
               userCodeDef () =<< asks (logHook . config) -- call *after* IORef has been modified
-        DestroyWindowEvent {ev_window = w} ->
+      DestroyWindowEvent {ev_window = w} ->
           clearUrgency w
-        _ ->
+      _ ->
           mapM_ handleReminder =<< readReminders
       where handleReminder reminder = handleTimer (timer reminder) event $ reminderHook wuh reminder
 

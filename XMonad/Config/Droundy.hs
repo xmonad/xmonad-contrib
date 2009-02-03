@@ -44,7 +44,7 @@ import XMonad.Actions.CycleWS ( moveTo, WSType( HiddenNonEmptyWS ),
 
 import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
 import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook,
-                                   ewmhDesktopsLayout )
+                                   ewmhDesktopsEventHook )
 
 myXPConfig :: XPConfig
 myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
@@ -121,7 +121,7 @@ keys x = M.fromList $
 config = defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
-         , layoutHook = ewmhDesktopsLayout $ showWName $ workspaceDir "~" $
+         , layoutHook = showWName $ workspaceDir "~" $
                         boringWindows $ smartBorders $ windowNavigation $
                         maximizeVertical $ toggleLayouts Full $ avoidStruts $
                         named "tabbed" mytab |||
@@ -135,6 +135,7 @@ config = defaultConfig
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#222222" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
+         , handleEventHook = ewmhDesktopsEventHook
          , XMonad.modMask = mod1Mask
          , XMonad.keys = keys
          }
