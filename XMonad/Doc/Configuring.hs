@@ -106,18 +106,14 @@ be found in "XMonad.Core".
 #Checking_whether_your_xmonad.hs_is_correct#
 
 After changing your configuration, it is a good idea to check that it
-is syntactically and type correct.  You can do this easily by loading
-your configuration file in the Haskell interpreter:
+is syntactically and type correct.  You can do this easily by using an xmonad
+flag:
 
->    $ ghci ~/.xmonad/xmonad.hs
->    GHCi, version 6.8.2: http://www.haskell.org/ghc/  :? for help
->    Loading package base ... linking ... done.
->    Ok, modules loaded: Main.
->
->    Prelude Main> :t main
->    main :: IO ()
+>    $ xmonad --recompile
+>    $
 
-Ok, looks good.
+If there is no output, your xmonad.hs has no errors.  If there are errors, they
+will be printed to the console.  Patch them up and try again.
 
 Note, however, that if you skip this step and try restarting xmonad
 with errors in your xmonad.hs, it's not the end of the world; xmonad
@@ -139,15 +135,7 @@ all your windows, layouts, etc. intact.  (If you change anything
 related to your layouts, you may need to hit @mod-shift-space@ after
 restarting to see the changes take effect.)  If something goes wrong,
 the previous (default) settings will be used.  Note this requires that
-GHC and xmonad are in your @$PATH@. If GHC isn't in your path, you can
-still compile @xmonad.hs@ yourself:
-
->    $ cd ~/.xmonad
->    $ /path/to/ghc --make xmonad.hs
->    $ ls
->    xmonad    xmonad.hi xmonad.hs xmonad.o
-
-When you hit @mod-q@, this newly compiled xmonad will be used.
+GHC and xmonad are in your @$PATH@.
 
 -}
 
