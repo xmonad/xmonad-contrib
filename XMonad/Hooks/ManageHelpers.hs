@@ -124,28 +124,25 @@ isKDETrayWindow = ask >>= \w -> liftX $ do
         Just [_] -> True
         _ -> False
 
+-- | Helper to check if a window property contains certain value.
+isInProperty :: String -> String -> Query Bool
+isInProperty p v = ask >>= \w -> liftX $ do
+    dpy <- asks display
+    pa <- getAtom p
+    va <- getAtom v
+    r <- io $ getWindowProperty32 dpy pa w
+    return $ case r of
+        Just xs -> fromIntegral va `elem` xs
+        _ -> False
+
 -- | A predicate to check whether a window wants to fill the whole screen.
 -- See also 'doFullFloat'.
 isFullscreen :: Query Bool
-isFullscreen = ask >>= \w -> liftX $ do
-    dpy <- asks display
-    state <- getAtom "_NET_WM_STATE"
-    full <- getAtom "_NET_WM_STATE_FULLSCREEN"
-    r <- io $ getWindowProperty32 dpy state w
-    return $ case r of
-        Just xs -> fromIntegral full `elem` xs
-        _ -> False
+isFullscreen = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_FULLSCREEN"
 
 -- | A predicate to check whether a window is a dialog.
 isDialog :: Query Bool
-isDialog = ask >>= \w -> liftX $ do
-    dpy <- asks display
-    w_type <- getAtom "_NET_WM_WINDOW_TYPE"
-    w_dialog <- getAtom "_NET_WM_WINDOW_TYPE_DIALOG"
-    r <- io $ getWindowProperty32 dpy w_type w
-    return $ case r of
-        Just xs -> fromIntegral w_dialog `elem` xs
-        _ -> False
+isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 
 pid :: Query (Maybe ProcessID)
 pid = ask >>= \w -> liftX $ do
