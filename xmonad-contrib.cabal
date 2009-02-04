@@ -206,7 +206,6 @@ library
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
-                        XMonad.Util.SpawnOnWorkspace
                         XMonad.Util.Themes
                         XMonad.Util.Timer
                         XMonad.Util.WindowProperties
