@@ -15,10 +15,12 @@ module XMonad.Util.WindowProperties (
     -- * Usage
     -- $usage
     Property(..), hasProperty, focusedHasProperty, allWithProperty,
+    getProp32, getProp32s,
     propertyToQuery)
 where
 import XMonad
 import qualified XMonad.StackSet as W
+import Foreign.C.Types (CLong)
 import Control.Monad
 
 -- $usage
@@ -78,3 +80,11 @@ propertyToQuery (And p1 p2) = propertyToQuery p1 <&&> propertyToQuery p2
 propertyToQuery (Or p1 p2) = propertyToQuery p1 <||> propertyToQuery p2
 propertyToQuery (Not p) = not `fmap` propertyToQuery p
 propertyToQuery (Const b) = return b
+
+-- | Get a window property from atom
+getProp32 :: Atom -> Window -> X (Maybe [CLong])
+getProp32 a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
+
+-- | Get a window property from string
+getProp32s :: String -> Window -> X (Maybe [CLong])
+getProp32s str w = do { a <- getAtom str; getProp32 a w }

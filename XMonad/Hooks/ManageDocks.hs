@@ -27,6 +27,7 @@ import XMonad
 import Foreign.C.Types (CLong)
 import Control.Monad
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.WindowProperties (getProp32s)
 
 import Data.List (delete)
 
@@ -100,10 +101,9 @@ manageDocks = checkDock --> doIgnore
 -- | Checks if a window is a DOCK or DESKTOP window
 checkDock :: Query Bool
 checkDock = ask >>= \w -> liftX $ do
-    a <- getAtom "_NET_WM_WINDOW_TYPE"
     dock <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
     desk <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
-    mbr <- getProp a w
+    mbr <- getProp32s "_NET_WM_WINDOW_TYPE" w
     case mbr of
         Just [r] -> return $ elem (fromIntegral r) [dock, desk]
         _        -> return False
@@ -111,12 +111,10 @@ checkDock = ask >>= \w -> liftX $ do
 -- | Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X [Strut]
 getStrut w = do
-    spa <- getAtom "_NET_WM_STRUT_PARTIAL"
-    sa  <- getAtom "_NET_WM_STRUT"
-    msp <- getProp spa w
+    msp <- getProp32s "_NET_WM_STRUT_PARTIAL" w
     case msp of
         Just sp -> return $ parseStrutPartial sp
-        Nothing -> fmap (maybe [] parseStrut) $ getProp sa w
+        Nothing -> fmap (maybe [] parseStrut) $ getProp32s "_NET_WM_STRUT" w
  where
     parseStrut xs@[_, _, _, _] = parseStrutPartial . take 12 $ xs ++ cycle [minBound, maxBound]
     parseStrut _ = []
@@ -125,10 +123,6 @@ getStrut w = do
      = filter (\(_, n, _, _) -> n /= 0)
         [(L, l, ly1, ly2), (R, r, ry1, ry2), (U, t, tx1, tx2), (D, b, bx1, bx2)]
     parseStrutPartial _ = []
-
--- | Helper to read a property
-getProp :: Atom -> Window -> X (Maybe [CLong])
-getProp a w = withDisplay $ \dpy -> io $ getWindowProperty32 dpy a w
 
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.

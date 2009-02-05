@@ -46,6 +46,7 @@ module XMonad.Hooks.ManageHelpers (
 
 import XMonad
 import qualified XMonad.StackSet as W
+import XMonad.Util.WindowProperties (getProp32s)
 
 import Data.Maybe
 import Data.Monoid
@@ -117,9 +118,7 @@ p -?>> f = do
 -- | A predicate to check whether a window is a KDE system tray icon.
 isKDETrayWindow :: Query Bool
 isKDETrayWindow = ask >>= \w -> liftX $ do
-    dpy <- asks display
-    kde_tray <- getAtom "_KDE_NET_WM_SYSTEM_TRAY_WINDOW_FOR"
-    r <- io $ getWindowProperty32 dpy kde_tray w
+    r <- getProp32s "_KDE_NET_WM_SYSTEM_TRAY_WINDOW_FOR" w
     return $ case r of
         Just [_] -> True
         _ -> False
@@ -127,10 +126,8 @@ isKDETrayWindow = ask >>= \w -> liftX $ do
 -- | Helper to check if a window property contains certain value.
 isInProperty :: String -> String -> Query Bool
 isInProperty p v = ask >>= \w -> liftX $ do
-    dpy <- asks display
-    pa <- getAtom p
     va <- getAtom v
-    r <- io $ getWindowProperty32 dpy pa w
+    r <- getProp32s p w
     return $ case r of
         Just xs -> fromIntegral va `elem` xs
         _ -> False
@@ -146,9 +143,7 @@ isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 
 pid :: Query (Maybe ProcessID)
 pid = ask >>= \w -> liftX $ do
-    dpy <- asks display
-    a <- getAtom "_NET_WM_PID"
-    p <- io $ getWindowProperty32 dpy a w
+    p <- getProp32s "_NET_WM_PID" w
     return $ case p of
         Just [x] -> Just (fromIntegral x)
         _        -> Nothing
