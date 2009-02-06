@@ -25,7 +25,7 @@ import Prelude hiding (filter)
 import Control.Monad (filterM)
 import qualified Data.List as L
 import XMonad hiding (modify, workspaces)
-import XMonad.StackSet
+import qualified XMonad.StackSet as W
 
 -- $usage
 --
@@ -72,39 +72,40 @@ import XMonad.StackSet
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | copy. Copy the focused window to a new workspace.
-copy :: (Eq s, Eq i, Eq a) => i -> StackSet i l a s sd -> StackSet i l a s sd
-copy n s | Just w <- peek s = copyWindow w n s
+copy :: (Eq s, Eq i, Eq a) => i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
+copy n s | Just w <- W.peek s = copyWindow w n s
          | otherwise = s
 
 -- | copyToAll. Copy the focused window to all of workspaces.
-copyToAll :: (Eq s, Eq i, Eq a) => StackSet i l a s sd -> StackSet i l a s sd
-copyToAll s = foldr copy s $ map tag (workspaces s)
+copyToAll :: (Eq s, Eq i, Eq a) => W.StackSet i l a s sd -> W.StackSet i l a s sd
+copyToAll s = foldr copy s $ map W.tag (W.workspaces s)
 
 -- | copyWindow.  Copy a window to a new workspace
-copyWindow :: (Eq a, Eq i, Eq s) => a -> i -> StackSet i l a s sd -> StackSet i l a s sd
+copyWindow :: (Eq a, Eq i, Eq s) => a -> i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
 copyWindow w n = copy'
-    where copy' s = if n `tagMember` s
-                    then view (currentTag s) $ insertUp' w $ view n s
+    where copy' s = if n `W.tagMember` s
+                    then W.view (W.currentTag s) $ insertUp' w $ W.view n s
                     else s
-          insertUp' a s = modify (Just $ Stack a [] [])
-                          (\(Stack t l r) -> if a `elem` t:l++r
-                                             then Just $ Stack t l r
-                                             else Just $ Stack a (L.delete a l) (L.delete a (t:r))) s
+          insertUp' a s = W.modify (Just $ W.Stack a [] [])
+                          (\(W.Stack t l r) -> if a `elem` t:l++r
+                                             then Just $ W.Stack t l r
+                                             else Just $ W.Stack a (L.delete a l) (L.delete a (t:r))) s
 
 
 -- | runOrCopy .  runOrCopy will run the provided shell command unless it can
 --  find a specified window in which case it will copy the window to
 --  the current workspace.  Similar to (i.e., stolen from) "XMonad.Actions.WindowGo".
 runOrCopy :: String -> Query Bool -> X ()
-runOrCopy action = copyMaybe $ spawn action
+runOrCopy = copyMaybe . spawn
 
--- | copyMaybe. Flatters "XMonad.Actions.WindowGo" ('raiseMaybe')
+-- | copyMaybe. Copies "XMonad.Actions.WindowGo" ('raiseMaybe')
+--   TODO: Factor out and improve with regard to WindowGo.
 copyMaybe :: X () -> Query Bool -> X ()
 copyMaybe f thatUserQuery = withWindowSet $ \s -> do
-    maybeResult <- filterM (runQuery thatUserQuery) (allWindows s)
+    maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
     case maybeResult of
         []    -> f
-        (x:_) -> windows $ copyWindow x (currentTag s)
+        (x:_) -> windows $ copyWindow x (W.currentTag s)
 
 
 -- | Remove the focused window from this workspace.  If it's present in no
@@ -113,26 +114,24 @@ copyMaybe f thatUserQuery = withWindowSet $ \s -> do
 --
 -- There are two ways to delete a window. Either just kill it, or if it
 -- supports the delete protocol, send a delete event (e.g. firefox)
---
 kill1 :: X ()
 kill1 = do ss <- gets windowset
-           whenJust (peek ss) $ \w -> if member w $ delete'' w ss
+           whenJust (W.peek ss) $ \w -> if W.member w $ delete'' w ss
                                       then windows $ delete'' w
                                       else kill
-    where delete'' w = modify Nothing (filter (/= w))
+    where delete'' w = W.modify Nothing (W.filter (/= w))
 
 -- | Kill all other copies of focused window (if they're present)
 -- 'All other' means here 'copies, which are not on current workspace'
 --
--- Consider calling this function after copyToAll
---
+-- TODO: Call this function after 'copyToAll'?
 killAllOtherCopies :: X ()
 killAllOtherCopies = do ss <- gets windowset
-                        whenJust (peek ss) $ \w -> windows $
-                                                   view (currentTag ss) .
+                        whenJust (W.peek ss) $ \w -> windows $
+                                                   W.view (W.currentTag ss) .
                                                    delFromAllButCurrent w
     where
       delFromAllButCurrent w ss = foldr ($) ss $
-                                  map (delWinFromWorkspace w . tag) $
-                                  hidden ss ++ map workspace (visible ss)
-      delWinFromWorkspace w wid ss = modify Nothing (filter (/= w)) $ view wid ss
+                                  map (delWinFromWorkspace w . W.tag) $
+                                  W.hidden ss ++ map W.workspace (W.visible ss)
+      delWinFromWorkspace w wid = W.modify Nothing (W.filter (/= w)) . W.view wid
