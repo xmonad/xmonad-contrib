@@ -75,6 +75,7 @@ library
                         XMonad.Actions.CopyWindow
                         XMonad.Actions.CycleRecentWS
                         XMonad.Actions.CycleSelectedLayouts
+                        XMonad.Actions.CycleWindows
                         XMonad.Actions.CycleWS
                         XMonad.Actions.DeManage
                         XMonad.Actions.DwmPromote
