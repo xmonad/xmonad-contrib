@@ -216,16 +216,134 @@ removeMouseBindings conf mouseBindingList =
 -- > <KP_Subtract>
 -- > <KP_Decimal>
 -- > <KP_Divide>
--- > <KP_0>
--- > <KP_1>
--- > <KP_2>
--- > <KP_3>
--- > <KP_4>
--- > <KP_5>
--- > <KP_6>
--- > <KP_7>
--- > <KP_8>
--- > <KP_9>
+-- > <KP_0>-<KP_9>
+--
+-- Long list of multimedia keys. Please note that not all keys may be
+-- present in your particular setup althrough most likely they will do.
+--
+-- > <XF86ModeLock>
+-- > <XF86MonBrightnessUp>
+-- > <XF86MonBrightnessDown>
+-- > <XF86KbdLightOnOff>
+-- > <XF86KbdBrightnessUp>
+-- > <XF86KbdBrightnessDown>
+-- > <XF86Standby>
+-- > <XF86AudioLowerVolume>
+-- > <XF86AudioMute>
+-- > <XF86AudioRaiseVolume>
+-- > <XF86AudioPlay>
+-- > <XF86AudioStop>
+-- > <XF86AudioPrev>
+-- > <XF86AudioNext>
+-- > <XF86HomePage>
+-- > <XF86Mail>
+-- > <XF86Start>
+-- > <XF86Search>
+-- > <XF86AudioRecord>
+-- > <XF86Calculator>
+-- > <XF86Memo>
+-- > <XF86ToDoList>
+-- > <XF86Calendar>
+-- > <XF86PowerDown>
+-- > <XF86ContrastAdjust>
+-- > <XF86RockerUp>
+-- > <XF86RockerDown>
+-- > <XF86RockerEnter>
+-- > <XF86Back>
+-- > <XF86Forward>
+-- > <XF86Stop>
+-- > <XF86Refresh>
+-- > <XF86PowerOff>
+-- > <XF86WakeUp>
+-- > <XF86Eject>
+-- > <XF86ScreenSaver>
+-- > <XF86WWW>
+-- > <XF86Sleep>
+-- > <XF86Favorites>
+-- > <XF86AudioPause>
+-- > <XF86AudioMedia>
+-- > <XF86MyComputer>
+-- > <XF86VendorHome>
+-- > <XF86LightBulb>
+-- > <XF86Shop>
+-- > <XF86History>
+-- > <XF86OpenURL>
+-- > <XF86AddFavorite>
+-- > <XF86HotLinks>
+-- > <XF86BrightnessAdjust>
+-- > <XF86Finance>
+-- > <XF86Community>
+-- > <XF86AudioRewind>
+-- > <XF86XF86BackForward>
+-- > <XF86Launch0>-<XF86Launch9>, <XF86LaunchA>-<XF86LaunchF>
+-- > <XF86ApplicationLeft>
+-- > <XF86ApplicationRight>
+-- > <XF86Book>
+-- > <XF86CD>
+-- > <XF86Calculater>
+-- > <XF86Clear>
+-- > <XF86Close>
+-- > <XF86Copy>
+-- > <XF86Cut>
+-- > <XF86Display>
+-- > <XF86DOS>
+-- > <XF86Documents>
+-- > <XF86Excel>
+-- > <XF86Explorer>
+-- > <XF86Game>
+-- > <XF86Go>
+-- > <XF86iTouch>
+-- > <XF86LogOff>
+-- > <XF86Market>
+-- > <XF86Meeting>
+-- > <XF86MenuKB>
+-- > <XF86MenuPB>
+-- > <XF86MySites>
+-- > <XF86New>
+-- > <XF86News>
+-- > <XF86OfficeHome>
+-- > <XF86Open>
+-- > <XF86Option>
+-- > <XF86Paste>
+-- > <XF86Phone>
+-- > <XF86Q>
+-- > <XF86Reply>
+-- > <XF86Reload>
+-- > <XF86RotateWindows>
+-- > <XF86RotationPB>
+-- > <XF86RotationKB>
+-- > <XF86Save>
+-- > <XF86ScrollUp>
+-- > <XF86ScrollDown>
+-- > <XF86ScrollClick>
+-- > <XF86Send>
+-- > <XF86Spell>
+-- > <XF86SplitScreen>
+-- > <XF86Support>
+-- > <XF86TaskPane>
+-- > <XF86Terminal>
+-- > <XF86Tools>
+-- > <XF86Travel>
+-- > <XF86UserPB>
+-- > <XF86User1KB>
+-- > <XF86User2KB>
+-- > <XF86Video>
+-- > <XF86WheelButton>
+-- > <XF86Word>
+-- > <XF86Xfer>
+-- > <XF86ZoomIn>
+-- > <XF86ZoomOut>
+-- > <XF86Away>
+-- > <XF86Messenger>
+-- > <XF86WebCam>
+-- > <XF86MailForward>
+-- > <XF86Pictures>
+-- > <XF86Music>
+-- > <XF86_Switch_VT_1>-<XF86_Switch_VT_12>
+-- > <XF86_Ungrab>
+-- > <XF86_ClearGrab>
+-- > <XF86_Next_VMode>
+-- > <XF86_Prev_VMode>
 
 mkKeymap :: XConfig l -> [(String, X ())] -> M.Map (KeyMask, KeySym) (X ())
 mkKeymap c = M.fromList . mkSubmaps . readKeymap c
@@ -304,7 +422,7 @@ parseSpecial = do char '<'
 
 -- | A list of all special key names and their associated KeySyms.
 keyNames :: [(String, KeySym)]
-keyNames = functionKeys ++ specialKeys
+keyNames = functionKeys ++ specialKeys ++ multimediaKeys
 
 -- | A list pairing function key descriptor strings (e.g. @\"<F2>\"@) with
 --   the associated KeySyms.
@@ -376,6 +494,160 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("KP_8"       , xK_KP_8)
               , ("KP_9"       , xK_KP_9)
               ]
+
+-- | List of multimedai keys. If X server does not know about some
+-- | keysym it's omitted from list. (stringToKeysym returns noSymbol in this case)
+multimediaKeys :: [(String, KeySym)]
+multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
+                 [ "XF86ModeLock"
+                 , "XF86MonBrightnessUp"
+                 , "XF86MonBrightnessDown"
+                 , "XF86KbdLightOnOff"
+                 , "XF86KbdBrightnessUp"
+                 , "XF86KbdBrightnessDown"
+                 , "XF86Standby"
+                 , "XF86AudioLowerVolume"
+                 , "XF86AudioMute"
+                 , "XF86AudioRaiseVolume"
+                 , "XF86AudioPlay"
+                 , "XF86AudioStop"
+                 , "XF86AudioPrev"
+                 , "XF86AudioNext"
+                 , "XF86HomePage"
+                 , "XF86Mail"
+                 , "XF86Start"
+                 , "XF86Search"
+                 , "XF86AudioRecord"
+                 , "XF86Calculator"
+                 , "XF86Memo"
+                 , "XF86ToDoList"
+                 , "XF86Calendar"
+                 , "XF86PowerDown"
+                 , "XF86ContrastAdjust"
+                 , "XF86RockerUp"
+                 , "XF86RockerDown"
+                 , "XF86RockerEnter"
+                 , "XF86Back"
+                 , "XF86Forward"
+                 , "XF86Stop"
+                 , "XF86Refresh"
+                 , "XF86PowerOff"
+                 , "XF86WakeUp"
+                 , "XF86Eject"
+                 , "XF86ScreenSaver"
+                 , "XF86WWW"
+                 , "XF86Sleep"
+                 , "XF86Favorites"
+                 , "XF86AudioPause"
+                 , "XF86AudioMedia"
+                 , "XF86MyComputer"
+                 , "XF86VendorHome"
+                 , "XF86LightBulb"
+                 , "XF86Shop"
+                 , "XF86History"
+                 , "XF86OpenURL"
+                 , "XF86AddFavorite"
+                 , "XF86HotLinks"
+                 , "XF86BrightnessAdjust"
+                 , "XF86Finance"
+                 , "XF86Community"
+                 , "XF86AudioRewind"
+                 , "XF86BackForward"
+                 , "XF86Launch0"
+                 , "XF86Launch1"
+                 , "XF86Launch2"
+                 , "XF86Launch3"
+                 , "XF86Launch4"
+                 , "XF86Launch5"
+                 , "XF86Launch6"
+                 , "XF86Launch7"
+                 , "XF86Launch8"
+                 , "XF86Launch9"
+                 , "XF86LaunchA"
+                 , "XF86LaunchB"
+                 , "XF86LaunchC"
+                 , "XF86LaunchD"
+                 , "XF86LaunchE"
+                 , "XF86LaunchF"
+                 , "XF86ApplicationLeft"
+                 , "XF86ApplicationRight"
+                 , "XF86Book"
+                 , "XF86CD"
+                 , "XF86Calculater"
+                 , "XF86Clear"
+                 , "XF86Close"
+                 , "XF86Copy"
+                 , "XF86Cut"
+                 , "XF86Display"
+                 , "XF86DOS"
+                 , "XF86Documents"
+                 , "XF86Excel"
+                 , "XF86Explorer"
+                 , "XF86Game"
+                 , "XF86Go"
+                 , "XF86iTouch"
+                 , "XF86LogOff"
+                 , "XF86Market"
+                 , "XF86Meeting"
+                 , "XF86MenuKB"
+                 , "XF86MenuPB"
+                 , "XF86MySites"
+                 , "XF86New"
+                 , "XF86News"
+                 , "XF86OfficeHome"
+                 , "XF86Open"
+                 , "XF86Option"
+                 , "XF86Paste"
+                 , "XF86Phone"
+                 , "XF86Q"
+                 , "XF86Reply"
+                 , "XF86Reload"
+                 , "XF86RotateWindows"
+                 , "XF86RotationPB"
+                 , "XF86RotationKB"
+                 , "XF86Save"
+                 , "XF86ScrollUp"
+                 , "XF86ScrollDown"
+                 , "XF86ScrollClick"
+                 , "XF86Send"
+                 , "XF86Spell"
+                 , "XF86SplitScreen"
+                 , "XF86Support"
+                 , "XF86TaskPane"
+                 , "XF86Terminal"
+                 , "XF86Tools"
+                 , "XF86Travel"
+                 , "XF86UserPB"
+                 , "XF86User1KB"
+                 , "XF86User2KB"
+                 , "XF86Video"
+                 , "XF86WheelButton"
+                 , "XF86Word"
+                 , "XF86Xfer"
+                 , "XF86ZoomIn"
+                 , "XF86ZoomOut"
+                 , "XF86Away"
+                 , "XF86Messenger"
+                 , "XF86WebCam"
+                 , "XF86MailForward"
+                 , "XF86Pictures"
+                 , "XF86Music"
+                 , "XF86_Switch_VT_1"
+                 , "XF86_Switch_VT_2"
+                 , "XF86_Switch_VT_3"
+                 , "XF86_Switch_VT_4"
+                 , "XF86_Switch_VT_5"
+                 , "XF86_Switch_VT_6"
+                 , "XF86_Switch_VT_7"
+                 , "XF86_Switch_VT_8"
+                 , "XF86_Switch_VT_9"
+                 , "XF86_Switch_VT_10"
+                 , "XF86_Switch_VT_11"
+                 , "XF86_Switch_VT_12"
+                 , "XF86_Ungrab"
+                 , "XF86_ClearGrab"
+                 , "XF86_Next_VMode"
+                 , "XF86_Prev_VMode" ]
 
 -- | Given a configuration record and a list of (key sequence
 --   description, action) pairs, check the key sequence descriptions
