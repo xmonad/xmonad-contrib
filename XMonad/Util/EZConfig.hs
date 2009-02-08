@@ -495,7 +495,7 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("KP_9"       , xK_KP_9)
               ]
 
--- | List of multimedai keys. If X server does not know about some
+-- | List of multimedia keys. If X server does not know about some
 -- | keysym it's omitted from list. (stringToKeysym returns noSymbol in this case)
 multimediaKeys :: [(String, KeySym)]
 multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
