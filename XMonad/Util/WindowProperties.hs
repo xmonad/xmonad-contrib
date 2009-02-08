@@ -8,23 +8,26 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- EDSL for specifying window properties, such as title, classname or resource.
+-- EDSL for specifying window properties; various utilities related to window
+-- properties.
 --
 -----------------------------------------------------------------------------
 module XMonad.Util.WindowProperties (
-    -- * Usage
-    -- $usage
+    -- * EDSL for window properties
+    -- $edsl
     Property(..), hasProperty, focusedHasProperty, allWithProperty,
-    getProp32, getProp32s,
-    propertyToQuery)
+    propertyToQuery,
+    -- * Helper functions
+    -- $helpers
+    getProp32, getProp32s)
 where
 import XMonad
 import qualified XMonad.StackSet as W
 import Foreign.C.Types (CLong)
 import Control.Monad
 
--- $usage
--- This module allows to specify window properties, such as title, classname or
+-- $edsl
+-- Allows to specify window properties, such as title, classname or
 -- resource, and to check them.
 --
 -- In contrast to ManageHook properties, these are instances of Show and Read,
@@ -80,6 +83,8 @@ propertyToQuery (And p1 p2) = propertyToQuery p1 <&&> propertyToQuery p2
 propertyToQuery (Or p1 p2) = propertyToQuery p1 <||> propertyToQuery p2
 propertyToQuery (Not p) = not `fmap` propertyToQuery p
 propertyToQuery (Const b) = return b
+
+-- $helpers
 
 -- | Get a window property from atom
 getProp32 :: Atom -> Window -> X (Maybe [CLong])
