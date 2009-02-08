@@ -21,6 +21,8 @@ module XMonad.Layout.Mosaic (
     ,Aspect(..)
     ,shallower
     ,steeper
+    ,growMaster
+    ,shrinkMaster
     )
     where
 
@@ -40,7 +42,7 @@ import Data.Monoid(Monoid(mappend, mempty))
 --
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --
--- > myLayouts = Mosaic [4..12] ||| Full ||| etc..
+-- > myLayouts = Mosaic (take 5 $ iterate (*0.7) 1 ||| Mosaic [3,1,1,1,1,1] ||| Full ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- Unfortunately, infinite lists break serialization, so don't use them.
@@ -70,10 +72,9 @@ instance Message Aspect
 
 data Mosaic a
     {- | The relative magnitudes of the positive rational numbers provided
-         determine the relative sizes of the windows. If the numbers are all
-         the same, then the layout looks like Grid. An increasing list results
-         in the master window being the largest. Only as many windows are
-         displayed as there are elements in that list
+         determine the relative areas that the windows receive. The first
+         number represents the size of the master window, the second is for the
+         next window in the stack, and so on.
     -}
     = Mosaic [Rational]
     -- override the aspect? current index, maximum index
@@ -109,26 +110,38 @@ instance LayoutClass Mosaic a where
               rect = rects !! round nix
               newLayout = Just $ MosaicSt override nix (pred lrects) ss
 
--- | These sample functions scale the ratios of successive windows, other
--- variations could also be useful.
+-- | These sample functions are meant to be applied to the list of window sizes
+-- through the 'SlopeMod' message.
 --
--- The windows in each position of the stack should correspond to a specific
--- element of the list, so it should be possible to resize individual windows,
--- though it is not yet provided.
+-- Steeper and shallower scale the ratios of successive windows.
+--
+-- growMaster and shrinkMaster just increase and decrease the size of the first
+-- element, and thus they change the layout very similarily to the standard
+-- 'Expand' or 'Shrink' for the 'Tall' layout.
+--
+-- It may be possible to resize the specific focused window; however the same
+-- result could probably be achieved by promoting it, or moving it to a higher
+-- place in the list of windows; when you have a decreasing list of window
+-- sizes, the change in position will also result in a change in size.
+
 steeper :: [Rational] -> [Rational]
 steeper [] = []
-steeper (x:xs) = map (subtract (x*0.8)) (x:xs)
+steeper xs = map (subtract (minimum xs*0.8)) xs
 
 shallower :: [Rational] -> [Rational]
 shallower [] = []
-shallower (x:xs) = map (+(x/0.8)) (x:xs)
+shallower xs = map (+(minimum xs*2)) xs
+
+growMaster :: [Rational] -> [Rational]
+growMaster [] = []
+growMaster (x:xs) = 2*x:xs
+
+shrinkMaster :: [Rational] -> [Rational]
+shrinkMaster [] = []
+shrinkMaster (x:xs) = x/2:xs
 
 splits :: Int -> Rectangle -> [Rational] -> [[Rectangle]]
-splits num rect sz = splitsL rect $ makeTree $ normalize $ take num sz
-
-normalize :: Fractional a => [a] -> [a]
-normalize x = let s = sum x
-    in map (/s) x
+splits num rect sz = splitsL rect $ makeTree $ normalize $ reverse $ take num sz
 
 -- recursively enumerate splits
 splitsL :: Rectangle -> Tree Rational -> [[Rectangle]]
@@ -139,6 +152,8 @@ splitsL rect (Branch l r) = do
     (rl,rr) <- map mkSplit [splitVerticallyBy,splitHorizontallyBy]
     splitsL rl l `interleave` splitsL rr r
 
+-- like zipWith (++), but when one list is shorter, its elements are duplicated
+-- so that they match
 interleave :: [[a]] -> [[a]] -> [[a]]
 interleave xs ys | lx > ly = zc xs (extend lx ys)
                  | otherwise = zc (extend ly xs) ys
@@ -152,6 +167,10 @@ extend n pat = do
     let e = if e' then [p] else []
     (e++) $ take d $ repeat p
     where (d,m) = n `divMod` length pat
+
+normalize :: Fractional a => [a] -> [a]
+normalize x = let s = sum x
+    in map (/s) x
 
 data Tree a = Branch (Tree a) (Tree a) | Leaf a | Empty
     deriving (Show)
@@ -174,4 +193,3 @@ makeTree xs = Branch (makeTree a) (makeTree b)
     where ((a,b),_) = foldr w (([],[]),(0,0)) xs
           w n ((ls,rs),(l,r)) = if l > r then ((ls,n:rs),(l,n+r))
                                         else ((n:ls,rs),(n+l,r))
-
