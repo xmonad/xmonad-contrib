@@ -152,7 +152,7 @@ handle ClientMessageEvent {
         else if mt `elem` a_ignore then do
 	       return ()
         else trace $ "Unknown ClientMessageEvent " ++ show mt
-handle _ = undefined -- does not happen, as otherwise ewmhDesktopsHook would not match
+handle _ = return ()
 
 
 setNumberOfDesktops :: (Integral a) => a -> X ()
