@@ -71,10 +71,11 @@ data Aspect
 instance Message Aspect
 
 data Mosaic a
-    {- | The relative magnitudes of the positive rational numbers provided
-         determine the relative areas that the windows receive. The first
-         number represents the size of the master window, the second is for the
-         next window in the stack, and so on.
+    {- | The relative magnitudes (the sign is ignored) of the rational numbers
+     - provided determine the relative areas that the windows receive. The
+     - first number represents the size of the master window, the second is for
+     - the next window in the stack, and so on. Windows without a list element
+     - are hidden.
     -}
     = Mosaic [Rational]
     -- override the aspect? current index, maximum index
@@ -141,7 +142,8 @@ shrinkMaster [] = []
 shrinkMaster (x:xs) = x/2:xs
 
 splits :: Int -> Rectangle -> [Rational] -> [[Rectangle]]
-splits num rect sz = splitsL rect $ makeTree $ normalize $ reverse $ take num sz
+splits num rect sz = splitsL rect $ makeTree $ normalize
+                            $ map abs $ reverse $ take num sz
 
 -- recursively enumerate splits
 splitsL :: Rectangle -> Tree Rational -> [[Rectangle]]
