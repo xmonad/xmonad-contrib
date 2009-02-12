@@ -26,6 +26,7 @@ module XMonad.Actions.SpawnOn (
     shellPromptOn
 ) where
 
+import Data.List (isInfixOf)
 import Data.IORef
 import System.Posix.Types (ProcessID)
 
@@ -100,5 +101,11 @@ spawnHere sp cmd = withWindowSet $ \ws -> spawnOn sp (W.currentTag ws) cmd
 -- application on given workspace.
 spawnOn :: Spawner -> WorkspaceId -> String -> X ()
 spawnOn sp ws cmd = do
-    p <- spawnPID cmd
+    p <- spawnPID $ mangle cmd
     io $ modifyIORef (pidsRef sp) (take maxPids . ((p, ws) :))
+ where
+    -- TODO this is silly, search for a better solution
+    mangle xs | any (`elem` metaChars) xs || "exec" `isInfixOf` xs = xs
+              | otherwise = "exec " ++ xs
+    metaChars = "&|;"
+
