@@ -74,8 +74,11 @@ manageSpawn sp = do
     pids <- io . readIORef $ pidsRef sp
     mp <- pid
     case flip lookup pids =<< mp of
-        Just w -> doF (W.shift w)
         Nothing -> doF id
+        Just w  -> do
+            whenJust mp $ \p ->
+                io . modifyIORef (pidsRef sp) $ filter ((/= p) . fst)
+            doF (W.shift w)
 
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
 mkPrompt cb c = do
