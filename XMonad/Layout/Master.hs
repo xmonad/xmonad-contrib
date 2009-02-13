@@ -1,110 +1,86 @@
-{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleContexts #-}
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances, FlexibleContexts, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Master
--- Copyright   :  (c) Lukas Mai
+-- Copyright   :  (c) Ismael Carnales, Lukas Mai
 -- License     :  BSD-style (see LICENSE)
 --
--- Maintainer  :  <l.mai@web.de>
+-- Maintainer  :  Ismael Carnales <icarnales@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A layout that adds a distinguished master window to a base layout.
+-- Layout modfier that adds a master window to another layout.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Master (
     -- * Usage
     -- $usage
-    mastered,
-    Master
+
+    mastered
 ) where
 
 import XMonad
-import XMonad.StackSet
-
-import Data.List
-import Data.Ord
+import qualified XMonad.StackSet as S
+import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.Master
 --
--- and add something like
+-- Then edit your @layoutHook@ and add the Master modifier to the layout that
+-- you prefer.
 --
 -- > mastered (1/100) (1/2) $ Grid
 --
--- to your layouts. This will use the left half of your screen for a master
--- window and let Grid manage the right half.
+-- This will use the left half of your screen for a master window and let
+-- Grid manage the right half.
 --
 -- For more detailed instructions on editing the layoutHook see
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
--- Like 'XMonad.Layout.Tall', 'Master' supports the 'XMonad.Layout.Shrink' and
--- 'XMonad.Layout.Expand' messages.
+-- Like 'XMonad.Layout.Tall', 'withMaster' supports the
+-- 'XMonad.Layout.Shrink' and XMonad.Layout.Expand' messages.
 
-mastered :: (LayoutClass l a)
-    => Rational -- ^ @delta@, the ratio of the screen to resize by
-    -> Rational -- ^ @frac@, what portion of the screen to reserve for the master window
-    -> l a      -- ^ the layout to use for the remaining windows
-    -> Master l a
-mastered d f b = Master d f' b
-    where
-    f' = min 1 . max 0 $ f
+-- | Data type for LayoutModifier which converts given layout to a mastered
+-- layout
+data AddMaster a = AddMaster Rational Rational deriving (Show, Read)
 
-data Master l a =
-    Master{
-        delta :: Rational,
-        frac :: Rational,
-        base :: l a
-    } deriving (Show, Read, Eq, Ord)
+-- | Modifier wich converts given layout to a mastered one
+mastered :: (LayoutClass l a) =>
+       Rational -- ^ @delta@, the ratio of the screen to resize by
+    -> Rational -- ^ @frac@, what portion of the screen to use for the master window
+    -> l a      -- ^ the layout to be modified
+    -> ModifiedLayout AddMaster l a
+mastered delta frac = ModifiedLayout $ AddMaster delta frac
 
-extractMaster :: Stack a -> (a, Maybe (Stack a))
-extractMaster (Stack x ls rs) = case reverse ls of
-    [] -> (x, differentiate rs)
-    (m : ls') -> (m, Just $ Stack x (reverse ls') rs)
+instance LayoutModifier AddMaster Window where
+    modifyLayout (AddMaster delta frac) = applyMaster delta frac
+    modifierDescription _               = "Mastered"
 
-area :: Rectangle -> Dimension
-area r = rect_width r * rect_height r
+    pureMess (AddMaster delta frac) m
+        | Just Shrink <- fromMessage m = Just $ AddMaster delta (frac-delta)
+        | Just Expand <- fromMessage m = Just $ AddMaster delta (frac+delta)
 
-chop :: D -> Rectangle -> Rectangle
-chop (w, h) (Rectangle rx ry rw rh) =
-    let
-        r' = maximumBy (comparing area)
-            [ Rectangle rx (ry + fromIntegral h) rw (rh - h)
-            , Rectangle (rx + fromIntegral w) ry (rw - w) rh]
-    in
-    r'{ rect_width = max 0 $ rect_width r', rect_height = max 0 $ rect_height r' }
+    pureMess _ _ = Nothing
 
-instance (LayoutClass l Window) => LayoutClass (Master l) Window where
-    description m = "Master " ++ description (base m)
-    handleMessage m msg
-        | Just Shrink <- fromMessage msg =
-            return . Just $ m{ frac = max 0 $ frac m - delta m }
-        | Just Expand <- fromMessage msg =
-            return . Just $ m{ frac = min 1 $ frac m + delta m }
-        | otherwise =
-            fmap (fmap (\x -> m{ base = x })) $ handleMessage (base m) msg
-    runLayout ws rect = do
-        (f, ws', rect') <- case fmap extractMaster $ stack ws of
-            Nothing ->
-                return (id, ws, rect)
-            Just (x, Nothing) -> do
-                f <- mkAdjust x
-                let
-                    (w', h') = f (rect_width rect, rect_height rect)
-                    xr = rect{ rect_width = w', rect_height = h' }
-                return (((x, xr) :), ws{ stack = Nothing }, Rectangle (rect_x xr + fromIntegral w') (rect_y xr) 0 0)
-            Just (x, Just st) -> do
-                f <- mkAdjust x
-                let
-                    d@(w', h') = f (scale $ rect_width rect, rect_height rect)
-                    xr = rect{ rect_width = w', rect_height = h' }
-                return (((x, xr) :), ws{ stack = Just st }, chop d rect)
-        (y, l) <- runLayout ws'{ layout = base m } rect'
-        return (f y, fmap (\x -> m{ base = x }) l)
-        where
-        m = layout ws
-        scale = round . (* frac m) . fromIntegral
+-- | Internal function for adding a master window and let the modified
+-- layout handle the rest of the windows
+applyMaster :: (LayoutClass l Window) =>
+                  Rational
+               -> Rational
+               -> S.Workspace WorkspaceId (l Window) Window
+               -> Rectangle
+               -> X ([(Window, Rectangle)], Maybe (l Window))
+applyMaster _ frac wksp rect = do
+    let st= S.stack wksp
+    let ws = S.integrate' $ st
+    if length ws > 2 then do
+        let m = head ws
+        let (mr, sr) = splitHorizontallyBy frac rect
+        let nst = st>>= S.filter (m/=)
+        wrs <- runLayout (wksp {S.stack = nst}) sr
+        return ((m, mr) : fst wrs, snd wrs)
+
+        else runLayout wksp rect
