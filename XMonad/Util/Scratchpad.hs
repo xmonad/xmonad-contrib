@@ -17,6 +17,7 @@ module XMonad.Util.Scratchpad (
   -- $usage
   scratchpadSpawnAction
   ,scratchpadSpawnActionTerminal
+  ,scratchpadSpawnActionCustom
   ,scratchpadManageHookDefault
   ,scratchpadManageHook
   ,scratchpadFilterOutWorkspace
@@ -36,7 +37,7 @@ import qualified XMonad.StackSet as W
 -- Bind a key to 'scratchpadSpawnAction'
 -- Pressing it will spawn the terminal, or bring it to the current
 -- workspace if it already exists.
--- Pressing the key with the terminal on the current workspace will 
+-- Pressing the key with the terminal on the current workspace will
 -- send it to a hidden workspace called @SP@.
 --
 -- If you already have a workspace called @SP@, it will use that.
@@ -60,7 +61,7 @@ import qualified XMonad.StackSet as W
 -- > scratchpadSpawnAction conf
 --
 -- Where @conf@ is the configuration.
--- 
+--
 -- And add one of the @scratchpadManageHook*@s to your ManageHook list.
 -- The default rectangle is half the screen wide and a quarter of the
 -- screen tall, centered.
@@ -71,30 +72,37 @@ import qualified XMonad.StackSet as W
 -- | Action to pop up the terminal, for the user to bind to a custom key.
 scratchpadSpawnAction :: XConfig l -- ^ The configuration, to retrieve the terminal
                       -> X ()
-scratchpadSpawnAction conf = 
+scratchpadSpawnAction conf =
     scratchpadAction $ spawn $ terminal conf ++ " -name scratchpad"
 
 
 -- | Action to pop up the terminal, with a directly specified terminal.
 scratchpadSpawnActionTerminal :: String -- ^ Name of the terminal program
                                  -> X ()
-scratchpadSpawnActionTerminal term = 
+scratchpadSpawnActionTerminal term =
     scratchpadAction $ spawn $ term ++ " -name scratchpad"
 
 
+-- | Action to pop up any program with the user specifiying how to set
+--   its resource to \"scratchpad\". For example, with gnome-terminal
+--   bind the following to a key:
+--
+--   > scratchpadSpawnActionCustom "gnome-terminal --name scratchpad"
+scratchpadSpawnActionCustom :: String -- ^ Command to spawn a program with resource \"scratchpad\"
+                                 -> X ()
+scratchpadSpawnActionCustom = scratchpadAction . spawn
 
-
--- The heart of the new summon/banish terminal. 
+-- The heart of the new summon/banish terminal.
 -- The logic is thus:
 -- 1. if the scratchpad is on the current workspace, send it to the hidden one.
 --    - if the scratchpad workspace doesn't exist yet, create it first.
--- 2. if the scratchpad is elsewhere, bring it here. 
+-- 2. if the scratchpad is elsewhere, bring it here.
 scratchpadAction :: X () -> X ()
 scratchpadAction action = withWindowSet $ \s -> do
-  filterCurrent <- filterM (runQuery scratchpadQuery) 
-                     ( (maybe [] W.integrate 
-                        . W.stack 
-                        . W.workspace 
+  filterCurrent <- filterM (runQuery scratchpadQuery)
+                     ( (maybe [] W.integrate
+                        . W.stack
+                        . W.workspace
                         . W.current) s)
   case filterCurrent of
     (x:_) -> do
@@ -125,9 +133,11 @@ scratchpadManageHookDefault = scratchpadManageHook scratchpadDefaultRect
 
 
 -- | The ManageHook, with a user-specified StackSet.RationalRect,
--- eg.
+--   e.g., for a terminal 4/10 of the screen width from the left, half
+--   the screen height from the top, and 6/10 of the screen width by
+--   3/10 the screen height, use:
 --
--- > scratchpadManageHook (W.RationalRect 0.25 0.375 0.5 0.25)
+-- > scratchpadManageHook (W.RationalRect 0.4 0.5 0.6 0.3)
 scratchpadManageHook :: W.RationalRect -- ^ User-specified screen rectangle.
                      -> ManageHook
 scratchpadManageHook rect = scratchpadQuery --> doRectFloat rect
