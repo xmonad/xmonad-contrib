@@ -83,6 +83,5 @@ battery = logCmd "/usr/bin/acpi | sed -r 's/.*?: (.*%).*/\\1/; s/discharging, ([
 -- | Create a 'Logger' from an arbitrary shell command.
 logCmd :: String -> Logger
 logCmd c = io $ do (_, out, _, _) <- runInteractiveCommand c
-                   output <- hGetLine out
+                   fmap Just (hGetLine out) `catch` (const $ return Nothing)
                    -- no need to waitForProcess, we ignore SIGCHLD
-                   return $ Just output
