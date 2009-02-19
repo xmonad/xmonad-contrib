@@ -78,7 +78,7 @@ manageSpawn sp = do
         Just w  -> do
             whenJust mp $ \p ->
                 io . modifyIORef (pidsRef sp) $ filter ((/= p) . fst)
-            doF (W.shift w)
+            doShift w
 
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
 mkPrompt cb c = do
