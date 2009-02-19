@@ -142,8 +142,8 @@ shrinkMaster [] = []
 shrinkMaster (x:xs) = x/2:xs
 
 splits :: Int -> Rectangle -> [Rational] -> [[Rectangle]]
-splits num rect sz = splitsL rect $ makeTree $ normalize
-                            $ map abs $ reverse $ take num sz
+splits num rect = splitsL rect . makeTree . normalize
+                            . map abs . reverse . take num
 
 -- recursively enumerate splits
 splitsL :: Rectangle -> Tree Rational -> [[Rectangle]]
@@ -165,9 +165,8 @@ interleave xs ys | lx > ly = zc xs (extend lx ys)
 
 extend :: Int -> [a] -> [a]
 extend n pat = do
-    (p,e') <- zip pat $ take m (repeat True) ++ repeat False
-    let e = if e' then [p] else []
-    (e++) $ take d $ repeat p
+    (p,e) <- zip pat $ replicate m True ++ repeat False
+    [p | e] ++ replicate d p
     where (d,m) = n `divMod` length pat
 
 normalize :: Fractional a => [a] -> [a]
