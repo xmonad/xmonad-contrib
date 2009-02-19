@@ -35,7 +35,7 @@ sjanssenConfig = do
         , keys = \c -> mykeys sp c `M.union` keys defaultConfig c
         , layoutHook = modifiers layouts
         , logHook    = ewmhDesktopsLogHook
-        , manageHook = composeAll [className =? x --> doF (W.shift w)
+        , manageHook = composeAll [className =? x --> doShift w
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
