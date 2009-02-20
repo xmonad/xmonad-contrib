@@ -33,9 +33,9 @@ module XMonad.Util.Run (
 import System.Posix.IO
 import System.Posix.Process (executeFile, forkProcess, createSession)
 import Control.Concurrent (threadDelay)
-import Control.Exception (try)
+import Control.Exception (try) -- use OldException with base 4
 import System.IO
-import System.Process (runInteractiveProcess, waitForProcess)
+import System.Process (runInteractiveProcess)
 import XMonad
 import Control.Monad
 
@@ -68,14 +68,14 @@ runProcessWithInput cmd args input = do
 runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
 runProcessWithInputAndWait cmd args input timeout = do
     forkProcess $ do
-        (pin, pout, perr, ph) <- runInteractiveProcess cmd args Nothing Nothing
+        (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
         hPutStr pin input
         hFlush pin
         threadDelay timeout
         hClose pin
         hClose pout
         hClose perr
-        waitForProcess ph
+        -- no need to waitForProcess, we ignore SIGCHLD
         return ()
     return ()
 
