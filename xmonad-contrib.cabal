@@ -34,9 +34,6 @@ flag small_base
 flag use_xft
   description: Use Xft to render text
 
-flag with_utf8
-  description: Enable Utf8 support
-
 flag testing
   description: Testing mode
   default: False
@@ -52,13 +49,10 @@ library
         extensions: ForeignFunctionInterface
         cpp-options: -DXFT
 
-    if flag(with_utf8)
-        build-depends: utf8-string
-        extensions: ForeignFunctionInterface
-        cpp-options: -DUSE_UTF8
-
-    build-depends:      mtl, unix, X11>=1.4.3, xmonad>=0.8, xmonad<0.9
+    build-depends:      mtl, unix, X11>=1.4.3, xmonad>=0.8, xmonad<0.9, utf8-string
     ghc-options:        -Wall
+    extensions:         ForeignFunctionInterface
+    cpp-options:        -DUSE_UTF8
 
     if flag(testing)
         ghc-options:    -Werror
