@@ -160,6 +160,7 @@ library
                         XMonad.Layout.MultiToggle.Instances
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
+                        XMonad.Layout.OneBig
                         XMonad.Layout.PerWorkspace
                         XMonad.Layout.Reflect
                         XMonad.Layout.ResizableTile
