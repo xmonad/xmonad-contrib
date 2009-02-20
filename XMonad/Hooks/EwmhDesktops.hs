@@ -20,6 +20,7 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsEventHook
     ) where
 
+import Codec.Binary.UTF8.String (encode)
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -175,8 +176,7 @@ setDesktopNames names = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_DESKTOP_NAMES"
     c <- getAtom "UTF8_STRING"
-    let names' = map (fromIntegral.fromEnum) $
-            concatMap (++['\0']) names
+    let names' = map fromIntegral $ concatMap ((++[0]) . encode) names
     io $ changeProperty8 dpy r a c propModeReplace names'
 
 setClientList :: [Window] -> X ()
