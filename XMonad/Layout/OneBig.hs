@@ -43,6 +43,14 @@ data OneBig a = OneBig Float Float deriving (Read,Show)
 
 instance LayoutClass OneBig a where
   pureLayout = oneBigLayout
+  pureMessage = oneBigMessage
+
+-- | Processes Shrink/Expand messages
+oneBigMessage :: OneBig a -> SomeMessage -> Maybe (OneBig a)
+oneBigMessage (OneBig cx cy) m = fmap resize (fromMessage m)
+    where resize Shrink = OneBig (cx-delta) (cy-delta)
+          resize Expand = OneBig (cx+delta) (cy+delta)
+          delta = 3/100
 
 -- | Main layout function
 oneBigLayout :: OneBig a -> Rectangle -> W.Stack a -> [(a, Rectangle)]
