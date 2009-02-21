@@ -39,7 +39,7 @@ d <%> f = floor $ f * (fromIntegral d)
 -- | The Cross Layout draw the focused window on the center of the screen
 --   and part of the other windows on the sides. The 'Shrink' and 'Expand'
 --   messages increment the size of the main window.
--- 
+--
 --   With the focus keys you change the window on the center and the other
 --   windows put itself on the sides in a cycle way.
 --
@@ -48,9 +48,10 @@ d <%> f = floor $ f * (fromIntegral d)
 --   
 --   Only five windows are shown in the Cross Layout, focus two ups and two 
 --   downs. Everything else is hide.
-data Cross a = Cross 
-    !Rational -- ^ Proportion of screen occupies for main window.
-    !Rational -- ^ Percent of main window to increment by when resizing.
+data Cross a = Cross {
+      crossProp :: !Rational, -- ^ Proportion of screen occupies for main window.
+      crossInc  :: !Rational  -- ^ Percent of main window to increment by when resizing.
+    }
     deriving( Show, Read )
 
 -- | A simple Cross Layout. It has a main window with focused windos on the center.
