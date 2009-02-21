@@ -15,8 +15,6 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.BoringWindows (
-                                   -- * Usage
-                                   -- $usage
                                    boringWindows,
                                    markBoring, clearBoring,
                                    focusUp, focusDown
