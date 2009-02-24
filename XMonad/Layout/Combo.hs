@@ -25,7 +25,7 @@ module XMonad.Layout.Combo (
 import Data.List ( delete, intersect, (\\) )
 import Data.Maybe ( isJust )
 import XMonad hiding (focus)
-import XMonad.StackSet ( integrate, Workspace (..), Stack(..) )
+import XMonad.StackSet ( integrate', Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )
 
@@ -76,7 +76,7 @@ combineTwo = C2 [] []
 
 instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a)
     => LayoutClass (CombineTwo (l ()) l1 l2) a where
-    doLayout (C2 f w2 super l1 l2) rinput s = arrange (integrate s)
+    runLayout (Workspace _ (C2 f w2 super l1 l2) s) rinput = arrange (integrate' s)
         where arrange [] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage ReleaseResources)
                               l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage ReleaseResources)
                               super' <- maybe super id `fmap`
@@ -93,12 +93,11 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                                                              x -> case origws \\ x of
                                                                   [] -> init x
                                                                   _ -> x
-                         superstack = if focus s `elem` w2'
-                                      then Stack { focus=(), up=[], down=[()] }
-                                      else Stack { focus=(), up=[], down=[()] }
+                         superstack = Stack { focus=(), up=[], down=[()] }
                          s1 = differentiate f' (origws \\ w2')
                          s2 = differentiate f' w2'
-                         f' = focus s:delete (focus s) f
+                         f' = case s of (Just s') -> focus s':delete (focus s') f
+                                        Nothing -> f
                      ([((),r1),((),r2)], msuper') <- runLayout (Workspace "" super (Just superstack)) rinput
                      (wrs1, ml1') <- runLayout (Workspace "" l1 s1) r1
                      (wrs2, ml2') <- runLayout (Workspace "" l2 s2) r2
