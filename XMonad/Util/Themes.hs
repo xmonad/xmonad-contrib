@@ -24,6 +24,14 @@ module XMonad.Util.Themes
     , oxymor00nTheme
     , donaldTheme
     , wfarrTheme
+    , kavonForestTheme
+    , kavonLakeTheme
+    , kavonPeacockTheme
+    , kavonVioGreenTheme
+    , kavonBluesTheme
+    , kavonAutumnTheme
+    , kavonFireTheme
+    , kavonChristmasTheme
     , ThemeInfo (..)
     ) where
 
@@ -88,6 +96,14 @@ listOfThemes = [ xmonadTheme
                , robertTheme
                , donaldTheme
                , wfarrTheme
+	       , kavonForestTheme
+	       , kavonLakeTheme
+	       , kavonPeacockTheme
+	       , kavonVioGreenTheme
+	       , kavonBluesTheme
+	       , kavonAutumnTheme
+	       , kavonFireTheme
+	       , kavonChristmasTheme
                ]
 
 -- | The default xmonad theme, by David Roundy.
@@ -201,3 +217,124 @@ wfarrTheme =
                                                , decoHeight          = 12
                                                }
              }
+
+-- | Forest colours, by Kathryn Andersen
+kavonForestTheme :: ThemeInfo
+kavonForestTheme =
+    newTheme { themeName        = "kavonForestTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Forest colours"
+             , theme            = defaultTheme { activeColor         = "#115422"
+                                               , activeBorderColor   = "#1a8033"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#543211"
+                                               , inactiveBorderColor = "#804c19"
+                                               , inactiveTextColor   = "#ffcc33"
+                                               }
+             }
+
+-- | Lake (blue/green) colours, by Kathryn Andersen
+kavonLakeTheme :: ThemeInfo
+kavonLakeTheme =
+    newTheme { themeName        = "kavonLakeTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Lake (blue/green) colours"
+             , theme            = defaultTheme { activeColor         = "#001166"
+                                               , activeBorderColor   = "#1f3999"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#09592a"
+                                               , inactiveBorderColor = "#198044"
+                                               , inactiveTextColor   = "#73e6a3"
+                                               }
+             }
+
+-- | Peacock colours, by Kathryn Andersen
+kavonPeacockTheme :: ThemeInfo
+kavonPeacockTheme =
+    newTheme { themeName        = "kavonPeacockTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Peacock colours"
+             , theme            = defaultTheme { activeColor         = "#190f4c"
+                                               , activeBorderColor   = "#2b1980"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#225173"
+                                               , inactiveBorderColor = "#2a638c"
+                                               , inactiveTextColor   = "#8fb2cc"
+                                               }
+             }
+
+-- | Violet-Green colours, by Kathryn Andersen
+kavonVioGreenTheme :: ThemeInfo
+kavonVioGreenTheme =
+    newTheme { themeName        = "kavonVioGreenTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Violet-Green colours"
+             , theme            = defaultTheme { activeColor         = "#37174c"
+                                               , activeBorderColor   = "#333399"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#174c17"
+                                               , inactiveBorderColor = "#336633"
+                                               , inactiveTextColor   = "#aaccaa"
+                                               }
+             }
+
+-- | Blue colours, by Kathryn Andersen
+kavonBluesTheme :: ThemeInfo
+kavonBluesTheme =
+    newTheme { themeName        = "kavonBluesTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Blue colours"
+             , theme            = defaultTheme { activeColor         = "#000066"
+                                               , activeBorderColor   = "#111199"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#9999ee"
+                                               , inactiveBorderColor = "#6666cc"
+                                               , inactiveTextColor   = "black"
+                                               }
+             }
+
+-- | Christmas colours, by Kathryn Andersen
+kavonChristmasTheme :: ThemeInfo
+kavonChristmasTheme =
+    newTheme { themeName        = "kavonChristmasTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Christmas (green + red) colours"
+             , theme            = defaultTheme { activeColor         = "#660000"
+                                               , activeBorderColor   = "#990000"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#006600"
+                                               , inactiveBorderColor = "#003300"
+                                               , inactiveTextColor   = "#99bb99"
+                                               }
+             }
+
+-- | Autumn colours, by Kathryn Andersen
+kavonAutumnTheme :: ThemeInfo
+kavonAutumnTheme =
+    newTheme { themeName        = "kavonAutumnTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Autumn (brown + red) colours"
+             , theme            = defaultTheme { activeColor         = "#660000"
+                                               , activeBorderColor   = "#990000"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#542d11"
+                                               , inactiveBorderColor = "#804d1A"
+                                               , inactiveTextColor   = "#ffcc33"
+                                               }
+             }
+
+-- | Fire colours, by Kathryn Andersen
+kavonFireTheme :: ThemeInfo
+kavonFireTheme =
+    newTheme { themeName        = "kavonFireTheme"
+             , themeAuthor      = "Kathryn Andersen"
+             , themeDescription = "Fire (orange + red) colours"
+             , theme            = defaultTheme { activeColor         = "#660000"
+                                               , activeBorderColor   = "#990000"
+                                               , activeTextColor     = "white"
+                                               , inactiveColor       = "#ff8000"
+                                               , inactiveBorderColor = "#d9b162"
+                                               , inactiveTextColor   = "black"
+                                               }
+             }
+
