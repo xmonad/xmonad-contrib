@@ -76,7 +76,7 @@ applyMaster :: (LayoutClass l Window) =>
 applyMaster _ frac wksp rect = do
     let st= S.stack wksp
     let ws = S.integrate' $ st
-    if length ws > 2 then do
+    if length ws > 1 then do
         let m = head ws
         let (mr, sr) = splitHorizontallyBy frac rect
         let nst = st>>= S.filter (m/=)
