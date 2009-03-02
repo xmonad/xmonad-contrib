@@ -175,6 +175,7 @@ removeMouseBindings conf mouseBindingList =
 -- > <Pause>
 -- > <Scroll_lock>
 -- > <Sys_Req>
+-- > <Print>
 -- > <Escape>, <Esc>
 -- > <Delete>
 -- > <Home>
@@ -438,6 +439,7 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("Pause"      , xK_Pause)
               , ("Scroll_lock", xK_Scroll_Lock)
               , ("Sys_Req"    , xK_Sys_Req)
+              , ("Print"      , xK_Print)
               , ("Escape"     , xK_Escape)
               , ("Esc"        , xK_Escape)
               , ("Delete"     , xK_Delete)
