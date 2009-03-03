@@ -68,7 +68,9 @@ import XMonad.Hooks.ManageDocks (Direction(..))
 data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeable )
 instance Typeable a => Message (MoveWindowToWindow a)
 
-data Navigate = Go Direction | Swap Direction | Move Direction deriving ( Read, Show, Typeable )
+data Navigate = Go Direction | Swap Direction | Move Direction
+              | Apply (Window -> X()) Direction -- ^ Apply action with destination window
+        deriving ( Typeable )
 instance Message Navigate
 
 data WNConfig =
@@ -177,6 +179,10 @@ instance LayoutModifier WindowNavigation Window where
              ((w,_):_) -> do mst <- gets (W.stack . W.workspace . W.current . windowset)
                              return $ do st <- mst
                                          Just $ Right $ SomeMessage $ MoveWindowToWindow (W.focus st) w
+        | Just (Apply f d) <- fromMessage m =
+             case navigable d pt wrs of
+             []         -> return Nothing
+             ((w,_):_)  -> f w >> return Nothing
         | Just Hide <- fromMessage m =
                        do XConf { normalBorder = nbc } <- ask
                           mapM_ (sc nbc . fst) wrs
