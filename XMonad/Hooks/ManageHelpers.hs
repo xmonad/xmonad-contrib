@@ -28,6 +28,7 @@ module XMonad.Hooks.ManageHelpers (
     Side(..),
     composeOne,
     (-?>), (/=?), (<==?), (</=?), (-->>), (-?>>),
+    isInProperty,
     isKDETrayWindow,
     isFullscreen,
     isDialog,
