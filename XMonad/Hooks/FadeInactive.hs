@@ -16,12 +16,16 @@ module XMonad.Hooks.FadeInactive (
     -- * Usage
     -- $usage
     setOpacity,
-    fadeInactiveLogHook
+    isUnfocused,
+    fadeIn,
+    fadeOut,
+    fadeInactiveLogHook,
+    fadeOutLogHook
     ) where
 
 import XMonad
 import qualified XMonad.StackSet as W
-import Control.Monad (forM_)
+import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -68,10 +72,19 @@ fadeIn = flip setOpacity 0xffffffff
 -- |
 -- lowers the opacity of inactive windows to the specified amount
 fadeInactiveLogHook :: Integer -> X ()
-fadeInactiveLogHook amt = withWindowSet $ \s ->
-    forM_ (visibleWins s) (fadeOut amt) >>
-    withFocused fadeIn
-        where
-          visibleWins s = (maybe [] unfocused . W.stack . W.workspace) (W.current s) ++
-                          concatMap (W.integrate' . W.stack . W.workspace) (W.visible s)
-          unfocused (W.Stack _ l r) = l ++ r
+fadeInactiveLogHook amt = fadeOutLogHook isUnfocused amt
+
+-- | returns True if the window doesn't have the focus.
+isUnfocused :: Window -> X Bool
+isUnfocused w = withWindowSet $ \s -> return $
+                case W.stack . W.workspace . W.current $ s of
+                  Nothing -> False
+                  Just stack -> W.focus stack /= w
+
+-- | fades out every window that satisfies a given property.
+fadeOutLogHook :: (Window -> X Bool) -> Integer -> X ()
+fadeOutLogHook p amt = withWindowSet $ \s -> do
+    let visibleWins = (W.integrate' . W.stack . W.workspace . W.current $ s) ++
+                      concatMap (W.integrate' . W.stack . W.workspace) (W.visible s)
+    mapM_ fadeIn =<< filterM (fmap not . p) visibleWins
+    mapM_ (fadeOut amt) =<< filterM p visibleWins
