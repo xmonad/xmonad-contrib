@@ -135,8 +135,18 @@ arrangeAspectGrid :: Rectangle -> Int -> Rational -> [Rectangle]
 arrangeAspectGrid rect@(Rectangle _ _ rw rh) nwins aspect =
     arrangeGrid rect nwins (min nwins ncols)
     where
-      ncols = ceiling $ sqrt $ ( fromRational
-              ( (fromIntegral rw * fromIntegral nwins) / (fromIntegral rh * aspect) ) :: Double)
+      scr_a = fromIntegral rw / fromIntegral rh
+      fcols = sqrt ( fromRational $ scr_a * fromIntegral nwins / aspect ) :: Double
+      cols1 = floor fcols :: Int
+      cols2 = ceiling fcols :: Int
+      rows1 = ceiling ( fromIntegral nwins / fromIntegral cols1 :: Rational ) :: Int
+      rows2 = floor ( fromIntegral nwins / fromIntegral cols2 :: Rational ) :: Int
+      a1    = scr_a * fromIntegral rows1 / fromIntegral cols1
+      a2    = scr_a * fromIntegral rows2 / fromIntegral cols2
+      ncols | cols1 == 0                = cols2
+            | rows2 == 0                = cols1
+            | a1 / aspect < aspect / a2 = cols1
+            | otherwise                 = cols2
 
 arrangeGrid :: Rectangle -> Int -> Int -> [Rectangle]
 arrangeGrid (Rectangle rx ry rw rh) nwins ncols =
