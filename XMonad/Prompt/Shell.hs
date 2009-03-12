@@ -118,13 +118,12 @@ split e l =
 
 escape :: String -> String
 escape []       = ""
-escape (' ':xs) = "\\ " ++ escape xs
 escape (x:xs)
     | isSpecialChar x = '\\' : x : escape xs
     | otherwise       = x : escape xs
 
 isSpecialChar :: Char -> Bool
-isSpecialChar =  flip elem "\\@\"'#?$*()[]{};"
+isSpecialChar =  flip elem " &\\@\"'#?$*()[]{};"
 
 -- | Ask the shell environment for
 env :: String -> String -> IO String
