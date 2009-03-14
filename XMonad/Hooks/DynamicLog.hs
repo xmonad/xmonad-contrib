@@ -39,7 +39,7 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Formatting utilities
     wrap, pad, shorten,
-    xmobarColor, dzenColor, dzenEscape,
+    xmobarColor, dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
     pprWindowSet,
@@ -332,6 +332,17 @@ dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
 dzenEscape :: String -> String
 dzenEscape = concatMap (\x -> if x == '^' then "^^" else [x])
 
+-- | Strip dzen formatting (used in ppUrgent)
+dzenStrip :: String -> String
+dzenStrip = strip [] where
+    strip keep [] = keep
+    strip keep ('^':'^':x) = strip (keep ++ "^") x
+    strip keep ('^':x) = strip keep (drop 1 . dropWhile (')' /=) $ x)
+    strip keep x = let (good,x') = span ('^' /=) x
+        in strip (keep ++ good) x'
+
+
+
 -- | Use xmobar escape codes to output a string with given foreground
 --   and background colors.
 xmobarColor :: String  -- ^ foreground color: a color name, or #rrggbb format
@@ -421,7 +432,7 @@ dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                      , ppVisible  = dzenColor "black" "#999999" . pad
                      , ppHidden   = dzenColor "black" "#cccccc" . pad
                      , ppHiddenNoWindows = const ""
-                     , ppUrgent   = dzenColor "red" "yellow"
+                     , ppUrgent   = dzenColor "red" "yellow" . dzenStrip
                      , ppWsSep    = ""
                      , ppSep      = ""
                      , ppLayout   = dzenColor "black" "#cccccc" .
