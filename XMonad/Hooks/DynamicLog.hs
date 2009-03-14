@@ -39,7 +39,8 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Formatting utilities
     wrap, pad, shorten,
-    xmobarColor, dzenColor, dzenEscape, dzenStrip,
+    xmobarColor, xmobarStrip,
+    dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
     pprWindowSet,
@@ -332,16 +333,19 @@ dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
 dzenEscape :: String -> String
 dzenEscape = concatMap (\x -> if x == '^' then "^^" else [x])
 
--- | Strip dzen formatting (used in ppUrgent)
+-- | Strip dzen formatting or commands. Useful to remove ppHidden
+--   formatting in ppUrgent field. For example:
+--
+-- >     , ppHidden          = dzenColor "gray20" "" . wrap "(" ")"
+-- >     , ppUrgent          = dzenColor "dark orange" "" .  dzenStrip
 dzenStrip :: String -> String
 dzenStrip = strip [] where
-    strip keep [] = keep
-    strip keep ('^':'^':x) = strip (keep ++ "^") x
-    strip keep ('^':x) = strip keep (drop 1 . dropWhile (')' /=) $ x)
-    strip keep x = let (good,x') = span ('^' /=) x
-        in strip (keep ++ good) x'
-
-
+    strip keep x
+      | null x              = keep
+      | "^^" `isPrefixOf` x = strip (keep ++ "^") (drop 2 x)
+      | '^' == head x       = strip keep (drop 1 . dropWhile (/= ')') $ x)
+      | otherwise           = let (good,x') = span (/= '^') x
+                              in strip (keep ++ good) x'
 
 -- | Use xmobar escape codes to output a string with given foreground
 --   and background colors.
@@ -353,6 +357,21 @@ xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
 
 -- ??? add an xmobarEscape function?
+
+-- | Strip xmobar markup. Useful to remove ppHidden color from ppUrgent
+--   field. For example:
+--
+-- >     , ppHidden          = xmobarColor "gray20" "" . wrap "<" ">"
+-- >     , ppUrgent          = xmobarColor "dark orange" "" .  xmobarStrip
+xmobarStrip :: String -> String
+xmobarStrip = strip [] where
+    strip keep x
+      | null x                 = keep
+      | "<fc="  `isPrefixOf` x = strip keep (drop 1 . dropWhile (/= '>') $ x)
+      | "</fc>" `isPrefixOf` x = strip keep (drop 5  x)
+      | '<' == head x          = strip (keep ++ "<") (tail x)
+      | otherwise              = let (good,x') = span (/= '<') x
+                                 in strip (keep ++ good) x'
 
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.
@@ -426,7 +445,8 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppExtras          = []
                }
 
--- | Settings to emulate dwm's statusbar, dzen only.
+-- | Settings to emulate dwm's statusbar, dzen only. Uses dzenStrip in
+-- ppUrgent.
 dzenPP :: PP
 dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                      , ppVisible  = dzenColor "black" "#999999" . pad
