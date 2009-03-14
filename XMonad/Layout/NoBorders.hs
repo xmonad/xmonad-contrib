@@ -28,6 +28,7 @@ module XMonad.Layout.NoBorders (
 import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
+import Data.Maybe(isJust)
 import Data.List ((\\))
 import qualified Data.Map as M
 
@@ -78,7 +79,9 @@ instance LayoutModifier SmartBorder Window where
     redoLayout (SmartBorder s) _ mst wrs = do
         wset <- gets windowset
         let managedwindows = W.integrate' mst
-            screens = filter (nonzerorect . screenRect . W.screenDetail) . W.screens $ wset
+            screens = [ scr | scr <- W.screens wset,
+                              isJust . W.stack $ W.workspace scr,
+                              nonzerorect . screenRect $ W.screenDetail scr]
             ws = tiled ++ floating
             tiled = case filter (`elem` managedwindows) $ map fst wrs of
                 [w] | singleton screens -> [w]
