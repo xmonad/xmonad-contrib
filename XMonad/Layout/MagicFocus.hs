@@ -16,12 +16,18 @@
 module XMonad.Layout.MagicFocus
     (-- * Usage
      -- $usage
-     magicFocus
+     magicFocus,
+     promoteWarp,
+     promoteWarp'
     ) where
 
 import XMonad
-import XMonad.StackSet
+import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
+
+import XMonad.Actions.UpdatePointer(updatePointer, PointerPosition(TowardsCentre))
+import Data.Monoid(All(..))
+import qualified Data.Map as M
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -32,7 +38,8 @@ import XMonad.Layout.LayoutModifier
 -- modifier:
 --
 -- > myLayouts = magicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayouts,
+-- >                               handleEventHook = promoteWarp }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -46,10 +53,39 @@ magicFocus = ModifiedLayout MagicFocus
 data MagicFocus a = MagicFocus deriving (Show, Read)
 
 instance LayoutModifier MagicFocus Window where
-  modifyLayout MagicFocus (Workspace i l s) r =
+  modifyLayout MagicFocus (W.Workspace i l s) r =
     withWindowSet $ \wset ->
-      runLayout (Workspace i l (s >>= \st -> Just $ swap st (peek wset))) r
+      runLayout (W.Workspace i l (s >>= \st -> Just $ swap st (W.peek wset))) r
 
-swap :: (Eq a) => Stack a -> Maybe a -> Stack a
-swap (Stack f u d) focused | Just f == focused = Stack f [] (reverse u ++ d)
-                           | otherwise         = Stack f u d
+swap :: (Eq a) => W.Stack a -> Maybe a -> W.Stack a
+swap (W.Stack f u d) focused
+    | Just f == focused = W.Stack f [] (reverse u ++ d)
+    | otherwise         = W.Stack f u d
+
+-- | An eventHook that overrides the normal focusFollowsMouse. When the mouse
+-- it moved to another window, that window is replaced as the master, and the
+-- mouse is warped to inside the new master.
+--
+-- It prevents infinite loops when focusFollowsMouse is true (the default), and
+-- MagicFocus is in use when changing focus with the mouse.
+--
+-- This eventHook does nothing when there are floating windows on the current
+-- workspace.
+promoteWarp :: Event -> X All
+promoteWarp = promoteWarp' (TowardsCentre 0.15 0.15)
+
+-- | promoteWarp' allows you to specify an arbitrary PointerPosition to apply
+-- when the mouse enters another window.
+promoteWarp' :: PointerPosition -> Event -> X All
+promoteWarp' pos e@(CrossingEvent {ev_window = w, ev_event_type = t})
+    | t == enterNotify && ev_mode   e == notifyNormal = do
+        ws <- gets windowset
+        let foc = W.peek ws
+            st = W.integrate' . W.stack . W.workspace $ W.current ws
+            wsFloats = M.filterWithKey (\k _ -> k `elem` st) $ W.floating ws
+        if Just w /= foc && M.null wsFloats then do
+            windows (W.swapMaster . W.focusWindow w)
+            updatePointer pos
+            return $ All False
+          else return $ All True
+promoteWarp' _ _ = return $ All True
