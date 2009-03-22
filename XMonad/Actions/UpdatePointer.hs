@@ -3,7 +3,7 @@
 -- Module      :  XMonadContrib.UpdatePointer
 -- Copyright   :  (c) Robert Marlow <robreim@bobturf.org>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Robert Marlow <robreim@bobturf.org>
 -- Stability   :  stable
 -- Portability :  portable
@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.UpdatePointer 
+module XMonad.Actions.UpdatePointer
     (
      -- * Usage
      -- $usage
@@ -34,9 +34,9 @@ import XMonad.StackSet (member, peek, screenDetail, current)
 -- > import XMonad.Actions.UpdatePointer
 --
 -- Enable it by including it in your logHook definition. Eg:
--- 
+--
 -- > logHook = updatePointer Nearest
--- 
+--
 -- which will move the pointer to the nearest point of a newly focused window, or
 --
 -- > logHook = updatePointer (Relative 0.5 0.5)
@@ -91,5 +91,4 @@ moveWithin now lower upper =
          else now
 
 fi :: (Num b, Integral a) => a -> b
-fi = fromIntegral 
-
+fi = fromIntegral
