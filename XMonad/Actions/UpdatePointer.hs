@@ -50,7 +50,8 @@ import XMonad.StackSet (member, peek, screenDetail, current)
 --
 -- which moves the pointer to the bottom-right corner of the focused window.
 
-data PointerPosition = Nearest | Relative Rational Rational
+data PointerPosition = Nearest | Relative Rational Rational | TowardsCentre Rational Rational
+    deriving (Read,Show)
 
 -- | Update the pointer's location to the currently focused
 -- window or empty screen unless it's already there, or unless the user was changing
@@ -60,8 +61,8 @@ updatePointer p = do
   ws <- gets windowset
   dpy <- asks display
   rect <- case peek ws of
-		Nothing -> return $ (screenRect . screenDetail .current) ws
-		Just w  -> windowAttributesToRectangle `fmap` io (getWindowAttributes dpy w)
+        Nothing -> return $ (screenRect . screenDetail .current) ws
+        Just w  -> windowAttributesToRectangle `fmap` io (getWindowAttributes dpy w)
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   (_sameRoot,_,currentWindow,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
@@ -73,6 +74,13 @@ updatePointer p = do
       let x = moveWithin (fi rootx) (rect_x rect) (fi (rect_x rect) + fi (rect_width  rect))
           y = moveWithin (fi rooty) (rect_y rect) (fi (rect_y rect) + fi (rect_height rect))
       io $ warpPointer dpy none root 0 0 0 0 x y
+    TowardsCentre xfrc yfrc -> do
+      let cx = fi (rect_width rect) / 2 + fi (rect_x rect)
+          cy = fi (rect_height rect) / 2 + fi (rect_y rect)
+          x,y,cx,cy :: Rational
+          x = moveWithin (fi rootx) (fi $ rect_x rect) (fi (rect_x rect) + fi (rect_width  rect))
+          y = moveWithin (fi rooty) (fi $ rect_y rect) (fi (rect_y rect) + fi (rect_height rect))
+      io $ warpPointer dpy none root 0 0 0 0 (round $ x + xfrc*(cx-x)) (round $ y + yfrc*(cy-y))
     Relative h v ->
       io $ warpPointer dpy none root 0 0 0 0
            (rect_x rect + fraction h (rect_width rect))
