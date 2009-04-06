@@ -1,5 +1,5 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
-
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BoringWindows
@@ -15,51 +15,110 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.BoringWindows (
-                                   boringWindows,
+                                   -- * Usage
+                                   -- $usage
+                                   boringWindows, boringAuto,
                                    markBoring, clearBoring,
-                                   focusUp, focusDown
+                                   focusUp, focusDown,
+
+                                   UpdateBoring(UpdateBoring),
+                                   BoringMessage(Replace,Merge),
+                                   BoringWindows()
                                   ) where
 
-import XMonad hiding (Point)
+import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
+                                    LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
+import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
+              sendMessage, windows, withFocused, Window)
+import Control.Applicative((<$>))
+import Control.Monad(Monad(return, (>>)))
+import Data.List((\\), union)
+import Data.Maybe(Maybe(..), maybe, fromMaybe, listToMaybe,
+                  maybeToList)
+import qualified Data.Map as M
 import qualified XMonad.StackSet as W
-import XMonad.Layout.LayoutModifier
-import XMonad.Util.Invisible
+
+-- $usage
+-- You can use this module with the following in your
+-- @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Layout.BoringWindows
+--
+-- Then edit your @layoutHook@ by adding the layout modifier:
+--
+-- > myLayouts = boringWindows (Full ||| etc..)
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
+--
+-- Then to your keybindings, add:
+--
+-- > , ((modMask, xK_j), focusUp)
+-- > , ((modMask, xk_k), focusDown)
+--
+-- For more detailed instructions on editing the layoutHook see:
+--
+-- "XMonad.Doc.Extending#Editing_the_layout_hook"
+
 
 data BoringMessage = FocusUp | FocusDown | IsBoring Window | ClearBoring
-                       deriving ( Read, Show, Typeable )
+                     | Replace String [Window]
+                     | Merge String [Window]
+                     deriving ( Read, Show, Typeable )
+
 instance Message BoringMessage
+
+-- | UpdateBoring is sent before attempting to view another boring window, so
+-- that layouts have a chance to mark boring windows.
+data UpdateBoring = UpdateBoring
+    deriving (Typeable)
+instance Message UpdateBoring
 
 markBoring, clearBoring, focusUp, focusDown :: X ()
 markBoring = withFocused (sendMessage . IsBoring)
 clearBoring = sendMessage ClearBoring
-focusUp = sendMessage FocusUp
-focusDown = sendMessage FocusDown
+focusUp = sendMessage UpdateBoring >> sendMessage FocusUp
+focusDown = sendMessage UpdateBoring >> sendMessage FocusDown
 
-data BoringWindows a = BoringWindows (Invisible [] a) deriving ( Show, Read, Typeable )
+data BoringWindows a = BoringWindows
+    { namedBoring :: M.Map String [a] -- ^ store borings with a specific source
+    , chosenBoring :: [a]             -- ^ user-chosen borings
+    , hiddenBoring :: Maybe [a]       -- ^ maybe mark hidden windows
+    } deriving (Show,Read,Typeable)
 
 boringWindows :: (LayoutClass l a, Eq a) => l a -> ModifiedLayout BoringWindows l a
-boringWindows = ModifiedLayout (BoringWindows (I []))
+boringWindows = ModifiedLayout (BoringWindows M.empty [] Nothing)
+
+-- | Mark windows that are not given rectangles as boring
+boringAuto :: (LayoutClass l a, Eq a) => l a -> ModifiedLayout BoringWindows l a
+boringAuto = ModifiedLayout (BoringWindows M.empty [] (Just []))
 
 instance LayoutModifier BoringWindows Window where
-    handleMessOrMaybeModifyIt (BoringWindows (I bs)) m
-        | Just (IsBoring b) <- fromMessage m = return $ Just $ Left $ BoringWindows (I (b:bs))
-        | Just ClearBoring <- fromMessage m = return $ Just $ Left $ BoringWindows (I [])
-        | Just FocusUp <- fromMessage m = do windows $ W.modify' $ focusUp'
-                                             return Nothing
-        | Just FocusDown <- fromMessage m =
-                            do windows $ W.modify' (reverseStack . focusUp' . reverseStack)
-                               return Nothing
-        where focusUp' (W.Stack t ls rs)
-                  | (a,l:ls') <- skipBoring ls = W.Stack l ls' (a++t:rs)
-                  | otherwise = case skipBoring (reverse (t:rs)++ls) of
-                                (a,x:xs) -> W.Stack x xs a
-                                _ -> W.Stack t ls rs
-              skipBoring [] = ([],[])
-              skipBoring (x:xs) | x `elem` bs = case skipBoring xs of
-                                                (a,b) -> (x:a,b)
-                                | otherwise = ([],x:xs)
-    handleMessOrMaybeModifyIt _ _ = return Nothing
+    redoLayout (b@BoringWindows { hiddenBoring = bs }) _r mst arrs = do
+        let bs' = W.integrate' mst \\ map fst arrs
+        return (arrs, Just $ b { hiddenBoring = const bs' <$> bs } )
 
--- | reverse a stack: up becomes down and down becomes up.
-reverseStack :: W.Stack a -> W.Stack a
-reverseStack (W.Stack t ls rs) = W.Stack t rs ls
+    handleMessOrMaybeModifyIt bst@(BoringWindows nbs cbs lbs) m
+        | Just (Replace k ws) <- fromMessage m
+        , maybe True (ws/=) (M.lookup k nbs) =
+            let nnb = if null ws then M.delete k nbs
+                          else M.insert k ws nbs
+            in rjl bst { namedBoring = nnb }
+        | Just (Merge k ws) <- fromMessage m
+        , maybe True (not . null . (ws \\)) (M.lookup k nbs) =
+            rjl bst { namedBoring = M.insertWith union k ws nbs }
+        | Just (IsBoring w) <- fromMessage m , w `notElem` cbs =
+            rjl bst { chosenBoring = w:cbs }
+        | Just ClearBoring <- fromMessage m, not (null cbs) =
+            rjl bst { namedBoring = M.empty, chosenBoring = []}
+        | Just FocusUp <- fromMessage m =
+                            do windows $ W.modify' $ skipBoring W.focusUp'
+                               return Nothing
+        | Just FocusDown <- fromMessage m =
+                            do windows $ W.modify' $ skipBoring W.focusDown'
+                               return Nothing
+        where skipBoring f st = fromMaybe st $ listToMaybe
+                                $ filter ((`notElem` W.focus st:bs) . W.focus)
+                                $ take (length $ W.integrate st)
+                                $ iterate f st
+              bs = concat $ cbs:maybeToList lbs ++ M.elems nbs
+              rjl = return . Just . Left
+    handleMessOrMaybeModifyIt _ _ = return Nothing
