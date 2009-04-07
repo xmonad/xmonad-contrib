@@ -98,6 +98,7 @@ library
                         XMonad.Actions.TagWindows
                         XMonad.Actions.TopicSpace
                         XMonad.Actions.UpdatePointer
+                        XMonad.Actions.UpdateFocus
                         XMonad.Actions.Warp
                         XMonad.Actions.WindowNavigation
                         XMonad.Actions.WindowGo
