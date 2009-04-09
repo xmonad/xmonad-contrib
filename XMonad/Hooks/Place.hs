@@ -40,7 +40,7 @@ import XMonad.Layout.WindowArranger
 import XMonad.Actions.FloatKeys
 
 import qualified Data.Map as M
-import Data.List (sortBy, maximumBy)
+import Data.List (sortBy, minimumBy)
 import Data.Maybe (maybe)
 import Data.Monoid (Endo(..))
 import Control.Monad.Trans (lift, liftIO)
@@ -347,7 +347,7 @@ position :: [Rectangle] -- ^ Free areas
          -> Position -> Position -- ^ Ideal coordinates
          -> Dimension -> Dimension -- ^ Width and height of the window
          -> Rectangle
-position rs x y w h = maximumBy distanceOrder $ map closest rs
+position rs x y w h = minimumBy distanceOrder $ map closest rs
   where distanceOrder r1 r2 
           = compare (distance (rect_x r1,rect_y r1) (x,y) :: Dimension)
                     (distance (rect_x r2,rect_y r2) (x,y) :: Dimension)
