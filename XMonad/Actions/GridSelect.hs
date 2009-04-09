@@ -195,6 +195,17 @@ handle (ks,_) (KeyEvent {ev_event_type = t})
                                 updateElements (catMaybes [(findInElementMap oldPos elmap), newSelectedEl])
           eventLoop
 
+handle _ (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y })
+    | t == buttonRelease = do
+        (TwoDState { td_elementmap = elmap, td_paneX = px, td_paneY = py,
+                     td_gsconfig = (GSConfig ch cw _ _ _) }) <- get
+        let gridX = (fi x - (px - cw) `div` 2) `div` cw
+            gridY = (fi y - (py - ch) `div` 2) `div` ch
+        case lookup (gridX,gridY) elmap of
+             Just (_,el) -> return (Just el)
+             Nothing -> eventLoop
+    | otherwise = eventLoop
+
 handle _ (ExposeEvent { }) = updateAllElements >> eventLoop
 
 handle _ _ = eventLoop
@@ -282,8 +293,9 @@ gridselect gsconfig elmap =
     win <- liftIO $ mkUnmanagedWindow dpy (defaultScreenOfDisplay dpy) rootw
                     (rect_x s) (rect_y s) (rect_width s) (rect_height s)
     liftIO $ mapWindow dpy win
-    liftIO $ selectInput dpy win (exposureMask .|. keyPressMask)
+    liftIO $ selectInput dpy win (exposureMask .|. keyPressMask .|. buttonReleaseMask)
     status <- io $ grabKeyboard dpy win True grabModeAsync grabModeAsync currentTime
+    io $ grabButton dpy button1 anyModifier win True buttonReleaseMask grabModeAsync grabModeAsync none none
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width s;
         screenHeight = toInteger $ rect_height s;
