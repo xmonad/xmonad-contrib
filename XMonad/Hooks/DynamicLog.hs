@@ -38,7 +38,7 @@ module XMonad.Hooks.DynamicLog (
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
     -- * Formatting utilities
-    wrap, pad, shorten,
+    wrap, pad, trim, shorten,
     xmobarColor, xmobarStrip,
     dzenColor, dzenEscape, dzenStrip,
 
@@ -56,6 +56,7 @@ module XMonad.Hooks.DynamicLog (
 --
 import XMonad
 import Control.Monad
+import Data.Char ( isSpace )
 import Data.Maybe ( isJust, catMaybes )
 import Data.List
 import qualified Data.Map as M
@@ -302,6 +303,11 @@ wrap l r m  = l ++ m ++ r
 -- | Pad a string with a leading and trailing space.
 pad :: String -> String
 pad = wrap " " " "
+
+-- | Trim leading and trailing whitespace from a string.
+trim :: String -> String
+trim = f . f
+    where f = reverse . dropWhile isSpace
 
 -- | Limit a string to a certain length, adding "..." if truncated.
 shorten :: Int -> String -> String
