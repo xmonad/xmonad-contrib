@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.GridSelect
@@ -18,11 +19,16 @@ module XMonad.Actions.GridSelect (
     -- $usage
     GSConfig(..),
     defaultGSConfig,
+    defaultGSSpawnConfig,
+    buildDefaultGSConfig,
     gridselect,
+    gridselectWindow,
     withSelectedWindow,
     bringSelected,
     goToSelected,
+    spawnSelected,
     fromClassName,
+    defaultColorizer,
     colorRangeFromClassName
     ) where
 import Data.Maybe
@@ -52,30 +58,35 @@ import Data.Word (Word8)
 -- >    , ((modMask x, xK_g), goToSelected defaultGSConfig)
 --
 -- Screenshot: <http://clemens.endorphin.org/gridselect.png>
+--
+-- This module also supports displaying arbitrary information in a grid and letting
+-- the user select from it. E.g. to spawn an application from a given list, you
+-- can use the following:
+--
+-- >   , ((modMask x, xK_s), spawnSelected defaultGSSpawnConfig ["xterm","gmplayer","gvim"])
 
-data GSConfig = GSConfig {
+data GSConfig a = GSConfig {
       gs_cellheight :: Integer,
       gs_cellwidth :: Integer,
       gs_cellpadding :: Integer,
-      gs_colorizer :: Window -> Bool -> X (String, String),
+      gs_colorizer :: a -> Bool -> X (String, String),
       gs_font :: String
 }
 
 type TwoDPosition = (Integer, Integer)
 
-type TwoDWindowMap = [(TwoDPosition,(String,Window))]
+type TwoDElementMap a = [(TwoDPosition,(String,a))]
 
-data TwoDState = TwoDState { td_curpos :: TwoDPosition,
-                             td_windowmap :: [(TwoDPosition,(String,Window))],
-                             td_gsconfig :: GSConfig,
-                             td_font :: XMonadFont,
-                             td_paneX :: Integer,
-                             td_paneY :: Integer,
-                             td_drawingWin :: Window
-                           }
+data TwoDState a = TwoDState { td_curpos :: TwoDPosition
+                             , td_elementmap :: TwoDElementMap a
+                             , td_gsconfig :: GSConfig a
+                             , td_font :: XMonadFont
+                             , td_paneX :: Integer
+                             , td_paneY :: Integer
+                             , td_drawingWin :: Window
+                             }
 
-
-type TwoD a = StateT TwoDState X a
+type TwoD a b = StateT (TwoDState a) X b
 
 diamondLayer :: (Enum b', Num b') => b' -> [(b', b')]
 -- FIXME remove nub
@@ -94,8 +105,8 @@ diamondRestrict x y = L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
 tupadd :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
 tupadd (a,b) (c,d) = (a+c,b+d)
 
-findInWindowMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
-findInWindowMap pos = find ((== pos) . fst)
+findInElementMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
+findInElementMap pos = find ((== pos) . fst)
 
 drawWinBox :: Window -> XMonadFont -> (String, String) -> Integer -> Integer -> String -> Integer -> Integer -> Integer -> X ()
 drawWinBox win font (fg,bg) ch cw text x y cp =
@@ -119,14 +130,14 @@ drawWinBox win font (fg,bg) ch cw text x y cp =
   liftIO $ freeGC dpy gc
   liftIO $ freeGC dpy bordergc
 
-updateAllWindows :: TwoD ()
-updateAllWindows =
+updateAllElements :: TwoD a ()
+updateAllElements =
     do
-      TwoDState { td_windowmap = wins } <- get
-      updateWindows wins
+      TwoDState { td_elementmap = els } <- get
+      updateElements els
 
-updateWindows :: TwoDWindowMap -> TwoD ()
-updateWindows windowmap = do
+updateElements :: TwoDElementMap a -> TwoD a ()
+updateElements elementmap = do
     TwoDState { td_curpos = curpos,
                 td_drawingWin = win,
                 td_gsconfig = gsconfig,
@@ -137,8 +148,8 @@ updateWindows windowmap = do
         cellheight = gs_cellheight gsconfig
         paneX' = div (paneX-cellwidth) 2
         paneY' = div (paneY-cellheight) 2
-        updateWindow (pos@(x,y),(text, clientwindow)) = lift $ do
-            colors <- (gs_colorizer gsconfig) clientwindow (pos == curpos)
+        updateElement (pos@(x,y),(text, element)) = lift $ do
+            colors <- (gs_colorizer gsconfig) element (pos == curpos)
             drawWinBox win font
                        colors
                        cellheight
@@ -147,10 +158,10 @@ updateWindows windowmap = do
                        (paneX'+x*cellwidth)
                        (paneY'+y*cellheight)
                        (gs_cellpadding gsconfig)
-    mapM updateWindow windowmap
+    mapM updateElement elementmap
     return ()
 
-eventLoop :: TwoD (Maybe Window)
+eventLoop :: TwoD a (Maybe a)
 eventLoop = do
   (keysym,string,event) <- lift $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
                              nextEvent d e
@@ -163,7 +174,7 @@ eventLoop = do
 
 handle :: (KeySym, String)
        -> Event
-       -> StateT TwoDState X (Maybe Window)
+       -> StateT (TwoDState a) X (Maybe a)
 handle (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && ks == xK_Escape = return Nothing
     | t == keyPress && (ks == xK_Left || ks == xK_h)  = diffAndRefresh (-1,0)
@@ -171,25 +182,22 @@ handle (ks,_) (KeyEvent {ev_event_type = t})
     | t == keyPress && (ks == xK_Down || ks == xK_j) = diffAndRefresh (0,1)
     | t == keyPress && (ks == xK_Up || ks == xK_k) = diffAndRefresh (0,-1)
     | t == keyPress && ks == xK_Return = do
-       (TwoDState { td_curpos = pos, td_windowmap = winmap }) <- get
-       return $ fmap (snd . snd) $ findInWindowMap pos winmap
+       (TwoDState { td_curpos = pos, td_elementmap = elmap }) <- get
+       return $ fmap (snd . snd) $ findInElementMap pos elmap
   where diffAndRefresh diff = do
           state <- get
-          let windowmap = td_windowmap state
+          let elmap = td_elementmap state
               oldPos = td_curpos state
               newPos = oldPos `tupadd` diff
-              newSelectedWin = findInWindowMap newPos windowmap
-          when (isJust newSelectedWin) $ do
+              newSelectedEl = findInElementMap newPos elmap
+          when (isJust newSelectedEl) $ do
                                 put state { td_curpos =  newPos }
-                                updateWindows (catMaybes [(findInWindowMap oldPos windowmap), newSelectedWin])
+                                updateElements (catMaybes [(findInElementMap oldPos elmap), newSelectedEl])
           eventLoop
 
-handle _ (ExposeEvent { }) = do
-  updateAllWindows
-  eventLoop
+handle _ (ExposeEvent { }) = updateAllElements >> eventLoop
 
-handle _ _ = do
-  eventLoop
+handle _ _ = eventLoop
 
 -- FIXME probably move that into Utils?
 -- Conversion scheme as in http://en.wikipedia.org/wiki/HSV_color_space
@@ -209,30 +217,31 @@ hsv2rgb (h,s,v) =
          5 -> (v,p,q)
          _ -> error "The world is ending. x mod a >= a."
 
-
-fromClassName :: Window -> Bool -> X (String, String)
-fromClassName w active = do
-    classname <- runQuery className w
-    let seed x = toInteger (sum $ map ((*x).fromEnum) classname) :: Integer
+-- | Default colorizer for Strings
+defaultColorizer :: String -> Bool -> X (String, String)
+defaultColorizer s active = 
+    let seed x = toInteger (sum $ map ((*x).fromEnum) s) :: Integer
         (r,g,b) = hsv2rgb ((seed 83) `mod` 360,
                            (fromInteger ((seed 191) `mod` 1000))/2500+0.4,
                            (fromInteger ((seed 121) `mod` 1000))/2500+0.4)
-    if active
-      then return ("#faff69", "black")
-      else return ("#" ++ concat (map (twodigitHex.(round :: Double -> Word8).(*256)) [r, g, b] ), "white")
-  
-    
+    in if active
+         then return ("#faff69", "black")
+         else return ("#" ++ concat (map (twodigitHex.(round :: Double -> Word8).(*256)) [r, g, b] ), "white")
+
+-- | Colorize a window depending on it's className.
+fromClassName :: Window -> Bool -> X (String, String)
+fromClassName w active = runQuery className w >>= flip defaultColorizer active
+
 twodigitHex :: Word8 -> String
 twodigitHex a = printf "%02x" a
 
-
--- | A colorizer that picks a color inside a range, 
+-- | A colorizer that picks a color inside a range,
 -- and depending on the window's class.
-colorRangeFromClassName :: (Word8, Word8, Word8) -- ^ Beginning of the color range 
+colorRangeFromClassName :: (Word8, Word8, Word8) -- ^ Beginning of the color range
                         -> (Word8, Word8, Word8) -- ^ End of the color range
                         -> (Word8, Word8, Word8) -- ^ Background of the active window
                         -> (Word8, Word8, Word8) -- ^ Inactive text color
-                        -> (Word8, Word8, Word8) -- ^ Active text color 
+                        -> (Word8, Word8, Word8) -- ^ Active text color
                         -> Window -> Bool -> X (String, String)
 colorRangeFromClassName startC endC activeC inactiveT activeT w active = 
     do classname <- runQuery className w
@@ -263,17 +272,13 @@ stringToRatio s = let gen = mkStdGen $ sum $ map fromEnum s
                       combine f1 f2 g = let (_, g') = f1 g in f2 g'
                   in fi (fst $ randomInt gen) / fi range
 
-
-
-
--- | Brings up a 2D grid of windows in the center of the screen, and one can
--- select a window with cursors keys. The selected window is returned.
-gridselect :: GSConfig -> X (Maybe Window)
-gridselect gsconfig =
+-- | Brings up a 2D grid of elements in the center of the screen, and one can
+-- select an element with cursors keys. The selected element is returned.
+gridselect :: forall a . GSConfig a -> [(String,a)] -> X (Maybe a)
+gridselect gsconfig elmap =
  withDisplay $ \dpy -> do
-    rootw <- liftIO $ rootWindow dpy (defaultScreen dpy)
+    rootw <- asks theRoot
     s <- gets $ screenRect . W.screenDetail . W.current . windowset
-    windowList <- windowMap
     win <- liftIO $ mkUnmanagedWindow dpy (defaultScreenOfDisplay dpy) rootw
                     (rect_x s) (rect_y s) (rect_width s) (rect_height s)
     liftIO $ mapWindow dpy win
@@ -282,22 +287,22 @@ gridselect gsconfig =
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width s;
         screenHeight = toInteger $ rect_height s;
-    selectedWindow <- if (status == grabSuccess) then
+    selectedElement <- if (status == grabSuccess) then
                           do
-                            let restriction :: Integer -> (GSConfig -> Integer) -> Double
+                            let restriction :: Integer -> (GSConfig a -> Integer) -> Double
                                 restriction ss cs = ((fromInteger ss)/(fromInteger $ cs gsconfig)-1)/2
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
                                 restrictY = floor $ restriction screenHeight gs_cellheight
-                                winmap = zipWith (,) (diamondRestrict restrictX restrictY) windowList
-                            selectedWindow <- evalStateT (do updateAllWindows; eventLoop)
-                                                   (TwoDState (0,0)
-                                                              winmap
-                                                              gsconfig
-                                                              font
-                                                              screenWidth
-                                                              screenHeight
-                                                              win)
-                            return selectedWindow
+                                elmap' = zip (diamondRestrict restrictX restrictY) elmap
+                            selectedElement <- evalStateT (updateAllElements >> eventLoop)
+                                                          (TwoDState (0,0)
+                                                           elmap'
+                                                           gsconfig
+                                                           font
+                                                           screenWidth
+                                                           screenHeight
+                                                           win)
+                            return selectedElement
                       else
                           return Nothing
     liftIO $ do
@@ -305,18 +310,21 @@ gridselect gsconfig =
       destroyWindow dpy win
       sync dpy False
     releaseXMF font
-    return selectedWindow
+    return selectedElement
+
+-- | Like `gridSelect' but with the current windows and their titles as elements
+gridselectWindow :: GSConfig Window -> X (Maybe Window)
+gridselectWindow gsconf = windowMap >>= gridselect gsconf
 
 -- | Brings up a 2D grid of windows in the center of the screen, and one can
 -- select a window with cursors keys. The selected window is then passed to
 -- a callback function.
-withSelectedWindow :: (Window -> X ()) -> GSConfig -> X ()
+withSelectedWindow :: (Window -> X ()) -> GSConfig Window -> X ()
 withSelectedWindow callback conf = do
-    mbWindow <- gridselect conf
+    mbWindow <- gridselectWindow conf
     case mbWindow of
         Just w -> callback w
         Nothing -> return ()
-
 
 windowMap :: X [(String,Window)]
 windowMap = do
@@ -329,20 +337,31 @@ decorateName' :: Window -> X String
 decorateName' w = do
   fmap show $ getName w
 
-defaultGSConfig :: GSConfig
-defaultGSConfig = GSConfig 50 130 10 fromClassName "xft:Sans-8"
+defaultGSConfig :: GSConfig Window
+defaultGSConfig = buildDefaultGSConfig fromClassName
+
+-- | Builds a default gs config from a colorizer function.
+buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8"
 
 borderColor :: String
 borderColor = "white"
 
 -- | Brings selected window to the current workspace.
-bringSelected :: GSConfig -> X ()
+bringSelected :: GSConfig Window -> X ()
 bringSelected = withSelectedWindow $ \w -> do
     windows (bringWindow w)
     XMonad.focus w
     windows W.shiftMaster
 
 -- | Switches to selected window's workspace and focuses that window.
-goToSelected :: GSConfig -> X ()
+goToSelected :: GSConfig Window -> X ()
 goToSelected = withSelectedWindow $ windows . W.focusWindow
+
+defaultGSSpawnConfig :: GSConfig String
+defaultGSSpawnConfig = buildDefaultGSConfig defaultColorizer
+
+-- | Select an application to spawn from a given list
+spawnSelected :: GSConfig String -> [String] -> X ()
+spawnSelected conf lst = gridselect conf (zip lst lst) >>= flip whenJust spawn
 
