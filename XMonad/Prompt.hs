@@ -378,7 +378,7 @@ keyPressHandle mask (ks,_)
             | ks == xK_w               -> killWord Prev >> go
             | ks == xK_g || ks == xK_c -> quit
             | otherwise  -> eventLoop handle -- unhandled control sequence
-    | ks == xK_Return    = setSuccess True
+    | ks == xK_Return || ks == xK_KP_Enter    = setSuccess True
     | ks == xK_BackSpace = deleteString Prev >> go
     | ks == xK_Delete    = deleteString Next >> go
     | ks == xK_Left      = moveCursor   Prev >> go
