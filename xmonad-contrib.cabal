@@ -179,7 +179,6 @@ library
                         XMonad.Layout.Tabbed
                         XMonad.Layout.TabBarDecoration
                         XMonad.Layout.ThreeColumns
-                        XMonad.Layout.ThreeColumnsMiddle
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TwoPane
                         XMonad.Layout.WindowArranger
