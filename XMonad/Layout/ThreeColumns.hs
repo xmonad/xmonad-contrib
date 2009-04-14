@@ -5,7 +5,7 @@
 -- Module      :  XMonad.Layout.ThreeColumns
 -- Copyright   :  (c) Kai Grossjohann <kai@emptydomain.de>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  ?
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -38,7 +38,7 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the ThreeCol layout:
 --
--- > myLayouts = ThreeCol False 1 (3/100) (1/2) ||| etc..
+-- > myLayouts = ThreeCol 1 (3/100) (1/2) ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- If the first argument is true, the main window is placed in the center
@@ -54,19 +54,27 @@ import Control.Monad
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data ThreeCol a = ThreeCol !Bool !Int !Rational !Rational deriving (Show,Read)
+-- | Arguments are nmaster, delta, fraction
+data ThreeCol a = ThreeColMid { threeColNMaster :: !Int, threeColDelta :: !Rational, threeColFrac :: !Rational}
+                | ThreeCol    { threeColNMaster :: !Int, threeColDelta :: !Rational, threeColFrac :: !Rational}
+    deriving (Show,Read)
 
 instance LayoutClass ThreeCol a where
-    doLayout (ThreeCol middle nmaster _ frac) r =
-        return . (\x->(x,Nothing)) .
-        ap zip (tile3 middle frac r nmaster . length) . W.integrate
-    handleMessage (ThreeCol middle nmaster delta frac) m =
+    pureLayout (ThreeCol n _ f) r    = doL False n f r
+    pureLayout (ThreeColMid n _ f) r = doL True n f r
+    handleMessage l m =
         return $ msum [fmap resize     (fromMessage m)
                       ,fmap incmastern (fromMessage m)]
-            where resize Shrink = ThreeCol middle nmaster delta (max (-0.5) $ frac-delta)
-                  resize Expand = ThreeCol middle nmaster delta (min 1 $ frac+delta)
-                  incmastern (IncMasterN d) = ThreeCol middle (max 0 (nmaster+d)) delta frac
+            where resize Shrink = l { threeColFrac = max (-0.5) $ f-d }
+                  resize Expand = l { threeColFrac = min 1 $ f+d }
+                  incmastern (IncMasterN x) = l { threeColNMaster = max 0 (n+x) }
+                  n = threeColNMaster l
+                  d = threeColDelta l
+                  f = threeColFrac l
     description _ = "ThreeCol"
+
+doL :: Bool-> Int-> Rational-> Rectangle-> W.Stack a-> [(a, Rectangle)]
+doL m n f r = ap zip (tile3 m f r n . length) . W.integrate
 
 -- | tile3.  Compute window positions using 3 panes
 tile3 :: Bool -> Rational -> Rectangle -> Int -> Int -> [Rectangle]
