@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Automatic placement of floating and "WindowArranger" windows.
+-- Automatic placement of floating windows.
 --
 -----------------------------------------------------------------------------
 
@@ -40,15 +40,17 @@ import XMonad.Layout.WindowArranger
 import XMonad.Actions.FloatKeys
 
 import qualified Data.Map as M
-import Data.List (sortBy, minimumBy)
-import Data.Maybe (maybe)
+import Data.Ratio ((%))
+import Data.List (sortBy, minimumBy, partition)
+import Data.Maybe (maybe, fromMaybe, catMaybes)
 import Data.Monoid (Endo(..))
-import Control.Monad.Trans (lift, liftIO)
+import Control.Monad (guard, join)
+import Control.Monad.Trans (lift)
 
 -- $usage
--- This module provides a ManageHook that automatically places
+-- This module provides a 'ManageHook' that automatically places
 -- floating windows at appropriate positions on the screen, as well
--- as an X action to manually trigger repositioning.
+-- as an 'X' action to manually trigger repositioning.
 --
 -- You can use this module by including the following in your @~\/.xmonad\/xmonad.hs@:
 -- 
@@ -58,6 +60,10 @@ import Control.Monad.Trans (lift, liftIO)
 --
 -- > main = xmonad $ defaultConfig { manageHook = placeHook simpleSmart
 -- >                                              <+> manageHook defaultConfig }
+--
+-- Note that 'placeHook' should be applied after most other hooks, especially hooks 
+-- such as 'doFloat' and 'doShift'. Since hooks combined with '<+>' are applied from
+-- right to left, this means that 'placeHook' should be the /first/ hook in your chain.
 --
 -- You can also define a key to manually trigger repositioning with 'placeFocused' by
 -- adding the following to your keys definition:
@@ -73,8 +79,6 @@ import Control.Monad.Trans (lift, liftIO)
 {- Placement policies -}
 
 -- $placements
--- #Placement policies#
---
 -- Placement policies determine how windows will be placed by 'placeFocused' and 'placeHook'.
 --
 -- A few examples:
@@ -146,20 +150,22 @@ withGaps = Bounds
 
 
 
-
-
 {- Placement functions -}
 
 
--- | Repositions the focused window according to a placement policy.
+-- | Repositions the focused window according to a placement policy. Works for
+-- both \"real\" floating windows and windows in a 'WindowArranger'-based
+-- layout.
 placeFocused :: Placement -> X ()
 placeFocused p = withFocused $ \window -> do
-                   (s,r,rs,pointer) <- getNecessaryData window
+                   info <- gets $ screenInfo . S.current . windowset
+                   floats <- gets $ M.keys . S.floating . windowset
+                   
+                   r'@(Rectangle x' y' _ _) <- placeWindow p window info floats
 
-                   let r'@(Rectangle x' y' _ _) = purePlaceWindow p s rs pointer r
-
-                   fs <- getFloats
-                   case elem window fs of
+                     -- use X.A.FloatKeys if the window is floating, send
+                     -- a WindowArranger message otherwise.
+                   case elem window floats of
                      True -> keysMoveWindowTo (x', y') (0, 0) window
                      False -> sendMessage $ SetGeometry r'
 
@@ -167,19 +173,47 @@ placeFocused p = withFocused $ \window -> do
 -- | Hook to automatically place windows when they are created.
 placeHook :: Placement -> ManageHook
 placeHook p = do window <- ask
-                 (s,r,rs,pointer) <- Query $ lift (getNecessaryData window)
+                 r <- Query $ lift $ getWindowRectangle window
+                 allRs <- Query $ lift $ getAllRectangles
+                 pointer <- Query $ lift $ getPointer window
 
-                 let (Rectangle x' y' _ _) = purePlaceWindow p s rs pointer r
+                 return $ Endo $ \theWS -> fromMaybe theWS $
+                   do let currentRect = screenRect $ S.screenDetail $ S.current theWS
+                          floats = M.keys $ S.floating theWS
 
-                 d <- Query $ lift $ asks display
-                 liftIO $ moveWindow d window x' y' 
-                     -- Move window at the X level, and
-                     -- hope both the standard floating
-                     -- system and WindowArranger layouts
-                     -- will pick it up correctly.
-                     -- I'm not really satisfied with this though.
+                      guard(window `elem` floats )
+                      
+                        -- Look for the workspace(s) on which the window is to be 
+                        -- spawned. Each of them also needs an associated screen
+                        -- rectangle; for hidden workspaces, we use the current
+                        -- workspace's screen.
+                      let infos = filter ((window `elem`) . stackContents . S.stack . fst)
+                                     $ [screenInfo $ S.current theWS]
+                                        ++ (map screenInfo $ S.visible theWS)
+                                        ++ zip (S.hidden theWS) (repeat currentRect)
+                                           
+                      guard(not $ null infos)
 
-                 return $ Endo id
+                      let (workspace, screen) = head infos
+                          rs = catMaybes $ map (flip M.lookup allRs)
+                               $ organizeClients workspace window floats
+                          r' = purePlaceWindow p screen rs pointer r
+                          newRect = r2rr screen r'
+                          newFloats = M.insert window newRect (S.floating theWS)
+
+                      return $ theWS { S.floating = newFloats }
+
+
+placeWindow :: Placement -> Window
+            -> (S.Workspace WorkspaceId (Layout Window) Window, Rectangle)
+                 -- ^ The workspace with reference to which the window should be placed,
+                 -- and the screen's geometry.
+            -> [Window]
+                 -- ^ The list of floating windows.
+            -> X Rectangle
+placeWindow p window (ws, s) floats
+  = do (r, rs, pointer) <- getNecessaryData window ws floats
+       return $ purePlaceWindow p s rs pointer r
 
 
 -- | Compute the new position of a window according to a placement policy.
@@ -202,7 +236,7 @@ purePlaceWindow (Smart ratios) s rs _ w
   = placeSmart ratios s rs (rect_width w) (rect_height w)
 
 
--- | Helper: Places a Rectangle at a fixed position indicated by two Rationals 
+-- | Helper: Places a Rectangle at a fixed position indicated by two Rationals
 -- inside another,
 placeRatio :: (Rational, Rational) -> Rectangle -> Rectangle -> Rectangle
 placeRatio (rx, ry) (Rectangle x1 y1 w1 h1) (Rectangle _ _ w2 h2)
@@ -231,19 +265,22 @@ scale r n1 n2 = truncate $ r * fi n2 + (1 - r) * fi n1
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 
-
+r2rr :: Rectangle -> Rectangle -> S.RationalRect
+r2rr (Rectangle x0 y0 w0 h0) (Rectangle x y w h)
+  = S.RationalRect ((fi x-fi x0) % fi w0) 
+                   ((fi y-fi y0) % fi h0) 
+                   (fi w % fi w0) 
+                   (fi h % fi h0)
 
 
 
 {- Querying stuff -}
 
-getScreenRect :: X Rectangle
-getScreenRect = gets $ screenRect . S.screenDetail
-                     . S.current . windowset
+stackContents :: Maybe (S.Stack w) -> [w]
+stackContents = maybe [] S.integrate
 
-getLayoutWindows :: X [Window]
-getLayoutWindows = gets $ maybe [] S.integrate . S.stack 
-                        . S.workspace . S.current . windowset
+screenInfo :: S.Screen i l a sid ScreenDetail -> (S.Workspace i l a, Rectangle)
+screenInfo (S.Screen { S.workspace = ws, S.screenDetail = (SD s)}) = (ws, s)
 
 getWindowRectangle :: Window -> X Rectangle
 getWindowRectangle window
@@ -257,38 +294,48 @@ getWindowRectangle window
 
        return $ Rectangle x y (w + 2*b) (h + 2*b)
 
-getFloats :: X [Window]
-getFloats = gets $ M.keys . S.floating . windowset
+getAllRectangles :: X (M.Map Window Rectangle)
+getAllRectangles = do ws <- gets windowset
+                      let allWindows = join $ map (stackContents . S.stack)
+                                         $ (S.workspace . S.current) ws
+                                         : (map S.workspace . S.visible) ws
+                                         ++ S.hidden ws
+                      allRects <- mapM getWindowRectangle allWindows
+
+                      return $ M.fromList $ zip allWindows allRects
+
+organizeClients :: S.Workspace a b Window -> Window -> [Window] -> [Window]
+organizeClients ws w floats 
+  = let (floatCs, layoutCs) = partition (`elem` floats) $ filter (/= w) 
+                              $ stackContents $ S.stack ws
+    in reverse layoutCs ++ reverse floatCs
+      -- About the ordering: the smart algorithm will overlap windows 
+      -- starting ith the head of the list. So:
+      --  - we put the non-floating windows first since they'll
+      --    probably be below the floating ones,
+      --  - we reverse the lists, since the newer/more important
+      --    windows are usually near the head.
 
 getPointer :: Window -> X (Position, Position)
 getPointer window = do d <- asks display
                        (_,_,_,x,y,_,_,_) <- io $ queryPointer d window
                        return (fi x,fi y)
 
--- | Return values are, in order: screen's rectangle, window's rectangle,
+-- | Return values are, in order: window's rectangle,
 -- other windows' rectangles and pointer's coordinates.
-getNecessaryData :: Window -> X (Rectangle, Rectangle, [Rectangle], (Position, Position))
-getNecessaryData window
-  = do s <- getScreenRect
-       r <- getWindowRectangle window
-                             -- The window to be place may or may not
-                             -- have a border depending on whether it
-                             -- is already mapped.
+getNecessaryData :: Window 
+                 -> S.Workspace WorkspaceId (Layout Window) Window
+                 -> [Window]
+                 -> X (Rectangle, [Rectangle], (Position, Position))
+getNecessaryData window ws floats
+  = do r <- getWindowRectangle window
        
-       layoutRects <- fmap (filter (/= window)) getLayoutWindows 
-                      >>= mapM getWindowRectangle
-       floatRects <- fmap (filter (/= window)) getFloats
-                     >>= mapM getWindowRectangle
-       let rs = reverse $ floatRects ++ layoutRects 
-                             -- Clients inside of the layout
-                             -- will be ignored first when
-                             -- using smart placement.
-                             -- We also reverse the list because it seems
-                             -- the clients most recently added are at the front.
+       rs <- return (organizeClients ws window floats)
+             >>= mapM getWindowRectangle
+
        pointer <- getPointer window
                         
-       return (s, r, rs, pointer)
-                     
+       return (r, rs, pointer)
 
 
 
