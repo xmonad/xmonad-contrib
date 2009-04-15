@@ -122,6 +122,7 @@ library
                         XMonad.Hooks.EventHook
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
+                        XMonad.Hooks.FloatNext
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Script
