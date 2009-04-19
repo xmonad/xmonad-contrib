@@ -43,9 +43,8 @@ import Graphics.X11.Xft
 import Graphics.X11.Xrender
 #endif
 
-#if defined XFT || defined USE_UTF8
 import Codec.Binary.UTF8.String (encodeString, decodeString)
-#endif
+
 
 -- Hide the Core Font/Xft switching here
 data XMonadFont = Core FontStruct
@@ -103,11 +102,7 @@ initXMF s =
         return (Xft xftdraw)
   else
 #endif
-#ifdef USE_UTF8
       fmap Utf8 $ initUtf8Font s
-#else
-      fmap Core $ initCoreFont s
-#endif
 #ifdef XFT
   where xftPrefix = "xft:"
 #endif
@@ -195,18 +190,10 @@ printStringXMF dpy drw fs@(Xft font) gc fc bc x y s = do
 #endif
 
 decodeInput :: String -> String
-#if defined XFT || defined USE_UTF8
 decodeInput = decodeString
-#else
-decodeInput = id
-#endif
 
 encodeOutput :: String -> String
-#if defined XFT || defined USE_UTF8
 encodeOutput = encodeString
-#else
-encodeOutput = id
-#endif
 
 -- | Short-hand for 'fromIntegral'
 fi :: (Integral a, Num b) => a -> b

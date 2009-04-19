@@ -31,49 +31,7 @@ import Data.Maybe (fromMaybe)
 import XMonad
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
-#ifdef USE_UTF8
 import Codec.Binary.UTF8.String (decode)
-#else
-import Data.Bits (shiftL, (.&.), (.|.))
-import Data.Char (chr)
-import Data.Word (Word8)
-{- | Decode a UTF8 string packed into a list of Word8 values, directly to
-   String; does not deal with CChar, hence you will want the counter-intuitive @map fromIntegral@
-   UTF-8 decoding for internal use in getSelection.
-
-   This code is copied from Eric Mertens's "utf-string" library <http://code.haskell.org/utf8-string/>
-   (as of version 0.1),\which is BSD-3 licensed like this module.
-   It'd be better to just @import Codec.Binary.UTF8.String (decode)@, but then users of this would need to install it; XMonad has enough
-   dependencies already. -}
-decode :: [Word8] -> String
-decode [] = ""
-decode (c:cs)
-  | c < 0x80  = chr (fromEnum c) : decode cs
-  | c < 0xc0  = replacement_character : decode cs
-  | c < 0xe0  = multi_byte 1 0x1f 0x80
-  | c < 0xf0  = multi_byte 2 0xf  0x800
-  | c < 0xf8  = multi_byte 3 0x7  0x10000
-  | c < 0xfc  = multi_byte 4 0x3  0x200000
-  | c < 0xfe  = multi_byte 5 0x1  0x4000000
-  | otherwise = replacement_character : decode cs
-  where
-
-    replacement_character :: Char
-    replacement_character = '\xfffd'
-
-    multi_byte :: Int -> Word8 -> Int -> [Char]
-    multi_byte i mask overlong = aux i cs (fromEnum (c .&. mask))
-      where
-        aux 0 rs acc
-          | overlong <= acc && acc <= 0x10ffff &&
-            (acc < 0xd800 || 0xdfff < acc)     &&
-            (acc < 0xfffe || 0xffff < acc)      = chr acc : decode rs
-          | otherwise = replacement_character : decode rs
-        aux n (r:rs) acc
-          | r .&. 0xc0 == 0x80 = aux (n-1) rs
-                               $ shiftL acc 6 .|. fromEnum (r .&. 0x3f)
-        aux _ rs     _ = replacement_character : decode rs
-#endif
 
 {- $usage
    Add @import XMonad.Util.XSelection@ to the top of Config.hs
