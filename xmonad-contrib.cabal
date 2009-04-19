@@ -207,6 +207,7 @@ library
                         XMonad.Util.Font
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers
+                        XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
