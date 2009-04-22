@@ -9,8 +9,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- GridSelect displays a 2D grid of windows to navigate with cursor
--- keys and to select with return.
+-- GridSelect displays items(e.g. the opened windows) in a 2D grid and lets
+-- the user select from it with the cursor/hjkl keys or the mouse.
 --
 -----------------------------------------------------------------------------
 
