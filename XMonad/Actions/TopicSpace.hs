@@ -10,30 +10,38 @@
 --
 -- Turns your workspaces into a more topic oriented system.
 --
--- This module allow to organize your workspaces on a precise topic basis.  So
+-- This module allows to organize your workspaces on a precise topic basis.  So
 -- instead of having a workspace called `work' you can setup one workspace per
--- task. Here we will call these workspaces, topics. The great thing with
+-- task.  Here we call these workspaces, topics. The great thing with
 -- topics is that one can attach a directory that makes sense to each
--- particular topic.  One can also attach an action that will be triggered
--- when switching to a topic that does not have any windows in it. So one can
--- attach our mail client to the mail topic, some terminals in the right
--- directory for the xmonad topic... This package also provides a nice way to
--- display your topics in a historical way using a custom `pprWindowSet'
+-- particular topic.  One can also attach an action which will be triggered
+-- when switching to a topic that does not have any windows in it.  So you can
+-- attach your mail client to the mail topic, some terminals in the right
+-- directory to the xmonad topic... This package also provides a nice way to
+-- display your topics in an historical way using a custom `pprWindowSet'
 -- function. You can also easily switch to recents topics using this history
 -- of last focused topics.
 --
 -- Here is an example of configuration using TopicSpace:
 --
 -- @
+-- -- The list of all topics/workspaces of your xmonad configuration.
+-- -- The order is important, new topics must be inserted
+-- -- at the end of the list if you want hot-restarting
+-- -- to work.
+-- myTopics :: [Topic]
+-- myTopics =
+--   [ \"dashboard\" -- the first one
+--   , \"admin\", \"build\", \"cleaning\", \"conf\", \"darcs\", \"haskell\", \"irc\"
+--   , \"mail\", \"movie\", \"music\", \"talk\", \"text\", \"tools\", \"web\", \"xmonad\"
+--   , \"yi\", \"documents\", \"twitter\", \"pdf\"
+--   ]
+-- @
+--
+-- @
 --  myTopicConfig :: TopicConfig
 --  myTopicConfig = TopicConfig
---    { allTopics =
---        [ \"dashboard\" -- the first one
---        , \"admin\", \"build\", \"cleaning\", \"conf\", \"darcs\", \"haskell\", \"irc\"
---        , \"mail\", \"movie\", \"music\", \"talk\", \"text\", \"tools\", \"web\", \"xmonad\"
---        , \"yi\", \"documents\", \"twitter\", \"pdf\"
---        ]
---    , topicDirs = M.fromList $
+--    { topicDirs = M.fromList $
 --        [ (\"conf\", \"w\/conf\")
 --        , (\"dashboard\", \"Desktop\")
 --        , (\"yi\", \"w\/dev-haskell\/yi\")
@@ -117,11 +125,11 @@
 --
 -- @
 --  myConfig = do
---      checkTopicConfig myTopicConfig
+--      checkTopicConfig myTopics myTopicConfig
 --      myLogHook <- makeMyLogHook
 --      return $ defaultConfig
 --           { borderWidth = 1 -- Width of the window border in pixels.
---           , workspaces = allTopics myTopicConfig
+--           , workspaces = myTopics
 --           , layoutHook = myModifiers myLayouts
 --           , manageHook = myManageHook
 --           , logHook = myLogHook
@@ -193,14 +201,7 @@ type Topic = WorkspaceId
 type Dir = FilePath
 
 -- | Here is the topic space configuration area.
-data TopicConfig = TopicConfig { allTopics          :: [Topic]
-                                 -- ^ You have to give a list of topics,
-                                 -- this must the be same list than the workspaces field of
-                                 -- your xmonad configuration.
-                                 -- The order is important, new topics must be inserted
-                                 -- at the end of the list if you want hot-restarting
-                                 -- to work.
-                               , topicDirs          :: M.Map Topic Dir
+data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
                                  -- ^ This mapping associate a directory to each topic.
                                , topicActions       :: M.Map Topic (X ())
                                  -- ^ This mapping associate an action to trigger when
@@ -280,15 +281,18 @@ currentTopicDir tg = do
   return . fromMaybe "" . M.lookup topic $ topicDirs tg
 
 -- | Check the given topic configuration for duplicates topics or undefined topics.
-checkTopicConfig :: TopicConfig -> IO ()
-checkTopicConfig tg = do
-    unless (null diffTopic) $ xmessage $ "Seen but missing workspaces (tags): " ++ show diffTopic
-    unless (null dups)     $ xmessage $ "Duplicate workspaces (tags): " ++ show dups
-  where
-    seenTopics = nub $ sort $ M.keys (topicDirs tg) ++ M.keys (topicActions tg)
-    dups       = tags \\ nub tags
-    diffTopic  = seenTopics \\ sort tags
-    tags       = allTopics tg
+checkTopicConfig :: [Topic] -> TopicConfig -> IO ()
+checkTopicConfig tags tg = do
+    -- tags <- gets $ map W.tag . workspaces . windowset
+
+    let
+      seenTopics = nub $ sort $ M.keys (topicDirs tg) ++ M.keys (topicActions tg)
+      dups       = tags \\ nub tags
+      diffTopic  = seenTopics \\ sort tags
+      check lst msg = unless (null lst) $ xmessage $ msg ++ " (tags): " ++ show lst
+
+    check diffTopic "Seen but missing topics/workspaces"
+    check dups      "Duplicate topics/workspaces"
 
 type StringProp = String
 
