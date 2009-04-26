@@ -75,7 +75,7 @@ submapDefault def keys = do
             then nextkey
             else return (m, keysym)
 
-    io $ ungrabKeyboard d currentTime
-
     m' <- cleanMask m
     maybe def id (M.lookup (m', s) keys)
+
+    io $ ungrabKeyboard d currentTime
