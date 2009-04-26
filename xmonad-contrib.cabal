@@ -128,6 +128,7 @@ library
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
+                        XMonad.Layout.AutoMaster
                         XMonad.Layout.BoringWindows
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
