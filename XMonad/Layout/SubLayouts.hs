@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ParallelListComp, DeriveDataTypeable, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ParallelListComp, DeriveDataTypeable, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
@@ -46,12 +46,13 @@ import XMonad
 import Control.Applicative((<$>))
 import Control.Arrow(Arrow(second, (&&&)))
 import Control.Monad(Monad(return), Functor(..),
-                     MonadPlus(mplus), (=<<), sequence, foldM, guard, when)
+                     MonadPlus(mplus), (=<<), sequence, foldM, guard, when, join)
 import Data.Function((.), ($), flip, id, on)
 import Data.List((++), foldr, filter, map, concatMap, elem,
                  notElem, null, nubBy, (\\), find)
 import Data.Maybe(Maybe(..), maybe, fromMaybe, listToMaybe,
                   mapMaybe)
+import Data.Traversable(sequenceA)
 
 import qualified XMonad.Layout.BoringWindows as B
 import qualified XMonad.StackSet as W
@@ -305,13 +306,6 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             return $ if null ms' then Nothing
                 else Just $ Sublayout (I $ ms' ++ ms) defl sls
 
-        -- ReleaseResources and Hide
-        | Just (m' :: LayoutMessages) <- fromMessage m = do
-            ms' <- zip (repeat $ SomeMessage m') . W.integrate'
-                    <$> currentStack
-            return $ if null ms' then Nothing
-                else Just $ Sublayout (I $ ms' ++ ms) defl sls
-
         | Just B.UpdateBoring <- fromMessage m = do
             let bs = concatMap unfocused $ M.elems gs
             ws <- gets (W.workspace . W.current . windowset)
@@ -350,11 +344,22 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             fgs . M.fromList . map (W.focus &&& id) . M.elems
                     $ M.mapMaybe (W.filter (x/=)) gs
 
-        | otherwise = return Nothing
+        | otherwise = fmap join $ sequenceA $ catchLayoutMess <$> fromMessage m
      where gs = toGroups sls
            fgs gs' = do
                 st <- currentStack
                 Just . Sublayout (I ms) defl <$> fromGroups defl st gs' sls
+
+           -- catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
+           --  This l must be the same as from the instance head,
+           --  -XScopedTypeVariables should bring it into scope, but we are
+           --  trying to avoid warnings with ghc-6.8.2 and avoid CPP
+           catchLayoutMess x = do
+            let m' = x `asTypeOf` (undefined :: LayoutMessages)
+            ms' <- zip (repeat $ SomeMessage m') . W.integrate'
+                    <$> currentStack
+            return $ do guard $ not $ null ms'
+                        Just $ Sublayout (I $ ms' ++ ms) defl sls
 
 currentStack :: X (Maybe (W.Stack Window))
 currentStack = gets (W.stack . W.workspace . W.current . windowset)
