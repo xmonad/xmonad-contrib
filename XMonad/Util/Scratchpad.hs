@@ -25,12 +25,8 @@ module XMonad.Util.Scratchpad (
 
 import XMonad
 import XMonad.Core
-import XMonad.Hooks.ManageHelpers (doRectFloat)
-import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
-
-import Control.Monad (filterM)
-
 import qualified XMonad.StackSet as W
+import XMonad.Util.NamedScratchpad
 
 
 -- $usage
@@ -38,10 +34,10 @@ import qualified XMonad.StackSet as W
 -- Pressing it will spawn the terminal, or bring it to the current
 -- workspace if it already exists.
 -- Pressing the key with the terminal on the current workspace will
--- send it to a hidden workspace called @SP@.
+-- send it to a hidden workspace called @NSP@.
 --
--- If you already have a workspace called @SP@, it will use that.
--- @SP@ will also appear in xmobar and dzen status bars. You can tweak your
+-- If you already have a workspace called @NSP@, it will use that.
+-- @NSP@ will also appear in xmobar and dzen status bars. You can tweak your
 -- @dynamicLog@ settings to filter it out if you like.
 --
 -- A tool like detach (<http://detach.sourceforge.net>) turns it
@@ -73,14 +69,14 @@ import qualified XMonad.StackSet as W
 scratchpadSpawnAction :: XConfig l -- ^ The configuration, to retrieve the terminal
                       -> X ()
 scratchpadSpawnAction conf =
-    scratchpadAction $ spawn $ terminal conf ++ " -name scratchpad"
+    scratchpadSpawnActionCustom $ terminal conf ++ " -name scratchpad"
 
 
 -- | Action to pop up the terminal, with a directly specified terminal.
 scratchpadSpawnActionTerminal :: String -- ^ Name of the terminal program
                                  -> X ()
 scratchpadSpawnActionTerminal term =
-    scratchpadAction $ spawn $ term ++ " -name scratchpad"
+    scratchpadSpawnActionCustom $ term ++ " -name scratchpad"
 
 
 -- | Action to pop up any program with the user specifying how to set
@@ -90,36 +86,7 @@ scratchpadSpawnActionTerminal term =
 --   > scratchpadSpawnActionCustom "gnome-terminal --name scratchpad"
 scratchpadSpawnActionCustom :: String -- ^ Command to spawn a program with resource \"scratchpad\"
                                  -> X ()
-scratchpadSpawnActionCustom = scratchpadAction . spawn
-
--- The heart of the new summon/banish terminal.
--- The logic is thus:
--- 1. if the scratchpad is on the current workspace, send it to the hidden one.
---    - if the scratchpad workspace doesn't exist yet, create it first.
--- 2. if the scratchpad is elsewhere, bring it here.
-scratchpadAction :: X () -> X ()
-scratchpadAction action = withWindowSet $ \s -> do
-  filterCurrent <- filterM (runQuery scratchpadQuery)
-                     ( (maybe [] W.integrate
-                        . W.stack
-                        . W.workspace
-                        . W.current) s)
-  case filterCurrent of
-    (x:_) -> do
-      if null (filter ( (== scratchpadWorkspaceTag) . W.tag) (W.workspaces s))
-         then addHiddenWorkspace scratchpadWorkspaceTag
-         else return ()
-      windows (W.shiftWin scratchpadWorkspaceTag x)
-    []    -> do
-      filterAll <- filterM (runQuery scratchpadQuery) (W.allWindows s)
-      case filterAll of
-        (x:_) -> windows (W.shiftWin (W.currentTag s) x)
-        []    -> action -- run the provided action to spawn it.
-
-
--- factored out since it appears in several places
-scratchpadWorkspaceTag :: String
-scratchpadWorkspaceTag = "SP"
+scratchpadSpawnActionCustom c = namedScratchpadAction [NS "scratchpad" c scratchpadQuery nonFloating] "scratchpad"
 
 -- factored out since this is common to both the ManageHook and the action
 scratchpadQuery :: Query Bool
@@ -129,7 +96,7 @@ scratchpadQuery = resource =? "scratchpad"
 -- | The ManageHook, with the default rectangle:
 -- Half the screen wide, a quarter of the screen tall, centered.
 scratchpadManageHookDefault :: ManageHook
-scratchpadManageHookDefault = scratchpadManageHook scratchpadDefaultRect
+scratchpadManageHookDefault = namedScratchpadManageHook [NS "" "" scratchpadQuery (customFloating scratchpadDefaultRect)]
 
 
 -- | The ManageHook, with a user-specified StackSet.RationalRect,
@@ -140,13 +107,13 @@ scratchpadManageHookDefault = scratchpadManageHook scratchpadDefaultRect
 -- > scratchpadManageHook (W.RationalRect 0.4 0.5 0.6 0.3)
 scratchpadManageHook :: W.RationalRect -- ^ User-specified screen rectangle.
                      -> ManageHook
-scratchpadManageHook rect = scratchpadQuery --> doRectFloat rect
+scratchpadManageHook rect = namedScratchpadManageHook [NS "" "" scratchpadQuery (customFloating rect)]
 
 
 -- | Transforms a workspace list containing the SP workspace into one that
 -- doesn't contain it. Intended for use with logHooks.
 scratchpadFilterOutWorkspace :: [WindowSpace] -> [WindowSpace]
-scratchpadFilterOutWorkspace = filter (\(W.Workspace tag _ _) -> tag /= scratchpadWorkspaceTag)
+scratchpadFilterOutWorkspace = namedScratchpadFilterOutWorkspace
 
 
 scratchpadDefaultRect :: W.RationalRect
