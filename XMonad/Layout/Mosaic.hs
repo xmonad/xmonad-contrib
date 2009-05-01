@@ -23,6 +23,7 @@ module XMonad.Layout.Mosaic (
     ,steeper
     ,growMaster
     ,shrinkMaster
+    ,changeMaster
     )
     where
 
@@ -134,12 +135,15 @@ shallower [] = []
 shallower xs = map (+(minimum xs*2)) xs
 
 growMaster :: [Rational] -> [Rational]
-growMaster [] = []
-growMaster (x:xs) = 2*x:xs
+growMaster = changeMaster 2
 
 shrinkMaster :: [Rational] -> [Rational]
-shrinkMaster [] = []
-shrinkMaster (x:xs) = x/2:xs
+shrinkMaster = changeMaster 0.5
+
+-- | Multiply the area of the current master by a specified ratio
+changeMaster :: Rational -> [Rational] -> [Rational]
+changeMaster _ [] = []
+changeMaster f (x:xs) = f*x:xs
 
 splits :: Int -> Rectangle -> [Rational] -> [[Rectangle]]
 splits num rect = splitsL rect . makeTree . normalize
