@@ -92,9 +92,9 @@ tile3 middle f r nmaster n
 split3HorizontallyBy :: Bool -> Rational -> Rectangle -> (Rectangle, Rectangle, Rectangle)
 split3HorizontallyBy middle f (Rectangle sx sy sw sh) =
     if middle
-    then ( Rectangle (sx + fromIntegral r2w) sy r1w sh
-         , Rectangle sx sy r2w sh
-         , Rectangle (sx + fromIntegral r2w + fromIntegral r1w) sy r3w sh )
+    then ( Rectangle (sx + fromIntegral r3w) sy r1w sh
+         , Rectangle (sx + fromIntegral r3w + fromIntegral r1w) sy r2w sh
+         , Rectangle sx sy r3w sh )
     else ( Rectangle sx sy r1w sh
          , Rectangle (sx + fromIntegral r1w) sy r2w sh
          , Rectangle (sx + fromIntegral r1w + fromIntegral r2w) sy r3w sh )
