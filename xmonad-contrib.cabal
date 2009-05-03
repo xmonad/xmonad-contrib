@@ -118,6 +118,7 @@ library
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FloatNext
+                        XMonad.Hooks.InsertPosition
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Place
