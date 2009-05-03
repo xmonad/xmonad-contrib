@@ -15,7 +15,7 @@
 module XMonad.Prompt.AppLauncher ( -- * Usage
                                     -- $usage
                                     launchApp
-                                   
+                                   ,module XMonad.Prompt
                                   -- * Use case: launching gimp with file
                                   -- $tip
                                   ) where
