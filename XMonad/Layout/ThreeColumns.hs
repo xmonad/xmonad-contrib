@@ -38,17 +38,18 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the ThreeCol layout:
 --
--- > myLayouts = ThreeCol 1 (3/100) (1/2) ||| etc..
+-- > myLayouts = ThreeCol 1 (3/100) (1/2) ||| ThreeColMid 1 (3/100) (1/2) ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
--- If the first argument is true, the main window is placed in the center
--- column. The second argument specifies hom many windows initially appear in
--- the main window. The third argument argument specifies the amount to resize
--- while resizing and the fourth argument specifies the initial size of the
--- columns. A positive size designates the fraction of the screen that the main
--- window should occupy, but if the size is negative the absolute value
--- designates the fraction a slave column should occupy. If both slave columns
--- are visible, they always occupy the same amount of space.
+-- The first argument specifies hom many windows initially appear in the main
+-- window. The second argument argument specifies the amount to resize while
+-- resizing and the third argument specifies the initial size of the columns.
+-- A positive size designates the fraction of the screen that the main window
+-- should occupy, but if the size is negative the absolute value designates the
+-- fraction a slave column should occupy. If both slave columns are visible,
+-- they always occupy the same amount of space.
+--
+-- The ThreeColMid variant places the main window between the slave columns.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
