@@ -23,6 +23,7 @@ module XMonad.Layout.Maximize (
     ) where
 
 import XMonad
+import qualified XMonad.StackSet as S
 import XMonad.Layout.LayoutModifier
 import Data.List ( partition )
 
@@ -60,19 +61,23 @@ maximizeRestore = MaximizeRestore
 
 instance LayoutModifier Maximize Window where
     modifierDescription (Maximize _) = "Maximize"
-    redoLayout (Maximize mw) rect _ wrs = case mw of
-        Just win ->
-                return (maxed ++ rest, Nothing)
-            where
-                maxed = map (\(w, _) -> (w, maxRect)) toMax
-                (toMax, rest) = partition (\(w, _) -> w == win) wrs
-                maxRect = Rectangle (rect_x rect + 50) (rect_y rect + 50)
-                    (rect_width rect - 100) (rect_height rect - 100)
-        Nothing -> return (wrs, Nothing)
+    pureModifier (Maximize (Just target)) rect (Just (S.Stack focused _ _)) wrs =
+            if focused == target
+                then (maxed ++ rest, Nothing)
+                else (rest ++ maxed, Nothing)
+        where
+            (toMax, rest) = partition (\(w, _) -> w == target) wrs
+            maxed = map (\(w, _) -> (w, maxRect)) toMax
+            maxRect = Rectangle (rect_x rect + 25) (rect_y rect + 25)
+                (rect_width rect - 50) (rect_height rect - 50)
+    pureModifier _ _ _ wrs = (wrs, Nothing)
+
     handleMess (Maximize mw) m = case fromMessage m of
         Just (MaximizeRestore w) -> case mw of
-            Just _ -> return $ Just $ Maximize Nothing
-            Nothing -> return $ Just $ Maximize $ Just w
+            Just w' -> if (w == w')
+                        then return $ Just $ Maximize Nothing   -- restore window
+                        else return $ Just $ Maximize $ Just w  -- maximize different window
+            Nothing -> return $ Just $ Maximize $ Just w        -- maximize window
         _ -> return Nothing
 
 -- vim: sw=4:et
