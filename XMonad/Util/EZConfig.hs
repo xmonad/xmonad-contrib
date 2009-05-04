@@ -27,10 +27,13 @@ module XMonad.Util.EZConfig (
                              -- * Emacs-style keybinding specifications
 
                              mkKeymap, checkKeymap,
+                             mkNamedKeymap
                             ) where
 
 import XMonad
 import XMonad.Actions.Submap
+
+import XMonad.Util.NamedActions
 
 import qualified Data.Map as M
 import Data.List (foldl', intersperse, sortBy, groupBy, nub)
@@ -349,8 +352,22 @@ removeMouseBindings conf mouseBindingList =
 mkKeymap :: XConfig l -> [(String, X ())] -> M.Map (KeyMask, KeySym) (X ())
 mkKeymap c = M.fromList . mkSubmaps . readKeymap c
 
+mkNamedKeymap :: XConfig l -> [(String, NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
+mkNamedKeymap c = mkNamedSubmaps . readKeymap c
+
 -- | Given a list of pairs of parsed key sequences and actions,
 --   group them into submaps in the appropriate way.
+
+mkNamedSubmaps :: [([(KeyMask, KeySym)], NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
+mkNamedSubmaps binds = map combine gathered
+  where gathered = groupBy fstKey
+                 . sortBy (comparing fst)
+                 $ binds
+        combine [([k],act)] = (k,act)
+        combine ks = (head . fst . head $ ks,
+                      submapName . mkNamedSubmaps $ map (first tail) ks)
+        fstKey = (==) `on` (head . fst)
+
 mkSubmaps :: [ ([(KeyMask,KeySym)], X ()) ] -> [((KeyMask, KeySym), X ())]
 mkSubmaps binds = map combine gathered
   where gathered = groupBy fstKey
@@ -368,7 +385,7 @@ op `on` f = \x y -> f x `op` f y
 --   description, action) pairs, parse the key sequences into lists of
 --   @(KeyMask,KeySym)@ pairs.  Key sequences which fail to parse will
 --   be ignored.
-readKeymap :: XConfig l -> [(String, X())] -> [([(KeyMask,KeySym)], X())]
+readKeymap :: XConfig l -> [(String, t)] -> [([(KeyMask, KeySym)], t)]
 readKeymap c = mapMaybe (maybeKeys . first (readKeySequence c))
   where maybeKeys (Nothing,_) = Nothing
         maybeKeys (Just k, act) = Just (k, act)
