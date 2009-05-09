@@ -147,6 +147,7 @@ library
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
                         XMonad.Layout.IndependentScreens
+                        XMonad.Layout.LayoutBuilder
                         XMonad.Layout.LayoutCombinators
                         XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
