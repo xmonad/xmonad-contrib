@@ -42,16 +42,16 @@ import Control.Monad
 -- Then edit your @layoutHook@ by adding something like:
 --
 -- > myLayouts = ( (layoutN 1 (relBox 0 0 0.5 1) (Just $ relBox 0 0 1 1) $ simpleTabbed)
--- >             $ (layoutAll (relBox 0.5 0 1 1) $ simpleTabbed)
+-- >             $ (layoutAll (relBox 0.5 0 1 1)                         $ simpleTabbed)
 -- >             ) |||
--- >             ( (layoutN 1 (relBox (1/3) 0 (1/2) 1) (Just $ relBox 0 0 1 1) $ Tall 0 0 0)
--- >             $ (layoutR 0.1 0.5 (relBox (2/3) 0 1 1) Nothing $ Tall 0 0 0)
--- >             $ (layoutAll (relBox 0 0 (1/3) 1) $ Tall 0 0 0)
+-- >             ( (layoutN 1       (relBox (1/3) 0 (1/2) 1) (Just $ relBox 0 0 1 1) $ Tall 0 0 0)
+-- >             $ (layoutR 0.1 0.5 (relBox (2/3) 0 1     1) Nothing                 $ Tall 0 0 0)
+-- >             $ (layoutAll       (relBox 0     0 (1/3) 1)                         $ Tall 0 0 0)
 -- >             ) |||
--- >             ( (layoutN 1 (absBox (-512-200) 0 512 0) (Just $ relBox 0 0 1 1) $ simpleTabbed)
--- >             $ (layoutN 1 (absBox (-200) 0 0 0) Nothing $ simpleTabbed)
--- >             $ (layoutAll (absBox 0 0 (-512-200) 0) $ simpleTabbed)
--- >             ) ||| Full ||| etc...
+-- >             ( (layoutN 1 (absBox (-512-200) 0 512        0) (Just $ relBox 0 0 1 1) $ simpleTabbed)
+-- >             $ (layoutN 1 (absBox (-200)     0 0          0) Nothing                 $ simpleTabbed)
+-- >             $ (layoutAll (absBox 0          0 (-512-200) 0)                         $ simpleTabbed)
+-- >             ) ||| Full ||| etc... 
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- This will produce a layout similar to DragPane, but with the possibility to have multiple windows in the left half
@@ -77,26 +77,41 @@ import Control.Monad
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
+type WindowNum = Either Int (Rational,Rational)
+
 -- | Use one layout in the specified area for a number of windows and possibly let another layout handle the rest.
 data LayoutN l1 l2 a =
-    LayoutN (Maybe a) (Maybe a) (Either Int (Rational,Rational)) SubBox (Maybe SubBox) (l1 a) (Maybe (l2 a))
+    LayoutN (Maybe a) (Maybe a) WindowNum SubBox (Maybe SubBox) (l1 a) (Maybe (l2 a))
     deriving (Show,Read)
 
 -- | Use the specified layout in the described area for N windows and send the rest of the windows to the next layout in the chain.
 --   It is possible to supply an alternative area that will then be used instead, if there are no windows to send to the next layout.
 layoutN :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a) =>
-    Int -> SubBox -> Maybe SubBox -> l1 a -> LayoutN l2 l3 a -> LayoutN l1 (LayoutN l2 l3) a
+       Int                          -- ^ The number of windows to handle
+    -> SubBox                       -- ^ The box to place the windows in
+    -> Maybe SubBox                 -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
+    -> l1 a                         -- ^ The layout to use in the specified area
+    -> LayoutN l2 l3 a              -- ^ Where to send the remaining windows
+    -> LayoutN l1 (LayoutN l2 l3) a -- ^ The resulting layout
 layoutN num box mbox sub next = LayoutN Nothing Nothing (Left num) box mbox sub (Just next)
 
 -- | As layoutN, but the number of windows is given relative to the total number of windows remaining to be handled. The first
 --   argument is how much to change the ratio when using IncLayoutN, and the second is the initial ratio.
 layoutR :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a) =>
-    Rational -> Rational -> SubBox -> Maybe SubBox -> l1 a -> LayoutN l2 l3 a -> LayoutN l1 (LayoutN l2 l3) a
+       Rational                     -- ^ How much to change the ratio with each IncLayoutN
+    -> Rational                     -- ^ The ratio of the remaining windows to handle
+    -> SubBox                       -- ^ The box to place the windows in
+    -> Maybe SubBox                 -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
+    -> l1 a                         -- ^ The layout to use in the specified area
+    -> LayoutN l2 l3 a              -- ^ Where to send the remaining windows
+    -> LayoutN l1 (LayoutN l2 l3) a -- ^ The resulting layout
 layoutR numdiff num box mbox sub next = LayoutN Nothing Nothing (Right (numdiff,num)) box mbox sub (Just next)
 
 -- | Use the specified layout in the described area for all remaining windows.
 layoutAll :: (Read a, Eq a, LayoutClass l1 a) =>
-    SubBox -> l1 a -> LayoutN l1 Full a
+       SubBox             -- ^ The box to place the windows in
+    -> l1 a               -- ^ The layout to use in the specified area
+    -> LayoutN l1 Full a  -- ^ The resulting layout
 layoutAll box sub = LayoutN Nothing Nothing (Right (0,1)) box Nothing sub Nothing
 
 -- | Change the number of windows handled by the focused layout.
@@ -111,13 +126,25 @@ data SubMeasure = Abs Int | Rel Rational deriving (Show,Read)
 -- | A box to place a layout in. The stored values are xpos, ypos, width and height.
 data SubBox = SubBox SubMeasure SubMeasure SubMeasure SubMeasure deriving (Show,Read)
 
--- | Create a box with only absolute measurements.
-absBox :: Int -> Int -> Int -> Int -> SubBox
+
+-- | Create a box with only absolute measurements. If the values are negative, the total remaining space will be added. For
+--   sizes it will also be added for zeroes.
+absBox :: Int     -- ^ Absolute X-Position
+       -> Int     -- ^ Absolute Y-Position
+       -> Int     -- ^ Absolute width
+       -> Int     -- ^ Absolute height
+       -> SubBox  -- ^ The resulting 'SubBox' describing the area
 absBox x y w h = SubBox (Abs x) (Abs y) (Abs w) (Abs h)
 
+
 -- | Create a box with only relative measurements.
-relBox :: Rational -> Rational -> Rational -> Rational -> SubBox
+relBox :: Rational  -- ^ Relative X-Position with respect to the surrounding area
+       -> Rational  -- ^ Relative Y-Position with respect to the surrounding area
+       -> Rational  -- ^ Relative width with respect to the remaining width
+       -> Rational  -- ^ Relative height with respect to the remaining height
+       -> SubBox    -- ^ The resulting 'SubBox' describing the area
 relBox x y w h = SubBox (Rel x) (Rel y) (Rel w) (Rel h)
+
 
 instance (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) =>
     LayoutClass (LayoutN l1 l2) a where
@@ -200,11 +227,11 @@ isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) `fmap` gets wind
                       return $ maybe False (\s -> show w == (show $ W.focus s)) ms
 
 
-calcNum :: Int -> Either Int (Rational,Rational) -> Int
+calcNum :: Int -> WindowNum -> Int
 calcNum tot num = max 1 $ case num of Left i -> i
                                       Right (_,r) -> ceiling $ r * fromIntegral tot
 
-splitStack :: Eq a => Maybe (W.Stack a) -> Either Int (Rational,Rational) -> Maybe a -> Maybe a -> (Maybe (W.Stack a),Maybe (W.Stack a),Maybe a,Maybe a)
+splitStack :: Eq a => Maybe (W.Stack a) -> WindowNum -> Maybe a -> Maybe a -> (Maybe (W.Stack a),Maybe (W.Stack a),Maybe a,Maybe a)
 splitStack Nothing _ _ _ = (Nothing,Nothing,Nothing,Nothing)
 splitStack (Just s) num subf nextf = ( differentiate' subf' subl
                                      , differentiate' nextf' nextl
