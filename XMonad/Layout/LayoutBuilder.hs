@@ -44,9 +44,9 @@ import Control.Monad
 -- > myLayouts = ( (layoutN 1 (relBox 0 0 0.5 1) (Just $ relBox 0 0 1 1) $ simpleTabbed)
 -- >             $ (layoutAll (relBox 0.5 0 1 1)                         $ simpleTabbed)
 -- >             ) |||
--- >             ( (layoutN 1       (relBox (1/3) 0 (1/2) 1) (Just $ relBox 0 0 1 1) $ Tall 0 0 0)
--- >             $ (layoutR 0.1 0.5 (relBox (2/3) 0 1     1) Nothing                 $ Tall 0 0 0)
--- >             $ (layoutAll       (relBox 0     0 (1/3) 1)                         $ Tall 0 0 0)
+-- >             ( (layoutN 1       (relBox (1/3) 0 (1/2) 1) (Just $ relBox 0 0 1 1) $ Tall 0 0.01 0.5)
+-- >             $ (layoutR 0.1 0.5 (relBox (2/3) 0 1     1) Nothing                 $ Tall 0 0.01 0.5)
+-- >             $ (layoutAll       (relBox 0     0 (1/3) 1)                         $ Tall 0 0.01 0.5)
 -- >             ) |||
 -- >             ( (layoutN 1 (absBox (-512-200) 0 512        0) (Just $ relBox 0 0 1 1) $ simpleTabbed)
 -- >             $ (layoutN 1 (absBox (-200)     0 0          0) Nothing                 $ simpleTabbed)
