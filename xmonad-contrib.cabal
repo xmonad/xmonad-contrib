@@ -172,6 +172,7 @@ library
                         XMonad.Layout.Simplest
                         XMonad.Layout.SimpleDecoration
                         XMonad.Layout.SimpleFloat
+                        XMonad.Layout.Spacing
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
                         XMonad.Layout.ShowWName
