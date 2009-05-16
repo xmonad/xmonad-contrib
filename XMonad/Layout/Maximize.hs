@@ -72,12 +72,12 @@ instance LayoutModifier Maximize Window where
                 (rect_width rect - 50) (rect_height rect - 50)
     pureModifier _ _ _ wrs = (wrs, Nothing)
 
-    handleMess (Maximize mw) m = case fromMessage m of
+    pureMess (Maximize mw) m = case fromMessage m of
         Just (MaximizeRestore w) -> case mw of
             Just w' -> if (w == w')
-                        then return $ Just $ Maximize Nothing   -- restore window
-                        else return $ Just $ Maximize $ Just w  -- maximize different window
-            Nothing -> return $ Just $ Maximize $ Just w        -- maximize window
-        _ -> return Nothing
+                        then Just $ Maximize Nothing   -- restore window
+                        else Just $ Maximize $ Just w  -- maximize different window
+            Nothing -> Just $ Maximize $ Just w        -- maximize window
+        _ -> Nothing
 
 -- vim: sw=4:et
