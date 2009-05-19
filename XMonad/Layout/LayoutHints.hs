@@ -42,7 +42,7 @@ import Control.Arrow ( second )
 --
 -- Or, to center the adapted window in its available area:
 --
--- > myLayouts = layoutHintsWithPlacement (0.5, 0.5) (Tall 1 (3/100) (1/2))  
+-- > myLayouts = layoutHintsWithPlacement (0.5, 0.5) (Tall 1 (3/100) (1/2))
 -- >                   ||| Full ||| etc..
 --
 -- For more detailed instructions on editing the layoutHook see:
@@ -57,7 +57,7 @@ layoutHints = ModifiedLayout (LayoutHints (0, 0))
 -- originally assigned area according to the @rx@ and @ry@ parameters.
 -- (0, 0) places the window at the top left, (1, 0) at the top right, (0.5, 0.5)
 -- at the center, etc.
-layoutHintsWithPlacement :: (LayoutClass l a) => (Double, Double) 
+layoutHintsWithPlacement :: (LayoutClass l a) => (Double, Double)
                          -> l a -> ModifiedLayout LayoutHints l a
 layoutHintsWithPlacement rs = ModifiedLayout (LayoutHints rs)
 
@@ -77,7 +77,7 @@ instance LayoutModifier LayoutHints Window where
             return (w, if isInStack s w then Rectangle a b c' d' else r)
 
 -- | @placeRectangle (rx, ry) r0 r@ will return a new rectangle with the same dimensions
--- as @r@, but positioned inside of @r0@ as specified by the (rx, ry) parameters (see 
+-- as @r@, but positioned inside of @r0@ as specified by the (rx, ry) parameters (see
 -- 'layoutHintsWithPlacement').
 placeRectangle :: RealFrac r => (r, r) -> Rectangle -> Rectangle -> Rectangle
 placeRectangle (rx, ry) (Rectangle x0 y0 w h) (Rectangle _ _ dx dy)
