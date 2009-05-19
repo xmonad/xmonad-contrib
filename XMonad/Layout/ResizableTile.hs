@@ -53,7 +53,20 @@ import Data.List ((\\))
 data MirrorResize = MirrorShrink | MirrorExpand deriving Typeable
 instance Message MirrorResize
 
-data ResizableTall a = ResizableTall Int Rational Rational [Rational] deriving (Show, Read)
+data ResizableTall a = ResizableTall
+    { _nmaster :: Int       -- ^ number of master windows
+    , _delta  :: Rational   -- ^ change when resizing by 'Shrink', 'Expand',
+                            -- 'MirrorShrink', 'MirrorExpand'
+    , _frac   :: Rational   -- ^ width of master
+    , _slaves :: [Rational] -- ^ fraction to multiply the window
+                            -- height that would be given when divided equally.
+                            --
+                            -- slave windows are assigned their modified
+                            -- heights in order, from top to bottom
+                            --
+                            -- unspecified values are replaced by 1
+    } deriving (Show, Read)
+
 instance LayoutClass ResizableTall a where
     doLayout (ResizableTall nmaster _ frac mfrac) r =
         return . (\x->(x,Nothing)) .
