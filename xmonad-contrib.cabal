@@ -78,6 +78,7 @@ library
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
                         XMonad.Actions.FloatKeys
+                        XMonad.Actions.FloatSnap
                         XMonad.Actions.FocusNth
                         XMonad.Actions.GridSelect
                         XMonad.Actions.MessageFeedback

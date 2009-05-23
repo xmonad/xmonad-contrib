@@ -1,0 +1,278 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Layout.FloatSnap
+-- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  none
+-- Stability   :  unstable
+-- Portability :  unportable
+--
+-- Move and resize floating windows using other windows and the edge of the
+-- screen as guidelines.
+-----------------------------------------------------------------------------
+
+module XMonad.Actions.FloatSnap (
+                -- * Usage
+                -- $usage
+                Direction(..),
+                snapMove,
+                snapGrow,
+                snapShrink,
+                snapMagicMove,
+                snapMagicResize) where
+
+import XMonad
+import Data.List (sort)
+import Data.Maybe (listToMaybe,fromJust,isNothing)
+import qualified XMonad.StackSet as W
+
+import XMonad.Hooks.ManageDocks (Direction(..))
+
+-- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- >    import XMonad.Actions.FloatSnap
+--
+-- Then add appropriate key bindings, for example:
+--
+-- >        , ((modMask x,               xK_Left),  withFocused $ snapMove L Nothing)
+-- >        , ((modMask x,               xK_Right), withFocused $ snapMove R Nothing)
+-- >        , ((modMask x,               xK_Up),    withFocused $ snapMove U Nothing)
+-- >        , ((modMask x,               xK_Down),  withFocused $ snapMove D Nothing)
+-- >        , ((modMask x .|. shiftMask, xK_Left),  withFocused $ snapShrink R Nothing)
+-- >        , ((modMask x .|. shiftMask, xK_Right), withFocused $ snapGrow R Nothing)
+-- >        , ((modMask x .|. shiftMask, xK_Up),    withFocused $ snapShrink D Nothing)
+-- >        , ((modMask x .|. shiftMask, xK_Down),  withFocused $ snapGrow D Nothing)
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
+--
+-- And possibly add an appropriate mouse binding, for example:
+--
+-- >        , ((modMask x, button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicMove (Just 50) (Just 50) w))
+-- >        , ((modMask x, button3), (\w -> focus w >> mouseResizeWindow w >> snapMagicResize (Just 50) (Just 50) w))
+--
+-- For detailed instructions on editing your mouse bindings, see
+-- "XMonad.Doc.Extending#Editing_mouse_bindings".
+--
+-- Using these mouse bindings, it will not snap while moving, but allow you to click the window once after it has been moved or resized to snap it into place.
+-- Note that the order in which the commands are applied in the mouse bindings are important.
+--
+-- Interesting values for the distance to look for window in the orthogonal axis are Nothing (to snap against every window), Just 0 (to only snap
+-- against windows that we should collide with geometrically while moving) and Just 1 (to also snap against windows we brush against).
+--
+-- For 'snapMagicMove' and 'snapMagicResize', try instead setting it to the same as the maximum snapping distance.
+--
+-- When a value is specified it can be geometrically conceived as adding a border with the specified width around the window and then checking which
+-- windows it should collide with.
+
+-- | Resize the window by each edge independently to snap against the closest part of other windows or the edge of the screen.
+snapMagicResize ::
+       Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+    -> Maybe Int -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
+    -> Window    -- ^ The window to move and resize.
+    -> X ()
+snapMagicResize collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
+    io $ raiseWindow d w
+    wa <- io $ getWindowAttributes d w
+
+    (nx,nw) <- handleAxis True d wa
+    (ny,nh) <- handleAxis False d wa
+
+    io $ moveWindow d w (fromIntegral nx) (fromIntegral ny)
+    io $ resizeWindow d w (fromIntegral nw) (fromIntegral nh)
+    float w
+    where
+        handleAxis horiz d wa = do
+            ((mbl,mbr,bs),(mfl,mfr,fs)) <- getSnap horiz collidedist d w
+            let begin = if bs
+                        then wpos wa
+                        else case (mbl,mbr) of
+                            (Just bl,Just br) -> if wpos wa - bl < br - wpos wa then bl else br
+                            (Just bl,Nothing) -> bl
+                            (Nothing,Just br) -> br
+                            (Nothing,Nothing) -> wpos wa
+                end = if fs
+                      then wpos wa + wdim wa
+                      else case (if mfl==(Just begin) then Nothing else mfl,mfr) of
+                          (Just fl,Just fr) -> if wpos wa + wdim wa - fl < fr - wpos wa - wdim wa then fl else fr
+                          (Just fl,Nothing) -> fl
+                          (Nothing,Just fr) -> fr
+                          (Nothing,Nothing) -> wpos wa + wdim wa
+                begin' = if isNothing snapdist || abs (begin - wpos wa) <= fromJust snapdist then begin else (wpos wa)
+                end' = if isNothing snapdist || abs (end - wpos wa - wdim wa) <= fromJust snapdist then end else (wpos wa + wdim wa)
+            return (begin',end'-begin')
+            where
+                (wpos, wdim, _, _) = constructors horiz
+
+
+-- | Move a window by both axises in any direction to snap against the closest part of other windows or the edge of the screen.
+snapMagicMove ::
+       Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+    -> Maybe Int -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
+    -> Window    -- ^ The window to move.
+    -> X ()
+snapMagicMove collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
+    io $ raiseWindow d w
+    wa <- io $ getWindowAttributes d w
+
+    nx <- handleAxis True d wa
+    ny <- handleAxis False d wa
+
+    io $ moveWindow d w (fromIntegral nx) (fromIntegral ny)
+    float w
+    where
+        handleAxis horiz d wa = do
+            ((mbl,mbr,bs),(mfl,mfr,fs)) <- getSnap horiz collidedist d w
+            return $ if bs || fs
+                     then wpos wa
+                     else let b = case (mbl,mbr) of
+                                    (Just bl,Just br) -> if wpos wa - bl < br - wpos wa then bl else br
+                                    (Just bl,Nothing) -> bl
+                                    (Nothing,Just br) -> br
+                                    (Nothing,Nothing) -> wpos wa
+                              f = case (mfl,mfr) of
+                                    (Just fl,Just fr) -> if wpos wa + wdim wa - fl < fr - wpos wa - wdim wa then fl else fr
+                                    (Just fl,Nothing) -> fl
+                                    (Nothing,Just fr) -> fr
+                                    (Nothing,Nothing) -> wpos wa
+                              newpos = if abs (b - wpos wa) <= abs (f - wpos wa - wdim wa) then b else (f - wdim wa)
+                          in if isNothing snapdist || abs (newpos - wpos wa) <= fromJust snapdist then newpos else (wpos wa)
+            where
+                (wpos, wdim, _, _) = constructors horiz
+
+-- | Move a window in the specified direction until it snaps against another window or the edge of the screen.
+snapMove ::
+       Direction -- ^ What direction to move the window in.
+    -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+    -> Window    -- ^ The window to move.
+    -> X ()
+snapMove L = doSnapMove True True
+snapMove R = doSnapMove True False
+snapMove U = doSnapMove False True
+snapMove D = doSnapMove False False
+
+doSnapMove :: Bool -> Bool -> Maybe Int -> Window -> X ()
+doSnapMove horiz rev collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
+    io $ raiseWindow d w
+    wa <- io $ getWindowAttributes d w
+    ((bl,br,_),(fl,fr,_)) <- getSnap horiz collidedist d w
+
+    let (mb,mf) = if rev then (bl,fl)
+                         else (br,fr)
+
+        newpos = fromIntegral $ case (mb,mf) of
+                                    (Just b,Nothing) -> b
+                                    (Nothing,Just f) -> f - wdim wa
+                                    (Just b,Just f) -> if rev /= (b < f - wdim wa)
+                                                       then b
+                                                       else f - wdim wa
+                                    _ -> wpos wa
+
+    if horiz then io $ moveWindow d w newpos (fromIntegral $ wa_y wa)
+             else io $ moveWindow d w (fromIntegral $ wa_x wa) newpos
+    float w
+
+    where
+        (wpos, wdim, _, _) = constructors horiz
+
+-- | Grow the specified edge of a window until it snaps against another window or the edge of the screen.
+snapGrow ::
+       Direction -- ^ What edge of the window to grow.
+    -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+    -> Window    -- ^ The window to grow.
+    -> X ()
+snapGrow = snapResize True
+
+-- | Shrink the specified edge of a window until it snaps against another window or the edge of the screen.
+snapShrink ::
+       Direction -- ^ What edge of the window to shrink.
+    -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+    -> Window    -- ^ The window to grow.
+    -> X ()
+snapShrink = snapResize False
+
+snapResize :: Bool -> Direction -> Maybe Int -> Window -> X ()
+snapResize grow dir collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
+    io $ raiseWindow d w
+    wa <- io $ getWindowAttributes d w
+    mr <- case dir of
+              L -> do ((mg,ms,_),(_,_,_)) <- getSnap True collidedist d w
+                      return $ case (if grow then mg else ms) of
+                                   Just v -> Just (v, wy wa, ww wa + wx wa - v, wh wa)
+                                   _ -> Nothing
+              R -> do ((_,_,_),(ms,mg,_)) <- getSnap True collidedist d w
+                      return $ case (if grow then mg else ms) of
+                                   Just v -> Just (wx wa, wy wa, v - wx wa, wh wa)
+                                   _ -> Nothing
+              U -> do ((mg,ms,_),(_,_,_)) <- getSnap False collidedist d w
+                      return $ case (if grow then mg else ms) of
+                                   Just v -> Just (wx wa, v, ww wa, wh wa + wy wa - v)
+                                   _ -> Nothing
+              D -> do ((_,_,_),(ms,mg,_)) <- getSnap False collidedist d w
+                      return $ case (if grow then mg else ms) of
+                                   Just v -> Just (wx wa, wy wa, ww wa, v - wy wa)
+                                   _ -> Nothing
+
+    case mr of
+        Nothing -> return ()
+        Just (nx,ny,nw,nh) -> if nw>0 && nh>0 then do io $ moveWindow d w (fromIntegral nx) (fromIntegral ny)
+                                                      io $ resizeWindow d w (fromIntegral nw) (fromIntegral nh)
+                                              else return ()
+    float w
+    where
+        wx = fromIntegral.wa_x
+        wy = fromIntegral.wa_y
+        ww = fromIntegral.wa_width
+        wh = fromIntegral.wa_height
+
+
+getSnap :: Bool -> Maybe Int -> Display -> Window -> X ((Maybe Int,Maybe Int,Bool),(Maybe Int,Maybe Int,Bool))
+getSnap horiz collidedist d w = do
+    wa <- io $ getWindowAttributes d w
+    screen <- W.current `fmap` gets windowset
+    let sr = screenRect $ W.screenDetail screen
+        wl = W.integrate' $ W.stack $ W.workspace screen
+    wla <- filter (collides wa) `fmap` (io $ mapM (getWindowAttributes d) $ filter (/=w) wl)
+
+    return ( neighbours (back wa sr wla) (wpos wa)
+           , neighbours (front wa sr wla) (wpos wa + wdim wa)
+           )
+
+    where
+        wborder = fromIntegral.wa_border_width
+
+        (wpos, wdim, rpos, rdim) = constructors horiz
+        (refwpos, refwdim, _, _) = constructors $ not horiz
+
+        back wa sr wla = dropWhile (< rpos sr) $
+                         takeWhile (< rpos sr + rdim sr) $
+                         sort $ (rpos sr):foldr (\a as -> (wpos a):(wpos a + wdim a + wborder a + wborder wa):as) [] wla
+
+        front wa sr wla = dropWhile (<= rpos sr) $
+                          takeWhile (<= rpos sr + rdim sr) $
+                          sort $ (rpos sr + rdim sr - 2*(wborder wa)):foldr (\a as -> (wpos a - wborder a - wborder wa):(wpos a + wdim a):as) [] wla
+
+        neighbours l v = ( listToMaybe $ reverse $ takeWhile (< v) l
+                         , listToMaybe $ dropWhile (<= v) l
+                         , v `elem` l
+                         )
+
+        collides wa oa = case collidedist of
+                             Nothing -> True
+                             Just dist -> (  refwpos oa - wborder oa < refwpos wa + refwdim wa + wborder wa + dist
+                                          && refwpos wa - wborder wa - dist < refwpos oa + refwdim oa + wborder oa )
+
+
+constructors :: Bool -> (WindowAttributes -> Int, WindowAttributes -> Int, Rectangle -> Int, Rectangle -> Int)
+constructors True = ( fromIntegral.wa_x
+                    , fromIntegral.wa_width
+                    , fromIntegral.rect_x
+                    , fromIntegral.rect_width
+                    )
+constructors False = ( fromIntegral.wa_y
+                     , fromIntegral.wa_height
+                     , fromIntegral.rect_y
+                     , fromIntegral.rect_height
+                     )
