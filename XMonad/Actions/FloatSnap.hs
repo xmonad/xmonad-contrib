@@ -20,7 +20,8 @@ module XMonad.Actions.FloatSnap (
                 snapGrow,
                 snapShrink,
                 snapMagicMove,
-                snapMagicResize) where
+                snapMagicResize,
+                snapMagicMouseResize) where
 
 import XMonad
 import Data.List (sort)
@@ -50,8 +51,9 @@ import XMonad.Hooks.ManageDocks (Direction(..))
 --
 -- And possibly add an appropriate mouse binding, for example:
 --
--- >        , ((modMask x, button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicMove (Just 50) (Just 50) w))
--- >        , ((modMask x, button3), (\w -> focus w >> mouseResizeWindow w >> snapMagicResize (Just 50) (Just 50) w))
+-- >        , ((modMask x,               button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicMove (Just 50) (Just 50) w))
+-- >        , ((modMask x .|. shiftMask, button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicResize [L,R,U,D] (Just 50) (Just 50) w))
+-- >        , ((modMask x,               button3), (\w -> focus w >> mouseResizeWindow w >> snapMagicResize [R,D] (Just 50) (Just 50) w))
 --
 -- For detailed instructions on editing your mouse bindings, see
 -- "XMonad.Doc.Extending#Editing_mouse_bindings".
@@ -62,28 +64,69 @@ import XMonad.Hooks.ManageDocks (Direction(..))
 -- Interesting values for the distance to look for window in the orthogonal axis are Nothing (to snap against every window), Just 0 (to only snap
 -- against windows that we should collide with geometrically while moving) and Just 1 (to also snap against windows we brush against).
 --
--- For 'snapMagicMove' and 'snapMagicResize', try instead setting it to the same as the maximum snapping distance.
+-- For 'snapMagicMove', 'snapMagicResize' and 'snapMagicMouseResize', try instead setting it to the same as the maximum snapping distance.
 --
 -- When a value is specified it can be geometrically conceived as adding a border with the specified width around the window and then checking which
 -- windows it should collide with.
 
--- | Resize the window by each edge independently to snap against the closest part of other windows or the edge of the screen.
-snapMagicResize ::
-       Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+-- | Resize the window by each edge independently to snap against the closest part of other windows or the edge of the screen. Use the location of the
+--   mouse over the window to decide which edges to snap. In corners, the two adjoining edges will be snapped, along the middle of an edge only that edge
+--   will be snapped. In the center of the window all edges will snap. Intended to be used together with "XMonad.Actions.FlexibleResize" or
+--   "XMonad.Actions.FlexibleManipulate".
+snapMagicMouseResize
+    :: Rational  -- ^ How big the middle snap area of each axis should be.
+    -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Maybe Int -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
     -> Window    -- ^ The window to move and resize.
     -> X ()
-snapMagicResize collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
+snapMagicMouseResize middle collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
+    wa <- io $ getWindowAttributes d w
+    (_, _, _, px, py, _, _, _) <- io $ queryPointer d w
+    let x = (fromIntegral px - wx wa)/(ww wa)
+        y = (fromIntegral py - wy wa)/(wh wa)
+        ml = if x <= (0.5 - middle/2) then [L] else []
+        mr = if x >  (0.5 + middle/2) then [R] else []
+        mu = if y <= (0.5 - middle/2) then [U] else []
+        md = if y >  (0.5 + middle/2) then [D] else []
+        mdir = ml++mr++mu++md
+        dir = if mdir == []
+              then [L,R,U,D]
+              else mdir
+    snapMagicResize dir collidedist snapdist w
+    where
+        wx = fromIntegral.wa_x
+        wy = fromIntegral.wa_y
+        ww = fromIntegral.wa_width
+        wh = fromIntegral.wa_height
+
+-- | Resize the window by each edge independently to snap against the closest part of other windows or the edge of the screen.
+snapMagicResize
+    :: [Direction] -- ^ The edges to snap.
+    -> Maybe Int   -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+    -> Maybe Int   -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
+    -> Window      -- ^ The window to move and resize.
+    -> X ()
+snapMagicResize dir collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w
     wa <- io $ getWindowAttributes d w
 
-    (nx,nw) <- handleAxis True d wa
-    (ny,nh) <- handleAxis False d wa
+    (xbegin,xend) <- handleAxis True d wa
+    (ybegin,yend) <- handleAxis False d wa
 
-    io $ moveWindow d w (fromIntegral nx) (fromIntegral ny)
-    io $ resizeWindow d w (fromIntegral nw) (fromIntegral nh)
+    let xbegin' = if L `elem` dir then xbegin else (wx wa)
+        xend'   = if R `elem` dir then xend   else (wx wa + ww wa)
+        ybegin' = if U `elem` dir then ybegin else (wy wa)
+        yend'   = if D `elem` dir then yend   else (wy wa + wh wa)
+
+    io $ moveWindow d w (fromIntegral $ xbegin') (fromIntegral $ ybegin')
+    io $ resizeWindow d w (fromIntegral $ xend' - xbegin') (fromIntegral $ yend' - ybegin')
     float w
     where
+        wx = fromIntegral.wa_x
+        wy = fromIntegral.wa_y
+        ww = fromIntegral.wa_width
+        wh = fromIntegral.wa_height
+
         handleAxis horiz d wa = do
             ((mbl,mbr,bs),(mfl,mfr,fs)) <- getSnap horiz collidedist d w
             let begin = if bs
@@ -102,14 +145,14 @@ snapMagicResize collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -
                           (Nothing,Nothing) -> wpos wa + wdim wa
                 begin' = if isNothing snapdist || abs (begin - wpos wa) <= fromJust snapdist then begin else (wpos wa)
                 end' = if isNothing snapdist || abs (end - wpos wa - wdim wa) <= fromJust snapdist then end else (wpos wa + wdim wa)
-            return (begin',end'-begin')
+            return (begin',end')
             where
                 (wpos, wdim, _, _) = constructors horiz
 
 
 -- | Move a window by both axises in any direction to snap against the closest part of other windows or the edge of the screen.
-snapMagicMove ::
-       Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
+snapMagicMove
+    :: Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Maybe Int -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
     -> Window    -- ^ The window to move.
     -> X ()
@@ -143,8 +186,8 @@ snapMagicMove collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> 
                 (wpos, wdim, _, _) = constructors horiz
 
 -- | Move a window in the specified direction until it snaps against another window or the edge of the screen.
-snapMove ::
-       Direction -- ^ What direction to move the window in.
+snapMove
+    :: Direction -- ^ What direction to move the window in.
     -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Window    -- ^ The window to move.
     -> X ()
@@ -178,18 +221,18 @@ doSnapMove horiz rev collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
         (wpos, wdim, _, _) = constructors horiz
 
 -- | Grow the specified edge of a window until it snaps against another window or the edge of the screen.
-snapGrow ::
-       Direction -- ^ What edge of the window to grow.
+snapGrow
+    :: Direction -- ^ What edge of the window to grow.
     -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Window    -- ^ The window to grow.
     -> X ()
 snapGrow = snapResize True
 
 -- | Shrink the specified edge of a window until it snaps against another window or the edge of the screen.
-snapShrink ::
-       Direction -- ^ What edge of the window to shrink.
+snapShrink
+    :: Direction -- ^ What edge of the window to shrink.
     -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
-    -> Window    -- ^ The window to grow.
+    -> Window    -- ^ The window to shrink.
     -> X ()
 snapShrink = snapResize False
 
