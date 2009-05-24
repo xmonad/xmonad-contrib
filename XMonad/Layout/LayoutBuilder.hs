@@ -5,7 +5,7 @@
 -- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  none
+-- Maintainer  :  Anders Engstrom <ankaan@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
