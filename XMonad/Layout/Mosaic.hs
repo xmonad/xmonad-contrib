@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Mosaic
@@ -17,24 +17,27 @@
 module XMonad.Layout.Mosaic (
     -- * Usage
     -- $usage
-    Mosaic(Mosaic)
-    ,Aspect(..)
-    ,shallower
-    ,steeper
-    ,growMaster
-    ,shrinkMaster
+     Aspect(..)
+    ,mosaic
     ,changeMaster
+    ,changeFocused
     )
     where
 
 import Prelude hiding (sum)
 
 import XMonad(Typeable,
-              LayoutClass(doLayout , pureMessage, description), Message,
-              fromMessage, splitHorizontallyBy, splitVerticallyBy, Rectangle)
-import XMonad.StackSet(integrate)
+              LayoutClass(doLayout, handleMessage, pureMessage, description),
+              Message, X, fromMessage, withWindowSet, Resize(..),
+              splitHorizontallyBy, splitVerticallyBy, sendMessage, Rectangle)
+import qualified XMonad.StackSet as W
+import Control.Arrow(Control.Arrow.Arrow(second, first))
+import Control.Monad(mplus)
 import Data.Foldable(Foldable(foldMap), sum)
-import Data.Monoid(Monoid(mappend, mempty))
+import Data.Function(on)
+import Data.List(sortBy)
+import Data.Monoid(Monoid(mempty, mappend))
+
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -43,18 +46,18 @@ import Data.Monoid(Monoid(mappend, mempty))
 --
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --
--- > myLayouts = Mosaic (take 5 $ iterate (*0.7) 1) ||| Mosaic [3,1,1,1,1,1] ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayouts = mosaic 2 [3,2] ||| Full ||| etc..
+-- > main = xmonad $ defaultConfig { layoutHook = myLayouts }
 --
--- Unfortunately, infinite lists break serialization, so don't use them.
+-- Unfortunately, infinite lists break serialization, so don't use them. And if
+-- the list is too short, it is extended with @++ repeat 1@, which covers the
+-- main use case.
 --
 -- To change the choice in aspect ratio and the relative sizes of windows, add
 -- to your keybindings:
 --
 --  > , ((modMask, xK_a), sendMessage Taller)
 --  > , ((modMask, xK_z), sendMessage Wider)
---  > , ((modMask, xK_h), sendMessage Shrink >> sendMessage (SlopeMod shallower))
---  > , ((modMask, xK_l), sendMessage Expand >> sendMessage (SlopeMod steeper))
 --
 --  > , ((modMask, xK_r), sendMessage Reset)
 --
@@ -71,90 +74,88 @@ data Aspect
 
 instance Message Aspect
 
-data Mosaic a
-    {- | The relative magnitudes (the sign is ignored) of the rational numbers
-     - provided determine the relative areas that the windows receive. The
-     - first number represents the size of the master window, the second is for
-     - the next window in the stack, and so on. Windows without a list element
-     - are hidden.
-    -}
-    = Mosaic [Rational]
-    -- override the aspect? current index, maximum index
-    | MosaicSt Bool Rational Int [Rational]
-    deriving (Read, Show)
+-- | The relative magnitudes (the sign is ignored) of the rational numbers in
+-- the second argument determine the relative areas that the windows receive.
+-- The first number represents the size of the master window, the second is for
+-- the next window in the stack, and so on.
+--
+-- The list is extended with @++ repeat 1@, so @mosaic 1.5 []@ is like a
+-- resizable grid.
+--
+-- The first parameter is the multiplicative factor to use when responding to
+-- the 'Expand' message.
+mosaic :: Rational -> [Rational] -> Mosaic a
+mosaic = Mosaic Nothing
+
+data Mosaic a = -- | True to override the aspect, current index, maximum index
+                Mosaic (Maybe(Bool,Rational,Int)) Rational [Rational] deriving (Read,Show)
 
 instance LayoutClass Mosaic a where
     description = const "Mosaic"
 
-    pureMessage (Mosaic _ss) _ms = Nothing
-    pureMessage (MosaicSt _ ix mix ss) ms = fromMessage ms >>= ixMod
-        where ixMod Taller | rix >= mix = Nothing
-                           | otherwise = Just $ MosaicSt False (succ ix) mix ss
-              ixMod Wider  | rix <= 0   = Nothing
-                           | otherwise = Just $ MosaicSt False (pred ix) mix ss
-              ixMod Reset              = Just $ Mosaic ss
-              ixMod (SlopeMod f)       = Just $ MosaicSt False ix mix (f ss)
-              rix = round ix
+    pureMessage (Mosaic Nothing _ _) _ = Nothing
+    pureMessage (Mosaic (Just(_,ix,mix)) delta ss) ms = fromMessage ms >>= ixMod
+        where ixMod Taller | round ix >= mix = Nothing
+                           | otherwise = Just $ Mosaic (Just(False,succ ix,mix)) delta ss
+              ixMod Wider  | round ix <= (0::Integer) = Nothing
+                           | otherwise = Just $ Mosaic (Just(False,pred ix,mix)) delta ss
+              ixMod Reset              = Just $ Mosaic Nothing delta ss
+              ixMod (SlopeMod f)       = Just $ Mosaic (Just(False,ix,mix)) delta (f ss)
 
-    doLayout (Mosaic ss) r st = return (zip (integrate st) rect, newLayout)
-        where rects = splits (length $ integrate st) r ss
-              lrects = length rects
-              rect = rects !! (lrects `div` 2)
-              newLayout = Just $ MosaicSt True (fromIntegral lrects / 2) (pred lrects) ss
+    handleMessage l@(Mosaic _ delta _) ms
+        | Just Expand <- fromMessage ms = changeFocused (*delta) >> return Nothing
+        | Just Shrink <- fromMessage ms = changeFocused (/delta) >> return Nothing
+        | otherwise = return $ pureMessage l ms
 
-    doLayout (MosaicSt override ix mix ss) r st
-                                = return (zip (integrate st) rect, newLayout)
-        where rects = splits (length $ integrate st) r ss
-              lrects = length rects
-              nix = if mix == 0 || override then fromIntegral $ lrects `div` 2
-                        else max 0 $ min (fromIntegral $ pred lrects)
-                            $ fromIntegral (pred lrects) * ix / fromIntegral mix
-              rect = rects !! round nix
-              newLayout = Just $ MosaicSt override nix (pred lrects) ss
+    doLayout (Mosaic state delta ss) r st = let
+        ssExt = zipWith const (ss ++ repeat 1) $ W.integrate st
+        rects = splits r ssExt
+        nls = length rects
+        fi = fromIntegral
+        nextIx (ov,ix,mix)
+                | mix <= 0 || ov = fromIntegral $ nls `div` 2
+                | otherwise = max 0 $ (*fi (pred nls)) $ min 1 $ ix / fi mix
+        rect = rects !! maybe (nls `div` 2) round (nextIx `fmap` state)
+        state' = fmap (\x@(ov,_,_) -> (ov,nextIx x,pred nls)) state
+                    `mplus` Just (True,fromIntegral nls / 2,pred nls)
+        ss' | and $ zipWith (==) ss ssExt = ss
+            | otherwise = ssExt
+        in return (zip (W.integrate st) rect, Just $ Mosaic state' delta ss')
 
 -- | These sample functions are meant to be applied to the list of window sizes
 -- through the 'SlopeMod' message.
+changeMaster :: (Rational -> Rational) -> X ()
+changeMaster = sendMessage . SlopeMod . onHead
+
+-- | Apply a function to the Rational that represents the currently focused
+-- window.
 --
--- Steeper and shallower scale the ratios of successive windows.
+-- 'Expand' and 'Shrink' messages are responded to with @changeFocused
+-- (*delta)@ or @changeFocused (delta/)@ where @delta@ is the first argument to
+-- 'mosaic'.
 --
--- growMaster and shrinkMaster just increase and decrease the size of the first
--- element, and thus they change the layout very similarily to the standard
--- 'Expand' or 'Shrink' for the 'Tall' layout.
---
--- It may be possible to resize the specific focused window; however the same
--- result could probably be achieved by promoting it, or moving it to a higher
--- place in the list of windows; when you have a decreasing list of window
--- sizes, the change in position will also result in a change in size.
+-- This is exported because other functions (ex. @const 1@, @(+1)@) may be
+-- useful to apply to the current area.
+changeFocused :: (Rational -> Rational) -> X ()
+changeFocused f = withWindowSet $ sendMessage . SlopeMod
+                    . maybe id (mulIx . length . W.up)
+                    . W.stack . W.workspace . W.current
+    where mulIx i = uncurry (++) . second (onHead f) . splitAt i
 
-steeper :: [Rational] -> [Rational]
-steeper [] = []
-steeper xs = map (subtract (minimum xs*0.8)) xs
+onHead :: (a -> a) -> [a] -> [a]
+onHead f = uncurry (++) . first (fmap f) . splitAt 1
 
-shallower :: [Rational] -> [Rational]
-shallower [] = []
-shallower xs = map (+(minimum xs*2)) xs
+splits :: Rectangle -> [Rational] -> [[Rectangle]]
+splits rect = map (reverse . map snd . sortBy (compare `on` fst))
+                . splitsL rect . makeTree snd . zip [1..]
+                . normalize . reverse . map abs
 
-growMaster :: [Rational] -> [Rational]
-growMaster = changeMaster 2
-
-shrinkMaster :: [Rational] -> [Rational]
-shrinkMaster = changeMaster 0.5
-
--- | Multiply the area of the current master by a specified ratio
-changeMaster :: Rational -> [Rational] -> [Rational]
-changeMaster _ [] = []
-changeMaster f (x:xs) = f*x:xs
-
-splits :: Int -> Rectangle -> [Rational] -> [[Rectangle]]
-splits num rect = splitsL rect . makeTree . normalize
-                            . map abs . reverse . take num
-
--- recursively enumerate splits
-splitsL :: Rectangle -> Tree Rational -> [[Rectangle]]
+splitsL :: Rectangle -> Tree (Int,Rational) -> [[(Int,Rectangle)]]
 splitsL _rect Empty = []
-splitsL rect (Leaf _) = [[rect]]
+splitsL rect (Leaf (x,_)) = [[(x,rect)]]
 splitsL rect (Branch l r) = do
-    let mkSplit f = f (sum l / (sum l + sum r)) rect
+    let mkSplit f = f ((sumSnd l /) $ sumSnd l + sumSnd r) rect
+        sumSnd = sum . fmap snd
     (rl,rr) <- map mkSplit [splitVerticallyBy,splitHorizontallyBy]
     splitsL rl l `interleave` splitsL rr r
 
@@ -163,27 +164,30 @@ splitsL rect (Branch l r) = do
 interleave :: [[a]] -> [[a]] -> [[a]]
 interleave xs ys | lx > ly = zc xs (extend lx ys)
                  | otherwise = zc (extend ly xs) ys
-    where lx = length xs
-          ly = length ys
-          zc = zipWith (++)
+  where lx = length xs
+        ly = length ys
+        zc = zipWith (++)
 
-extend :: Int -> [a] -> [a]
-extend n pat = do
-    (p,e) <- zip pat $ replicate m True ++ repeat False
-    [p | e] ++ replicate d p
-    where (d,m) = n `divMod` length pat
+        extend :: Int -> [a] -> [a]
+        extend n pat = do
+            (p,e) <- zip pat $ replicate m True ++ repeat False
+            [p | e] ++ replicate d p
+            where (d,m) = n `divMod` length pat
 
 normalize :: Fractional a => [a] -> [a]
-normalize x = let s = sum x
-    in map (/s) x
+normalize x = let s = sum x in map (/s) x
 
 data Tree a = Branch (Tree a) (Tree a) | Leaf a | Empty
-    deriving (Show)
 
 instance Foldable Tree where
    foldMap _f Empty = mempty
    foldMap f (Leaf x) = f x
    foldMap f (Branch l r) = foldMap f l `mappend` foldMap f r
+
+instance Functor Tree where
+   fmap f (Leaf x) = Leaf $ f x
+   fmap f (Branch l r) = Branch (fmap f l) (fmap f r)
+   fmap _ Empty = Empty
 
 instance Monoid (Tree a) where
     mempty = Empty
@@ -191,10 +195,11 @@ instance Monoid (Tree a) where
     mappend x Empty = x
     mappend x y = Branch x y
 
-makeTree :: [Rational] -> Tree Rational
-makeTree [] = Empty
-makeTree [x] = Leaf x
-makeTree xs = Branch (makeTree a) (makeTree b)
-    where ((a,b),_) = foldr w (([],[]),(0,0)) xs
-          w n ((ls,rs),(l,r)) = if l > r then ((ls,n:rs),(l,n+r))
-                                        else ((n:ls,rs),(n+l,r))
+makeTree ::  (Num a1, Ord a1) => (a -> a1) -> [a] -> Tree a
+makeTree _ [] = Empty
+makeTree _ [x] = Leaf x
+makeTree f xs = Branch (makeTree f a) (makeTree f b)
+    where ((a,b),_) = foldr go (([],[]),(0,0)) xs
+          go n ((ls,rs),(l,r))
+            | l > r     = ((ls,n:rs),(l,f n+r))
+            | otherwise = ((n:ls,rs),(f n+l,r))
