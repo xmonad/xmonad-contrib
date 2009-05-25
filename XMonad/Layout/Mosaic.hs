@@ -118,9 +118,14 @@ instance LayoutClass Mosaic a where
         rect = rects !! maybe (nls `div` 2) round (nextIx `fmap` state)
         state' = fmap (\x@(ov,_,_) -> (ov,nextIx x,pred nls)) state
                     `mplus` Just (True,fromIntegral nls / 2,pred nls)
-        ss' | and $ zipWith (==) ss ssExt = ss
-            | otherwise = ssExt
+        ss' = maybe ss (const ss `either` const ssExt) $ zipRemain ss ssExt
         in return (zip (W.integrate st) rect, Just $ Mosaic state' delta ss')
+
+zipRemain :: [a] -> [b] -> Maybe (Either [a] [b])
+zipRemain (_:xs) (_:ys) = zipRemain xs ys
+zipRemain [] [] = Nothing
+zipRemain [] y = Just (Right y)
+zipRemain x [] = Just (Left x)
 
 -- | These sample functions are meant to be applied to the list of window sizes
 -- through the 'SlopeMod' message.
