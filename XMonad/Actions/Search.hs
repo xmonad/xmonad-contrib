@@ -29,6 +29,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  namedEngine,
 
                                  amazon,
+                                 alpha,
                                  codesearch,
                                  deb,
                                  debbts,
@@ -85,6 +86,8 @@ import XMonad.Util.XSelection (getSelection)
    The currently available search engines are:
 
 * 'amazon' -- Amazon keyword search.
+
+* 'alpha' -- Wolfram|Alpha query.
 
 * 'codesearch' -- Google Labs Code Search search.
 
@@ -268,10 +271,11 @@ searchEngineF = SearchEngine
 
 
 -- The engines.
-amazon, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images,
-  imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
+amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, 
+  images, imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
   youtube :: SearchEngine
 amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+alpha      = searchEngine "alpha"      "http://www.wolframalpha.com/input/?i="
 codesearch = searchEngine "codesearch" "http://www.google.com/codesearch?q="
 deb        = searchEngine "deb"        "http://packages.debian.org/"
 debbts     = searchEngine "debbts"     "http://bugs.debian.org/"
@@ -295,7 +299,7 @@ youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_ty
 wayback   = searchEngine "wayback" "http://web.archive.org/"
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia, (prefixAware google)]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
