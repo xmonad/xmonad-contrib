@@ -24,11 +24,13 @@ module XMonad.Actions.FloatSnap (
                 snapMagicMouseResize) where
 
 import XMonad
+import Control.Monad(filterM)
+import Control.Applicative((<$>))
 import Data.List (sort)
 import Data.Maybe (listToMaybe,fromJust,isNothing)
 import qualified XMonad.StackSet as W
 
-import XMonad.Hooks.ManageDocks (Direction(..))
+import XMonad.Hooks.ManageDocks (Direction(..),getStrut)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -274,9 +276,10 @@ snapResize grow dir collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
 getSnap :: Bool -> Maybe Int -> Display -> Window -> X ((Maybe Int,Maybe Int,Bool),(Maybe Int,Maybe Int,Bool))
 getSnap horiz collidedist d w = do
     wa <- io $ getWindowAttributes d w
-    screen <- W.current `fmap` gets windowset
+    screen <- W.current <$> gets windowset
+    unManaged <- unManagedDocks
     let sr = screenRect $ W.screenDetail screen
-        wl = W.integrate' $ W.stack $ W.workspace screen
+        wl = (unManaged ++) . W.integrate' . W.stack $ W.workspace screen
     wla <- filter (collides wa) `fmap` (io $ mapM (getWindowAttributes d) $ filter (/=w) wl)
 
     return ( neighbours (back wa sr wla) (wpos wa)
@@ -307,6 +310,12 @@ getSnap horiz collidedist d w = do
                              Just dist -> (  refwpos oa - wborder oa < refwpos wa + refwdim wa + wborder wa + dist
                                           && refwpos wa - wborder wa - dist < refwpos oa + refwdim oa + wborder oa )
 
+        unManagedDocks :: X [Window]
+        unManagedDocks = withWindowSet $ \ws -> withDisplay $ \disp ->
+            fmap (filter (`notElem` W.allWindows ws)) .
+            filterM (fmap (not . null) . getStrut) . (\(_,_,x) -> x)
+            =<< io . queryTree disp
+            =<< asks theRoot
 
 constructors :: Bool -> (WindowAttributes -> Int, WindowAttributes -> Int, Rectangle -> Int, Rectangle -> Int)
 constructors True = ( fromIntegral.wa_x

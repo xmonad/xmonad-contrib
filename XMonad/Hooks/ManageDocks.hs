@@ -18,7 +18,10 @@ module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
     manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
-    ToggleStruts(..), Direction(..)
+    ToggleStruts(..), Direction(..),
+
+    -- for XMonad.Actions.FloatSnap
+    getStrut
     ) where
 
 
