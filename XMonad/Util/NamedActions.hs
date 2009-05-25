@@ -30,6 +30,9 @@ module XMonad.Util.NamedActions (
     oneName,
     addName,
 
+    separator,
+    subtitle,
+
     (^++^),
 
     NamedAction(..),
@@ -83,6 +86,29 @@ import qualified XMonad.StackSet as W
 -- Also note the unfortunate necessity of a type annotation, since 'spawn' is
 -- too general.
 
+-- TODO: squeeze titles that have no entries (consider titles containing \n)
+--
+-- pad as if by columns
+--
+-- Multiple columns
+--
+-- Devin Mullin's suggestions:
+--
+--Reduce redundancy wrt mkNamedSubmaps, mkSubmaps and mkNamedKeymap to have a
+--HasName context (and leave mkKeymap as a specific case of it?)
+--
+-- Suggestions for UI:
+--
+-- - An IO () -> IO () that wraps the main xmonad action and wrests control
+--   from it if the user asks for --keys.
+--
+-- Just a separate binary: keep this as the only way to show keys for simplicity
+--
+-- - An X () that toggles a cute little overlay like the ? window for gmail
+--   and reader.
+--
+-- Add dzen binding
+
 deriving instance Show XMonad.Resize
 deriving instance Show XMonad.IncMasterN
 
@@ -105,6 +131,10 @@ instance HasName (X ()) where
 
 instance HasName (IO ()) where
     getAction = io
+
+instance HasName [Char] where
+    getAction _ = return ()
+    showName = (:[])
 
 instance HasName (X (),String) where
     showName = (:[]) . snd
@@ -166,7 +196,7 @@ showKm = uncurry (flip (++))
          . partition ((`elem` [xK_1 .. xK_9]) . snd . fst)
 
 showKmSimple :: [((KeyMask, KeySym), NamedAction)] -> [[Char]]
-showKmSimple = concatMap (\(k,e) -> map ((keyToString k ++) . smartSpace) $ showName e)
+showKmSimple = concatMap (\(k,e) -> if snd k == 0 then "":showName e else map ((keyToString k ++) . smartSpace) $ showName e)
     where smartSpace [] = []
           smartSpace xs = ' ':xs
 
@@ -197,56 +227,70 @@ addDescrKeys' (k,f) ks conf =
 -- 'NamedAction'  instead of @X ()@
 defaultKeysDescr :: XConfig Layout -> [((KeyMask, KeySym), NamedAction)]
 defaultKeysDescr conf@(XConfig {XMonad.modMask = modm}) =
-    -- launching and killing programs
-    [ ((modm .|. shiftMask, xK_Return), addName "Launch Terminal" $ spawn $ XMonad.terminal conf) -- %! Launch terminal
+    [ subtitle "launching and killing programs"
+    , ((modm .|. shiftMask, xK_Return), addName "Launch Terminal" $ spawn $ XMonad.terminal conf) -- %! Launch terminal
     , ((modm,               xK_p     ), addName "Launch dmenu" $ spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\"") -- %! Launch dmenu
     , ((modm .|. shiftMask, xK_p     ), addName "Launch gmrun" $ spawn "gmrun") -- %! Launch gmrun
     , ((modm .|. shiftMask, xK_c     ), addName "Close the focused window" kill) -- %! Close the focused window
 
+    , subtitle "changing layouts"
     , ((modm,               xK_space ), sendMessage' NextLayout) -- %! Rotate through the available layout algorithms
     , ((modm .|. shiftMask, xK_space ), addName "Reset the layout" $ setLayout $ XMonad.layoutHook conf) -- %!  Reset the layouts on the current workspace to default
 
+    , separator
     , ((modm,               xK_n     ), addName "Refresh" refresh) -- %! Resize viewed windows to the correct size
 
-    -- move focus up or down the window stack
+    , subtitle "move focus up or down the window stack"
     , ((modm,               xK_Tab   ), addName "Focus down" $ windows W.focusDown) -- %! Move focus to the next window
     , ((modm .|. shiftMask, xK_Tab   ), addName "Focus up"   $ windows W.focusUp  ) -- %! Move focus to the previous window
     , ((modm,               xK_j     ), addName "Focus down" $ windows W.focusDown) -- %! Move focus to the next window
     , ((modm,               xK_k     ), addName "Focus up"   $ windows W.focusUp  ) -- %! Move focus to the previous window
     , ((modm,               xK_m     ), addName "Focus the master" $ windows W.focusMaster  ) -- %! Move focus to the master window
 
-    -- modifying the window order
+    , subtitle "modifying the window order"
     , ((modm,               xK_Return), addName "Swap with the master" $ windows W.swapMaster) -- %! Swap the focused window and the master window
     , ((modm .|. shiftMask, xK_j     ), addName "Swap down" $ windows W.swapDown  ) -- %! Swap the focused window with the next window
     , ((modm .|. shiftMask, xK_k     ), addName "Swap up"   $ windows W.swapUp    ) -- %! Swap the focused window with the previous window
 
-    -- resizing the master/slave ratio
+    , subtitle "resizing the master/slave ratio"
     , ((modm,               xK_h     ), sendMessage' Shrink) -- %! Shrink the master area
     , ((modm,               xK_l     ), sendMessage' Expand) -- %! Expand the master area
 
-    -- floating layer support
+    , subtitle "floating layer support"
     , ((modm,               xK_t     ), addName "Push floating to tiled" $ withFocused $ windows . W.sink) -- %! Push window back into tiling
 
-    -- increase or decrease number of windows in the master area
+    , subtitle "increase or decrease number of windows in the master area"
     , ((modm              , xK_comma ), sendMessage' (IncMasterN 1)) -- %! Increment the number of windows in the master area
     , ((modm              , xK_period), sendMessage' (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
 
-    -- quit, or restart
+    , subtitle "quit, or restart"
     , ((modm .|. shiftMask, xK_q     ), addName "Quit" $ io (exitWith ExitSuccess)) -- %! Quit xmonad
     , ((modm              , xK_q     ), addName "Restart" $ spawn "xmonad --recompile && xmonad --restart") -- %! Restart xmonad
     ]
-    ++
+
     -- mod-[1..9] %! Switch to workspace N
     -- mod-shift-[1..9] %! Move client to workspace N
+    ++
+    subtitle "switching workspaces":
     [((m .|. modm, k), addName (n ++ i) $ windows $ f i)
         | (f, m, n) <- [(W.greedyView, 0, "Switch to workspace "), (W.shift, shiftMask, "Move client to workspace ")]
         , (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]]
-    ++
     -- mod-{w,e,r} %! Switch to physical/Xinerama screens 1, 2, or 3
     -- mod-shift-{w,e,r} %! Move client to screen 1, 2, or 3
-    [((m .|. modm, key), addName (n ++ show sc) $ screenWorkspace sc >>= flip whenJust (windows . f))
+   ++
+   subtitle "switching screens" :
+   [((m .|. modm, key), addName (n ++ show sc) $ screenWorkspace sc >>= flip whenJust (windows . f))
         | (f, m, n) <- [(W.view, 0, "Switch to screen number "), (W.shift, shiftMask, "Move client to screen number ")]
         , (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
+
+-- | For a prettier presentation: keymask, keysym of 0 are reserved for this
+-- purpose: they do not happen, afaik, and keysymToString 0 would raise error
+-- otherwise
+separator :: ((KeyMask,KeySym), NamedAction)
+separator = ((0,0), NamedAction (return () :: X (),[] :: [String]))
+
+subtitle ::  String -> ((KeyMask, KeySym), NamedAction)
+subtitle x = ((0,0), NamedAction $ x ++ ":")
 
 -- | These are just the @NamedAction@ constructor but with a more specialized
 -- type, so that you don't have to supply any annotations, for ex coercing
