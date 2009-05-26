@@ -24,13 +24,12 @@ module XMonad.Actions.FloatSnap (
                 snapMagicMouseResize) where
 
 import XMonad
-import Control.Monad(filterM)
 import Control.Applicative((<$>))
 import Data.List (sort)
 import Data.Maybe (listToMaybe,fromJust,isNothing)
 import qualified XMonad.StackSet as W
 
-import XMonad.Hooks.ManageDocks (Direction(..),getStrut)
+import XMonad.Hooks.ManageDocks (Direction(..),calcGap)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -277,13 +276,13 @@ getSnap :: Bool -> Maybe Int -> Display -> Window -> X ((Maybe Int,Maybe Int,Boo
 getSnap horiz collidedist d w = do
     wa <- io $ getWindowAttributes d w
     screen <- W.current <$> gets windowset
-    unManaged <- unManagedDocks
     let sr = screenRect $ W.screenDetail screen
-        wl = (unManaged ++) . W.integrate' . W.stack $ W.workspace screen
+        wl = W.integrate' . W.stack $ W.workspace screen
+    gr <- fmap ($sr) $ calcGap [L,R,U,D]
     wla <- filter (collides wa) `fmap` (io $ mapM (getWindowAttributes d) $ filter (/=w) wl)
 
-    return ( neighbours (back wa sr wla) (wpos wa)
-           , neighbours (front wa sr wla) (wpos wa + wdim wa)
+    return ( neighbours (back wa sr gr wla) (wpos wa)
+           , neighbours (front wa sr gr wla) (wpos wa + wdim wa)
            )
 
     where
@@ -292,13 +291,15 @@ getSnap horiz collidedist d w = do
         (wpos, wdim, rpos, rdim) = constructors horiz
         (refwpos, refwdim, _, _) = constructors $ not horiz
 
-        back wa sr wla = dropWhile (< rpos sr) $
-                         takeWhile (< rpos sr + rdim sr) $
-                         sort $ (rpos sr):foldr (\a as -> (wpos a):(wpos a + wdim a + wborder a + wborder wa):as) [] wla
+        back wa sr gr wla = dropWhile (< rpos sr) $
+                            takeWhile (< rpos sr + rdim sr) $
+                            sort $ (rpos sr):(rpos gr):(rpos gr + rdim gr):
+                                   foldr (\a as -> (wpos a):(wpos a + wdim a + wborder a + wborder wa):as) [] wla
 
-        front wa sr wla = dropWhile (<= rpos sr) $
-                          takeWhile (<= rpos sr + rdim sr) $
-                          sort $ (rpos sr + rdim sr - 2*(wborder wa)):foldr (\a as -> (wpos a - wborder a - wborder wa):(wpos a + wdim a):as) [] wla
+        front wa sr gr wla = dropWhile (<= rpos sr) $
+                             takeWhile (<= rpos sr + rdim sr) $
+                             sort $ (rpos gr - 2*wborder wa):(rpos gr + rdim gr - 2*wborder wa):(rpos sr + rdim sr - 2*wborder wa):
+                                    foldr (\a as -> (wpos a - wborder a - wborder wa):(wpos a + wdim a):as) [] wla
 
         neighbours l v = ( listToMaybe $ reverse $ takeWhile (< v) l
                          , listToMaybe $ dropWhile (<= v) l
@@ -310,12 +311,6 @@ getSnap horiz collidedist d w = do
                              Just dist -> (  refwpos oa - wborder oa < refwpos wa + refwdim wa + wborder wa + dist
                                           && refwpos wa - wborder wa - dist < refwpos oa + refwdim oa + wborder oa )
 
-        unManagedDocks :: X [Window]
-        unManagedDocks = withWindowSet $ \ws -> withDisplay $ \disp ->
-            fmap (filter (`notElem` W.allWindows ws)) .
-            filterM (fmap (not . null) . getStrut) . (\(_,_,x) -> x)
-            =<< io . queryTree disp
-            =<< asks theRoot
 
 constructors :: Bool -> (WindowAttributes -> Int, WindowAttributes -> Int, Rectangle -> Int, Rectangle -> Int)
 constructors True = ( fromIntegral.wa_x

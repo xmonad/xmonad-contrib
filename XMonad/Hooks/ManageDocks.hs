@@ -21,7 +21,7 @@ module XMonad.Hooks.ManageDocks (
     ToggleStruts(..), Direction(..),
 
     -- for XMonad.Actions.FloatSnap
-    getStrut
+    calcGap
     ) where
 
 
