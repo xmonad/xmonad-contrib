@@ -26,6 +26,7 @@ module XMonad.Actions.UpdatePointer
 import XMonad
 import Control.Monad
 import XMonad.StackSet (member, peek, screenDetail, current)
+import Data.Maybe
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -66,8 +67,10 @@ updatePointer p = do
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   (_sameRoot,_,currentWindow,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
+  drag <- gets dragging
   unless (pointWithin (fi rootx) (fi rooty) rect
           || mouseIsMoving
+          || isJust drag
           || not (currentWindow `member` ws || currentWindow == none)) $
     case p of
     Nearest -> do
