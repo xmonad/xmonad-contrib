@@ -33,7 +33,7 @@ import Data.Function (on)
 {- $usage
 
 This module allows you name Xinerama screens from XMonad using their
-physical location reletive to each other (as reported by Xinerama),
+physical location relative to each other (as reported by Xinerama),
 rather than their @ScreenID@ s, which are arbitrarily determined by
 your X server and graphics hardware.
 
