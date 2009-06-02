@@ -97,7 +97,7 @@ masterRect (Rectangle sx sy sw sh) n bias = Rectangle sx sy sw h
 
 -- | Rectangle for slave area
 slaveRect :: Rectangle -> Int -> Float -> Rectangle
-slaveRect (Rectangle sx sy sw sh) n bias = Rectangle sx (sy+(fromIntegral mh)) sw h
+slaveRect (Rectangle sx sy sw sh) n bias = Rectangle sx (sy+mh) sw h
     where mh = round $ (fromIntegral sh)*(masterHeight n bias)
           h  = round $ (fromIntegral sh)*(1-masterHeight n bias)
 
