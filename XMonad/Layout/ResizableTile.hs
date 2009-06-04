@@ -108,7 +108,7 @@ splitVertically [] _ r = [r]
 splitVertically _ n r | n < 2 = [r]
 splitVertically (f:fx) n (Rectangle sx sy sw sh) = Rectangle sx sy sw smallh :
     splitVertically fx (n-1) (Rectangle sx (sy+fromIntegral smallh) sw (sh-smallh))
-  where smallh = floor $ fromIntegral (sh `div` fromIntegral n) * f --hmm, this is a fold or map.
+  where smallh = min sh (floor $ fromIntegral (sh `div` fromIntegral n) * f) --hmm, this is a fold or map.
 
 splitHorizontallyBy :: RealFrac r => r -> Rectangle -> (Rectangle, Rectangle)
 splitHorizontallyBy f (Rectangle sx sy sw sh) =
