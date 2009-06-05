@@ -42,6 +42,8 @@ module XMonad.Hooks.ManageHelpers (
     doFullFloat,
     doCenterFloat,
     doSideFloat,
+    doFloatAt,
+    doFloatDep,
     doHideIgnore
 ) where
 
@@ -185,19 +187,31 @@ doRectFloat r = ask >>= \w -> doF (W.float w r)
 doFullFloat :: ManageHook
 doFullFloat = doRectFloat $ W.RationalRect 0 0 1 1
 
+-- | Floats a new window using a rectangle computed as a function of
+--   the rectangle that it would have used by default.
+doFloatDep :: (W.RationalRect -> W.RationalRect) -> ManageHook
+doFloatDep move = ask >>= \w -> doF . W.float w . move . snd =<< liftX (floatLocation w)
+
+-- | Floats a new window with its original size, and its top left
+--   corner at a specific point on the screen (both coordinates should
+--   be in the range 0 to 1).
+doFloatAt :: Rational -> Rational -> ManageHook
+doFloatAt x y = doFloatDep move
+  where
+    move (W.RationalRect _ _ w h) = W.RationalRect x y w h
+
 -- | Floats a new window with its original size on the specified side of a
 -- screen
 doSideFloat :: Side -> ManageHook
-doSideFloat side = ask >>= \w -> doF . W.float w . move . snd =<< liftX (floatLocation w)
-    where
+doSideFloat side = doFloatDep move
+  where
     move (W.RationalRect _ _ w h) = W.RationalRect cx cy w h
-        where
-        cx =      if side `elem` [SC,C ,NC] then (1-w)/2
-             else if side `elem` [SW,CW,NW] then 0
-             else {- side `elem` [SE,CE,NE] -}   1-w
-        cy =      if side `elem` [CE,C ,CW] then (1-h)/2
-             else if side `elem` [NE,NC,NW] then 0
-             else {- side `elem` [SE,SC,SW] -}   1-h
+      where cx =      if side `elem` [SC,C ,NC] then (1-w)/2
+                 else if side `elem` [SW,CW,NW] then 0
+                 else {- side `elem` [SE,CE,NE] -}   1-w
+            cy =      if side `elem` [CE,C ,CW] then (1-h)/2
+                 else if side `elem` [NE,NC,NW] then 0
+                 else {- side `elem` [SE,SC,SW] -}   1-h
 
 -- | Floats a new window with its original size, but centered.
 doCenterFloat :: ManageHook
