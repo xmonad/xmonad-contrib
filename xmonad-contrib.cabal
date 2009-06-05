@@ -132,6 +132,7 @@ library
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
                         XMonad.Layout.Cross
+                        XMonad.Layout.Column
                         XMonad.Layout.Combo
                         XMonad.Layout.ComboP
                         XMonad.Layout.Decoration
