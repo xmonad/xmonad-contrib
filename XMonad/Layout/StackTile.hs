@@ -12,7 +12,7 @@
 -- Portability :  unportable
 --
 -- A stacking layout, like dishes but with the ability to resize master pane.
--- Mostly usefull on small screens.
+-- Mostly useful on small screens.
 --
 -----------------------------------------------------------------------------
 

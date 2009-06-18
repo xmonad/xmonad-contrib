@@ -67,7 +67,7 @@ import Data.Map(Map)
 --  styles. Better compatibility with some other layouts of which I am not
 --  aware could be another benefit.
 --
---  'simpleTabbed' (and other decorated layouts) fail horibly when used as
+--  'simpleTabbed' (and other decorated layouts) fail horribly when used as
 --  subLayouts:
 --
 --    * decorations stick around: layout is run after being told to Hide

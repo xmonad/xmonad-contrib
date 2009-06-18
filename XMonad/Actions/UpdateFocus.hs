@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonadContrib.UpdateFocus
+-- Module      :  XMonad.Actions.UpdateFocus
 -- Copyright   :  (c) Daniel Schoepe
 -- License     :  BSD3-style (see LICENSE)
 --

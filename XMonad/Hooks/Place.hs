@@ -407,29 +407,29 @@ position rs x y w h = minimumBy distanceOrder $ map closest rs
 -- | First part of the algorithm:
 -- Tries to find an area in which to place a new 
 -- rectangle so that it overlaps as little as possible with
--- other rectangles aready present. The first rectangles in
+-- other rectangles already present. The first rectangles in
 -- the list will be overlapped first.
 findSpace :: Real a =>
              SmartRectangle a -- ^ The total available area
-          -> [SmartRectangle a] -- ^ The parts aready in use
+          -> [SmartRectangle a] -- ^ The parts already in use
           -> a -- ^ Width of the rectangle to place
           -> a -- ^ Height of the rectangle to place
           -> [SmartRectangle a]
 findSpace total [] _ _ = [total]
 findSpace total rs@(_:rs') w h
-  = case filter largeEnough $ cleanup $ substractRects total rs of
+  = case filter largeEnough $ cleanup $ subtractRects total rs of
       [] -> findSpace total rs' w h
       as -> as
     where largeEnough r = width r >= w && height r >= h
 
 
--- | Substracts smaller rectangles from a total rectangle
+-- | Subtracts smaller rectangles from a total rectangle
 -- , returning a list of remaining rectangular areas.
-substractRects :: Real a => SmartRectangle a 
+subtractRects :: Real a => SmartRectangle a 
                -> [SmartRectangle a] -> [SmartRectangle a]
-substractRects total [] = [total]
-substractRects total (r:rs) 
-  = do total' <- substractRects total rs
+subtractRects total [] = [total]
+subtractRects total (r:rs) 
+  = do total' <- subtractRects total rs
        filter (not . isEmpty)
                 [ total' {sr_y1 = min (sr_y1 total') (sr_y0 r)} -- Above
                 , total' {sr_x0 = max (sr_x0 total') (sr_x1 r)} -- Right

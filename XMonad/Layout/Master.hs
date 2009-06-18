@@ -47,7 +47,7 @@ import XMonad.Layout.LayoutModifier
 -- layout
 data AddMaster a = AddMaster Rational Rational deriving (Show, Read)
 
--- | Modifier wich converts given layout to a mastered one
+-- | Modifier which converts given layout to a mastered one
 mastered :: (LayoutClass l a) =>
        Rational -- ^ @delta@, the ratio of the screen to resize by
     -> Rational -- ^ @frac@, what portion of the screen to use for the master window

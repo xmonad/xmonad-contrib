@@ -53,7 +53,7 @@ import qualified XMonad.StackSet as W
 -- the property will go into the first part, all others will go into the second
 -- part. It supports @Move@ messages as 'combineTwo' does, but it also introduces
 -- 'SwapWindow' message which sends focused window to the other part. It is
--- required becase @Move@ commands don't work when one of the parts is empty.
+-- required because @Move@ commands don't work when one of the parts is empty.
 -- To use it, import \"XMonad.Layout.WindowNavigation\", and add the following key
 -- bindings (or something similar):
 --

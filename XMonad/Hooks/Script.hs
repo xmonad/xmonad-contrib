@@ -43,7 +43,7 @@ import System.Directory
 -- >   ...
 -- >   }
 --
--- Now, everytime the startup hook runs, the command
+-- Now, every time the startup hook runs, the command
 -- @~\/.xmonad\/hooks startup@ will also.
 
 -- | Execute a named script hook

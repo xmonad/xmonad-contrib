@@ -51,7 +51,7 @@ import Control.Monad
 -- "XMonad.Util.Dzen"
 
 -- | Return output if the command succeeded, otherwise return @()@.
--- This corresponds to dmenu's notion of exit code 1 for a cancelled invocation.
+-- This corresponds to dmenu's notion of exit code 1 for a canceled invocation.
 runProcessWithInput :: FilePath -> [String] -> String -> IO String
 runProcessWithInput cmd args input = do
     (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing

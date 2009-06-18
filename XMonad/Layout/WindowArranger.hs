@@ -203,7 +203,7 @@ memberFromList :: (b -> c) -> (c -> a -> Bool) -> a -> [b] -> [b]
 memberFromList f g l = foldr (h l) []
     where h x y ys = if g (f y) x then [y] else ys
 
--- | Get the list of elements to be deleted and the list ef elements to
+-- | Get the list of elements to be deleted and the list of elements to
 -- be added to the first list in order to get the second list.
 diff :: Eq a => ([a],[a]) -> ([a],[a])
 diff (x,y) = (x \\ y, y \\ x)

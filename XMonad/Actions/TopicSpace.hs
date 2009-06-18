@@ -19,7 +19,7 @@
 -- attach your mail client to the mail topic, some terminals in the right
 -- directory to the xmonad topic... This package also provides a nice way to
 -- display your topics in an historical way using a custom `pprWindowSet'
--- function. You can also easily switch to recents topics using this history
+-- function. You can also easily switch to recent topics using this history
 -- of last focused topics.
 --
 -- Here is an example of configuration using TopicSpace:

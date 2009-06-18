@@ -83,7 +83,7 @@ scratchpadSpawnActionTerminal term =
     scratchpadAction $ spawn $ term ++ " -name scratchpad"
 
 
--- | Action to pop up any program with the user specifiying how to set
+-- | Action to pop up any program with the user specifying how to set
 --   its resource to \"scratchpad\". For example, with gnome-terminal
 --   bind the following to a key:
 --

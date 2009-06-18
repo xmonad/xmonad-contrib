@@ -91,7 +91,7 @@ releaseUtf8Font fs = do
   d <- asks display
   io $ freeFontSet d fs
 
--- | When initXMF gets a font name that starts with 'xft:' it switchs to the Xft backend
+-- | When initXMF gets a font name that starts with 'xft:' it switches to the Xft backend
 -- Example: 'xft: Sans-10'
 initXMF :: String -> X XMonadFont
 initXMF s =

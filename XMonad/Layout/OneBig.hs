@@ -27,7 +27,7 @@ import qualified XMonad.StackSet as W
 -- bottom of master. It tries to give equal space for each slave
 -- window.
 --
--- You can use this module by adding folowing in your @xmonad.hs@:
+-- You can use this module by adding following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.OneBig
 --

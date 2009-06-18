@@ -56,7 +56,7 @@ import Text.ParserCombinators.ReadP
 -- provided, suitable for adding to your 'startupHook', which can warn
 -- you of any parse errors or duplicate bindings in your keymap.
 --
--- For more information and usage eamples, see the documentation
+-- For more information and usage examples, see the documentation
 -- provided with each exported function, and check the xmonad config
 -- archive (<http://haskell.org/haskellwiki/Xmonad/Config_archive>)
 -- for some real examples of use.
@@ -220,7 +220,7 @@ removeMouseBindings conf mouseBindingList =
 -- > <KP_0>-<KP_9>
 --
 -- Long list of multimedia keys. Please note that not all keys may be
--- present in your particular setup althrough most likely they will do.
+-- present in your particular setup although most likely they will do.
 --
 -- > <XF86ModeLock>
 -- > <XF86MonBrightnessUp>

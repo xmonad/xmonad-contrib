@@ -127,8 +127,8 @@ import XMonad.Layout.SimpleFloat
 -- up the key bindings, please read the documentation of
 -- "XMonad.Layout.WindowArranger"
 --
--- The deafult theme can be dynamically change with the xmonad theme
--- selector. See "XMonad.Prompt.Theme". For more themse, look at
+-- The default theme can be dynamically change with the xmonad theme
+-- selector. See "XMonad.Prompt.Theme". For more themes, look at
 -- "XMonad.Util.Themes"
 
 -- $circle

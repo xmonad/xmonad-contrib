@@ -45,7 +45,7 @@ showWName :: l a -> ModifiedLayout ShowWName l a
 showWName = ModifiedLayout (SWN True defaultSWNConfig Nothing)
 
 -- | A layout modifier to show the workspace name when switching. It
--- is possible to provide a costum configuration.
+-- is possible to provide a custom configuration.
 showWName' :: SWNConfig -> l a -> ModifiedLayout ShowWName l a
 showWName' c = ModifiedLayout (SWN True c Nothing)
 

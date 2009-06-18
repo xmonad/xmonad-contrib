@@ -90,9 +90,7 @@ navigateColor c =
     WNC Nothing c c c c
 
 navigateBrightness :: Double -> WNConfig
-navigateBrightness f | f > 1 = navigateBrightness 1
-                     | f < 0 = navigateBrightness 0
-navigateBrightness f = defaultWNConfig { brightness = Just f }
+navigateBrightness f = defaultWNConfig { brightness = Just $ max 0 $ min 1 f }
 
 defaultWNConfig :: WNConfig
 defaultWNConfig = WNC (Just 0.4) "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
@@ -129,7 +127,7 @@ instance LayoutModifier WindowNavigation Window where
                wrs = filter ((`elem` existing_wins) . fst) $ filter ((/=r) . snd) $
                      filter ((/=w) . fst) origwrs
                wnavigable = nub $ concatMap
-                            (\d -> truncHead $ navigable d pt wrs) [U,D,R,L]
+                            (\d -> take 1 $ navigable d pt wrs) [U,D,R,L]
                wnavigablec = nub $ concatMap
                             (\d -> map (\(win,_) -> (win,dirc d)) $
                                    truncHead $ navigable d pt wrs) [U,D,R,L]

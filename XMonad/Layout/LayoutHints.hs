@@ -18,7 +18,7 @@ module XMonad.Layout.LayoutHints
       -- $usage
       layoutHints
     , layoutHintsWithPlacement
-    , layoutHintsToCentre
+    , layoutHintsToCenter
     , LayoutHints
     )  where
 
@@ -57,7 +57,7 @@ import qualified Data.Set as Set
 --
 -- Or, to make a reasonable attempt to eliminate gaps between windows:
 --
--- > myLayouts = layoutHintsToCentre (Tall 1 (3/100) (1/2))
+-- > myLayouts = layoutHintsToCenter (Tall 1 (3/100) (1/2))
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -75,16 +75,16 @@ layoutHintsWithPlacement :: (LayoutClass l a) => (Double, Double)
                          -> l a -> ModifiedLayout LayoutHints l a
 layoutHintsWithPlacement rs = ModifiedLayout (LayoutHints rs)
 
--- | @layoutHintsToCentre layout@ applies hints, sliding the window to the
--- centre of the screen and expanding its neighbours to fill the gaps. Windows
+-- | @layoutHintsToCenter layout@ applies hints, sliding the window to the
+-- center of the screen and expanding its neighbors to fill the gaps. Windows
 -- are never expanded in a way that increases overlap.
 --
--- @layoutHintsToCentre@ only makes one pass at resizing the neighbours of
--- hinted windows, so with some layouts (ex. the arrangment with two 'Mirror'
--- 'Tall' stacked vertically), @layoutHintsToCentre@ may leave some gaps.
+-- @layoutHintsToCenter@ only makes one pass at resizing the neighbors of
+-- hinted windows, so with some layouts (ex. the arrangement with two 'Mirror'
+-- 'Tall' stacked vertically), @layoutHintsToCenter@ may leave some gaps.
 -- Simple layouts like 'Tall' are unaffected.
-layoutHintsToCentre :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHintsToCentre l a
-layoutHintsToCentre = ModifiedLayout LayoutHintsToCentre
+layoutHintsToCenter :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHintsToCenter l a
+layoutHintsToCenter = ModifiedLayout LayoutHintsToCenter
 
 data LayoutHints a = LayoutHints (Double, Double)
                      deriving (Read, Show)
@@ -121,14 +121,14 @@ applyOrder root wrs = do
     -- resizing multiple times
     f <- [maximum, minimum, sum, sum . map sq]
     return $ sortBy (compare `on` (f . distance)) wrs
-    where distFC = uncurry ((+) `on` sq) . pairWise (-) (centre root)
+    where distFC = uncurry ((+) `on` sq) . pairWise (-) (center root)
           distance = map distFC . corners . snd
           pairWise f (a,b) (c,d) = (f a c, f b d)
           sq = join (*)
 
-data LayoutHintsToCentre a = LayoutHintsToCentre deriving (Read, Show)
+data LayoutHintsToCenter a = LayoutHintsToCenter deriving (Read, Show)
 
-instance LayoutModifier LayoutHintsToCentre Window where
+instance LayoutModifier LayoutHintsToCenter Window where
     modifyLayout _ ws@(W.Workspace _ _ Nothing) r = runLayout ws r
     modifyLayout _ ws@(W.Workspace _ _ (Just st)) r = do
         (arrs,ol) <- runLayout ws r
@@ -142,7 +142,7 @@ applyHints _ _ [] = return []
 applyHints s root ((w,lrect@(Rectangle a b c d)):xs)  = do
         adj <- mkAdjust w
         let (c',d') = adj (c,d)
-            redr = placeRectangle (centrePlacement root lrect :: (Double,Double)) lrect
+            redr = placeRectangle (centerPlacement root lrect :: (Double,Double)) lrect
                     $ if isInStack s w then Rectangle a b c' d' else lrect
 
             ds = (fromIntegral c - fromIntegral c',fromIntegral d - fromIntegral d')
@@ -208,12 +208,12 @@ corners (Rectangle x y w h) = [(x,y)
                               ,(x+fromIntegral w, y+fromIntegral h)
                               ,(x, y+fromIntegral h)]
 
-centre :: Rectangle -> (Position, Position)
-centre (Rectangle x y w h) = (avg x w, avg y h)
+center :: Rectangle -> (Position, Position)
+center (Rectangle x y w h) = (avg x w, avg y h)
     where avg a b = a + fromIntegral b `div` 2
 
-centrePlacement :: RealFrac r => Rectangle -> Rectangle -> (r, r)
-centrePlacement = centrePlacement' clamp
+centerPlacement :: RealFrac r => Rectangle -> Rectangle -> (r, r)
+centerPlacement = centerPlacement' clamp
     where clamp n = case signum n of
                             0 -> 0.5
                             1 -> 1
@@ -221,7 +221,7 @@ centrePlacement = centrePlacement' clamp
 
 freeDirs :: Rectangle -> Rectangle -> Set Direction
 freeDirs root = Set.fromList . uncurry (++) . (lr *** ud)
-              . centrePlacement' signum root
+              . centerPlacement' signum root
     where
         lr 1 = [L]
         lr (-1) = [R]
@@ -230,8 +230,8 @@ freeDirs root = Set.fromList . uncurry (++) . (lr *** ud)
         ud (-1) = [D]
         ud _ = [U,D]
 
-centrePlacement' :: (Position -> r) -> Rectangle -> Rectangle -> (r, r)
-centrePlacement' cf root assigned
+centerPlacement' :: (Position -> r) -> Rectangle -> Rectangle -> (r, r)
+centerPlacement' cf root assigned
     = (cf $ cx - cwx, cf $ cy - cwy)
-    where (cx,cy) = centre root
-          (cwx,cwy) = centre assigned
+    where (cx,cy) = center root
+          (cwx,cwy) = center assigned

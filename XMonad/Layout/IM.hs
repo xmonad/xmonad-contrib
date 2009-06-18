@@ -10,7 +10,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Layout modfier suitable for workspace with multi-windowed instant messanger
+-- Layout modfier suitable for workspace with multi-windowed instant messenger
 -- (like Psi or Tkabber).
 --
 -----------------------------------------------------------------------------

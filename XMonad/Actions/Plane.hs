@@ -78,9 +78,9 @@ data Limits
 -- divisor, the last line will have the remaining workspaces.
 data Lines
     = GConf     -- ^ Use @gconftool-2@ to find out the number of lines.
-    | Lines Int -- ^ Specify the number of lines explicity.
+    | Lines Int -- ^ Specify the number of lines explicitly.
 
--- | This is the way most people would like to use this module.  It ataches the
+-- | This is the way most people would like to use this module.  It attaches the
 -- 'KeyMask' passed as a parameter with 'xK_Left', 'xK_Up', 'xK_Right' and
 -- 'xK_Down', associating it with 'planeMove' to the corresponding 'Direction'.
 -- It also associates these bindings with 'shiftMask' to 'planeShift'.
