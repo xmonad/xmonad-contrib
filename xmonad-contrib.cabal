@@ -114,7 +114,6 @@ library
                         XMonad.Config.Xfce
                         XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
-                        XMonad.Hooks.EventHook
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FloatNext

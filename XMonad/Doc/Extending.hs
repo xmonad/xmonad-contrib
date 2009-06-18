@@ -243,8 +243,6 @@ Here is a list of the modules found in @XMonad.Hooks@:
   putting in a status bar of some sort. See
   "XMonad.Doc.Extending#The_log_hook_and_external_status_bars".
 
-* "XMonad.Hooks.EventHook": a hook to handle X events at the layout level.
-
 * "XMonad.Hooks.EwmhDesktops": support for pagers in panel applications.
 
 * "XMonad.Hooks.ManageDocks": handle DOCK and STRUT windows (such as
@@ -254,7 +252,7 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.ManageHelpers": provide helper functions to be used
   in @manageHook@.
 
-* "XMonad.Hooks.ServerMode": example use of "XMonad.Hooks.EventHook".
+* "XMonad.Hooks.ServerMode": Allows sending commands to a running xmonad process.
 
 * "XMonad.Hooks.SetWMName": set the WM name.  Useful when e.g. running
   Java GUI programs.
