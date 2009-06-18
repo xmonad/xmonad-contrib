@@ -130,7 +130,7 @@ instance LayoutModifier WindowNavigation Window where
                             (\d -> take 1 $ navigable d pt wrs) [U,D,R,L]
                wnavigablec = nub $ concatMap
                             (\d -> map (\(win,_) -> (win,dirc d)) $
-                                   truncHead $ navigable d pt wrs) [U,D,R,L]
+                                   take 1 $ navigable d pt wrs) [U,D,R,L]
                wothers = case state of Just (NS _ wo) -> map fst wo
                                        _              -> []
            mapM_ (sc nbc) (wothers \\ map fst wnavigable)
@@ -191,10 +191,6 @@ instance LayoutModifier WindowNavigation Window where
 
 navigable :: Direction -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
 navigable d pt = sortby d . filter (inr d pt . snd)
-
-truncHead :: [a] -> [a]
-truncHead (x:_) = [x]
-truncHead [] = []
 
 sc :: Pixel -> Window -> X ()
 sc c win = withDisplay $ \dpy -> io $ setWindowBorder dpy win c
