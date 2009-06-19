@@ -152,6 +152,7 @@ library
                         XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
                         XMonad.Layout.LayoutScreens
+                        XMonad.Layout.LimitWindows
                         XMonad.Layout.MagicFocus
                         XMonad.Layout.Magnifier
                         XMonad.Layout.Master
