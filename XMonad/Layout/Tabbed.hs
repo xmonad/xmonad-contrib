@@ -53,6 +53,10 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
+-- This layout has hardcoded behaviour for mouse clicks on tab decorations:
+-- Left click on the tab switches focus to that window. 
+-- Middle click on the tab closes the window.
+--
 -- The default Tabbar behaviour is to hide it when only one window is open
 -- on the workspace.  To have it always shown, use one of the layouts or
 -- modifiers ending in "Always".
