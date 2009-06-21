@@ -151,6 +151,16 @@ data TabbedDecoration a = Tabbed TabbarLocation TabbarShown deriving (Read, Show
 instance Eq a => DecorationStyle TabbedDecoration a where
     describeDeco (Tabbed Top _ ) = "Tabbed"
     describeDeco (Tabbed Bottom _ ) = "Tabbed Bottom"
+    decorationMouseFocusHook _ ds ButtonEvent { ev_window     = ew
+                                             , ev_event_type = et
+                                             , ev_button     = eb }
+        | et == buttonPress
+        , Just ((w,_),_) <-findWindowByDecoration ew ds =
+           if eb == button2 
+               then killWindow w
+               else focus w
+    decorationMouseFocusHook _ _ _ = return ()
+
     decorationMouseDragHook _ _ _ = return ()
     pureDecoration (Tabbed lc sh) _ ht _ s wrs (w,r@(Rectangle x y wh hh)) 
         = if ((sh == Always && numWindows > 0) || numWindows > 1)
