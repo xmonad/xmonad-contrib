@@ -26,6 +26,7 @@ module XMonad.Layout.Decoration
     , Shrinker (..), DefaultShrinker
     , shrinkText, CustomShrink ( CustomShrink ), shrinkWhile
     , isInStack, isVisible, isInvisible, isWithin, fi
+    , findWindowByDecoration
     , module XMonad.Layout.LayoutModifier
     ) where
 
@@ -306,6 +307,9 @@ lookFor w ((wr,(Just dw,dr)):dwrs) | w == dw = Just (wr,(dw,dr))
                                    | otherwise = lookFor w dwrs
 lookFor w ((_, (Nothing, _)):dwrs) = lookFor w dwrs
 lookFor _ [] = Nothing
+
+findWindowByDecoration :: Window -> DecorationState -> Maybe (OrigWin,(Window,Maybe Rectangle))
+findWindowByDecoration w ds = lookFor w (decos ds)
 
 -- | Initialize the 'DecorationState' by initializing the font
 -- structure and by creating the needed decorations.
