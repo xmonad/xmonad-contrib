@@ -77,7 +77,7 @@ shellPrompt c = do
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
 safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run = safeSpawn c . encodeOutput
+    where run = safeSpawn c . return . encodeOutput
 unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
     where run a = unsafeSpawn $ c ++ " " ++ encodeOutput a
 

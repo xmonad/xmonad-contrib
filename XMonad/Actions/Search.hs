@@ -231,7 +231,7 @@ use (SearchEngine _ engine) = engine
 -- | Given a browser, a search engine's transformation function, and a search term, perform the
 --   requested search in the browser.
 search :: Browser -> Site -> Query -> X ()
-search browser site query = safeSpawn browser $ site query
+search browser site query = safeSpawn browser [site query]
 
 {- | Given a base URL, create the 'SearchEngine' that escapes the query and
    appends it to the base. You can easily define a new engine locally using
