@@ -21,6 +21,7 @@ module XMonad.Util.Run (
                           runProcessWithInput,
                           runProcessWithInputAndWait,
                           safeSpawn,
+                          safeSpawnProg,
                           unsafeSpawn,
                           runInTerm,
                           safeRunInTerm,
@@ -108,6 +109,12 @@ interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
 safeSpawn :: MonadIO m => FilePath -> String -> m ()
 safeSpawn prog arg = liftIO (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
+
+-- | Like 'safeSpawn', but only takes a program (and no arguments for it). eg.
+--
+-- > safeSpawnProg "firefox"
+safeSpawnProg :: MonadIO m => FilePath -> m ()
+safeSpawnProg = flip safeSpawn ""
 
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
