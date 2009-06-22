@@ -34,12 +34,13 @@ module XMonad.Actions.WindowGo (
 import Control.Monad (filterM)
 import Data.Char (toLower)
 
-import XMonad (Query(), X(), withWindowSet, spawn, runQuery, liftIO)
+import XMonad (Query(), X(), withWindowSet, runQuery, liftIO)
 import Graphics.X11 (Window)
 import XMonad.ManageHook
 import XMonad.Operations (windows)
 import XMonad.Prompt.Shell (getBrowser, getEditor)
 import qualified XMonad.StackSet as W (allWindows, peek, swapMaster, focusWindow)
+import XMonad.Util.Run (safeSpawnProg)
 {- $usage
 
 Import the module into your @~\/.xmonad\/xmonad.hs@:
@@ -59,10 +60,10 @@ appropriate one, or cover your bases by using instead something like
 For detailed instructions on editing your key bindings, see
 "XMonad.Doc.Extending#Editing_key_bindings". -}
 
--- | 'action' is an executable to be run via 'spawn' (of "XMonad.Core") if the Window cannot be found.
+-- | 'action' is an executable to be run via 'safeSpawnProg' (of "XMonad.Util.Run") if the Window cannot be found.
 --   Presumably this executable is the same one that you were looking for.
 runOrRaise :: String -> Query Bool -> X ()
-runOrRaise = raiseMaybe . spawn
+runOrRaise = raiseMaybe . safeSpawnProg
 
 -- | See 'raiseMaybe'. If the Window can't be found, quietly give up and do nothing.
 raise :: Query Bool -> X ()
@@ -103,7 +104,7 @@ raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
 
 -- | See 'runOrRaise' and 'raiseNextMaybe'. Version that allows cycling through matches.
 runOrRaiseNext :: String -> Query Bool -> X ()
-runOrRaiseNext = raiseNextMaybe . spawn
+runOrRaiseNext = raiseNextMaybe . safeSpawnProg
 
 -- | See 'raise' and 'raiseNextMaybe'. Version that allows cycling through matches.
 raiseNext :: Query Bool -> X ()
@@ -154,7 +155,7 @@ raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
 {- | If a window matching the second arugment is found, the window is focused and the third argument is called;
      otherwise, the first argument is called. -}
 runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
-runOrRaiseAndDo = raiseAndDo . spawn
+runOrRaiseAndDo = raiseAndDo . safeSpawnProg
 
 {- | if the window is found the window is focused and set to master
      otherwise, the first argument is called.
