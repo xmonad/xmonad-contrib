@@ -107,14 +107,14 @@ Note that the unsafeSpawn example must be unsafe and not safe because
 it makes use of shell interpretation by relying on @$HOME@ and
 interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
-safeSpawn :: MonadIO m => FilePath -> String -> m ()
-safeSpawn prog arg = liftIO (try (forkProcess $ executeFile prog True [arg] Nothing) >> return ())
+safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
+safeSpawn prog args = liftIO (try (forkProcess $ executeFile prog True args Nothing) >> return ())
 
 -- | Like 'safeSpawn', but only takes a program (and no arguments for it). eg.
 --
 -- > safeSpawnProg "firefox"
 safeSpawnProg :: MonadIO m => FilePath -> m ()
-safeSpawnProg = flip safeSpawn ""
+safeSpawnProg = flip safeSpawn []
 
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
@@ -127,7 +127,7 @@ runInTerm = unsafeRunInTerm
 
 -- | Run a given program in the preferred terminal emulator; see 'runInTerm'. This makes use of 'safeSpawn'.
 safeRunInTerm :: String -> String -> X ()
-safeRunInTerm options command = asks (terminal . config) >>= \t -> safeSpawn t (options ++ " -e " ++ command)
+safeRunInTerm options command = asks (terminal . config) >>= \t -> safeSpawn t [options, " -e " ++ command]
 
 -- | Launch an external application through the system shell and return a @Handle@ to its standard input.
 spawnPipe :: String -> IO Handle
