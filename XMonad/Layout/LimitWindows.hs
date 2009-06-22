@@ -28,6 +28,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad
 import qualified XMonad.StackSet as W
 import Control.Monad((<=<),guard)
+import Data.Maybe(fromJust)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -43,6 +44,9 @@ import Control.Monad((<=<),guard)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
+--
+-- See also 'XMonad.Layout.BoringWindows.boringAuto' for keybindings that skip
+-- the hidden windows.
 
 increaseLimit :: X ()
 increaseLimit = sendMessage $ LimitChange succ
@@ -73,7 +77,7 @@ instance Message LimitChange
 instance LayoutModifier LimitWindows a where
      pureMess (LimitWindows s n) =
         fmap (LimitWindows s) . pos <=< (`app` n) . unLC <=< fromMessage
-      where pos x   = guard (x>=0)     >> return x
+      where pos x   = guard (x>=1)     >> return x
             app f x = guard (f x /= x) >>  return (f x)
 
      modifyLayout (LimitWindows style n) ws r =
@@ -83,9 +87,8 @@ instance LayoutModifier LimitWindows a where
                     Slice -> slice
 
 firstN ::  Int -> W.Stack a -> W.Stack a
-firstN n st = W.Stack f (reverse u) d
-    where (u,f:d) = splitAt (min (n-1) $ length $ W.up st)
-                    $ take n $ W.integrate st
+firstN n st = upfocus $ fromJust $ W.differentiate $ take (max 1 n) $ W.integrate st
+    where upfocus = foldr (.) id $ replicate (length (W.up st)) W.focusDown'
 
 -- | A non-wrapping, fixed-size slice of a stack around the focused element
 slice ::  Int -> W.Stack t -> W.Stack t
