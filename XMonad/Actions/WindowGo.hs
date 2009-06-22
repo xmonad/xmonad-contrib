@@ -69,10 +69,10 @@ raise :: Query Bool -> X ()
 raise = raiseMaybe $ return ()
 
 {- | 'raiseMaybe' queries all Windows based on a boolean provided by the
-   user. Currently, there are three such useful booleans defined in
-   "XMonad.ManageHook": title, resource, className. Each one tests based pretty
+   user. Currently, there are 3 such useful booleans defined in
+   "XMonad.ManageHook": 'title', 'resource', 'className'. Each one tests based pretty
    much as you would think. ManageHook also defines several operators, the most
-   useful of which is (=?). So a useful test might be finding a Window whose
+   useful of which is (=?). So a useful test might be finding a @Window@ whose
    class is Firefox. Firefox 3 declares the class \"Firefox\", so you'd want to
    pass in a boolean like @(className =? \"Firefox\")@.
 
@@ -135,14 +135,14 @@ raiseVar getvar = liftIO getvar >>= \var -> runOrRaise var (fmap (map toLower) c
 
 {- | 'raiseBrowser' and 'raiseEditor' grab $BROWSER and $EDITOR respectively and they either
      take you to the specified program's window, or they try to run it. This is most useful
-     if your variables are simple and look like 'firefox' or 'emacs'. -}
+     if your variables are simple and look like \"firefox\" or \"emacs\". -}
 raiseBrowser, raiseEditor :: X ()
 raiseBrowser = raiseVar getBrowser
 raiseEditor  = raiseVar getEditor
 
-{- | if the window is found the window is focused and the third argument is called
+{- | If the window is found the window is focused and the third argument is called
      otherwise, the first argument is called
-     See 'raiseMaster' for an example -}
+     See 'raiseMaster' for an example. -}
 raiseAndDo :: X () -> Query Bool -> (Window -> X ())-> X ()
 raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
     maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
@@ -151,22 +151,22 @@ raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
       (x:_)  -> do windows $ W.focusWindow x
                    afterRaise x
 
-{- | if the window is found the window is focused and the third argument is called
-     otherwise, raisef is called -}
+{- | If a window matching the second arugment is found, the window is focused and the third argument is called;
+     otherwise, the first argument is called. -}
 runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
 runOrRaiseAndDo = raiseAndDo . spawn
 
 {- | if the window is found the window is focused and set to master
-     otherwise, the first argument is called
+     otherwise, the first argument is called.
 
-     raiseMaster (runInTerm \"-title ghci\"  \"zsh -c \'ghci\'\") (title =? \"ghci\") -}
+     > raiseMaster (runInTerm \"-title ghci\"  \"zsh -c \'ghci\'\") (title =? \"ghci\") -}
 raiseMaster :: X () -> Query Bool -> X ()
 raiseMaster raisef thatUserQuery = raiseAndDo raisef thatUserQuery (\_ -> windows W.swapMaster)
 
-{- |  if the window is found the window is focused and set to master
-      otherwise, action is run
+{- |  If the window is found the window is focused and set to master
+      otherwise, action is run.
 
-      runOrRaiseMaster \"firefox\" (className =? \"Firefox\")) 
+      > runOrRaiseMaster \"firefox\" (className =? \"Firefox\")) 
   -}
 runOrRaiseMaster :: String -> Query Bool -> X ()
 runOrRaiseMaster run query = runOrRaiseAndDo run query (\_ -> windows W.swapMaster)
