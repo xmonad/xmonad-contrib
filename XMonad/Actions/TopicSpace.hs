@@ -94,7 +94,7 @@
 --    ...
 --    ]
 --    ++
---    [ ((modMask, k), switchNthLastFocused defaultTopic i)
+--    [ ((modMask, k), switchNthLastFocused myTopicConfig i)
 --    | (i, k) <- zip [1..] workspaceKeys]
 -- @
 --
