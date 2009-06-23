@@ -159,6 +159,7 @@ module XMonad.Actions.TopicSpace
   , currentTopicAction
   , switchTopic
   , switchNthLastFocused
+  , shiftNthLastFocused
   , currentTopicDir
   , checkTopicConfig
   , (>*>)
@@ -168,7 +169,7 @@ where
 import XMonad
 
 import Data.List
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, listToMaybe)
 import Data.Ord
 import qualified Data.Map as M
 import Graphics.X11.Xlib
@@ -273,6 +274,12 @@ switchNthLastFocused ::TopicConfig -> Int -> X ()
 switchNthLastFocused tg depth = do
   lastWs <- getLastFocusedTopics
   switchTopic tg $ (lastWs ++ repeat (defaultTopic tg)) !! depth
+
+-- | Shift the focused window to the Nth last focused topic, or fallback to doing nothing.
+shiftNthLastFocused :: Int -> X ()
+shiftNthLastFocused n = do
+  ws <- fmap (listToMaybe . drop n) getLastFocusedTopics
+  whenJust ws $ windows . W.shift
 
 -- | Returns the directory associated with current topic returns the empty string otherwise.
 currentTopicDir :: TopicConfig -> X String
