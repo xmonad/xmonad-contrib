@@ -18,7 +18,7 @@ module XMonad.Actions.Submap (
                              submap,
                              submapDefault
                             ) where
-
+import Data.Bits
 import XMonad hiding (keys)
 import qualified Data.Map as M
 import Control.Monad.Fix (fix)
@@ -74,8 +74,8 @@ submapDefault def keys = do
         if isModifierKey keysym
             then nextkey
             else return (m, keysym)
-
-    m' <- cleanMask m
+    -- Remove num lock mask and Xkb group state bits
+    m' <- cleanMask $ m .&. ((1 `shiftL` 12) - 1)
     maybe def id (M.lookup (m', s) keys)
 
     io $ ungrabKeyboard d currentTime
