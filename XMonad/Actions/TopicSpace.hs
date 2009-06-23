@@ -172,13 +172,10 @@ import Data.List
 import Data.Maybe (fromMaybe, isNothing, listToMaybe)
 import Data.Ord
 import qualified Data.Map as M
-import Graphics.X11.Xlib
 import Control.Monad ((=<<),liftM2,when,unless,replicateM_)
 import System.IO
-import Foreign.C.String (castCCharToChar,castCharToCChar)
 
 import XMonad.Operations
-import Control.Applicative ((<$>))
 import qualified XMonad.StackSet as W
 
 import XMonad.Prompt
@@ -189,6 +186,7 @@ import XMonad.Hooks.DynamicLog (PP(..))
 import qualified XMonad.Hooks.DynamicLog as DL
 
 import XMonad.Util.Run (spawnPipe)
+import XMonad.Util.StringProp(getStringListProp,setStringListProp)
 
 -- | An alias for @flip replicateM_@
 (>*>) :: Monad m => m a -> Int -> m ()
@@ -220,16 +218,16 @@ data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
 -- | Returns the list of last focused workspaces the empty list otherwise.
 -- This function rely on a reserved property namely _XMONAD_LAST_FOCUSED_WORKSPACES.
 getLastFocusedTopics :: X [String]
-getLastFocusedTopics = getStringListProp "_XMONAD_LAST_FOCUSED_WORKSPACES"
+getLastFocusedTopics = asks display >>= flip getStringListProp "_XMONAD_LAST_FOCUSED_WORKSPACES"
 
 -- | Given a 'TopicConfig', the last focused topic, and a predicate that will
 -- select topics that one want to keep, this function will set the property
 -- of last focused topics.
 setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
-setLastFocusedTopic tg w predicate =
-  getLastFocusedTopics >>=
-    setStringListProp "_XMONAD_LAST_FOCUSED_WORKSPACES"
-    . take (maxTopicHistory tg) . nub . (w:) . filter predicate
+setLastFocusedTopic tg w predicate = do
+  disp <- asks display
+  setStringListProp disp "_XMONAD_LAST_FOCUSED_WORKSPACES"
+    . take (maxTopicHistory tg) . nub . (w:) . filter predicate =<< getLastFocusedTopics
 
 -- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
 -- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
@@ -301,42 +299,9 @@ checkTopicConfig tags tg = do
     check diffTopic "Seen but missing topics/workspaces"
     check dups      "Duplicate topics/workspaces"
 
-type StringProp = String
-
-withStringProp :: StringProp -> (Display -> Window -> Atom -> X a) -> X a
-withStringProp prop f =
-  withDisplay $ \dpy -> do
-    rootw <- asks theRoot
-    a     <- io $ internAtom dpy prop False
-    f dpy rootw a
-
--- | Get the name of a string property and returns it as a 'Maybe'.
-getStringProp :: StringProp -> X (Maybe String)
-getStringProp prop =
-  withStringProp prop $ \dpy rootw a -> do
-    p <- io $ getWindowProperty8 dpy a rootw
-    return $ map castCCharToChar <$> p
-
--- | Set the value of a string property.
-setStringProp :: StringProp -> String -> X ()
-setStringProp prop string =
-  withStringProp prop $ \dpy rootw a ->
-    io $ changeProperty8 dpy rootw a a propModeReplace $ map castCharToCChar string
-
--- | Given a property name, returns its contents as a list. It uses the empty
--- list as default value.
-getStringListProp :: StringProp -> X [String]
-getStringListProp prop = return . maybe [] words =<< getStringProp prop
-
--- | Given a property name and a list, sets the value of this property with
--- the list given as argument.
-setStringListProp :: StringProp -> [String] -> X ()
-setStringListProp prop = setStringProp prop . unwords
-
 -- | Display the given message using the @xmessage@ program.
 xmessage :: String -> IO ()
 xmessage s = do
   h <- spawnPipe "xmessage -file -"
   hPutStr h s
   hClose h
-
