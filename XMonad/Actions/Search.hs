@@ -336,8 +336,8 @@ removeColonPrefix str = tail $ snd $ break (==':') str
 
 {- | Makes a search engine prefix-aware. Especially useful together with '!>'.
    It will automatically remove the prefix from a query so that you don\'t end
-	 up searching for google:xmonad if google is your fallback engine and you
-	 explicitly add the prefix. -}
+     up searching for google:xmonad if google is your fallback engine and you
+     explicitly add the prefix. -}
 prefixAware :: SearchEngine -> SearchEngine
 prefixAware (SearchEngine name site) = SearchEngine name (\s -> if s `hasPrefix` (name++":") then site $ removeColonPrefix s else site s)
 

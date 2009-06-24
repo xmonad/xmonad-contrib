@@ -151,7 +151,7 @@ handle ClientMessageEvent {
         else if mt == a_cw then do
                killWindow w
         else if mt `elem` a_ignore then do
-	       return ()
+           return ()
         else trace $ "Unknown ClientMessageEvent " ++ show mt
 handle _ = return ()
 

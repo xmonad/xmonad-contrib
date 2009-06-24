@@ -541,12 +541,12 @@ mirrorTallTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) mirror
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleSimple.png>
 floatSimpleSimple :: (Show a, Eq a) => ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
-	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+                 (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleSimple = simpleFloat
 
 floatSimple :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration SimpleDecoration s)
-	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+          (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimple = simpleFloat'
 
 -- | This version is decorated with the 'DefaultDecoration' style.
@@ -555,14 +555,14 @@ floatSimple = simpleFloat'
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDefault.png>
 floatSimpleDefault :: (Show a, Eq a) => ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
-	              (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+                  (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleDefault = decoration shrinkText defaultTheme DefaultDecoration (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDefault', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatDefault :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                 ModifiedLayout (Decoration DefaultDecoration s)
-	       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+           (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatDefault s t = decoration s t DefaultDecoration (mouseResize $ windowArrangeAll $ SF (decoHeight t))
 
 -- | This version is decorated with the 'DwmStyle'. Note that this is
@@ -572,14 +572,14 @@ floatDefault s t = decoration s t DefaultDecoration (mouseResize $ windowArrange
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleDwmStyle.png>
 floatSimpleDwmStyle :: (Show a, Eq a) => ModifiedLayout (Decoration DwmStyle DefaultShrinker)
-	               (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+                   (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleDwmStyle = decoration shrinkText defaultTheme Dwm (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleDwmStyle', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatDwmStyle :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                  ModifiedLayout (Decoration DwmStyle s)
-	        (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+            (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatDwmStyle s t = decoration s t Dwm (mouseResize $ windowArrangeAll $ SF (decoHeight t))
 
 -- | This version is decorated with the 'TabbedDecoration' style.
@@ -589,12 +589,12 @@ floatDwmStyle s t = decoration s t Dwm (mouseResize $ windowArrangeAll $ SF (dec
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/floatSimpleTabbed.png>
 floatSimpleTabbed :: (Show a, Eq a) => ModifiedLayout (Decoration TabBarDecoration DefaultShrinker)
-	             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+                 (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatSimpleTabbed = tabBar shrinkText defaultTheme Top (mouseResize $ windowArrangeAll $ SF 20)
 
 -- | Same as 'floatSimpleTabbed', but with the possibility of setting a
 -- custom shrinker and a custom theme.
 floatTabbed :: (Show a, Eq a, Shrinker s) => s -> Theme ->
                ModifiedLayout (Decoration TabBarDecoration s)
-	      (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
+          (ModifiedLayout MouseResize (ModifiedLayout WindowArranger SimpleFloat)) a
 floatTabbed s t = tabBar s t Top (mouseResize $ windowArrangeAll $ SF (decoHeight t))

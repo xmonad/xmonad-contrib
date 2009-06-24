@@ -15,10 +15,10 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Dmenu (
-			    -- * Usage
-			    -- $usage
-			    dmenu, dmenuXinerama, dmenuMap, menu, menuMap
-			   ) where
+                -- * Usage
+                -- $usage
+                dmenu, dmenuXinerama, dmenuMap, menu, menuMap
+               ) where
 
 import XMonad
 import qualified XMonad.StackSet as W

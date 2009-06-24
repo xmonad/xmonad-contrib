@@ -79,7 +79,7 @@ doPrompt t c = do
   a <- case t of
          Goto  -> fmap gotoAction  windowMap
          Bring -> fmap bringAction windowMap
-	 BringCopy -> fmap bringCopyAction windowMap
+         BringCopy -> fmap bringCopyAction windowMap
   wm <- windowMap
   mkXPrompt t c (compList wm) a
 

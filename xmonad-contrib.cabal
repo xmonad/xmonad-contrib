@@ -54,7 +54,7 @@ library
     extensions:         ForeignFunctionInterface
 
     if flag(testing)
-        ghc-options:    -Werror
+        ghc-options:    -fwarn-tabs -Werror
 
     if impl (ghc == 6.10.1) && arch (x86_64)
         ghc-options:    -O0

@@ -15,11 +15,11 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.WindowBringer (
-				    -- * Usage
-				    -- $usage
-				    gotoMenu, gotoMenu', bringMenu, windowMap,
-				    bringWindow
-				   ) where
+                    -- * Usage
+                    -- $usage
+                    gotoMenu, gotoMenu', bringMenu, windowMap,
+                    bringWindow
+                   ) where
 
 import Data.Char (toLower)
 import qualified Data.Map as M

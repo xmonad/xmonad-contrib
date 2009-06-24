@@ -96,14 +96,14 @@ listOfThemes = [ xmonadTheme
                , robertTheme
                , donaldTheme
                , wfarrTheme
-	       , kavonForestTheme
-	       , kavonLakeTheme
-	       , kavonPeacockTheme
-	       , kavonVioGreenTheme
-	       , kavonBluesTheme
-	       , kavonAutumnTheme
-	       , kavonFireTheme
-	       , kavonChristmasTheme
+               , kavonForestTheme
+               , kavonLakeTheme
+               , kavonPeacockTheme
+               , kavonVioGreenTheme
+               , kavonBluesTheme
+               , kavonAutumnTheme
+               , kavonFireTheme
+               , kavonChristmasTheme
                ]
 
 -- | The default xmonad theme, by David Roundy.
