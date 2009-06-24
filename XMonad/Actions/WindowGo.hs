@@ -28,13 +28,17 @@ module XMonad.Actions.WindowGo (
                  runOrRaiseMaster,
                  raiseAndDo,
                  raiseMaster,
+
+                 ifWindows,
+                 ifWindow,
+                 raiseHook,
                  module XMonad.ManageHook
                 ) where
 
-import Control.Monad (filterM)
+import Control.Monad
 import Data.Char (toLower)
-
-import XMonad (Query(), X(), withWindowSet, runQuery, liftIO)
+import Data.Monoid
+import XMonad (Query(), X(), ManageHook, withWindowSet, runQuery, liftIO, ask)
 import Graphics.X11 (Window)
 import XMonad.ManageHook
 import XMonad.Operations (windows)
@@ -59,6 +63,21 @@ appropriate one, or cover your bases by using instead something like
 
 For detailed instructions on editing your key bindings, see
 "XMonad.Doc.Extending#Editing_key_bindings". -}
+
+-- | If windows that satisfy the query exist, apply the supplied
+-- function to them, otherwise run the action given as
+-- second parameter.
+ifWindows :: Query Bool -> ([Window] -> X ()) -> X () -> X ()
+ifWindows qry f el = withWindowSet $ \wins -> do
+  matches <- filterM (runQuery qry) $ W.allWindows wins
+  case matches of
+    [] -> el
+    ws -> f ws
+
+-- | The same as ifWindows, but applies a ManageHook to the first match
+-- instead and discards the other matches
+ifWindow :: Query Bool -> ManageHook -> X () -> X ()
+ifWindow qry mh = ifWindows qry (windows . appEndo <=< runQuery mh . head)
 
 -- | 'action' is an executable to be run via 'safeSpawnProg' (of "XMonad.Util.Run") if the Window cannot be found.
 --   Presumably this executable is the same one that you were looking for.
@@ -96,11 +115,11 @@ raise = raiseMaybe $ return ()
   > , ((modm, xK_m), raiseMaybe (runInTerm "-title mutt" "mutt") (title =? "mutt"))
 -}
 raiseMaybe :: X () -> Query Bool -> X ()
-raiseMaybe f thatUserQuery = withWindowSet $ \s -> do
-    maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
-    case maybeResult of
-      []     -> f
-      (x:_)  -> windows $ W.focusWindow x
+raiseMaybe f qry = ifWindow qry raiseHook f
+
+-- | A manage hook that raises the window.
+raiseHook :: ManageHook
+raiseHook = ask >>= doF . W.focusWindow
 
 -- | See 'runOrRaise' and 'raiseNextMaybe'. Version that allows cycling through matches.
 runOrRaiseNext :: String -> Query Bool -> X ()
@@ -116,18 +135,14 @@ raiseNext = raiseNextMaybe $ return ()
      query the next matching window is raised. If no matches are found
      the function f is executed.
 -}
+
 raiseNextMaybe :: X () -> Query Bool -> X ()
-raiseNextMaybe f thatUserQuery = withWindowSet $ \s -> do
-  ws <- filterM (runQuery thatUserQuery) (W.allWindows s)
-  case ws of
-    []    -> f
-    (x:_) -> let go (Just w) | (w `elem` ws) = next w $ cycle ws
-                 go _ = windows $ W.focusWindow x
-             in go $ W.peek s
-  where
-    next w (x:y:_) | x==w = windows $ W.focusWindow y
-    next w (_:xs)         = next w xs
-    next _ _ = error "raiseNextMaybe: empty list"
+raiseNextMaybe f qry = flip (ifWindows qry) f $ \ws -> do
+  foc <- withWindowSet $ return . W.peek
+  case foc of
+    Just w | w `elem` ws -> let (_:y:_) = dropWhile (/=w) $ cycle ws -- cannot fail to match
+                            in windows $ W.focusWindow y
+    _ -> windows . W.focusWindow . head $ ws
 
 -- | Given a function which gets us a String, we try to raise a window with that classname,
 --   or we then interpret that String as a executable name.
@@ -145,12 +160,8 @@ raiseEditor  = raiseVar getEditor
      otherwise, the first argument is called
      See 'raiseMaster' for an example. -}
 raiseAndDo :: X () -> Query Bool -> (Window -> X ())-> X ()
-raiseAndDo raisef thatUserQuery afterRaise = withWindowSet $ \s -> do
-    maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
-    case maybeResult of
-      []     -> raisef
-      (x:_)  -> do windows $ W.focusWindow x
-                   afterRaise x
+raiseAndDo f qry after = ifWindow qry (afterRaise `mappend` raiseHook) f
+    where afterRaise = ask >>= (>> idHook) . liftX . after
 
 {- | If a window matching the second arugment is found, the window is focused and the third argument is called;
      otherwise, the first argument is called. -}
