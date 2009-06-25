@@ -41,6 +41,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  images,
                                  imdb,
                                  isohunt,
+                                 lucky,
                                  maps,
                                  mathworld,
                                  scholar,
@@ -110,6 +111,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'imdb'   -- the Internet Movie Database.
 
 * 'isohunt' -- isoHunt search.
+
+* 'lucky' -- Google "I'm feeling lucky" search.
 
 * 'maps'   -- Google maps.
 
@@ -271,8 +274,8 @@ searchEngineF = SearchEngine
 
 
 -- The engines.
-amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, 
-  images, imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
+amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
+  images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
   youtube :: SearchEngine
 amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 alpha      = searchEngine "alpha"      "http://www.wolframalpha.com/input/?i="
@@ -287,6 +290,7 @@ hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
 images     = searchEngine "images"     "http://images.google.fr/images?q="
 imdb       = searchEngine "imdb"       "http://www.imdb.com/Find?select=all&for="
 isohunt    = searchEngine "isohunt"    "http://isohunt.com/torrents/?ihq="
+lucky      = searchEngine "lucky"      "http://www.google.com/search?btnI&q="
 maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
 mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
 scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
@@ -299,7 +303,7 @@ youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_ty
 wayback   = searchEngine "wayback" "http://web.archive.org/"
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, maps, mathworld, scholar, thesaurus, wayback, wikipedia, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, (prefixAware google)]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
