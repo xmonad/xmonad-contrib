@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutCombinators

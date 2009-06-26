@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
-{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, MultiParamTypeClasses, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
 -- |

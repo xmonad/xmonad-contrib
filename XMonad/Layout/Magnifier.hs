@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Magnifier

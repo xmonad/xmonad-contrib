@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
 {-# OPTIONS -fglasgow-exts #-}
--- deriving Typeable
+-- deriving Typeable for ghc-6.6 compatibility, which is retained in the core
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks

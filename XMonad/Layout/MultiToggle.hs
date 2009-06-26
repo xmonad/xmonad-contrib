@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# LANGUAGE DeriveDataTypeable, ExistentialQuantification, Rank2Types, MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, FlexibleContexts, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -92,10 +92,7 @@ import Data.Maybe
 -- >     transform _ x k = k (Mirror x)
 --
 -- Note, you need to put @{-\# LANGUAGE DeriveDataTypeable \#-}@ at the
--- beginning of your file (ghc 6.8 only; with ghc 6.6 you can use
--- @{-\# OPTIONS_GHC -fglasgow-exts \#-}@ instead) to be able to
--- derive "Data.Typeable".
---
+-- beginning of your file.
 
 -- | A class to identify custom transformers (and look up transforming
 -- functions by type).

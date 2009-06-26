@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
 -- |

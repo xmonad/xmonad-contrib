@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- for deriving Typeable
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Decoration
