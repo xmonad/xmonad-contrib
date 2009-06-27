@@ -89,6 +89,7 @@ library
                         XMonad.Actions.Plane
                         XMonad.Actions.Promote
                         XMonad.Actions.RotSlaves
+                        XMonad.Actions.RandomBackground
                         XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll
