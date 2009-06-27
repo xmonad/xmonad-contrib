@@ -157,9 +157,9 @@ class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
     -- | The pure version of the main method, 'decorate'.
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
                    -> W.Stack a -> [(a,Rectangle)] -> (a,Rectangle) -> Maybe Rectangle
-    pureDecoration _ _ ht _ s _ (w,Rectangle x y wh _) = if isInStack s w
-                                                         then Just $ Rectangle x y wh ht
-                                                         else Nothing
+    pureDecoration _ _ ht _ s _ (w,Rectangle x y wh ht') = if isInStack s w && (ht < ht')
+                                                             then Just $ Rectangle x y wh ht
+                                                             else Nothing
 
     -- | Given the theme's decoration width and height, the screen
     -- rectangle, the windows stack, the list of windows and
