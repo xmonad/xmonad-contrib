@@ -277,16 +277,16 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
         let gs' = updateGroup st $ toGroups osls
         sls <- fromGroups defl st gs' osls
 
-        let newL :: LayoutClass l Window => Rectangle -> WorkspaceId -> (l Window,Bool)
+        let newL :: LayoutClass l Window => Rectangle -> WorkspaceId -> (l Window) -> Bool
                     -> (Maybe (W.Stack Window)) -> X ([(Window, Rectangle)], l Window)
-            newL rect n (ol, mess) sst = do
+            newL rect n ol isNew sst = do
                 orgStack <- currentStack
                 -- this would be much cleaner with some kind of data-accessor
                 let chStack x = modify (\s -> s { windowset = (windowset s)
                                     { W.current = (W.current $ windowset s)
                                     { W.workspace = (W.workspace $ W.current $ windowset s) { W.stack = x }}}})
                 let handle l (y,_)
-                        | mess = fromMaybe l <$> handleMessage l y
+                        | not isNew = fromMaybe l <$> handleMessage l y
                         | otherwise = return l
                     kms = filter ((`elem` M.keys gs') . snd) ms
                 chStack sst
@@ -295,13 +295,13 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
                 chStack orgStack -- FIXME: merge back reordering, deletions?
                 return $ fromMaybe nl `second` result
 
-            (urls,ssts) = unzip [ (newL gr i l sst, sst)
-                    | l <- map (second $ const True) sls
+            (urls,ssts) = unzip [ (newL gr i l isNew sst, sst)
+                    | (isNew,(l,_st)) <- sls
                     | i <- map show [ 0 :: Int .. ]
                     | (k,gr) <- arrs, let sst = M.lookup k gs' ]
 
         arrs' <- sequence urls
-        sls' <- return . Sublayout (I []) defl <$> fromGroups defl st gs'
+        sls' <- return . Sublayout (I []) defl . map snd <$> fromGroups defl st gs'
                         [ (l,s) | (_,l) <- arrs' | (Just s) <- ssts ]
         return (concatMap fst arrs', sls')
 
@@ -356,7 +356,7 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
      where gs = toGroups sls
            fgs gs' = do
                 st <- currentStack
-                Just . Sublayout (I ms) defl <$> fromGroups defl st gs' sls
+                Just . Sublayout (I ms) defl . map snd <$> fromGroups defl st gs' sls
 
            -- catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
            --  This l must be the same as from the instance head,
@@ -439,7 +439,7 @@ fromGroups :: (LayoutClass layout a, Ord k) =>
               -> Maybe (W.Stack k)
               -> Groups k
               -> [(layout a, b)]
-              -> X [(layout a, W.Stack k)]
+              -> X [(Bool,(layout a, W.Stack k))]
 fromGroups (skips,defl) st gs sls = do
     defls <- mapM (iterateM nextL defl !!) skips
     return $ fromGroups' defl defls st gs (map fst sls)
@@ -447,11 +447,11 @@ fromGroups (skips,defl) st gs sls = do
               iterateM f = iterate (>>= f) . return
 
 fromGroups' :: (Ord k) => a -> [a] -> Maybe (W.Stack k) -> Groups k -> [a]
-                    -> [(a, W.Stack k)]
+                    -> [(Bool,(a, W.Stack k))]
 fromGroups' defl defls st gs sls =
-    [ fromMaybe2 (dl, single w) (l, M.lookup w gs)
+    [ (isNew,fromMaybe2 (dl, single w) (l, M.lookup w gs))
         | l <- map Just sls ++ repeat Nothing
-        | dl <- defls ++ repeat defl
+        | (isNew,dl) <- map ((,) False) defls ++ map ((,) True) (repeat defl)
         | w <- W.integrate' $ W.filter (`notElem` unfocs) =<< st ]
     where unfocs = unfocused =<< M.elems gs
           single w = W.Stack w [] []
