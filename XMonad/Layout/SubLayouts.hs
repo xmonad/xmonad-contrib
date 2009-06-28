@@ -79,8 +79,8 @@ import Data.Map(Map)
 --      still leaves borders sticking around
 --
 --  Issue 288: "XMonad.Layout.ResizableTile" assumes that its environment
---  contains only the windows it is running: should sublayouts be run in a
---  restricted environment that is then merged back?
+--  contains only the windows it is running: sublayouts are run in a restricted
+--  environment, should it be merged back?
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -280,12 +280,20 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
         let newL :: LayoutClass l Window => Rectangle -> WorkspaceId -> (l Window,Bool)
                     -> (Maybe (W.Stack Window)) -> X ([(Window, Rectangle)], l Window)
             newL rect n (ol, mess) sst = do
+                orgStack <- currentStack
+                -- this would be much cleaner with some kind of data-accessor
+                let chStack x = modify (\s -> s { windowset = (windowset s)
+                                    { W.current = (W.current $ windowset s)
+                                    { W.workspace = (W.workspace $ W.current $ windowset s) { W.stack = x }}}})
                 let handle l (y,_)
                         | mess = fromMaybe l <$> handleMessage l y
                         | otherwise = return l
                     kms = filter ((`elem` M.keys gs') . snd) ms
+                chStack sst
                 nl <- foldM handle ol $ filter ((`elem` W.integrate' sst) . snd) kms
-                fmap (fromMaybe nl) <$> runLayout (W.Workspace n nl sst) rect
+                result <- runLayout (W.Workspace n nl sst) rect
+                chStack orgStack -- FIXME: merge back reordering, deletions?
+                return $ fromMaybe nl `second` result
 
             (urls,ssts) = unzip [ (newL gr i l sst, sst)
                     | l <- map (second $ const True) sls
