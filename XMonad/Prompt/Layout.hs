@@ -50,7 +50,4 @@ instance XPrompt Wor where
 
 layoutPrompt :: XPConfig -> X ()
 layoutPrompt c = do ls <- gets (map (description . layout) . workspaces . windowset)
-                    mkXPrompt (Wor "") c (mkCompl $ sort $ nub ls) (sendMessage . JumpToLayout)
-
-mkCompl :: [String] -> String -> IO [String]
-mkCompl l s = return $ filter (\x -> take (length s) x == s) l
+                    mkXPrompt (Wor "") c (mkComplFunFromList' $ sort $ nub ls) (sendMessage . JumpToLayout)
