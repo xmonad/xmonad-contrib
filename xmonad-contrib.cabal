@@ -84,6 +84,7 @@ library
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
                         XMonad.Actions.NoBorders
+                        XMonad.Actions.OnScreen
                         XMonad.Actions.PerWorkspaceKeys
                         XMonad.Actions.PhysicalScreens
                         XMonad.Actions.Plane
