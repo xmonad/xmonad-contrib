@@ -22,9 +22,10 @@ module XMonad.Actions.CopyWindow (
                                 ) where
 
 import Prelude hiding (filter)
-import Control.Monad (filterM)
+import Control.Monad
 import qualified Data.List as L
 import XMonad hiding (modify, workspaces)
+import XMonad.Actions.WindowGo
 import qualified XMonad.StackSet as W
 
 -- $usage
@@ -98,15 +99,10 @@ copyWindow w n = copy'
 runOrCopy :: String -> Query Bool -> X ()
 runOrCopy = copyMaybe . spawn
 
--- | copyMaybe. Copies "XMonad.Actions.WindowGo" ('raiseMaybe')
---   TODO: Factor out and improve with regard to WindowGo.
+-- | Copy a window if it exists, run the first argument otherwise
 copyMaybe :: X () -> Query Bool -> X ()
-copyMaybe f thatUserQuery = withWindowSet $ \s -> do
-    maybeResult <- filterM (runQuery thatUserQuery) (W.allWindows s)
-    case maybeResult of
-        []    -> f
-        (x:_) -> windows $ copyWindow x (W.currentTag s)
-
+copyMaybe f qry = ifWindow qry copyWin f
+    where copyWin = ask >>= \w -> doF (\ws -> copyWindow w (W.currentTag ws) ws)
 
 -- | Remove the focused window from this workspace.  If it's present in no
 -- other workspace, then kill it instead. If we do kill it, we'll get a
