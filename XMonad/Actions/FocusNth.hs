@@ -14,7 +14,7 @@
 module XMonad.Actions.FocusNth (
                  -- * Usage
                  -- $usage
-                 focusNth) where
+                 focusNth,focusNth') where
 
 import XMonad.StackSet
 import XMonad
