@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Provides a binding to duplicate a window on multiple workspaces,
+-- Provides bindings to duplicate a window on multiple workspaces,
 -- providing dwm-like tagging functionality.
 --
 -----------------------------------------------------------------------------
@@ -19,12 +19,16 @@ module XMonad.Actions.CopyWindow (
                                  -- $usage
                                  copy, copyToAll, copyWindow, runOrCopy
                                  , killAllOtherCopies, kill1
+                                 -- * Highlight workspaces containing copies in logHook
+                                 -- $logHook
+                                 , wsContainingCopies
                                 ) where
 
-import Prelude hiding (filter)
+import XMonad
+import Control.Arrow ((&&&))
 import Control.Monad
 import qualified Data.List as L
-import XMonad hiding (modify, workspaces)
+
 import XMonad.Actions.WindowGo
 import qualified XMonad.StackSet as W
 
@@ -53,7 +57,7 @@ import qualified XMonad.StackSet as W
 --
 -- >  , ((modMask x .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
 --
--- Instead of copying a window from a workset to a workset maybe you don't
+-- Instead of copying a window from one workspace to another maybe you don't
 -- want to have to remember where you placed it.  For that consider:
 --
 -- >  , ((modMask x, xK_b    ), runOrCopy "firefox" (className =? "Firefox")) -- @@ run or copy firefox
@@ -72,16 +76,30 @@ import qualified XMonad.StackSet as W
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
--- | copy. Copy the focused window to a new workspace.
+-- $logHook
+-- To distinguish workspaces containing copies of the focused window use
+-- something like:
+--
+-- > sampleLogHook h = do
+-- >    copies <- wsContainingCopies
+-- >    let check ws | ws `elem` copies = pad . xmobarColor "red" "black" $ ws
+-- >                 | otherwise = pad ws
+-- >    dynamicLogWithPP myPP {ppHidden = check, ppOutput = hPutStrLn h}
+-- >
+-- > main = do
+-- >    h <- spawnPipe "xmobar"
+-- >    xmonad defaultConfig { logHook = sampleLogHook h }
+
+-- | Copy the focused window to a workspace.
 copy :: (Eq s, Eq i, Eq a) => i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
 copy n s | Just w <- W.peek s = copyWindow w n s
          | otherwise = s
 
--- | copyToAll. Copy the focused window to all of workspaces.
+-- | Copy the focused window to all workspaces.
 copyToAll :: (Eq s, Eq i, Eq a) => W.StackSet i l a s sd -> W.StackSet i l a s sd
 copyToAll s = foldr copy s $ map W.tag (W.workspaces s)
 
--- | copyWindow.  Copy a window to a new workspace
+-- | Copy an arbitrary window to a workspace.
 copyWindow :: (Eq a, Eq i, Eq s) => a -> i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
 copyWindow w n = copy'
     where copy' s = if n `W.tagMember` s
@@ -93,13 +111,13 @@ copyWindow w n = copy'
                                              else Just $ W.Stack a (L.delete a l) (L.delete a (t:r))) s
 
 
--- | runOrCopy .  runOrCopy will run the provided shell command unless it can
+-- | runOrCopy will run the provided shell command unless it can
 --  find a specified window in which case it will copy the window to
 --  the current workspace.  Similar to (i.e., stolen from) "XMonad.Actions.WindowGo".
 runOrCopy :: String -> Query Bool -> X ()
 runOrCopy = copyMaybe . spawn
 
--- | Copy a window if it exists, run the first argument otherwise
+-- | Copy a window if it exists, run the first argument otherwise.
 copyMaybe :: X () -> Query Bool -> X ()
 copyMaybe f qry = ifWindow qry copyWin f
     where copyWin = ask >>= \w -> doF (\ws -> copyWindow w (W.currentTag ws) ws)
@@ -109,7 +127,7 @@ copyMaybe f qry = ifWindow qry copyWin f
 -- delete notify back from X.
 --
 -- There are two ways to delete a window. Either just kill it, or if it
--- supports the delete protocol, send a delete event (e.g. firefox)
+-- supports the delete protocol, send a delete event (e.g. firefox).
 kill1 :: X ()
 kill1 = do ss <- gets windowset
            whenJust (W.peek ss) $ \w -> if W.member w $ delete'' w ss
@@ -117,10 +135,8 @@ kill1 = do ss <- gets windowset
                                       else kill
     where delete'' w = W.modify Nothing (W.filter (/= w))
 
--- | Kill all other copies of focused window (if they're present)
--- 'All other' means here 'copies, which are not on current workspace'
---
--- TODO: Call this function after 'copyToAll'?
+-- | Kill all other copies of focused window (if they're present).
+-- 'All other' means here 'copies which are not on the current workspace'.
 killAllOtherCopies :: X ()
 killAllOtherCopies = do ss <- gets windowset
                         whenJust (W.peek ss) $ \w -> windows $
@@ -131,3 +147,18 @@ killAllOtherCopies = do ss <- gets windowset
                                   map (delWinFromWorkspace w . W.tag) $
                                   W.hidden ss ++ map W.workspace (W.visible ss)
       delWinFromWorkspace w wid = W.modify Nothing (W.filter (/= w)) . W.view wid
+
+-- | A list of hidden workspaces containing a copy of the focused window.
+wsContainingCopies :: X [WorkspaceId]
+wsContainingCopies = do
+    ws <- gets windowset
+    return $ copiesOfOn (W.peek ws) (taggedWindows $ W.hidden ws)
+
+-- | Get a list of tuples (tag, [Window]) for each workspace.
+taggedWindows :: [W.Workspace i l a] -> [(i, [a])]
+taggedWindows = map $ W.tag &&& W.integrate' . W.stack
+
+-- | Get tags with copies of the focused window (if present.)
+copiesOfOn :: (Eq a) => Maybe a -> [(i, [a])] -> [i]
+copiesOfOn foc tw = maybe [] hasCopyOf foc
+  where hasCopyOf f = map fst $ filter ((f `elem` ) . snd) tw
