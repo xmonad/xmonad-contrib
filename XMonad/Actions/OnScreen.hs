@@ -22,7 +22,10 @@ module XMonad.Actions.OnScreen (
     ) where
 
 import XMonad.StackSet
+import Control.Monad(guard)
 import Data.List
+import Data.Maybe(fromMaybe)
+import Data.Function(on)
 
 -- $usage
 --
@@ -58,7 +61,7 @@ import Data.List
 -- A more basic version inside the default keybindings would be:
 --
 -- >        , ((modMask .|. controlMask, xK_1) windows (viewOnScreen 0 "1"))
--- 
+--
 -- where 0 is the first screen and "1" the workspace with the tag "1".
 --
 -- For detailed instructions on editing your key bindings, see
@@ -73,22 +76,16 @@ onScreen :: (Eq sid, Eq i)
           -> i                        -- ^ index of the workspace
           -> StackSet i l a sid sd    -- ^ current stack
           -> StackSet i l a sid sd
-onScreen defFunc sc i st
-    | screen (current st) /= sc =
-        case ( find ((i==) . tag) (hidden  st)
-             , find ((sc==) . screen) (screens st)
-             , find ((sc==) . screen) (visible st)) of
-
-             (Just x, Just s, Just o) ->
-                 let newScreen = s { workspace = x }
-                 in st { visible   = newScreen : (deleteBy (equating screen) newScreen (visible st))
-                       , hidden    = (workspace o) : (deleteBy (equating tag) x (hidden st))
-                       }
-             _ -> defFunc i st -- no valid screen id/workspace already visible
-
-    | otherwise = defFunc i st -- on current screen
-
-  where equating f x y = f x == f y
+onScreen defFunc sc i st = fromMaybe (defFunc i st) $ do
+    -- on unfocused current screen
+    guard $ screen (current st) /= sc
+    x <- find ((i==) . tag    ) (hidden  st)
+    s <- find ((sc==) . screen) (screens st)
+    o <- find ((sc==) . screen) (visible st)
+    let newScreen = s { workspace = x }
+    return st { visible   = newScreen : deleteBy ((==) `on` screen) newScreen (visible st)
+              , hidden    = workspace o : deleteBy ((==) `on` tag) x (hidden st)
+              }
 
 -- | Switch to workspace 'i' on screen 'sc'. If 'i' is visible use 'greedyView'
 -- to switch the current workspace with workspace 'i'.
