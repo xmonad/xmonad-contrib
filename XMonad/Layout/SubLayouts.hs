@@ -43,7 +43,7 @@ import XMonad.Layout.Tabbed(defaultTheme, shrinkText,
 import XMonad.Layout.WindowNavigation(Direction, Navigate(Apply))
 import XMonad.Util.Invisible(Invisible(..))
 import XMonad
-import Control.Applicative((<$>))
+import Control.Applicative((<$>),(<*))
 import Control.Arrow(Arrow(second, (&&&)))
 import Control.Monad(Monad(return), Functor(..),
                      MonadPlus(mplus), (=<<), sequence, foldM, guard, when, join)
@@ -60,6 +60,22 @@ import qualified Data.Map as M
 import Data.Map(Map)
 
 -- $todo
+--  Issue 288: "XMonad.Layout.ResizableTile" assumes that its environment
+--  contains only the windows it is running: sublayouts are currently run with
+--  the stack containing only the windows passed to it in its environment, but
+--  any changes that the layout makes are not merged back.
+--
+--  Should the behavior be made optional?
+--
+--  Features:
+--
+--   * suggested managehooks for merging specific windows, or the apropriate
+--     layout based hack to find out the number of groups currently showed, but
+--     the size of current window groups is not available (outside of this
+--     growing module)
+--
+--  SimpleTabbed as a SubLayout
+--
 --  'subTabbed' works well, but it would be more uniform to avoid the use of
 --  addTabs, with the sublayout being Simplest (but
 --  'XMonad.Layout.Tabbed.simpleTabbed' is this...).  The only thing to be
@@ -78,9 +94,6 @@ import Data.Map(Map)
 --    * sending ReleaseResources before running it makes xmonad very slow, and
 --      still leaves borders sticking around
 --
---  Issue 288: "XMonad.Layout.ResizableTile" assumes that its environment
---  contains only the windows it is running: sublayouts are run in a restricted
---  environment, should it be merged back?
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -271,7 +284,10 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             let gs' = updateGroup st $ toGroups osls
                 st' = W.filter (`elem` M.keys gs') =<< st
             updateWs gs'
-            runLayout (W.Workspace i la st') r
+            oldStack <- gets $ W.stack . W.workspace . W.current . windowset
+            setStack st'
+            runLayout (W.Workspace i la st') r <* setStack oldStack
+            -- FIXME: merge back reordering, deletions?
 
     redoLayout (Sublayout { delayMess = I ms, def = defl, subls = osls }) _r st arrs = do
         let gs' = updateGroup st $ toGroups osls
@@ -281,18 +297,14 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
                     -> (Maybe (W.Stack Window)) -> X ([(Window, Rectangle)], l Window)
             newL rect n ol isNew sst = do
                 orgStack <- currentStack
-                -- this would be much cleaner with some kind of data-accessor
-                let chStack x = modify (\s -> s { windowset = (windowset s)
-                                    { W.current = (W.current $ windowset s)
-                                    { W.workspace = (W.workspace $ W.current $ windowset s) { W.stack = x }}}})
                 let handle l (y,_)
                         | not isNew = fromMaybe l <$> handleMessage l y
                         | otherwise = return l
                     kms = filter ((`elem` M.keys gs') . snd) ms
-                chStack sst
+                setStack sst
                 nl <- foldM handle ol $ filter ((`elem` W.integrate' sst) . snd) kms
                 result <- runLayout (W.Workspace n nl sst) rect
-                chStack orgStack -- FIXME: merge back reordering, deletions?
+                setStack orgStack -- FIXME: merge back reordering, deletions?
                 return $ fromMaybe nl `second` result
 
             (urls,ssts) = unzip [ (newL gr i l isNew sst, sst)
@@ -456,3 +468,10 @@ fromGroups' defl defls st gs sls =
     where unfocs = unfocused =<< M.elems gs
           single w = W.Stack w [] []
           fromMaybe2 (a,b) (x,y) = (fromMaybe a x, fromMaybe b y)
+
+
+-- this would be much cleaner with some kind of data-accessor
+setStack :: Maybe (W.Stack Window) -> X ()
+setStack x = modify (\s -> s { windowset = (windowset s)
+                { W.current = (W.current $ windowset s)
+                { W.workspace = (W.workspace $ W.current $ windowset s) { W.stack = x }}}})
