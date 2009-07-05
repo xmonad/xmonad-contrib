@@ -50,7 +50,7 @@ import Control.Monad(Monad(return), Functor(..),
 import Data.Function((.), ($), flip, id, on)
 import Data.List((++), foldr, filter, map, concatMap, elem,
                  notElem, null, nubBy, (\\), find)
-import Data.Maybe(Maybe(..), maybe, fromMaybe, listToMaybe,
+import Data.Maybe(Maybe(..), isNothing, maybe, fromMaybe, listToMaybe,
                   mapMaybe)
 import Data.Traversable(sequenceA)
 
@@ -450,8 +450,8 @@ fromGroups' :: (Ord k) => a -> [a] -> Maybe (W.Stack k) -> Groups k -> [a]
                     -> [(Bool,(a, W.Stack k))]
 fromGroups' defl defls st gs sls =
     [ (isNew,fromMaybe2 (dl, single w) (l, M.lookup w gs))
-        | l <- map Just sls ++ repeat Nothing
-        | (isNew,dl) <- map ((,) False) defls ++ map ((,) True) (repeat defl)
+        | l <- map Just sls ++ repeat Nothing, let isNew = isNothing l
+        | dl <- defls ++ repeat defl
         | w <- W.integrate' $ W.filter (`notElem` unfocs) =<< st ]
     where unfocs = unfocused =<< M.elems gs
           single w = W.Stack w [] []
