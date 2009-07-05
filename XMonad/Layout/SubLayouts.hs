@@ -228,7 +228,10 @@ data GroupMsg a
                 -- ^ separate the focused group into singleton groups
     | Merge a a -- ^ merge the first group into the second group
     | MergeAll a
-                -- ^ make one large group, keeping a focused
+                -- ^ make one large group, keeping the parameter focused
+    | Migrate a a
+                -- ^ used to move windows from one group to another, this may
+                -- be replaced by a combination of 'UnMerge' and 'Merge'
     | WithGroup (W.Stack a -> X (W.Stack a)) a
     | SubMessage SomeMessage  a
                 -- ^ the sublayout with the given window will get the message
@@ -252,20 +255,16 @@ data Broadcast = Broadcast SomeMessage -- ^ send a message to all sublayouts
 instance Message Broadcast
 instance Typeable a => Message (GroupMsg a)
 
--- | pullGroup, pushGroup allow you to merge windows or groups inheriting the
--- position of the current window (pull) or the other window (push).
-pullGroup :: Direction -> Navigate
+-- | @pullGroup@, @pushGroup@ allow you to merge windows or groups inheriting
+-- the position of the current window (pull) or the other window (push).
+--
+-- @pushWindow@ and @pullWindow@ move individual windows between groups. They
+-- are less effective at preserving window positions.
+pullGroup,pushGroup,pullWindow,pushWindow :: Direction -> Navigate
 pullGroup = mergeNav (\o c -> sendMessage $ Merge o c)
-
-
-pullWindow :: Direction -> Navigate
-pullWindow = mergeNav (\o c -> sendMessage (UnMerge o) >> sendMessage (Merge o c))
-
-pushGroup :: Direction -> Navigate
 pushGroup = mergeNav (\o c -> sendMessage $ Merge c o)
-
-pushWindow :: Direction -> Navigate
-pushWindow = mergeNav (\o c -> sendMessage (UnMerge c) >> sendMessage (Merge c o))
+pullWindow = mergeNav (\o c -> sendMessage $ Migrate o c)
+pushWindow = mergeNav (\o c -> sendMessage $ Migrate c o)
 
 mergeNav :: (Window -> Window -> X ()) -> Direction -> Navigate
 mergeNav f = Apply (\o -> withFocused (f o))
@@ -364,12 +363,23 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             fgs . M.fromList . map (W.focus &&& id) . M.elems
                     $ M.mapMaybe (W.filter (x/=)) gs
 
+        -- XXX sometimes this migrates an incorrect window, why?
+        | Just (Migrate x y) <- fromMessage m
+        , Just xst <- findGroup x
+        , Just (W.Stack yf yu yd) <- findGroup y =
+            let zs = W.Stack x (yf:yu) yd
+                nxsAdd = maybe id (\e -> M.insert (W.focus e) e) $ W.filter (x/=) xst
+            in fgs $ nxsAdd $ M.insert x zs $ M.delete yf gs
+
+
         | otherwise = fmap join $ sequenceA $ catchLayoutMess <$> fromMessage m
      where gs = toGroups sls
            fgs gs' = do
                 st <- currentStack
                 Just . Sublayout (I ms) defl . map snd <$> fromGroups defl st gs' sls
 
+           findGroup z = mplus (M.lookup z gs) $ listToMaybe
+                    $ M.elems $ M.filter ((z `elem`) . W.integrate) gs
            -- catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
            --  This l must be the same as from the instance head,
            --  -XScopedTypeVariables should bring it into scope, but we are
