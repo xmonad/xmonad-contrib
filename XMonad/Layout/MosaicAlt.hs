@@ -5,12 +5,12 @@
 -- Module      :  XMonad.Layout.MosaicAlt
 -- Copyright   :  (c) 2007 James Webb
 -- License     :  BSD-style (see xmonad/LICENSE)
--- 
+--
 -- Maintainer  :  xmonad#jwebb,sygneca,com
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A layout which gives each window a specified amount of screen space 
+-- A layout which gives each window a specified amount of screen space
 -- relative to the others. Compared to the 'Mosaic' layout, this one
 -- divides the space in a more balanced way.
 --

@@ -54,7 +54,7 @@ oneBigMessage (OneBig cx cy) m = fmap resize (fromMessage m)
 
 -- | Main layout function
 oneBigLayout :: OneBig a -> Rectangle -> W.Stack a -> [(a, Rectangle)]
-oneBigLayout (OneBig cx cy) rect stack = [(master,masterRect)] 
+oneBigLayout (OneBig cx cy) rect stack = [(master,masterRect)]
                                       ++ (divideBottom bottomRect bottomWs)
                                       ++ (divideRight rightRect rightWs)
       where ws = W.integrate stack
@@ -106,7 +106,7 @@ cright cx cy (Rectangle sx sy sw sh) = Rectangle x sy w h
           x = round (fromIntegral sw*cx+(fromIntegral sx))
           h = round (fromIntegral sh*cy)
 
--- | Divide bottom rectangle between windows 
+-- | Divide bottom rectangle between windows
 divideBottom :: Rectangle -> [a] -> [(a, Rectangle)]
 divideBottom (Rectangle x y w h) ws = zip ws rects
     where n = length ws
@@ -122,7 +122,7 @@ divideRight (Rectangle x y w h) ws = if (n==0) then [] else zip ws rects
           oneRect = Rectangle x y w (fromIntegral oneH)
           rects = take n $ iterate (shiftB (fromIntegral oneH)) oneRect
 
--- | Shift rectangle right 
+-- | Shift rectangle right
 shiftR :: Position -> Rectangle -> Rectangle
 shiftR s (Rectangle x y w h) = Rectangle (x+s) y w h
 

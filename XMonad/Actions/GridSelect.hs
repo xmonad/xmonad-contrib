@@ -230,7 +230,7 @@ hsv2rgb (h,s,v) =
 
 -- | Default colorizer for Strings
 defaultColorizer :: String -> Bool -> X (String, String)
-defaultColorizer s active = 
+defaultColorizer s active =
     let seed x = toInteger (sum $ map ((*x).fromEnum) s) :: Integer
         (r,g,b) = hsv2rgb ((seed 83) `mod` 360,
                            (fromInteger ((seed 191) `mod` 1000))/2500+0.4,
@@ -254,17 +254,17 @@ colorRangeFromClassName :: (Word8, Word8, Word8) -- ^ Beginning of the color ran
                         -> (Word8, Word8, Word8) -- ^ Inactive text color
                         -> (Word8, Word8, Word8) -- ^ Active text color
                         -> Window -> Bool -> X (String, String)
-colorRangeFromClassName startC endC activeC inactiveT activeT w active = 
+colorRangeFromClassName startC endC activeC inactiveT activeT w active =
     do classname <- runQuery className w
-       if active 
+       if active
          then return (rgbToHex activeC, rgbToHex activeT)
-         else return (rgbToHex $ mix startC endC 
+         else return (rgbToHex $ mix startC endC
                   $ stringToRatio classname, rgbToHex inactiveT)
     where rgbToHex :: (Word8, Word8, Word8) -> String
           rgbToHex (r, g, b) = '#':twodigitHex r
                                ++twodigitHex g++twodigitHex b
 
--- | Creates a mix of two colors according to a ratio 
+-- | Creates a mix of two colors according to a ratio
 -- (1 -> first color, 0 -> second color).
 mix :: (Word8, Word8, Word8) -> (Word8, Word8, Word8)
         -> Double -> (Word8, Word8, Word8)

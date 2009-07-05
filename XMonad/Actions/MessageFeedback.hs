@@ -52,8 +52,8 @@ import Control.Applicative ((<$>))
 --
 -- is mis-typed. For this reason, this module provides alternatives (ending with
 -- an underscore, e.g. tryMessage_) that discard their result and return an @X ()@.
--- For example, to correct the previous example: 
--- 
+-- For example, to correct the previous example:
+--
 -- > ((modKey, xK_Left), tryMessage_ Shrink (MoveLeft 50))
 --
 

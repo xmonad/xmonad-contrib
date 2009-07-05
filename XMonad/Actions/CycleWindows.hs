@@ -18,7 +18,7 @@
 -- * Cycle windows through the focused position.
 --
 -- * Cycle unfocused windows.
--- 
+--
 -- These bindings are especially useful with layouts that hide some of
 -- the windows in the stack, such as Full, "XMonad.Layout.TwoPane" or
 -- "XMonad.Layout.Mosaic" with three or four panes. See also
@@ -70,7 +70,7 @@ import XMonad.Actions.RotSlaves
 --
 -- Also, if you use focus follows mouse, you will want to read the section
 -- on updating the mouse pointer below.  For detailed instructions on
--- editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings". 
+-- editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings".
 {- $pointer
 With FocusFollowsMouse == True, the focus is updated after binding
 actions, possibly focusing a window you didn't intend to focus. Most

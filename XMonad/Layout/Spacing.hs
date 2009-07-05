@@ -33,7 +33,7 @@ import XMonad.Layout.LayoutModifier
 --
 -- and modifying your layoutHook as follows (for example):
 --
--- > layoutHook = spacing 2 $ Tall 1 (3/100) (1/2)  
+-- > layoutHook = spacing 2 $ Tall 1 (3/100) (1/2)
 -- >                      -- put a 2px space around every window
 --
 

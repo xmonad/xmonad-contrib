@@ -25,7 +25,7 @@ import qualified XMonad.StackSet as S
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
--- 
+--
 -- > import XMonad hiding ((|||))
 -- > import XMonad.Layout.LayoutCombinators ((|||))
 -- > import XMonad.Actions.CycleSelectedLayouts

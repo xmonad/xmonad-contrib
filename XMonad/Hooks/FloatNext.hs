@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Hook and keybindings for automatically sending the next 
+-- Hook and keybindings for automatically sending the next
 -- spawned window(s) to the floating layer.
 --
 -----------------------------------------------------------------------------
@@ -72,11 +72,11 @@ floatModeMVar = unsafePerformIO $ newMVar (False, False)
 
 -- $usage
 -- This module provides actions (that can be set as keybindings)
--- to automatically send the next spawned window(s) to the floating 
+-- to automatically send the next spawned window(s) to the floating
 -- layer.
 --
 -- You can use it by including the following in your @~\/.xmonad\/xmonad.hs@:
--- 
+--
 -- > import XMonad.Hooks.FloatNext
 --
 -- and adding 'floatNextHook' to your 'ManageHook':
@@ -130,23 +130,23 @@ willFloatAllNew = _get snd
 
 -- $pp
 -- The following functions are used to display the current
--- state of 'floatNext' and 'floatAllNew' in your 
+-- state of 'floatNext' and 'floatAllNew' in your
 -- 'XMonad.Hooks.DynamicLog.dynamicLogWithPP'.
 -- 'willFloatNextPP' and 'willFloatAllNewPP' should be added
--- to the 'XMonad.Hooks.DynamicLog.ppExtras' field of your 
+-- to the 'XMonad.Hooks.DynamicLog.ppExtras' field of your
 -- 'XMonad.Hooks.DynamicLog.PP'.
 --
 -- Use 'runLogHook' to refresh the output of your 'logHook', so
 -- that the effects of a 'floatNext'/... will be visible
 -- immediately:
--- 
+--
 -- > , ((modMask, xK_e), toggleFloatNext >> runLogHook)
 --
 -- The @String -> String@ parameters to 'willFloatNextPP' and
--- 'willFloatAllNewPP' will be applied to their output, you 
+-- 'willFloatAllNewPP' will be applied to their output, you
 -- can use them to set the text color, etc., or you can just
 -- pass them 'id'.
- 
+
 willFloatNextPP :: (String -> String) -> X (Maybe String)
 willFloatNextPP = _pp fst "Next"
 

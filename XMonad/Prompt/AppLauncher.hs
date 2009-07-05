@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A module for launch applicationes that receive parameters in the command 
+-- A module for launch applicationes that receive parameters in the command
 -- line. The launcher call a prompt to get the parameters.
 --
 -----------------------------------------------------------------------------
@@ -31,7 +31,7 @@ import XMonad.Prompt.Shell (getShellCompl)
    you want to open a image in gimp program, you can open gimp and then use
    the File Menu to open the image or you can use this module to select
    the image in the command line.
-   
+
    We use Prompt to get the user command line. This also allow to autoexpand
    the names of the files when we are writing the command line.
  -}

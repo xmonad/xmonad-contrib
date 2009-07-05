@@ -53,11 +53,11 @@ import Data.IORef
 -- You must include this @dynHooksRef@ value when using the functions in this
 -- module:
 --
--- > xmonad { keys = myKeys `Data.Map.union` Data.Map.fromList 
--- >                   [((modMask conf, xK_i), oneShotHook dynHooksRef 
--- >                    "FFlaunchHook" (className =? "firefox") (doShift "3") 
+-- > xmonad { keys = myKeys `Data.Map.union` Data.Map.fromList
+-- >                   [((modMask conf, xK_i), oneShotHook dynHooksRef
+-- >                    "FFlaunchHook" (className =? "firefox") (doShift "3")
 -- >                    >> spawn "firefox")
--- >                   ,((modMask conf, xK_u), addDynamicHook dynHooksRef 
+-- >                   ,((modMask conf, xK_u), addDynamicHook dynHooksRef
 -- >                     (className =? "example" --> doFloat))
 -- >                   ,((modMask conf, xK_y), updatePermanentHook dynHooksRef
 -- >                     (const idHook))) ]  -- resets the permanent hook.
@@ -66,7 +66,7 @@ import Data.IORef
 data DynamicHooks = DynamicHooks
     { transients :: [(Query Bool, ManageHook)]
     , permanent  :: ManageHook }
-      
+
 
 -- | Creates the 'IORef' that stores the dynamically created 'ManageHook's.
 initDynamicHooks :: IO (IORef DynamicHooks)
@@ -80,7 +80,7 @@ initDynamicHooks = newIORef (DynamicHooks { transients = [],
 -- doFloat and doIgnore are idempotent.
 -- | Master 'ManageHook' that must be in your @xmonad.hs@ 'ManageHook'.
 dynamicMasterHook :: IORef DynamicHooks -> ManageHook
-dynamicMasterHook ref = return True --> 
+dynamicMasterHook ref = return True -->
                   (ask >>= \w -> liftX (do
   dh <- io $ readIORef ref
   (Endo f)  <- runQuery (permanent dh) w
@@ -99,7 +99,7 @@ addDynamicHook ref m = updateDynamicHook ref (<+> m)
 
 -- | Modifies the permanent 'ManageHook' with an arbitrary function.
 updateDynamicHook :: IORef DynamicHooks -> (ManageHook -> ManageHook) -> X ()
-updateDynamicHook ref f = 
+updateDynamicHook ref f =
     io $ modifyIORef ref $ \dh -> dh { permanent = f (permanent dh) }
 
 
@@ -108,10 +108,10 @@ updateDynamicHook ref f =
 --
 -- > className =? "example" --> doFloat
 --
--- you must call 'oneShotHook' as 
+-- you must call 'oneShotHook' as
 --
 -- > oneShotHook dynHooksRef (className =? "example) doFloat
--- 
+--
 oneShotHook :: IORef DynamicHooks -> Query Bool -> ManageHook -> X ()
 oneShotHook ref q a =
   io $ modifyIORef ref

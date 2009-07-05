@@ -38,7 +38,7 @@ layout = fromSetGet (\x c -> c { layoutHook = x }) layoutHook
 terminal = fromSetGet (\x c -> c { X.terminal = x }) X.terminal
 keys = fromSetGet (\x c -> c { X.keys = x }) X.keys
 
-set :: Accessor (XConfig LayoutList) a -> a -> Config () 
+set :: Accessor (XConfig LayoutList) a -> a -> Config ()
 set r x = tell (mkW $ r ^= x)
 add r x = tell (mkW (r ^: mappend x))
 

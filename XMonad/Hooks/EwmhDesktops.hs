@@ -100,7 +100,7 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
                 setWindowDesktop win curr
 
     forM_ (W.hidden s) $ \w ->
-        case elemIndex (W.tag w) (map W.tag ws) of 
+        case elemIndex (W.tag w) (map W.tag ws) of
           Nothing -> return ()
           Just wn -> forM_ (W.integrate' (W.stack w)) $ \win -> do
                          setWindowDesktop win wn

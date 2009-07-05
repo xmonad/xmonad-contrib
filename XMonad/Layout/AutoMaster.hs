@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Provides layout modifier AutoMaster. It separates screen in two parts - 
+-- Provides layout modifier AutoMaster. It separates screen in two parts -
 -- master and slave. Size of slave area automatically changes depending on
 -- number of slave windows.
 --
@@ -49,7 +49,7 @@ data AutoMaster a = AutoMaster Int Float Float
     deriving (Read,Show)
 
 instance LayoutModifier AutoMaster Window where
-    modifyLayout (AutoMaster k bias _) = autoLayout k bias 
+    modifyLayout (AutoMaster k bias _) = autoLayout k bias
     pureMess = autoMess
 
 -- | Handle Shrink/Expand and IncMasterN messages
@@ -101,7 +101,7 @@ slaveRect (Rectangle sx sy sw sh) n bias = Rectangle sx (sy+mh) sw h
     where mh = round $ (fromIntegral sh)*(masterHeight n bias)
           h  = round $ (fromIntegral sh)*(1-masterHeight n bias)
 
--- | Divide rectangle between windows 
+-- | Divide rectangle between windows
 divideRow :: Rectangle -> [a] -> [(a, Rectangle)]
 divideRow (Rectangle x y w h) ws = zip ws rects
     where n = length ws
@@ -109,7 +109,7 @@ divideRow (Rectangle x y w h) ws = zip ws rects
           oneRect = Rectangle x y (fromIntegral oneW) h
           rects = take n $ iterate (shiftR (fromIntegral oneW)) oneRect
 
--- | Shift rectangle right 
+-- | Shift rectangle right
 shiftR :: Position -> Rectangle -> Rectangle
 shiftR s (Rectangle x y w h) = Rectangle (x+s) y w h
 

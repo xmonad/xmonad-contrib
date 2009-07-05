@@ -32,7 +32,7 @@ import qualified Data.Map as M
 -- > main = xmonad kdeConfig
 --
 -- For KDE 4, replace 'kdeConfig' with 'kde4Config'
--- 
+--
 
 kdeConfig = desktopConfig
     { terminal = "konsole"

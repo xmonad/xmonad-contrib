@@ -27,7 +27,7 @@ import Data.Ratio
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import XMonad.Layout.Roledex 
+-- > import XMonad.Layout.Roledex
 --
 -- Then edit your @layoutHook@ by adding the Roledex layout:
 --
@@ -51,8 +51,8 @@ roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
  where ups    = W.up ws
        dns    = W.down ws
        c = length ups + length dns
-       rect = fst $ splitHorizontallyBy (2%3 :: Ratio Int) $ fst (splitVerticallyBy (2%3 :: Ratio Int) sc) 
-       gw = div' (w - rw) (fromIntegral c) 
+       rect = fst $ splitHorizontallyBy (2%3 :: Ratio Int) $ fst (splitVerticallyBy (2%3 :: Ratio Int) sc)
+       gw = div' (w - rw) (fromIntegral c)
             where
             (Rectangle _ _ w _) = sc
             (Rectangle _ _ rw _) = rect
@@ -60,12 +60,12 @@ roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
             where
             (Rectangle _ _ _ h) = sc
             (Rectangle _ _ _ rh) = rect
-       mainPane = mrect (gw * fromIntegral c) (gh * fromIntegral c) rect 
+       mainPane = mrect (gw * fromIntegral c) (gh * fromIntegral c) rect
        mrect  mx my (Rectangle x y w h) = Rectangle (x + (fromIntegral mx)) (y + (fromIntegral my)) w h
        tops    = map f $ cd c (length dns)
        bottoms = map f $ [0..(length dns)]
        f n = mrect (gw * (fromIntegral n)) (gh * (fromIntegral n)) rect
-       cd n m = if n > m 
+       cd n m = if n > m
                 then (n - 1) : (cd (n-1) m)
                 else []
 

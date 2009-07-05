@@ -5,7 +5,7 @@
 -- Module      :  XMonad.Util.Invisible
 -- Copyright   :  (c) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD-style (see xmonad/LICENSE)
--- 
+--
 -- Maintainer  :  andrea.rossato@unibz.it, droundy@darcs.net
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.Invisible ( 
+module XMonad.Util.Invisible (
                              -- * Usage:
                              -- $usage
                              Invisible (..)

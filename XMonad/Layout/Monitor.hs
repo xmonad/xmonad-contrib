@@ -47,14 +47,14 @@ import Control.Monad
 -- and 'rect' should be set here. Also consider setting 'persistent' to True.
 --
 -- Minimal example:
---    
+--
 -- > myMonitor = monitor
 -- >     { prop = ClassName "SomeClass"
 -- >     , rect = Rectangle 0 0 40 20 -- rectangle 40x20 in upper left corner
--- >     } 
+-- >     }
 --
 -- More interesting example:
---         
+--
 -- > clock = monitor {
 -- >      -- Cairo-clock creates 2 windows with the same classname, thus also using title
 -- >      prop = ClassName "Cairo-clock" `And` Title "MacSlow's Cairo-Clock"
@@ -71,19 +71,19 @@ import Control.Monad
 -- >    }
 --
 -- Add ManageHook to de-manage monitor windows and apply opacity settings.
--- 
+--
 -- > manageHook = myManageHook <+> manageMonitor clock
--- 
+--
 -- Apply layout modifier.
--- 
+--
 -- > myLayouts = ModifiedLayout clock $ tall ||| Full ||| ...
--- 
+--
 -- After that, if there exists a window with specified properties, it will be
 -- displayed on top of all /tiled/ (not floated) windows on specified
 -- position.
 --
 -- It's also useful to add some keybinding to toggle monitor visibility:
--- 
+--
 -- > , ((mod1Mask, xK_u     ), broadcastMessage ToggleMonitor >> refresh)
 --
 -- Screenshot: <http://www.haskell.org/haskellwiki/Image:Xmonad-clock.png>
@@ -145,7 +145,7 @@ instance LayoutModifier Monitor Window where
             if name mon == n then Just $ mon { visible = False } else Nothing
         | Just Hide <- fromMessage mess = do unless (persistent mon) $ withMonitor (prop mon) () hide; return Nothing
         | otherwise = return Nothing
-        
+
 -- | ManageHook which demanages monitor window and applies opacity settings.
 manageMonitor :: Monitor a -> ManageHook
 manageMonitor mon = propertyToQuery (prop mon) --> do

@@ -38,7 +38,7 @@ data Property = Title String
               | ClassName String
               | Resource String
               | Role String -- ^ WM_WINDOW_ROLE property
-              | And Property Property  
+              | And Property Property
               | Or  Property Property
               | Not Property
               | Const Bool

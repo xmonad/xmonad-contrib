@@ -178,7 +178,7 @@ raiseMaster raisef thatUserQuery = raiseAndDo raisef thatUserQuery (\_ -> window
 {- |  If the window is found the window is focused and set to master
       otherwise, action is run.
 
-      > runOrRaiseMaster \"firefox\" (className =? \"Firefox\")) 
+      > runOrRaiseMaster \"firefox\" (className =? \"Firefox\"))
   -}
 runOrRaiseMaster :: String -> Query Bool -> X ()
 runOrRaiseMaster run query = runOrRaiseAndDo run query (\_ -> windows W.swapMaster)

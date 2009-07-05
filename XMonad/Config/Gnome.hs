@@ -30,7 +30,7 @@ import qualified Data.Map as M
 -- > import XMonad.Config.Gnome
 -- >
 -- > main = xmonad gnomeConfig
--- 
+--
 
 gnomeConfig = desktopConfig
     { terminal = "gnome-terminal"

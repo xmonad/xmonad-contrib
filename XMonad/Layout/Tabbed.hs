@@ -54,7 +54,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
 -- This layout has hardcoded behaviour for mouse clicks on tab decorations:
--- Left click on the tab switches focus to that window. 
+-- Left click on the tab switches focus to that window.
 -- Middle click on the tab closes the window.
 --
 -- The default Tabbar behaviour is to hide it when only one window is open
@@ -99,21 +99,21 @@ simpleTabbedBottomAlways = tabbedBottomAlways shrinkText defaultTheme
 
 -- | A layout decorated with tabs and the possibility to set a custom
 -- shrinker and theme.
-tabbed     :: (Eq a, Shrinker s) => s -> Theme 
+tabbed     :: (Eq a, Shrinker s) => s -> Theme
            -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbed s c = addTabs s c Simplest
 
-tabbedAlways     :: (Eq a, Shrinker s) => s -> Theme 
+tabbedAlways     :: (Eq a, Shrinker s) => s -> Theme
                  -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbedAlways s c = addTabsAlways s c Simplest
 
 -- | A layout decorated with tabs at the bottom and the possibility to set a custom
 -- shrinker and theme.
-tabbedBottom     :: (Eq a, Shrinker s) => s -> Theme 
+tabbedBottom     :: (Eq a, Shrinker s) => s -> Theme
                  -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbedBottom s c = addTabsBottom s c Simplest
 
-tabbedBottomAlways     :: (Eq a, Shrinker s) => s -> Theme 
+tabbedBottomAlways     :: (Eq a, Shrinker s) => s -> Theme
                        -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbedBottomAlways s c = addTabsBottomAlways s c Simplest
 
@@ -160,13 +160,13 @@ instance Eq a => DecorationStyle TabbedDecoration a where
                                              , ev_button     = eb }
         | et == buttonPress
         , Just ((w,_),_) <-findWindowByDecoration ew ds =
-           if eb == button2 
+           if eb == button2
                then killWindow w
                else focus w
     decorationMouseFocusHook _ _ _ = return ()
 
     decorationMouseDragHook _ _ _ = return ()
-    pureDecoration (Tabbed lc sh) _ ht _ s wrs (w,r@(Rectangle x y wh hh)) 
+    pureDecoration (Tabbed lc sh) _ ht _ s wrs (w,r@(Rectangle x y wh hh))
         = if ((sh == Always && numWindows > 0) || numWindows > 1)
           then Just $ case lc of
                         Top -> upperTab
@@ -179,7 +179,7 @@ instance Eq a => DecorationStyle TabbedDecoration a where
               upperTab = Rectangle nx y wid (fi ht)
               lowerTab = Rectangle nx (y+fi(hh-ht)) wid (fi ht)
               numWindows = length ws
-    shrink (Tabbed loc _ ) (Rectangle _ _ _ dh) (Rectangle x y w h) 
+    shrink (Tabbed loc _ ) (Rectangle _ _ _ dh) (Rectangle x y w h)
         = case loc of
             Top -> Rectangle x (y + fi dh) w (h - dh)
             Bottom -> Rectangle x y w (h - dh)

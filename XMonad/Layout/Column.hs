@@ -65,7 +65,7 @@ mkRect (Rectangle xs ys ws _) (h,y) = Rectangle xs (ys+fromIntegral y) ws h
 xn :: Int -> Rectangle -> Float -> Int -> Dimension
 xn n (Rectangle _ _ _ h) q k = if q==1 then 
                                   h `div` (fromIntegral n)
-                               else 
+                               else
                                   round ((fromIntegral h)*q^(n-k)*(1-q)/(1-q^n))
 
 

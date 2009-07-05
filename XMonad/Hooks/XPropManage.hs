@@ -34,7 +34,7 @@ import XMonad.ManageHook ((-->))
 -- > import XMonad.Actions.TagWindows
 -- > import Data.List
 --
--- > manageHook = xPropManageHook xPropMatches 
+-- > manageHook = xPropManageHook xPropMatches
 -- >
 -- > xPropMatches :: [XPropMatch]
 -- > xPropMatches = [ ([ (wM_CLASS, any ("gimp"==))], (\w -> float w >> return (W.shift "2")))
@@ -71,7 +71,7 @@ xPropManageHook tms = mconcat $ map propToHook tms
     where
       propToHook (ms, f) = fmap and (mapM mkQuery ms) --> mkHook f
       mkQuery (a, tf)    = fmap tf (getQuery a)
-      mkHook func        = ask >>= Query . lift . fmap Endo . func 
+      mkHook func        = ask >>= Query . lift . fmap Endo . func
 
 getProp :: Display -> Window -> Atom -> X ([String])
 getProp d w p = do

@@ -95,7 +95,7 @@ keys x = M.fromList $
     , ((modMask x .|. controlMask .|. shiftMask, xK_Left), sendMessage $ Move L)
     , ((modMask x .|. controlMask .|. shiftMask, xK_Up), sendMessage $ Move U)
     , ((modMask x .|. controlMask .|. shiftMask, xK_Down), sendMessage $ Move D)
- 
+
     , ((0, xK_F2  ), spawn "gnome-terminal") -- %! Launch gnome-terminal
     , ((0, xK_F3  ), shellPrompt myXPConfig) -- %! Launch program
     , ((0, xK_F11   ), spawn "ksnapshot") -- %! Take snapshot
@@ -112,7 +112,7 @@ keys x = M.fromList $
     , ((modMask x, xK_space), sendMessage Toggle)
 
     ]
- 
+
     ++
     zip (zip (repeat $ modMask x) [xK_F1..xK_F12]) (map (withNthWorkspace W.greedyView) [0..])
     ++
@@ -143,12 +143,12 @@ config = defaultConfig
 mytab = tabbed CustomShrink defaultTheme
 
 instance Shrinker CustomShrink where
-    shrinkIt shr s | Just s' <- dropFromHead " " s = shrinkIt shr s' 
-    shrinkIt shr s | Just s' <- dropFromTail " " s = shrinkIt shr s' 
-    shrinkIt shr s | Just s' <- dropFromTail "- Iceweasel" s = shrinkIt shr s' 
-    shrinkIt shr s | Just s' <- dropFromTail "- KPDF" s = shrinkIt shr s' 
-    shrinkIt shr s | Just s' <- dropFromHead "file://" s = shrinkIt shr s' 
-    shrinkIt shr s | Just s' <- dropFromHead "http://" s = shrinkIt shr s' 
+    shrinkIt shr s | Just s' <- dropFromHead " " s = shrinkIt shr s'
+    shrinkIt shr s | Just s' <- dropFromTail " " s = shrinkIt shr s'
+    shrinkIt shr s | Just s' <- dropFromTail "- Iceweasel" s = shrinkIt shr s'
+    shrinkIt shr s | Just s' <- dropFromTail "- KPDF" s = shrinkIt shr s'
+    shrinkIt shr s | Just s' <- dropFromHead "file://" s = shrinkIt shr s'
+    shrinkIt shr s | Just s' <- dropFromHead "http://" s = shrinkIt shr s'
     shrinkIt _ s | n > 9 = s : map cut [2..(halfn-3)] ++ shrinkIt shrinkText s
                  where n = length s
                        halfn = n `div` 2

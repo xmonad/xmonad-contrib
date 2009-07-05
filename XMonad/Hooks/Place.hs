@@ -14,7 +14,7 @@
 
 module XMonad.Hooks.Place   ( -- * Usage
                               -- $usage
-                                                            
+
                               -- * Placement actions
                               placeFocused
                             , placeHook
@@ -53,7 +53,7 @@ import Control.Monad.Trans (lift)
 -- as an 'X' action to manually trigger repositioning.
 --
 -- You can use this module by including the following in your @~\/.xmonad\/xmonad.hs@:
--- 
+--
 -- > import XMonad.Hooks.Place
 --
 -- and adding 'placeHook' to your 'manageHook', for example:
@@ -61,7 +61,7 @@ import Control.Monad.Trans (lift)
 -- > main = xmonad $ defaultConfig { manageHook = placeHook simpleSmart
 -- >                                              <+> manageHook defaultConfig }
 --
--- Note that 'placeHook' should be applied after most other hooks, especially hooks 
+-- Note that 'placeHook' should be applied after most other hooks, especially hooks
 -- such as 'doFloat' and 'doShift'. Since hooks combined with '<+>' are applied from
 -- right to left, this means that 'placeHook' should be the /first/ hook in your chain.
 --
@@ -71,7 +71,7 @@ import Control.Monad.Trans (lift)
 -- > , ((modMask, xK_w), placeFocused simpleSmart)
 --
 -- Both 'placeHook' and 'placeFocused' take a 'Placement' parameter, which specifies
--- the placement policy to use (smart, under the mouse, fixed position, etc.). See 
+-- the placement policy to use (smart, under the mouse, fixed position, etc.). See
 -- 'Placement' for a list of available policies.
 
 
@@ -118,12 +118,12 @@ simpleSmart = inBounds $ smart (0,0)
 
 
 -- | Place windows at a fixed position
-fixed :: (Rational, Rational) -- ^ Where windows should go. 
-                              -- 
-                              --     * (0,0) -> top left of the screen 
-                              -- 
+fixed :: (Rational, Rational) -- ^ Where windows should go.
+                              --
+                              --     * (0,0) -> top left of the screen
+                              --
                               --     * (1,0) -> top right of the screen
-                              -- 
+                              --
                               --     * etc
       -> Placement
 fixed = Fixed
@@ -136,14 +136,14 @@ underMouse :: (Rational, Rational) -- ^ Where the pointer should be relative to
 underMouse = UnderMouse
 
 
--- | Apply the given placement policy, constraining the 
+-- | Apply the given placement policy, constraining the
 -- placed windows inside the screen boundaries.
-inBounds :: Placement -> Placement 
+inBounds :: Placement -> Placement
 inBounds = Bounds (0,0,0,0)
 
 
 -- | Same as 'inBounds', but allows specifying gaps along the screen's edges
-withGaps :: (Dimension, Dimension, Dimension, Dimension) 
+withGaps :: (Dimension, Dimension, Dimension, Dimension)
          -- ^ top, right, bottom and left gaps
          -> Placement -> Placement
 withGaps = Bounds
@@ -160,7 +160,7 @@ placeFocused :: Placement -> X ()
 placeFocused p = withFocused $ \window -> do
                    info <- gets $ screenInfo . S.current . windowset
                    floats <- gets $ M.keys . S.floating . windowset
-                   
+
                    r'@(Rectangle x' y' _ _) <- placeWindow p window info floats
 
                      -- use X.A.FloatKeys if the window is floating, send
@@ -182,8 +182,8 @@ placeHook p = do window <- ask
                           floats = M.keys $ S.floating theWS
 
                       guard(window `elem` floats )
-                      
-                        -- Look for the workspace(s) on which the window is to be 
+
+                        -- Look for the workspace(s) on which the window is to be
                         -- spawned. Each of them also needs an associated screen
                         -- rectangle; for hidden workspaces, we use the current
                         -- workspace's screen.
@@ -191,7 +191,7 @@ placeHook p = do window <- ask
                                      $ [screenInfo $ S.current theWS]
                                         ++ (map screenInfo $ S.visible theWS)
                                         ++ zip (S.hidden theWS) (repeat currentRect)
-                                           
+
                       guard(not $ null infos)
 
                       let (workspace, screen) = head infos
@@ -223,7 +223,7 @@ purePlaceWindow :: Placement -- ^ The placement strategy
                 -> (Position, Position) -- ^ The pointer's position.
                 -> Rectangle -- ^ The window to be placed
                 -> Rectangle
-purePlaceWindow (Bounds (t,r,b,l) p') (Rectangle sx sy sw sh) rs p w 
+purePlaceWindow (Bounds (t,r,b,l) p') (Rectangle sx sy sw sh) rs p w
   = let s' = (Rectangle (sx + fi l) (sy + fi t) (sw - l - r) (sh - t - b))
     in checkBounds s' $ purePlaceWindow p' s' rs p w
 
@@ -267,9 +267,9 @@ fi = fromIntegral
 
 r2rr :: Rectangle -> Rectangle -> S.RationalRect
 r2rr (Rectangle x0 y0 w0 h0) (Rectangle x y w h)
-  = S.RationalRect ((fi x-fi x0) % fi w0) 
-                   ((fi y-fi y0) % fi h0) 
-                   (fi w % fi w0) 
+  = S.RationalRect ((fi x-fi x0) % fi w0)
+                   ((fi y-fi y0) % fi h0)
+                   (fi w % fi w0)
                    (fi h % fi h0)
 
 
@@ -286,7 +286,7 @@ getWindowRectangle :: Window -> X Rectangle
 getWindowRectangle window
   = do d <- asks display
        (_, x, y, w, h, _, _) <- io $ getGeometry d window
-       
+
          -- We can't use the border width returned by
          -- getGeometry because it will be 0 if the
          -- window isn't mapped yet.
@@ -305,11 +305,11 @@ getAllRectangles = do ws <- gets windowset
                       return $ M.fromList $ zip allWindows allRects
 
 organizeClients :: S.Workspace a b Window -> Window -> [Window] -> [Window]
-organizeClients ws w floats 
-  = let (floatCs, layoutCs) = partition (`elem` floats) $ filter (/= w) 
+organizeClients ws w floats
+  = let (floatCs, layoutCs) = partition (`elem` floats) $ filter (/= w)
                               $ stackContents $ S.stack ws
     in reverse layoutCs ++ reverse floatCs
-      -- About the ordering: the smart algorithm will overlap windows 
+      -- About the ordering: the smart algorithm will overlap windows
       -- starting ith the head of the list. So:
       --  - we put the non-floating windows first since they'll
       --    probably be below the floating ones,
@@ -323,18 +323,18 @@ getPointer window = do d <- asks display
 
 -- | Return values are, in order: window's rectangle,
 -- other windows' rectangles and pointer's coordinates.
-getNecessaryData :: Window 
+getNecessaryData :: Window
                  -> S.Workspace WorkspaceId (Layout Window) Window
                  -> [Window]
                  -> X (Rectangle, [Rectangle], (Position, Position))
 getNecessaryData window ws floats
   = do r <- getWindowRectangle window
-       
+
        rs <- return (organizeClients ws window floats)
              >>= mapM getWindowRectangle
 
        pointer <- getPointer window
-                        
+
        return (r, rs, pointer)
 
 
@@ -343,7 +343,7 @@ getNecessaryData window ws floats
 {- Smart placement algorithm -}
 
 -- | Alternate representation for rectangles.
-data SmartRectangle a = SR 
+data SmartRectangle a = SR
   { sr_x0, sr_y0 :: a -- ^ Top left coordinates, inclusive
   , sr_x1, sr_y1 :: a -- ^ Bottom right coorsinates, exclusive
   } deriving (Show, Eq)
@@ -380,12 +380,12 @@ placeSmart :: (Rational, Rational) -- ^ point of the screen where windows
            -> Rectangle
 placeSmart (rx, ry) s@(Rectangle sx sy sw sh) rs w h
   = let free = map sr2r $ findSpace (r2sr s) (map r2sr rs) (fi w) (fi h)
-    in position free (scale rx sx (sx + fi sw - fi w)) 
-                     (scale ry sy (sy + fi sh - fi h)) 
+    in position free (scale rx sx (sx + fi sw - fi w))
+                     (scale ry sy (sy + fi sh - fi h))
                      w h
 
--- | Second part of the algorithm: 
--- Chooses the best position in which to place a window, 
+-- | Second part of the algorithm:
+-- Chooses the best position in which to place a window,
 -- according to a list of free areas and an ideal position for
 -- the top-left corner.
 -- We can't use semi-open surfaces for this, so we go back to
@@ -395,17 +395,17 @@ position :: [Rectangle] -- ^ Free areas
          -> Dimension -> Dimension -- ^ Width and height of the window
          -> Rectangle
 position rs x y w h = minimumBy distanceOrder $ map closest rs
-  where distanceOrder r1 r2 
+  where distanceOrder r1 r2
           = compare (distance (rect_x r1,rect_y r1) (x,y) :: Dimension)
                     (distance (rect_x r2,rect_y r2) (x,y) :: Dimension)
-        distance (x1,y1) (x2,y2) = truncate $ (sqrt :: Double -> Double) 
-                                   $ fi $ (x1 - x2)^(2::Int) 
+        distance (x1,y1) (x2,y2) = truncate $ (sqrt :: Double -> Double)
+                                   $ fi $ (x1 - x2)^(2::Int)
                                         + (y1 - y2)^(2::Int)
         closest r = checkBounds r (Rectangle x y w h)
 
 
 -- | First part of the algorithm:
--- Tries to find an area in which to place a new 
+-- Tries to find an area in which to place a new
 -- rectangle so that it overlaps as little as possible with
 -- other rectangles already present. The first rectangles in
 -- the list will be overlapped first.
@@ -425,10 +425,10 @@ findSpace total rs@(_:rs') w h
 
 -- | Subtracts smaller rectangles from a total rectangle
 -- , returning a list of remaining rectangular areas.
-subtractRects :: Real a => SmartRectangle a 
+subtractRects :: Real a => SmartRectangle a
                -> [SmartRectangle a] -> [SmartRectangle a]
 subtractRects total [] = [total]
-subtractRects total (r:rs) 
+subtractRects total (r:rs)
   = do total' <- subtractRects total rs
        filter (not . isEmpty)
                 [ total' {sr_y1 = min (sr_y1 total') (sr_y0 r)} -- Above
@@ -439,7 +439,7 @@ subtractRects total (r:rs)
 
 
 -- | "Nubs" a list of rectangles, dropping all those that are
--- already contained in another rectangle of the list. 
+-- already contained in another rectangle of the list.
 cleanup :: Real a => [SmartRectangle a] -> [SmartRectangle a]
 cleanup rs = foldr dropIfContained [] $ sortBy sizeOrder rs
 
@@ -453,7 +453,7 @@ sizeOrder r1 r2 | w1 < w2 = LT
                       h1 = height r1
                       h2 = height r2
 
-dropIfContained :: Real a => SmartRectangle a 
+dropIfContained :: Real a => SmartRectangle a
                 -> [SmartRectangle a] -> [SmartRectangle a]
 dropIfContained r rs  = if any (`contains` r) rs
                         then rs

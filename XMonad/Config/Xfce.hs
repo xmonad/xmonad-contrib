@@ -29,7 +29,7 @@ import qualified Data.Map as M
 -- > import XMonad.Config.Xfce
 -- >
 -- > main = xmonad xfceConfig
--- 
+--
 
 xfceConfig = desktopConfig
     { terminal = "Terminal"

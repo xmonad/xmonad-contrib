@@ -92,7 +92,7 @@ data LayoutHints a = LayoutHints (Double, Double)
 instance LayoutModifier LayoutHints Window where
     modifierDescription _ = "Hinted"
     redoLayout _ _ Nothing  xs = return (xs, Nothing)
-    redoLayout (LayoutHints al) _ (Just s) xs 
+    redoLayout (LayoutHints al) _ (Just s) xs
         = do xs' <- mapM (\x@(_, r) -> second (placeRectangle al r) <$> applyHint x) xs
              return (xs', Nothing)
      where

@@ -5,7 +5,7 @@
 -- Module      :  XMonad.Layout.TwoPane
 -- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -39,8 +39,8 @@ import XMonad.StackSet ( focus, up, down)
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
-data TwoPane a = 
-    TwoPane Rational Rational 
+data TwoPane a =
+    TwoPane Rational Rational
     deriving ( Show, Read )
 
 instance LayoutClass TwoPane a where
@@ -53,7 +53,7 @@ instance LayoutClass TwoPane a where
                                       [] -> [(focus st, rect)]
               where (left, right) = splitHorizontallyBy split rect
 
-    handleMessage (TwoPane delta split) x = 
+    handleMessage (TwoPane delta split) x =
         return $ case fromMessage x of
                    Just Shrink -> Just (TwoPane delta (split - delta))
                    Just Expand -> Just (TwoPane delta (split + delta))

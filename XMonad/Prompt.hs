@@ -719,7 +719,7 @@ writeHistory :: History -> IO ()
 writeHistory hist = do
   path <- getHistoryFile
   catch (writeFile path (show hist)) $ const $ hPutStrLn stderr "error in writing"
-  setFileMode path mode 
+  setFileMode path mode
     where mode = ownerReadMode .|. ownerWriteMode
 
 -- $xutils

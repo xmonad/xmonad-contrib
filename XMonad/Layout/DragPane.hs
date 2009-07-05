@@ -7,7 +7,7 @@
 --                    David Roundy <droundy@darcs.net>,
 --                    Andrea Rossato <andrea.rossato@unibz.it>
 -- License     :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer  :  Andrea Rossato <andrea.rossato@unibz.it>
 -- Stability   :  unstable
 -- Portability :  unportable
@@ -29,7 +29,7 @@ module XMonad.Layout.DragPane (
 import XMonad
 import Data.Unique
 
-import qualified XMonad.StackSet as W 
+import qualified XMonad.StackSet as W
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 
@@ -56,8 +56,8 @@ handleColor = "#000000"
 dragPane :: DragType -> Double -> Double -> DragPane a
 dragPane t x y = DragPane (I Nothing) t x y
 
-data DragPane a = 
-    DragPane (Invisible Maybe (Window,Rectangle,Int)) DragType Double Double 
+data DragPane a =
+    DragPane (Invisible Maybe (Window,Rectangle,Int)) DragType Double Double
              deriving ( Show, Read )
 
 data DragType = Horizontal | Vertical deriving ( Show, Read )
@@ -86,7 +86,7 @@ handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
 handleMess _ _ = return Nothing
 
 handleEvent :: DragPane a -> Event -> X ()
-handleEvent (DragPane (I (Just (win,r,ident))) ty _ _) 
+handleEvent (DragPane (I (Just (win,r,ident))) ty _ _)
             (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
     | t == buttonPress && thisw == win || thisbw == win  = do
   mouseDrag (\ex ey -> do
@@ -114,12 +114,12 @@ doLay mirror (DragPane mw ty delta split) r s = do
               [] -> case W.down s of
                       (next:_) -> [(W.focus s,left),(next,right)]
                       [] -> [(W.focus s, r)]
-  if length wrs > 1 
+  if length wrs > 1
      then case mw of
-            I (Just (w,_,ident)) -> do 
+            I (Just (w,_,ident)) -> do
                     w' <- deleteWindow w >> newDragWin handr
                     return (wrs, Just $ DragPane (I $ Just (w',r',ident)) ty delta split)
-            I Nothing -> do 
+            I Nothing -> do
                     w <- newDragWin handr
                     i <- io $ newUnique
                     return (wrs, Just $ DragPane (I $ Just (w,r',hashUnique i)) ty delta split)

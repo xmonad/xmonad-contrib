@@ -9,9 +9,9 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Two layout modifiers. centerMaster places master window at center, 
--- on top of all other windows, which are managed by base layout. 
--- topRightMaster is similar, but places master window in top right corner 
+-- Two layout modifiers. centerMaster places master window at center,
+-- on top of all other windows, which are managed by base layout.
+-- topRightMaster is similar, but places master window in top right corner
 -- instead of center.
 --
 -----------------------------------------------------------------------------
@@ -30,22 +30,22 @@ import qualified XMonad.StackSet as W
 
 -- $usage
 -- This module defines two new layout modifiers: centerMaster and topRightMaster.
--- centerMaster places master window at center of screen, on top of others. 
+-- centerMaster places master window at center of screen, on top of others.
 -- All other windows in background are managed by base layout.
 -- topRightMaster is like centerMaster, but places master window in top right corner instead of center.
--- 
+--
 -- Yo can use this module by adding folowing in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.CenteredMaster
--- 
+--
 -- Then add layouts to your layoutHook:
--- 
+--
 -- > myLayoutHook = centerMaster Grid ||| ...
 
 -- | Function that decides where master window should be placed
 type Positioner = Rectangle -> Rectangle
 
--- | Data type for LayoutModifier 
+-- | Data type for LayoutModifier
 data CenteredMaster a = CenteredMaster deriving (Read,Show)
 
 instance LayoutModifier CenteredMaster Window where
@@ -56,12 +56,12 @@ data TopRightMaster a = TopRightMaster deriving (Read,Show)
 instance LayoutModifier TopRightMaster Window where
   modifyLayout TopRightMaster = applyPosition (topRight (3/7) (1/2))
 
--- | Modifier that puts master window in center, other windows in background 
+-- | Modifier that puts master window in center, other windows in background
 -- are managed by given layout
 centerMaster :: LayoutClass l a => l a -> ModifiedLayout CenteredMaster l a
 centerMaster = ModifiedLayout CenteredMaster
 
--- | Modifier that puts master window in top right corner, other windows in background 
+-- | Modifier that puts master window in top right corner, other windows in background
 -- are managed by given layout
 topRightMaster :: LayoutClass l a => l a -> ModifiedLayout TopRightMaster l a
 topRightMaster = ModifiedLayout TopRightMaster
