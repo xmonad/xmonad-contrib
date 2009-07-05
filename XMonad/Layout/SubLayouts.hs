@@ -230,8 +230,9 @@ data GroupMsg a
     | MergeAll a
                 -- ^ make one large group, keeping the parameter focused
     | Migrate a a
-                -- ^ used to move windows from one group to another, this may
-                -- be replaced by a combination of 'UnMerge' and 'Merge'
+                -- ^ used to the window named in the first argument to the
+                -- second argument's group, this may be replaced by a
+                -- combination of 'UnMerge' and 'Merge'
     | WithGroup (W.Stack a -> X (W.Stack a)) a
     | SubMessage SomeMessage  a
                 -- ^ the sublayout with the given window will get the message
