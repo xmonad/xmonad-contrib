@@ -352,12 +352,10 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             in fgs $ M.unions $ map mkSingleton ws
 
         | Just (Merge x y) <- fromMessage m
-        , let findGrp z = mplus (M.lookup z gs) $ listToMaybe
-                $ M.elems $ M.filter ((z `elem`) . W.integrate) gs
-        , Just (W.Stack _ xb xn) <- findGrp x
-        , Just yst <- findGrp y =
+        , Just (W.Stack _ xb xn) <- findGroup x
+        , Just yst <- findGroup y =
             let zs = W.Stack x xb (xn ++ W.integrate yst)
-            in fgs $ M.update (\_ -> Just zs) x $ M.delete y gs
+            in fgs $ M.insert x zs $ M.delete (W.focus yst) gs
 
         | Just (UnMerge x) <- fromMessage m =
             fgs . M.fromList . map (W.focus &&& id) . M.elems
