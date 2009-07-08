@@ -3,7 +3,7 @@
 -- |
 -- Module      :  XMonad.Layout.CenteredMaster
 -- Copyright   :  (c) 2009 Ilya Portnov
--- License     :  GNU GPL v3 or any later
+-- License     :  BSD-style (see xmonad/LICENSE)
 --
 -- Maintainer  :  Ilya Portnov <portnov84@rambler.ru>
 -- Stability   :  unstable
