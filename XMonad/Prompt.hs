@@ -56,7 +56,7 @@ import Prelude hiding (catch)
 import XMonad  hiding (config, io)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
-import XMonad.Util.XSelection (getSelection)
+import XMonad.Util.XSelection (getSelection, putSelection)
 
 import Control.Arrow ((&&&))
 import Control.Concurrent (threadDelay)
@@ -371,6 +371,7 @@ keyPressHandle mask (ks,_)
             | ks == xK_a               -> startOfLine   >> go
             | ks == xK_e               -> endOfLine     >> go
             | ks == xK_y               -> pasteString   >> go
+            | ks == xK_c               -> copyString    >> go
             | ks == xK_Right           -> moveWord Next >> go
             | ks == xK_Left            -> moveWord Prev >> go
             | ks == xK_Delete          -> killWord Next >> go
@@ -458,6 +459,10 @@ insertString str =
 -- | Insert the current X selection string at the cursor position.
 pasteString :: XP ()
 pasteString = join $ io $ liftM insertString $ getSelection
+
+-- | Copy the currently entered string into the X selection.
+copyString :: XP ()
+copyString = gets command >>= io . putSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction -> XP ()
