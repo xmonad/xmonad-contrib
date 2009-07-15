@@ -38,6 +38,7 @@ data Property = Title String
               | ClassName String
               | Resource String
               | Role String -- ^ WM_WINDOW_ROLE property
+              | Machine String -- ^ WM_CLIENT_MACHINE property
               | And Property Property
               | Or  Property Property
               | Not Property
@@ -51,7 +52,8 @@ hasProperty :: Property -> Window -> X Bool
 hasProperty (Title s)     w = withDisplay $ \d -> fmap (Just s ==) $ io $ fetchName d w
 hasProperty (Resource s)  w = withDisplay $ \d -> fmap ((==) s . resName ) $ io $ getClassHint d w
 hasProperty (ClassName s) w = withDisplay $ \d -> fmap ((==) s . resClass) $ io $ getClassHint d w
-hasProperty (Role s) w = withDisplay $ \d -> fmap ((==) (Just s)) $ getStringProperty d w "WM_WINDOW_ROLE"
+hasProperty (Role s)      w = withDisplay $ \d -> fmap ((==) (Just s)) $ getStringProperty d w "WM_WINDOW_ROLE"
+hasProperty (Machine s)   w = withDisplay $ \d -> fmap ((==) (Just s)) $ getStringProperty d w "WM_CLIENT_MACHINE"
 hasProperty (And p1 p2)   w = do { r1 <- hasProperty p1 w; r2 <- hasProperty p2 w; return $ r1 && r2 }
 hasProperty (Or p1 p2)    w = do { r1 <- hasProperty p1 w; r2 <- hasProperty p2 w; return $ r1 || r2 }
 hasProperty (Not p1)      w = do { r1 <- hasProperty p1 w; return $ not r1 }
@@ -79,6 +81,7 @@ propertyToQuery (Title s) = title =? s
 propertyToQuery (Resource s) = resource =? s
 propertyToQuery (ClassName s) = className =? s
 propertyToQuery (Role s) = stringProperty "WM_WINDOW_ROLE" =? s
+propertyToQuery (Machine s) = stringProperty "WM_CLIENT_MACHINE" =? s
 propertyToQuery (And p1 p2) = propertyToQuery p1 <&&> propertyToQuery p2
 propertyToQuery (Or p1 p2) = propertyToQuery p1 <||> propertyToQuery p2
 propertyToQuery (Not p) = not `fmap` propertyToQuery p
