@@ -41,8 +41,7 @@ randomBg' ::  (MonadIO m) => RandomColor -> m String
 randomBg' (RGB l h) = liftM toHex $ replicateM 3 $ io $ randomRIO (l,h)
 randomBg' (HSV s v) = io $ do
     g <- newStdGen
-    let -- x = (sqrt 3 - tan theta) / sqrt 3
-        x = (^2) $ fst $ randomR (0,sqrt $ pi / 3) g
+    let x = (^(2::Int)) $ fst $ randomR (0,sqrt $ pi / 3) g
     return $ toHex $ map round $ randPermutation [v,(v-s)*x + s,s] g
 
 randomBg :: RandomColor -> X ()
