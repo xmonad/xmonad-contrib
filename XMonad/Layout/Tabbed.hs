@@ -6,7 +6,7 @@
 -- Copyright   :  (c) 2007 David Roundy, Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
--- Maintainer  :  droundy@darcs.net, andrea.rossato@unibz.it
+-- Maintainer  :  andrea.rossato@unibz.it
 -- Stability   :  unstable
 -- Portability :  unportable
 --
