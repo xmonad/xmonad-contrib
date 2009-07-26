@@ -22,8 +22,8 @@ module XMonad.Layout.LayoutHints
     , LayoutHints
     )  where
 
-import XMonad(LayoutClass(runLayout), X, mkAdjust, Window,
-              Dimension, Position, Rectangle(Rectangle))
+import XMonad(LayoutClass(runLayout), mkAdjust, Window,
+              Dimension, Position, Rectangle(Rectangle),D)
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.ManageDocks(Direction(..))
@@ -31,7 +31,7 @@ import XMonad.Layout.Decoration(isInStack)
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(modifyLayout, redoLayout, modifierDescription))
 import Control.Applicative((<$>))
-import Control.Arrow(Arrow((***), second))
+import Control.Arrow(Arrow((***), first, second))
 import Control.Monad(Monad(return), mapM, join)
 import Data.Function(on)
 import Data.List(sortBy)
@@ -115,14 +115,14 @@ fitting rects = sum $ do
     r <- rects
     return $ length $ filter (touching r) rects
 
-applyOrder :: Rectangle -> [(Window, Rectangle)] -> [[(Window, Rectangle)]]
+applyOrder :: Rectangle -> [((Window, Rectangle),t)] -> [[((Window, Rectangle),t)]]
 applyOrder root wrs = do
     -- perhaps it would just be better to take all permutations, or apply the
     -- resizing multiple times
     f <- [maximum, minimum, sum, sum . map sq]
     return $ sortBy (compare `on` (f . distance)) wrs
     where distFC = uncurry ((+) `on` sq) . pairWise (-) (center root)
-          distance = map distFC . corners . snd
+          distance = map distFC . corners . snd . fst
           pairWise f (a,b) (c,d) = (f a c, f b d)
           sq = join (*)
 
@@ -134,22 +134,22 @@ instance LayoutModifier LayoutHintsToCenter Window where
         (arrs,ol) <- runLayout ws r
         flip (,) ol
             . head . reverse . sortBy (compare `on` (fitting . map snd))
-            <$> mapM (applyHints st r) (applyOrder r arrs)
+            . map (applyHints st r) . applyOrder r
+            <$> mapM (\x -> fmap ((,) x) $ mkAdjust (fst x)) arrs
 
 -- apply hints to first, grow adjacent windows
-applyHints :: W.Stack Window -> Rectangle -> [(Window, Rectangle)] -> X [(Window, Rectangle)]
-applyHints _ _ [] = return []
-applyHints s root ((w,lrect@(Rectangle a b c d)):xs)  = do
-        adj <- mkAdjust w
+applyHints :: W.Stack Window -> Rectangle -> [((Window, Rectangle),(D -> D))] -> [(Window, Rectangle)]
+applyHints _ _ [] = []
+applyHints s root (((w,lrect@(Rectangle a b c d)),adj):xs) =
         let (c',d') = adj (c,d)
             redr = placeRectangle (centerPlacement root lrect :: (Double,Double)) lrect
                     $ if isInStack s w then Rectangle a b c' d' else lrect
 
             ds = (fromIntegral c - fromIntegral c',fromIntegral d - fromIntegral d')
             growOther' r = growOther ds lrect (freeDirs root lrect) r
-            mapSnd f = map (second f)
-        next <- applyHints s root $ mapSnd growOther' xs
-        return $ (w,redr):next
+            mapSnd f = map (first $ second f)
+            next = applyHints s root $ mapSnd growOther' xs
+        in (w,redr):next
 
 growOther :: (Position, Position) -> Rectangle -> Set Direction -> Rectangle -> Rectangle
 growOther ds lrect fds r
