@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.GridSelect
@@ -32,11 +32,14 @@ module XMonad.Actions.GridSelect (
     colorRangeFromClassName
     ) where
 import Data.Maybe
+import Data.Traversable (traverse)
 import Data.Bits
+import Control.Applicative
 import Control.Monad.State
 import Control.Arrow
 import Data.List as L
-import XMonad
+import qualified Data.Map as M
+import XMonad hiding (liftX)
 import XMonad.Util.Font
 import XMonad.Prompt (mkUnmanagedWindow)
 import XMonad.StackSet as W
@@ -70,8 +73,11 @@ data GSConfig a = GSConfig {
       gs_cellwidth :: Integer,
       gs_cellpadding :: Integer,
       gs_colorizer :: a -> Bool -> X (String, String),
-      gs_font :: String
+      gs_font :: String,
+      gs_navigate :: NavigateMap
 }
+
+type NavigateMap = M.Map (KeyMask,KeySym) (TwoDPosition -> TwoDPosition)
 
 type TwoDPosition = (Integer, Integer)
 
@@ -86,7 +92,18 @@ data TwoDState a = TwoDState { td_curpos :: TwoDPosition
                              , td_drawingWin :: Window
                              }
 
-type TwoD a b = StateT (TwoDState a) X b
+newtype TwoD a b = TwoD { unTwoD :: StateT (TwoDState a) X b }
+    deriving (Monad,Functor,MonadState (TwoDState a))
+
+instance Applicative (TwoD a) where
+    (<*>) = ap
+    pure = return
+
+liftX ::  X a1 -> TwoD a a1
+liftX = TwoD . lift
+
+evalTwoD ::  TwoD a1 a -> TwoDState a1 -> X a
+evalTwoD m s = flip evalStateT s $ unTwoD m
 
 diamondLayer :: (Enum b', Num b') => b' -> [(b', b')]
 -- FIXME remove nub
@@ -148,8 +165,8 @@ updateElements elementmap = do
         cellheight = gs_cellheight gsconfig
         paneX' = div (paneX-cellwidth) 2
         paneY' = div (paneY-cellheight) 2
-        updateElement (pos@(x,y),(text, element)) = lift $ do
-            colors <- (gs_colorizer gsconfig) element (pos == curpos)
+        updateElement (pos@(x,y),(text, element)) = liftX $ do
+            colors <- gs_colorizer gsconfig element (pos == curpos)
             drawWinBox win font
                        colors
                        cellheight
@@ -158,12 +175,11 @@ updateElements elementmap = do
                        (paneX'+x*cellwidth)
                        (paneY'+y*cellheight)
                        (gs_cellpadding gsconfig)
-    mapM updateElement elementmap
-    return ()
+    mapM_ updateElement elementmap
 
 eventLoop :: TwoD a (Maybe a)
 eventLoop = do
-  (keysym,string,event) <- lift $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
+  (keysym,string,event) <- liftX $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
                              nextEvent d e
                              ev <- getEvent e
                              (ks,s) <- if ev_event_type ev == keyPress
@@ -172,23 +188,19 @@ eventLoop = do
                              return (ks,s,ev)
   handle (fromMaybe xK_VoidSymbol keysym,string) event
 
-handle :: (KeySym, String)
-       -> Event
-       -> StateT (TwoDState a) X (Maybe a)
-handle (ks,_) (KeyEvent {ev_event_type = t})
+handle ::  (KeySym, t) -> Event -> TwoD a (Maybe a)
+handle (ks,_) (KeyEvent {ev_event_type = t, ev_state = m })
     | t == keyPress && ks == xK_Escape = return Nothing
-    | t == keyPress && (ks == xK_Left || ks == xK_h)  = diffAndRefresh (-1,0)
-    | t == keyPress && (ks == xK_Right || ks == xK_l) = diffAndRefresh (1,0)
-    | t == keyPress && (ks == xK_Down || ks == xK_j) = diffAndRefresh (0,1)
-    | t == keyPress && (ks == xK_Up || ks == xK_k) = diffAndRefresh (0,-1)
     | t == keyPress && ks == xK_Return = do
        (TwoDState { td_curpos = pos, td_elementmap = elmap }) <- get
        return $ fmap (snd . snd) $ findInElementMap pos elmap
+    | t == keyPress = fmap join $ traverse diffAndRefresh . M.lookup (m,ks)
+                                        =<< gets (gs_navigate . td_gsconfig)
   where diffAndRefresh diff = do
           state <- get
           let elmap = td_elementmap state
               oldPos = td_curpos state
-              newPos = oldPos `tupadd` diff
+              newPos = diff oldPos
               newSelectedEl = findInElementMap newPos elmap
           when (isJust newSelectedEl) $ do
                                 put state { td_curpos =  newPos }
@@ -197,8 +209,8 @@ handle (ks,_) (KeyEvent {ev_event_type = t})
 
 handle _ (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y })
     | t == buttonRelease = do
-        (TwoDState { td_elementmap = elmap, td_paneX = px, td_paneY = py,
-                     td_gsconfig = (GSConfig ch cw _ _ _) }) <- get
+        TwoDState { td_elementmap = elmap, td_paneX = px, td_paneY = py,
+                    td_gsconfig = (GSConfig ch cw _ _ _ _) } <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) elmap of
@@ -306,15 +318,15 @@ gridselect gsconfig elmap =
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
                                 restrictY = floor $ restriction screenHeight gs_cellheight
                                 elmap' = zip (diamondRestrict restrictX restrictY) elmap
-                            selectedElement <- evalStateT (updateAllElements >> eventLoop)
-                                                          (TwoDState (0,0)
-                                                           elmap'
-                                                           gsconfig
-                                                           font
-                                                           screenWidth
-                                                           screenHeight
-                                                           win)
-                            return selectedElement
+
+                            evalTwoD (updateAllElements >> eventLoop)
+                                (TwoDState (0,0)
+                                            elmap'
+                                            gsconfig
+                                            font
+                                            screenWidth
+                                            screenHeight
+                                            win)
                       else
                           return Nothing
     liftIO $ do
@@ -354,7 +366,19 @@ defaultGSConfig = buildDefaultGSConfig fromClassName
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8"
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultGSNav
+
+defaultGSNav :: NavigateMap
+defaultGSNav = M.map tupadd $ M.fromList
+    [((0,xK_Left) ,(-1,0))
+    ,((0,xK_h)    ,(-1,0))
+    ,((0,xK_Right),(1,0))
+    ,((0,xK_l)    ,(1,0))
+    ,((0,xK_Down) ,(0,1))
+    ,((0,xK_j)    ,(0,1))
+    ,((0,xK_Up)   ,(0,-1))
+    ,((0,xK_k)    ,(0,-1))
+    ]
 
 borderColor :: String
 borderColor = "white"
