@@ -359,23 +359,19 @@ mkNamedKeymap c = mkNamedSubmaps . readKeymap c
 --   group them into submaps in the appropriate way.
 
 mkNamedSubmaps :: [([(KeyMask, KeySym)], NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
-mkNamedSubmaps binds = map combine gathered
-  where gathered = groupBy fstKey
-                 . sortBy (comparing fst)
-                 $ binds
-        combine [([k],act)] = (k,act)
-        combine ks = (head . fst . head $ ks,
-                      submapName . mkNamedSubmaps $ map (first tail) ks)
-        fstKey = (==) `on` (head . fst)
+mkNamedSubmaps = mkSubmaps' submapName
 
 mkSubmaps :: [ ([(KeyMask,KeySym)], X ()) ] -> [((KeyMask, KeySym), X ())]
-mkSubmaps binds = map combine gathered
+mkSubmaps = mkSubmaps' $ submap . M.fromList
+
+mkSubmaps' ::  (Ord a) => ([(a, c)] -> c) -> [([a], c)] -> [(a, c)]
+mkSubmaps' subm binds = map combine gathered
   where gathered = groupBy fstKey
                  . sortBy (comparing fst)
                  $ binds
         combine [([k],act)] = (k,act)
         combine ks = (head . fst . head $ ks,
-                      submap . M.fromList . mkSubmaps $ map (first tail) ks)
+                      subm . mkSubmaps' subm $ map (first tail) ks)
         fstKey = (==) `on` (head . fst)
 
 on :: (a -> a -> b) -> (c -> a) -> c -> c -> b

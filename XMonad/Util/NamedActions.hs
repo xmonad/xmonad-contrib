@@ -1,17 +1,17 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE FlexibleInstances, StandaloneDeriving #-}
-{-# LANGUAGE ExistentialQuantification, FlexibleContexts #-}
+{-# LANGUAGE ExistentialQuantification, FlexibleContexts, FlexibleInstances, StandaloneDeriving #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedActions
--- Copyright   :  Adam Vogt <vogt.adam@gmail.com>
+-- Copyright   :  2009 Adam Vogt <vogt.adam@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Adam Vogt <vogt.adam@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Present a list of the keybindings in use.
+-- A wrapper for keybinding configuration that can list the available
+-- keybindings.
 --------------------------------------------------------------------
 
 module XMonad.Util.NamedActions (
@@ -40,9 +40,10 @@ module XMonad.Util.NamedActions (
     defaultKeysDescr
     ) where
 
+
 import XMonad.Actions.Submap(submap)
 import XMonad(KeySym, KeyMask, X, Layout, Message,
-              XConfig(workspaces, terminal, modMask, layoutHook, keys, XConfig),
+              XConfig(keys, layoutHook, modMask, terminal, workspaces, XConfig),
               io, spawn, whenJust, ChangeLayout(NextLayout), IncMasterN(..),
               Resize(..), kill, refresh, screenWorkspace, sendMessage, setLayout,
               windows, withFocused, controlMask, mod1Mask, mod2Mask, mod3Mask,
@@ -50,15 +51,18 @@ import XMonad(KeySym, KeyMask, X, Layout, Message,
               xK_comma, xK_e, xK_h, xK_j, xK_k, xK_l, xK_m, xK_n, xK_p,
               xK_period, xK_q, xK_r, xK_space, xK_t, xK_w, keysymToString)
 import System.Posix.Process(executeFile, forkProcess)
-import Control.Arrow(Arrow((***), second, (&&&), first))
-import Data.Bits(Bits((.|.), complement, (.&.)))
-import Data.Function((.), const, ($), flip, id, on)
-import Data.List((++), filter, zip, map, concatMap, elem, head,
-                 last, null, unlines, groupBy, intercalate, partition, sortBy)
+import Control.Arrow(Arrow((&&&), second, (***)))
+import Data.Bits(Bits((.&.), complement, (.|.)))
+import Data.Function((.), const, ($), flip, id)
+import Data.List((++), filter, zip, map, concatMap, null, unlines,
+                 groupBy)
 import System.Exit(ExitCode(ExitSuccess), exitWith)
+
+import Control.Applicative ((<*>))
 
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
+import qualified XMonad
 
 -- $usage
 -- Here is an example config that demonstrates the usage of 'sendMessage'',
@@ -68,34 +72,35 @@ import qualified XMonad.StackSet as W
 -- > import XMonad.Util.NamedActions
 -- > import XMonad.Util.EZConfig
 -- >
--- > main = xmonad $ addDescrKeys ((mod4Mask, xK_d), xMessage) myKeys
+-- > main = xmonad $ addDescrKeys ((mod4Mask, xK_F1), xMessage) myKeys
 -- >                    defaultConfig { modMask = mod4Mask }
 -- >
--- > myKeys = flip mkNamedKeymap $
--- >    [("M-x a", addName "useless..." $ spawn "xmessage foo"),
+-- > myKeys c = (subtitle "Custom Keys":) $ mkNamedKeymap c $
+-- >    [("M-x a", addName "useless message" $ spawn "xmessage foo"),
 -- >     ("M-c", sendMessage' Expand)]
 -- >     ^++^
 -- >    [("<XF86AudioPlay>", spawn "mpc toggle" :: X ()),
--- >     ("<XF86AudioNext>", spawn "mpc next"]
+-- >     ("<XF86AudioNext>", spawn "mpc next")]
 --
--- Due to the type of '^++^', you can combine bindings whose actions are @X ()@
+-- Using '^++^', you can combine bindings whose actions are @X ()@
 -- as well as actions that have descriptions. However you cannot mix the two in
--- a single list, unless each is prefixed with 'addName' or 'noName'. '^++^'
--- works with traditional-style keybindings too.
+-- a single list, unless each is prefixed with 'addName' or 'noName'.
+--
+-- If you don't like EZConfig, you can still use '^++^' with the basic XMonad
+-- keybinding configuration too.
 --
 -- Also note the unfortunate necessity of a type annotation, since 'spawn' is
 -- too general.
 
 -- TODO: squeeze titles that have no entries (consider titles containing \n)
 --
--- pad as if by columns
---
--- Multiple columns
+-- Output to Multiple columns
 --
 -- Devin Mullin's suggestions:
 --
---Reduce redundancy wrt mkNamedSubmaps, mkSubmaps and mkNamedKeymap to have a
---HasName context (and leave mkKeymap as a specific case of it?)
+-- Reduce redundancy wrt mkNamedSubmaps, mkSubmaps and mkNamedKeymap to have a
+-- HasName context (and leave mkKeymap as a specific case of it?)
+--    Currently kept separate to aid error messages, common lines factored out
 --
 -- Suggestions for UI:
 --
@@ -171,7 +176,7 @@ a ^++^ b = map (second NamedAction) a ++ map (second NamedAction) b
 -- | Or allow another lookup table?
 modToString :: KeyMask -> String
 modToString mask = concatMap (++"-") $ filter (not . null)
-                $ map (uncurry w)
+                $ map (uncurry pick)
                 [(mod1Mask, "M1")
                 ,(mod2Mask, "M2")
                 ,(mod3Mask, "M3")
@@ -179,26 +184,30 @@ modToString mask = concatMap (++"-") $ filter (not . null)
                 ,(mod5Mask, "M5")
                 ,(controlMask, "C")
                 ,(shiftMask,"Shift")]
-    where w m str = if m .&. complement mask == 0 then str else ""
+    where pick m str = if m .&. complement mask == 0 then str else ""
 
 keyToString :: (KeyMask, KeySym) -> [Char]
 keyToString = uncurry (++) . (modToString *** keysymToString)
 
--- | Squeezes bindings from [xK_1 .. xK_9]
-showKm :: [((KeyMask, KeySym), NamedAction)] -> [[Char]]
-showKm = uncurry (flip (++))
-         . second showKmSimple
-         . first (map ( intercalate " ... " . showKmSimple . uncurry (:)
-                      . (head &&& (:[]) . last)
-                      . sortBy (compare `on` (snd . fst)))
-                 . groupBy ((==) `on` (fst . fst))
-                 )
-         . partition ((`elem` [xK_1 .. xK_9]) . snd . fst)
-
 showKmSimple :: [((KeyMask, KeySym), NamedAction)] -> [[Char]]
 showKmSimple = concatMap (\(k,e) -> if snd k == 0 then "":showName e else map ((keyToString k ++) . smartSpace) $ showName e)
-    where smartSpace [] = []
-          smartSpace xs = ' ':xs
+
+smartSpace :: String -> String
+smartSpace [] = []
+smartSpace xs = ' ':xs
+
+_test :: String
+_test = unlines $ showKm $ defaultKeysDescr XMonad.defaultConfig { XMonad.layoutHook = XMonad.Layout $ XMonad.layoutHook XMonad.defaultConfig }
+
+showKm :: [((KeyMask, KeySym), NamedAction)] -> [String]
+showKm keybindings = padding $ do
+    (k,e) <- keybindings
+    if snd k == 0 then map ((,) "") $ showName e
+        else map ((,) (keyToString k) . smartSpace) $ showName e
+    where padding = let pad n (k,e) = if null k then "\n>> "++e else take n (k++repeat ' ') ++ e
+                        expand xs n = map (pad n) xs
+                        getMax = map (maximum . map (length . fst))
+            in concat . (zipWith expand <*> getMax) . groupBy (const $ not . null . fst)
 
 -- | An action to send to 'addDescrKeys' for showing the keybindings. See also 'showKm' and 'showKmSimple'
 xMessage :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
@@ -206,7 +215,8 @@ xMessage x = addName "Show Keybindings" $ io $ do
     forkProcess $ executeFile "xmessage" True ["-default", "okay", unlines $ showKm x] Nothing
     return ()
 
--- | Merge the supplied keys with 'defaultKeysDescr'
+-- | Merge the supplied keys with 'defaultKeysDescr', also adding a keybinding
+-- to run an action for showing the keybindings.
 addDescrKeys :: (HasName b1, HasName b) =>
     ((KeyMask, KeySym),[((KeyMask, KeySym), NamedAction)] -> b)
     -> (XConfig Layout -> [((KeyMask, KeySym), b1)])
@@ -259,7 +269,7 @@ defaultKeysDescr conf@(XConfig {XMonad.modMask = modm}) =
     , subtitle "floating layer support"
     , ((modm,               xK_t     ), addName "Push floating to tiled" $ withFocused $ windows . W.sink) -- %! Push window back into tiling
 
-    , subtitle "increase or decrease number of windows in the master area"
+    , subtitle "change the number of windows in the master area"
     , ((modm              , xK_comma ), sendMessage' (IncMasterN 1)) -- %! Increment the number of windows in the master area
     , ((modm              , xK_period), sendMessage' (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
 
@@ -284,8 +294,8 @@ defaultKeysDescr conf@(XConfig {XMonad.modMask = modm}) =
         , (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
 
 -- | For a prettier presentation: keymask, keysym of 0 are reserved for this
--- purpose: they do not happen, afaik, and keysymToString 0 would raise error
--- otherwise
+-- purpose: they do not happen, afaik, and keysymToString 0 would raise an
+-- error otherwise
 separator :: ((KeyMask,KeySym), NamedAction)
 separator = ((0,0), NamedAction (return () :: X (),[] :: [String]))
 
