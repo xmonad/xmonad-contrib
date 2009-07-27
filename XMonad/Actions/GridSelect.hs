@@ -32,7 +32,6 @@ module XMonad.Actions.GridSelect (
     colorRangeFromClassName
     ) where
 import Data.Maybe
-import Data.Traversable (traverse)
 import Data.Bits
 import Control.Applicative
 import Control.Monad.State
@@ -194,8 +193,8 @@ handle (ks,_) (KeyEvent {ev_event_type = t, ev_state = m })
     | t == keyPress && ks == xK_Return = do
        (TwoDState { td_curpos = pos, td_elementmap = elmap }) <- get
        return $ fmap (snd . snd) $ findInElementMap pos elmap
-    | t == keyPress = fmap join $ traverse diffAndRefresh . M.lookup (m,ks)
-                                        =<< gets (gs_navigate . td_gsconfig)
+    | t == keyPress = maybe eventLoop diffAndRefresh . M.lookup (m,ks)
+                            =<< gets (gs_navigate . td_gsconfig)
   where diffAndRefresh diff = do
           state <- get
           let elmap = td_elementmap state
