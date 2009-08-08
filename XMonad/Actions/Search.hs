@@ -48,6 +48,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  thesaurus,
                                  wayback,
                                  wikipedia,
+                                 wiktionary,
                                  youtube,
                                  multi
                                   -- * Use case: searching with a submap
@@ -275,7 +276,7 @@ searchEngineF = SearchEngine
 
 -- The engines.
 amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
-  images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia,
+  images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, wiktionary,
   youtube :: SearchEngine
 amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 alpha      = searchEngine "alpha"      "http://www.wolframalpha.com/input/?i="
@@ -296,6 +297,7 @@ mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?que
 scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
 thesaurus  = searchEngine "thesaurus"  "http://thesaurus.reference.com/search?q="
 wikipedia  = searchEngine "wiki"       "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
+wiktionary = searchEngine "wikt"      "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
