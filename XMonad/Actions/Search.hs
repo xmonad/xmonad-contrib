@@ -320,7 +320,7 @@ intelligent (SearchEngine name site) = searchEngineF name (\s -> if (fst $ break
 -- | > removeColonPrefix "foo://bar" ~> "//bar"
 -- > removeColonPrefix "foo//bar" ~> "foo//bar"
 removeColonPrefix :: String -> String
-removeColonPrefix str = tail $ snd $ break (==':') str
+removeColonPrefix s = if ':' `elem` s then drop 1 $ dropWhile (':' /=) s else s
 
 {- | Connects a few search engines into one. If the search engines\' names are
    \"s1\", \"s2\" and \"s3\", then the resulting engine will use s1 if the query
