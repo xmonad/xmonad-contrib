@@ -20,7 +20,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  promptSearchBrowser,
                                  selectSearch,
                                  selectSearchBrowser,
-                                 hasPrefix,
+                                 isPrefixOf,
                                  escape,
                                  use,
                                  intelligent,
@@ -56,6 +56,7 @@ module XMonad.Actions.Search (   -- * Usage
                           ) where
 
 import Data.Char (chr, ord, isAlpha, isMark, isDigit)
+import Data.List (isPrefixOf)
 import Numeric (showIntAtBase)
 import XMonad (X(), MonadIO, liftIO)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig(), historyCompletion)
@@ -257,8 +258,8 @@ searchEngine name site = searchEngineF name (\s -> site ++ (escape s))
    inside of a URL instead of in the end) you can use the alternative 'searchEngineF' function.
 
 > searchFunc :: String -> String
-> searchFunc s | s `hasPrefix` "wiki:"   = "http://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
->              | s `hasPrefix` "http://" = s
+> searchFunc s | s `isPrefixOf` "wiki:"   = "http://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
+>              | s `isPrefixOf` "http://" = s
 >              | otherwise               = (use google) s
 > myNewEngine = searchEngineF "mymulti" searchFunc
 
@@ -272,7 +273,6 @@ searchEngine name site = searchEngineF name (\s -> site ++ (escape s))
    'searchEngineF', however, completely depends on the transformation function passed to it. -}
 searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
-
 
 -- The engines.
 amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
@@ -305,7 +305,7 @@ youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_ty
 wayback   = searchEngine "wayback" "http://web.archive.org/"
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, wiktionary, (prefixAware google)]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
@@ -317,12 +317,8 @@ multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbt
 intelligent :: SearchEngine -> SearchEngine
 intelligent (SearchEngine name site) = searchEngineF name (\s -> if (fst $ break (==':') s) `elem` ["http", "https", "ftp"] then s else (site s))
 
-{- | Checks if a string starts with a given prefix -}
-hasPrefix :: String -> String -> Bool
-hasPrefix _ [] = True
-hasPrefix [] (_:_) = False
-hasPrefix (t:ts) (p:ps) = if t == p then hasPrefix ts ps else False
-
+-- | > removeColonPrefix "foo://bar" ~> "//bar"
+-- > removeColonPrefix "foo//bar" ~> "foo//bar"
 removeColonPrefix :: String -> String
 removeColonPrefix str = tail $ snd $ break (==':') str
 
@@ -338,14 +334,14 @@ removeColonPrefix str = tail $ snd $ break (==':') str
   \"mathworld:integral\" will search mathworld, and everything else will fall back to
   google. The use of intelligent will make sure that URLs are opened directly. -}
 (!>) :: SearchEngine -> SearchEngine -> SearchEngine
-(SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if s `hasPrefix` (name1++":") then site1 (removeColonPrefix s) else site2 s)
+(SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if s `isPrefixOf` (name1++":") then site1 (removeColonPrefix s) else site2 s)
 
 {- | Makes a search engine prefix-aware. Especially useful together with '!>'.
    It will automatically remove the prefix from a query so that you don\'t end
      up searching for google:xmonad if google is your fallback engine and you
      explicitly add the prefix. -}
 prefixAware :: SearchEngine -> SearchEngine
-prefixAware (SearchEngine name site) = SearchEngine name (\s -> if s `hasPrefix` (name++":") then site $ removeColonPrefix s else site s)
+prefixAware (SearchEngine name site) = SearchEngine name (\s -> if s `isPrefixOf` (name++":") then site $ removeColonPrefix s else site s)
 
 {- | Changes search engine's name -}
 namedEngine :: Name -> SearchEngine -> SearchEngine
