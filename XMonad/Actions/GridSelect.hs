@@ -179,7 +179,7 @@ updateElements elementmap = do
 eventLoop :: TwoD a (Maybe a)
 eventLoop = do
   (keysym,string,event) <- liftX $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
-                             nextEvent d e
+                             maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
                              ev <- getEvent e
                              (ks,s) <- if ev_event_type ev == keyPress
                                        then lookupString $ asKeyEvent e
