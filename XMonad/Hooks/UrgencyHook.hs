@@ -138,7 +138,7 @@ import Foreign (unsafePerformIO)
 --    two parts:
 --
 --      * The console app must send a ^G (bell). In bash, a helpful trick is
---        @sleep 1; echo -e \'\a\'@.
+--        @sleep 1; echo -e \'\\a\'@.
 --
 --      * The terminal must convert the bell into UrgencyHint.
 --
