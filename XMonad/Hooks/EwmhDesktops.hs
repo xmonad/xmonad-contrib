@@ -152,7 +152,10 @@ handle ClientMessageEvent {
                killWindow w
         else if mt `elem` a_ignore then do
            return ()
-        else trace $ "Unknown ClientMessageEvent " ++ show mt
+        else do
+	   -- The Message is unknown to us, but that is ok, not all are meant
+	   -- to be handled by the wndow manager
+	   return ()
 handle _ = return ()
 
 
