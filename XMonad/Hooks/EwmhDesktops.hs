@@ -153,9 +153,9 @@ handle ClientMessageEvent {
         else if mt `elem` a_ignore then do
            return ()
         else do
-	   -- The Message is unknown to us, but that is ok, not all are meant
-	   -- to be handled by the wndow manager
-	   return ()
+          -- The Message is unknown to us, but that is ok, not all are meant
+          -- to be handled by the window manager
+          return ()
 handle _ = return ()
 
 
