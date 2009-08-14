@@ -50,7 +50,7 @@ library
         cpp-options: -DXFT
 
     build-depends:      mtl, unix, X11>=1.4.3, xmonad>=0.8, xmonad<0.9, utf8-string
-    ghc-options:        -Wall
+    ghc-options:        -fwarn-tabs -Wall
     extensions:         ForeignFunctionInterface
 
     if flag(testing)
