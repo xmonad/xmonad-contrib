@@ -42,7 +42,11 @@ module XMonad.Actions.CycleWS (
                               , prevWS
                               , shiftToNext
                               , shiftToPrev
+
+                                -- * Toggling the previous workspace
+                                -- $toggling
                               , toggleWS
+                              , toggleOrView
 
                                 -- * Moving between screens (xinerama)
 
@@ -65,9 +69,12 @@ module XMonad.Actions.CycleWS (
                                 -- * The mother-combinator
 
                               , findWorkspace
+                              , toggleOrDoSkip
+                              , skipTags
 
                              ) where
 
+import Control.Monad ( unless )
 import Data.List ( findIndex )
 import Data.Maybe ( isNothing, isJust )
 
@@ -102,7 +109,7 @@ import XMonad.Util.WorkspaceCompare
 --
 -- >   , ((modMask x     , xK_f), moveTo Next EmptyWS)  -- find a free workspace
 -- >   , ((modMask x .|. controlMask, xK_Right),        -- a crazy keybinding!
--- >         do t <- findWorkspace getXineramaWsCompare Next NonEmptyWS 2
+-- >         do t <- findWorkspace getSortByXineramaRule Next NonEmptyWS 2
 -- >            windows . view $ t                                         )
 --
 -- For detailed instructions on editing your key bindings, see
@@ -135,9 +142,47 @@ shiftToNext = shiftBy 1
 shiftToPrev :: X ()
 shiftToPrev = shiftBy (-1)
 
+-- $toggling
+
 -- | Toggle to the workspace displayed previously.
 toggleWS :: X ()
-toggleWS = windows $ view =<< tag . head . hidden
+toggleWS = do
+    hs <- gets (hidden . windowset)
+    unless (null hs) (windows . view . tag $ head hs)
+
+-- | 'XMonad.StackSet.greedyView' a workspace, or if already there, view
+-- the previously displayed workspace ala weechat. Change @greedyView@ to
+-- @toggleOrView@ in your workspace bindings as in the 'XMonad.StackSet.view'
+-- faq at <http://haskell.org/haskellwiki/Xmonad/Frequently_asked_questions>.
+-- For more flexibility see 'toggleOrDoSkip'.
+toggleOrView :: WorkspaceId -> X ()
+toggleOrView = toggleOrDoSkip [] greedyView
+
+-- | Allows ignoring listed workspace tags (such as scratchpad's \"NSP\") while
+-- finding the previously displayed workspace, or choice of different actions,
+-- like view, shift, etc.  For example:
+--
+-- > import qualified XMonad.StackSet as W
+-- > import XMonad.Actions.CycleWS
+-- >
+-- > -- toggleOrView for people who prefer view to greedyView
+-- > toggleOrView' = toggleOrDoSkip [] W.view
+-- >
+-- > -- toggleOrView ignoring scratchpad and named scratchpad workspace
+-- > toggleOrViewNoSP = toggleOrDoSkip ["NSP"] W.greedyView
+toggleOrDoSkip :: [WorkspaceId] -> (WorkspaceId -> WindowSet -> WindowSet)
+                                  -> WorkspaceId -> X ()
+toggleOrDoSkip skips f toWS = do
+    ws <- gets windowset
+    let hs' = hidden ws `skipTags` skips
+    if toWS == (tag . workspace $ current ws)
+        then unless (null hs') (windows . f . tag $ head hs')
+        else windows (f toWS)
+
+-- | List difference ('\\') for workspaces and tags. Removes workspaces
+-- matching listed tags from the given workspace list.
+skipTags :: (Eq i) => [Workspace i l a] -> [i] -> [Workspace i l a]
+skipTags wss ids = filter ((`notElem` ids) . tag) wss
 
 switchWorkspace :: Int -> X ()
 switchWorkspace d = wsBy d >>= windows . greedyView
@@ -229,7 +274,7 @@ findWorkspaceGen sortX wsPredX d = do
     let cur     = workspace (current ws)
         sorted  = sort (workspaces ws)
         pivoted = let (a,b) = span ((/= (tag cur)) . tag) sorted in b ++ a
-        ws'     = filter wsPred $ pivoted
+        ws'     = filter wsPred pivoted
         mCurIx  = findWsIndex cur ws'
         d'      = if d > 0 then d - 1 else d
         next    = if null ws'
