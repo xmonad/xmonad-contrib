@@ -80,10 +80,9 @@ scratchpadSpawnActionTerminal term =
 
 
 -- | Action to pop up any program with the user specifying how to set
---   its resource to \"scratchpad\". For example, with gnome-terminal
---   bind the following to a key:
+--   its resource to \"scratchpad\". For example, with gnome-terminal:
 --
---   > scratchpadSpawnActionCustom "gnome-terminal --name scratchpad"
+-- > scratchpadSpawnActionCustom "gnome-terminal --disable-factory --name scratchpad"
 scratchpadSpawnActionCustom :: String -- ^ Command to spawn a program with resource \"scratchpad\"
                                  -> X ()
 scratchpadSpawnActionCustom c = namedScratchpadAction [NS "scratchpad" c scratchpadQuery nonFloating] "scratchpad"
