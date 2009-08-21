@@ -55,7 +55,7 @@ import Control.Monad
 -- | Converts a percentage to the format required for _NET_WM_WINDOW_OPACITY
 rationalToOpacity :: Integral a => Rational -> a
 rationalToOpacity perc
-    | perc < 0 || perc > 1 = 0xffffffff -- invalid input, default to opaque
+    | perc < 0 || perc > 1 = round perc -- to maintain backwards-compatability
     | otherwise = round $ perc * 0xffffffff
 
 -- | sets the opacity of a window
