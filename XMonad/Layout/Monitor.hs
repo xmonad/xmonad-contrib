@@ -63,7 +63,7 @@ import Control.Monad
 -- >      -- avoid flickering
 -- >    , persistent = True
 -- >      -- make the window transparent
--- >    , opacity = 0xAAAAAAAA
+-- >    , opacity = 0.6
 -- >      -- hide on start
 -- >    , visible = False
 -- >      -- assign it a name to be able to toggle it independently of others
@@ -89,12 +89,12 @@ import Control.Monad
 -- Screenshot: <http://www.haskell.org/haskellwiki/Image:Xmonad-clock.png>
 
 data Monitor a = Monitor
-    { prop :: Property   -- ^ property which uniquely identifies monitor window
-    , rect :: Rectangle  -- ^ specifies where to put monitor
-    , visible :: Bool    -- ^ is it visible by default?
-    , name :: String     -- ^ name of monitor (useful when we have many of them)
-    , persistent :: Bool -- ^ is it shown on all layouts?
-    , opacity :: Integer -- ^ opacity level
+    { prop :: Property    -- ^ property which uniquely identifies monitor window
+    , rect :: Rectangle   -- ^ specifies where to put monitor
+    , visible :: Bool     -- ^ is it visible by default?
+    , name :: String      -- ^ name of monitor (useful when we have many of them)
+    , persistent :: Bool  -- ^ is it shown on all layouts?
+    , opacity :: Rational -- ^ opacity level
     } deriving (Read, Show)
 
 -- | Template for 'Monitor' record. At least 'prop' and 'rect' should be
@@ -106,7 +106,7 @@ monitor = Monitor
     , visible = True
     , name = ""
     , persistent = False
-    , opacity = 0xFFFFFFFF
+    , opacity = 1
     }
 
 -- | Messages without names affect all monitors. Messages with names affect only
