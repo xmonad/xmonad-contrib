@@ -29,6 +29,8 @@ module XMonad.Layout.LayoutModifier (
     LayoutModifier(..), ModifiedLayout(..)
     ) where
 
+import Control.Monad
+
 import XMonad
 import XMonad.StackSet ( Stack, Workspace (..) )
 
@@ -105,6 +107,22 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
                  -> Rectangle                       -- ^ screen rectangle
                  -> X ([(a, Rectangle)], Maybe (l a))
     modifyLayout _ w r = runLayout w r
+
+    -- | Similar to 'modifyLayout', but this function also allows you
+    -- update the state of your layout modifier(the second value in the
+    -- outer tuple).
+    --
+    -- If both 'modifyLayoutWithUpdate' and 'redoLayout' return a
+    -- modified state of the layout modifier, 'redoLayout' takes
+    -- precedence. If this function returns a modified state, this
+    -- state will internally be used in the subsequent call to
+    -- 'redoLayout' as well.
+    modifyLayoutWithUpdate :: (LayoutClass l a) =>
+                              m a
+                           -> Workspace WorkspaceId (l a) a
+                           -> Rectangle
+                           -> X (([(a,Rectangle)], Maybe (l a)), Maybe (m a))
+    modifyLayoutWithUpdate m w r = flip (,) Nothing `fmap` modifyLayout m w r
 
     -- | 'handleMess' allows you to spy on messages to the underlying
     --   layout, in order to have an effect in the X monad, or alter
@@ -234,9 +252,9 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
 --   semantics of a 'LayoutModifier' applied to an underlying layout.
 instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
     runLayout (Workspace i (ModifiedLayout m l) ms) r =
-        do (ws, ml')  <- modifyLayout m (Workspace i l ms) r
-           (ws', mm') <- redoLayout m r ms ws
-           let ml'' = case mm' of
+        do ((ws, ml'),mm')  <- modifyLayoutWithUpdate m (Workspace i l ms) r
+           (ws', mm'') <- redoLayout (maybe m id mm') r ms ws
+           let ml'' = case mm'' `mplus` mm' of
                         Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
                         Nothing -> ModifiedLayout m `fmap` ml'
            return (ws', ml'')
