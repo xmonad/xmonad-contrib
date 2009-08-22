@@ -476,6 +476,7 @@ xmobarPP :: PP
 xmobarPP = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
                      , ppTitle   = xmobarColor "green"  "" . shorten 40
                      , ppVisible = wrap "(" ")"
+                     , ppUrgent = xmobarColor "red" "yellow"
                      }
 
 -- | The options that sjanssen likes to use with xmobar, as an
