@@ -100,7 +100,7 @@ serverModeEventHook' cmdAction (ClientMessageEvent {ev_message_type = mt, ev_dat
              cl <- cmdAction
              let listOfCommands = map (uncurry (++)) . zip (map show ([1..] :: [Int])) . map ((++) " - " . fst)
              case lookup (fromIntegral (head dt) :: Int) (zip [1..] cl) of
-                  Just (c,_) -> runCommand' c
-                  Nothing    -> mapM_ (io . hPutStrLn stderr) . listOfCommands $ cl
+                  Just (_,action) -> action
+                  Nothing         -> mapM_ (io . hPutStrLn stderr) . listOfCommands $ cl
         return (All True)
 serverModeEventHook' _ _ = return (All True)
