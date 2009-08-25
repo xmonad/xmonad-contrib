@@ -24,6 +24,7 @@ import qualified Data.Map as M
 import XMonad hiding ( (|||) )
 import qualified XMonad.StackSet as W
 
+import XMonad.Actions.Commands
 import XMonad.Actions.CycleWS
 import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
@@ -98,7 +99,7 @@ arossatoConfig = do
          , normalBorderColor  = "white"
          , focusedBorderColor = "black"
          , keys               = newKeys
-         , handleEventHook    = serverModeEventHook
+         , handleEventHook    = serverModeEventHook defaultCommands
          , focusFollowsMouse  = False
          }
     where

@@ -75,23 +75,26 @@ import XMonad.Actions.Commands
 -- @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Hooks.ServerMode
+-- > import XMonad.Actions.Commands
 --
 -- Then edit your @handleEventHook@ by adding the 'serverModeEventHook':
 --
--- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook }
+-- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook defaultCommands }
 --
 
 data ServerMode = ServerMode deriving ( Show, Read )
 
-serverModeEventHook :: Event -> X All
-serverModeEventHook (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
+-- | Executes a command of the list when receiving its index via a special ClientMessageEvent
+-- (indexing starts at 1)
+serverModeEventHook :: X [(String,X ())] -> Event -> X All
+serverModeEventHook cmdAction (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
         d <- asks display
         a <- io $ internAtom d "XMONAD_COMMAND" False
         when (mt == a && dt /= []) $ do
-             cl <- defaultCommands
+             cl <- cmdAction
              let listOfCommands = map (uncurry (++)) . zip (map show ([1..] :: [Int])) . map ((++) " - " . fst)
              case lookup (fromIntegral (head dt) :: Int) (zip [1..] cl) of
                   Just (c,_) -> runCommand' c
                   Nothing    -> mapM_ (io . hPutStrLn stderr) . listOfCommands $ cl
         return (All True)
-serverModeEventHook _ = return (All True)
+serverModeEventHook _ _ = return (All True)
