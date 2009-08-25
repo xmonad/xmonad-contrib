@@ -60,6 +60,7 @@ module XMonad.Hooks.ServerMode
       -- $usage
       ServerMode (..)
     , serverModeEventHook
+    , serverModeEventHook'
     ) where
 
 import Control.Monad (when)
@@ -79,15 +80,20 @@ import XMonad.Actions.Commands
 --
 -- Then edit your @handleEventHook@ by adding the 'serverModeEventHook':
 --
--- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook defaultCommands }
+-- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook }
 --
 
 data ServerMode = ServerMode deriving ( Show, Read )
 
 -- | Executes a command of the list when receiving its index via a special ClientMessageEvent
 -- (indexing starts at 1)
-serverModeEventHook :: X [(String,X ())] -> Event -> X All
-serverModeEventHook cmdAction (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
+serverModeEventHook :: Event -> X All
+serverModeEventHook = serverModeEventHook' defaultCommands
+
+-- | serverModeEventHook' additionally takes an action to generate the list of
+-- commands.
+serverModeEventHook' :: X [(String,X ())] -> Event -> X All
+serverModeEventHook' cmdAction (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
         d <- asks display
         a <- io $ internAtom d "XMONAD_COMMAND" False
         when (mt == a && dt /= []) $ do
@@ -97,4 +103,4 @@ serverModeEventHook cmdAction (ClientMessageEvent {ev_message_type = mt, ev_data
                   Just (c,_) -> runCommand' c
                   Nothing    -> mapM_ (io . hPutStrLn stderr) . listOfCommands $ cl
         return (All True)
-serverModeEventHook _ _ = return (All True)
+serverModeEventHook' _ _ = return (All True)
