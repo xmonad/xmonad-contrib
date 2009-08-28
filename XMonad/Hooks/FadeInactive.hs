@@ -84,7 +84,7 @@ fadeInactiveLogHook = fadeOutLogHook . fadeIf isUnfocused
 
 -- | returns True if the window doesn't have the focus.
 isUnfocused :: Query Bool
-isUnfocused = ask >>= \w -> liftX . gets $ maybe False (w /=) . W.peek . windowset
+isUnfocused = ask >>= \w -> liftX . gets $ maybe True (w /=) . W.peek . windowset
 
 -- | fades out every window by the amount returned by the query.
 fadeOutLogHook :: Query Rational -> X ()
