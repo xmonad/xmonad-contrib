@@ -18,7 +18,9 @@ module XMonad.Layout.MagicFocus
      -- $usage
      magicFocus,
      promoteWarp,
-     promoteWarp'
+     promoteWarp',
+     followOnlyIf,
+     disableFollowOnWS
     ) where
 
 import XMonad
@@ -89,3 +91,17 @@ promoteWarp' pos e@(CrossingEvent {ev_window = w, ev_event_type = t})
             return $ All False
           else return $ All True
 promoteWarp' _ _ = return $ All True
+
+-- | Another event hook to override the focusFollowsMouse and make the pointer
+-- only follow if a given condition is satisfied. This could be used to disable
+-- focusFollowsMouse only for given workspaces or layouts.
+-- Beware that your focusFollowsMouse setting is ignored if you use this event hook.
+followOnlyIf :: X Bool -> Event -> X All
+followOnlyIf cond e@(CrossingEvent {ev_window = w, ev_event_type = t})
+    | t == enterNotify && ev_mode e == notifyNormal
+    = whenX cond (focus w) >> return (All False)
+followOnlyIf _ _ = return $ All True
+
+-- | Disables focusFollow on the given workspaces:
+disableFollowOnWS :: [WorkspaceId] -> X Bool
+disableFollowOnWS wses = (`notElem` wses) `fmap` gets (W.currentTag . windowset)
