@@ -10,6 +10,7 @@ import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers (isFullscreen, doFullFloat)
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Prompt
 import XMonad.Actions.SpawnOn
@@ -19,14 +20,14 @@ import XMonad.Layout.TwoPane
 
 import qualified Data.Map as M
 
-sjanssenConfigXmobar = statusBar "xmobar" sjanssenPP strutkey =<< sjanssenConfig
+sjanssenConfigXmobar = statusBar "exec xmobar" sjanssenPP strutkey =<< sjanssenConfig
  where
     strutkey (XConfig {modMask = modm}) = (modm, xK_b)
 
 sjanssenConfig = do
     sp <- mkSpawner
     return $ defaultConfig
-        { terminal = "urxvtc"
+        { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
                 [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w))
@@ -40,17 +41,19 @@ sjanssenConfig = do
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
                        <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn sp
+                       <+> (isFullscreen --> doFullFloat)
         }
  where
     tiled     = HintedTile 1 0.03 0.5 TopLeft
     layouts   = (tiled Tall ||| (tiled Wide ||| Full)) ||| tabbed shrinkText myTheme
     modifiers = smartBorders
 
-    mykeys sp (XConfig {modMask = modm, workspaces = ws}) = M.fromList $
+    mykeys sp (XConfig {modMask = modm}) = M.fromList $
         [((modm,               xK_p     ), shellPromptHere sp myPromptConfig)
+        ,((modm .|. shiftMask, xK_Return), spawnHere sp =<< asks (terminal . config))
         ,((modm .|. shiftMask, xK_c     ), kill1)
         ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
-        ,((modm .|. shiftMask, xK_0     ), windows $ \w -> foldr copy w ws)
+        ,((modm .|. shiftMask, xK_0     ), windows $ copyToAll)
         ,((modm,               xK_z     ), layoutScreens 2 $ TwoPane 0.5 0.5)
         ,((modm .|. shiftMask, xK_z     ), rescreen)
         ]
