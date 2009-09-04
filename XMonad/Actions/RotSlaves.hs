@@ -5,7 +5,7 @@
 -- License      : BSD3-style (see LICENSE)
 --
 -- Maintainer   : Hans Philipp Annen <haphi@gmx.net>
--- Stability    : unstable
+-- Stability    : stable
 -- Portability  : unportable
 --
 -- Rotate all windows except the master window and keep the focus in

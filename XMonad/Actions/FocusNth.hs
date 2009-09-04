@@ -5,7 +5,7 @@
 -- License      : BSD
 --
 -- Maintainer   : Karsten Schoelzel <kuser@gmx.de>
--- Stability    : unstable
+-- Stability    : stable
 -- Portability  : unportable
 --
 -- Focus the nth window of the current workspace.

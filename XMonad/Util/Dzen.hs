@@ -5,7 +5,7 @@
 -- License     :  BSD
 --
 -- Maintainer  :  glasser@mit.edu
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- Handy wrapper for dzen. Requires dzen >= 0.2.4.

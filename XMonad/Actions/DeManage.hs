@@ -5,7 +5,7 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- This module provides a method to cease management of a window

@@ -5,7 +5,7 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Lukas Mai <l.mai@web.de>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- This module provides helper functions for dealing with window borders.

@@ -5,7 +5,7 @@
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  <byorgey@gmail.com>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- A prompt for sending quick, one-line emails, via the standard GNU

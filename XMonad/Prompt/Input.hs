@@ -5,7 +5,7 @@
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  <byorgey@gmail.com>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- A generic framework for prompting the user for input and passing it

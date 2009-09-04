@@ -5,7 +5,7 @@
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  <byorgey@gmail.com>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- A prompt for appending a single line of text to a file.  Useful for

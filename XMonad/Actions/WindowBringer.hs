@@ -5,7 +5,7 @@
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  Devin Mullins <me@twifkak.com>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- dmenu operations to bring windows to you, and bring you to windows.

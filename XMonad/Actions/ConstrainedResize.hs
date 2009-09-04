@@ -5,7 +5,7 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  <dougal@dougalstanton.net>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- Lets you constrain the aspect ratio of a floating

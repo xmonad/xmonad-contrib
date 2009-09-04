@@ -5,7 +5,7 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  arcatan@kapsi.fi
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- Dwm-like swap function for xmonad.

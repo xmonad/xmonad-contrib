@@ -7,7 +7,7 @@
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  <mgsloan@gmail.com>
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- Move and resize floating windows without warping the mouse.

@@ -7,7 +7,7 @@
 -- License     :  BSD
 --
 -- Maintainer  :  glasser@mit.edu
--- Stability   :  unstable
+-- Stability   :  stable
 -- Portability :  unportable
 --
 -- LayoutClass that puts non-focused windows in ribbons at the top and bottom
