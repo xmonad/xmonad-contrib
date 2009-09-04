@@ -82,14 +82,13 @@ defaultCommands = do
     wscmds <- workspaceCommands
     return $ wscmds ++ screenCommands ++ otherCommands
  where
-    sr = broadcastMessage ReleaseResources
     otherCommands =
         [ ("shrink"              , sendMessage Shrink                               )
         , ("expand"              , sendMessage Expand                               )
         , ("next-layout"         , sendMessage NextLayout                           )
         , ("default-layout"      , asks (layoutHook . config) >>= setLayout         )
-        , ("restart-wm"          , sr >> restart "xmonad" True                       )
-        , ("restart-wm-no-resume", sr >> restart "xmonad" False                      )
+        , ("restart-wm"          , restart "xmonad" True                            )
+        , ("restart-wm-no-resume", restart "xmonad" False                           )
         , ("xterm"               , spawn =<< asks (terminal .  config)              )
         , ("run"                 , spawn "exe=`dmenu_path | dmenu -b` && exec $exe" )
         , ("kill"                , kill                                             )
