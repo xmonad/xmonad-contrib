@@ -36,7 +36,7 @@ import XMonad.Actions.Submap
 import XMonad.Util.NamedActions
 
 import qualified Data.Map as M
-import Data.List (foldl', intersperse, sortBy, groupBy, nub)
+import Data.List (foldl', sortBy, groupBy, nub)
 import Data.Ord (comparing)
 import Data.Maybe
 import Control.Arrow (first, (&&&))
@@ -413,7 +413,8 @@ parseModifier c =  (string "M-" >> return (modMask c))
                +++ do char 'M'
                       n <- satisfy (`elem` ['1'..'5'])
                       char '-'
-                      return (mod1Mask + (read [n]) - 1)
+                      return $ indexMod (read [n] - 1)
+    where indexMod = (!!) [mod1Mask,mod2Mask,mod3Mask,mod4Mask,mod5Mask]
 
 -- | Parse an unmodified basic key, like @\"x\"@, @\"<F1>\"@, etc.
 parseKey :: ReadP KeySym
@@ -441,7 +442,7 @@ keyNames = functionKeys ++ specialKeys ++ multimediaKeys
 -- | A list pairing function key descriptor strings (e.g. @\"<F2>\"@) with
 --   the associated KeySyms.
 functionKeys :: [(String, KeySym)]
-functionKeys = [ ("F" ++ show n, k)
+functionKeys = [ ('F' : show n, k)
                | (n,k) <- zip ([1..24] :: [Int]) [xK_F1..] ]
 
 -- | A list of special key names and their corresponding KeySyms.
@@ -703,7 +704,7 @@ checkKeymap conf km = warn (doKeymapCheck conf km)
                             ++ msg "duplicate" dup ++ "'"
         msg _ [] = ""
         msg m xs = m ++ " keybindings detected: " ++ showBindings xs
-        showBindings = concat . intersperse " " . map ((++"\"") . ("\""++))
+        showBindings = unwords . map (("\""++) . (++"\""))
 
 -- | Given a config and a list of (key sequence description, action)
 --   pairs, check the key sequence descriptions for validity,
