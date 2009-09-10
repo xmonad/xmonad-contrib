@@ -264,9 +264,9 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w = printer pp (S.tag w)
-          where printer | S.tag w == this                                               = ppCurrent
+          where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
+                        | S.tag w == this                                               = ppCurrent
                         | S.tag w `elem` visibles                                       = ppVisible
-                        | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = \ppC -> ppUrgent ppC . ppHidden ppC
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
@@ -339,11 +339,7 @@ dzenColor fg bg = wrap (fg1++bg1) (fg2++bg2)
 dzenEscape :: String -> String
 dzenEscape = concatMap (\x -> if x == '^' then "^^" else [x])
 
--- | Strip dzen formatting or commands. Useful to remove ppHidden
---   formatting in ppUrgent field. For example:
---
--- >     , ppHidden          = dzenColor "gray20" "" . wrap "(" ")"
--- >     , ppUrgent          = dzenColor "dark orange" "" .  dzenStrip
+-- | Strip dzen formatting or commands.
 dzenStrip :: String -> String
 dzenStrip = strip [] where
     strip keep x
@@ -364,11 +360,7 @@ xmobarColor fg bg = wrap t "</fc>"
 
 -- ??? add an xmobarEscape function?
 
--- | Strip xmobar markup. Useful to remove ppHidden color from ppUrgent
---   field. For example:
---
--- >     , ppHidden          = xmobarColor "gray20" "" . wrap "<" ">"
--- >     , ppUrgent          = xmobarColor "dark orange" "" .  xmobarStrip
+-- | Strip xmobar markup.
 xmobarStrip :: String -> String
 xmobarStrip = strip [] where
     strip keep x
@@ -394,8 +386,6 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ how to print tags of empty hidden workspaces
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
-               -- NOTE that 'ppUrgent' is applied /in addition to/
-               -- 'ppHidden'!
              , ppSep :: String
                -- ^ separator to use between different log sections
                -- (window name, layout, workspaces)
@@ -451,14 +441,13 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
                , ppExtras          = []
                }
 
--- | Settings to emulate dwm's statusbar, dzen only. Uses dzenStrip in
--- ppUrgent.
+-- | Settings to emulate dwm's statusbar, dzen only.
 dzenPP :: PP
 dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                      , ppVisible  = dzenColor "black" "#999999" . pad
                      , ppHidden   = dzenColor "black" "#cccccc" . pad
                      , ppHiddenNoWindows = const ""
-                     , ppUrgent   = dzenColor "red" "yellow" . dzenStrip
+                     , ppUrgent   = dzenColor "red" "yellow" . pad
                      , ppWsSep    = ""
                      , ppSep      = ""
                      , ppLayout   = dzenColor "black" "#cccccc" .
@@ -476,7 +465,7 @@ xmobarPP :: PP
 xmobarPP = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
                      , ppTitle   = xmobarColor "green"  "" . shorten 40
                      , ppVisible = wrap "(" ")"
-                     , ppUrgent = xmobarColor "red" "yellow"
+                     , ppUrgent  = xmobarColor "red" "yellow"
                      }
 
 -- | The options that sjanssen likes to use with xmobar, as an
@@ -492,7 +481,7 @@ byorgeyPP :: PP
 byorgeyPP = defaultPP { ppHiddenNoWindows = showNamedWorkspaces
                       , ppHidden  = dzenColor "black"  "#a8a3f7" . pad
                       , ppCurrent = dzenColor "yellow" "#a8a3f7" . pad
-                      , ppUrgent  = dzenColor "red"    "yellow"
+                      , ppUrgent  = dzenColor "red"    "yellow"  . pad
                       , ppSep     = " | "
                       , ppWsSep   = ""
                       , ppTitle   = shorten 70
