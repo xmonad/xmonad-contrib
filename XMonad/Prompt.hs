@@ -25,6 +25,15 @@ module XMonad.Prompt
     , XPPosition (..)
     , XPConfig (..)
     , XPrompt (..)
+    , XP
+    , defaultXPKeymap
+    , completion
+    , quit
+    , killBefore, killAfter, startOfLine, endOfLine
+    , pasteString, copyString
+    , moveWord, killWord, deleteString
+    , moveHistory, setSuccess, setDone
+    , Direction (..)
     , ComplFunction
     -- * X Utilities
     -- $xutils
@@ -58,7 +67,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.XSelection (getSelection, putSelection)
 
-import Control.Arrow ((&&&))
+import Control.Arrow ((&&&),first)
 import Control.Concurrent (threadDelay)
 import Control.Monad.Reader
 import Control.Monad.State
@@ -73,8 +82,7 @@ import System.IO
 import System.Posix.Files
 import Control.Exception hiding (handle)
 
-import qualified Data.Map as Map
-import Data.Map (Map)
+import qualified Data.Map as M
 
 -- $usage
 -- For usage examples see "XMonad.Prompt.Shell",
@@ -102,6 +110,7 @@ data XPState =
         , offset             :: !Int
         , config             :: XPConfig
         , successful         :: Bool
+        , done               :: Bool
         }
 
 data XPConfig =
@@ -118,6 +127,8 @@ data XPConfig =
         , historyFilter     :: [String] -> [String]
                                           -- ^ a filter to determine which
                                           -- history entries to remember
+        , promptKeymap      :: M.Map (KeyMask,KeySym) (XP ())
+                                          -- ^ Mapping from key combinations to actions
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
         , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
@@ -178,6 +189,7 @@ data XPPosition = Top
                   deriving (Show,Read)
 
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
+
 defaultXPConfig =
     XPC { font              = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
         , bgColor           = "grey22"
@@ -186,6 +198,7 @@ defaultXPConfig =
         , bgHLight          = "grey"
         , borderColor       = "white"
         , promptBorderWidth = 1
+        , promptKeymap      = defaultXPKeymap
         , position          = Bottom
         , height            = 18
         , historySize       = 256
@@ -218,6 +231,7 @@ initState d rw w s compl gc fonts pt h c =
         , offset             = length (defaultText c)
         , config             = c
         , successful         = False
+        , done               = False
         }
 
 -- this would be much easier with functional references
@@ -245,7 +259,7 @@ mkXPromptWithReturn t conf compl action = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
-  let hs = fromMaybe [] $ Map.lookup (showXPrompt t) hist
+  let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
       st = initState d rw w s compl gc fs (XPT t) hs conf
   st' <- liftIO $ execStateT runXP st
 
@@ -253,7 +267,7 @@ mkXPromptWithReturn t conf compl action = do
   liftIO $ freeGC d gc
   if successful st'
     then do
-      liftIO $ writeHistory $ Map.insertWith
+      liftIO $ writeHistory $ M.insertWith
                                 (\xs ys -> take (historySize conf)
                                         . historyFilter conf $ xs ++ ys)
                                 (showXPrompt t) [command st'] hist
@@ -301,26 +315,21 @@ eventLoop action = do
                         else return (Nothing, "")
               return (ks,s,ev)
   action (fromMaybe xK_VoidSymbol keysym,string) event
+  gets done >>= flip unless (eventLoop action)
 
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
-handle k@(ks,_) e@(KeyEvent {ev_event_type = t})
-    | t == keyPress && ks == xK_Tab    = do
-  c <- getCompletions
-  if length c > 1 then modify $ \s -> s { showComplWin = True } else return ()
-  completionHandle c k e
 handle ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
-  eventLoop handle
-handle _  _ = eventLoop handle
+handle _  _ = return ()
 
--- completion event handler
-completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
-completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
-    | t == keyPress && ks == xK_Tab = do
+completion :: XP ()
+completion =  do
+  c <- getCompletions
+  when (length c > 1) $ modify (\s -> s { showComplWin = True })
   st <- get
   let updateState l = do let new_command = nextCompletion (xptype st) (command st) l
                          modify $ \s ->  setCommand new_command $ s { offset = length new_command }
@@ -330,6 +339,12 @@ completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
     []  -> updateWindows   >> eventLoop handle
     [x] -> updateState [x] >> getCompletions >>= updateWins
     l   -> updateState l   >> updateWins l
+
+
+-- completion event handler
+completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
+completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
+    | t == keyPress && ks == xK_Tab = completion
 -- key release
     | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
 -- other keys
@@ -337,6 +352,7 @@ completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
     | t == keyPress = keyPressHandle m ks
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
+
 
 tryAutoComplete :: XP Bool
 tryAutoComplete = do
@@ -360,50 +376,61 @@ tryAutoComplete = do
 
 data Direction = Prev | Next deriving (Eq,Show,Read)
 
+defaultXPKeymap :: M.Map (KeyMask,KeySym) (XP ())
+defaultXPKeymap = M.fromList $
+  map (first $ (,) controlMask) -- control + <key>
+  [ (xK_u, killBefore)
+  , (xK_k, killAfter)
+  , (xK_a, startOfLine)
+  , (xK_e, endOfLine)
+  , (xK_y, pasteString)
+  , (xK_c, copyString)
+  , (xK_Right, moveWord Next)
+  , (xK_Left, moveWord Prev)
+  , (xK_Delete, killWord Next)
+  , (xK_BackSpace, killWord Prev)
+  , (xK_w, killWord Prev)
+  , (xK_q, quit)
+  ] ++
+  map (first $ (,) 0)
+  [ (xK_Return, setSuccess True >> setDone True)
+  , (xK_KP_Enter, setSuccess True >> setDone True)
+  , (xK_BackSpace, deleteString Prev)
+  , (xK_Delete, deleteString Next)
+  , (xK_Left, moveCursor Prev)
+  , (xK_Right, moveCursor Next)
+  , (xK_Home, startOfLine)
+  , (xK_End, endOfLine)
+  , (xK_Down, moveHistory W.focusUp')
+  , (xK_Up, moveHistory W.focusDown')
+  , (xK_Tab, completion)
+  , (xK_Escape, quit)
+  ]
+
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
--- commands: ctrl + ... todo
-keyPressHandle mask (ks,_)
-    | (mask .&. controlMask) > 0 =
-        -- control sequences
-        case () of
-          _ | ks == xK_u               -> killBefore    >> go
-            | ks == xK_k               -> killAfter     >> go
-            | ks == xK_a               -> startOfLine   >> go
-            | ks == xK_e               -> endOfLine     >> go
-            | ks == xK_y               -> pasteString   >> go
-            | ks == xK_c               -> copyString    >> go
-            | ks == xK_Right           -> moveWord Next >> go
-            | ks == xK_Left            -> moveWord Prev >> go
-            | ks == xK_Delete          -> killWord Next >> go
-            | ks == xK_BackSpace       -> killWord Prev >> go
-            | ks == xK_w               -> killWord Prev >> go
-            | ks == xK_g || ks == xK_c -> quit
-            | otherwise  -> eventLoop handle -- unhandled control sequence
-    | ks == xK_Return || ks == xK_KP_Enter    = setSuccess True
-    | ks == xK_BackSpace = deleteString Prev >> go
-    | ks == xK_Delete    = deleteString Next >> go
-    | ks == xK_Left      = moveCursor   Prev >> go
-    | ks == xK_Right     = moveCursor   Next >> go
-    | ks == xK_Home      = startOfLine       >> go
-    | ks == xK_End       = endOfLine         >> go
-    | ks == xK_Down      = moveHistory  W.focusUp' >> go
-    | ks == xK_Up        = moveHistory  W.focusDown' >> go
-    | ks == xK_Escape    = quit
-    where
-      go   = updateWindows >> eventLoop handle
-      quit = flushString >> setSuccess False -- quit and discard everything
--- insert a character
-keyPressHandle _ (_,s)
-    | s == "" = eventLoop handle
-    | otherwise = do insertString (decodeInput s)
-                     updateWindows
-                     completed <- tryAutoComplete
-                     if completed then setSuccess True else eventLoop handle
+keyPressHandle mask (ks,str) = do
+  km <- gets (promptKeymap . config)
+  case M.lookup (mask,ks) km of
+    Just action -> action >> updateWindows
+    Nothing -> case str of
+                 "" -> eventLoop handle
+                 _ -> when (mask .&. controlMask == 0) $ do
+                                 insertString (decodeInput str)
+                                 updateWindows
+                                 completed <- tryAutoComplete
+                                 when completed $ setSuccess True >> setDone True
 
 setSuccess :: Bool -> XP ()
 setSuccess b = modify $ \s -> s { successful = b }
 
+setDone :: Bool -> XP ()
+setDone b = modify $ \s -> s { done = b }
+
 -- KeyPress and State
+
+-- | Quit.
+quit :: XP ()
+quit = flushString >> setSuccess False >> setDone True
 
 -- | Kill the portion of the command before the cursor
 killBefore :: XP ()
@@ -704,10 +731,10 @@ printComplString d drw gc fc bc x y s = do
 
 -- History
 
-type History = Map String [String]
+type History = M.Map String [String]
 
 emptyHistory :: History
-emptyHistory = Map.empty
+emptyHistory = M.empty
 
 getHistoryFile :: IO FilePath
 getHistoryFile = fmap (++ "/history") $ getAppUserDataDirectory "xmonad"
@@ -824,7 +851,7 @@ breakAtSpace s
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in ~\/.xmonad\/history.
 historyCompletion :: ComplFunction
-historyCompletion x = fmap (deleteConsecutive . filter (isInfixOf x) . Map.fold (++) []) readHistory
+historyCompletion x = fmap (deleteConsecutive . filter (isInfixOf x) . M.fold (++) []) readHistory
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.
