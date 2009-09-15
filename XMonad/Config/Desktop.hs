@@ -22,6 +22,7 @@ import XMonad
 import XMonad.Config (defaultConfig)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Util.Cursor
 
 import qualified Data.Map as M
 
@@ -29,6 +30,7 @@ desktopConfig = defaultConfig
     { logHook    = ewmhDesktopsLogHook
     , layoutHook = desktopLayoutModifiers $ layoutHook defaultConfig
     , manageHook = manageHook defaultConfig <+> manageDocks
+    , startupHook = setDefaultCursor xC_left_ptr
     , handleEventHook = ewmhDesktopsEventHook
     , keys       = \c -> desktopKeys c `M.union` keys defaultConfig c }
 
