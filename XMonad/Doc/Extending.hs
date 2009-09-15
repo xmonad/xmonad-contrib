@@ -811,6 +811,8 @@ external utilities.
 
 A non complete list with a brief description:
 
+* "XMonad.Util.Cursor": configure the default cursor/pointer glyph.
+
 * "XMonad.Util.CustomKeys": configure key bindings (see
   "XMonad.Doc.Extending#Editing_key_bindings").
 

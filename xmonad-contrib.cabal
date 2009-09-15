@@ -217,6 +217,7 @@ library
                         XMonad.Prompt.Window
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
+                        XMonad.Util.Cursor
                         XMonad.Util.CustomKeys
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
