@@ -15,7 +15,8 @@ module XMonad.Config.Gnome (
     -- * Usage
     -- $usage
     gnomeConfig,
-    gnomeRun
+    gnomeRun,
+    gnomeRegister
     ) where
 
 import XMonad
@@ -23,14 +24,20 @@ import XMonad.Config.Desktop
 
 import qualified Data.Map as M
 
+import System.Environment (getEnvironment)
+import System.Cmd (rawSystem)
+
+import Control.Concurrent (forkIO)
+
 -- $usage
 -- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Config.Gnome
 -- >
--- > main = xmonad gnomeConfig
---
+-- > main = do
+-- >    gnomeRegister
+-- >    xmonad gnomeConfig
 
 gnomeConfig = desktopConfig
     { terminal = "gnome-terminal"
@@ -53,3 +60,24 @@ gnomeRun = withDisplay $ \dpy -> do
         setClientMessageEvent e rw gnome_panel 32 panel_run 0
         sendEvent dpy rw False structureNotifyMask e
         sync dpy False
+
+-- | Register xmonad with gnome. 'dbus-send' must be in the $PATH with which
+-- xmonad is started.
+-- 
+-- This action reduces a delay on startup only only if you have configured
+-- gnome-session>=2.26: to start xmonad with a command as such:
+--
+-- > gconftool-2 -s /desktop/gnome/session/required_components/windowmanager xmonad --type string
+gnomeRegister :: IO ()
+gnomeRegister = do
+    let void_ = fmap (const ())
+    x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
+    whenJust x $ \sessionId -> void_ $ forkIO $ void_ $
+        rawSystem "dbus-send"
+            ["--session"
+            ,"--print-reply=string"
+            ,"--dest=org.gnome.SessionManager"
+            ,"/org/gnome/SessionManager"
+            ,"org.gnome.SessionManager.RegisterClient"
+            ,"string:xmonad"
+            ,"string:"++sessionId]
