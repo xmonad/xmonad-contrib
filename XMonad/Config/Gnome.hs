@@ -21,13 +21,11 @@ module XMonad.Config.Gnome (
 
 import XMonad
 import XMonad.Config.Desktop
+import XMonad.Util.Run (safeSpawn)
 
 import qualified Data.Map as M
 
 import System.Environment (getEnvironment)
-import System.Cmd (rawSystem)
-
-import Control.Concurrent (forkIO)
 
 -- $usage
 -- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
@@ -70,10 +68,8 @@ gnomeRun = withDisplay $ \dpy -> do
 -- > gconftool-2 -s /desktop/gnome/session/required_components/windowmanager xmonad --type string
 gnomeRegister :: IO ()
 gnomeRegister = do
-    let void_ = fmap (const ())
     x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
-    whenJust x $ \sessionId -> void_ $ forkIO $ void_ $
-        rawSystem "dbus-send"
+    whenJust x $ \sessionId -> safeSpawn "dbus-send"
             ["--session"
             ,"--print-reply=string"
             ,"--dest=org.gnome.SessionManager"
