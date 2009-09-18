@@ -33,13 +33,12 @@ import System.Environment (getEnvironment)
 -- > import XMonad
 -- > import XMonad.Config.Gnome
 -- >
--- > main = do
--- >    gnomeRegister
--- >    xmonad gnomeConfig
+-- > main = xmonad gnomeConfig
 
 gnomeConfig = desktopConfig
     { terminal = "gnome-terminal"
-    , keys     = \c -> gnomeKeys c `M.union` keys desktopConfig c }
+    , keys     = \c -> gnomeKeys c `M.union` keys desktopConfig c
+    , startupHook = gnomeRegister }
 
 gnomeKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_p), gnomeRun)
@@ -66,8 +65,8 @@ gnomeRun = withDisplay $ \dpy -> do
 -- gnome-session>=2.26: to start xmonad with a command as such:
 --
 -- > gconftool-2 -s /desktop/gnome/session/required_components/windowmanager xmonad --type string
-gnomeRegister :: IO ()
-gnomeRegister = do
+gnomeRegister :: MonadIO m => m ()
+gnomeRegister = io $ do
     x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
     whenJust x $ \sessionId -> safeSpawn "dbus-send"
             ["--session"
