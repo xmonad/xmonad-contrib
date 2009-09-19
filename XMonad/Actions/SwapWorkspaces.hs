@@ -19,12 +19,13 @@ module XMonad.Actions.SwapWorkspaces (
                                      swapWithCurrent,
                                      swapTo,
                                      swapWorkspaces,
-                                     WSDirection(..)
+                                     Direction1D(..)
                                     ) where
 
 import XMonad (windows, X())
 import XMonad.StackSet
 import XMonad.Actions.CycleWS
+import XMonad.Util.Types
 import XMonad.Util.WorkspaceCompare
 
 
@@ -52,7 +53,7 @@ swapWithCurrent t s = swapWorkspaces t (currentTag s) s
 
 -- | Say @swapTo Next@ or @swapTo Prev@ to move your current workspace.
 -- This is an @X ()@ so can be hooked up to your keybindings directly.
-swapTo :: WSDirection -> X ()
+swapTo :: Direction1D -> X ()
 swapTo dir = findWorkspace getSortByIndex dir AnyWS 1 >>= windows . swapWithCurrent
 
 -- | Takes two workspace tags and an existing XMonad.StackSet and returns a new

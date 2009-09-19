@@ -15,14 +15,14 @@
 module XMonad.Actions.MouseGestures (
     -- * Usage
     -- $usage
-    Direction(..),
+    Direction2D(..),
     mouseGestureH,
     mouseGesture,
     mkCollect
 ) where
 
 import XMonad
-import XMonad.Hooks.ManageDocks (Direction(..))
+import XMonad.Util.Types (Direction2D(..))
 
 import Data.IORef
 import qualified Data.Map as M
@@ -64,10 +64,10 @@ delta (ax, ay) (bx, by) = max (d ax bx) (d ay by)
     where
     d a b = abs (a - b)
 
-dir :: Pos -> Pos -> Direction
+dir :: Pos -> Pos -> Direction2D
 dir (ax, ay) (bx, by) = trans . (/ pi) $ atan2 (fromIntegral $ ay - by) (fromIntegral $ bx - ax)
     where
-    trans :: Double -> Direction
+    trans :: Double -> Direction2D
     trans x
         | rg (-3/4) (-1/4) x = D
         | rg (-1/4)  (1/4) x = R
@@ -75,7 +75,7 @@ dir (ax, ay) (bx, by) = trans . (/ pi) $ atan2 (fromIntegral $ ay - by) (fromInt
         | otherwise          = L
     rg a z x = a <= x && x < z
 
-gauge :: (Direction -> X ()) -> Pos -> IORef (Maybe (Direction, Pos)) -> Position -> Position -> X ()
+gauge :: (Direction2D -> X ()) -> Pos -> IORef (Maybe (Direction2D, Pos)) -> Position -> Position -> X ()
 gauge hook op st nx ny = do
     let np = (nx, ny)
     stx <- io $ readIORef st
@@ -96,7 +96,7 @@ gauge hook op st nx ny = do
 -- | @'mouseGestureH' moveHook endHook@ is a mouse button
 -- event handler. It collects mouse movements, calling @moveHook@ for each
 -- update; when the button is released, it calls @endHook@.
-mouseGestureH :: (Direction -> X ()) -> X () -> X ()
+mouseGestureH :: (Direction2D -> X ()) -> X () -> X ()
 mouseGestureH moveHook endHook = do
     dpy <- asks display
     root <- asks theRoot
@@ -108,7 +108,7 @@ mouseGestureH moveHook endHook = do
 
 -- | A utility function on top of 'mouseGestureH'. It uses a 'Data.Map.Map' to
 -- look up the mouse gesture, then executes the corresponding action (if any).
-mouseGesture :: Map [Direction] (Window -> X ()) -> Window -> X ()
+mouseGesture :: Map [Direction2D] (Window -> X ()) -> Window -> X ()
 mouseGesture tbl win = do
     (mov, end) <- mkCollect
     mouseGestureH (\d -> mov d >> return ()) $ end >>= \gest ->
@@ -121,7 +121,7 @@ mouseGesture tbl win = do
 -- collect mouse movements (and return the current gesture as a list); the end
 -- hook will return a list of the completed gesture, which you can access with
 -- 'Control.Monad.>>='.
-mkCollect :: (MonadIO m, MonadIO m') => m (Direction -> m' [Direction], m' [Direction])
+mkCollect :: (MonadIO m, MonadIO m') => m (Direction2D -> m' [Direction2D], m' [Direction2D])
 mkCollect = liftIO $ do
     acc <- newIORef []
     let

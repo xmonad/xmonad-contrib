@@ -15,7 +15,7 @@
 module XMonad.Actions.FloatSnap (
                 -- * Usage
                 -- $usage
-                Direction(..),
+                Direction2D(..),
                 snapMove,
                 snapGrow,
                 snapShrink,
@@ -29,7 +29,8 @@ import Data.List (sort)
 import Data.Maybe (listToMaybe,fromJust,isNothing)
 import qualified XMonad.StackSet as W
 
-import XMonad.Hooks.ManageDocks (Direction(..),calcGap)
+import XMonad.Hooks.ManageDocks (calcGap)
+import XMonad.Util.Types (Direction2D(..))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -102,7 +103,7 @@ snapMagicMouseResize middle collidedist snapdist w = whenX (isClient w) $ withDi
 
 -- | Resize the window by each edge independently to snap against the closest part of other windows or the edge of the screen.
 snapMagicResize
-    :: [Direction] -- ^ The edges to snap.
+    :: [Direction2D] -- ^ The edges to snap.
     -> Maybe Int   -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Maybe Int   -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
     -> Window      -- ^ The window to move and resize.
@@ -188,7 +189,7 @@ snapMagicMove collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> 
 
 -- | Move a window in the specified direction until it snaps against another window or the edge of the screen.
 snapMove
-    :: Direction -- ^ What direction to move the window in.
+    :: Direction2D -- ^ What direction to move the window in.
     -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Window    -- ^ The window to move.
     -> X ()
@@ -223,7 +224,7 @@ doSnapMove horiz rev collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
 
 -- | Grow the specified edge of a window until it snaps against another window or the edge of the screen.
 snapGrow
-    :: Direction -- ^ What edge of the window to grow.
+    :: Direction2D -- ^ What edge of the window to grow.
     -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Window    -- ^ The window to grow.
     -> X ()
@@ -231,13 +232,13 @@ snapGrow = snapResize True
 
 -- | Shrink the specified edge of a window until it snaps against another window or the edge of the screen.
 snapShrink
-    :: Direction -- ^ What edge of the window to shrink.
+    :: Direction2D -- ^ What edge of the window to shrink.
     -> Maybe Int -- ^ The distance in the orthogonal axis to look for windows to snap against. Use Nothing to snap against every window.
     -> Window    -- ^ The window to shrink.
     -> X ()
 snapShrink = snapResize False
 
-snapResize :: Bool -> Direction -> Maybe Int -> Window -> X ()
+snapResize :: Bool -> Direction2D -> Maybe Int -> Window -> X ()
 snapResize grow dir collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ raiseWindow d w
     wa <- io $ getWindowAttributes d w

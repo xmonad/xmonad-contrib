@@ -18,7 +18,8 @@ module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
     manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
-    ToggleStruts(..), Direction(..),
+    ToggleStruts(..),
+    module XMonad.Util.Types,
 
     -- for XMonad.Actions.FloatSnap
     calcGap
@@ -30,6 +31,7 @@ import XMonad
 import Foreign.C.Types (CLong)
 import Control.Monad
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 
 import Data.List (delete)
@@ -83,18 +85,6 @@ import Data.List (delete)
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
 
--- | An enumeration of the four cardinal directions\/sides of the
---   screen.
---
---   Ideally this would go in its own separate module in Util,
---   but ManageDocks is angling for inclusion into the xmonad core,
---   so keep the dependencies to a minimum.
-data Direction = U   -- ^ Up\/top
-               | D   -- ^ Down\/bottom
-               | R   -- ^ Right
-               | L   -- ^ Left
-  deriving ( Read, Show, Eq, Ord, Enum, Bounded )
-
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it. If the window has the STRUT property
 --   set, adjust the gap accordingly.
@@ -129,7 +119,7 @@ getStrut w = do
 
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.
-calcGap :: [Direction] -> X (Rectangle -> Rectangle)
+calcGap :: [Direction2D] -> X (Rectangle -> Rectangle)
 calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     -- We don't keep track of dock like windows, so we find all of them here
@@ -153,17 +143,17 @@ avoidStruts = avoidStrutsOn [U,D,L,R]
 --   etc. on the indicated sides of the screen.  Valid sides are U
 --   (top), D (bottom), R (right), or L (left).
 avoidStrutsOn :: LayoutClass l a =>
-                 [Direction]
+                 [Direction2D]
               -> l a
               -> ModifiedLayout AvoidStruts l a
 avoidStrutsOn ss = ModifiedLayout (AvoidStruts ss)
 
-data AvoidStruts a = AvoidStruts [Direction] deriving ( Read, Show )
+data AvoidStruts a = AvoidStruts [Direction2D] deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
 --   modifier to alter its behavior.
 data ToggleStruts = ToggleStruts
-                  | ToggleStrut Direction
+                  | ToggleStrut Direction2D
   deriving (Read,Show,Typeable)
 
 instance Message ToggleStruts
@@ -185,7 +175,7 @@ instance LayoutModifier AvoidStruts a where
 
 -- | (Direction, height\/width, initial pixel, final pixel).
 
-type Strut = (Direction, CLong, CLong, CLong)
+type Strut = (Direction2D, CLong, CLong, CLong)
 
 -- | (Initial x pixel, initial y pixel,
 --    final x pixel, final y pixel).

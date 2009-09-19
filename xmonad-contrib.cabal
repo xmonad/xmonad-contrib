@@ -224,6 +224,7 @@ library
                         XMonad.Util.Scratchpad
                         XMonad.Util.Themes
                         XMonad.Util.Timer
+                        XMonad.Util.Types
                         XMonad.Util.WindowProperties
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.Paste

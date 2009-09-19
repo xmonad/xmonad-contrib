@@ -40,8 +40,9 @@ import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
 import XMonad.Layout.Simplest(Simplest(..))
 import XMonad.Layout.Tabbed(defaultTheme, shrinkText,
                             TabbedDecoration, addTabs)
-import XMonad.Layout.WindowNavigation(Direction, Navigate(Apply))
+import XMonad.Layout.WindowNavigation(Navigate(Apply))
 import XMonad.Util.Invisible(Invisible(..))
+import XMonad.Util.Types(Direction2D(..))
 import XMonad
 import Control.Applicative((<$>),(<*))
 import Control.Arrow(Arrow(second, (&&&)))
@@ -261,13 +262,13 @@ instance Typeable a => Message (GroupMsg a)
 --
 -- @pushWindow@ and @pullWindow@ move individual windows between groups. They
 -- are less effective at preserving window positions.
-pullGroup,pushGroup,pullWindow,pushWindow :: Direction -> Navigate
+pullGroup,pushGroup,pullWindow,pushWindow :: Direction2D -> Navigate
 pullGroup = mergeNav (\o c -> sendMessage $ Merge o c)
 pushGroup = mergeNav (\o c -> sendMessage $ Merge c o)
 pullWindow = mergeNav (\o c -> sendMessage $ Migrate o c)
 pushWindow = mergeNav (\o c -> sendMessage $ Migrate c o)
 
-mergeNav :: (Window -> Window -> X ()) -> Direction -> Navigate
+mergeNav :: (Window -> Window -> X ()) -> Direction2D -> Navigate
 mergeNav f = Apply (\o -> withFocused (f o))
 
 -- | Apply a function on the stack belonging to the currently focused group. It

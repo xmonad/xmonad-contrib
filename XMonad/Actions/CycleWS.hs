@@ -60,7 +60,7 @@ module XMonad.Actions.CycleWS (
                                 -- * Moving between workspaces, take two!
                                 -- $taketwo
 
-                              , WSDirection(..)
+                              , Direction1D(..)
                               , WSType(..)
 
                               , shiftTo
@@ -80,6 +80,7 @@ import Data.Maybe ( isNothing, isJust )
 
 import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter)
+import XMonad.Util.Types
 import XMonad.Util.WorkspaceCompare
 
 -- $usage
@@ -211,9 +212,6 @@ the letter 'p' in its name. =)
 
 -}
 
--- | Direction to cycle through the sort order.
-data WSDirection = Next | Prev
-
 -- | What type of workspaces should be included in the cycle?
 data WSType = EmptyWS     -- ^ cycle through empty workspaces
             | NonEmptyWS  -- ^ cycle through non-empty workspaces
@@ -238,12 +236,12 @@ wsTypeToPred (WSIs p)   = p
 
 -- | View the next workspace in the given direction that satisfies
 --   the given condition.
-moveTo :: WSDirection -> WSType -> X ()
+moveTo :: Direction1D -> WSType -> X ()
 moveTo dir t = findWorkspace getSortByIndex dir t 1 >>= windows . greedyView
 
 -- | Move the currently focused window to the next workspace in the
 --   given direction that satisfies the given condition.
-shiftTo :: WSDirection -> WSType -> X ()
+shiftTo :: Direction1D -> WSType -> X ()
 shiftTo dir t = findWorkspace getSortByIndex dir t 1 >>= windows . shift
 
 -- | Given a function @s@ to sort workspaces, a direction @dir@, a
@@ -259,7 +257,7 @@ shiftTo dir t = findWorkspace getSortByIndex dir t 1 >>= windows . shift
 --   that 'moveTo' and 'shiftTo' are implemented by applying @(>>=
 --   (windows . greedyView))@ and @(>>= (windows . shift))@, respectively,
 --   to the output of 'findWorkspace'.
-findWorkspace :: X WorkspaceSort -> WSDirection -> WSType -> Int -> X WorkspaceId
+findWorkspace :: X WorkspaceSort -> Direction1D -> WSType -> Int -> X WorkspaceId
 findWorkspace s dir t n = findWorkspaceGen s (wsTypeToPred t) (maybeNegate dir n)
   where
     maybeNegate Next d = d

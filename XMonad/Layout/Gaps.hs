@@ -28,7 +28,7 @@
 module XMonad.Layout.Gaps (
                                -- * Usage
                                -- $usage
-                          Direction(..),
+                          Direction2D(..),
                           GapSpec, gaps, GapMessage(..)
 
                           ) where
@@ -36,8 +36,8 @@ module XMonad.Layout.Gaps (
 import XMonad.Core
 import Graphics.X11 (Rectangle(..))
 
-import XMonad.Hooks.ManageDocks (Direction(..))
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.Types (Direction2D(..))
 
 import Data.List (delete)
 
@@ -79,19 +79,19 @@ import Data.List (delete)
 
 -- | A manual gap configuration.  Each side of the screen on which a
 --   gap is enabled is paired with a size in pixels.
-type GapSpec = [(Direction,Int)]
+type GapSpec = [(Direction2D,Int)]
 
 -- | The gap state.  The first component is the configuration (which
 --   gaps are allowed, and their current size), the second is the gaps
 --   which are currently active.
-data Gaps a = Gaps GapSpec [Direction]
+data Gaps a = Gaps GapSpec [Direction2D]
   deriving (Show, Read)
 
 -- | Messages which can be sent to a gap modifier.
 data GapMessage = ToggleGaps              -- ^ Toggle all gaps.
-                | ToggleGap  !Direction    -- ^ Toggle a single gap.
-                | IncGap !Int !Direction    -- ^ Increase a gap by a certain number of pixels.
-                | DecGap !Int !Direction    -- ^ Decrease a gap.
+                | ToggleGap  !Direction2D    -- ^ Toggle a single gap.
+                | IncGap !Int !Direction2D    -- ^ Increase a gap by a certain number of pixels.
+                | DecGap !Int !Direction2D    -- ^ Decrease a gap.
   deriving (Typeable)
 
 instance Message GapMessage
@@ -121,16 +121,16 @@ applyGaps gs r = foldr applyGap r (activeGaps gs)
 activeGaps :: Gaps a -> GapSpec
 activeGaps (Gaps conf cur) = filter ((`elem` cur) . fst) conf
 
-toggleGaps :: GapSpec -> [Direction] -> [Direction]
+toggleGaps :: GapSpec -> [Direction2D] -> [Direction2D]
 toggleGaps conf [] = map fst conf
 toggleGaps _    _  = []
 
-toggleGap :: GapSpec -> [Direction] -> Direction -> [Direction]
+toggleGap :: GapSpec -> [Direction2D] -> Direction2D -> [Direction2D]
 toggleGap conf cur d | d `elem` cur            = delete d cur
                      | d `elem` (map fst conf) = d:cur
                      | otherwise               = cur
 
-incGap :: GapSpec -> Direction -> Int -> GapSpec
+incGap :: GapSpec -> Direction2D -> Int -> GapSpec
 incGap gs d i = map (\(dir,j) -> if dir == d then (dir,max (j+i) 0) else (dir,j)) gs
 
 fi :: (Num b, Integral a) => a -> b

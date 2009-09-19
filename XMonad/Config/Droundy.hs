@@ -22,7 +22,7 @@ import XMonad.Layout.Combo ( combineTwo )
 import XMonad.Layout.Named ( named )
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Square ( Square(Square) )
-import XMonad.Layout.WindowNavigation ( Navigate(Move,Swap,Go), Direction(U,D,R,L),
+import XMonad.Layout.WindowNavigation ( Navigate(Move,Swap,Go), Direction2D(U,D,R,L),
                                         windowNavigation )
 import XMonad.Layout.BoringWindows ( boringWindows, markBoring, clearBoring,
                                      focusUp, focusDown )
@@ -40,7 +40,7 @@ import XMonad.Actions.CopyWindow ( kill1, copy )
 import XMonad.Actions.DynamicWorkspaces ( withNthWorkspace, withWorkspace,
                                           selectWorkspace, renameWorkspace, removeWorkspace )
 import XMonad.Actions.CycleWS ( moveTo, WSType( HiddenNonEmptyWS ),
-                                WSDirection( Prev, Next) )
+                                Direction1D( Prev, Next) )
 
 import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
 import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook,

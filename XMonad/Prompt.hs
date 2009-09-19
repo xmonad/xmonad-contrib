@@ -33,7 +33,7 @@ module XMonad.Prompt
     , pasteString, copyString
     , moveWord, killWord, deleteString
     , moveHistory, setSuccess, setDone
-    , Direction (..)
+    , Direction1D(..)
     , ComplFunction
     -- * X Utilities
     -- $xutils
@@ -65,6 +65,7 @@ import Prelude hiding (catch)
 import XMonad  hiding (config, io)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
+import XMonad.Util.Types
 import XMonad.Util.XSelection (getSelection, putSelection)
 
 import Control.Arrow ((&&&),first)
@@ -374,8 +375,6 @@ tryAutoComplete = do
 
 -- KeyPresses
 
-data Direction = Prev | Next deriving (Eq,Show,Read)
-
 defaultXPKeymap :: M.Map (KeyMask,KeySym) (XP ())
 defaultXPKeymap = M.fromList $
   map (first $ (,) controlMask) -- control + <key>
@@ -443,7 +442,7 @@ killAfter =
   modify $ \s -> setCommand (take (offset s) (command s)) s
 
 -- | Kill the next\/previous word
-killWord :: Direction -> XP ()
+killWord :: Direction1D -> XP ()
 killWord d = do
   o <- gets offset
   c <- gets command
@@ -492,7 +491,7 @@ copyString :: XP ()
 copyString = gets command >>= io . putSelection
 
 -- | Remove a character at the cursor position
-deleteString :: Direction -> XP ()
+deleteString :: Direction1D -> XP ()
 deleteString d =
   modify $ \s -> setCommand (c (command s) (offset s)) $ s { offset = o (offset s)}
   where o oo = if d == Prev then max 0 (oo - 1) else oo
@@ -504,13 +503,13 @@ deleteString d =
             where (f,ss) = splitAt oo oc
 
 -- | move the cursor one position
-moveCursor :: Direction -> XP ()
+moveCursor :: Direction1D -> XP ()
 moveCursor d =
   modify $ \s -> s { offset = o (offset s) (command s)}
   where o oo c = if d == Prev then max 0 (oo - 1) else min (length c) (oo + 1)
 
 -- | move the cursor one word
-moveWord :: Direction -> XP ()
+moveWord :: Direction1D -> XP ()
 moveWord d = do
   c <- gets command
   o <- gets offset

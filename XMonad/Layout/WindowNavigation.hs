@@ -18,7 +18,7 @@ module XMonad.Layout.WindowNavigation (
                                    -- * Usage
                                    -- $usage
                                    windowNavigation, configurableNavigation,
-                                   Navigate(..), Direction(..),
+                                   Navigate(..), Direction2D(..),
                                    MoveWindowToWindow(..),
                                    navigateColor, navigateBrightness,
                                    noNavigateBorders, defaultWNConfig
@@ -29,9 +29,8 @@ import XMonad hiding (Point)
 import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Invisible
+import XMonad.Util.Types (Direction2D(..))
 import XMonad.Util.XUtils
-
-import XMonad.Hooks.ManageDocks (Direction(..))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -67,8 +66,8 @@ import XMonad.Hooks.ManageDocks (Direction(..))
 data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeable )
 instance Typeable a => Message (MoveWindowToWindow a)
 
-data Navigate = Go Direction | Swap Direction | Move Direction
-              | Apply (Window -> X()) Direction -- ^ Apply action with destination window
+data Navigate = Go Direction2D | Swap Direction2D | Move Direction2D
+              | Apply (Window -> X()) Direction2D -- ^ Apply action with destination window
         deriving ( Typeable )
 instance Message Navigate
 
@@ -188,7 +187,7 @@ instance LayoutModifier WindowNavigation Window where
                handleMessOrMaybeModifyIt (WindowNavigation conf (I $ Just (NS pt wrs))) (SomeMessage Hide)
     handleMessOrMaybeModifyIt _ _ = return Nothing
 
-navigable :: Direction -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
+navigable :: Direction2D -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
 navigable d pt = sortby d . filter (inr d pt . snd)
 
 sc :: Pixel -> Window -> X ()
@@ -197,11 +196,11 @@ sc c win = withDisplay $ \dpy -> io $ setWindowBorder dpy win c
 center :: Rectangle -> Point
 center (Rectangle x y w h) = P (fromIntegral x + fromIntegral w/2)  (fromIntegral y + fromIntegral h/2)
 
-centerd :: Direction -> Point -> Rectangle -> Point
+centerd :: Direction2D -> Point -> Rectangle -> Point
 centerd d (P xx yy) (Rectangle x y w h) | d == U || d == D = P xx (fromIntegral y + fromIntegral h/2)
                                         | otherwise = P (fromIntegral x + fromIntegral w/2) yy
 
-inr :: Direction -> Point -> Rectangle -> Bool
+inr :: Direction2D -> Point -> Rectangle -> Bool
 inr D (P x y) (Rectangle l yr w h) = x >= fromIntegral l && x < fromIntegral l + fromIntegral w &&
                                      y <  fromIntegral yr + fromIntegral h
 inr U (P x y) (Rectangle l yr w _) = x >= fromIntegral l && x < fromIntegral l + fromIntegral w &&
@@ -215,7 +214,7 @@ inrect :: Point -> Rectangle -> Bool
 inrect (P x y) (Rectangle a b w h) = x >  fromIntegral a && x < fromIntegral a + fromIntegral w &&
                                      y >  fromIntegral b && y < fromIntegral b + fromIntegral h
 
-sortby :: Direction -> [(a,Rectangle)] -> [(a,Rectangle)]
+sortby :: Direction2D -> [(a,Rectangle)] -> [(a,Rectangle)]
 sortby U = sortBy (\(_,Rectangle _ y _ _) (_,Rectangle _ y' _ _) -> compare y' y)
 sortby D = sortBy (\(_,Rectangle _ y _ _) (_,Rectangle _ y' _ _) -> compare y y')
 sortby R = sortBy (\(_,Rectangle x _ _ _) (_,Rectangle x' _ _ _) -> compare x x')

@@ -34,11 +34,11 @@ module XMonad.Actions.WindowNavigation (
                                        withWindowNavigationKeys,
                                        WNAction(..),
                                        go, swap,
-                                       Direction(..)
+                                       Direction2D(..)
                                        ) where
 
 import XMonad
-import XMonad.Hooks.ManageDocks (Direction(..))
+import XMonad.Util.Types (Direction2D(..))
 import qualified XMonad.StackSet as W
 
 import Control.Applicative ((<$>))
@@ -104,7 +104,7 @@ withWindowNavigationKeys wnKeys conf = do
   where fromWNAction posRef (WNGo dir)   = go   posRef dir
         fromWNAction posRef (WNSwap dir) = swap posRef dir
 
-data WNAction = WNGo Direction | WNSwap Direction
+data WNAction = WNGo Direction2D | WNSwap Direction2D
 
 type WNState = Map WorkspaceId Point
 
@@ -113,10 +113,10 @@ type WNState = Map WorkspaceId Point
 -- 2. get target windowrect
 -- 3. focus window
 -- 4. set new position
-go :: IORef WNState -> Direction -> X ()
+go :: IORef WNState -> Direction2D -> X ()
 go = withTargetWindow W.focusWindow
 
-swap :: IORef WNState -> Direction -> X ()
+swap :: IORef WNState -> Direction2D -> X ()
 swap = withTargetWindow swapWithFocused
   where swapWithFocused targetWin winSet =
             case W.peek winSet of
@@ -128,7 +128,7 @@ swap = withTargetWindow swapWithFocused
         mapWindows'' f (W.Stack focused up down) = W.Stack (f focused) (map f up) (map f down)
         swapWin win1 win2 win = if win == win1 then win2 else if win == win2 then win1 else win
 
-withTargetWindow :: (Window -> WindowSet -> WindowSet) -> IORef WNState -> Direction -> X ()
+withTargetWindow :: (Window -> WindowSet -> WindowSet) -> IORef WNState -> Direction2D -> X ()
 withTargetWindow adj posRef dir = fromCurrentPoint posRef $ \win pos -> do
     targets <- filter ((/= win) . fst) <$> navigableTargets pos dir
     whenJust (listToMaybe targets) $ \(targetWin, targetRect) -> do
@@ -175,12 +175,12 @@ Point x y `inside` Rectangle rx ry rw rh =
 midPoint :: Position -> Dimension -> Position
 midPoint pos dim = pos + fromIntegral dim `div` 2
 
-navigableTargets :: Point -> Direction -> X [(Window, Rectangle)]
+navigableTargets :: Point -> Direction2D -> X [(Window, Rectangle)]
 navigableTargets point dir = navigable dir point <$> windowRects
 
 -- Filters and sorts the windows in terms of what is closest from the Point in
--- the Direction.
-navigable :: Direction -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
+-- the Direction2D.
+navigable :: Direction2D -> Point -> [(Window, Rectangle)] -> [(Window, Rectangle)]
 navigable d pt = sortby d . filter (inr d pt . snd)
 
 -- Produces a list of normal-state windows, on any screen. Rectangles are
@@ -197,7 +197,7 @@ windowRect win = withDisplay $ \dpy -> do
 
 -- Modified from droundy's implementation of WindowNavigation:
 
-inr :: Direction -> Point -> Rectangle -> Bool
+inr :: Direction2D -> Point -> Rectangle -> Bool
 inr D (Point px py) (Rectangle rx ry w h) = px >= rx && px < rx + fromIntegral w &&
                                                         py < ry + fromIntegral h
 inr U (Point px py) (Rectangle rx ry w _) = px >= rx && px < rx + fromIntegral w &&
@@ -207,7 +207,7 @@ inr R (Point px py) (Rectangle rx ry _ h) = px <  rx &&
 inr L (Point px py) (Rectangle rx ry w h) =             px > rx + fromIntegral w &&
                                             py >= ry && py < ry + fromIntegral h
 
-sortby :: Direction -> [(a,Rectangle)] -> [(a,Rectangle)]
+sortby :: Direction2D -> [(a,Rectangle)] -> [(a,Rectangle)]
 sortby D = sortBy $ comparing (rect_y . snd)
 sortby R = sortBy $ comparing (rect_x . snd)
 sortby U = reverse . sortby D

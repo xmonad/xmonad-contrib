@@ -26,10 +26,10 @@ import XMonad(LayoutClass(runLayout), mkAdjust, Window,
               Dimension, Position, Rectangle(Rectangle),D)
 import qualified XMonad.StackSet as W
 
-import XMonad.Hooks.ManageDocks(Direction(..))
 import XMonad.Layout.Decoration(isInStack)
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(modifyLayout, redoLayout, modifierDescription))
+import XMonad.Util.Types(Direction2D(..))
 import Control.Applicative((<$>))
 import Control.Arrow(Arrow((***), first, second))
 import Control.Monad(Monad(return), mapM, join)
@@ -151,7 +151,7 @@ applyHints s root (((w,lrect@(Rectangle a b c d)),adj):xs) =
             next = applyHints s root $ mapSnd growOther' xs
         in (w,redr):next
 
-growOther :: (Position, Position) -> Rectangle -> Set Direction -> Rectangle -> Rectangle
+growOther :: (Position, Position) -> Rectangle -> Set Direction2D -> Rectangle -> Rectangle
 growOther ds lrect fds r
     | dirs <- flipDir <$> Set.toList (Set.intersection adj fds)
     , not $ any (uncurry opposite) $ cross dirs =
@@ -161,20 +161,20 @@ growOther ds lrect fds r
         adj = adjacent lrect  r
         cross xs = [ (a,b) | a <- xs, b <- xs ]
 
-        flipDir :: Direction -> Direction
+        flipDir :: Direction2D -> Direction2D
         flipDir d = case d of { L -> R; U -> D; R -> L; D -> U }
 
-        opposite :: Direction -> Direction -> Bool
+        opposite :: Direction2D -> Direction2D -> Bool
         opposite x y = flipDir x == y
 
 -- | Leave the opposite edges where they were
-grow :: Direction -> (Position,Position) -> Rectangle -> Rectangle
+grow :: Direction2D -> (Position,Position) -> Rectangle -> Rectangle
 grow L (px,_ ) (Rectangle x y w h) = Rectangle (x-px) y (w+fromIntegral px) h
 grow U (_ ,py) (Rectangle x y w h) = Rectangle x (y-py) w (h+fromIntegral py)
 grow R (px,_ ) (Rectangle x y w h) = Rectangle x y (w+fromIntegral px) h
 grow D (_ ,py) (Rectangle x y w h) = Rectangle x y w (h+fromIntegral py)
 
-comparingEdges :: ([Position] -> [Position] -> Bool) -> Rectangle -> Rectangle -> Set Direction
+comparingEdges :: ([Position] -> [Position] -> Bool) -> Rectangle -> Rectangle -> Set Direction2D
 comparingEdges surrounds r1 r2 = Set.fromList $ map fst $ filter snd [ (\k -> (dir,k)) $
             any and [[dir `elem` [R,L], allEq [a,c,w,y], [b,d] `surrounds` [x,z]]
                     ,[dir `elem` [U,D], allEq [b,d,x,z], [a,c] `surrounds` [w,y]]]
@@ -190,7 +190,7 @@ comparingEdges surrounds r1 r2 = Set.fromList $ map fst $ filter snd [ (\k -> (d
 -- first is shrunk, assuming that the root window is fully covered:
 --  one direction for a common edge
 --  two directions for a common corner
-adjacent :: Rectangle -> Rectangle -> Set Direction
+adjacent :: Rectangle -> Rectangle -> Set Direction2D
 adjacent = comparingEdges (all . onClosedInterval)
 
 -- | True whenever two edges touch. not (Set.null $ adjacent x y) ==> touching x y
@@ -219,7 +219,7 @@ centerPlacement = centerPlacement' clamp
                             1 -> 1
                             _ -> 0
 
-freeDirs :: Rectangle -> Rectangle -> Set Direction
+freeDirs :: Rectangle -> Rectangle -> Set Direction2D
 freeDirs root = Set.fromList . uncurry (++) . (lr *** ud)
               . centerPlacement' signum root
     where
