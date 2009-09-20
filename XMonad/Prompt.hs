@@ -27,7 +27,6 @@ module XMonad.Prompt
     , XPrompt (..)
     , XP
     , defaultXPKeymap
-    , completion
     , quit
     , killBefore, killAfter, startOfLine, endOfLine
     , pasteString, copyString, moveCursor
@@ -131,6 +130,7 @@ data XPConfig =
                                           -- ^ a filter to determine which
                                           -- history entries to remember
         , promptKeymap      :: M.Map (KeyMask,KeySym) (XP ())
+        , completionKey     :: KeySym      -- ^ Key that should trigger completion
                                           -- ^ Mapping from key combinations to actions
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
@@ -202,6 +202,7 @@ defaultXPConfig =
         , borderColor       = "white"
         , promptBorderWidth = 1
         , promptKeymap      = defaultXPKeymap
+        , completionKey     = xK_Tab
         , position          = Bottom
         , height            = 18
         , historySize       = 256
@@ -333,17 +334,22 @@ cleanMask msk = do
 
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
-handle ks (KeyEvent {ev_event_type = t, ev_state = m})
-    | t == keyPress = cleanMask m >>= flip keyPressHandle ks
+handle ks@(sym,_) e@(KeyEvent {ev_event_type = t, ev_state = m}) = do
+  complKey <- gets $ completionKey . config
+  c <- getCompletions
+  when (length c > 1) $ modify (\s -> s { showComplWin = True })
+  if complKey == sym
+     then completionHandle c ks e
+     else when (t == keyPress) $ cleanMask m >>= flip keyPressHandle ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
 handle _  _ = return ()
 
-completion :: XP ()
-completion =  do
-  c <- getCompletions
-  when (length c > 1) $ modify (\s -> s { showComplWin = True })
+-- completion event handler
+completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
+completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
+    | t == keyPress && ks == xK_Tab = do
   st <- get
   let updateState l = do let new_command = nextCompletion (xptype st) (command st) l
                          modify $ \s ->  setCommand new_command $ s { offset = length new_command }
@@ -353,12 +359,6 @@ completion =  do
     []  -> updateWindows   >> eventLoop handle
     [x] -> updateState [x] >> getCompletions >>= updateWins
     l   -> updateState l   >> updateWins l
-
-
--- completion event handler
-completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
-completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
-    | t == keyPress && ks == xK_Tab = completion
 -- key release
     | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
 -- other keys
@@ -415,7 +415,6 @@ defaultXPKeymap = M.fromList $
   , (xK_End, endOfLine)
   , (xK_Down, moveHistory W.focusUp')
   , (xK_Up, moveHistory W.focusDown')
-  , (xK_Tab, completion)
   , (xK_Escape, quit)
   ]
 
