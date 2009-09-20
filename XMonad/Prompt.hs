@@ -30,7 +30,7 @@ module XMonad.Prompt
     , completion
     , quit
     , killBefore, killAfter, startOfLine, endOfLine
-    , pasteString, copyString
+    , pasteString, copyString, moveCursor
     , moveWord, killWord, deleteString
     , moveHistory, setSuccess, setDone
     , Direction1D(..)
