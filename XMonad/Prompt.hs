@@ -62,7 +62,8 @@ module XMonad.Prompt
 
 import Prelude hiding (catch)
 
-import XMonad  hiding (config, io)
+import XMonad  hiding (config, io, numlockMask, cleanMask)
+import qualified XMonad as X (numlockMask,config)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.Types
@@ -74,7 +75,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
 import Data.Char
-import Data.Bits ((.&.))
+import Data.Bits ((.&.),complement)
 import Data.Maybe
 import Data.List
 import Data.Set (fromList, toList)
@@ -111,6 +112,7 @@ data XPState =
         , offset             :: !Int
         , config             :: XPConfig
         , successful         :: Bool
+        , numlockMask        :: KeyMask
         , done               :: Bool
         }
 
@@ -233,6 +235,7 @@ initState d rw w s compl gc fonts pt h c =
         , config             = c
         , successful         = False
         , done               = False
+        , numlockMask        = X.numlockMask defaultConfig
         }
 
 -- this would be much easier with functional references
@@ -260,8 +263,10 @@ mkXPromptWithReturn t conf compl action = do
   gc <- liftIO $ createGC d w
   liftIO $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
+  numlock <- asks $ X.numlockMask . X.config
   let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
-      st = initState d rw w s compl gc fs (XPT t) hs conf
+      st = (initState d rw w s compl gc fs (XPT t) hs conf)
+           { numlockMask = numlock }
   st' <- liftIO $ execStateT runXP st
 
   releaseXMF fs
@@ -318,10 +323,18 @@ eventLoop action = do
   action (fromMaybe xK_VoidSymbol keysym,string) event
   gets done >>= flip unless (eventLoop action)
 
+-- | Removes numlock and capslock from a keymask.
+-- Duplicate of cleanMask from core, but in the
+-- XP monad instead of X.
+cleanMask :: KeyMask -> XP KeyMask
+cleanMask msk = do
+  numlock <- gets numlockMask
+  return (complement (numlock .|. lockMask) .&. msk)
+
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
 handle ks (KeyEvent {ev_event_type = t, ev_state = m})
-    | t == keyPress = keyPressHandle m ks
+    | t == keyPress = cleanMask m >>= flip keyPressHandle ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
