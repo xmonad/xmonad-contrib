@@ -54,6 +54,7 @@ module XMonad.Prompt
     , decodeInput
     , encodeOutput
     , historyCompletion
+    , historyCompletionP
     -- * History filters
     , deleteAllDuplicates
     , deleteConsecutive
@@ -127,15 +128,15 @@ data XPConfig =
         , height            :: !Dimension -- ^ Window height
         , historySize       :: !Int       -- ^ The number of history entries to be saved
         , historyFilter     :: [String] -> [String]
-                                          -- ^ a filter to determine which
-                                          -- history entries to remember
+                                         -- ^ a filter to determine which
+                                         -- history entries to remember
         , promptKeymap      :: M.Map (KeyMask,KeySym) (XP ())
-        , completionKey     :: KeySym      -- ^ Key that should trigger completion
-                                          -- ^ Mapping from key combinations to actions
+                                         -- ^ Mapping from key combinations to actions
+        , completionKey     :: KeySym     -- ^ Key that should trigger completion
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
         , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
-                                          --   and delay by x microseconds
+                                         --   and delay by x microseconds
         }
 
 data XPType = forall p . XPrompt p => XPT p
@@ -277,7 +278,11 @@ mkXPromptWithReturn t conf compl action = do
       liftIO $ writeHistory $ M.insertWith
                                 (\xs ys -> take (historySize conf)
                                         . historyFilter conf $ xs ++ ys)
-                                (showXPrompt t) [command st'] hist
+                                (showXPrompt t) (historyFilter conf [command st'])
+                                hist
+                                -- we need to apply historyFilter before as well, since
+                                -- otherwise the filter would not be applied if
+                                -- there is no history
       Just <$> action (command st')
     else return Nothing
 
@@ -862,7 +867,13 @@ breakAtSpace s
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in ~\/.xmonad\/history.
 historyCompletion :: ComplFunction
-historyCompletion x = fmap (deleteConsecutive . filter (isInfixOf x) . M.fold (++) []) readHistory
+historyCompletion = historyCompletionP (const True)
+
+-- | Like 'historyCompletion' but only uses history data from Prompts whose
+-- name satisfies the given predicate.
+historyCompletionP :: (String -> Bool) -> ComplFunction
+historyCompletionP p x = fmap (toComplList . M.filterWithKey (const . p)) readHistory
+    where toComplList = deleteConsecutive . filter (isInfixOf x) . M.fold (++) []
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.

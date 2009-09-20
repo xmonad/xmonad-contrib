@@ -59,7 +59,7 @@ import Data.Char (chr, ord, isAlpha, isMark, isDigit)
 import Data.List (isPrefixOf)
 import Numeric (showIntAtBase)
 import XMonad (X(), MonadIO, liftIO)
-import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig(), historyCompletion)
+import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig(), historyCompletionP)
 import XMonad.Prompt.Shell (getBrowser)
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.XSelection (getSelection)
@@ -351,7 +351,8 @@ namedEngine name (SearchEngine _ site) = searchEngineF name site
    Prompt's result, passes it to a given searchEngine and opens it in a given
    browser. -}
 promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
-promptSearchBrowser config browser (SearchEngine name site) = mkXPrompt (Search name) config historyCompletion $ search browser site
+promptSearchBrowser config browser (SearchEngine name site) =
+    mkXPrompt (Search name) config (historyCompletionP ("Search [" `isPrefixOf`)) $ search browser site
 
 {- | Like 'search', but in this case, the string is not specified but grabbed
  from the user's response to a prompt. Example:
