@@ -21,8 +21,8 @@
 --
 -- These bindings are especially useful with layouts that hide some of
 -- the windows in the stack, such as Full, "XMonad.Layout.TwoPane" or
--- "XMonad.Layout.Mosaic" with three or four panes. See also
--- "XMonad.Actions.RotSlaves" for related actions.
+-- when using "XMonad.Layout.LimitWindows" to only show three or four
+-- panes. See also "XMonad.Actions.RotSlaves" for related actions.
 -----------------------------------------------------------------------------
 module XMonad.Actions.CycleWindows (
         -- * Usage
@@ -52,6 +52,8 @@ module XMonad.Actions.CycleWindows (
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Actions.RotSlaves
+
+import Control.Arrow (second)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -174,12 +176,19 @@ rotOpposite' :: W.Stack a -> W.Stack a
 rotOpposite' (W.Stack t l r) = W.Stack t' l' r'
   where rrvl = r ++ reverse l
         part = (length rrvl + 1) `div` 2
-        (l',t':r') = (\(f,s) -> (f, reverse s)) . splitAt (length l) $
+        (l',t':r') =  second reverse . splitAt (length l) $
                                 reverse (take part rrvl ++ t : drop part rrvl)
 
 
 -- $focused
--- Rotate windows through the focused frame, excluding the \"next\" window.
+-- Most people will want the @rotAllUp@ or @rotAllDown@ actions from
+-- "XMonad.Actions.RotSlaves" to cycle all windows in the stack.
+--
+-- The following actions keep the \"next\" window stable, which is
+-- mostly useful in two window layouts, or when you have a log viewer or
+-- buffer window you want to keep next to the cycled window.
+
+-- | Rotate windows through the focused frame, excluding the \"next\" window.
 -- With, e.g. TwoPane, this allows cycling windows through either the
 -- master or slave pane, without changing the other frame. When the master
 -- is focused, the window below is skipped, when a non-master window is
@@ -199,7 +208,7 @@ rotFocused' f s@(W.Stack _ _ _) = rotSlaves' f s              -- otherwise
 
 -- $unfocused
 -- Rotate windows through the unfocused frames. This is similar to
--- rotSlaves, from "XMonad.Actions.RotSlaves", but excludes the current
+-- @rotSlaves@, from "XMonad.Actions.RotSlaves", but excludes the current
 -- frame rather than master.
 rotUnfocusedUp :: X ()
 rotUnfocusedUp = windows . W.modify' $ rotUnfocused' rotUp
