@@ -353,22 +353,23 @@ handle _  _ = return ()
 
 -- completion event handler
 completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
-completionHandle c (ks,_) (KeyEvent {ev_event_type = t})
-    | t == keyPress && ks == xK_Tab = do
-  st <- get
-  let updateState l = do let new_command = nextCompletion (xptype st) (command st) l
-                         modify $ \s ->  setCommand new_command $ s { offset = length new_command }
-      updateWins  l = do redrawWindows l
-                         eventLoop (completionHandle l)
-  case c of
-    []  -> updateWindows   >> eventLoop handle
-    [x] -> updateState [x] >> getCompletions >>= updateWins
-    l   -> updateState l   >> updateWins l
--- key release
-    | t == keyRelease && ks == xK_Tab = eventLoop (completionHandle c)
--- other keys
-completionHandle _ ks (KeyEvent {ev_event_type = t, ev_state = m})
-    | t == keyPress = keyPressHandle m ks
+completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = do
+  complKey <- gets $ completionKey . config
+  case () of
+    () | t == keyPress && sym == complKey ->
+          do
+            st <- get
+            let updateState l =
+                    let new_command = nextCompletion (xptype st) (command st) l
+                    in modify $ \s -> setCommand new_command $ s { offset = length new_command }
+                updateWins  l = redrawWindows l >>
+                                eventLoop (completionHandle l)
+            case c of
+              []  -> updateWindows   >> eventLoop handle
+              [x] -> updateState [x] >> getCompletions >>= updateWins
+              l   -> updateState l   >> updateWins l
+      | t == keyRelease && sym == complKey -> eventLoop (completionHandle c)
+      | otherwise -> keyPressHandle m ks -- some other key, handle it normally
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
 
