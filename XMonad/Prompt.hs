@@ -345,7 +345,7 @@ handle ks@(sym,_) e@(KeyEvent {ev_event_type = t, ev_state = m}) = do
   when (length c > 1) $ modify (\s -> s { showComplWin = True })
   if complKey == sym
      then completionHandle c ks e
-     else when (t == keyPress) $ cleanMask m >>= flip keyPressHandle ks
+     else when (t == keyPress) $ keyPressHandle m ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
@@ -424,8 +424,9 @@ defaultXPKeymap = M.fromList $
   ]
 
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
-keyPressHandle mask (ks,str) = do
+keyPressHandle m (ks,str) = do
   km <- gets (promptKeymap . config)
+  mask <- cleanMask m
   case M.lookup (mask,ks) km of
     Just action -> action >> updateWindows
     Nothing -> case str of
