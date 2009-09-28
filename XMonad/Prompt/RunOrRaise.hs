@@ -25,7 +25,7 @@ import XMonad.Prompt.Shell
 import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
-import Control.Monad (liftM2)
+import Control.Monad (liftM, liftM2)
 import Data.Maybe
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
@@ -47,15 +47,15 @@ instance XPrompt RunOrRaisePrompt where
     showXPrompt RRP = "Run or Raise: "
 
 runOrRaisePrompt :: XPConfig -> X ()
-runOrRaisePrompt c = do cmds <- io $ getCommands
+runOrRaisePrompt c = do cmds <- io getCommands
                         mkXPrompt RRP c (getShellCompl cmds) open
 open :: String -> X ()
-open path = (io $ isNormalFile path) >>= \b ->
+open path = io (isNormalFile path) >>= \b ->
             if b
             then spawn $ "xdg-open \"" ++ path ++ "\""
             else uncurry runOrRaise . getTarget $ path
     where
-      isNormalFile f = exists f >>= \e -> if e then (notExecutable f) else return False
+      isNormalFile f = exists f >>= \e -> if e then notExecutable f else return False
       exists f = fmap or $ sequence [doesFileExist f,doesDirectoryExist f]
       notExecutable = fmap (not . executable) . getPermissions
       getTarget x = (x,isApp x)
@@ -66,12 +66,12 @@ isApp "thunderbird" = className =? "Thunderbird-bin" <||> className =? "Thunderb
 isApp x = liftM2 (==) pid $ pidof x
 
 pidof :: String -> Query Int
-pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `catch` (\_ -> return $ 0)
+pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `catch` (\_ -> return 0)
 
 pid :: Query Int
 pid = ask >>= (\w -> liftX $ withDisplay $ \d -> getPID d w)
     where getPID d w = getAtom "_NET_WM_PID" >>= \a -> io $
-                       getWindowProperty32 d a w >>= return . getPID'
+                       liftM getPID' (getWindowProperty32 d a w)
           getPID' (Just (x:_)) = fromIntegral x
           getPID' (Just [])     = -1
           getPID' (Nothing)     = -1

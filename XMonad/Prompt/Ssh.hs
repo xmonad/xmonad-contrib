@@ -54,11 +54,11 @@ instance XPrompt Ssh where
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
-  sc <- io $ sshComplList
+  sc <- io sshComplList
   mkXPrompt Ssh c (mkComplFunFromList sc) ssh
 
 ssh :: String -> X ()
-ssh s = runInTerm "" ("ssh " ++ s)
+ssh = runInTerm "" . ("ssh " ++ )
 
 sshComplList :: IO [String]
 sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal

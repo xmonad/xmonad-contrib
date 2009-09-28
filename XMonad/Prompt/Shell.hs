@@ -57,7 +57,7 @@ instance XPrompt Shell where
 
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
-    cmds <- io $ getCommands
+    cmds <- io getCommands
     mkXPrompt Shell c (getShellCompl cmds) (spawn . encodeOutput)
 
 -- | See safe and unsafeSpawn. prompt is an alias for safePrompt;

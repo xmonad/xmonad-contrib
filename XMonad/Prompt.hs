@@ -171,12 +171,12 @@ class XPrompt t where
     -- string presently in the command line and the list of
     -- completion.
     nextCompletion :: t -> String -> [String] -> String
-    nextCompletion t c l = getNextOfLastWord t c l
+    nextCompletion = getNextOfLastWord
 
     -- | This method is used to generate the string to be passed to
     -- the completion function.
     commandToComplete :: t -> String -> String
-    commandToComplete _ c = getLastWord c
+    commandToComplete _ = getLastWord
 
     -- | This method is used to process each completion in order to
     -- generate the string that will be compared with the command
@@ -259,7 +259,7 @@ mkXPromptWithReturn t conf compl action = do
   let d = display c
       rw = theRoot c
   s <- gets $ screenRect . W.screenDetail . W.current . windowset
-  hist <- liftIO $ readHistory
+  hist <- liftIO readHistory
   w <- liftIO $ createWin d rw conf s
   liftIO $ selectInput d w $ exposureMask .|. keyPressMask
   gc <- liftIO $ createGC d w
@@ -489,8 +489,7 @@ startOfLine  =
 
 -- |  Flush the command string and reset the offset
 flushString :: XP ()
-flushString = do
-  modify $ \s -> setCommand "" $ s { offset = 0}
+flushString = modify $ \s -> setCommand "" $ s { offset = 0}
 
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
@@ -503,7 +502,7 @@ insertString str =
 
 -- | Insert the current X selection string at the cursor position.
 pasteString :: XP ()
-pasteString = join $ io $ liftM insertString $ getSelection
+pasteString = join $ io $ liftM insertString getSelection
 
 -- | Copy the currently entered string into the X selection.
 copyString :: XP ()
@@ -538,8 +537,8 @@ moveWord d = do
                  ' ':x -> 1 + lenToS x
                  x     -> lenToS x
       newoff = case d of
-                 Prev -> o - (ln reverse f )
-                 Next -> o + (ln id      ss)
+                 Prev -> o - ln reverse f
+                 Next -> o + ln id ss
   modify $ \s -> s { offset = newoff }
 
 moveHistory :: (W.Stack String -> W.Stack String) -> XP ()
@@ -626,7 +625,7 @@ printPrompt drw = do
 getCompletions :: XP [String]
 getCompletions = do
   s <- get
-  io $ (completionFunction s) (commandToComplete (xptype s) (command s))
+  io $ completionFunction s (commandToComplete (xptype s) (command s))
        `catch` \_ -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
@@ -666,9 +665,9 @@ getComplWinDim compl = do
 
   tws <- mapM (textWidthXMF (dpy st) fs) compl
   let max_compl_len =  fromIntegral ((fi ht `div` 2) + maximum tws)
-      columns = max 1 $ wh `div` (fi max_compl_len)
+      columns = max 1 $ wh `div` fi max_compl_len
       rem_height =  rect_height scr - ht
-      (rows,r) = (length compl) `divMod` fi columns
+      (rows,r) = length compl `divMod` fi columns
       needed_rows = max 1 (rows + if r == 0 then 0 else 1)
       actual_max_number_of_rows = rem_height `div` ht
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
@@ -700,7 +699,7 @@ drawComplWin w compl = do
   p <- io $ createPixmap d w wh ht
                          (defaultDepthOfScreen scr)
   io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
-  let ac = splitInSubListsAt (length yy) (take ((length xx) * (length yy)) compl)
+  let ac = splitInSubListsAt (length yy) (take (length xx * length yy) compl)
   printComplList d p gc (fgColor c) (bgColor c) xx yy ac
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
@@ -712,7 +711,7 @@ redrawComplWin compl = do
   let recreate = do destroyComplWin
                     w <- createComplWin nwi
                     drawComplWin w compl
-  if (compl /= [] && showComplWin st)
+  if compl /= [] && showComplWin st
      then case complWin st of
             Just w -> case complWinDim st of
                         Just wi -> if nwi == wi -- complWinDim did not change

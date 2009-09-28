@@ -68,9 +68,9 @@ instance XPrompt WindowPrompt where
     nextCompletion      _ = getNextCompletion
 
 windowPromptGoto, windowPromptBring, windowPromptBringCopy :: XPConfig -> X ()
-windowPromptGoto  c = doPrompt Goto  c
-windowPromptBring c = doPrompt Bring c
-windowPromptBringCopy c = doPrompt BringCopy c
+windowPromptGoto  = doPrompt Goto
+windowPromptBring = doPrompt Bring
+windowPromptBringCopy = doPrompt BringCopy
 
 -- | Pops open a prompt with window titles. Choose one, and you will be
 -- taken to the corresponding workspace.
@@ -94,4 +94,4 @@ doPrompt t c = do
 
 -- | Brings a copy of the specified window into the current workspace.
 bringCopyWindow :: Window -> WindowSet -> WindowSet
-bringCopyWindow w ws = copyWindow w (W.currentTag $ ws) ws
+bringCopyWindow w ws = copyWindow w (W.currentTag ws) ws

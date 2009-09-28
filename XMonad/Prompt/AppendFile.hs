@@ -61,6 +61,4 @@ appendFilePrompt c fn = mkXPrompt (AppendFile fn)
 
 -- | Append a string to a file.
 doAppend :: FilePath -> String -> X ()
-doAppend fn s = io $ bracket (openFile fn AppendMode)
-                             hClose
-                             (flip hPutStrLn s)
+doAppend fn = io . bracket (openFile fn AppendMode) hClose . flip hPutStrLn

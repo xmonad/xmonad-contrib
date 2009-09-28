@@ -31,7 +31,7 @@ instance XPrompt Dir where
     showXPrompt (Dir x) = x
 
 directoryPrompt :: XPConfig -> String -> (String -> X ()) -> X ()
-directoryPrompt c prom job = mkXPrompt (Dir prom) c getDirCompl job
+directoryPrompt c prom = mkXPrompt (Dir prom) c getDirCompl
 
 getDirCompl :: String -> IO [String]
 getDirCompl s = (filter notboring . lines) `fmap`
