@@ -22,6 +22,7 @@ module XMonad.Layout.Selective where
 
 import XMonad.Core
 import XMonad.StackSet
+import XMonad.Layout (IncMasterN (..))
 import XMonad.Layout.LayoutModifier
 import Control.Applicative ((<$>))
 
@@ -69,6 +70,14 @@ instance LayoutModifier Selective a where
         runLayout (w { stack = updateAndSelect s <$> stack w }) r
 
     pureModifier (Selective sel) _ stk wins = (wins, Selective . update sel <$> stk)
+
+    pureMess (Selective s) m = Selective . incmastern <$> fromMessage m
+        where
+            incmastern (IncMasterN n) =
+                let nm = (nMaster s + n) `max` 0
+                in if nMaster s == start s 
+                    then s { nMaster = nm, start = nm }
+                    else s { nMaster = nm }
 
 selective :: Int -> Int -> l a -> ModifiedLayout Selective l a
 selective m r = ModifiedLayout . Selective $ Sel { nMaster=m, start=m, nRest=r }
