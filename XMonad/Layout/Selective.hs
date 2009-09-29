@@ -25,7 +25,7 @@ import XMonad.StackSet
 import XMonad.Layout.LayoutModifier
 import Control.Applicative ((<$>))
 
--- invariant: 0 <= nMaster <= start; 0 <= nRest
+-- invariant: 0 <= nMaster <= start; 1 <= nRest
 data Selection = Sel { nMaster :: Int, start :: Int, nRest :: Int }
     deriving (Read, Show, Eq)
 

@@ -28,13 +28,11 @@ arbPos = (+1) . abs <$> arbitrary
 -- (when the selection is normalized)
 prop_select_length sel (stk :: Stack Int) =
     (length . integrate $ select sel' stk) == ((nMaster sel' + nRest sel') `min` length (integrate stk))
-    where
-        sel' = update sel stk
+    where sel' = update sel stk
 
 -- update normalizes selections (is idempotent)
 prop_update_idem sel (stk :: Stack Int) = sel' == update sel' stk
-    where
-        sel' = update sel stk
+    where sel' = update sel stk
 
 -- select selects the master pane
 prop_select_master sel (stk :: Stack Int) = 
@@ -42,14 +40,19 @@ prop_select_master sel (stk :: Stack Int) =
 
 -- the focus should always be selected in normalized selections
 prop_select_focus sel (stk :: Stack Int) = focus stk == (focus $ select sel' stk)
-    where
-        sel' = update sel stk
+    where sel' = update sel stk
 
 -- select doesn't change order (or duplicate elements)
 -- relies on the Arbitrary instance for Stack Int generating increasing stacks
 prop_select_increasing sel (stk :: Stack Int) =
     let res = integrate $ select sel stk
      in and . zipWith (<) res $ tail res
+
+-- update preserves invariants on selections
+prop_update_nm sel (stk :: Stack Int) = nMaster (update sel stk) >= 0
+prop_update_start sel (stk :: Stack Int) = nMaster sel' <= start sel'
+    where sel' = update sel stk
+prop_update_nr sel (stk :: Stack Int) = nRest (update sel stk) >= 0
 
 -- moving the focus to a window that's already selected doesn't change the selection
 prop_update_focus_up sel (stk :: Stack Int) x' =
@@ -67,8 +70,6 @@ prop_update_focus_down sel (stk :: Stack Int) x' =
         x = 1 + abs x'
         sel' = update sel stk
         stk' = select sel' stk
-
-upSel sel stk = let sel' = update sel stk in (sel', select sel' stk)
 
 focusUp stk = stk { up=tail (up stk), focus=head (up stk), down=focus stk:down stk }
 focusDown stk = stk { down=tail (down stk), focus=head (down stk), up=focus stk:up stk }
