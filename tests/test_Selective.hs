@@ -29,12 +29,12 @@ arbPos = (+1) . abs <$> arbitrary
 prop_select_length sel (stk :: Stack Int) =
     (length . integrate $ select sel' stk) == ((nMaster sel' + nRest sel') `min` length (integrate stk))
     where
-        sel' = updateSel sel stk
+        sel' = update sel stk
 
 -- update normalizes selections (is idempotent)
-prop_update_idem sel (stk :: Stack Int) = sel' == updateSel sel' stk
+prop_update_idem sel (stk :: Stack Int) = sel' == update sel' stk
     where
-        sel' = updateSel sel stk
+        sel' = update sel stk
 
 -- select selects the master pane
 prop_select_master sel (stk :: Stack Int) = 
@@ -43,7 +43,7 @@ prop_select_master sel (stk :: Stack Int) =
 -- the focus should always be selected in normalized selections
 prop_select_focus sel (stk :: Stack Int) = focus stk == (focus $ select sel' stk)
     where
-        sel' = updateSel sel stk
+        sel' = update sel stk
 
 -- select doesn't change order (or duplicate elements)
 -- relies on the Arbitrary instance for Stack Int generating increasing stacks
@@ -54,21 +54,21 @@ prop_select_increasing sel (stk :: Stack Int) =
 -- moving the focus to a window that's already selected doesn't change the selection
 prop_update_focus_up sel (stk :: Stack Int) x' =
     (length (up stk) >= x) && ((up stk !! (x-1)) `elem` integrate stk') ==> 
-        sel' == updateSel sel' (iterate focusUp stk !! x)
+        sel' == update sel' (iterate focusUp stk !! x)
     where
         x = 1 + abs x'
-        sel' = updateSel sel stk
+        sel' = update sel stk
         stk' = select sel' stk
 
 prop_update_focus_down sel (stk :: Stack Int) x' =
     (length (down stk) >= x) && ((down stk !! (x-1)) `elem` integrate stk') ==> 
-        sel' == updateSel sel' (iterate focusDown stk !! x)
+        sel' == update sel' (iterate focusDown stk !! x)
     where
         x = 1 + abs x'
-        sel' = updateSel sel stk
+        sel' = update sel stk
         stk' = select sel' stk
 
-upSel sel stk = let sel' = updateSel sel stk in (sel', select sel' stk)
+upSel sel stk = let sel' = update sel stk in (sel', select sel' stk)
 
 focusUp stk = stk { up=tail (up stk), focus=head (up stk), down=focus stk:down stk }
 focusDown stk = stk { down=tail (down stk), focus=head (down stk), up=focus stk:up stk }
