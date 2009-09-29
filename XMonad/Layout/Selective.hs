@@ -42,30 +42,6 @@ select (Sel { nMaster, start, nRest }) stk
         ups = reverse $ up stk
         lups = length ups
     
-{-
-select :: Selection -> Stack a -> (Selection, Stack a)
-select sel@(Sel { nMaster, start, nRest }) stk
-    | lups < nMaster   -- the focussed window is in the master pane
-        = let start' = start `min` (lups + ldown - nRest + 1)
-                             `max` nMaster
-            in (sel { start=start' }, 
-                stk { down=take (nMaster - lups - 1) downs ++
-                            (take nRest . drop (start' - lups - 1) $ downs) })
-    | otherwise
-        = let start' = start `min` lups
-                             `max` (lups - nRest + 1) 
-                             `min` (lups + ldown - nRest + 1)
-                             `max` nMaster
-            in (sel { start=start' },
-                stk { up=reverse (take nMaster ups ++ drop start' ups),
-                      down=take (nRest - (lups - start') - 1) downs })
-    where
-        downs = down stk
-        ups = reverse $ up stk
-        lups = length ups
-        ldown = length downs
--}
-
 updateStart :: Selection -> Stack a -> Int
 updateStart (Sel { nMaster, start, nRest }) stk
     | lups < nMaster   -- the focussed window is in the master pane
