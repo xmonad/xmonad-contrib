@@ -129,6 +129,7 @@ library
                         XMonad.Hooks.SetWMName
                         XMonad.Hooks.ServerMode
                         XMonad.Hooks.UrgencyHook
+                        XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
