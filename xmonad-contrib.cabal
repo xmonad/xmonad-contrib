@@ -102,6 +102,7 @@ library
                         XMonad.Actions.UpdatePointer
                         XMonad.Actions.UpdateFocus
                         XMonad.Actions.Warp
+                        XMonad.Actions.WindowMenu
                         XMonad.Actions.WindowNavigation
                         XMonad.Actions.WindowGo
                         XMonad.Actions.WindowBringer
