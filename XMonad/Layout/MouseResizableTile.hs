@@ -37,7 +37,9 @@ import XMonad.Util.XUtils
 --
 -- > myLayouts = mouseResizableTile ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
+--
 -- or
+--
 -- > myLayouts = mouseResizableTileMirrored ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayouts }
 --
