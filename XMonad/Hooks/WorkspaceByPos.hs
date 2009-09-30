@@ -22,9 +22,11 @@ module XMonad.Hooks.WorkspaceByPos (
 
 import XMonad
 import qualified XMonad.StackSet as W
+import XMonad.Util.XUtils (fi)
 
 import Data.Maybe
 import Control.Applicative((<$>))
+import Control.Monad.Error ((<=<),guard,lift,runErrorT,throwError)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -36,30 +38,17 @@ import Control.Applicative((<$>))
 -- > main = xmonad defaultConfig { manageHook = myManageHook }
 
 workspaceByPos :: ManageHook
-workspaceByPos = ask >>= \w -> do
-                    b <- liftX $ needsMoving w
-                    case b of
-                        Nothing       -> idHook
-                        Just wkspc    -> doShift wkspc
+workspaceByPos = (maybe idHook doShift <=< liftX . needsMoving) =<< ask
 
 needsMoving :: Window -> X (Maybe WorkspaceId)
 needsMoving w = withDisplay $ \d -> do
-                    -- only relocate windows with non-zero position
-                    wa <- io $ getWindowAttributes d w
-                    if ((wa_x wa) == 0) && ((wa_y wa) == 0)
-                        then return Nothing
-                        else do
-                            ws <- gets windowset
-                            sc <- fromMaybe (W.current ws)
-                                    <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
-                            maybeWkspc <- screenWorkspace (W.screen sc)
-                            case maybeWkspc of
-                                Nothing -> return Nothing
-                                Just wkspc -> do
-                                    let currentWksp = W.currentTag ws
-                                    if currentWksp == wkspc
-                                        then return Nothing
-                                        else return (Just wkspc)
-
-fi ::  (Integral a, Num b) => a -> b
-fi = fromIntegral
+    -- only relocate windows with non-zero position
+    wa <- io $ getWindowAttributes d w
+    fmap (const Nothing `either` Just) . runErrorT $ do
+        guard $ wa_x wa == 0 && wa_y wa == 0
+        ws <- gets windowset
+        sc <- lift $ fromMaybe (W.current ws)
+                <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
+        Just wkspc <- lift $ screenWorkspace (W.screen sc)
+        guard $ W.currentTag ws /= wkspc
+        return wkspc `asTypeOf` throwError ""
