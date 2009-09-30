@@ -167,6 +167,7 @@ library
                         XMonad.Layout.Monitor
                         XMonad.Layout.Mosaic
                         XMonad.Layout.MosaicAlt
+                        XMonad.Layout.MouseResizableTile
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.MultiToggle.Instances
                         XMonad.Layout.Named
