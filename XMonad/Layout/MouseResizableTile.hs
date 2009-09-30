@@ -237,26 +237,17 @@ deleteDragger (draggerWin, _) = deleteWindow draggerWin
 
 handleResize :: [DraggerWithWin] -> Bool -> Event -> X ()
 handleResize draggers' isM ButtonEvent { ev_window = ew, ev_event_type = et }
-    | et == buttonPress = do
-        case (lookup ew draggers') of
-            Just (MasterDragger lowerBound range) -> do
-                mouseDrag (\x y -> do
-                             let axis = chooseAxis isM x y
-                                 fraction = fromIntegral (axis - lowerBound) / range
-                             sendMessage (SetMasterFraction fraction)) (return ())
-            Just (LeftSlaveDragger lowerBound range num) -> do
-                mouseDrag (\x y -> do
-                             let axis = chooseAxis isM y x
-                                 fraction = fromIntegral (axis - lowerBound) / range
-                             sendMessage (SetLeftSlaveFraction num fraction)) (return ())
-            Just (RightSlaveDragger lowerBound range num) -> do
-                mouseDrag (\x y -> do
-                             let axis = chooseAxis isM y x
-                                 fraction = fromIntegral (axis - lowerBound) / range
-                             sendMessage (SetRightSlaveFraction num fraction)) (return ())
-            Nothing -> return ()
+    | et == buttonPress, Just x <- lookup ew draggers' = case x of
+        MasterDragger     lb r     -> mouseDrag' id   lb r  SetMasterFraction
+        LeftSlaveDragger  lb r num -> mouseDrag' flip lb r (SetLeftSlaveFraction num)
+        RightSlaveDragger lb r num -> mouseDrag' flip lb r (SetRightSlaveFraction num)
     where
         chooseAxis isM' axis1 axis2 = if isM' then axis2 else axis1
+        mouseDrag' flp lowerBound range msg = flip mouseDrag (return ()) $ \x y -> do
+                let axis = flp (chooseAxis isM) x y
+                    fraction = fromIntegral (axis - lowerBound) / range
+                sendMessage (msg fraction)
+
 handleResize _ _ _ = return ()
 
 createInputWindow :: Glyph -> Rectangle -> X Window
