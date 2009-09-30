@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MouseResizableTile
