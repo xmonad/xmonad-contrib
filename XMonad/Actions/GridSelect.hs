@@ -27,6 +27,7 @@ module XMonad.Actions.GridSelect (
     bringSelected,
     goToSelected,
     spawnSelected,
+    runSelectedAction,
     fromClassName,
     defaultColorizer,
     colorRangeFromClassName
@@ -73,7 +74,9 @@ data GSConfig a = GSConfig {
       gs_cellpadding :: Integer,
       gs_colorizer :: a -> Bool -> X (String, String),
       gs_font :: String,
-      gs_navigate :: NavigateMap
+      gs_navigate :: NavigateMap,
+      gs_originFractX :: Double,
+      gs_originFractY :: Double
 }
 
 type NavigateMap = M.Map (KeyMask,KeySym) (TwoDPosition -> TwoDPosition)
@@ -114,9 +117,11 @@ diamondLayer n = let ul = [ (x,n-x) | x <- [0..n] ]
 diamond :: (Enum a, Num a) => [(a, a)]
 diamond = concatMap diamondLayer [0..]
 
-diamondRestrict :: (Enum t, Num t, Ord t) => t -> t -> [(t, t)]
-diamondRestrict x y = L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
-                      L.takeWhile (\(x',y') -> abs x' + abs y' <= x+y) $ diamond
+diamondRestrict :: Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
+diamondRestrict x y originX originY =
+  L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
+  map (\(x', y') -> (x' + fromInteger originX, y' + fromInteger originY)) .
+  take 1000 $ diamond
 
 tupadd :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
 tupadd (a,b) (c,d) = (a+c,b+d)
@@ -208,8 +213,8 @@ handle (ks,_) (KeyEvent {ev_event_type = t, ev_state = m })
 
 handle _ (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y })
     | t == buttonRelease = do
-        TwoDState { td_elementmap = elmap, td_paneX = px, td_paneY = py,
-                    td_gsconfig = (GSConfig ch cw _ _ _ _) } <- get
+        (TwoDState { td_elementmap = elmap, td_paneX = px, td_paneY = py,
+                     td_gsconfig = (GSConfig ch cw _ _ _ _ _ _) }) <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) elmap of
@@ -316,10 +321,13 @@ gridselect gsconfig elmap =
                                 restriction ss cs = ((fromInteger ss)/(fromInteger $ cs gsconfig)-1)/2
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
                                 restrictY = floor $ restriction screenHeight gs_cellheight
-                                elmap' = zip (diamondRestrict restrictX restrictY) elmap
+                                originPosX = floor $ ((gs_originFractX gsconfig) - (1/2)) * 2 * fromIntegral restrictX
+                                originPosY = floor $ ((gs_originFractY gsconfig) - (1/2)) * 2 * fromIntegral restrictY
+                                coords = diamondRestrict restrictX restrictY originPosX originPosY
+                                elmap' = zip coords elmap
 
                             evalTwoD (updateAllElements >> eventLoop)
-                                (TwoDState (0,0)
+                                (TwoDState (head coords)
                                             elmap'
                                             gsconfig
                                             font
@@ -365,7 +373,7 @@ defaultGSConfig = buildDefaultGSConfig fromClassName
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultGSNav
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultGSNav (1/2) (1/2)
 
 defaultGSNav :: NavigateMap
 defaultGSNav = M.map tupadd $ M.fromList
@@ -400,3 +408,10 @@ defaultGSSpawnConfig = buildDefaultGSConfig defaultColorizer
 spawnSelected :: GSConfig String -> [String] -> X ()
 spawnSelected conf lst = gridselect conf (zip lst lst) >>= flip whenJust spawn
 
+-- | Select an action and run it in the X monad
+runSelectedAction :: GSConfig (X ()) -> [(String, X ())] -> X ()
+runSelectedAction conf actions = do
+    selectedActionM <- gridselect conf actions
+    case selectedActionM of
+        Just selectedAction -> selectedAction
+        Nothing -> return ()
