@@ -25,6 +25,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Actions.GridSelect
 import XMonad.Layout.Maximize
 import XMonad.Layout.Minimize
+import XMonad.Util.XUtils (fi)
 
 -- $usage
 --
@@ -47,14 +48,12 @@ windowMenu = withFocused $ \w -> do
     tags <- asks (workspaces . config)
     Rectangle x y wh ht <- getSize w
     Rectangle sx sy swh sht <- gets $ screenRect . W.screenDetail . W.current . windowset
-    let originFractX = (fromIntegral x - fromIntegral sx + (fromIntegral wh / 2))
-                        / fromIntegral swh
-        originFractY = (fromIntegral y -fromIntegral sy + (fromIntegral ht / 2))
-                        / fromIntegral sht
+    let originFractX = (fi x - fi sx + fi wh / 2) / fi swh
+        originFractY = (fi y - fi sy + fi ht / 2) / fi sht
         colorizer = simpleColorizer nBC fBC
-        gsConfig = buildDefaultGSConfig colorizer
-        gsConfig' = gsConfig { gs_originFractX = originFractX,
-                               gs_originFractY = originFractY }
+        gsConfig = (buildDefaultGSConfig colorizer)
+                    { gs_originFractX = originFractX
+                    , gs_originFractY = originFractY }
         actions = [ ("Cancel menu", return ())
                   , ("Close"      , kill)
                   , ("Maximize"   , sendMessage $ maximizeRestore w)
@@ -62,14 +61,14 @@ windowMenu = withFocused $ \w -> do
                   ] ++
                   [ ("Move to " ++ tag, windows $ W.shift tag)
                     | tag <- tags ]
-    runSelectedAction gsConfig' actions
+    runSelectedAction gsConfig actions
 
 getSize :: Window -> X (Rectangle)
 getSize w = do
   d  <- asks display
   wa <- io $ getWindowAttributes d w
-  let x = fromIntegral $ wa_x wa
-      y = fromIntegral $ wa_y wa
-      wh = fromIntegral $ wa_width wa
-      ht = fromIntegral $ wa_height wa
+  let x = fi $ wa_x wa
+      y = fi $ wa_y wa
+      wh = fi $ wa_width wa
+      ht = fi $ wa_height wa
   return (Rectangle x y wh ht)
