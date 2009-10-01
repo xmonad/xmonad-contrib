@@ -327,7 +327,7 @@ eventLoop action = do
                         else return (Nothing, "")
               return (ks,s,ev)
   action (fromMaybe xK_VoidSymbol keysym,string) event
-  gets done >>= flip unless (eventLoop action)
+  gets done >>= flip unless (eventLoop handle)
 
 -- | Removes numlock and capslock from a keymask.
 -- Duplicate of cleanMask from core, but in the
