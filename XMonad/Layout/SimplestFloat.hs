@@ -23,6 +23,7 @@ import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.WindowArranger
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.XUtils (fi)
 
 -- $usage
 -- You can use this module with the following in your
@@ -42,12 +43,12 @@ import XMonad.Layout.LayoutModifier
 -- | A simple floating layout where every window is placed according
 -- to the window's initial attributes.
 simplestFloat :: Eq a => (ModifiedLayout WindowArranger SimplestFloat) a
-simplestFloat = (windowArrangeAll $ SF)
+simplestFloat = windowArrangeAll SF
 
 data SimplestFloat a = SF deriving (Show, Read)
 instance LayoutClass SimplestFloat Window where
-    doLayout SF sc (S.Stack w l r) = do wrs <- mapM (getSize sc) (w : reverse l ++ r)
-                                        return (wrs, Nothing)
+    doLayout SF sc (S.Stack w l r) = fmap (flip (,) Nothing)
+                                   $ mapM (getSize sc) (w : reverse l ++ r)
     description _ = "SimplestFloat"
 
 getSize :: Rectangle -> Window -> X (Window,Rectangle)
@@ -60,5 +61,3 @@ getSize (Rectangle rx ry _ _) w = do
       wh = (fi $ wa_width  wa) + (bw * 2)
       ht = (fi $ wa_height wa) + (bw * 2)
   return (w, Rectangle x y wh ht)
-  where
-    fi x = fromIntegral x
