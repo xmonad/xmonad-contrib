@@ -18,13 +18,45 @@
              NoMonomorphismRestriction,
              NamedFieldPuns #-}
 
-module XMonad.Layout.Selective where
+module XMonad.Layout.Selective (
+    -- * Description
+    -- $description
+    -- * Usage
+    -- $usage
+
+    -- The Layout Modifier
+    selective
+    ) where
 
 import XMonad.Core
 import XMonad.StackSet
 import XMonad.Layout (IncMasterN (..))
 import XMonad.Layout.LayoutModifier
 import Control.Applicative ((<$>))
+
+-- $description
+-- Selective is a layout modifier which limits the number of windows on screen.
+-- The first @n@ windows ("the master pane", which may correspond to the
+-- master pane of the underlying layout) plus several others are shown, such
+-- that the focussed window is always visible. Windows are not moved until a
+-- hidden window gains focus.
+
+-- $usage
+-- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Layout.Selective
+--
+-- > myLayout = (selective 1 3 $ Tall 1 0.03 0.5) ||| Full ||| RandomOtherLayout...
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
+--
+-- The layout modifier accepts the IncMasterN message to change the number of
+-- windows in the "master pane".
+--
+-- For detailed instructions on editing your key bindings, see
+-- "XMonad.Doc.Extending#Editing_key_bindings".
+--
+-- See also 'XMonad.Layout.BoringWindows.boringAuto' for keybindings that skip
+-- the hidden windows.
 
 -- invariant: 0 <= nMaster <= start; 1 <= nRest
 data Selection = Sel { nMaster :: Int, start :: Int, nRest :: Int }
@@ -79,5 +111,8 @@ instance LayoutModifier Selective a where
                     then s { nMaster = nm, start = nm }
                     else s { nMaster = nm }
 
+-- | Only display the first @m@ windows and @r@ others.
+-- The @IncMasterN@ message will change @m@, as well as passing it onto the
+-- underlying layout.
 selective :: Int -> Int -> l a -> ModifiedLayout Selective l a
 selective m r = ModifiedLayout . Selective $ Sel { nMaster=m, start=m, nRest=r }
