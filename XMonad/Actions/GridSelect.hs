@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving, TypeSynonymInstances, FlexibleInstances, OverlappingInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.GridSelect
@@ -20,10 +20,9 @@ module XMonad.Actions.GridSelect (
 
     -- * Configuration
     GSConfig(..),
+    GSCONFIG(defaultGSConfig),
     NavigateMap,
     TwoDPosition,
-    defaultGSConfig,
-    defaultGSSpawnConfig,
     buildDefaultGSConfig,
 
     -- * Variations on 'gridselect'
@@ -75,7 +74,7 @@ import Data.Word (Word8)
 -- the user select from it. E.g. to spawn an application from a given list, you
 -- can use the following:
 --
--- >   , ((modMask x, xK_s), spawnSelected defaultGSSpawnConfig ["xterm","gmplayer","gvim"])
+-- >   , ((modMask x, xK_s), spawnSelected defaultGSConfig ["xterm","gmplayer","gvim"])
 
 -- $screenshots
 --
@@ -97,6 +96,31 @@ data GSConfig a = GSConfig {
       gs_originFractX :: Double,
       gs_originFractY :: Double
 }
+
+class GSCONFIG a where
+    defaultGSConfig :: GSConfig a -- ^ A basic configuration for 'gridselect'.
+                                  -- To configure your own colorizer, use
+                                  -- 'buildDefaultGSConfig', otherwise the
+                                  -- default colorizer with the correct type
+                                  -- will be used.
+                                  --
+                                  -- That is 'fromClassName' if
+                                  -- you are selecting a 'Window', or
+                                  -- 'defaultColorizer' if you are selecting a
+                                  -- 'String'. The catch-all instance @GSCONFIG
+                                  -- a@ uses the 'focusedBorderColor' and
+                                  -- 'normalBorderColor' colors.
+
+instance GSCONFIG Window where
+    defaultGSConfig = buildDefaultGSConfig fromClassName
+
+instance GSCONFIG String where
+    defaultGSConfig = buildDefaultGSConfig defaultColorizer
+
+instance GSCONFIG a where
+    defaultGSConfig = buildDefaultGSConfig $ \_ isFg -> do
+        let getColor = if isFg then focusedBorderColor else normalBorderColor
+        asks $ flip (,) "black" . getColor . config
 
 type NavigateMap = M.Map (KeyMask,KeySym) (TwoDPosition -> TwoDPosition)
 
@@ -334,9 +358,8 @@ gridselect gsconfig elmap =
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width s;
         screenHeight = toInteger $ rect_height s;
-    selectedElement <- if (status == grabSuccess) then
-                          do
-                            let restriction ss cs = ((fromInteger ss)/(fromInteger $ cs gsconfig)-1)/2
+    selectedElement <- if (status == grabSuccess) then do
+                            let restriction ss cs = (fromInteger ss/fromInteger (cs gsconfig)-1)/2 :: Double
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
                                 restrictY = floor $ restriction screenHeight gs_cellheight
                                 originPosX = floor $ ((gs_originFractX gsconfig) - (1/2)) * 2 * fromIntegral restrictX
@@ -386,10 +409,6 @@ decorateName' :: Window -> X String
 decorateName' w = do
   fmap show $ getName w
 
--- | The default 'GSConfig' to use when selecting windows.
-defaultGSConfig :: GSConfig Window
-defaultGSConfig = buildDefaultGSConfig fromClassName
-
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
 buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultGSNav (1/2) (1/2)
@@ -419,9 +438,6 @@ bringSelected = withSelectedWindow $ \w -> do
 -- | Switches to selected window's workspace and focuses that window.
 goToSelected :: GSConfig Window -> X ()
 goToSelected = withSelectedWindow $ windows . W.focusWindow
-
-defaultGSSpawnConfig :: GSConfig String
-defaultGSSpawnConfig = buildDefaultGSConfig defaultColorizer
 
 -- | Select an application to spawn from a given list
 spawnSelected :: GSConfig String -> [String] -> X ()
