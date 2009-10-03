@@ -12,6 +12,10 @@
 -- window management in the center of the focused window. Actions include: Closing,
 -- maximizing, minimizing and shifting the window to another workspace.
 --
+-- Note: For maximizing and minimizing to actually work, you will need
+-- to integrate XMonad.Layout.Maximize and XMonad.Layout.Minimize into your setup.
+-- See the documentation of those modules for more information.
+--
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.WindowMenu (
