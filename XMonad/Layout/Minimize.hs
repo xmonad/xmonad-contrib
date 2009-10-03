@@ -53,12 +53,11 @@ import Data.List
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
--- The module is designed to work together with XMonad.Layout.BoringWindows so
--- that minimized windows are marked as boring and will be skipped when switching
--- the focused window. See the documentation for BoringWindows and use the boringAuto
--- function, to automatically mark minimized windows as boring.
+-- The module is designed to work together with "XMonad.Layout.BoringWindows" so
+-- that minimized windows will be skipped when switching the focus window with
+-- the keyboard.  Use the 'BW.boringAuto' function.
 --
--- Also see XMonad.Hooks.RestoreMinimized if you want to be able to restore
+-- Also see "XMonad.Hooks.RestoreMinimized" if you want to be able to restore
 -- minimized windows from your taskbar.
 
 data Minimize a = Minimize [Window] deriving ( Read, Show )

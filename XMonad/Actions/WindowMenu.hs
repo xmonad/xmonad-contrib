@@ -8,13 +8,13 @@
 -- Stability   :  unstable
 -- Portability :  not portable
 --
--- Uses XMonad.Actions.GridSelect to display a number of actions related to
+-- Uses "XMonad.Actions.GridSelect" to display a number of actions related to
 -- window management in the center of the focused window. Actions include: Closing,
 -- maximizing, minimizing and shifting the window to another workspace.
 --
 -- Note: For maximizing and minimizing to actually work, you will need
--- to integrate XMonad.Layout.Maximize and XMonad.Layout.Minimize into your setup.
--- See the documentation of those modules for more information.
+-- to integrate "XMonad.Layout.Maximize" and "XMonad.Layout.Minimize" into your
+-- setup.  See the documentation of those modules for more information.
 --
 -----------------------------------------------------------------------------
 
