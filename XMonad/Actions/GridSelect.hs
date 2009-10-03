@@ -17,10 +17,16 @@
 module XMonad.Actions.GridSelect (
     -- * Usage
     -- $usage
+
+    -- * Configuration
     GSConfig(..),
+    NavigateMap,
+    TwoDPosition,
     defaultGSConfig,
     defaultGSSpawnConfig,
     buildDefaultGSConfig,
+
+    -- * Variations on 'gridselect'
     gridselect,
     gridselectWindow,
     withSelectedWindow,
@@ -28,6 +34,8 @@ module XMonad.Actions.GridSelect (
     goToSelected,
     spawnSelected,
     runSelectedAction,
+
+    -- * Utility functions for customizing the 'GSConfig'
     fromClassName,
     defaultColorizer,
     colorRangeFromClassName
@@ -60,7 +68,9 @@ import Data.Word (Word8)
 --
 -- >    , ((modMask x, xK_g), goToSelected defaultGSConfig)
 --
--- Screenshot: <http://clemens.endorphin.org/gridselect.png>
+-- Screenshot:
+--
+-- <<http://www.haskell.org/sitewiki/images/3/35/Xmonad-gridselect-window-aavogt.png>>
 --
 -- This module also supports displaying arbitrary information in a grid and letting
 -- the user select from it. E.g. to spawn an application from a given list, you
@@ -301,7 +311,7 @@ stringToRatio s = let gen = mkStdGen $ sum $ map fromEnum s
 
 -- | Brings up a 2D grid of elements in the center of the screen, and one can
 -- select an element with cursors keys. The selected element is returned.
-gridselect :: forall a . GSConfig a -> [(String,a)] -> X (Maybe a)
+gridselect :: GSConfig a -> [(String,a)] -> X (Maybe a)
 gridselect gsconfig elmap =
  withDisplay $ \dpy -> do
     rootw <- asks theRoot
@@ -317,8 +327,7 @@ gridselect gsconfig elmap =
         screenHeight = toInteger $ rect_height s;
     selectedElement <- if (status == grabSuccess) then
                           do
-                            let restriction :: Integer -> (GSConfig a -> Integer) -> Double
-                                restriction ss cs = ((fromInteger ss)/(fromInteger $ cs gsconfig)-1)/2
+                            let restriction ss cs = ((fromInteger ss)/(fromInteger $ cs gsconfig)-1)/2
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
                                 restrictY = floor $ restriction screenHeight gs_cellheight
                                 originPosX = floor $ ((gs_originFractX gsconfig) - (1/2)) * 2 * fromIntegral restrictX
@@ -368,6 +377,7 @@ decorateName' :: Window -> X String
 decorateName' w = do
   fmap show $ getName w
 
+-- | The default 'GSConfig' to use when selecting windows.
 defaultGSConfig :: GSConfig Window
 defaultGSConfig = buildDefaultGSConfig fromClassName
 
