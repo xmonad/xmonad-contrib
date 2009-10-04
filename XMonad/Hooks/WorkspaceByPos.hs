@@ -45,7 +45,7 @@ needsMoving w = withDisplay $ \d -> do
     -- only relocate windows with non-zero position
     wa <- io $ getWindowAttributes d w
     fmap (const Nothing `either` Just) . runErrorT $ do
-        guard $ wa_x wa == 0 && wa_y wa == 0
+        guard $ wa_x wa /= 0 || wa_y wa /= 0
         ws <- gets windowset
         sc <- lift $ fromMaybe (W.current ws)
                 <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
