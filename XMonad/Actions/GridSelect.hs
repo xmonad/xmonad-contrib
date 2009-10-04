@@ -39,6 +39,9 @@ module XMonad.Actions.GridSelect (
     fromClassName,
     defaultColorizer,
     colorRangeFromClassName
+
+    -- * Screenshots
+    -- $screenshots
     ) where
 import Data.Maybe
 import Data.Bits
@@ -68,15 +71,21 @@ import Data.Word (Word8)
 --
 -- >    , ((modMask x, xK_g), goToSelected defaultGSConfig)
 --
--- Screenshot:
---
--- <<http://www.haskell.org/sitewiki/images/3/35/Xmonad-gridselect-window-aavogt.png>>
---
 -- This module also supports displaying arbitrary information in a grid and letting
 -- the user select from it. E.g. to spawn an application from a given list, you
 -- can use the following:
 --
 -- >   , ((modMask x, xK_s), spawnSelected defaultGSSpawnConfig ["xterm","gmplayer","gvim"])
+
+-- $screenshots
+--
+-- Selecting a workspace:
+--
+-- <<http://haskell.org/sitewiki/images/a/a9/Xmonad-gridselect-workspace.png>>
+--
+-- Selecting a window by title:
+--
+-- <<http://haskell.org/sitewiki/images/3/35/Xmonad-gridselect-window-aavogt.png>>
 
 data GSConfig a = GSConfig {
       gs_cellheight :: Integer,
