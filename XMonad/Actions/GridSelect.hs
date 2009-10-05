@@ -18,9 +18,15 @@ module XMonad.Actions.GridSelect (
     -- * Usage
     -- $usage
 
+    -- ** Customizing
+    -- *** Using a common GSConfig
+    -- $commonGSConfig
+    -- *** Custom keybindings
+    -- $keybindings
+
     -- * Configuration
     GSConfig(..),
-    GSCONFIG(defaultGSConfig),
+    defaultGSConfig,
     NavigateMap,
     TwoDPosition,
     buildDefaultGSConfig,
@@ -34,9 +40,10 @@ module XMonad.Actions.GridSelect (
     spawnSelected,
     runSelectedAction,
 
-    -- * Utility functions for customizing the 'GSConfig'
+    -- * Colorizers
+    HasColorizer(defaultColorizer),
     fromClassName,
-    defaultColorizer,
+    stringColorizer,
     colorRangeFromClassName
 
     -- * Screenshots
@@ -76,6 +83,64 @@ import Data.Word (Word8)
 --
 -- >   , ((modMask x, xK_s), spawnSelected defaultGSConfig ["xterm","gmplayer","gvim"])
 
+-- $commonGSConfig
+--
+-- It is possible to bind a @gsconfig@ at top-level in your configuration. Like so:
+--
+-- > gsconfig1 :: HasColorizer a => GSConfig a
+-- > gsconfig1 = defaultGSConfig { gs_cellheight = 30, gs_cellWidth = 100 }
+--
+-- Regarding type signatures: to leave them out in this case, add @{-# LANGUAGE
+-- NoMonomorphismRestriction #-}@ to the top of your @xmonad.hs@.  Refer to
+-- this page for an explanation:
+-- <http://www.haskell.org/haskellwiki/Monomorphism_restriction>
+--
+-- @gsconfig2@ is an example where 'buildDefaultGSConfig' is used instead of
+-- 'defaultGSConfig' in order to specify a custom colorizer (found in
+-- "XMonad.Actions.GridSelect#Colorizers"):
+--
+-- > gsconfig2 colorizer = (buildDefaultGSConfig colorizer) { gs_cellheight = 30, gs_cellWidth = 100 }
+--
+-- > -- | A green monochrome colorizer based on window class
+-- > greenColorizer = colorRangeFromClassName
+-- >                      black            -- lowest inactive bg
+-- >                      (0x70,0xFF,0x70) -- highest inactive bg
+-- >                      black            -- active bg
+-- >                      white            -- inactive fg
+-- >                      white            -- active fg
+-- >   where black = minBound
+-- >         white = maxBound
+
+-- Then you can bind to:
+--
+--      ,((modMask x, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
+--      ,((modMask x, xK_p), spawnSelected $ spawnSelected defaultColorizer)
+
+-- $keybindings
+--
+-- Adding more keybindings for gridselect to listen to is similar:
+--
+-- At the top of your config:
+--
+-- > import qualified Data.Map as M
+--
+-- Then define @gsconfig3@ which may be used in exactly the same manner as @gsconfig1@:
+--
+-- > gsconfig3 :: HasColorizer a => GSConfig a
+-- > gsconfig3 = defaultGSConfig
+-- >    { gs_cellheight = 30
+-- >    , gs_cellWidth = 100
+-- >    , gs_navigate = M.unions [reset, nethackKeys, gs_navigate $ defaultGSConfig `asTypeOf` gsconfig3] }
+-- >    where addPair (a,b) (x,y) = (a+x,b+y)
+-- >          nethackKeys = M.map addPair
+-- >                  $ M.fromList [((0,xK_y),(-1,-1)
+-- >                               ,((0,xK_i),(1,-1)
+-- >                               ,((0,xK_n),(-1,1)
+-- >                               ,((0,xK_m),(1,1)
+-- >                               ]
+-- >          -- jump back to the center with the spacebar, regardless of the current position.
+-- >          reset = M.singleton (0,xK_space) (const (0,0))
+
 -- $screenshots
 --
 -- Selecting a workspace:
@@ -97,30 +162,30 @@ data GSConfig a = GSConfig {
       gs_originFractY :: Double
 }
 
-class GSCONFIG a where
-    defaultGSConfig :: GSConfig a -- ^ A basic configuration for 'gridselect'.
-                                  -- To configure your own colorizer, use
-                                  -- 'buildDefaultGSConfig', otherwise the
-                                  -- default colorizer with the correct type
-                                  -- will be used.
-                                  --
-                                  -- That is 'fromClassName' if
-                                  -- you are selecting a 'Window', or
-                                  -- 'defaultColorizer' if you are selecting a
-                                  -- 'String'. The catch-all instance @GSCONFIG
-                                  -- a@ uses the 'focusedBorderColor' and
-                                  -- 'normalBorderColor' colors.
+-- | That is 'fromClassName' if you are selecting a 'Window', or
+-- 'defaultColorizer' if you are selecting a 'String'. The catch-all instance
+-- @HasColorizer a@ uses the 'focusedBorderColor' and 'normalBorderColor'
+-- colors.
+class HasColorizer a where
+    defaultColorizer :: a -> Bool -> X (String, String)
 
-instance GSCONFIG Window where
-    defaultGSConfig = buildDefaultGSConfig fromClassName
+instance HasColorizer Window where
+    defaultColorizer = fromClassName
 
-instance GSCONFIG String where
-    defaultGSConfig = buildDefaultGSConfig defaultColorizer
+instance HasColorizer String where
+    defaultColorizer = stringColorizer
 
-instance GSCONFIG a where
-    defaultGSConfig = buildDefaultGSConfig $ \_ isFg -> do
+instance HasColorizer a where
+    defaultColorizer _ isFg =
         let getColor = if isFg then focusedBorderColor else normalBorderColor
-        asks $ flip (,) "black" . getColor . config
+        in asks $ flip (,) "black" . getColor . config
+
+-- | A basic configuration for 'gridselect', with the colorizer chosen based on the type.
+--
+-- If you want to replace the 'gs_colorizer' field, use 'buildDefaultGSConfig'
+-- instead, to avoid ambiguous type variables.
+defaultGSConfig :: HasColorizer a => GSConfig a
+defaultGSConfig = buildDefaultGSConfig defaultColorizer
 
 type NavigateMap = M.Map (KeyMask,KeySym) (TwoDPosition -> TwoDPosition)
 
@@ -288,8 +353,8 @@ hsv2rgb (h,s,v) =
          _ -> error "The world is ending. x mod a >= a."
 
 -- | Default colorizer for Strings
-defaultColorizer :: String -> Bool -> X (String, String)
-defaultColorizer s active =
+stringColorizer :: String -> Bool -> X (String, String)
+stringColorizer s active =
     let seed x = toInteger (sum $ map ((*x).fromEnum) s) :: Integer
         (r,g,b) = hsv2rgb ((seed 83) `mod` 360,
                            (fromInteger ((seed 191) `mod` 1000))/2500+0.4,
