@@ -27,4 +27,4 @@ data Direction2D = U -- ^ Up
                  | D -- ^ Down
                  | R -- ^ Right
                  | L -- ^ Left
-                   deriving (Eq,Read,Show,Ord,Bounded,Typeable)
+                   deriving (Eq,Read,Show,Ord,Enum,Bounded,Typeable)
