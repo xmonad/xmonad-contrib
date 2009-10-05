@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  not portable
 --
--- A layout in the spirit of XMonad.Layout.ResizableTile, but with the option
+-- A layout in the spirit of "XMonad.Layout.ResizableTile", but with the option
 -- to use the mouse to adjust the layout.
 --
 -----------------------------------------------------------------------------
