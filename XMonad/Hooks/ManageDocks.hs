@@ -179,7 +179,7 @@ instance Message ToggleStruts
 --
 -- >   ,((modMask x .|. controlMask .|. shiftMask,xK_g),sendMessage $ SetStruts [] [D])
 data SetStruts = SetStruts { addedStruts   :: [Direction2D]
-                           , removedStruts :: [Direction2D] -- ^ These are removed from
+                           , removedStruts :: [Direction2D] -- ^ These are removed from the currently set struts before 'addedStruts' are added.
                            }
   deriving (Read,Show,Typeable)
 
