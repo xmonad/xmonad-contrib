@@ -19,6 +19,7 @@ module XMonad.Hooks.ManageDocks (
     -- $usage
     manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
     ToggleStruts(..),
+    SetStruts(..),
     module XMonad.Util.Types,
 
     -- for XMonad.Actions.FloatSnap
@@ -34,7 +35,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 
-import Data.List (delete)
+import qualified Data.Set as S
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -119,7 +120,7 @@ getStrut w = do
 
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.
-calcGap :: [Direction2D] -> X (Rectangle -> Rectangle)
+calcGap :: S.Set Direction2D -> X (Rectangle -> Rectangle)
 calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     -- We don't keep track of dock like windows, so we find all of them here
@@ -132,7 +133,7 @@ calcGap ss = withDisplay $ \dpy -> do
     wa <- io $ getWindowAttributes dpy rootw
     let screen = r2c $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
     return $ \r -> c2r $ foldr (reduce screen) (r2c r) struts
-  where careAbout (s,_,_,_) = s `elem` ss
+  where careAbout (s,_,_,_) = s `S.member` ss
 
 -- | Adjust layout automagically: don't cover up any docks, status
 --   bars, etc.
@@ -146,9 +147,9 @@ avoidStrutsOn :: LayoutClass l a =>
                  [Direction2D]
               -> l a
               -> ModifiedLayout AvoidStruts l a
-avoidStrutsOn ss = ModifiedLayout (AvoidStruts ss)
+avoidStrutsOn ss = ModifiedLayout $ AvoidStruts $ S.fromList ss
 
-data AvoidStruts a = AvoidStruts [Direction2D] deriving ( Read, Show )
+data AvoidStruts a = AvoidStruts (S.Set Direction2D) deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
 --   modifier to alter its behavior.
@@ -158,19 +159,48 @@ data ToggleStruts = ToggleStruts
 
 instance Message ToggleStruts
 
+-- | SetStruts is a message constructor used to set or unset specific struts,
+-- regardless of whether or not the struts were originally set. Here are some
+-- example bindings:
+--
+-- Show all gaps:
+--
+-- >   ,((modMask x .|. shiftMask  ,xK_b),sendMessage $ SetStruts [minBound .. maxBound] [])
+--
+-- Hide all gaps:
+--
+-- >   ,((modMask x .|. controlMask,xK_b),sendMessage $ SetStruts [] [minBound .. maxBound])
+--
+-- Show only upper and left gaps:
+--
+-- >   ,((modMask x .|. controlMask .|. shiftMask,xK_b),sendMessage $ SetStruts [U,L] [minBound .. maxBound])
+--
+-- Hide the bottom keeping whatever the other values were:
+--
+-- >   ,((modMask x .|. controlMask .|. shiftMask,xK_g),sendMessage $ SetStruts [] [D])
+data SetStruts = SetStruts { addedStruts   :: [Direction2D]
+                           , removedStruts :: [Direction2D] -- ^ These are removed from
+                           }
+  deriving (Read,Show,Typeable)
+
+instance Message SetStruts
+
 instance LayoutModifier AvoidStruts a where
     modifyLayout (AvoidStruts ss) w r = do
         nr <- fmap ($ r) (calcGap ss)
         runLayout w nr
 
-    handleMess (AvoidStruts ss) m
-        | Just ToggleStruts    <- fromMessage m = return $ Just $ AvoidStruts (toggleAll ss)
-        | Just (ToggleStrut s) <- fromMessage m = return $ Just $ AvoidStruts (toggleOne s ss)
-        | otherwise = return Nothing
-      where toggleAll []   = [U,D,L,R]
-            toggleAll _    = []
-            toggleOne x xs | x `elem` xs = delete x xs
-                           | otherwise   = x : xs
+    pureMess (AvoidStruts ss) m
+        | Just ToggleStruts    <- fromMessage m = Just $ AvoidStruts (toggleAll ss)
+        | Just (ToggleStrut s) <- fromMessage m = Just $ AvoidStruts (toggleOne s ss)
+        | Just (SetStruts n k) <- fromMessage m
+        , let newSS = S.fromList n `S.union` (ss S.\\ S.fromList k)
+        , newSS /= ss = Just $ AvoidStruts newSS
+        | otherwise = Nothing
+      where toggleAll x | S.null x = S.fromList [minBound .. maxBound]
+                        | otherwise = S.empty
+            toggleOne x xs | x `S.member` xs = S.delete x xs
+                           | otherwise   = x `S.insert` xs
 
 
 -- | (Direction, height\/width, initial pixel, final pixel).

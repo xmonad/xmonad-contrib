@@ -32,6 +32,8 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.ManageDocks (calcGap)
 import XMonad.Util.Types (Direction2D(..))
 
+import qualified Data.Set as S
+
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -279,7 +281,7 @@ getSnap horiz collidedist d w = do
     screen <- W.current <$> gets windowset
     let sr = screenRect $ W.screenDetail screen
         wl = W.integrate' . W.stack $ W.workspace screen
-    gr <- fmap ($sr) $ calcGap [L,R,U,D]
+    gr <- fmap ($sr) $ calcGap $ S.fromList [minBound .. maxBound]
     wla <- filter (collides wa) `fmap` (io $ mapM (getWindowAttributes d) $ filter (/=w) wl)
 
     return ( neighbours (back wa sr gr wla) (wpos wa)
