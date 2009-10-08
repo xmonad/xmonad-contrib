@@ -7,9 +7,9 @@
 --
 -- Maintainer   : Adam Vogt
 -- Stability    : unstable
--- Portability  : portable
+-- Portability  : unportable
 --
--- Like Plane for an arbitrary number of dimensions.
+-- Like "XMonad.Actions.Plane" for an arbitrary number of dimensions.
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.WorkspaceCursors
