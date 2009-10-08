@@ -59,7 +59,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- The default Tabbar behaviour is to hide it when only one window is open
 -- on the workspace.  To have it always shown, use one of the layouts or
--- modifiers ending in "Always".
+-- modifiers ending in @Always@.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
