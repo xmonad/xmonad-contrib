@@ -135,6 +135,7 @@ library
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
+                        XMonad.Layout.BorderResize
                         XMonad.Layout.BoringWindows
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
