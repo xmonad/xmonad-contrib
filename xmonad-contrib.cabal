@@ -175,6 +175,7 @@ library
                         XMonad.Layout.MultiToggle.Instances
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
+                        XMonad.Layout.NoFrillsDecoration
                         XMonad.Layout.OneBig
                         XMonad.Layout.PerWorkspace
                         XMonad.Layout.Reflect
