@@ -43,7 +43,7 @@ import XMonad.Actions.CycleWS ( moveTo, WSType( HiddenNonEmptyWS ),
                                 Direction1D( Prev, Next) )
 
 import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
-import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsLogHook,
+import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsStartup, ewmhDesktopsLogHook,
                                    ewmhDesktopsEventHook )
 
 myXPConfig :: XPConfig
@@ -132,6 +132,7 @@ config = defaultConfig
                         --mosaic 0.25 0.5
          , manageHook = manageHook defaultConfig <+> manageDocks -- add panel-handling
          , logHook = ewmhDesktopsLogHook -- actually, no logging here, just other stuff
+         , startupHook = ewmhDesktopsStartup
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#222222" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.

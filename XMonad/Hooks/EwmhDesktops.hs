@@ -15,6 +15,7 @@
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
+    ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
     ewmhDesktopsEventHook
@@ -38,33 +39,24 @@ import XMonad.Util.WorkspaceCompare
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > myLogHook :: X ()
--- > myLogHook = ewmhDesktopsLogHook
--- >
--- > myHandleEventHook = ewmhDesktopsEventHook
--- >
--- > main = xmonad defaultConfig { handleEventHook = myHandleEventHook, logHook = myLogHook }
+-- > main = xmonad defaultConfig { startupHook = ewmhDesktopsStartup
+-- >                             , handleEventHook = ewmhDesktopsEventHook
+-- >                             , logHook = ewmhDesktopsLogHook }
 --
--- 'avoidStruts' is used to automatically leave space for dock programs, and
--- can be found in 'XMonad.Hooks.ManageDocks'.
---
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
---
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- You may also be interested in 'avoidStruts' from XMonad.Hooks.ManageDocks.
 
 
-
+-- |
+-- Initializes EwmhDesktops and advertises EWMH support to the X
+-- server
+ewmhDesktopsStartup :: X ()
+ewmhDesktopsStartup = setSupported
 
 -- |
 -- Notifies pagers and window lists, such as those in the gnome-panel
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
-
 
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
@@ -73,8 +65,6 @@ ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
 ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
     let ws = f $ sort' $ W.workspaces s
-
-    setSupported
 
     -- Number of Workspaces
     setNumberOfDesktops (length ws)

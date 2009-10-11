@@ -34,14 +34,15 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys sp c `M.union` keys defaultConfig c
-        , layoutHook = modifiers layouts
-        , logHook    = ewmhDesktopsLogHook
-        , manageHook = composeAll [className =? x --> doShift w
+        , layoutHook  = modifiers layouts
+        , logHook     = ewmhDesktopsLogHook
+        , startupHook = ewmhDesktopsStartup
+        , manageHook  = composeAll [className =? x --> doShift w
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
-                       <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn sp
-                       <+> (isFullscreen --> doFullFloat)
+                        <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn sp
+                        <+> (isFullscreen --> doFullFloat)
         }
  where
     tiled     = HintedTile 1 0.03 0.5 TopLeft
