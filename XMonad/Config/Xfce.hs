@@ -7,6 +7,8 @@
 -- License      : BSD
 --
 -- Maintainer   : Ivan Miljenovic <Ivan.Miljenovic@gmail.com>
+-- Stability    :  unstable
+-- Portability  :  unportable
 --
 -- This module provides a config suitable for use with the Xfce desktop
 -- environment.

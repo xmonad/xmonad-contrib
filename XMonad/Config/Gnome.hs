@@ -7,6 +7,8 @@
 -- License      : BSD
 --
 -- Maintainer   : Spencer Janssen <spencerjanssen@gmail.com>
+-- Stability    :  unstable
+-- Portability  :  unportable
 --
 -- This module provides a config suitable for use with the GNOME desktop
 -- environment.

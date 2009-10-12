@@ -5,6 +5,8 @@
 --                          Devin Mullins <me@twifkak.com>
 -- Maintainer  :  Devin Mullins <me@twifkak.com>
 -- License     :  BSD3-style (see LICENSE)
+-- Stability   :  unstable
+-- Portability :  unportable
 --
 -- This is a rewrite of "XMonad.Layout.WindowNavigation".  WindowNavigation
 -- lets you assign keys to move up\/down\/left\/right, based on actual cartesian

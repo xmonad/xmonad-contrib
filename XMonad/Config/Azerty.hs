@@ -7,6 +7,8 @@
 -- License      : BSD
 --
 -- Maintainer   : Devin Mullins <me@twifkak.com>
+-- Stability    : stable
+-- Portability  : unportable
 --
 -- This module fixes some of the keybindings for the francophone among you who
 -- use an AZERTY keyboard layout. Config stolen from TeXitoi's config on the
