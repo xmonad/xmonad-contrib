@@ -10,14 +10,15 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Screenshot  :  <http://www.timthelion.com/rolodex.png>
---
 -- This is a completely pointless layout which acts like Microsoft's Flip 3D
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Roledex (
     -- * Usage
     -- $usage
+
+    -- * Screenshots
+    -- $screenshot
     Roledex(Roledex)) where
 
 import XMonad
@@ -37,6 +38,9 @@ import Data.Ratio
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
+
+-- $screenshot
+-- <<http://www.timthelion.com/rolodex.png>>
 
 data Roledex a = Roledex deriving ( Show, Read )
 

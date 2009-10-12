@@ -13,14 +13,14 @@
 -- A layout similar to tall but with three columns. With 2560x1600 pixels this
 -- layout can be used for a huge main window and up to six reasonable sized
 -- slave windows.
---
--- Screenshot: <http://server.c-otto.de/xmonad/ThreeColumnsMiddle.png>
---
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.ThreeColumns (
                               -- * Usage
                               -- $usage
+
+                              -- * Screenshots
+                              -- $screenshot
                               ThreeCol(..)
                              ) where
 
@@ -54,6 +54,10 @@ import Control.Monad
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
+
+
+-- $screenshot
+-- <<http://server.c-otto.de/xmonad/ThreeColumnsMiddle.png>>
 
 -- | Arguments are nmaster, delta, fraction
 data ThreeCol a = ThreeColMid { threeColNMaster :: !Int, threeColDelta :: !Rational, threeColFrac :: !Rational}
