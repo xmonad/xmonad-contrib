@@ -10,7 +10,7 @@
 --
 -- This module provides a method to cease management of a window
 -- without unmapping it.  This is especially useful for applications
--- like kicker and gnome-panel.  See also 'XMonad.Hooks.ManageDocks' for
+-- like kicker and gnome-panel.  See also "XMonad.Hooks.ManageDocks" for
 -- more a more automated solution.
 --
 -- To make a panel display correctly with xmonad:
