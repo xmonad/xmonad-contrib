@@ -75,7 +75,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Applicative ((<$>))
 import Data.Char
-import Data.Bits ((.&.),complement)
+import Data.Bits
 import Data.Maybe
 import Data.List
 import Data.Set (fromList, toList)
@@ -335,7 +335,8 @@ eventLoop action = do
 cleanMask :: KeyMask -> XP KeyMask
 cleanMask msk = do
   numlock <- gets numlockMask
-  return (complement (numlock .|. lockMask) .&. msk)
+  let highMasks = 1 `shiftL` 12 - 1
+  return (complement (numlock .|. lockMask) .&. msk .&. highMasks)
 
 -- Main event handler
 handle :: KeyStroke -> Event -> XP ()
