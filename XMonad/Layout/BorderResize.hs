@@ -11,7 +11,7 @@
 --
 -- This layout modifier will allow to resize windows by dragging their
 -- borders with the mouse. However, it only works in layouts or modified
--- layouts that react to the SetGeometry message.
+-- layouts that react to the 'SetGeometry' message.
 -- "XMonad.Layout.WindowArranger" can be used to create such a setup.
 -- BorderResize is probably most useful in floating layouts.
 --
@@ -29,6 +29,8 @@ import XMonad.Layout.Decoration
 import XMonad.Layout.WindowArranger
 import XMonad.Util.XUtils
 import Control.Monad(when,forM)
+import Control.Arrow(first)
+import Control.Applicative((<$>))
 
 -- $usage
 -- You can use this module with the following in your
@@ -68,32 +70,25 @@ borderResize = ModifiedLayout (BR [])
 
 instance LayoutModifier BorderResize Window where
     redoLayout _       _ Nothing  wrs = return (wrs, Nothing)
-    redoLayout (BR borders) _ _ wrs =
+    redoLayout (BR borders) _ _ wrs = do
         let preparedBorders = for wrs $ \wr -> (wr, prepareBorders wr)
-        in do
-            mapM_ deleteBorder borders
-            newBorders <- forM preparedBorders $ \(wr, (b1, b2, b3, b4)) -> do
-                                (b1WR, b1BWW) <- createBorder b1
-                                (b2WR, b2BWW) <- createBorder b2
-                                (b3WR, b3BWW) <- createBorder b3
-                                (b4WR, b4BWW) <- createBorder b4
-                                return ([b1WR, b2WR, b3WR, b4WR, wr],
-                                        [b1BWW, b2BWW, b3BWW, b4BWW])
-            let wrs' = concat $ map fst newBorders
-                newBordersSerialized = concat $ map snd newBorders
-            return (wrs', Just $ BR newBordersSerialized)
-                -- What we return is the original wrs with the new border
-                -- windows inserted at the correct positions - this way, the core
-                -- will restack the borders correctly.
-                -- We also return information about our borders, so that we
-                -- can handle events that they receive and destroy them when
-                -- they are no longer needed.
+        mapM_ deleteBorder borders
+        newBorders <- forM preparedBorders $ \(wr, (b1, b2, b3, b4)) ->
+                        first (++[wr]) . unzip <$> mapM createBorder [b1,b2,b3,b4]
+        let wrs' = concat $ map fst newBorders
+            newBordersSerialized = concat $ map snd newBorders
+        return (wrs', Just $ BR newBordersSerialized)
+            -- What we return is the original wrs with the new border
+            -- windows inserted at the correct positions - this way, the core
+            -- will restack the borders correctly.
+            -- We also return information about our borders, so that we
+            -- can handle events that they receive and destroy them when
+            -- they are no longer needed.
 
     handleMess (BR borders) m
         | Just e <- fromMessage m :: Maybe Event = handleResize borders e >> return Nothing
-        | Just Hide             <- fromMessage m = releaseResources >> return (Just $ BR [])
-        | Just ReleaseResources <- fromMessage m = releaseResources >> return (Just $ BR [])
-        where releaseResources = mapM_ deleteBorder borders
+        | Just _ <- fromMessage m :: Maybe LayoutMessages =
+            mapM_ deleteBorder borders >> return (Just $ BR [])
     handleMess _ _ = return Nothing
 
 prepareBorders :: (Window, Rectangle) -> (BorderWithRect, BorderWithRect, BorderWithRect, BorderWithRect)
@@ -106,35 +101,34 @@ prepareBorders (w, r@(Rectangle x y wh ht)) =
 
 handleResize :: [BorderWithWin] -> Event -> X ()
 handleResize borders ButtonEvent { ev_window = ew, ev_event_type = et }
-    | et == buttonPress = do
-        case (lookup ew borders) of
-            Just (RightSideBorder hostWin (Rectangle hx hy _ hht)) -> do
-                mouseDrag (\x _ -> do
-                             let nwh = max 1 $ fi (x - hx)
-                                 rect = Rectangle hx hy nwh hht
-                             focus hostWin
-                             when (x - hx > 0) $ sendMessage (SetGeometry rect)) (focus hostWin)
-            Just (LeftSideBorder hostWin (Rectangle hx hy hwh hht)) -> do
-                mouseDrag (\x _ -> do
-                             let nx = max 0 $ min (hx + fi hwh) $ x
-                                 nwh = max 1 $ hwh + fi (hx - x)
-                                 rect = Rectangle nx hy nwh hht
-                             focus hostWin
-                             when (x < hx + fi hwh) $ sendMessage (SetGeometry rect)) (focus hostWin)
-            Just (TopSideBorder hostWin (Rectangle hx hy hwh hht)) -> do
-                mouseDrag (\_ y -> do
-                             let ny = max 0 $ min (hy + fi hht) $ y
-                                 nht = max 1 $ hht + fi (hy - y)
-                                 rect = Rectangle hx ny hwh nht
-                             focus hostWin
-                             when (y < hy + fi hht) $ sendMessage (SetGeometry rect)) (focus hostWin)
-            Just (BottomSideBorder hostWin (Rectangle hx hy hwh _)) -> do
-                mouseDrag (\_ y -> do
-                             let nht = max 1 $ fi (y - hy)
-                                 rect = Rectangle hx hy hwh nht
-                             focus hostWin
-                             when (y - hy > 0) $ sendMessage (SetGeometry rect)) (focus hostWin)
-            Nothing -> return ()
+    | et == buttonPress, Just edge <- lookup ew borders =
+    case edge of
+        RightSideBorder hostWin (Rectangle hx hy _ hht) ->
+            mouseDrag (\x _ -> do
+                            let nwh = max 1 $ fi (x - hx)
+                                rect = Rectangle hx hy nwh hht
+                            focus hostWin
+                            when (x - hx > 0) $ sendMessage (SetGeometry rect)) (focus hostWin)
+        LeftSideBorder hostWin (Rectangle hx hy hwh hht) ->
+            mouseDrag (\x _ -> do
+                            let nx = max 0 $ min (hx + fi hwh) $ x
+                                nwh = max 1 $ hwh + fi (hx - x)
+                                rect = Rectangle nx hy nwh hht
+                            focus hostWin
+                            when (x < hx + fi hwh) $ sendMessage (SetGeometry rect)) (focus hostWin)
+        TopSideBorder hostWin (Rectangle hx hy hwh hht) ->
+            mouseDrag (\_ y -> do
+                            let ny = max 0 $ min (hy + fi hht) $ y
+                                nht = max 1 $ hht + fi (hy - y)
+                                rect = Rectangle hx ny hwh nht
+                            focus hostWin
+                            when (y < hy + fi hht) $ sendMessage (SetGeometry rect)) (focus hostWin)
+        BottomSideBorder hostWin (Rectangle hx hy hwh _) ->
+            mouseDrag (\_ y -> do
+                            let nht = max 1 $ fi (y - hy)
+                                rect = Rectangle hx hy hwh nht
+                            focus hostWin
+                            when (y - hy > 0) $ sendMessage (SetGeometry rect)) (focus hostWin)
 handleResize _ _ = return ()
 
 createBorder :: BorderWithRect -> X (((Window, Rectangle), BorderWithWin))
