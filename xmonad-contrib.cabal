@@ -235,5 +235,6 @@ library
                         XMonad.Util.WindowProperties
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.Paste
+                        XMonad.Util.Replace
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
