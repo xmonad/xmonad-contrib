@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts #-} -- For deriving Data/Typeable
+{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances, FlexibleContexts #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Minimize
