@@ -10,6 +10,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
+-- Divide a single screen into multiple screens.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.LayoutScreens (
