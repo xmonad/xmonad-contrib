@@ -9,7 +9,56 @@
 -- Portability :  unportable
 --
 -- Turns your workspaces into a more topic oriented system.
---
+-----------------------------------------------------------------------------
+
+module XMonad.Actions.TopicSpace
+  (
+  -- * Overview
+  -- $overview
+
+  -- * Usage
+  -- $usage
+   Topic
+  , Dir
+  , TopicConfig(..)
+  , getLastFocusedTopics
+  , setLastFocusedTopic
+  , pprWindowSet
+  , topicActionWithPrompt
+  , topicAction
+  , currentTopicAction
+  , switchTopic
+  , switchNthLastFocused
+  , shiftNthLastFocused
+  , currentTopicDir
+  , checkTopicConfig
+  , (>*>)
+  )
+where
+
+import XMonad
+
+import Data.List
+import Data.Maybe (fromMaybe, isNothing, listToMaybe)
+import Data.Ord
+import qualified Data.Map as M
+import Control.Monad ((=<<),liftM2,when,unless,replicateM_)
+import System.IO
+
+import XMonad.Operations
+import qualified XMonad.StackSet as W
+
+import XMonad.Prompt
+import XMonad.Prompt.Workspace
+
+import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.DynamicLog (PP(..))
+import qualified XMonad.Hooks.DynamicLog as DL
+
+import XMonad.Util.Run (spawnPipe)
+import XMonad.Util.StringProp(getStringListProp,setStringListProp)
+
+-- $overview
 -- This module allows to organize your workspaces on a precise topic basis.  So
 -- instead of having a workspace called `work' you can setup one workspace per
 -- task.  Here we call these workspaces, topics. The great thing with
@@ -21,7 +70,8 @@
 -- display your topics in an historical way using a custom `pprWindowSet'
 -- function. You can also easily switch to recent topics using this history
 -- of last focused topics.
---
+
+-- $usage
 -- Here is an example of configuration using TopicSpace:
 --
 -- @
@@ -147,46 +197,6 @@
 --  main :: IO ()
 --  main = xmonad =<< myConfig
 -- @
-module XMonad.Actions.TopicSpace
-  ( Topic
-  , Dir
-  , TopicConfig(..)
-  , getLastFocusedTopics
-  , setLastFocusedTopic
-  , pprWindowSet
-  , topicActionWithPrompt
-  , topicAction
-  , currentTopicAction
-  , switchTopic
-  , switchNthLastFocused
-  , shiftNthLastFocused
-  , currentTopicDir
-  , checkTopicConfig
-  , (>*>)
-  )
-where
-
-import XMonad
-
-import Data.List
-import Data.Maybe (fromMaybe, isNothing, listToMaybe)
-import Data.Ord
-import qualified Data.Map as M
-import Control.Monad ((=<<),liftM2,when,unless,replicateM_)
-import System.IO
-
-import XMonad.Operations
-import qualified XMonad.StackSet as W
-
-import XMonad.Prompt
-import XMonad.Prompt.Workspace
-
-import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.DynamicLog (PP(..))
-import qualified XMonad.Hooks.DynamicLog as DL
-
-import XMonad.Util.Run (spawnPipe)
-import XMonad.Util.StringProp(getStringListProp,setStringListProp)
 
 -- | An alias for @flip replicateM_@
 (>*>) :: Monad m => m a -> Int -> m ()
