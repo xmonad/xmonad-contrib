@@ -31,12 +31,12 @@ import XMonad(Typeable,
               Message, X, fromMessage, withWindowSet, Resize(..),
               splitHorizontallyBy, splitVerticallyBy, sendMessage, Rectangle)
 import qualified XMonad.StackSet as W
-import Control.Arrow(Control.Arrow.Arrow(second, first))
+import Control.Arrow(second, first)
 import Control.Monad(mplus)
-import Data.Foldable(Foldable(foldMap), sum)
+import Data.Foldable(Foldable,foldMap, sum)
 import Data.Function(on)
 import Data.List(sortBy)
-import Data.Monoid(Monoid(mempty, mappend))
+import Data.Monoid(Monoid,mempty, mappend)
 
 
 -- $usage
