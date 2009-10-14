@@ -1,6 +1,10 @@
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
 
-import XMonad.Layout.Selective
+-- Tests for limitSelect-related code in L.LimitWindows.
+-- To run these tests, export (select,update,Selection(..),updateAndSelect) from
+-- L.LimitWindows.
+
+import XMonad.Layout.LimitWindows
 import XMonad.StackSet hiding (focusUp, focusDown)
 import Control.Applicative ((<$>))
 import Test.QuickCheck
@@ -13,7 +17,7 @@ instance Arbitrary (Stack Int) where
                     return $ Stack { up=[xs-1,xs-2..0], focus=xs, down=[xs+1..xs+ys] }
     coarbitrary = undefined
 
-instance Arbitrary Selection where
+instance Arbitrary (Selection a) where
     arbitrary = do
                     nm <- arbNat
                     st <- arbNat

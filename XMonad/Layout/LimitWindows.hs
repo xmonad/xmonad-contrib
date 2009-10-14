@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, NamedFieldPuns, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LimitWindows
 -- Copyright   :  (c) 2009 Adam Vogt
+--                (c) 2009 Max Rabkin -- wrote limitSelect
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
 -- Maintainer  :  vogt.adam@gmail.com
@@ -17,17 +18,19 @@ module XMonad.Layout.LimitWindows (
     -- * Usage
     -- $usage
 
-    -- Layout Modifiers
-    limitWindows,limitSlice,
+    -- * Layout Modifiers
+    limitWindows,limitSlice,limitSelect,
 
-    -- Change the number of windows
+    -- * Change the number of windows
     increaseLimit,decreaseLimit,setLimit
     ) where
 
 import XMonad.Layout.LayoutModifier
 import XMonad
 import qualified XMonad.StackSet as W
+import XMonad.Layout (IncMasterN (..))
 import Control.Monad((<=<),guard)
+import Control.Applicative((<$>))
 import Data.Maybe(fromJust)
 
 -- $usage
@@ -66,6 +69,12 @@ limitWindows n = ModifiedLayout (LimitWindows FirstN n)
 limitSlice :: Int -> l a -> ModifiedLayout LimitWindows l a
 limitSlice n = ModifiedLayout (LimitWindows Slice n)
 
+-- | Only display the first @m@ windows and @r@ others.
+-- The @IncMasterN@ message will change @m@, as well as passing it onto the
+-- underlying layout.
+limitSelect :: Int -> Int -> l a -> ModifiedLayout Selection l a
+limitSelect m r = ModifiedLayout Sel{ nMaster=m, start=m, nRest=r }
+
 data LimitWindows a = LimitWindows SliceStyle Int deriving (Read,Show)
 
 data SliceStyle = FirstN | Slice deriving (Read,Show)
@@ -81,7 +90,7 @@ instance LayoutModifier LimitWindows a where
             app f x = guard (f x /= x) >>  return (f x)
 
      modifyLayout (LimitWindows style n) ws r =
-        runLayout ws { W.stack = f n `fmap` W.stack ws } r
+        runLayout ws { W.stack = f n <$> W.stack ws } r
       where f = case style of
                     FirstN -> firstN
                     Slice -> slice
@@ -99,3 +108,52 @@ slice n (W.Stack f u d) =
           unusedU = max 0 $ nu - length u
           nd = div (n - 1) 2
           nu = uncurry (+) $ divMod (n - 1) 2
+
+data Selection a = Sel { nMaster :: Int, start :: Int, nRest :: Int }
+    deriving (Read, Show, Eq)
+
+instance LayoutModifier Selection a where
+    modifyLayout s w r =
+        runLayout (w { W.stack = updateAndSelect s <$> W.stack w }) r
+
+    pureModifier sel _ stk wins = (wins, update sel <$> stk)
+
+    pureMess sel m
+        | Just f <- unLC <$> fromMessage m =
+            Just $ sel { nRest = max 0 (f (nMaster sel + nRest sel) - nMaster sel) }
+        | Just (IncMasterN n) <- fromMessage m =
+            Just $ sel { nMaster = max 0 (nMaster sel + n) }
+        | otherwise =
+            Nothing
+
+select :: Selection l -> W.Stack a -> W.Stack a
+select (Sel { nMaster, start, nRest }) stk
+    | lups < nMaster
+        = stk { W.down=take (nMaster - lups - 1) downs ++
+                    (take nRest . drop (start - lups - 1) $ downs) }
+    | otherwise
+        = stk { W.up=reverse (take nMaster ups ++ drop start ups),
+                W.down=take (nRest - (lups - start) - 1) downs }
+    where
+        downs = W.down stk
+        ups = reverse $ W.up stk
+        lups = length ups
+    
+updateStart :: Selection l -> W.Stack a -> Int
+updateStart (Sel { nMaster, start, nRest }) stk
+    | lups < nMaster   -- the focussed window is in the master pane
+        = start `min` (lups + ldown - nRest + 1) `max` nMaster
+    | otherwise
+        = start `min` lups 
+                `max` (lups - nRest + 1) 
+                `min` (lups + ldown - nRest + 1) 
+                `max` nMaster
+    where
+        lups = length $ W.up stk
+        ldown = length $ W.down stk
+
+update :: Selection l -> W.Stack a -> Selection a
+update sel stk = sel { start=updateStart sel stk }
+
+updateAndSelect :: Selection l -> W.Stack a -> W.Stack a
+updateAndSelect sel stk = select (update sel stk) stk
