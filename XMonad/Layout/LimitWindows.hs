@@ -11,6 +11,7 @@
 -- Portability :  unportable
 --
 -- A layout modifier that limits the number of windows that can be shown.
+-- See "XMonad.Layout.Minimize" for manually setting hidden windows.
 --
 -----------------------------------------------------------------------------
 
