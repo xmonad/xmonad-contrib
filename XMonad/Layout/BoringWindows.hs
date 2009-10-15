@@ -19,7 +19,7 @@ module XMonad.Layout.BoringWindows (
                                    -- $usage
                                    boringWindows, boringAuto,
                                    markBoring, clearBoring,
-                                   focusUp, focusDown,
+                                   focusUp, focusDown, focusMaster,
 
                                    UpdateBoring(UpdateBoring),
                                    BoringMessage(Replace,Merge),
@@ -52,14 +52,15 @@ import qualified XMonad.StackSet as W
 -- Then to your keybindings, add:
 --
 -- > , ((modMask, xK_j), focusUp)
--- > , ((modMask, xk_k), focusDown)
+-- > , ((modMask, xK_k), focusDown)
+-- > , ((modMask, xK_m), focusMaster)
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 
-data BoringMessage = FocusUp | FocusDown | IsBoring Window | ClearBoring
+data BoringMessage = FocusUp | FocusDown | FocusMaster | IsBoring Window | ClearBoring
                      | Replace String [Window]
                      | Merge String [Window]
                      deriving ( Read, Show, Typeable )
@@ -72,11 +73,12 @@ data UpdateBoring = UpdateBoring
     deriving (Typeable)
 instance Message UpdateBoring
 
-markBoring, clearBoring, focusUp, focusDown :: X ()
+markBoring, clearBoring, focusUp, focusDown, focusMaster :: X ()
 markBoring = withFocused (sendMessage . IsBoring)
 clearBoring = sendMessage ClearBoring
 focusUp = sendMessage UpdateBoring >> sendMessage FocusUp
 focusDown = sendMessage UpdateBoring >> sendMessage FocusDown
+focusMaster = sendMessage UpdateBoring >> sendMessage FocusMaster
 
 data BoringWindows a = BoringWindows
     { namedBoring :: M.Map String [a] -- ^ store borings with a specific source
@@ -115,6 +117,12 @@ instance LayoutModifier BoringWindows Window where
         | Just FocusDown <- fromMessage m =
                             do windows $ W.modify' $ skipBoring W.focusDown'
                                return Nothing
+        | Just FocusMaster <- fromMessage m =
+                            do windows $ W.modify'
+                                            $ skipBoring W.focusDown' -- wiggle focus to make sure
+                                            . skipBoring W.focusUp'   -- no boring window gets the focus
+                                            . focusMaster'
+                               return Nothing
         where skipBoring f st = fromMaybe st $ listToMaybe
                                 $ filter ((`notElem` W.focus st:bs) . W.focus)
                                 $ take (length $ W.integrate st)
@@ -122,3 +130,9 @@ instance LayoutModifier BoringWindows Window where
               bs = concat $ cbs:maybeToList lbs ++ M.elems nbs
               rjl = return . Just . Left
     handleMessOrMaybeModifyIt _ _ = return Nothing
+
+-- | Variant of 'focusMaster' that works on a
+-- 'Stack' rather than an entire 'StackSet'.
+focusMaster' :: W.Stack a -> W.Stack a
+focusMaster' c@(W.Stack _ [] _) = c
+focusMaster' (W.Stack t ls rs) = W.Stack x [] (xs ++ t : rs) where (x:xs) = reverse ls
