@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, NamedFieldPuns, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LimitWindows
@@ -128,27 +128,27 @@ instance LayoutModifier Selection a where
             Nothing
 
 select :: Selection l -> W.Stack a -> W.Stack a
-select (Sel { nMaster, start, nRest }) stk
-    | lups < nMaster
-        = stk { W.down=take (nMaster - lups - 1) downs ++
-                    (take nRest . drop (start - lups - 1) $ downs) }
+select s stk
+    | lups < nMaster s
+        = stk { W.down=take (nMaster s - lups - 1) downs ++
+                    (take (nRest s) . drop (start s - lups - 1) $ downs) }
     | otherwise
-        = stk { W.up=reverse (take nMaster ups ++ drop start ups),
-                W.down=take (nRest - (lups - start) - 1) downs }
+        = stk { W.up=reverse (take (nMaster s) ups ++ drop (start s) ups),
+                W.down=take ((nRest s) - (lups - start s) - 1) downs }
     where
         downs = W.down stk
         ups = reverse $ W.up stk
         lups = length ups
     
 updateStart :: Selection l -> W.Stack a -> Int
-updateStart (Sel { nMaster, start, nRest }) stk
-    | lups < nMaster   -- the focussed window is in the master pane
-        = start `min` (lups + ldown - nRest + 1) `max` nMaster
+updateStart s stk
+    | lups < nMaster s  -- the focussed window is in the master pane
+        = start s `min` (lups + ldown - (nRest s) + 1) `max` nMaster s
     | otherwise
-        = start `min` lups 
-                `max` (lups - nRest + 1) 
-                `min` (lups + ldown - nRest + 1) 
-                `max` nMaster
+        = start s `min` lups
+                  `max` (lups - (nRest s) + 1)
+                  `min` (lups + ldown - (nRest s) + 1)
+                  `max` nMaster s
     where
         lups = length $ W.up stk
         ldown = length $ W.down stk
