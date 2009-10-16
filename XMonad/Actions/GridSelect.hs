@@ -21,6 +21,7 @@ module XMonad.Actions.GridSelect (
     -- ** Customizing
     -- *** Using a common GSConfig
     -- $commonGSConfig
+
     -- *** Custom keybindings
     -- $keybindings
 
@@ -87,16 +88,14 @@ import Data.Word (Word8)
 --
 -- It is possible to bind a @gsconfig@ at top-level in your configuration. Like so:
 --
--- > gsconfig1 :: HasColorizer a => GSConfig a
+-- > -- the top of your config
+-- > {-# LANGUAGE NoMonomorphismRestriction #-}
+-- > import XMonad
+-- > ...
 -- > gsconfig1 = defaultGSConfig { gs_cellheight = 30, gs_cellWidth = 100 }
 --
--- Regarding type signatures: to leave them out in this case, add @{-# LANGUAGE
--- NoMonomorphismRestriction #-}@ to the top of your @xmonad.hs@.  Refer to
--- this page for an explanation:
--- <http://www.haskell.org/haskellwiki/Monomorphism_restriction>
---
--- @gsconfig2@ is an example where 'buildDefaultGSConfig' is used instead of
--- 'defaultGSConfig' in order to specify a custom colorizer (found in
+-- An example where 'buildDefaultGSConfig' is used instead of 'defaultGSConfig'
+-- in order to specify a custom colorizer is @gsconfig2@ (found in
 -- "XMonad.Actions.GridSelect#Colorizers"):
 --
 -- > gsconfig2 colorizer = (buildDefaultGSConfig colorizer) { gs_cellheight = 30, gs_cellWidth = 100 }
@@ -110,7 +109,7 @@ import Data.Word (Word8)
 -- >                      white            -- active fg
 -- >   where black = minBound
 -- >         white = maxBound
-
+--
 -- Then you can bind to:
 --
 --      ,((modMask x, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
@@ -122,24 +121,31 @@ import Data.Word (Word8)
 --
 -- At the top of your config:
 --
+-- > {-# LANGAUGE NoMonomorphismRestriction #-}
+-- > import XMonad
 -- > import qualified Data.Map as M
 --
 -- Then define @gsconfig3@ which may be used in exactly the same manner as @gsconfig1@:
 --
--- > gsconfig3 :: HasColorizer a => GSConfig a
 -- > gsconfig3 = defaultGSConfig
 -- >    { gs_cellheight = 30
--- >    , gs_cellWidth = 100
--- >    , gs_navigate = M.unions [reset, nethackKeys, gs_navigate $ defaultGSConfig `asTypeOf` gsconfig3] }
--- >    where addPair (a,b) (x,y) = (a+x,b+y)
--- >          nethackKeys = M.map addPair
--- >                  $ M.fromList [((0,xK_y),(-1,-1)
--- >                               ,((0,xK_i),(1,-1)
--- >                               ,((0,xK_n),(-1,1)
--- >                               ,((0,xK_m),(1,1)
+-- >    , gs_cellwidth = 100
+-- >    , gs_navigate = M.unions
+-- >            [reset
+-- >            ,nethackKeys
+-- >            ,gs_navigate                               -- get the default navigation bindings
+-- >                $ defaultGSConfig `asTypeOf` gsconfig3 -- needed to fix an ambiguous type variable
+-- >            ]
+-- >    }
+-- >   where addPair (a,b) (x,y) = (a+x,b+y)
+-- >         nethackKeys = M.map addPair $ M.fromList
+-- >                               [((0,xK_y),(-1,-1))
+-- >                               ,((0,xK_i),(1,-1))
+-- >                               ,((0,xK_n),(-1,1))
+-- >                               ,((0,xK_m),(1,1))
 -- >                               ]
--- >          -- jump back to the center with the spacebar, regardless of the current position.
--- >          reset = M.singleton (0,xK_space) (const (0,0))
+-- >         -- jump back to the center with the spacebar, regardless of the current position.
+-- >         reset = M.singleton (0,xK_space) (const (0,0))
 
 -- $screenshots
 --
