@@ -166,13 +166,19 @@ import Data.Map(Map)
 
 -- | The main layout modifier arguments:
 --
---  [@nextLayout@] When a new group is formed, use the layout @sl@ after
---  skipping that number of layouts. Specify a finite list and groups that do
---  not have a corresponding index get the first choice in @sls@
+-- @subLayout advanceInnerLayouts innerLayout outerLayout@
 --
---  [@sl@] The single layout given to be run as a sublayout.
+--  [@advanceInnerLayouts@] When a new group at index @n@ in the outer layout
+--  is created (even with one element), the @innerLayout@ is used as the
+--  layout within that group after being advanced with @advanceInnerLayouts !!
+--  n@ 'NextLayout' messages. If there is no corresponding element in the
+--  @advanceInnerLayouts@ list, then @innerLayout@ is not given any 'NextLayout'
+--  messages.
 --
---  [@x@] The layout that determines the rectangles that the groups get.
+--  [@innerLayout@] The single layout given to be run as a sublayout.
+--
+--  [@outerLayout@] The layout that determines the rectangles given to each
+--  group.
 --
 --  Ex. The second group is 'Tall', the third is 'Circle', all others are tabbed
 --  with:
