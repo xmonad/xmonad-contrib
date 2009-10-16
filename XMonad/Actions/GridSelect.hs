@@ -112,8 +112,8 @@ import Data.Word (Word8)
 --
 -- Then you can bind to:
 --
---      ,((modMask x, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
---      ,((modMask x, xK_p), spawnSelected $ spawnSelected defaultColorizer)
+-- >     ,((modMask x, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
+-- >     ,((modMask x, xK_p), spawnSelected $ spawnSelected defaultColorizer)
 
 -- $keybindings
 --
