@@ -36,6 +36,8 @@ module XMonad.Layout.SubLayouts (
     )
     where
 
+import XMonad.Layout.Circle () -- so haddock can find the link
+
 import XMonad.Layout.Decoration(Decoration, DefaultShrinker)
 import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
                                     redoLayout),
@@ -111,12 +113,12 @@ import Data.Map(Map)
 -- > import XMonad.Layout.SubLayouts
 -- > import XMonad.Layout.WindowNavigation
 --
--- Using BoringWindows is optional and it allows you to add a keybinding to
--- skip over the non-visible windows.
+-- Using "XMonad.Layout.BoringWindows" is optional and it allows you to add a
+-- keybinding to skip over the non-visible windows.
 --
 -- > import XMonad.Layout.BoringWindows
 --
--- Then edit your @layoutHook@ by adding the subTabbed layout modifier:
+-- Then edit your @layoutHook@ by adding the 'subTabbed' layout modifier:
 --
 -- > myLayouts = windowNavigation $ subTabbed $ boringWindows $
 -- >                        Tall 1 (3/100) (1/2) ||| etc..
@@ -170,7 +172,7 @@ import Data.Map(Map)
 --
 --  [@x@] The layout that determines the rectangles that the groups get.
 --
---  Ex. The second group is Tall, the third is Circle, all others are tabbed
+--  Ex. The second group is 'Tall', the third is 'Circle', all others are tabbed
 --  with:
 --
 --  > myLayout = addTabs shrinkText defaultTheme
@@ -179,7 +181,7 @@ import Data.Map(Map)
 subLayout :: [Int] -> subl a -> l a -> ModifiedLayout (Sublayout subl) l a
 subLayout nextLayout sl x = ModifiedLayout (Sublayout (I []) (nextLayout,sl) []) x
 
--- | 'subLayout' but use 'XMonad.Layout.Tabbed.addTabs' to add decorations.
+-- | @subTabbed@ is a use of 'subLayout' with 'addTabs' to show decorations.
 subTabbed :: (Eq a, LayoutModifier (Sublayout Simplest) a, LayoutClass l a) =>
     l a -> ModifiedLayout (Decoration TabbedDecoration DefaultShrinker)
                           (ModifiedLayout (Sublayout Simplest) l) a
