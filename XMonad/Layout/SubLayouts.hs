@@ -28,6 +28,9 @@ module XMonad.Layout.SubLayouts (
 
     defaultSublMap,
 
+    -- * Screenshots
+    -- $screenshots
+
     -- * Todo
     -- $todo
     )
@@ -59,6 +62,12 @@ import qualified XMonad.Layout.BoringWindows as B
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.Map(Map)
+
+-- $screenshots
+--
+-- <<http://haskell.org/sitewiki/images/thumb/8/8b/Xmonad-SubLayouts-xinerama.png/480px-Xmonad-SubLayouts-xinerama.png>>
+--
+-- Larger version: <http://haskell.org/sitewiki/images/8/8b/Xmonad-SubLayouts-xinerama.png>
 
 -- $todo
 --  Issue 288: "XMonad.Layout.ResizableTile" assumes that its environment
