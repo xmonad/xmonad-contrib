@@ -72,21 +72,23 @@ import Data.Map(Map)
 -- Larger version: <http://haskell.org/sitewiki/images/8/8b/Xmonad-SubLayouts-xinerama.png>
 
 -- $todo
---  Issue 288: "XMonad.Layout.ResizableTile" assumes that its environment
+--  /Issue 288/
+--
+--  "XMonad.Layout.ResizableTile" assumes that its environment
 --  contains only the windows it is running: sublayouts are currently run with
 --  the stack containing only the windows passed to it in its environment, but
 --  any changes that the layout makes are not merged back.
 --
 --  Should the behavior be made optional?
 --
---  Features:
+--  /Features/
 --
 --   * suggested managehooks for merging specific windows, or the apropriate
 --     layout based hack to find out the number of groups currently showed, but
 --     the size of current window groups is not available (outside of this
 --     growing module)
 --
---  SimpleTabbed as a SubLayout
+--  /SimpleTabbed as a SubLayout/
 --
 --  'subTabbed' works well, but it would be more uniform to avoid the use of
 --  addTabs, with the sublayout being Simplest (but
