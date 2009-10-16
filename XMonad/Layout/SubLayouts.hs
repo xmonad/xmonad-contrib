@@ -132,23 +132,23 @@ import Data.Map(Map)
 --
 -- Then to your keybindings add:
 --
---  > , ((modMask .|. controlMask, xK_h), sendMessage $ pullGroup L)
---  > , ((modMask .|. controlMask, xK_l), sendMessage $ pullGroup R)
---  > , ((modMask .|. controlMask, xK_k), sendMessage $ pullGroup U)
---  > , ((modMask .|. controlMask, xK_j), sendMessage $ pullGroup D)
+--  > , ((modm .|. controlMask, xK_h), sendMessage $ pullGroup L)
+--  > , ((modm .|. controlMask, xK_l), sendMessage $ pullGroup R)
+--  > , ((modm .|. controlMask, xK_k), sendMessage $ pullGroup U)
+--  > , ((modm .|. controlMask, xK_j), sendMessage $ pullGroup D)
 --  >
---  > , ((modMask .|. controlMask, xK_m), withFocused (sendMessage . MergeAll))
---  > , ((modMask .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
+--  > , ((modm .|. controlMask, xK_m), withFocused (sendMessage . MergeAll))
+--  > , ((modm .|. controlMask, xK_u), withFocused (sendMessage . UnMerge))
 --  >
---  > , ((modMask .|. controlMask, xK_period), onGroup W.focusUp')
---  > , ((modMask .|. controlMask, xK_comma), onGroup W.focusDown')
+--  > , ((modm .|. controlMask, xK_period), onGroup W.focusUp')
+--  > , ((modm .|. controlMask, xK_comma), onGroup W.focusDown')
 --
 --  These additional keybindings require the optional
 --  "XMonad.Layout.BoringWindows" layoutModifier. The focus will skip over the
 --  windows that are not focused in each sublayout.
 --
---  > , ((modMask, xK_j), focusDown)
---  > , ((modMask, xK_k), focusUp)
+--  > , ((modm, xK_j), focusDown)
+--  > , ((modm, xK_k), focusUp)
 --
 --  A 'submap' can be used to make modifying the sublayouts using 'onGroup' and
 --  'toSubl' simpler:
