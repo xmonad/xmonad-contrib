@@ -24,10 +24,14 @@ import Graphics.X11.Xlib.Cursor
 import XMonad
 
 -- $usage
---     setDefaultCursor xC_left_ptr
+--
+-- >   setDefaultCursor xC_left_ptr
+--
 --   For example, to override the default gnome cursor:
---     import XMonad.Util.Cursor
---     main = xmonad gnomeConfig { startupHook = setDefaultCursor xC_pirate }
+--
+-- >   import XMonad.Util.Cursor
+-- >   main = xmonad gnomeConfig { startupHook = setDefaultCursor xC_pirate }
+--
 --   Arrr!
 
 -- | Set the default (root) cursor
