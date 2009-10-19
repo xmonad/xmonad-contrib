@@ -127,7 +127,6 @@ library
                         XMonad.Hooks.Place
                         XMonad.Hooks.RestoreMinimized
                         XMonad.Hooks.Script
-                        XMonad.Hooks.SetCursor
                         XMonad.Hooks.SetWMName
                         XMonad.Hooks.ServerMode
                         XMonad.Hooks.UrgencyHook
