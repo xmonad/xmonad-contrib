@@ -13,7 +13,13 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.RandomBackground (randomBg',randomBg,RandomColor(HSV,RGB)) where
+module XMonad.Actions.RandomBackground (
+    -- * Usage
+    -- $usage
+    randomBg',
+    randomBg,
+    RandomColor(HSV,RGB)
+    ) where
 
 import XMonad(X, XConf(config), XConfig(terminal), io, spawn,
               MonadIO, asks)
@@ -21,9 +27,20 @@ import System.Random
 import Control.Monad(replicateM,liftM)
 import Numeric(showHex)
 
--- | RandomColor fixes constraints when generating random colors
-data RandomColor = RGB { _colorMin :: Int, _colorMax :: Int }
-                 | HSV { _colorSaturation :: Double, _colorValue :: Double }
+-- $usage
+--
+-- Add to your keybindings something like:
+--
+-- > ,((modm .|. shiftMask, xK_Return), randomBg $ HSV 0xff 0x20
+
+-- | RandomColor fixes constraints when generating random colors. All
+-- parameters should be in the range 0 -- 0xff
+data RandomColor = RGB { _colorMin :: Int
+                       , _colorMax :: Int
+                       } -- ^ specify the minimum and maximum lowest values for each color channel.
+                 | HSV { _colorSaturation :: Double
+                       , _colorValue :: Double
+                       } -- ^ specify the saturation and value, leaving the hue random.
 
 toHex :: [Int] -> String
 toHex =  ("'#"++) . (++"'") . concatMap (ensure 2 . ($ "") . showHex)
@@ -36,7 +53,7 @@ randPermutation xs g = swap $ zip (randoms g) xs
     swap ((False,x):ys) = x:swap ys
     swap x = map snd x
 
--- | randomBg' produces a random hex number in the form @'#xxyyzz'@
+-- | @randomBg'@ produces a random hex number in the form @'#xxyyzz'@
 randomBg' ::  (MonadIO m) => RandomColor -> m String
 randomBg' (RGB l h) = liftM toHex $ replicateM 3 $ io $ randomRIO (l,h)
 randomBg' (HSV s v) = io $ do
@@ -44,6 +61,10 @@ randomBg' (HSV s v) = io $ do
     let x = (^(2::Int)) $ fst $ randomR (0,sqrt $ pi / 3) g
     return $ toHex $ map round $ randPermutation [v,(v-s)*x + s,s] g
 
+-- | @randomBg@ starts a terminal with the background color taken from 'randomBg''
+--
+-- This depends on the your 'terminal' configuration field accepting an
+-- argument like @-bg '#ff0023'@
 randomBg :: RandomColor -> X ()
 randomBg x = do
     t <- asks (terminal . config)
