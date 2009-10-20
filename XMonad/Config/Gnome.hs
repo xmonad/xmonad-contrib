@@ -40,7 +40,7 @@ import System.Environment (getEnvironment)
 gnomeConfig = desktopConfig
     { terminal = "gnome-terminal"
     , keys     = \c -> gnomeKeys c `M.union` keys desktopConfig c
-    , startupHook = gnomeRegister }
+    , startupHook = gnomeRegister >> startupHook desktopConfig }
 
 gnomeKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_p), gnomeRun)
@@ -62,7 +62,7 @@ gnomeRun = withDisplay $ \dpy -> do
 
 -- | Register xmonad with gnome. 'dbus-send' must be in the $PATH with which
 -- xmonad is started.
--- 
+--
 -- This action reduces a delay on startup only only if you have configured
 -- gnome-session>=2.26: to start xmonad with a command as such:
 --
