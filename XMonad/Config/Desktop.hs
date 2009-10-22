@@ -15,14 +15,14 @@
 -----------------------------------------------------------------------------
 module XMonad.Config.Desktop (
 
-    -- | Several basic integration settings are common to all of xmonad\'s
+    -- | Several basic integration settings are common to all of xmonad's
     -- desktop integration configurations. The specific desktop environment
-    -- (DE) modules like "XMonad.Config.Gnome" use this module\'s
+    -- (DE) modules like "XMonad.Config.Gnome" use this module's
     -- @desktopConfig@ to set up basic communication between xmonad and
     -- the DE via a subset of the Extended Window Manager Hints (EWMH)
-    -- specification. Extra xmonad settings unique to specific DE\'s are
+    -- specification. Extra xmonad settings unique to specific DE's are
     -- added by overriding or modifying @desktopConfig@ fields in the
-    -- same way that @defaultConfig@ is customized in @~/.xmonad/xmonad.hs@.
+    -- same way that @defaultConfig@ is customized in @~\/.xmonad/xmonad.hs@.
     --
     -- For more information about EWMH see:
     --
@@ -70,7 +70,7 @@ import qualified Data.Map as M
 -- <http://haskell.org/haskellwiki/Xmonad>
 --
 -- To configure xmonad for use with a DE or with DE tools like panels
--- and pagers, in place of @defaultConfig@ in your @~/.xmonad/xmonad.hs@,
+-- and pagers, in place of @defaultConfig@ in your @~\/.xmonad/xmonad.hs@,
 -- use @desktopConfig@ or one of the other desktop configs from the
 -- @XMonad.Config@ hierarchy. The following setup and customization examples
 -- work the same way for the other desktop configs as for @desktopConfig@.
@@ -138,7 +138,7 @@ import qualified Data.Map as M
 --
 
 -- $eventHook
--- To customize xmonad\'s event handling while still having it respond
+-- To customize xmonad's event handling while still having it respond
 -- to EWMH events from pagers, task bars, etc. add to your imports:
 --
 -- > import Data.Monoid
@@ -163,7 +163,7 @@ import qualified Data.Map as M
 -- >  , startupHook = do
 -- >        startupHook desktopConfig
 -- >        spawn "xmonad-restart.sh"
--- >        adjustEvenInput
+-- >        adjustEventInput
 --
 
 desktopConfig = defaultConfig
