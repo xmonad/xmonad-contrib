@@ -167,9 +167,10 @@ import qualified Data.Map as M
 --
 
 desktopConfig = defaultConfig
-    { logHook    = ewmhDesktopsLogHook
-    , layoutHook = desktopLayoutModifiers $ layoutHook defaultConfig
-    , manageHook = manageHook defaultConfig <+> manageDocks
+    { startupHook     = ewmhDesktopsStartup >> setDefaultCursor xC_left_ptr
+    , logHook         = ewmhDesktopsLogHook
+    , layoutHook      = desktopLayoutModifiers $ layoutHook defaultConfig
+    , manageHook      = manageHook defaultConfig <+> manageDocks
     , handleEventHook = ewmhDesktopsEventHook
     , keys            = \c -> desktopKeys c `M.union` keys defaultConfig c }
 
