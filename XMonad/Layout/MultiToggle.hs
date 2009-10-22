@@ -63,7 +63,7 @@ import Data.Maybe
 -- you can now dynamically apply the 'XMonad.Layout.Mirror' transformation:
 --
 -- > ...
--- >   , ((modMask,               xK_x     ), sendMessage $ Toggle MIRROR)
+-- >   , ((modm,               xK_x     ), sendMessage $ Toggle MIRROR)
 -- > ...
 --
 -- (That should be part of your key bindings.) When you press @mod-x@, the

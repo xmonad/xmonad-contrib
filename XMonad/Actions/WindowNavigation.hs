@@ -86,15 +86,15 @@ import Graphics.X11.Xlib
 --  - manageHook to draw window decos?
 
 withWindowNavigation :: (KeySym, KeySym, KeySym, KeySym) -> XConfig l -> IO (XConfig l)
-withWindowNavigation (u,l,d,r) conf =
-    withWindowNavigationKeys [ ((modMask conf              , u), WNGo   U),
-                               ((modMask conf              , l), WNGo   L),
-                               ((modMask conf              , d), WNGo   D),
-                               ((modMask conf              , r), WNGo   R),
-                               ((modMask conf .|. shiftMask, u), WNSwap U),
-                               ((modMask conf .|. shiftMask, l), WNSwap L),
-                               ((modMask conf .|. shiftMask, d), WNSwap D),
-                               ((modMask conf .|. shiftMask, r), WNSwap R) ]
+withWindowNavigation (u,l,d,r) conf@XConfig{modMask=modm} =
+    withWindowNavigationKeys [ ((modm              , u), WNGo   U),
+                               ((modm              , l), WNGo   L),
+                               ((modm              , d), WNGo   D),
+                               ((modm              , r), WNGo   R),
+                               ((modm .|. shiftMask, u), WNSwap U),
+                               ((modm .|. shiftMask, l), WNSwap L),
+                               ((modm .|. shiftMask, d), WNSwap D),
+                               ((modm .|. shiftMask, r), WNSwap R) ]
                              conf
 
 withWindowNavigationKeys :: [((KeyMask, KeySym), WNAction)] -> XConfig l -> IO (XConfig l)

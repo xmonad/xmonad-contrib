@@ -34,7 +34,7 @@ First, import this module into your @~\/.xmonad\/xmonad.hs@:
 
 Allows you to create a sub-mapping of keys. Example:
 
->    , ((modMask x, xK_a), submap . M.fromList $
+>    , ((modm, xK_a), submap . M.fromList $
 >        [ ((0, xK_n),     spawn "mpc next")
 >        , ((0, xK_p),     spawn "mpc prev")
 >        , ((0, xK_z),     spawn "mpc random")

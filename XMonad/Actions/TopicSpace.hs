@@ -136,15 +136,15 @@ import XMonad.Util.StringProp(getStringListProp,setStringListProp)
 --
 -- @
 --  -- extend your keybindings
---  myKeys =
---    [ ((modMask              , xK_n     ), spawnShell) -- %! Launch terminal
---    , ((modMask              , xK_a     ), currentTopicAction myTopicConfig)
---    , ((modMask              , xK_g     ), promptedGoto)
---    , ((modMask .|. shiftMask, xK_g     ), promptedShift)
+--  myKeys conf\@XConfig{modMask=modm} =
+--    [ ((modm              , xK_n     ), spawnShell) -- %! Launch terminal
+--    , ((modm              , xK_a     ), currentTopicAction myTopicConfig)
+--    , ((modm              , xK_g     ), promptedGoto)
+--    , ((modm .|. shiftMask, xK_g     ), promptedShift)
 --    ...
 --    ]
 --    ++
---    [ ((modMask, k), switchNthLastFocused myTopicConfig i)
+--    [ ((modm, k), switchNthLastFocused myTopicConfig i)
 --    | (i, k) <- zip [1..] workspaceKeys]
 -- @
 --

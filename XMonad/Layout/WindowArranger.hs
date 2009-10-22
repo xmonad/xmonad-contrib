@@ -53,20 +53,20 @@ import Data.Maybe
 -- You may also want to define some key binding to move or resize
 -- windows. These are good defaults:
 --
--- >        , ((modMask x .|. controlMask              , xK_s    ), sendMessage  Arrange         )
--- >        , ((modMask x .|. controlMask .|. shiftMask, xK_s    ), sendMessage  DeArrange       )
--- >        , ((modMask x .|. controlMask              , xK_Left ), sendMessage (MoveLeft      1))
--- >        , ((modMask x .|. controlMask              , xK_Right), sendMessage (MoveRight     1))
--- >        , ((modMask x .|. controlMask              , xK_Down ), sendMessage (MoveDown      1))
--- >        , ((modMask x .|. controlMask              , xK_Up   ), sendMessage (MoveUp        1))
--- >        , ((modMask x                 .|. shiftMask, xK_Left ), sendMessage (IncreaseLeft  1))
--- >        , ((modMask x                 .|. shiftMask, xK_Right), sendMessage (IncreaseRight 1))
--- >        , ((modMask x                 .|. shiftMask, xK_Down ), sendMessage (IncreaseDown  1))
--- >        , ((modMask x                 .|. shiftMask, xK_Up   ), sendMessage (IncreaseUp    1))
--- >        , ((modMask x .|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft  1))
--- >        , ((modMask x .|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight 1))
--- >        , ((modMask x .|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown  1))
--- >        , ((modMask x .|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp    1))
+-- >        , ((modm .|. controlMask              , xK_s    ), sendMessage  Arrange         )
+-- >        , ((modm .|. controlMask .|. shiftMask, xK_s    ), sendMessage  DeArrange       )
+-- >        , ((modm .|. controlMask              , xK_Left ), sendMessage (MoveLeft      1))
+-- >        , ((modm .|. controlMask              , xK_Right), sendMessage (MoveRight     1))
+-- >        , ((modm .|. controlMask              , xK_Down ), sendMessage (MoveDown      1))
+-- >        , ((modm .|. controlMask              , xK_Up   ), sendMessage (MoveUp        1))
+-- >        , ((modm                 .|. shiftMask, xK_Left ), sendMessage (IncreaseLeft  1))
+-- >        , ((modm                 .|. shiftMask, xK_Right), sendMessage (IncreaseRight 1))
+-- >        , ((modm                 .|. shiftMask, xK_Down ), sendMessage (IncreaseDown  1))
+-- >        , ((modm                 .|. shiftMask, xK_Up   ), sendMessage (IncreaseUp    1))
+-- >        , ((modm .|. controlMask .|. shiftMask, xK_Left ), sendMessage (DecreaseLeft  1))
+-- >        , ((modm .|. controlMask .|. shiftMask, xK_Right), sendMessage (DecreaseRight 1))
+-- >        , ((modm .|. controlMask .|. shiftMask, xK_Down ), sendMessage (DecreaseDown  1))
+-- >        , ((modm .|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp    1))
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

@@ -54,10 +54,10 @@ import Data.List (delete)
 -- You can additionally add some keybindings to toggle or modify the gaps,
 -- for example:
 --
--- > , ((modMask x .|. controlMask, xK_g), sendMessage $ ToggleGaps)  -- toggle all gaps
--- > , ((modMask x .|. controlMask, xK_t), sendMessage $ ToggleGap U) -- toggle the top gap
--- > , ((modMask x .|. controlMask, xK_w), sendMessage $ IncGap R 5)  -- increment the right-hand gap
--- > , ((modMask x .|. controlMask, xK_q), sendMessage $ DecGap R 5)  -- decrement the right-hand gap
+-- > , ((modm .|. controlMask, xK_g), sendMessage $ ToggleGaps)  -- toggle all gaps
+-- > , ((modm .|. controlMask, xK_t), sendMessage $ ToggleGap U) -- toggle the top gap
+-- > , ((modm .|. controlMask, xK_w), sendMessage $ IncGap R 5)  -- increment the right-hand gap
+-- > , ((modm .|. controlMask, xK_q), sendMessage $ DecGap R 5)  -- decrement the right-hand gap
 --
 -- If you want complete control over all gaps, you could include
 -- something like this in your keybindings, assuming in this case you

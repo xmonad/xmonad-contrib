@@ -21,7 +21,7 @@ import XMonad
 -- | Toggle the border of the currently focused window. To use it, add a
 -- keybinding like so:
 --
--- > , ((modMask x,  xK_g ),   withFocused toggleBorder)
+-- > , ((modm,  xK_g ),   withFocused toggleBorder)
 --
 toggleBorder :: Window -> X ()
 toggleBorder w = do

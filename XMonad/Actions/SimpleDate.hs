@@ -29,7 +29,7 @@ import XMonad.Util.Run
 --
 -- and add a keybinding, for example:
 --
--- >    , ((modMask x,               xK_d     ), date)
+-- >    , ((modm,               xK_d     ), date)
 --
 -- In this example, a popup date menu will now be bound to @mod-d@.
 --

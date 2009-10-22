@@ -39,7 +39,7 @@ import Control.Monad
 --
 -- then add an appropriate mouse binding:
 --
--- >     , ((modMask x .|. shiftMask, button3), mouseGesture gestures)
+-- >     , ((modm .|. shiftMask, button3), mouseGesture gestures)
 --
 -- where @gestures@ is a 'Data.Map.Map' from gestures to actions on
 -- windows, for example:

@@ -51,9 +51,9 @@ import qualified XMonad.StackSet as W
 --
 -- Then to your keybindings, add:
 --
--- > , ((modMask, xK_j), focusUp)
--- > , ((modMask, xK_k), focusDown)
--- > , ((modMask, xK_m), focusMaster)
+-- > , ((modm, xK_j), focusUp)
+-- > , ((modm, xK_k), focusDown)
+-- > , ((modm, xK_m), focusMaster)
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

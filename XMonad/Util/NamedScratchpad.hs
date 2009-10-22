@@ -72,9 +72,9 @@ import qualified XMonad.StackSet as W
 --
 -- Add keybindings:
 --
--- >  , ((modMask x .|. controlMask .|. shiftMask, xK_t), namedScratchpadAction scratchpads "htop")
--- >  , ((modMask x .|. controlMask .|. shiftMask, xK_s), namedScratchpadAction scratchpads "stardict")
--- >  , ((modMask x .|. controlMask .|. shiftMask, xK_n), namedScratchpadAction scratchpads "notes")
+-- >  , ((modm .|. controlMask .|. shiftMask, xK_t), namedScratchpadAction scratchpads "htop")
+-- >  , ((modm .|. controlMask .|. shiftMask, xK_s), namedScratchpadAction scratchpads "stardict")
+-- >  , ((modm .|. controlMask .|. shiftMask, xK_n), namedScratchpadAction scratchpads "notes")
 --
 -- ... and a manage hook:
 --

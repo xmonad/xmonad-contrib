@@ -251,14 +251,14 @@ urgencyConfig = UrgencyConfig { suppressWhen = Visible, remindWhen = Dont }
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
 --
--- > , ((modMask              , xK_BackSpace), focusUrgent)
+-- > , ((modm              , xK_BackSpace), focusUrgent)
 focusUrgent :: X ()
 focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMaybe
 
 -- | Just makes the urgents go away.
 -- Example keybinding:
 --
--- > , ((modMask .|. shiftMask, xK_BackSpace), clearUrgents)
+-- > , ((modm .|. shiftMask, xK_BackSpace), clearUrgents)
 clearUrgents :: X ()
 clearUrgents = adjustUrgents (const []) >> adjustReminders (const [])
 

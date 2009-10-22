@@ -30,7 +30,7 @@ import XMonad.StackSet
 --
 -- > import XMonad.Actions.CycleRecentWS
 -- >
--- >   , ((modMask x, xK_Tab), cycleRecentWS [xK_Alt_L] xK_Tab xK_grave)
+-- >   , ((modm, xK_Tab), cycleRecentWS [xK_Alt_L] xK_Tab xK_grave)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

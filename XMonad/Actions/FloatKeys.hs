@@ -28,11 +28,11 @@ import XMonad
 --
 -- Then add appropriate key bindings, for example:
 --
--- >  , ((modMask x,               xK_d     ), withFocused (keysResizeWindow (-10,-10) (1,1)))
--- >  , ((modMask x,               xK_s     ), withFocused (keysResizeWindow (10,10) (1,1)))
--- >  , ((modMask x .|. shiftMask, xK_d     ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752)))
--- >  , ((modMask x .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
--- >  , ((modMask x,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
+-- >  , ((modm,               xK_d     ), withFocused (keysResizeWindow (-10,-10) (1,1)))
+-- >  , ((modm,               xK_s     ), withFocused (keysResizeWindow (10,10) (1,1)))
+-- >  , ((modm .|. shiftMask, xK_d     ), withFocused (keysAbsResizeWindow (-10,-10) (1024,752)))
+-- >  , ((modm .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
+-- >  , ((modm,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

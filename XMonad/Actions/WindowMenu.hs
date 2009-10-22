@@ -39,7 +39,7 @@ import XMonad.Util.XUtils (fi)
 --
 -- Then add a keybinding, e.g.
 --
--- >    , ((modMask x,               xK_o ), windowMenu)
+-- >    , ((modm,               xK_o ), windowMenu)
 
 windowMenu :: X ()
 windowMenu = withFocused $ \w -> do

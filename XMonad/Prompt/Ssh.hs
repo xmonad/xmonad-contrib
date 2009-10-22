@@ -37,7 +37,7 @@ import Data.Maybe
 --
 -- 2. In your keybindings add something like:
 --
--- >   , ((modMask x .|. controlMask, xK_s), sshPrompt defaultXPConfig)
+-- >   , ((modm .|. controlMask, xK_s), sshPrompt defaultXPConfig)
 --
 -- Keep in mind, that if you want to use the completion you have to
 -- disable the "HashKnownHosts" option in your ssh_config

@@ -59,12 +59,12 @@ import qualified Data.Set as S
 -- 'AvoidStruts' also supports toggling the dock gaps; add a keybinding
 -- similar to:
 --
--- > ,((modMask x, xK_b     ), sendMessage ToggleStruts)
+-- > ,((modm, xK_b     ), sendMessage ToggleStruts)
 --
 -- If you have multiple docks, you can toggle their gaps individually.
 -- For example, to toggle only the top gap:
 --
--- > ,((modMask x .|. controlMask, xK_t), sendMessage $ ToggleStrut U)
+-- > ,((modm .|. controlMask, xK_t), sendMessage $ ToggleStrut U)
 --
 -- Similarly, you can use 'D', 'L', and 'R' to individually toggle
 -- gaps on the bottom, left, or right.
@@ -165,19 +165,19 @@ instance Message ToggleStruts
 --
 -- Show all gaps:
 --
--- >   ,((modMask x .|. shiftMask  ,xK_b),sendMessage $ SetStruts [minBound .. maxBound] [])
+-- >   ,((modm .|. shiftMask  ,xK_b),sendMessage $ SetStruts [minBound .. maxBound] [])
 --
 -- Hide all gaps:
 --
--- >   ,((modMask x .|. controlMask,xK_b),sendMessage $ SetStruts [] [minBound .. maxBound])
+-- >   ,((modm .|. controlMask,xK_b),sendMessage $ SetStruts [] [minBound .. maxBound])
 --
 -- Show only upper and left gaps:
 --
--- >   ,((modMask x .|. controlMask .|. shiftMask,xK_b),sendMessage $ SetStruts [U,L] [minBound .. maxBound])
+-- >   ,((modm .|. controlMask .|. shiftMask,xK_b),sendMessage $ SetStruts [U,L] [minBound .. maxBound])
 --
 -- Hide the bottom keeping whatever the other values were:
 --
--- >   ,((modMask x .|. controlMask .|. shiftMask,xK_g),sendMessage $ SetStruts [] [D])
+-- >   ,((modm .|. controlMask .|. shiftMask,xK_g),sendMessage $ SetStruts [] [D])
 data SetStruts = SetStruts { addedStruts   :: [Direction2D]
                            , removedStruts :: [Direction2D] -- ^ These are removed from the currently set struts before 'addedStruts' are added.
                            }

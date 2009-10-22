@@ -27,7 +27,7 @@ import XMonad
 -- Then add appropriate keybindings, for example:
 --
 -- > -- mod4-[1..9] @@ Switch to window N
--- > ++ [((modMask x, k), focusNth i)
+-- > ++ [((modm, k), focusNth i)
 -- >     | (i, k) <- zip [0 .. 8] [xK_1 ..]]
 --
 -- For detailed instructions on editing your key bindings, see

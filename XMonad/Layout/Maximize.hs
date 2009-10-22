@@ -43,7 +43,7 @@ import Data.List ( partition )
 --
 -- In the key-bindings, do something like:
 --
--- >        , ((modMask x, xK_backslash), withFocused (sendMessage . maximizeRestore))
+-- >        , ((modm, xK_backslash), withFocused (sendMessage . maximizeRestore))
 -- >        ...
 --
 -- For detailed instruction on editing the key binding see:

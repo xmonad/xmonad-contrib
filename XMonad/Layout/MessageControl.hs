@@ -54,7 +54,7 @@ import Control.Arrow (second)
 --  @sendMessage $ escape message@, e.g.
 --
 -- > -- Change the inner layout
--- > ((modMask .|. controlMask, xK_space), sendMessage $ escape NextLayout)
+-- > ((modm .|. controlMask, xK_space), sendMessage $ escape NextLayout)
 --
 -- If you want unescaped messages to be handled /only/ by the enclosing
 -- layout, use the 'ignore' modifier:

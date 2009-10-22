@@ -28,7 +28,7 @@ import XMonad.Actions.WithAll (sinkAll)
 --
 -- then add a keybinding; for example:
 --
---     , ((modMask x .|. shiftMask, xK_t), sinkAll)
+-- >   , ((modm .|. shiftMask, xK_t), sinkAll)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

@@ -53,8 +53,8 @@ Import the module into your @~\/.xmonad\/xmonad.hs@:
 
 and define appropriate key bindings:
 
-> , ((modMask x .|. shiftMask, xK_g), raise (className =? "Firefox"))
-> , ((modMask x .|. shiftMask, xK_b), runOrRaise "firefox" (className =? "Firefox"))
+> , ((modm .|. shiftMask, xK_g), raise (className =? "Firefox"))
+> , ((modm .|. shiftMask, xK_b), runOrRaise "firefox" (className =? "Firefox"))
 
 (Note that Firefox v3 and up have a class-name of \"Firefox\" and \"Navigator\";
 lower versions use other classnames such as \"Firefox-bin\". Either choose the

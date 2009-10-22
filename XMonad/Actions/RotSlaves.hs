@@ -28,7 +28,7 @@ import XMonad
 --
 -- and add whatever keybindings you would like, for example:
 --
--- > , ((modMask x .|. shiftMask, xK_Tab   ), rotSlavesUp)
+-- > , ((modm .|. shiftMask, xK_Tab   ), rotSlavesUp)
 --
 -- This operation will rotate all windows except the master window,
 -- while the focus stays where it is. It is useful together with the

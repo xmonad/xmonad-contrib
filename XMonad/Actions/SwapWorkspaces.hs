@@ -37,7 +37,7 @@ import XMonad.Util.WorkspaceCompare
 -- Then throw something like this in your keys definition:
 --
 -- > ++
--- > [((modMask x .|. controlMask, k), windows $ swapWithCurrent i)
+-- > [((modm .|. controlMask, k), windows $ swapWithCurrent i)
 -- >     | (i, k) <- zip workspaces [xK_1 ..]]
 --
 -- After installing this update, if you're on workspace 1, hitting mod-ctrl-5

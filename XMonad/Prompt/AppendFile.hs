@@ -41,7 +41,7 @@ import Control.Exception
 --
 -- and adding an appropriate keybinding, for example:
 --
--- >  , ((modMask x .|. controlMask, xK_n), appendFilePrompt defaultXPConfig "/home/me/NOTES")
+-- >  , ((modm .|. controlMask, xK_n), appendFilePrompt defaultXPConfig "/home/me/NOTES")
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

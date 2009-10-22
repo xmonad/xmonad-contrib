@@ -49,8 +49,8 @@ import XMonad.Util.XUtils
 --
 -- You may also want to add the following key bindings:
 --
--- > , ((modMask x,               xK_u), sendMessage ShrinkSlave) -- %! Shrink a slave area
--- > , ((modMask x,               xK_i), sendMessage ExpandSlave) -- %! Expand a slave area
+-- > , ((modm,               xK_u), sendMessage ShrinkSlave) -- %! Shrink a slave area
+-- > , ((modm,               xK_i), sendMessage ExpandSlave) -- %! Expand a slave area
 --
 -- For detailed instruction on editing the key binding see:
 --

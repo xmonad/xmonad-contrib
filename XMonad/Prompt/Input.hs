@@ -59,7 +59,7 @@ import XMonad.Prompt
 -- Now all he has to do is add a keybinding to @firingPrompt@ (or
 -- @firingPrompt'@), such as
 --
--- >  , ((modMask x .|. controlMask, xK_f),  firingPrompt)
+-- >  , ((modm .|. controlMask, xK_f),  firingPrompt)
 --
 -- Now when Mr. Big hits mod-ctrl-f, a prompt will pop up saying
 -- \"Fire: \", waiting for him to type the name of someone to fire.

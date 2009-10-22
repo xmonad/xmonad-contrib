@@ -40,7 +40,7 @@ import Codec.Binary.UTF8.String (decode)
    the selection string is an URL you just highlighted), then one could add
    to the xmonad.hs a line like thus:
 
-   > , ((modMask .|. shiftMask, xK_b), promptSelection "firefox")
+   > , ((modm .|. shiftMask, xK_b), promptSelection "firefox")
 
    There are a number of known problems with XSelection:
 

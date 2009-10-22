@@ -54,12 +54,12 @@ import Data.IORef
 -- module:
 --
 -- > xmonad { keys = myKeys `Data.Map.union` Data.Map.fromList
--- >                   [((modMask conf, xK_i), oneShotHook dynHooksRef
+-- >                   [((modm, xK_i), oneShotHook dynHooksRef
 -- >                    "FFlaunchHook" (className =? "firefox") (doShift "3")
 -- >                    >> spawn "firefox")
--- >                   ,((modMask conf, xK_u), addDynamicHook dynHooksRef
+-- >                   ,((modm, xK_u), addDynamicHook dynHooksRef
 -- >                     (className =? "example" --> doFloat))
--- >                   ,((modMask conf, xK_y), updatePermanentHook dynHooksRef
+-- >                   ,((modm, xK_y), updatePermanentHook dynHooksRef
 -- >                     (const idHook))) ]  -- resets the permanent hook.
 --
 

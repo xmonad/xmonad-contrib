@@ -76,13 +76,13 @@ import Data.Word (Word8)
 --
 -- Then add a keybinding, e.g.
 --
--- >    , ((modMask x, xK_g), goToSelected defaultGSConfig)
+-- >    , ((modm, xK_g), goToSelected defaultGSConfig)
 --
 -- This module also supports displaying arbitrary information in a grid and letting
 -- the user select from it. E.g. to spawn an application from a given list, you
 -- can use the following:
 --
--- >   , ((modMask x, xK_s), spawnSelected defaultGSConfig ["xterm","gmplayer","gvim"])
+-- >   , ((modm, xK_s), spawnSelected defaultGSConfig ["xterm","gmplayer","gvim"])
 
 -- $commonGSConfig
 --
@@ -112,8 +112,8 @@ import Data.Word (Word8)
 --
 -- Then you can bind to:
 --
--- >     ,((modMask x, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
--- >     ,((modMask x, xK_p), spawnSelected $ spawnSelected defaultColorizer)
+-- >     ,((modm, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
+-- >     ,((modm, xK_p), spawnSelected $ spawnSelected defaultColorizer)
 
 -- $keybindings
 --

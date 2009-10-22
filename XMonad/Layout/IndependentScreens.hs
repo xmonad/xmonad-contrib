@@ -48,13 +48,13 @@ import XMonad.StackSet hiding (workspaces)
 -- to specific workspace names.  In the default configuration, only
 -- the keybindings for changing workspace do this:
 --
--- > [((m .|. modMask, k), windows $ f i)
+-- > [((m .|. modm, k), windows $ f i)
 -- >     | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
 -- >     , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 --
 -- This should change to
 --
--- > [((m .|. modMask, k), windows $ onCurrentScreen f i)
+-- > [((m .|. modm, k), windows $ onCurrentScreen f i)
 -- >     | (i, k) <- zip (workspaces' conf) [xK_1 .. xK_9]
 -- >     , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 --

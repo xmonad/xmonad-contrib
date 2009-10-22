@@ -32,7 +32,7 @@ import Data.Maybe (fromMaybe)
 --
 -- in your keybindings add:
 --
--- >   , ((modMask x .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
+-- >   , ((modm .|. controlMask, xK_x), xmonadPrompt defaultXPConfig)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

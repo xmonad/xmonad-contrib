@@ -70,8 +70,8 @@ import Control.Monad
 --
 -- You may wish to add the following keybindings:
 --
--- >    , ((modMask x .|. shiftMask, xK_h ), sendMessage $ IncLayoutN (-1))
--- >    , ((modMask x .|. shiftMask, xK_l ), sendMessage $ IncLayoutN 1)
+-- >    , ((modm .|. shiftMask, xK_h ), sendMessage $ IncLayoutN (-1))
+-- >    , ((modm .|. shiftMask, xK_l ), sendMessage $ IncLayoutN 1)
 --
 -- For detailed instruction on editing the key binding see:
 --

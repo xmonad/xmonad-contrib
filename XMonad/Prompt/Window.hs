@@ -44,12 +44,12 @@ import XMonad.Actions.WindowBringer
 --
 -- and in the keys definition:
 --
--- > , ((modMask x .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
--- > , ((modMask x .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
+-- > , ((modm .|. shiftMask, xK_g     ), windowPromptGoto  defaultXPConfig)
+-- > , ((modm .|. shiftMask, xK_b     ), windowPromptBring defaultXPConfig)
 --
 -- The autoComplete option is a handy complement here:
 --
--- > , ((modMask x .|. shiftMask, xK_g     ), windowPromptGoto
+-- > , ((modm .|. shiftMask, xK_g     ), windowPromptGoto
 -- >                                            defaultXPConfig { autoComplete = Just 500000 } )
 --
 -- The \'500000\' is the number of microseconds to pause before sending you to

@@ -35,7 +35,7 @@ import XMonad.Util.Themes
 --
 -- in your keybindings add:
 --
--- >   , ((modMask x .|. controlMask, xK_t), themePrompt defaultXPConfig)
+-- >   , ((modm .|. controlMask, xK_t), themePrompt defaultXPConfig)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

@@ -30,7 +30,7 @@ import qualified XMonad.StackSet as S
 -- > import XMonad.Layout.LayoutCombinators ((|||))
 -- > import XMonad.Actions.CycleSelectedLayouts
 --
--- >   , ((modMask x,  xK_t ),   cycleThroughLayouts ["Tall", "Mirror Tall"])
+-- >   , ((modm,  xK_t ),   cycleThroughLayouts ["Tall", "Mirror Tall"])
 --
 -- Make sure you are using NewSelect from XMonad.Layout.LayoutCombinators,
 -- rather than the Select defined in xmonad core.

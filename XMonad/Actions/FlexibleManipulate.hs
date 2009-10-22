@@ -31,7 +31,7 @@ import XMonad
 --
 -- Now set up the desired mouse binding, for example:
 --
--- >     , ((modMask x, button1), (\w -> focus w >> Flex.mouseWindow Flex.linear w))
+-- >     , ((modm, button1), (\w -> focus w >> Flex.mouseWindow Flex.linear w))
 --
 -- * Flex.'linear' indicates that positions between the edges and the
 --   middle indicate a combination scale\/position.

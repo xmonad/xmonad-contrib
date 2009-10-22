@@ -43,8 +43,8 @@ import Data.List
 --
 -- In the key-bindings, do something like:
 --
--- >        , ((modMask',               xK_m     ), withFocused (\f -> sendMessage (MinimizeWin f)))
--- >        , ((modMask' .|. shiftMask, xK_m     ), sendMessage RestoreNextMinimizedWin)
+-- >        , ((modm,               xK_m     ), withFocused (\f -> sendMessage (MinimizeWin f)))
+-- >        , ((modm .|. shiftMask, xK_m     ), sendMessage RestoreNextMinimizedWin)
 --
 -- The first action will minimize the focused window, while the second one will restore
 -- the next minimized window.

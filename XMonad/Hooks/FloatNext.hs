@@ -86,12 +86,12 @@ floatModeMVar = unsafePerformIO $ newMVar (False, False)
 -- The 'floatNext' and 'toggleFloatNext' functions can be used in key
 -- bindings to float the next spawned window:
 --
--- > , ((modMask, xK_e), toggleFloatNext)
+-- > , ((modm, xK_e), toggleFloatNext)
 --
 -- 'floatAllNew' and 'toggleFloatAllNew' are similar but float all
 -- spawned windows until disabled again.
 --
--- > , ((modMask, xK_r), toggleFloatAllNew)
+-- > , ((modm, xK_r), toggleFloatAllNew)
 
 
 -- | This 'ManageHook' will selectively float windows as set
@@ -140,7 +140,7 @@ willFloatAllNew = _get snd
 -- that the effects of a 'floatNext'/... will be visible
 -- immediately:
 --
--- > , ((modMask, xK_e), toggleFloatNext >> runLogHook)
+-- > , ((modm, xK_e), toggleFloatNext >> runLogHook)
 --
 -- The @String -> String@ parameters to 'willFloatNextPP' and
 -- 'willFloatAllNewPP' will be applied to their output, you

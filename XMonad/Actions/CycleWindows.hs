@@ -64,11 +64,11 @@ import Control.Arrow (second)
 -- >
 -- >              -- make sure mod matches keysym
 -- >  , ((mod4Mask,  xK_s), cycleRecentWindows [xK_Super_L] xK_s xK_w)
--- >  , ((modMask x, xK_z), rotOpposite)
--- >  , ((modMask x                , xK_i), rotUnfocusedUp)
--- >  , ((modMask x                , xK_u), rotUnfocusedDown)
--- >  , ((modMask x .|. controlMask, xK_i), rotFocusedUp)
--- >  , ((modMask x .|. controlMask, xK_u), rotFocusedDown)
+-- >  , ((modm, xK_z), rotOpposite)
+-- >  , ((modm                , xK_i), rotUnfocusedUp)
+-- >  , ((modm                , xK_u), rotUnfocusedDown)
+-- >  , ((modm .|. controlMask, xK_i), rotFocusedUp)
+-- >  , ((modm .|. controlMask, xK_u), rotFocusedDown)
 --
 -- Also, if you use focus follows mouse, you will want to read the section
 -- on updating the mouse pointer below.  For detailed instructions on
@@ -88,9 +88,9 @@ to the point of your choice on the current window:
 and either
 
 > -- modify the window rotation bindings
-> , ((modMask x .|. controlMask, xK_i   ), rotFocusedUp
+> , ((modm .|. controlMask, xK_i   ), rotFocusedUp
 >                                            >> updatePointer (Relative 1 1))
-> , ((modMask x .|. controlMask, xK_u   ), rotFocusedDown
+> , ((modm .|. controlMask, xK_u   ), rotFocusedDown
 >                                            >> updatePointer (Relative 1 1))
 >
 >    -- or add to xmonad's logHook

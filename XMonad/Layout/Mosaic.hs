@@ -56,10 +56,10 @@ import Data.Monoid(Monoid,mempty, mappend)
 -- To change the choice in aspect ratio and the relative sizes of windows, add
 -- to your keybindings:
 --
---  > , ((modMask, xK_a), sendMessage Taller)
---  > , ((modMask, xK_z), sendMessage Wider)
+--  > , ((modm, xK_a), sendMessage Taller)
+--  > , ((modm, xK_z), sendMessage Wider)
 --
---  > , ((modMask, xK_r), sendMessage Reset)
+--  > , ((modm, xK_r), sendMessage Reset)
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

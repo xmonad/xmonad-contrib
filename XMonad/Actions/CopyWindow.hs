@@ -43,7 +43,7 @@ import qualified XMonad.StackSet as W
 -- > -- mod-[1..9] @@ Switch to workspace N
 -- > -- mod-shift-[1..9] @@ Move client to workspace N
 -- > -- mod-control-shift-[1..9] @@ Copy client to workspace N
--- > [((m .|. modMask x, k), windows $ f i)
+-- > [((m .|. modm, k), windows $ f i)
 -- >     | (i, k) <- zip (workspaces x) [xK_1 ..]
 -- >     , (f, m) <- [(W.view, 0), (W.shift, shiftMask), (copy, shiftMask .|. controlMask)]]
 --
@@ -55,12 +55,12 @@ import qualified XMonad.StackSet as W
 -- You may also wish to redefine the binding to kill a window so it only
 -- removes it from the current workspace, if it's present elsewhere:
 --
--- >  , ((modMask x .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
+-- >  , ((modm .|. shiftMask, xK_c     ), kill1) -- @@ Close the focused window
 --
 -- Instead of copying a window from one workspace to another maybe you don't
 -- want to have to remember where you placed it.  For that consider:
 --
--- >  , ((modMask x, xK_b    ), runOrCopy "firefox" (className =? "Firefox")) -- @@ run or copy firefox
+-- >  , ((modm, xK_b    ), runOrCopy "firefox" (className =? "Firefox")) -- @@ run or copy firefox
 --
 -- Another possibility which this extension provides is 'making window
 -- always visible' (i.e. always on current workspace), similar to corresponding
@@ -70,8 +70,8 @@ import qualified XMonad.StackSet as W
 --
 -- Here is the example of keybindings which provide these actions:
 --
--- >  , ((modMask x, xK_v ), windows copyToAll) -- @@ Make focused window always visible
--- >  , ((modMask x .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
+-- >  , ((modm, xK_v ), windows copyToAll) -- @@ Make focused window always visible
+-- >  , ((modm .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

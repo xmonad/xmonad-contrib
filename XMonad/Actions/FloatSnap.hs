@@ -41,23 +41,23 @@ import qualified Data.Set as S
 --
 -- Then add appropriate key bindings, for example:
 --
--- >        , ((modMask x,               xK_Left),  withFocused $ snapMove L Nothing)
--- >        , ((modMask x,               xK_Right), withFocused $ snapMove R Nothing)
--- >        , ((modMask x,               xK_Up),    withFocused $ snapMove U Nothing)
--- >        , ((modMask x,               xK_Down),  withFocused $ snapMove D Nothing)
--- >        , ((modMask x .|. shiftMask, xK_Left),  withFocused $ snapShrink R Nothing)
--- >        , ((modMask x .|. shiftMask, xK_Right), withFocused $ snapGrow R Nothing)
--- >        , ((modMask x .|. shiftMask, xK_Up),    withFocused $ snapShrink D Nothing)
--- >        , ((modMask x .|. shiftMask, xK_Down),  withFocused $ snapGrow D Nothing)
+-- >        , ((modm,               xK_Left),  withFocused $ snapMove L Nothing)
+-- >        , ((modm,               xK_Right), withFocused $ snapMove R Nothing)
+-- >        , ((modm,               xK_Up),    withFocused $ snapMove U Nothing)
+-- >        , ((modm,               xK_Down),  withFocused $ snapMove D Nothing)
+-- >        , ((modm .|. shiftMask, xK_Left),  withFocused $ snapShrink R Nothing)
+-- >        , ((modm .|. shiftMask, xK_Right), withFocused $ snapGrow R Nothing)
+-- >        , ((modm .|. shiftMask, xK_Up),    withFocused $ snapShrink D Nothing)
+-- >        , ((modm .|. shiftMask, xK_Down),  withFocused $ snapGrow D Nothing)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
 -- And possibly add an appropriate mouse binding, for example:
 --
--- >        , ((modMask x,               button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicMove (Just 50) (Just 50) w))
--- >        , ((modMask x .|. shiftMask, button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicResize [L,R,U,D] (Just 50) (Just 50) w))
--- >        , ((modMask x,               button3), (\w -> focus w >> mouseResizeWindow w >> snapMagicResize [R,D] (Just 50) (Just 50) w))
+-- >        , ((modm,               button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicMove (Just 50) (Just 50) w))
+-- >        , ((modm .|. shiftMask, button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicResize [L,R,U,D] (Just 50) (Just 50) w))
+-- >        , ((modm,               button3), (\w -> focus w >> mouseResizeWindow w >> snapMagicResize [R,D] (Just 50) (Just 50) w))
 --
 -- For detailed instructions on editing your mouse bindings, see
 -- "XMonad.Doc.Extending#Editing_mouse_bindings".

@@ -68,7 +68,7 @@ import Control.Monad.Trans (lift)
 -- You can also define a key to manually trigger repositioning with 'placeFocused' by
 -- adding the following to your keys definition:
 --
--- > , ((modMask, xK_w), placeFocused simpleSmart)
+-- > , ((modm, xK_w), placeFocused simpleSmart)
 --
 -- Both 'placeHook' and 'placeFocused' take a 'Placement' parameter, which specifies
 -- the placement policy to use (smart, under the mouse, fixed position, etc.). See

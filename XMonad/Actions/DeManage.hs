@@ -44,7 +44,7 @@ import XMonad
 --
 -- And add a keybinding, such as:
 --
--- > , ((modMask x,               xK_d     ), withFocused demanage)
+-- > , ((modm,               xK_d     ), withFocused demanage)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

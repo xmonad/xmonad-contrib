@@ -50,11 +50,11 @@ import Data.Ratio
 --
 -- In the key-bindings, do something like:
 --
--- >     , ((modMask x .|. shiftMask  , xK_a    ), withFocused (sendMessage . expandWindowAlt))
--- >     , ((modMask x .|. shiftMask  , xK_z    ), withFocused (sendMessage . shrinkWindowAlt))
--- >     , ((modMask x .|. shiftMask  , xK_s    ), withFocused (sendMessage . tallWindowAlt))
--- >     , ((modMask x .|. shiftMask  , xK_d    ), withFocused (sendMessage . wideWindowAlt))
--- >     , ((modMask x .|. controlMask, xK_space), sendMessage resetAlt)
+-- >     , ((modm .|. shiftMask  , xK_a    ), withFocused (sendMessage . expandWindowAlt))
+-- >     , ((modm .|. shiftMask  , xK_z    ), withFocused (sendMessage . shrinkWindowAlt))
+-- >     , ((modm .|. shiftMask  , xK_s    ), withFocused (sendMessage . tallWindowAlt))
+-- >     , ((modm .|. shiftMask  , xK_d    ), withFocused (sendMessage . wideWindowAlt))
+-- >     , ((modm .|. controlMask, xK_space), sendMessage resetAlt)
 -- >     ...
 --
 -- For detailed instruction on editing the key binding see:

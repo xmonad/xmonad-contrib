@@ -37,7 +37,7 @@ import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermi
 
 2. In your keybindings add something like:
 
->   , ((modMask x .|. controlMask, xK_x), runOrRaisePrompt defaultXPConfig)
+>   , ((modm .|. controlMask, xK_x), runOrRaisePrompt defaultXPConfig)
 
 For detailed instruction on editing the key binding see
 "XMonad.Doc.Extending#Editing_key_bindings". -}

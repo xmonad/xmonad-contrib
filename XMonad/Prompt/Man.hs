@@ -44,7 +44,7 @@ import Data.Maybe
 --
 -- 2. In your keybindings add something like:
 --
--- >     , ((modMask x, xK_F1), manPrompt defaultXPConfig)
+-- >     , ((modm, xK_F1), manPrompt defaultXPConfig)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

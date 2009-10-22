@@ -922,8 +922,8 @@ example, you could write:
 and provide an appropriate definition of @myKeys@, such as:
 
 >    myKeys x =
->             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
->             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
+>             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
 This particular definition also requires importing "XMonad.Prompt",
@@ -966,8 +966,8 @@ For instance, if you have defined some additional key bindings like
 these:
 
 >    myKeys x =
->             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
->             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
+>             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
 then you can create a new key bindings map by joining the default one
@@ -999,8 +999,8 @@ All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 >    newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
 >
 >    myKeys x =
->             [ ((modMask x, xK_F12), xmonadPrompt defaultXPConfig)
->             , ((modMask x, xK_F3 ), shellPrompt  defaultXPConfig)
+>             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
+>             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
 There are much simpler ways to accomplish this, however, if you are
@@ -1026,8 +1026,8 @@ map and the map of the key bindings you want to remove.  Like so:
 >
 >    keysToRemove :: XConfig Layout ->    [((KeyMask, KeySym),X ())]
 >    keysToRemove x =
->             [ ((modMask x              , xK_q ), return ())
->             , ((modMask x .|. shiftMask, xK_q ), return ())
+>             [ ((modm              , xK_q ), return ())
+>             , ((modm .|. shiftMask, xK_q ), return ())
 >             ]
 
 As you can see, it doesn't matter what actions we associate with the
@@ -1042,8 +1042,8 @@ write something like:
 >
 >    keysToRemove :: XConfig Layout -> [(KeyMask, KeySym)]
 >    keysToRemove x =
->             [ (modMask x              , xK_q )
->             , (modMask x .|. shiftMask, xK_q )
+>             [ (modm              , xK_q )
+>             , (modm .|. shiftMask, xK_q )
 >             ]
 
 Another even simpler possibility is the use of some of the utilities
@@ -1063,23 +1063,23 @@ for removing and adding.  Here is an example from
 >    delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
 >    newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
 >    -- remove some of the default key bindings
->    toRemove x =
->        [ (modMask x              , xK_j     )
->        , (modMask x              , xK_k     )
->        , (modMask x              , xK_p     )
->        , (modMask x .|. shiftMask, xK_p     )
->        , (modMask x .|. shiftMask, xK_q     )
->        , (modMask x              , xK_q     )
+>    toRemove XConfig{modMask = modm} =
+>        [ (modm              , xK_j     )
+>        , (modm              , xK_k     )
+>        , (modm              , xK_p     )
+>        , (modm .|. shiftMask, xK_p     )
+>        , (modm .|. shiftMask, xK_q     )
+>        , (modm              , xK_q     )
 >        ] ++
->        -- I want modMask .|. shiftMask 1-9 to be free!
->        [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
+>        -- I want modm .|. shiftMask 1-9 to be free!
+>        [(shiftMask .|. modm, k) | k <- [xK_1 .. xK_9]]
 >    -- These are my personal key bindings
->    toAdd x   =
->        [ ((modMask x              , xK_F12   ), xmonadPrompt defaultXPConfig )
->        , ((modMask x              , xK_F3    ), shellPrompt  defaultXPConfig )
+>    toAdd XConfig{modMask = modm} =
+>        [ ((modm              , xK_F12   ), xmonadPrompt defaultXPConfig )
+>        , ((modm              , xK_F3    ), shellPrompt  defaultXPConfig )
 >        ] ++
->        -- Use modMask .|. shiftMask .|. controlMask 1-9 instead
->        [( (m .|. modMask x, k), windows $ f i)
+>        -- Use modm .|. shiftMask .|. controlMask 1-9 instead
+>        [( (m .|. modm, k), windows $ f i)
 >         | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
 >        ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
 >        ]
@@ -1088,6 +1088,8 @@ You can achieve the same result using the "XMonad.Util.CustomKeys"
 module; take a look at the 'XMonad.Util.CustomKeys.customKeys'
 function in particular.
 
+NOTE: modm is defined as the modMask you defined (or left as the default) in
+your config.
 -}
 
 {- $mouse

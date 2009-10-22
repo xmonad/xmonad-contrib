@@ -58,8 +58,8 @@ import XMonad.Layout.MultiToggle
 --
 -- Finally, add some keybindings to do the toggling, for example:
 --
--- > , ((modMask x .|. controlMask, xK_x), sendMessage $ Toggle REFLECTX)
--- > , ((modMask x .|. controlMask, xK_y), sendMessage $ Toggle REFLECTY)
+-- > , ((modm .|. controlMask, xK_x), sendMessage $ Toggle REFLECTX)
+-- > , ((modm .|. controlMask, xK_y), sendMessage $ Toggle REFLECTY)
 --
 
 -- | Apply a horizontal reflection (left \<--\> right) to a

@@ -78,7 +78,7 @@ import XMonad.Layout.DragPane
 --
 -- Then bind some keys to a 'JumpToLayout' message:
 --
--- >   , ((modMask x .|. controlMask, xK_f), sendMessage $ JumpToLayout "Full")  -- jump directly to the Full layout
+-- >   , ((modm .|. controlMask, xK_f), sendMessage $ JumpToLayout "Full")  -- jump directly to the Full layout
 --
 -- See below for more detailed documentation.
 

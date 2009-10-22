@@ -51,10 +51,10 @@ import qualified XMonad.StackSet as W
 -- To be able to change the geometry of the master grid, add something
 -- like this to your keybindings:
 --
--- > ((modMask .|. shiftMask, xK_equal), sendMessage $ IncMasterCols 1),
--- > ((modMask .|. shiftMask, xK_minus), sendMessage $ IncMasterCols (-1)),
--- > ((modMask .|. ctrlMask,  xK_equal), sendMessage $ IncMasterRows 1),
--- > ((modMask .|. ctrlMask,  xK_minus), sendMessage $ IncMasterRows (-1))
+-- > ((modm .|. shiftMask, xK_equal), sendMessage $ IncMasterCols 1),
+-- > ((modm .|. shiftMask, xK_minus), sendMessage $ IncMasterCols (-1)),
+-- > ((modm .|. controlMask,  xK_equal), sendMessage $ IncMasterRows 1),
+-- > ((modm .|. controlMask,  xK_minus), sendMessage $ IncMasterRows (-1))
 
 -- | Grid layout.  The parameter is the desired x:y aspect ratio of windows
 data Grid a = Grid !Rational

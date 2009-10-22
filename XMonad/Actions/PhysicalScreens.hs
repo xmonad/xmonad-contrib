@@ -48,7 +48,7 @@ Example usage in your @~\/.xmonad\/xmonad.hs@ file:
 > -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
 > -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
 > --
-> [((modMask .|. mask, key), f sc)
+> [((modm .|. mask, key), f sc)
 >     | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
 >     , (f, mask) <- [(viewScreen, 0), (sendToScreen, shiftMask)]]
 

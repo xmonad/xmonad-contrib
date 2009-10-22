@@ -39,7 +39,7 @@ import Data.Function(on)
 -- to switch the workspaces with this at the bottom of your keybindings:
 --
 -- >     ++
--- >     [ ((m .|. modMask, k), windows (f i))
+-- >     [ ((m .|. modm, k), windows (f i))
 -- >       | (i, k) <- zip (workspaces conf) ([xK_1 .. xK_9] ++ [xK_0])
 -- >       , (f, m) <- [ (viewOnScreen 0, 0)
 -- >                   , (viewOnScreen 1, controlMask)
@@ -60,7 +60,7 @@ import Data.Function(on)
 --
 -- A more basic version inside the default keybindings would be:
 --
--- >        , ((modMask .|. controlMask, xK_1) windows (viewOnScreen 0 "1"))
+-- >        , ((modm .|. controlMask, xK_1) windows (viewOnScreen 0 "1"))
 --
 -- where 0 is the first screen and "1" the workspace with the tag "1".
 --

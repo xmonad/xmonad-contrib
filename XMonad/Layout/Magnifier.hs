@@ -59,11 +59,11 @@ import XMonad.Layout.LayoutModifier
 -- Magnifier supports some commands. To use them add something like
 -- this to your key bindings:
 --
--- >    , ((modMask x .|. controlMask              , xK_plus ), sendMessage MagnifyMore)
--- >    , ((modMask x .|. controlMask              , xK_minus), sendMessage MagnifyLess)
--- >    , ((modMask x .|. controlMask              , xK_o    ), sendMessage ToggleOff  )
--- >    , ((modMask x .|. controlMask .|. shiftMask, xK_o    ), sendMessage ToggleOn   )
--- >    , ((modMask x .|. controlMask              , xK_m    ), sendMessage Toggle     )
+-- >    , ((modm .|. controlMask              , xK_plus ), sendMessage MagnifyMore)
+-- >    , ((modm .|. controlMask              , xK_minus), sendMessage MagnifyLess)
+-- >    , ((modm .|. controlMask              , xK_o    ), sendMessage ToggleOff  )
+-- >    , ((modm .|. controlMask .|. shiftMask, xK_o    ), sendMessage ToggleOn   )
+-- >    , ((modm .|. controlMask              , xK_m    ), sendMessage Toggle     )
 --
 -- Note that a few other extension modules, such as
 -- "XMonad.Layout.MultiToggle" and "XMonad.Layout.ToggleLayouts", also

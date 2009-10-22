@@ -44,7 +44,7 @@ import XMonad.Prompt
 --
 -- 2. In your keybindings add something like:
 --
--- >   , ((modMask x .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+-- >   , ((modm .|. controlMask, xK_x), shellPrompt defaultXPConfig)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
@@ -67,8 +67,8 @@ shellPrompt c = do
 -- is the program to be run with the interactive input.
 -- You would use these like this:
 --
--- >     , ((modMask,               xK_b), safePrompt "firefox" greenXPConfig)
--- >     , ((modMask .|. shiftMask, xK_c), prompt ("xterm" ++ " -e") greenXPConfig)
+-- >     , ((modm,               xK_b), safePrompt "firefox" greenXPConfig)
+-- >     , ((modm .|. shiftMask, xK_c), prompt ("xterm" ++ " -e") greenXPConfig)
 --
 -- Note that you want to use safePrompt for Firefox input, as Firefox
 -- wants URLs, and unsafePrompt for the XTerm example because this allows

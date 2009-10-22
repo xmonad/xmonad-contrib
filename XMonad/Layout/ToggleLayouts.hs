@@ -38,11 +38,11 @@ import XMonad.StackSet (Workspace (..))
 --
 -- To toggle between layouts add a key binding like
 --
--- >    , ((modMask x .|. controlMask, xK_space), sendMessage ToggleLayout)
+-- >    , ((modm .|. controlMask, xK_space), sendMessage ToggleLayout)
 --
 -- or a key binding like
 --
--- >    , ((modMask x .|. controlMask, xK_space), sendMessage (Toggle "Full"))
+-- >    , ((modm .|. controlMask, xK_space), sendMessage (Toggle "Full"))
 --
 -- For detailed instruction on editing the key binding see:
 --

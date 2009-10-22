@@ -49,14 +49,14 @@ import XMonad.Util.XUtils
 --
 -- In keybindings:
 --
--- >    , ((modMask x,                 xK_Right), sendMessage $ Go R)
--- >    , ((modMask x,                 xK_Left ), sendMessage $ Go L)
--- >    , ((modMask x,                 xK_Up   ), sendMessage $ Go U)
--- >    , ((modMask x,                 xK_Down ), sendMessage $ Go D)
--- >    , ((modMask x .|. controlMask, xK_Right), sendMessage $ Swap R)
--- >    , ((modMask x .|. controlMask, xK_Left ), sendMessage $ Swap L)
--- >    , ((modMask x .|. controlMask, xK_Up   ), sendMessage $ Swap U)
--- >    , ((modMask x .|. controlMask, xK_Down ), sendMessage $ Swap D)
+-- >    , ((modm,                 xK_Right), sendMessage $ Go R)
+-- >    , ((modm,                 xK_Left ), sendMessage $ Go L)
+-- >    , ((modm,                 xK_Up   ), sendMessage $ Go U)
+-- >    , ((modm,                 xK_Down ), sendMessage $ Go D)
+-- >    , ((modm .|. controlMask, xK_Right), sendMessage $ Swap R)
+-- >    , ((modm .|. controlMask, xK_Left ), sendMessage $ Swap L)
+-- >    , ((modm .|. controlMask, xK_Up   ), sendMessage $ Swap U)
+-- >    , ((modm .|. controlMask, xK_Down ), sendMessage $ Swap D)
 --
 -- For detailed instruction on editing the key binding see:
 --

@@ -34,11 +34,11 @@ You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 
 then add appropriate keybindings to warp the pointer; for example:
 
-> , ((modMask x,   xK_z     ), warpToWindow (1%2) (1%2)) -- @@ Move pointer to currently focused window
+> , ((modm,   xK_z     ), warpToWindow (1%2) (1%2)) -- @@ Move pointer to currently focused window
 >
 >-- mod-ctrl-{w,e,r} @@ Move mouse pointer to screen 1, 2, or 3
 >
->   [((modMask x .|. controlMask, key), warpToScreen sc (1%2) (1%2))
+>   [((modm .|. controlMask, key), warpToScreen sc (1%2) (1%2))
 >       | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]]
 
 Note that warping to a particular screen may change the focus.

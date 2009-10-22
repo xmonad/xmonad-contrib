@@ -38,8 +38,8 @@ import XMonad.Util.NamedWindows (getName)
 --
 -- and define appropriate key bindings:
 --
--- > , ((modMask x .|. shiftMask, xK_g     ), gotoMenu)
--- > , ((modMask x .|. shiftMask, xK_b     ), bringMenu)
+-- > , ((modm .|. shiftMask, xK_g     ), gotoMenu)
+-- > , ((modm .|. shiftMask, xK_b     ), bringMenu)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

@@ -57,11 +57,11 @@ import qualified XMonad.StackSet as W
 -- To use it, import \"XMonad.Layout.WindowNavigation\", and add the following key
 -- bindings (or something similar):
 --
--- >    , ((modMask x .|. controlMask .|. shiftMask, xK_Right), sendMessage $ Move R)
--- >    , ((modMask x .|. controlMask .|. shiftMask, xK_Left ), sendMessage $ Move L)
--- >    , ((modMask x .|. controlMask .|. shiftMask, xK_Up   ), sendMessage $ Move U)
--- >    , ((modMask x .|. controlMask .|. shiftMask, xK_Down ), sendMessage $ Move D)
--- >    , ((modMask x .|. controlMask .|. shiftMask, xK_s    ), sendMessage $ SwapWindow)
+-- >    , ((modm .|. controlMask .|. shiftMask, xK_Right), sendMessage $ Move R)
+-- >    , ((modm .|. controlMask .|. shiftMask, xK_Left ), sendMessage $ Move L)
+-- >    , ((modm .|. controlMask .|. shiftMask, xK_Up   ), sendMessage $ Move U)
+-- >    , ((modm .|. controlMask .|. shiftMask, xK_Down ), sendMessage $ Move D)
+-- >    , ((modm .|. controlMask .|. shiftMask, xK_s    ), sendMessage $ SwapWindow)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

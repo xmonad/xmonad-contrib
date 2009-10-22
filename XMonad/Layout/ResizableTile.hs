@@ -42,8 +42,8 @@ import Data.List ((\\))
 --
 -- You may also want to add the following key bindings:
 --
--- > , ((modMask x,               xK_a), sendMessage MirrorShrink)
--- > , ((modMask x,               xK_z), sendMessage MirrorExpand)
+-- > , ((modm,               xK_a), sendMessage MirrorShrink)
+-- > , ((modm,               xK_z), sendMessage MirrorExpand)
 --
 -- For detailed instruction on editing the key binding see:
 --

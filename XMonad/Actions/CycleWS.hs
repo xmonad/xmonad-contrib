@@ -90,26 +90,26 @@ import XMonad.Util.WorkspaceCompare
 -- >
 -- > -- a basic CycleWS setup
 -- >
--- >   , ((modMask x,               xK_Down),  nextWS)
--- >   , ((modMask x,               xK_Up),    prevWS)
--- >   , ((modMask x .|. shiftMask, xK_Down),  shiftToNext)
--- >   , ((modMask x .|. shiftMask, xK_Up),    shiftToPrev)
--- >   , ((modMask x,               xK_Right), nextScreen)
--- >   , ((modMask x,               xK_Left),  prevScreen)
--- >   , ((modMask x .|. shiftMask, xK_Right), shiftNextScreen)
--- >   , ((modMask x .|. shiftMask, xK_Left),  shiftPrevScreen)
--- >   , ((modMask x,               xK_z),     toggleWS)
+-- >   , ((modm,               xK_Down),  nextWS)
+-- >   , ((modm,               xK_Up),    prevWS)
+-- >   , ((modm .|. shiftMask, xK_Down),  shiftToNext)
+-- >   , ((modm .|. shiftMask, xK_Up),    shiftToPrev)
+-- >   , ((modm,               xK_Right), nextScreen)
+-- >   , ((modm,               xK_Left),  prevScreen)
+-- >   , ((modm .|. shiftMask, xK_Right), shiftNextScreen)
+-- >   , ((modm .|. shiftMask, xK_Left),  shiftPrevScreen)
+-- >   , ((modm,               xK_z),     toggleWS)
 --
 -- If you want to follow the moved window, you can use both actions:
 --
--- >   , ((modMask x .|. shiftMask, xK_Down), shiftToNext >> nextWS)
--- >   , ((modMask x .|. shiftMask, xK_Up),   shiftToPrev >> prevWS)
+-- >   , ((modm .|. shiftMask, xK_Down), shiftToNext >> nextWS)
+-- >   , ((modm .|. shiftMask, xK_Up),   shiftToPrev >> prevWS)
 --
 -- You can also get fancier with 'moveTo', 'shiftTo', and 'findWorkspace'.
 -- For example:
 --
--- >   , ((modMask x     , xK_f), moveTo Next EmptyWS)  -- find a free workspace
--- >   , ((modMask x .|. controlMask, xK_Right),        -- a crazy keybinding!
+-- >   , ((modm     , xK_f), moveTo Next EmptyWS)  -- find a free workspace
+-- >   , ((modm .|. controlMask, xK_Right),        -- a crazy keybinding!
 -- >         do t <- findWorkspace getSortByXineramaRule Next NonEmptyWS 2
 -- >            windows . view $ t                                         )
 --

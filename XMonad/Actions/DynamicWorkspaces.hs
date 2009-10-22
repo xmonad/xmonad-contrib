@@ -36,18 +36,18 @@ import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 --
 -- Then add keybindings like the following:
 --
--- >   , ((modMask x .|. shiftMask, xK_BackSpace), removeWorkspace)
--- >   , ((modMask x .|. shiftMask, xK_v      ), selectWorkspace defaultXPConfig)
--- >   , ((modMask x, xK_m                    ), withWorkspace defaultXPConfig (windows . W.shift))
--- >   , ((modMask x .|. shiftMask, xK_m      ), withWorkspace defaultXPConfig (windows . copy))
--- >   , ((modMask x .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+-- >   , ((modm .|. shiftMask, xK_BackSpace), removeWorkspace)
+-- >   , ((modm .|. shiftMask, xK_v      ), selectWorkspace defaultXPConfig)
+-- >   , ((modm, xK_m                    ), withWorkspace defaultXPConfig (windows . W.shift))
+-- >   , ((modm .|. shiftMask, xK_m      ), withWorkspace defaultXPConfig (windows . copy))
+-- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
 --
 -- > -- mod-[1..9]       %! Switch to workspace N
 -- > -- mod-shift-[1..9] %! Move client to workspace N
 -- >    ++
--- >    zip (zip (repeat (modMask x)) [xK_1..xK_9]) (map (withNthWorkspace W.greedyView) [0..])
+-- >    zip (zip (repeat (modm)) [xK_1..xK_9]) (map (withNthWorkspace W.greedyView) [0..])
 -- >    ++
--- >    zip (zip (repeat (modMask x .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
+-- >    zip (zip (repeat (modm .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
