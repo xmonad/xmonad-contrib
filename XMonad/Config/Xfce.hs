@@ -6,7 +6,7 @@
 -- Copyright    : (c) Ivan Miljenovic <Ivan.Miljenovic@gmail.com>
 -- License      : BSD
 --
--- Maintainer   : Ivan Miljenovic <Ivan.Miljenovic@gmail.com>
+-- Maintainer   :  none
 -- Stability    :  unstable
 -- Portability  :  unportable
 --
@@ -32,6 +32,7 @@ import qualified Data.Map as M
 -- >
 -- > main = xmonad xfceConfig
 --
+-- For examples of how to further customize @xfceConfig@ see "XMonad.Config.Desktop".
 
 xfceConfig = desktopConfig
     { terminal = "Terminal"

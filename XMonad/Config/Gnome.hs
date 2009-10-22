@@ -36,6 +36,8 @@ import System.Environment (getEnvironment)
 -- > import XMonad.Config.Gnome
 -- >
 -- > main = xmonad gnomeConfig
+--
+-- For examples of how to further customize @gnomeConfig@ see "XMonad.Config.Desktop".
 
 gnomeConfig = desktopConfig
     { terminal = "gnome-terminal"

@@ -35,6 +35,8 @@ import qualified Data.Map as M
 --
 -- For KDE 4, replace 'kdeConfig' with 'kde4Config'
 --
+-- For examples of how to further customize @kdeConfig@ see "XMonad.Config.Desktop".
+
 
 kdeConfig = desktopConfig
     { terminal = "konsole"
