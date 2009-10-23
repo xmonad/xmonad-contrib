@@ -46,8 +46,8 @@ import qualified XMonad.StackSet as W
 --
 -- Then edit your @layoutHook@ by adding the layout modifier:
 --
--- > myLayouts = boringWindows (Full ||| etc..)
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = boringWindows (Full ||| etc..)
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- Then to your keybindings, add:
 --

@@ -33,8 +33,8 @@ import Data.List ((\\))
 --
 -- Then edit your @layoutHook@ by adding the ResizableTile layout:
 --
--- > myLayouts =  ResizableTall 1 (3/100) (1/2) [] ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout =  ResizableTall 1 (3/100) (1/2) [] ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

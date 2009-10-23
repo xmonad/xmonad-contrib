@@ -39,8 +39,8 @@ import qualified Data.Map as M
 -- Then edit your @layoutHook@ by adding the magicFocus layout
 -- modifier:
 --
--- > myLayouts = magicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts,
+-- > myLayout = magicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout,
 -- >                               handleEventHook = promoteWarp }
 --
 -- For more detailed instructions on editing the layoutHook see:

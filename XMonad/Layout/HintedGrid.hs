@@ -41,13 +41,13 @@ infixr 9 .
 --
 -- Then edit your @layoutHook@ by adding the 'Grid' layout:
 --
--- > myLayouts = Grid False ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = Grid False ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- You can also specify an aspect ratio for Grid to strive for with the
 -- GridRatio constructor:
 --
--- > myLayouts = GridRatio (4/3) False ||| etc.
+-- > myLayout = GridRatio (4/3) False ||| etc.
 --
 -- For more detailed instructions on editing the layoutHook see
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".

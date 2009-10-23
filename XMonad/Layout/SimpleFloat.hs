@@ -38,8 +38,8 @@ import XMonad.Layout.WindowArranger
 --
 -- Then edit your @layoutHook@ by adding the SimpleFloat layout:
 --
--- > myLayouts = simpleFloat ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = simpleFloat ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

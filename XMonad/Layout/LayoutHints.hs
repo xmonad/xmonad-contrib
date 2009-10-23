@@ -47,17 +47,17 @@ import qualified Data.Set as Set
 -- Then edit your @layoutHook@ by adding the 'layoutHints' layout modifier
 -- to some layout:
 --
--- > myLayouts = layoutHints (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = layoutHints (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- Or, to center the adapted window in its available area:
 --
--- > myLayouts = layoutHintsWithPlacement (0.5, 0.5) (Tall 1 (3/100) (1/2))
+-- > myLayout = layoutHintsWithPlacement (0.5, 0.5) (Tall 1 (3/100) (1/2))
 -- >                   ||| Full ||| etc..
 --
 -- Or, to make a reasonable attempt to eliminate gaps between windows:
 --
--- > myLayouts = layoutHintsToCenter (Tall 1 (3/100) (1/2))
+-- > myLayout = layoutHintsToCenter (Tall 1 (3/100) (1/2))
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

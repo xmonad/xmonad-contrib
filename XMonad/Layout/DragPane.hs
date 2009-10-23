@@ -40,8 +40,8 @@ import XMonad.Util.XUtils
 --
 -- Then edit your @layoutHook@ by adding the DragPane layout:
 --
--- > myLayouts = dragPane Horizontal 0.1 0.5 ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = dragPane Horizontal 0.1 0.5 ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

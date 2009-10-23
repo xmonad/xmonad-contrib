@@ -76,7 +76,7 @@ import Control.Monad
 --
 -- Apply layout modifier.
 --
--- > myLayouts = ModifiedLayout clock $ tall ||| Full ||| ...
+-- > myLayout = ModifiedLayout clock $ tall ||| Full ||| ...
 --
 -- After that, if there exists a window with specified properties, it will be
 -- displayed on top of all /tiled/ (not floated) windows on specified

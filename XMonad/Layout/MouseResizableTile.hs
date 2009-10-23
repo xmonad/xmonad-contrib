@@ -35,13 +35,13 @@ import XMonad.Util.XUtils
 -- Either in its normal form or the mirrored version. (The mirror layout modifier
 -- will not work correctly here because of the use of the mouse.)
 --
--- > myLayouts = mouseResizableTile ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = mouseResizableTile ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- or
 --
--- > myLayouts = mouseResizableTileMirrored ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = mouseResizableTileMirrored ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

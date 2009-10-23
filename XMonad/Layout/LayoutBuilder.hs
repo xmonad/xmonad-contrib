@@ -41,7 +41,7 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding something like:
 --
--- > myLayouts = ( (layoutN 1 (relBox 0 0 0.5 1) (Just $ relBox 0 0 1 1) $ simpleTabbed)
+-- > myLayout = ( (layoutN 1 (relBox 0 0 0.5 1) (Just $ relBox 0 0 1 1) $ simpleTabbed)
 -- >             $ (layoutAll (relBox 0.5 0 1 1)                         $ simpleTabbed)
 -- >             ) |||
 -- >             ( (layoutN 1       (relBox (1/3) 0 (1/2) 1) (Just $ relBox 0 0 1 1) $ Tall 0 0.01 0.5)
@@ -52,7 +52,7 @@ import Control.Monad
 -- >             $ (layoutN 1 (absBox (-200)     0 0          0) Nothing                 $ simpleTabbed)
 -- >             $ (layoutAll (absBox 0          0 (-512-200) 0)                         $ simpleTabbed)
 -- >             ) ||| Full ||| etc...
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- This will produce a layout similar to DragPane, but with the possibility to have multiple windows in the left half
 -- and tabs that show the available windows. It will also produce a layout similar to ThreeColMid and a special layout

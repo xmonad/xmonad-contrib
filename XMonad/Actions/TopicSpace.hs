@@ -180,7 +180,7 @@ import XMonad.Util.StringProp(getStringListProp,setStringListProp)
 --      return $ defaultConfig
 --           { borderWidth = 1 -- Width of the window border in pixels.
 --           , workspaces = myTopics
---           , layoutHook = myModifiers myLayouts
+--           , layoutHook = myModifiers myLayout
 --           , manageHook = myManageHook
 --           , logHook = myLogHook
 --           , handleEventHook = myHandleEventHook

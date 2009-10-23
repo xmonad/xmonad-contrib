@@ -41,8 +41,8 @@ import Data.Ratio
 --
 -- Then edit your @layoutHook@ by adding the MosaicAlt layout:
 --
--- > myLayouts = MosaicAlt M.empty ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = MosaicAlt M.empty ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

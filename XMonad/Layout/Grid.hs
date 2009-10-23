@@ -30,14 +30,14 @@ import XMonad.StackSet
 --
 -- Then edit your @layoutHook@ by adding the Grid layout:
 --
--- > myLayouts = Grid ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = Grid ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- You can also specify an aspect ratio for Grid to strive for with the
 -- GridRatio constructor.  For example, if you want Grid to try to make a grid
 -- four windows wide and three windows tall, you could use
 --
--- > myLayouts = GridRatio (4/3) ||| etc.
+-- > myLayout = GridRatio (4/3) ||| etc.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

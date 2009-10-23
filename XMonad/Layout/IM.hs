@@ -45,8 +45,8 @@ import XMonad.Util.WindowProperties
 -- for managing your chat windows (Grid in this example, another useful choice
 -- to consider is Tabbed layout).
 --
--- > myLayouts = withIM (1%7) (ClassName "Tkabber") Grid ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = withIM (1%7) (ClassName "Tkabber") Grid ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- Here @1%7@ is the part of the screen which your roster will occupy,
 -- @ClassName \"Tkabber\"@ tells xmonad which window is actually your roster.

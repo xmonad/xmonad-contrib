@@ -38,8 +38,8 @@ import Control.Monad
 --
 -- Then edit your @layoutHook@ by adding the ThreeCol layout:
 --
--- > myLayouts = ThreeCol 1 (3/100) (1/2) ||| ThreeColMid 1 (3/100) (1/2) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = ThreeCol 1 (3/100) (1/2) ||| ThreeColMid 1 (3/100) (1/2) ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- The first argument specifies how many windows initially appear in the main
 -- window. The second argument argument specifies the amount to resize while

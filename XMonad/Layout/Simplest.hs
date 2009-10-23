@@ -29,8 +29,8 @@ import qualified XMonad.StackSet as S
 --
 -- Then edit your @layoutHook@ by adding the Simplest layout:
 --
--- > myLayouts = Simplest ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = Simplest ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

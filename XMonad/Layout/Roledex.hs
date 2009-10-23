@@ -32,8 +32,8 @@ import Data.Ratio
 --
 -- Then edit your @layoutHook@ by adding the Roledex layout:
 --
--- > myLayouts =  Roledex ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout =  Roledex ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

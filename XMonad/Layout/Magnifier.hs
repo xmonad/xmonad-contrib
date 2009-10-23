@@ -41,8 +41,8 @@ import XMonad.Layout.LayoutModifier
 -- Then edit your @layoutHook@ by adding the 'magnifier' layout modifier
 -- to some layout:
 --
--- > myLayouts = magnifier (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = magnifier (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- By default magnifier increases the focused window's size by 1.5.
 -- You can also use:

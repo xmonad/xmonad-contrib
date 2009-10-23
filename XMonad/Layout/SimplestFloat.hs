@@ -33,8 +33,8 @@ import XMonad.Util.XUtils (fi)
 --
 -- Then edit your @layoutHook@ by adding the SimplestFloat layout:
 --
--- > myLayouts = simplestFloat ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = simplestFloat ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

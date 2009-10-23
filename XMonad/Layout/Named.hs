@@ -32,8 +32,8 @@ import XMonad.Layout.LayoutModifier
 -- Then edit your @layoutHook@ by adding the Named layout modifier
 -- to some layout:
 --
--- > myLayouts = named "real big" Full ||| (nameTail $ named "real big" $ Full) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = named "real big" Full ||| (nameTail $ named "real big" $ Full) ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

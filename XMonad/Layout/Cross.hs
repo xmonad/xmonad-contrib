@@ -28,8 +28,8 @@ import Control.Monad( msum )
 --
 -- Then edit your @layoutHook@ by adding one of the Cross layouts:
 --
--- > myLayouts =  simpleCross ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout =  simpleCross ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 
 -- apply a factor to a Rectangle Dimension

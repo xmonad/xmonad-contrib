@@ -32,8 +32,8 @@ import XMonad.StackSet ( focus, up, down)
 --
 -- Then edit your @layoutHook@ by adding the TwoPane layout:
 --
--- > myLayouts = TwoPane (3/100) (1/2)  ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = TwoPane (3/100) (1/2)  ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

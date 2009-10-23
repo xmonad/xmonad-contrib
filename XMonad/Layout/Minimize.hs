@@ -34,8 +34,8 @@ import Data.List
 --
 -- Then edit your @layoutHook@ by adding the Minimize layout modifier:
 --
--- > myLayouts = minimize (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = minimize (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

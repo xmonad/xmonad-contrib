@@ -46,8 +46,8 @@ import XMonad.StackSet ( tag, currentTag )
 -- Then edit your @layoutHook@ by adding the Workspace layout modifier
 -- to some layout:
 --
--- > myLayouts = workspaceDir "~" (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = workspaceDir "~" (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

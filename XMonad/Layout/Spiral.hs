@@ -34,8 +34,8 @@ import XMonad.StackSet ( integrate )
 --
 -- Then edit your @layoutHook@ by adding the Spiral layout:
 --
--- > myLayouts =  spiral (6/7) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout =  spiral (6/7) ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

@@ -64,8 +64,8 @@ import XMonad.Layout.DragPane
 -- Then edit your @layoutHook@ to use the new layout combinators. For
 -- example:
 --
--- > myLayouts = (Tall 1 (3/100) (1/2) *//* Full)  ||| (Tall 1 (3/100) (1/2) ***||** Full) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > myLayout = (Tall 1 (3/100) (1/2) *//* Full)  ||| (Tall 1 (3/100) (1/2) ***||** Full) ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the @layoutHook@ see:
 --

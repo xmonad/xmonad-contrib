@@ -122,9 +122,9 @@ import Data.Map(Map)
 --
 -- Then edit your @layoutHook@ by adding the 'subTabbed' layout modifier:
 --
--- > myLayouts = windowNavigation $ subTabbed $ boringWindows $
+-- > myLayout = windowNavigation $ subTabbed $ boringWindows $
 -- >                        Tall 1 (3/100) (1/2) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- "XMonad.Layout.WindowNavigation" is used to specify which windows to merge,
 -- and it is not integrated into the modifier because it can be configured, and

@@ -43,15 +43,15 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- Then edit your @layoutHook@ by adding the Tabbed layout:
 --
--- > myLayouts = simpleTabbed ||| Full ||| etc..
+-- > myLayout = simpleTabbed ||| Full ||| etc..
 --
 -- or, if you want a specific theme for you tabbed layout:
 --
--- > myLayouts = tabbed shrinkText defaultTheme ||| Full ||| etc..
+-- > myLayout = tabbed shrinkText defaultTheme ||| Full ||| etc..
 --
 -- and then:
 --
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
 -- This layout has hardcoded behaviour for mouse clicks on tab decorations:
 -- Left click on the tab switches focus to that window.
