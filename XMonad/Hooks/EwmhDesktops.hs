@@ -15,6 +15,7 @@
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
+    ewmh,
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
@@ -39,12 +40,17 @@ import XMonad.Util.WorkspaceCompare
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad defaultConfig { startupHook = ewmhDesktopsStartup
--- >                             , handleEventHook = ewmhDesktopsEventHook
--- >                             , logHook = ewmhDesktopsLogHook }
+-- > main = xmonad $ ewmh defaultConfig
 --
 -- You may also be interested in 'avoidStruts' from XMonad.Hooks.ManageDocks.
 
+
+-- | Add EWMH functionality to the given config.  See above for an example.
+ewmh :: XConfig a -> XConfig a
+ewmh c = c { startupHook     = startupHook c +++ ewmhDesktopsStartup
+           , handleEventHook = handleEventHook c +++ ewmhDesktopsEventHook
+           , logHook         = logHook c +++ ewmhDesktopsLogHook }
+ where x +++ y = mappend x y
 
 -- |
 -- Initializes EwmhDesktops and advertises EWMH support to the X
@@ -57,7 +63,6 @@ ewmhDesktopsStartup = setSupported
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
-
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
