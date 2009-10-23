@@ -9,7 +9,9 @@
 -- Portability  : unportable
 --
 -- Provides bindings to cycle windows up or down on the current workspace
--- stack while maintaining focus in place. Bindings are available to:
+-- stack while maintaining focus in place.
+--
+-- Bindings are available to:
 --
 -- * Cycle nearby or nth windows into the focused frame
 --

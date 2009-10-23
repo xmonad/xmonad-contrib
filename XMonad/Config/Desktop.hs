@@ -72,7 +72,7 @@ import qualified Data.Map as M
 -- To configure xmonad for use with a DE or with DE tools like panels
 -- and pagers, in place of @defaultConfig@ in your @~\/.xmonad/xmonad.hs@,
 -- use @desktopConfig@ or one of the other desktop configs from the
--- @XMonad.Config@ hierarchy. The following setup and customization examples
+-- @XMonad.Config@ namespace. The following setup and customization examples
 -- work the same way for the other desktop configs as for @desktopConfig@.
 -- If you are using a specific DE config, import its module instead, and
 -- use its config in place of @desktopConfig@ in the following examples.

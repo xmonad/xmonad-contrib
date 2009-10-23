@@ -142,7 +142,7 @@ edit your key bindings.
 * "XMonad.Actions.CycleWS":
     Provides bindings to cycle forward or backward through the list of
     workspaces, to move windows between workspaces, and to cycle
-    between screens. Replaces "XMonad.Actions.RotView".
+    between screens. Replaces the former XMonad.Actions.RotView.
 
 * "XMonad.Actions.CycleWindows":
     Provides bindings to cycle windows up or down on the current workspace
@@ -233,8 +233,8 @@ edit your key bindings.
     Provides a simple binding to dzen2 to print the date as a popup menu.
 
 * "XMonad.Actions.SinkAll":
-    Provides a simple binding that pushes all floating windows on the
-    current workspace back into tiling. Use the more general general
+    (Deprecated) Provides a simple binding that pushes all floating windows on the
+    current workspace back into tiling. Instead, use the more general
     "XMonad.Actions.WithAll"
 
 * "XMonad.Actions.SpawnOn":
@@ -301,10 +301,13 @@ own configuration, possibly with some modifications.
     This module specifies my xmonad defaults.
 
 * "XMonad.Config.Azerty"
+    Fixes some keybindings for users of French keyboard layouts.
 
 * "XMonad.Config.Desktop"
-    This module provides a config suitable for use with a desktop
-    environment such as KDE or GNOME.
+    This module provides core desktop environment settings used
+    in the Gnome, Kde, and Xfce config configs. It is also useful
+    for people using other environments such as lxde, or using
+    tray or panel applications without full desktop environments.
 
 * "XMonad.Config.Gnome"
 
@@ -313,7 +316,6 @@ own configuration, possibly with some modifications.
 * "XMonad.Config.Sjanssen"
 
 * "XMonad.Config.Xfce"
-
 
 -}
 
@@ -340,6 +342,10 @@ occur. The two most important hooks are:
   to display some information about the xmonad state in a status bar.
   See "XMonad.Doc.Extending#The_log_hook_and_external_status_bars" for more
   information.
+
+* 'XMonad.Core.handleEventHook': this hook is called on all events handled
+  by xmonad, thus it is extremely powerful. See "Graphics.X11.Xlib.Extras"
+  and xmonad source and development documentation for more details.
 
 Here is a list of the modules found in @XMonad.Hooks@:
 
@@ -391,8 +397,7 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.ServerMode": Allows sending commands to a running xmonad process.
 
 * "XMonad.Hooks.SetCursor":
-    Set a default cursor on startup.
-    Thanks to Andres Salomon for his initial idea for this startup hook.
+    Set a default mouse cursor on startup.
 
 * "XMonad.Hooks.SetWMName":
     Sets the WM name to a given string, so that it could be detected using
@@ -421,7 +426,8 @@ contributed tiling algorithms, such as a tabbed layout, a circle, a spiral,
 three columns, and so on.
 
 You will also find modules which provide facilities for combining
-different layouts, such as "XMonad.Layout.Combo", or
+different layouts, such as "XMonad.Layout.Combo", "XMonad.Layout.ComboP",
+"XMonad.Layout.LayoutBuilder", "XMonad.Layout.SubLayouts", or
 "XMonad.Layout.LayoutCombinators".
 
 Layouts can be also modified with layout modifiers. A general
@@ -457,7 +463,7 @@ For more information on using those modules for customizing your
     instead of center.
 
 * "XMonad.Layout.Circle":
-    Circle is an elliptical, overlapping layout, by Peter De Wachter
+    Circle is an elliptical, overlapping layout.
 
 * "XMonad.Layout.Column":
     Provides Column layout that places all windows in one column. Windows
@@ -490,7 +496,7 @@ For more information on using those modules for customizing your
     Layouts that splits the screen either horizontally or vertically and
     shows two windows.  The first window is always the master window, and
     the other is either the currently focused window or the second window in
-    layout order.
+    layout order. See also "XMonad.Layout.MouseResizableTall"
 
 * "XMonad.Layout.DwmStyle":
     A layout modifier for decorating windows in a dwm like style.
@@ -553,7 +559,7 @@ For more information on using those modules for customizing your
     functionality to other layouts.  If you ever find yourself writing
     a layout which takes another layout as a parameter, chances are you
     should be writing a LayoutModifier instead!
-   
+
     In case it is not clear, this module is not intended to help you
     configure xmonad, it is to help you write other extension modules.
     So get hacking!
@@ -625,7 +631,8 @@ For more information on using those modules for customizing your
     length of the window title.
 
 * "XMonad.Layout.OneBig":
-    Provides layout named OneBig. It places one (master) window at top left corner of screen, and other (slave) windows at top
+    Places one (master) window at top left corner of screen, and other (slave)
+    windows at the top.
 
 * "XMonad.Layout.PerWorkspace":
     Configure layouts on a per-workspace basis: use layouts and apply
@@ -636,6 +643,7 @@ For more information on using those modules for customizing your
 
 * "XMonad.Layout.ResizableTile":
     More useful tiled layout that allows you to change a width\/height of window.
+    See also "XMonad.Layout.MouseResizableTile".
 
 * "XMonad.Layout.ResizeScreen":
     A layout transformer to have a layout respect a given screen
@@ -658,7 +666,8 @@ For more information on using those modules for customizing your
     A basic floating layout.
 
 * "XMonad.Layout.Simplest":
-    A very simple layout. The simplest, afaik.
+    A very simple layout. The simplest, afaik. Used as a base for
+    decorated layouts.
 
 * "XMonad.Layout.SimplestFloat":
     A basic floating layout like SimpleFloat but without the decoration.
@@ -709,6 +718,7 @@ For more information on using those modules for customizing your
 
 * "XMonad.Layout.WindowNavigation":
     WindowNavigation is an extension to allow easy navigation of a workspace.
+    See also "XMonad.Actions.WindowNavigation".
 
 * "XMonad.Layout.WorkspaceDir":
     WorkspaceDir is an extension to set the current directory in a workspace.
@@ -843,7 +853,8 @@ A non complete list with a brief description:
     keybindings.
 
 * "XMonad.Util.NamedScratchpad":
-    Named scratchpads that support several arbitrary applications at the same time.
+    Like "XMonad.Util.Scratchpad" toggle windows to and from the current
+    workspace. Supports several arbitrary applications at the same time.
 
 * "XMonad.Util.NamedWindows":
     This module allows you to associate the X titles of windows with
@@ -863,7 +874,7 @@ A non complete list with a brief description:
     XMonad.Util.RunInXTerm (by Andrea Rossato).
 
 * "XMonad.Util.Scratchpad":
-    Very handy hotkey-launched floating terminal window.
+    Very handy hotkey-launched toggleable floating terminal window.
 
 * "XMonad.Util.StringProp":
     Internal utility functions for storing Strings with the root window.
@@ -921,7 +932,7 @@ example, you could write:
 
 and provide an appropriate definition of @myKeys@, such as:
 
->    myKeys x =
+> myKeys conf@(XConfig {XMonad.modMask = modm}) =
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
 >             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
@@ -934,7 +945,7 @@ This particular definition also requires importing "XMonad.Prompt",
 
 For a list of the names of particular keys (such as xK_F12, and so
 on), see
-<http://hackage.haskell.org/packages/archive/X11/1.4.1/doc/html/Graphics-X11-Types.html>.
+<http://hackage.haskell.org/packages/archive/X11/latest/doc/html/Graphics-X11-Types.html>
 
 Usually, rather than completely redefining the key bindings, as we did
 above, we want to simply add some new bindings and\/or remove existing
@@ -945,8 +956,9 @@ ones.
 {- $keyAdding
 #Adding_key_bindings#
 
-Adding key bindings can be done in different ways. The type signature
-of 'XMonad.Core.XConfig.keys' is:
+Adding key bindings can be done in different ways. See the end of this
+section for the easiest ways. The type signature of
+'XMonad.Core.XConfig.keys' is:
 
 >    keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
 
@@ -965,7 +977,7 @@ module, before starting we must first import this modules:
 For instance, if you have defined some additional key bindings like
 these:
 
->    myKeys x =
+>    myKeys conf@(XConfig {XMonad.modMask = modm}) =
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
 >             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
@@ -998,7 +1010,7 @@ All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 >
 >    newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
 >
->    myKeys x =
+>    myKeys conf@(XConfig {XMonad.modMask = modm}) =
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
 >             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
