@@ -26,7 +26,7 @@ sjanssenConfigXmobar = statusBar "exec xmobar" sjanssenPP strutkey =<< sjanssenC
 
 sjanssenConfig = do
     sp <- mkSpawner
-    return $ defaultConfig
+    return . ewmh $ defaultConfig
         { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
@@ -35,8 +35,6 @@ sjanssenConfig = do
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys sp c `M.union` keys defaultConfig c
         , layoutHook  = modifiers layouts
-        , logHook     = ewmhDesktopsLogHook
-        , startupHook = ewmhDesktopsStartup
         , manageHook  = composeAll [className =? x --> doShift w
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")

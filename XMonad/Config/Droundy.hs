@@ -43,8 +43,7 @@ import XMonad.Actions.CycleWS ( moveTo, WSType( HiddenNonEmptyWS ),
                                 Direction1D( Prev, Next) )
 
 import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
-import XMonad.Hooks.EwmhDesktops ( ewmhDesktopsStartup, ewmhDesktopsLogHook,
-                                   ewmhDesktopsEventHook )
+import XMonad.Hooks.EwmhDesktops ( ewmh )
 
 myXPConfig :: XPConfig
 myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
@@ -118,7 +117,7 @@ keys x = M.fromList $
     ++
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
-config = defaultConfig
+config = ewmh defaultConfig
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
          , layoutHook = showWName $ workspaceDir "~" $
@@ -131,12 +130,9 @@ config = defaultConfig
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
          , manageHook = manageHook defaultConfig <+> manageDocks -- add panel-handling
-         , logHook = ewmhDesktopsLogHook -- actually, no logging here, just other stuff
-         , startupHook = ewmhDesktopsStartup
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#222222" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
-         , handleEventHook = ewmhDesktopsEventHook
          , XMonad.modMask = mod1Mask
          , XMonad.keys = keys
          }
