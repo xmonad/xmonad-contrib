@@ -144,6 +144,7 @@ textExtentsXMF (Xft xftfont) _ = io $ do
 
 -- | String position
 data Align = AlignCenter | AlignRight | AlignLeft | AlignRightOffset Int
+                deriving (Show, Read)
 
 -- | Return the string x and y 'Position' in a 'Rectangle', given a
 -- 'FontStruct' and the 'Align'ment

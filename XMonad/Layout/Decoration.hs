@@ -77,6 +77,7 @@ data Theme =
           , fontName            :: String    -- ^ Font name
           , decoWidth           :: Dimension -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
           , decoHeight          :: Dimension -- ^ Height of the decorations
+          , windowTitleAddons   :: [(String, Align)] -- ^ Extra text to appear in a window's title bar
           } deriving (Show, Read)
 
 -- | The default xmonad 'Theme'.
@@ -94,6 +95,7 @@ defaultTheme =
           , fontName            = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
           , decoWidth           = 200
           , decoHeight          = 20
+          , windowTitleAddons   = []
           }
 
 -- | A 'Decoration' layout modifier will handle 'SetTheme', a message
@@ -374,7 +376,9 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
   let s = shrinkIt sh
   name <- shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy fs n
                                   return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
-  paintAndWrite dw fs wh ht 1 bc borderc tc bc [AlignCenter] [name]
+  let als = AlignCenter : map snd (windowTitleAddons t)
+      strs = name : map fst (windowTitleAddons t)
+  paintAndWrite dw fs wh ht 1 bc borderc tc bc als strs
 updateDeco _ _ _ (_,(Just w,Nothing)) = hideWindow w
 updateDeco _ _ _ _ = return ()
 
