@@ -171,6 +171,7 @@ library
                         XMonad.Layout.Mosaic
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MouseResizableTile
+                        XMonad.Layout.MultiColumns
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.MultiToggle.Instances
                         XMonad.Layout.Named
