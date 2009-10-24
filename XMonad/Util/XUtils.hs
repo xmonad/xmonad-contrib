@@ -103,7 +103,8 @@ paintWindow :: Window     -- ^ The window where to draw
 paintWindow w wh ht bw c bc =
     paintWindow' w (Rectangle 0 0 wh ht) bw c bc Nothing
 
--- | Fill a window with a rectangle and a border, and write a string at given position
+-- | Fill a window with a rectangle and a border, and write
+-- | a number of strings to given positions
 paintAndWrite :: Window     -- ^ The window where to draw
               -> XMonadFont -- ^ XMonad Font for drawing
               -> Dimension  -- ^ Window width
@@ -113,19 +114,20 @@ paintAndWrite :: Window     -- ^ The window where to draw
               -> String     -- ^ Border color
               -> String     -- ^ String color
               -> String     -- ^ String background color
-              -> Align      -- ^ String 'Align'ment
-              -> String     -- ^ String to be printed
+              -> [Align]    -- ^ String 'Align'ments
+              -> [String]   -- ^ Strings to be printed
               -> X ()
-paintAndWrite w fs wh ht bw bc borc ffc fbc al str = do
+paintAndWrite w fs wh ht bw bc borc ffc fbc als strs = do
     d <- asks display
-    (x,y) <- stringPosition d fs (Rectangle 0 0 wh ht) al str
-    paintWindow' w (Rectangle x y wh ht) bw bc borc ms
-    where ms    = Just (fs,ffc,fbc,str)
+    strPositions <- forM (zip als strs) $ \(al, str) ->
+        stringPosition d fs (Rectangle 0 0 wh ht) al str
+    let ms = Just (fs,ffc,fbc, zip strs strPositions)
+    paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms
 
 -- This stuff is not exported
 
-paintWindow' :: Window -> Rectangle -> Dimension -> String -> String -> Maybe (XMonadFont,String,String,String) -> X ()
-paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
+paintWindow' :: Window -> Rectangle -> Dimension -> String -> String -> Maybe (XMonadFont,String,String,[(String, (Position, Position))]) -> X ()
+paintWindow' win (Rectangle _ _ wh ht) bw color b_color strStuff = do
   d  <- asks display
   p  <- io $ createPixmap d win wh ht (defaultDepthOfScreen $ defaultScreenOfDisplay d)
   gc <- io $ createGC d p
@@ -138,9 +140,10 @@ paintWindow' win (Rectangle x y wh ht) bw color b_color str = do
   -- and now again
   io $ setForeground d gc color'
   io $ fillRectangle d p gc (fi bw) (fi bw) (wh - (bw * 2)) (ht - (bw * 2))
-  when (isJust str) $ do
-    let (xmf,fc,bc,s) = fromJust str
-    printStringXMF d p xmf gc fc bc x y s
+  when (isJust strStuff) $ do
+    let (xmf,fc,bc,strAndPos) = fromJust strStuff
+    forM_ strAndPos $ \(s, (x, y)) ->
+        printStringXMF d p xmf gc fc bc x y s
   -- copy the pixmap over the window
   io $ copyArea      d p win gc 0 0 wh ht 0 0
   -- free the pixmap and GC

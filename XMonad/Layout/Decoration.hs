@@ -374,7 +374,7 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
   let s = shrinkIt sh
   name <- shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy fs n
                                   return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
-  paintAndWrite dw fs wh ht 1 bc borderc tc bc AlignCenter name
+  paintAndWrite dw fs wh ht 1 bc borderc tc bc [AlignCenter] [name]
 updateDeco _ _ _ (_,(Just w,Nothing)) = hideWindow w
 updateDeco _ _ _ _ = return ()
 
