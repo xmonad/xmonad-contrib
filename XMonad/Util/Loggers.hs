@@ -254,7 +254,7 @@ fixedWidthL a str n logger = do
     case a of
        AlignCenter -> toL (take n $ padhalf l ++ l ++ cs)
        AlignRight -> toL (reverse (take n $ reverse l ++ cs))
-       AlignLeft -> toL (take n $ l ++ cs)
+       _ -> toL (take n $ l ++ cs)
   where
     toL = return . Just
     cs  = cycle str

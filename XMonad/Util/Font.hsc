@@ -143,7 +143,7 @@ textExtentsXMF (Xft xftfont) _ = io $ do
 #endif
 
 -- | String position
-data Align = AlignCenter | AlignRight | AlignLeft
+data Align = AlignCenter | AlignRight | AlignLeft | AlignRightOffset Int
 
 -- | Return the string x and y 'Position' in a 'Rectangle', given a
 -- 'FontStruct' and the 'Align'ment
@@ -156,6 +156,7 @@ stringPosition dpy fs (Rectangle _ _ w h) al s = do
             AlignCenter -> fi (w `div` 2) - fi (width `div` 2)
             AlignLeft   -> 1
             AlignRight  -> fi (w - (fi width + 1));
+            AlignRightOffset offset -> fi (w - (fi width + 1)) - fi offset;
   return (x,y)
 
 printStringXMF :: (Functor m, MonadIO m) => Display -> Drawable -> XMonadFont -> GC -> String -> String
