@@ -141,4 +141,5 @@ spawnPipe x = do
         uninstallSignalHandlers
         dupTo rd stdInput
         executeFile "/bin/sh" False ["-c", x] Nothing
+    closeFd rd
     return h
