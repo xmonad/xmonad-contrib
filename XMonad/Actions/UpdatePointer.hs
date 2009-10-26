@@ -91,8 +91,10 @@ updatePointer p = do
         where fraction x y = floor (x * fromIntegral y)
 
 windowAttributesToRectangle :: WindowAttributes -> Rectangle
-windowAttributesToRectangle wa = Rectangle (fi (wa_x wa))     (fi (wa_y wa))
-                                           (fi (wa_width wa)) (fi (wa_height wa))
+windowAttributesToRectangle wa = Rectangle (fi (wa_x wa))
+                                           (fi (wa_y wa))
+                                           (fi (wa_width wa + 2 * wa_border_width wa))
+                                           (fi (wa_height wa + 2 * wa_border_width wa))
 moveWithin :: Ord a => a -> a -> a -> a
 moveWithin now lower upper =
     if now < lower
