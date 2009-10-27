@@ -82,7 +82,7 @@ instance LayoutClass MultiCol a where
             wlen = length w
             -- Make sure the list of columns is big enough and update active column
             nw = multiColNWin l ++ repeat (multiColDefWin l)
-            l' = l { multiColNWin = take (getCol (wlen-1) nw + 1) nw
+            l' = l { multiColNWin = take (max (length $ multiColNWin l) $ getCol (wlen-1) nw + 1) nw
                    , multiColActive = getCol (length $ W.up s) (multiColNWin l)
                    }
             -- Only return new layout if it has been modified
