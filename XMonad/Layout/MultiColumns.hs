@@ -77,27 +77,26 @@ data MultiCol a = MultiCol
 
 instance LayoutClass MultiCol a where
     doLayout l r s = return (zip w rlist, resl)
-      where rlist = doL (multiColNWin l') (multiColSize l') r wlen
-            w = W.integrate s
-            wlen = length w
-            -- Make sure the list of columns is big enough and update active column
-            nw = multiColNWin l ++ repeat (multiColDefWin l)
-            l' = l { multiColNWin = take (max (length $ multiColNWin l) $ getCol (wlen-1) nw + 1) nw
-                   , multiColActive = getCol (length $ W.up s) (multiColNWin l)
-                   }
-            -- Only return new layout if it has been modified
-            resl = if l'==l
-                   then Nothing
-                   else Just l'
+        where rlist = doL (multiColNWin l') (multiColSize l') r wlen
+              w = W.integrate s
+              wlen = length w
+              -- Make sure the list of columns is big enough and update active column
+              nw = multiColNWin l ++ repeat (multiColDefWin l)
+              l' = l { multiColNWin = take (max (length $ multiColNWin l) $ getCol (wlen-1) nw + 1) nw
+                     , multiColActive = getCol (length $ W.up s) nw
+                     }
+              -- Only return new layout if it has been modified
+              resl = if l'==l
+                     then Nothing
+                     else Just l'
     handleMessage l m =
         return $ msum [fmap resize     (fromMessage m)
                       ,fmap incmastern (fromMessage m)]
             where resize Shrink = l { multiColSize = max (-0.5) $ s-ds }
                   resize Expand = l { multiColSize = min 1 $ s+ds }
-                  incmastern (IncMasterN x)
-                    = l { multiColNWin = take a n ++ [newval] ++ tail r }
-                    where newval =  max 0 $ head r + x
-                          r = drop a n
+                  incmastern (IncMasterN x) = l { multiColNWin = take a n ++ [newval] ++ tail r }
+                      where newval =  max 0 $ head r + x
+                            r = drop a n
                   n = multiColNWin l
                   ds = multiColDeltaSize l
                   s = multiColSize l
@@ -105,7 +104,7 @@ instance LayoutClass MultiCol a where
     description _ = "MultiCol"
 
 
--- Get which column a window is in.
+-- | Get which column a window is in, starting at 0.
 getCol :: Int -> [Int] -> Int
 getCol w (n:ns) = if n<1 || w < n
                   then 0
@@ -115,29 +114,29 @@ getCol _ _ = -1
 
 doL :: [Int] -> Rational -> Rectangle -> Int -> [Rectangle]
 doL nwin s r n = rlist
-  where -- Number of columns to tile
-        size = floor $ abs s * fromIntegral (rect_width r)
-        ncol = getCol (n-1) nwin + 1
-        -- Extract all but last column to tile
-        c = take (ncol-1) nwin
-        -- Compute number of windows in last column and add it to the others
-        col = c ++ [n-sum c]
-        -- Compute width of columns
-        width = if s>0
-                then if ncol==1
-                     then [fromIntegral $ rect_width r]
-                     else size:replicate (ncol-1) ((fromIntegral (rect_width r) - size) `div` (ncol-1))
-                else if fromIntegral ncol * abs s >= 1
-                     -- Split equally
-                     then replicate ncol $ fromIntegral (rect_width r) `div` ncol
-                     -- Let the master cover what is left...
-                     else (fromIntegral (rect_width r) - (ncol-1)*size):replicate (ncol-1) size
-        -- Compute the horizontal position of columns
-        xpos = accumEx (fromIntegral $ rect_x r) width
-        -- Exclusive accumulation
-        accumEx a (x:xs) = a:accumEx (a+x) xs
-        accumEx _ _ = []
-        -- Create a rectangle for each column
-        cr = zipWith (\x w -> r { rect_x=fromIntegral x, rect_width=fromIntegral w }) xpos width
-        -- Split the columns into the windows
-        rlist = concat $ zipWith (\num rect -> splitVertically num rect) col cr
+    where -- Number of columns to tile
+          size = floor $ abs s * fromIntegral (rect_width r)
+          ncol = getCol (n-1) nwin + 1
+          -- Extract all but last column to tile
+          c = take (ncol-1) nwin
+          -- Compute number of windows in last column and add it to the others
+          col = c ++ [n-sum c]
+          -- Compute width of columns
+          width = if s>0
+                  then if ncol==1
+                       then [fromIntegral $ rect_width r]
+                       else size:replicate (ncol-1) ((fromIntegral (rect_width r) - size) `div` (ncol-1))
+                  else if fromIntegral ncol * abs s >= 1
+                       -- Split equally
+                       then replicate ncol $ fromIntegral (rect_width r) `div` ncol
+                       -- Let the master cover what is left...
+                       else (fromIntegral (rect_width r) - (ncol-1)*size):replicate (ncol-1) size
+          -- Compute the horizontal position of columns
+          xpos = accumEx (fromIntegral $ rect_x r) width
+          -- Exclusive accumulation
+          accumEx a (x:xs) = a:accumEx (a+x) xs
+          accumEx _ _ = []
+          -- Create a rectangle for each column
+          cr = zipWith (\x w -> r { rect_x=fromIntegral x, rect_width=fromIntegral w }) xpos width
+          -- Split the columns into the windows
+          rlist = concat $ zipWith (\num rect -> splitVertically num rect) col cr
