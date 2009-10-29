@@ -58,14 +58,14 @@ import Control.Monad
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
--- | Layout creator.
+-- | Layout constructor.
 multiCol
   :: [Int]    -- ^ Windows in each column, starting with master. Set to 0 to catch the rest.
   -> Int      -- ^ Default value for all following columns.
   -> Rational -- ^ How much to change size each time.
   -> Rational -- ^ Initial size of master area, or column area if the size is negative.
   -> MultiCol a
-multiCol n defn ds s = MultiCol (map (max 1) n) (max 1 defn) ds s 0
+multiCol n defn ds s = MultiCol (map (max 0) n) (max 0 defn) ds s 0
 
 data MultiCol a = MultiCol
   { multiColNWin      :: ![Int]
@@ -115,8 +115,9 @@ getCol _ _ = -1
 doL :: [Int] -> Rational -> Rectangle -> Int -> [Rectangle]
 doL nwin s r n = rlist
     where -- Number of columns to tile
-          size = floor $ abs s * fromIntegral (rect_width r)
           ncol = getCol (n-1) nwin + 1
+          -- Compute the actual size
+          size = floor $ abs s * fromIntegral (rect_width r)
           -- Extract all but last column to tile
           c = take (ncol-1) nwin
           -- Compute number of windows in last column and add it to the others
@@ -124,7 +125,9 @@ doL nwin s r n = rlist
           -- Compute width of columns
           width = if s>0
                   then if ncol==1
+                       -- Only one window
                        then [fromIntegral $ rect_width r]
+                       -- Give the master it's space and split the rest equally for the other columns
                        else size:replicate (ncol-1) ((fromIntegral (rect_width r) - size) `div` (ncol-1))
                   else if fromIntegral ncol * abs s >= 1
                        -- Split equally
