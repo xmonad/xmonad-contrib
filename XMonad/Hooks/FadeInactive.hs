@@ -44,7 +44,7 @@ import Control.Monad
 -- you will need to have xcompmgr <http://freedesktop.org/wiki/Software/xapps>
 -- or something similar for this to do anything
 --
--- For more detailed instructions on editing the layoutHook see:
+-- For more detailed instructions on editing the logHook see:
 --
 -- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
 --
