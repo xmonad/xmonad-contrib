@@ -9,7 +9,7 @@ Stability   :  unstable
 Portability :  unportable
 
 A module for accessing and manipulating X Window's mouse selection (the buffer used in copy and pasting).
-'getSelection' and 'putSelection' are adaptations of Hxsel.hs and Hxput.hs from the XMonad-utils, available:
+'getSelection' is an adaptation of Hxsel.hs and Hxput.hs from the XMonad-utils, available:
 
 > $ darcs get <http://gorgias.mine.nu/repos/xmonad-utils>
 -}
@@ -20,13 +20,10 @@ module XMonad.Util.XSelection (  -- * Usage
                                  promptSelection,
                                  safePromptSelection,
                                  transformPromptSelection,
-                                 transformSafePromptSelection,
-                                 putSelection) where
+                                 transformSafePromptSelection) where
 
-import Control.Concurrent (forkIO)
 import Control.Exception as E (catch)
 import Control.Monad(Monad (return, (>>)), Functor(..), liftM, join)
-import Data.Char (ord)
 import Data.Maybe (fromMaybe)
 import XMonad
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
@@ -80,43 +77,6 @@ getSelection = io $ do
        then do res <- getWindowProperty8 dpy clp win
                return $ decode . map fromIntegral . fromMaybe [] $ res
        else destroyWindow dpy win >> return ""
-
--- | Set the current X Selection to a specified string.
-putSelection :: MonadIO m => String -> m ()
-putSelection text = io $ do
-  dpy <- openDisplay ""
-  let dflt = defaultScreen dpy
-  rootw  <- rootWindow dpy dflt
-  win <- createSimpleWindow dpy rootw 0 0 1 1 0 0 0
-  p <- internAtom dpy "PRIMARY" True
-  ty <- internAtom dpy "UTF8_STRING" False
-  xSetSelectionOwner dpy p win currentTime
-  winOwn <- xGetSelectionOwner dpy p
-  if winOwn == win
-    then do forkIO ((allocaXEvent $ processEvent dpy ty text) >> destroyWindow dpy win) >> return ()
-    else do putStrLn "Unable to obtain ownership of the selection" >> destroyWindow dpy win
-  return ()
-                     where
-                       processEvent :: Display -> Atom -> [Char] -> XEventPtr -> IO ()
-                       processEvent dpy ty txt e = do
-                                                      nextEvent dpy e
-                                                      ev <- getEvent e
-                                                      if ev_event_type ev == selectionRequest
-                                                       then do print ev
-                                                               allocaXEvent $ \replyPtr -> do
-                                                                 changeProperty8 (ev_event_display ev)
-                                                                                 (ev_requestor ev)
-                                                                                 (ev_property ev)
-                                                                                 ty
-                                                                                 propModeReplace
-                                                                                 (map (fromIntegral . ord) txt)
-                                                                 setSelectionNotify replyPtr (ev_requestor ev) (ev_selection ev)
-                                                                                        (ev_target ev) (ev_property ev) (ev_time ev)
-                                                                 sendEvent dpy (ev_requestor ev) False noEventMask replyPtr
-                                                                 sync dpy False
-                                                       else do putStrLn "Unexpected Message Received"
-                                                               print ev
-                                                      processEvent dpy ty text e
 
 {- | A wrapper around 'getSelection'. Makes it convenient to run a program with the current selection as an argument.
 This is convenient for handling URLs, in particular. For example, in your Config.hs you could bind a key to

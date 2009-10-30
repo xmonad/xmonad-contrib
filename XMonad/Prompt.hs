@@ -29,7 +29,7 @@ module XMonad.Prompt
     , defaultXPKeymap
     , quit
     , killBefore, killAfter, startOfLine, endOfLine
-    , pasteString, copyString, moveCursor
+    , pasteString, moveCursor
     , moveWord, killWord, deleteString
     , moveHistory, setSuccess, setDone
     , Direction1D(..)
@@ -67,7 +67,7 @@ import qualified XMonad as X (numlockMask,config)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.Types
-import XMonad.Util.XSelection (getSelection, putSelection)
+import XMonad.Util.XSelection (getSelection)
 
 import Control.Arrow ((&&&),first)
 import Control.Concurrent (threadDelay)
@@ -403,7 +403,6 @@ defaultXPKeymap = M.fromList $
   , (xK_a, startOfLine)
   , (xK_e, endOfLine)
   , (xK_y, pasteString)
-  , (xK_c, copyString)
   , (xK_Right, moveWord Next)
   , (xK_Left, moveWord Prev)
   , (xK_Delete, killWord Next)
@@ -504,10 +503,6 @@ insertString str =
 -- | Insert the current X selection string at the cursor position.
 pasteString :: XP ()
 pasteString = join $ io $ liftM insertString getSelection
-
--- | Copy the currently entered string into the X selection.
-copyString :: XP ()
-copyString = gets command >>= io . putSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction1D -> XP ()
