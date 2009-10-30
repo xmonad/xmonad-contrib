@@ -30,6 +30,7 @@ module XMonad.Prompt
     , quit
     , killBefore, killAfter, startOfLine, endOfLine
     , pasteString, moveCursor
+    , setInput, getInput
     , moveWord, killWord, deleteString
     , moveHistory, setSuccess, setDone
     , Direction1D(..)
@@ -246,6 +247,15 @@ command = W.focus . commandHistory
 
 setCommand :: String -> XPState -> XPState
 setCommand xs s = s { commandHistory = (commandHistory s) { W.focus = xs }}
+
+-- | Sets the input string to the given value.
+setInput :: String -> XP ()
+setInput = modify . setCommand
+
+-- | Returns the current input string. Intented for use in custom keymaps
+-- where the 'get' or similar can't be used to retrieve it.
+getInput :: XP String
+getInput = gets command
 
 -- | Same as 'mkXPrompt', except that the action function can have
 --   type @String -> X a@, for any @a@, and the final action returned
