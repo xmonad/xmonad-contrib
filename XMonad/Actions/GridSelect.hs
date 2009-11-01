@@ -237,9 +237,6 @@ diamondRestrict x y originX originY =
   map (\(x', y') -> (x' + fromInteger originX, y' + fromInteger originY)) .
   take 1000 $ diamond
 
-tupadd :: (Num t1, Num t) => (t, t1) -> (t, t1) -> (t, t1)
-tupadd (a,b) (c,d) = (a+c,b+d)
-
 findInElementMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
 findInElementMap pos = find ((== pos) . fst)
 
@@ -487,7 +484,7 @@ buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
 buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultGSNav (1/2) (1/2)
 
 defaultGSNav :: NavigateMap
-defaultGSNav = M.map tupadd $ M.fromList
+defaultGSNav = M.map (\(x,y) (a,b) -> (x+a,y+b)) $ M.fromList
     [((0,xK_Left) ,(-1,0))
     ,((0,xK_h)    ,(-1,0))
     ,((0,xK_Right),(1,0))
