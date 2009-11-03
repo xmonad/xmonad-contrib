@@ -6,7 +6,7 @@
 -- Copyright   :  (c) 2008  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  none
+-- Maintainer  :  Adam Vogt <vogt.adam@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
