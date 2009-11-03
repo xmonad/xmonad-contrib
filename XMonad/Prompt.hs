@@ -64,7 +64,7 @@ module XMonad.Prompt
 import Prelude hiding (catch)
 
 import XMonad  hiding (config, numlockMask, cleanMask)
-import qualified XMonad as X (numlockMask,config)
+import qualified XMonad as X (numlockMask)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.Types
@@ -219,8 +219,8 @@ amberXPConfig = defaultXPConfig { fgColor = "#ca8f2d", bgColor = "black", fgHLig
 type ComplFunction = String -> IO [String]
 
 initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
-          -> GC -> XMonadFont -> p -> [String] -> XPConfig -> XPState
-initState d rw w s compl gc fonts pt h c =
+          -> GC -> XMonadFont -> p -> [String] -> XPConfig -> KeyMask -> XPState
+initState d rw w s compl gc fonts pt h c nm =
     XPS { dpy                = d
         , rootw              = rw
         , win                = w
@@ -239,7 +239,7 @@ initState d rw w s compl gc fonts pt h c =
         , config             = c
         , successful         = False
         , done               = False
-        , numlockMask        = X.numlockMask defaultConfig
+        , numlockMask        = nm
         }
 
 -- this would be much easier with functional references
@@ -274,10 +274,9 @@ mkXPromptWithReturn t conf compl action = do
   gc <- io $ createGC d w
   io $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
-  numlock <- asks $ X.numlockMask . X.config
+  numlock <- gets $ X.numlockMask
   let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
-      st = (initState d rw w s compl gc fs (XPT t) hs conf)
-           { numlockMask = numlock }
+      st = initState d rw w s compl gc fs (XPT t) hs conf numlock
   st' <- io $ execStateT runXP st
 
   releaseXMF fs
