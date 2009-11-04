@@ -57,7 +57,7 @@ import Data.Monoid
 
 import System.Posix (ProcessID)
 
--- | Denotes a side of a screen. @S@ stands for South, @NE@ for Northwest
+-- | Denotes a side of a screen. @S@ stands for South, @NE@ for Northeast
 -- etc. @C@ stands for Center.
 data Side = SC | NC | CE | CW | SE | SW | NE | NW | C
     deriving (Read, Show, Eq)
