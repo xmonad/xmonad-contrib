@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicHooks
@@ -15,20 +16,18 @@
 module XMonad.Hooks.DynamicHooks (
   -- * Usage
   -- $usage
-  initDynamicHooks
-  ,dynamicMasterHook
+  dynamicMasterHook
   ,addDynamicHook
   ,updateDynamicHook
   ,oneShotHook
   ) where
 
 import XMonad
-import System.IO
+import XMonad.Util.ExtensibleState
 
 import Data.List
 import Data.Maybe (listToMaybe)
 import Data.Monoid
-import Data.IORef
 
 -- $usage
 -- Provides two new kinds of 'ManageHooks' that can be defined at runtime.
@@ -40,68 +39,46 @@ import Data.IORef
 -- Note that you will lose all dynamically defined 'ManageHook's when you @mod+q@!
 -- If you want them to last, you should create them as normal in your @xmonad.hs@.
 --
--- First, you must execute 'initDynamicHooks' from 'main' in your @xmonad.hs@:
+-- To use this module, add 'dynamicMasterHook' to your 'manageHook':
 --
--- > dynHooksRef <- initDynamicHooks
+-- > xmonad { manageHook = myManageHook <+> dynamicMasterHook }
 --
--- and then pass this value to the other functions in this module.
+-- You can then use the supplied functions in your keybindings:
 --
--- You also need to add the base 'ManageHook':
---
--- > xmonad { manageHook = myManageHook <+> dynamicMasterHook dynHooksRef }
---
--- You must include this @dynHooksRef@ value when using the functions in this
--- module:
---
--- > xmonad { keys = myKeys `Data.Map.union` Data.Map.fromList
--- >                   [((modm, xK_i), oneShotHook dynHooksRef
--- >                    "FFlaunchHook" (className =? "firefox") (doShift "3")
--- >                    >> spawn "firefox")
--- >                   ,((modm, xK_u), addDynamicHook dynHooksRef
--- >                     (className =? "example" --> doFloat))
--- >                   ,((modm, xK_y), updatePermanentHook dynHooksRef
--- >                     (const idHook))) ]  -- resets the permanent hook.
+-- > ((modMask,xK_a), oneShotHook (className =? "example") doFloat)
 --
 
 data DynamicHooks = DynamicHooks
     { transients :: [(Query Bool, ManageHook)]
     , permanent  :: ManageHook }
+                    deriving Typeable
 
+instance ExtensionClass DynamicHooks where
+    initialValue = DynamicHooks [] idHook
 
--- | Creates the 'IORef' that stores the dynamically created 'ManageHook's.
-initDynamicHooks :: IO (IORef DynamicHooks)
-initDynamicHooks = newIORef (DynamicHooks { transients = [],
-                                            permanent = idHook })
-
-
--- this hook is always executed, and the IORef's contents checked.
+-- this hook is always executed, and the contents of the stored hooks checked.
 -- note that transient hooks are run second, therefore taking precedence
 -- over permanent ones on matters such as which workspace to shift to.
 -- doFloat and doIgnore are idempotent.
 -- | Master 'ManageHook' that must be in your @xmonad.hs@ 'ManageHook'.
-dynamicMasterHook :: IORef DynamicHooks -> ManageHook
-dynamicMasterHook ref = return True -->
-                  (ask >>= \w -> liftX (do
-  dh <- io $ readIORef ref
+dynamicMasterHook :: ManageHook
+dynamicMasterHook = (ask >>= \w -> liftX (do
+  dh <- getState
   (Endo f)  <- runQuery (permanent dh) w
   ts <- mapM (\(q,a) -> runQuery q w >>= \x -> return (x,(q, a))) (transients dh)
   let (ts',nts) = partition fst ts
   gs <- mapM (flip runQuery w . snd . snd) ts'
   let (Endo g) = maybe (Endo id) id $ listToMaybe gs
-  io $ writeIORef ref $ dh { transients = map snd nts }
+  putState $ dh { transients = map snd nts }
   return $ Endo $ f . g
                                        ))
-
 -- | Appends the given 'ManageHook' to the permanent dynamic 'ManageHook'.
-addDynamicHook :: IORef DynamicHooks -> ManageHook -> X ()
-addDynamicHook ref m = updateDynamicHook ref (<+> m)
-
+addDynamicHook :: ManageHook -> X ()
+addDynamicHook m = updateDynamicHook (<+> m)
 
 -- | Modifies the permanent 'ManageHook' with an arbitrary function.
-updateDynamicHook :: IORef DynamicHooks -> (ManageHook -> ManageHook) -> X ()
-updateDynamicHook ref f =
-    io $ modifyIORef ref $ \dh -> dh { permanent = f (permanent dh) }
-
+updateDynamicHook :: (ManageHook -> ManageHook) -> X ()
+updateDynamicHook f = modifyState $ \dh -> dh { permanent = f (permanent dh) }
 
 -- | Creates a one-shot 'ManageHook'. Note that you have to specify the two
 -- parts of the 'ManageHook' separately. Where you would usually write:
@@ -112,11 +89,5 @@ updateDynamicHook ref f =
 --
 -- > oneShotHook dynHooksRef (className =? "example) doFloat
 --
-oneShotHook :: IORef DynamicHooks -> Query Bool -> ManageHook -> X ()
-oneShotHook ref q a =
-  io $ modifyIORef ref
-         $ \dh -> dh { transients = (q,a):(transients dh) }
-
-
-
-
+oneShotHook :: Query Bool -> ManageHook -> X ()
+oneShotHook q a = modifyState $ \dh -> dh { transients = (q,a):(transients dh) }

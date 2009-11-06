@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.SpawnOn
@@ -18,7 +19,6 @@ module XMonad.Actions.SpawnOn (
     -- * Usage
     -- $usage
     Spawner,
-    mkSpawner,
     manageSpawn,
     spawnHere,
     spawnOn,
@@ -28,7 +28,6 @@ module XMonad.Actions.SpawnOn (
 ) where
 
 import Data.List (isInfixOf)
-import Data.IORef
 import System.Posix.Types (ProcessID)
 
 import XMonad
@@ -37,6 +36,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.ManageHelpers
 import XMonad.Prompt
 import XMonad.Prompt.Shell
+import XMonad.Util.ExtensibleState
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -44,17 +44,16 @@ import XMonad.Prompt.Shell
 -- >    import XMonad.Actions.SpawnOn
 --
 -- >    main = do
--- >      sp <- mkSpawner
 -- >      xmonad defaultConfig {
 -- >         ...
--- >         manageHook = manageSpawn sp <+> manageHook defaultConfig
+-- >         manageHook = manageSpawn <+> manageHook defaultConfig
 -- >         ...
 -- >      }
 --
 -- To ensure that application appears on a workspace it was launched at, add keybindings like:
 --
--- >  , ((mod1Mask,xK_o), spawnHere sp "urxvt")
--- >  , ((mod1Mask,xK_s), shellPromptHere sp defaultXPConfig)
+-- >  , ((mod1Mask,xK_o), spawnHere "urxvt")
+-- >  , ((mod1Mask,xK_s), shellPromptHere defaultXPConfig)
 --
 -- The module can also be used to apply other manage hooks to the window of
 -- the spawned application(e.g. float or resize it).
@@ -62,26 +61,29 @@ import XMonad.Prompt.Shell
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-newtype Spawner = Spawner {pidsRef :: IORef [(ProcessID, ManageHook)]}
+newtype Spawner = Spawner {pidsRef :: [(ProcessID, ManageHook)]} deriving Typeable
+
+instance ExtensionClass Spawner where
+    initialValue = Spawner []
 
 maxPids :: Int
 maxPids = 5
 
--- | Create 'Spawner' which then has to be passed to other functions.
-mkSpawner :: (Functor m, MonadIO m) => m Spawner
-mkSpawner = io . fmap Spawner $ newIORef []
+-- | Get the current Spawner or create one if it doesn't exist.
+modifySpawner :: ([(ProcessID, ManageHook)] -> [(ProcessID, ManageHook)]) -> X ()
+modifySpawner f = putState . Spawner . f . pidsRef =<< getState
 
 -- | Provides a manage hook to react on process spawned with
 -- 'spawnOn', 'spawnHere' etc.
-manageSpawn :: Spawner -> ManageHook
-manageSpawn sp = do
-    pids <- io . readIORef $ pidsRef sp
+manageSpawn :: ManageHook
+manageSpawn = do
+    Spawner pids <- liftX getState
     mp <- pid
     case flip lookup pids =<< mp of
-        Nothing -> doF id
+        Nothing -> idHook
         Just mh  -> do
             whenJust mp $ \p ->
-                io . modifyIORef (pidsRef sp) $ filter ((/= p) . fst)
+                liftX . modifySpawner $ filter ((/= p) . fst)
             mh
 
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
@@ -91,32 +93,31 @@ mkPrompt cb c = do
 
 -- | Replacement for Shell prompt ("XMonad.Prompt.Shell") which launches
 -- application on current workspace.
-shellPromptHere :: Spawner -> XPConfig -> X ()
-shellPromptHere sp = mkPrompt (spawnHere sp)
+shellPromptHere :: XPConfig -> X ()
+shellPromptHere = mkPrompt spawnHere
 
 -- | Replacement for Shell prompt ("XMonad.Prompt.Shell") which launches
 -- application on given workspace.
-shellPromptOn :: Spawner -> WorkspaceId -> XPConfig -> X ()
-shellPromptOn sp ws = mkPrompt (spawnOn sp ws)
+shellPromptOn :: WorkspaceId -> XPConfig -> X ()
+shellPromptOn ws = mkPrompt (spawnOn ws)
 
 -- | Replacement for 'spawn' which launches
 -- application on current workspace.
-spawnHere :: Spawner -> String -> X ()
-spawnHere sp cmd = withWindowSet $ \ws -> spawnOn sp (W.currentTag ws) cmd
+spawnHere :: String -> X ()
+spawnHere cmd = withWindowSet $ \ws -> spawnOn (W.currentTag ws) cmd
 
 -- | Replacement for 'spawn' which launches
 -- application on given workspace.
-spawnOn :: Spawner -> WorkspaceId -> String -> X ()
-spawnOn sp ws cmd = spawnAndDo sp (doShift ws) cmd
+spawnOn :: WorkspaceId -> String -> X ()
+spawnOn ws cmd = spawnAndDo (doShift ws) cmd
 
 -- | Spawn an application and apply the manage hook when it opens.
-spawnAndDo :: Spawner -> ManageHook -> String -> X ()
-spawnAndDo sp mh cmd = do
+spawnAndDo :: ManageHook -> String -> X ()
+spawnAndDo mh cmd = do
     p <- spawnPID $ mangle cmd
-    io $ modifyIORef (pidsRef sp) (take maxPids . ((p,mh) :))
+    modifySpawner $ (take maxPids . ((p,mh) :))
  where
     -- TODO this is silly, search for a better solution
     mangle xs | any (`elem` metaChars) xs || "exec" `isInfixOf` xs = xs
               | otherwise = "exec " ++ xs
     metaChars = "&|;"
-

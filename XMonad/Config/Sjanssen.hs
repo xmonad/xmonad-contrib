@@ -21,7 +21,7 @@ import XMonad.Layout.TwoPane
 import qualified Data.Map as M
 
 sjanssenConfig = do
-    sp <- mkSpawner :: IO Spawner
+    sp <- mkSpawner
     return . ewmh $ defaultConfig
         { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
@@ -30,13 +30,12 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys sp c `M.union` keys defaultConfig c
-        , logHook = dynamicLogString sjanssenPP >>= xmonadPropLog
         , layoutHook  = modifiers layouts
         , manageHook  = composeAll [className =? x --> doShift w
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
-                        <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn sp
+                        <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn
                         <+> (isFullscreen --> doFullFloat)
         }
  where
@@ -44,9 +43,9 @@ sjanssenConfig = do
     layouts   = (tiled Tall ||| (tiled Wide ||| Full)) ||| tabbed shrinkText myTheme
     modifiers = avoidStruts . smartBorders
 
-    mykeys sp (XConfig {modMask = modm}) = M.fromList $
-        [((modm,               xK_p     ), shellPromptHere sp myPromptConfig)
-        ,((modm .|. shiftMask, xK_Return), spawnHere sp =<< asks (terminal . config))
+    mykeys (XConfig {modMask = modm}) = M.fromList $
+        [((modm,               xK_p     ), shellPromptHere myPromptConfig)
+        ,((modm .|. shiftMask, xK_Return), spawnHere =<< asks (terminal . config))
         ,((modm .|. shiftMask, xK_c     ), kill1)
         ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
         ,((modm .|. shiftMask, xK_0     ), windows $ copyToAll)

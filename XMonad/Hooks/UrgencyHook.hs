@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards, DeriveDataTypeable,
+  FlexibleInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -71,17 +72,16 @@ import XMonad
 import qualified XMonad.StackSet as W
 
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
+import XMonad.Util.ExtensibleState
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 
 import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
-import Data.IORef
 import Data.List (delete)
 import Data.Maybe (listToMaybe, maybeToList)
 import qualified Data.Set as S
-import Foreign (unsafePerformIO)
 
 -- $usage
 --
@@ -213,6 +213,15 @@ withUrgencyHookC hook urgConf conf = conf {
         logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf
     }
 
+data Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show,Typeable)
+
+onUrgents :: ([Window] -> [Window]) -> Urgents -> Urgents
+onUrgents f = Urgents . f . fromUrgents
+
+instance ExtensionClass Urgents where
+    initialValue = Urgents []
+    extensionType = PersistentExtension
+
 -- | Global configuration, applied to all types of 'UrgencyHook'. See
 -- 'urgencyConfig' for the defaults.
 data UrgencyConfig = UrgencyConfig
@@ -262,25 +271,18 @@ focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMayb
 clearUrgents :: X ()
 clearUrgents = adjustUrgents (const []) >> adjustReminders (const [])
 
--- | Stores the global set of all urgent windows, across workspaces. Not exported -- use
--- 'readUrgents' or 'withUrgents' instead.
-{-# NOINLINE urgents #-}
-urgents :: IORef [Window]
-urgents = unsafePerformIO (newIORef [])
--- (Hey, I don't like it any more than you do.)
-
 -- | X action that returns a list of currently urgent windows. You might use
 -- it, or 'withUrgents', in your custom logHook, to display the workspaces that
 -- contain urgent windows.
 readUrgents :: X [Window]
-readUrgents = io $ readIORef urgents
+readUrgents = fromUrgents <$> getState
 
 -- | An HOF version of 'readUrgents', for those who prefer that sort of thing.
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
 adjustUrgents :: ([Window] -> [Window]) -> X ()
-adjustUrgents f = io $ modifyIORef urgents f
+adjustUrgents f = modifyState $ onUrgents f
 
 type Interval = Rational
 
@@ -290,18 +292,19 @@ data Reminder = Reminder { timer     :: TimerId
                          , window    :: Window
                          , interval  :: Interval
                          , remaining :: Maybe Int
-                         } deriving Eq
+                         } deriving (Show,Read,Eq,Typeable)
+
+instance ExtensionClass [Reminder] where
+    initialValue = []
+    extensionType = PersistentExtension
 
 -- | Stores the list of urgency reminders.
-{-# NOINLINE reminders #-}
-reminders :: IORef [Reminder]
-reminders = unsafePerformIO (newIORef [])
 
 readReminders :: X [Reminder]
-readReminders = io $ readIORef reminders
+readReminders = getState
 
 adjustReminders :: ([Reminder] -> [Reminder]) -> X ()
-adjustReminders f = io $ modifyIORef reminders f
+adjustReminders f = modifyState f
 
 clearUrgency :: Window -> X ()
 clearUrgency w = adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)
@@ -332,7 +335,7 @@ handleEvent wuh event =
                   callUrgencyHook wuh w
                 else
                   clearUrgency w
-              userCodeDef () =<< asks (logHook . config) -- call *after* IORef has been modified
+              userCodeDef () =<< asks (logHook . config)
       DestroyWindowEvent {ev_window = w} ->
           clearUrgency w
       _ ->
