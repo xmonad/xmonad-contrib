@@ -221,6 +221,7 @@ library
                         XMonad.Util.CustomKeys
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
+                        XMonad.Util.ExtensibleState
                         XMonad.Util.EZConfig
                         XMonad.Util.Font
                         XMonad.Util.Invisible
