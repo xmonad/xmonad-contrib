@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TopicSpace
@@ -43,6 +44,7 @@ import Data.Maybe (fromMaybe, isNothing, listToMaybe)
 import Data.Ord
 import qualified Data.Map as M
 import Control.Monad ((=<<),liftM2,when,unless,replicateM_)
+import Control.Applicative ((<$>))
 import System.IO
 
 import XMonad.Operations
@@ -56,7 +58,7 @@ import XMonad.Hooks.DynamicLog (PP(..))
 import qualified XMonad.Hooks.DynamicLog as DL
 
 import XMonad.Util.Run (spawnPipe)
-import XMonad.Util.StringProp(getStringListProp,setStringListProp)
+import XMonad.Util.ExtensibleState
 
 -- $overview
 -- This module allows to organize your workspaces on a precise topic basis.  So
@@ -225,19 +227,23 @@ data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
                                  -- numeric keypad.
                                }
 
+newtype PrevTopics = PrevTopics { getPrevTopics :: [String] } deriving (Read,Show,Typeable)
+instance ExtensionClass PrevTopics where
+    initialValue = PrevTopics []
+    extensionType = PersistentExtension
+
 -- | Returns the list of last focused workspaces the empty list otherwise.
--- This function rely on a reserved property namely _XMONAD_LAST_FOCUSED_WORKSPACES.
 getLastFocusedTopics :: X [String]
-getLastFocusedTopics = asks display >>= flip getStringListProp "_XMONAD_LAST_FOCUSED_WORKSPACES"
+getLastFocusedTopics = getPrevTopics <$> getState
 
 -- | Given a 'TopicConfig', the last focused topic, and a predicate that will
 -- select topics that one want to keep, this function will set the property
 -- of last focused topics.
 setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
-setLastFocusedTopic tg w predicate = do
-  disp <- asks display
-  setStringListProp disp "_XMONAD_LAST_FOCUSED_WORKSPACES"
-    . take (maxTopicHistory tg) . nub . (w:) . filter predicate =<< getLastFocusedTopics
+setLastFocusedTopic tg w predicate =
+  modifyState $ PrevTopics
+    . take (maxTopicHistory tg) . nub . (w:) . filter predicate
+    . getPrevTopics
 
 -- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
 -- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
