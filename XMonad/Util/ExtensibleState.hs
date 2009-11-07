@@ -92,14 +92,17 @@ getState = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
         getState' :: ExtensionClass a => a -> X a
         getState' k = do
           v <- gets $ M.lookup (show . typeOf $ k) . extensibleState
-          return $ case v of
-                     Just (Right (StateExtension val)) -> toValue val
-                     Just (Right (PersistentExtension val)) -> toValue val
-                     Just (Left str) -> case extensionType (undefined `asTypeOf` k) of
-                                         PersistentExtension x -> maybe initialValue id $
-                                             cast =<< safeRead str `asTypeOf` (Just x)
-                                         _ -> initialValue
-                     _ -> initialValue
+          case v of
+            Just (Right (StateExtension val)) -> return $ toValue val
+            Just (Right (PersistentExtension val)) -> return $ toValue val
+            Just (Left str) -> case extensionType (undefined `asTypeOf` k) of
+                                PersistentExtension x -> do
+                                  let val = maybe initialValue id $
+                                            cast =<< safeRead str `asTypeOf` (Just x)
+                                  putState (val `asTypeOf` k)
+                                  return val
+                                _ -> return $ initialValue
+            _ -> return $ initialValue
         safeRead str = case reads str of
                          [(x,"")] -> Just x
                          _ -> Nothing
