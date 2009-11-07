@@ -32,6 +32,7 @@ import Control.Monad
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
+import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 
 -- $usage
@@ -132,14 +133,14 @@ handle ClientMessageEvent {
        a_cw <- getAtom "_NET_CLOSE_WINDOW"
        a_ignore <- mapM getAtom ["XMONAD_TIMER"]
        if  mt == a_cd then do
-               let n = fromIntegral (head d)
-               if 0 <= n && n < length ws then
-                       windows $ W.view (W.tag (ws !! n))
+               let n = head d
+               if 0 <= n && fi n < length ws then
+                       windows $ W.view (W.tag (ws !! fi n))
                  else  trace $ "Bad _NET_CURRENT_DESKTOP with data[0]="++show n
         else if mt == a_d then do
-               let n = fromIntegral (head d)
-               if 0 <= n && n < length ws then
-                       windows $ W.shiftWin (W.tag (ws !! n)) w
+               let n = head d
+               if 0 <= n && fi n < length ws then
+                       windows $ W.shiftWin (W.tag (ws !! fi n)) w
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
         else if mt == a_aw then do
                windows $ W.focusWindow w
