@@ -89,8 +89,8 @@ library
                         XMonad.Actions.PhysicalScreens
                         XMonad.Actions.Plane
                         XMonad.Actions.Promote
-                        XMonad.Actions.RotSlaves
                         XMonad.Actions.RandomBackground
+                        XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll
@@ -99,13 +99,13 @@ library
                         XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows
                         XMonad.Actions.TopicSpace
-                        XMonad.Actions.UpdatePointer
                         XMonad.Actions.UpdateFocus
+                        XMonad.Actions.UpdatePointer
                         XMonad.Actions.Warp
+                        XMonad.Actions.WindowBringer
+                        XMonad.Actions.WindowGo
                         XMonad.Actions.WindowMenu
                         XMonad.Actions.WindowNavigation
-                        XMonad.Actions.WindowGo
-                        XMonad.Actions.WindowBringer
                         XMonad.Actions.WithAll
                         XMonad.Actions.WorkspaceCursors
                         XMonad.Config.Arossato
@@ -127,8 +127,8 @@ library
                         XMonad.Hooks.Place
                         XMonad.Hooks.RestoreMinimized
                         XMonad.Hooks.Script
-                        XMonad.Hooks.SetWMName
                         XMonad.Hooks.ServerMode
+                        XMonad.Hooks.SetWMName
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.XPropManage
@@ -138,10 +138,10 @@ library
                         XMonad.Layout.BoringWindows
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
-                        XMonad.Layout.Cross
                         XMonad.Layout.Column
                         XMonad.Layout.Combo
                         XMonad.Layout.ComboP
+                        XMonad.Layout.Cross
                         XMonad.Layout.Decoration
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
@@ -183,33 +183,33 @@ library
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
-                        XMonad.Layout.Simplest
+                        XMonad.Layout.ShowWName
                         XMonad.Layout.SimpleDecoration
                         XMonad.Layout.SimpleFloat
+                        XMonad.Layout.Simplest
+                        XMonad.Layout.SimplestFloat
                         XMonad.Layout.Spacing
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
-                        XMonad.Layout.ShowWName
                         XMonad.Layout.StackTile
                         XMonad.Layout.SubLayouts
-                        XMonad.Layout.Tabbed
                         XMonad.Layout.TabBarDecoration
+                        XMonad.Layout.Tabbed
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TwoPane
                         XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
                         XMonad.Layout.WorkspaceDir
-                        XMonad.Layout.SimplestFloat
-                        XMonad.Prompt.Directory
                         XMonad.Prompt
                         XMonad.Prompt.AppendFile
                         XMonad.Prompt.AppLauncher
-                        XMonad.Prompt.Input
+                        XMonad.Prompt.Directory
+                        XMonad.Prompt.DirExec
                         XMonad.Prompt.Email
+                        XMonad.Prompt.Input
                         XMonad.Prompt.Layout
                         XMonad.Prompt.Man
-                        XMonad.Prompt.DirExec
                         XMonad.Prompt.RunOrRaise
                         XMonad.Prompt.Shell
                         XMonad.Prompt.Ssh
@@ -229,16 +229,16 @@ library
                         XMonad.Util.NamedActions
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
-                        XMonad.Util.StringProp
+                        XMonad.Util.Paste
+                        XMonad.Util.Replace
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
                         XMonad.Util.SpawnOnce
+                        XMonad.Util.StringProp
                         XMonad.Util.Themes
                         XMonad.Util.Timer
                         XMonad.Util.Types
                         XMonad.Util.WindowProperties
                         XMonad.Util.WorkspaceCompare
-                        XMonad.Util.Paste
-                        XMonad.Util.Replace
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
