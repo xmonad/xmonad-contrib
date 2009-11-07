@@ -14,6 +14,7 @@ import XMonad.Hooks.ManageHelpers (isFullscreen, doFullFloat)
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Prompt
 import XMonad.Actions.SpawnOn
+import XMonad.Util.SpawnOnce
 
 import XMonad.Layout.LayoutScreens
 import XMonad.Layout.TwoPane
@@ -37,11 +38,18 @@ sjanssenConfig =
                                                 , ("Amarokapp", "7")]]
                         <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn
                         <+> (isFullscreen --> doFullFloat)
+        , startupHook = mapM_ spawnOnce spawns
         }
  where
     tiled     = HintedTile 1 0.03 0.5 TopLeft
     layouts   = (tiled Tall ||| (tiled Wide ||| Full)) ||| tabbed shrinkText myTheme
     modifiers = avoidStruts . smartBorders
+
+    spawns = [ "xmobar"
+             , "xset -b", "xset s off", "xset dpms 0 600 1200"
+             , "nitrogen --set-tiled wallpaper/wallpaper.jpg"
+             , "trayer --transparent true --expand true --align right "
+               ++ "--edge bottom --widthtype request" ]
 
     mykeys (XConfig {modMask = modm}) = M.fromList $
         [((modm,               xK_p     ), shellPromptHere myPromptConfig)
