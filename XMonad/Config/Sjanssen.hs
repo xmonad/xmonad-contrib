@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-module XMonad.Config.Sjanssen (sjanssenConfig, sjanssenConfigXmobar) where
+module XMonad.Config.Sjanssen (sjanssenConfig) where
 
 import XMonad hiding (Tall(..))
 import qualified XMonad.StackSet as W
@@ -8,7 +8,7 @@ import XMonad.Layout.Tabbed
 import XMonad.Layout.HintedTile
 import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
-import XMonad.Hooks.DynamicLog hiding (xmobar)
+import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers (isFullscreen, doFullFloat)
 import XMonad.Hooks.EwmhDesktops
@@ -20,12 +20,8 @@ import XMonad.Layout.TwoPane
 
 import qualified Data.Map as M
 
-sjanssenConfigXmobar = statusBar "exec xmobar" sjanssenPP strutkey =<< sjanssenConfig
- where
-    strutkey (XConfig {modMask = modm}) = (modm, xK_b)
-
 sjanssenConfig = do
-    sp <- mkSpawner
+    sp <- mkSpawner :: IO Spawner
     return . ewmh $ defaultConfig
         { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
@@ -34,6 +30,7 @@ sjanssenConfig = do
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
         , keys = \c -> mykeys sp c `M.union` keys defaultConfig c
+        , logHook = dynamicLogString sjanssenPP >>= xmonadPropLog
         , layoutHook  = modifiers layouts
         , manageHook  = composeAll [className =? x --> doShift w
                                     | (x, w) <- [ ("Firefox", "web")
@@ -45,7 +42,7 @@ sjanssenConfig = do
  where
     tiled     = HintedTile 1 0.03 0.5 TopLeft
     layouts   = (tiled Tall ||| (tiled Wide ||| Full)) ||| tabbed shrinkText myTheme
-    modifiers = smartBorders
+    modifiers = avoidStruts . smartBorders
 
     mykeys sp (XConfig {modMask = modm}) = M.fromList $
         [((modm,               xK_p     ), shellPromptHere sp myPromptConfig)
@@ -55,6 +52,7 @@ sjanssenConfig = do
         ,((modm .|. shiftMask, xK_0     ), windows $ copyToAll)
         ,((modm,               xK_z     ), layoutScreens 2 $ TwoPane 0.5 0.5)
         ,((modm .|. shiftMask, xK_z     ), rescreen)
+        , ((modm             , xK_b     ), sendMessage ToggleStruts)
         ]
 
     myFont = "xft:Bitstream Vera Sans Mono:pixelsize=10"
