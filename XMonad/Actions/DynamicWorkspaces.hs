@@ -16,7 +16,8 @@
 module XMonad.Actions.DynamicWorkspaces (
                                          -- * Usage
                                          -- $usage
-                                         addWorkspace, removeWorkspace,
+                                         addWorkspace, addWorkspacePrompt,
+                                         removeWorkspace,
                                          addHiddenWorkspace,
                                          withWorkspace,
                                          selectWorkspace, renameWorkspace,
@@ -101,6 +102,9 @@ selectWorkspace conf = workspacePrompt conf $ \w ->
 addWorkspace :: String -> X ()
 addWorkspace newtag = addHiddenWorkspace newtag >> windows (greedyView newtag)
 
+-- | Prompt for the name of a new workspace, and add it.
+addWorkspacePrompt :: XPConfig -> X ()
+addWorkspacePrompt conf = mkXPrompt (Wor "New workspace name: ") conf (const (return [])) addWorkspace
 
 -- | Add a new hidden workspace with the given name.
 addHiddenWorkspace :: String -> X ()
