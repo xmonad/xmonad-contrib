@@ -8,8 +8,11 @@ import Graphics.X11
 import Graphics.X11.Xlib.Extras
 import Codec.Binary.UTF8.String as UTF8
 import Foreign.C (CChar)
+import System.IO
 
 main = do
+    hSetBuffering stdout LineBuffering
+
     d <- openDisplay ""
     xlog <- internAtom d "_XMONAD_LOG" False
 
