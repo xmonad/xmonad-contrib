@@ -230,6 +230,7 @@ library
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
                         XMonad.Util.Paste
+                        XMonad.Util.PositionStore
                         XMonad.Util.Replace
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
