@@ -21,7 +21,6 @@ module XMonad.Util.ExtensibleState (
                               , getState
                               ) where
 
-import Control.Applicative
 import Data.Typeable (typeOf,Typeable,cast)
 import qualified Data.Map as M
 import XMonad.Core
@@ -77,7 +76,7 @@ modifyStateExts f = modify $ \st -> st { extensibleState = f (extensibleState st
 -- | Apply a function to a stored value of the matching type or the initial value if there
 -- is none.
 modifyState :: ExtensionClass a => (a -> a) -> X ()
-modifyState f = putState =<< f <$> getState
+modifyState f = putState . f =<< getState
 
 -- | Add a value to the extensible state field. A previously stored value with the same
 -- type will be overwritten. (More precisely: A value whose string representation of its type
