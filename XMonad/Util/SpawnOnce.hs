@@ -26,14 +26,14 @@ data SpawnOnce = SpawnOnce { unspawnOnce :: (Set String) }
     deriving (Read, Show, Typeable)
 
 instance ExtensionClass SpawnOnce where
-    initialValue = SpawnOnce $ Set.empty
+    initialValue = SpawnOnce Set.empty
     extensionType = PersistentExtension
 
 -- | The first time 'spawnOnce' is executed on a particular command, that
 -- command is executed.  Subsequent invocations for a command do nothing.
 spawnOnce :: String -> X ()
 spawnOnce xs = do
-    b <- fmap (Set.member xs . unspawnOnce) $ getState
+    b <- fmap (Set.member xs . unspawnOnce) getState
     when (not b) $ do
         spawn xs
         modifyState (SpawnOnce . Set.insert xs . unspawnOnce)
