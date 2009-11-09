@@ -38,6 +38,7 @@ module XMonad.Actions.GridSelect (
     withSelectedWindow,
     bringSelected,
     goToSelected,
+    gridselectViewWorkspace,
     spawnSelected,
     runSelectedAction,
 
@@ -520,3 +521,11 @@ runSelectedAction conf actions = do
     case selectedActionM of
         Just selectedAction -> selectedAction
         Nothing -> return ()
+
+-- | Select a workspace and view it using the given function
+-- (normally 'W.view' or 'W.greedyView')
+gridselectViewWorkspace :: GSConfig WorkspaceId ->
+                          (WorkspaceId -> WindowSet -> WindowSet) -> X ()
+gridselectViewWorkspace conf viewFunc = withWindowSet $ \ws -> do
+    let wss = map W.tag $ W.hidden ws ++ map W.workspace (W.current ws : W.visible ws)
+    gridselect conf (zip wss wss) >>= flip whenJust (windows . viewFunc)
