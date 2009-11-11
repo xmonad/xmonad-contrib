@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.FloatNext
@@ -38,37 +39,35 @@ module XMonad.Hooks.FloatNext ( -- * Usage
 import Prelude hiding (all)
 
 import XMonad
+import XMonad.Util.ExtensibleState
 
-import Control.Monad (join)
+import Control.Monad (join,guard)
 import Control.Applicative ((<$>))
 import Control.Arrow (first, second)
-import Control.Concurrent.MVar
-import System.IO.Unsafe (unsafePerformIO)
-
 
 {- Helper functions -}
 
-modifyMVar2 :: MVar a -> (a -> a) -> IO ()
-modifyMVar2 v f = modifyMVar_ v (return . f)
-
 _set :: ((a -> a) -> (Bool, Bool) -> (Bool, Bool)) -> a -> X ()
-_set f b = io $ modifyMVar2 floatModeMVar (f $ const b)
+_set f b = modifyState' (f $ const b)
 
 _toggle :: ((Bool -> Bool) -> (Bool, Bool) -> (Bool, Bool)) -> X ()
-_toggle f = io $ modifyMVar2 floatModeMVar (f not)
+_toggle f = modifyState' (f not)
 
 _get :: ((Bool, Bool) -> a) -> X a
-_get f = io $ f <$> readMVar floatModeMVar
+_get f = f . getFloatMode <$> getState
 
 _pp :: ((Bool, Bool) -> Bool) -> String -> (String -> String) -> X (Maybe String)
-_pp f s st = _get f >>= \b -> if b then return $ Just $ st s else return Nothing
-
+_pp f s st = (\b -> guard b >> Just (st s)) <$> _get f
 
 {- The current state is kept here -}
 
-floatModeMVar :: MVar (Bool, Bool)
-floatModeMVar = unsafePerformIO $ newMVar (False, False)
+data FloatMode = FloatMode { getFloatMode :: (Bool,Bool) } deriving (Typeable)
 
+instance ExtensionClass FloatMode where
+    initialValue = FloatMode (False,False)
+
+modifyState' :: ((Bool,Bool) -> (Bool,Bool)) -> X ()
+modifyState' f = modifyState (FloatMode . f . getFloatMode)
 
 -- $usage
 -- This module provides actions (that can be set as keybindings)
@@ -97,8 +96,8 @@ floatModeMVar = unsafePerformIO $ newMVar (False, False)
 -- | This 'ManageHook' will selectively float windows as set
 -- by 'floatNext' and 'floatAllNew'.
 floatNextHook :: ManageHook
-floatNextHook = do (next, all) <- io $ takeMVar floatModeMVar
-                   io $ putMVar floatModeMVar (False, all)
+floatNextHook = do (next, all) <- liftX $ getFloatMode <$> getState
+                   liftX $ putState $ FloatMode (False, all)
                    if next || all then doFloat else idHook
 
 
