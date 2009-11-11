@@ -77,129 +77,108 @@ import XMonad.Util.ExtensibleState
 -- $usage
 -- Here is an example of configuration using TopicSpace:
 --
--- @
--- -- The list of all topics/workspaces of your xmonad configuration.
--- -- The order is important, new topics must be inserted
--- -- at the end of the list if you want hot-restarting
--- -- to work.
--- myTopics :: [Topic]
--- myTopics =
---   [ \"dashboard\" -- the first one
---   , \"admin\", \"build\", \"cleaning\", \"conf\", \"darcs\", \"haskell\", \"irc\"
---   , \"mail\", \"movie\", \"music\", \"talk\", \"text\", \"tools\", \"web\", \"xmonad\"
---   , \"yi\", \"documents\", \"twitter\", \"pdf\"
---   ]
--- @
---
--- @
---  myTopicConfig :: TopicConfig
---  myTopicConfig = TopicConfig
---    { topicDirs = M.fromList $
---        [ (\"conf\", \"w\/conf\")
---        , (\"dashboard\", \"Desktop\")
---        , (\"yi\", \"w\/dev-haskell\/yi\")
---        , (\"darcs\", \"w\/dev-haskell\/darcs\")
---        , (\"haskell\", \"w\/dev-haskell\")
---        , (\"xmonad\", \"w\/dev-haskell\/xmonad\")
---        , (\"tools\", \"w\/tools\")
---        , (\"movie\", \"Movies\")
---        , (\"talk\", \"w\/talks\")
---        , (\"music\", \"Music\")
---        , (\"documents\", \"w\/documents\")
---        , (\"pdf\", \"w\/documents\")
---        ]
---    , defaultTopicAction = const $ spawnShell >*> 3
---    , defaultTopic = \"dashboard\"
---    , maxTopicHistory = 10
---    , topicActions = M.fromList $
---        [ (\"conf\",       spawnShell >> spawnShellIn \"wd\/ertai\/private\")
---        , (\"darcs\",      spawnShell >*> 3)
---        , (\"yi\",         spawnShell >*> 3)
---        , (\"haskell\",    spawnShell >*> 2 >>
---                         spawnShellIn \"wd\/dev-haskell\/ghc\")
---        , (\"xmonad\",     spawnShellIn \"wd\/x11-wm\/xmonad\" >>
---                         spawnShellIn \"wd\/x11-wm\/xmonad\/contrib\" >>
---                         spawnShellIn \"wd\/x11-wm\/xmonad\/utils\" >>
---                         spawnShellIn \".xmonad\" >>
---                         spawnShellIn \".xmonad\")
---        , (\"mail\",       mailAction)
---        , (\"irc\",        ssh somewhere)
---        , (\"admin\",      ssh somewhere >>
---                         ssh nowhere)
---        , (\"dashboard\",  spawnShell)
---        , (\"twitter\",    spawnShell)
---        , (\"web\",        spawn browserCmd)
---        , (\"movie\",      spawnShell)
---        , (\"documents\",  spawnShell >*> 2 >>
---                         spawnShellIn \"Documents\" >*> 2)
---        , (\"pdf\",        spawn pdfViewerCmd)
---        ]
---    }
--- @
---
--- @
---  -- extend your keybindings
---  myKeys conf\@XConfig{modMask=modm} =
---    [ ((modm              , xK_n     ), spawnShell) -- %! Launch terminal
---    , ((modm              , xK_a     ), currentTopicAction myTopicConfig)
---    , ((modm              , xK_g     ), promptedGoto)
---    , ((modm .|. shiftMask, xK_g     ), promptedShift)
---    ...
---    ]
---    ++
---    [ ((modm, k), switchNthLastFocused myTopicConfig i)
---    | (i, k) <- zip [1..] workspaceKeys]
--- @
---
--- @
---  spawnShell :: X ()
---  spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
--- @
---
--- @
---  spawnShellIn :: Dir -> X ()
---  spawnShellIn dir = spawn $ \"urxvt '(cd ''\" ++ dir ++ \"'' && \" ++ myShell ++ \" )'\"
--- @
---
--- @
---  goto :: Topic -> X ()
---  goto = switchTopic myTopicConfig
--- @
---
--- @
---  promptedGoto :: X ()
---  promptedGoto = workspacePrompt myXPConfig goto
--- @
---
--- @
---  promptedShift :: X ()
---  promptedShift = workspacePrompt myXPConfig $ windows . W.shift
--- @
---
--- @
---  myConfig = do
---      checkTopicConfig myTopics myTopicConfig
---      myLogHook <- makeMyLogHook
---      return $ defaultConfig
---           { borderWidth = 1 -- Width of the window border in pixels.
---           , workspaces = myTopics
---           , layoutHook = myModifiers myLayout
---           , manageHook = myManageHook
---           , logHook = myLogHook
---           , handleEventHook = myHandleEventHook
---           , terminal = myTerminal -- The preferred terminal program.
---           , normalBorderColor = \"#3f3c6d\"
---           , focusedBorderColor = \"#4f66ff\"
---           , XMonad.modMask = mod1Mask
---           , keys = myKeys
---           , mouseBindings = myMouseBindings
---           }
--- @
---
--- @
---  main :: IO ()
---  main = xmonad =<< myConfig
--- @
+-- > -- The list of all topics/workspaces of your xmonad configuration.
+-- > -- The order is important, new topics must be inserted
+-- > -- at the end of the list if you want hot-restarting
+-- > -- to work.
+-- > myTopics :: [Topic]
+-- > myTopics =
+-- >   [ "dashboard" -- the first one
+-- >   , "admin", "build", "cleaning", "conf", "darcs", "haskell", "irc"
+-- >   , "mail", "movie", "music", "talk", "text", "tools", "web", "xmonad"
+-- >   , "yi", "documents", "twitter", "pdf"
+-- >   ]
+-- >
+-- > myTopicConfig :: TopicConfig
+-- > myTopicConfig = defaultTopicConfig
+-- >   { topicDirs = M.fromList $
+-- >       [ ("conf", "w/conf")
+-- >       , ("dashboard", "Desktop")
+-- >       , ("yi", "w/dev-haskell/yi")
+-- >       , ("darcs", "w/dev-haskell/darcs")
+-- >       , ("haskell", "w/dev-haskell")
+-- >       , ("xmonad", "w/dev-haskell/xmonad")
+-- >       , ("tools", "w/tools")
+-- >       , ("movie", "Movies")
+-- >       , ("talk", "w/talks")
+-- >       , ("music", "Music")
+-- >       , ("documents", "w/documents")
+-- >       , ("pdf", "w/documents")
+-- >       ]
+-- >   , defaultTopicAction = const $ spawnShell >*> 3
+-- >   , defaultTopic = "dashboard"
+-- >   , topicActions = M.fromList $
+-- >       [ ("conf",       spawnShell >> spawnShellIn "wd/ertai/private")
+-- >       , ("darcs",      spawnShell >*> 3)
+-- >       , ("yi",         spawnShell >*> 3)
+-- >       , ("haskell",    spawnShell >*> 2 >>
+-- >                        spawnShellIn "wd/dev-haskell/ghc")
+-- >       , ("xmonad",     spawnShellIn "wd/x11-wm/xmonad" >>
+-- >                        spawnShellIn "wd/x11-wm/xmonad/contrib" >>
+-- >                        spawnShellIn "wd/x11-wm/xmonad/utils" >>
+-- >                        spawnShellIn ".xmonad" >>
+-- >                        spawnShellIn ".xmonad")
+-- >       , ("mail",       mailAction)
+-- >       , ("irc",        ssh somewhere)
+-- >       , ("admin",      ssh somewhere >>
+-- >                        ssh nowhere)
+-- >       , ("dashboard",  spawnShell)
+-- >       , ("twitter",    spawnShell)
+-- >       , ("web",        spawn browserCmd)
+-- >       , ("movie",      spawnShell)
+-- >       , ("documents",  spawnShell >*> 2 >>
+-- >                        spawnShellIn "Documents" >*> 2)
+-- >       , ("pdf",        spawn pdfViewerCmd)
+-- >       ]
+-- >   }
+-- >
+-- > -- extend your keybindings
+-- > myKeys conf@XConfig{modMask=modm} =
+-- >   [ ((modm              , xK_n     ), spawnShell) -- %! Launch terminal
+-- >   , ((modm              , xK_a     ), currentTopicAction myTopicConfig)
+-- >   , ((modm              , xK_g     ), promptedGoto)
+-- >   , ((modm .|. shiftMask, xK_g     ), promptedShift)
+-- >   {- more  keys ... -}
+-- >   ]
+-- >   ++
+-- >   [ ((modm, k), switchNthLastFocused myTopicConfig i)
+-- >   | (i, k) <- zip [1..] workspaceKeys]
+-- >
+-- > spawnShell :: X ()
+-- > spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
+-- >
+-- > spawnShellIn :: Dir -> X ()
+-- > spawnShellIn dir = spawn $ "urxvt '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
+-- >
+-- > goto :: Topic -> X ()
+-- > goto = switchTopic myTopicConfig
+-- >
+-- > promptedGoto :: X ()
+-- > promptedGoto = workspacePrompt myXPConfig goto
+-- >
+-- > promptedShift :: X ()
+-- > promptedShift = workspacePrompt myXPConfig $ windows . W.shift
+-- >
+-- > myConfig = do
+-- >     checkTopicConfig myTopics myTopicConfig
+-- >     myLogHook <- makeMyLogHook
+-- >     return $ defaultConfig
+-- >          { borderWidth = 1 -- Width of the window border in pixels.
+-- >          , workspaces = myTopics
+-- >          , layoutHook = myModifiers myLayout
+-- >          , manageHook = myManageHook
+-- >          , logHook = myLogHook
+-- >          , handleEventHook = myHandleEventHook
+-- >          , terminal = myTerminal -- The preferred terminal program.
+-- >          , normalBorderColor = "#3f3c6d"
+-- >          , focusedBorderColor = "#4f66ff"
+-- >          , XMonad.modMask = mod1Mask
+-- >          , keys = myKeys
+-- >          , mouseBindings = myMouseBindings
+-- >          }
+-- >
+-- > main :: IO ()
+-- > main = xmonad =<< myConfig
 
 -- | An alias for @flip replicateM_@
 (>*>) :: Monad m => m a -> Int -> m ()
