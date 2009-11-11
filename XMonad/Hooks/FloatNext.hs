@@ -92,14 +92,12 @@ modifyState' f = modifyState (FloatMode . f . getFloatMode)
 --
 -- > , ((modm, xK_r), toggleFloatAllNew)
 
-
 -- | This 'ManageHook' will selectively float windows as set
 -- by 'floatNext' and 'floatAllNew'.
 floatNextHook :: ManageHook
 floatNextHook = do (next, all) <- liftX $ getFloatMode <$> getState
                    liftX $ putState $ FloatMode (False, all)
                    if next || all then doFloat else idHook
-
 
 -- | @floatNext True@ arranges for the next spawned window to be
 -- sent to the floating layer, @floatNext False@ cancels it.
@@ -117,7 +115,6 @@ floatAllNew = _set second
 toggleFloatAllNew :: X ()
 toggleFloatAllNew = _toggle second
 
-
 -- | Whether the next window will be set floating
 willFloatNext :: X Bool
 willFloatNext = _get fst
@@ -125,7 +122,6 @@ willFloatNext = _get fst
 -- | Whether new windows will be set floating
 willFloatAllNew :: X Bool
 willFloatAllNew = _get snd
-
 
 -- $pp
 -- The following functions are used to display the current
