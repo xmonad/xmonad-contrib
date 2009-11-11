@@ -58,8 +58,9 @@ and define appropriate key bindings:
 
 (Note that Firefox v3 and up have a class-name of \"Firefox\" and \"Navigator\";
 lower versions use other classnames such as \"Firefox-bin\". Either choose the
-appropriate one, or cover your bases by using instead something like
- @(className =? \"Firefox\" <||> className =? \"Firefox-bin\")@.)
+appropriate one, or cover your bases by using instead something like:
+
+> (className =? "Firefox" <||> className =? "Firefox-bin")
 
 For detailed instructions on editing your key bindings, see
 "XMonad.Doc.Extending#Editing_key_bindings". -}
@@ -171,14 +172,14 @@ runOrRaiseAndDo = raiseAndDo . safeSpawnProg
 {- | if the window is found the window is focused and set to master
      otherwise, the first argument is called.
 
-     > raiseMaster (runInTerm \"-title ghci\"  \"zsh -c \'ghci\'\") (title =? \"ghci\") -}
+     > raiseMaster (runInTerm "-title ghci"  "zsh -c 'ghci'") (title =? "ghci") -}
 raiseMaster :: X () -> Query Bool -> X ()
 raiseMaster raisef thatUserQuery = raiseAndDo raisef thatUserQuery (\_ -> windows W.swapMaster)
 
 {- |  If the window is found the window is focused and set to master
       otherwise, action is run.
 
-      > runOrRaiseMaster \"firefox\" (className =? \"Firefox\"))
+      > runOrRaiseMaster "firefox" (className =? "Firefox"))
   -}
 runOrRaiseMaster :: String -> Query Bool -> X ()
 runOrRaiseMaster run query = runOrRaiseAndDo run query (\_ -> windows W.swapMaster)
