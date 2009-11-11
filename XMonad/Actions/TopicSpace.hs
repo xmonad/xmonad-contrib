@@ -22,6 +22,7 @@ module XMonad.Actions.TopicSpace
    Topic
   , Dir
   , TopicConfig(..)
+  , defaultTopicConfig
   , getLastFocusedTopics
   , setLastFocusedTopic
   , pprWindowSet
@@ -226,6 +227,14 @@ data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
                                  -- 10 is a good default since we can bind all of them using
                                  -- numeric keypad.
                                }
+
+defaultTopicConfig :: TopicConfig
+defaultTopicConfig = TopicConfig { topicDirs = M.empty
+                                 , topicActions = M.empty
+                                 , defaultTopicAction = const (ask >>= spawn . terminal . config)
+                                 , defaultTopic = "1"
+                                 , maxTopicHistory = 10
+                                 }
 
 newtype PrevTopics = PrevTopics { getPrevTopics :: [String] } deriving (Read,Show,Typeable)
 instance ExtensionClass PrevTopics where
