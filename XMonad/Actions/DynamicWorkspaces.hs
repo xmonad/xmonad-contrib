@@ -98,18 +98,24 @@ selectWorkspace conf = workspacePrompt conf $ \w ->
                             then windows $ greedyView w
                             else addWorkspace w
 
--- | Add a new workspace with the given name.
+-- | Add a new workspace with the given name, or do nothing if a
+--   workspace with the given name already exists; then switch to the
+--   newly created workspace.
 addWorkspace :: String -> X ()
 addWorkspace newtag = addHiddenWorkspace newtag >> windows (greedyView newtag)
 
--- | Prompt for the name of a new workspace, and add it.
+-- | Prompt for the name of a new workspace, add it if it does not
+--   already exist, and switch to it.
 addWorkspacePrompt :: XPConfig -> X ()
 addWorkspacePrompt conf = mkXPrompt (Wor "New workspace name: ") conf (const (return [])) addWorkspace
 
--- | Add a new hidden workspace with the given name.
+-- | Add a new hidden workspace with the given name, or do nothing if
+--   a workspace with the given name already exists.
 addHiddenWorkspace :: String -> X ()
-addHiddenWorkspace newtag = do l <- asks (layoutHook . config)
-                               windows (addHiddenWorkspace' newtag l)
+addHiddenWorkspace newtag =
+  whenX (gets (not . tagMember newtag . windowset)) $ do
+    l <- asks (layoutHook . config)
+    windows (addHiddenWorkspace' newtag l)
 
 -- | Remove the current workspace if it contains no windows.
 removeWorkspace :: X ()
