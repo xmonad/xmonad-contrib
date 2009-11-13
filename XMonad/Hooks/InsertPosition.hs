@@ -46,7 +46,7 @@ data Focus = Newer | Older
 insertPosition :: Position -> Focus -> ManageHook
 insertPosition pos foc = Endo . g <$> ask
   where
-    g w = viewingWs w (updateFocus w . ins w . W.delete w)
+    g w = viewingWs w (updateFocus w . ins w . W.delete' w)
     ins w = (\f ws -> fromMaybe id (W.focusWindow <$> W.peek ws) $ f ws) $
         case pos of
             Master -> W.insertUp w . W.focusMaster
