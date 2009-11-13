@@ -8,8 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Provides bindings to add and delete workspaces.  Note that you may only
--- delete a workspace that is already empty.
+-- Provides bindings to add and delete workspaces.
 --
 -----------------------------------------------------------------------------
 
@@ -18,6 +17,9 @@ module XMonad.Actions.DynamicWorkspaces (
                                          -- $usage
                                          addWorkspace, addWorkspacePrompt,
                                          removeWorkspace,
+                                         removeEmptyWorkspace,
+                                         removeEmptyWorkspaceAfter,
+                                         removeEmptyWorkspaceAfterExcept,
                                          addHiddenWorkspace,
                                          withWorkspace,
                                          selectWorkspace, renameWorkspace,
@@ -29,6 +31,9 @@ import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace
 import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )
 import XMonad.Util.WorkspaceCompare ( getSortByIndex )
+import Data.List (find)
+import Data.Maybe (isNothing)
+import Control.Monad (when)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -118,14 +123,51 @@ addHiddenWorkspace newtag =
     windows (addHiddenWorkspace' newtag l)
 
 -- | Remove the current workspace if it contains no windows.
+removeEmptyWorkspace :: X ()
+removeEmptyWorkspace = do t <- (tag.workspace.current) `fmap` gets windowset
+                          removeEmptyWorkspaceByTag t
+
+-- | Remove the current workspace.
 removeWorkspace :: X ()
-removeWorkspace = do s <- gets windowset
-                     case s of
-                       StackSet { current = Screen { workspace = torem }
-                                , hidden = (w:_) }
-                           -> do windows $ view (tag w)
-                                 windows (removeWorkspace' (tag torem))
-                       _ -> return ()
+removeWorkspace = do t <- (tag.workspace.current) `fmap` gets windowset
+                     removeWorkspaceByTag t
+
+
+-- | Remove workspace with specific tag if it contains no windows. Only works
+--   on the current or the last workspace.
+removeEmptyWorkspaceByTag :: String -> X ()
+removeEmptyWorkspaceByTag t = whenX (isEmpty t) $ removeWorkspaceByTag t
+
+-- | Remove workspace with specific tag. Only works on the current or the last workspace.
+removeWorkspaceByTag :: String -> X ()
+removeWorkspaceByTag torem = do s <- gets windowset
+                                case s of
+                                  StackSet { current = Screen { workspace = cur }
+                                           , hidden = (w:_) }
+                                    -> do when (torem==tag cur) $ windows $ view $ tag w
+                                          windows $ removeWorkspace' torem
+                                  _ -> return ()
+
+-- | Remove the current workspace after an operation if it is empty and hidden.
+--   Can be used to remove a workspace if it is empty when leaving it. The
+--   operation may only change workspace once, otherwise the workspace will not
+--   be removed.
+removeEmptyWorkspaceAfter :: X () -> X ()
+removeEmptyWorkspaceAfter = removeEmptyWorkspaceAfterExcept []
+
+-- | Like 'removeEmptyWorkspaceAfter' but use a list of sticky workspaces,
+--   whose entries will never be removed. 
+removeEmptyWorkspaceAfterExcept :: [String] -> X () -> X ()
+removeEmptyWorkspaceAfterExcept sticky f = do before <- getTag
+                                              f
+                                              after <- getTag
+                                              when (before/=after && before `notElem` sticky) $ removeEmptyWorkspaceByTag before
+                                              where getTag = (tag.workspace.current) `fmap` gets windowset
+
+isEmpty :: String -> X Bool
+isEmpty t = do wsl <- gets $ workspaces . windowset
+               let mws = find (\ws -> tag ws == t) wsl
+               return $ maybe True (isNothing.stack) mws
 
 addHiddenWorkspace' :: i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
 addHiddenWorkspace' newtag l s@(StackSet { hidden = ws }) = s { hidden = Workspace newtag l Nothing:ws }
