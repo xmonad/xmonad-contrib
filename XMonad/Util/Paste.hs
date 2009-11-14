@@ -28,8 +28,11 @@ import Graphics.X11.Xlib.Extras (none, setEventType, setKeyEvent)
 import Control.Monad.Reader (asks)
 import XMonad.Operations (withFocused)
 import Data.Char (isUpper)
+import Data.Maybe (listToMaybe)
 import Graphics.X11.Xlib.Misc (stringToKeysym)
 import XMonad.Util.XSelection (getSelection)
+import XMonad.Util.EZConfig (parseKey)
+import Text.ParserCombinators.ReadP (readP_to_S)
 
 {- $usage
 
@@ -70,7 +73,8 @@ pasteString = mapM_ (\x -> if isUpper x then pasteChar shiftMask x else pasteCha
    have trouble with any 'Char' outside ASCII.
 -}
 pasteChar :: KeyMask -> Char -> X ()
-pasteChar m c = sendKey m $ stringToKeysym [c]
+pasteChar m c = sendKey m $ maybe (stringToKeysym [c]) fst
+                $ listToMaybe $ readP_to_S parseKey [c]
 
 sendKey :: KeyMask -> KeySym -> X ()
 sendKey = (withFocused .) . sendKeyWindow

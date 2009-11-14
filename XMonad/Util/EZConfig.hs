@@ -27,7 +27,9 @@ module XMonad.Util.EZConfig (
                              -- * Emacs-style keybinding specifications
 
                              mkKeymap, checkKeymap,
-                             mkNamedKeymap
+                             mkNamedKeymap,
+
+                             parseKey -- used by XMonad.Util.Paste
                             ) where
 
 import XMonad
