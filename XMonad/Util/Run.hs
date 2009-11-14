@@ -51,8 +51,7 @@ import Control.Monad
 -- For an example usage of 'runProcessWithInputAndWait' see
 -- "XMonad.Util.Dzen"
 
--- | Return output if the command succeeded, otherwise return @()@.
--- This corresponds to dmenu's notion of exit code 1 for a canceled invocation.
+-- | Returns the output.
 runProcessWithInput :: FilePath -> [String] -> String -> IO String
 runProcessWithInput cmd args input = do
     (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
