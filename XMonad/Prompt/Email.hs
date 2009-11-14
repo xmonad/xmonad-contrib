@@ -59,5 +59,5 @@ emailPrompt c addrs =
     inputPromptWithCompl c "To" (mkComplFunFromList addrs) ?+ \to ->
     inputPrompt c "Subject" ?+ \subj ->
     inputPrompt c "Body" ?+ \body ->
-    io $ runProcessWithInput "mail" ["-s", subj, to] (body ++ "\n")
+    runProcessWithInput "mail" ["-s", subj, to] (body ++ "\n")
          >> return ()

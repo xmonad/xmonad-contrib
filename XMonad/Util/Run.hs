@@ -52,8 +52,8 @@ import Control.Monad
 -- "XMonad.Util.Dzen"
 
 -- | Returns the output.
-runProcessWithInput :: FilePath -> [String] -> String -> IO String
-runProcessWithInput cmd args input = do
+runProcessWithInput :: MonadIO m => FilePath -> [String] -> String -> m String
+runProcessWithInput cmd args input = io $ do
     (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
     hPutStr pin input
     hClose pin
@@ -65,8 +65,8 @@ runProcessWithInput cmd args input = do
     return output
 
 -- | Wait is in µs (microseconds)
-runProcessWithInputAndWait :: FilePath -> [String] -> String -> Int -> IO ()
-runProcessWithInputAndWait cmd args input timeout = do
+runProcessWithInputAndWait :: MonadIO m => FilePath -> [String] -> String -> Int -> m ()
+runProcessWithInputAndWait cmd args input timeout = io $ do
     forkProcess $ do
         (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
         hPutStr pin input
@@ -129,8 +129,8 @@ safeRunInTerm :: String -> String -> X ()
 safeRunInTerm options command = asks (terminal . config) >>= \t -> safeSpawn t [options, " -e " ++ command]
 
 -- | Launch an external application through the system shell and return a @Handle@ to its standard input.
-spawnPipe :: String -> IO Handle
-spawnPipe x = do
+spawnPipe :: MonadIO m => String -> m Handle
+spawnPipe x = io $ do
     (rd, wr) <- createPipe
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr

@@ -34,7 +34,7 @@ dzen str timeout = dzenWithArgs str [] timeout
 --
 -- > dzenWithArgs "Hi, dons!" ["-ta", "r"] (5 `seconds`)
 dzenWithArgs :: String -> [String] -> Int -> X ()
-dzenWithArgs str args timeout = io $ runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
+dzenWithArgs str args timeout = runProcessWithInputAndWait "dzen2" args (unchomp str) timeout
   -- dzen seems to require the input to terminate with exactly one newline.
   where unchomp s@['\n'] = s
         unchomp []       = ['\n']

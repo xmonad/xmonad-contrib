@@ -37,13 +37,13 @@ import XMonad.Util.Run
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
     curscreen <- (fromIntegral . W.screen . W.current) `fmap` gets windowset :: X Int
-    io $ runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
+    runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
 
 dmenu :: [String] -> X String
 dmenu opts = menu "dmenu" opts
 
 menu :: String -> [String] -> X String
-menu menuCmd opts = io $ runProcessWithInput menuCmd [] (unlines opts)
+menu menuCmd opts = runProcessWithInput menuCmd [] (unlines opts)
 
 menuMap :: String -> M.Map String a -> X (Maybe a)
 menuMap menuCmd selectionMap = do

@@ -1,4 +1,5 @@
-{-# OPTIONS_GHC -fglasgow-exts -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Config.Arossato
