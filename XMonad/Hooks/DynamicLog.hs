@@ -463,21 +463,21 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
 -- | Settings to emulate dwm's statusbar, dzen only.
 dzenPP :: PP
 dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
-                     , ppVisible  = dzenColor "black" "#999999" . pad
-                     , ppHidden   = dzenColor "black" "#cccccc" . pad
-                     , ppHiddenNoWindows = const ""
-                     , ppUrgent   = dzenColor "red" "yellow" . pad
-                     , ppWsSep    = ""
-                     , ppSep      = ""
-                     , ppLayout   = dzenColor "black" "#cccccc" .
-                                    (\ x -> case x of
-                                              "TilePrime Horizontal" -> " TTT "
-                                              "TilePrime Vertical"   -> " []= "
-                                              "Hinted Full"          -> " [ ] "
-                                              _                      -> pad x
-                                    )
-                     , ppTitle    = ("^bg(#324c80) " ++) . dzenEscape
-                     }
+                   , ppVisible  = dzenColor "black" "#999999" . pad
+                   , ppHidden   = dzenColor "black" "#cccccc" . pad
+                   , ppHiddenNoWindows = const ""
+                   , ppUrgent   = dzenColor "red" "yellow" . pad
+                   , ppWsSep    = ""
+                   , ppSep      = ""
+                   , ppLayout   = dzenColor "black" "#cccccc" .
+                                  (\ x -> case x of
+                                            "TilePrime Horizontal" -> " TTT "
+                                            "TilePrime Vertical"   -> " []= "
+                                            "Hinted Full"          -> " [ ] "
+                                            _                      -> pad x
+                                  )
+                   , ppTitle    = ("^bg(#324c80) " ++) . dzenEscape
+                   }
 
 -- | Some nice xmobar defaults.
 xmobarPP :: PP
