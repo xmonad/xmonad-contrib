@@ -729,28 +729,15 @@ redrawComplWin compl = do
 
 printComplList :: Display -> Drawable -> GC -> String -> String
                -> [Position] -> [Position] -> [[String]] -> XP ()
-printComplList _ _ _ _ _ _ _ [] = return ()
-printComplList _ _ _ _ _ [] _ _ = return ()
-printComplList d drw gc fc bc (x:xs) y (s:ss) = do
-  printComplColumn d drw gc fc bc x y s
-  printComplList d drw gc fc bc xs y ss
-
-printComplColumn :: Display -> Drawable -> GC -> String -> String
-                 -> Position -> [Position] -> [String] -> XP ()
-printComplColumn _ _ _ _ _ _ _ [] = return ()
-printComplColumn _ _ _ _ _ _ [] _ = return ()
-printComplColumn d drw gc fc bc x (y:yy) (s:ss) = do
-  printComplString d drw gc fc bc x y s
-  printComplColumn d drw gc fc bc x yy ss
-
-printComplString :: Display -> Drawable -> GC -> String -> String
-                 -> Position -> Position -> String  -> XP ()
-printComplString d drw gc fc bc x y s = do
-  st <- get
-  if completionToCommand (xptype st) s == commandToComplete (xptype st) (command st)
-     then printStringXMF d drw (fontS st) gc
-                            (fgHLight $ config st) (bgHLight $ config st) x y s
-     else printStringXMF d drw (fontS st) gc fc bc x y s
+printComplList d drw gc fc bc xs ys sss =
+    zipWithM_ (\x ss ->
+        zipWithM_ (\y s -> do
+            st <- get
+            let (f,b) = if completionToCommand (xptype st) s == commandToComplete (xptype st) (command st)
+                            then (fgHLight $ config st,bgHLight $ config st)
+                            else (fc,bc)
+            printStringXMF d drw (fontS st) gc f b x y s)
+        ys ss) xs sss
 
 -- History
 
