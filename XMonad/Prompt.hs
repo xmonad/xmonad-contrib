@@ -266,9 +266,7 @@ getInput = gets command
 --   module.
 mkXPromptWithReturn :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X a)  -> X (Maybe a)
 mkXPromptWithReturn t conf compl action = do
-  c <- ask
-  let d = display c
-      rw = theRoot c
+  XConf { display = d, theRoot = rw } <- ask
   s    <- gets $ screenRect . W.screenDetail . W.current . windowset
   hist <- io readHistory
   w    <- io $ createWin d rw conf s
@@ -313,8 +311,7 @@ mkXPrompt t conf compl action = mkXPromptWithReturn t conf compl action >> retur
 
 runXP :: XP ()
 runXP = do
-  st <- get
-  let (d,w) = (dpy &&& win) st
+  (d,w) <- gets (dpy &&& win)
   status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
   when (status == grabSuccess) $ do
           updateWindows
