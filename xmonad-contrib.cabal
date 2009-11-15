@@ -125,6 +125,7 @@ library
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Place
+                        XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RestoreMinimized
                         XMonad.Hooks.Script
                         XMonad.Hooks.ServerMode
@@ -179,6 +180,7 @@ library
                         XMonad.Layout.NoFrillsDecoration
                         XMonad.Layout.OneBig
                         XMonad.Layout.PerWorkspace
+                        XMonad.Layout.PositionStoreFloat
                         XMonad.Layout.Reflect
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.ResizeScreen

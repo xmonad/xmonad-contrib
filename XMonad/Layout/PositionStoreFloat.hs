@@ -1,0 +1,92 @@
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, PatternGuards #-}
+----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Layout.PositionStoreFloat
+-- Copyright   :  (c) Jan Vornberger 2009
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  jan.vornberger@informatik.uni-oldenburg.de
+-- Stability   :  unstable
+-- Portability :  not portable
+--
+-- A floating layout which has been designed with a dual-head setup
+-- in mind. It makes use of "XMonad.Util.PositionStore" as well as
+-- "XMonad.Hooks.PositionStoreHooks" . Since there is currently no way
+-- to move or resize windows with the keyboard alone in this layout,
+-- it is adviced to use it in combination with a decoration such as
+-- "XMonad.Layout.NoFrillsDecoration" (to move windows) and the
+-- layout modifier "XMonad.Layout.BorderResize" (to resize windows).
+--
+-----------------------------------------------------------------------------
+
+module XMonad.Layout.PositionStoreFloat
+    ( -- * Usage
+      -- $usage
+      positionStoreFloat
+    ) where
+
+import XMonad
+import XMonad.Util.PositionStore
+import qualified XMonad.StackSet as S
+import XMonad.Layout.WindowArranger
+import Control.Monad(when)
+import Data.Maybe(isJust)
+import Data.List(nub)
+
+-- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Layout.PositionStoreFloat
+-- > import XMonad.Layout.NoFrillsDecoration
+-- > import XMonad.Layout.BorderResize
+--
+-- Then edit your @layoutHook@ by adding the PositionStoreFloat layout.
+-- Below is a suggestion which uses the mentioned NoFrillsDecoration and
+-- BorderResize:
+--
+-- > myLayouts = floatingDeco $ borderResize $ positionStoreFloat ||| etc..
+-- >               where floatingDeco l = noFrillsDeco shrinkText defaultTheme l
+-- > main = xmonad defaultConfig { layoutHook = myLayouts }
+--
+-- See the documentation of "XMonad.Hooks.PositionStoreHooks" on how
+-- to add the support hooks.
+
+positionStoreFloat :: PositionStoreFloat a
+positionStoreFloat = PSF (Nothing, [])
+
+data PositionStoreFloat a = PSF (Maybe Rectangle, [a]) deriving (Show, Read)
+instance LayoutClass PositionStoreFloat Window where
+    description _ = "PSF"
+    doLayout (PSF (maybeChange, paintOrder)) sr (S.Stack w l r) = do
+            posStore <- getPosStore
+            let wrs = map (\w' -> (w', pSQ posStore w' sr)) (reverse l ++ r)
+            let focused = case maybeChange of
+                            Nothing -> (w, pSQ posStore w sr)
+                            Just changedRect -> (w, changedRect)
+            let wrs' = focused : wrs
+            let paintOrder' = nub (w : paintOrder)
+            when (isJust maybeChange) $ do
+                updatePositionStore focused sr
+            return (reorder wrs' paintOrder', Just $ PSF (Nothing, paintOrder'))
+        where
+            pSQ posStore w' sr' = case (posStoreQuery posStore w' sr') of
+                                    Just rect   -> rect
+                                    Nothing     -> (Rectangle 50 50 200 200)  -- should usually not happen
+    pureMessage (PSF (_, paintOrder)) m
+        | Just (SetGeometry rect) <- fromMessage m =
+            Just $ PSF (Just rect, paintOrder)
+        | otherwise = Nothing
+
+updatePositionStore :: (Window, Rectangle) -> Rectangle -> X ()
+updatePositionStore (w, rect) sr = modifyPosStore (\ps ->
+                                            posStoreInsert ps w rect sr)
+
+reorder :: (Eq a) => [(a, b)] -> [a] -> [(a, b)]
+reorder wrs order =
+    let ordered = concat $ map (pickElem wrs) order
+        rest = filter (\(w, _) -> not (w `elem` order)) wrs
+    in ordered ++ rest
+    where
+        pickElem list e = case (lookup e list) of
+                                Just result -> [(e, result)]
+                                Nothing -> []

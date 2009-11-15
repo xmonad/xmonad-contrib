@@ -11,6 +11,7 @@
 -- Portability :  not portable
 --
 -- A utility module to store information about position and size of a window.
+-- See "XMonad.Layout.PositionStoreFloat" for a layout that makes use of this.
 --
 -----------------------------------------------------------------------------
 

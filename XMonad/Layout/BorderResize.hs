@@ -12,8 +12,10 @@
 -- This layout modifier will allow to resize windows by dragging their
 -- borders with the mouse. However, it only works in layouts or modified
 -- layouts that react to the 'SetGeometry' message.
--- "XMonad.Layout.WindowArranger" can be used to create such a setup.
--- BorderResize is probably most useful in floating layouts.
+-- "XMonad.Layout.WindowArranger" can be used to create such a setup,
+-- but it is probably must useful in a floating layout such as
+-- "XMonad.Layout.PositionStoreFloat" with which it has been mainly tested.
+-- See the documentation of PositionStoreFloat for a typical usage example.
 --
 -----------------------------------------------------------------------------
 
