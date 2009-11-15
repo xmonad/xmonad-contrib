@@ -195,7 +195,7 @@ import qualified Data.Set as S
 -- hopefully you know where to find it.
 
 -- | This is the method to enable an urgency hook. It uses the default
--- 'urgencyConfig' to control behavior. To change this, use 'withUrgencyHook'
+-- 'urgencyConfig' to control behavior. To change this, use 'withUrgencyHookC'
 -- instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig l
