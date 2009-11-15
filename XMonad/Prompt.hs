@@ -63,12 +63,13 @@ module XMonad.Prompt
 
 import Prelude hiding (catch)
 
-import XMonad  hiding (config, io, numlockMask, cleanMask)
+import XMonad  hiding (config, numlockMask, cleanMask)
 import qualified XMonad as X (numlockMask,config)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.Types
 import XMonad.Util.XSelection (getSelection)
+import XMonad.Util.XUtils (fi)
 
 import Control.Arrow ((&&&),first)
 import Control.Concurrent (threadDelay)
@@ -825,14 +826,6 @@ getNextCompletion c l = l !! idx
     where idx = case c `elemIndex` l of
                   Just i  -> if i >= length l - 1 then 0 else i + 1
                   Nothing -> 0
-
--- Lift an IO action into the XP
-io :: IO a -> XP a
-io = liftIO
-
--- Shorthand for fromIntegral
-fi :: (Num b, Integral a) => a -> b
-fi = fromIntegral
 
 -- | Given a maximum length, splits a list into sublists
 splitInSubListsAt :: Int -> [a] -> [[a]]
