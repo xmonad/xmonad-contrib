@@ -218,6 +218,10 @@ data WSType = EmptyWS     -- ^ cycle through empty workspaces
             | HiddenWS    -- ^ cycle through non-visible workspaces
             | HiddenNonEmptyWS  -- ^ cycle through non-empty non-visible workspaces
             | AnyWS       -- ^ cycle through all workspaces
+            | WSTagGroup Char
+                          -- ^ cycle through workspaces in the same group, the
+                          --   group name is all characters up to the first
+                          --   separator character or the end of the tag
             | WSIs (X (WindowSpace -> Bool))
                           -- ^ cycle through workspaces satisfying
                           --   an arbitrary predicate
@@ -232,6 +236,9 @@ wsTypeToPred HiddenNonEmptyWS  = do ne <- wsTypeToPred NonEmptyWS
                                     hi <- wsTypeToPred HiddenWS
                                     return (\w -> hi w && ne w)
 wsTypeToPred AnyWS      = return (const True)
+wsTypeToPred (WSTagGroup sep) = do cur <- (groupName.workspace.current) `fmap` gets windowset
+                                   return $ (cur ==).groupName
+                                   where groupName = takeWhile (/=sep).tag
 wsTypeToPred (WSIs p)   = p
 
 -- | View the next workspace in the given direction that satisfies
