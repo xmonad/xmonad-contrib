@@ -269,24 +269,24 @@ mkXPromptWithReturn t conf compl action = do
   c <- ask
   let d = display c
       rw = theRoot c
-  s <- gets $ screenRect . W.screenDetail . W.current . windowset
-  hist <- liftIO readHistory
-  w <- liftIO $ createWin d rw conf s
-  liftIO $ selectInput d w $ exposureMask .|. keyPressMask
-  gc <- liftIO $ createGC d w
-  liftIO $ setGraphicsExposures d gc False
+  s    <- gets $ screenRect . W.screenDetail . W.current . windowset
+  hist <- io readHistory
+  w    <- io $ createWin d rw conf s
+  io $ selectInput d w $ exposureMask .|. keyPressMask
+  gc <- io $ createGC d w
+  io $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
   numlock <- asks $ X.numlockMask . X.config
   let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
       st = (initState d rw w s compl gc fs (XPT t) hs conf)
            { numlockMask = numlock }
-  st' <- liftIO $ execStateT runXP st
+  st' <- io $ execStateT runXP st
 
   releaseXMF fs
-  liftIO $ freeGC d gc
+  io $ freeGC d gc
   if successful st'
     then do
-      liftIO $ writeHistory $ M.insertWith
+      io $ writeHistory $ M.insertWith
                                 (\xs ys -> take (historySize conf)
                                         . historyFilter conf $ xs ++ ys)
                                 (showXPrompt t) (historyFilter conf [command st'])
