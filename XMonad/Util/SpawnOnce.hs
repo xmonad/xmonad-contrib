@@ -19,7 +19,7 @@ module XMonad.Util.SpawnOnce (spawnOnce) where
 
 import XMonad
 import Data.Set as Set
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 import Control.Monad
 
 data SpawnOnce = SpawnOnce { unspawnOnce :: (Set String) }
@@ -33,7 +33,7 @@ instance ExtensionClass SpawnOnce where
 -- command is executed.  Subsequent invocations for a command do nothing.
 spawnOnce :: String -> X ()
 spawnOnce xs = do
-    b <- fmap (Set.member xs . unspawnOnce) getState
+    b <- XS.gets (Set.member xs . unspawnOnce)
     when (not b) $ do
         spawn xs
-        modifyState (SpawnOnce . Set.insert xs . unspawnOnce)
+        XS.modify (SpawnOnce . Set.insert xs . unspawnOnce)

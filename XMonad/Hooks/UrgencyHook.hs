@@ -72,7 +72,7 @@ import XMonad
 import qualified XMonad.StackSet as W
 
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 
@@ -275,14 +275,14 @@ clearUrgents = adjustUrgents (const []) >> adjustReminders (const [])
 -- it, or 'withUrgents', in your custom logHook, to display the workspaces that
 -- contain urgent windows.
 readUrgents :: X [Window]
-readUrgents = fromUrgents <$> getState
+readUrgents = XS.gets fromUrgents
 
 -- | An HOF version of 'readUrgents', for those who prefer that sort of thing.
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
 
 adjustUrgents :: ([Window] -> [Window]) -> X ()
-adjustUrgents f = modifyState $ onUrgents f
+adjustUrgents = XS.modify . onUrgents
 
 type Interval = Rational
 
@@ -301,10 +301,10 @@ instance ExtensionClass [Reminder] where
 -- | Stores the list of urgency reminders.
 
 readReminders :: X [Reminder]
-readReminders = getState
+readReminders = XS.get
 
 adjustReminders :: ([Reminder] -> [Reminder]) -> X ()
-adjustReminders f = modifyState f
+adjustReminders = XS.modify
 
 clearUrgency :: Window -> X ()
 clearUrgency w = adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)

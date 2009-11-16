@@ -1,5 +1,3 @@
-{-# LANGUAGE PatternSignatures #-}
-
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.PositionStoreHooks

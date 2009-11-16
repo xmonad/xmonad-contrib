@@ -26,7 +26,7 @@ module XMonad.Util.PositionStore (
     ) where
 
 import XMonad
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 import Graphics.X11.Xlib
 import Graphics.X11.Types
 import Data.Typeable
@@ -46,12 +46,10 @@ instance ExtensionClass PositionStore where
   extensionType = PersistentExtension
 
 getPosStore :: X (PositionStore)
-getPosStore = getState
+getPosStore = XS.get
 
 modifyPosStore :: (PositionStore -> PositionStore) -> X ()
-modifyPosStore f = do
-    posStore <- getState
-    putState (f posStore)
+modifyPosStore = XS.modify
 
 posStoreInsert :: PositionStore -> Window -> Rectangle -> Rectangle -> PositionStore
 posStoreInsert (PS posStoreMap) w (Rectangle x y wh ht) (Rectangle srX srY srWh srHt) =

@@ -39,7 +39,7 @@ module XMonad.Hooks.FloatNext ( -- * Usage
 import Prelude hiding (all)
 
 import XMonad
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 
 import Control.Monad (join,guard)
 import Control.Applicative ((<$>))
@@ -48,13 +48,13 @@ import Control.Arrow (first, second)
 {- Helper functions -}
 
 _set :: ((a -> a) -> (Bool, Bool) -> (Bool, Bool)) -> a -> X ()
-_set f b = modifyState' (f $ const b)
+_set f b = modify' (f $ const b)
 
 _toggle :: ((Bool -> Bool) -> (Bool, Bool) -> (Bool, Bool)) -> X ()
-_toggle f = modifyState' (f not)
+_toggle f = modify' (f not)
 
 _get :: ((Bool, Bool) -> a) -> X a
-_get f = f . getFloatMode <$> getState
+_get f = XS.gets (f . getFloatMode)
 
 _pp :: ((Bool, Bool) -> Bool) -> String -> (String -> String) -> X (Maybe String)
 _pp f s st = (\b -> guard b >> Just (st s)) <$> _get f
@@ -66,8 +66,8 @@ data FloatMode = FloatMode { getFloatMode :: (Bool,Bool) } deriving (Typeable)
 instance ExtensionClass FloatMode where
     initialValue = FloatMode (False,False)
 
-modifyState' :: ((Bool,Bool) -> (Bool,Bool)) -> X ()
-modifyState' f = modifyState (FloatMode . f . getFloatMode)
+modify' :: ((Bool,Bool) -> (Bool,Bool)) -> X ()
+modify' f = XS.modify (FloatMode . f . getFloatMode)
 
 -- $usage
 -- This module provides actions (that can be set as keybindings)
@@ -95,8 +95,8 @@ modifyState' f = modifyState (FloatMode . f . getFloatMode)
 -- | This 'ManageHook' will selectively float windows as set
 -- by 'floatNext' and 'floatAllNew'.
 floatNextHook :: ManageHook
-floatNextHook = do (next, all) <- liftX $ getFloatMode <$> getState
-                   liftX $ putState $ FloatMode (False, all)
+floatNextHook = do (next, all) <- liftX $ XS.gets getFloatMode
+                   liftX $ XS.put $ FloatMode (False, all)
                    if next || all then doFloat else idHook
 
 -- | @floatNext True@ arranges for the next spawned window to be

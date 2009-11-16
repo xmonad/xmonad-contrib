@@ -23,7 +23,7 @@ module XMonad.Hooks.DynamicHooks (
   ) where
 
 import XMonad
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 
 import Data.List
 import Data.Maybe (listToMaybe)
@@ -63,13 +63,13 @@ instance ExtensionClass DynamicHooks where
 -- | Master 'ManageHook' that must be in your @xmonad.hs@ 'ManageHook'.
 dynamicMasterHook :: ManageHook
 dynamicMasterHook = (ask >>= \w -> liftX (do
-  dh <- getState
+  dh <- XS.get
   (Endo f)  <- runQuery (permanent dh) w
   ts <- mapM (\(q,a) -> runQuery q w >>= \x -> return (x,(q, a))) (transients dh)
   let (ts',nts) = partition fst ts
   gs <- mapM (flip runQuery w . snd . snd) ts'
   let (Endo g) = maybe (Endo id) id $ listToMaybe gs
-  putState $ dh { transients = map snd nts }
+  XS.put $ dh { transients = map snd nts }
   return $ Endo $ f . g
                                        ))
 -- | Appends the given 'ManageHook' to the permanent dynamic 'ManageHook'.
@@ -78,7 +78,7 @@ addDynamicHook m = updateDynamicHook (<+> m)
 
 -- | Modifies the permanent 'ManageHook' with an arbitrary function.
 updateDynamicHook :: (ManageHook -> ManageHook) -> X ()
-updateDynamicHook f = modifyState $ \dh -> dh { permanent = f (permanent dh) }
+updateDynamicHook f = XS.modify $ \dh -> dh { permanent = f (permanent dh) }
 
 -- | Creates a one-shot 'ManageHook'. Note that you have to specify the two
 -- parts of the 'ManageHook' separately. Where you would usually write:
@@ -90,4 +90,4 @@ updateDynamicHook f = modifyState $ \dh -> dh { permanent = f (permanent dh) }
 -- > oneShotHook dynHooksRef (className =? "example) doFloat
 --
 oneShotHook :: Query Bool -> ManageHook -> X ()
-oneShotHook q a = modifyState $ \dh -> dh { transients = (q,a):(transients dh) }
+oneShotHook q a = XS.modify $ \dh -> dh { transients = (q,a):(transients dh) }

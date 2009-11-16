@@ -36,7 +36,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.ManageHelpers
 import XMonad.Prompt
 import XMonad.Prompt.Shell
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -71,13 +71,13 @@ maxPids = 5
 
 -- | Get the current Spawner or create one if it doesn't exist.
 modifySpawner :: ([(ProcessID, ManageHook)] -> [(ProcessID, ManageHook)]) -> X ()
-modifySpawner f = putState . Spawner . f . pidsRef =<< getState
+modifySpawner f = XS.modify (Spawner . f . pidsRef)
 
 -- | Provides a manage hook to react on process spawned with
 -- 'spawnOn', 'spawnHere' etc.
 manageSpawn :: ManageHook
 manageSpawn = do
-    Spawner pids <- liftX getState
+    Spawner pids <- liftX XS.get
     mp <- pid
     case flip lookup pids =<< mp of
         Nothing -> idHook

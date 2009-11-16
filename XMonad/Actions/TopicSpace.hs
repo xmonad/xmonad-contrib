@@ -45,7 +45,6 @@ import Data.Maybe (fromMaybe, isNothing, listToMaybe)
 import Data.Ord
 import qualified Data.Map as M
 import Control.Monad ((=<<),liftM2,when,unless,replicateM_)
-import Control.Applicative ((<$>))
 import System.IO
 
 import XMonad.Operations
@@ -59,7 +58,7 @@ import XMonad.Hooks.DynamicLog (PP(..))
 import qualified XMonad.Hooks.DynamicLog as DL
 
 import XMonad.Util.Run (spawnPipe)
-import XMonad.Util.ExtensibleState
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $overview
 -- This module allows to organize your workspaces on a precise topic basis.  So
@@ -222,14 +221,14 @@ instance ExtensionClass PrevTopics where
 
 -- | Returns the list of last focused workspaces the empty list otherwise.
 getLastFocusedTopics :: X [String]
-getLastFocusedTopics = getPrevTopics <$> getState
+getLastFocusedTopics = XS.gets getPrevTopics
 
 -- | Given a 'TopicConfig', the last focused topic, and a predicate that will
 -- select topics that one want to keep, this function will set the property
 -- of last focused topics.
 setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
 setLastFocusedTopic tg w predicate =
-  modifyState $ PrevTopics
+  XS.modify $ PrevTopics
     . take (maxTopicHistory tg) . nub . (w:) . filter predicate
     . getPrevTopics
 
