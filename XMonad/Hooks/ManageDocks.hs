@@ -236,15 +236,18 @@ c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y
 
 reduce :: RectC -> Strut -> RectC -> RectC
 reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
-    L | p (y0, y1) -> (mx x0 sx0    , y0       , x1       , y1       )
-    R | p (y0, y1) -> (x0           , y0       , mn x1 sx1, y1       )
-    U | p (x0, x1) -> (x0           , mx y0 sy0, x1       , y1       )
-    D | p (x0, x1) -> (x0           , y0       , x1       , mn y1 sy1)
-    _              -> (x0           , y0       , x1       , y1       )
+    L | p (y0, y1) && qh x1     -> (mx x0 sx0, y0       , x1       , y1       )
+    R | p (y0, y1) && qv sx1 x0 -> (x0       , y0       , mn x1 sx1, y1       )
+    U | p (x0, x1) && qh y1     -> (x0       , mx y0 sy0, x1       , y1       )
+    D | p (x0, x1) && qv sy1 y0 -> (x0       , y0       , x1       , mn y1 sy1)
+    _                           -> (x0       , y0       , x1       , y1       )
  where
     mx a b = max a (b + n)
     mn a b = min a (b - n)
     p r = r `overlaps` (l, h)
+    -- Filter out struts that cover the entire rectangle:
+    qh d1 = n <= d1
+    qv sd1 d0 = sd1 - n >= d0
 
 -- | Do the two ranges overlap?
 --
