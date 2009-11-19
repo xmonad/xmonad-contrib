@@ -36,6 +36,7 @@ module XMonad.Hooks.PositionStoreHooks (
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Util.PositionStore
+import XMonad.Util.XUtils (fi)
 
 import System.Random(randomRIO)
 import Control.Applicative((<$>))
@@ -83,8 +84,6 @@ positionStoreInit w = withDisplay $ \d -> do
                                         (Rectangle (fi $ wa_x wa) (fi $ wa_y wa)
                                             (fi $ wa_width wa) (fi $ wa_height wa)) sr )
     where
-        fi :: (Integral a, Num b) => a -> b
-        fi = fromIntegral
         randomIntOffset :: X (Int)
         randomIntOffset = io $ randomRIO (42, 242)
 
