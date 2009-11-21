@@ -58,7 +58,7 @@ module XMonad.Hooks.DynamicLog (
 --
 import XMonad
 import Control.Monad
-import Data.Char ( isSpace )
+import Data.Char ( isSpace, ord )
 import Data.Maybe ( isJust, catMaybes )
 import Data.List
 import qualified Data.Map as M
@@ -66,7 +66,6 @@ import Data.Ord ( comparing )
 import qualified XMonad.StackSet as S
 import System.IO
 
-import qualified Codec.Binary.UTF8.String as UTF8
 import Foreign.C (CChar)
 
 import XMonad.Util.WorkspaceCompare
@@ -211,7 +210,8 @@ statusBar cmd pp k conf = do
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
 -- | Write a string to the property _XMONAD_LOG on the root window.  This
--- property is of type UTF8_STRING.
+-- property is of type UTF8_STRING. The string must have been processed by
+-- encodeString (dynamicLogString does this).
 xmonadPropLog :: String -> X ()
 xmonadPropLog msg = do
     d <- asks display
@@ -221,7 +221,7 @@ xmonadPropLog msg = do
     io $ changeProperty8 d r xlog ustring propModeReplace (encodeCChar msg)
  where
     encodeCChar :: String -> [CChar]
-    encodeCChar = map fromIntegral . UTF8.encode
+    encodeCChar = map (fromIntegral . ord)
 
 -- |
 -- Helper function which provides ToggleStruts keybinding
