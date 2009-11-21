@@ -87,7 +87,9 @@ import XMonad.Hooks.ManageDocks
 -- If you just want a quick-and-dirty status bar with zero effort, try
 -- the 'xmobar' or 'dzen' functions:
 --
--- > main = xmonad =<< xmobar conf
+-- > main = xmonad =<< xmobar myConfig
+-- >
+-- > myConfig = defaultConfig { ... }
 --
 -- There is also 'statusBar' if you'd like to use another status bar, or would
 -- like to use different formatting options.  The 'xmobar', 'dzen', and
@@ -150,7 +152,9 @@ import XMonad.Hooks.ManageDocks
 
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
--- > main = xmonad =<< dzen conf
+-- > main = xmonad =<< dzen myConfig
+-- >
+-- > myConfig = defaultConfig { ... }
 --
 -- The intent is that the above config file should provide a nice
 -- status bar with minimal effort.
@@ -173,7 +177,9 @@ dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
 
 -- | Run xmonad with a xmobar status bar set to some nice defaults.
 --
--- > main = xmonad =<< xmobar conf
+-- > main = xmonad =<< xmobar myConfig
+-- >
+-- > myConfig = defaultConfig { ... }
 --
 -- This works pretty much the same as 'dzen' function above.
 --
