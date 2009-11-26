@@ -229,6 +229,7 @@ splitHorizontallyBy f (Rectangle sx sy sw sh) = ((leftHalf, rightHalf), (dragger
 createDragger :: Rectangle -> DraggerWithRect -> X DraggerWithWin
 createDragger sr (draggerRect, draggerCursor, draggerInfo) = do
         draggerWin <- createInputWindow draggerCursor $ sanitizeRectangle sr draggerRect
+        io . flip lowerWindow draggerWin =<< asks display
         return (draggerWin, draggerInfo)
 
 deleteDragger :: DraggerWithWin -> X ()
