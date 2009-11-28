@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Decoration
--- Copyright   :  (c) 2007 Andrea Rossato
+-- Copyright   :  (c) 2007 Andrea Rossato, 2009 Jan Vornberger
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
 -- Maintainer  :  andrea.rossato@unibz.it
@@ -32,6 +32,7 @@ module XMonad.Layout.Decoration
 import Control.Monad (when)
 import Data.Maybe
 import Data.List
+import Foreign.C.Types(CInt)
 
 import XMonad
 import qualified XMonad.StackSet as W
@@ -138,23 +139,29 @@ class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
     shrink _ (Rectangle _ _ _ dh) (Rectangle x y w h) = Rectangle x (y + fi dh) w (h - dh)
 
-    -- | The decoration event hook, where the
-    -- 'decorationMouseFocusHook' and 'decorationMouseDragHook' are
-    -- called. If you reimplement it those methods will not be
-    -- called.
+    -- | The decoration event hook
     decorationEventHook :: ds a -> DecorationState -> Event -> X ()
-    decorationEventHook ds s e = do decorationMouseFocusHook  ds s e
-                                    decorationMouseDragHook   ds s e
+    decorationEventHook ds s e = handleMouseFocusDrag ds s e
 
-    -- | This method is called when the user clicks the pointer over
-    -- the decoration.
-    decorationMouseFocusHook :: ds a -> DecorationState -> Event -> X ()
-    decorationMouseFocusHook _ s e = handleMouseFocusDrag False s e
+    -- | A hook that can be used to catch the cases when the user
+    -- clicks on the decoration. If you return True here, the click event
+    -- will be considered as dealt with and no further processing will take place.
+    decorationCatchClicksHook :: ds a
+                              -> Window
+                              -> Int    -- ^ distance from the left where the click happened on the decoration
+                              -> Int    -- ^ distance from the right where the click happened on the decoration
+                              -> X Bool
+    decorationCatchClicksHook _ _ _ _ = return False
 
-    -- | This method is called when the user starts grabbing the
-    -- decoration.
-    decorationMouseDragHook :: ds a -> DecorationState -> Event -> X ()
-    decorationMouseDragHook _ s e = handleMouseFocusDrag True s e
+    -- | This hook is called while a window is dragged using the decoration.
+    -- The hook can be overwritten if a different way of handling the dragging
+    -- is required.
+    decorationWhileDraggingHook :: ds a -> CInt -> CInt -> (Window, Rectangle) -> Position -> Position -> X ()
+    decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleDraggingInProgress ex ey (mainw, r) x y
+
+    -- | This hoook is called after a window has been dragged using the decoration.
+    decorationAfterDraggingHook :: ds a -> (Window, Rectangle) -> Window -> X ()
+    decorationAfterDraggingHook _ds (mainw, _r) _decoWin = focus mainw
 
     -- | The pure version of the main method, 'decorate'.
     pureDecoration :: ds a -> Dimension -> Dimension -> Rectangle
@@ -285,21 +292,29 @@ handleEvent _ _ _ _ = return ()
 
 -- | Mouse focus and mouse drag are handled by the same function, this
 -- way we can start dragging unfocused windows too.
-handleMouseFocusDrag :: Bool -> DecorationState -> Event -> X ()
-handleMouseFocusDrag b (DS dwrs _) ButtonEvent { ev_window     = ew
-                                               , ev_event_type = et
-                                               , ev_x_root     = ex
-                                               , ev_y_root     = ey }
+handleMouseFocusDrag :: (DecorationStyle ds a) => ds a -> DecorationState -> Event -> X ()
+handleMouseFocusDrag ds (DS dwrs _) ButtonEvent { ev_window     = ew
+                                                , ev_event_type = et
+                                                , ev_x_root     = ex
+                                                , ev_y_root     = ey }
     | et == buttonPress
-    , Just ((mainw,r),_) <- lookFor ew dwrs = do
-                              focus mainw
-                              when b $ mouseDrag (\x y -> do
-                                                    let rect = Rectangle (x - (fi ex - rect_x r))
-                                                                         (y - (fi ey - rect_y r))
-                                                                         (rect_width  r)
-                                                                         (rect_height r)
-                                                    sendMessage (SetGeometry rect)) (return ())
+    , Just ((mainw,r), (_, decoRectM)) <- lookFor ew dwrs = do
+        let Just (Rectangle dx _ dwh _) = decoRectM
+            distFromLeft = ex - fi dx
+            distFromRight = fi dwh - (ex - fi dx)
+        dealtWith <- decorationCatchClicksHook ds mainw (fi distFromLeft) (fi distFromRight)
+        when (not dealtWith) $ do
+            mouseDrag (\x y -> focus mainw >> decorationWhileDraggingHook ds ex ey (mainw, r) x y)
+                        (decorationAfterDraggingHook ds (mainw, r) ew)
 handleMouseFocusDrag _ _ _ = return ()
+
+handleDraggingInProgress :: CInt -> CInt -> (Window, Rectangle) -> Position -> Position -> X ()
+handleDraggingInProgress ex ey (_, r) x y = do
+    let rect = Rectangle (x - (fi ex - rect_x r))
+                         (y - (fi ey - rect_y r))
+                         (rect_width  r)
+                         (rect_height r)
+    sendMessage $ SetGeometry rect
 
 -- | Given a window and the state, if a matching decoration is in the
 -- state return it with its ('Maybe') 'Rectangle'.

@@ -66,7 +66,7 @@ data TabBarDecoration a = TabBar XPPosition deriving (Read, Show)
 instance Eq a => DecorationStyle TabBarDecoration a where
     describeDeco  _ = "TabBar"
     shrink    _ _ r = r
-    decorationMouseDragHook _ _ _ = return ()
+    decorationCatchClicksHook _ mainw _ _ = focus mainw >> return True
     pureDecoration (TabBar p) _ dht (Rectangle x y wh ht) s _ (w,_) =
         if isInStack s w then Just $ Rectangle nx ny wid (fi dht) else Nothing
         where wrs = S.integrate s
