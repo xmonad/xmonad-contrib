@@ -148,6 +148,7 @@ library
                         XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
+                        XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.DragPane
                         XMonad.Layout.DwmStyle
                         XMonad.Layout.FixedColumn
@@ -204,6 +205,7 @@ library
                         XMonad.Layout.TwoPane
                         XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
+                        XMonad.Layout.WindowSwitcherDecoration
                         XMonad.Layout.WorkspaceDir
                         XMonad.Prompt
                         XMonad.Prompt.AppendFile
