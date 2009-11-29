@@ -137,6 +137,7 @@ library
                         XMonad.Layout.AutoMaster
                         XMonad.Layout.BorderResize
                         XMonad.Layout.BoringWindows
+                        XMonad.Layout.ButtonDecoration
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
                         XMonad.Layout.Column
@@ -144,6 +145,7 @@ library
                         XMonad.Layout.ComboP
                         XMonad.Layout.Cross
                         XMonad.Layout.Decoration
+                        XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
                         XMonad.Layout.DragPane
