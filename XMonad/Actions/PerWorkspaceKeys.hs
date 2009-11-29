@@ -21,7 +21,6 @@ module XMonad.Actions.PerWorkspaceKeys (
 
 import XMonad
 import XMonad.StackSet as S
-import Data.List (find)
 
 -- $usage
 --
@@ -42,9 +41,9 @@ chooseAction f = withWindowSet (f . S.currentTag)
 -- If it isn't listed, then run default action (marked with empty string, \"\"), or do nothing if default isn't supplied.
 bindOn :: [(String, X())] -> X()
 bindOn bindings = chooseAction chooser where
-    chooser ws = case find ((ws==).fst) bindings of
-        Just (_, action) -> action
-        Nothing -> case find ((""==).fst) bindings of
-            Just (_, action) -> action
+    chooser ws = case lookup ws bindings of
+        Just action -> action
+        Nothing -> case lookup "" bindings of
+            Just action -> action
             Nothing -> return ()
 
