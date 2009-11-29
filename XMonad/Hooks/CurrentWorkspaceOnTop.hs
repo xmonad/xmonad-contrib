@@ -1,0 +1,62 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Hooks.CurrentWorkspaceOnTop
+-- Copyright   :  (c) Jan Vornberger 2009
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  jan.vornberger@informatik.uni-oldenburg.de
+-- Stability   :  unstable
+-- Portability :  not portable
+--
+-- Ensures that the windows of the current workspace are always in front
+-- of windows that are located on other visible screens. This becomes important
+-- if you use decoration and drag windows from one screen to another. Using this
+-- module, the dragged window will always be in front of other windows.
+--
+-----------------------------------------------------------------------------
+
+module XMonad.Hooks.CurrentWorkspaceOnTop (
+    -- * Usage
+    -- $usage
+    currentWorkspaceOnTop
+    ) where
+
+import XMonad
+import qualified XMonad.StackSet as S
+import qualified XMonad.Util.ExtensibleState as XS
+import Control.Monad(when)
+
+-- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Hooks.CurrentWorkspaceOnTop
+-- >
+-- > main = xmonad $ defaultConfig {
+-- >    ...
+-- >    logHook = currentWorkspaceOnTop
+-- >    ...
+-- >  }
+--
+
+data CWOTState = CWOTS String deriving Typeable
+
+instance ExtensionClass CWOTState where
+  initialValue = CWOTS ""
+
+currentWorkspaceOnTop :: X ()
+currentWorkspaceOnTop = withDisplay $ \d -> do
+    ws <- gets windowset
+    (CWOTS lastTag) <- XS.get
+    let curTag = S.tag . S.workspace . S.current $ ws
+    when (curTag /= lastTag) $ do
+        let s = S.current ws
+            wsp = S.workspace s
+            viewrect = screenRect $ S.screenDetail s
+            tmpStack = S.stack . S.workspace $ s
+        (rs, _) <- runLayout wsp { S.stack = tmpStack } viewrect
+        let wins = map fst rs
+        when (not . null $ wins) $ do
+            io $ raiseWindow d (head wins)  -- raise first window of current workspace to the very top,
+            io $ restackWindows d wins      -- then use restackWindows to let all other windows from the workspace follow
+        XS.put(CWOTS curTag)

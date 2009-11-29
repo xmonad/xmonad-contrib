@@ -116,6 +116,7 @@ library
                         XMonad.Config.Kde
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
+                        XMonad.Hooks.CurrentWorkspaceOnTop
                         XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
