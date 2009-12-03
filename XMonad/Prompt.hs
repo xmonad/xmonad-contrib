@@ -416,7 +416,8 @@ defaultXPKeymap = M.fromList $
   , (xK_Delete, killWord Next)
   , (xK_BackSpace, killWord Prev)
   , (xK_w, killWord Prev)
-  , (xK_q, quit)
+  , (xK_g, quit)
+  , (xK_bracketleft, quit)
   ] ++
   map (first $ (,) 0)
   [ (xK_Return, setSuccess True >> setDone True)
