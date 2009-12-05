@@ -296,8 +296,8 @@ maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
 mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
 scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
 thesaurus  = searchEngine "thesaurus"  "http://thesaurus.reference.com/search?q="
-wikipedia  = searchEngine "wiki"       "https://secure.wikimedia.org/wikipedia/en/wiki/Special:Search?go=Go&search="
-wiktionary = searchEngine "wikt"      "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
+wikipedia  = searchEngine "wiki"       "http://en.wikipedia.org/wiki/Special:Search?go=Go&search="
+wiktionary = searchEngine "wikt"       "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
 {- This doesn't seem to work, but nevertheless, it seems to be the official
    method at <http://web.archive.org/collections/web/advanced.html> to get the
