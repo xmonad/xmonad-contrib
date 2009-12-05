@@ -299,10 +299,7 @@ thesaurus  = searchEngine "thesaurus"  "http://thesaurus.reference.com/search?q=
 wikipedia  = searchEngine "wiki"       "http://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary = searchEngine "wikt"       "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
-{- This doesn't seem to work, but nevertheless, it seems to be the official
-   method at <http://web.archive.org/collections/web/advanced.html> to get the
-   latest backup. -}
-wayback   = searchEngine "wayback" "http://web.archive.org/"
+wayback    = searchEngineF "wayback"   ("http://web.archive.org/web/*/"++)
 
 multi :: SearchEngine
 multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, wiktionary, (prefixAware google)]
