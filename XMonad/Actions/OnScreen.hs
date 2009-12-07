@@ -15,17 +15,113 @@
 module XMonad.Actions.OnScreen (
     -- * Usage
     -- $usage
-    onScreen
+      onScreen
+    , Focus(..)
     , viewOnScreen
     , greedyViewOnScreen
     , onlyOnScreen
+    , toggleOnScreen
+    , toggleGreedyOnScreen
     ) where
 
+import XMonad.Core
 import XMonad.StackSet
-import Control.Monad(guard)
-import Data.List
+
+import Control.Monad (guard)
 import Data.Maybe(fromMaybe)
-import Data.Function(on)
+
+
+-- | Focus data definitions
+data Focus = FocusNew                       -- ^ always focus the new screen
+           | FocusCurrent                   -- ^ always keep the focus on the current screen
+           | FocusTag WorkspaceId           -- ^ always focus tag i on the new stack
+           | FocusTagVisible WorkspaceId    -- ^ focus tag i only if workspace with tag i is visible on the old stack
+
+
+-- | Run any function that modifies the stack on a given screen. This function
+-- will also need to know which Screen to focus after the function has been
+-- run.
+onScreen :: (WindowSet -> WindowSet) -- ^ function to run
+         -> Focus                    -- ^ what to do with the focus
+         -> ScreenId                 -- ^ screen id
+         -> WindowSet                -- ^ current stack
+         -> WindowSet
+onScreen f foc sc st = fromMaybe st $ do
+    ws <- lookupWorkspace sc st
+
+    let fStack      = f $ view ws st
+        curScreen   = screen $ current st
+        focusCur    = lookupWorkspace curScreen fStack >>= return . flip view fStack
+        isVisible   = (`elem` map (tag.workspace) (visible st))
+
+        -- set focus for new stack
+        setFocus FocusNew              = return $ fStack
+        setFocus FocusCurrent          = focusCur
+        setFocus (FocusTag i)          = return $ view i fStack
+        setFocus (FocusTagVisible i)   =
+            if isVisible i
+               then setFocus (FocusTag i)
+               else setFocus FocusCurrent
+
+    setFocus foc
+
+-- | Switch to workspace @i@ on screen @sc@. If @i@ is visible use @view@ to
+-- switch focus to the workspace @i@.
+viewOnScreen :: ScreenId    -- ^ screen id
+             -> WorkspaceId -- ^ index of the workspace
+             -> WindowSet   -- ^ current stack
+             -> WindowSet
+viewOnScreen sid i =
+    onScreen (view i) (FocusTag i) sid
+
+-- | Switch to workspace @i@ on screen @sc@. If @i@ is visible use @greedyView@
+-- to switch the current workspace with workspace @i@.
+greedyViewOnScreen :: ScreenId    -- ^ screen id
+                   -> WorkspaceId -- ^ index of the workspace
+                   -> WindowSet   -- ^ current stack
+                   -> WindowSet
+greedyViewOnScreen sid i =
+    onScreen (greedyView i) (FocusTagVisible i) sid
+
+-- | Switch to workspace @i@ on screen @sc@. If @i@ is visible do nothing.
+onlyOnScreen :: ScreenId    -- ^ screen id
+             -> WorkspaceId -- ^ index of the workspace
+             -> WindowSet   -- ^ current stack
+             -> WindowSet
+onlyOnScreen sid i =
+    onScreen (view i) FocusCurrent sid
+
+-- | @toggleOrView@ as in "XMonad.Actions.CycleWS" for @onScreen@ with view
+toggleOnScreen :: ScreenId    -- ^ screen id
+               -> WorkspaceId -- ^ index of the workspace
+               -> WindowSet   -- ^ current stack
+               -> WindowSet
+toggleOnScreen sid i =
+    onScreen (toggleOrView' view i) FocusCurrent sid
+
+-- | @toggleOrView@ from "XMonad.Actions.CycleWS" for @onScreen@ with greedyView
+toggleGreedyOnScreen :: ScreenId    -- ^ screen id
+                     -> WorkspaceId -- ^ index of the workspace
+                     -> WindowSet   -- ^ current stack
+                     -> WindowSet
+toggleGreedyOnScreen sid i =
+    onScreen (toggleOrView' greedyView i) FocusCurrent sid
+
+
+-- a \"pure\" version of X.A.CycleWS.toggleOrDoSkip
+toggleOrView' :: (WorkspaceId -> WindowSet -> WindowSet)   -- ^ function to run
+              -> WorkspaceId                               -- ^ tag to look for
+              -> WindowSet                                 -- ^ current stackset
+              -> WindowSet
+toggleOrView' f i st = fromMaybe (f i st) $ do
+    let st' = hidden st
+    -- make sure we actually have to do something
+    guard $ i == (tag . workspace $ current st)
+    guard $ not (null st')
+    -- finally, toggle!
+    return $ f (tag . head $ st') st
+
+
 
 -- $usage
 --
@@ -62,54 +158,7 @@ import Data.Function(on)
 --
 -- >        , ((modm .|. controlMask, xK_1) windows (viewOnScreen 0 "1"))
 --
--- where 0 is the first screen and "1" the workspace with the tag "1".
+-- where 0 is the first screen and \"1\" the workspace with the tag \"1\".
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
-
--- | Switch to the (hidden) workspace with index 'i' on the screen 'sc'.
--- A default function (for example 'view' or 'greedyView') will be run if 'sc' is
--- the current screen, no valid screen id or workspace 'i' is already visible.
-onScreen :: (Eq sid, Eq i)
-          => (i -> StackSet i l a sid sd -> StackSet i l a sid sd) -- ^ default action
-          -> sid                      -- ^ screen id
-          -> i                        -- ^ index of the workspace
-          -> StackSet i l a sid sd    -- ^ current stack
-          -> StackSet i l a sid sd
-onScreen defFunc sc i st = fromMaybe (defFunc i st) $ do
-    -- on unfocused current screen
-    guard $ screen (current st) /= sc
-    x <- find ((i==) . tag    ) (hidden  st)
-    s <- find ((sc==) . screen) (screens st)
-    o <- find ((sc==) . screen) (visible st)
-    let newScreen = s { workspace = x }
-    return st { visible   = newScreen : deleteBy ((==) `on` screen) newScreen (visible st)
-              , hidden    = workspace o : deleteBy ((==) `on` tag) x (hidden st)
-              }
-
--- | Switch to workspace 'i' on screen 'sc'. If 'i' is visible use 'greedyView'
--- to switch the current workspace with workspace 'i'.
-greedyViewOnScreen :: (Eq sid, Eq i)
-    => sid                          -- ^ screen id
-    -> i                            -- ^ index of the workspace
-    -> StackSet i l a sid sd        -- ^ current stack
-    -> StackSet i l a sid sd
-greedyViewOnScreen = onScreen greedyView
-
--- | Switch to workspace 'i' on screen 'sc'. If 'i' is visible use 'view' to
--- switch focus to the workspace 'i'.
-viewOnScreen :: (Eq sid, Eq i)
-    => sid                          -- ^ screen id
-    -> i                            -- ^ index of the workspace
-    -> StackSet i l a sid sd        -- ^ current stack
-    -> StackSet i l a sid sd
-viewOnScreen = onScreen view
-
--- | Switch to workspace 'i' on screen 'sc'. If 'i' is visible do nothing.
-onlyOnScreen :: (Eq sid, Eq i)
-    => sid                          -- ^ screen id
-    -> i                            -- ^ index of the workspace
-    -> StackSet i l a sid sd        -- ^ current stack
-    -> StackSet i l a sid sd
-onlyOnScreen = onScreen doNothing
-  where doNothing _ st = st
