@@ -63,6 +63,7 @@ library
                         XMonad.Doc.Configuring
                         XMonad.Doc.Extending
                         XMonad.Doc.Developing
+                        XMonad.Actions.BluetileCommands
                         XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
                         XMonad.Actions.CopyWindow
