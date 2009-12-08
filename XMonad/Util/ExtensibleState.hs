@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.ExtensibleState
@@ -26,6 +27,7 @@ import Data.Typeable (typeOf,Typeable,cast)
 import qualified Data.Map as M
 import XMonad.Core
 import qualified Control.Monad.State as State
+import Data.Maybe (fromMaybe)
 
 -- ---------------------------------------------------------------------
 -- $usage
@@ -96,13 +98,10 @@ get = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
           case v of
             Just (Right (StateExtension val)) -> return $ toValue val
             Just (Right (PersistentExtension val)) -> return $ toValue val
-            Just (Left str) -> case extensionType (undefined `asTypeOf` k) of
-                                PersistentExtension x -> do
-                                  let val = maybe initialValue id $
-                                            cast =<< safeRead str `asTypeOf` (Just x)
-                                  put (val `asTypeOf` k)
-                                  return val
-                                _ -> return $ initialValue
+            Just (Left str) | PersistentExtension x <- extensionType k -> do
+                let val = fromMaybe initialValue $ cast =<< safeRead str `asTypeOf` Just x
+                put (val `asTypeOf` k)
+                return val
             _ -> return $ initialValue
         safeRead str = case reads str of
                          [(x,"")] -> Just x
