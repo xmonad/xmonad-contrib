@@ -16,6 +16,7 @@ module XMonad.Actions.OnScreen (
     -- * Usage
     -- $usage
       onScreen
+    , onScreen'
     , Focus(..)
     , viewOnScreen
     , greedyViewOnScreen
@@ -24,11 +25,13 @@ module XMonad.Actions.OnScreen (
     , toggleGreedyOnScreen
     ) where
 
+import XMonad
 import XMonad.Core
-import XMonad.StackSet
+import XMonad.StackSet hiding (new)
 
 import Control.Monad (guard)
-import Data.Maybe(fromMaybe)
+-- import Control.Monad.State.Class (gets)
+import Data.Maybe (fromMaybe)
 
 
 -- | Focus data definitions
@@ -50,20 +53,43 @@ onScreen f foc sc st = fromMaybe st $ do
     ws <- lookupWorkspace sc st
 
     let fStack      = f $ view ws st
-        curScreen   = screen $ current st
-        focusCur    = lookupWorkspace curScreen fStack >>= return . flip view fStack
-        isVisible   = (`elem` map (tag.workspace) (visible st))
 
-        -- set focus for new stack
-        setFocus FocusNew              = return $ fStack
-        setFocus FocusCurrent          = focusCur
-        setFocus (FocusTag i)          = return $ view i fStack
-        setFocus (FocusTagVisible i)   =
-            if isVisible i
-               then setFocus (FocusTag i)
-               else setFocus FocusCurrent
+    return $ setFocus foc st fStack
 
-    setFocus foc
+
+-- set focus for new stack
+setFocus :: Focus
+         -> WindowSet -- ^ old stack
+         -> WindowSet -- ^ new stack
+         -> WindowSet
+setFocus FocusNew _ new             = new
+setFocus FocusCurrent old new        =
+    case lookupWorkspace (screen $ current old) new of
+         Nothing -> new
+         Just i -> view i new
+setFocus (FocusTag i) _ new         = view i new
+setFocus (FocusTagVisible i) old new =
+    if i `elem` map (tag . workspace) (visible old)
+       then setFocus (FocusTag i) old new
+       else setFocus FocusCurrent old new
+
+-- | A variation of @onScreen@ which will take any @X ()@ function and run it
+-- on the given screen.
+-- Warning: This function will change focus even if the function it's supposed
+-- to run doesn't succeed.
+onScreen' :: X ()       -- ^ X function to run
+          -> Focus      -- ^ focus
+          -> ScreenId   -- ^ screen id
+          -> X ()
+onScreen' x foc sc = do
+    st <- gets windowset
+    case lookupWorkspace sc st of
+         Nothing -> return ()
+         Just ws -> do
+             windows $ view ws
+             x
+             windows $ setFocus foc st
+
 
 -- | Switch to workspace @i@ on screen @sc@. If @i@ is visible use @view@ to
 -- switch focus to the workspace @i@.
@@ -120,7 +146,6 @@ toggleOrView' f i st = fromMaybe (f i st) $ do
     guard $ not (null st')
     -- finally, toggle!
     return $ f (tag . head $ st') st
-
 
 
 -- $usage
