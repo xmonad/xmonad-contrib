@@ -111,6 +111,7 @@ library
                         XMonad.Actions.WorkspaceCursors
                         XMonad.Config.Arossato
                         XMonad.Config.Azerty
+                        XMonad.Config.Bluetile
                         XMonad.Config.Desktop
                         XMonad.Config.Droundy
                         XMonad.Config.Gnome
