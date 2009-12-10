@@ -416,6 +416,7 @@ stringToRatio s = let gen = mkStdGen $ sum $ map fromEnum s
 -- | Brings up a 2D grid of elements in the center of the screen, and one can
 -- select an element with cursors keys. The selected element is returned.
 gridselect :: GSConfig a -> [(String,a)] -> X (Maybe a)
+gridselect _ [] = return Nothing
 gridselect gsconfig elmap =
  withDisplay $ \dpy -> do
     rootw <- asks theRoot
