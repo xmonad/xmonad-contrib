@@ -93,13 +93,13 @@ import Data.Word (Word8)
 -- > {-# LANGUAGE NoMonomorphismRestriction #-}
 -- > import XMonad
 -- > ...
--- > gsconfig1 = defaultGSConfig { gs_cellheight = 30, gs_cellWidth = 100 }
+-- > gsconfig1 = defaultGSConfig { gs_cellheight = 30, gs_cellwidth = 100 }
 --
 -- An example where 'buildDefaultGSConfig' is used instead of 'defaultGSConfig'
 -- in order to specify a custom colorizer is @gsconfig2@ (found in
 -- "XMonad.Actions.GridSelect#Colorizers"):
 --
--- > gsconfig2 colorizer = (buildDefaultGSConfig colorizer) { gs_cellheight = 30, gs_cellWidth = 100 }
+-- > gsconfig2 colorizer = (buildDefaultGSConfig colorizer) { gs_cellheight = 30, gs_cellwidth = 100 }
 --
 -- > -- | A green monochrome colorizer based on window class
 -- > greenColorizer = colorRangeFromClassName
