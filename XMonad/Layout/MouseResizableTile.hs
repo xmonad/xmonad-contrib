@@ -144,7 +144,8 @@ instance LayoutClass MouseResizableTile a where
         where releaseResources = mapM_ deleteDragger $ draggers state
     handleMessage _ _ = return Nothing
 
-    description _ = "MouseResizableTile"
+    description state = mirror "MouseResizableTile"
+        where mirror = if isMirrored state then ("Mirror " ++) else id
 
 adjustForMirror :: Bool -> DraggerWithRect -> DraggerWithRect
 adjustForMirror False dragger = dragger
