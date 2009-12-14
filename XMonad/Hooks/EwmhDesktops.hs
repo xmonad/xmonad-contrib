@@ -19,7 +19,8 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
-    ewmhDesktopsEventHook
+    ewmhDesktopsEventHook,
+    fullscreenEventHook
     ) where
 
 import Codec.Binary.UTF8.String (encode)
@@ -34,6 +35,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.SetWMName
 import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
+import XMonad.Util.WindowProperties (getProp32)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -154,6 +156,39 @@ handle ClientMessageEvent {
           return ()
 handle _ = return ()
 
+-- |
+-- An event hook to handle applications that wish to fullscreen using the
+-- _NET_WM_STATE protocol. This includes users of the gtk_window_fullscreen()
+-- function, such as Totem, Evince and OpenOffice.org.
+fullscreenEventHook :: Event -> X All
+fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ dat) = do
+  state <- getAtom "_NET_WM_STATE"
+  fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
+  wstate' <- getProp32 state win
+  let wstate = case wstate' of 
+                 Just ps -> ps
+                 Nothing -> []
+      isFull = fromIntegral fullsc `elem` wstate
+
+      -- Constants for the _NET_WM_STATE protocol:
+      remove = 0
+      add = 1
+      toggle = 2
+
+      action = head dat
+      ptype = 4 -- The atom property type for changeProperty
+
+  when (typ == state && fromIntegral fullsc `elem` tail dat) $ do
+    when (action == add || (action == toggle && not isFull)) $ do
+      io $ changeProperty32 dpy win state ptype propModeReplace (fromIntegral fullsc:wstate)
+      windows $ W.float win $ W.RationalRect 0 0 1 1
+    when (action == remove || (action == toggle && isFull)) $ do
+      io $ changeProperty32 dpy win state ptype propModeReplace (delete (fromIntegral fullsc) wstate)
+      windows $ W.sink win
+
+  return $ All True
+
+fullscreenEventHook _ = return $ All True
 
 setNumberOfDesktops :: (Integral a) => a -> X ()
 setNumberOfDesktops n = withDisplay $ \dpy -> do
