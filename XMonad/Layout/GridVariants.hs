@@ -104,6 +104,8 @@ instance LayoutClass SplitGrid a where
 data ChangeMasterGeom
     = IncMasterRows !Int -- ^Change the number of master rows
     | IncMasterCols !Int -- ^Change the number of master columns
+    | SetMasterRows !Int -- ^Set the number of master rows to absolute value
+    | SetMasterCols !Int -- ^Set the number of master columns to absolute value
     deriving Typeable
 
 instance Message ChangeMasterGeom
@@ -188,6 +190,10 @@ changeMasterGrid (SplitGrid o mrows mcols mfrac saspect delta) (IncMasterRows d)
     SplitGrid o (max 0 (mrows + d)) mcols mfrac saspect delta
 changeMasterGrid (SplitGrid o mrows mcols mfrac saspect delta) (IncMasterCols d) =
     SplitGrid o mrows (max 0 (mcols + d)) mfrac saspect delta
+changeMasterGrid (SplitGrid o _ mcols mfrac saspect delta) (SetMasterRows mrows) =
+    SplitGrid o (max 0 mrows) mcols mfrac saspect delta
+changeMasterGrid (SplitGrid o mrows _ mfrac saspect delta) (SetMasterCols mcols) =
+    SplitGrid o mrows (max 0 mcols) mfrac saspect delta
 
 -- | TallGrid layout.  Parameters are
 --
