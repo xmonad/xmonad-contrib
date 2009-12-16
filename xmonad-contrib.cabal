@@ -49,7 +49,7 @@ library
         extensions: ForeignFunctionInterface
         cpp-options: -DXFT
 
-    build-depends:      mtl, unix, X11>=1.4.6.1 && < 1.5, xmonad>=0.9, xmonad<1, utf8-string
+    build-depends:      mtl, unix, X11>=1.5.0.0 && < 1.6, xmonad>=0.9, xmonad<1, utf8-string
     ghc-options:        -fwarn-tabs -Wall
     extensions:         ForeignFunctionInterface
 
