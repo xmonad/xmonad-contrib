@@ -161,29 +161,26 @@ handle _ = return ()
 -- _NET_WM_STATE protocol. This includes users of the gtk_window_fullscreen()
 -- function, such as Totem, Evince and OpenOffice.org.
 fullscreenEventHook :: Event -> X All
-fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ dat) = do
+fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   state <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate' <- getProp32 state win
-  let wstate = case wstate' of 
-                 Just ps -> ps
-                 Nothing -> []
-      isFull = fromIntegral fullsc `elem` wstate
+  wstate <- fromMaybe [] `fmap` getProp32 state win
+
+  let isFull = fromIntegral fullsc `elem` wstate
 
       -- Constants for the _NET_WM_STATE protocol:
       remove = 0
       add = 1
       toggle = 2
-
-      action = head dat
       ptype = 4 -- The atom property type for changeProperty
+      chWstate f = io $ changeProperty32 dpy win state ptype propModeReplace (f wstate)
 
-  when (typ == state && fromIntegral fullsc `elem` tail dat) $ do
+  when (typ == state && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
-      io $ changeProperty32 dpy win state ptype propModeReplace (fromIntegral fullsc:wstate)
+      chWstate (fi fullsc:)
       windows $ W.float win $ W.RationalRect 0 0 1 1
     when (action == remove || (action == toggle && isFull)) $ do
-      io $ changeProperty32 dpy win state ptype propModeReplace (delete (fromIntegral fullsc) wstate)
+      chWstate $ delete (fi fullsc)
       windows $ W.sink win
 
   return $ All True
