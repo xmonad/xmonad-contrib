@@ -41,7 +41,7 @@ where
 import XMonad
 
 import Data.List
-import Data.Maybe (fromMaybe, isNothing, listToMaybe)
+import Data.Maybe (fromMaybe, isNothing, listToMaybe, fromJust)
 import Data.Ord
 import qualified Data.Map as M
 import Control.Monad (liftM2,when,unless,replicateM_)
@@ -225,11 +225,12 @@ getLastFocusedTopics = XS.gets getPrevTopics
 -- | Given a 'TopicConfig', the last focused topic, and a predicate that will
 -- select topics that one want to keep, this function will set the property
 -- of last focused topics.
-setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
-setLastFocusedTopic tg w predicate =
+setLastFocusedTopic :: Topic -> (Topic -> Bool) -> X ()
+setLastFocusedTopic w predicate =
   XS.modify $ PrevTopics
-    . take (maxTopicHistory tg) . nub . (w:) . filter predicate
+    . seqList . nub . (w:) . filter predicate
     . getPrevTopics
+  where seqList xs = length xs `seq` xs
 
 -- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
 -- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
@@ -240,13 +241,13 @@ pprWindowSet tg pp = do
     urgents <- readUrgents
     let empty_workspaces = map W.tag $ filter (isNothing . W.stack) $ W.workspaces winset
         maxDepth = maxTopicHistory tg
-    setLastFocusedTopic tg (W.tag . W.workspace . W.current $ winset)
-                           (`notElem` empty_workspaces)
+    setLastFocusedTopic (W.tag . W.workspace . W.current $ winset)
+                        (`notElem` empty_workspaces)
     lastWs <- getLastFocusedTopics
-    let depth topic = elemIndex topic lastWs
-        add_depth proj topic = proj pp $ maybe topic (((topic++":")++) . show) $ depth topic
+    let depth topic = fromJust $ elemIndex topic (lastWs ++ [topic])
+        add_depth proj topic = proj pp . (((topic++":")++) . show) . depth $ topic
         pp' = pp { ppHidden = add_depth ppHidden, ppVisible = add_depth ppVisible }
-        sortWindows = take (maxDepth - 1) . sortBy (comparing $ fromMaybe maxDepth . depth . W.tag)
+        sortWindows = take maxDepth . sortBy (comparing $ depth . W.tag)
     return $ DL.pprWindowSet sortWindows urgents pp' winset
 
 -- | Given a prompt configuration and a topic configuration, triggers the action associated with
