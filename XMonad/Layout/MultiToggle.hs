@@ -41,11 +41,6 @@ import Data.Maybe
 -- first disables any currently active transformer; i.e. it works like a
 -- group of radio buttons.
 --
--- A side effect of this meta-layout is that layout transformers no longer
--- receive any messages; any message not handled by MultiToggle itself will
--- undo the current layout transformer, pass the message on to the base
--- layout, then reapply the transformer.
---
 -- To use this module, you need some data types which represent
 -- transformers; for some commonly used transformers (including
 -- MIRROR, NOBORDERS, and FULL used in the examples below) you can
@@ -89,7 +84,7 @@ import Data.Maybe
 --
 -- > data MIRROR = MIRROR deriving (Read, Show, Eq, Typeable)
 -- > instance Transformer MIRROR Window where
--- >     transform _ x k = k (Mirror x)
+-- >     transform _ x k = k (Mirror x) (\(Mirror x') -> x')
 --
 -- Note, you need to put @{-\# LANGUAGE DeriveDataTypeable \#-}@ at the
 -- beginning of your file.
@@ -97,15 +92,19 @@ import Data.Maybe
 -- | A class to identify custom transformers (and look up transforming
 -- functions by type).
 class (Eq t, Typeable t) => Transformer t a | t -> a where
-    transform :: (LayoutClass l a) => t -> l a -> (forall l'. (LayoutClass l' a) => l' a -> b) -> b
+    transform :: (LayoutClass l a) => t -> l a ->
+        (forall l'. (LayoutClass l' a) => l' a -> (l' a -> l a) -> b) -> b
 
-data EL a = forall l. (LayoutClass l a) => EL (l a)
+data (LayoutClass l a) => EL l a = forall l'. (LayoutClass l' a) => EL (l' a) (l' a -> l a)
 
-unEL :: EL a -> (forall l. (LayoutClass l a) => l a -> b) -> b
-unEL (EL x) k = k x
+unEL :: (LayoutClass l a) => EL l a -> (forall l'. (LayoutClass l' a) => l' a -> b) -> b
+unEL (EL x _) k = k x
 
-transform' :: (Transformer t a) => t -> EL a -> EL a
-transform' t el = el `unEL` \l -> transform t l EL
+deEL :: (LayoutClass l a) => EL l a -> l a
+deEL (EL x det) = det x
+
+transform' :: (Transformer t a, LayoutClass l a) => t -> EL l a -> EL l a
+transform' t (EL l det) = transform t l (\l' det' -> EL l' (det . det'))
 
 -- | Toggle the specified layout transformer.
 data Toggle a = forall t. (Transformer t a) => Toggle t
@@ -117,10 +116,8 @@ data MultiToggleS ts l a = MultiToggleS (l a) (Maybe Int) ts
     deriving (Read, Show)
 
 data MultiToggle ts l a = MultiToggle{
-    baseLayout :: l a,
-    currLayout :: EL a,
+    currLayout :: EL l a,
     currIndex :: Maybe Int,
-    currTrans :: EL a -> EL a,
     transformers :: ts
 }
 
@@ -128,27 +125,23 @@ expand :: (LayoutClass l a, HList ts a) => MultiToggleS ts l a -> MultiToggle ts
 expand (MultiToggleS b i ts) =
     resolve ts (fromMaybe (-1) i) id
         (\x mt ->
-            let g = transform' x in
-            mt{
-                currLayout = g . EL $ baseLayout mt,
-                currTrans = g
-            }
+            let g = transform' x in mt{ currLayout = g $ currLayout mt }
         )
-        (MultiToggle b (EL b) i id ts)
+        (MultiToggle (EL b id) i ts)
 
-collapse :: MultiToggle ts l a -> MultiToggleS ts l a
-collapse mt = MultiToggleS (baseLayout mt) (currIndex mt) (transformers mt)
+collapse :: (LayoutClass l a) => MultiToggle ts l a -> MultiToggleS ts l a
+collapse mt = MultiToggleS (deEL (currLayout mt)) (currIndex mt) (transformers mt)
 
 instance (LayoutClass l a, Read (l a), HList ts a, Read ts) => Read (MultiToggle ts l a) where
     readsPrec p s = map (first expand) $ readsPrec p s
 
-instance (Show ts, Show (l a)) => Show (MultiToggle ts l a) where
+instance (Show ts, Show (l a), LayoutClass l a) => Show (MultiToggle ts l a) where
     showsPrec p = showsPrec p . collapse
 
 -- | Construct a @MultiToggle@ layout from a transformer table and a base
 -- layout.
 mkToggle :: (LayoutClass l a) => ts -> l a -> MultiToggle ts l a
-mkToggle ts l = MultiToggle l (EL l) Nothing id ts
+mkToggle ts l = MultiToggle (EL l id) Nothing ts
 
 -- | Construct a @MultiToggle@ layout from a single transformer and a base
 -- layout.
@@ -190,48 +183,26 @@ instance (Transformer a w, HList b w) => HList (HCons a b) w where
 geq :: (Typeable a, Eq a, Typeable b) => a -> b -> Bool
 geq a b = Just a == cast b
 
-acceptChange :: (LayoutClass l' a) => MultiToggle ts l a -> ((l' a -> MultiToggle ts l a) -> b -> c) -> X b -> X c
-acceptChange mt f = fmap (f (\x -> mt{ currLayout = EL x }))
-
 instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (MultiToggle ts l) a where
     description mt = currLayout mt `unEL` \l -> description l
 
-    runLayout (Workspace i mt s) r
-        | isNothing (currIndex mt) =
-            acceptChange mt (fmap . fmap . \f x -> (f x){ baseLayout = x }) $ runLayout (Workspace i (baseLayout mt) s) r
-        | otherwise = currLayout mt `unEL` \l ->
-            acceptChange mt (fmap . fmap) $ runLayout (Workspace i l s) r
+    runLayout (Workspace i mt s) r = case currLayout mt of
+        EL l det -> fmap (fmap . fmap $ (\x -> mt { currLayout = EL x det })) $
+            runLayout (Workspace i l s) r
 
     handleMessage mt m
         | Just (Toggle t) <- fromMessage m
         , i@(Just _) <- find (transformers mt) t
-            = currLayout mt `unEL` \l ->
-            if i == currIndex mt
-                then do
-                    handleMessage l (SomeMessage ReleaseResources)
+            = case currLayout mt of
+                EL l det -> do
+                    l' <- fromMaybe l `fmap` handleMessage l (SomeMessage ReleaseResources)
                     return . Just $
-                        mt{
-                            currLayout = EL $ baseLayout mt,
-                            currIndex = Nothing,
-                            currTrans = id
+                        mt {
+                            currLayout = (if cur then id else transform' t) (EL (det l') id),
+                            currIndex = if cur then Nothing else i
                         }
-                else do
-                    handleMessage l (SomeMessage ReleaseResources)
-                    let f = transform' t
-                    return . Just $
-                        mt{
-                            currLayout = f . EL $ baseLayout mt,
-                            currIndex = i,
-                            currTrans = f
-                        }
-        | fromMessage m == Just ReleaseResources ||
-          fromMessage m == Just Hide
-            = currLayout mt `unEL` \l -> acceptChange mt fmap (handleMessage l m)
-        | otherwise = do
-            ml <- handleMessage (baseLayout mt) m
-            case ml of
-                Nothing -> return Nothing
-                Just b' -> currLayout mt `unEL` \l -> do
-                    handleMessage l (SomeMessage ReleaseResources)
-                    return . Just $
-                        mt{ baseLayout = b', currLayout = currTrans mt . EL $ b' }
+                    where cur = (i == currIndex mt)
+        | otherwise
+            = case currLayout mt of
+                EL l det -> fmap (fmap (\x -> mt { currLayout = EL x det })) $
+                    handleMessage l m

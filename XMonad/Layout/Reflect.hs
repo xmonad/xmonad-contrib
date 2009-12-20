@@ -105,7 +105,7 @@ data REFLECTX = REFLECTX deriving (Read, Show, Eq, Typeable)
 data REFLECTY = REFLECTY deriving (Read, Show, Eq, Typeable)
 
 instance Transformer REFLECTX Window where
-    transform REFLECTX x k = k (reflectHoriz x)
+    transform REFLECTX x k = k (reflectHoriz x) (\(ModifiedLayout _ x') -> x')
 
 instance Transformer REFLECTY Window where
-    transform REFLECTY x k = k (reflectVert x)
+    transform REFLECTY x k = k (reflectVert x) (\(ModifiedLayout _ x') -> x')

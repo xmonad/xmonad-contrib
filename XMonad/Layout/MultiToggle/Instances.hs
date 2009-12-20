@@ -22,6 +22,7 @@ import XMonad.Layout.MultiToggle
 
 import XMonad
 import XMonad.Layout.NoBorders
+import XMonad.Layout.LayoutModifier
 
 data StdTransformers = FULL          -- ^ switch to Full layout
                      | NBFULL        -- ^ switch to Full with no borders
@@ -31,8 +32,8 @@ data StdTransformers = FULL          -- ^ switch to Full layout
   deriving (Read, Show, Eq, Typeable)
 
 instance Transformer StdTransformers Window where
-    transform FULL         _ k = k Full
-    transform NBFULL       _ k = k (noBorders Full)
-    transform MIRROR       x k = k (Mirror x)
-    transform NOBORDERS    x k = k (noBorders x)
-    transform SMARTBORDERS x k = k (smartBorders x)
+    transform FULL         x k = k Full (const x)
+    transform NBFULL       x k = k (noBorders Full) (const x)
+    transform MIRROR       x k = k (Mirror x) (\(Mirror x') -> x')
+    transform NOBORDERS    x k = k (noBorders x) (\(ModifiedLayout _ x') -> x')
+    transform SMARTBORDERS x k = k (smartBorders x) (\(ModifiedLayout _ x') -> x')
