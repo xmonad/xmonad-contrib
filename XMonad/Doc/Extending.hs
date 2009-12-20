@@ -977,7 +977,7 @@ module, before starting we must first import this modules:
 For instance, if you have defined some additional key bindings like
 these:
 
->    myKeys conf@(XConfig {XMonad.modMask = modm}) =
+>    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
 >             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
@@ -985,12 +985,18 @@ these:
 then you can create a new key bindings map by joining the default one
 with yours:
 
->    newKeys x  = M.union (keys defaultConfig x) (M.fromList (myKeys x))
+>    newKeys x  = myKeys x `M.union` keys defaultConfig x
 
 Finally, you can use @newKeys@ in the 'XMonad.Core.XConfig.keys' field
 of the configuration:
 
 >    main = xmonad $ defaultConfig { keys = newKeys }
+
+Alternatively, the '<+>' operator can be used which in this usage does exactly
+the same as the explicit usage of 'M.union' and propagation of the config
+argument, thanks to appropriate instances in "Data.Monoid".
+
+>    main = xmonad $ defaultConfig { keys = myKeys <+> keys defaultConfig }
 
 All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 
@@ -1006,11 +1012,9 @@ All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 >    import XMonad.Prompt.XMonad
 >
 >    main :: IO ()
->    main = xmonad $ defaultConfig { keys = newKeys }
+>    main = xmonad $ defaultConfig { keys = myKeys <+> keys defaultConfig }
 >
->    newKeys x = M.union (keys defaultConfig x) (M.fromList (myKeys x))
->
->    myKeys conf@(XConfig {XMonad.modMask = modm}) =
+>    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
 >             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
@@ -1034,10 +1038,10 @@ For example, suppose you want to get rid of @mod-q@ and @mod-shift-q@
 to define @newKeys@ as a 'Data.Map.difference' between the default
 map and the map of the key bindings you want to remove.  Like so:
 
->    newKeys x = M.difference (keys defaultConfig x) (M.fromList $ keysToRemove x)
+>    newKeys x = keys defaultConfig x `M.difference` keysToRemove x
 >
->    keysToRemove :: XConfig Layout ->    [((KeyMask, KeySym),X ())]
->    keysToRemove x =
+>    keysToRemove :: XConfig Layout ->    M.Map (KeyMask, KeySym) (X ())
+>    keysToRemove x = M.fromList
 >             [ ((modm              , xK_q ), return ())
 >             , ((modm .|. shiftMask, xK_q ), return ())
 >             ]
