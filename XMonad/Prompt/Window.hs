@@ -24,7 +24,6 @@ module XMonad.Prompt.Window
     ) where
 
 import qualified Data.Map as M
-import Data.List
 
 import qualified XMonad.StackSet as W
 import XMonad
@@ -89,7 +88,7 @@ doPrompt t c = do
       bringAction      = winAction bringWindow
       bringCopyAction  = winAction bringCopyWindow
 
-      compList m s = return . filter (isPrefixOf s) . map fst . M.toList $ m
+      compList m s = return . filter (searchPredicate c s) . map fst . M.toList $ m
 
 
 -- | Brings a copy of the specified window into the current workspace.

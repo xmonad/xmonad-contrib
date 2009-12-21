@@ -138,7 +138,10 @@ data XPConfig =
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
         , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
-                                         --   and delay by x microseconds
+                                          --   and delay by x microseconds
+        , searchPredicate   :: String -> String -> Bool
+                                          -- ^ Given the typed string and a possible
+                                          --   completion, is the completion valid?
         }
 
 data XPType = forall p . XPrompt p => XPT p
@@ -212,7 +215,9 @@ defaultXPConfig =
         , historyFilter     = id
         , defaultText       = []
         , autoComplete      = Nothing
-        , showCompletionOnTab = False }
+        , showCompletionOnTab = False
+        , searchPredicate   = isPrefixOf
+        }
 greenXPConfig = defaultXPConfig { fgColor = "green", bgColor = "black" }
 amberXPConfig = defaultXPConfig { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
 
