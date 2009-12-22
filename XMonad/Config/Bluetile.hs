@@ -181,7 +181,7 @@ bluetileManageHook = composeAll
                 , className =? "MPlayer" --> doFloat
                 , manageDocks]
 
-bluetileLayoutHook = avoidStruts $ boringAuto $ minimize $ (
+bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
                         named "Floating" floating |||
                         named "Tiled1" tiled1 |||
                         named "Tiled2" tiled2 |||

@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances, FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances, FlexibleContexts, PatternGuards #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Minimize
@@ -54,8 +54,9 @@ import Data.List
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
 -- The module is designed to work together with "XMonad.Layout.BoringWindows" so
--- that minimized windows will be skipped when switching the focus window with
--- the keyboard.  Use the 'BW.boringAuto' function.
+-- that minimized windows will be skipped over when switching the focused window with
+-- the keyboard. Include 'BW.boringWindows' in your layout hook and see the
+-- documentation of "XMonad.Layout.BoringWindows" on how to modify your keybindings.
 --
 -- Also see "XMonad.Hooks.RestoreMinimized" if you want to be able to restore
 -- minimized windows from your taskbar.
@@ -78,17 +79,23 @@ instance LayoutModifier Minimize Window where
             filtStack = stack >>=W.filter (\w -> not (w `elem` minimized))
         runLayout (wksp {W.stack = filtStack}) rect
 
-    handleMess (Minimize minimized) m = case fromMessage m of
-        Just (MinimizeWin w)
-          | not (w `elem` minimized) -> do
+    handleMess (Minimize minimized) m
+        | Just (MinimizeWin w) <- fromMessage m =
+          if not (w `elem` minimized)
+            then do
                 BW.focusDown
                 return $ Just $ Minimize (w:minimized)
-          | otherwise               -> return Nothing
-        Just (RestoreMinimizedWin w) ->
+            else return Nothing
+        | Just (RestoreMinimizedWin w) <- fromMessage m =
             return $ Just $ Minimize (minimized \\ [w])
-        Just (RestoreNextMinimizedWin)
-          | not (null minimized)    -> do
+        | Just RestoreNextMinimizedWin <- fromMessage m =
+          if not (null minimized)
+            then do
                 focus (head minimized)
                 return $ Just $ Minimize (tail minimized)
-          | otherwise               -> return Nothing
-        _ -> return Nothing
+            else return Nothing
+        | Just BW.UpdateBoring <- fromMessage m = do
+            ws <- gets (W.workspace . W.current . windowset)
+            flip sendMessageWithNoRefresh ws $ BW.Replace "Minimize" minimized
+            return Nothing
+        | otherwise = return Nothing
