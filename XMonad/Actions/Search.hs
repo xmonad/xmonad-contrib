@@ -44,6 +44,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  lucky,
                                  maps,
                                  mathworld,
+                                 openstreetmap,
                                  scholar,
                                  thesaurus,
                                  wayback,
@@ -119,6 +120,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'maps'   -- Google maps.
 
 * 'mathworld' -- Wolfram MathWorld search.
+
+* 'openstreetmap' -- OpenStreetMap free wiki world map.
 
 * 'scholar' -- Google scholar academic search.
 
@@ -276,33 +279,34 @@ searchEngineF = SearchEngine
 
 -- The engines.
 amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
-  images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, wiktionary,
+  images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary,
   youtube :: SearchEngine
-amazon     = searchEngine "amazon"     "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
-alpha      = searchEngine "alpha"      "http://www.wolframalpha.com/input/?i="
-codesearch = searchEngine "codesearch" "http://www.google.com/codesearch?q="
-deb        = searchEngine "deb"        "http://packages.debian.org/"
-debbts     = searchEngine "debbts"     "http://bugs.debian.org/"
-debpts     = searchEngine "debpts"     "http://packages.qa.debian.org/"
-dictionary = searchEngine "dict"       "http://dictionary.reference.com/browse/"
-google     = searchEngine "google"     "http://www.google.com/search?num=100&q="
-hackage    = searchEngine "hackage"    "http://hackage.haskell.org/package/"
-hoogle     = searchEngine "hoogle"     "http://www.haskell.org/hoogle/?q="
-images     = searchEngine "images"     "http://images.google.fr/images?q="
-imdb       = searchEngine "imdb"       "http://www.imdb.com/find?s=all&q="
-isohunt    = searchEngine "isohunt"    "http://isohunt.com/torrents/?ihq="
-lucky      = searchEngine "lucky"      "http://www.google.com/search?btnI&q="
-maps       = searchEngine "maps"       "http://maps.google.com/maps?q="
-mathworld  = searchEngine "mathworld"  "http://mathworld.wolfram.com/search/?query="
-scholar    = searchEngine "scholar"    "http://scholar.google.com/scholar?q="
-thesaurus  = searchEngine "thesaurus"  "http://thesaurus.reference.com/search?q="
-wikipedia  = searchEngine "wiki"       "http://en.wikipedia.org/wiki/Special:Search?go=Go&search="
-wiktionary = searchEngine "wikt"       "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
-youtube    = searchEngine "youtube"    "http://www.youtube.com/results?search_type=search_videos&search_query="
-wayback    = searchEngineF "wayback"   ("http://web.archive.org/web/*/"++)
+amazon        = searchEngine "amazon"        "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+alpha         = searchEngine "alpha"         "http://www.wolframalpha.com/input/?i="
+codesearch    = searchEngine "codesearch"    "http://www.google.com/codesearch?q="
+deb           = searchEngine "deb"           "http://packages.debian.org/"
+debbts        = searchEngine "debbts"        "http://bugs.debian.org/"
+debpts        = searchEngine "debpts"        "http://packages.qa.debian.org/"
+dictionary    = searchEngine "dict"          "http://dictionary.reference.com/browse/"
+google        = searchEngine "google"        "http://www.google.com/search?num=100&q="
+hackage       = searchEngine "hackage"       "http://hackage.haskell.org/package/"
+hoogle        = searchEngine "hoogle"        "http://www.haskell.org/hoogle/?q="
+images        = searchEngine "images"        "http://images.google.fr/images?q="
+imdb          = searchEngine "imdb"          "http://www.imdb.com/find?s=all&q="
+isohunt       = searchEngine "isohunt"       "http://isohunt.com/torrents/?ihq="
+lucky         = searchEngine "lucky"         "http://www.google.com/search?btnI&q="
+maps          = searchEngine "maps"          "http://maps.google.com/maps?q="
+mathworld     = searchEngine "mathworld"     "http://mathworld.wolfram.com/search/?query="
+openstreetmap = searchEngine "openstreetmap" "http://gazetteer.openstreetmap.org/namefinder/?find="
+scholar       = searchEngine "scholar"       "http://scholar.google.com/scholar?q="
+thesaurus     = searchEngine "thesaurus"     "http://thesaurus.reference.com/search?q="
+wikipedia     = searchEngine "wiki"          "http://en.wikipedia.org/wiki/Special:Search?go=Go&search="
+wiktionary    = searchEngine "wikt"          "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
+youtube       = searchEngine "youtube"       "http://www.youtube.com/results?search_type=search_videos&search_query="
+wayback       = searchEngineF "wayback"      ("http://web.archive.org/web/*/"++)
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, scholar, thesaurus, wayback, wikipedia, wiktionary, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, (prefixAware google)]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
