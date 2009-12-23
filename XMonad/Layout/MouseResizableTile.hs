@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MouseResizableTile
@@ -25,6 +25,7 @@ module XMonad.Layout.MouseResizableTile (
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
 import qualified XMonad.StackSet as W
 import XMonad.Util.XUtils
+import Control.Applicative((<$>))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -100,7 +101,7 @@ mouseResizableTile = MRT 1 mrtFraction [] [] [] 0 0 False
 mouseResizableTileMirrored :: MouseResizableTile a
 mouseResizableTileMirrored= MRT 1 mrtFraction [] [] [] 0 0 True
 
-instance LayoutClass MouseResizableTile a where
+instance LayoutClass MouseResizableTile Window where
     doLayout state sr (W.Stack w l r) =
         let wins = reverse l ++ w : r
             num = length wins
@@ -111,10 +112,12 @@ instance LayoutClass MouseResizableTile a where
             rects' = map (mirrorAdjust id mirrorRect . sanitizeRectangle sr') rects
         in do
             mapM_ deleteDragger $ draggers state
-            newDraggers <- mapM (createDragger sr . adjustForMirror (isMirrored state)) preparedDraggers
-            return (zip wins rects', Just $ state { draggers = newDraggers,
-                                                    focusPos = length l,
-                                                    numWindows = length wins })
+            (draggerWrs, newDraggers) <- unzip <$> mapM
+                                            (createDragger sr . adjustForMirror (isMirrored state))
+                                            preparedDraggers
+            return (zip wins rects' ++ draggerWrs, Just $ state { draggers = newDraggers,
+                                                                  focusPos = length l,
+                                                                  numWindows = length wins })
         where
             mirrorAdjust a b = if (isMirrored state)
                                 then b
@@ -227,11 +230,11 @@ splitHorizontallyBy f (Rectangle sx sy sw sh) = ((leftHalf, rightHalf), (dragger
         draggerRect = Rectangle (sx + fromIntegral leftw - mrtDraggerOffset) sy mrtDraggerSize sh
         draggerInfo = MasterDragger sx (fromIntegral sw)
 
-createDragger :: Rectangle -> DraggerWithRect -> X DraggerWithWin
+createDragger :: Rectangle -> DraggerWithRect -> X ((Window, Rectangle), DraggerWithWin)
 createDragger sr (draggerRect, draggerCursor, draggerInfo) = do
-        draggerWin <- createInputWindow draggerCursor $ sanitizeRectangle sr draggerRect
-        io . flip lowerWindow draggerWin =<< asks display
-        return (draggerWin, draggerInfo)
+        let draggerRect' = sanitizeRectangle sr draggerRect
+        draggerWin <- createInputWindow draggerCursor draggerRect'
+        return ((draggerWin, draggerRect'), (draggerWin, draggerInfo))
 
 deleteDragger :: DraggerWithWin -> X ()
 deleteDragger (draggerWin, _) = deleteWindow draggerWin
