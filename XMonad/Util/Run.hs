@@ -32,7 +32,7 @@ module XMonad.Util.Run (
                          ) where
 
 import System.Posix.IO
-import System.Posix.Process (executeFile, forkProcess, createSession)
+import System.Posix.Process (executeFile, createSession)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try) -- use OldException with base 4
 import System.IO
@@ -67,7 +67,7 @@ runProcessWithInput cmd args input = io $ do
 -- | Wait is in µs (microseconds)
 runProcessWithInputAndWait :: MonadIO m => FilePath -> [String] -> String -> Int -> m ()
 runProcessWithInputAndWait cmd args input timeout = io $ do
-    forkProcess $ do
+    xfork $ do
         (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
         hPutStr pin input
         hFlush pin
@@ -107,7 +107,7 @@ it makes use of shell interpretation by relying on @$HOME@ and
 interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
 safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
-safeSpawn prog args = liftIO (try (forkProcess $ executeFile prog True args Nothing) >> return ())
+safeSpawn prog args = liftIO (try (xfork $ executeFile prog True args Nothing) >> return ())
 
 -- | Like 'safeSpawn', but only takes a program (and no arguments for it). eg.
 --
@@ -135,7 +135,7 @@ spawnPipe x = io $ do
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr
     hSetBuffering h LineBuffering
-    forkProcess $ do
+    xfork $ do
         createSession
         uninstallSignalHandlers
         dupTo rd stdInput

@@ -42,15 +42,8 @@ module XMonad.Util.NamedActions (
 
 
 import XMonad.Actions.Submap(submap)
-import XMonad(KeySym, KeyMask, X, Layout, Message,
-              XConfig(keys, layoutHook, modMask, terminal, workspaces, XConfig),
-              io, spawn, whenJust, ChangeLayout(NextLayout), IncMasterN(..),
-              Resize(..), kill, refresh, screenWorkspace, sendMessage, setLayout,
-              windows, withFocused, controlMask, mod1Mask, mod2Mask, mod3Mask,
-              mod4Mask, mod5Mask, shiftMask, xK_1, xK_9, xK_Return, xK_Tab, xK_c,
-              xK_comma, xK_e, xK_h, xK_j, xK_k, xK_l, xK_m, xK_n, xK_p,
-              xK_period, xK_q, xK_r, xK_space, xK_t, xK_w, keysymToString)
-import System.Posix.Process(executeFile, forkProcess)
+import XMonad
+import System.Posix.Process(executeFile)
 import Control.Arrow(Arrow((&&&), second, (***)))
 import Data.Bits(Bits((.&.), complement, (.|.)))
 import Data.Function((.), const, ($), flip, id)
@@ -212,7 +205,7 @@ showKm keybindings = padding $ do
 -- | An action to send to 'addDescrKeys' for showing the keybindings. See also 'showKm' and 'showKmSimple'
 xMessage :: [((KeyMask, KeySym), NamedAction)] -> NamedAction
 xMessage x = addName "Show Keybindings" $ io $ do
-    forkProcess $ executeFile "xmessage" True ["-default", "okay", unlines $ showKm x] Nothing
+    xfork $ executeFile "xmessage" True ["-default", "okay", unlines $ showKm x] Nothing
     return ()
 
 -- | Merge the supplied keys with 'defaultKeysDescr', also adding a keybinding
