@@ -99,7 +99,7 @@ commandCompletionFunction cmds str | '/' `elem` str = []
 getCommands :: IO [String]
 getCommands = do
     p  <- getEnv "PATH" `catch` const (return [])
-    let ds = split ':' p
+    let ds = filter (/= "") $ split ':' p
     es <- forM ds $ \d -> do
         exists <- doesDirectoryExist d
         if exists
