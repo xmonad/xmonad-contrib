@@ -108,12 +108,20 @@ handleResize st ButtonEvent { ev_window = ew, ev_event_type = et }
         getWin _ []     = Nothing
 handleResize _ _ = return ()
 
+brCursorBottomRightCorner :: Glyph
+brCursorBottomRightCorner = 14
+
 createInputWindow :: ((Window,Rectangle), Maybe Rectangle) -> X ((Window,Rectangle),Maybe Window)
 createInputWindow ((w,r),mr) = do
   case mr of
     Just tr  -> withDisplay $ \d -> do
                   tw <- mkInputWindow d tr
                   io $ selectInput d tw (exposureMask .|. buttonPressMask)
+
+                  cursor <- io $ createFontCursor d brCursorBottomRightCorner
+                  io $ defineCursor d tw cursor
+                  io $ freeCursor d cursor
+
                   showWindow tw
                   return ((w,r), Just tw)
     Nothing ->    return ((w,r), Nothing)
