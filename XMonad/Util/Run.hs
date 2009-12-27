@@ -32,7 +32,7 @@ module XMonad.Util.Run (
                          ) where
 
 import System.Posix.IO
-import System.Posix.Process (executeFile, createSession)
+import System.Posix.Process (executeFile)
 import Control.Concurrent (threadDelay)
 import Control.Exception (try) -- use OldException with base 4
 import System.IO
@@ -136,8 +136,6 @@ spawnPipe x = io $ do
     h <- fdToHandle wr
     hSetBuffering h LineBuffering
     xfork $ do
-        createSession
-        uninstallSignalHandlers
         dupTo rd stdInput
         executeFile "/bin/sh" False ["-c", x] Nothing
     closeFd rd
