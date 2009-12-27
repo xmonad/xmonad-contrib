@@ -116,7 +116,7 @@ aumixVolume = logCmd "aumix -vq"
 --   At some point it would be nice to make this more general\/have
 --   fewer dependencies (assumes @\/usr\/bin\/acpi@ and @sed@ are installed.)
 battery :: Logger
-battery = logCmd "/usr/bin/acpi | sed -r 's/.*?: (.*%).*/\\1/; s/discharging, ([0-9]+%)/\\1-/; s/charging, ([0-9]+%)/\\1+/; s/charged, //'"
+battery = logCmd "/usr/bin/acpi | sed -r 's/.*?: (.*%).*/\\1/; s/[dD]ischarging, ([0-9]+%)/\\1-/; s/[cC]harging, ([0-9]+%)/\\1+/; s/[cC]harged, //'"
 
 -- | Get the current date and time, and format them via the
 --   given format string.  The format used is the same as that used
