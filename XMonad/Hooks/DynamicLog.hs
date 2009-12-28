@@ -270,7 +270,7 @@ dynamicLogString pp = do
     wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
 
     -- run extra loggers, ignoring any that generate errors.
-    extras <- sequence $ map (flip catchX (return Nothing)) $ ppExtras pp
+    extras <- mapM (flip catchX (return Nothing)) $ ppExtras pp
 
     return $ encodeOutput . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
@@ -337,7 +337,7 @@ trim = f . f
 -- | Limit a string to a certain length, adding "..." if truncated.
 shorten :: Int -> String -> String
 shorten n xs | length xs < n = xs
-             | otherwise     = (take (n - length end) xs) ++ end
+             | otherwise     = take (n - length end) xs ++ end
  where
     end = "..."
 
@@ -476,11 +476,11 @@ dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                    , ppWsSep    = ""
                    , ppSep      = ""
                    , ppLayout   = dzenColor "black" "#cccccc" .
-                                  (\ x -> case x of
-                                            "TilePrime Horizontal" -> " TTT "
-                                            "TilePrime Vertical"   -> " []= "
-                                            "Hinted Full"          -> " [ ] "
-                                            _                      -> pad x
+                                  (\ x -> pad $ case x of
+                                            "TilePrime Horizontal" -> "TTT"
+                                            "TilePrime Vertical"   -> "[]="
+                                            "Hinted Full"          -> "[ ]"
+                                            _                      -> x
                                   )
                    , ppTitle    = ("^bg(#324c80) " ++) . dzenEscape
                    }
@@ -515,4 +515,3 @@ byorgeyPP = defaultPP { ppHiddenNoWindows = showNamedWorkspaces
   where showNamedWorkspaces wsId = if any (`elem` wsId) ['a'..'z']
                                        then pad wsId
                                        else ""
-
