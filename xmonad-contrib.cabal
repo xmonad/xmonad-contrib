@@ -109,6 +109,7 @@ library
                         XMonad.Actions.WindowNavigation
                         XMonad.Actions.WithAll
                         XMonad.Actions.WorkspaceCursors
+                        XMonad.Actions.WorkspaceNames
                         XMonad.Config.Arossato
                         XMonad.Config.Azerty
                         XMonad.Config.Bluetile
