@@ -65,7 +65,9 @@ sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
 sshComplListLocal :: IO [String]
 sshComplListLocal = do
   h <- getEnv "HOME"
-  sshComplListFile $ h ++ "/.ssh/known_hosts"
+  s1 <- sshComplListFile $ h ++ "/.ssh/known_hosts"
+  s2 <- sshComplListConf $ h ++ "/.ssh/config"
+  return $ s1 ++ s2
 
 sshComplListGlobal :: IO [String]
 sshComplListGlobal = do
@@ -92,6 +94,22 @@ sshComplListFile' kh = do
   return $ map (getWithPort . takeWhile (/= ',') . concat . take 1 . words)
          $ filter nonComment
          $ lines l
+
+sshComplListConf :: String -> IO [String]
+sshComplListConf kh = do
+  f <- doesFileExist kh
+  if f then sshComplListConf' kh
+       else return []
+
+sshComplListConf' :: String -> IO [String]
+sshComplListConf' kh = do
+  l <- readFile kh
+  return $ map (!!1)
+         $ filter isHost
+         $ map words
+         $ lines l
+ where
+   isHost ws = take 1 ws == ["Host"] && length ws > 1
 
 fileExists :: String -> IO (Maybe String)
 fileExists kh = do
