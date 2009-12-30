@@ -26,6 +26,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.BoringWindows as BW
 import Data.List
+import qualified Data.Map as M
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -61,9 +62,9 @@ import Data.List
 -- Also see "XMonad.Hooks.RestoreMinimized" if you want to be able to restore
 -- minimized windows from your taskbar.
 
-data Minimize a = Minimize [Window] deriving ( Read, Show )
+data Minimize a = Minimize [Window] (M.Map Window W.RationalRect) deriving ( Read, Show )
 minimize :: LayoutClass l Window => l Window -> ModifiedLayout Minimize l Window
-minimize = ModifiedLayout $ Minimize []
+minimize = ModifiedLayout $ Minimize [] (M.empty)
 
 data MinimizeMsg = MinimizeWin Window
                     | RestoreMinimizedWin Window
@@ -72,27 +73,43 @@ data MinimizeMsg = MinimizeWin Window
 instance Message MinimizeMsg
 
 instance LayoutModifier Minimize Window where
-    modifierDescription (Minimize _) = "Minimize"
+    modifierDescription (Minimize _ _) = "Minimize"
 
-    modifyLayout (Minimize minimized) wksp rect = do
+    modifyLayout (Minimize minimized _) wksp rect = do
         let stack = W.stack wksp
             filtStack = stack >>=W.filter (\w -> not (w `elem` minimized))
         runLayout (wksp {W.stack = filtStack}) rect
 
-    handleMess (Minimize minimized) m
+    handleMess (Minimize minimized unfloated) m
         | Just (MinimizeWin w) <- fromMessage m =
           if not (w `elem` minimized)
             then do
                 BW.focusDown
-                return $ Just $ Minimize (w:minimized)
+                ws <- gets windowset
+                case M.lookup w (W.floating ws) of
+                  Nothing -> return $ Just $ Minimize (w:minimized) unfloated
+                  Just r -> do
+                    (windows . W.sink) w
+                    return $ Just $ Minimize (w:minimized) (M.insert w r unfloated)
+
             else return Nothing
         | Just (RestoreMinimizedWin w) <- fromMessage m =
-            return $ Just $ Minimize (minimized \\ [w])
+            case M.lookup w unfloated of
+              Nothing -> return $ Just $ Minimize (minimized \\ [w]) unfloated
+              Just r -> do
+                (windows . (W.float w)) r
+                return $ Just $ Minimize (minimized \\ [w]) (M.delete w unfloated)
         | Just RestoreNextMinimizedWin <- fromMessage m =
           if not (null minimized)
-            then do
+            then case M.lookup (head minimized) unfloated of
+              Nothing -> do
                 focus (head minimized)
-                return $ Just $ Minimize (tail minimized)
+                return $ Just $ Minimize (tail minimized) unfloated
+              Just r -> do
+                let w = head minimized
+                (windows . (W.float w)) r
+                focus w
+                return $ Just $ Minimize (tail minimized) (M.delete w unfloated)
             else return Nothing
         | Just BW.UpdateBoring <- fromMessage m = do
             ws <- gets (W.workspace . W.current . windowset)
