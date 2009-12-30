@@ -90,10 +90,6 @@ mrtDraggerOffset :: Position
 mrtDraggerOffset = 3
 mrtDraggerSize :: Dimension
 mrtDraggerSize = 6
-mrtHDoubleArrow :: Glyph
-mrtHDoubleArrow = 108
-mrtVDoubleArrow :: Glyph
-mrtVDoubleArrow = 116
 
 mouseResizableTile :: MouseResizableTile a
 mouseResizableTile = MRT 1 mrtFraction [] [] [] 0 0 False
@@ -155,9 +151,9 @@ adjustForMirror False dragger = dragger
 adjustForMirror True (draggerRect, draggerCursor, draggerInfo) =
         (mirrorRect draggerRect, draggerCursor', draggerInfo)
     where
-        draggerCursor' = if (draggerCursor == mrtHDoubleArrow)
-                            then mrtVDoubleArrow
-                            else mrtHDoubleArrow
+        draggerCursor' = if (draggerCursor == xC_sb_h_double_arrow)
+                            then xC_sb_v_double_arrow
+                            else xC_sb_h_double_arrow
 
 modifySlave :: MouseResizableTile a -> Rational-> MouseResizableTile a
 modifySlave state delta =
@@ -217,12 +213,12 @@ splitVertically (f:fx) (Rectangle sx sy sw sh) isLeft num =
         draggerInfo = if isLeft
                         then LeftSlaveDragger sy (fromIntegral sh) num
                         else RightSlaveDragger sy (fromIntegral sh) num
-        nextDragger = (draggerRect, mrtVDoubleArrow, draggerInfo)
+        nextDragger = (draggerRect, xC_sb_v_double_arrow, draggerInfo)
     in (nextRect : otherRects, nextDragger : otherDragger)
   where smallh = floor $ fromIntegral sh * f
 
 splitHorizontallyBy :: RealFrac r => r -> Rectangle -> ((Rectangle, Rectangle), DraggerWithRect)
-splitHorizontallyBy f (Rectangle sx sy sw sh) = ((leftHalf, rightHalf), (draggerRect, mrtHDoubleArrow, draggerInfo))
+splitHorizontallyBy f (Rectangle sx sy sw sh) = ((leftHalf, rightHalf), (draggerRect, xC_sb_h_double_arrow, draggerInfo))
   where leftw = floor $ fromIntegral sw * f
         leftHalf = Rectangle sx sy (leftw - mrtDraggerSize `div` 2) sh
         rightHalf = Rectangle (sx + fromIntegral leftw + mrtDraggerOffset) sy

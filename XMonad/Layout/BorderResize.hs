@@ -63,15 +63,6 @@ brBorderOffset = 5
 brBorderSize :: Dimension
 brBorderSize = 10
 
-brCursorRightSide :: Glyph
-brCursorRightSide = 96
-brCursorLeftSide :: Glyph
-brCursorLeftSide = 70
-brCursorTopSide :: Glyph
-brCursorTopSide = 138
-brCursorBottomSide :: Glyph
-brCursorBottomSide = 16
-
 borderResize :: l a -> ModifiedLayout BorderResize l a
 borderResize = ModifiedLayout (BR M.empty)
 
@@ -155,10 +146,10 @@ createBorderLookupTable wrsLastTime = concat $ map processSingleEntry $ M.toList
 
 prepareBorders :: Rectangle -> [BorderBlueprint]
 prepareBorders (Rectangle x y wh ht) =
-    [((Rectangle (x + fi wh - brBorderOffset) y brBorderSize ht), brCursorRightSide     , RightSideBorder),
-     ((Rectangle (x - brBorderOffset) y brBorderSize ht)        , brCursorLeftSide      , LeftSideBorder),
-     ((Rectangle x (y - brBorderOffset) wh brBorderSize)        , brCursorTopSide       , TopSideBorder),
-     ((Rectangle x (y + fi ht - brBorderOffset) wh brBorderSize), brCursorBottomSide    , BottomSideBorder)
+    [((Rectangle (x + fi wh - brBorderOffset) y brBorderSize ht), xC_right_side , RightSideBorder),
+     ((Rectangle (x - brBorderOffset) y brBorderSize ht)        , xC_left_side  , LeftSideBorder),
+     ((Rectangle x (y - brBorderOffset) wh brBorderSize)        , xC_top_side   , TopSideBorder),
+     ((Rectangle x (y + fi ht - brBorderOffset) wh brBorderSize), xC_bottom_side, BottomSideBorder)
     ]
 
 handleResize :: [(Window, (BorderType, Window, Rectangle))] -> Event -> X ()
