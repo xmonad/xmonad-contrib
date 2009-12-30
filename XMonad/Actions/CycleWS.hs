@@ -65,6 +65,7 @@ module XMonad.Actions.CycleWS (
 
                               , shiftTo
                               , moveTo
+                              , doTo
 
                                 -- * The mother-combinator
 
@@ -244,12 +245,17 @@ wsTypeToPred (WSIs p)   = p
 -- | View the next workspace in the given direction that satisfies
 --   the given condition.
 moveTo :: Direction1D -> WSType -> X ()
-moveTo dir t = findWorkspace getSortByIndex dir t 1 >>= windows . greedyView
+moveTo dir t = doTo dir t getSortByIndex (windows . greedyView)
 
 -- | Move the currently focused window to the next workspace in the
 --   given direction that satisfies the given condition.
 shiftTo :: Direction1D -> WSType -> X ()
-shiftTo dir t = findWorkspace getSortByIndex dir t 1 >>= windows . shift
+shiftTo dir t = doTo dir t getSortByIndex (windows . shift)
+
+-- | Using the given sort, find the next workspace in the given
+-- direction of the given type, and perform the given action on it.
+doTo :: Direction1D -> WSType -> X WorkspaceSort -> (WorkspaceId -> X ()) -> X ()
+doTo dir t srt act = findWorkspace srt dir t 1 >>= act
 
 -- | Given a function @s@ to sort workspaces, a direction @dir@, a
 --   predicate @p@ on workspaces, and an integer @n@, find the tag of
