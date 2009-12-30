@@ -75,6 +75,7 @@ library
                         XMonad.Actions.DwmPromote
                         XMonad.Actions.DynamicWorkspaces
                         XMonad.Actions.DynamicWorkspaceGroups
+                        XMonad.Actions.DynamicWorkspaceOrder
                         XMonad.Actions.FindEmptyWorkspace
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
