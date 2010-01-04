@@ -64,7 +64,7 @@ import qualified Data.Map as M
 
 data Minimize a = Minimize [Window] (M.Map Window W.RationalRect) deriving ( Read, Show )
 minimize :: LayoutClass l Window => l Window -> ModifiedLayout Minimize l Window
-minimize = ModifiedLayout $ Minimize [] (M.empty)
+minimize = ModifiedLayout $ Minimize [] M.empty
 
 data MinimizeMsg = MinimizeWin Window
                     | RestoreMinimizedWin Window
@@ -73,7 +73,7 @@ data MinimizeMsg = MinimizeWin Window
 instance Message MinimizeMsg
 
 instance LayoutModifier Minimize Window where
-    modifierDescription (Minimize _ _) = "Minimize"
+    modifierDescription _ = "Minimize"
 
     modifyLayout (Minimize minimized _) wksp rect = do
         let stack = W.stack wksp
@@ -81,9 +81,7 @@ instance LayoutModifier Minimize Window where
         runLayout (wksp {W.stack = filtStack}) rect
 
     handleMess (Minimize minimized unfloated) m
-        | Just (MinimizeWin w) <- fromMessage m =
-          if not (w `elem` minimized)
-            then do
+        | Just (MinimizeWin w) <- fromMessage m, not (w `elem` minimized) = do
                 BW.focusDown
                 ws <- gets windowset
                 case M.lookup w (W.floating ws) of
@@ -91,8 +89,6 @@ instance LayoutModifier Minimize Window where
                   Just r -> do
                     (windows . W.sink) w
                     return $ Just $ Minimize (w:minimized) (M.insert w r unfloated)
-
-            else return Nothing
         | Just (RestoreMinimizedWin w) <- fromMessage m =
             case M.lookup w unfloated of
               Nothing -> return $ Just $ Minimize (minimized \\ [w]) unfloated
