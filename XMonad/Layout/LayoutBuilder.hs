@@ -28,11 +28,8 @@ module XMonad.Layout.LayoutBuilder (
 ) where
 
 import XMonad
-import XMonad.Layout
 import qualified XMonad.StackSet as W
-import Graphics.X11.Xlib
 import Data.Maybe (isJust)
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

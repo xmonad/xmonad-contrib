@@ -6,7 +6,6 @@ import qualified XMonad.StackSet as W
 import XMonad.Actions.CopyWindow
 import XMonad.Layout.Tabbed
 import XMonad.Layout.HintedTile
-import XMonad.Config (defaultConfig)
 import XMonad.Layout.NoBorders
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks

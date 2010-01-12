@@ -42,7 +42,7 @@ import XMonad.Actions.FloatKeys
 import qualified Data.Map as M
 import Data.Ratio ((%))
 import Data.List (sortBy, minimumBy, partition)
-import Data.Maybe (maybe, fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe, catMaybes)
 import Data.Monoid (Endo(..))
 import Control.Monad (guard, join)
 import Control.Monad.Trans (lift)

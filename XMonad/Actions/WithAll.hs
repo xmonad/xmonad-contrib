@@ -18,8 +18,6 @@ module XMonad.Actions.WithAll (
 import Data.Foldable hiding (foldr)
 
 import XMonad
-import XMonad.Core
-import XMonad.Operations
 import XMonad.StackSet
 
 -- $usage

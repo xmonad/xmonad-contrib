@@ -94,7 +94,6 @@ import XMonad.Layout.TabBarDecoration
 
 import XMonad.Layout.Accordion
 import XMonad.Layout.Circle
-import XMonad.Layout.ResizeScreen
 import XMonad.Layout.WindowArranger
 import XMonad.Layout.SimpleFloat
 

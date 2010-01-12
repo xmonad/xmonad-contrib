@@ -23,7 +23,7 @@ module XMonad.Util.XSelection (  -- * Usage
                                  transformSafePromptSelection) where
 
 import Control.Exception as E (catch)
-import Control.Monad(Monad (return, (>>)), Functor(..), liftM, join)
+import Control.Monad (liftM, join)
 import Data.Maybe (fromMaybe)
 import XMonad
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)

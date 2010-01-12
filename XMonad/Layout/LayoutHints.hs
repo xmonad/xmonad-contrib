@@ -32,7 +32,7 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
 import XMonad.Util.Types(Direction2D(..))
 import Control.Applicative((<$>))
 import Control.Arrow(Arrow((***), first, second))
-import Control.Monad(Monad(return), mapM, join)
+import Control.Monad(join)
 import Data.Function(on)
 import Data.List(sortBy)
 

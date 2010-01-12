@@ -30,7 +30,6 @@ import System.Environment
 import Control.Monad
 import Data.List
 import System.Directory
-import System.IO
 import System.Posix.Files
 import XMonad.Util.Run
 import XMonad hiding (config)

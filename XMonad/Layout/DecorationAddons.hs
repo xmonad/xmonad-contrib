@@ -29,7 +29,6 @@ import XMonad.Layout.Maximize
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Font
 import XMonad.Util.PositionStore
-import XMonad.Util.XUtils (fi)
 
 import Control.Applicative((<$>))
 import Data.Maybe

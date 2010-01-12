@@ -32,7 +32,6 @@ import XMonad.Util.XUtils (fi)
 
 import Control.Arrow
 import Data.List
-import Data.Maybe
 
 -- $usage
 -- You can use this module with the following in your

@@ -24,7 +24,6 @@ module XMonad.Util.Scratchpad (
   ) where
 
 import XMonad
-import XMonad.Core
 import qualified XMonad.StackSet as W
 import XMonad.Util.NamedScratchpad
 

@@ -28,7 +28,6 @@ module XMonad.Layout.Tabbed
     , Shrinker(..)
     ) where
 
-import Data.Maybe
 import Data.List
 
 import XMonad

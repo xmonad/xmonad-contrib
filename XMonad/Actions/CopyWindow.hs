@@ -26,7 +26,6 @@ module XMonad.Actions.CopyWindow (
 
 import XMonad
 import Control.Arrow ((&&&))
-import Control.Monad
 import qualified Data.List as L
 
 import XMonad.Actions.WindowGo

@@ -54,7 +54,6 @@ module XMonad.Config.Desktop (
     ) where
 
 import XMonad
-import XMonad.Config (defaultConfig)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Util.Cursor

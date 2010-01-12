@@ -26,7 +26,6 @@ module XMonad.Hooks.Script (
 --
 import XMonad
 
-import Control.Monad.Trans
 import System.Directory
 
 -- $usage

@@ -27,9 +27,6 @@ module XMonad.Util.PositionStore (
 
 import XMonad
 import qualified XMonad.Util.ExtensibleState as XS
-import Graphics.X11.Xlib
-import Graphics.X11.Types
-import Data.Typeable
 import qualified Data.Map as M
 
 -- Store window positions relative to the upper left screen edge

@@ -26,7 +26,6 @@ import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
 import Control.Monad (liftM, liftM2)
-import Data.Maybe
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
 {- $usage

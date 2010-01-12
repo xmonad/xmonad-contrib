@@ -27,13 +27,11 @@ module XMonad.Util.NamedScratchpad (
   ) where
 
 import XMonad
-import XMonad.Core
-import XMonad.ManageHook (composeAll,doFloat)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 
 import Control.Monad (filterM)
-import Data.Maybe (maybe,listToMaybe)
+import Data.Maybe (listToMaybe)
 
 import qualified XMonad.StackSet as W
 

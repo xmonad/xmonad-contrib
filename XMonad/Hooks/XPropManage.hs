@@ -18,13 +18,11 @@ module XMonad.Hooks.XPropManage (
                  ) where
 
 import Data.Char (chr)
-import Data.List (concat)
 import Data.Monoid (mconcat, Endo(..))
 
 import Control.Monad.Trans (lift)
 
 import XMonad
-import XMonad.ManageHook ((-->))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

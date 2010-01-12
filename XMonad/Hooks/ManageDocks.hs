@@ -30,7 +30,6 @@ module XMonad.Hooks.ManageDocks (
 -----------------------------------------------------------------------------
 import XMonad
 import Foreign.C.Types (CLong)
-import Control.Monad
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)

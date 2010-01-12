@@ -41,7 +41,6 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (fromJust, fromMaybe)
 import Data.Ord (comparing)
-import Data.Typeable
 
 -- $usage
 -- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:

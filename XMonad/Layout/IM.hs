@@ -29,8 +29,6 @@ module XMonad.Layout.IM (
 
 import XMonad
 import qualified XMonad.StackSet as S
-import Data.List
-import XMonad.Layout (splitHorizontallyBy)
 import XMonad.Layout.Grid
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties

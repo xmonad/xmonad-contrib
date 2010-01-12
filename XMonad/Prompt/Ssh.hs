@@ -26,7 +26,6 @@ import System.Directory
 import System.Environment
 
 import Control.Monad
-import Data.List
 import Data.Maybe
 
 -- $usage

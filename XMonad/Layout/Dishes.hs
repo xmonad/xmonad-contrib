@@ -21,7 +21,6 @@ module XMonad.Layout.Dishes (
                               Dishes (..)
                             ) where
 
-import Data.List
 import XMonad
 import XMonad.StackSet (integrate)
 import Control.Monad (ap)

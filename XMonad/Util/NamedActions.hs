@@ -45,17 +45,14 @@ import XMonad.Actions.Submap(submap)
 import XMonad
 import System.Posix.Process(executeFile)
 import Control.Arrow(Arrow((&&&), second, (***)))
-import Data.Bits(Bits((.&.), complement, (.|.)))
-import Data.Function((.), const, ($), flip, id)
-import Data.List((++), filter, zip, map, concatMap, null, unlines,
-                 groupBy)
+import Data.Bits(Bits((.&.), complement))
+import Data.List (groupBy)
 import System.Exit(ExitCode(ExitSuccess), exitWith)
 
 import Control.Applicative ((<*>))
 
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
-import qualified XMonad
 
 -- $usage
 -- Here is an example config that demonstrates the usage of 'sendMessage'',

@@ -26,7 +26,6 @@ module XMonad.Actions.OnScreen (
     ) where
 
 import XMonad
-import XMonad.Core
 import XMonad.StackSet hiding (new)
 
 import Control.Monad (guard)

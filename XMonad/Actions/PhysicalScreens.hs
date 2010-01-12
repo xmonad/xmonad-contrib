@@ -24,7 +24,6 @@ module XMonad.Actions.PhysicalScreens (
 import XMonad
 import qualified XMonad.StackSet as W
 
-import qualified Graphics.X11.Xlib as X
 import Graphics.X11.Xinerama
 
 import Data.List (sortBy)

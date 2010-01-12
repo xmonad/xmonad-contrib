@@ -27,7 +27,7 @@ import Data.List ( delete, intersect, (\\) )
 import Data.Maybe ( isJust )
 import Control.Monad
 import XMonad hiding (focus)
-import XMonad.StackSet ( integrate, Workspace (..), Stack(..) )
+import XMonad.StackSet ( Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation
 import XMonad.Util.WindowProperties
 import qualified XMonad.StackSet as W

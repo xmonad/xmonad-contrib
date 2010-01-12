@@ -64,7 +64,6 @@ module XMonad.Hooks.ServerMode
     ) where
 
 import Control.Monad (when)
-import Data.List
 import Data.Monoid
 import System.IO
 

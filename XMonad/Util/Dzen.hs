@@ -38,7 +38,6 @@ module XMonad.Util.Dzen (
   ) where
 
 import Control.Monad
-import Data.List
 import XMonad
 import XMonad.StackSet
 import XMonad.Util.Run (runProcessWithInputAndWait, seconds)

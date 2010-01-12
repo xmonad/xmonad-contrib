@@ -52,7 +52,6 @@ import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as S
-import Graphics.X11.Xlib
 
 -- $usage
 --

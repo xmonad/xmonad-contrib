@@ -21,7 +21,6 @@ module XMonad.Actions.UpdateFocus (
 
 import XMonad
 import qualified XMonad.StackSet as W
-import Graphics.X11.Xlib.Extras
 import Control.Monad (when)
 import Data.Monoid
 

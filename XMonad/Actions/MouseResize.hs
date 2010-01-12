@@ -23,12 +23,8 @@ module XMonad.Actions.MouseResize
     , MouseResize (..)
     ) where
 
-import Control.Monad
-import Data.Maybe
-
 import XMonad
 import XMonad.Layout.Decoration
-import XMonad.Layout.LayoutModifier
 
 import XMonad.Layout.WindowArranger
 import XMonad.Util.XUtils

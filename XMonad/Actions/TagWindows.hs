@@ -25,7 +25,7 @@ module XMonad.Actions.TagWindows (
                  tagDelPrompt
                  ) where
 
-import Data.List (nub,concat,sortBy)
+import Data.List (nub,sortBy)
 import Control.Monad
 
 import XMonad.StackSet hiding (filter)

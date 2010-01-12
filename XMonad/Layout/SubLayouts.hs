@@ -51,13 +51,10 @@ import XMonad.Util.Types(Direction2D(..))
 import XMonad
 import Control.Applicative((<$>),(<*))
 import Control.Arrow(Arrow(second, (&&&)))
-import Control.Monad(Monad(return), Functor(..),
-                     MonadPlus(mplus), (=<<), sequence, foldM, guard, when, join)
-import Data.Function((.), ($), flip, id, on)
-import Data.List((++), foldr, filter, map, concatMap, elem,
-                 notElem, null, nubBy, (\\), find)
-import Data.Maybe(Maybe(..), isNothing, maybe, fromMaybe, listToMaybe,
-                  mapMaybe)
+import Control.Monad(MonadPlus(mplus), foldM, guard, when, join)
+import Data.Function(on)
+import Data.List(nubBy, (\\), find)
+import Data.Maybe(isNothing, fromMaybe, listToMaybe, mapMaybe)
 import Data.Traversable(sequenceA)
 
 import qualified XMonad.Layout.BoringWindows as B

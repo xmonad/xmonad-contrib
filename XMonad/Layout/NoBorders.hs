@@ -33,7 +33,6 @@ module XMonad.Layout.NoBorders (
 import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
-import Control.Monad
 import Data.List
 import qualified Data.Map as M
 import Data.Function (on)

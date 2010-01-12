@@ -26,7 +26,6 @@ module XMonad.Layout.IndependentScreens (
 -- for the screen stuff
 import Control.Arrow hiding ((|||))
 import Control.Monad
-import Control.Monad.Instances
 import Data.List
 import Graphics.X11.Xinerama
 import XMonad

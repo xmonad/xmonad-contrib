@@ -50,11 +50,17 @@ library
         cpp-options: -DXFT
 
     build-depends:      mtl, unix, X11>=1.5.0.0 && < 1.6, xmonad>=0.9.1, xmonad<0.10, utf8-string
-    ghc-options:        -fwarn-tabs -Wall
+
+    if true
+        ghc-options:    -fwarn-tabs -Wall
+
     extensions:         ForeignFunctionInterface
 
     if flag(testing)
         ghc-options:    -fwarn-tabs -Werror
+
+    if impl(ghc >= 6.12.1)
+        ghc-options:    -fno-warn-warnings-deprecations -fno-warn-unused-do-bind    
 
     if impl (ghc == 6.10.1) && arch (x86_64)
         ghc-options:    -O0

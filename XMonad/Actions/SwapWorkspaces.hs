@@ -25,7 +25,6 @@ module XMonad.Actions.SwapWorkspaces (
 import XMonad (windows, X())
 import XMonad.StackSet
 import XMonad.Actions.CycleWS
-import XMonad.Util.Types
 import XMonad.Util.WorkspaceCompare
 
 
