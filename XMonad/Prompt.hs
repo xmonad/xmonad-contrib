@@ -59,6 +59,9 @@ module XMonad.Prompt
     -- * History filters
     , deleteAllDuplicates
     , deleteConsecutive
+    , HistoryMatches
+    , initMatches
+    , historyUpMatching
     ) where
 
 import Prelude hiding (catch)
@@ -80,6 +83,7 @@ import Data.Char
 import Data.Bits
 import Data.Maybe
 import Data.List
+import Data.IORef
 import Data.Set (fromList, toList)
 import System.Directory
 import System.IO
@@ -876,3 +880,39 @@ uniqSort = toList . fromList
 deleteAllDuplicates, deleteConsecutive :: [String] -> [String]
 deleteAllDuplicates = nub
 deleteConsecutive = map head . group
+
+newtype HistoryMatches = HistoryMatches (IORef ([String],[String]))
+
+-- | Initializes a new HistoryMatches structure to be passed
+-- to historyUpMatching
+initMatches :: (Functor m, MonadIO m) => m HistoryMatches
+initMatches = HistoryMatches <$> liftIO (newIORef ([],[]))
+
+-- | Retrieve the next history element that starts with
+-- the current input. Pass it an IORef containing two empty lists
+-- when creating the prompt. Example:
+--
+-- > ..
+-- > ((modMask,xK_p), shellPrompt . myPrompt =<< initMatches)
+-- > ..
+-- > myPrompt ref = defaultPrompt
+-- >   { promptKeymap = M.union [((0,xK_Up), historyMatching ref)] (promptKeymap defaultPrompt)
+-- >   , .. }
+--
+historyUpMatching :: HistoryMatches -> XP ()
+historyUpMatching hm@(HistoryMatches ref) = do
+  (completed,completions) <- io $ readIORef ref
+  input <- getInput
+  if input `elem` completed
+     then case completions of
+            (c:cs) -> do
+                modify (setCommand c)
+                modify $ \s -> s { offset = length c }
+                io $ writeIORef ref (c:completed,cs)
+            _ -> return ()
+     else do -- the user typed something new, recompute completions
+       io . writeIORef ref . ((,) [input]) . filterMatching input =<< gets commandHistory
+       historyUpMatching hm
+    where filterMatching :: String -> W.Stack String -> [String]
+          filterMatching prefix =
+              filter (prefix `isPrefixOf`) . tail . cycle . nub . W.integrate
