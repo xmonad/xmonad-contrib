@@ -362,7 +362,7 @@ createDecoWindow t r = let mask = Just (exposureMask .|. buttonPressMask) in
                        createNewWindow r mask (inactiveColor t) True
 
 showDecos :: [DecoWin] -> X ()
-showDecos = showWindows . catMaybes . map fst
+showDecos = showWindows . catMaybes . map fst . filter (isJust . snd)
 
 hideDecos :: [DecoWin] -> X ()
 hideDecos = hideWindows . catMaybes . map fst
