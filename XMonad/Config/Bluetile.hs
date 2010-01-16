@@ -118,8 +118,8 @@ bluetileKeys conf@(XConfig {XMonad.modMask = modMask'}) = M.fromList $
     , ((modMask'              , xK_period), sendMessage (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
 
     -- quit, or restart
-    , ((modMask' .|. shiftMask, xK_q     ), io (exitWith ExitSuccess)) -- %! Quit bluetile
-    , ((modMask'              , xK_q     ), spawn "bluetile --restart") -- %! Restart bluetile
+    , ((modMask' .|. shiftMask, xK_q     ), io (exitWith ExitSuccess)) -- %! Quit
+    , ((modMask'              , xK_q     ), restart "xmonad" True) -- %! Restart
 
     -- Metacity-like workspace switching
     , ((mod1Mask .|. controlMask, xK_Left), prevWS)
