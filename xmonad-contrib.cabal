@@ -262,6 +262,7 @@ library
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
                         XMonad.Util.SpawnOnce
+                        XMonad.Util.Stack
                         XMonad.Util.StringProp
                         XMonad.Util.Themes
                         XMonad.Util.Timer
