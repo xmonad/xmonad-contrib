@@ -1,10 +1,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.MessageFeedback
--- Copyright    : (c) Quentin Moser <quentin.moser@unifr.ch>
+-- Copyright    : (c) Quentin Moser <moserq@gmail.com>
 -- License      : BSD3
 --
--- Maintainer   : None
+-- Maintainer   : <moserq@gmail.com>
 -- Stability    : unstable
 -- Portability  : unportable
 --

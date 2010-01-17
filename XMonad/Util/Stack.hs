@@ -6,7 +6,7 @@
 -- Copyright   :  Quentin Moser <moserq@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --
--- Maintainer  :  Quentin Moser <quentin.moser@unifr.ch>
+-- Maintainer  :  Quentin Moser <moserq@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
