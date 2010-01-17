@@ -206,6 +206,7 @@ library
                         XMonad.Layout.PerWorkspace
                         XMonad.Layout.PositionStoreFloat
                         XMonad.Layout.Reflect
+                        XMonad.Layout.Renamed
                         XMonad.Layout.ResizableTile
                         XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
