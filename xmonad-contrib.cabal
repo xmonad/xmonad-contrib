@@ -176,6 +176,7 @@ library
                         XMonad.Layout.Gaps
                         XMonad.Layout.Grid
                         XMonad.Layout.GridVariants
+                        XMonad.Layout.Groups
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
