@@ -352,6 +352,10 @@ refocus g = case getFocusZ $ gZipper $ W.focus $ groups g
 --
 -- * Duplicate layouts (only one will be kept, the rest will
 --   get the base layout)
+--
+-- Note that 'ModifySpec' is a rank-2 type (indicating that 'ModifySpec's must be polymorphic 
+-- in the layout type), so you'll need to add @{-# LANGUAGE Rank2Types #-}@ at the beginning 
+-- of any module that defines functions taking 'ModifySpec's as arguments, or returning them.
 type ModifySpec = forall l. WithID l Window
                 -> Zipper (Group l Window) 
                 -> Zipper (Group l Window)
