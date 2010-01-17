@@ -347,8 +347,8 @@ refocus g = case getFocusZ (groups g) >>= (getFocusZ . gZipper)
 --
 -- * Remove windows (they will be added again)
 --
--- Duplicating a layout might cause problems with layouts that
--- keep state in IORefs or such, but otherwise it's okay.
+-- * Duplicate layouts (only one will be kept, the rest will
+--   get the base layout)
 type ModifySpec = forall l. WithID l Window
                 -> Zipper (Group l Window) 
                 -> Zipper (Group l Window)
@@ -367,7 +367,7 @@ applySpec f g = let (seed', id:ids) = gen $ seed g
                 in case elem myID seen of
                      False -> ((id:ids, myID:seen), eg:egs)
                      True -> ((ids, seen), mapE_ (setID id) eg:egs)
-              where setID id (G (ID _ l) z) = G (ID id l) z
+              where setID id (G (ID _ _) z) = G (ID id $ baseLayout g) z
           reID _ (([], _), _) = undefined -- The list of ids is infinite
 
 
@@ -487,13 +487,13 @@ moveToGroupDown True _ gs = gs
 -- unless it's the last window - in that case, above it).
 splitGroup :: ModifySpec
 splitGroup _ Nothing = Nothing
-splitGroup _ z@(Just s) | G l (Just ws) <- W.focus s
+splitGroup l0 z@(Just s) | G l (Just ws) <- W.focus s
     = case ws of
         W.Stack _ [] [] -> z
-        W.Stack f (u:up) [] -> let g1 = G l $ Just $ W.Stack f [] []
-                                   g2 = G l $ Just $ W.Stack u up []
+        W.Stack f (u:up) [] -> let g1 = G l  $ Just $ W.Stack f [] []
+                                   g2 = G l0 $ Just $ W.Stack u up []
                                in insertDownZ g1 $ onFocusedZ (const g2) z
-        W.Stack f up (d:down) -> let g1 = G l $ Just $ W.Stack f up []
-                                     g2 = G l $ Just $ W.Stack d [] down
+        W.Stack f up (d:down) -> let g1 = G l  $ Just $ W.Stack f up []
+                                     g2 = G l0 $ Just $ W.Stack d [] down
                                  in insertUpZ g1 $ onFocusedZ (const g2) z
 splitGroup _ _ = Nothing
