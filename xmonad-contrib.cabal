@@ -229,6 +229,7 @@ library
                         XMonad.Layout.WindowNavigation
                         XMonad.Layout.WindowSwitcherDecoration
                         XMonad.Layout.WorkspaceDir
+                        XMonad.Layout.ZoomRow
                         XMonad.Prompt
                         XMonad.Prompt.AppendFile
                         XMonad.Prompt.AppLauncher
