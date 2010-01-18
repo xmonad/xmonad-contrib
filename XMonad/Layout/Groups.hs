@@ -60,7 +60,7 @@ import qualified XMonad.StackSet as W
 
 import XMonad.Util.Stack
 
-import Data.Maybe (isJust, isNothing, fromMaybe, catMaybes)
+import Data.Maybe (isJust, isNothing, fromMaybe, catMaybes, fromJust)
 import Data.List ((\\))
 import Control.Arrow ((>>>))
 import Control.Applicative ((<$>))
@@ -99,7 +99,8 @@ import Control.Monad (forM)
 -- need to manage 'Window's. This is obvious, when you think
 -- about it.
 group :: l Window -> l2 (Group l Window) -> Groups l l2 Window
-group l l2 = Groups l l2 emptyZ (U 0 0)
+group l l2 = Groups l l2 startingGroups (U 1 0)
+    where startingGroups = fromJust $ singletonZ $ G (ID (U 0 0) l) emptyZ
 
 
 -- * Stuff with unique keys
@@ -167,7 +168,7 @@ data Groups l l2 a = Groups { -- | The starting layout for new groups
                               -- | The layout for placing each group on the screen
                             , partitioner :: l2 (Group l a)
                               -- | The window groups
-                            , groups :: Zipper (Group l a)
+                            , groups :: W.Stack (Group l a)
                               -- | A seed for generating unique ids
                             , seed :: Uniq
                             }
@@ -203,7 +204,10 @@ instance Message GroupsMessage
 
 modifyGroups :: (Zipper (Group l a) -> Zipper (Group l a))
              -> Groups l l2 a -> Groups l l2 a
-modifyGroups f g = g { groups = f $ groups g }
+modifyGroups f g = let (seed', id:_) = gen (seed g)
+                       defaultGroups = fromJust $ singletonZ $ G (ID id $ baseLayout g) emptyZ
+                   in g { groups = fromMaybe defaultGroups . f . Just $ groups g
+                        , seed = seed' }
 
 
 -- ** Readaptation
@@ -213,21 +217,23 @@ modifyGroups f g = g { groups = f $ groups g }
 -- ignores changes in window ordering, and tries to react to any 
 -- other stack changes as gracefully as possible.
 readapt :: Eq a => Zipper a -> Groups l l2 a -> Groups l l2 a
-readapt Nothing g = g { groups = Nothing }
-readapt (Just s) g = let f = W.focus s
-                         (seed', id:_) = gen $ seed g
-                         g' = g { seed = seed' }
-                     in flip modifyGroups g' $ mapZ_ (onZipper $ removeDeleted s)
-                                             >>> filterZ_ (isJust . gZipper)
-                                             >>> findNewWindows (W.integrate s)
-                                             >>> addWindows (ID id $ baseLayout g)
-                                             >>> focusGroup f
-                                             >>> onFocusedZ (onZipper $ focusWindow f)
+readapt z g = let mf = getFocusZ z
+                  (seed', id:_) = gen $ seed g
+                  g' = g { seed = seed' }
+              in flip modifyGroups g' $ mapZ_ (onZipper $ removeDeleted z)
+                                        >>> filterKeepLast (isJust . gZipper)
+                                        >>> findNewWindows (W.integrate' z)
+                                        >>> addWindows (ID id $ baseLayout g)
+                                        >>> focusGroup mf
+                                        >>> onFocusedZ (onZipper $ focusWindow mf)
+    where filterKeepLast _ Nothing = Nothing
+          filterKeepLast f z@(Just s) = maybe (singletonZ $ W.focus s) Just
+                                            $ filterZ_ f z
 
 -- | Remove the windows from a group which are no longer present in
 -- the stack.
-removeDeleted :: Eq a => W.Stack a -> Zipper a -> Zipper a
-removeDeleted s = filterZ_ (flip elemZ $ Just s)
+removeDeleted :: Eq a => Zipper a -> Zipper a -> Zipper a
+removeDeleted z = filterZ_ (flip elemZ z)
 
 -- | Identify the windows not already in a group.
 findNewWindows :: Eq a => [a] -> Zipper (Group l a) 
@@ -243,12 +249,14 @@ addWindows _ (z, as) = onFocusedZ (onZipper add) z
     where add z = foldl (flip insertUpZ) z as
 
 -- | Focus the group containing the given window
-focusGroup :: Eq a => a -> Zipper (Group l a) -> Zipper (Group l a)
-focusGroup a = fromTags . map (tagBy $ elemZ a . gZipper) . W.integrate'
+focusGroup :: Eq a => Maybe a -> Zipper (Group l a) -> Zipper (Group l a)
+focusGroup Nothing = id
+focusGroup (Just a) = fromTags . map (tagBy $ elemZ a . gZipper) . W.integrate'
 
 -- | Focus the given window
-focusWindow :: Eq a => a -> Zipper a -> Zipper a
-focusWindow a = fromTags . map (tagBy (==a)) . W.integrate'
+focusWindow :: Eq a => Maybe a -> Zipper a -> Zipper a
+focusWindow Nothing = id
+focusWindow (Just a) = fromTags . map (tagBy (==a)) . W.integrate'
 
 
 -- * Interface
@@ -258,18 +266,18 @@ focusWindow a = fromTags . map (tagBy (==a)) . W.integrate'
 instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
     => LayoutClass (Groups l l2) Window where
 
-        description (Groups b p gs _) = s1++" by "++s2
-            where s1 = fromMaybe (description b) $ fmap (description . gLayout) $ getFocusZ gs
+        description (Groups _ p gs _) = s1++" by "++s2
+            where s1 = description $ gLayout $ W.focus gs
                   s2 = description p
 
         runLayout ws@(W.Workspace _ _l z) r = let l = readapt z _l in
             do (areas, mpart') <- runLayout ws { W.layout = partitioner l
-                                               , W.stack = groups l } r
+                                               , W.stack = Just $ groups l } r
 
                results <- forM areas $ \(g, r') -> runLayout ws { W.layout = gLayout g
                                                                 , W.stack = gZipper g } r'
 
-               let hidden = map gLayout (W.integrate' $ groups l) \\ map (gLayout . fst) areas
+               let hidden = map gLayout (W.integrate $ groups l) \\ map (gLayout . fst) areas
                hidden' <- mapM (flip handleMessage $ SomeMessage Hide) hidden
 
                let placements = concatMap fst results
@@ -283,7 +291,7 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
 
         handleMessage l@(Groups _ p gs _) sm | Just (ToAll sm') <- fromMessage sm
             = do mp' <- handleMessage p sm'
-                 mg's <- mapZM_ (handle sm') gs
+                 mg's <- mapZM_ (handle sm') $ Just gs
                  return $ maybeMakeNew l mp' $ W.integrate' mg's
             where handle sm (G l _) = handleMessage l sm
 
@@ -292,7 +300,7 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
                                          -- of doing this?
               in handleMessage l $ SomeMessage $ ToAll sm
 
-        handleMessage l@(Groups _ _ z@(Just _) _) sm = case fromMessage sm of
+        handleMessage l@(Groups _ _ z _) sm = case fromMessage sm of
               Just (ToFocused sm') -> do mg's <- W.integrate' <$> handleOnFocused sm' z
                                          return $ maybeMakeNew l Nothing mg's
               Just (ToGroup i sm') -> do mg's <- handleOnIndex i sm' z
@@ -303,14 +311,12 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
               Just Refocus -> refocus l >> return (Just l)
               Just _ -> return Nothing
               Nothing -> handleMessage l $ SomeMessage (ToFocused sm)
-            where handleOnFocused sm z = mapZM step z
+            where handleOnFocused sm z = mapZM step $ Just z
                       where step True (G l _) = handleMessage l sm
                             step False _ = return Nothing
-                  handleOnIndex i sm z = mapM step $ zip [0..] $ W.integrate' z
+                  handleOnIndex i sm z = mapM step $ zip [0..] $ W.integrate z
                       where step (j, (G l _)) | i == j = handleMessage l sm
                             step _ = return Nothing
-
-        handleMessage _ _ = return Nothing
 
 
 justMakeNew :: Groups l l2 a -> Maybe (l2 (Group l a)) -> [Maybe (WithID l a)] 
@@ -318,19 +324,19 @@ justMakeNew :: Groups l l2 a -> Maybe (l2 (Group l a)) -> [Maybe (WithID l a)]
 justMakeNew g mpart' ml's = Just g { partitioner = fromMaybe (partitioner g) mpart'
                                    , groups = combine (groups g) ml's }
     where combine z ml's = let table = map (\(ID id a) -> (id, a)) $ catMaybes ml's
-                           in flip mapZ_ z $ \(G (ID id l) ws) -> case lookup id table of
+                           in flip mapS_ z $ \(G (ID id l) ws) -> case lookup id table of
                                         Nothing -> G (ID id l) ws
                                         Just l' -> G (ID id l') ws
+          mapS_ f = fromJust . mapZ_ f . Just
 
 
 maybeMakeNew :: Groups l l2 a -> Maybe (l2 (Group l a)) -> [Maybe (WithID l a)]
              -> Maybe (Groups l l2 a)
-maybeMakeNew _ Nothing [] = Nothing
 maybeMakeNew _ Nothing ml's | all isNothing ml's = Nothing
 maybeMakeNew g mpart' ml's = justMakeNew g mpart' ml's
 
 refocus :: Groups l l2 Window -> X ()
-refocus g = case getFocusZ (groups g) >>= (getFocusZ . gZipper)
+refocus g = case getFocusZ $ gZipper $ W.focus $ groups g
             of Just w -> focus w
                Nothing -> return ()
 
@@ -356,11 +362,14 @@ type ModifySpec = forall l. WithID l Window
 -- | Apply a ModifySpec.
 applySpec :: ModifySpec -> Groups l l2 Window -> Maybe (Groups l l2 Window)
 applySpec f g = let (seed', id:ids) = gen $ seed g
-                    gs' = f (ID id $ baseLayout g) (groups g)
-                    gs'' = fromTags $ snd $ foldr reID ((ids, []), []) $ toTags gs'
-                in case groups g == gs' of
+                    g' = flip modifyGroups g $ f (ID id $ baseLayout g)
+                                               >>> toTags
+                                               >>> foldr reID ((ids, []), [])
+                                               >>> snd 
+                                               >>> fromTags
+                in case groups g == groups g' of
                      True -> Nothing
-                     False -> Just g { groups = gs'', seed = seed' }
+                     False -> Just g' { seed = seed' }
 
     where reID eg ((id:ids, seen), egs)
               = let myID = getID $ gLayout $ fromE eg
