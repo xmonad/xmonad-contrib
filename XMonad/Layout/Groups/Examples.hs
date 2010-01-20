@@ -98,6 +98,7 @@ import XMonad.Layout.Renamed
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.MessageControl
 import XMonad.Layout.Decoration
+import XMonad.Layout.Simplest
 
 import XMonad.Actions.MessageFeedback
 
@@ -180,8 +181,10 @@ zoomRowG = zoomRowWith GroupEQ
 
 wmiiLike s t = G.group innerLayout zoomRowG
     where column = named "Column" $ Tall 0 (3/100) (1/2)
-          tabs = named "Tabs" $ tabbed s t
-          innerLayout = renamed [CutWordsLeft 2] $ ignore NextLayout 
+          tabs = named "Tabs" $ Simplest
+          innerLayout = renamed [CutWordsLeft 3] 
+                        $ addTabs s t
+                        $ ignore NextLayout 
                         $ ignore (JumpToLayout "") $ unEscape 
                            $ column ||| tabs ||| Full
 
