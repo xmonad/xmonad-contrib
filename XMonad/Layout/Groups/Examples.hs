@@ -322,13 +322,15 @@ data TiledTabsConfig s = TTC { vNMaster :: Int
 defaultTiledTabsConfig :: TiledTabsConfig DefaultShrinker
 defaultTiledTabsConfig = TTC 1 0.5 (3/100) 1 0.5 (3/100) shrinkText defaultTheme
 
-fullTabs c = G.group (_tabs c) $ Full ||| _vert c ||| _horiz c 
+fullTabs c = _tab c $ G.group _tabs $ Full ||| _vert c ||| _horiz c 
 
-tallTabs c = G.group (_tabs c) $ _vert c ||| _horiz c ||| Full
+tallTabs c = _tab c $ G.group _tabs $ _vert c ||| _horiz c ||| Full
 
-mirrorTallTabs c = G.group (_tabs c) $ _horiz c ||| Full ||| _vert c
+mirrorTallTabs c = _tab c $ G.group _tabs $ _horiz c ||| Full ||| _vert c
 
-_tabs c = named "Tabs" $ tabbed (tabsShrinker c) (tabsTheme c)
+_tabs = named "Tabs" Simplest
+
+_tab c l = renamed [CutWordsLeft 1] $ addTabs (tabsShrinker c) (tabsTheme c) l
 
 _vert c = named "Vertical" $ Tall (vNMaster c) (vIncrement c) (vRatio c)
 
