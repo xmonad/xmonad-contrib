@@ -42,7 +42,7 @@ data Accordion a = Accordion deriving ( Read, Show )
 instance LayoutClass Accordion Window where
     pureLayout _ sc ws = zip ups tops ++ [(W.focus ws, mainPane)] ++ zip dns bottoms
      where
-       ups    = W.up ws
+       ups    = reverse $ W.up ws
        dns    = W.down ws
        (top,  allButTop) = splitVerticallyBy (1%8 :: Ratio Int) sc
        (center,  bottom) = splitVerticallyBy (6%7 :: Ratio Int) allButTop
