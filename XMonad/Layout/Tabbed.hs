@@ -81,7 +81,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 -- This is a minimal working configuration:
 --
 -- > import XMonad
--- > import XMonad.Layout.DecorationMadness
+-- > import XMonad.Layout.Tabbed
 -- > main = xmonad defaultConfig { layoutHook = simpleTabbed }
 simpleTabbed :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
 simpleTabbed = tabbed shrinkText defaultTheme
