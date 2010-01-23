@@ -226,8 +226,10 @@ rotUnfocused' f   (W.Stack t ls rs) = W.Stack t (reverse revls') rs' -- otherwis
            (revls',rs') = splitAt (length ls) (f $ master:revls ++ rs)
 
 -- $generic
--- Generic list rotations
+-- Generic list rotations such that @rotUp [1..4]@ is equivalent to
+-- @[2,3,4,1]@ and @rotDown [1..4]@ to @[4,1,2,3]@. They both are
+-- @id@ for null or singleton lists.
 rotUp :: [a] -> [a]
-rotUp   l = tail l ++ [head l]
+rotUp   l = drop 1 l ++ take 1 l
 rotDown :: [a] -> [a]
-rotDown l = last l : init l
+rotDown = reverse . rotUp . reverse
