@@ -36,7 +36,7 @@ import qualified Data.Map as M
 
 xfceConfig = desktopConfig
     { terminal = "Terminal"
-    , keys     = \c -> xfceKeys c `M.union` keys desktopConfig c }
+    , keys     = xfceKeys <+> keys desktopConfig }
 
 xfceKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm,               xK_p), spawn "xfrun4")

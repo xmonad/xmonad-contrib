@@ -38,7 +38,7 @@ import qualified Data.Map as M
 -- > import qualified Data.Map as M
 -- > main = xmonad someConfig { keys = \c -> azertyKeys c `M.union` keys someConfig c }
 
-azertyConfig = defaultConfig { keys = \c -> azertyKeys c `M.union` keys defaultConfig c }
+azertyConfig = defaultConfig { keys = azertyKeys <+> keys defaultConfig }
 
 azertyKeys conf@(XConfig {modMask = modm}) = M.fromList $
     [((modm, xK_semicolon), sendMessage (IncMasterN (-1)))]

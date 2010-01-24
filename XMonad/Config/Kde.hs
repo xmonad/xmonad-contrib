@@ -40,11 +40,11 @@ import qualified Data.Map as M
 
 kdeConfig = desktopConfig
     { terminal = "konsole"
-    , keys     = \c -> kdeKeys c `M.union` keys desktopConfig c }
+    , keys     = kdeKeys <+> keys desktopConfig }
 
 kde4Config = desktopConfig
     { terminal = "konsole"
-    , keys     = \c -> kde4Keys c `M.union` keys desktopConfig c }
+    , keys     = kde4Keys <+> keys desktopConfig }
 
 kdeKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm,               xK_p), spawn "dcop kdesktop default popupExecuteCommand")

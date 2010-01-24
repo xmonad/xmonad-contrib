@@ -170,7 +170,7 @@ desktopConfig = ewmh defaultConfig
     { startupHook     = setDefaultCursor xC_left_ptr
     , layoutHook      = desktopLayoutModifiers $ layoutHook defaultConfig
     , manageHook      = manageHook defaultConfig <+> manageDocks
-    , keys            = \c -> desktopKeys c `M.union` keys defaultConfig c }
+    , keys            = desktopKeys <+> keys defaultConfig }
 
 desktopKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_b), sendMessage ToggleStruts) ]
