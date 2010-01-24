@@ -67,8 +67,8 @@ module XMonad.Prompt
 
 import Prelude hiding (catch)
 
-import XMonad  hiding (config, numlockMask, cleanMask)
-import qualified XMonad as X (numlockMask)
+import XMonad  hiding (config, cleanMask)
+import qualified XMonad as X (numberlockMask)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.Types
@@ -284,7 +284,7 @@ mkXPromptWithReturn t conf compl action = do
   gc <- io $ createGC d w
   io $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
-  numlock <- gets $ X.numlockMask
+  numlock <- gets $ X.numberlockMask
   let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
       st = initState d rw w s compl gc fs (XPT t) hs conf numlock
   st' <- io $ execStateT runXP st
