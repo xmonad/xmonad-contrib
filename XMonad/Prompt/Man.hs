@@ -31,7 +31,7 @@ import System.Directory
 import System.Process
 import System.IO
 
-import qualified Control.Exception as E
+import qualified Control.Exception.Extensible as E
 import Control.Monad
 import Data.List
 import Data.Maybe
@@ -62,7 +62,8 @@ manPrompt c = do
 
 getMans :: IO [String]
 getMans = do
-  paths <- getCommandOutput "manpath -g 2>/dev/null" `E.catch` \_ -> return []
+  paths <- getCommandOutput "manpath -g 2>/dev/null" `E.catch`
+            \(E.SomeException _) -> return []
   let sects    = ["man" ++ show n | n <- [1..9 :: Int]]
       dirs     = [d ++ "/" ++ s | d <- split ':' paths, s <- sects]
   mans <- forM dirs $ \d -> do

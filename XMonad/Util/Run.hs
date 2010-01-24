@@ -33,8 +33,9 @@ module XMonad.Util.Run (
 
 import System.Posix.IO
 import System.Posix.Process (executeFile)
+import System.Posix.Types (ProcessID)
 import Control.Concurrent (threadDelay)
-import Control.Exception (try) -- use OldException with base 4
+import Control.Exception.Extensible (try,SomeException)
 import System.IO
 import System.Process (runInteractiveProcess)
 import XMonad
@@ -107,7 +108,9 @@ it makes use of shell interpretation by relying on @$HOME@ and
 interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
 safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
-safeSpawn prog args = liftIO (try (xfork $ executeFile prog True args Nothing) >> return ())
+safeSpawn prog args = liftIO $ do
+    try $ xfork $ executeFile prog True args Nothing :: IO (Either SomeException ProcessID)
+    return ()
 
 -- | Like 'safeSpawn', but only takes a program (and no arguments for it). eg.
 --

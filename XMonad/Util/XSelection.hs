@@ -22,7 +22,7 @@ module XMonad.Util.XSelection (  -- * Usage
                                  transformPromptSelection,
                                  transformSafePromptSelection) where
 
-import Control.Exception as E (catch)
+import Control.Exception.Extensible as E (catch,SomeException(..))
 import Control.Monad (liftM, join)
 import Data.Maybe (fromMaybe)
 import XMonad
@@ -66,8 +66,8 @@ getSelection = io $ do
   ty <- E.catch
                (E.catch
                      (internAtom dpy "UTF8_STRING" False)
-                     (\_ -> internAtom dpy "COMPOUND_TEXT" False))
-             (\_ -> internAtom dpy "sTring" False)
+                     (\(E.SomeException _) -> internAtom dpy "COMPOUND_TEXT" False))
+             (\(E.SomeException _) -> internAtom dpy "sTring" False)
   clp <- internAtom dpy "BLITZ_SEL_STRING" False
   xConvertSelection dpy p ty clp win currentTime
   allocaXEvent $ \e -> do

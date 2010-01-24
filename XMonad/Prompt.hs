@@ -89,7 +89,7 @@ import Data.Set (fromList, toList)
 import System.Directory
 import System.IO
 import System.Posix.Files
-import Control.Exception hiding (handle)
+import Control.Exception.Extensible hiding (handle)
 
 import qualified Data.Map as M
 
@@ -640,7 +640,7 @@ getCompletions :: XP [String]
 getCompletions = do
   s <- get
   io $ completionFunction s (commandToComplete (xptype s) (command s))
-       `catch` \_ -> return []
+       `catch` \(SomeException _) -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
@@ -758,7 +758,7 @@ getHistoryFile :: IO FilePath
 getHistoryFile = fmap (++ "/history") $ getAppUserDataDirectory "xmonad"
 
 readHistory :: IO History
-readHistory = catch readHist (const (return emptyHistory))
+readHistory = readHist `catch` \(SomeException _) -> return emptyHistory
  where
     readHist = do
         path <- getHistoryFile
@@ -768,7 +768,7 @@ readHistory = catch readHist (const (return emptyHistory))
 writeHistory :: History -> IO ()
 writeHistory hist = do
   path <- getHistoryFile
-  catch (writeFile path (show hist)) $ const $ hPutStrLn stderr "error in writing"
+  writeFile path (show hist) `catch` \(SomeException _) -> hPutStrLn stderr "error in writing"
   setFileMode path mode
     where mode = ownerReadMode .|. ownerWriteMode
 

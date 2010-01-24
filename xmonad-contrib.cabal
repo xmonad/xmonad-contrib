@@ -40,7 +40,14 @@ flag testing
 
 library
     if flag(small_base)
-        build-depends: base >= 3 && < 4, containers, directory, process, random, old-time, old-locale
+        build-depends: base >= 3 && < 5,
+                       containers,
+                       directory,
+                       extensible-exceptions,
+                       old-locale,
+                       old-time,
+                       process,
+                       random
     else
         build-depends: base < 3
 
@@ -60,7 +67,7 @@ library
         ghc-options:    -fwarn-tabs -Werror
 
     if impl(ghc >= 6.12.1)
-        ghc-options:    -fno-warn-warnings-deprecations -fno-warn-unused-do-bind    
+        ghc-options:    -fno-warn-unused-do-bind
 
     if impl (ghc == 6.10.1) && arch (x86_64)
         ghc-options:    -O0
