@@ -49,6 +49,7 @@ import XMonad.Actions.WindowMenu
 import XMonad.Hooks.CurrentWorkspaceOnTop
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.PositionStoreHooks
 import XMonad.Hooks.RestoreMinimized
 import XMonad.Hooks.ServerMode
@@ -179,6 +180,7 @@ bluetileManageHook :: ManageHook
 bluetileManageHook = composeAll
                [ workspaceByPos, positionStoreManageHook
                 , className =? "MPlayer" --> doFloat
+                , isFullscreen --> doFullFloat
                 , manageDocks]
 
 bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
@@ -203,13 +205,14 @@ bluetileConfig =
           layoutHook = bluetileLayoutHook,
           logHook = currentWorkspaceOnTop >> ewmhDesktopsLogHook,
           handleEventHook = ewmhDesktopsEventHook
+                                `mappend` fullscreenEventHook
                                 `mappend` restoreMinimizedEventHook
                                 `mappend` serverModeEventHook' bluetileCommands
                                 `mappend` positionStoreEventHook,
           workspaces = bluetileWorkspaces,
           keys = bluetileKeys,
           mouseBindings = bluetileMouseBindings,
-          focusFollowsMouse  = False,
-          focusedBorderColor = "#ff5500",
+          focusFollowsMouse = False,
+          focusedBorderColor = "#000000",
           terminal = "gnome-terminal"
         }
