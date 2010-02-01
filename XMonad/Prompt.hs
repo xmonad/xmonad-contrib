@@ -915,8 +915,8 @@ historyNextMatching hm@(HistoryMatches ref) next = do
 -- > ((modMask,xK_p), shellPrompt . myPrompt =<< initMatches)
 -- > ..
 -- > myPrompt ref = defaultPrompt
--- >   { promptKeymap = M.union [((0,xK_Up), historyMatching ref)
--- >                            ,((0,xK_Down), historyMatching ref)]
+-- >   { promptKeymap = M.union [((0,xK_Up), historyUpMatching ref)
+-- >                            ,((0,xK_Down), historyDownMatching ref)]
 -- >                            (promptKeymap defaultPrompt)
 -- >   , .. }
 --
