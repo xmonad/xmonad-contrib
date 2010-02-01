@@ -62,6 +62,7 @@ module XMonad.Prompt
     , HistoryMatches
     , initMatches
     , historyUpMatching
+    , historyDownMatching
     ) where
 
 import Prelude hiding (catch)
@@ -881,38 +882,44 @@ deleteAllDuplicates, deleteConsecutive :: [String] -> [String]
 deleteAllDuplicates = nub
 deleteConsecutive = map head . group
 
-newtype HistoryMatches = HistoryMatches (IORef ([String],[String]))
+newtype HistoryMatches = HistoryMatches (IORef ([String],Maybe (W.Stack String)))
 
 -- | Initializes a new HistoryMatches structure to be passed
 -- to historyUpMatching
 initMatches :: (Functor m, MonadIO m) => m HistoryMatches
-initMatches = HistoryMatches <$> liftIO (newIORef ([],[]))
+initMatches = HistoryMatches <$> liftIO (newIORef ([],Nothing))
+
+historyNextMatching :: HistoryMatches -> (W.Stack String -> W.Stack String) -> XP ()
+historyNextMatching hm@(HistoryMatches ref) next = do
+  (completed,completions) <- io $ readIORef ref
+  input <- getInput
+  if input `elem` completed
+     then case completions of
+            Just cs -> do
+                let cmd = W.focus cs
+                modify $ setCommand cmd
+                modify $ \s -> s { offset = length cmd }
+                io $ writeIORef ref (cmd:completed,Just $ next cs)
+            Nothing -> return ()
+     else do -- the user typed something new, recompute completions
+       io . writeIORef ref . ((,) [input]) . filterMatching input =<< gets commandHistory
+       historyNextMatching hm next
+    where filterMatching :: String -> W.Stack String -> Maybe (W.Stack String)
+          filterMatching prefix = W.filter (prefix `isPrefixOf`) . next
 
 -- | Retrieve the next history element that starts with
--- the current input. Pass it an IORef containing two empty lists
+-- the current input. Pass it the result of initMatches
 -- when creating the prompt. Example:
 --
 -- > ..
 -- > ((modMask,xK_p), shellPrompt . myPrompt =<< initMatches)
 -- > ..
 -- > myPrompt ref = defaultPrompt
--- >   { promptKeymap = M.union [((0,xK_Up), historyMatching ref)] (promptKeymap defaultPrompt)
+-- >   { promptKeymap = M.union [((0,xK_Up), historyMatching ref)
+-- >                            ,((0,xK_Down), historyMatching ref)]
+-- >                            (promptKeymap defaultPrompt)
 -- >   , .. }
 --
-historyUpMatching :: HistoryMatches -> XP ()
-historyUpMatching hm@(HistoryMatches ref) = do
-  (completed,completions) <- io $ readIORef ref
-  input <- getInput
-  if input `elem` completed
-     then case completions of
-            (c:cs) -> do
-                modify (setCommand c)
-                modify $ \s -> s { offset = length c }
-                io $ writeIORef ref (c:completed,cs)
-            _ -> return ()
-     else do -- the user typed something new, recompute completions
-       io . writeIORef ref . ((,) [input]) . filterMatching input =<< gets commandHistory
-       historyUpMatching hm
-    where filterMatching :: String -> W.Stack String -> [String]
-          filterMatching prefix =
-              filter (prefix `isPrefixOf`) . tail . cycle . nub . W.integrate
+historyUpMatching, historyDownMatching :: HistoryMatches -> XP ()
+historyUpMatching hm = historyNextMatching hm W.focusUp'
+historyDownMatching hm = historyNextMatching hm W.focusDown'
