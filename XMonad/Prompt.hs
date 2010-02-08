@@ -921,5 +921,5 @@ historyNextMatching hm@(HistoryMatches ref) next = do
 -- >   , .. }
 --
 historyUpMatching, historyDownMatching :: HistoryMatches -> XP ()
-historyUpMatching hm = historyNextMatching hm W.focusUp'
-historyDownMatching hm = historyNextMatching hm W.focusDown'
+historyUpMatching hm = historyNextMatching hm W.focusDown'
+historyDownMatching hm = historyNextMatching hm W.focusUp'
