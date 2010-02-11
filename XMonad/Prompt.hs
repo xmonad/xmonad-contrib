@@ -223,7 +223,7 @@ defaultXPConfig =
         , showCompletionOnTab = False
         , searchPredicate   = isPrefixOf
         }
-greenXPConfig = defaultXPConfig { fgColor = "green", bgColor = "black" }
+greenXPConfig = defaultXPConfig { fgColor = "green", bgColor = "black", promptBorderWidth = 0 }
 amberXPConfig = defaultXPConfig { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
 
 type ComplFunction = String -> IO [String]
