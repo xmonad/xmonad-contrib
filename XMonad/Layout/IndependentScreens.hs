@@ -19,8 +19,10 @@ module XMonad.Layout.IndependentScreens (
     VirtualWorkspace, PhysicalWorkspace,
     workspaces',
     withScreens, onCurrentScreen,
-    countScreens,
     marshallPP,
+    countScreens,
+    -- * Converting between virtual and physical workspaces
+    -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
     marshallWindowSpace, unmarshallWindowSpace
 ) where
@@ -69,18 +71,20 @@ import XMonad.Hooks.DynamicLog
 type VirtualWorkspace  = WorkspaceId
 type PhysicalWorkspace = WorkspaceId
 
+-- $converting
+-- You shouldn't need to use the functions below very much. They are used
+-- internally. However, in some cases, they may be useful, and so are exported
+-- just in case. In general, the \"marshall\" functions convert the convenient
+-- form (like \"web\") you would like to use in your configuration file to the
+-- inconvenient form (like \"2_web\") that xmonad uses internally. Similarly,
+-- the \"unmarshall\" functions convert in the other direction.
+
 marshall :: ScreenId -> VirtualWorkspace -> PhysicalWorkspace
 marshall (S sc) vws = show sc ++ '_':vws
 
 unmarshall  :: PhysicalWorkspace -> (ScreenId, VirtualWorkspace)
 unmarshallS :: PhysicalWorkspace -> ScreenId
 unmarshallW :: PhysicalWorkspace -> VirtualWorkspace
-
--- ^ You shouldn't need to use @marshall@ or the various @unmarshall@ functions
--- very much.  They simply convert between the physical and virtual worlds.
--- For example, you might want to use them as part of a status bar
--- configuration.  The function @unmarshallW@ would discard the screen
--- information from an otherwise unsightly workspace name.
 
 unmarshall  = ((S . read) *** drop 1) . break (=='_')
 unmarshallS = fst . unmarshall
@@ -110,10 +114,17 @@ onCurrentScreen f vws = screen . current >>= f . flip marshall vws
 countScreens :: (MonadIO m, Integral i) => m i
 countScreens = liftM genericLength . liftIO $ openDisplay "" >>= getScreenInfo
 
--- TODO: documentation from here down
--- TODO: note somewhere that "marshall" functions go from convenient
---       to inconvenient, and "unmarshall" functions go from
---       inconvenient to convenient
+-- | This turns a naive pretty-printer into one that is aware of the
+-- independent screens. That is, you can write your pretty printer to behave
+-- the way you want on virtual workspaces; this function will convert that
+-- pretty-printer into one that first filters out physical workspaces on other
+-- screens, then converts all the physical workspaces on this screen to their
+-- virtual names.
+--
+-- For example, if you have handles @hLeft@ and @hRight@ for bars on the left and right screens, respectively, and @pp@ is a pretty-printer function that takes a handle, you could write
+--
+-- > logHook = let log screen handle = dynamicLogWithPP . marshallPP screen . pp $ handle
+-- >           in log 0 hLeft >> log 1 hRight
 marshallPP :: ScreenId -> PP -> PP
 marshallPP s pp = pp {
     ppCurrent           = ppCurrent         pp . snd . unmarshall,
@@ -130,7 +141,9 @@ marshallSort s vSort = pScreens . vSort . vScreens where
     vScreens    = map unmarshallWindowSpace . filter onScreen
     pScreens    = map (marshallWindowSpace s)
 
+-- | Convert the tag of the 'WindowSpace' from a 'VirtualWorkspace' to a 'PhysicalWorkspace'.
 marshallWindowSpace   :: ScreenId -> WindowSpace -> WindowSpace
+-- | Convert the tag of the 'WindowSpace' from a 'PhysicalWorkspace' to a 'VirtualWorkspace'.
 unmarshallWindowSpace :: WindowSpace -> WindowSpace
 
 marshallWindowSpace s ws = ws { tag = marshall s  (tag ws) }
