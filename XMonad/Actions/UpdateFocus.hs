@@ -44,10 +44,10 @@ focusOnMouseMove (MotionEvent { ev_x = x, ev_y = y, ev_window = root }) = do
     -- check only every 15 px to avoid excessive calls to translateCoordinates
     when (x `mod` 15 == 0 || y `mod` 15 == 0) $ do
       dpy <- asks display
-      Just foc <- withWindowSet $ return . W.peek
+      foc <- withWindowSet $ return . W.peek
       -- get the window under the pointer:
       (_,_,_,w) <- io $ translateCoordinates dpy root root (fromIntegral x) (fromIntegral y)
-      when (foc /= w) $ focus w
+      when (foc /= Just w) $ focus w
     return (All True)
 focusOnMouseMove _ = return (All True)
 
