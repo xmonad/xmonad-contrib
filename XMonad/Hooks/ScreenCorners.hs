@@ -44,16 +44,19 @@ inCorner corner xF dpy ix iy = do
         xMax   = displayWidth  dpy screen - 1
         yMax   = displayHeight dpy screen - 1
         pos    = case (ix,iy, corner) of
-                      (0,0, SCUpperLeft)                           -> Just ()
-                      (x,0, SCUpperRight) | x == xMax              -> Just ()
-                      (0,y, SCLowerLeft)  | y == yMax              -> Just ()
-                      (x,y, SCLowerRight) | x == xMax && y == yMax -> Just ()
+                      (0,0, SCUpperLeft)                           -> Just (50, 50)
+                      (x,0, SCUpperRight) | x == xMax              -> Just (x - 50, 50)
+                      (0,y, SCLowerLeft)  | y == yMax              -> Just (50, y - 50)
+                      (x,y, SCLowerRight) | x == xMax && y == yMax -> Just (x - 50, y - 50)
                       _                                            -> Nothing
 
     case pos of
-         Just _ -> do
+         Just (x,y) -> do
              -- Ignore any MotionEvents
              defaultEventInput
+             -- move the mouse cursor so we avoid an unwanted loop
+             rootw <- asks theRoot
+             io $ warpPointer dpy none rootw 0 0 0 0 (fromIntegral x) (fromIntegral y)
              -- Run our X ()
              xF
              -- Handle MotionEvents again
