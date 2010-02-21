@@ -146,6 +146,7 @@ library
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RestoreMinimized
+                        XMonad.Hooks.ScreenCorners
                         XMonad.Hooks.Script
                         XMonad.Hooks.ServerMode
                         XMonad.Hooks.SetWMName
