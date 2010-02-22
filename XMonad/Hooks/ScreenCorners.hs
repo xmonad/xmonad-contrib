@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ScreenCorners
@@ -16,73 +17,134 @@ module XMonad.Hooks.ScreenCorners
     (
     -- * Usage
     -- $usage
-    -- * Event hook
-      screenCornerEventHook
-    , ScreenCorner (..)
 
-    -- * X11 input methods
-    , defaultEventInput
-    , adjustEventInput
+    -- * Adding screen corners
+      ScreenCorner (..)
+    , addScreenCorner
+    , addScreenCorners
+
+    -- * Event hook
+    , screenCornerEventHook
     ) where
 
 import Data.Monoid
-import Foreign.C.Types
-
+import Data.List (find)
 import XMonad
-import XMonad.Actions.UpdateFocus (adjustEventInput)
+
+import qualified Data.Map as M
+import qualified XMonad.Util.ExtensibleState as XS
 
 data ScreenCorner = SCUpperLeft
                   | SCUpperRight
                   | SCLowerLeft
                   | SCLowerRight
+                  deriving (Eq, Ord, Show)
 
-inCorner :: ScreenCorner -> X () -> Display -> CInt -> CInt -> X ()
-inCorner corner xF dpy ix iy = do
+
+
+--------------------------------------------------------------------------------
+-- ExtensibleState modifications
+--------------------------------------------------------------------------------
+
+newtype ScreenCornerState = ScreenCornerState (M.Map Window (ScreenCorner, X ()))
+    deriving Typeable
+
+instance ExtensionClass ScreenCornerState where
+    initialValue = ScreenCornerState M.empty
+
+-- | Add one single @X ()@ action to a screen corner
+addScreenCorner :: ScreenCorner -> X () -> X ()
+addScreenCorner corner xF = do
+
+    ScreenCornerState m <- XS.get
+    (win,xFunc) <- case find (\(_,(sc,_)) -> sc == corner) (M.toList m) of
+
+                        Just (w, (_,xF')) -> return (w, xF' >> xF) -- chain X actions
+                        Nothing           -> flip (,) xF `fmap` createWindowAt corner
+
+    XS.modify $ \(ScreenCornerState m') -> ScreenCornerState $ M.insert win (corner,xFunc) m'
+
+-- | Add a list of @(ScreenCorner, X ())@ tuples
+addScreenCorners :: [ (ScreenCorner, X ()) ] -> X ()
+addScreenCorners = mapM_ (\(corner, xF) -> addScreenCorner corner xF)
+
+
+--------------------------------------------------------------------------------
+-- Xlib functions
+--------------------------------------------------------------------------------
+
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral
+
+-- "Translate" a ScreenCorner to real (x,y) Positions
+createWindowAt :: ScreenCorner -> X Window
+createWindowAt SCUpperLeft = createWindowAt' 0 0
+createWindowAt SCUpperRight = withDisplay $ \dpy ->
+    let w = displayWidth  dpy (defaultScreen dpy) - 1
+    in createWindowAt' (fi w) 0
+
+createWindowAt SCLowerLeft = withDisplay $ \dpy ->
+    let h = displayHeight dpy (defaultScreen dpy) - 1
+    in createWindowAt' 0 (fi h)
+
+createWindowAt SCLowerRight = withDisplay $ \dpy ->
+    let w = displayWidth  dpy (defaultScreen dpy) - 1
+        h = displayHeight dpy (defaultScreen dpy) - 1
+    in createWindowAt' (fi w) (fi h)
+
+-- Create a new X window at a (x,y) Position
+createWindowAt' :: Position -> Position -> X Window
+createWindowAt' x y = withDisplay $ \dpy -> io $ do
+
+    rootw <- rootWindow dpy (defaultScreen dpy)
 
     let
-        screen = defaultScreen dpy
-        xMax   = displayWidth  dpy screen - 1
-        yMax   = displayHeight dpy screen - 1
-        pos    = case (ix,iy, corner) of
-                      (0,0, SCUpperLeft)                           -> Just (50, 50)
-                      (x,0, SCUpperRight) | x == xMax              -> Just (x - 50, 50)
-                      (0,y, SCLowerLeft)  | y == yMax              -> Just (50, y - 50)
-                      (x,y, SCLowerRight) | x == xMax && y == yMax -> Just (x - 50, y - 50)
-                      _                                            -> Nothing
+        visual   = defaultVisualOfScreen $ defaultScreenOfDisplay dpy
+        attrmask = cWOverrideRedirect
 
-    case pos of
-         Just (x,y) -> do
-             -- Ignore any MotionEvents
-             defaultEventInput
-             -- move the mouse cursor so we avoid an unwanted loop
-             rootw <- asks theRoot
-             io $ warpPointer dpy none rootw 0 0 0 0 (fromIntegral x) (fromIntegral y)
-             -- Run our X ()
-             xF
-             -- Handle MotionEvents again
-             adjustEventInput
+    w <- allocaSetWindowAttributes $ \attributes -> do
 
-         _ -> return ()
+        set_override_redirect attributes True
+        createWindow dpy        -- display
+                     rootw      -- parent window
+                     x          -- x
+                     y          -- y
+                     1          -- width
+                     1          -- height
+                     0          -- border width
+                     0          -- depth
+                     inputOnly  -- class
+                     visual     -- visual
+                     attrmask   -- valuemask
+                     attributes -- attributes
 
--- | The event hook manager for @ScreenCorners@.
-screenCornerEventHook :: Event -> [(ScreenCorner, X ())] -> X All
-screenCornerEventHook MotionEvent { ev_event_display = dpy, ev_x = ix, ev_y = iy } lis = do
-
-    mapM_ (\(c,x) -> inCorner c x dpy ix iy) lis
-    return $ All True
-
-screenCornerEventHook _ _ = return $ All True
+    -- we only need mouse entry events
+    selectInput dpy w enterWindowMask
+    mapWindow dpy w
+    sync dpy False
+    return w
 
 
--- | Use the default input methods
-defaultEventInput :: X ()
-defaultEventInput = withDisplay $ \dpy -> do
-    rootw <- asks theRoot
-    io $ selectInput dpy rootw $  substructureRedirectMask .|. substructureNotifyMask
-                              .|. enterWindowMask .|. leaveWindowMask .|. structureNotifyMask
-                              .|. buttonPressMask
+--------------------------------------------------------------------------------
+-- Event hook
+--------------------------------------------------------------------------------
+
+-- | Handle screen corner events
+screenCornerEventHook :: Event -> X All
+screenCornerEventHook CrossingEvent { ev_window = win } = do
+
+    ScreenCornerState m <- XS.get
+
+    case M.lookup win m of
+         Just (_, xF) -> xF
+         Nothing      -> return ()
+
+    return (All True)
+
+screenCornerEventHook _ = return (All True)
 
 
+--------------------------------------------------------------------------------
 -- $usage
 --
 -- This extension adds KDE-like screen corners to XMonad. By moving your cursor
@@ -94,17 +156,17 @@ defaultEventInput = withDisplay $ \dpy -> do
 --
 -- > import XMonad.Hooks.ScreenCorners
 --
--- Then add @adjustEventInput@ to your startup hook:
+-- Then add your screen corners in our startup hook:
 --
 -- > myStartupHook = do
 -- >     ...
--- >     adjustEventInput
+-- >     addScreenCorner SCUpperRight (goToSelected defaultGSConfig { gs_cellwidth = 200})
+-- >     addScreenCorners [ (SCLowerRight, nextWS)
+-- >                      , (SCLowerLeft,  prevWS)
+-- >                      ]
 --
--- And put your custom ScreenCorners to your event hook:
+-- Then wait for screen corner events in your event hook:
 --
 -- > myEventHook e = do
 -- >     ...
--- >     screenCornerEventHook e [ (SCUpperRight, goToSelected defaultGSConfig { gs_cellwidth = 200 })
--- >                             , (SCLowerRight, nextWS)
--- >                             , (SCLowerLeft,  prevWS)
--- >                             ]
+-- >     screenCornerEventHook e
