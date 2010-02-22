@@ -28,6 +28,7 @@ import Data.List
 import Data.Monoid
 import Data.Ord
 import Data.Maybe
+import Data.Function
 
 type WorkspaceCompare = WorkspaceId -> WorkspaceId -> Ordering
 type WorkspaceSort = [WindowSpace] -> [WindowSpace]
@@ -44,12 +45,7 @@ getWsIndex = do
 getWsCompare :: X WorkspaceCompare
 getWsCompare = do
     wsIndex <- getWsIndex
-    return $ \a b -> f (wsIndex a) (wsIndex b) `mappend` compare a b
-  where
-    f Nothing Nothing   = EQ
-    f (Just _) Nothing  = LT
-    f Nothing (Just _)  = GT
-    f (Just x) (Just y) = compare x y
+    return $ mconcat [compare `on` wsIndex, compare]
 
 -- | A simple comparison function that orders workspaces
 --   lexicographically by tag.
