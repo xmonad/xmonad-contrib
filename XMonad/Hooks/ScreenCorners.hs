@@ -30,6 +30,7 @@ module XMonad.Hooks.ScreenCorners
 import Data.Monoid
 import Data.List (find)
 import XMonad
+import XMonad.Util.XUtils (fi)
 
 import qualified Data.Map as M
 import qualified XMonad.Util.ExtensibleState as XS
@@ -72,9 +73,6 @@ addScreenCorners = mapM_ (\(corner, xF) -> addScreenCorner corner xF)
 --------------------------------------------------------------------------------
 -- Xlib functions
 --------------------------------------------------------------------------------
-
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
 
 -- "Translate" a ScreenCorner to real (x,y) Positions
 createWindowAt :: ScreenCorner -> X Window
