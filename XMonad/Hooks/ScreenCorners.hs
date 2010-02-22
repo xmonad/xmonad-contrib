@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Run @X ()@ actions by touching the edge of your screen the your mouse.
+-- Run @X ()@ actions by touching the edge of your screen with your mouse.
 --
 -----------------------------------------------------------------------------
 
@@ -149,8 +149,8 @@ screenCornerEventHook _ = return (All True)
 --
 -- This extension adds KDE-like screen corners to XMonad. By moving your cursor
 -- into one of your screen corners you can trigger an @X ()@ action, for
--- example "XMonad.Actions.GridSelect".gotoSelected or
--- "XMonad.Actions.CycleWS".nextWS etc.
+-- example @"XMonad.Actions.GridSelect".goToSelected@ or
+-- @"XMonad.Actions.CycleWS".nextWS@ etc.
 --
 -- To use it, import it on top of your @xmonad.hs@:
 --
@@ -165,7 +165,7 @@ screenCornerEventHook _ = return (All True)
 -- >                      , (SCLowerLeft,  prevWS)
 -- >                      ]
 --
--- Then wait for screen corner events in your event hook:
+-- And finally wait for screen corner events in your event hook:
 --
 -- > myEventHook e = do
 -- >     ...
