@@ -8,15 +8,18 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
+-----------------------------------------------------------------------------
 
 module XMonad.Util.WorkspaceCompare ( WorkspaceCompare, WorkspaceSort
                                     , getWsIndex
                                     , getWsCompare
                                     , getWsCompareByTag
+                                    , getXineramaPhysicalWsCompare
                                     , getXineramaWsCompare
                                     , mkWsSort
                                     , getSortByIndex
                                     , getSortByTag
+                                    , getSortByXineramaPhysicalRule
                                     , getSortByXineramaRule ) where
 
 import XMonad
@@ -57,10 +60,17 @@ getWsCompareByTag = return compare
 --   and screen id. It produces the same ordering as
 --   'XMonad.Hooks.DynamicLog.pprWindowSetXinerama'.
 getXineramaWsCompare :: X WorkspaceCompare
-getXineramaWsCompare = do
+getXineramaWsCompare = getXineramaWsCompare' False
+
+-- | A comparison function like 'getXineramaWsCompare', but uses physical locations for screens.
+getXineramaPhysicalWsCompare :: X WorkspaceCompare
+getXineramaPhysicalWsCompare = getXineramaWsCompare' True
+
+getXineramaWsCompare' :: Bool -> X WorkspaceCompare
+getXineramaWsCompare' phy = do
     w <- gets windowset
     return $ \ a b -> case (isOnScreen a w, isOnScreen b w) of
-        (True, True)   -> comparing (tagToSid (onScreen w)) a b
+        (True, True)   -> cmpPosition phy w a b
         (False, False) -> compare a b
         (True, False)  -> LT
         (False, True)  -> GT
@@ -68,6 +78,10 @@ getXineramaWsCompare = do
     onScreen w =  S.current w : S.visible w
     isOnScreen a w  = a `elem` map (S.tag . S.workspace) (onScreen w)
     tagToSid s x = S.screen $ fromJust $ find ((== x) . S.tag . S.workspace) s
+    cmpPosition False w a b = comparing (tagToSid $ onScreen w) a b
+    cmpPosition True w a b = comparing (rect.(tagToSid $ onScreen w)) a b
+      where rect i = let (Rectangle x y _ _) = screens !! fromIntegral i in (y,x)
+            screens = map (screenRect . S.screenDetail) $ sortBy (comparing S.screen) $ S.current w : S.visible w
 
 -- | Create a workspace sorting function from a workspace comparison
 --   function.
@@ -91,4 +105,8 @@ getSortByTag = mkWsSort getWsCompareByTag
 --   sorted by tag.
 getSortByXineramaRule :: X WorkspaceSort
 getSortByXineramaRule = mkWsSort getXineramaWsCompare
+
+-- | Like 'getSortByXineramaRule', but uses physical locations for screens.
+getSortByXineramaPhysicalRule :: X WorkspaceSort
+getSortByXineramaPhysicalRule = mkWsSort getXineramaPhysicalWsCompare
 
