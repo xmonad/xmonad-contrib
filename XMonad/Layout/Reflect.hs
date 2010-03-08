@@ -18,7 +18,8 @@ module XMonad.Layout.Reflect (
                                -- $usage
 
                                reflectHoriz, reflectVert,
-                               REFLECTX(..), REFLECTY(..)
+                               REFLECTX(..), REFLECTY(..),
+                               Reflect
 
                              ) where
 
