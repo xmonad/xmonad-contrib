@@ -19,14 +19,14 @@ module XMonad.Actions.PhysicalScreens (
                                       , getScreen
                                       , viewScreen
                                       , sendToScreen
+                                      , onNextNeighbour
+                                      , onPrevNeighbour
                                       ) where
 
 import XMonad
 import qualified XMonad.StackSet as W
 
-import Graphics.X11.Xinerama
-
-import Data.List (sortBy)
+import Data.List (sortBy,findIndex)
 import Data.Function (on)
 
 {- $usage
@@ -42,6 +42,11 @@ and then left-to-right.
 Example usage in your @~\/.xmonad\/xmonad.hs@ file:
 
 > import XMonad.Actions.PhysicalSCreens
+
+> , ((modMask, xK_a), onPrevNeighbour W.view)
+> , ((modMask, xK_o), onNextNeighbour W.view)
+> , ((modMask .|. shiftMask, xK_a), onPrevNeighbour W.shift)
+> , ((modMask .|. shiftMask, xK_o), onNextNeighbour W.shift)
 
 > --
 > -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
@@ -60,12 +65,12 @@ newtype PhysicalScreen = P Int deriving (Eq,Ord,Show,Read,Enum,Num,Integral,Real
 
 -- | Translate a physical screen index to a "ScreenId"
 getScreen :: PhysicalScreen -> X (Maybe ScreenId)
-getScreen (P i) = withDisplay $ \dpy -> do
-                    screens <- io $ getScreenInfo dpy
-                    if i >= length screens
-                     then return Nothing
-                     else let ss = sortBy (cmpScreen `on` fst) $ zip screens [0..]
-                          in return $ Just $ snd $ ss !! i
+getScreen (P i) = do w <- gets windowset
+                     let screens = W.current w : W.visible w
+                     if i<0 || i >= length screens
+                      then return Nothing
+                      else let ss = sortBy (cmpScreen `on` (screenRect . W.screenDetail)) screens
+                           in return $ Just $ W.screen $ ss !! i
 
 -- | Switch to a given physical screen
 viewScreen :: PhysicalScreen -> X ()
@@ -84,4 +89,27 @@ sendToScreen p = do i <- getScreen p
 -- | Compare two screens by their top-left corners, ordering
 -- | top-to-bottom and then left-to-right.
 cmpScreen :: Rectangle -> Rectangle -> Ordering
-cmpScreen  (Rectangle x1 y1 _ _) (Rectangle x2 y2 _ _) = compare (y1,x1) (y2,x2)
+cmpScreen (Rectangle x1 y1 _ _) (Rectangle x2 y2 _ _) = compare (y1,x1) (y2,x2)
+
+
+-- | Get ScreenId for neighbours of the current screen based on position offset.
+getNeighbour :: Int -> X ScreenId
+getNeighbour d = do w <- gets windowset
+                    let ss = map W.screen $ sortBy (cmpScreen `on` (screenRect . W.screenDetail)) $ W.current w : W.visible w
+                        curPos = maybe 0 id $ findIndex (== W.screen (W.current w)) ss
+                        pos = (curPos + d) `mod` length ss
+                    return $ ss !! pos
+
+neighbourWindows :: Int -> (WorkspaceId -> WindowSet -> WindowSet) -> X ()
+neighbourWindows d f = do s <- getNeighbour d
+                          w <- screenWorkspace s
+                          whenJust w $ windows . f
+
+-- | Apply operation on a WindowSet with the WorkspaceId of the next screen in the physical order as parameter.
+onNextNeighbour :: (WorkspaceId -> WindowSet -> WindowSet) -> X ()
+onNextNeighbour = neighbourWindows 1
+
+-- | Apply operation on a WindowSet with the WorkspaceId of the previous screen in the physical order as parameter.
+onPrevNeighbour :: (WorkspaceId -> WindowSet -> WindowSet) -> X ()
+onPrevNeighbour = neighbourWindows (-1)
+
