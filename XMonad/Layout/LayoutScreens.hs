@@ -16,7 +16,7 @@
 module XMonad.Layout.LayoutScreens (
                                     -- * Usage
                                     -- $usage
-                                    layoutScreens, fixedLayout
+                                    layoutScreens, layoutSplitScreen, fixedLayout
                                    ) where
 
 import XMonad
@@ -55,6 +55,7 @@ import qualified XMonad.StackSet as W
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
+-- | Modify all screens.
 layoutScreens :: LayoutClass l Int => Int -> l Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
 layoutScreens nscr l =
@@ -65,6 +66,20 @@ layoutScreens nscr l =
                s:ss = map snd wss
            in  ws { W.current = W.Screen x 0 (SD s)
                   , W.visible = zipWith3 W.Screen xs [1 ..] $ map SD ss
+                  , W.hidden  = ys }
+
+-- | Modify current screen.
+layoutSplitScreen :: LayoutClass l Int => Int -> l Int -> X ()
+layoutSplitScreen nscr _ | nscr < 1 = trace $ "Can't layoutSplitScreen with only " ++ show nscr ++ " screens."
+layoutSplitScreen nscr l =
+    do rect <- gets $ screenRect . W.screenDetail . W.current . windowset
+       (wss, _) <- runLayout (W.Workspace "" l (Just $ W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] })) rect
+       windows $ \ws@(W.StackSet { W.current = c, W.visible = vs, W.hidden = hs }) ->
+           let (x:xs, ys) = splitAt nscr $ W.workspace c : hs
+               s:ss = map snd wss
+           in  ws { W.current = W.Screen x (W.screen c) (SD s)
+                  , W.visible = (zipWith3 W.Screen xs [(W.screen c+1) ..] $ map SD ss) ++
+                                map (\v -> if W.screen v>W.screen c then v{W.screen = W.screen v + fromIntegral (nscr-1)} else v) vs
                   , W.hidden  = ys }
 
 getWindowRectangle :: Window -> X Rectangle
