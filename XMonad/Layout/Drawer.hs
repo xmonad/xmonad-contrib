@@ -27,6 +27,8 @@ module XMonad.Layout.Drawer
       -- * Placing drawers
       -- The drawer can be placed on any side of the screen with these functions
     , onLeft, onTop, onRight, onBottom
+
+    , module XMonad.Util.WindowProperties
     ) where
 
 import XMonad
@@ -38,18 +40,17 @@ import XMonad.Layout.Reflect
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
 --
--- @
--- import XMonad.Layout.Drawer
--- import "XMonad.Util.WindowProperties"
+-- > import XMonad.Layout.Drawer
 --
--- myLayout = drawer \``onTop'\` (Tall 1 0.03 0.5) ||| Full ||| RandomOtherLayout...
---     where
---         drawer = 'simpleDrawer' 0.01 0.3 (ClassName \"Rhythmbox\" \`Or\` ClassName \"Xchat\")
--- main = xmonad defaultConfig { layoutHook = myLayout }
--- @
+-- > myLayout = drawer `onTop` (Tall 1 0.03 0.5) ||| Full ||| RandomOtherLayout...
+-- >     where
+-- >         drawer = simpleDrawer 0.01 0.3 (ClassName "Rhythmbox" `Or` ClassName "Xchat")
+-- >
+-- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
--- This will place the Rhythmbox and Xchat windows in at the top of the screen.
--- See "XMonad.Util.WindowProperties" for more information on selecting windows.
+-- This will place the Rhythmbox and Xchat windows in at the top of the screen
+-- only when using the 'Tall' layout.  See "XMonad.Util.WindowProperties" for
+-- more information on selecting windows.
 
 data Drawer l a = Drawer Rational Rational Property (l a)
     deriving (Read, Show)
