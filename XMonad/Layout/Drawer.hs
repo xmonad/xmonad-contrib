@@ -73,16 +73,17 @@ instance (LayoutClass l Window, Read (l Window)) => LayoutModifier (Drawer l) Wi
                     (upD, upM) <- partitionM (hasProperty p) up_
                     (downD, downM) <- partitionM (hasProperty p) down_
                     b <- hasProperty p w
+                    focusedWindow <- gets (fmap S.focus . stack . workspace . current . windowset)
 
-                    let (rectD, stackD, stackM) = if b
-                                                    then ( rectB
-                                                         , Just $ stk { up=upD, down=downD }
-                                                         , mkStack upM downM )
-                                                    else ( rectS
-                                                         , mkStack upD downD
-                                                         , Just $ stk { up=upM, down=downM } )
+                    let rectD = if b && Just w == focusedWindow then rectB else rectS
 
-                    (winsD, _) <- runLayout (ws { layout=l , stack=stackD }) rectD
+                    let (stackD, stackM) = if b
+                                            then ( Just $ stk { up=upD, down=downD }
+                                                 , mkStack upM downM )
+                                            else ( mkStack upD downD
+                                                 , Just $ stk { up=upM, down=downM } )
+
+                    (winsD, _) <- runLayout (ws { layout=l, stack=stackD }) rectD
                     (winsM, u') <- runLayout (ws { stack=stackM }) rectM
                     return (winsD ++ winsM, u')
       where
@@ -91,7 +92,7 @@ instance (LayoutClass l Window, Read (l Window)) => LayoutModifier (Drawer l) Wi
         mkStack (x:xs) ys = Just (Stack { up=xs, S.focus=x, down=ys })
 
         rectB = rect { rect_width=round $ fromIntegral (rect_width rect) * rb }
-        rectS = rectB { rect_x=round $ (rs - rb) * fromIntegral (rect_width rect) }
+        rectS = rectB { rect_x=rect_x rectB - (round $ (rb - rs) * fromIntegral (rect_width rect)) }
         rectM = rect { rect_x=rect_x rect + round (fromIntegral (rect_width rect) * rs)
                      , rect_width=rect_width rect - round (fromIntegral (rect_width rect) * rs) }
 
