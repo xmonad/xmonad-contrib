@@ -41,7 +41,7 @@ import Control.Arrow (second)
 -- > import XMonad.Layout.MessageEscape
 --
 -- Then, if you use a modified layout where the modifier would intercept
--- a message, but you'd want to be able to send it to the inner layout 
+-- a message, but you'd want to be able to send it to the inner layout
 -- only, add the 'unEscape' modifier to the inner layout like so:
 --
 -- > import XMonad.Layout.Master (mastered)
@@ -60,7 +60,7 @@ import Control.Arrow (second)
 -- layout, use the 'ignore' modifier:
 --
 -- > myLayout = Tall ||| (ignore NextLayout $ ignore (JumpToLayout "") $
--- >                       unEscape $ mastered 0.01 0.5 
+-- >                       unEscape $ mastered 0.01 0.5
 -- >                         $ Full ||| simpleTabbed)
 --
 -- /IMPORTANT NOTE:/ The standard '(|||)' operator from "XMonad.Layout"
@@ -121,6 +121,6 @@ unEscape l = ModifiedLayout UE l
 -- | Applies the Ignore layout modifier to a layout, blocking
 -- all messages of the same type as the one passed as its first argument.
 
-ignore :: (Message m, LayoutClass l w) 
+ignore :: (Message m, LayoutClass l w)
           => m -> l w -> (Ignore m l w)
 ignore _ l = I l
