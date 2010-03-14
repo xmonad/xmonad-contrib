@@ -19,7 +19,7 @@ module XMonad.Util.Replace
     ( -- * Usage
       -- $usage
       replace
- 
+
       -- * Notes
       -- $shortcomings
 
@@ -52,7 +52,7 @@ import Control.Monad
 -- $getArgs
 -- You can use 'System.Environment.getArgs' to watch for an explicit
 -- @--replace@ flag:
--- 
+--
 -- > import XMonad
 -- > import XMonad.Util.Replace (replace)
 -- > import Control.Monad (when)
