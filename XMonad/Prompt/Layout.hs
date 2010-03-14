@@ -4,7 +4,7 @@
 -- Copyright   :  (C) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD3
 --
--- Maintainer  :  
+-- Maintainer  :
 -- Stability   :  unstable
 -- Portability :  unportable
 --
