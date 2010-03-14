@@ -87,7 +87,7 @@ handleScreenCrossing w decoWin = withDisplay $ \d -> do
     ws <- gets windowset
     sc <- fromMaybe (W.current ws) <$> pointScreen (fi px) (fi py)
     maybeWksp <- screenWorkspace $ W.screen sc
-    let targetWksp = maybeWksp >>= \wksp -> 
+    let targetWksp = maybeWksp >>= \wksp ->
                         W.findTag w ws >>= \currentWksp ->
                         if (currentWksp /= wksp)
                             then Just wksp
