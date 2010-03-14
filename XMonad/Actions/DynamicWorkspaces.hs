@@ -153,7 +153,7 @@ removeEmptyWorkspaceAfter :: X () -> X ()
 removeEmptyWorkspaceAfter = removeEmptyWorkspaceAfterExcept []
 
 -- | Like 'removeEmptyWorkspaceAfter' but use a list of sticky workspaces,
---   whose entries will never be removed. 
+--   whose entries will never be removed.
 removeEmptyWorkspaceAfterExcept :: [String] -> X () -> X ()
 removeEmptyWorkspaceAfterExcept sticky f = do
     before <- gets (currentTag . windowset)
