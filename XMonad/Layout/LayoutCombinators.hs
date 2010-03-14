@@ -213,7 +213,7 @@ infixr 5 |||
 
 data NewSelect l1 l2 a = NewSelect Bool (l1 a) (l2 a) deriving ( Read, Show )
 
--- | 
+-- |
 data JumpToLayout = JumpToLayout String -- ^ A message to jump to a particular layout
                                         -- , specified by its description string..
                   | NextLayoutNoWrap
