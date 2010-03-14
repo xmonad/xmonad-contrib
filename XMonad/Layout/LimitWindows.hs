@@ -138,7 +138,7 @@ select s stk
         downs = W.down stk
         ups = reverse $ W.up stk
         lups = length ups
-    
+
 updateStart :: Selection l -> W.Stack a -> Int
 updateStart s stk
     | lups < nMaster s  -- the focussed window is in the master pane
