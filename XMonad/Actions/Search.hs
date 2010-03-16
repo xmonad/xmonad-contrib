@@ -261,8 +261,8 @@ searchEngine name site = searchEngineF name (\s -> site ++ (escape s))
    inside of a URL instead of in the end) you can use the alternative 'searchEngineF' function.
 
 > searchFunc :: String -> String
-> searchFunc s | s `isPrefixOf` "wiki:"   = "http://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
->              | s `isPrefixOf` "http://" = s
+> searchFunc s | "wiki:"   `isPrefixOf` s = "http://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
+>              | "http://" `isPrefixOf` s = s
 >              | otherwise               = (use google) s
 > myNewEngine = searchEngineF "mymulti" searchFunc
 
@@ -335,14 +335,14 @@ removeColonPrefix s = if ':' `elem` s then drop 1 $ dropWhile (':' /=) s else s
   \"mathworld:integral\" will search mathworld, and everything else will fall back to
   google. The use of intelligent will make sure that URLs are opened directly. -}
 (!>) :: SearchEngine -> SearchEngine -> SearchEngine
-(SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if s `isPrefixOf` (name1++":") then site1 (removeColonPrefix s) else site2 s)
+(SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if (name1++":") `isPrefixOf` s then site1 (removeColonPrefix s) else site2 s)
 
 {- | Makes a search engine prefix-aware. Especially useful together with '!>'.
    It will automatically remove the prefix from a query so that you don\'t end
      up searching for google:xmonad if google is your fallback engine and you
      explicitly add the prefix. -}
 prefixAware :: SearchEngine -> SearchEngine
-prefixAware (SearchEngine name site) = SearchEngine name (\s -> if s `isPrefixOf` (name++":") then site $ removeColonPrefix s else site s)
+prefixAware (SearchEngine name site) = SearchEngine name (\s -> if (name++":") `isPrefixOf` s then site $ removeColonPrefix s else site s)
 
 {- | Changes search engine's name -}
 namedEngine :: Name -> SearchEngine -> SearchEngine
