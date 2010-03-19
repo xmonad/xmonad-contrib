@@ -29,6 +29,7 @@ module XMonad.Hooks.DynamicLog (
     dynamicLog,
     dynamicLogXinerama,
 
+    xmonadPropLog',
     xmonadPropLog,
 
     -- * Build your own formatter
@@ -209,19 +210,23 @@ statusBar cmd pp k conf = do
  where
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
--- | Write a string to the property _XMONAD_LOG on the root window.  This
--- property is of type UTF8_STRING. The string must have been processed by
--- encodeString (dynamicLogString does this).
-xmonadPropLog :: String -> X ()
-xmonadPropLog msg = do
+-- | Write a string to a property on the root window.  This property is of
+-- type UTF8_STRING. The string must have been processed by encodeString
+-- (dynamicLogString does this).
+xmonadPropLog' :: String -> String -> X ()
+xmonadPropLog' prop msg = do
     d <- asks display
     r <- asks theRoot
-    xlog <- getAtom "_XMONAD_LOG"
+    xlog <- getAtom prop
     ustring <- getAtom "UTF8_STRING"
     io $ changeProperty8 d r xlog ustring propModeReplace (encodeCChar msg)
  where
     encodeCChar :: String -> [CChar]
     encodeCChar = map (fromIntegral . ord)
+
+-- | Write a string to the _XMONAD_LOG property on the root window.
+xmonadPropLog :: String -> X ()
+xmonadPropLog = xmonadPropLog' "_XMONAD_LOG"
 
 -- |
 -- Helper function which provides ToggleStruts keybinding
