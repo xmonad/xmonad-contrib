@@ -105,7 +105,7 @@ additionalKeysP conf keyList =
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]
 removeKeys :: XConfig a -> [(ButtonMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
-    conf { keys = \cnf -> keys conf cnf `M.difference` M.fromList (zip keyList $ return ()) }
+    conf { keys = \cnf -> keys conf cnf `M.difference` M.fromList (zip keyList $ repeat ()) }
 
 -- | Like 'removeKeys', except using short @String@ key descriptors
 --   like @\"M-m\"@ instead of @(modMask, xK_m)@, as described in the
