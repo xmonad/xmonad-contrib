@@ -2,7 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Minimize
--- Copyright   :  (c) Jan Vornberger 2009
+-- Copyright   :  (c) Jan Vornberger 2009, Alejandro Serrano 2010
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  jan.vornberger@informatik.uni-oldenburg.de
@@ -25,8 +25,13 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.BoringWindows as BW
+import XMonad.Operations
+import XMonad.Util.WindowProperties (getProp32)
 import Data.List
 import qualified Data.Map as M
+import Data.Maybe
+import Graphics.X11.Xlib
+import Foreign.C.Types (CLong)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -72,6 +77,24 @@ data MinimizeMsg = MinimizeWin Window
                     deriving (Typeable, Eq)
 instance Message MinimizeMsg
 
+
+setMinimizedState :: Window -> Int -> (CLong -> [CLong] -> [CLong]) -> X ()
+setMinimizedState win st f = do
+    setWMState win st
+    withDisplay $ \dpy -> do
+        state <- getAtom "_NET_WM_STATE"
+        mini <- getAtom "_NET_WM_STATE_HIDDEN"
+        wstate <- fromMaybe [] `fmap` getProp32 state win
+        let ptype = 4 -- The atom property type for changeProperty
+            fi_mini = fromIntegral mini
+        io $ changeProperty32 dpy win state ptype propModeReplace (f fi_mini wstate)
+
+setMinimized :: Window -> X ()
+setMinimized win = setMinimizedState win iconicState (:)
+
+setNotMinimized :: Window -> X ()
+setNotMinimized win = setMinimizedState win normalState delete
+
 instance LayoutModifier Minimize Window where
     modifierDescription _ = "Minimize"
 
@@ -83,13 +106,15 @@ instance LayoutModifier Minimize Window where
     handleMess (Minimize minimized unfloated) m
         | Just (MinimizeWin w) <- fromMessage m, not (w `elem` minimized) = do
                 BW.focusDown
+                setMinimized w
                 ws <- gets windowset
                 case M.lookup w (W.floating ws) of
                   Nothing -> return $ Just $ Minimize (w:minimized) unfloated
                   Just r -> do
                     (windows . W.sink) w
                     return $ Just $ Minimize (w:minimized) (M.insert w r unfloated)
-        | Just (RestoreMinimizedWin w) <- fromMessage m =
+        | Just (RestoreMinimizedWin w) <- fromMessage m = do
+            setNotMinimized w
             case M.lookup w unfloated of
               Nothing -> return $ Just $ Minimize (minimized \\ [w]) unfloated
               Just r -> do
@@ -99,10 +124,13 @@ instance LayoutModifier Minimize Window where
           if not (null minimized)
             then case M.lookup (head minimized) unfloated of
               Nothing -> do
-                focus (head minimized)
+                let w = head minimized
+                setNotMinimized w
+                focus w
                 return $ Just $ Minimize (tail minimized) unfloated
               Just r -> do
                 let w = head minimized
+                setNotMinimized w
                 (windows . (W.float w)) r
                 focus w
                 return $ Just $ Minimize (tail minimized) (M.delete w unfloated)
