@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Util.ExtensibleState
+-- Module      :  XMonad.Util.SpawnOnce
 -- Copyright   :  (c) Spencer Janssen 2009
 -- License     :  BSD3-style (see LICENSE)
 --
