@@ -79,7 +79,7 @@ import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
-import Data.List (delete)
+import Data.List (delete, (\\))
 import Data.Maybe (listToMaybe, maybeToList)
 import qualified Data.Set as S
 
@@ -372,7 +372,9 @@ shouldSuppress :: SuppressWhen -> Window -> X Bool
 shouldSuppress sw w = elem w <$> suppressibleWindows sw
 
 cleanupUrgents :: SuppressWhen -> X ()
-cleanupUrgents sw = mapM_ clearUrgency =<< suppressibleWindows sw
+cleanupUrgents sw = do
+    sw' <- suppressibleWindows sw
+    adjustUrgents (\\ sw') >> adjustReminders (filter $ ((`notElem` sw') . window))
 
 suppressibleWindows :: SuppressWhen -> X [Window]
 suppressibleWindows Visible  = gets $ S.toList . mapped
