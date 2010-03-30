@@ -16,6 +16,9 @@
 -- Two-level layout with windows split in individual layout groups,
 -- themselves managed by a user-provided layout.
 --
+-- NOTE: this module has redundancies with "XMonad.Layout.SubLayouts", and
+-- will be removed once merged.
+--
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Groups ( -- * Usage
