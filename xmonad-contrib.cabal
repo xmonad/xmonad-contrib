@@ -181,6 +181,7 @@ library
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
+                        XMonad.Layout.ImageButtonDecoration
                         XMonad.Layout.IndependentScreens
                         XMonad.Layout.LayoutBuilder
                         XMonad.Layout.LayoutCombinators
@@ -255,6 +256,7 @@ library
                         XMonad.Util.ExtensibleState
                         XMonad.Util.EZConfig
                         XMonad.Util.Font
+                        XMonad.Util.Image
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers
                         XMonad.Util.NamedActions

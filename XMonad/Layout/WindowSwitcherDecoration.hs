@@ -3,6 +3,7 @@
 -- |
 -- Module      :  XMonad.Layout.WindowSwitcherDecoration
 -- Copyright   :  (c) Jan Vornberger 2009
+--                    Alejandro Serrano 2010
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  jan.vornberger@informatik.uni-oldenburg.de
@@ -18,12 +19,14 @@ module XMonad.Layout.WindowSwitcherDecoration
     ( -- * Usage:
       -- $usage
       windowSwitcherDecoration,
-      windowSwitcherDecorationWithButtons
+      windowSwitcherDecorationWithButtons,
+      windowSwitcherDecorationWithImageButtons
     ) where
 
 import XMonad
 import XMonad.Layout.Decoration
 import XMonad.Layout.DecorationAddons
+import XMonad.Layout.ImageButtonDecoration
 import XMonad.Layout.DraggingVisualizer
 import qualified XMonad.StackSet as S
 import Control.Monad
@@ -52,6 +55,16 @@ import Foreign.C.Types(CInt)
 -- > myL = windowSwitcherDecorationWithButtons shrinkText defaultThemeWithButtons (draggingVisualizer $ layoutHook defaultConfig)
 -- > main = xmonad defaultConfig { layoutHook = myL }
 --
+-- Additionaly, there is a version of the decoration that contains image buttons like
+-- "XMonad.Layout.ImageButtonDecoration". To use that version, you will need to
+-- import "XMonad.Layout.ImageButtonDecoration" as well and modify your @layoutHook@
+-- in the following way:
+--
+-- > import XMonad.Layout.ImageButtonDecoration
+-- >
+-- > myL = windowSwitcherDecorationWithImageButtons shrinkText defaultThemeWithImageButtons (draggingVisualizer $ layoutHook defaultConfig)
+-- > main = xmonad defaultConfig { layoutHook = myL }
+--
 
 windowSwitcherDecoration :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration WindowSwitcherDecoration s) l a
@@ -68,6 +81,27 @@ instance Eq a => DecorationStyle WindowSwitcherDecoration a where
 
     decorationCatchClicksHook (WSD withButtons) mainw dFL dFR = if withButtons
                                                                     then titleBarButtonHandler mainw dFL dFR
+                                                                    else return False
+    decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleTiledDraggingInProgress ex ey (mainw, r) x y
+    decorationAfterDraggingHook _ (mainw, _) decoWin = do focus mainw
+                                                          hasCrossed <- handleScreenCrossing mainw decoWin
+                                                          unless hasCrossed $ do sendMessage $ DraggingStopped
+                                                                                 performWindowSwitching mainw
+
+-- Note: the image button code is duplicated from the above
+-- because the title bar handle is different
+
+windowSwitcherDecorationWithImageButtons :: (Eq a, Shrinker s) => s -> Theme
+           -> l a -> ModifiedLayout (Decoration ImageWindowSwitcherDecoration s) l a
+windowSwitcherDecorationWithImageButtons s c = decoration s c $ IWSD True
+
+data ImageWindowSwitcherDecoration a = IWSD Bool deriving (Show, Read)
+
+instance Eq a => DecorationStyle ImageWindowSwitcherDecoration a where
+    describeDeco _ = "ImageWindowSwitcherDeco"
+
+    decorationCatchClicksHook (IWSD withButtons) mainw dFL dFR = if withButtons
+                                                                    then imageTitleBarButtonHandler mainw dFL dFR
                                                                     else return False
     decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleTiledDraggingInProgress ex ey (mainw, r) x y
     decorationAfterDraggingHook _ (mainw, _) decoWin = do focus mainw

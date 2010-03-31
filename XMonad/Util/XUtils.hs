@@ -2,6 +2,7 @@
 -- |
 -- Module      :  XMonad.Util.XUtils
 -- Copyright   :  (c) 2007 Andrea Rossato
+--                    2010 Alejandro Serrano
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
 -- Maintainer  :  andrea.rossato@unibz.it
@@ -25,6 +26,7 @@ module XMonad.Util.XUtils
     , deleteWindows
     , paintWindow
     , paintAndWrite
+    , paintTextAndIcons
     , stringToPixel
     , fi
     ) where
@@ -32,11 +34,12 @@ module XMonad.Util.XUtils
 import Data.Maybe
 import XMonad
 import XMonad.Util.Font
+import XMonad.Util.Image
 import Control.Monad
 
 -- $usage
--- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" for usage
--- examples
+-- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" or 
+-- "XMonad.Layout.Decoration" for usage examples
 
 -- | Compute the weighted average the colors of two given Pixel values.
 averagePixels :: Pixel -> Pixel -> Double -> X Pixel
@@ -101,7 +104,7 @@ paintWindow :: Window     -- ^ The window where to draw
             -> String     -- ^ Border color
             -> X ()
 paintWindow w wh ht bw c bc =
-    paintWindow' w (Rectangle 0 0 wh ht) bw c bc Nothing
+    paintWindow' w (Rectangle 0 0 wh ht) bw c bc Nothing Nothing
 
 -- | Fill a window with a rectangle and a border, and write
 -- | a number of strings to given positions
@@ -122,12 +125,42 @@ paintAndWrite w fs wh ht bw bc borc ffc fbc als strs = do
     strPositions <- forM (zip als strs) $ \(al, str) ->
         stringPosition d fs (Rectangle 0 0 wh ht) al str
     let ms = Just (fs,ffc,fbc, zip strs strPositions)
-    paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms
+    paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms Nothing
+
+-- | Fill a window with a rectangle and a border, and write
+-- | a number of strings and a number of icons to given positions
+paintTextAndIcons :: Window      -- ^ The window where to draw
+                  -> XMonadFont  -- ^ XMonad Font for drawing
+                  -> Dimension   -- ^ Window width
+                  -> Dimension   -- ^ Window height
+                  -> Dimension   -- ^ Border width
+                  -> String      -- ^ Window background color
+                  -> String      -- ^ Border color
+                  -> String      -- ^ String color
+                  -> String      -- ^ String background color
+                  -> [Align]     -- ^ String 'Align'ments
+                  -> [String]    -- ^ Strings to be printed
+                  -> [Placement] -- ^ Icon 'Placements'
+                  -> [[[Bool]]]  -- ^ Icons to be printed
+                  -> X ()
+paintTextAndIcons w fs wh ht bw bc borc ffc fbc als strs i_als icons = do
+    d <- asks display
+    strPositions <- forM (zip als strs) $ \(al, str) ->
+        stringPosition d fs (Rectangle 0 0 wh ht) al str
+    let iconPositions = map ( \(al, icon) -> iconPosition (Rectangle 0 0 wh ht) al icon ) (zip i_als icons)
+        ms = Just (fs,ffc,fbc, zip strs strPositions)
+        is = Just (ffc, fbc, zip iconPositions icons)
+    paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms is
 
 -- This stuff is not exported
 
-paintWindow' :: Window -> Rectangle -> Dimension -> String -> String -> Maybe (XMonadFont,String,String,[(String, (Position, Position))]) -> X ()
-paintWindow' win (Rectangle _ _ wh ht) bw color b_color strStuff = do
+-- | Paints a titlebar with some strings and icons
+-- drawn inside it.
+-- Not exported.
+paintWindow' :: Window -> Rectangle -> Dimension -> String -> String
+                -> Maybe (XMonadFont,String,String,[(String, (Position, Position))]) 
+                -> Maybe (String, String, [((Position, Position), [[Bool]])]) -> X ()
+paintWindow' win (Rectangle _ _ wh ht) bw color b_color strStuff iconStuff = do
   d  <- asks display
   p  <- io $ createPixmap d win wh ht (defaultDepthOfScreen $ defaultScreenOfDisplay d)
   gc <- io $ createGC d p
@@ -140,10 +173,16 @@ paintWindow' win (Rectangle _ _ wh ht) bw color b_color strStuff = do
   -- and now again
   io $ setForeground d gc color'
   io $ fillRectangle d p gc (fi bw) (fi bw) (wh - (bw * 2)) (ht - (bw * 2))
+  -- paint strings
   when (isJust strStuff) $ do
     let (xmf,fc,bc,strAndPos) = fromJust strStuff
     forM_ strAndPos $ \(s, (x, y)) ->
         printStringXMF d p xmf gc fc bc x y s
+  -- paint icons
+  when (isJust iconStuff) $ do
+    let (fc, bc, iconAndPos) = fromJust iconStuff
+    forM_ iconAndPos $ \((x, y), icon) ->
+      drawIcon d p gc fc bc x y icon
   -- copy the pixmap over the window
   io $ copyArea      d p win gc 0 0 wh ht 0 0
   -- free the pixmap and GC

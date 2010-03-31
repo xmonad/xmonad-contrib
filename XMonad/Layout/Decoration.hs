@@ -43,6 +43,7 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 import XMonad.Util.Font
+import XMonad.Util.Image
 
 -- $usage
 -- This module is intended for layout developers, who want to decorate
@@ -66,19 +67,20 @@ decoration s t ds = ModifiedLayout (Decoration (I Nothing) s t ds)
 --
 -- For a collection of 'Theme's see "XMonad.Util.Themes"
 data Theme =
-    Theme { activeColor         :: String    -- ^ Color of the active window
-          , inactiveColor       :: String    -- ^ Color of the inactive window
-          , urgentColor         :: String    -- ^ Color of the urgent window
-          , activeBorderColor   :: String    -- ^ Color of the border of the active window
-          , inactiveBorderColor :: String    -- ^ Color of the border of the inactive window
-          , urgentBorderColor   :: String    -- ^ Color of the border of the urgent window
-          , activeTextColor     :: String    -- ^ Color of the text of the active window
-          , inactiveTextColor   :: String    -- ^ Color of the text of the inactive window
-          , urgentTextColor     :: String    -- ^ Color of the text of the urgent window
-          , fontName            :: String    -- ^ Font name
-          , decoWidth           :: Dimension -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
-          , decoHeight          :: Dimension -- ^ Height of the decorations
-          , windowTitleAddons   :: [(String, Align)] -- ^ Extra text to appear in a window's title bar
+    Theme { activeColor        :: String                   -- ^ Color of the active window
+          , inactiveColor       :: String                   -- ^ Color of the inactive window
+          , urgentColor         :: String                   -- ^ Color of the urgent window
+          , activeBorderColor   :: String                   -- ^ Color of the border of the active window
+          , inactiveBorderColor :: String                   -- ^ Color of the border of the inactive window
+          , urgentBorderColor   :: String                   -- ^ Color of the border of the urgent window
+          , activeTextColor     :: String                   -- ^ Color of the text of the active window
+          , inactiveTextColor   :: String                   -- ^ Color of the text of the inactive window
+          , urgentTextColor     :: String                   -- ^ Color of the text of the urgent window
+          , fontName            :: String                   -- ^ Font name
+          , decoWidth           :: Dimension                -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
+          , decoHeight          :: Dimension                -- ^ Height of the decorations
+          , windowTitleAddons   :: [(String, Align)]       -- ^ Extra text to appear in a window's title bar
+          , windowTitleIcons    :: [([[Bool]], Placement)] -- ^ Extra icons to appear in a window's title bar
           } deriving (Show, Read)
 
 -- | The default xmonad 'Theme'.
@@ -97,6 +99,7 @@ defaultTheme =
           , decoWidth           = 200
           , decoHeight          = 20
           , windowTitleAddons   = []
+          , windowTitleIcons    = []
           }
 
 -- | A 'Decoration' layout modifier will handle 'SetTheme', a message
@@ -393,7 +396,9 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
                                   return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
   let als = AlignCenter : map snd (windowTitleAddons t)
       strs = name : map fst (windowTitleAddons t)
-  paintAndWrite dw fs wh ht 1 bc borderc tc bc als strs
+      i_als = map snd (windowTitleIcons t)
+      icons = map fst (windowTitleIcons t)
+  paintTextAndIcons dw fs wh ht 1 bc borderc tc bc als strs i_als icons
 updateDeco _ _ _ (_,(Just w,Nothing)) = hideWindow w
 updateDeco _ _ _ _ = return ()
 
