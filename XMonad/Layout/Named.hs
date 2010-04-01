@@ -10,7 +10,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A module for assigning a name to a given layout.
+-- A module for assigning a name to a given layout. Deprecated, use
+-- "XMonad.Layout.Renamed" instead.
 --
 -----------------------------------------------------------------------------
 
@@ -21,8 +22,8 @@ module XMonad.Layout.Named
       nameTail
     ) where
 
-import XMonad
 import XMonad.Layout.LayoutModifier
+import XMonad.Layout.Renamed
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -38,22 +39,14 @@ import XMonad.Layout.LayoutModifier
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- Note that this module has been deprecated and may be removed in a future
+-- release, please use "XMonad.Layout.Renamed" instead.
 
--- | Rename a layout.
-named :: String -> l a -> ModifiedLayout Named l a
-named s = ModifiedLayout (Named s)
+-- | (Deprecated) Rename a layout.
+named :: String -> l a -> ModifiedLayout Rename l a
+named s = renamed [Replace s]
 
-data Named a = Named String deriving ( Read, Show )
-
-instance LayoutModifier Named a where
-    modifyDescription (Named n) _ = n
-
-
--- | Remove the first word of the name.
-nameTail :: l a -> ModifiedLayout NameTail l a
-nameTail = ModifiedLayout NameTail
-
-data NameTail a = NameTail deriving (Read,Show)
-
-instance LayoutModifier NameTail a where
-  modifyDescription NameTail i = dropWhile (==' ') $ dropWhile (/=' ') $ description i
+-- | (Deprecated) Remove the first word of the name.
+nameTail :: l a -> ModifiedLayout Rename l a
+nameTail = renamed [CutWordsLeft 1]
