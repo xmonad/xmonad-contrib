@@ -25,12 +25,10 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.BoringWindows as BW
-import XMonad.Operations
 import XMonad.Util.WindowProperties (getProp32)
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
-import Graphics.X11.Xlib
 import Foreign.C.Types (CLong)
 
 -- $usage
