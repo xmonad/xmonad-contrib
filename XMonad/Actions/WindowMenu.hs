@@ -41,6 +41,14 @@ import XMonad.Util.XUtils (fi)
 --
 -- >    , ((modm,               xK_o ), windowMenu)
 
+colorizer :: a -> Bool -> X (String, String)
+colorizer _ isFg = do
+    fBC <- asks (focusedBorderColor . config)
+    nBC <- asks (normalBorderColor . config)
+    return $ if isFg
+                then (fBC, nBC)
+                else (nBC, fBC)
+
 windowMenu :: X ()
 windowMenu = withFocused $ \w -> do
     tags <- asks (workspaces . config)
@@ -48,7 +56,7 @@ windowMenu = withFocused $ \w -> do
     Rectangle sx sy swh sht <- gets $ screenRect . W.screenDetail . W.current . windowset
     let originFractX = (fi x - fi sx + fi wh / 2) / fi swh
         originFractY = (fi y - fi sy + fi ht / 2) / fi sht
-        gsConfig = defaultGSConfig
+        gsConfig = (buildDefaultGSConfig colorizer)
                     { gs_originFractX = originFractX
                     , gs_originFractY = originFractY }
         actions = [ ("Cancel menu", return ())
