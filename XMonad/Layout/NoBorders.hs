@@ -128,11 +128,11 @@ instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder
 --
 -- > layoutHook = lessBorders (Combine Difference Screen OnlyFloat) (Tall 1 0.5 0.03 ||| ... )
 --
--- To get the same result as smartBorders:
+-- To get the same result as 'smartBorders':
 --
 -- > layoutHook = lessBorders (Combine Never) (Tall 1 0.5 0.03 ||| ...)
 --
--- This indirect method is required to keep the Read and Show for
+-- This indirect method is required to keep the 'Read' and 'Show' for
 -- ConfigurableBorder so that xmonad can serialize state.
 class SetsAmbiguous p where
     hiddens :: p -> WindowSet -> Maybe (W.Stack Window) -> [(Window, Rectangle)] -> [Window]
@@ -172,7 +172,7 @@ instance SetsAmbiguous Ambiguity where
 -- | In order of increasing ambiguity (less borders more frequently), where
 -- subsequent constructors add additional cases where borders are not drawn
 -- than their predecessors. These behaviors make most sense with with multiple
--- screens: for single screens, Never or 'smartBorders' makes more sense.
+-- screens: for single screens, 'Never' or 'smartBorders' makes more sense.
 data Ambiguity = Combine With Ambiguity Ambiguity
                              -- ^ This constructor is used to combine the
                              -- borderless windows provided by the
@@ -194,7 +194,7 @@ data Ambiguity = Combine With Ambiguity Ambiguity
 
 -- | Used to indicate to the 'SetsAmbiguous' instance for 'Ambiguity' how two
 -- lists should be combined.
-data With = Union        -- ^ Combine with Data.List.union
-          | Difference   -- ^ Combine with Data.List.\\
-          | Intersection -- ^ Combine with Data.List.intersect
+data With = Union        -- ^ uses 'Data.List.union'
+          | Difference   -- ^ uses 'Data.List.\\'
+          | Intersection -- ^ uses 'Data.List.intersect'
         deriving (Read, Show)
