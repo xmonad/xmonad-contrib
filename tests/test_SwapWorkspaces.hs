@@ -4,9 +4,9 @@ import Data.List(find,union)
 import Data.Maybe(fromJust)
 import Test.QuickCheck
 
-import StackSet
-import Properties(T, NonNegative)
-import XMonad.SwapWorkspaces
+import XMonad.StackSet
+import Properties(T, NonNegative) -- requires tests/Properties.hs from xmonad-core
+import XMonad.Actions.SwapWorkspaces
 
 -- Ensures that no "loss of information" can happen from a swap.
 prop_double_swap (ss :: T) (t1 :: NonNegative Int) (t2 :: NonNegative Int) =
