@@ -21,7 +21,12 @@ module XMonad.Layout.MouseResizableTile (
                                     mouseResizableTileMirrored,
                                     MRTMessage (ShrinkSlave, ExpandSlave),
                                     DraggerType (..),
-                                    draggerType
+                                    nmaster,
+                                    masterFrac,
+                                    slaveFrac,
+                                    fracIncrement,
+                                    draggerType,
+                                    isMirrored
                                    ) where
 
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
@@ -90,32 +95,51 @@ data DraggerType = FixedDragger
 type DraggerGeometry = (Position, Dimension, Position, Dimension)
 
 data MouseResizableTile a = MRT { nmaster :: Int,
+                                    -- ^ Get/set the number of windows in
+                                    -- master pane (default: 1).  Usage:
+                                    --
+                                    -- > mouseResizableTile { nmaster = ... }
                                     masterFrac :: Rational,
+                                    -- ^ Get/set the proportion of screen
+                                    -- occupied by master pane (default: 1/2).
+                                    -- Usage:
+                                    --
+                                    -- > mouseResizableTile { masterFrac = ... }
+                                    slaveFrac :: Rational,
+                                    -- ^ Get/set the proportion of remaining
+                                    -- space in a column occupied by a slave
+                                    -- window (default: 1/2).  Usage:
+                                    --
+                                    -- > mouseResizableTile { slaveFrac = ... }
+                                    fracIncrement :: Rational,
+                                    -- ^ Get/set the increment used when
+                                    -- modifying masterFrac/slaveFrac by the
+                                    -- Shrink, Expand, etc. messages (default:
+                                    -- 3/100).  Usage:
+                                    --
+                                    -- > mouseResizableTile { fracIncrement = ... }
                                     leftFracs :: [Rational],
                                     rightFracs :: [Rational],
                                     draggers :: [DraggerWithWin],
                                     draggerType :: DraggerType,
-                                    -- ^ Get/set dragger and gap dimensions.
-                                    -- Usage:
+                                    -- ^ Get/set dragger and gap dimensions
+                                    -- (default: FixedDragger 6 6).  Usage:
                                     --
                                     -- > mouseResizableTile { draggerType = ... }
                                     focusPos :: Int,
                                     numWindows :: Int,
                                     isMirrored :: Bool
+                                    -- ^ Get/set whether the layout is
+                                    -- mirrored (default: False).  Usage:
+                                    --
+                                    -- > mouseResizableTile { isMirrored = ... }
                                 } deriving (Show, Read)
 
-mrtFraction :: Rational
-mrtFraction = 0.5
-mrtDelta :: Rational
-mrtDelta = 0.03
-mrtDraggerGaps :: DraggerType
-mrtDraggerGaps = FixedDragger 6 6
-
 mouseResizableTile :: MouseResizableTile a
-mouseResizableTile = MRT 1 mrtFraction [] [] [] mrtDraggerGaps 0 0 False
+mouseResizableTile = MRT 1 0.5 0.5 0.03 [] [] [] (FixedDragger 6 6) 0 0 False
 
 mouseResizableTileMirrored :: MouseResizableTile a
-mouseResizableTileMirrored = MRT 1 mrtFraction [] [] [] mrtDraggerGaps 0 0 True
+mouseResizableTileMirrored = mouseResizableTile { isMirrored = True }
 
 instance LayoutClass MouseResizableTile Window where
     doLayout state sr (W.Stack w l r) = do
@@ -124,8 +148,8 @@ instance LayoutClass MouseResizableTile Window where
             num = length wins
             sr' = mirrorAdjust sr (mirrorRect sr)
             (rects, preparedDraggers) = tile (nmaster state) (masterFrac state)
-                                            (leftFracs state ++ repeat mrtFraction)
-                                            (rightFracs state ++ repeat mrtFraction) sr' num drg
+                                            (leftFracs state ++ repeat (slaveFrac state))
+                                            (rightFracs state ++ repeat (slaveFrac state)) sr' num drg
             rects' = map (mirrorAdjust id mirrorRect . sanitizeRectangle sr') rects
         mapM_ deleteDragger $ draggers state
         (draggerWrs, newDraggers) <- unzip <$> mapM
@@ -143,19 +167,21 @@ instance LayoutClass MouseResizableTile Window where
         | Just (IncMasterN d) <- fromMessage m =
             return $ Just $ state { nmaster = max 0 (nmaster state + d) }
         | Just Shrink <- fromMessage m =
-            return $ Just $ state { masterFrac = max 0 (masterFrac state - mrtDelta) }
+            return $ Just $ state { masterFrac = max 0 (masterFrac state - fracIncrement state) }
         | Just Expand <- fromMessage m =
-            return $ Just $ state { masterFrac = min 1 (masterFrac state + mrtDelta) }
+            return $ Just $ state { masterFrac = min 1 (masterFrac state + fracIncrement state) }
         | Just ShrinkSlave <- fromMessage m =
-            return $ Just $ modifySlave state (-mrtDelta)
+            return $ Just $ modifySlave state (- fracIncrement state)
         | Just ExpandSlave <- fromMessage m =
-            return $ Just $ modifySlave state mrtDelta
+            return $ Just $ modifySlave state (fracIncrement state)
         | Just (SetMasterFraction f) <- fromMessage m =
             return $ Just $ state { masterFrac = max 0 (min 1 f) }
         | Just (SetLeftSlaveFraction pos f) <- fromMessage m =
-            return $ Just $ state { leftFracs = replaceAtPos (leftFracs state) pos (max 0 (min 1 f)) }
+            return $ Just $ state { leftFracs = replaceAtPos (slaveFrac state)
+                (leftFracs state) pos (max 0 (min 1 f)) }
         | Just (SetRightSlaveFraction pos f) <- fromMessage m =
-            return $ Just $ state { rightFracs = replaceAtPos (rightFracs state) pos (max 0 (min 1 f)) }
+            return $ Just $ state { rightFracs = replaceAtPos (slaveFrac state)
+                (rightFracs state) pos (max 0 (min 1 f)) }
 
         | Just e <- fromMessage m :: Maybe Event = handleResize (draggers state) (isMirrored state) e >> return Nothing
         | Just Hide             <- fromMessage m = releaseResources >> return (Just $ state { draggers = [] })
@@ -182,34 +208,35 @@ adjustForMirror True (draggerRect, draggerCursor, draggerInfo) =
                             then xC_sb_v_double_arrow
                             else xC_sb_h_double_arrow
 
-modifySlave :: MouseResizableTile a -> Rational-> MouseResizableTile a
+modifySlave :: MouseResizableTile a -> Rational -> MouseResizableTile a
 modifySlave state delta =
     let pos = focusPos state
         num = numWindows state
         nmaster' = nmaster state
         leftFracs' = leftFracs state
         rightFracs' = rightFracs state
+        slFrac = slaveFrac state
         draggersLeft = nmaster' - 1
         draggersRight = (num - nmaster') - 1
     in if pos < nmaster'
         then if draggersLeft > 0
                 then let draggerPos = min (draggersLeft - 1) pos
-                         oldFraction = (leftFracs' ++ repeat mrtFraction) !! draggerPos
-                     in state { leftFracs = replaceAtPos leftFracs' draggerPos
+                         oldFraction = (leftFracs' ++ repeat slFrac) !! draggerPos
+                     in state { leftFracs = replaceAtPos slFrac leftFracs' draggerPos
                                             (max 0 (min 1 (oldFraction + delta))) }
                 else state
         else if draggersRight > 0
                 then let draggerPos = min (draggersRight - 1) (pos - nmaster')
-                         oldFraction = (rightFracs' ++ repeat mrtFraction) !! draggerPos
-                     in state { rightFracs = replaceAtPos rightFracs' draggerPos
+                         oldFraction = (rightFracs' ++ repeat slFrac) !! draggerPos
+                     in state { rightFracs = replaceAtPos slFrac rightFracs' draggerPos
                                             (max 0 (min 1 (oldFraction + delta))) }
                 else state
 
-replaceAtPos :: (Num t) => [Rational] -> t -> Rational -> [Rational]
-replaceAtPos [] 0 x' = [x']
-replaceAtPos [] pos x' = mrtFraction : replaceAtPos [] (pos - 1) x'
-replaceAtPos (_:xs) 0 x' = x' : xs
-replaceAtPos (x:xs) pos x' = x : replaceAtPos xs (pos -1 ) x'
+replaceAtPos :: (Num t) => Rational -> [Rational] -> t -> Rational -> [Rational]
+replaceAtPos _ [] 0 x' = [x']
+replaceAtPos d [] pos x' = d : replaceAtPos d [] (pos - 1) x'
+replaceAtPos _ (_:xs) 0 x' = x' : xs
+replaceAtPos d (x:xs) pos x' = x : replaceAtPos d xs (pos -1 ) x'
 
 sanitizeRectangle :: Rectangle -> Rectangle -> Rectangle
 sanitizeRectangle (Rectangle sx sy swh sht) (Rectangle x y wh ht) =
