@@ -19,7 +19,9 @@ module XMonad.Layout.MouseResizableTile (
                                     -- $usage
                                     mouseResizableTile,
                                     mouseResizableTileMirrored,
-                                    MRTMessage (ShrinkSlave, ExpandSlave)
+                                    MRTMessage (ShrinkSlave, ExpandSlave),
+                                    DraggerType (..),
+                                    draggerType
                                    ) where
 
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
@@ -43,6 +45,11 @@ import Control.Applicative((<$>))
 --
 -- > myLayout = mouseResizableTileMirrored ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayout }
+--
+-- Additionally, some parameters may be tweaked (see the rest of this document
+-- for a list of them):
+--
+-- > myLayout = mouseResizableTile { draggerType = BordersDragger } ||| etc..
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -72,11 +79,26 @@ data DraggerInfo = MasterDragger Position Rational
 type DraggerWithRect = (Rectangle, Glyph, DraggerInfo)
 type DraggerWithWin = (Window, DraggerInfo)
 
+-- | Specifies the size of the clickable area between windows.
+data DraggerType = FixedDragger
+                    { gapWidth :: Dimension -- ^ width of a gap between windows
+                    , draggerWidth :: Dimension -- ^ width of the dragger itself
+                                                -- (will overlap windows if greater than gap)
+                    }
+                    | BordersDragger -- ^ no gaps, draggers overlap window borders
+                    deriving (Show, Read)
+type DraggerGeometry = (Position, Dimension, Position, Dimension)
+
 data MouseResizableTile a = MRT { nmaster :: Int,
                                     masterFrac :: Rational,
                                     leftFracs :: [Rational],
                                     rightFracs :: [Rational],
                                     draggers :: [DraggerWithWin],
+                                    draggerType :: DraggerType,
+                                    -- ^ Get/set dragger and gap dimensions.
+                                    -- Usage:
+                                    --
+                                    -- > mouseResizableTile { draggerType = ... }
                                     focusPos :: Int,
                                     numWindows :: Int,
                                     isMirrored :: Bool
@@ -86,34 +108,32 @@ mrtFraction :: Rational
 mrtFraction = 0.5
 mrtDelta :: Rational
 mrtDelta = 0.03
-mrtDraggerOffset :: Position
-mrtDraggerOffset = 3
-mrtDraggerSize :: Dimension
-mrtDraggerSize = 6
+mrtDraggerGaps :: DraggerType
+mrtDraggerGaps = FixedDragger 6 6
 
 mouseResizableTile :: MouseResizableTile a
-mouseResizableTile = MRT 1 mrtFraction [] [] [] 0 0 False
+mouseResizableTile = MRT 1 mrtFraction [] [] [] mrtDraggerGaps 0 0 False
 
 mouseResizableTileMirrored :: MouseResizableTile a
-mouseResizableTileMirrored= MRT 1 mrtFraction [] [] [] 0 0 True
+mouseResizableTileMirrored = MRT 1 mrtFraction [] [] [] mrtDraggerGaps 0 0 True
 
 instance LayoutClass MouseResizableTile Window where
-    doLayout state sr (W.Stack w l r) =
+    doLayout state sr (W.Stack w l r) = do
+        drg <- draggerGeometry $ draggerType state
         let wins = reverse l ++ w : r
             num = length wins
             sr' = mirrorAdjust sr (mirrorRect sr)
             (rects, preparedDraggers) = tile (nmaster state) (masterFrac state)
                                             (leftFracs state ++ repeat mrtFraction)
-                                            (rightFracs state ++ repeat mrtFraction) sr' num
+                                            (rightFracs state ++ repeat mrtFraction) sr' num drg
             rects' = map (mirrorAdjust id mirrorRect . sanitizeRectangle sr') rects
-        in do
-            mapM_ deleteDragger $ draggers state
-            (draggerWrs, newDraggers) <- unzip <$> mapM
-                                            (createDragger sr . adjustForMirror (isMirrored state))
-                                            preparedDraggers
-            return (zip wins rects' ++ draggerWrs, Just $ state { draggers = newDraggers,
-                                                                  focusPos = length l,
-                                                                  numWindows = length wins })
+        mapM_ deleteDragger $ draggers state
+        (draggerWrs, newDraggers) <- unzip <$> mapM
+                                        (createDragger sr . adjustForMirror (isMirrored state))
+                                        preparedDraggers
+        return (draggerWrs ++ zip wins rects', Just $ state { draggers = newDraggers,
+                                                              focusPos = length l,
+                                                              numWindows = length wins })
         where
             mirrorAdjust a b = if (isMirrored state)
                                 then b
@@ -145,6 +165,13 @@ instance LayoutClass MouseResizableTile Window where
 
     description state = mirror "MouseResizableTile"
         where mirror = if isMirrored state then ("Mirror " ++) else id
+
+draggerGeometry :: DraggerType -> X DraggerGeometry
+draggerGeometry (FixedDragger g d) =
+    return (fromIntegral $ g `div` 2, g, fromIntegral $ d `div` 2, d)
+draggerGeometry BordersDragger = do
+    w <- asks (borderWidth . config)
+    return (0, 0, fromIntegral w, 2*w)
 
 adjustForMirror :: Bool -> DraggerWithRect -> DraggerWithRect
 adjustForMirror False dragger = dragger
@@ -192,24 +219,24 @@ sanitizeRectangle (Rectangle sx sy swh sht) (Rectangle x y wh ht) =
 within :: (Ord a) => a -> a -> a -> a
 within low high a = max low $ min high a
 
-tile :: Int -> Rational -> [Rational] -> [Rational] -> Rectangle -> Int -> ([Rectangle], [DraggerWithRect])
-tile nmaster' masterFrac' leftFracs' rightFracs' sr num
-    | num <= nmaster'       = splitVertically (take (num - 1) leftFracs') sr True 0
-    | nmaster' == 0         = splitVertically (take (num - 1) rightFracs') sr False 0
+tile :: Int -> Rational -> [Rational] -> [Rational] -> Rectangle -> Int -> DraggerGeometry -> ([Rectangle], [DraggerWithRect])
+tile nmaster' masterFrac' leftFracs' rightFracs' sr num drg
+    | num <= nmaster'       = splitVertically (take (num - 1) leftFracs') sr True 0 drg
+    | nmaster' == 0         = splitVertically (take (num - 1) rightFracs') sr False 0 drg
     | otherwise             = (leftRects ++ rightRects, masterDragger : leftDraggers ++ rightDraggers)
-    where ((sr1, sr2), masterDragger) = splitHorizontallyBy masterFrac' sr
-          (leftRects, leftDraggers) = splitVertically (take (nmaster' - 1) leftFracs') sr1 True 0
-          (rightRects, rightDraggers) = splitVertically (take (num - nmaster' - 1) rightFracs') sr2 False 0
+    where ((sr1, sr2), masterDragger) = splitHorizontallyBy masterFrac' sr drg
+          (leftRects, leftDraggers) = splitVertically (take (nmaster' - 1) leftFracs') sr1 True 0 drg
+          (rightRects, rightDraggers) = splitVertically (take (num - nmaster' - 1) rightFracs') sr2 False 0 drg
 
-splitVertically :: RealFrac r => [r] -> Rectangle -> Bool -> Int -> ([Rectangle], [DraggerWithRect])
-splitVertically [] r _ _ = ([r], [])
-splitVertically (f:fx) (Rectangle sx sy sw sh) isLeft num =
-    let nextRect = Rectangle sx sy sw $ smallh - div mrtDraggerSize 2
+splitVertically :: RealFrac r => [r] -> Rectangle -> Bool -> Int -> DraggerGeometry -> ([Rectangle], [DraggerWithRect])
+splitVertically [] r _ _ _ = ([r], [])
+splitVertically (f:fx) (Rectangle sx sy sw sh) isLeft num drg@(drOff, drSz, drOff2, drSz2) =
+    let nextRect = Rectangle sx sy sw $ smallh - div drSz 2
         (otherRects, otherDragger) = splitVertically fx
-                                        (Rectangle sx (sy + fromIntegral smallh + mrtDraggerOffset)
-                                                    sw (sh - smallh - div mrtDraggerSize 2))
-                                        isLeft (num + 1)
-        draggerRect = Rectangle sx (sy + fromIntegral smallh - mrtDraggerOffset) sw mrtDraggerSize
+                                        (Rectangle sx (sy + fromIntegral smallh + drOff)
+                                                    sw (sh - smallh - div drSz 2))
+                                        isLeft (num + 1) drg
+        draggerRect = Rectangle sx (sy + fromIntegral smallh - drOff2) sw drSz2
         draggerInfo = if isLeft
                         then LeftSlaveDragger sy (fromIntegral sh) num
                         else RightSlaveDragger sy (fromIntegral sh) num
@@ -217,13 +244,14 @@ splitVertically (f:fx) (Rectangle sx sy sw sh) isLeft num =
     in (nextRect : otherRects, nextDragger : otherDragger)
   where smallh = floor $ fromIntegral sh * f
 
-splitHorizontallyBy :: RealFrac r => r -> Rectangle -> ((Rectangle, Rectangle), DraggerWithRect)
-splitHorizontallyBy f (Rectangle sx sy sw sh) = ((leftHalf, rightHalf), (draggerRect, xC_sb_h_double_arrow, draggerInfo))
+splitHorizontallyBy :: RealFrac r => r -> Rectangle -> DraggerGeometry -> ((Rectangle, Rectangle), DraggerWithRect)
+splitHorizontallyBy f (Rectangle sx sy sw sh) (drOff, drSz, drOff2, drSz2) =
+    ((leftHalf, rightHalf), (draggerRect, xC_sb_h_double_arrow, draggerInfo))
   where leftw = floor $ fromIntegral sw * f
-        leftHalf = Rectangle sx sy (leftw - mrtDraggerSize `div` 2) sh
-        rightHalf = Rectangle (sx + fromIntegral leftw + mrtDraggerOffset) sy
-                                (sw - fromIntegral leftw - mrtDraggerSize `div` 2) sh
-        draggerRect = Rectangle (sx + fromIntegral leftw - mrtDraggerOffset) sy mrtDraggerSize sh
+        leftHalf = Rectangle sx sy (leftw - drSz `div` 2) sh
+        rightHalf = Rectangle (sx + fromIntegral leftw + drOff) sy
+                                (sw - fromIntegral leftw - drSz `div` 2) sh
+        draggerRect = Rectangle (sx + fromIntegral leftw - drOff2) sy drSz2 sh
         draggerInfo = MasterDragger sx (fromIntegral sw)
 
 createDragger :: Rectangle -> DraggerWithRect -> X ((Window, Rectangle), DraggerWithWin)
