@@ -21,8 +21,6 @@ module XMonad.Util.Image
     ) where
 
 import XMonad
-import Graphics.X11.Xlib.Misc
-import Graphics.X11.Xlib.Types
 import XMonad.Util.Font (stringToPixel)
 
 -- | Placement of the icon in the title bar
