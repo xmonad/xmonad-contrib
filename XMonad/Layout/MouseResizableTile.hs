@@ -20,13 +20,16 @@ module XMonad.Layout.MouseResizableTile (
                                     mouseResizableTile,
                                     mouseResizableTileMirrored,
                                     MRTMessage (ShrinkSlave, ExpandSlave),
-                                    DraggerType (..),
+
+                                    -- * Parameters
+                                    -- $mrtParameters
                                     nmaster,
                                     masterFrac,
                                     slaveFrac,
                                     fracIncrement,
+                                    isMirrored,
                                     draggerType,
-                                    isMirrored
+                                    DraggerType (..),
                                    ) where
 
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
@@ -46,15 +49,6 @@ import Control.Applicative((<$>))
 -- > myLayout = mouseResizableTile ||| etc..
 -- > main = xmonad defaultConfig { layoutHook = myLayout }
 --
--- or
---
--- > myLayout = mouseResizableTileMirrored ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
---
--- Additionally, some parameters may be tweaked (see the rest of this document
--- for a list of them):
---
--- > myLayout = mouseResizableTile { draggerType = BordersDragger } ||| etc..
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -68,6 +62,17 @@ import Control.Applicative((<$>))
 -- For detailed instruction on editing the key binding see:
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
+
+-- $mrtParameters
+-- The following functions are also labels for updating the @data@ (whose
+-- representation is otherwise hidden) produced by 'mouseResizableTile'.
+--
+-- Usage:
+--
+-- > myLayout = mouseResizableTile{ masterFrac = 0.7,
+-- >                                fracIncrement = 0.05,
+-- >                                draggerType = BordersDragger }
+-- >                |||  etc..
 
 data MRTMessage = SetMasterFraction Rational
                     | SetLeftSlaveFraction Int Rational
@@ -96,43 +101,30 @@ type DraggerGeometry = (Position, Dimension, Position, Dimension)
 
 data MouseResizableTile a = MRT { nmaster :: Int,
                                     -- ^ Get/set the number of windows in
-                                    -- master pane (default: 1).  Usage:
-                                    --
-                                    -- > mouseResizableTile { nmaster = ... }
+                                    -- master pane (default: 1).
                                     masterFrac :: Rational,
                                     -- ^ Get/set the proportion of screen
                                     -- occupied by master pane (default: 1/2).
-                                    -- Usage:
-                                    --
-                                    -- > mouseResizableTile { masterFrac = ... }
                                     slaveFrac :: Rational,
                                     -- ^ Get/set the proportion of remaining
                                     -- space in a column occupied by a slave
-                                    -- window (default: 1/2).  Usage:
-                                    --
-                                    -- > mouseResizableTile { slaveFrac = ... }
+                                    -- window (default: 1/2).
                                     fracIncrement :: Rational,
                                     -- ^ Get/set the increment used when
                                     -- modifying masterFrac/slaveFrac by the
                                     -- Shrink, Expand, etc. messages (default:
-                                    -- 3/100).  Usage:
-                                    --
-                                    -- > mouseResizableTile { fracIncrement = ... }
+                                    -- 3/100).
                                     leftFracs :: [Rational],
                                     rightFracs :: [Rational],
                                     draggers :: [DraggerWithWin],
                                     draggerType :: DraggerType,
                                     -- ^ Get/set dragger and gap dimensions
-                                    -- (default: FixedDragger 6 6).  Usage:
-                                    --
-                                    -- > mouseResizableTile { draggerType = ... }
+                                    -- (default: FixedDragger 6 6).
                                     focusPos :: Int,
                                     numWindows :: Int,
                                     isMirrored :: Bool
                                     -- ^ Get/set whether the layout is
-                                    -- mirrored (default: False).  Usage:
-                                    --
-                                    -- > mouseResizableTile { isMirrored = ... }
+                                    -- mirrored (default: False).
                                 } deriving (Show, Read)
 
 mouseResizableTile :: MouseResizableTile a
