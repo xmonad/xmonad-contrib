@@ -29,6 +29,7 @@ import Control.Arrow (second)
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.MultiToggle
+import XMonad.Util.XUtils (fi)
 
 -- $usage
 -- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@ file:
@@ -85,8 +86,6 @@ reflectRect Horiz (Rectangle sx _ sw _) (Rectangle rx ry rw rh) =
 reflectRect Vert (Rectangle _ sy _ sh) (Rectangle rx ry rw rh) =
   Rectangle rx (2*sy + fi sh - ry - fi rh) rw rh
 
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
 
 
 data Reflect a = Reflect ReflectDir deriving (Show, Read)

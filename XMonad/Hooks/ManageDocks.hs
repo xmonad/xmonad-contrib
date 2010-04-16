@@ -33,6 +33,7 @@ import Foreign.C.Types (CLong)
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
+import XMonad.Util.XUtils (fi)
 
 import qualified Data.Set as S
 
@@ -210,9 +211,6 @@ type Strut = (Direction2D, CLong, CLong, CLong)
 --    final x pixel, final y pixel).
 
 type RectC = (CLong, CLong, CLong, CLong)
-
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
 
 -- | Invertible conversion.
 

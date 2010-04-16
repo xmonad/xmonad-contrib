@@ -20,6 +20,7 @@ module XMonad.Actions.FlexibleResize (
 ) where
 
 import XMonad
+import XMonad.Util.XUtils (fi)
 import Foreign.C.Types
 
 -- $usage
@@ -76,6 +77,3 @@ mouseResizeEdgeWindow edge w = whenX (isClient w) $ withDisplay $ \d -> do
                       Just True ->  (0, (fi k + fi p -).fi, (fi k + fi p -).fi)
                       Nothing ->    (k `div` 2, const p, const $ fi k)
                       Just False -> (k, const p, subtract (fi p) . fi)
-
-fi :: (Num b, Integral a) => a -> b
-fi = fromIntegral

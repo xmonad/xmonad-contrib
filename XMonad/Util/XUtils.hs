@@ -204,6 +204,3 @@ mkWindow d s rw x y w h p o = do
            createWindow d rw x y w h 0 (defaultDepthOfScreen s)
                         inputOutput visual attrmask attributes
 
--- | Short-hand for 'fromIntegral'
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral

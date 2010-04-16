@@ -38,6 +38,7 @@ import Graphics.X11 (Rectangle(..))
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types (Direction2D(..))
+import XMonad.Util.XUtils (fi)
 
 import Data.List (delete)
 
@@ -132,9 +133,6 @@ toggleGap conf cur d | d `elem` cur            = delete d cur
 
 incGap :: GapSpec -> Direction2D -> Int -> GapSpec
 incGap gs d i = map (\(dir,j) -> if dir == d then (dir,max (j+i) 0) else (dir,j)) gs
-
-fi :: (Num b, Integral a) => a -> b
-fi = fromIntegral
 
 -- | Add togglable manual gaps to a layout.
 gaps :: GapSpec   -- ^ The gaps to allow, paired with their initial sizes.

@@ -17,7 +17,9 @@ module XMonad.Util.Image
       -- $usage
       Placement(..),
       iconPosition,
-      drawIcon
+      drawIcon,
+
+      fi,
     ) where
 
 import XMonad
@@ -85,6 +87,7 @@ drawIcon dpy drw gc fc bc x y icon = do
   io $ fillRectangle dpy drw gc x y (fi i_w) (fi i_h)
   io $ setForeground dpy gc fcolor
   io $ drawPoints dpy drw gc (movePoints x y (iconToPoints icon)) coordModeOrigin
+
 
 -- | Short-hand for 'fromIntegral'
 fi :: (Integral a, Num b) => a -> b

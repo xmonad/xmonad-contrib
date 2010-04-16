@@ -24,6 +24,7 @@ module XMonad.Actions.UpdatePointer
     where
 
 import XMonad
+import XMonad.Util.XUtils (fi)
 import Control.Monad
 import XMonad.StackSet (member, peek, screenDetail, current)
 import Data.Maybe
@@ -102,6 +103,3 @@ moveWithin now lower upper =
     else if now > upper
          then upper
          else now
-
-fi :: (Num b, Integral a) => a -> b
-fi = fromIntegral

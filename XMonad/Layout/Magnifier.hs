@@ -32,6 +32,7 @@ module XMonad.Layout.Magnifier
 import XMonad
 import XMonad.StackSet
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.XUtils
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -159,6 +160,3 @@ fit (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'
           y' = max sy (y - (max 0 (y + fi h - sy - fi sh)))
           w' = min sw w
           h' = min sh h
-
-fi :: (Num b, Integral a) => a -> b
-fi = fromIntegral

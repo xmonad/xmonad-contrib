@@ -38,6 +38,7 @@ import qualified XMonad.StackSet as S
 
 import XMonad.Layout.WindowArranger
 import XMonad.Actions.FloatKeys
+import XMonad.Util.XUtils
 
 import qualified Data.Map as M
 import Data.Ratio ((%))
@@ -262,8 +263,6 @@ checkBounds (Rectangle x1 y1 w1 h1) (Rectangle x2 y2 w2 h2)
 scale :: (RealFrac a, Integral b) => a -> b -> b -> b
 scale r n1 n2 = truncate $ r * fi n2 + (1 - r) * fi n1
 
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
 
 r2rr :: Rectangle -> Rectangle -> S.RationalRect
 r2rr (Rectangle x0 y0 w0 h0) (Rectangle x y w h)
