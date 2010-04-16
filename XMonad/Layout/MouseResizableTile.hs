@@ -130,6 +130,7 @@ data MouseResizableTile a = MRT { nmaster :: Int,
 mouseResizableTile :: MouseResizableTile a
 mouseResizableTile = MRT 1 0.5 0.5 0.03 [] [] [] (FixedDragger 6 6) 0 0 False
 
+-- | May be removed in favor of @mouseResizableTile { isMirrored = True }@
 mouseResizableTileMirrored :: MouseResizableTile a
 mouseResizableTileMirrored = mouseResizableTile { isMirrored = True }
 
