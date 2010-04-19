@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE CPP, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LimitWindows
@@ -23,7 +23,12 @@ module XMonad.Layout.LimitWindows (
     limitWindows,limitSlice,limitSelect,
 
     -- * Change the number of windows
-    increaseLimit,decreaseLimit,setLimit
+    increaseLimit,decreaseLimit,setLimit,
+
+#ifdef TESTING
+    -- * For tests
+    select,update,Selection(..),updateAndSelect,
+#endif
     ) where
 
 import XMonad.Layout.LayoutModifier
