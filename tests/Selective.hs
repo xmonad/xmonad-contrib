@@ -1,4 +1,6 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables, FlexibleInstances #-}
+module Selective where
 
 -- Tests for limitSelect-related code in L.LimitWindows.
 -- To run these tests, export (select,update,Selection(..),updateAndSelect) from

@@ -1,4 +1,5 @@
-{-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+module SwapWorkspaces where
 
 import Data.List(find,union)
 import Data.Maybe(fromJust)

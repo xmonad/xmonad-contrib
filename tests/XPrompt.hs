@@ -1,9 +1,10 @@
-{-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -------------------------------------
 --
 -- Tests for XPrompt and ShellPrompt
 --
 -------------------------------------
+module XPrompt where
 
 import Data.Char
 import Test.QuickCheck
@@ -12,11 +13,14 @@ import Data.List
 
 import XMonad.Prompt
 import qualified XMonad.Prompt.Shell as S
+import Properties
  
+{-
 instance Arbitrary Char where
     arbitrary     = choose ('\32', '\255')
     coarbitrary c = variant (ord c `rem` 4)
 
+-}
 
 doubleCheck p = check (defaultConfig { configMaxTest = 1000}) p
 deepCheck p = check (defaultConfig { configMaxTest = 10000}) p
@@ -39,6 +43,7 @@ prop_spliInSubListsAt (x :: Int) (str :: [Char]) =
 -- and getLastWord will produce the same result.
 prop_skipGetLastWord (str :: [Char]) =
     skipLastWord str ++ getLastWord str == str || skipLastWord str == getLastWord str
+
 
 -- newIndex and newCommand get only non empy lists
 elemGen :: Gen ([String],String)
