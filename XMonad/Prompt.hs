@@ -293,10 +293,11 @@ mkXPromptWithReturn t conf compl action = do
   io $ freeGC d gc
   if successful st'
     then do
+      let prune = take (historySize conf)
       io $ writeHistory $ M.insertWith
-                                (\xs ys -> take (historySize conf)
-                                        . historyFilter conf $ xs ++ ys)
-                                (showXPrompt t) (historyFilter conf [command st'])
+                                (\xs ys -> prune . historyFilter conf $ xs ++ ys)
+                                (showXPrompt t)
+                                (prune $ historyFilter conf [command st'])
                                 hist
                                 -- we need to apply historyFilter before as well, since
                                 -- otherwise the filter would not be applied if
@@ -768,7 +769,9 @@ readHistory = readHist `catch` \(SomeException _) -> return emptyHistory
 writeHistory :: History -> IO ()
 writeHistory hist = do
   path <- getHistoryFile
-  writeFile path (show hist) `catch` \(SomeException _) -> hPutStrLn stderr "error in writing"
+  let filtered = M.filter (not . null) hist
+  writeFile path (show filtered) `catch` \(SomeException e) ->
+                          hPutStrLn stderr ("error writing history: "++show e)
   setFileMode path mode
     where mode = ownerReadMode .|. ownerWriteMode
 
