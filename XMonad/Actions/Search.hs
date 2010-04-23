@@ -56,14 +56,16 @@ module XMonad.Actions.Search (   -- * Usage
                                   -- $tip
                           ) where
 
-import Data.Char (chr, ord, isAlpha, isMark, isDigit)
+import Codec.Binary.UTF8.String (encodeString)
+import Data.Char (isAlphaNum, isAscii)
 import Data.List (isPrefixOf)
-import Numeric (showIntAtBase)
+import Text.Printf
 import XMonad (X(), MonadIO, liftIO)
 import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig(), historyCompletionP)
 import XMonad.Prompt.Shell (getBrowser)
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.XSelection (getSelection)
+
 
 {- $usage
 
@@ -198,30 +200,15 @@ data Search = Search Name
 instance XPrompt Search where
     showXPrompt (Search name)= "Search [" ++ name ++ "]: "
 
--- | Escape the search string so search engines understand it.
--- Note that everything is escaped; we could be smarter and use 'isAllowedInURI'
--- but then that'd be hard enough to copy-and-paste we'd need to depend on @network@.
+-- | Escape the search string so search engines understand it. Only
+-- digits and ASCII letters are not encoded. All non ASCII characters
+-- which are encoded as UTF8
 escape :: String -> String
-escape = escapeURIString (\c -> isAlpha c || isDigit c || isMark c)
-         where -- Copied from Network.URI.
-           escapeURIString ::
-               (Char -> Bool)      -- a predicate which returns 'False' if should escape
-               -> String           -- the string to process
-               -> String           -- the resulting URI string
-           escapeURIString = concatMap . escapeURIChar
-           escapeURIChar :: (Char->Bool) -> Char -> String
-           escapeURIChar p c
-               | p c       = [c]
-               | otherwise = '%' : myShowHex (ord c) ""
-               where
-                 myShowHex :: Int -> ShowS
-                 myShowHex n r =  case showIntAtBase 16 toChrHex n r of
-                                    []  -> "00"
-                                    [ch] -> ['0',ch]
-                                    cs  -> cs
-                 toChrHex d
-                   | d < 10    = chr (ord '0' + fromIntegral d)
-                   | otherwise = chr (ord 'A' + fromIntegral (d - 10))
+escape = concatMap escapeURIChar
+
+escapeURIChar :: Char -> String
+escapeURIChar c | isAscii c && isAlphaNum c = [c]
+                | otherwise                 = concatMap (printf "%%%02X") $ encodeString [c]
 
 type Browser      = FilePath
 type Query        = String
@@ -239,7 +226,8 @@ use (SearchEngine _ engine) = engine
 -- | Given a browser, a search engine's transformation function, and a search term, perform the
 --   requested search in the browser.
 search :: Browser -> Site -> Query -> X ()
-search browser site query = safeSpawn browser [site query]
+search browser site query = do
+  safeSpawn browser [site query]
 
 {- | Given a base URL, create the 'SearchEngine' that escapes the query and
    appends it to the base. You can easily define a new engine locally using
