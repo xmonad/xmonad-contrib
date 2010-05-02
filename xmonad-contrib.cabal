@@ -106,6 +106,7 @@ library
                         XMonad.Actions.Plane
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
+                        XMonad.Actions.KeyRemap
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
                         XMonad.Actions.SimpleDate
