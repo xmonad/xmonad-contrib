@@ -20,7 +20,7 @@ module XMonad.Actions.KeyRemap (
   setKeyRemap,
   buildKeyRemapBindings,
   setDefaultKeyRemap,
-  
+
   KeymapTable (KeymapTable),
   emptyKeyRemap,
   dvorakProgrammerKeyRemap
@@ -38,7 +38,7 @@ data KeymapTable = KeymapTable [((KeyMask, KeySym), (KeyMask, KeySym))] deriving
 
 instance ExtensionClass KeymapTable where
    initialValue = KeymapTable []
-   
+
 -- $usage
 -- Provides the possibility to remap parts of the keymap to generate different keys
 --
@@ -49,11 +49,11 @@ instance ExtensionClass KeymapTable where
 --
 -- >   keys = myKeys ++ buildKeyRemapBindings [dvorakProgrammerKeyRemap,emptyKeyRemap]
 --
--- Then you must add setDefaultKeyRemap to your startup hook (e.g. you want to set the 
+-- Then you must add setDefaultKeyRemap to your startup hook (e.g. you want to set the
 -- empty keyremap (no remapping is done) as default after startup):
--- 
+--
 -- > myStartupHook :: X()
--- > myStartupHook = do               
+-- > myStartupHook = do
 -- >   setWMName "LG3D"
 -- >   setDefaultKeyRemap emptyKeyRemap [dvorakProgrammerKeyRemap, emptyKeyRemap]
 --
@@ -69,7 +69,7 @@ instance ExtensionClass KeymapTable where
 -- > KeymapTable [((0, xK_a), (shiftMask, xK_5))] -- would bind 'a' to '%'
 -- > KeymapTable [((shiftMask, xK_a), (0, xK_5))] -- would bind 'A' to '5'
 --
--- * the dvorakProgrammerKeyRemap uses the original us layout as lookuptable to generate 
+-- * the dvorakProgrammerKeyRemap uses the original us layout as lookuptable to generate
 --   the KeymapTable
 --
 -- * KeySym and (ord Char) are incompatible, therefore the magic numbers in dvorakProgrammerKeyRemap
@@ -80,31 +80,31 @@ doKeyRemap mask sym = do
   table <- XS.get
   let (insertMask, insertSym) = extractKeyMapping table mask sym
   sendKey insertMask insertSym
-  
+
 -- | Using this in the keybindings to set the actual Key Translation table
 setKeyRemap :: KeymapTable -> X()
 setKeyRemap table = do
   let KeymapTable newtable = table
   KeymapTable oldtable <- XS.get
   XConf { display = dpy, theRoot = rootw } <- ask
-  
+
   let grab kc m = io $ grabKey dpy kc m rootw True grabModeAsync grabModeAsync
   let ungrab kc m = io $ ungrabKey dpy kc m rootw
-      
+
   forM_ oldtable $ \((mask, sym), _) -> do
     kc <- io $ keysymToKeycode dpy sym
     -- "If the specified KeySym is not defined for any KeyCode,
     -- XKeysymToKeycode() returns zero."
     when (kc /= 0) $ ungrab kc mask
-    
+
   forM_ newtable $ \((mask, sym), _) -> do
     kc <- io $ keysymToKeycode dpy sym
     -- "If the specified KeySym is not defined for any KeyCode,
     -- XKeysymToKeycode() returns zero."
     when (kc /= 0) $ grab kc mask
-    
+
   XS.put table
-  
+
 -- | Adding this to your startupHook, to select your default Key Translation table.
 --   You also must give it all the KeymapTables you are willing to use
 setDefaultKeyRemap  :: KeymapTable -> [KeymapTable] -> X()
@@ -115,20 +115,20 @@ setDefaultKeyRemap dflt keyremaps = do
     mappings = nub (keyremaps >>= \(KeymapTable table) -> table)
 
 extractKeyMapping :: KeymapTable -> KeyMask -> KeySym -> (KeyMask, KeySym)
-extractKeyMapping (KeymapTable table) mask sym = 
+extractKeyMapping (KeymapTable table) mask sym =
   insertKey filtered
   where filtered = filter (\((m, s),_) -> m == mask && s == sym) table
         insertKey [] = (mask, sym)
         insertKey ((_, to):_) = to
-        
+
 -- | Append the output of this function to your keybindings with ++
 buildKeyRemapBindings :: [KeymapTable] -> [((KeyMask, KeySym), X ())]
 buildKeyRemapBindings keyremaps =
   [((mask, sym), doKeyRemap mask sym) | (mask, sym) <- bindings]
   where mappings = concat (map (\(KeymapTable table) -> table) keyremaps)
         bindings = nub (map (\binding -> fst binding) mappings)
-        
-                                                 
+
+
 -- Here come the Keymappings
 -- | The empty KeymapTable, does no translation
 emptyKeyRemap :: KeymapTable
@@ -136,17 +136,17 @@ emptyKeyRemap = KeymapTable []
 
 -- | The dvorak Programmers keymap, translates from us keybindings to dvorak programmers
 dvorakProgrammerKeyRemap :: KeymapTable
-dvorakProgrammerKeyRemap = 
-  KeymapTable [((charToMask maskFrom, from), (charToMask maskTo, to)) | 
+dvorakProgrammerKeyRemap =
+  KeymapTable [((charToMask maskFrom, from), (charToMask maskTo, to)) |
                (maskFrom, from, maskTo, to) <- (zip4 layoutUsShift layoutUsKey layoutDvorakShift layoutDvorakKey)]
   where
-    
+
     layoutUs    = map (fromIntegral . fromEnum) "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?"  :: [KeySym]
     layoutUsKey = map (fromIntegral . fromEnum) "`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./"  :: [KeySym]
     layoutUsShift = "0000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111"
-    
+
     layoutDvorak = map (fromIntegral . fromEnum) "$&[{}(=*)+]!#;,.pyfgcrl/@\\aoeuidhtns-'qjkxbmwvz~%7531902468`:<>PYFGCRL?^|AOEUIDHTNS_\"QJKXBMWVZ" :: [KeySym]
-      
+
     layoutDvorakShift = map getShift layoutDvorak
     layoutDvorakKey   = map getKey layoutDvorak
     getKey  char = let Just index = elemIndex char layoutUs
