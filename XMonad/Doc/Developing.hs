@@ -256,6 +256,9 @@ xmonad contributed extensions.
 * Code should be compilable with "ghc-options: -Wall -Werror" set in the
 xmonad-contrib.cabal file. There should be no warnings.
 
+* Code should be free of any warnings or errors from the Hlint tool; use your
+  best judgement on some warnings like eta-reduction or bracket removal, though.
+
 * Partial functions should be avoided: the window manager should not
   crash, so never call 'error' or 'undefined'.
 
