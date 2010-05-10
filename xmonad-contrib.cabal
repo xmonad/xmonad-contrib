@@ -96,6 +96,7 @@ library
                         XMonad.Actions.FloatSnap
                         XMonad.Actions.FocusNth
                         XMonad.Actions.GridSelect
+                        XMonad.Actions.GroupNavigation
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
