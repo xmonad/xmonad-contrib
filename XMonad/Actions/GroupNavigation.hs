@@ -37,7 +37,7 @@ import Data.Maybe
 import Data.Sequence as Seq
 import Data.Set as Set
 import Graphics.X11.Types
-import Prelude hiding (concatMap, drop, elem, filter, null, reverse)
+import Prelude hiding (concatMap, drop, elem, filter, foldl, foldr, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
 import XMonad.Operations
@@ -174,12 +174,27 @@ updateHistory :: HistoryDB -> X HistoryDB
 updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
   let newcur   = currentWindow ss
       wins     = Set.fromList $ SS.allWindows ss
-      newhist  = Seq.filter (flip Set.member wins) oldhist
+      newhist  = flt (flip Set.member wins) oldhist
   return $ HistoryDB newcur (del newcur $ ins oldcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
-    del x xs = maybe xs (\x' -> Seq.filter (/= x') xs) x
+    del x xs = maybe xs (\x' -> flt (/= x') xs) x
 
+--- Two replacements for Seq.filter and Seq.breakl available only in
+--- containers-0.3.0.0, which only ships with ghc 6.12.  Once we
+--- decide to no longer support ghc < 6.12, these should be replaced
+--- with Seq.filter and Seq.breakl.
+
+flt :: (a -> Bool) -> Seq a -> Seq a
+flt p = foldl (\xs x -> if p x then xs |> x else xs) Seq.empty
+
+brkl :: (a -> Bool) -> Seq a -> (Seq a, Seq a)
+brkl p xs = flip Seq.splitAt xs 
+            $ snd 
+            $ foldr (\x (i, j) -> if p x then (i-1, i-1) else (i-1, j)) (l, l) xs
+  where
+    l = Seq.length xs
+    
 --- Some sequence helpers --------------------------------------------
 
 -- Rotates the sequence by one position
@@ -192,7 +207,7 @@ rotate xs = rotate' (viewl xs)
 -- Rotates the sequence until an element matching the given condition
 -- is at the beginning of the sequence.
 rotateTo :: (a -> Bool) -> Seq a -> Seq a
-rotateTo cond xs = let (lxs, rxs) = breakl cond xs in rxs >< lxs
+rotateTo cond xs = let (lxs, rxs) = brkl cond xs in rxs >< lxs
 
 --- A monadic find ---------------------------------------------------
 
