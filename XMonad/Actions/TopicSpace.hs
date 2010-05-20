@@ -25,6 +25,7 @@ module XMonad.Actions.TopicSpace
   , defaultTopicConfig
   , getLastFocusedTopics
   , setLastFocusedTopic
+  , reverseLastFocusedTopics
   , pprWindowSet
   , topicActionWithPrompt
   , topicAction
@@ -232,6 +233,11 @@ setLastFocusedTopic w predicate =
     . getPrevTopics
   where seqList xs = length xs `seq` xs
 
+-- | Reverse the list of "last focused topics"
+reverseLastFocusedTopics :: X ()
+reverseLastFocusedTopics =
+  XS.modify $ PrevTopics . reverse . getPrevTopics
+
 -- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
 -- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
 -- and highlighting topics with urgent windows.
@@ -271,7 +277,7 @@ switchTopic tg topic = do
   when (null wins) $ topicAction tg topic
 
 -- | Switch to the Nth last focused topic or failback to the 'defaultTopic'.
-switchNthLastFocused ::TopicConfig -> Int -> X ()
+switchNthLastFocused :: TopicConfig -> Int -> X ()
 switchNthLastFocused tg depth = do
   lastWs <- getLastFocusedTopics
   switchTopic tg $ (lastWs ++ repeat (defaultTopic tg)) !! depth
