@@ -37,12 +37,14 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Util.PositionStore
 import XMonad.Util.XUtils (fi)
+import XMonad.Hooks.ManageDocks
 
 import System.Random(randomRIO)
 import Control.Applicative((<$>))
 import Control.Monad(when)
 import Data.Maybe
 import Data.Monoid
+import qualified Data.Set as S
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -80,9 +82,12 @@ positionStoreInit w = withDisplay $ \d -> do
             else do
                 sc <- fromMaybe (W.current ws) <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
                 let sr = screenRect . W.screenDetail $ sc
+                sr' <- fmap ($ sr) (calcGap $ S.fromList [minBound .. maxBound])    -- take docks into account, accepting
+                                                                                    -- a somewhat unfortunate inter-dependency
+                                                                                    -- with 'XMonad.Hooks.ManageDocks'
                 modifyPosStore (\ps -> posStoreInsert ps w
                                         (Rectangle (fi $ wa_x wa) (fi $ wa_y wa)
-                                            (fi $ wa_width wa) (fi $ wa_height wa)) sr )
+                                            (fi $ wa_width wa) (fi $ wa_height wa)) sr' )
     where
         randomIntOffset :: X (Int)
         randomIntOffset = io $ randomRIO (42, 242)
