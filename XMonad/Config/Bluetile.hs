@@ -177,7 +177,7 @@ isFloating w = do
 
 bluetileManageHook :: ManageHook
 bluetileManageHook = composeAll
-               [ workspaceByPos, positionStoreManageHook
+               [ workspaceByPos, positionStoreManageHook (Just defaultThemeWithButtons)
                 , className =? "MPlayer" --> doFloat
                 , isFullscreen --> doFullFloat
                 , manageDocks]

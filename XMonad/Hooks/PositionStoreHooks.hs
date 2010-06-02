@@ -36,8 +36,8 @@ module XMonad.Hooks.PositionStoreHooks (
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Util.PositionStore
-import XMonad.Util.XUtils (fi)
 import XMonad.Hooks.ManageDocks
+import XMonad.Layout.Decoration
 
 import System.Random(randomRIO)
 import Control.Applicative((<$>))
@@ -52,9 +52,13 @@ import qualified Data.Set as S
 -- > import XMonad.Hooks.PositionStoreHooks
 --
 -- and adding 'positionStoreManageHook' to your 'ManageHook' as well
--- as 'positionStoreEventHook' to your event hooks:
+-- as 'positionStoreEventHook' to your event hooks. To be accurate
+-- about window sizes, the module needs to know if any decoration is in effect.
+-- This is specified with the first argument: Supply 'Nothing' for no decoration,
+-- otherwise use 'Just defaultTheme' or similar to inform the module about the
+-- decoration theme used.
 --
--- > myManageHook = positionStoreManageHook <+> manageHook defaultConfig
+-- > myManageHook = positionStoreManageHook Nothing <+> manageHook defaultConfig
 -- > myHandleEventHook = positionStoreEventHook
 -- >
 -- > main = xmonad defaultConfig { manageHook = myManageHook
@@ -62,11 +66,13 @@ import qualified Data.Set as S
 -- >                             }
 --
 
-positionStoreManageHook :: ManageHook
-positionStoreManageHook = ask >>= liftX . positionStoreInit >> idHook
+positionStoreManageHook :: Maybe Theme -> ManageHook
+positionStoreManageHook mDecoTheme = ask >>= liftX . positionStoreInit mDecoTheme >> idHook
 
-positionStoreInit :: Window -> X ()
-positionStoreInit w = withDisplay $ \d -> do
+positionStoreInit :: Maybe Theme -> Window -> X ()
+positionStoreInit mDecoTheme w  = withDisplay $ \d -> do
+        let decoH = maybe 0 decoHeight mDecoTheme   -- take decoration into account, which - in its current
+                                                    -- form - makes windows smaller to make room for it
         wa <- io $ getWindowAttributes d w
         ws <- gets windowset
         arbitraryOffsetX <- randomIntOffset
@@ -78,7 +84,7 @@ positionStoreInit w = withDisplay $ \d -> do
                                         (Rectangle (srX + fi arbitraryOffsetX)
                                                    (srY + fi arbitraryOffsetY)
                                                     (fi $ wa_width wa)
-                                                    (fi $ wa_height wa)) sr )
+                                                    (decoH + fi (wa_height wa))) sr )
             else do
                 sc <- fromMaybe (W.current ws) <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
                 let sr = screenRect . W.screenDetail $ sc
@@ -86,8 +92,8 @@ positionStoreInit w = withDisplay $ \d -> do
                                                                                     -- a somewhat unfortunate inter-dependency
                                                                                     -- with 'XMonad.Hooks.ManageDocks'
                 modifyPosStore (\ps -> posStoreInsert ps w
-                                        (Rectangle (fi $ wa_x wa) (fi $ wa_y wa)
-                                            (fi $ wa_width wa) (fi $ wa_height wa)) sr' )
+                                        (Rectangle (fi $ wa_x wa) (fi (wa_y wa) - fi decoH)
+                                            (fi $ wa_width wa) (decoH + fi (wa_height wa))) sr' )
     where
         randomIntOffset :: X (Int)
         randomIntOffset = io $ randomRIO (42, 242)
