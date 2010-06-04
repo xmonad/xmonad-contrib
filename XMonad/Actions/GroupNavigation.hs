@@ -174,8 +174,8 @@ updateHistory :: HistoryDB -> X HistoryDB
 updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
   let newcur   = currentWindow ss
       wins     = Set.fromList $ SS.allWindows ss
-      newhist  = flt (flip Set.member wins) oldhist
-  return $ HistoryDB newcur (del newcur $ ins oldcur newhist)
+      newhist  = flt (flip Set.member wins) (ins oldcur oldhist)
+  return $ HistoryDB newcur (del newcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
     del x xs = maybe xs (\x' -> flt (/= x') xs) x
