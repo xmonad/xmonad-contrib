@@ -29,18 +29,16 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       , historyHook
                                       ) where
 
-import Control.Monad
 import Control.Monad.Reader
 import Data.Foldable
 import Data.Map as Map
-import Data.Maybe
 import Data.Sequence as Seq
 import Data.Set as Set
 import Graphics.X11.Types
 import Prelude hiding (concatMap, drop, elem, filter, foldl, foldr, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
-import XMonad.Operations
+import XMonad.Operations (windows, withFocused)
 import qualified XMonad.StackSet as SS
 import qualified XMonad.Util.ExtensibleState as XS
 
