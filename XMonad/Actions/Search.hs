@@ -56,7 +56,7 @@ module XMonad.Actions.Search (   -- * Usage
                                   -- $tip
                           ) where
 
-import Codec.Binary.UTF8.String (encodeString)
+import Codec.Binary.UTF8.String (encode)
 import Data.Char (isAlphaNum, isAscii)
 import Data.List (isPrefixOf)
 import Text.Printf
@@ -208,7 +208,7 @@ escape = concatMap escapeURIChar
 
 escapeURIChar :: Char -> String
 escapeURIChar c | isAscii c && isAlphaNum c = [c]
-                | otherwise                 = concatMap (printf "%%%02X") $ encodeString [c]
+                | otherwise                 = concatMap (printf "%%%02X") $ encode [c]
 
 type Browser      = FilePath
 type Query        = String
