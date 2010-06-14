@@ -54,27 +54,26 @@ module XMonad.Hooks.DynamicLog (
 
   ) where
 
---
 -- Useful imports
---
-import XMonad
-import Control.Monad
+
+import Codec.Binary.UTF8.String (encodeString)
+import Control.Monad (liftM2)
 import Data.Char ( isSpace, ord )
+import Data.List (intersperse, isPrefixOf, sortBy)
 import Data.Maybe ( isJust, catMaybes )
-import Data.List
-import qualified Data.Map as M
 import Data.Ord ( comparing )
+import qualified Data.Map as M
 import qualified XMonad.StackSet as S
-import System.IO
 
 import Foreign.C (CChar)
+
+import XMonad
 
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
 
 import XMonad.Layout.LayoutModifier
-import XMonad.Util.Font
 import XMonad.Hooks.UrgencyHook
 import XMonad.Hooks.ManageDocks
 
@@ -277,7 +276,7 @@ dynamicLogString pp = do
     -- run extra loggers, ignoring any that generate errors.
     extras <- mapM (flip catchX (return Nothing)) $ ppExtras pp
 
-    return $ encodeOutput . sepBy (ppSep pp) . ppOrder pp $
+    return $ encodeString . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp wt

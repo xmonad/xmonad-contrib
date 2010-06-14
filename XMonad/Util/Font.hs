@@ -29,8 +29,6 @@ module XMonad.Util.Font
     , textExtentsXMF
     , printStringXMF
     , stringToPixel
-    , decodeInput
-    , encodeOutput
     ) where
 
 import XMonad
@@ -43,9 +41,6 @@ import Data.List
 import Graphics.X11.Xft
 import Graphics.X11.Xrender
 #endif
-
-import Codec.Binary.UTF8.String (encodeString, decodeString)
-
 
 -- Hide the Core Font/Xft switching here
 data XMonadFont = Core FontStruct
@@ -63,7 +58,6 @@ stringToPixel :: (Functor m, MonadIO m) => Display -> String -> m Pixel
 stringToPixel d s = fromMaybe fallBack <$> io getIt
     where getIt    = initColor d s
           fallBack = blackPixel d (defaultScreen d)
-
 
 -- | Given a fontname returns the font structure. If the font name is
 --  not valid the default font will be loaded and returned.
@@ -191,12 +185,6 @@ printStringXMF dpy drw fs@(Xft font) gc fc bc x y s = do
          \draw -> withXftColorName dpy visual colormap fc $
                    \color -> xftDrawString draw color font x y s
 #endif
-
-decodeInput :: String -> String
-decodeInput = decodeString
-
-encodeOutput :: String -> String
-encodeOutput = encodeString
 
 -- | Short-hand for 'fromIntegral'
 fi :: (Integral a, Num b) => a -> b

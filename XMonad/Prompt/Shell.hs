@@ -1,16 +1,14 @@
------------------------------------------------------------------------------
--- |
--- Module      :  XMonad.Prompt.Shell
--- Copyright   :  (C) 2007 Andrea Rossato
--- License     :  BSD3
---
--- Maintainer  :  andrea.rossato@unibz.it
--- Stability   :  unstable
--- Portability :  unportable
---
--- A shell prompt for XMonad
---
------------------------------------------------------------------------------
+{- |
+Module      :  XMonad.Prompt.Shell
+Copyright   :  (C) 2007 Andrea Rossato
+License     :  BSD3
+
+Maintainer  :  andrea.rossato@unibz.it
+Stability   :  unstable
+Portability :  unportable
+
+A shell prompt for XMonad
+-}
 
 module XMonad.Prompt.Shell
     ( -- * Usage
@@ -26,27 +24,29 @@ module XMonad.Prompt.Shell
     , safePrompt
     ) where
 
-import System.Environment
-import Control.Monad
-import Data.List
-import System.Directory
-import System.Posix.Files
+import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Control.Monad (forM)
+import Data.List (isPrefixOf)
+import System.Directory (doesDirectoryExist, getDirectoryContents)
+import System.Environment (getEnv)
+import System.Posix.Files (getFileStatus, isDirectory)
+
 import XMonad.Util.Run
 import XMonad hiding (config)
 import XMonad.Prompt
 
--- $usage
--- 1. In your @~\/.xmonad\/xmonad.hs@:
---
--- > import XMonad.Prompt
--- > import XMonad.Prompt.Shell
---
--- 2. In your keybindings add something like:
---
--- >   , ((modm .|. controlMask, xK_x), shellPrompt defaultXPConfig)
---
--- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+{- $usage
+1. In your @~\/.xmonad\/xmonad.hs@:
+
+> import XMonad.Prompt
+> import XMonad.Prompt.Shell
+
+2. In your keybindings add something like:
+
+>   , ((modm .|. controlMask, xK_x), shellPrompt defaultXPConfig)
+
+For detailed instruction on editing the key binding see
+"XMonad.Doc.Extending#Editing_key_bindings". -}
 
 data Shell = Shell
 
@@ -57,39 +57,39 @@ instance XPrompt Shell where
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
     cmds <- io getCommands
-    mkXPrompt Shell c (getShellCompl cmds) (spawn . encodeOutput)
+    mkXPrompt Shell c (getShellCompl cmds) (spawn . encodeString)
 
--- | See safe and unsafeSpawn. prompt is an alias for safePrompt;
--- safePrompt and unsafePrompt work on the same principles, but will use
--- XPrompt to interactively query the user for input; the appearance is
--- set by passing an XPConfig as the second argument. The first argument
--- is the program to be run with the interactive input.
--- You would use these like this:
---
--- >     , ((modm,               xK_b), safePrompt "firefox" greenXPConfig)
--- >     , ((modm .|. shiftMask, xK_c), prompt ("xterm" ++ " -e") greenXPConfig)
---
--- Note that you want to use safePrompt for Firefox input, as Firefox
--- wants URLs, and unsafePrompt for the XTerm example because this allows
--- you to easily start a terminal executing an arbitrary command, like
--- 'top'.
+{- | See safe and unsafeSpawn. prompt is an alias for safePrompt;
+    safePrompt and unsafePrompt work on the same principles, but will use
+    XPrompt to interactively query the user for input; the appearance is
+    set by passing an XPConfig as the second argument. The first argument
+    is the program to be run with the interactive input.
+    You would use these like this:
+
+    >     , ((modm,               xK_b), safePrompt "firefox" greenXPConfig)
+    >     , ((modm .|. shiftMask, xK_c), prompt ("xterm" ++ " -e") greenXPConfig)
+
+    Note that you want to use safePrompt for Firefox input, as Firefox
+    wants URLs, and unsafePrompt for the XTerm example because this allows
+    you to easily start a terminal executing an arbitrary command, like
+    'top'. -}
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
 safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run = safeSpawn c . return . encodeOutput
+    where run = safeSpawn c . return . encodeString
 unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run a = unsafeSpawn $ c ++ " " ++ encodeOutput a
+    where run a = unsafeSpawn $ c ++ " " ++ encodeString a
 
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
                      | otherwise                = do
-    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ encodeOutput s ++ "\n")
+    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ encodeString s ++ "\n")
     files <- case f of
                [x] -> do fs <- getFileStatus x
                          if isDirectory fs then return [x ++ "/"]
                                            else return [x]
                _   -> return f
-    return . map decodeInput . uniqSort $ files ++ commandCompletionFunction cmds s
+    return . map decodeString . uniqSort $ files ++ commandCompletionFunction cmds s
 
 commandCompletionFunction :: [String] -> String -> [String]
 commandCompletionFunction cmds str | '/' `elem` str = []

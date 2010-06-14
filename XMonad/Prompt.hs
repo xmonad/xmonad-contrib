@@ -52,8 +52,6 @@ module XMonad.Prompt
     , splitInSubListsAt
     , breakAtSpace
     , uniqSort
-    , decodeInput
-    , encodeOutput
     , historyCompletion
     , historyCompletionP
     -- * History filters
@@ -75,22 +73,21 @@ import XMonad.Util.Types
 import XMonad.Util.XSelection (getSelection)
 import XMonad.Util.XUtils (fi)
 
+import Codec.Binary.UTF8.String (decodeString)
+import Control.Applicative ((<$>))
 import Control.Arrow ((&&&),first)
 import Control.Concurrent (threadDelay)
-import Control.Monad.Reader
+import Control.Exception.Extensible hiding (handle)
 import Control.Monad.State
-import Control.Applicative ((<$>))
-import Data.Char
 import Data.Bits
-import Data.Maybe
-import Data.List
+import Data.Char (isSpace)
 import Data.IORef
+import Data.List
+import Data.Maybe (fromMaybe)
 import Data.Set (fromList, toList)
-import System.Directory
+import System.Directory (getAppUserDataDirectory)
 import System.IO
 import System.Posix.Files
-import Control.Exception.Extensible hiding (handle)
-
 import qualified Data.Map as M
 
 -- $usage
@@ -452,7 +449,7 @@ keyPressHandle m (ks,str) = do
     Nothing -> case str of
                  "" -> eventLoop handle
                  _ -> when (mask .&. controlMask == 0) $ do
-                                 insertString (decodeInput str)
+                                 insertString (decodeString str)
                                  updateWindows
                                  completed <- tryAutoComplete
                                  when completed $ setSuccess True >> setDone True
