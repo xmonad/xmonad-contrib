@@ -62,8 +62,8 @@ import Foreign.C.Types (CLong)
 -- the keyboard. Include 'BW.boringWindows' in your layout hook and see the
 -- documentation of "XMonad.Layout.BoringWindows" on how to modify your keybindings.
 --
--- Also see "XMonad.Hooks.RestoreMinimized" if you want to be able to restore
--- minimized windows from your taskbar.
+-- Also see "XMonad.Hooks.Minimize" if you want to be able to minimize
+-- and restore windows from your taskbar.
 
 data Minimize a = Minimize [Window] (M.Map Window W.RationalRect) deriving ( Read, Show )
 minimize :: LayoutClass l Window => l Window -> ModifiedLayout Minimize l Window

@@ -145,6 +145,7 @@ library
                         XMonad.Hooks.InsertPosition
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
+                        XMonad.Hooks.Minimize
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RestoreMinimized

@@ -382,13 +382,17 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.ManageHelpers": provide helper functions to be used
   in @manageHook@.
 
+* "XMonad.Hooks.Minimize":
+    Handles window manager hints to minimize and restore windows. Use
+    this with XMonad.Layout.Minimize.
+
 * "XMonad.Hooks.Place":
     Automatic placement of floating windows.
 
 * "XMonad.Hooks.RestoreMinimized":
-    Lets you restore minimized windows (see "XMonad.Layout.Minimize")
-    by selecting them on a taskbar (listens for _NET_ACTIVE_WINDOW
-    and WM_CHANGE_STATE).
+    (Deprecated: Use XMonad.Hooks.Minimize) Lets you restore minimized
+    windows (see "XMonad.Layout.Minimize") by selecting them on a
+    taskbar (listens for _NET_ACTIVE_WINDOW and WM_CHANGE_STATE).
 
 * "XMonad.Hooks.Script":
     Provides a simple interface for running a ~\/.xmonad\/hooks script with the

@@ -1,0 +1,53 @@
+----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Hooks.Minimize
+-- Copyright   :  (c) Justin Bogner 2010
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  Justin Bogner <mail@justinbogner.com>
+-- Stability   :  unstable
+-- Portability :  not portable
+--
+-- Handles window manager hints to minimize and restore windows. Use
+-- this with XMonad.Layout.Minimize.
+--
+-----------------------------------------------------------------------------
+
+module XMonad.Hooks.Minimize
+    ( -- * Usage
+      -- $usage
+      minimizeEventHook
+    ) where
+
+import Data.Monoid
+import Control.Monad(when)
+
+import XMonad
+import XMonad.Layout.Minimize
+
+-- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Hooks.Minimize
+-- > import XMonad.Layout.Minimize
+-- >
+-- > myHandleEventHook = minimizeEventHook
+-- > myLayout = minimize (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
+-- > main = xmonad defaultConfig { layoutHook = myLayout
+-- >                             , handleEventHook = myHandleEventHook }
+
+minimizeEventHook :: Event -> X All
+minimizeEventHook (ClientMessageEvent {ev_window = w,
+                                       ev_message_type = mt,
+                                       ev_data = dt}) = do
+    a_aw <- getAtom "_NET_ACTIVE_WINDOW"
+    a_cs <- getAtom "WM_CHANGE_STATE"
+
+    when (mt == a_aw) $ sendMessage (RestoreMinimizedWin w)
+    when (mt == a_cs) $ do
+      let message = fromIntegral . head $ dt
+      when (message == normalState) $ sendMessage (RestoreMinimizedWin w)
+      when (message == iconicState) $ sendMessage (MinimizeWin w)
+
+    return (All True)
+minimizeEventHook _ = return (All True)

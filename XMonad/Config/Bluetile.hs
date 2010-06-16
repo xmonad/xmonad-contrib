@@ -50,7 +50,7 @@ import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.PositionStoreHooks
-import XMonad.Hooks.RestoreMinimized
+import XMonad.Hooks.Minimize
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.WorkspaceByPos
 
@@ -205,7 +205,7 @@ bluetileConfig =
           logHook = currentWorkspaceOnTop >> ewmhDesktopsLogHook,
           handleEventHook = ewmhDesktopsEventHook
                                 `mappend` fullscreenEventHook
-                                `mappend` restoreMinimizedEventHook
+                                `mappend` minimizeEventHook
                                 `mappend` serverModeEventHook' bluetileCommands
                                 `mappend` positionStoreEventHook,
           workspaces = bluetileWorkspaces,

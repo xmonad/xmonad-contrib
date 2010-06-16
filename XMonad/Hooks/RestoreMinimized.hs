@@ -8,9 +8,9 @@
 -- Stability   :  unstable
 -- Portability :  not portable
 --
--- Lets you restore minimized windows (see "XMonad.Layout.Minimize")
--- by selecting them on a taskbar (listens for _NET_ACTIVE_WINDOW
--- and WM_CHANGE_STATE).
+-- (Deprecated: Use XMonad.Hooks.Minimize) Lets you restore minimized
+-- windows (see "XMonad.Layout.Minimize") by selecting them on a
+-- taskbar (listens for _NET_ACTIVE_WINDOW and WM_CHANGE_STATE).
 --
 -----------------------------------------------------------------------------
 
