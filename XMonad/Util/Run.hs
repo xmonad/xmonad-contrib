@@ -65,7 +65,7 @@ runProcessWithInput cmd args input = io $ do
     -- no need to waitForProcess, we ignore SIGCHLD
     return output
 
--- | Wait is in µs (microseconds)
+-- | Wait is in &#956; (microseconds)
 runProcessWithInputAndWait :: MonadIO m => FilePath -> [String] -> String -> Int -> m ()
 runProcessWithInputAndWait cmd args input timeout = io $ do
     xfork $ do
