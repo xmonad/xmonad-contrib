@@ -88,7 +88,7 @@ runProcessWithInputAndWait cmd args input timeout = io $ do
 seconds :: Rational -> Int
 seconds = fromEnum . (* 1000000)
 
-{- | 'safeSpawn' bypasses "XMonad.Core"'s 'spawn' command, because spawn passes
+{- | 'safeSpawn' bypasses 'spawn', because spawn passes
 strings to \/bin\/sh to be interpreted as shell commands. This is
 often what one wants, but in many cases the passed string will contain
 shell metacharacters which one does not want interpreted as such (URLs
@@ -96,8 +96,7 @@ particularly often have shell metacharacters like \'&\' in them). In
 this case, it is more useful to specify a file or program to be run
 and a string to give it as an argument so as to bypass the shell and
 be certain the program will receive the string as you typed it.
-unsafeSpawn is internally an alias for XMonad's 'spawn', to remind one that use
-of it can be, well, unsafe.
+
 Examples:
 
 > , ((modm, xK_Print), unsafeSpawn "import -window root $HOME/xwd-$(date +%s)$$.png")
@@ -112,12 +111,14 @@ safeSpawn prog args = liftIO $ do
     try $ xfork $ executeFile prog True args Nothing :: IO (Either SomeException ProcessID)
     return ()
 
--- | Like 'safeSpawn', but only takes a program (and no arguments for it). eg.
+-- | Simplified 'safeSpawn'; only takes a program (and no arguments):
 --
--- > safeSpawnProg "firefox"
+-- > , ((modm, xK_d    ), safeSpawnProg "firefox")
 safeSpawnProg :: MonadIO m => FilePath -> m ()
 safeSpawnProg = flip safeSpawn []
 
+-- | An alias for 'spawn'; the name emphasizes that one is calling out to a 
+--   Turing-complete interpreter which may do things one dislikes; for details, see 'safeSpawn'.
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
 
