@@ -101,7 +101,7 @@ of it can be, well, unsafe.
 Examples:
 
 > , ((modm, xK_Print), unsafeSpawn "import -window root $HOME/xwd-$(date +%s)$$.png")
-> , ((modm, xK_d    ), safeSpawn "firefox" "")
+> , ((modm, xK_d    ), safeSpawn "firefox" [])
 
 Note that the unsafeSpawn example must be unsafe and not safe because
 it makes use of shell interpretation by relying on @$HOME@ and
