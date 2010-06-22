@@ -24,6 +24,10 @@ module XMonad.Layout.BoringWindows (
                                    UpdateBoring(UpdateBoring),
                                    BoringMessage(Replace,Merge),
                                    BoringWindows()
+
+                                   -- * Tips
+                                   -- ** variant of 'Full'
+                                   -- $simplest
                                   ) where
 
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
@@ -134,3 +138,12 @@ instance LayoutModifier BoringWindows Window where
 focusMaster' :: W.Stack a -> W.Stack a
 focusMaster' c@(W.Stack _ [] _) = c
 focusMaster' (W.Stack t ls rs) = W.Stack x [] (xs ++ t : rs) where (x:xs) = reverse ls
+
+{- $simplest
+
+An alternative to 'Full' is "XMonad.Layout.Simplest".  Less windows are
+ignored by 'focusUp' and 'focusDown'. This may be helpful when you want windows
+to be uninteresting by some other layout modifier (ex.
+"XMonad.Layout.Minimize")
+
+-}
