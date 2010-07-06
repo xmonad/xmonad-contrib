@@ -18,6 +18,7 @@ module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
     manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
+    docksEventHook,
     ToggleStruts(..),
     SetStruts(..),
     module XMonad.Util.Types,
@@ -34,6 +35,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 import XMonad.Util.XUtils (fi)
+import Data.Monoid (All(..))
 
 import qualified Data.Set as S
 
@@ -55,6 +57,11 @@ import qualified Data.Set as S
 --
 -- > layoutHook = avoidStruts (tall ||| mirror tall ||| ...)
 -- >                   where  tall = Tall 1 (3/100) (1/2)
+--
+-- The third component is an event hook that causes new docks to appear
+-- immediately, instead of waiting for the next focus change.
+--
+-- > handleEventHook = ... <+> docksEventHook
 --
 -- 'AvoidStruts' also supports toggling the dock gaps; add a keybinding
 -- similar to:
@@ -101,6 +108,14 @@ checkDock = ask >>= \w -> liftX $ do
     case mbr of
         Just [r] -> return $ elem (fromIntegral r) [dock, desk]
         _        -> return False
+
+-- | Whenever a new dock appears, refresh the layout immediately to avoid the
+-- new dock.
+docksEventHook :: Event -> X All
+docksEventHook (MapNotifyEvent {ev_window = w}) = do
+    whenX ((not `fmap` (isClient w)) <&&> runQuery checkDock w) refresh
+    return (All True)
+docksEventHook _ = return (All True)
 
 -- | Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X [Strut]
