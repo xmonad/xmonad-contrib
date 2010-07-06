@@ -20,10 +20,12 @@ module XMonad.Layout.LayoutHints
     , layoutHintsWithPlacement
     , layoutHintsToCenter
     , LayoutHints
+    , hintsEventHook
     )  where
 
 import XMonad(LayoutClass(runLayout), mkAdjust, Window,
-              Dimension, Position, Rectangle(Rectangle),D)
+              Dimension, Position, Rectangle(Rectangle), D,
+              X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS)
 import qualified XMonad.StackSet as W
 
 import XMonad.Layout.Decoration(isInStack)
@@ -35,6 +37,7 @@ import Control.Arrow(Arrow((***), first, second))
 import Control.Monad(join)
 import Data.Function(on)
 import Data.List(sortBy)
+import Data.Monoid(All(..))
 
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -62,6 +65,14 @@ import qualified Data.Set as Set
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
+--
+-- To make XMonad reflect changes in window hints immediately, add
+-- 'hintsEventHook' to your 'handleEventHook'.
+--
+-- > myHandleEventHook = hintsEventHook <+> ...
+-- >
+-- > main = xmonad defaultConfig { handleEventHook = myHandleEventHook
+-- >                             , ... }
 
 layoutHints :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHints l a
 layoutHints = ModifiedLayout (LayoutHints (0, 0))
@@ -235,3 +246,11 @@ centerPlacement' cf root assigned
     = (cf $ cx - cwx, cf $ cy - cwy)
     where (cx,cy) = center root
           (cwx,cwy) = center assigned
+
+-- | Event hook that refreshes the layout whenever a window changes its hints.
+hintsEventHook :: Event -> X All
+hintsEventHook (PropertyEvent { ev_event_type = t, ev_atom = a })
+    | t == propertyNotify && a == wM_NORMAL_HINTS = do
+        refresh
+        return (All True)
+hintsEventHook _ = return (All True)
