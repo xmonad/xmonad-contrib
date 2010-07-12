@@ -80,8 +80,11 @@ ifWindows qry f el = withWindowSet $ \wins -> do
 ifWindow :: Query Bool -> ManageHook -> X () -> X ()
 ifWindow qry mh = ifWindows qry (windows . appEndo <=< runQuery mh . head)
 
--- | 'action' is an executable to be run via 'safeSpawnProg' (of "XMonad.Util.Run") if the Window cannot be found.
---   Presumably this executable is the same one that you were looking for.
+{- | 'action' is an executable to be run via 'safeSpawnProg' (of "XMonad.Util.Run") if the Window cannot be found.
+   Presumably this executable is the same one that you were looking for.
+   Note that this does not go through the shell. If you wish to run an arbitrary IO action
+   (such as 'spawn', which will run its String argument through the shell), then you will want to use
+   'raiseMaybe' directly. -}
 runOrRaise :: String -> Query Bool -> X ()
 runOrRaise = raiseMaybe . safeSpawnProg
 
