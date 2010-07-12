@@ -160,11 +160,11 @@ raiseEditor  = raiseVar getEditor
 {- | If the window is found the window is focused and the third argument is called
      otherwise, the first argument is called
      See 'raiseMaster' for an example. -}
-raiseAndDo :: X () -> Query Bool -> (Window -> X ())-> X ()
+raiseAndDo :: X () -> Query Bool -> (Window -> X ()) -> X ()
 raiseAndDo f qry after = ifWindow qry (afterRaise `mappend` raiseHook) f
     where afterRaise = ask >>= (>> idHook) . liftX . after
 
-{- | If a window matching the second arugment is found, the window is focused and the third argument is called;
+{- | If a window matching the second argument is found, the window is focused and the third argument is called;
      otherwise, the first argument is called. -}
 runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
 runOrRaiseAndDo = raiseAndDo . safeSpawnProg
