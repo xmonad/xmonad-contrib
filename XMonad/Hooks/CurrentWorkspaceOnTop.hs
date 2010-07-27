@@ -26,6 +26,7 @@ import XMonad
 import qualified XMonad.StackSet as S
 import qualified XMonad.Util.ExtensibleState as XS
 import Control.Monad(when)
+import qualified Data.Map as M
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -50,12 +51,18 @@ currentWorkspaceOnTop = withDisplay $ \d -> do
     (CWOTS lastTag) <- XS.get
     let curTag = S.tag . S.workspace . S.current $ ws
     when (curTag /= lastTag) $ do
+        -- the following is more or less a reimplementation of what's happening in "XMonad.Operation"
         let s = S.current ws
             wsp = S.workspace s
             viewrect = screenRect $ S.screenDetail s
-            tmpStack = S.stack . S.workspace $ s
-        (rs, _) <- runLayout wsp { S.stack = tmpStack } viewrect
-        let wins = map fst rs
+            tmpStack = (S.stack wsp) >>= S.filter (`M.notMember` S.floating ws)
+        (rs, ml') <- runLayout wsp { S.stack = tmpStack } viewrect
+        updateLayout curTag ml'
+        let this = S.view curTag ws
+            fltWins = filter (flip M.member (S.floating ws)) $ S.index this
+            wins = fltWins ++ (map fst rs)  -- order: first all floating windows, then the order the layout returned
+        -- end of reimplementation
+
         when (not . null $ wins) $ do
             io $ raiseWindow d (head wins)  -- raise first window of current workspace to the very top,
             io $ restackWindows d wins      -- then use restackWindows to let all other windows from the workspace follow
