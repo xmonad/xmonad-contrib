@@ -62,7 +62,7 @@ titleBarButtonHandler mainw distFromLeft distFromRight = do
                              then focus mainw >> sendMessage (maximizeRestore mainw) >> return True
                   else if (fi distFromRight >= minimizeButtonOffset &&
                            fi distFromRight <= minimizeButtonOffset + buttonSize)
-                             then focus mainw >> sendMessage (MinimizeWin mainw) >> return True
+                             then focus mainw >> minimizeWindow mainw >> return True
                   else return False
     action
 

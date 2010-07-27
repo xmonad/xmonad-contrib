@@ -47,7 +47,7 @@ minimizeEventHook (ClientMessageEvent {ev_window = w,
     when (mt == a_cs) $ do
       let message = fromIntegral . head $ dt
       when (message == normalState) $ sendMessage (RestoreMinimizedWin w)
-      when (message == iconicState) $ sendMessage (MinimizeWin w)
+      when (message == iconicState) $ minimizeWindow w
 
     return (All True)
 minimizeEventHook _ = return (All True)

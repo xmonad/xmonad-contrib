@@ -62,7 +62,7 @@ windowMenu = withFocused $ \w -> do
         actions = [ ("Cancel menu", return ())
                   , ("Close"      , kill)
                   , ("Maximize"   , sendMessage $ maximizeRestore w)
-                  , ("Minimize"   , sendMessage $ MinimizeWin w)
+                  , ("Minimize"   , minimizeWindow w)
                   ] ++
                   [ ("Move to " ++ tag, windows $ W.shift tag)
                     | tag <- tags ]

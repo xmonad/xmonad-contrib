@@ -18,7 +18,8 @@ module XMonad.Layout.Minimize (
         -- * Usage
         -- $usage
         minimize,
-        MinimizeMsg(..)
+        minimizeWindow,
+        MinimizeMsg(RestoreMinimizedWin,RestoreNextMinimizedWin)
     ) where
 
 import XMonad
@@ -47,7 +48,7 @@ import Foreign.C.Types (CLong)
 --
 -- In the key-bindings, do something like:
 --
--- >        , ((modm,               xK_m     ), withFocused (\f -> sendMessage (MinimizeWin f)))
+-- >        , ((modm,               xK_m     ), withFocused minimizeWindow)
 -- >        , ((modm .|. shiftMask, xK_m     ), sendMessage RestoreNextMinimizedWin)
 --
 -- The first action will minimize the focused window, while the second one will restore
@@ -75,6 +76,8 @@ data MinimizeMsg = MinimizeWin Window
                     deriving (Typeable, Eq)
 instance Message MinimizeMsg
 
+minimizeWindow :: Window -> X ()
+minimizeWindow w = sendMessage (MinimizeWin w) >> BW.focusDown
 
 setMinimizedState :: Window -> Int -> (CLong -> [CLong] -> [CLong]) -> X ()
 setMinimizedState win st f = do
@@ -103,34 +106,34 @@ instance LayoutModifier Minimize Window where
 
     handleMess (Minimize minimized unfloated) m
         | Just (MinimizeWin w) <- fromMessage m, not (w `elem` minimized) = do
-                BW.focusDown
                 setMinimized w
                 ws <- gets windowset
                 case M.lookup w (W.floating ws) of
                   Nothing -> return $ Just $ Minimize (w:minimized) unfloated
                   Just r -> do
-                    (windows . W.sink) w
+                    modify (\s -> s { windowset = W.sink w ws})
                     return $ Just $ Minimize (w:minimized) (M.insert w r unfloated)
         | Just (RestoreMinimizedWin w) <- fromMessage m = do
             setNotMinimized w
             case M.lookup w unfloated of
               Nothing -> return $ Just $ Minimize (minimized \\ [w]) unfloated
               Just r -> do
-                (windows . (W.float w)) r
+                ws <- gets windowset
+                modify (\s -> s { windowset = W.float w r ws})
                 return $ Just $ Minimize (minimized \\ [w]) (M.delete w unfloated)
-        | Just RestoreNextMinimizedWin <- fromMessage m =
+        | Just RestoreNextMinimizedWin <- fromMessage m = do
+          ws <- gets windowset
           if not (null minimized)
             then case M.lookup (head minimized) unfloated of
               Nothing -> do
                 let w = head minimized
                 setNotMinimized w
-                focus w
+                modify (\s -> s { windowset = W.focusWindow w ws})
                 return $ Just $ Minimize (tail minimized) unfloated
               Just r -> do
                 let w = head minimized
                 setNotMinimized w
-                (windows . (W.float w)) r
-                focus w
+                modify (\s -> s { windowset = (W.focusWindow w . W.float w r) ws})
                 return $ Just $ Minimize (tail minimized) (M.delete w unfloated)
             else return Nothing
         | Just BW.UpdateBoring <- fromMessage m = do

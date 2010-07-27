@@ -141,7 +141,7 @@ bluetileKeys conf@(XConfig {XMonad.modMask = modMask'}) = M.fromList $
     , ((modMask'              , xK_z), withFocused (sendMessage . maximizeRestore))
 
     -- Minimizing
-    , ((modMask',               xK_m     ), withFocused (\f -> sendMessage (MinimizeWin f)))
+    , ((modMask',               xK_m     ), withFocused minimizeWindow)
     , ((modMask' .|. shiftMask, xK_m     ), sendMessage RestoreNextMinimizedWin)
     ]
     ++
