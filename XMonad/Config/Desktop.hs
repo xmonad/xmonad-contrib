@@ -126,7 +126,7 @@ import qualified Data.Map as M
 -- To add to the logHook while still sending workspace and window information
 -- to DE apps use something like:
 --
--- >  , logHook = myLogHook >> logHook desktopConfig
+-- >  , logHook = myLogHook <+> logHook desktopConfig
 --
 -- Or for more elaborate logHooks you can use @do@:
 --
@@ -138,25 +138,23 @@ import qualified Data.Map as M
 
 -- $eventHook
 -- To customize xmonad's event handling while still having it respond
--- to EWMH events from pagers, task bars, etc. add to your imports:
+-- to EWMH events from pagers, task bars:
 --
--- > import Data.Monoid
+-- >  , handleEventHook = myEventHooks <+> handleEventHook desktopConfig
 --
--- and use 'Data.Monoid.mappend' to combine event hooks (right to left application like @\<+\>@)
---
--- >  , handleEventHook = mappend myEventHooks (handleEventHook desktopConfig)
---
--- or 'Data.Monoid.mconcat' (like @composeAll@)
+-- or 'mconcat' if you write a list event of event hooks
 --
 -- >  , handleEventHook = mconcat
 -- >        [ myMouseHandler
 -- >        , myMessageHandler
 -- >        , handleEventHook desktopConfig ]
 --
+-- Note that the event hooks are run left to right (in contrast to
+-- 'ManageHook'S which are right to left)
 
 -- $startupHook
 -- To run the desktop startupHook, plus add further actions to be run each
--- time xmonad starts or restarts, use '>>' to combine actions as in the
+-- time xmonad starts or restarts, use '<+>' to combine actions as in the
 -- logHook example, or something like:
 --
 -- >  , startupHook = do
