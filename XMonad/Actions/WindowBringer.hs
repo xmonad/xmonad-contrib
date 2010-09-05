@@ -17,7 +17,9 @@
 module XMonad.Actions.WindowBringer (
                     -- * Usage
                     -- $usage
-                    gotoMenu, gotoMenu', bringMenu, windowMap,
+                    gotoMenu, gotoMenu', gotoMenuArgs, gotoMenuArgs',
+                    bringMenu, bringMenu', bringMenuArgs, bringMenuArgs',
+                    windowMap,
                     bringWindow
                    ) where
 
@@ -27,7 +29,7 @@ import qualified Data.Map as M
 import qualified XMonad.StackSet as W
 import XMonad
 import qualified XMonad as X
-import XMonad.Util.Dmenu (menuMap)
+import XMonad.Util.Dmenu (menuMapArgs)
 import XMonad.Util.NamedWindows (getName)
 
 -- $usage
@@ -44,19 +46,54 @@ import XMonad.Util.NamedWindows (getName)
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
+-- | Default menu command
+defaultCmd :: String
+defaultCmd = "dmenu"
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
 --   taken to the corresponding workspace.
 gotoMenu :: X ()
-gotoMenu = actionMenu W.focusWindow
+gotoMenu = gotoMenuArgs []
 
+-- | Pops open a dmenu with window titles. Choose one, and you will be
+--   taken to the corresponding workspace. This version takes a list of
+--   arguments to pass to dmenu.
+gotoMenuArgs :: [String] -> X ()
+gotoMenuArgs menuArgs = gotoMenuArgs' defaultCmd menuArgs
+
+-- | Pops open an application with window titles given over stdin. Choose one,
+--   and you will be taken to the corresponding workspace.
 gotoMenu' :: String -> X ()
-gotoMenu' menuCmd = actionMenu' menuCmd W.focusWindow
+gotoMenu' menuCmd = gotoMenuArgs' menuCmd []
+
+-- | Pops open an application with window titles given over stdin. Choose one,
+--   and you will be taken to the corresponding workspace. This version takes a
+--   list of arguments to pass to dmenu.
+gotoMenuArgs' :: String -> [String] -> X ()
+gotoMenuArgs' menuCmd menuArgs = actionMenu menuCmd menuArgs W.focusWindow
 
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace.
 bringMenu :: X ()
-bringMenu = actionMenu bringWindow
+bringMenu = bringMenuArgs []
+
+-- | Pops open a dmenu with window titles. Choose one, and it will be
+--   dragged, kicking and screaming, into your current workspace. This version
+--   takes a list of arguments to pass to dmenu.
+bringMenuArgs :: [String] -> X ()
+bringMenuArgs menuArgs = bringMenuArgs' defaultCmd menuArgs
+
+-- | Pops open an application with window titles given over stdin. Choose one,
+--   and it will be dragged, kicking and screaming, into your current
+--   workspace.
+bringMenu' :: String -> X ()
+bringMenu' menuCmd = bringMenuArgs' menuCmd []
+
+-- | Pops open an application with window titles given over stdin. Choose one,
+--   and it will be dragged, kicking and screaming, into your current
+--   workspace. This version allows arguments to the chooser to be specified.
+bringMenuArgs' :: String -> [String] -> X ()
+bringMenuArgs' menuCmd menuArgs = actionMenu menuCmd menuArgs bringWindow
 
 -- | Brings the specified window into the current workspace.
 bringWindow :: Window -> X.WindowSet -> X.WindowSet
@@ -64,14 +101,11 @@ bringWindow w ws = W.shiftWin (W.currentTag ws) w ws
 
 -- | Calls dmenuMap to grab the appropriate Window, and hands it off to action
 --   if found.
-actionMenu :: (Window -> X.WindowSet -> X.WindowSet) -> X()
-actionMenu action = actionMenu' "dmenu" action
-
-actionMenu' :: String -> (Window -> X.WindowSet -> X.WindowSet) -> X()
-actionMenu' menuCmd action = windowMap >>= menuMapFunction >>= flip X.whenJust (windows . action)
+actionMenu :: String -> [String] -> (Window -> X.WindowSet -> X.WindowSet) -> X ()
+actionMenu menuCmd menuArgs action = windowMap >>= menuMapFunction >>= flip X.whenJust (windows . action)
     where
       menuMapFunction :: M.Map String a -> X (Maybe a)
-      menuMapFunction selectionMap = menuMap menuCmd selectionMap
+      menuMapFunction selectionMap = menuMapArgs menuCmd menuArgs selectionMap
 
 -- | A map from window names to Windows.
 windowMap :: X (M.Map String Window)
