@@ -29,6 +29,7 @@ module XMonad.Util.Font
     , textExtentsXMF
     , printStringXMF
     , stringToPixel
+    , fi
     ) where
 
 import XMonad

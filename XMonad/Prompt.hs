@@ -71,7 +71,6 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.Types
 import XMonad.Util.XSelection (getSelection)
-import XMonad.Util.XUtils (fi)
 
 import Codec.Binary.UTF8.String (decodeString)
 import Control.Applicative ((<$>))

@@ -18,12 +18,10 @@ module XMonad.Util.Image
       Placement(..),
       iconPosition,
       drawIcon,
-
-      fi,
     ) where
 
 import XMonad
-import XMonad.Util.Font (stringToPixel)
+import XMonad.Util.Font (stringToPixel,fi)
 
 -- | Placement of the icon in the title bar
 data Placement = OffsetLeft Int Int   -- ^ An exact amount of pixels from the upper left corner
@@ -87,8 +85,3 @@ drawIcon dpy drw gc fc bc x y icon = do
   io $ fillRectangle dpy drw gc x y (fi i_w) (fi i_h)
   io $ setForeground dpy gc fcolor
   io $ drawPoints dpy drw gc (movePoints x y (iconToPoints icon)) coordModeOrigin
-
-
--- | Short-hand for 'fromIntegral'
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
