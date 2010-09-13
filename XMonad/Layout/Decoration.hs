@@ -79,8 +79,10 @@ data Theme =
           , fontName            :: String                   -- ^ Font name
           , decoWidth           :: Dimension                -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
           , decoHeight          :: Dimension                -- ^ Height of the decorations
-          , windowTitleAddons   :: [(String, Align)]       -- ^ Extra text to appear in a window's title bar
-          , windowTitleIcons    :: [([[Bool]], Placement)] -- ^ Extra icons to appear in a window's title bar
+          , windowTitleAddons   :: [(String, Align)]       -- ^ Extra text to appear in a window's title bar.
+                                                           --    Refer to for a use "XMonad.Layout.ImageButtonDecoration"
+          , windowTitleIcons    :: [([[Bool]], Placement)] -- ^ Extra icons to appear in a window's title bar.
+                                                           --    Inner @[Bool]@ is a row in a icon bitmap.
           } deriving (Show, Read)
 
 -- | The default xmonad 'Theme'.
