@@ -20,9 +20,12 @@ module XMonad.Layout.NoFrillsDecoration
     ( -- * Usage:
       -- $usage
       noFrillsDeco
+
+    , module XMonad.Layout.SimpleDecoration
     ) where
 
 import XMonad.Layout.Decoration
+import XMonad.Layout.SimpleDecoration
 
 -- $usage
 -- You can use this module with the following in your
