@@ -73,9 +73,9 @@ import Control.Monad (forM)
 -- group, and the layout with which the groups themselves will
 -- be arranged on the screen.
 --
--- The "XMonad.Layout.Groups.Examples" module contains examples of
--- layouts that can be defined with this combinator, and useful
--- operations on them. It is also the recommended starting point 
+-- The "XMonad.Layout.Groups.Examples" and "XMonad.Layout.Groups.Wmii" 
+-- modules contain examples of layouts that can be defined with this 
+-- combinator. They're also the recommended starting point 
 -- if you are a beginner and looking for something you can use easily.
 --
 -- One thing to note is that 'Groups'-based layout have their own
@@ -87,7 +87,7 @@ import Control.Monad (forM)
 -- example 'ModifySpec's (to be passed to the 'Modify' message) provided 
 -- by this module.
 --
--- If you use both 'Groups'-based and other layouts, The "XMonad.Layout.Groups.Examples"
+-- If you use both 'Groups'-based and other layouts, The "XMonad.Layout.Groups.Helpers"
 -- module provides actions that can work correctly with both, defined using
 -- functions from "XMonad.Actions.MessageFeedback".
 
@@ -117,10 +117,10 @@ gen (U i1 i2) = (U (i1+1) i2, zipWith U (repeat i1) [i2..])
 
 -- | Split an infinite list into two. I ended up not
 -- needing this, but let's keep it just in case.
-split :: [a] -> ([a], [a])
-split as = snd $ foldr step (True, ([], [])) as
-    where step a (True, (as1, as2)) = (False, (a:as1, as2))
-          step a (False, (as1, as2)) = (True, (as1, a:as2))
+-- split :: [a] -> ([a], [a])
+-- split as = snd $ foldr step (True, ([], [])) as
+--     where step a (True, (as1, as2)) = (False, (a:as1, as2))
+--           step a (False, (as1, as2)) = (True, (as1, a:as2))
 
 -- | Add a unique identity to a layout so we can
 -- follow it around.

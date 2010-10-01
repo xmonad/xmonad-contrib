@@ -11,28 +11,16 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Utility functions and example layouts for "XMonad.Layout.Groups".
+-- Example layouts for "XMonad.Layout.Groups".
 --
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Groups.Examples ( -- * Usage
                                        -- $usage
 
-                                       -- * Example: Wmii-like layout
-                                       -- $example1
-                                       wmiiLike
-                                     , zoomGroupIn
-                                     , zoomGroupOut
-                                     , zoomGroupReset
-                                     , toggleGroupFull
-                                     , groupToNextLayout
-                                     , groupToFullLayout
-                                     , groupToTabbedLayout
-                                     , groupToVerticalLayout
-
                                        -- * Example: Row of columns
-                                       -- $example2
-                                     , rowOfColumns
+                                       -- $example1
+                                       rowOfColumns
                                      , zoomColumnIn
                                      , zoomColumnOut
                                      , zoomColumnReset
@@ -43,7 +31,7 @@ module XMonad.Layout.Groups.Examples ( -- * Usage
                                      , toggleWindowFull
 
                                        -- * Example: Tiled tab groups
-                                       -- $example3
+                                       -- $example2
                                      , tallTabs
                                      , mirrorTallTabs
                                      , fullTabs
@@ -55,60 +43,32 @@ module XMonad.Layout.Groups.Examples ( -- * Usage
                                      , expandMasterGroups
                                      , nextOuterLayout
 
-                                       -- * Useful actions
-                                       -- $actions
 
-                                       -- ** Layout-generic actions
-                                     , swapUp
-                                     , swapDown
-                                     , swapMaster
-                                     , focusUp
-                                     , focusDown
-                                     , focusMaster
-                                     , toggleFocusFloat
-
-                                       -- ** 'G.Groups'-secific actions
-                                     , swapGroupUp
-                                     , swapGroupDown
-                                     , swapGroupMaster
-                                     , focusGroupUp
-                                     , focusGroupDown
-                                     , focusGroupMaster
-                                     , moveToGroupUp
-                                     , moveToGroupDown
-                                     , moveToNewGroupUp
-                                     , moveToNewGroupDown
-                                     , splitGroup
-
-                                       -- * Other useful stuff, re-exports
-                                     , GroupEQ
+                                       -- * Useful re-exports and utils
+                                     , module XMonad.Layout.Groups.Helpers
                                      , shrinkText
                                      , defaultTheme
+                                     , GroupEQ(..)
+                                     , zoomRowG
                                      ) where
 
 import XMonad hiding ((|||))
-import qualified XMonad.StackSet as W
 
 import qualified XMonad.Layout.Groups as G
+import XMonad.Layout.Groups.Helpers
 
 import XMonad.Layout.ZoomRow
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Named
 import XMonad.Layout.Renamed
 import XMonad.Layout.LayoutCombinators
-import XMonad.Layout.MessageControl
 import XMonad.Layout.Decoration
 import XMonad.Layout.Simplest
 
-import XMonad.Actions.MessageFeedback
-
-import Control.Monad (unless)
-import qualified Data.Map as M
 
 -- $usage
--- This module contains example 'G.Groups'-based layouts, and
--- 'X' actions that are useful when using them. You can either
--- import this module directly, or look at its source
+-- This module contains example 'G.Groups'-based layouts. 
+-- You can either import this module directly, or look at its source
 -- for ideas of how "XMonad.Layout.Groups" may be used.
 --
 -- You can use the contents of this module by adding
@@ -122,15 +82,9 @@ import qualified Data.Map as M
 --
 -- Whichever layout you choose to use, you will probably want to be 
 --   able to move focus and windows between groups in a consistent
---   manner. For this, you should take a look at the \"Useful Actions\"
---   section.
---
--- This module exports many operations with the same names as
---   'G.ModifySpec's from "XMonad.Layout.Groups", so if you want
---   to import both, we suggest to import "XMonad.Layout.Groups"
---   qualified:
---
--- > import qualified XMonad.Layout.Groups as G
+--   manner. For this, you should take a look at the functions from
+--   the "XMonad.Layout.Groups.Helpers" module, which are all 
+--   re-exported by this module.
 --
 -- For more information on how to extend your layour hook and key bindings, see
 --   "XMonad.Doc.Extending".
@@ -150,81 +104,9 @@ zoomRowG :: (Eq a, Show a, Read a, Show (l a), Read (l a))
 zoomRowG = zoomRowWith GroupEQ
 
 
--- * Example 1: Wmii-like layout
+-- * Example 1: Row of columns
 
 -- $example1
--- A layout inspired by the one used by the wmii (<http://wmii.suckless.org>).
--- Windows groups are arranged in a horizontal row, and each group can lay out 
--- its windows
---
---   * by maximizing the focused one
---
---   * by tabbing them (wmii uses a stacked layout, but I'm too lazy to write it)
---
---   * by arranging them in a column.
---
--- As the groups are arranged in a 'ZoomRow', the width of each group can be increased
--- or decreased at will. Groups can also be set to use the whole screen whenever they 
--- have focus.
---
--- To use this layout, add 'wmiiLike' (with a 'Shrinker' and decoration 'Theme' as 
--- parameters) to your layout hook, for example:
---
--- > myLayout = wmiiLike shrinkText defaultTheme
---
--- To be able to zoom in and out of groups, change their inner layout, etc.,
--- create key bindings for the relevant actions:
---
--- > ((modMask, xK_f), toggleGroupFull)
---
--- and so on.
-
-wmiiLike s t = G.group innerLayout zoomRowG
-    where column = named "Column" $ Tall 0 (3/100) (1/2)
-          tabs = named "Tabs" $ Simplest
-          innerLayout = renamed [CutWordsLeft 3] 
-                        $ addTabs s t
-                        $ ignore NextLayout 
-                        $ ignore (JumpToLayout "") $ unEscape 
-                           $ column ||| tabs ||| Full
-
--- | Increase the width of the focused group
-zoomGroupIn :: X ()
-zoomGroupIn = sendMessage $ G.ToEnclosing $ SomeMessage $ zoomIn
-
--- | Decrease the size of the focused group
-zoomGroupOut :: X ()
-zoomGroupOut = sendMessage $ G.ToEnclosing $ SomeMessage $ zoomOut
-
--- | Reset the size of the focused group to the default
-zoomGroupReset :: X ()
-zoomGroupReset = sendMessage $ G.ToEnclosing $ SomeMessage $ zoomReset
-
--- | Toggle whether the currently focused group should be maximized
--- whenever it has focus.
-toggleGroupFull :: X ()
-toggleGroupFull = sendMessage $ G.ToEnclosing $ SomeMessage $ ZoomFullToggle
-
--- | Rotate the layouts in the focused group.
-groupToNextLayout :: X ()
-groupToNextLayout = sendMessage $ escape NextLayout
-
--- | Switch the focused group to the \"maximized\" layout.
-groupToFullLayout :: X ()
-groupToFullLayout = sendMessage $ escape $ JumpToLayout "Full"
-
--- | Switch the focused group to the \"tabbed\" layout.
-groupToTabbedLayout :: X ()
-groupToTabbedLayout = sendMessage $ escape $ JumpToLayout "Tabs"
-
--- | Switch the focused group to the \"column\" layout.
-groupToVerticalLayout :: X ()
-groupToVerticalLayout = sendMessage $ escape $ JumpToLayout "Column"
-
-
--- * Example 2: Row of columns
-
--- $example2
 -- A layout that arranges windows in a row of columns. It uses 'ZoomRow's for
 -- both, allowing you to:
 --
@@ -252,20 +134,20 @@ rowOfColumns = G.group column zoomRowG
 
 -- | Increase the width of the focused column
 zoomColumnIn :: X ()
-zoomColumnIn = zoomGroupIn
+zoomColumnIn = sendMessage $ G.ToEnclosing $ SomeMessage $ zoomIn
 
 -- | Decrease the width of the focused column
 zoomColumnOut :: X ()
-zoomColumnOut = zoomGroupOut
+zoomColumnOut = sendMessage $ G.ToEnclosing $ SomeMessage $ zoomOut
 
 -- | Reset the width of the focused column
 zoomColumnReset :: X ()
-zoomColumnReset = zoomGroupReset
+zoomColumnReset = sendMessage $ G.ToEnclosing $ SomeMessage $ zoomReset
 
 -- | Toggle whether the currently focused column should
 -- take up all available space whenever it has focus
 toggleColumnFull :: X ()
-toggleColumnFull = toggleGroupFull
+toggleColumnFull = sendMessage $ G.ToEnclosing $ SomeMessage $ ZoomFullToggle
 
 -- | Increase the heigth of the focused window
 zoomWindowIn :: X ()
@@ -285,9 +167,9 @@ toggleWindowFull :: X ()
 toggleWindowFull = sendMessage ZoomFullToggle
 
 
--- * Example 3: Tabbed groups in a Tall/Full layout.
+-- * Example 2: Tabbed groups in a Tall/Full layout.
 
--- $example3
+-- $example2
 -- A layout which arranges windows into tabbed groups, and the groups
 -- themselves according to XMonad's default algorithm 
 -- (@'Tall' ||| 'Mirror' 'Tall' ||| 'Full'@). As their names
@@ -356,168 +238,3 @@ expandMasterGroups = sendMessage $ G.ToEnclosing $ SomeMessage $ Expand
 nextOuterLayout :: X ()
 nextOuterLayout = sendMessage $ G.ToEnclosing $ SomeMessage $ NextLayout
 
-
--- * Useful actions
-
--- $actions
--- "XMonad.Layout.Groups"-based layouts do not have the same notion
--- of window ordering as the rest of XMonad. For this reason, the usual
--- ways of reordering windows and moving focus do not work with them.
--- "XMonad.Layout.Groups" provides 'Message's that can be used to obtain
--- the right effect.
---
--- But what if you want to use both 'G.Groups' and other layouts?
--- This module provides actions that try to send 'G.GroupsMessage's, and
--- fall back to the classic way if the current layout doesn't hande them.
--- They are in the section called \"Layout-generic actions\".
--- 
--- The sections \"Groups-specific actions\" contains actions that don't make
--- sense for non-'G.Groups'-based layouts. These are simply wrappers around
--- the equivalent 'G.GroupsMessage's, but are included so you don't have to
--- write @sendMessage $ Modify $ ...@ everytime.
-
--- ** Layout-generic actions
--- #Layout-generic actions#
-
-alt :: G.ModifySpec -> (WindowSet -> WindowSet) -> X ()
-alt f g = alt2 (G.Modify f) $ windows g
-
-alt2 :: G.GroupsMessage -> X () -> X ()
-alt2 m x = do b <- send m
-              unless b x
-
--- | Swap the focused window with the previous one
-swapUp :: X ()
-swapUp = alt G.swapUp W.swapUp
-
--- | Swap the focused window with the next one
-swapDown :: X ()
-swapDown = alt G.swapDown W.swapDown
-
--- | Swap the focused window with the master window
-swapMaster :: X ()
-swapMaster = alt G.swapMaster W.swapMaster
-
--- | If the focused window is floating, focus the next floating
--- window. otherwise, focus the next non-floating one.
-focusUp :: X ()
-focusUp = ifFloat focusFloatUp focusNonFloatUp
-
--- | If the focused window is floating, focus the next floating
--- window. otherwise, focus the next non-floating one.
-focusDown :: X ()
-focusDown = ifFloat focusFloatDown focusNonFloatDown
-
--- | Move focus to the master window
-focusMaster :: X ()
-focusMaster = alt G.focusMaster W.shiftMaster
-
--- | Move focus between the floating and non-floating layers
-toggleFocusFloat :: X ()
-toggleFocusFloat = ifFloat focusNonFloat focusFloatUp
-
--- *** Floating layer helpers
-
-getFloats :: X [Window]
-getFloats = gets $ M.keys . W.floating . windowset
-
-getWindows :: X [Window]
-getWindows = gets $ W.integrate' . W.stack . W.workspace . W.current . windowset
-
-ifFloat :: X () -> X () -> X ()
-ifFloat x1 x2 = withFocused $ \w -> do floats <- getFloats
-                                       if elem w floats then x1 else x2
-
-focusNonFloat :: X ()
-focusNonFloat = alt2 G.Refocus helper
-    where helper = withFocused $ \w -> do 
-                     ws <- getWindows
-                     floats <- getFloats
-                     let (before,  after) = span (/=w) ws
-                     case filter (flip notElem floats) $ after ++ before of
-                       [] -> return ()
-                       w':_ -> focus w'
-
-focusHelper :: (Bool -> Bool) -- ^ if you want to focus a floating window, 'id'.
-                              -- if you want a non-floating one, 'not'.
-            -> ([Window] -> [Window]) -- ^ if you want the next window, 'id'.
-                                      -- if you want the previous one, 'reverse'.
-            -> X ()
-focusHelper f g = withFocused $ \w -> do
-                 ws <- getWindows
-                 let (before, _:after) = span (/=w) ws
-                 let toFocus = g $ after ++ before
-                 floats <- getFloats
-                 case filter (f . flip elem floats) toFocus of
-                   [] -> return ()
-                   w':_ -> focus w'
-
-
-focusNonFloatUp :: X ()
-focusNonFloatUp = alt2 (G.Modify G.focusUp) $ focusHelper not reverse
-
-focusNonFloatDown :: X ()
-focusNonFloatDown = alt2 (G.Modify G.focusDown) $ focusHelper not id
-
-focusFloatUp :: X ()
-focusFloatUp = focusHelper id reverse
-                 
-focusFloatDown :: X ()
-focusFloatDown = focusHelper id id
-
-
--- ** Groups-specific actions
-
-wrap :: G.ModifySpec -> X ()
-wrap = sendMessage . G.Modify
-
--- | Swap the focused group with the previous one
-swapGroupUp :: X ()
-swapGroupUp = wrap G.swapGroupUp
-
--- | Swap the focused group with the next one
-swapGroupDown :: X ()
-swapGroupDown = wrap G.swapGroupDown
-
--- | Swap the focused group with the master group
-swapGroupMaster :: X ()
-swapGroupMaster = wrap G.swapGroupMaster
-
--- | Move the focus to the previous group
-focusGroupUp :: X ()
-focusGroupUp = wrap G.focusGroupUp
-
--- | Move the focus to the next group
-focusGroupDown :: X ()
-focusGroupDown = wrap G.focusGroupDown
-
--- | Move the focus to the master group
-focusGroupMaster :: X ()
-focusGroupMaster = wrap G.focusGroupMaster
-
--- | Move the focused window to the previous group. The 'Bool' argument
--- determines what will be done if the focused window is in the very first
--- group: Wrap back to the end ('True'), or create a new group before
--- it ('False').
-moveToGroupUp :: Bool -> X ()
-moveToGroupUp = wrap . G.moveToGroupUp
-
--- | Move the focused window to the next group. The 'Bool' argument
--- determines what will be done if the focused window is in the very last
--- group: Wrap back to the beginning ('True'), or create a new group after
--- it ('False').
-moveToGroupDown :: Bool -> X ()
-moveToGroupDown = wrap . G.moveToGroupDown
-
--- | Move the focused window to a new group before the current one
-moveToNewGroupUp :: X ()
-moveToNewGroupUp = wrap G.moveToNewGroupUp
-
--- | Move the focused window to a new group after the current one
-moveToNewGroupDown :: X ()
-moveToNewGroupDown = wrap G.moveToNewGroupDown
-
--- | Split the focused group in two at the position of the focused
--- window.
-splitGroup :: X ()
-splitGroup = wrap G.splitGroup
