@@ -4,7 +4,7 @@
 -- Copyright    : (c) Quentin Moser <moserq@gmail.com>
 -- License      : BSD3
 --
--- Maintainer   : <moserq@gmail.com>
+-- Maintainer   : orphaned
 -- Stability    : unstable
 -- Portability  : unportable
 --

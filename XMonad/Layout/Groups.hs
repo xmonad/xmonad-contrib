@@ -9,15 +9,12 @@
 -- Copyright   :  Quentin Moser <moserq@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --
--- Maintainer  :  Quentin Moser <moserq@gmail.com>
+-- Maintainer  :  orphaned
 -- Stability   :  unstable
 -- Portability :  unportable
 --
 -- Two-level layout with windows split in individual layout groups,
 -- themselves managed by a user-provided layout.
---
--- NOTE: this module has redundancies with "XMonad.Layout.SubLayouts", and
--- will be removed once merged.
 --
 -----------------------------------------------------------------------------
 
