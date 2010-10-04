@@ -32,9 +32,9 @@ import Data.Maybe (fromMaybe)
 -- ---------------------------------------------------------------------
 -- $usage
 --
--- To utilize this feature in a contrib module create a data type,
+-- To utilize this feature in a contrib module, create a data type
 -- and make it an instance of ExtensionClass. You can then use
--- the functions from this module for storing your data:
+-- the functions from this module for storing and retrieving your data:
 --
 -- > {-# LANGUAGE DeriveDataTypeable #-}
 -- > import qualified XMonad.Util.ExtensibleState as XS
@@ -45,12 +45,12 @@ import Data.Maybe (fromMaybe)
 -- >
 -- > .. XS.put (ListStorage [23,42])
 --
--- To retrieve the stored data call:
+-- To retrieve the stored value call:
 --
 -- > .. XS.get
 --
--- If the type can't be infered from the usage of the retrieved data, you
--- might need to add an explicit type signature:
+-- If the type can't be inferred from the usage of the retrieved data, you
+-- have to add an explicit type signature:
 --
 -- > .. XS.get :: X ListStorage
 --
@@ -65,10 +65,12 @@ import Data.Maybe (fromMaybe)
 --
 -- One should take care that the string representation of the chosen type
 -- is unique among the stored values, otherwise it will be overwritten.
--- Normally these values contain fully qualified module names when deriving Typeable, so
+-- Normally these string representations contain fully qualified module names
+-- when automatically deriving Typeable, so
 -- name collisions should not be a problem in most cases.
 -- A module should not try to store common datatypes(e.g. a list of Integers)
--- without a custom data type as a wrapper to avoid those collisions.
+-- without a custom data type as a wrapper to avoid collisions with other modules
+-- trying to store the same data type without a wrapper.
 --
 
 -- | Modify the map of state extensions by applying the given function.
