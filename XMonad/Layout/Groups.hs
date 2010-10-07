@@ -79,7 +79,7 @@ import Control.Monad (forM)
 -- notion of the order of windows, which is completely separate
 -- from XMonad's. For this reason, operations like 'XMonad.StackSet.SwapUp'
 -- will have no visible effect, and those like 'XMonad.StackSet.focusUp'
--- will focus the windows in an imprevisible order. For a better way of
+-- will focus the windows in an unpredictable order. For a better way of
 -- rearranging windows and moving focus in such a layout, see the
 -- example 'ModifySpec's (to be passed to the 'Modify' message) provided 
 -- by this module.

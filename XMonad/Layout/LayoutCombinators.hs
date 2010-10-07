@@ -76,6 +76,7 @@ import XMonad.Layout.DragPane
 -- > import XMonad hiding ( (|||) )
 -- > import XMonad.Layout.LayoutCombinators
 --
+-- If you import XMonad.Layout, you will need to hide it from there as well.
 -- Then bind some keys to a 'JumpToLayout' message:
 --
 -- >   , ((modm .|. controlMask, xK_f), sendMessage $ JumpToLayout "Full")  -- jump directly to the Full layout
@@ -179,9 +180,16 @@ infixr 5 |||
 -- The standard xmonad core exports a layout combinator @|||@ which
 -- represents layout choice.  This is a reimplementation which also
 -- provides the capability to support 'JumpToLayout' messages.  To use
--- it, be sure to hide the import of @|||@ from the xmonad core:
+-- it, be sure to hide the import of @|||@ from the xmonad core; if either of
+-- these two lines appear in your configuration:
+--
+-- > import XMonad
+-- > import XMonad.Layout
+--
+-- replace them with these instead, respectively:
 --
 -- > import XMonad hiding ( (|||) )
+-- > import XMonad.Layout hiding ( (|||) )
 --
 -- The argument given to a 'JumpToLayout' message should be the
 -- @description@ of the layout to be selected.  If you use
