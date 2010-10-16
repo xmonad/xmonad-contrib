@@ -439,14 +439,13 @@ gridselect gsconfig elmap =
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
                                 elmap' = zip coords elmap
 
-                            evalTwoD (updateAllElements >> eventLoop)
-                                (TwoDState (head coords)
-                                            elmap'
-                                            gsconfig
-                                            font
-                                            screenWidth
-                                            screenHeight
-                                            win)
+                            evalTwoD (updateAllElements >> eventLoop) TwoDState { td_curpos = (head coords),
+                                                                                  td_elementmap = elmap',
+                                                                                  td_gsconfig = gsconfig,
+                                                                                  td_font = font,
+                                                                                  td_paneX = screenWidth,
+                                                                                  td_paneY = screenHeight,
+                                                                                  td_drawingWin = win }
                       else
                           return Nothing
     liftIO $ do
