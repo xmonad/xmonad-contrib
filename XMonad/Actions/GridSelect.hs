@@ -208,13 +208,15 @@ data TwoDState a = TwoDState { td_curpos :: TwoDPosition
                              , td_paneX :: Integer
                              , td_paneY :: Integer
                              , td_drawingWin :: Window
+                             , td_searchString :: String
                              }
 
 td_elementmap :: TwoDState a -> [(TwoDPosition,(String,a))]
 td_elementmap s =
   let positions = td_availSlots s
-      elements = td_elements s
+      elements = L.filter (((td_searchString s) `isSubstringOf`) . fst) (td_elements s)
   in zipWith (,) positions elements
+  where sub `isSubstringOf` string = or [ sub `isPrefixOf` t | t <- tails string ]
 
 newtype TwoD a b = TwoD { unTwoD :: StateT (TwoDState a) X b }
     deriving (Monad,Functor,MonadState (TwoDState a))
@@ -455,7 +457,8 @@ gridselect gsconfig elements =
                                                                                   td_font = font,
                                                                                   td_paneX = screenWidth,
                                                                                   td_paneY = screenHeight,
-                                                                                  td_drawingWin = win }
+                                                                                  td_drawingWin = win,
+                                                                                  td_searchString = "" }
                       else
                           return Nothing
     liftIO $ do
