@@ -280,8 +280,20 @@ updateAllElements =
       state <- get
       updateElements (td_elementmap state)
 
+grayoutAllElements :: TwoD a ()
+grayoutAllElements =
+    do
+      state <- get
+      updateElementsWithColorizer grayOnly (td_elementmap state)
+    where grayOnly _ _ = return ("#808080", "#808080")
+
 updateElements :: TwoDElementMap a -> TwoD a ()
 updateElements elementmap = do
+      state <- get
+      updateElementsWithColorizer (gs_colorizer (td_gsconfig state)) elementmap
+
+updateElementsWithColorizer :: (a -> Bool -> X (String, String)) -> TwoDElementMap a -> TwoD a ()
+updateElementsWithColorizer colorizer elementmap = do
     TwoDState { td_curpos = curpos,
                 td_drawingWin = win,
                 td_gsconfig = gsconfig,
@@ -293,7 +305,7 @@ updateElements elementmap = do
         paneX' = div (paneX-cellwidth) 2
         paneY' = div (paneY-cellheight) 2
         updateElement (pos@(x,y),(text, element)) = liftX $ do
-            colors <- gs_colorizer gsconfig element (pos == curpos)
+            colors <- colorizer element (pos == curpos)
             drawWinBox win font
                        colors
                        cellheight
