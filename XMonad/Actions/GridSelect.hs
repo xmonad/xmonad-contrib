@@ -223,11 +223,13 @@ evalTwoD ::  TwoD a1 a -> TwoDState a1 -> X a
 evalTwoD m s = flip evalStateT s $ unTwoD m
 
 diamondLayer :: (Enum b', Num b') => b' -> [(b', b')]
--- FIXME remove nub
-diamondLayer n = let ul = [ (x,n-x) | x <- [0..n] ]
-        in nub $ ul ++ (map (negate *** id) ul) ++
-           (map (negate *** negate) ul) ++
-           (map (id *** negate) ul)
+diamondLayer 0 = [(0,0)]
+diamondLayer n =
+  -- tr = top right
+  --  r = ur ++ 90 degree clock-wise rotation of ur
+  let tr = [ (x,n-x) | x <- [0..n-1] ]
+      r  = tr ++ (map (\(x,y) -> (y,-x)) tr)
+  in r ++ (map (negate *** negate) r)
 
 diamond :: (Enum a, Num a) => [(a, a)]
 diamond = concatMap diamondLayer [0..]
