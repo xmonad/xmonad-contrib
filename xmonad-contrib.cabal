@@ -230,6 +230,7 @@ library
                         XMonad.Layout.Tabbed
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.ToggleLayouts
+                        XMonad.Layout.TrackFloating
                         XMonad.Layout.TwoPane
                         XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
