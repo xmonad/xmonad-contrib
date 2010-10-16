@@ -266,8 +266,8 @@ drawWinBox win font (fg,bg) ch cw text x y cp =
 updateAllElements :: TwoD a ()
 updateAllElements =
     do
-      TwoDState { td_elementmap = els } <- get
-      updateElements els
+      state <- get
+      updateElements (td_elementmap state)
 
 updateElements :: TwoDElementMap a -> TwoD a ()
 updateElements elementmap = do
@@ -308,8 +308,8 @@ handle ::  (KeySym, t) -> Event -> TwoD a (Maybe a)
 handle (ks,_) (KeyEvent {ev_event_type = t, ev_state = m })
     | t == keyPress && ks == xK_Escape = return Nothing
     | t == keyPress && ks == xK_Return = do
-       (TwoDState { td_curpos = pos, td_elementmap = elmap }) <- get
-       return $ fmap (snd . snd) $ findInElementMap pos elmap
+       state <- get
+       return $ fmap (snd . snd) $ findInElementMap (td_curpos state) (td_elementmap state)
     | t == keyPress = do
         m' <- liftX (cleanMask m)
         keymap <- gets (gs_navigate . td_gsconfig)
@@ -327,11 +327,12 @@ handle (ks,_) (KeyEvent {ev_event_type = t, ev_state = m })
 
 handle _ (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y })
     | t == buttonRelease = do
-        (TwoDState { td_elementmap = elmap, td_paneX = px, td_paneY = py,
-                     td_gsconfig = (GSConfig ch cw _ _ _ _ _ _) }) <- get
-        let gridX = (fi x - (px - cw) `div` 2) `div` cw
+        state <- get
+        let (TwoDState { td_paneX = px, td_paneY = py,
+                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _) }) = state
+            gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
-        case lookup (gridX,gridY) elmap of
+        case lookup (gridX,gridY) (td_elementmap state) of
              Just (_,el) -> return (Just el)
              Nothing -> eventLoop
     | otherwise = eventLoop
