@@ -201,13 +201,20 @@ type TwoDPosition = (Integer, Integer)
 type TwoDElementMap a = [(TwoDPosition,(String,a))]
 
 data TwoDState a = TwoDState { td_curpos :: TwoDPosition
-                             , td_elementmap :: TwoDElementMap a
+                             , td_availSlots :: [TwoDPosition]
+                             , td_elements :: [(String,a)]
                              , td_gsconfig :: GSConfig a
                              , td_font :: XMonadFont
                              , td_paneX :: Integer
                              , td_paneY :: Integer
                              , td_drawingWin :: Window
                              }
+
+td_elementmap :: TwoDState a -> [(TwoDPosition,(String,a))]
+td_elementmap s =
+  let positions = td_availSlots s
+      elements = td_elements s
+  in zipWith (,) positions elements
 
 newtype TwoD a b = TwoD { unTwoD :: StateT (TwoDState a) X b }
     deriving (Monad,Functor,MonadState (TwoDState a))
@@ -420,7 +427,7 @@ stringToRatio s = let gen = mkStdGen $ sum $ map fromEnum s
 -- select an element with cursors keys. The selected element is returned.
 gridselect :: GSConfig a -> [(String,a)] -> X (Maybe a)
 gridselect _ [] = return Nothing
-gridselect gsconfig elmap =
+gridselect gsconfig elements =
  withDisplay $ \dpy -> do
     rootw <- asks theRoot
     s <- gets $ screenRect . W.screenDetail . W.current . windowset
@@ -440,10 +447,10 @@ gridselect gsconfig elmap =
                                 originPosX = floor $ ((gs_originFractX gsconfig) - (1/2)) * 2 * fromIntegral restrictX
                                 originPosY = floor $ ((gs_originFractY gsconfig) - (1/2)) * 2 * fromIntegral restrictY
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
-                                elmap' = zip coords elmap
 
                             evalTwoD (updateAllElements >> eventLoop) TwoDState { td_curpos = (head coords),
-                                                                                  td_elementmap = elmap',
+                                                                                  td_availSlots = coords,
+                                                                                  td_elements = elements,
                                                                                   td_gsconfig = gsconfig,
                                                                                   td_font = font,
                                                                                   td_paneX = screenWidth,
