@@ -53,6 +53,7 @@ module XMonad.Actions.GridSelect (
     ) where
 import Data.Maybe
 import Data.Bits
+import Data.Char
 import Control.Applicative
 import Control.Monad.State
 import Control.Arrow
@@ -216,7 +217,8 @@ td_elementmap s =
   let positions = td_availSlots s
       elements = L.filter (((td_searchString s) `isSubstringOf`) . fst) (td_elements s)
   in zipWith (,) positions elements
-  where sub `isSubstringOf` string = or [ sub `isPrefixOf` t | t <- tails string ]
+  where sub `isSubstringOf` string = or [ (upper sub) `isPrefixOf` t | t <- tails (upper string) ]
+        upper = map toUpper
 
 newtype TwoD a b = TwoD { unTwoD :: StateT (TwoDState a) X b }
     deriving (Monad,Functor,MonadState (TwoDState a))
