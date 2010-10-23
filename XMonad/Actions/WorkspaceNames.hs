@@ -41,7 +41,8 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..))
 import qualified XMonad.Actions.SwapWorkspaces as Swap
 import XMonad.Hooks.DynamicLog (PP(..))
-import XMonad.Prompt (showXPrompt, mkXPrompt, XPrompt, XPConfig)
+import XMonad.Prompt (mkXPrompt, XPConfig)
+import XMonad.Prompt.Workspace (Wor(Wor))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 import qualified Data.Map as M
@@ -105,10 +106,6 @@ setCurrentWorkspaceName :: String -> X ()
 setCurrentWorkspaceName name = do
     current <- gets (W.currentTag . windowset)
     setWorkspaceName current name
-
-data Wor = Wor String
-instance XPrompt Wor where
-    showXPrompt (Wor x) = x
 
 -- | Prompt for a new name for the current workspace and set it.
 renameWorkspace :: XPConfig -> X ()

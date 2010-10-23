@@ -26,6 +26,7 @@ module XMonad.Layout.Tabbed
     , TabbedDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
+    , TabbarShown, TabbarLocation
     ) where
 
 import Data.List

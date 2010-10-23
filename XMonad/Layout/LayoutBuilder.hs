@@ -24,7 +24,8 @@ module XMonad.Layout.LayoutBuilder (
   SubMeasure (..),
   SubBox (..),
   absBox,
-  relBox
+  relBox,
+  LayoutN,
 ) where
 
 import XMonad

@@ -61,6 +61,8 @@ module XMonad.Prompt
     , initMatches
     , historyUpMatching
     , historyDownMatching
+    -- * Types
+    , XPState
     ) where
 
 import Prelude hiding (catch)

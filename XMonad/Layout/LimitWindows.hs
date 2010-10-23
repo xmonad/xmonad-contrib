@@ -29,6 +29,9 @@ module XMonad.Layout.LimitWindows (
     -- * For tests
     select,update,Selection(..),updateAndSelect,
 #endif
+
+    -- * Types
+    LimitWindows, Selection,
     ) where
 
 import XMonad.Layout.LayoutModifier

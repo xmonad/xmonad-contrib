@@ -22,7 +22,8 @@
 module XMonad.Layout.ButtonDecoration
     ( -- * Usage:
       -- $usage
-      buttonDeco
+      buttonDeco,
+      ButtonDecoration,
     ) where
 
 import XMonad

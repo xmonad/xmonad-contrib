@@ -18,7 +18,8 @@ module XMonad.Layout.MultiColumns (
                               -- * Usage
                               -- $usage
 
-                              multiCol
+                              multiCol,
+                              MultiCol,
                              ) where
 
 import XMonad

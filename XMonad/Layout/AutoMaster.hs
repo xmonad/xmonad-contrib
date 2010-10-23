@@ -18,7 +18,7 @@
 module XMonad.Layout.AutoMaster (
                              -- * Usage
                              -- $usage
-                             autoMaster
+                             autoMaster, AutoMaster
                             ) where
 import Control.Monad
 

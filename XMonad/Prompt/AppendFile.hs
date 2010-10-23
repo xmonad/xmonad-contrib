@@ -22,7 +22,8 @@ module XMonad.Prompt.AppendFile (
                                  -- * Usage
                                  -- $usage
 
-                                 appendFilePrompt
+                                 appendFilePrompt,
+                                 AppendFile,
                                 ) where
 
 import XMonad.Core

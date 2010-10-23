@@ -19,7 +19,8 @@ module XMonad.Layout.Maximize (
         -- * Usage
         -- $usage
         maximize,
-        maximizeRestore
+        maximizeRestore,
+        Maximize, MaximizeRestore,
     ) where
 
 import XMonad

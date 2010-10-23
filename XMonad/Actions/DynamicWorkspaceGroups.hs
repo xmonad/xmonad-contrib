@@ -31,6 +31,8 @@ module XMonad.Actions.DynamicWorkspaceGroups
     , promptWSGroupView
     , promptWSGroupAdd
     , promptWSGroupForget
+
+    , WSGPrompt
     ) where
 
 import Data.List (find)

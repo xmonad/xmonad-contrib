@@ -18,6 +18,9 @@ module XMonad.Prompt.AppLauncher ( -- * Usage
                                    ,module XMonad.Prompt
                                   -- * Use case: launching gimp with file
                                   -- $tip
+
+                                  -- * Types
+                                   ,Application, AppPrompt,
                                   ) where
 
 import XMonad (X(),MonadIO)

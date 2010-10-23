@@ -51,9 +51,12 @@ module XMonad.Actions.Search (   -- * Usage
                                  wikipedia,
                                  wiktionary,
                                  youtube,
-                                 multi
+                                 multi,
                                   -- * Use case: searching with a submap
                                   -- $tip
+
+                                  -- * Types
+                                 Browser, Site, Query, Name, Search
                           ) where
 
 import Codec.Binary.UTF8.String (encode)

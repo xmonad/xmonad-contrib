@@ -28,6 +28,8 @@ module XMonad.Layout.SubLayouts (
 
     defaultSublMap,
 
+    Sublayout,
+
     -- * Screenshots
     -- $screenshots
 

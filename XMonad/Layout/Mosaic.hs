@@ -21,6 +21,8 @@ module XMonad.Layout.Mosaic (
     ,mosaic
     ,changeMaster
     ,changeFocused
+
+    ,Mosaic
     )
     where
 

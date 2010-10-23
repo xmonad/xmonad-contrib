@@ -29,6 +29,7 @@ module XMonad.Layout.ImageButtonDecoration
       imageButtonDeco
     , defaultThemeWithImageButtons
     , imageTitleBarButtonHandler
+    , ImageButtonDecoration
     ) where
 
 import XMonad

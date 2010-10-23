@@ -19,7 +19,8 @@ module XMonad.Layout.Minimize (
         -- $usage
         minimize,
         minimizeWindow,
-        MinimizeMsg(RestoreMinimizedWin,RestoreNextMinimizedWin)
+        MinimizeMsg(RestoreMinimizedWin,RestoreNextMinimizedWin),
+        Minimize,
     ) where
 
 import XMonad

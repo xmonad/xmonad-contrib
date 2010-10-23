@@ -29,6 +29,8 @@ module XMonad.Layout.Drawer
     , onLeft, onTop, onRight, onBottom
 
     , module XMonad.Util.WindowProperties
+
+    , Drawer, Reflected
     ) where
 
 import XMonad

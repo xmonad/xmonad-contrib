@@ -24,6 +24,7 @@ module XMonad.Layout.BorderResize
       -- $usage
       borderResize
     , BorderResize (..)
+    , RectWithBorders, BorderInfo,
     ) where
 
 import XMonad

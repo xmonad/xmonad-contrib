@@ -20,7 +20,8 @@ module XMonad.Layout.MagicFocus
      promoteWarp,
      promoteWarp',
      followOnlyIf,
-     disableFollowOnWS
+     disableFollowOnWS,
+     MagicFocus,
     ) where
 
 import XMonad

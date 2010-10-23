@@ -22,6 +22,7 @@ module XMonad.Layout.NoFrillsDecoration
       noFrillsDeco
 
     , module XMonad.Layout.SimpleDecoration
+    , NoFrillsDecoration
     ) where
 
 import XMonad.Layout.Decoration

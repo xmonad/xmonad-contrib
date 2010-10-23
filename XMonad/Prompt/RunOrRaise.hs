@@ -16,7 +16,8 @@
 module XMonad.Prompt.RunOrRaise
     ( -- * Usage
       -- $usage
-      runOrRaisePrompt
+      runOrRaisePrompt,
+      RunOrRaisePrompt,
     ) where
 
 import XMonad hiding (config)

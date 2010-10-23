@@ -20,7 +20,9 @@ module XMonad.Prompt.Man (
                           -- $usage
                           manPrompt
                          , getCommandOutput
+                         , Man
                          ) where
+
 
 import XMonad
 import XMonad.Prompt

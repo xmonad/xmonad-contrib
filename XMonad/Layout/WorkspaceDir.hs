@@ -25,7 +25,8 @@ module XMonad.Layout.WorkspaceDir (
                                    -- * Usage
                                    -- $usage
                                    workspaceDir,
-                                   changeDir
+                                   changeDir,
+                                   WorkspaceDir,
                                   ) where
 
 import Prelude hiding (catch)

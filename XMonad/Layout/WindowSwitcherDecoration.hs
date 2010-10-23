@@ -20,7 +20,8 @@ module XMonad.Layout.WindowSwitcherDecoration
       -- $usage
       windowSwitcherDecoration,
       windowSwitcherDecorationWithButtons,
-      windowSwitcherDecorationWithImageButtons
+      windowSwitcherDecorationWithImageButtons,
+      WindowSwitcherDecoration, ImageWindowSwitcherDecoration,
     ) where
 
 import XMonad

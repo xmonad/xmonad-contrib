@@ -28,8 +28,8 @@ module XMonad.Actions.DynamicWorkspaces (
 
 import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter, modify, delete)
-import XMonad.Prompt.Workspace
-import XMonad.Prompt ( XPConfig, mkXPrompt, XPrompt(..) )
+import XMonad.Prompt.Workspace ( Wor(Wor), workspacePrompt )
+import XMonad.Prompt ( XPConfig, mkXPrompt )
 import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 import Data.List (find)
 import Data.Maybe (isNothing)
@@ -60,11 +60,6 @@ import Control.Monad (when)
 -- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
 -- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'defaultXPConfig'.
 
-
-data Wor = Wor String
-
-instance XPrompt Wor where
-    showXPrompt (Wor x) = x
 
 mkCompl :: [String] -> String -> IO [String]
 mkCompl l s = return $ filter (\x -> take (length s) x == s) l

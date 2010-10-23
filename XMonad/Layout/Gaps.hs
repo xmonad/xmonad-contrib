@@ -28,7 +28,7 @@
 module XMonad.Layout.Gaps (
                                -- * Usage
                                -- $usage
-                          Direction2D(..),
+                          Direction2D(..), Gaps,
                           GapSpec, gaps, GapMessage(..)
 
                           ) where

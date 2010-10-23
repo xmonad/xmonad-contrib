@@ -27,6 +27,7 @@ module XMonad.Layout.Decoration
     , isInStack, isVisible, isInvisible, isWithin, fi
     , findWindowByDecoration
     , module XMonad.Layout.LayoutModifier
+    , DecorationState, OrigWin
     ) where
 
 import Control.Monad (when)

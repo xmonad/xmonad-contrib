@@ -47,6 +47,9 @@ module XMonad.Layout.LayoutCombinators
       -- $jtl
     , (|||)
     , JumpToLayout(..)
+
+      -- * Types
+    , NewSelect
     ) where
 
 import Data.Maybe ( isJust, isNothing )

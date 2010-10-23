@@ -36,7 +36,7 @@ module XMonad.Actions.WindowNavigation (
                                        withWindowNavigationKeys,
                                        WNAction(..),
                                        go, swap,
-                                       Direction2D(..)
+                                       Direction2D(..), WNState,
                                        ) where
 
 import XMonad

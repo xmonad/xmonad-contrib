@@ -15,7 +15,8 @@
 module XMonad.Prompt.Directory (
                              -- * Usage
                              -- $usage
-                             directoryPrompt
+                             directoryPrompt,
+                             Dir,
                               ) where
 
 import XMonad

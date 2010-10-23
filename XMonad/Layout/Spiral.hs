@@ -21,6 +21,8 @@ module XMonad.Layout.Spiral (
                             , spiralWithDir
                             , Rotation (..)
                             , Direction (..)
+
+                            , SpiralWithDir
                             ) where
 
 import Data.Ratio

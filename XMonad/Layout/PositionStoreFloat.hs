@@ -22,7 +22,7 @@
 module XMonad.Layout.PositionStoreFloat
     ( -- * Usage
       -- $usage
-      positionStoreFloat
+      positionStoreFloat, PositionStoreFloat
     ) where
 
 import XMonad

@@ -14,7 +14,7 @@
 
 module XMonad.Util.Dzen (
     -- * Flexible interface
-    dzenConfig,
+    dzenConfig, DzenConfig,
     timeout,
     font,
     xScreen,
@@ -34,7 +34,7 @@ module XMonad.Util.Dzen (
     -- * Miscellaneous
     seconds,
     chomp,
-    (>=>)
+    (>=>),
   ) where
 
 import Control.Monad

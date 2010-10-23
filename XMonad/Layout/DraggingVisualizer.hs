@@ -17,7 +17,8 @@
 
 module XMonad.Layout.DraggingVisualizer
     ( draggingVisualizer,
-      DraggingVisualizerMsg (..)
+      DraggingVisualizerMsg (..),
+      DraggingVisualizer,
     ) where
 
 import XMonad

@@ -17,7 +17,7 @@ module XMonad.Layout.Spacing (
                                -- * Usage
                                -- $usage
 
-                               spacing
+                               spacing, Spacing,
 
                              ) where
 

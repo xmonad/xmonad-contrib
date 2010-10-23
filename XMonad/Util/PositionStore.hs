@@ -22,7 +22,8 @@ module XMonad.Util.PositionStore (
         posStoreInsert,
         posStoreMove,
         posStoreQuery,
-        posStoreRemove
+        posStoreRemove,
+        PositionStore,
     ) where
 
 import XMonad

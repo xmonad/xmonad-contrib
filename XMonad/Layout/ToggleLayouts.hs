@@ -16,7 +16,7 @@
 module XMonad.Layout.ToggleLayouts (
     -- * Usage
     -- $usage
-    toggleLayouts, ToggleLayout(..)
+    toggleLayouts, ToggleLayout(..), ToggleLayouts
     ) where
 
 import XMonad

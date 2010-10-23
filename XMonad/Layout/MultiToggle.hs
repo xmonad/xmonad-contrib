@@ -24,7 +24,11 @@ module XMonad.Layout.MultiToggle (
     EOT(..),
     single,
     mkToggle,
-    mkToggle1
+    mkToggle1,
+
+    HList,
+    HCons,
+    MultiToggle,
 ) where
 
 import XMonad

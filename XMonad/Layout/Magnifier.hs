@@ -26,7 +26,8 @@ module XMonad.Layout.Magnifier
       magnifiercz,
       magnifiercz',
       maximizeVertical,
-      MagnifyMsg (..)
+      MagnifyMsg (..),
+      Magnifier,
     ) where
 
 import XMonad

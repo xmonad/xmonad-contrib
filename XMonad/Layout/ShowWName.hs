@@ -19,6 +19,7 @@ module XMonad.Layout.ShowWName
     , showWName'
     , defaultSWNConfig
     , SWNConfig(..)
+    , ShowWName
     ) where
 
 import XMonad

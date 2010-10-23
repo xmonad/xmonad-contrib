@@ -30,6 +30,7 @@ module XMonad.Layout.MouseResizableTile (
                                     isMirrored,
                                     draggerType,
                                     DraggerType (..),
+                                    MouseResizableTile,
                                    ) where
 
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)

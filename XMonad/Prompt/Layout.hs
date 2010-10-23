@@ -21,6 +21,7 @@ module XMonad.Prompt.Layout (
 import Data.List ( sort, nub )
 import XMonad hiding ( workspaces )
 import XMonad.Prompt
+import XMonad.Prompt.Workspace ( Wor(..) )
 import XMonad.StackSet ( workspaces, layout )
 import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 
@@ -42,11 +43,6 @@ import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 -- (which doesn't have this feature).  So all in all, this module is really
 -- more a proof-of-principle than something you can actually use
 -- productively.
-
-data Wor = Wor String
-
-instance XPrompt Wor where
-    showXPrompt (Wor x) = x
 
 layoutPrompt :: XPConfig -> X ()
 layoutPrompt c = do ls <- gets (map (description . layout) . workspaces . windowset)

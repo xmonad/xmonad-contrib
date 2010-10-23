@@ -21,7 +21,8 @@ module XMonad.Layout.CenteredMaster (
          -- $usage
 
          centerMaster,
-         topRightMaster
+         topRightMaster,
+         CenteredMaster, TopRightMaster,
          ) where
 
 import XMonad

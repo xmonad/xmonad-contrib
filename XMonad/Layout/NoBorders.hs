@@ -27,7 +27,8 @@ module XMonad.Layout.NoBorders (
                                 lessBorders,
                                 SetsAmbiguous(..),
                                 Ambiguity(..),
-                                With(..)
+                                With(..),
+                                SmartBorder, WithBorder, ConfigurableBorder,
                                ) where
 
 import XMonad

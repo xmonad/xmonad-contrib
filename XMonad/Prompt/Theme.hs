@@ -15,6 +15,7 @@ module XMonad.Prompt.Theme
     ( -- * Usage
       -- $usage
       themePrompt,
+      ThemePrompt,
     ) where
 
 import Control.Arrow ( (&&&) )

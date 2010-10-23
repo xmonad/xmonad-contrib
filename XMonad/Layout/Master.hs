@@ -18,7 +18,8 @@ module XMonad.Layout.Master (
     -- $usage
 
     mastered,
-    multimastered
+    multimastered,
+    AddMaster,
 ) where
 
 import XMonad

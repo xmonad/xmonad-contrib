@@ -25,6 +25,7 @@ module XMonad.Layout.IM (
     -- * TODO
     -- $todo
         Property(..), IM(..), withIM, gridIM,
+        AddRoster,
 ) where
 
 import XMonad

@@ -45,7 +45,8 @@ module XMonad.Hooks.ManageHelpers (
     doSideFloat,
     doFloatAt,
     doFloatDep,
-    doHideIgnore
+    doHideIgnore,
+    Match,
 ) where
 
 import XMonad

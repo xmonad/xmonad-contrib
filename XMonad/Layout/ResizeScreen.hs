@@ -22,6 +22,7 @@ module XMonad.Layout.ResizeScreen
     , resizeHorizontalRight, resizeVerticalBottom
     , withNewRectangle
     , ResizeScreen (..)
+    , ResizeMode
     ) where
 
 import XMonad

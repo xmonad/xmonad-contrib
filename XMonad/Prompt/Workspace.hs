@@ -15,7 +15,10 @@
 module XMonad.Prompt.Workspace (
                              -- * Usage
                              -- $usage
-                             workspacePrompt
+                             workspacePrompt,
+
+                             -- * For developers
+                             Wor(Wor),
                               ) where
 
 import XMonad hiding ( workspaces )

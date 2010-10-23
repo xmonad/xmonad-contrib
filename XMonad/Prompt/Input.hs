@@ -18,7 +18,8 @@ module XMonad.Prompt.Input (
                             -- $usage
                             inputPrompt,
                             inputPromptWithCompl,
-                            (?+)
+                            (?+),
+                            InputPrompt,
                            ) where
 
 import XMonad.Core

@@ -15,7 +15,8 @@
 module XMonad.Prompt.Ssh
     ( -- * Usage
       -- $usage
-      sshPrompt
+      sshPrompt,
+      Ssh,
     ) where
 
 import Prelude hiding (catch)

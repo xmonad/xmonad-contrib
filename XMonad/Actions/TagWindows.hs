@@ -22,7 +22,8 @@ module XMonad.Actions.TagWindows (
                  focusDownTagged, focusDownTaggedGlobal,
                  shiftHere, shiftToScreen,
                  tagPrompt,
-                 tagDelPrompt
+                 tagDelPrompt,
+                 TagPrompt,
                  ) where
 
 import Prelude hiding (catch)

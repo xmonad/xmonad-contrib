@@ -21,6 +21,7 @@ module XMonad.Prompt.DirExec
       -- $usage
       dirExecPrompt
     , dirExecPromptNamed
+    , DirExec
     ) where
 
 import Prelude hiding (catch)

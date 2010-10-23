@@ -20,6 +20,7 @@ module XMonad.Layout.LayoutHints
     , layoutHintsWithPlacement
     , layoutHintsToCenter
     , LayoutHints
+    , LayoutHintsToCenter
     , hintsEventHook
     )  where
 

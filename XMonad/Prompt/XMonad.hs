@@ -16,7 +16,8 @@ module XMonad.Prompt.XMonad (
                              -- * Usage
                              -- $usage
                              xmonadPrompt,
-                             xmonadPromptC
+                             xmonadPromptC,
+                             XMonad,
                               ) where
 
 import XMonad

@@ -21,7 +21,8 @@ module XMonad.Layout.WindowNavigation (
                                    Navigate(..), Direction2D(..),
                                    MoveWindowToWindow(..),
                                    navigateColor, navigateBrightness,
-                                   noNavigateBorders, defaultWNConfig
+                                   noNavigateBorders, defaultWNConfig,
+                                   WNConfig, WindowNavigation,
                                   ) where
 
 import Data.List ( nub, sortBy, (\\) )

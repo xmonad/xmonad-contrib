@@ -32,10 +32,13 @@ module XMonad.Actions.WorkspaceCursors
 
     -- * Functions to pass to 'modifyLayer'
     ,focusNth'
-    ,noWrapUp,noWrapDown
+    ,noWrapUp,noWrapDown,
 
     -- * Todo
     -- $todo
+
+    -- * Types
+    Cursors,
     ) where
 
 import qualified XMonad.StackSet as W

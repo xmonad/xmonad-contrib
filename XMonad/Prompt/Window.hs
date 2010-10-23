@@ -20,7 +20,8 @@ module XMonad.Prompt.Window
     -- $usage
     windowPromptGoto,
     windowPromptBring,
-    windowPromptBringCopy
+    windowPromptBringCopy,
+    WindowPrompt,
     ) where
 
 import qualified Data.Map as M

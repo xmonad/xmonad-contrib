@@ -25,6 +25,9 @@ module XMonad.Layout.MosaicAlt (
         , tallWindowAlt
         , wideWindowAlt
         , resetAlt
+
+        , Params, Param
+        , HandleWindowAlt
     ) where
 
 import XMonad

@@ -16,7 +16,8 @@
 module XMonad.Layout.LayoutScreens (
                                     -- * Usage
                                     -- $usage
-                                    layoutScreens, layoutSplitScreen, fixedLayout
+                                    layoutScreens, layoutSplitScreen, fixedLayout,
+                                    FixedLayout,
                                    ) where
 
 import XMonad
