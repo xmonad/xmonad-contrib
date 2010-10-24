@@ -281,3 +281,5 @@ library
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
+
+    other-modules:      XMonad.Layout.Groups.Helpers
