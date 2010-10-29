@@ -64,12 +64,14 @@ instance LayoutModifier Maximize Window where
     pureModifier (Maximize (Just target)) rect (Just (S.Stack focused _ _)) wrs =
             if focused == target
                 then (maxed ++ rest, Nothing)
-                else (rest ++ maxed, Nothing)
+                else (rest ++ maxed, lay)
         where
             (toMax, rest) = partition (\(w, _) -> w == target) wrs
             maxed = map (\(w, _) -> (w, maxRect)) toMax
             maxRect = Rectangle (rect_x rect + 25) (rect_y rect + 25)
                 (rect_width rect - 50) (rect_height rect - 50)
+            lay | null maxed = Just (Maximize Nothing)
+                | otherwise  = Nothing
     pureModifier _ _ _ wrs = (wrs, Nothing)
 
     pureMess (Maximize mw) m = case fromMessage m of
