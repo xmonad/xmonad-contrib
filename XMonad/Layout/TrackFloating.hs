@@ -29,6 +29,7 @@ module XMonad.Layout.TrackFloating
 
 import Control.Monad
 import Data.List
+import Data.Maybe
 import qualified Data.Map as M
 
 import XMonad
@@ -36,19 +37,22 @@ import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
 
 
-data TrackFloating a = TrackFloating (Maybe Window)
-    deriving (Read,Show)
+data TrackFloating a = TrackFloating
+    { _wasFloating :: Bool,
+      _tiledFocus :: Maybe Window }
+    deriving (Read,Show,Eq)
 
 
 instance LayoutModifier TrackFloating Window where
-    modifyLayoutWithUpdate (TrackFloating mw) ws@(W.Workspace{ W.stack = ms }) r
+    modifyLayoutWithUpdate os@(TrackFloating wasF mw) ws@(W.Workspace{ W.stack = ms }) r
       = do
         winset <- gets windowset
-        let sTotal = W.stack $ W.workspace $ W.current winset
+        let sCur = fmap W.focus $ W.stack $ W.workspace $ W.current winset
+            isF = fmap (`M.member` W.floating winset) sCur
             newStack
               -- focus is floating, so use the remembered focus point
-              | Just sTotal' <- sTotal,
-                W.focus sTotal' `M.member` W.floating winset,
+              | Just isF' <- isF,
+                isF' || wasF,
                 Just w <- mw,
                 Just s <- ms,
                 Just ns <- find ((==) w . W.focus)
@@ -56,15 +60,14 @@ instance LayoutModifier TrackFloating Window where
                 = Just ns
               | otherwise
                 = ms
-            newState
-              | Just sTotal' <- sTotal
-                = if W.focus sTotal' `M.member` W.floating winset
-                    then mw
-                    else Just (W.focus sTotal')
-              | otherwise
-                = Nothing
+            newState = case isF of
+              Just True -> mw
+              Just False | Just f <- sCur -> Just f
+              _ -> Nothing
         ran <- runLayout ws{ W.stack = newStack } r
-        return (ran, guard (newState /= mw) >> Just (TrackFloating newState))
+        return (ran,
+                let n = TrackFloating (fromMaybe False isF) newState
+                in guard (n /= os) >> Just n)
 
 
 {- | Apply to your layout in a config like:
@@ -79,5 +82,5 @@ Interactions with some layout modifiers (ex. decorations, minimizing) are
 unknown but likely unpleasant.
 -}
 trackFloating ::  l a -> ModifiedLayout TrackFloating l a
-trackFloating layout = ModifiedLayout (TrackFloating Nothing) layout
+trackFloating layout = ModifiedLayout (TrackFloating False Nothing) layout
 
