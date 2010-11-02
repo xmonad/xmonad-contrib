@@ -28,7 +28,6 @@ module XMonad.Actions.GridSelect (
     -- * Configuration
     GSConfig(..),
     defaultGSConfig,
-    NavigateMap,
     TwoDPosition,
     buildDefaultGSConfig,
 
@@ -46,7 +45,24 @@ module XMonad.Actions.GridSelect (
     HasColorizer(defaultColorizer),
     fromClassName,
     stringColorizer,
-    colorRangeFromClassName
+    colorRangeFromClassName,
+
+    -- * Navigation Mode assembly
+    TwoD,
+    makeXEventhandler,
+    shadowWithKeymap,
+
+    -- * Built-in Navigation Mode
+    defaultNavigation,
+    substringSearch,
+    navNSearch,
+
+    -- * Navigation Components
+    setPos,
+    move,
+    select,
+    cancel,
+    transformSearchString
 
     -- * Screenshots
     -- $screenshots
@@ -119,35 +135,38 @@ import Data.Word (Word8)
 
 -- $keybindings
 --
--- Adding more keybindings for gridselect to listen to is similar:
+-- You can build you own navigation mode and submodes by combining the
+-- exported action ingredients and assembling them using 'makeXEventhandler' and 'shadowWithKeymap'.
 --
--- At the top of your config:
+-- > myNavigation :: TwoD a (Maybe a)
+-- > myNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHandler
+-- >  where navKeyMap = M.fromList [
+-- >           ((0,xK_Escape), cancel)
+-- >          ,((0,xK_Return), select)
+-- >          ,((0,xK_slash) , substringSearch myNavigation)
+-- >          ,((0,xK_Left)  , move (-1,0)  >> myNavigation)
+-- >          ,((0,xK_h)     , move (-1,0)  >> myNavigation)
+-- >          ,((0,xK_Right) , move (1,0)   >> myNavigation)
+-- >          ,((0,xK_l)     , move (1,0)   >> myNavigation)
+-- >          ,((0,xK_Down)  , move (0,1)   >> myNavigation)
+-- >          ,((0,xK_j)     , move (0,1)   >> myNavigation)
+-- >          ,((0,xK_Up)    , move (0,-1)  >> myNavigation)
+-- >          ,((0,xK_y)     , move (-1,-1) >> myNavigation)
+-- >          ,((0,xK_i)     , move (1,-1)  >> myNavigation)
+-- >          ,((0,xK_n)     , move (-1,1)  >> myNavigation)
+-- >          ,((0,xK_m)     , move (1,-1)  >> myNavigation)
+-- >          ,((0,xK_space) , setPos (0,0) >> myNavigation)
+-- >          ]
+-- >        -- The navigation handler ignores unknown key symbols
+-- >        navDefaultHandler = const myNavigation
 --
--- > {-# LANGAUGE NoMonomorphismRestriction #-}
--- > import XMonad
--- > import qualified Data.Map as M
---
--- Then define @gsconfig3@ which may be used in exactly the same manner as @gsconfig1@:
+-- You can then define @gsconfig3@ which may be used in exactly the same manner as @gsconfig1@:
 --
 -- > gsconfig3 = defaultGSConfig
 -- >    { gs_cellheight = 30
 -- >    , gs_cellwidth = 100
--- >    , gs_navigate = M.unions
--- >            [reset
--- >            ,nethackKeys
--- >            ,gs_navigate                               -- get the default navigation bindings
--- >                $ defaultGSConfig `asTypeOf` gsconfig3 -- needed to fix an ambiguous type variable
--- >            ]
+-- >    , gs_navigate = myNavigation
 -- >    }
--- >   where addPair (a,b) (x,y) = (a+x,b+y)
--- >         nethackKeys = M.map addPair $ M.fromList
--- >                               [((0,xK_y),(-1,-1))
--- >                               ,((0,xK_i),(1,-1))
--- >                               ,((0,xK_n),(-1,1))
--- >                               ,((0,xK_m),(1,1))
--- >                               ]
--- >         -- jump back to the center with the spacebar, regardless of the current position.
--- >         reset = M.singleton (0,xK_space) (const (0,0))
 
 -- $screenshots
 --
@@ -165,7 +184,7 @@ data GSConfig a = GSConfig {
       gs_cellpadding :: Integer,
       gs_colorizer :: a -> Bool -> X (String, String),
       gs_font :: String,
-      gs_navigate :: NavigateMap,
+      gs_navigate :: TwoD a (Maybe a),
       gs_originFractX :: Double,
       gs_originFractY :: Double
 }
@@ -194,8 +213,6 @@ instance HasColorizer a where
 -- instead, to avoid ambiguous type variables.
 defaultGSConfig :: HasColorizer a => GSConfig a
 defaultGSConfig = buildDefaultGSConfig defaultColorizer
-
-type NavigateMap = M.Map (KeyMask,KeySym) (TwoDPosition -> TwoDPosition)
 
 type TwoDPosition = (Integer, Integer)
 
@@ -318,39 +335,8 @@ updateElementsWithColorizer colorizer elementmap = do
                        (gs_cellpadding gsconfig)
     mapM_ updateElement elementmap
 
-eventLoop :: TwoD a (Maybe a)
-eventLoop = do
-  (keysym,string,event) <- liftX $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
-                             maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
-                             ev <- getEvent e
-                             (ks,s) <- if ev_event_type ev == keyPress
-                                       then lookupString $ asKeyEvent e
-                                       else return (Nothing, "")
-                             return (ks,s,ev)
-  handle (fromMaybe xK_VoidSymbol keysym,string) event
-
-handle ::  (KeySym, t) -> Event -> TwoD a (Maybe a)
-handle (ks,_) (KeyEvent {ev_event_type = t, ev_state = m })
-    | t == keyPress && ks == xK_Escape = return Nothing
-    | t == keyPress && ks == xK_Return = do
-       state <- get
-       return $ fmap (snd . snd) $ findInElementMap (td_curpos state) (td_elementmap state)
-    | t == keyPress = do
-        m' <- liftX (cleanMask m)
-        keymap <- gets (gs_navigate . td_gsconfig)
-        maybe eventLoop diffAndRefresh . M.lookup (m',ks) $ keymap
-  where diffAndRefresh diff = do
-          state <- get
-          let elmap = td_elementmap state
-              oldPos = td_curpos state
-              newPos = diff oldPos
-              newSelectedEl = findInElementMap newPos elmap
-          when (isJust newSelectedEl) $ do
-                                put state { td_curpos =  newPos }
-                                updateElements (catMaybes [(findInElementMap oldPos elmap), newSelectedEl])
-          eventLoop
-
-handle _ (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y })
+stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
+stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
     | t == buttonRelease = do
         state <- get
         let (TwoDState { td_paneX = px, td_paneY = py,
@@ -359,12 +345,141 @@ handle _ (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y })
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) (td_elementmap state) of
              Just (_,el) -> return (Just el)
-             Nothing -> eventLoop
-    | otherwise = eventLoop
+             Nothing -> contEventloop
+    | otherwise = contEventloop
 
-handle _ (ExposeEvent { }) = updateAllElements >> eventLoop
+stdHandle (ExposeEvent { }) contEventloop = updateAllElements >> contEventloop
 
-handle _ _ = eventLoop
+stdHandle _ contEventloop = contEventloop
+
+-- | Embeds a key handler into the X event handler that dispatches key
+-- events to the key handler, while non-key event go to the standard
+-- handler.
+makeXEventhandler :: ((KeySym, String, KeyMask) -> TwoD a (Maybe a)) -> TwoD a (Maybe a)
+makeXEventhandler keyhandler = fix $ \me -> join $ liftX $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
+                             maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
+                             ev <- getEvent e
+                             if ev_event_type ev == keyPress
+                               then do
+                                  (ks,s) <- lookupString $ asKeyEvent e
+                                  return $ do
+                                      mask <- liftX $ cleanMask (ev_state ev)
+                                      keyhandler (fromMaybe xK_VoidSymbol ks, s, mask)
+                               else
+                                  return $ stdHandle ev me
+
+-- | When the map contains (KeySym,KeyMask) tuple for the given event,
+-- the associated action in the map associated shadows the default key
+-- handler
+shadowWithKeymap :: M.Map (KeyMask, KeySym) a -> ((KeySym, String, KeyMask) -> a) -> (KeySym, String, KeyMask) -> a
+shadowWithKeymap keymap dflt keyEvent@(ks,_,m') = fromMaybe (dflt keyEvent) (M.lookup (m',ks) keymap)
+
+-- Helper functions to use for key handler functions
+
+-- | Closes gridselect returning the element under the cursor
+select :: TwoD a (Maybe a)
+select = do
+  state <- get
+  return $ fmap (snd . snd) $ findInElementMap (td_curpos state) (td_elementmap state)
+
+-- | Closes gridselect returning no element.
+cancel :: TwoD a (Maybe a)
+cancel = return Nothing
+
+-- | Sets the absolute position of the cursor.
+setPos :: (Integer, Integer) -> TwoD a ()
+setPos newPos = do
+  state <- get
+  let elmap = td_elementmap state
+      newSelectedEl = findInElementMap newPos (td_elementmap state)
+      oldPos = td_curpos state
+  when (isJust newSelectedEl && newPos /= oldPos) $ do
+    put state { td_curpos = newPos }
+    updateElements (catMaybes [(findInElementMap oldPos elmap), newSelectedEl])
+
+-- | Moves the cursor by the offsets specified
+move :: (Integer, Integer) -> TwoD a ()
+move (dx,dy) = do
+  state <- get
+  let (x,y) = td_curpos state
+      newPos = (x+dx,y+dy)
+  setPos newPos
+
+-- | Apply a transformation function the current search string
+transformSearchString :: (String -> String) -> TwoD a ()
+transformSearchString f = do
+          state <- get
+          let oldSearchString = td_searchString state
+              newSearchString = f oldSearchString
+          when (newSearchString /= oldSearchString) $ do
+            -- FIXME: grayoutAllElements + updateAllElements paint some fields twice causing flickering
+            --        we would need a much smarter update strategy to fix that
+            when (length newSearchString > length oldSearchString) grayoutAllElements
+            -- FIXME curpos might end up outside new bounds
+            put state { td_searchString = newSearchString }
+            updateAllElements
+
+-- | By default gridselect used the defaultNavigation action, which
+-- binds left,right,up,down and vi-style h,l,j,k navigation. Return
+-- quits gridselect, returning the selected element, while Escape
+-- cancels the selection. Slash enters the substring search mode. In
+-- substring search mode, every string-associated keystroke is
+-- added to a search string, which narrows down the object
+-- selection. Substring search mode comes back to regular navigation
+-- via Return, while Escape cancels the search. If you want that
+-- navigation style, add 'defaultNavigation' as 'gs_navigate' to your
+-- 'GSConfig' object. This is done by 'buildDefaultGSConfig' automatically.
+defaultNavigation :: TwoD a (Maybe a)
+defaultNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHandler
+  where navKeyMap = M.fromList [
+           ((0,xK_Escape), cancel)
+          ,((0,xK_Return), select)
+          ,((0,xK_slash) , substringSearch defaultNavigation)
+          ,((0,xK_Left)  , move (-1,0) >> defaultNavigation)
+          ,((0,xK_h)     , move (-1,0) >> defaultNavigation)
+          ,((0,xK_Right) , move (1,0) >> defaultNavigation)
+          ,((0,xK_l)     , move (1,0) >> defaultNavigation)
+          ,((0,xK_Down)  , move (0,1) >> defaultNavigation)
+          ,((0,xK_j)     , move (0,1) >> defaultNavigation)
+          ,((0,xK_Up)    , move (0,-1) >> defaultNavigation)
+          ,((0,xK_k)     , move (0,-1) >> defaultNavigation)
+          ]
+        -- The navigation handler ignores unknown key symbols, therefore we const
+        navDefaultHandler = const defaultNavigation
+
+-- | This navigation style combines navigation and search into one mode at the cost of losing vi style
+-- navigation. With this style, there is no substring search submode,
+-- but every typed character is added to the substring search.
+navNSearch :: TwoD a (Maybe a)
+navNSearch = makeXEventhandler $ shadowWithKeymap navNSearchKeyMap navNSearchDefaultHandler
+  where navNSearchKeyMap = M.fromList [
+           ((0,xK_Escape), cancel)
+          ,((0,xK_Return), select)
+          ,((0,xK_Left)  , move (-1,0) >> navNSearch)
+          ,((0,xK_Right) , move (1,0) >> navNSearch)
+          ,((0,xK_Down)  , move (0,1) >> navNSearch)
+          ,((0,xK_Up)    , move (0,-1) >> navNSearch)
+          ,((0,xK_BackSpace), transformSearchString (\s -> if (s == "") then "" else init s) >> navNSearch)
+          ]
+        -- The navigation handler ignores unknown key symbols, therefore we const
+        navNSearchDefaultHandler (_,s,_) = do
+          transformSearchString (++ s)
+          navNSearch
+
+-- | Navigation submode used for substring search. It returns to the
+-- first argument navigation style when the user hits Return.
+substringSearch :: TwoD a (Maybe a) -> TwoD a (Maybe a)
+substringSearch returnNavigation = fix $ \me ->
+  let searchKeyMap = M.fromList [
+           ((0,xK_Escape)   , transformSearchString (const "") >> returnNavigation)
+          ,((0,xK_Return)   , returnNavigation)
+          ,((0,xK_BackSpace), transformSearchString (\s -> if (s == "") then "" else init s) >> me)
+          ]
+      searchDefaultHandler (_,s,_) = do
+          transformSearchString (++ s)
+          me
+  in makeXEventhandler $ shadowWithKeymap searchKeyMap searchDefaultHandler
+
 
 -- FIXME probably move that into Utils?
 -- Conversion scheme as in http://en.wikipedia.org/wiki/HSV_color_space
@@ -464,7 +579,7 @@ gridselect gsconfig elements =
                                 originPosY = floor $ ((gs_originFractY gsconfig) - (1/2)) * 2 * fromIntegral restrictY
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
 
-                            evalTwoD (updateAllElements >> eventLoop) TwoDState { td_curpos = (head coords),
+                            evalTwoD (updateAllElements >> (gs_navigate gsconfig)) TwoDState { td_curpos = (head coords),
                                                                                   td_availSlots = coords,
                                                                                   td_elements = elements,
                                                                                   td_gsconfig = gsconfig,
@@ -509,19 +624,7 @@ decorateName' w = do
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultGSNav (1/2) (1/2)
-
-defaultGSNav :: NavigateMap
-defaultGSNav = M.map (\(x,y) (a,b) -> (x+a,y+b)) $ M.fromList
-    [((0,xK_Left) ,(-1,0))
-    ,((0,xK_h)    ,(-1,0))
-    ,((0,xK_Right),(1,0))
-    ,((0,xK_l)    ,(1,0))
-    ,((0,xK_Down) ,(0,1))
-    ,((0,xK_j)    ,(0,1))
-    ,((0,xK_Up)   ,(0,-1))
-    ,((0,xK_k)    ,(0,-1))
-    ]
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation (1/2) (1/2)
 
 borderColor :: String
 borderColor = "white"
