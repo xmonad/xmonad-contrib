@@ -209,14 +209,14 @@ focusGroupMaster = wrap G.focusGroupMaster
 -- group: Wrap back to the end ('True'), or create a new group before
 -- it ('False').
 moveToGroupUp :: Bool -> X ()
-moveToGroupUp = wrap . G.moveToGroupUp
+moveToGroupUp b = wrap (G.moveToGroupUp b)
 
 -- | Move the focused window to the next group. The 'Bool' argument
 -- determines what will be done if the focused window is in the very last
 -- group: Wrap back to the beginning ('True'), or create a new group after
 -- it ('False').
 moveToGroupDown :: Bool -> X ()
-moveToGroupDown = wrap . G.moveToGroupDown
+moveToGroupDown b = wrap (G.moveToGroupDown b)
 
 -- | Move the focused window to a new group before the current one
 moveToNewGroupUp :: X ()
