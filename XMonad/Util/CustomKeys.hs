@@ -77,7 +77,7 @@ customize :: XConfig l
           -> (XConfig Layout -> [(KeyMask, KeySym)])
           -> (XConfig Layout -> [((KeyMask, KeySym), X ())])
           -> Reader (XConfig Layout) (M.Map (KeyMask, KeySym) (X ()))
-customize conf ds is = Reader (keys conf) >>= delete ds >>= insert is
+customize conf ds is = asks (keys conf) >>= delete ds >>= insert is
 
 delete :: (MonadReader r m, Ord a) => (r -> [a]) -> M.Map a b -> m (M.Map a b)
 delete dels kmap = asks dels >>= return . foldr M.delete kmap

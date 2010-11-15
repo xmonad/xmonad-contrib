@@ -65,7 +65,7 @@ instance LayoutClass Grid Window where
     doLayout (GridRatio d m) r w = flip (,) Nothing . arrange d m r (integrate w)
 
 replicateS :: Int -> (a -> (b, a)) -> a -> ([b], a)
-replicateS n = runState . replicateM n . State
+replicateS n f = runState . replicateM n $ do (a,s) <- gets f; put s; return a
 
 doColumn :: Dimension -> Dimension -> Dimension -> [(D -> D)] -> [D]
 doColumn width height k adjs =
