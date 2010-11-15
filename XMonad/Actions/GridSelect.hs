@@ -296,20 +296,20 @@ drawWinBox win font (fg,bg) ch cw text x y cp =
 updateAllElements :: TwoD a ()
 updateAllElements =
     do
-      state <- get
-      updateElements (td_elementmap state)
+      s <- get
+      updateElements (td_elementmap s)
 
 grayoutAllElements :: TwoD a ()
 grayoutAllElements =
     do
-      state <- get
-      updateElementsWithColorizer grayOnly (td_elementmap state)
+      s <- get
+      updateElementsWithColorizer grayOnly (td_elementmap s)
     where grayOnly _ _ = return ("#808080", "#808080")
 
 updateElements :: TwoDElementMap a -> TwoD a ()
 updateElements elementmap = do
-      state <- get
-      updateElementsWithColorizer (gs_colorizer (td_gsconfig state)) elementmap
+      s <- get
+      updateElementsWithColorizer (gs_colorizer (td_gsconfig s)) elementmap
 
 updateElementsWithColorizer :: (a -> Bool -> X (String, String)) -> TwoDElementMap a -> TwoD a ()
 updateElementsWithColorizer colorizer elementmap = do
@@ -338,12 +338,11 @@ updateElementsWithColorizer colorizer elementmap = do
 stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
 stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
     | t == buttonRelease = do
-        state <- get
-        let (TwoDState { td_paneX = px, td_paneY = py,
-                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _) }) = state
-            gridX = (fi x - (px - cw) `div` 2) `div` cw
+        s @  TwoDState { td_paneX = px, td_paneY = py,
+                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _) } <- get
+        let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
-        case lookup (gridX,gridY) (td_elementmap state) of
+        case lookup (gridX,gridY) (td_elementmap s) of
              Just (_,el) -> return (Just el)
              Nothing -> contEventloop
     | otherwise = contEventloop
@@ -379,8 +378,8 @@ shadowWithKeymap keymap dflt keyEvent@(ks,_,m') = fromMaybe (dflt keyEvent) (M.l
 -- | Closes gridselect returning the element under the cursor
 select :: TwoD a (Maybe a)
 select = do
-  state <- get
-  return $ fmap (snd . snd) $ findInElementMap (td_curpos state) (td_elementmap state)
+  s <- get
+  return $ fmap (snd . snd) $ findInElementMap (td_curpos s) (td_elementmap s)
 
 -- | Closes gridselect returning no element.
 cancel :: TwoD a (Maybe a)
@@ -389,34 +388,34 @@ cancel = return Nothing
 -- | Sets the absolute position of the cursor.
 setPos :: (Integer, Integer) -> TwoD a ()
 setPos newPos = do
-  state <- get
-  let elmap = td_elementmap state
-      newSelectedEl = findInElementMap newPos (td_elementmap state)
-      oldPos = td_curpos state
+  s <- get
+  let elmap = td_elementmap s
+      newSelectedEl = findInElementMap newPos (td_elementmap s)
+      oldPos = td_curpos s
   when (isJust newSelectedEl && newPos /= oldPos) $ do
-    put state { td_curpos = newPos }
+    put s { td_curpos = newPos }
     updateElements (catMaybes [(findInElementMap oldPos elmap), newSelectedEl])
 
 -- | Moves the cursor by the offsets specified
 move :: (Integer, Integer) -> TwoD a ()
 move (dx,dy) = do
-  state <- get
-  let (x,y) = td_curpos state
+  s <- get
+  let (x,y) = td_curpos s
       newPos = (x+dx,y+dy)
   setPos newPos
 
 -- | Apply a transformation function the current search string
 transformSearchString :: (String -> String) -> TwoD a ()
 transformSearchString f = do
-          state <- get
-          let oldSearchString = td_searchString state
+          s <- get
+          let oldSearchString = td_searchString s
               newSearchString = f oldSearchString
           when (newSearchString /= oldSearchString) $ do
             -- FIXME: grayoutAllElements + updateAllElements paint some fields twice causing flickering
             --        we would need a much smarter update strategy to fix that
             when (length newSearchString > length oldSearchString) grayoutAllElements
             -- FIXME curpos might end up outside new bounds
-            put state { td_searchString = newSearchString }
+            put s { td_searchString = newSearchString }
             updateAllElements
 
 -- | By default gridselect used the defaultNavigation action, which
