@@ -176,6 +176,7 @@ library
                         XMonad.Layout.Drawer
                         XMonad.Layout.DwmStyle
                         XMonad.Layout.FixedColumn
+                        XMonad.Layout.Fullscreen
                         XMonad.Layout.Gaps
                         XMonad.Layout.Grid
                         XMonad.Layout.GridVariants
