@@ -12,7 +12,7 @@
 -- Hooks for sending messages about fullscreen windows to layouts, and
 -- a few example layout modifier that implement fullscreen windows.
 -----------------------------------------------------------------------------
-module XMonad.Layout.Fullscreen 
+module XMonad.Layout.Fullscreen
     ( -- * Usage:
       -- $usage
      fullscreenFull
@@ -47,7 +47,7 @@ import Control.Arrow (second)
 --
 -- The module also includes a few layout modifiers as an illustration
 -- of how such layouts should behave.
--- 
+--
 -- To use this module, add 'fullscreenEventHook' and 'fullscreenManageHook'
 -- to your config, i.e.
 --
@@ -62,10 +62,10 @@ import Control.Arrow (second)
 --
 
 -- | Messages that control the fullscreen state of the window.
--- AddFullscreen and RemoveFullscreen are sent to all layouts 
--- when a window wants or no longer wants to be fullscreen. 
+-- AddFullscreen and RemoveFullscreen are sent to all layouts
+-- when a window wants or no longer wants to be fullscreen.
 -- FullscreenChanged is sent to the current layout after one
--- of the above have been sent. 
+-- of the above have been sent.
 data FullscreenMessage = AddFullscreen Window
                        | RemoveFullscreen Window
                        | FullscreenChanged
@@ -84,23 +84,23 @@ data FullscreenFloat a = FullscreenFloat W.RationalRect (M.Map a (W.RationalRect
 
 instance LayoutModifier FullscreenFull Window where
   pureMess (FullscreenFull frect fulls) m = case fromMessage m of
-    Just (AddFullscreen win) -> Just $ FullscreenFull frect $ nub $ win:fulls 
+    Just (AddFullscreen win) -> Just $ FullscreenFull frect $ nub $ win:fulls
     Just (RemoveFullscreen win) -> Just $ FullscreenFull frect $ delete win $ fulls
     _ -> Nothing
-  
-  pureModifier (FullscreenFull frect fulls) rect _ list = 
+
+  pureModifier (FullscreenFull frect fulls) rect _ list =
     (map (flip (,) rect') visfulls ++ rest, Nothing)
-    where visfulls = intersect fulls $ map fst list
-          rest = filter (flip notElem visfulls . fst) list 
+    where visfulls = intersect fulls $ map fst list
+          rest = filter (flip notElem visfulls . fst) list
           rect' = scaleRationalRect rect frect
 
 instance LayoutModifier FullscreenFocus Window where
   pureMess (FullscreenFocus frect fulls) m = case fromMessage m of
-    Just (AddFullscreen win) -> Just $ FullscreenFocus frect $ nub $ win:fulls 
-    Just (RemoveFullscreen win) -> Just $ FullscreenFocus frect $ delete win $ fulls 
+    Just (AddFullscreen win) -> Just $ FullscreenFocus frect $ nub $ win:fulls
+    Just (RemoveFullscreen win) -> Just $ FullscreenFocus frect $ delete win $ fulls
     _ -> Nothing
 
-  pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list 
+  pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list
      | f `elem` fulls = ((f, rect') : rest, Nothing)
      | otherwise = (list, Nothing)
      where rest = filter ((/= f) . fst) list
@@ -110,13 +110,13 @@ instance LayoutModifier FullscreenFocus Window where
 instance LayoutModifier FullscreenFloat Window where
   handleMess (FullscreenFloat frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> do
-      mrect <- (M.lookup win . W.floating) `fmap` gets windowset
-      return $ case mrect of
-        Just rect -> Just $ FullscreenFloat frect $ M.insert win (rect,True) fulls
+      mrect <- (M.lookup win . W.floating) `fmap` gets windowset
+      return $ case mrect of
+        Just rect -> Just $ FullscreenFloat frect $ M.insert win (rect,True) fulls
         Nothing -> Nothing
 
     Just (RemoveFullscreen win) ->
-      return $ Just $ FullscreenFloat frect $ M.adjust (second $ const False) win fulls
+      return $ Just $ FullscreenFloat frect $ M.adjust (second $ const False) win fulls
 
     -- Modify the floating member of the stack set directly; this is the hackish part.
     Just FullscreenChanged -> do
@@ -125,35 +125,35 @@ instance LayoutModifier FullscreenFloat Window where
           flt = W.floating ws
           flt' = M.intersectionWith doFull fulls flt
       put state {windowset = ws {W.floating = M.union flt' flt}}
-      return $ Just $ FullscreenFloat frect $ M.filter snd fulls
-      where doFull (_, True) _ = frect 
+      return $ Just $ FullscreenFloat frect $ M.filter snd fulls
+      where doFull (_, True) _ = frect
             doFull (rect, False) _ = rect
-   
+
     Nothing -> return Nothing
 
 -- | Layout modifier that makes fullscreened window fill the
 -- entire screen.
-fullscreenFull :: LayoutClass l a => 
+fullscreenFull :: LayoutClass l a =>
   l a -> ModifiedLayout FullscreenFull l a
 fullscreenFull = fullscreenFullRect $ W.RationalRect 0 0 1 1
 
--- | As above, but the fullscreened window will fill the 
+-- | As above, but the fullscreened window will fill the
 -- specified rectangle instead of the entire screen.
-fullscreenFullRect :: LayoutClass l a => 
+fullscreenFullRect :: LayoutClass l a =>
   W.RationalRect -> l a -> ModifiedLayout FullscreenFull l a
-fullscreenFullRect r = ModifiedLayout $ FullscreenFull r []
+fullscreenFullRect r = ModifiedLayout $ FullscreenFull r []
 
 -- | Layout modifier that makes the fullscreened window fill
 -- the entire screen only if it is currently focused.
-fullscreenFocus :: LayoutClass l a => 
+fullscreenFocus :: LayoutClass l a =>
   l a -> ModifiedLayout FullscreenFocus l a
 fullscreenFocus = fullscreenFocusRect $ W.RationalRect 0 0 1 1
 
--- | As above, but the fullscreened window will fill the 
+-- | As above, but the fullscreened window will fill the
 -- specified rectangle instead of the entire screen.
-fullscreenFocusRect :: LayoutClass l a => 
+fullscreenFocusRect :: LayoutClass l a =>
   W.RationalRect -> l a -> ModifiedLayout FullscreenFocus l a
-fullscreenFocusRect r = ModifiedLayout $ FullscreenFocus r []
+fullscreenFocusRect r = ModifiedLayout $ FullscreenFocus r []
 
 -- | Hackish layout modifier that makes floating fullscreened
 -- windows fill the entire screen.
@@ -161,11 +161,11 @@ fullscreenFloat :: LayoutClass l a =>
   l a -> ModifiedLayout FullscreenFloat l a
 fullscreenFloat = fullscreenFloatRect $ W.RationalRect 0 0 1 1
 
--- | As above, but the fullscreened window will fill the 
+-- | As above, but the fullscreened window will fill the
 -- specified rectangle instead of the entire screen.
 fullscreenFloatRect :: LayoutClass l a =>
   W.RationalRect -> l a -> ModifiedLayout FullscreenFloat l a
-fullscreenFloatRect r = ModifiedLayout $ FullscreenFloat r M.empty
+fullscreenFloatRect r = ModifiedLayout $ FullscreenFloat r M.empty
 
 -- | The event hook required for the layout modifiers to work
 fullscreenEventHook :: Event -> X All
@@ -188,13 +188,13 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       sendMessage FullscreenChanged
     when (action == remove || (action == toggle && isFull)) $ do
       chWState $ delete (fi fullsc)
-      broadcastMessage $ RemoveFullscreen win
+      broadcastMessage $ RemoveFullscreen win
       sendMessage FullscreenChanged
   return $ All True
 
 fullscreenEventHook (DestroyWindowEvent {ev_window = w}) = do
   -- When a window is destroyed, the layouts should remove that window
-  -- from their states. 
+  -- from their states.
   broadcastMessage $ RemoveFullscreen w
   cw <- (W.workspace . W.current) `fmap` gets windowset
   sendMessageWithNoRefresh FullscreenChanged cw
@@ -214,10 +214,10 @@ fullscreenManageHookWith h = fullscreenManageHook' $ isFullscreen <||> h
 
 fullscreenManageHook' :: Query Bool -> ManageHook
 fullscreenManageHook' isFull = isFull --> do
-  w <- ask 
+  w <- ask
   liftX $ do
     broadcastMessage $ AddFullscreen w
     cw <- (W.workspace . W.current) `fmap` gets windowset
     sendMessageWithNoRefresh FullscreenChanged cw
   idHook
-    
+
