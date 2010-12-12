@@ -180,7 +180,7 @@ toggleOrView' f i st = fromMaybe (f i st) $ do
 --
 -- A more basic version inside the default keybindings would be:
 --
--- >        , ((modm .|. controlMask, xK_1) windows (viewOnScreen 0 "1"))
+-- >        , ((modm .|. controlMask, xK_1), windows (viewOnScreen 0 "1"))
 --
 -- where 0 is the first screen and \"1\" the workspace with the tag \"1\".
 --
