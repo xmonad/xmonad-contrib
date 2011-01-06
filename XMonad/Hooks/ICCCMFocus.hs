@@ -19,7 +19,8 @@
 -----------------------------------------------------------------------------
 module XMonad.Hooks.ICCCMFocus
 (
-  takeFocusX
+  atom_WM_TAKE_FOCUS  
+, takeFocusX
 , takeTopFocus
 ) where
 
@@ -27,6 +28,11 @@ import XMonad
 import XMonad.Hooks.SetWMName
 import qualified XMonad.StackSet as W
 import Control.Monad
+
+atom_WM_TAKE_FOCUS ::
+  X Atom
+atom_WM_TAKE_FOCUS =
+  getAtom "WM_TAKE_FOCUS"
 
 takeFocusX ::
   Window
