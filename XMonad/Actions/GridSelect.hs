@@ -172,11 +172,11 @@ import Data.Word (Word8)
 --
 -- Selecting a workspace:
 --
--- <<http://haskell.org/sitewiki/images/a/a9/Xmonad-gridselect-workspace.png>>
+-- <<http://haskell.org/wikiupload/a/a9/Xmonad-gridselect-workspace.png>>
 --
 -- Selecting a window by title:
 --
--- <<http://haskell.org/sitewiki/images/3/35/Xmonad-gridselect-window-aavogt.png>>
+-- <<http://haskell.org/wikiupload/3/35/Xmonad-gridselect-window-aavogt.png>>
 
 data GSConfig a = GSConfig {
       gs_cellheight :: Integer,
