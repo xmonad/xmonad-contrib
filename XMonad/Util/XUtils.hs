@@ -63,6 +63,11 @@ createNewWindow (Rectangle x y w h) m col o = do
   case m of
     Just em -> io $ selectInput d win em
     Nothing -> io $ selectInput d win exposureMask
+  -- @@@ ugly hack to prevent compositing
+  whenX (return $ isJust m) $ flip catchX (return ()) $ do
+    wINDOW_TYPE <- getAtom "_NET_WM_WINDOW_TYPE"
+    dESKTOP <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
+    io $ changeProperty32 d win wINDOW_TYPE aTOM propModeReplace [fi dESKTOP]
   return win
 
 -- | Map a window
