@@ -22,6 +22,7 @@ license-file:       LICENSE
 author:             Spencer Janssen
 maintainer:         spencerjanssen@gmail.com
 extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
+                    scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c tests/test_SwapWorkspaces.hs
                     tests/test_XPrompt.hs
