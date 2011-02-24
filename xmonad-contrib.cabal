@@ -137,6 +137,7 @@ library
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
                         XMonad.Hooks.CurrentWorkspaceOnTop
+                        XMonad.Hooks.DebugKeyEvents
                         XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
