@@ -143,6 +143,7 @@ library
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
+                        XMonad.Hooks.FadeWindows
                         XMonad.Hooks.FloatNext
                         XMonad.Hooks.ICCCMFocus
                         XMonad.Hooks.InsertPosition
