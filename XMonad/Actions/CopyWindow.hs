@@ -145,7 +145,9 @@ killAllOtherCopies = do ss <- gets windowset
       delFromAllButCurrent w ss = foldr ($) ss $
                                   map (delWinFromWorkspace w . W.tag) $
                                   W.hidden ss ++ map W.workspace (W.visible ss)
-      delWinFromWorkspace w wid = W.modify Nothing (W.filter (/= w)) . W.view wid
+      delWinFromWorkspace w wid = viewing wid $ W.modify Nothing (W.filter (/= w))
+
+      viewing wis f ss = W.view (W.currentTag ss) $ f $ W.view wis ss
 
 -- | A list of hidden workspaces containing a copy of the focused window.
 wsContainingCopies :: X [WorkspaceId]
