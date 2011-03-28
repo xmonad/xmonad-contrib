@@ -52,7 +52,7 @@ import qualified Data.Map as M
 -- > ,((modm .|. shiftMask, xK_p), removeAllMatchings message)
 --
 -- >   [ ((modm .|. m, k), a i)
--- >       | (a, m) <- [(switchWS view message, 0),(\x -> switchWS (shift x . view x) message, shiftMask)]
+-- >       | (a, m) <- [(switchWS (\y -> windows $ view y) message, 0),(switchWS (\x -> windows $ shift x . view x) message, shiftMask)]
 -- >       , (i, k) <- zip [1..] [xK_1 .. xK_9]]
 --
 -- For detailed instructions on editing your key bindings, see
