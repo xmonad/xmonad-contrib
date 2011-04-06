@@ -22,6 +22,7 @@ module XMonad.Util.NamedScratchpad (
   customFloating,
   NamedScratchpads,
   namedScratchpadAction,
+  allNamedScratchpadAction,
   namedScratchpadManageHook,
   namedScratchpadFilterOutWorkspace
   ) where
@@ -116,28 +117,34 @@ runApplication = spawn . cmd
 namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> String           -- ^ Scratchpad name
                       -> X ()
-namedScratchpadAction confs n
-    | Just conf <- findByName confs n = withWindowSet $ \s -> do
-        -- try to find it on the current workspace
-        filterCurrent <- filterM (runQuery (query conf))
-                            ( (maybe [] W.integrate . W.stack .
-                                    W.workspace . W.current) s)
-        case filterCurrent of
-            (x:_) -> do
-                -- create hidden workspace if it doesn't exist
-                if null (filter ((== scratchpadWorkspaceTag) . W.tag) (W.workspaces s))
-                    then addHiddenWorkspace scratchpadWorkspaceTag
-                    else return ()
-                -- push window there
-                windows $ W.shiftWin scratchpadWorkspaceTag x
-            [] -> do
-                -- try to find it on all workspaces
-                filterAll <- filterM (runQuery (query conf)) (W.allWindows s)
-                case filterAll of
-                    (x:_) -> windows $ W.shiftWin (W.currentTag s) x
-                    []    -> runApplication conf
+namedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ head ws)
 
+allNamedScratchpadAction :: NamedScratchpads
+                         -> String
+                         -> X ()
+allNamedScratchpadAction = someNamedScratchpadAction mapM_
+
+someNamedScratchpadAction :: ((Window -> X ()) -> [Window] -> X ())
+                          -> NamedScratchpads
+                          -> String
+                          -> X ()
+someNamedScratchpadAction f confs n
+    | Just conf <- findByName confs n = withWindowSet $ \s -> do
+                     filterCurrent <- filterM (runQuery (query conf))
+                                        ((maybe [] W.integrate . W.stack . W.workspace . W.current) s)
+                     filterAll <- filterM (runQuery (query conf)) (W.allWindows s)
+                     case filterCurrent of
+                       [] -> do
+                         case filterAll of
+                           [] -> runApplication conf
+                           _  -> f (windows . W.shiftWin (W.currentTag s)) filterAll
+                       _ -> do
+                         if null (filter ((== scratchpadWorkspaceTag) . W.tag) (W.workspaces s))
+                             then addHiddenWorkspace scratchpadWorkspaceTag
+                             else return ()
+                         f (windows . W.shiftWin scratchpadWorkspaceTag) filterAll
     | otherwise = return ()
+
 
 -- tag of the scratchpad workspace
 scratchpadWorkspaceTag :: String
