@@ -32,10 +32,8 @@ module XMonad.Util.Run (
                          ) where
 
 import System.Posix.IO
-import System.Posix.Process (executeFile)
-import System.Posix.Types (ProcessID)
+import System.Posix.Process (createSession, executeFile, forkProcess)
 import Control.Concurrent (threadDelay)
-import Control.Exception.Extensible (try,SomeException)
 import System.IO
 import System.Process (runInteractiveProcess)
 import XMonad
@@ -68,7 +66,7 @@ runProcessWithInput cmd args input = io $ do
 -- | Wait is in &#956; (microseconds)
 runProcessWithInputAndWait :: MonadIO m => FilePath -> [String] -> String -> Int -> m ()
 runProcessWithInputAndWait cmd args input timeout = io $ do
-    xfork $ do
+    _ <- xfork $ do
         (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
         hPutStr pin input
         hFlush pin
@@ -107,9 +105,11 @@ it makes use of shell interpretation by relying on @$HOME@ and
 interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
 safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
-safeSpawn prog args = liftIO $ do
-    try $ xfork $ executeFile prog True args Nothing :: IO (Either SomeException ProcessID)
-    return ()
+safeSpawn prog args = io $ void $ forkProcess $ do
+  uninstallSignalHandlers
+  _ <- createSession
+  executeFile prog True args Nothing
+    where void = (>> return ()) -- TODO: replace with Control.Monad.void
 
 -- | Simplified 'safeSpawn'; only takes a program (and no arguments):
 --
@@ -117,7 +117,7 @@ safeSpawn prog args = liftIO $ do
 safeSpawnProg :: MonadIO m => FilePath -> m ()
 safeSpawnProg = flip safeSpawn []
 
--- | An alias for 'spawn'; the name emphasizes that one is calling out to a 
+-- | An alias for 'spawn'; the name emphasizes that one is calling out to a
 --   Turing-complete interpreter which may do things one dislikes; for details, see 'safeSpawn'.
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
@@ -139,8 +139,8 @@ spawnPipe x = io $ do
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr
     hSetBuffering h LineBuffering
-    xfork $ do
-        dupTo rd stdInput
-        executeFile "/bin/sh" False ["-c", x] Nothing
+    _ <- xfork $ do
+          _ <- dupTo rd stdInput
+          executeFile "/bin/sh" False ["-c", x] Nothing
     closeFd rd
     return h
