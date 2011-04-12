@@ -33,41 +33,13 @@ module XMonad.Hooks.FloatNext ( -- * Usage
                                 -- * 'DynamicLog' utilities
                                 -- $pp
                               , willFloatNextPP
-                              , willFloatAllNewPP
-                              , runLogHook ) where
-
-import Prelude hiding (all)
+                              , willFloatAllNewPP ) where
 
 import XMonad
-import qualified XMonad.Util.ExtensibleState as XS
+import XMonad.Hooks.ToggleHook
 
-import Control.Monad (join,guard)
-import Control.Applicative ((<$>))
-import Control.Arrow (first, second)
-
-{- Helper functions -}
-
-_set :: ((a -> a) -> (Bool, Bool) -> (Bool, Bool)) -> a -> X ()
-_set f b = modify' (f $ const b)
-
-_toggle :: ((Bool -> Bool) -> (Bool, Bool) -> (Bool, Bool)) -> X ()
-_toggle f = modify' (f not)
-
-_get :: ((Bool, Bool) -> a) -> X a
-_get f = XS.gets (f . getFloatMode)
-
-_pp :: ((Bool, Bool) -> Bool) -> String -> (String -> String) -> X (Maybe String)
-_pp f s st = (\b -> guard b >> Just (st s)) <$> _get f
-
-{- The current state is kept here -}
-
-data FloatMode = FloatMode { getFloatMode :: (Bool,Bool) } deriving (Typeable)
-
-instance ExtensionClass FloatMode where
-    initialValue = FloatMode (False,False)
-
-modify' :: ((Bool,Bool) -> (Bool,Bool)) -> X ()
-modify' f = XS.modify (FloatMode . f . getFloatMode)
+hookName :: String
+hookName = "__float"
 
 -- $usage
 -- This module provides actions (that can be set as keybindings)
@@ -95,33 +67,31 @@ modify' f = XS.modify (FloatMode . f . getFloatMode)
 -- | This 'ManageHook' will selectively float windows as set
 -- by 'floatNext' and 'floatAllNew'.
 floatNextHook :: ManageHook
-floatNextHook = do (next, all) <- liftX $ XS.gets getFloatMode
-                   liftX $ XS.put $ FloatMode (False, all)
-                   if next || all then doFloat else idHook
+floatNextHook = toggleHook hookName doFloat
 
 -- | @floatNext True@ arranges for the next spawned window to be
 -- sent to the floating layer, @floatNext False@ cancels it.
 floatNext :: Bool -> X ()
-floatNext = _set first
+floatNext = hookNext hookName
 
 toggleFloatNext :: X ()
-toggleFloatNext = _toggle first
+toggleFloatNext = toggleHookNext hookName
 
 -- | @floatAllNew True@ arranges for new windows to be
 -- sent to the floating layer, @floatAllNew False@ cancels it
 floatAllNew :: Bool -> X ()
-floatAllNew = _set second
+floatAllNew = hookAllNew hookName
 
 toggleFloatAllNew :: X ()
-toggleFloatAllNew = _toggle second
+toggleFloatAllNew = toggleHookAllNew hookName
 
 -- | Whether the next window will be set floating
 willFloatNext :: X Bool
-willFloatNext = _get fst
+willFloatNext = willHookNext hookName
 
 -- | Whether new windows will be set floating
 willFloatAllNew :: X Bool
-willFloatAllNew = _get snd
+willFloatAllNew = willHookAllNew hookName
 
 -- $pp
 -- The following functions are used to display the current
@@ -143,10 +113,7 @@ willFloatAllNew = _get snd
 -- pass them 'id'.
 
 willFloatNextPP :: (String -> String) -> X (Maybe String)
-willFloatNextPP = _pp fst "Next"
+willFloatNextPP = willHookNextPP hookName
 
 willFloatAllNewPP :: (String -> String) -> X (Maybe String)
-willFloatAllNewPP = _pp snd "All"
-
-runLogHook :: X ()
-runLogHook = join $ asks $ logHook . config
+willFloatAllNewPP = willHookAllNewPP hookName
