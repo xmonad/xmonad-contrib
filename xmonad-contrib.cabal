@@ -154,6 +154,7 @@ library
                         XMonad.Hooks.Script
                         XMonad.Hooks.ServerMode
                         XMonad.Hooks.SetWMName
+                        XMonad.Hooks.ToggleHook
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.XPropManage
