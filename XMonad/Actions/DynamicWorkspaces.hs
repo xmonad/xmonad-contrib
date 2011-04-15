@@ -35,6 +35,11 @@ import Data.List (find)
 import Data.Maybe (isNothing)
 import Control.Monad (when)
 
+-- The following imports are to allow haddock to find links for documentation
+-- only.
+import XMonad.Actions.CopyWindow (copy)
+import XMonad.Prompt (defaultXPConfig)
+
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
@@ -56,7 +61,8 @@ import Control.Monad (when)
 -- >    zip (zip (repeat (modm .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
+-- 'copy', 'windows', 'shift', and 'defaultXPConfig'.
 
 
 data Wor = Wor String
