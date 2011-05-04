@@ -61,7 +61,7 @@ import Data.Char (isAlphaNum, isAscii)
 import Data.List (isPrefixOf)
 import Text.Printf
 import XMonad (X(), MonadIO, liftIO)
-import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig(), historyCompletionP)
+import XMonad.Prompt (XPrompt(showXPrompt, nextCompletion, commandToComplete), mkXPrompt, XPConfig(), historyCompletionP, getNextCompletion)
 import XMonad.Prompt.Shell (getBrowser)
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.XSelection (getSelection)
@@ -199,6 +199,8 @@ Happy searching! -}
 data Search = Search Name
 instance XPrompt Search where
     showXPrompt (Search name)= "Search [" ++ name ++ "]: "
+    nextCompletion _ = getNextCompletion
+    commandToComplete _ c = c
 
 -- | Escape the search string so search engines understand it. Only
 -- digits and ASCII letters are not encoded. All non ASCII characters
