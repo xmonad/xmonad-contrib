@@ -1,5 +1,4 @@
-{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
-{-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
 -- deriving Typeable for ghc-6.6 compatibility, which is retained in the core
 -----------------------------------------------------------------------------
 -- |

@@ -442,12 +442,12 @@ defaultXPKeymap = M.fromList $
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 keyPressHandle m (ks,str) = do
   km <- gets (promptKeymap . config)
-  mask <- cleanMask m
-  case M.lookup (mask,ks) km of
+  kmask <- cleanMask m -- mask is defined in ghc7
+  case M.lookup (kmask,ks) km of
     Just action -> action >> updateWindows
     Nothing -> case str of
                  "" -> eventLoop handle
-                 _ -> when (mask .&. controlMask == 0) $ do
+                 _ -> when (kmask .&. controlMask == 0) $ do
                                  insertString (decodeString str)
                                  updateWindows
                                  completed <- tryAutoComplete

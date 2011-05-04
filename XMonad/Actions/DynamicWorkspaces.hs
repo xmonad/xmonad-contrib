@@ -35,11 +35,6 @@ import Data.List (find)
 import Data.Maybe (isNothing)
 import Control.Monad (when)
 
--- The following imports are to allow haddock to find links for documentation
--- only.
-import XMonad.Actions.CopyWindow (copy)
-import XMonad.Prompt (defaultXPConfig)
-
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --

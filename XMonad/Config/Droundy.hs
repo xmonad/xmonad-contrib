@@ -1,4 +1,5 @@
-{-# OPTIONS_GHC -fno-warn-missing-signatures -fglasgow-exts -fno-warn-orphans #-}
+{-# LANGUAGE PatternGuards #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   :  (c) Spencer Janssen 2007

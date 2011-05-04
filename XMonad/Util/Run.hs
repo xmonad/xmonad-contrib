@@ -105,11 +105,11 @@ it makes use of shell interpretation by relying on @$HOME@ and
 interpolation, whereas the safeSpawn example can be safe because
 Firefox doesn't need any arguments if it is just being started. -}
 safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
-safeSpawn prog args = io $ void $ forkProcess $ do
+safeSpawn prog args = io $ void_ $ forkProcess $ do
   uninstallSignalHandlers
   _ <- createSession
   executeFile prog True args Nothing
-    where void = (>> return ()) -- TODO: replace with Control.Monad.void
+    where void_ = (>> return ()) -- TODO: replace with Control.Monad.void / void not in ghc6 apparently
 
 -- | Simplified 'safeSpawn'; only takes a program (and no arguments):
 --
