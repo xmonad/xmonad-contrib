@@ -23,6 +23,8 @@ module XMonad.Actions.FlexibleManipulate (
 ) where
 
 import XMonad
+import qualified Prelude as P
+import Prelude (($), (.), fst, snd, uncurry, const, id, Ord(..), Monad(..), fromIntegral, Double, Integer, map, round, otherwise)
 
 -- $usage
 -- First, add this import to your @~\/.xmonad\/xmonad.hs@:
@@ -82,17 +84,17 @@ mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
     sh <- io $ getWMNormalHints d w
     pointer <- io $ queryPointer d w >>= return . pointerPos
 
-    let uv = zipP (/) (zipP (-) pointer wpos) wsize
+    let uv = (pointer - wpos) / wsize
         fc = mapP f uv
-        mul = mapP (\x -> 2 - 2 * abs(x - 0.5)) fc --Fudge factors: interpolation between 1 when on edge, 2 in middle
-        atl = zipP (*) (zipP (-) (1, 1) fc) mul
-        abr = zipP (*) fc mul
+        mul = mapP (\x -> 2 P.- 2 P.* P.abs(x P.- 0.5)) fc --Fudge factors: interpolation between 1 when on edge, 2 in middle
+        atl = ((1, 1) - fc) * mul
+        abr = fc * mul
     mouseDrag (\ex ey -> io $ do
-        let offset = zipP (-) (fromIntegral ex, fromIntegral ey) pointer
-            npos = zipP (*) wpos $ zipP (*) offset atl
-            nbr = zipP (+) (zipP (+) wpos wsize) (zipP (*) offset abr)
-            ntl = minP (zipP (-) nbr (32, 32)) npos    --minimum size
-            nwidth = applySizeHintsContents sh $ mapP (round :: Double -> Integer) (zipP (-) nbr ntl)
+        let offset = (fromIntegral ex, fromIntegral ey) - pointer
+            npos = wpos + offset * atl
+            nbr = (wpos + wsize) + offset * abr
+            ntl = minP (nbr - (32, 32)) npos    --minimum size
+            nwidth = applySizeHintsContents sh $ mapP (round :: Double -> Integer) (nbr - ntl)
         moveResizeWindow d w (round $ fst ntl) (round $ snd ntl) `uncurry` nwidth
         return ())
         (float w)
@@ -100,13 +102,13 @@ mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
     float w
 
   where
-    pointerPos (_,_,_,px,py,_,_,_) = (fromIntegral px,fromIntegral py)
-    winAttrs :: WindowAttributes -> [(Double, Double)]
+    pointerPos (_,_,_,px,py,_,_,_) = (fromIntegral px,fromIntegral py) :: Pnt
+    winAttrs :: WindowAttributes -> [Pnt]
     winAttrs x = pairUp $ map (fromIntegral . ($ x)) [wa_x, wa_y, wa_width, wa_height]
-  -- Changed the type = Pnt implementation to use the zipP functionality
-  -- because (on ghc7) the previous implementation caused Orphan Instances
-  -- warnings
 
+
+-- I'd rather I didn't have to do this, but I hate writing component 2d math
+type Pnt = (Double, Double)
 
 pairUp :: [a] -> [(a,a)]
 pairUp [] = []
@@ -120,3 +122,11 @@ zipP f (ax,ay) (bx,by) = (f ax bx, f ay by)
 
 minP :: Ord a => (a,a) -> (a,a) -> (a,a)
 minP = zipP min
+
+(+), (-), (*) :: (P.Num a) => (a,a) -> (a,a) -> (a,a)
+(+) = zipP (P.+)
+(-) = zipP (P.-)
+(*) = zipP (P.*)
+(/) :: (P.Fractional a) => (a,a) -> (a,a) -> (a,a)
+(/) = zipP (P./)
+
