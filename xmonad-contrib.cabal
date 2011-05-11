@@ -193,6 +193,7 @@ library
                         XMonad.Layout.ImageButtonDecoration
                         XMonad.Layout.IndependentScreens
                         XMonad.Layout.LayoutBuilder
+                        XMonad.Layout.LayoutBuilderP
                         XMonad.Layout.LayoutCombinators
                         XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
