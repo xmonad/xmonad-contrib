@@ -48,7 +48,7 @@ import XMonad.Layout.LayoutModifier
 data AutoMaster a = AutoMaster Int Float Float
     deriving (Read,Show)
 
-instance LayoutModifier AutoMaster Window where
+instance (Eq w) => LayoutModifier AutoMaster w where
     modifyLayout (AutoMaster k bias _) = autoLayout k bias
     pureMess = autoMess
 
@@ -61,12 +61,12 @@ autoMess (AutoMaster k bias delta) m = msum [fmap resize (fromMessage m),
           resize Shrink = AutoMaster k (max (-0.4)  $ bias-delta) delta
 
 -- | Main layout function
-autoLayout :: (LayoutClass l Window) =>
+autoLayout :: (Eq w, LayoutClass l w) =>
               Int ->
               Float ->
-              W.Workspace WorkspaceId (l Window) Window
+              W.Workspace WorkspaceId (l w) w
               -> Rectangle
-              -> X ([(Window, Rectangle)], Maybe (l Window))
+              -> X ([(w, Rectangle)], Maybe (l w))
 autoLayout k bias wksp rect = do
     let stack = W.stack wksp
     let ws = W.integrate' stack
