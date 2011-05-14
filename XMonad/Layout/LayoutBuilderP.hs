@@ -16,9 +16,9 @@
 
 module XMonad.Layout.LayoutBuilderP (
   LayoutP (..),
+  Predicate (..),
   layoutP, layoutAll,
-  B.relBox, B.absBox,
-  PropertyRE (..)
+  B.relBox, B.absBox
   ) where
 
 import Control.Monad
@@ -36,11 +36,6 @@ import qualified XMonad.Layout.LayoutBuilder as B
 class Predicate p w where
   alwaysTrue :: w -> p               -- ^ A predicate that is always True. First argument is dummy, we always set it to undefined
   checkPredicate :: p -> w -> X Bool -- ^ Check if given object (window or smth else) matches that predicate
-
--- | A wrapper for X.U.WindowProperties.Property.
--- Checks using regular expression.
-data PropertyRE = RE Property
-  deriving (Show,Read,Typeable)
 
 -- | Data type for our layout.
 data LayoutP p l1 l2 a =
