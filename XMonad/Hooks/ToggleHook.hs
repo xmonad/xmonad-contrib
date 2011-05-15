@@ -44,6 +44,8 @@ import Control.Monad (join,guard)
 import Control.Applicative ((<$>))
 import Control.Arrow (first, second)
 
+import Data.Map
+
 {- Helper functions -}
 
 _set :: String -> ((a -> a) -> (Bool, Bool) -> (Bool, Bool)) -> a -> X ()
@@ -53,35 +55,22 @@ _toggle :: String -> ((Bool -> Bool) -> (Bool, Bool) -> (Bool, Bool)) -> X ()
 _toggle n f = modify' n (f not)
 
 _get :: String -> ((Bool, Bool) -> a) -> X a
-_get n f = XS.gets $ f . (getKey n (False, False) . hooks)
+_get n f = XS.gets $ f . (findWithDefault (False, False) n . hooks)
 
 _pp :: String -> ((Bool, Bool) -> Bool) -> String -> (String -> String) -> X (Maybe String)
 _pp n f s st = (\b -> guard b >> Just (st s)) <$> _get n f
 
 {- The current state is kept here -}
 
-data HookState = HookState { hooks :: [(String, (Bool, Bool))] } deriving (Typeable)
+data HookState = HookState { hooks :: Map String (Bool, Bool) } deriving (Typeable)
 
 instance ExtensionClass HookState where
-    initialValue = HookState []
-
-setKey :: (Eq a) => a -> b -> [(a,b)] -> [(a,b)]
-setKey = setKey' []
-
-setKey' :: (Eq a) => [(a,b)] -> a -> b -> [(a,b)] -> [(a,b)]
-setKey' r k v []           = r ++ [(k,v)]
-setKey' r k v (p@(f,_):xs) | k == f    = r ++ ((k,v) : xs)
-                           | otherwise = setKey' (r ++ [p]) k v xs
-
-getKey :: (Eq a) => a -> b -> [(a,b)] -> b
-getKey _ d []         = d
-getKey k d ((f,s):xs) | k == f    = s
-                      | otherwise = getKey k d xs
+    initialValue = HookState empty
 
 modify' :: String -> ((Bool, Bool) -> (Bool, Bool)) -> X ()
-modify' h f = XS.modify (HookState . setter . hooks)
+modify' n f = XS.modify (HookState . setter . hooks)
     where
-        setter m = setKey h (f (getKey h (False, False) m)) m
+        setter m = insert n (f (findWithDefault (False, False) n m)) m
 
 -- $usage
 -- This module provides actions (that can be set as keybindings)
@@ -118,8 +107,8 @@ toggleHook n h = toggleHook' n h idHook
 
 toggleHook' :: String -> ManageHook -> ManageHook -> ManageHook
 toggleHook' n th fh = do m <- liftX $ XS.gets hooks
-                         (next, all) <- return $ getKey n (False, False) m
-                         liftX $ XS.put $ HookState $ setKey n (False, all) m
+                         (next, all) <- return $ findWithDefault (False, False) n m
+                         liftX $ XS.put $ HookState $ insert n (False, all) m
                          if next || all then th else fh
 
 -- | @hookNext name True@ arranges for the next spawned window to
