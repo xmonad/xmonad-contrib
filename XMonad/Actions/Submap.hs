@@ -76,6 +76,7 @@ submapDefault def keys = do
             else return (m, keysym)
     -- Remove num lock mask and Xkb group state bits
     m' <- cleanMask $ m .&. ((1 `shiftL` 12) - 1)
-    maybe def id (M.lookup (m', s) keys)
 
     io $ ungrabKeyboard d currentTime
+
+    maybe def id (M.lookup (m', s) keys)
