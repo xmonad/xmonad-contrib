@@ -60,6 +60,7 @@ module XMonad.Actions.GridSelect (
     -- * Navigation Components
     setPos,
     move,
+    moveNext, movePrev,
     select,
     cancel,
     transformSearchString
@@ -403,6 +404,30 @@ move (dx,dy) = do
   let (x,y) = td_curpos s
       newPos = (x+dx,y+dy)
   setPos newPos
+
+moveNext :: TwoD a ()
+moveNext = do
+  position <- gets td_curpos
+  elems <- gets td_elementmap
+  let n = length elems
+      m = case findIndex (\p -> fst p == position) elems of
+               Nothing -> Nothing
+               Just k | k == n-1 -> Just 0
+                      | otherwise -> Just (k+1)
+  whenJust m $ \i ->
+      setPos (fst $ elems !! i)
+
+movePrev :: TwoD a ()
+movePrev = do
+  position <- gets td_curpos
+  elems <- gets td_elementmap
+  let n = length elems
+      m = case findIndex (\p -> fst p == position) elems of
+               Nothing -> Nothing
+               Just 0  -> Just (n-1)
+               Just k  -> Just (k-1)
+  whenJust m $ \i ->
+      setPos (fst $ elems !! i)
 
 -- | Apply a transformation function the current search string
 transformSearchString :: (String -> String) -> TwoD a ()
