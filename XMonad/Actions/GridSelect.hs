@@ -456,17 +456,21 @@ transformSearchString f = do
 defaultNavigation :: TwoD a (Maybe a)
 defaultNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHandler
   where navKeyMap = M.fromList [
-           ((0,xK_Escape), cancel)
-          ,((0,xK_Return), select)
-          ,((0,xK_slash) , substringSearch defaultNavigation)
-          ,((0,xK_Left)  , move (-1,0) >> defaultNavigation)
-          ,((0,xK_h)     , move (-1,0) >> defaultNavigation)
-          ,((0,xK_Right) , move (1,0) >> defaultNavigation)
-          ,((0,xK_l)     , move (1,0) >> defaultNavigation)
-          ,((0,xK_Down)  , move (0,1) >> defaultNavigation)
-          ,((0,xK_j)     , move (0,1) >> defaultNavigation)
-          ,((0,xK_Up)    , move (0,-1) >> defaultNavigation)
-          ,((0,xK_k)     , move (0,-1) >> defaultNavigation)
+           ((0,xK_Escape)     , cancel)
+          ,((0,xK_Return)     , select)
+          ,((0,xK_slash)      , substringSearch defaultNavigation)
+          ,((0,xK_Left)       , move (-1,0) >> defaultNavigation)
+          ,((0,xK_h)          , move (-1,0) >> defaultNavigation)
+          ,((0,xK_Right)      , move (1,0) >> defaultNavigation)
+          ,((0,xK_l)          , move (1,0) >> defaultNavigation)
+          ,((0,xK_Down)       , move (0,1) >> defaultNavigation)
+          ,((0,xK_j)          , move (0,1) >> defaultNavigation)
+          ,((0,xK_Up)         , move (0,-1) >> defaultNavigation)
+          ,((0,xK_k)          , move (0,-1) >> defaultNavigation)
+          ,((0,xK_Tab)        , moveNext >> defaultNavigation)
+          ,((0,xK_n)          , moveNext >> defaultNavigation)
+          ,((shiftMask,xK_Tab), movePrev >> defaultNavigation)
+          ,((0,xK_p)          , movePrev >> defaultNavigation)
           ]
         -- The navigation handler ignores unknown key symbols, therefore we const
         navDefaultHandler = const defaultNavigation
@@ -477,12 +481,14 @@ defaultNavigation = makeXEventhandler $ shadowWithKeymap navKeyMap navDefaultHan
 navNSearch :: TwoD a (Maybe a)
 navNSearch = makeXEventhandler $ shadowWithKeymap navNSearchKeyMap navNSearchDefaultHandler
   where navNSearchKeyMap = M.fromList [
-           ((0,xK_Escape), cancel)
-          ,((0,xK_Return), select)
-          ,((0,xK_Left)  , move (-1,0) >> navNSearch)
-          ,((0,xK_Right) , move (1,0) >> navNSearch)
-          ,((0,xK_Down)  , move (0,1) >> navNSearch)
-          ,((0,xK_Up)    , move (0,-1) >> navNSearch)
+           ((0,xK_Escape)     , cancel)
+          ,((0,xK_Return)     , select)
+          ,((0,xK_Left)       , move (-1,0) >> navNSearch)
+          ,((0,xK_Right)      , move (1,0) >> navNSearch)
+          ,((0,xK_Down)       , move (0,1) >> navNSearch)
+          ,((0,xK_Up)         , move (0,-1) >> navNSearch)
+          ,((0,xK_Tab)        , moveNext >> navNSearch)
+          ,((shiftMask,xK_Tab), movePrev >> navNSearch)
           ,((0,xK_BackSpace), transformSearchString (\s -> if (s == "") then "" else init s) >> navNSearch)
           ]
         -- The navigation handler ignores unknown key symbols, therefore we const
