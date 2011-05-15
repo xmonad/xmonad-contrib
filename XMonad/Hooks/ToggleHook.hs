@@ -26,6 +26,7 @@ module XMonad.Hooks.ToggleHook ( -- * Usage
                                , toggleHookAllNew
 
                                  -- * Queries
+                               , willHook
                                , willHookNext
                                , willHookAllNew
 
@@ -126,6 +127,10 @@ hookAllNew n = _set n second
 
 toggleHookAllNew :: String -> X ()
 toggleHookAllNew n = _toggle n second
+
+-- | Query what will happen at the next ManageHook call for the hook @name@.
+willHook :: String -> X Bool
+willHook n = willHookNext n <||> willHookAllNew n
 
 -- | Whether the next window will trigger the hook @name@.
 willHookNext :: String -> X Bool
