@@ -39,6 +39,7 @@ import Control.Monad (when)
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Actions.DynamicWorkspaces
+-- > import XMonad.Actions.CopyWindow(copy)
 --
 -- Then add keybindings like the following:
 --
@@ -57,7 +58,7 @@ import Control.Monad (when)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
--- 'copy', 'windows', 'shift', and 'defaultXPConfig'.
+-- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'defaultXPConfig'.
 
 
 data Wor = Wor String
