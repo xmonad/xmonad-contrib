@@ -47,10 +47,12 @@ import Control.Exception.Extensible (bracket)
 -- example, to preface notes with the time they were made, one could write a
 -- binding like
 --
--- > ,  ((modm .|. controlMask, xK_n), spawn ("date>>"++"/home/me/NOTES") >> appendFilePrompt
---                                      defaultXPConfig "/home/me/NOTES"
+-- > ,  ((modm .|. controlMask, xK_n), do
+-- >            spawn ("date>>"++"/home/me/NOTES")
+-- >            appendFilePrompt defaultXPConfig "/home/me/NOTES"
+-- >        )
 --
--- (And vice-versa to append the time instead.)
+-- (Put the spawn on the line after the prompt to append the time instead.)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
