@@ -33,7 +33,8 @@ module XMonad.Hooks.FloatNext ( -- * Usage
                                 -- * 'DynamicLog' utilities
                                 -- $pp
                               , willFloatNextPP
-                              , willFloatAllNewPP ) where
+                              , willFloatAllNewPP
+                              , runLogHook ) where
 
 import XMonad
 import XMonad.Hooks.ToggleHook
