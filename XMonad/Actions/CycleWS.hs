@@ -73,6 +73,8 @@ module XMonad.Actions.CycleWS (
                               , toggleOrDoSkip
                               , skipTags
 
+                              , screenBy
+
                              ) where
 
 import Control.Monad ( unless )
@@ -313,6 +315,17 @@ switchScreen d = do s <- screenBy d
                          Nothing -> return ()
                          Just ws -> windows (view ws)
 
+{- | Get the 'ScreenId' /d/ places over. Example usage is a variation of the
+the default screen keybindings:
+
+>     -- mod-{w,e}, Switch to previous/next Xinerama screen
+>     -- mod-shift-{w,e}, Move client to previous/next Xinerama screen
+>     --
+>     [((m .|. modm, key), sc >>= screenWorkspace >>= flip whenJust (windows . f))
+>         | (key, sc) <- zip [xK_w, xK_e] [(screenBy (-1)),(screenBy 1)]
+>         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+
+-}
 screenBy :: Int -> X (ScreenId)
 screenBy d = do ws <- gets windowset
                 --let ss = sortBy screen (screens ws)
