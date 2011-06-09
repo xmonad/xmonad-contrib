@@ -20,7 +20,7 @@ module XMonad.Layout.LayoutBuilderP (
   B.relBox, B.absBox,
   -- * Overloading ways to select windows
   -- $selectWin
-  Predicate (..),
+  Predicate (..), Proxy(..),
   ) where
 
 import Control.Monad
@@ -42,12 +42,15 @@ import qualified XMonad.Layout.LayoutBuilder as B
 
 -- | Type class for predicates. This enables us to manage not only Windows, 
 -- but any objects, for which instance Predicate is defined.
--- We assume that for all w checkPredicate (alwaysTrue undefined) == return True.
 --
 -- Another instance exists in XMonad.Util.WindowPropertiesRE in xmonad-extras
 class Predicate p w where
-  alwaysTrue :: w -> p               -- ^ A predicate that is always True. First argument is dummy, we always set it to undefined
+  alwaysTrue :: Proxy w -> p         -- ^ A predicate that is always True.
   checkPredicate :: p -> w -> X Bool -- ^ Check if given object (window or smth else) matches that predicate
+
+-- | Contains no actual data, but is needed to help select the correct instance
+-- of 'Predicate'
+data Proxy a = Proxy
 
 -- | Data type for our layout.
 data LayoutP p l1 l2 a =
@@ -71,7 +74,7 @@ layoutAll :: forall l1 p a. (Read a, Eq a, LayoutClass l1 a, Predicate p a) =>
     -> l1 a               -- ^ The layout to use in the specified area
     -> LayoutP p l1 Full a  -- ^ The resulting layout
 layoutAll box sub =
-  let a = alwaysTrue (undefined :: a)
+  let a = alwaysTrue (Proxy :: Proxy a)
   in  LayoutP Nothing Nothing a box Nothing sub Nothing
 
 instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq w, Typeable w, Show p) =>
