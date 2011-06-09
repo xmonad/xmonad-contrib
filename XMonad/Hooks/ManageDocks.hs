@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
 -- deriving Typeable for ghc-6.6 compatibility, which is retained in the core
 -----------------------------------------------------------------------------
 -- |
@@ -21,6 +21,12 @@ module XMonad.Hooks.ManageDocks (
     ToggleStruts(..),
     SetStruts(..),
     module XMonad.Util.Types,
+
+#ifdef TESTING
+    r2c,
+    c2r,
+    RectC(..),
+#endif
 
     -- for XMonad.Actions.FloatSnap
     calcGap
@@ -224,29 +230,22 @@ type Strut = (Direction2D, CLong, CLong, CLong)
 -- | (Initial x pixel, initial y pixel,
 --    final x pixel, final y pixel).
 
-type RectC = (CLong, CLong, CLong, CLong)
+newtype RectC = RectC (CLong, CLong, CLong, CLong) deriving (Eq,Show)
 
 -- | Invertible conversion.
 
 r2c :: Rectangle -> RectC
-r2c (Rectangle x y w h) = (fi x, fi y, fi x + fi w - 1, fi y + fi h - 1)
+r2c (Rectangle x y w h) = RectC (fi x, fi y, fi x + fi w - 1, fi y + fi h - 1)
 
 -- | Invertible conversion.
 
 c2r :: RectC -> Rectangle
-c2r (x1, y1, x2, y2) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y1 + 1)
+c2r (RectC (x1, y1, x2, y2)) = Rectangle (fi x1) (fi y1) (fi $ x2 - x1 + 1) (fi $ y2 - y1 + 1)
 
--- TODO: Add these QuickCheck properties to the test suite, along with
--- suitable Arbitrary instances.
-
--- prop_r2c_c2r :: RectC -> Bool
--- prop_r2c_c2r r = r2c (c2r r) == r
-
--- prop_c2r_r2c :: Rectangle -> Bool
--- prop_c2r_r2c r = c2r (r2c r) == r
 
 reduce :: RectC -> Strut -> RectC -> RectC
-reduce (sx0, sy0, sx1, sy1) (s, n, l, h) (x0, y0, x1, y1) = case s of
+reduce (RectC (sx0, sy0, sx1, sy1)) (s, n, l, h) (RectC (x0, y0, x1, y1)) =
+ RectC $ case s of
     L | p (y0, y1) && qh x1     -> (mx x0 sx0, y0       , x1       , y1       )
     R | p (y0, y1) && qv sx1 x0 -> (x0       , y0       , mn x1 sx1, y1       )
     U | p (x0, x1) && qh y1     -> (x0       , mx y0 sy0, x1       , y1       )
