@@ -16,9 +16,11 @@
 
 module XMonad.Layout.LayoutBuilderP (
   LayoutP (..),
-  Predicate (..),
   layoutP, layoutAll,
-  B.relBox, B.absBox
+  B.relBox, B.absBox,
+  -- * Overloading ways to select windows
+  -- $selectWin
+  Predicate (..),
   ) where
 
 import Control.Monad
@@ -30,9 +32,19 @@ import XMonad.Util.WindowProperties
 
 import qualified XMonad.Layout.LayoutBuilder as B
 
+-- $selectWin
+--
+-- 'Predicate' exists because layouts are required to be serializable, and
+-- "XMonad.Util.WindowProperties" is not sufficient (for example it does not
+-- allow using regular expressions).
+--
+-- compare "XMonad.Util.Invisible"
+
 -- | Type class for predicates. This enables us to manage not only Windows, 
 -- but any objects, for which instance Predicate is defined.
 -- We assume that for all w checkPredicate (alwaysTrue undefined) == return True.
+--
+-- Another instance exists in XMonad.Util.WindowPropertiesRE in xmonad-extras
 class Predicate p w where
   alwaysTrue :: w -> p               -- ^ A predicate that is always True. First argument is dummy, we always set it to undefined
   checkPredicate :: p -> w -> X Bool -- ^ Check if given object (window or smth else) matches that predicate
