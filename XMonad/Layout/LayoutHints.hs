@@ -25,7 +25,9 @@ module XMonad.Layout.LayoutHints
 
 import XMonad(LayoutClass(runLayout), mkAdjust, Window,
               Dimension, Position, Rectangle(Rectangle), D,
-              X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS)
+              X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS,
+              (<&&>), io, applySizeHints, whenX, isClient, withDisplay,
+              getWindowAttributes, getWMNormalHints, WindowAttributes(..))
 import qualified XMonad.StackSet as W
 
 import XMonad.Layout.Decoration(isInStack)
@@ -249,8 +251,16 @@ centerPlacement' cf root assigned
 
 -- | Event hook that refreshes the layout whenever a window changes its hints.
 hintsEventHook :: Event -> X All
-hintsEventHook (PropertyEvent { ev_event_type = t, ev_atom = a })
+hintsEventHook (PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w })
     | t == propertyNotify && a == wM_NORMAL_HINTS = do
-        refresh
+        whenX (isClient w <&&> hintsMismatch w) $ refresh
         return (All True)
 hintsEventHook _ = return (All True)
+
+-- | True if the window's current size does not satisfy its size hints.
+hintsMismatch :: Window -> X Bool
+hintsMismatch w = withDisplay $ \d -> io $ do
+    wa <- getWindowAttributes d w
+    sh <- getWMNormalHints d w
+    let dim = (fromIntegral $ wa_width wa, fromIntegral $ wa_height wa)
+    return $ dim /= applySizeHints 0 sh dim
