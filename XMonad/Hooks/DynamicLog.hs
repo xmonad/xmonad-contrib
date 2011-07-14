@@ -307,10 +307,15 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
 -- where 1, 9, and 3 are the workspaces on screens 1, 2 and 3, respectively,
 -- and 2 and 7 are non-visible, non-empty workspaces.
 --
--- Unfortunately, at the present time, the current layout and window title
--- are not shown, and there is no way to incorporate the xinerama
--- workspace format shown above with 'dynamicLogWithPP'.  Hopefully this
--- will change soon.
+-- At the present time, the current layout and window title
+-- are not shown.  The xinerama workspace format shown above can be (mostly) replicated
+-- using 'dynamicLogWithPP' by setting 'ppSort' to /getSortByXineramaRule/ from
+-- "XMonad.Util.WorkspaceCompare".  For example,
+--
+-- > defaultPP { ppCurrent = dzenColor "red" "#efebe7"
+-- >           , ppVisible = wrap "[" "]"
+-- >           , ppSort    = getSortByXineramaRule
+-- >           }
 dynamicLogXinerama :: X ()
 dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 
