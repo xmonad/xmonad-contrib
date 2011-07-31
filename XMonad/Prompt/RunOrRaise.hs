@@ -25,8 +25,13 @@ import XMonad.Prompt.Shell
 import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
+import Prelude hiding (catch)
+import Control.Exception
 import Control.Monad (liftM, liftM2)
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
+
+econst :: Monad m => a -> IOException -> m a
+econst = const . return
 
 {- $usage
 1. In your @~\/.xmonad\/xmonad.hs@:
@@ -65,7 +70,7 @@ isApp "thunderbird" = className =? "Thunderbird-bin" <||> className =? "Thunderb
 isApp x = liftM2 (==) pid $ pidof x
 
 pidof :: String -> Query Int
-pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `catch` (\_ -> return 0)
+pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `catch` econst 0
 
 pid :: Query Int
 pid = ask >>= (\w -> liftX $ withDisplay $ \d -> getPID d w)

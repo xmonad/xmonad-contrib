@@ -30,12 +30,12 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       ) where
 
 import Control.Monad.Reader
-import Data.Foldable
+import Data.Foldable as Fold
 import Data.Map as Map
 import Data.Sequence as Seq
 import Data.Set as Set
 import Graphics.X11.Types
-import Prelude hiding (concatMap, drop, elem, filter, foldl, foldr, null, reverse)
+import Prelude hiding (concatMap, drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
 import XMonad.Operations (windows, withFocused)
@@ -127,7 +127,7 @@ orderedWindowList dir     = withWindowSet $ \ss -> do
   wsids <- asks (Seq.fromList . workspaces . config)
   let wspcs = orderedWorkspaceList ss wsids
       wins  = dirfun dir 
-              $ foldl' (><) Seq.empty 
+              $ Fold.foldl' (><) Seq.empty
               $ fmap (Seq.fromList . SS.integrate' . SS.stack) wspcs
       cur   = currentWindow ss
   return $ maybe wins (rotfun wins) cur
@@ -146,7 +146,7 @@ orderedWorkspaceList :: WindowSet -> Seq String -> Seq WindowSpace
 orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
     where
       wspcs      = SS.workspaces ss
-      wspcsMap   = foldl' (\m ws -> Map.insert (SS.tag ws) ws m) Map.empty wspcs
+      wspcsMap   = Fold.foldl' (\m ws -> Map.insert (SS.tag ws) ws m) Map.empty wspcs
       wspcs'     = fmap (\wsid -> wspcsMap ! wsid) wsids
       isCurWS ws = SS.tag ws == SS.tag (SS.workspace $ SS.current ss)
 
@@ -184,12 +184,12 @@ updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
 --- with Seq.filter and Seq.breakl.
 
 flt :: (a -> Bool) -> Seq a -> Seq a
-flt p = foldl (\xs x -> if p x then xs |> x else xs) Seq.empty
+flt p = Fold.foldl (\xs x -> if p x then xs |> x else xs) Seq.empty
 
 brkl :: (a -> Bool) -> Seq a -> (Seq a, Seq a)
 brkl p xs = flip Seq.splitAt xs 
             $ snd 
-            $ foldr (\x (i, j) -> if p x then (i-1, i-1) else (i-1, j)) (l, l) xs
+            $ Fold.foldr (\x (i, j) -> if p x then (i-1, i-1) else (i-1, j)) (l, l) xs
   where
     l = Seq.length xs
     

@@ -32,9 +32,11 @@ module XMonad.Util.Font
     , fi
     ) where
 
+import Prelude hiding (catch)
 import XMonad
 import Foreign
 import Control.Applicative
+import Control.Exception
 import Data.Maybe
 
 #ifdef XFT
@@ -60,6 +62,9 @@ stringToPixel d s = fromMaybe fallBack <$> io getIt
     where getIt    = initColor d s
           fallBack = blackPixel d (defaultScreen d)
 
+econst :: a -> IOException -> a
+econst = const
+
 -- | Given a fontname returns the font structure. If the font name is
 --  not valid the default font will be loaded and returned.
 initCoreFont :: String -> X FontStruct
@@ -67,7 +72,7 @@ initCoreFont s = do
   d <- asks display
   io $ catch (getIt d) (fallBack d)
       where getIt    d = loadQueryFont d s
-            fallBack d = const $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+            fallBack d = econst $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
 
 releaseCoreFont :: FontStruct -> X ()
 releaseCoreFont fs = do
@@ -80,7 +85,7 @@ initUtf8Font s = do
   (_,_,fs) <- io $ catch (getIt d) (fallBack d)
   return fs
       where getIt    d = createFontSet d s
-            fallBack d = const $ createFontSet d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+            fallBack d = econst $ createFontSet d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
 
 releaseUtf8Font :: FontSet -> X ()
 releaseUtf8Font fs = do

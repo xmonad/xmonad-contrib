@@ -28,6 +28,8 @@ module XMonad.Layout.WorkspaceDir (
                                    changeDir
                                   ) where
 
+import Prelude hiding (catch)
+import Control.Exception
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
 import Control.Monad ( when )
 
@@ -37,6 +39,9 @@ import XMonad.Prompt ( XPConfig )
 import XMonad.Prompt.Directory ( directoryPrompt )
 import XMonad.Layout.LayoutModifier
 import XMonad.StackSet ( tag, currentTag )
+
+econst :: Monad m => a -> IOException -> m a
+econst = const . return
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -84,7 +89,7 @@ cleanDir :: String -> X String
 cleanDir x = scd x >> io getCurrentDirectory
 
 scd :: String -> X ()
-scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` \_ -> return x)
+scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` econst x)
            catchIO $ setCurrentDirectory x'
 
 changeDir :: XPConfig -> X ()

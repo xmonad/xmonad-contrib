@@ -18,15 +18,21 @@ module XMonad.Prompt.Ssh
       sshPrompt
     ) where
 
+import Prelude hiding (catch)
+
 import XMonad
 import XMonad.Util.Run
 import XMonad.Prompt
 
 import System.Directory
 import System.Environment
+import Control.Exception
 
 import Control.Monad
 import Data.Maybe
+
+econst :: Monad m => a -> IOException -> m a
+econst = const . return
 
 -- $usage
 -- 1. In your @~\/.xmonad\/xmonad.hs@:
@@ -71,7 +77,7 @@ sshComplListLocal = do
 
 sshComplListGlobal :: IO [String]
 sshComplListGlobal = do
-  env <- getEnv "SSH_KNOWN_HOSTS" `catch` (\_ -> return "/nonexistent")
+  env <- getEnv "SSH_KNOWN_HOSTS" `catch` econst "/nonexistent"
   fs <- mapM fileExists [ env
                         , "/usr/local/etc/ssh/ssh_known_hosts"
                         , "/usr/local/etc/ssh_known_hosts"

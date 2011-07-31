@@ -25,13 +25,18 @@ module XMonad.Actions.TagWindows (
                  tagDelPrompt
                  ) where
 
+import Prelude hiding (catch)
 import Data.List (nub,sortBy)
 import Control.Monad
+import Control.Exception
 
 import XMonad.StackSet hiding (filter)
 
 import XMonad.Prompt
 import XMonad hiding (workspaces)
+
+econst :: Monad m => a -> IOException -> m a
+econst = const . return
 
 -- $usage
 --
@@ -79,7 +84,7 @@ getTags w = withDisplay $ \d ->
     io $ catch (internAtom d "_XMONAD_TAGS" False >>=
                 getTextProperty d w >>=
                 wcTextPropertyToTextList d)
-               (\_ -> return [[]])
+               (econst [[]])
     >>= return . words . unwords
 
 -- | check a window for the given tag

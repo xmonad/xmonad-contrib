@@ -23,11 +23,16 @@ module XMonad.Prompt.DirExec
     , dirExecPromptNamed
     ) where
 
+import Prelude hiding (catch)
+import Control.Exception
 import System.Directory
 import Control.Monad
 import Data.List
 import XMonad
 import XMonad.Prompt
+
+econst :: Monad m => a -> IOException -> m a
+econst = const . return
 
 -- $usage
 -- 1. In your @~\/.xmonad\/xmonad.hs@:
@@ -98,5 +103,4 @@ getDirectoryExecutables path =
             liftM2 (&&)
                 (doesFileExist x')
                 (liftM executable (getPermissions x'))))
-    `catch` (return . return . show)
-
+    `catch` econst []

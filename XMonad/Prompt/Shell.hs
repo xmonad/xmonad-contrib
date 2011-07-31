@@ -25,8 +25,10 @@ module XMonad.Prompt.Shell
     ) where
 
 import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Control.Exception
 import Control.Monad (forM)
 import Data.List (isPrefixOf)
+import Prelude hiding (catch)
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.Environment (getEnv)
 import System.Posix.Files (getFileStatus, isDirectory)
@@ -34,6 +36,9 @@ import System.Posix.Files (getFileStatus, isDirectory)
 import XMonad.Util.Run
 import XMonad hiding (config)
 import XMonad.Prompt
+
+econst :: Monad m => a -> IOException -> m a
+econst = const . return
 
 {- $usage
 1. In your @~\/.xmonad\/xmonad.hs@:
@@ -97,7 +102,7 @@ commandCompletionFunction cmds str | '/' `elem` str = []
 
 getCommands :: IO [String]
 getCommands = do
-    p  <- getEnv "PATH" `catch` const (return [])
+    p  <- getEnv "PATH" `catch` econst []
     let ds = filter (/= "") $ split ':' p
     es <- forM ds $ \d -> do
         exists <- doesDirectoryExist d
@@ -126,7 +131,7 @@ isSpecialChar =  flip elem " &\\@\"'#?$*()[]{};"
 
 -- | Ask the shell environment for
 env :: String -> String -> IO String
-env variable fallthrough = getEnv variable `catch` \_ -> return fallthrough
+env variable fallthrough = getEnv variable `catch` econst fallthrough
 
 {- | Ask the shell what browser the user likes. If the user hasn't defined any
    $BROWSER, defaults to returning \"firefox\", since that seems to be the most
