@@ -130,7 +130,7 @@ instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder
 --
 -- To get the same result as 'smartBorders':
 --
--- > layoutHook = lessBorders (Combine Never) (Tall 1 0.5 0.03 ||| ...)
+-- > layoutHook = lessBorders Never (Tall 1 0.5 0.03 ||| ...)
 --
 -- This indirect method is required to keep the 'Read' and 'Show' for
 -- ConfigurableBorder so that xmonad can serialize state.
