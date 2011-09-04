@@ -123,6 +123,9 @@ zipP f (ax,ay) (bx,by) = (f ax bx, f ay by)
 minP :: Ord a => (a,a) -> (a,a) -> (a,a)
 minP = zipP min
 
+infixl 6  +, -
+infixl 7  *, /
+
 (+), (-), (*) :: (P.Num a) => (a,a) -> (a,a) -> (a,a)
 (+) = zipP (P.+)
 (-) = zipP (P.-)
