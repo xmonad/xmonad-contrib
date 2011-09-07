@@ -19,7 +19,8 @@
 
 module XMonad.Layout.GridVariants ( -- * Usage
                                     -- $usage
-                                    ChangeMasterGeom(..)
+                                    ChangeMasterGridGeom(..)
+                                  , ChangeGridGeom(..)
                                   , Grid(..)
                                   , TallGrid(..)
                                   , SplitGrid(..)
@@ -68,9 +69,24 @@ instance LayoutClass Grid a where
           nwins = length wins
           rects = arrangeAspectGrid rect nwins aspect
 
+    pureMessage layout msg = fmap (changeGridAspect layout) (fromMessage msg)
+
     description _ = "Grid"
 
--- | SplitGrid layout.  Parameters are
+changeGridAspect :: Grid a -> ChangeGridGeom -> Grid a
+changeGridAspect (Grid _) (SetGridAspect aspect) = Grid aspect
+changeGridAspect (Grid aspect) (ChangeGridAspect delta) =
+    Grid (max 0.00001 (aspect + delta))
+
+-- |Geometry change messages understood by Grid and SplitGrid
+data ChangeGridGeom
+    = SetGridAspect !Rational
+    | ChangeGridAspect !Rational
+      deriving Typeable
+
+instance Message ChangeGridGeom
+
+-- |SplitGrid layout.  Parameters are
 --
 --   - side where the master is
 --   - number of master rows
@@ -81,8 +97,8 @@ instance LayoutClass Grid a where
 data SplitGrid a = SplitGrid Orientation !Int !Int !Rational !Rational !Rational
                    deriving (Read, Show)
 
--- | Type to specify the side of the screen that holds
---   the master area of a SplitGrid.
+-- |Type to specify the side of the screen that holds
+--  the master area of a SplitGrid.
 data Orientation = T | B | L | R
                    deriving (Eq, Read, Show)
 
@@ -95,20 +111,23 @@ instance LayoutClass SplitGrid a where
           rects = arrangeSplitGrid rect o nwins mrows mcols mfrac saspect
 
     pureMessage layout msg =
-        msum [ fmap (resizeMaster layout) (fromMessage msg)
-             , fmap (changeMasterGrid layout) (fromMessage msg) ]
+        msum [ fmap (resizeMaster layout)          (fromMessage msg)
+             , fmap (changeMasterGrid layout)      (fromMessage msg)
+             , fmap (changeSlaveGridAspect layout) (fromMessage msg)
+             ]
 
     description _ = "SplitGrid"
 
 -- |The geometry change message understood by the master grid
-data ChangeMasterGeom
-    = IncMasterRows !Int -- ^Change the number of master rows
-    | IncMasterCols !Int -- ^Change the number of master columns
-    | SetMasterRows !Int -- ^Set the number of master rows to absolute value
-    | SetMasterCols !Int -- ^Set the number of master columns to absolute value
+data ChangeMasterGridGeom
+    = IncMasterRows     !Int      -- ^Change the number of master rows
+    | IncMasterCols     !Int      -- ^Change the number of master columns
+    | SetMasterRows     !Int      -- ^Set the number of master rows to absolute value
+    | SetMasterCols     !Int      -- ^Set the number of master columns to absolute value
+    | SetMasterFraction !Rational -- ^Set the fraction of the screen used by the master grid
     deriving Typeable
 
-instance Message ChangeMasterGeom
+instance Message ChangeMasterGridGeom
 
 arrangeSplitGrid :: Rectangle -> Orientation -> Int -> Int -> Int -> Rational -> Rational -> [Rectangle]
 arrangeSplitGrid rect@(Rectangle rx ry rw rh) o nwins mrows mcols mfrac saspect
@@ -185,7 +204,7 @@ resizeMaster (SplitGrid o mrows mcols mfrac saspect delta) Shrink =
 resizeMaster (SplitGrid o mrows mcols mfrac saspect delta) Expand =
     SplitGrid o mrows mcols (min 1 (mfrac + delta)) saspect delta
 
-changeMasterGrid :: SplitGrid a -> ChangeMasterGeom -> SplitGrid a
+changeMasterGrid :: SplitGrid a -> ChangeMasterGridGeom -> SplitGrid a
 changeMasterGrid (SplitGrid o mrows mcols mfrac saspect delta) (IncMasterRows d) =
     SplitGrid o (max 0 (mrows + d)) mcols mfrac saspect delta
 changeMasterGrid (SplitGrid o mrows mcols mfrac saspect delta) (IncMasterCols d) =
@@ -194,6 +213,14 @@ changeMasterGrid (SplitGrid o _ mcols mfrac saspect delta) (SetMasterRows mrows)
     SplitGrid o (max 0 mrows) mcols mfrac saspect delta
 changeMasterGrid (SplitGrid o mrows _ mfrac saspect delta) (SetMasterCols mcols) =
     SplitGrid o mrows (max 0 mcols) mfrac saspect delta
+changeMasterGrid (SplitGrid o mrows mcols _ saspect delta) (SetMasterFraction mfrac) =
+    SplitGrid o mrows mcols mfrac saspect delta
+
+changeSlaveGridAspect :: SplitGrid a -> ChangeGridGeom -> SplitGrid a
+changeSlaveGridAspect (SplitGrid o mrows mcols mfrac _ delta) (SetGridAspect saspect) =
+    SplitGrid o mrows mcols mfrac saspect delta
+changeSlaveGridAspect (SplitGrid o mrows mcols mfrac saspect delta) (ChangeGridAspect sdelta) =
+    SplitGrid o mrows mcols mfrac (max 0.00001 (saspect + sdelta)) delta
 
 -- | TallGrid layout.  Parameters are
 --
