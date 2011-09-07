@@ -46,6 +46,7 @@ module XMonad.Actions.CycleWS (
                                 -- * Toggling the previous workspace
                                 -- $toggling
                               , toggleWS
+                              , toggleWS'
                               , toggleOrView
 
                                 -- * Moving between screens (xinerama)
@@ -150,9 +151,16 @@ shiftToPrev = shiftBy (-1)
 
 -- | Toggle to the workspace displayed previously.
 toggleWS :: X ()
-toggleWS = do
-    hs <- gets (hidden . windowset)
-    unless (null hs) (windows . view . tag $ head hs)
+toggleWS = toggleWS' []
+
+-- | Toggle to the previous workspace while excluding some workspaces.
+--
+-- > -- Ignore the scratchpad workspace while toggling:
+-- > ("M-b", toggleWS' ["NSP"])
+toggleWS' :: [WorkspaceId] -> X ()
+toggleWS' skips = do
+    hs' <- cleanHiddens skips
+    unless (null hs') (windows . view . tag $ head hs')
 
 -- | 'XMonad.StackSet.greedyView' a workspace, or if already there, view
 -- the previously displayed workspace ala weechat. Change @greedyView@ to
@@ -162,9 +170,8 @@ toggleWS = do
 toggleOrView :: WorkspaceId -> X ()
 toggleOrView = toggleOrDoSkip [] greedyView
 
--- | Allows ignoring listed workspace tags (such as scratchpad's \"NSP\") while
--- finding the previously displayed workspace, or choice of different actions,
--- like view, shift, etc.  For example:
+-- | Allows ignoring listed workspace tags (such as scratchpad's \"NSP\"), and
+-- running other actions such as view, shift, etc.  For example:
 --
 -- > import qualified XMonad.StackSet as W
 -- > import XMonad.Actions.CycleWS
@@ -177,9 +184,9 @@ toggleOrView = toggleOrDoSkip [] greedyView
 toggleOrDoSkip :: [WorkspaceId] -> (WorkspaceId -> WindowSet -> WindowSet)
                                   -> WorkspaceId -> X ()
 toggleOrDoSkip skips f toWS = do
-    ws <- gets windowset
-    let hs' = hidden ws `skipTags` skips
-    if toWS == (tag . workspace $ current ws)
+    hs' <- cleanHiddens skips
+    cur <- gets (currentTag . windowset)
+    if toWS == cur
         then unless (null hs') (windows . f . tag $ head hs')
         else windows (f toWS)
 
@@ -187,6 +194,9 @@ toggleOrDoSkip skips f toWS = do
 -- matching listed tags from the given workspace list.
 skipTags :: (Eq i) => [Workspace i l a] -> [i] -> [Workspace i l a]
 skipTags wss ids = filter ((`notElem` ids) . tag) wss
+
+cleanHiddens :: [WorkspaceId] -> X [WindowSpace]
+cleanHiddens skips =  gets $ (flip skipTags) skips . hidden . windowset
 
 switchWorkspace :: Int -> X ()
 switchWorkspace d = wsBy d >>= windows . greedyView
