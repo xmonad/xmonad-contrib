@@ -412,9 +412,9 @@ parseModifier :: XConfig l -> ReadP KeyMask
 parseModifier c =  (string "M-" >> return (modMask c))
                +++ (string "C-" >> return controlMask)
                +++ (string "S-" >> return shiftMask)
-               +++ do char 'M'
+               +++ do _ <- char 'M'
                       n <- satisfy (`elem` ['1'..'5'])
-                      char '-'
+                      _ <- char '-'
                       return $ indexMod (read [n] - 1)
     where indexMod = (!!) [mod1Mask,mod2Mask,mod3Mask,mod4Mask,mod5Mask]
 
@@ -430,11 +430,11 @@ parseRegular = choice [ char s >> return k
 
 -- | Parse a special key name (one enclosed in angle brackets).
 parseSpecial :: ReadP KeySym
-parseSpecial = do char '<'
+parseSpecial = do _   <- char '<'
                   key <- choice [ string name >> return k
                                 | (name,k) <- keyNames
                                 ]
-                  char '>'
+                  _   <- char '>'
                   return key
 
 -- | A list of all special key names and their associated KeySyms.
