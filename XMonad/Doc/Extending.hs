@@ -936,16 +936,18 @@ example, you could write:
 
 and provide an appropriate definition of @myKeys@, such as:
 
-> myKeys conf@(XConfig {XMonad.modMask = modm}) =
+> myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
 >             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
 >             ]
 
 This particular definition also requires importing "XMonad.Prompt",
-"XMonad.Prompt.Shell", and "XMonad.Prompt.XMonad":
+"XMonad.Prompt.Shell", "XMonad.Prompt.XMonad", and "Data.Map":
 
-> import XMonadPrompt
-> import ...  -- and so on
+> import qualified Data.Map as M
+> import XMonad.Prompt
+> import XMonad.Prompt.Shell
+> import XMonad.Prompt.XMonad
 
 For a list of the names of particular keys (such as xK_F12, and so
 on), see
@@ -1172,7 +1174,7 @@ Suppose we want a list with the 'XMonad.Layout.Full',
 
 Then we create the combination of layouts we need:
 
->    mylayoutHook = Full ||| tabbed shrinkText defaultTConf ||| Accordion
+>    mylayoutHook = Full ||| tabbed shrinkText defaultTheme ||| Accordion
 
 
 Now, all we need to do is change the 'XMonad.Core.layoutHook'
@@ -1186,11 +1188,11 @@ example, suppose we want to use the
 'XMonad.Layout.NoBorders.noBorders' layout modifier, from the
 "XMonad.Layout.NoBorders" module (which must be imported):
 
->    mylayoutHook = noBorders (Full ||| tabbed shrinkText defaultTConf ||| Accordion)
+>    mylayoutHook = noBorders (Full ||| tabbed shrinkText defaultTheme ||| Accordion)
 
 If we want only the tabbed layout without borders, then we may write:
 
->    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
+>    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTheme) ||| Accordion
 
 Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 
@@ -1200,7 +1202,7 @@ Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 >    import XMonad.Layout.Accordion
 >    import XMonad.Layout.NoBorders
 >
->    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTConf) ||| Accordion
+>    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTheme) ||| Accordion
 >
 >    main = xmonad $ defaultConfig { layoutHook = mylayoutHook }
 
