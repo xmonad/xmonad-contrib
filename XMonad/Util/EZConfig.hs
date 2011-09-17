@@ -345,6 +345,7 @@ removeMouseBindings conf mouseBindingList =
 -- > <XF86MailForward>
 -- > <XF86Pictures>
 -- > <XF86Music>
+-- > <XF86TouchpadToggle>
 -- > <XF86_Switch_VT_1>-<XF86_Switch_VT_12>
 -- > <XF86_Ungrab>
 -- > <XF86_ClearGrab>
@@ -650,6 +651,7 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
                  , "XF86MailForward"
                  , "XF86Pictures"
                  , "XF86Music"
+                 , "XF86TouchpadToggle"
                  , "XF86_Switch_VT_1"
                  , "XF86_Switch_VT_2"
                  , "XF86_Switch_VT_3"
