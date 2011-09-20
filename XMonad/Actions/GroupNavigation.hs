@@ -129,17 +129,12 @@ orderedWindowList dir     = withWindowSet $ \ss -> do
       wins  = dirfun dir 
               $ Fold.foldl' (><) Seq.empty
               $ fmap (Seq.fromList . SS.integrate' . SS.stack) wspcs
-      cur   = currentWindow ss
+      cur   = SS.peek ss
   return $ maybe wins (rotfun wins) cur
   where
     dirfun Backward = Seq.reverse
     dirfun _        = id
     rotfun wins x   = rotate $ rotateTo (== x) wins
-
--- Returns the currently focused window or Nothing if no window is
--- currently focused.
-currentWindow :: WindowSet -> Maybe Window
-currentWindow = liftM SS.focus . SS.stack . SS.workspace . SS.current
 
 -- Returns the ordered workspace list as specified in ~/.xmonad/xmonad.hs
 orderedWorkspaceList :: WindowSet -> Seq String -> Seq WindowSpace
@@ -170,7 +165,7 @@ historyHook = XS.get >>= updateHistory >>= XS.put
 -- Updates the history in response to a WindowSet change
 updateHistory :: HistoryDB -> X HistoryDB
 updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
-  let newcur   = currentWindow ss
+  let newcur   = SS.peek ss
       wins     = Set.fromList $ SS.allWindows ss
       newhist  = flt (flip Set.member wins) (ins oldcur oldhist)
   return $ HistoryDB newcur (del newcur newhist)
