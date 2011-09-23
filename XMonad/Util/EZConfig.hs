@@ -127,7 +127,7 @@ additionalMouseBindings conf mouseBindingsList =
 removeMouseBindings :: XConfig a -> [(ButtonMask, Button)] -> XConfig a
 removeMouseBindings conf mouseBindingList =
     conf { mouseBindings = \cnf -> mouseBindings conf cnf `M.difference`
-                                   M.fromList (zip mouseBindingList $ return ()) }
+                                   M.fromList (zip mouseBindingList $ repeat ()) }
 
 
 --------------------------------------------------------------
