@@ -53,15 +53,19 @@ import XMonad.Hooks.DynamicLog
 -- to specific workspace names.  In the default configuration, only
 -- the keybindings for changing workspace do this:
 --
--- > [((m .|. modm, k), windows $ f i)
--- >     | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
--- >     , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+-- > keyBindings conf = let m = modMask conf in fromList $
+-- >     {- lots of other keybindings -}
+-- >     [((m .|. modm, k), windows $ f i)
+-- >         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
+-- >         , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 --
 -- This should change to
 --
--- > [((m .|. modm, k), windows $ onCurrentScreen f i)
--- >     | (i, k) <- zip (workspaces' conf) [xK_1 .. xK_9]
--- >     , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+-- > keyBindings conf = let m = modMask conf in fromList $
+-- >     {- lots of other keybindings -}
+-- >     [((m .|. modm, k), windows $ onCurrentScreen f i)
+-- >         | (i, k) <- zip (workspaces' conf) [xK_1 .. xK_9]
+-- >         , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 --
 -- In particular, the analogue of @XMonad.workspaces@ is
 -- @workspaces'@, and you can use @onCurrentScreen@ to convert functions
