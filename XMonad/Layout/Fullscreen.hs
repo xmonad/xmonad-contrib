@@ -83,9 +83,10 @@ data FullscreenFloat a = FullscreenFloat W.RationalRect (M.Map a (W.RationalRect
      deriving (Read, Show)
 
 instance LayoutModifier FullscreenFull Window where
-  pureMess (FullscreenFull frect fulls) m = case fromMessage m of
-    Just (AddFullscreen win) -> Just $ FullscreenFull frect $ nub $ win:fulls
-    Just (RemoveFullscreen win) -> Just $ FullscreenFull frect $ delete win $ fulls
+  pureMess ff@(FullscreenFull frect fulls) m = case fromMessage m of
+    Just (AddFullscreen win) -> Just $ FullscreenFull frect $ nub $ win:fulls
+    Just (RemoveFullscreen win) -> Just $ FullscreenFull frect $ delete win $ fulls
+    Just FullscreenChanged -> Just ff
     _ -> Nothing
 
   pureModifier (FullscreenFull frect fulls) rect _ list =
@@ -95,9 +96,10 @@ instance LayoutModifier FullscreenFull Window where
           rect' = scaleRationalRect rect frect
 
 instance LayoutModifier FullscreenFocus Window where
-  pureMess (FullscreenFocus frect fulls) m = case fromMessage m of
+  pureMess ff@(FullscreenFocus frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> Just $ FullscreenFocus frect $ nub $ win:fulls
     Just (RemoveFullscreen win) -> Just $ FullscreenFocus frect $ delete win $ fulls
+    Just FullscreenChanged -> Just ff
     _ -> Nothing
 
   pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list
@@ -125,7 +127,7 @@ instance LayoutModifier FullscreenFloat Window where
           flt = W.floating ws
           flt' = M.intersectionWith doFull fulls flt
       put state {windowset = ws {W.floating = M.union flt' flt}}
-      return $ Just $ FullscreenFloat frect $ M.filter snd fulls
+      return $ Just $ FullscreenFloat frect $ M.filter snd fulls
       where doFull (_, True) _ = frect
             doFull (rect, False) _ = rect
 
@@ -195,10 +197,10 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
 fullscreenEventHook (DestroyWindowEvent {ev_window = w}) = do
   -- When a window is destroyed, the layouts should remove that window
   -- from their states.
-  broadcastMessage $ RemoveFullscreen w
+  broadcastMessage $ RemoveFullscreen w
   cw <- (W.workspace . W.current) `fmap` gets windowset
   sendMessageWithNoRefresh FullscreenChanged cw
-  return $ All True
+  return $ All True
 
 fullscreenEventHook _ = return $ All True
 
@@ -210,7 +212,7 @@ fullscreenManageHook = fullscreenManageHook' isFullscreen
 -- | A version of fullscreenManageHook that lets you specify
 -- your own query to decide whether a window should be fullscreen.
 fullscreenManageHookWith :: Query Bool -> ManageHook
-fullscreenManageHookWith h = fullscreenManageHook' $ isFullscreen <||> h
+fullscreenManageHookWith h = fullscreenManageHook' $ isFullscreen <||> h
 
 fullscreenManageHook' :: Query Bool -> ManageHook
 fullscreenManageHook' isFull = isFull --> do
