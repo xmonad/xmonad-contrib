@@ -187,6 +187,8 @@ library
                         XMonad.Layout.GridVariants
                         XMonad.Layout.Groups
                         XMonad.Layout.Groups.Examples
+                        XMonad.Layout.Groups.Helpers
+                        XMonad.Layout.Groups.Wmii
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
@@ -288,5 +290,3 @@ library
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
-
-    other-modules:      XMonad.Layout.Groups.Helpers
