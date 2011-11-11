@@ -24,7 +24,7 @@ module XMonad.Prompt.Shell
     , safePrompt
     ) where
 
-import Codec.Binary.UTF8.String (decodeString, encodeString)
+import Codec.Binary.UTF8.String (encodeString)
 import Control.Exception
 import Control.Monad (forM)
 import Data.List (isPrefixOf)
@@ -88,13 +88,14 @@ unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
                      | otherwise                = do
-    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file " ++ encodeString s ++ "\n")
+    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file -- "
+                                                        ++ s ++ "\n")
     files <- case f of
-               [x] -> do fs <- getFileStatus x
+               [x] -> do fs <- getFileStatus (encodeString x)
                          if isDirectory fs then return [x ++ "/"]
                                            else return [x]
                _   -> return f
-    return . map decodeString . uniqSort $ files ++ commandCompletionFunction cmds s
+    return . uniqSort $ files ++ commandCompletionFunction cmds s
 
 commandCompletionFunction :: [String] -> String -> [String]
 commandCompletionFunction cmds str | '/' `elem` str = []
