@@ -225,7 +225,7 @@ modifySlave state delta =
                                             (max 0 (min 1 (oldFraction + delta))) }
                 else state
 
-replaceAtPos :: (Num t) => Rational -> [Rational] -> t -> Rational -> [Rational]
+replaceAtPos :: (Num t, Eq t) => Rational -> [Rational] -> t -> Rational -> [Rational]
 replaceAtPos _ [] 0 x' = [x']
 replaceAtPos d [] pos x' = d : replaceAtPos d [] (pos - 1) x'
 replaceAtPos _ (_:xs) 0 x' = x' : xs

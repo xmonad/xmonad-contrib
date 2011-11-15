@@ -81,7 +81,7 @@ debugKeyEvents (KeyEvent {ev_event_type = t, ev_state = m, ev_keycode = code})
 debugKeyEvents _ = return (All True)
 
 -- | Convenient showHex variant
-hex :: Integral n => n -> String
+hex :: (Integral n, Show n) => n -> String
 hex v = "0x" ++ showHex v ""
 
 -- | Convert a modifier mask into a useful string

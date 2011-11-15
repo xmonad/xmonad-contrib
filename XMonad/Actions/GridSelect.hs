@@ -251,7 +251,7 @@ liftX = TwoD . lift
 evalTwoD ::  TwoD a1 a -> TwoDState a1 -> X a
 evalTwoD m s = flip evalStateT s $ unTwoD m
 
-diamondLayer :: (Enum b', Num b') => b' -> [(b', b')]
+diamondLayer :: (Enum a, Num a, Eq a) => a -> [(a, a)]
 diamondLayer 0 = [(0,0)]
 diamondLayer n =
   -- tr = top right
@@ -260,7 +260,7 @@ diamondLayer n =
       r  = tr ++ (map (\(x,y) -> (y,-x)) tr)
   in r ++ (map (negate *** negate) r)
 
-diamond :: (Enum a, Num a) => [(a, a)]
+diamond :: (Enum a, Num a, Eq a) => [(a, a)]
 diamond = concatMap diamondLayer [0..]
 
 diamondRestrict :: Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
