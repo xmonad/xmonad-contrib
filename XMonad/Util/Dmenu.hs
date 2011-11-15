@@ -29,6 +29,11 @@ import XMonad.Util.Run
 -- You can use this module with the following in your Config.hs file:
 --
 -- > import XMonad.Util.Dmenu
+--
+-- These functions block xmonad's event loop until dmenu exits; this means that
+-- programs will not be able to open new windows and you will not be able to
+-- change workspaces or input focus until you have responded to the prompt one
+-- way or another.
 
 -- %import XMonad.Util.Dmenu
 
