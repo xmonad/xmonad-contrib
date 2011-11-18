@@ -31,6 +31,7 @@ module XMonad.Util.Run (
                           hPutStr, hPutStrLn  -- re-export for convenience
                          ) where
 
+import Codec.Binary.UTF8.String
 import System.Posix.IO
 import System.Posix.Process (createSession, executeFile, forkProcess)
 import Control.Concurrent (threadDelay)
@@ -53,7 +54,8 @@ import Control.Monad
 -- | Returns the output.
 runProcessWithInput :: MonadIO m => FilePath -> [String] -> String -> m String
 runProcessWithInput cmd args input = io $ do
-    (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
+    (pin, pout, perr, _) <- runInteractiveProcess (encodeString cmd)
+                                            (map encodeString args) Nothing Nothing
     hPutStr pin input
     hClose pin
     output <- hGetContents pout
@@ -67,7 +69,8 @@ runProcessWithInput cmd args input = io $ do
 runProcessWithInputAndWait :: MonadIO m => FilePath -> [String] -> String -> Int -> m ()
 runProcessWithInputAndWait cmd args input timeout = io $ do
     _ <- xfork $ do
-        (pin, pout, perr, _) <- runInteractiveProcess cmd args Nothing Nothing
+        (pin, pout, perr, _) <- runInteractiveProcess (encodeString cmd)
+                                            (map encodeString args) Nothing Nothing
         hPutStr pin input
         hFlush pin
         threadDelay timeout
@@ -108,7 +111,7 @@ safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
 safeSpawn prog args = io $ void_ $ forkProcess $ do
   uninstallSignalHandlers
   _ <- createSession
-  executeFile prog True args Nothing
+  executeFile (encodeString prog) True (map encodeString args) Nothing
     where void_ = (>> return ()) -- TODO: replace with Control.Monad.void / void not in ghc6 apparently
 
 -- | Simplified 'safeSpawn'; only takes a program (and no arguments):
@@ -141,6 +144,6 @@ spawnPipe x = io $ do
     hSetBuffering h LineBuffering
     _ <- xfork $ do
           _ <- dupTo rd stdInput
-          executeFile "/bin/sh" False ["-c", x] Nothing
+          executeFile "/bin/sh" False ["-c", encodeString x] Nothing
     closeFd rd
     return h

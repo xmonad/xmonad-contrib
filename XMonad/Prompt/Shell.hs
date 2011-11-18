@@ -62,7 +62,7 @@ instance XPrompt Shell where
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
     cmds <- io getCommands
-    mkXPrompt Shell c (getShellCompl cmds) (spawn . encodeString)
+    mkXPrompt Shell c (getShellCompl cmds) spawn
 
 {- | See safe and unsafeSpawn. prompt is an alias for safePrompt;
     safePrompt and unsafePrompt work on the same principles, but will use
@@ -81,9 +81,9 @@ shellPrompt c = do
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
 safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run = safeSpawn c . return . encodeString
+    where run = safeSpawn c . return
 unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
-    where run a = unsafeSpawn $ c ++ " " ++ encodeString a
+    where run a = unsafeSpawn $ c ++ " " ++ a
 
 getShellCompl :: [String] -> String -> IO [String]
 getShellCompl cmds s | s == "" || last s == ' ' = return []
