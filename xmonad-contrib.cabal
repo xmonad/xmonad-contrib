@@ -24,8 +24,12 @@ maintainer:         spencerjanssen@gmail.com
 extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
-                    scripts/xmonad-clock.c tests/test_SwapWorkspaces.hs
-                    tests/test_XPrompt.hs
+                    scripts/xmonad-clock.c
+                    tests/genMain.hs
+                    tests/ManageDocks.hs
+                    tests/Selective.hs
+                    tests/SwapWorkspaces.hs
+                    tests/XPrompt.hs
 cabal-version:      >= 1.2.1
 build-type:         Simple
 
