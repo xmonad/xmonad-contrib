@@ -25,6 +25,8 @@ module XMonad.Layout.Fullscreen
     ,fullscreenManageHook
     ,fullscreenManageHookWith
     ,FullscreenMessage(..)
+     -- * Types for reference
+    ,FullscreenFloat, FullscreenFocus, FullscreenFull
     ) where
 
 import XMonad

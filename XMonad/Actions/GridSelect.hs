@@ -63,10 +63,13 @@ module XMonad.Actions.GridSelect (
     moveNext, movePrev,
     select,
     cancel,
-    transformSearchString
+    transformSearchString,
 
     -- * Screenshots
     -- $screenshots
+
+    -- * Types
+    TwoDState,
     ) where
 import Data.Maybe
 import Data.Bits
