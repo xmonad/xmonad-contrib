@@ -45,7 +45,7 @@ data TrackFloating a = TrackFloating
 
 
 instance LayoutModifier TrackFloating Window where
-    modifyLayoutWithUpdate os@(TrackFloating wasF mw) ws@(W.Workspace{ W.stack = ms }) r
+    modifyLayoutWithUpdate os@(TrackFloating _wasF mw) ws@(W.Workspace{ W.stack = ms }) r
       = do
         winset <- gets windowset
         let xCur = fmap W.focus xStack
@@ -57,7 +57,7 @@ instance LayoutModifier TrackFloating Window where
             newStack
               -- focus is floating, so use the remembered focus point
               | Just isF' <- isF,
-                isF' || wasF,
+                isF',
                 Just w <- mw,
                 Just s <- ms,
                 Just ns <- find ((==) w . W.focus)
