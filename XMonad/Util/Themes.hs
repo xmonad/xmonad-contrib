@@ -131,12 +131,12 @@ smallClean =
                                                }
              }
 
--- | Don's prefered colors - from DynamicLog...;)
+-- | Don's preferred colors - from DynamicLog...;)
 donaldTheme  :: ThemeInfo
 donaldTheme =
     newTheme { themeName        = "donaldTheme"
              , themeAuthor      = "Andrea Rossato"
-             , themeDescription = "Don's prefered colors - from DynamicLog...;)"
+             , themeDescription = "Don's preferred colors - from DynamicLog...;)"
              , theme            = defaultTheme { activeColor         = "#2b4f98"
                                                , inactiveColor       = "#cccccc"
                                                , activeBorderColor   = "#2b4f98"
