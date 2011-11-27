@@ -130,7 +130,9 @@ escape (x:xs)
 isSpecialChar :: Char -> Bool
 isSpecialChar =  flip elem " &\\@\"'#?$*()[]{};"
 
--- | Ask the shell environment for
+-- | Ask the shell environment for the value of a variable in XMonad's environment, with a default value.
+--   In order to /set/ an environment variable (eg. combine with a prompt so you can modify @$HTTP_PROXY@ dynamically),
+--   you need to use 'System.Posix.putEnv'.
 env :: String -> String -> IO String
 env variable fallthrough = getEnv variable `catch` econst fallthrough
 
