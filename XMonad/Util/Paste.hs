@@ -3,7 +3,7 @@ Module      :  XMonad.Util.Paste
 Copyright   :  (C) 2008 Jérémy Bobbio, gwern
 License     :  BSD3
 
-Maintainer  :  gwern <gwern0@gmail.com>
+Maintainer  :  none
 Stability   :  unstable
 Portability :  unportable
 
