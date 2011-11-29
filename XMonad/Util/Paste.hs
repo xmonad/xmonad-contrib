@@ -56,7 +56,7 @@ pasteSelection = getSelection >>= pasteString
 -- | Send a string to the window which is currently focused. This function correctly
 -- handles capitalization. Warning: in dealing with capitalized characters, this assumes a QWERTY layout.
 pasteString :: String -> X ()
-pasteString = mapM_ (\x -> if isUpper x || || x `elem` "!@#$%^&*()_+{}:<>?\"" then pasteChar shiftMask x else pasteChar noModMask x)
+pasteString = mapM_ (\x -> if isUpper x || x `elem` "!@#$%^&*()_+{}:<>?\"" then pasteChar shiftMask x else pasteChar noModMask x)
 
 {- | Send a character to the current window. This is more low-level.
    Remember that you must handle the case of capitalization appropriately.
