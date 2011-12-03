@@ -89,9 +89,3 @@ sendKeyWindow mods key w = withDisplay $ \d -> do
                   sendEvent d w True keyPressMask ev
                   setEventType ev keyRelease
                   sendEvent d w True keyReleaseMask ev
-
--- | A null 'KeyMask'. Used when you don't want a character or string shifted, control'd, or what.
---
---   TODO: This really should be a function in the X11 binding. When noModMask shows up there, remove.
-noModMask :: KeyMask
-noModMask = 0
