@@ -15,13 +15,18 @@ module XMonad.Prompt.Shell
       -- $usage
       Shell (..)
     , shellPrompt
+    -- ** Variations on shellPrompt
+    -- $spawns
+    , prompt
+    , safePrompt
+    , unsafePrompt
+
+    -- * Utility functions
     , getCommands
     , getBrowser
     , getEditor
     , getShellCompl
     , split
-    , prompt
-    , safePrompt
     ) where
 
 import Codec.Binary.UTF8.String (encodeString)
@@ -64,7 +69,9 @@ shellPrompt c = do
     cmds <- io getCommands
     mkXPrompt Shell c (getShellCompl cmds) spawn
 
-{- | See safe and unsafeSpawn. prompt is an alias for safePrompt;
+{- $spawns
+    See safe and unsafeSpawn in "XMonad.Util.Run".
+    prompt is an alias for safePrompt;
     safePrompt and unsafePrompt work on the same principles, but will use
     XPrompt to interactively query the user for input; the appearance is
     set by passing an XPConfig as the second argument. The first argument
@@ -78,6 +85,7 @@ shellPrompt c = do
     wants URLs, and unsafePrompt for the XTerm example because this allows
     you to easily start a terminal executing an arbitrary command, like
     'top'. -}
+
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
 safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
