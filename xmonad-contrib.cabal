@@ -105,6 +105,7 @@ library
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
+                        XMonad.Actions.Navigation2D
                         XMonad.Actions.NoBorders
                         XMonad.Actions.OnScreen
                         XMonad.Actions.PerWorkspaceKeys
