@@ -86,6 +86,15 @@ runProcessWithInputAndWait cmd args input timeout = io $ do
 -- Use like:
 --
 -- > (5.5 `seconds`)
+--
+-- In GHC 7 and later, you must either enable the PostfixOperators extension
+-- (by adding
+--
+-- > {-# LANGUAGE PostfixOperators #-}
+--
+-- to the top of your file) or use seconds in prefix form:
+--
+-- > 5.5 seconds
 seconds :: Rational -> Int
 seconds = fromEnum . (* 1000000)
 
