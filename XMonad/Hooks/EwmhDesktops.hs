@@ -45,7 +45,7 @@ import XMonad.Util.WindowProperties (getProp32)
 -- >
 -- > main = xmonad $ ewmh defaultConfig
 --
--- You may also be interested in 'avoidStruts' from XMonad.Hooks.ManageDocks.
+-- You may also be interested in 'avoidStruts' from "XMonad.Hooks.ManageDocks".
 
 
 -- | Add EWMH functionality to the given config.  See above for an example.
