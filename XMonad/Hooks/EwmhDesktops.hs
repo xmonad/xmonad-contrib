@@ -43,7 +43,8 @@ import XMonad.Util.WindowProperties (getProp32)
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad $ ewmh defaultConfig
+-- > main = xmonad $ ewmh defaultConfig{ handleEventHook =
+-- >            handleEventHook defaultConfig <+> fullscreenEventHook }
 --
 -- You may also be interested in 'avoidStruts' from "XMonad.Hooks.ManageDocks".
 
@@ -160,6 +161,8 @@ handle _ = return ()
 -- An event hook to handle applications that wish to fullscreen using the
 -- _NET_WM_STATE protocol. This includes users of the gtk_window_fullscreen()
 -- function, such as Totem, Evince and OpenOffice.org.
+--
+-- Note this is not included in 'ewmh'.
 fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   state <- getAtom "_NET_WM_STATE"
