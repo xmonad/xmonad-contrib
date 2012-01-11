@@ -175,7 +175,7 @@ edit your key bindings.
 * "XMonad.Actions.FloatKeys":
     Move and resize floating windows.
 
-* "XMonad.Layout.FloatSnap":
+* "XMonad.Actions.FloatSnap":
     Move and resize floating windows using other windows and the edge of the
     screen as guidelines.
 
