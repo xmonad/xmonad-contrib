@@ -257,7 +257,7 @@ edit your key bindings.
 * "XMonad.Actions.UpdateFocus":
     Updates the focus on mouse move in unfocused windows.
 
-* "XMonadContrib.UpdatePointer":
+* "XMonad.Actions.UpdatePointer":
     Causes the pointer to follow whichever window focus changes to.
 
 * "XMonad.Actions.Warp":
