@@ -41,7 +41,7 @@ and then left-to-right.
 
 Example usage in your @~\/.xmonad\/xmonad.hs@ file:
 
-> import XMonad.Actions.PhysicalSCreens
+> import XMonad.Actions.PhysicalScreens
 
 > , ((modMask, xK_a), onPrevNeighbour W.view)
 > , ((modMask, xK_o), onNextNeighbour W.view)
@@ -112,4 +112,3 @@ onNextNeighbour = neighbourWindows 1
 -- | Apply operation on a WindowSet with the WorkspaceId of the previous screen in the physical order as parameter.
 onPrevNeighbour :: (WorkspaceId -> WindowSet -> WindowSet) -> X ()
 onPrevNeighbour = neighbourWindows (-1)
-
