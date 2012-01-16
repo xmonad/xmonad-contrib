@@ -114,7 +114,7 @@ raise = raiseMaybe $ return ()
    Mutt which you just did for Firefox - but Mutt runs inside a terminal window?
    No problem: you search for a terminal window calling itself \"mutt\", and if
    there isn't you run a terminal with a command to run Mutt! Here's an example
-   (borrowing 'runInTerm' from "XMonad.Utils.Run"):
+   (borrowing 'runInTerm' from "XMonad.Util.Run"):
 
   > , ((modm, xK_m), raiseMaybe (runInTerm "-title mutt" "mutt") (title =? "mutt"))
 -}
