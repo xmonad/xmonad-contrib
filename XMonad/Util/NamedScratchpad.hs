@@ -24,12 +24,14 @@ module XMonad.Util.NamedScratchpad (
   namedScratchpadAction,
   allNamedScratchpadAction,
   namedScratchpadManageHook,
-  namedScratchpadFilterOutWorkspace
+  namedScratchpadFilterOutWorkspace,
+  namedScratchpadFilterOutWorkspacePP
   ) where
 
 import XMonad
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
+import XMonad.Hooks.DynamicLog (PP, ppSort)
 
 import Control.Monad (filterM)
 import Data.Maybe (listToMaybe)
@@ -159,5 +161,21 @@ namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
 -- doesn't contain it. Intended for use with logHooks.
 namedScratchpadFilterOutWorkspace :: [WindowSpace] -> [WindowSpace]
 namedScratchpadFilterOutWorkspace = filter (\(W.Workspace tag _ _) -> tag /= scratchpadWorkspaceTag)
+
+-- | Transforms a pretty-printer into one not displaying the NSP workspace.
+--
+-- A simple use could be:
+--
+-- > logHook = dynamicLogWithPP . namedScratchpadFilterOutWorkspace $ defaultPP
+--
+-- Here is another example, when using "XMonad.Layout.IndependentScreens".
+-- If you have handles @hLeft@ and @hRight@ for bars on the left and right screens, respectively, and @pp@ is a pretty-printer function that takes a handle, you could write
+--
+-- > logHook = let log screen handle = dynamicLogWithPP . namedScratchpadFilterOutWorkspacePP . marshallPP screen . pp $ handle
+-- >           in log 0 hLeft >> log 1 hRight
+namedScratchpadFilterOutWorkspacePP :: PP -> PP
+namedScratchpadFilterOutWorkspacePP pp = pp {
+  ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
+  }
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:
