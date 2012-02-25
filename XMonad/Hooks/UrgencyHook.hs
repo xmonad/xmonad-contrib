@@ -59,6 +59,7 @@ module XMonad.Hooks.UrgencyHook (
                                  dzenUrgencyHook,
                                  DzenUrgencyHook(..),
                                  NoUrgencyHook(..),
+                                 BorderUrgencyHook(..),
                                  FocusHook(..),
                                  minutes, seconds,
                                  -- * Stuff for developers:
@@ -83,6 +84,7 @@ import Data.Bits (testBit)
 import Data.List (delete, (\\))
 import Data.Maybe (listToMaybe, maybeToList)
 import qualified Data.Set as S
+import System.IO (hPutStrLn, stderr)
 
 -- $usage
 --
@@ -422,6 +424,30 @@ data FocusHook = FocusHook deriving (Read, Show)
 
 instance UrgencyHook FocusHook where
     urgencyHook _ _ = focusUrgent
+
+-- | A hook that sets the border color of an urgent window.  The color
+--   will remain until the next time the window gains or loses focus, at
+--   which point the standard border color from the XConfig will be applied.
+--   You may want to use suppressWhen = Never with this:
+--
+--   > withUrgencyHookC BorderUrgencyHook { urgencyBorderColor = "#ff0000" } urgencyConfig { suppressWhen = Never } ...
+--
+--   (This should be @urgentBorderColor@ but that breaks "XMonad.Layout.Decoration".  
+--   @borderColor@ breaks anyone using 'XPConfig' from "XMonad.Prompt".  We need to 
+--   think a bit more about namespacing issues, maybe.)
+data BorderUrgencyHook = BorderUrgencyHook { urgencyBorderColor :: !String }
+                       deriving (Read, Show)
+
+instance UrgencyHook BorderUrgencyHook where
+  urgencyHook BorderUrgencyHook { urgencyBorderColor = cs } w =
+    withDisplay $ \dpy -> io $ do
+      c' <- initColor dpy cs
+      case c' of
+        Just c -> setWindowBorder dpy w c
+        _      -> hPutStrLn stderr $ concat ["Warning: bad urgentBorderColor "
+                                            ,show cs
+                                            ," in BorderUrgencyHook"
+                                            ]
 
 -- | Flashes when a window requests your attention and you can't see it.
 -- Defaults to a duration of five seconds, and no extra args to dzen.
