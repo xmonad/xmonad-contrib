@@ -90,8 +90,7 @@ cleanDir :: String -> X String
 cleanDir x = scd x >> io getCurrentDirectory
 
 scd :: String -> X ()
-scd x = do x' <- io (runProcessWithInput "bash" [] ("echo -n " ++ x) `catch` econst x)
-           catchIO $ setCurrentDirectory x'
+scd x = catchIO $ setCurrentDirectory x
 
 changeDir :: XPConfig -> X ()
 changeDir c = directoryPrompt c "Set working directory: " (sendMessage . Chdir)
