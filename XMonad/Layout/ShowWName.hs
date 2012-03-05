@@ -86,15 +86,15 @@ doShow (SWN True  c  Nothing    ) r wrs = flashName c r wrs
 doShow (SWN False _  _          ) _ wrs = return (wrs, Nothing)
 
 flashName :: SWNConfig -> Rectangle -> [(a, Rectangle)] -> X ([(a, Rectangle)], Maybe (ShowWName a))
-flashName c (Rectangle _ _ wh ht) wrs = do
+flashName c (Rectangle sx sy wh ht) wrs = do
   d <- asks display
   n <- withWindowSet (return . S.currentTag)
   f <- initXMF (swn_font c)
   width   <- textWidthXMF d f n
   (as,ds) <- textExtentsXMF f n
   let hight = as + ds
-      y     = (fi ht - hight + 2) `div` 2
-      x     = (fi wh - width + 2) `div` 2
+      y     = fi sy + (fi ht - hight + 2) `div` 2
+      x     = fi sx + (fi wh - width + 2) `div` 2
   w <- createNewWindow (Rectangle (fi x) (fi y) (fi width) (fi hight)) Nothing "" True
   showWindow w
   paintAndWrite w f (fi width) (fi hight) 0 "" "" (swn_color c) (swn_bgcolor c) [AlignCenter] [n]
