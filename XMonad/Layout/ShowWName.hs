@@ -97,7 +97,7 @@ flashName c (Rectangle sx sy wh ht) wrs = do
       x     = fi sx + (fi wh - width + 2) `div` 2
   w <- createNewWindow (Rectangle (fi x) (fi y) (fi width) (fi hight)) Nothing "" True
   showWindow w
-  paintAndWrite w f (fi width) (fi hight) 0 "" "" (swn_color c) (swn_bgcolor c) [AlignCenter] [n]
+  paintAndWrite w f (fi width) (fi hight) 0 (swn_bgcolor c) "" (swn_color c) (swn_bgcolor c) [AlignCenter] [n]
   releaseXMF f
   io $ sync d False
   i <- startTimer (swn_fade c)
