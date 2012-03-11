@@ -63,10 +63,11 @@ _pp n f s st = (\b -> guard b >> Just (st s)) <$> _get n f
 
 {- The current state is kept here -}
 
-data HookState = HookState { hooks :: Map String (Bool, Bool) } deriving (Typeable)
+data HookState = HookState { hooks :: Map String (Bool, Bool) } deriving (Typeable, Read, Show)
 
 instance ExtensionClass HookState where
     initialValue = HookState empty
+    extensionType = PersistentExtension
 
 modify' :: String -> ((Bool, Bool) -> (Bool, Bool)) -> X ()
 modify' n f = XS.modify (HookState . setter . hooks)
