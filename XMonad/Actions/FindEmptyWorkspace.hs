@@ -15,7 +15,7 @@
 module XMonad.Actions.FindEmptyWorkspace (
     -- * Usage
     -- $usage
-    viewEmptyWorkspace, tagToEmptyWorkspace
+    viewEmptyWorkspace, tagToEmptyWorkspace, sendToEmptyWorkspace
   ) where
 
 import Data.List
@@ -65,3 +65,8 @@ viewEmptyWorkspace = withEmptyWorkspace (windows . view)
 -- all workspaces are in use.
 tagToEmptyWorkspace :: X ()
 tagToEmptyWorkspace = withEmptyWorkspace $ \w -> windows $ view w . shift w
+
+-- | Send current window to an empty workspace. Do nothing if
+-- all workspaces are in use.
+sendToEmptyWorkspace :: X ()
+sendToEmptyWorkspace = withEmptyWorkspace $ \w -> windows $ shift w
