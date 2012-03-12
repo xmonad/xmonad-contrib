@@ -46,7 +46,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 Import the module into your @~\/.xmonad\/xmonad.hs@:
 
-> import XMonad.Actions,GroupNavigation
+> import XMonad.Actions.GroupNavigation
 
 To support cycling forward and backward through all xterm windows, add
 something like this to your keybindings:
