@@ -59,10 +59,8 @@ type RectWithBorders = (Rectangle, [BorderInfo])
 
 data BorderResize a = BR (M.Map Window RectWithBorders) deriving (Show, Read)
 
-brBorderOffset :: Position
-brBorderOffset = 5
 brBorderSize :: Dimension
-brBorderSize = 10
+brBorderSize = 2
 
 borderResize :: l a -> ModifiedLayout BorderResize l a
 borderResize = ModifiedLayout (BR M.empty)
@@ -147,10 +145,10 @@ createBorderLookupTable wrsLastTime = concat $ map processSingleEntry $ M.toList
 
 prepareBorders :: Rectangle -> [BorderBlueprint]
 prepareBorders (Rectangle x y wh ht) =
-    [((Rectangle (x + fi wh - brBorderOffset) y brBorderSize ht), xC_right_side , RightSideBorder),
-     ((Rectangle (x - brBorderOffset) y brBorderSize ht)        , xC_left_side  , LeftSideBorder),
-     ((Rectangle x (y - brBorderOffset) wh brBorderSize)        , xC_top_side   , TopSideBorder),
-     ((Rectangle x (y + fi ht - brBorderOffset) wh brBorderSize), xC_bottom_side, BottomSideBorder)
+    [((Rectangle (x + fi wh - fi brBorderSize) y brBorderSize ht), xC_right_side , RightSideBorder),
+     ((Rectangle x y brBorderSize ht)                            , xC_left_side  , LeftSideBorder),
+     ((Rectangle x y wh brBorderSize)                            , xC_top_side   , TopSideBorder),
+     ((Rectangle x (y + fi ht - fi brBorderSize) wh brBorderSize), xC_bottom_side, BottomSideBorder)
     ]
 
 handleResize :: [(Window, (BorderType, Window, Rectangle))] -> Event -> X ()
