@@ -26,7 +26,7 @@ module XMonad.Layout.Spiral (
                             ) where
 
 import Data.Ratio
-import XMonad
+import XMonad hiding ( Rotation )
 import XMonad.StackSet ( integrate )
 
 -- $usage
