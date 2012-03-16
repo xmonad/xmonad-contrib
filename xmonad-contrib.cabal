@@ -144,6 +144,7 @@ library
                         XMonad.Config.Xfce
                         XMonad.Hooks.CurrentWorkspaceOnTop
                         XMonad.Hooks.DebugKeyEvents
+                        XMonad.Hooks.DynamicBars
                         XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.EwmhDesktops
