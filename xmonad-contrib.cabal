@@ -223,6 +223,7 @@ library
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
                         XMonad.Layout.NoFrillsDecoration
+                        XMonad.Layout.OnHost
                         XMonad.Layout.OneBig
                         XMonad.Layout.PerWorkspace
                         XMonad.Layout.PositionStoreFloat
