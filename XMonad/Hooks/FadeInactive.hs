@@ -17,10 +17,12 @@ module XMonad.Hooks.FadeInactive (
     -- $usage
     setOpacity,
     isUnfocused,
+    isUnfocusedOnCurrentWS,
     fadeIn,
     fadeOut,
     fadeIf,
     fadeInactiveLogHook,
+    fadeInactiveCurrentWSLogHook,
     fadeOutLogHook
     ) where
 
@@ -58,18 +60,18 @@ rationalToOpacity perc
     | perc < 0 || perc > 1 = round perc -- to maintain backwards-compatability
     | otherwise = round $ perc * 0xffffffff
 
--- | sets the opacity of a window
+-- | Sets the opacity of a window
 setOpacity :: Window -> Rational -> X ()
 setOpacity w t = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_WINDOW_OPACITY"
     c <- getAtom "CARDINAL"
     io $ changeProperty32 dpy w a c propModeReplace [rationalToOpacity t]
 
--- | fades a window out by setting the opacity
+-- | Fades a window out by setting the opacity
 fadeOut :: Rational -> Window -> X ()
 fadeOut = flip setOpacity
 
--- | makes a window completely opaque
+-- | Makes a window completely opaque
 fadeIn :: Window -> X ()
 fadeIn = fadeOut 1
 
@@ -78,15 +80,34 @@ fadeIn = fadeOut 1
 fadeIf :: Query Bool -> Rational -> Query Rational
 fadeIf qry amt = qry >>= \b -> return $ if b then amt else 1
 
--- | sets the opacity of inactive windows to the specified amount
+-- | Sets the opacity of inactive windows to the specified amount
 fadeInactiveLogHook :: Rational -> X ()
 fadeInactiveLogHook = fadeOutLogHook . fadeIf isUnfocused
 
--- | returns True if the window doesn't have the focus.
+-- | Set the opacity of inactive windows, on the current workspace, to the
+-- specified amount. This is specifically usefull in a multi monitor setup. See
+-- 'isUnfocusedOnCurrentWS'.
+fadeInactiveCurrentWSLogHook :: Rational -> X ()
+fadeInactiveCurrentWSLogHook = fadeOutLogHook . fadeIf isUnfocusedOnCurrentWS
+
+-- | Returns True if the window doesn't have the focus.
 isUnfocused :: Query Bool
 isUnfocused = ask >>= \w -> liftX . gets $ maybe True (w /=) . W.peek . windowset
 
--- | fades out every window by the amount returned by the query.
+-- | Returns True if the window doesn't have the focus, and the window is on the
+-- current workspace. This is specifically handy in a multi monitor setup
+-- (xinerama) where multiple workspaces are visible. Using this, non-focused
+-- workspaces are are not faded out making it easier to look and read the
+-- content on them.
+isUnfocusedOnCurrentWS :: Query Bool
+isUnfocusedOnCurrentWS = do
+  w <- ask
+  ws <- liftX $ gets windowset
+  let thisWS = w `elem` W.index ws
+      unfocused = maybe True (w /=) $ W.peek ws
+  return $ thisWS && unfocused
+
+-- | Fades out every window by the amount returned by the query.
 fadeOutLogHook :: Query Rational -> X ()
 fadeOutLogHook qry = withWindowSet $ \s -> do
     let visibleWins = (W.integrate' . W.stack . W.workspace . W.current $ s) ++
