@@ -28,6 +28,8 @@ module XMonad.Actions.DynamicWorkspaceOrder
     , moveToGreedy
     , shiftTo
 
+    , withNthWorkspace
+
     ) where
 
 import XMonad
@@ -163,3 +165,14 @@ moveToGreedy dir t = doTo dir t getSortByOrder (windows . W.greedyView)
 -- given type in the given direction, using the dynamic workspace order.
 shiftTo :: Direction1D -> WSType -> X ()
 shiftTo dir t = doTo dir t getSortByOrder (windows . W.shift)
+
+-- | Do something with the nth workspace in the dynamic order.  The
+--   callback is given the workspace's tag as well as the @WindowSet@
+--   of the workspace itself.
+withNthWorkspace :: (String -> WindowSet -> WindowSet) -> Int -> X ()
+withNthWorkspace job wnum = do
+  sort <- getSortByOrder
+  ws <- gets (map W.tag . sort . W.workspaces . windowset)
+  case drop wnum ws of
+    (w:_) -> windows $ job w
+    []    -> return ()
