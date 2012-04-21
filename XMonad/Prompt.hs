@@ -462,6 +462,8 @@ emacsLikeXPKeymap = M.fromList $
   , (xK_f, moveWord Next) -- move a word forward
   , (xK_b, moveWord Prev) -- move a word backward
   , (xK_d, killWord Next) -- kill the next word
+  , (xK_n, moveHistory W.focusUp')
+  , (xK_p, moveHistory W.focusDown')
   ]
   ++
   map (first $ (,) 0) -- <key>
