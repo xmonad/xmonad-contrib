@@ -20,6 +20,7 @@ module XMonad.Prompt
     , mkXPromptWithReturn
     , amberXPConfig
     , defaultXPConfig
+    , emacsLikeXPKeymap
     , greenXPConfig
     , XPType (..)
     , XPPosition (..)
@@ -428,6 +429,42 @@ defaultXPKeymap = M.fromList $
   , (xK_bracketleft, quit)
   ] ++
   map (first $ (,) 0)
+  [ (xK_Return, setSuccess True >> setDone True)
+  , (xK_KP_Enter, setSuccess True >> setDone True)
+  , (xK_BackSpace, deleteString Prev)
+  , (xK_Delete, deleteString Next)
+  , (xK_Left, moveCursor Prev)
+  , (xK_Right, moveCursor Next)
+  , (xK_Home, startOfLine)
+  , (xK_End, endOfLine)
+  , (xK_Down, moveHistory W.focusUp')
+  , (xK_Up, moveHistory W.focusDown')
+  , (xK_Escape, quit)
+  ]
+
+emacsLikeXPKeymap :: M.Map (KeyMask,KeySym) (XP ())
+emacsLikeXPKeymap = M.fromList $
+  map (first $ (,) controlMask) -- control + <key>
+  [ (xK_z, killBefore) --kill line backwards
+  , (xK_k, killAfter) -- kill line fowards
+  , (xK_a, startOfLine) --move to the beginning of the line
+  , (xK_e, endOfLine) -- move to the end of the line
+  , (xK_d, deleteString Next) -- delete a character foward
+  , (xK_b, moveCursor Prev) -- move cursor forward
+  , (xK_f, moveCursor Next) -- move cursor backward
+  , (xK_BackSpace, killWord Prev) -- kill the previous word
+  , (xK_y, pasteString)  
+  , (xK_g, quit)
+  , (xK_bracketleft, quit)
+  ] ++
+  map (first $ (,) mod1Mask) -- meta key + <key>
+  [ (xK_BackSpace, killWord Prev)
+  , (xK_f, moveWord Next) -- move a word forward
+  , (xK_b, moveWord Prev) -- move a word backward
+  , (xK_d, killWord Next) -- kill the next word
+  ]
+  ++
+  map (first $ (,) 0) -- <key>
   [ (xK_Return, setSuccess True >> setDone True)
   , (xK_KP_Enter, setSuccess True >> setDone True)
   , (xK_BackSpace, deleteString Prev)
