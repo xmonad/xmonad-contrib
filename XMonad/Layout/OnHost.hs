@@ -116,7 +116,7 @@ data OnHost l1 l2 a = OnHost [String]
 instance (LayoutClass l1 a, LayoutClass l2 a, Show a) => LayoutClass (OnHost l1 l2) a where
     runLayout (W.Workspace i p@(OnHost hosts _ lt lf) ms) r = do
       h <- io $ getEnv "HOST"
-      if maybe False (`elemFQDN` hosts) h 
+      if maybe False (`elemFQDN` hosts) h
         then do (wrs, mlt') <- runLayout (W.Workspace i lt ms) r
                 return (wrs, Just $ mkNewOnHostT p mlt')
         else do (wrs, mlt') <- runLayout (W.Workspace i lf ms) r
