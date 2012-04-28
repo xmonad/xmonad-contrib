@@ -167,7 +167,7 @@ shiftTo :: Direction1D -> WSType -> X ()
 shiftTo dir t = doTo dir t getSortByOrder (windows . W.shift)
 
 -- | Do something with the nth workspace in the dynamic order.  The
---   callback is given the workspace's tag as well as the @WindowSet@
+--   callback is given the workspace's tag as well as the 'WindowSet'
 --   of the workspace itself.
 withNthWorkspace :: (String -> WindowSet -> WindowSet) -> Int -> X ()
 withNthWorkspace job wnum = do
