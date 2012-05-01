@@ -26,8 +26,6 @@ module XMonad.Hooks.Script (
 --
 import XMonad
 
-import System.Directory
-
 -- $usage
 --
 -- This module allows you to run a centrally located script with the text
@@ -47,7 +45,7 @@ import System.Directory
 
 -- | Execute a named script hook
 execScriptHook :: MonadIO m => String -> m ()
-execScriptHook hook = io $ do
-  home <- getHomeDirectory
-  let script = home ++ "/.xmonad/hooks "
+execScriptHook hook = do
+  xmonadDir <- getXMonadDir
+  let script = xmonadDir ++ "/hooks "
   spawn (script ++ hook)
