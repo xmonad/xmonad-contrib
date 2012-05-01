@@ -74,6 +74,7 @@ module XMonad.Actions.GridSelect (
 import Data.Maybe
 import Data.Bits
 import Data.Char
+import Data.Ord (comparing)
 import Control.Applicative
 import Control.Monad.State
 import Control.Arrow
@@ -234,12 +235,39 @@ data TwoDState a = TwoDState { td_curpos :: TwoDPosition
                              }
 
 td_elementmap :: TwoDState a -> [(TwoDPosition,(String,a))]
-td_elementmap s =
-  let positions = td_availSlots s
-      elements = L.filter (((td_searchString s) `isSubstringOf`) . fst) (td_elements s)
-  in zipWith (,) positions elements
-  where sub `isSubstringOf` string = or [ (upper sub) `isPrefixOf` t | t <- tails (upper string) ]
-        upper = map toUpper
+td_elementmap s = zipWith (,) positions sortedElements
+  where
+    TwoDState {td_availSlots = positions,
+               td_searchString = searchString} = s
+    -- Filter out any elements that don't contain the searchString (case insensitive)
+    filteredElements = L.filter ((searchString `isInfixOfI`) . fst) (td_elements s)
+    -- Sorts the elementmap
+    sortedElements = orderElementmap searchString filteredElements
+    -- Case Insensitive version of isInfixOf
+    needle `isInfixOfI` haystack = (upper needle) `isInfixOf` (upper haystack)
+    upper = map toUpper
+
+
+-- | We enforce an ordering such that we will always get the same result. If the
+-- elements position changes from call to call of gridselect, then the shown
+-- positions will also change when you search for the same string. This is
+-- especially the case when using gridselect for showing and switching between
+-- workspaces, as workspaces are usually shown in order of last visited.  The
+-- chosen ordering is "how deep in the haystack the needle is" (number of
+-- characters from the beginning of the string and the needle).
+orderElementmap :: String  -> [(String,a)] -> [(String,a)]
+orderElementmap searchString elements = if not $ null searchString then sortedElements else elements
+  where
+    upper = map toUpper
+    -- Calculates a (score, element) tuple where the score is the depth of the (case insensitive) needle.
+    calcScore element = ( length $ takeWhile (not . isPrefixOf (upper searchString)) (tails . upper . fst $ element)
+                        , element)
+    -- Use the score and then the string as the parameters for comparing, making
+    -- it consistent even when two strings that score the same, as it will then be
+    -- sorted by the strings, making it consistent.
+    compareScore = comparing (\(score, (str,_)) -> (score, str))
+    sortedElements = map snd . sortBy compareScore $ map calcScore elements
+
 
 newtype TwoD a b = TwoD { unTwoD :: StateT (TwoDState a) X b }
     deriving (Monad,Functor,MonadState (TwoDState a))
