@@ -68,6 +68,7 @@ module XMonad.Hooks.UrgencyHook (
                                  SpawnUrgencyHook(..),
                                  UrgencyHook(urgencyHook),
                                  Interval,
+                                 borderUrgencyHook, focusHook, spawnUrgencyHook, stdoutUrgencyHook
                                  ) where
 
 import XMonad
@@ -390,8 +391,11 @@ suppressibleWindows Never    = return []
 
 -- | The class definition, and some pre-defined instances.
 
-class (Read h, Show h) => UrgencyHook h where
+class UrgencyHook h where
     urgencyHook :: h -> Window -> X ()
+
+instance UrgencyHook (Window -> X ()) where
+    urgencyHook = id
 
 data NoUrgencyHook = NoUrgencyHook deriving (Read, Show)
 
@@ -420,6 +424,7 @@ instance UrgencyHook DzenUrgencyHook where
 
   > withUrgencyHook FocusHook $ myconfig { ...
 -}
+focusHook = urgencyHook FocusHook
 data FocusHook = FocusHook deriving (Read, Show)
 
 instance UrgencyHook FocusHook where
@@ -435,6 +440,8 @@ instance UrgencyHook FocusHook where
 --   (This should be @urgentBorderColor@ but that breaks "XMonad.Layout.Decoration".  
 --   @borderColor@ breaks anyone using 'XPConfig' from "XMonad.Prompt".  We need to 
 --   think a bit more about namespacing issues, maybe.)
+
+borderUrgencyHook = urgencyHook . BorderUrgencyHook
 data BorderUrgencyHook = BorderUrgencyHook { urgencyBorderColor :: !String }
                        deriving (Read, Show)
 
@@ -458,12 +465,14 @@ dzenUrgencyHook = DzenUrgencyHook { duration = seconds 5, args = [] }
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
 -- xcompmgr thing.
+spawnUrgencyHook = urgencyHook . SpawnUrgencyHook
 newtype SpawnUrgencyHook = SpawnUrgencyHook String deriving (Read, Show)
 
 instance UrgencyHook SpawnUrgencyHook where
     urgencyHook (SpawnUrgencyHook prefix) w = spawn $ prefix ++ show w
 
 -- | For debugging purposes, really.
+stdoutUrgencyHook = urgencyHook StdoutUrgencyHook
 data StdoutUrgencyHook = StdoutUrgencyHook deriving (Read, Show)
 
 instance UrgencyHook StdoutUrgencyHook where
