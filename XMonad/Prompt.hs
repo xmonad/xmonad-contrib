@@ -20,19 +20,19 @@ module XMonad.Prompt
     , mkXPromptWithReturn
     , amberXPConfig
     , defaultXPConfig
-    , emacsLikeXPKeymap
     , greenXPConfig
     , XPType (..)
     , XPPosition (..)
     , XPConfig (..)
     , XPrompt (..)
     , XP
-    , defaultXPKeymap
+    , defaultXPKeymap, defaultXPKeymap'
+    , emacsLikeXPKeymap, emacsLikeXPKeymap'
     , quit
     , killBefore, killAfter, startOfLine, endOfLine
     , pasteString, moveCursor
     , setInput, getInput
-    , moveWord, killWord, deleteString
+    , moveWord, moveWord', killWord, killWord', deleteString
     , moveHistory, setSuccess, setDone
     , Direction1D(..)
     , ComplFunction
@@ -77,7 +77,7 @@ import XMonad.Util.XSelection (getSelection)
 
 import Codec.Binary.UTF8.String (decodeString)
 import Control.Applicative ((<$>))
-import Control.Arrow ((&&&),first)
+import Control.Arrow ((&&&),(***),first)
 import Control.Concurrent (threadDelay)
 import Control.Exception.Extensible hiding (handle)
 import Control.Monad.State
@@ -412,19 +412,31 @@ tryAutoComplete = do
 
 -- KeyPresses
 
+-- | Default key bindings for prompts.  Click on the \"Source\" link
+--   to the right to see the complete list.  See also 'defaultXPKeymap''.
 defaultXPKeymap :: M.Map (KeyMask,KeySym) (XP ())
-defaultXPKeymap = M.fromList $
+defaultXPKeymap = defaultXPKeymap' isSpace
+
+-- | A variant of 'defaultXPKeymap' which lets you specify a custom
+--   predicate for identifying non-word characters, which affects all
+--   the word-oriented commands (move\/kill word).  The default is
+--   'isSpace'.  For example, by default a path like @foo\/bar\/baz@
+--   would be considered as a single word.  You could use a predicate
+--   like @(\\c -> isSpace c || c == \'\/\')@ to move through or
+--   delete components of the path one at a time.
+defaultXPKeymap' :: (Char -> Bool) -> M.Map (KeyMask,KeySym) (XP ())
+defaultXPKeymap' p = M.fromList $
   map (first $ (,) controlMask) -- control + <key>
   [ (xK_u, killBefore)
   , (xK_k, killAfter)
   , (xK_a, startOfLine)
   , (xK_e, endOfLine)
   , (xK_y, pasteString)
-  , (xK_Right, moveWord Next)
-  , (xK_Left, moveWord Prev)
-  , (xK_Delete, killWord Next)
-  , (xK_BackSpace, killWord Prev)
-  , (xK_w, killWord Prev)
+  , (xK_Right, moveWord' p Next)
+  , (xK_Left, moveWord' p Prev)
+  , (xK_Delete, killWord' p Next)
+  , (xK_BackSpace, killWord' p Prev)
+  , (xK_w, killWord' p Prev)
   , (xK_g, quit)
   , (xK_bracketleft, quit)
   ] ++
@@ -442,8 +454,21 @@ defaultXPKeymap = M.fromList $
   , (xK_Escape, quit)
   ]
 
+-- | A keymap with many emacs-like key bindings.  Click on the
+--   \"Source\" link to the right to see the complete list.
+--   See also 'emacsLikeXPKeymap''.
 emacsLikeXPKeymap :: M.Map (KeyMask,KeySym) (XP ())
-emacsLikeXPKeymap = M.fromList $
+emacsLikeXPKeymap = emacsLikeXPKeymap' isSpace
+
+-- | A variant of 'emacsLikeXPKeymap' which lets you specify a custom
+--   predicate for identifying non-word characters, which affects all
+--   the word-oriented commands (move\/kill word).  The default is
+--   'isSpace'.  For example, by default a path like @foo\/bar\/baz@
+--   would be considered as a single word.  You could use a predicate
+--   like @(\\c -> isSpace c || c == \'\/\')@ to move through or
+--   delete components of the path one at a time.
+emacsLikeXPKeymap' :: (Char -> Bool) -> M.Map (KeyMask,KeySym) (XP ())
+emacsLikeXPKeymap' p = M.fromList $
   map (first $ (,) controlMask) -- control + <key>
   [ (xK_z, killBefore) --kill line backwards
   , (xK_k, killAfter) -- kill line fowards
@@ -452,16 +477,16 @@ emacsLikeXPKeymap = M.fromList $
   , (xK_d, deleteString Next) -- delete a character foward
   , (xK_b, moveCursor Prev) -- move cursor forward
   , (xK_f, moveCursor Next) -- move cursor backward
-  , (xK_BackSpace, killWord Prev) -- kill the previous word
+  , (xK_BackSpace, killWord' p Prev) -- kill the previous word
   , (xK_y, pasteString)
   , (xK_g, quit)
   , (xK_bracketleft, quit)
   ] ++
   map (first $ (,) mod1Mask) -- meta key + <key>
-  [ (xK_BackSpace, killWord Prev)
-  , (xK_f, moveWord Next) -- move a word forward
-  , (xK_b, moveWord Prev) -- move a word backward
-  , (xK_d, killWord Next) -- kill the next word
+  [ (xK_BackSpace, killWord' p Prev)
+  , (xK_f, moveWord' p Next) -- move a word forward
+  , (xK_b, moveWord' p Prev) -- move a word backward
+  , (xK_d, killWord' p Next) -- kill the next word
   , (xK_n, moveHistory W.focusUp')
   , (xK_p, moveHistory W.focusDown')
   ]
@@ -516,16 +541,26 @@ killAfter :: XP ()
 killAfter =
   modify $ \s -> setCommand (take (offset s) (command s)) s
 
--- | Kill the next\/previous word
+-- | Kill the next\/previous word, using 'isSpace' as the default
+--   predicate for non-word characters.  See 'killWord''.
 killWord :: Direction1D -> XP ()
-killWord d = do
+killWord = killWord' isSpace
+
+-- | Kill the next\/previous word, given a predicate to identify
+--   non-word characters. First delete any consecutive non-word
+--   characters; then delete consecutive word characters, stopping
+--   just before the next non-word character.
+--
+--   For example, by default (using 'killWord') a path like
+--   @foo\/bar\/baz@ would be deleted in its entirety.  Instead you can
+--   use something like @killWord' (\\c -> isSpace c || c == \'\/\')@ to
+--   delete the path one component at a time.
+killWord' :: (Char -> Bool) -> Direction1D -> XP ()
+killWord' p d = do
   o <- gets offset
   c <- gets command
   let (f,ss)        = splitAt o c
-      delNextWord w =
-          case w of
-            ' ':x -> x
-            word  -> snd . break isSpace $ word
+      delNextWord   = snd . break p . dropWhile p
       delPrevWord   = reverse . delNextWord . reverse
       (ncom,noff)   =
           case d of
@@ -578,19 +613,25 @@ moveCursor d =
   modify $ \s -> s { offset = o (offset s) (command s)}
   where o oo c = if d == Prev then max 0 (oo - 1) else min (length c) (oo + 1)
 
--- | move the cursor one word
+-- | Move the cursor one word, using 'isSpace' as the default 
+--   predicate for non-word characters.  See 'moveWord''.
 moveWord :: Direction1D -> XP ()
-moveWord d = do
+moveWord = moveWord' isSpace
+
+-- | Move the cursor one word, given a predicate to identify non-word
+--   characters. First move past any consecutive non-word characters;
+--   then move to just before the next non-word character.
+moveWord' :: (Char -> Bool) -> Direction1D -> XP ()
+moveWord' p d = do
   c <- gets command
   o <- gets offset
   let (f,ss) = splitAt o c
-      lenToS = length . fst . break isSpace
-      ln p s = case p s of
-                 ' ':x -> 1 + lenToS x
-                 x     -> lenToS x
+      len = uncurry (+)
+          . (length *** (length . fst . break p)) 
+          . break (not . p)
       newoff = case d of
-                 Prev -> o - ln reverse f
-                 Next -> o + ln id ss
+                 Prev -> o - len (reverse f)
+                 Next -> o + len ss
   modify $ \s -> s { offset = newoff }
 
 moveHistory :: (W.Stack String -> W.Stack String) -> XP ()
