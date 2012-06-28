@@ -102,6 +102,7 @@ library
                         XMonad.Actions.FocusNth
                         XMonad.Actions.GridSelect
                         XMonad.Actions.GroupNavigation
+                        XMonad.Actions.Launcher
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize

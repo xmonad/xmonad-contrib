@@ -18,9 +18,11 @@ module XMonad.Prompt
       -- $usage
       mkXPrompt
     , mkXPromptWithReturn
+    , mkXPromptWithModes
     , amberXPConfig
     , defaultXPConfig
     , greenXPConfig
+    , XPMode 
     , XPType (..)
     , XPPosition (..)
     , XPConfig (..)
@@ -109,11 +111,11 @@ data XPState =
         , screen             :: !Rectangle
         , complWin           :: Maybe Window
         , complWinDim        :: Maybe ComplWindowDim
-        , completionFunction :: String -> IO [String]
+        , complIndex         :: !(Int,Int)
         , showComplWin       :: Bool
+        , operationMode      :: XPOperationMode
         , gcon               :: !GC
         , fontS              :: !XMonadFont
-        , xptype             :: !XPType
         , commandHistory     :: W.Stack String
         , offset             :: !Int
         , config             :: XPConfig
@@ -131,7 +133,8 @@ data XPConfig =
         , borderColor       :: String     -- ^ Border color
         , promptBorderWidth :: !Dimension -- ^ Border width
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
-        , height            :: !Dimension -- ^ Window height
+        , alwaysHighlight   :: !Bool      -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
+        , height            :: !Dimension -- ^ Window height        
         , historySize       :: !Int       -- ^ The number of history entries to be saved
         , historyFilter     :: [String] -> [String]
                                          -- ^ a filter to determine which
@@ -139,6 +142,7 @@ data XPConfig =
         , promptKeymap      :: M.Map (KeyMask,KeySym) (XP ())
                                          -- ^ Mapping from key combinations to actions
         , completionKey     :: KeySym     -- ^ Key that should trigger completion
+        , changeModeKey     :: KeySym     -- ^ Key to change mode (when the prompt has multiple modes)
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
         , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
@@ -149,6 +153,9 @@ data XPConfig =
         }
 
 data XPType = forall p . XPrompt p => XPT p
+type ComplFunction = String -> IO [String]
+type XPMode = XPType
+data XPOperationMode = XPSingleMode ComplFunction XPType | XPMultipleModes (W.Stack XPType)
 
 instance Show XPType where
     show (XPT p) = showXPrompt p
@@ -158,6 +165,8 @@ instance XPrompt XPType where
     nextCompletion      (XPT t) = nextCompletion      t
     commandToComplete   (XPT t) = commandToComplete   t
     completionToCommand (XPT t) = completionToCommand t
+    completionFunction  (XPT t) = completionFunction  t
+    modeAction          (XPT t) = modeAction          t
 
 -- | The class prompt types must be an instance of. In order to
 -- create a prompt you need to create a data type, without parameters,
@@ -179,11 +188,13 @@ class XPrompt t where
     -- printed in the command line when tab is pressed, given the
     -- string presently in the command line and the list of
     -- completion.
+    -- This function is not used when in multiple modes (because alwaysHighlight in XPConfig is True)
     nextCompletion :: t -> String -> [String] -> String
     nextCompletion = getNextOfLastWord
 
     -- | This method is used to generate the string to be passed to
     -- the completion function.
+    -- This function is not used when in multiple modes (because alwaysHighlight in XPConfig is True)
     commandToComplete :: t -> String -> String
     commandToComplete _ = getLastWord
 
@@ -197,6 +208,20 @@ class XPrompt t where
     completionToCommand :: t -> String -> String
     completionToCommand _ c = c
 
+    -- | When the prompt has multiple modes, this is the function
+    -- used to generate the autocompletion list.
+    -- The argument passed to this function is given by `commandToComplete`    
+    -- The default implementation shows an error message.
+    completionFunction :: t -> ComplFunction
+    completionFunction t = \_ -> return ["Completions for " ++ (showXPrompt t) ++ " could not be loaded"]
+    
+    -- | When the prompt has multiple modes, this function is called 
+    -- when the user picked an item from the autocompletion list.
+    -- The first argument is the autocompleted item's text. 
+    -- The second argument is the query made by the user (written in the prompt's buffer).
+    modeAction :: t -> String -> String -> X ()
+    modeAction _ _ _ = return ()
+    
 data XPPosition = Top
                 | Bottom
                   deriving (Show,Read)
@@ -213,6 +238,7 @@ defaultXPConfig =
         , promptBorderWidth = 1
         , promptKeymap      = defaultXPKeymap
         , completionKey     = xK_Tab
+        , changeModeKey     = xK_asciitilde
         , position          = Bottom
         , height            = 18
         , historySize       = 256
@@ -221,29 +247,28 @@ defaultXPConfig =
         , autoComplete      = Nothing
         , showCompletionOnTab = False
         , searchPredicate   = isPrefixOf
+        , alwaysHighlight   = False
         }
 greenXPConfig = defaultXPConfig { fgColor = "green", bgColor = "black", promptBorderWidth = 0 }
 amberXPConfig = defaultXPConfig { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
 
-type ComplFunction = String -> IO [String]
-
-initState :: XPrompt p => Display -> Window -> Window -> Rectangle -> ComplFunction
-          -> GC -> XMonadFont -> p -> [String] -> XPConfig -> KeyMask -> XPState
-initState d rw w s compl gc fonts pt h c nm =
+initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
+          -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> XPState
+initState d rw w s opMode gc fonts h c nm =
     XPS { dpy                = d
         , rootw              = rw
         , win                = w
         , screen             = s
         , complWin           = Nothing
         , complWinDim        = Nothing
-        , completionFunction = compl
         , showComplWin       = not (showCompletionOnTab c)
+        , operationMode      = opMode
         , gcon               = gc
         , fontS              = fonts
-        , xptype             = XPT pt
         , commandHistory     = W.Stack { W.focus = defaultText c
                                        , W.up    = []
                                        , W.down  = h }
+        , complIndex         = (0,0) --(column index, row index), used when `alwaysHighlight` in XPConfig is True
         , offset             = length (defaultText c)
         , config             = c
         , successful         = False
@@ -251,6 +276,36 @@ initState d rw w s compl gc fonts pt h c nm =
         , numlockMask        = nm
         }
 
+-- Returns the current XPType
+currentXPMode :: XPState -> XPType
+currentXPMode st = case operationMode st of
+  XPMultipleModes modes -> W.focus modes
+  XPSingleMode _ xptype -> xptype
+
+-- When in multiple modes, this function sets the next mode
+-- in the list of modes as active
+setNextMode :: XPState -> XPState
+setNextMode st = case operationMode st of
+  XPMultipleModes modes -> case W.down modes of
+    [] -> st -- there is no next mode, return same state
+    (m:ms) -> let
+      currentMode = W.focus modes
+      in st { operationMode = XPMultipleModes W.Stack { W.up = [], W.focus = m, W.down = ms ++ [currentMode]}} --set next and move previous current mode to the of the stack
+  _ -> st --nothing to do, the prompt's operation has only one mode
+  
+-- Returns the highlighted item
+highlightedItem :: XPState -> [String] -> String
+highlightedItem st' completions = case complWinDim st' of 
+  Nothing -> "" -- when there isn't any compl win, we can't say how many cols,rows there are
+  Just winDim -> 
+    let
+      (_,_,_,_,xx,yy) = winDim
+      complMatrix = splitInSubListsAt (length yy) (take (length xx * length yy) completions)
+      (col_index,row_index) = (complIndex st')
+    in case completions of
+      [] -> "" -- no completions
+      _ -> complMatrix !! col_index !! row_index
+      
 -- this would be much easier with functional references
 command :: XPState -> String
 command = W.focus . commandHistory
@@ -285,23 +340,32 @@ mkXPromptWithReturn t conf compl action = do
   fs <- initXMF (font conf)
   numlock <- gets $ X.numberlockMask
   let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
-      st = initState d rw w s compl gc fs (XPT t) hs conf numlock
+      om = (XPSingleMode compl (XPT t)) --operation mode
+      st = initState d rw w s om gc fs hs conf numlock
   st' <- io $ execStateT runXP st
 
   releaseXMF fs
   io $ freeGC d gc
-  if successful st'
-    then do
-      let prune = take (historySize conf)
-      io $ writeHistory $ M.insertWith
-                                (\xs ys -> prune . historyFilter conf $ xs ++ ys)
-                                (showXPrompt t)
-                                (prune $ historyFilter conf [command st'])
-                                hist
+  if successful st' then do
+    completions <- liftIO $ do getCompletionFunction st' (commandToComplete (currentXPMode st') (command st')) `catch` \(SomeException _) -> return []    
+    let 
+      prune = take (historySize conf)    
+      
+    io $ writeHistory $ M.insertWith
+      (\xs ys -> prune . historyFilter conf $ xs ++ ys)
+      (showXPrompt t)
+      (prune $ historyFilter conf [command st'])
+      hist
                                 -- we need to apply historyFilter before as well, since
                                 -- otherwise the filter would not be applied if
                                 -- there is no history
-      Just <$> action (command st')
+      --When alwaysHighlight is True, autocompletion is handled with indexes. 
+      --When it is false, it is handled depending on the prompt buffer's value
+    let selectedCompletion = case alwaysHighlight (config st') of 
+          False -> command st'
+          True -> highlightedItem st' completions
+    --Just <$> action selectedCompletion 
+    Just <$> action selectedCompletion 
     else return Nothing
 
 -- | Creates a prompt given:
@@ -317,6 +381,62 @@ mkXPromptWithReturn t conf compl action = do
 -- * an action to be run: the action must take a string and return 'XMonad.X' ()
 mkXPrompt :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X ()) -> X ()
 mkXPrompt t conf compl action = mkXPromptWithReturn t conf compl action >> return ()
+
+-- | Creates a prompt with multiple modes given:
+--
+-- * A non-empty list of modes
+-- * A prompt configuration
+--
+-- The created prompt allows to switch between modes with `changeModeKey` in `conf`. The modes are 
+-- instances of XPrompt. See XMonad.Actions.Launcher for more details
+--
+-- The argument supplied to the action to execute is always the current highlighted item, 
+-- that means that this prompt overrides the value `alwaysHighlight` for its configuration to True.
+mkXPromptWithModes :: [XPType] -> XPConfig -> X ()
+mkXPromptWithModes modes conf = do
+  XConf { display = d, theRoot = rw } <- ask
+  s    <- gets $ screenRect . W.screenDetail . W.current . windowset
+  hist <- io readHistory
+  w    <- io $ createWin d rw conf s
+  io $ selectInput d w $ exposureMask .|. keyPressMask
+  gc <- io $ createGC d w
+  io $ setGraphicsExposures d gc False
+  fs <- initXMF (font conf)
+  numlock <- gets $ X.numberlockMask
+  let
+    defaultMode = head modes
+    hs = fromMaybe [] $ M.lookup (showXPrompt defaultMode) hist
+    modeStack = W.Stack{ W.focus = defaultMode --current mode
+                       , W.up = []
+                       , W.down = tail modes --other modes
+                       }
+    st = initState d rw w s (XPMultipleModes modeStack) gc fs hs conf { alwaysHighlight = True} numlock
+  st' <- io $ execStateT runXP st
+
+  releaseXMF fs
+  io $ freeGC d gc
+
+  if successful st' then do
+    completions <- liftIO $ do getCompletionFunction st' (commandToComplete (currentXPMode st') (command st')) `catch` \(SomeException _) -> return []
+    
+    let 
+      prune = take (historySize conf)
+
+      -- insert into history the buffers value
+    io $ writeHistory $ M.insertWith
+      (\xs ys -> prune . historyFilter conf $ xs ++ ys)
+      (showXPrompt defaultMode)
+      (prune $ historyFilter conf [command st'])
+      hist
+
+    case operationMode st' of
+      XPMultipleModes ms -> let
+        action = modeAction $ W.focus ms
+        in action (command st') (highlightedItem st' completions)
+      _ -> return () --This should never happen, we are creating a prompt with multiple modes, so its operationMode should have been constructed with XPMultipleMode
+    else
+      return ()
+
 
 runXP :: XP ()
 runXP = do
@@ -359,11 +479,16 @@ cleanMask msk = do
 handle :: KeyStroke -> Event -> XP ()
 handle ks@(sym,_) e@(KeyEvent {ev_event_type = t, ev_state = m}) = do
   complKey <- gets $ completionKey . config
+  chgModeKey <- gets $ changeModeKey . config
   c <- getCompletions
   when (length c > 1) $ modify (\s -> s { showComplWin = True })
   if complKey == sym
      then completionHandle c ks e
-     else when (t == keyPress) $ keyPressHandle m ks
+     else if (sym == chgModeKey) then
+           do
+             modify setNextMode
+             updateWindows
+          else when (t == keyPress) $ keyPressHandle m ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
@@ -373,15 +498,18 @@ handle _  _ = return ()
 completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
 completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = do
   complKey <- gets $ completionKey . config
+  alwaysHlight <- gets $ alwaysHighlight . config
   case () of
     () | t == keyPress && sym == complKey ->
           do
             st <- get
-            let updateState l =
-                    let new_command = nextCompletion (xptype st) (command st) l
-                    in modify $ \s -> setCommand new_command $ s { offset = length new_command }
-                updateWins  l = redrawWindows l >>
-                                eventLoop (completionHandle l)
+            let updateState l = case alwaysHlight of
+                  --We will modify the next command (buffer's value), to be able to highlight the autocompletion (nextCompletion and commandToComplete implementation dependent)
+                  False -> let new_command = nextCompletion (currentXPMode st) (command st) l
+                           in modify $ \s -> setCommand new_command $ s { offset = length new_command }
+                  --TODO: Scroll or paginate results
+                  True  -> modify $ \s -> s { complIndex = nextComplIndex st (length l)}
+                updateWins l = redrawWindows l >> eventLoop (completionHandle l)
             case c of
               []  -> updateWindows   >> eventLoop handle
               [x] -> updateState [x] >> getCompletions >>= updateWins
@@ -391,6 +519,24 @@ completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = d
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
 
+--Receives an state of the prompt, the size of the autocompletion list and returns the column,row 
+--which should be highlighted next 
+nextComplIndex :: XPState -> Int -> (Int,Int) 
+nextComplIndex st nitems = case complWinDim st of 
+  Nothing -> (0,0) --no window dims (just destroyed or not created)
+  Just winDim -> let
+    (_,_,_,_,xx,yy) = winDim 
+    (ncols,nrows) = (nitems `div` length yy + if (nitems `mod` length yy > 0) then 1 else 0, length yy) 
+    (currentcol,currentrow) = complIndex st
+    in if (currentcol + 1 >= ncols) then --hlight is in the last column
+         if (currentrow + 1 < (nitems `mod` nrows) ) then --hlight is still not at the last row
+           (currentcol, currentrow + 1)
+         else
+           (0,0)
+       else if(currentrow + 1 < nrows) then --hlight not at the last row
+              (currentcol, currentrow + 1)
+            else
+              (currentcol + 1, 0)              
 
 tryAutoComplete :: XP Bool
 tryAutoComplete = do
@@ -403,7 +549,7 @@ tryAutoComplete = do
         Nothing    -> return False
   where runCompleted cmd delay = do
             st <- get
-            let new_command = nextCompletion (xptype st) (command st) [cmd]
+            let new_command = nextCompletion (currentXPMode st) (command st) [cmd]
             modify $ setCommand "autocompleting..."
             updateWindows
             io $ threadDelay delay
@@ -582,10 +728,18 @@ startOfLine  =
 flushString :: XP ()
 flushString = modify $ \s -> setCommand "" $ s { offset = 0}
 
+--reset index if config has `alwaysHighlight`. The inserted char could imply fewer autocompletions. 
+--If the current index was column 2, row 1 and now there are only 4 autocompletion rows with 1 column, what should we highlight? Set it to the first and start navigation again  
+resetComplIndex :: XPState -> XPState
+resetComplIndex st = if (alwaysHighlight $ config st) then st { complIndex = (0,0) } else st
+
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
 insertString str =
-  modify $ \s -> setCommand (c (command s) (offset s)) $ s { offset = o (offset s)}
+  modify $ \s -> let 
+    cmd = (c (command s) (offset s))
+    st = resetComplIndex $ s { offset = o (offset s)}
+    in setCommand cmd st
   where o oo = oo + length str
         c oc oo | oo >= length oc = oc ++ str
                 | otherwise = f ++ str ++ ss
@@ -691,7 +845,7 @@ printPrompt :: Drawable -> XP ()
 printPrompt drw = do
   st <- get
   let (gc,(c,(d,fs))) = (gcon &&& config &&& dpy &&& fontS) st
-      (prt,(com,off)) = (show . xptype &&& command &&& offset) st
+      (prt,(com,off)) = (show . currentXPMode &&& command &&& offset) st
       str = prt ++ com
       -- break the string in 3 parts: till the cursor, the cursor and the rest
       (f,p,ss) = if off >= length com
@@ -713,12 +867,17 @@ printPrompt drw = do
   -- reverse the colors and print the rest of the string
   draw (fgColor c) (bgColor c) (x + fromIntegral (fsl + psl)) y ss
 
+-- get the current completion function depending on the active mode
+getCompletionFunction :: XPState -> ComplFunction
+getCompletionFunction st = case operationMode st of
+  XPSingleMode compl _ -> compl
+  XPMultipleModes modes -> completionFunction $ W.focus modes
+  
 -- Completions
-
 getCompletions :: XP [String]
 getCompletions = do
   s <- get
-  io $ completionFunction s (commandToComplete (xptype s) (command s))
+  io $ getCompletionFunction s (commandToComplete (currentXPMode s) (command s))
        `catch` \(SomeException _) -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
@@ -773,7 +932,7 @@ getComplWinDim compl = do
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
       xx = take (fi columns) [xp,(xp + max_compl_len)..]
-
+  
   return (rect_x scr + x, rect_y scr + fi y, wh, actual_height, xx, yy)
 
 drawComplWin :: Window -> [String] -> XP ()
@@ -793,7 +952,9 @@ drawComplWin w compl = do
                          (defaultDepthOfScreen scr)
   io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
   let ac = splitInSubListsAt (length yy) (take (length xx * length yy) compl)
+
   printComplList d p gc (fgColor c) (bgColor c) xx yy ac
+  --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
 
@@ -814,18 +975,35 @@ redrawComplWin compl = do
             Nothing -> recreate
      else destroyComplWin
 
+-- given a string and  a matrix of strings, find the column and row indexes in which the string appears. 
+-- if the string is not in the matrix, the function returns (0,0)
+findComplIndex :: String -> [[String]] -> (Int,Int)
+findComplIndex x xss = let 
+  colIndex = fromMaybe 0 $ findIndex (\cols -> x `elem` cols) xss
+  rowIndex = fromMaybe 0 $ elemIndex x $ (!!) xss colIndex
+  in (colIndex,rowIndex)
+
 printComplList :: Display -> Drawable -> GC -> String -> String
                -> [Position] -> [Position] -> [[String]] -> XP ()
 printComplList d drw gc fc bc xs ys sss =
     zipWithM_ (\x ss ->
-        zipWithM_ (\y s -> do
-            st <- get
-            let (f,b) = if completionToCommand (xptype st) s == commandToComplete (xptype st) (command st)
-                            then (fgHLight $ config st,bgHLight $ config st)
-                            else (fc,bc)
-            printStringXMF d drw (fontS st) gc f b x y s)
+        zipWithM_ (\y item -> do
+            st <- get 
+            alwaysHlight <- gets $ alwaysHighlight . config                     
+            let (f,b) = case alwaysHlight of 
+                  True -> --find the column, row in which this item is and decide if we should highlight
+                    let 
+                      colIndex = fromMaybe 0 $ findIndex (\cols -> item `elem` cols) sss
+                      rowIndex = fromMaybe 0 $ elemIndex item $ (!!) sss colIndex
+                    in
+                     if ((complIndex st) == (colIndex,rowIndex)) then (fgHLight $ config st,bgHLight $ config st)
+                     else (fc,bc)
+                  False -> if completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
+                           then (fgHLight $ config st,bgHLight $ config st)
+                           else (fc,bc)
+            printStringXMF d drw (fontS st) gc f b x y item)
         ys ss) xs sss
-
+                    
 -- History
 
 type History = M.Map String [String]
