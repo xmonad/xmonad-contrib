@@ -50,7 +50,7 @@ import           XMonad.Util.Run
     
     A LauncherConfig contains settings for the default modes, modify them accordingly. 
     
-    > launcherConfig = LauncherConfig { pathToHoogle = "/home/YOU/.cabal/bin/hoogle" , actionsByExtension  = extensionActions }
+    > launcherConfig = LauncherConfig { pathToHoogle = "/home/YOU/.cabal/bin/hoogle" , browser = "firefox" , actionsByExtension  = extensionActions }
     
 @extensionActions :: M.Map String (String -> X())
 extensionActions = M.fromList $ [
@@ -103,14 +103,14 @@ instance XPrompt HoogleMode where
   commandToComplete _ = id
   completionFunction (HMode pathToHoogleBin' _) = \s -> completionFunctionWith pathToHoogleBin' ["--count","5",s]
   -- This action calls hoogle again to find the URL corresponding to the autocompleted item
-  modeAction (HMode pathToHoogleBin'' browser) query result = do
+  modeAction (HMode pathToHoogleBin'' browser') query result = do
     completionsWithLink <- liftIO $ completionFunctionWith pathToHoogleBin'' ["--count","5","--link",query]
     let link = do
           s <- find (isJust . \c -> findSeqIndex c result) completionsWithLink
           i <- findSeqIndex s "http://"
           return $ drop i s
     case link of
-       Just l -> spawn $ browser ++ " " ++ l
+       Just l -> spawn $ browser' ++ " " ++ l
        _      -> return ()
     where
       -- | Receives a sublist and a list. It returns the index where the sublist appears in the list.
@@ -141,7 +141,7 @@ locateMode, locateRegexMode :: ExtensionActions -> XPMode
 locateMode actions = XPT $ LMode actions
 locateRegexMode actions = XPT $ LRMode actions
 hoogleMode :: FilePath -> String -> XPMode
-hoogleMode pathToHoogleBin browser = XPT $ HMode pathToHoogleBin browser
+hoogleMode pathToHoogleBin browser' = XPT $ HMode pathToHoogleBin browser'
 calcMode :: XPMode
 calcMode = XPT CalcMode
 
