@@ -40,12 +40,20 @@ getWsIndex = do
     spaces <- asks (workspaces . config)
     return $ flip elemIndex spaces
 
+-- | Compare Maybe's differently, so Nothing (i.e. workspaces without indexes)
+-- come last in the order
+indexCompare :: Maybe Int -> Maybe Int -> Ordering
+indexCompare Nothing Nothing = EQ
+indexCompare Nothing (Just _) = GT
+indexCompare (Just _) Nothing = LT
+indexCompare a b = compare a b
+
 -- | A comparison function for WorkspaceId, based on the index of the
 --   tags in the user's config.
 getWsCompare :: X WorkspaceCompare
 getWsCompare = do
     wsIndex <- getWsIndex
-    return $ mconcat [compare `on` wsIndex, compare]
+    return $ mconcat [indexCompare `on` wsIndex, compare]
 
 -- | A simple comparison function that orders workspaces
 --   lexicographically by tag.
