@@ -133,6 +133,7 @@ library
                         XMonad.Actions.WithAll
                         XMonad.Actions.WorkspaceCursors
                         XMonad.Actions.WorkspaceNames
+                        XMonad.Actions.Workscreen
                         XMonad.Config.Arossato
                         XMonad.Config.Azerty
                         XMonad.Config.Bluetile
