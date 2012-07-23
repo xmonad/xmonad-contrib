@@ -55,7 +55,7 @@ menu menuCmd opts = menuArgs menuCmd [] opts
 
 -- | Like 'menu' but also takes a list of command line arguments.
 menuArgs :: String -> [String] -> [String] -> X String
-menuArgs menuCmd args opts = runProcessWithInput menuCmd args (unlines opts)
+menuArgs menuCmd args opts = fmap (filter (/='\n')) $ runProcessWithInput menuCmd args (unlines opts)
 
 -- | Like 'dmenuMap' but also takes the command to run.
 menuMap :: String -> M.Map String a -> X (Maybe a)
