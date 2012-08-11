@@ -29,18 +29,18 @@ module XMonad.Prompt.Shell
     , split
     ) where
 
-import Codec.Binary.UTF8.String (encodeString)
-import Control.Exception
-import Control.Monad (forM)
-import Data.List (isPrefixOf)
-import Prelude hiding (catch)
-import System.Directory (doesDirectoryExist, getDirectoryContents)
-import System.Environment (getEnv)
-import System.Posix.Files (getFileStatus, isDirectory)
+import           Codec.Binary.UTF8.String (encodeString)
+import           Control.Exception
+import           Control.Monad            (forM)
+import           Data.List                (isPrefixOf)
+import           Prelude                  hiding (catch)
+import           System.Directory         (doesDirectoryExist, getDirectoryContents)
+import           System.Environment       (getEnv)
+import           System.Posix.Files       (getFileStatus, isDirectory)
 
-import XMonad.Util.Run
-import XMonad hiding (config)
-import XMonad.Prompt
+import           XMonad                   hiding (config)
+import           XMonad.Prompt
+import           XMonad.Util.Run
 
 econst :: Monad m => a -> IOException -> m a
 econst = const . return
