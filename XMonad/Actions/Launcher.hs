@@ -32,36 +32,37 @@ import           XMonad.Util.Run
 
 {- $description
     This module lets you combine and switch between different types of prompts (XMonad.Prompt). It includes a set of default modes:
-    
+
        * Hoogle mode: Search for functions using hoogle, choosing a function leads you to documentation in Haddock.
-       
+
        * Locate mode: Search for files using locate, choosing a file opens it with a program you specify depending on the file's extension.
-       
-       * Locate regexp: Same as locate mode but autocomplete works with regular expressions.  
-       
+
+       * Locate regexp: Same as locate mode but autocomplete works with regular expressions.
+
        * Calc: Uses the program calc to do calculations.
 
     To use the default modes, modify your .xmonad:
-   
+
     > import XMonad.Prompt(defaultXPConfig)
     > import XMonad.Actions.Launcher
 
-    > ((modm .|. controlMask, xK_l), launcherPrompt kmelsXPConfig $ defaultLauncherModes launcherConfig)   
-    
-    A LauncherConfig contains settings for the default modes, modify them accordingly. 
-    
+    > ((modm .|. controlMask, xK_l), launcherPrompt defaultXPConfig $ defaultLauncherModes launcherConfig)
+
+    A LauncherConfig contains settings for the default modes, modify them accordingly.
+
     > launcherConfig = LauncherConfig { pathToHoogle = "/home/YOU/.cabal/bin/hoogle" , browser = "firefox" , actionsByExtension  = extensionActions }
-    
+
 @extensionActions :: M.Map String (String -> X())
 extensionActions = M.fromList $ [
  (\".hs\", \p -> spawn $ \"emacs \" ++ p)
  , (\".pdf\", \p -> spawn $ \"acroread \" ++ p)
+ , (\".mkv\", \p -> spawn $ \"vlc \" ++ p)
  , (\".*\", \p -> spawn $ \"emacs \" ++ p) --match with any files
- , (\"/\", \p -> spawn $ \"nautilus \" ++ p) --match with directories 
+ , (\"/\", \p -> spawn $ \"nautilus \" ++ p) --match with directories
  ]@
- 
- To try it, restart xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up. 
- 
+
+ To try it, restart xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
+
  You can change mode with xK_grave if you used defaultXP or change the value of changeModeKey in your XPConfig-}
 
 data LocateFileMode = LMode ExtensionActions
@@ -69,7 +70,7 @@ data LocateFileRegexMode = LRMode ExtensionActions
 data HoogleMode = HMode FilePath String --path to hoogle e.g. "/home/me/.cabal/bin/hoogle"
 data CalculatorMode = CalcMode
 
-data LauncherConfig = LauncherConfig {  
+data LauncherConfig = LauncherConfig {
   browser                :: String
   , pathToHoogle         :: String
   , actionsByExtension   :: ExtensionActions
@@ -166,12 +167,12 @@ spawnWithActions actions fp = do
        spawnNoPatternMessage :: String -> String -> X ()
        spawnNoPatternMessage fileExt _ = spawn $ "xmessage No action specified for file extension " ++ fileExt ++ ", add a default action by matching the extension \".*\" in the action map sent to launcherPrompt"
 
-{- $todo  
+{- $todo
      * Switch to mode by name of the prompt, 1. ':' at an empty(?) buffer, 2. autocomplete name in buffer should happen, 3. switch to mode with enter (cancel switch with C-g)
-     
+
      * Support for actions of type String -> X a
-     
+
      * Hoogle mode: add a setting in the action to either go to documentation or to the source code (needs hoogle change?)
-     
+
      * Hoogle mode: add setting to query hoogle at haskell.org instead (with &mode=json)
 -}
