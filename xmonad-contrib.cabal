@@ -145,10 +145,12 @@ library
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
                         XMonad.Hooks.CurrentWorkspaceOnTop
+                        XMonad.Hooks.DebugEvents
                         XMonad.Hooks.DebugKeyEvents
                         XMonad.Hooks.DynamicBars
                         XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
+                        XMonad.Hooks.DebugStack
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FadeWindows
@@ -273,6 +275,7 @@ library
                         XMonad.Prompt.XMonad
                         XMonad.Util.Cursor
                         XMonad.Util.CustomKeys
+                        XMonad.Util.DebugWindow
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
                         XMonad.Util.ExtensibleState
