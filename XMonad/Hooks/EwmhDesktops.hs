@@ -20,6 +20,7 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
     ewmhDesktopsEventHook,
+    ewmhDesktopsEventHookCustom,
     fullscreenEventHook
     ) where
 
@@ -117,18 +118,22 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
 --  * _NET_WM_DESKTOP (move windows to other desktops)
 --
 --  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
---
-ewmhDesktopsEventHook :: Event -> X All
-ewmhDesktopsEventHook e = handle e >> return (All True)
+ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
 
-handle :: Event -> X ()
-handle ClientMessageEvent {
+-- |
+-- Generalized version of ewmhDesktopsEventHook that allows an arbitrary
+-- user-specified function to transform the workspace list (post-sorting)
+ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
+ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
+
+handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
+handle f (ClientMessageEvent {
                ev_window = w,
                ev_message_type = mt,
                ev_data = d
-       } = withWindowSet $ \s -> do
+       }) = withWindowSet $ \s -> do
        sort' <- getSortByIndex
-       let ws = sort' $ W.workspaces s
+       let ws = f $ sort' $ W.workspaces s
 
        a_cd <- getAtom "_NET_CURRENT_DESKTOP"
        a_d <- getAtom "_NET_WM_DESKTOP"
@@ -155,7 +160,7 @@ handle ClientMessageEvent {
           -- The Message is unknown to us, but that is ok, not all are meant
           -- to be handled by the window manager
           return ()
-handle _ = return ()
+handle _ _ = return ()
 
 -- |
 -- An event hook to handle applications that wish to fullscreen using the
