@@ -111,8 +111,8 @@ checkDock = ask >>= \w -> liftX $ do
     desk <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
     mbr <- getProp32s "_NET_WM_WINDOW_TYPE" w
     case mbr of
-        Just [r] -> return $ elem (fromIntegral r) [dock, desk]
-        _        -> return False
+        Just rs -> return $ any (`elem` [dock,desk]) (map fromIntegral rs)
+        _       -> return False
 
 -- | Whenever a new dock appears, refresh the layout immediately to avoid the
 -- new dock.
