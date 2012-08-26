@@ -527,12 +527,11 @@ completionHandle _ k e = handle k e
 nextComplIndex :: XPState -> Int -> (Int,Int)
 nextComplIndex st nitems = case complWinDim st of
   Nothing -> (0,0) --no window dims (just destroyed or not created)
-  Just winDim -> let
-    (_,_,_,_,_,yy) = winDim
+  Just (_,_,_,_,_,yy) -> let
     (ncols,nrows) = (nitems `div` length yy + if (nitems `mod` length yy > 0) then 1 else 0, length yy)
     (currentcol,currentrow) = complIndex st
     in if (currentcol + 1 >= ncols) then --hlight is in the last column
-         if (currentrow + 1 < (nitems `mod` nrows) ) then --hlight is still not at the last row
+         if (currentrow + 1 < nrows ) then --hlight is still not at the last row
            (currentcol, currentrow + 1)
          else
            (0,0)
