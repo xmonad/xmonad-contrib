@@ -216,10 +216,12 @@ class XPrompt t where
     completionFunction :: t -> ComplFunction
     completionFunction t = \_ -> return ["Completions for " ++ (showXPrompt t) ++ " could not be loaded"]
 
-    -- | When the prompt has multiple modes, this function is called
-    -- when the user picked an item from the autocompletion list.
-    -- The first argument is the autocompleted item's text.
-    -- The second argument is the query made by the user (written in the prompt's buffer).
+    -- | When the prompt has multiple modes (created with mkXPromptWithModes), this function is called
+    -- when the user picks an item from the autocompletion list.
+    -- The first argument is the prompt (or mode) on which the item was picked
+    -- The first string argument is the autocompleted item's text.
+    -- The second string argument is the query made by the user (written in the prompt's buffer).
+    -- See XMonad/Actions/Launcher.hs for a usage example.
     modeAction :: t -> String -> String -> X ()
     modeAction _ _ _ = return ()
 
@@ -434,7 +436,7 @@ mkXPromptWithModes modes conf = do
       XPMultipleModes ms -> let
         action = modeAction $ W.focus ms
         in action (command st') $ (fromMaybe "" $ highlightedCompl st')
-      _ -> return () --This should never happen, we are creating a prompt with multiple modes, so its operationMode should have been constructed with XPMultipleMode
+      _ -> error "The impossible occurred: This prompt runs with multiple modes but they could not be found." --we are creating a prompt with multiple modes, so its operationMode should have been constructed with XPMultipleMode
     else
       return ()
 
