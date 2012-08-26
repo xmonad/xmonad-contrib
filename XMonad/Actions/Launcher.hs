@@ -31,7 +31,7 @@ import           XMonad.Prompt
 import           XMonad.Util.Run
 
 {- $description
-    This module lets you combine and switch between different types of prompts (XMonad.Prompt). It includes a set of default modes:
+    This module lets you combine and switch between different types of prompts (`XMonad.Prompt.XPrompt`). It includes a set of default modes:
 
        * Hoogle mode: Search for functions using hoogle, choosing a function leads you to documentation in Haddock.
 
@@ -63,7 +63,8 @@ extensionActions = M.fromList $ [
 
  To try it, restart xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
 
- You can change mode with xK_grave if you used defaultXP or change the value of changeModeKey in your XPConfig-}
+ If you used `defaultXPConfig`, you can change mode with xK_grave. If you are using your own `XPConfig`, define the value for `changeModeKey`.
+ -}
 
 data LocateFileMode = LMode ExtensionActions
 data LocateFileRegexMode = LRMode ExtensionActions
@@ -107,7 +108,7 @@ instance XPrompt HoogleMode where
   modeAction (HMode pathToHoogleBin'' browser') query result = do
     completionsWithLink <- liftIO $ completionFunctionWith pathToHoogleBin'' ["--count","5","--link",query]
     let link = do
-          s <- find (isJust . \c -> findSeqIndex c result) completionsWithLink
+          s <- find (isJust . \complStr -> findSeqIndex complStr result) completionsWithLink
           i <- findSeqIndex s "http://"
           return $ drop i s
     case link of
