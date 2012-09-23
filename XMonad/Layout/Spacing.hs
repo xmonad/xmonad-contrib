@@ -18,6 +18,7 @@ module XMonad.Layout.Spacing (
                                -- $usage
 
                                spacing, Spacing,
+                               smartSpacing, SmartSpacing,
 
                              ) where
 
@@ -52,3 +53,17 @@ instance LayoutModifier Spacing a where
 
 shrinkRect :: Int -> Rectangle -> Rectangle
 shrinkRect p (Rectangle x y w h) = Rectangle (x+fi p) (y+fi p) (w-2*fi p) (h-2*fi p)
+
+-- | Surrounds all windows with blank space, except when the window is the only
+-- visible window on the current workspace.
+smartSpacing :: Int -> l a -> ModifiedLayout SmartSpacing l a
+smartSpacing p = ModifiedLayout (SmartSpacing p)
+
+data SmartSpacing a = SmartSpacing Int deriving (Show, Read)
+
+instance LayoutModifier SmartSpacing a where
+
+    pureModifier _ _ _ [x] = ([x], Nothing)
+    pureModifier (SmartSpacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    modifierDescription (SmartSpacing p) = "SmartSpacing " ++ show p
