@@ -18,6 +18,7 @@
 -- @
 -----------------------------------------------------------------------------
 module XMonad.Hooks.ICCCMFocus
+{-# DEPRECATED "XMonad.Hooks.ICCCMFocus: xmonad>0.10 core merged issue 177" #-}
 (
   atom_WM_TAKE_FOCUS  
 , takeFocusX
@@ -27,27 +28,11 @@ module XMonad.Hooks.ICCCMFocus
 import XMonad
 import XMonad.Hooks.SetWMName
 import qualified XMonad.StackSet as W
-import Control.Monad
-
-atom_WM_TAKE_FOCUS ::
-  X Atom
-atom_WM_TAKE_FOCUS =
-  getAtom "WM_TAKE_FOCUS"
 
 takeFocusX ::
   Window
   -> X ()
-takeFocusX w =
-  withWindowSet . const $ do
-    dpy       <- asks display
-    wmtakef   <- atom_WM_TAKE_FOCUS
-    wmprot    <- atom_WM_PROTOCOLS
-    protocols <- io $ getWMProtocols dpy w
-    when (wmtakef `elem` protocols) $
-      io . allocaXEvent $ \ev -> do
-          setEventType ev clientMessage
-          setClientMessageEvent ev w wmprot 32 wmtakef currentTime
-          sendEvent dpy w False noEventMask ev
+takeFocusX _w = return ()
 
 -- | The value to add to your log hook configuration.
 takeTopFocus ::
