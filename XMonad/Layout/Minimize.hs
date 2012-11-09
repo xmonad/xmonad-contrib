@@ -84,12 +84,12 @@ setMinimizedState :: Window -> Int -> (CLong -> [CLong] -> [CLong]) -> X ()
 setMinimizedState win st f = do
     setWMState win st
     withDisplay $ \dpy -> do
-        state <- getAtom "_NET_WM_STATE"
+        wm_state <- getAtom "_NET_WM_STATE"
         mini <- getAtom "_NET_WM_STATE_HIDDEN"
-        wstate <- fromMaybe [] `fmap` getProp32 state win
+        wstate <- fromMaybe [] `fmap` getProp32 wm_state win
         let ptype = 4 -- The atom property type for changeProperty
             fi_mini = fromIntegral mini
-        io $ changeProperty32 dpy win state ptype propModeReplace (f fi_mini wstate)
+        io $ changeProperty32 dpy win wm_state ptype propModeReplace (f fi_mini wstate)
 
 setMinimized :: Window -> X ()
 setMinimized win = setMinimizedState win iconicState (:)
