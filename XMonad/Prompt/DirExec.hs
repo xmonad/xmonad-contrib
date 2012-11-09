@@ -24,8 +24,7 @@ module XMonad.Prompt.DirExec
     , DirExec
     ) where
 
-import Prelude hiding (catch)
-import Control.Exception
+import Control.Exception as E
 import System.Directory
 import Control.Monad
 import Data.List
@@ -104,4 +103,4 @@ getDirectoryExecutables path =
             liftM2 (&&)
                 (doesFileExist x')
                 (liftM executable (getPermissions x'))))
-    `catch` econst []
+    `E.catch` econst []

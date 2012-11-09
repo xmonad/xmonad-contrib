@@ -68,8 +68,6 @@ module XMonad.Prompt
     , XPState
     ) where
 
-import           Prelude                      hiding (catch)
-
 import           XMonad                       hiding (cleanMask, config)
 import qualified XMonad                       as X (numberlockMask)
 import qualified XMonad.StackSet              as W
@@ -81,7 +79,7 @@ import           Codec.Binary.UTF8.String     (decodeString)
 import           Control.Applicative          ((<$>))
 import           Control.Arrow                (first, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
-import           Control.Exception.Extensible hiding (handle)
+import           Control.Exception.Extensible as E hiding (handle)
 import           Control.Monad.State
 import           Data.Bits
 import           Data.Char                    (isSpace)
@@ -890,7 +888,7 @@ getCompletions :: XP [String]
 getCompletions = do
   s <- get
   io $ getCompletionFunction s (commandToComplete (currentXPMode s) (command s))
-       `catch` \(SomeException _) -> return []
+       `E.catch` \(SomeException _) -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
@@ -1028,7 +1026,7 @@ getHistoryFile :: IO FilePath
 getHistoryFile = fmap (++ "/history") $ getAppUserDataDirectory "xmonad"
 
 readHistory :: IO History
-readHistory = readHist `catch` \(SomeException _) -> return emptyHistory
+readHistory = readHist `E.catch` \(SomeException _) -> return emptyHistory
  where
     readHist = do
         path <- getHistoryFile
@@ -1039,7 +1037,7 @@ writeHistory :: History -> IO ()
 writeHistory hist = do
   path <- getHistoryFile
   let filtered = M.filter (not . null) hist
-  writeFile path (show filtered) `catch` \(SomeException e) ->
+  writeFile path (show filtered) `E.catch` \(SomeException e) ->
                           hPutStrLn stderr ("error writing history: "++show e)
   setFileMode path mode
     where mode = ownerReadMode .|. ownerWriteMode

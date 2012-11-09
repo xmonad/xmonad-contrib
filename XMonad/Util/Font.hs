@@ -32,11 +32,10 @@ module XMonad.Util.Font
     , fi
     ) where
 
-import Prelude hiding (catch)
 import XMonad
 import Foreign
 import Control.Applicative
-import Control.Exception
+import Control.Exception as E
 import Data.Maybe
 
 #ifdef XFT
@@ -70,7 +69,7 @@ econst = const
 initCoreFont :: String -> X FontStruct
 initCoreFont s = do
   d <- asks display
-  io $ catch (getIt d) (fallBack d)
+  io $ E.catch (getIt d) (fallBack d)
       where getIt    d = loadQueryFont d s
             fallBack d = econst $ loadQueryFont d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
 
@@ -82,7 +81,7 @@ releaseCoreFont fs = do
 initUtf8Font :: String -> X FontSet
 initUtf8Font s = do
   d <- asks display
-  (_,_,fs) <- io $ catch (getIt d) (fallBack d)
+  (_,_,fs) <- io $ E.catch (getIt d) (fallBack d)
   return fs
       where getIt    d = createFontSet d s
             fallBack d = econst $ createFontSet d "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"

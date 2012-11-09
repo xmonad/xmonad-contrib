@@ -18,8 +18,7 @@ module XMonad.Hooks.XPropManage (
                  xPropManageHook, XPropMatch, pmX, pmP
                  ) where
 
-import Prelude hiding (catch)
-import Control.Exception
+import Control.Exception as E
 import Data.Char (chr)
 import Data.Monoid (mconcat, Endo(..))
 
@@ -76,7 +75,7 @@ xPropManageHook tms = mconcat $ map propToHook tms
 
 getProp :: Display -> Window -> Atom -> X ([String])
 getProp d w p = do
-    prop <- io $ catch (getTextProperty d w p >>= wcTextPropertyToTextList d) (\(_ :: IOException) -> return [[]])
+    prop <- io $ E.catch (getTextProperty d w p >>= wcTextPropertyToTextList d) (\(_ :: IOException) -> return [[]])
     let filt q | q == wM_COMMAND = concat . map splitAtNull
                | otherwise       = id
     return (filt p prop)

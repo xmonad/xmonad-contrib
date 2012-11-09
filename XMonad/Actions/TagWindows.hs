@@ -26,10 +26,9 @@ module XMonad.Actions.TagWindows (
                  TagPrompt,
                  ) where
 
-import Prelude hiding (catch)
 import Data.List (nub,sortBy)
 import Control.Monad
-import Control.Exception
+import Control.Exception as E
 
 import XMonad.StackSet hiding (filter)
 
@@ -82,7 +81,7 @@ setTag s w = withDisplay $ \d ->
 --   reads from the \"_XMONAD_TAGS\" window property
 getTags :: Window -> X [String]
 getTags w = withDisplay $ \d ->
-    io $ catch (internAtom d "_XMONAD_TAGS" False >>=
+    io $ E.catch (internAtom d "_XMONAD_TAGS" False >>=
                 getTextProperty d w >>=
                 wcTextPropertyToTextList d)
                (econst [[]])

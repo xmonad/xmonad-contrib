@@ -29,7 +29,6 @@ module XMonad.Layout.WorkspaceDir (
                                    WorkspaceDir,
                                   ) where
 
-import Prelude hiding (catch)
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
 import Control.Monad ( when )
 

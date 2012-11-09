@@ -30,10 +30,9 @@ module XMonad.Prompt.Shell
     ) where
 
 import           Codec.Binary.UTF8.String (encodeString)
-import           Control.Exception
+import           Control.Exception        as E
 import           Control.Monad            (forM)
 import           Data.List                (isPrefixOf)
-import           Prelude                  hiding (catch)
 import           System.Directory         (doesDirectoryExist, getDirectoryContents)
 import           System.Environment       (getEnv)
 import           System.Posix.Files       (getFileStatus, isDirectory)
@@ -111,7 +110,7 @@ commandCompletionFunction cmds str | '/' `elem` str = []
 
 getCommands :: IO [String]
 getCommands = do
-    p  <- getEnv "PATH" `catch` econst []
+    p  <- getEnv "PATH" `E.catch` econst []
     let ds = filter (/= "") $ split ':' p
     es <- forM ds $ \d -> do
         exists <- doesDirectoryExist d
@@ -142,7 +141,7 @@ isSpecialChar =  flip elem " &\\@\"'#?$*()[]{};"
 --   In order to /set/ an environment variable (eg. combine with a prompt so you can modify @$HTTP_PROXY@ dynamically),
 --   you need to use 'System.Posix.putEnv'.
 env :: String -> String -> IO String
-env variable fallthrough = getEnv variable `catch` econst fallthrough
+env variable fallthrough = getEnv variable `E.catch` econst fallthrough
 
 {- | Ask the shell what browser the user likes. If the user hasn't defined any
    $BROWSER, defaults to returning \"firefox\", since that seems to be the most

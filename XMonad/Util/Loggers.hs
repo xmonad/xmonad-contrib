@@ -52,9 +52,8 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Util.Font (Align (..))
 import XMonad.Util.NamedWindows (getName)
 
-import Prelude hiding (catch)
 import Control.Applicative ((<$>))
-import Control.Exception
+import Control.Exception as E
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
 import Data.Traversable (traverse)
@@ -143,7 +142,7 @@ loadAvg = logCmd "/usr/bin/uptime | sed 's/.*: //; s/,//g'"
 -- | Create a 'Logger' from an arbitrary shell command.
 logCmd :: String -> Logger
 logCmd c = io $ do (_, out, _, _) <- runInteractiveCommand c
-                   fmap Just (hGetLine out) `catch` econst Nothing
+                   fmap Just (hGetLine out) `E.catch` econst Nothing
                    -- no need to waitForProcess, we ignore SIGCHLD
 
 -- | Get a count of filtered files in a directory.
