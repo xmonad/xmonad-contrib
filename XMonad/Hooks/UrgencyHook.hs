@@ -424,6 +424,7 @@ instance UrgencyHook DzenUrgencyHook where
 
   > withUrgencyHook FocusHook $ myconfig { ...
 -}
+focusHook :: Window -> X ()
 focusHook = urgencyHook FocusHook
 data FocusHook = FocusHook deriving (Read, Show)
 
@@ -441,6 +442,7 @@ instance UrgencyHook FocusHook where
 --   @borderColor@ breaks anyone using 'XPConfig' from "XMonad.Prompt".  We need to 
 --   think a bit more about namespacing issues, maybe.)
 
+borderUrgencyHook :: String -> Window -> X ()
 borderUrgencyHook = urgencyHook . BorderUrgencyHook
 data BorderUrgencyHook = BorderUrgencyHook { urgencyBorderColor :: !String }
                        deriving (Read, Show)
@@ -465,6 +467,7 @@ dzenUrgencyHook = DzenUrgencyHook { duration = seconds 5, args = [] }
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
 -- xcompmgr thing.
+spawnUrgencyHook :: String -> Window -> X ()
 spawnUrgencyHook = urgencyHook . SpawnUrgencyHook
 newtype SpawnUrgencyHook = SpawnUrgencyHook String deriving (Read, Show)
 
@@ -472,6 +475,7 @@ instance UrgencyHook SpawnUrgencyHook where
     urgencyHook (SpawnUrgencyHook prefix) w = spawn $ prefix ++ show w
 
 -- | For debugging purposes, really.
+stdoutUrgencyHook :: Window -> X ()
 stdoutUrgencyHook = urgencyHook StdoutUrgencyHook
 data StdoutUrgencyHook = StdoutUrgencyHook deriving (Read, Show)
 
