@@ -105,7 +105,7 @@ configurableNavigation :: LayoutClass l a => WNConfig -> l a -> ModifiedLayout W
 configurableNavigation conf = ModifiedLayout (WindowNavigation conf (I Nothing))
 
 instance LayoutModifier WindowNavigation Window where
-    redoLayout (WindowNavigation conf (I state)) rscr (Just s) origwrs =
+    redoLayout (WindowNavigation conf (I st)) rscr (Just s) origwrs =
         do XConf { normalBorder = nbc, focusedBorder = fbc, display = dpy } <- ask
            [uc,dc,lc,rc] <-
                case brightness conf of
@@ -120,8 +120,8 @@ instance LayoutModifier WindowNavigation Window where
            let w    = W.focus s
                r    = case filter ((==w).fst) origwrs of ((_,x):_) -> x
                                                          []        -> rscr
-               pt   = case state of Just (NS ptold _) | ptold `inrect` r -> ptold
-                                    _ -> center r
+               pt   = case st of Just (NS ptold _) | ptold `inrect` r -> ptold
+                                 _ -> center r
                existing_wins = W.integrate s
                wrs = filter ((`elem` existing_wins) . fst) $ filter ((/=r) . snd) $
                      filter ((/=w) . fst) origwrs
@@ -130,8 +130,8 @@ instance LayoutModifier WindowNavigation Window where
                wnavigablec = nub $ concatMap
                             (\d -> map (\(win,_) -> (win,dirc d)) $
                                    take 1 $ navigable d pt wrs) [U,D,R,L]
-               wothers = case state of Just (NS _ wo) -> map fst wo
-                                       _              -> []
+               wothers = case st of Just (NS _ wo) -> map fst wo
+                                    _              -> []
            mapM_ (sc nbc) (wothers \\ map fst wnavigable)
            mapM_ (\(win,c) -> sc c win) wnavigablec
            return (origwrs, Just $ WindowNavigation conf $ I $ Just $ NS pt wnavigable)

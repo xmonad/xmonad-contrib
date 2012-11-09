@@ -112,11 +112,11 @@ multiPP focusPP unfocusPP = do
 
 multiPP' :: (PP -> X String) -> PP -> PP -> [Handle] -> X ()
 multiPP' dynlStr focusPP unfocusPP handles = do
-  state <- get
+  st <- get
   let pickPP :: WorkspaceId -> WriterT (Last XState) X String
       pickPP ws = do
-        let isFoc = (ws ==) . W.tag . W.workspace . W.current $ windowset state
-        put state{ windowset = W.view ws $ windowset state }
+        let isFoc = (ws ==) . W.tag . W.workspace . W.current $ windowset st
+        put st{ windowset = W.view ws $ windowset st }
         out <- lift $ dynlStr $ if isFoc then focusPP else unfocusPP
         when isFoc $ get >>= tell . Last . Just
         return out

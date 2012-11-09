@@ -110,7 +110,7 @@ plane ::
     (WorkspaceId -> WindowSet -> WindowSet) -> Lines -> Limits -> Direction ->
     X ()
 plane function numberLines_ limits direction = do
-    state <- get
+    st <- get
     xconf <- ask
 
     numberLines <-
@@ -205,7 +205,7 @@ plane function numberLines_ limits direction = do
         preColumns = div areas numberLines
 
         mCurrentWS :: Maybe Int
-        mCurrentWS = elemIndex (currentTag $ windowset state) areaNames
+        mCurrentWS = elemIndex (currentTag $ windowset st) areaNames
 
         areas :: Int
         areas = length areaNames

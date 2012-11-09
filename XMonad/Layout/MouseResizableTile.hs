@@ -136,55 +136,55 @@ mouseResizableTileMirrored :: MouseResizableTile a
 mouseResizableTileMirrored = mouseResizableTile { isMirrored = True }
 
 instance LayoutClass MouseResizableTile Window where
-    doLayout state sr (W.Stack w l r) = do
-        drg <- draggerGeometry $ draggerType state
+    doLayout st sr (W.Stack w l r) = do
+        drg <- draggerGeometry $ draggerType st
         let wins = reverse l ++ w : r
             num = length wins
             sr' = mirrorAdjust sr (mirrorRect sr)
-            (rects, preparedDraggers) = tile (nmaster state) (masterFrac state)
-                                            (leftFracs state ++ repeat (slaveFrac state))
-                                            (rightFracs state ++ repeat (slaveFrac state)) sr' num drg
+            (rects, preparedDraggers) = tile (nmaster st) (masterFrac st)
+                                            (leftFracs st ++ repeat (slaveFrac st))
+                                            (rightFracs st ++ repeat (slaveFrac st)) sr' num drg
             rects' = map (mirrorAdjust id mirrorRect . sanitizeRectangle sr') rects
-        mapM_ deleteDragger $ draggers state
+        mapM_ deleteDragger $ draggers st
         (draggerWrs, newDraggers) <- unzip <$> mapM
-                                        (createDragger sr . adjustForMirror (isMirrored state))
+                                        (createDragger sr . adjustForMirror (isMirrored st))
                                         preparedDraggers
-        return (draggerWrs ++ zip wins rects', Just $ state { draggers = newDraggers,
+        return (draggerWrs ++ zip wins rects', Just $ st { draggers = newDraggers,
                                                               focusPos = length l,
                                                               numWindows = length wins })
         where
-            mirrorAdjust a b = if (isMirrored state)
+            mirrorAdjust a b = if (isMirrored st)
                                 then b
                                 else a
 
-    handleMessage state m
+    handleMessage st m
         | Just (IncMasterN d) <- fromMessage m =
-            return $ Just $ state { nmaster = max 0 (nmaster state + d) }
+            return $ Just $ st { nmaster = max 0 (nmaster st + d) }
         | Just Shrink <- fromMessage m =
-            return $ Just $ state { masterFrac = max 0 (masterFrac state - fracIncrement state) }
+            return $ Just $ st { masterFrac = max 0 (masterFrac st - fracIncrement st) }
         | Just Expand <- fromMessage m =
-            return $ Just $ state { masterFrac = min 1 (masterFrac state + fracIncrement state) }
+            return $ Just $ st { masterFrac = min 1 (masterFrac st + fracIncrement st) }
         | Just ShrinkSlave <- fromMessage m =
-            return $ Just $ modifySlave state (- fracIncrement state)
+            return $ Just $ modifySlave st (- fracIncrement st)
         | Just ExpandSlave <- fromMessage m =
-            return $ Just $ modifySlave state (fracIncrement state)
+            return $ Just $ modifySlave st (fracIncrement st)
         | Just (SetMasterFraction f) <- fromMessage m =
-            return $ Just $ state { masterFrac = max 0 (min 1 f) }
+            return $ Just $ st { masterFrac = max 0 (min 1 f) }
         | Just (SetLeftSlaveFraction pos f) <- fromMessage m =
-            return $ Just $ state { leftFracs = replaceAtPos (slaveFrac state)
-                (leftFracs state) pos (max 0 (min 1 f)) }
+            return $ Just $ st { leftFracs = replaceAtPos (slaveFrac st)
+                (leftFracs st) pos (max 0 (min 1 f)) }
         | Just (SetRightSlaveFraction pos f) <- fromMessage m =
-            return $ Just $ state { rightFracs = replaceAtPos (slaveFrac state)
-                (rightFracs state) pos (max 0 (min 1 f)) }
+            return $ Just $ st { rightFracs = replaceAtPos (slaveFrac st)
+                (rightFracs st) pos (max 0 (min 1 f)) }
 
-        | Just e <- fromMessage m :: Maybe Event = handleResize (draggers state) (isMirrored state) e >> return Nothing
-        | Just Hide             <- fromMessage m = releaseResources >> return (Just $ state { draggers = [] })
-        | Just ReleaseResources <- fromMessage m = releaseResources >> return (Just $ state { draggers = [] })
-        where releaseResources = mapM_ deleteDragger $ draggers state
+        | Just e <- fromMessage m :: Maybe Event = handleResize (draggers st) (isMirrored st) e >> return Nothing
+        | Just Hide             <- fromMessage m = releaseResources >> return (Just $ st { draggers = [] })
+        | Just ReleaseResources <- fromMessage m = releaseResources >> return (Just $ st { draggers = [] })
+        where releaseResources = mapM_ deleteDragger $ draggers st
     handleMessage _ _ = return Nothing
 
-    description state = mirror "MouseResizableTile"
-        where mirror = if isMirrored state then ("Mirror " ++) else id
+    description st = mirror "MouseResizableTile"
+        where mirror = if isMirrored st then ("Mirror " ++) else id
 
 draggerGeometry :: DraggerType -> X DraggerGeometry
 draggerGeometry (FixedDragger g d) =
@@ -203,28 +203,28 @@ adjustForMirror True (draggerRect, draggerCursor, draggerInfo) =
                             else xC_sb_h_double_arrow
 
 modifySlave :: MouseResizableTile a -> Rational -> MouseResizableTile a
-modifySlave state delta =
-    let pos = focusPos state
-        num = numWindows state
-        nmaster' = nmaster state
-        leftFracs' = leftFracs state
-        rightFracs' = rightFracs state
-        slFrac = slaveFrac state
+modifySlave st delta =
+    let pos = focusPos st
+        num = numWindows st
+        nmaster' = nmaster st
+        leftFracs' = leftFracs st
+        rightFracs' = rightFracs st
+        slFrac = slaveFrac st
         draggersLeft = nmaster' - 1
         draggersRight = (num - nmaster') - 1
     in if pos < nmaster'
         then if draggersLeft > 0
                 then let draggerPos = min (draggersLeft - 1) pos
                          oldFraction = (leftFracs' ++ repeat slFrac) !! draggerPos
-                     in state { leftFracs = replaceAtPos slFrac leftFracs' draggerPos
+                     in st { leftFracs = replaceAtPos slFrac leftFracs' draggerPos
                                             (max 0 (min 1 (oldFraction + delta))) }
-                else state
+                else st
         else if draggersRight > 0
                 then let draggerPos = min (draggersRight - 1) (pos - nmaster')
                          oldFraction = (rightFracs' ++ repeat slFrac) !! draggerPos
-                     in state { rightFracs = replaceAtPos slFrac rightFracs' draggerPos
+                     in st { rightFracs = replaceAtPos slFrac rightFracs' draggerPos
                                             (max 0 (min 1 (oldFraction + delta))) }
-                else state
+                else st
 
 replaceAtPos :: (Num t, Eq t) => Rational -> [Rational] -> t -> Rational -> [Rational]
 replaceAtPos _ [] 0 x' = [x']

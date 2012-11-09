@@ -124,11 +124,11 @@ instance LayoutModifier FullscreenFloat Window where
 
     -- Modify the floating member of the stack set directly; this is the hackish part.
     Just FullscreenChanged -> do
-      state <- get
-      let ws = windowset state
+      st <- get
+      let ws = windowset st
           flt = W.floating ws
           flt' = M.intersectionWith doFull fulls flt
-      put state {windowset = ws {W.floating = M.union flt' flt}}
+      put st {windowset = ws {W.floating = M.union flt' flt}}
       return $ Just $ FullscreenFloat frect $ M.filter snd fulls
       where doFull (_, True) _ = frect
             doFull (rect, False) _ = rect
@@ -174,9 +174,9 @@ fullscreenFloatRect r = ModifiedLayout $ FullscreenFloat r M.empty
 -- | The event hook required for the layout modifiers to work
 fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
-  state <- getAtom "_NET_WM_STATE"
+  wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 state win
+  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
   let fi :: (Integral i, Num n) => i -> n
       fi = fromIntegral
       isFull = fi fullsc `elem` wstate
@@ -184,8 +184,8 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       add = 1
       toggle = 2
       ptype = 4
-      chWState f = io $ changeProperty32 dpy win state ptype propModeReplace (f wstate)
-  when (typ == state && fi fullsc `elem` dats) $ do
+      chWState f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+  when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWState (fi fullsc:)
       broadcastMessage $ AddFullscreen win

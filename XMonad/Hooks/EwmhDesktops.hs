@@ -170,9 +170,9 @@ handle _ _ = return ()
 -- Note this is not included in 'ewmh'.
 fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
-  state <- getAtom "_NET_WM_STATE"
+  wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 state win
+  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
 
   let isFull = fromIntegral fullsc `elem` wstate
 
@@ -181,9 +181,9 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       add = 1
       toggle = 2
       ptype = 4 -- The atom property type for changeProperty
-      chWstate f = io $ changeProperty32 dpy win state ptype propModeReplace (f wstate)
+      chWstate f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
 
-  when (typ == state && fi fullsc `elem` dats) $ do
+  when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWstate (fi fullsc:)
       windows $ W.float win $ W.RationalRect 0 0 1 1
