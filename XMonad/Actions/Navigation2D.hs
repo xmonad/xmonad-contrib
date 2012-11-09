@@ -16,22 +16,22 @@
 
 module XMonad.Actions.Navigation2D ( -- * Usage
                                      -- $usage
-                                     
+
                                      -- * Finer points
                                      -- $finer_points
-                                     
+
                                      -- * Alternative directional navigation modules
                                      -- $alternatives
-                                     
+
                                      -- * Incompatibilities
                                      -- $incompatibilities
-                                     
+
                                      -- * Detailed technical discussion
                                      -- $technical
 
                                      -- * Exported functions and types
                                      -- #Exports#
-                                     
+
                                      withNavigation2DConfig
                                    , Navigation2DConfig(..)
                                    , defaultNavigation2DConfig
@@ -226,7 +226,7 @@ import XMonad.Util.Types
 
 -- | A rectangle paired with an object
 type Rect a = (a, Rectangle)
-                                         
+
 -- | A shorthand for window-rectangle pairs.  Reduces typing.
 type WinRect = Rect Window
 
@@ -251,7 +251,7 @@ runNav (N _ nav) = nav
 type Generality = Int
 
 instance Eq Navigation2D where
-  (N x _) == (N y _) = x == y  
+  (N x _) == (N y _) = x == y
 
 instance Ord Navigation2D where
   (N x _) <= (N y _) = x <= y
@@ -302,7 +302,7 @@ data Navigation2DConfig = Navigation2DConfig
 
 -- | Shorthand for the tedious screen type
 type Screen = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
-                          
+
 -- So we can store the configuration in extensible state
 instance ExtensionClass Navigation2DConfig where
   initialValue = defaultNavigation2DConfig
@@ -755,7 +755,7 @@ wrapOffsets winset = (max_x - min_x, max_y - min_y)
     max_x = fi $ maximum $ map (\r -> rect_x r + (fi $ rect_width  r)) rects
     max_y = fi $ maximum $ map (\r -> rect_y r + (fi $ rect_height r)) rects
     rects = map snd $ visibleWorkspaces winset False
-    
+
 
 -- | Returns the list of screens sorted primarily by their centers'
 -- x-coordinates and secondarily by their y-coordinates.

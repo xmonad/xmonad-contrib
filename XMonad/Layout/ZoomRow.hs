@@ -42,7 +42,7 @@ import XMonad.Layout.Decoration (fi)
 
 import Data.Maybe (fromMaybe)
 import Control.Arrow (second)
- 
+
 -- $usage
 -- This module provides a layout which places all windows in a single
 -- row; the size occupied by each individual window can be increased
@@ -80,9 +80,9 @@ zoomRow :: (Eq a, Show a, Read a) => ZoomRow ClassEQ a
 zoomRow = ZC ClassEQ emptyZ
 
 -- $noneq
--- Haskell's 'Eq' class is usually concerned with structural equality, whereas 
+-- Haskell's 'Eq' class is usually concerned with structural equality, whereas
 -- what this layout really wants is for its elements to have a unique identity,
--- even across changes. There are cases (such as, importantly, 'Window's) where 
+-- even across changes. There are cases (such as, importantly, 'Window's) where
 -- the 'Eq' instance for a type actually does that, but if you want to lay
 -- out something more exotic than windows and your 'Eq' means something else,
 -- you can use the following.
@@ -92,7 +92,7 @@ zoomRow = ZC ClassEQ emptyZ
 -- sure that the layout never has to handle two \"equal\" elements
 -- at the same time (it won't do any huge damage, but might behave
 -- a bit strangely).
-zoomRowWith :: (EQF f a, Show (f a), Read (f a), Show a, Read a) 
+zoomRowWith :: (EQF f a, Show (f a), Read (f a), Show a, Read a)
                => f a -> ZoomRow f a
 zoomRowWith f = ZC f emptyZ
 
@@ -185,7 +185,7 @@ zoomReset = ZoomTo 1
 
 -- * LayoutClass instance
 
-instance (EQF f a, Show a, Read a, Show (f a), Read (f a)) 
+instance (EQF f a, Show a, Read a, Show (f a), Read (f a))
     => LayoutClass (ZoomRow f) a where
     description (ZC _ Nothing) = "ZoomRow"
     description (ZC _ (Just s)) = "ZoomRow" ++ if full $ W.focus s
@@ -197,7 +197,7 @@ instance (EQF f a, Show a, Read a, Show (f a), Read (f a))
 
     doLayout (ZC f zelts) r@(Rectangle _ _ w _) s
         = let elts = W.integrate' zelts
-              zelts' = mapZ_ (\a -> fromMaybe (E a 1 False) 
+              zelts' = mapZ_ (\a -> fromMaybe (E a 1 False)
                                     $ lookupBy (eq f) a elts) $ Just s
               elts' = W.integrate' zelts'
 
@@ -251,7 +251,7 @@ instance (EQF f a, Show a, Read a, Show (f a), Read (f a))
         = case fromMessage sm of
             Just (Zoom r') -> Just $ ZC f $ setFocus zelts $ E a (r*r') b
             Just (ZoomTo r') -> Just $ ZC f $ setFocus zelts $ E a r' b
-            Just ZoomFullToggle -> pureMessage (ZC f zelts) 
+            Just ZoomFullToggle -> pureMessage (ZC f zelts)
                                      $ SomeMessage $ ZoomFull $ not b
             _ -> Nothing
 

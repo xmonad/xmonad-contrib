@@ -20,7 +20,7 @@
 --
 ----------------------------------------------------------------------
 
-module XMonad.Actions.GroupNavigation ( -- * Usage  
+module XMonad.Actions.GroupNavigation ( -- * Usage
                                         -- $usage
                                         Direction (..)
                                       , nextMatch
@@ -110,13 +110,13 @@ nextMatch dir qry = nextMatchOrDo dir qry (return ())
 -- | Focuses the next window that matches the given boolean query.  If
 -- there is no such window, perform the given action instead.
 nextMatchOrDo :: Direction -> Query Bool -> X () -> X ()
-nextMatchOrDo dir qry act = orderedWindowList dir 
+nextMatchOrDo dir qry act = orderedWindowList dir
                             >>= focusNextMatchOrDo qry act
 
 -- Produces the action to perform depending on whether there's a
 -- matching window
 focusNextMatchOrDo :: Query Bool -> X () -> Seq Window -> X ()
-focusNextMatchOrDo qry act = findM (runQuery qry) 
+focusNextMatchOrDo qry act = findM (runQuery qry)
                              >=> maybe act (windows . SS.focusWindow)
 
 -- Returns the list of windows ordered by workspace as specified in
@@ -126,7 +126,7 @@ orderedWindowList History = liftM (\(HistoryDB w ws) -> maybe ws (ws |>) w) XS.g
 orderedWindowList dir     = withWindowSet $ \ss -> do
   wsids <- asks (Seq.fromList . workspaces . config)
   let wspcs = orderedWorkspaceList ss wsids
-      wins  = dirfun dir 
+      wins  = dirfun dir
               $ Fold.foldl' (><) Seq.empty
               $ fmap (Seq.fromList . SS.integrate' . SS.stack) wspcs
       cur   = SS.peek ss
@@ -148,7 +148,7 @@ orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
 --- History navigation, requires a layout modifier -------------------
 
 -- The state extension that holds the history information
-data HistoryDB = HistoryDB (Maybe Window) -- currently focused window 
+data HistoryDB = HistoryDB (Maybe Window) -- currently focused window
                            (Seq Window)   -- previously focused windows
                deriving (Read, Show, Typeable)
 
@@ -182,12 +182,12 @@ flt :: (a -> Bool) -> Seq a -> Seq a
 flt p = Fold.foldl (\xs x -> if p x then xs |> x else xs) Seq.empty
 
 brkl :: (a -> Bool) -> Seq a -> (Seq a, Seq a)
-brkl p xs = flip Seq.splitAt xs 
-            $ snd 
+brkl p xs = flip Seq.splitAt xs
+            $ snd
             $ Fold.foldr (\x (i, j) -> if p x then (i-1, i-1) else (i-1, j)) (l, l) xs
   where
     l = Seq.length xs
-    
+
 --- Some sequence helpers --------------------------------------------
 
 -- Rotates the sequence by one position

@@ -24,7 +24,7 @@ import XMonad
 import XMonad.Layout.LayoutModifier
 
 -- $usage
--- You can use this module by adding 
+-- You can use this module by adding
 --
 -- > import XMonad.Layout.Renamed
 --

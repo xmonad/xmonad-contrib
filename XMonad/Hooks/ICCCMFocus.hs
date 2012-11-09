@@ -20,7 +20,7 @@
 module XMonad.Hooks.ICCCMFocus
 {-# DEPRECATED "XMonad.Hooks.ICCCMFocus: xmonad>0.10 core merged issue 177" #-}
 (
-  atom_WM_TAKE_FOCUS  
+  atom_WM_TAKE_FOCUS
 , takeFocusX
 , takeTopFocus
 ) where
@@ -38,5 +38,5 @@ takeFocusX _w = return ()
 takeTopFocus ::
   X ()
 takeTopFocus =
-  (withWindowSet $ maybe (setFocusX =<< asks theRoot) takeFocusX . W.peek) >> setWMName "LG3D"  
+  (withWindowSet $ maybe (setFocusX =<< asks theRoot) takeFocusX . W.peek) >> setWMName "LG3D"
 

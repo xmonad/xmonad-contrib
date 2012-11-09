@@ -67,12 +67,12 @@ import XMonad.Layout.Simplest
 
 
 -- $usage
--- This module contains example 'G.Groups'-based layouts. 
+-- This module contains example 'G.Groups'-based layouts.
 -- You can either import this module directly, or look at its source
 -- for ideas of how "XMonad.Layout.Groups" may be used.
 --
 -- You can use the contents of this module by adding
--- 
+--
 -- > import XMonad.Layout.Groups.Examples
 --
 -- to the top of your @.\/.xmonad\/xmonad.hs@.
@@ -80,10 +80,10 @@ import XMonad.Layout.Simplest
 -- For more information on using any of the layouts, jump directly
 --   to its \"Example\" section.
 --
--- Whichever layout you choose to use, you will probably want to be 
+-- Whichever layout you choose to use, you will probably want to be
 --   able to move focus and windows between groups in a consistent
 --   manner. For this, you should take a look at the functions from
---   the "XMonad.Layout.Groups.Helpers" module, which are all 
+--   the "XMonad.Layout.Groups.Helpers" module, which are all
 --   re-exported by this module.
 --
 -- For more information on how to extend your layour hook and key bindings, see
@@ -99,7 +99,7 @@ data GroupEQ a = GroupEQ
 instance Eq a => EQF GroupEQ (G.Group l a) where
     eq _ (G.G l1 _) (G.G l2 _) = G.sameID l1 l2
 
-zoomRowG :: (Eq a, Show a, Read a, Show (l a), Read (l a)) 
+zoomRowG :: (Eq a, Show a, Read a, Show (l a), Read (l a))
             => ZoomRow GroupEQ (G.Group l a)
 zoomRowG = zoomRowWith GroupEQ
 
@@ -171,10 +171,10 @@ toggleWindowFull = sendMessage ZoomFullToggle
 
 -- $example2
 -- A layout which arranges windows into tabbed groups, and the groups
--- themselves according to XMonad's default algorithm 
+-- themselves according to XMonad's default algorithm
 -- (@'Tall' ||| 'Mirror' 'Tall' ||| 'Full'@). As their names
--- indicate, 'tallTabs' starts as 'Tall', 'mirrorTallTabs' starts 
--- as 'Mirror' 'Tall' and 'fullTabs' starts as 'Full', but in any 
+-- indicate, 'tallTabs' starts as 'Tall', 'mirrorTallTabs' starts
+-- as 'Mirror' 'Tall' and 'fullTabs' starts as 'Full', but in any
 -- case you can freely switch between the three afterwards.
 --
 -- You can use any of these three layouts by including it in your layout hook.
@@ -204,7 +204,7 @@ data TiledTabsConfig s = TTC { vNMaster :: Int
 defaultTiledTabsConfig :: TiledTabsConfig DefaultShrinker
 defaultTiledTabsConfig = TTC 1 0.5 (3/100) 1 0.5 (3/100) shrinkText defaultTheme
 
-fullTabs c = _tab c $ G.group _tabs $ Full ||| _vert c ||| _horiz c 
+fullTabs c = _tab c $ G.group _tabs $ Full ||| _vert c ||| _horiz c
 
 tallTabs c = _tab c $ G.group _tabs $ _vert c ||| _horiz c ||| Full
 

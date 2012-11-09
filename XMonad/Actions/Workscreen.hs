@@ -3,11 +3,11 @@
 -- Module     :  XMonad.Actions.Workscreen
 -- Copyright  :  (c) 2012 kedals0
 -- License    :  BSD3-style (see LICENSE)
--- 
+--
 -- Maintainer :  Dal <kedasl0@gmail.com>
 -- Stability  :  unstable
 -- Portability:  unportable
--- 
+--
 -- A workscreen permits to display a set of workspaces on several
 -- screens. In xinerama mode, when a workscreen is viewed, workspaces
 -- associated to all screens are visible.
@@ -48,7 +48,7 @@ import XMonad.Actions.OnScreen
 -- >                    return ()
 --
 -- Then, replace normal workspace view and shift keybinding:
--- 
+--
 -- > [((m .|. modm, k), f i)
 -- >      | (i, k) <- zip [0..] [1..12]
 -- >      , (f, m) <- [(Workscreen.viewWorkscreen, 0), (Workscreen.shiftToWorkscreen, shiftMask)]]
@@ -67,7 +67,7 @@ instance ExtensionClass WorkscreenStorage where
 -- | Helper to group workspaces. Multiply workspace by screens number.
 expandWorkspace :: Int -> [WorkspaceId] -> [WorkspaceId]
 expandWorkspace nscr ws = concat $ map expandId ws
-  where expandId wsId = let t = wsId ++ "_" 
+  where expandId wsId = let t = wsId ++ "_"
                         in map ((++) t . show ) [1..nscr]
 
 -- | Create workscreen list from workspace list. Group workspaces to
@@ -95,7 +95,7 @@ viewWorkscreen wscrId = do (WorkscreenStorage c a) <- XS.get
                            XS.put newWorkscreenStorage
 
 viewWorkscreen' :: Workscreen -> WindowSet -> WindowSet
-viewWorkscreen' (Workscreen _ ws) = \s -> foldl wsToSc' s (zip [0..] ws) 
+viewWorkscreen' (Workscreen _ ws) = \s -> foldl wsToSc' s (zip [0..] ws)
   where wsToSc' s (scr,wsId) = greedyViewOnScreen scr wsId s
 
 shiftWs :: [WorkspaceId] -> [WorkspaceId]

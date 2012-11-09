@@ -17,7 +17,7 @@
 
 module XMonad.Layout.Groups.Wmii ( -- * Usage
                                    -- $usage
-                                   
+
                                    wmii
                                  , zoomGroupIn
                                  , zoomGroupOut
@@ -48,9 +48,9 @@ import XMonad.Layout.Simplest
 
 
 -- $usage
--- This module provides a layout inspired by the one used by the wmii 
+-- This module provides a layout inspired by the one used by the wmii
 -- (<http://wmii.suckless.org>) window manager.
--- Windows are arranged into groups in a horizontal row, and each group can lay out 
+-- Windows are arranged into groups in a horizontal row, and each group can lay out
 -- its windows
 --
 --   * by maximizing the focused one
@@ -59,16 +59,16 @@ import XMonad.Layout.Simplest
 --
 --   * by arranging them in a column.
 --
--- As the groups are arranged in a 'ZoomRow', the relative width of each group can be 
--- increased or decreased at will. Groups can also be set to use the whole screen 
+-- As the groups are arranged in a 'ZoomRow', the relative width of each group can be
+-- increased or decreased at will. Groups can also be set to use the whole screen
 -- whenever they have focus.
 --
 -- You can use the contents of this module by adding
--- 
+--
 -- > import XMonad.Layout.Groups.Wmii
 --
--- to the top of your @.\/.xmonad\/xmonad.hs@, and adding 'wmii' 
--- (with a 'Shrinker' and decoration 'Theme' as 
+-- to the top of your @.\/.xmonad\/xmonad.hs@, and adding 'wmii'
+-- (with a 'Shrinker' and decoration 'Theme' as
 -- parameters) to your layout hook, for example:
 --
 -- > myLayout = wmii shrinkText defaultTheme
@@ -92,10 +92,10 @@ import XMonad.Layout.Simplest
 wmii s t = G.group innerLayout zoomRowG
     where column = named "Column" $ Tall 0 (3/100) (1/2)
           tabs = named "Tabs" $ Simplest
-          innerLayout = renamed [CutWordsLeft 3] 
+          innerLayout = renamed [CutWordsLeft 3]
                         $ addTabs s t
-                        $ ignore NextLayout 
-                        $ ignore (JumpToLayout "") $ unEscape 
+                        $ ignore NextLayout
+                        $ ignore (JumpToLayout "") $ unEscape
                            $ column ||| tabs ||| Full
 
 -- | Increase the width of the focused group

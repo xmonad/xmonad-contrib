@@ -40,7 +40,7 @@ import qualified XMonad.Layout.LayoutBuilder as B
 --
 -- compare "XMonad.Util.Invisible"
 
--- | Type class for predicates. This enables us to manage not only Windows, 
+-- | Type class for predicates. This enables us to manage not only Windows,
 -- but any objects, for which instance Predicate is defined.
 --
 -- Another instance exists in XMonad.Util.WindowPropertiesRE in xmonad-extras

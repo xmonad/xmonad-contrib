@@ -105,7 +105,7 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 --
 -- "XMonad.Doc.Extending#Editing_the_event_hook"
 -- (which sadly doesnt exist at the time of writing...)
--- 
+--
 -- /WARNING:/  This module is very good at triggering bugs in
 -- compositing managers.  Symptoms range from windows not being
 -- repainted until the compositing manager is restarted or the

@@ -140,7 +140,7 @@ closeButton' = [[1,1,0,0,0,0,0,0,1,1],
 
 
 closeButton :: [[Bool]]
-closeButton = convertToBool closeButton'    
+closeButton = convertToBool closeButton'
 
 -- | A function intended to be plugged into the 'decorationCatchClicksHook' of a decoration.
 -- It will intercept clicks on the buttons of the decoration and invoke the associated action.

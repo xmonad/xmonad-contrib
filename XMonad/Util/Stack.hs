@@ -145,7 +145,7 @@ swapUpZ (Just s) = Just s { W.up = reverse (W.down s), W.down = [] }
 swapDownZ :: Zipper a -> Zipper a
 swapDownZ Nothing = Nothing
 swapDownZ (Just s) | d:down <- W.down s = Just s { W.down = down, W.up = d:W.up s }
-swapDownZ (Just s) = Just s { W.up = [], W.down = reverse (W.up s) } 
+swapDownZ (Just s) = Just s { W.up = [], W.down = reverse (W.up s) }
 
 -- | Swap the focused element with the first one
 swapMasterZ :: Zipper a -> Zipper a
@@ -197,7 +197,7 @@ sortByZ f = fromTags . sortBy (adapt f) . toTags
     where adapt g e1 e2 = g (fromE e1) (fromE e2)
 
 -- ** Maps
-             
+
 -- | Map a function over a stack. The boolean argument indcates whether
 -- the current element is the focused one
 mapZ :: (Bool -> a -> b) -> Zipper a -> Zipper b

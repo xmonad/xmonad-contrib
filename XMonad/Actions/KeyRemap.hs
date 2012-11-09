@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Remap Keybinding on the fly, e.g having Dvorak char, but everything with Control/Shift 
+-- Remap Keybinding on the fly, e.g having Dvorak char, but everything with Control/Shift
 -- is left us Layout
 --
 -----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ instance ExtensionClass KeymapTable where
 -- $usage
 -- Provides the possibility to remap parts of the keymap to generate different keys
 --
--- * E.g You want to type Programmers Dvorak, but your keybindings should be the normal us layout 
+-- * E.g You want to type Programmers Dvorak, but your keybindings should be the normal us layout
 --   after all
 --
 -- First, you must add all possible keybindings for all layout you want to use:

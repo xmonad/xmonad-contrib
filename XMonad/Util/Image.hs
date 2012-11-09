@@ -29,7 +29,7 @@ data Placement = OffsetLeft Int Int   -- ^ An exact amount of pixels from the up
                  | CenterLeft Int        -- ^ Centered in the y-axis, an amount of pixels from the left
                  | CenterRight Int       -- ^ Centered in the y-axis, an amount of pixels from the right
                    deriving (Show, Read)
-                   
+
 -- $usage
 -- This module uses matrices of boolean values as images. When drawing them,
 -- a True value tells that we want the fore color, and a False value that we

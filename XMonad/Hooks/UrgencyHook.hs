@@ -438,8 +438,8 @@ instance UrgencyHook FocusHook where
 --
 --   > withUrgencyHookC BorderUrgencyHook { urgencyBorderColor = "#ff0000" } urgencyConfig { suppressWhen = Never } ...
 --
---   (This should be @urgentBorderColor@ but that breaks "XMonad.Layout.Decoration".  
---   @borderColor@ breaks anyone using 'XPConfig' from "XMonad.Prompt".  We need to 
+--   (This should be @urgentBorderColor@ but that breaks "XMonad.Layout.Decoration".
+--   @borderColor@ breaks anyone using 'XPConfig' from "XMonad.Prompt".  We need to
 --   think a bit more about namespacing issues, maybe.)
 
 borderUrgencyHook :: String -> Window -> X ()

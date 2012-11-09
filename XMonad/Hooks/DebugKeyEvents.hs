@@ -45,7 +45,7 @@ import           System.IO                       (hPutStrLn
 -- Logged key events look like:
 --
 -- @keycode 53 sym 120 (0x78, "x") mask 0x0 () clean 0x0 ()@
--- 
+--
 -- The @mask@ and @clean@ indicate the modifiers pressed along with
 -- the key; @mask@ is raw, and @clean@ is what @xmonad@ sees after
 -- sanitizing it (removing @numberLockMask@, etc.)

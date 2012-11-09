@@ -70,9 +70,9 @@ import Control.Monad (forM)
 -- group, and the layout with which the groups themselves will
 -- be arranged on the screen.
 --
--- The "XMonad.Layout.Groups.Examples" and "XMonad.Layout.Groups.Wmii" 
--- modules contain examples of layouts that can be defined with this 
--- combinator. They're also the recommended starting point 
+-- The "XMonad.Layout.Groups.Examples" and "XMonad.Layout.Groups.Wmii"
+-- modules contain examples of layouts that can be defined with this
+-- combinator. They're also the recommended starting point
 -- if you are a beginner and looking for something you can use easily.
 --
 -- One thing to note is that 'Groups'-based layout have their own
@@ -81,7 +81,7 @@ import Control.Monad (forM)
 -- will have no visible effect, and those like 'XMonad.StackSet.focusUp'
 -- will focus the windows in an unpredictable order. For a better way of
 -- rearranging windows and moving focus in such a layout, see the
--- example 'ModifySpec's (to be passed to the 'Modify' message) provided 
+-- example 'ModifySpec's (to be passed to the 'Modify' message) provided
 -- by this module.
 --
 -- If you use both 'Groups'-based and other layouts, The "XMonad.Layout.Groups.Helpers"
@@ -105,7 +105,7 @@ group l l2 = Groups l l2 startingGroups (U 1 0)
 data Uniq = U Integer Integer
   deriving (Eq, Show, Read)
 
--- | From a seed, generate an infinite list of keys and a new 
+-- | From a seed, generate an infinite list of keys and a new
 -- seed. All keys generated with this method will be different
 -- provided you don't use 'gen' again with a key from the list.
 -- (if you need to do that, see 'split' instead)
@@ -121,7 +121,7 @@ gen (U i1 i2) = (U (i1+1) i2, zipWith U (repeat i1) [i2..])
 
 -- | Add a unique identity to a layout so we can
 -- follow it around.
-data WithID l a = ID { getID :: Uniq 
+data WithID l a = ID { getID :: Uniq
                      , unID :: (l a)}
   deriving (Show, Read)
 
@@ -133,15 +133,15 @@ instance Eq (WithID l a) where
     ID id1 _ == ID id2 _ = id1 == id2
 
 instance LayoutClass l a => LayoutClass (WithID l) a where
-    runLayout ws@W.Workspace { W.layout = ID id l } r 
-        = do (placements, ml') <- flip runLayout r 
+    runLayout ws@W.Workspace { W.layout = ID id l } r
+        = do (placements, ml') <- flip runLayout r
                                      ws { W.layout = l}
              return (placements, ID id <$> ml')
     handleMessage (ID id l) sm = do ml' <- handleMessage l sm
                                     return $ ID id <$> ml'
     description (ID _ l) = description l
 
-          
+
 
 -- * The 'Groups' layout
 
@@ -211,7 +211,7 @@ modifyGroups f g = let (seed', id:_) = gen (seed g)
 
 -- | Adapt our groups to a new stack.
 -- This algorithm handles window additions and deletions correctly,
--- ignores changes in window ordering, and tries to react to any 
+-- ignores changes in window ordering, and tries to react to any
 -- other stack changes as gracefully as possible.
 readapt :: Eq a => Zipper a -> Groups l l2 a -> Groups l l2 a
 readapt z g = let mf = getFocusZ z
@@ -233,7 +233,7 @@ removeDeleted :: Eq a => Zipper a -> Zipper a -> Zipper a
 removeDeleted z = filterZ_ (flip elemZ z)
 
 -- | Identify the windows not already in a group.
-findNewWindows :: Eq a => [a] -> Zipper (Group l a) 
+findNewWindows :: Eq a => [a] -> Zipper (Group l a)
                -> (Zipper (Group l a), [a])
 findNewWindows as gs = (gs, foldrZ_ removePresent as gs)
     where removePresent g as' = filter (not . flip elemZ (gZipper g)) as'
@@ -279,10 +279,10 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
 
                let placements = concatMap fst results
                    newL = justMakeNew l mpart' (map snd results ++ hidden')
-                                        
+
                return $ (placements, newL)
 
-        handleMessage l@(Groups _ p _ _) sm | Just (ToEnclosing sm') <- fromMessage sm 
+        handleMessage l@(Groups _ p _ _) sm | Just (ToEnclosing sm') <- fromMessage sm
             = do mp' <- handleMessage p sm'
                  return $ maybeMakeNew l mp' []
 
@@ -316,7 +316,7 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
                             step _ = return Nothing
 
 
-justMakeNew :: Groups l l2 a -> Maybe (l2 (Group l a)) -> [Maybe (WithID l a)] 
+justMakeNew :: Groups l l2 a -> Maybe (l2 (Group l a)) -> [Maybe (WithID l a)]
             -> Maybe (Groups l l2 a)
 justMakeNew g mpart' ml's = Just g { partitioner = fromMaybe (partitioner g) mpart'
                                    , groups = combine (groups g) ml's }
@@ -339,7 +339,7 @@ refocus g = case getFocusZ $ gZipper $ W.focus $ groups g
 
 -- ** ModifySpec type
 
--- | Type of functions describing modifications to a 'Groups' layout. They 
+-- | Type of functions describing modifications to a 'Groups' layout. They
 -- are transformations on 'Zipper's of groups.
 --
 -- Things you shouldn't do:
@@ -358,7 +358,7 @@ refocus g = case getFocusZ $ gZipper $ W.focus $ groups g
 -- 'ModifySpec's as arguments, or returning them,  you'll need to write a type
 -- signature and add @{-# LANGUAGE Rank2Types #-}@ at the beginning
 type ModifySpec = forall l. WithID l Window
-                -> Zipper (Group l Window) 
+                -> Zipper (Group l Window)
                 -> Zipper (Group l Window)
 
 -- | Apply a ModifySpec.
@@ -367,7 +367,7 @@ applySpec f g = let (seed', id:ids) = gen $ seed g
                     g' = flip modifyGroups g $ f (ID id $ baseLayout g)
                                                >>> toTags
                                                >>> foldr reID ((ids, []), [])
-                                               >>> snd 
+                                               >>> snd
                                                >>> fromTags
                 in case groups g == groups g' of
                      True -> Nothing
@@ -448,7 +448,7 @@ _removeFocused (W.Stack f [] []) = (f, Nothing)
 
 -- helper
 _moveToNewGroup :: WithID l Window -> W.Stack (Group l Window)
-                -> (Group l Window -> Zipper (Group l Window) 
+                -> (Group l Window -> Zipper (Group l Window)
                                    -> Zipper (Group l Window))
                 -> Zipper (Group l Window)
 _moveToNewGroup l0 s insertX | G l (Just f) <- W.focus s
@@ -456,7 +456,7 @@ _moveToNewGroup l0 s insertX | G l (Just f) <- W.focus s
           s' = s { W.focus = G l f' }
       in insertX (G l0 $ singletonZ w) $ Just s'
 _moveToNewGroup _ s _ = Just s
- 
+
 -- | Move the focused window to a new group before the current one.
 moveToNewGroupUp :: ModifySpec
 moveToNewGroupUp _ Nothing = Nothing

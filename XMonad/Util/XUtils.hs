@@ -38,7 +38,7 @@ import XMonad.Util.Image
 import Control.Monad
 
 -- $usage
--- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" or 
+-- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" or
 -- "XMonad.Layout.Decoration" for usage examples
 
 -- | Compute the weighted average the colors of two given Pixel values.
@@ -163,7 +163,7 @@ paintTextAndIcons w fs wh ht bw bc borc ffc fbc als strs i_als icons = do
 -- drawn inside it.
 -- Not exported.
 paintWindow' :: Window -> Rectangle -> Dimension -> String -> String
-                -> Maybe (XMonadFont,String,String,[(String, (Position, Position))]) 
+                -> Maybe (XMonadFont,String,String,[(String, (Position, Position))])
                 -> Maybe (String, String, [((Position, Position), [[Bool]])]) -> X ()
 paintWindow' win (Rectangle _ _ wh ht) bw color b_color strStuff iconStuff = do
   d  <- asks display

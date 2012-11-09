@@ -69,7 +69,7 @@ import qualified Data.Map as M
 -- This module provides actions that try to send 'G.GroupsMessage's, and
 -- fall back to the classic way if the current layout doesn't hande them.
 -- They are in the section called \"Layout-generic actions\".
--- 
+--
 -- The sections \"Groups-specific actions\" contains actions that don't make
 -- sense for non-'G.Groups'-based layouts. These are simply wrappers around
 -- the equivalent 'G.GroupsMessage's, but are included so you don't have to
@@ -139,7 +139,7 @@ ifFloat x1 x2 = withFocused $ \w -> do floats <- getFloats
 
 focusNonFloat :: X ()
 focusNonFloat = alt2 G.Refocus helper
-    where helper = withFocused $ \w -> do 
+    where helper = withFocused $ \w -> do
                      ws <- getWindows
                      floats <- getFloats
                      let (before,  after) = span (/=w) ws
@@ -170,7 +170,7 @@ focusNonFloatDown = alt2 (G.Modify G.focusDown) $ focusHelper not id
 
 focusFloatUp :: X ()
 focusFloatUp = focusHelper id reverse
-                 
+
 focusFloatDown :: X ()
 focusFloatDown = focusHelper id id
 
