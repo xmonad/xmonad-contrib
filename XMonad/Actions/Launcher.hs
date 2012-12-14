@@ -15,33 +15,25 @@ module XMonad.Actions.Launcher(
   defaultLauncherModes
   , ExtensionActions
   , LauncherConfig(..)
-  , LocateFileMode
-  , LocateFileRegexMode
   , launcherPrompt
-  -- * ToDo
-  -- $todo
 ) where
 
-import           Data.List        (find, findIndex, isPrefixOf, tails)
-import qualified Data.Map         as M
-import           Data.Maybe       (fromMaybe, isJust)
-import           System.Directory (doesDirectoryExist)
-import           XMonad           hiding (config)
+import           Data.List            (find, findIndex, isPrefixOf, tails)
+import qualified Data.Map             as M
+import           Data.Maybe           (fromMaybe, isJust)
+import           System.Directory     (doesDirectoryExist)
+import           XMonad               hiding (config)
 import           XMonad.Prompt
 import           XMonad.Util.Run
 
 {- $description
-    This module lets you combine and switch between different types of prompts (`XMonad.Prompt.XPrompt`). It includes a set of default modes:
+    This module exemplifies usage of `XMonad.Prompt.mkXPromptWithModes`. It includes two modes:
 
        * Hoogle mode: Search for functions using hoogle, choosing a function leads you to documentation in Haddock.
 
-       * Locate mode: Search for files using locate, choosing a file opens it with a program you specify depending on the file's extension.
-
-       * Locate regexp: Same as locate mode but autocomplete works with regular expressions.
-
        * Calc: Uses the program calc to do calculations.
 
-    To use the default modes, modify your .xmonad:
+    To test it, modify your local .xmonad:
 
     > import XMonad.Prompt(defaultXPConfig)
     > import XMonad.Actions.Launcher
@@ -50,46 +42,22 @@ import           XMonad.Util.Run
 
     A LauncherConfig contains settings for the default modes, modify them accordingly.
 
-    > launcherConfig = LauncherConfig { pathToHoogle = "/home/YOU/.cabal/bin/hoogle" , browser = "firefox" , actionsByExtension  = extensionActions }
+    > launcherConfig = LauncherConfig { pathToHoogle = "/home/YOU/.cabal/bin/hoogle" , browser = "firefox"}
 
-@extensionActions :: M.Map String (String -> X())
-extensionActions = M.fromList $ [
- (\".hs\", \p -> spawn $ \"emacs \" ++ p)
- , (\".pdf\", \p -> spawn $ \"acroread \" ++ p)
- , (\".mkv\", \p -> spawn $ \"vlc \" ++ p)
- , (\".*\", \p -> spawn $ \"emacs \" ++ p) --match with any files
- , (\"/\", \p -> spawn $ \"nautilus \" ++ p) --match with directories
- ]@
-
- To try it, restart xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
+Restar xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
 
  If you used `defaultXPConfig`, you can change mode with xK_grave. If you are using your own `XPConfig`, define the value for `changeModeKey`.
  -}
 
-data LocateFileMode = LMode ExtensionActions
-data LocateFileRegexMode = LRMode ExtensionActions
-data HoogleMode = HMode FilePath String --path to hoogle e.g. "/home/me/.cabal/bin/hoogle"
+data HoogleMode = HMode FilePath String --path to hoogle and browser
 data CalculatorMode = CalcMode
 
 data LauncherConfig = LauncherConfig {
-  browser                :: String
-  , pathToHoogle         :: String
-  , actionsByExtension   :: ExtensionActions
+  browser              :: String
+  , pathToHoogle       :: String
 }
 
 type ExtensionActions = M.Map String (String -> X())
-
--- | Uses the program `locate` to list files
-instance XPrompt LocateFileMode where
-  showXPrompt (LMode _) = "locate %s> "
-  completionFunction (LMode _) = \s -> if (s == "" || last s == ' ') then return [] else (completionFunctionWith "locate" ["--limit","5",s])
-  modeAction (LMode actions) _ fp = spawnWithActions actions fp
-
--- | Uses the program `locate --regex` to list files
-instance XPrompt LocateFileRegexMode where
-  showXPrompt (LRMode _) = "locate --regexp %s> "
-  completionFunction (LRMode _) = \s -> if (s == "" || last s == ' ') then return [] else (completionFunctionWith "locate" ["--limit","5","--regexp",s])
-  modeAction (LRMode actions) _ fp = spawnWithActions actions fp
 
 -- | Uses the command `calc` to compute arithmetic expressions
 instance XPrompt CalculatorMode where
@@ -103,7 +71,7 @@ instance XPrompt CalculatorMode where
 instance XPrompt HoogleMode where
   showXPrompt _ = "hoogle %s> "
   commandToComplete _ = id
-  completionFunction (HMode pathToHoogleBin' _) = \s -> completionFunctionWith pathToHoogleBin' ["--count","5",s]
+  completionFunction (HMode pathToHoogleBin' _) = \s -> completionFunctionWith pathToHoogleBin' ["--count","8",s]
   -- This action calls hoogle again to find the URL corresponding to the autocompleted item
   modeAction (HMode pathToHoogleBin'' browser') query result = do
     completionsWithLink <- liftIO $ completionFunctionWith pathToHoogleBin'' ["--count","5","--link",query]
@@ -133,15 +101,9 @@ launcherPrompt config modes = mkXPromptWithModes modes config
 defaultLauncherModes :: LauncherConfig -> [XPMode]
 defaultLauncherModes cnf = let
   ph           = pathToHoogle cnf
-  actions      = actionsByExtension cnf
   in [ hoogleMode ph $ browser cnf
-     , locateMode actions
-     , locateRegexMode actions
      , calcMode]
 
-locateMode, locateRegexMode :: ExtensionActions -> XPMode
-locateMode actions = XPT $ LMode actions
-locateRegexMode actions = XPT $ LRMode actions
 hoogleMode :: FilePath -> String -> XPMode
 hoogleMode pathToHoogleBin browser' = XPT $ HMode pathToHoogleBin browser'
 calcMode :: XPMode
@@ -168,11 +130,15 @@ spawnWithActions actions fp = do
        spawnNoPatternMessage :: String -> String -> X ()
        spawnNoPatternMessage fileExt _ = spawn $ "xmessage No action specified for file extension " ++ fileExt ++ ", add a default action by matching the extension \".*\" in the action map sent to launcherPrompt"
 
-{- $todo
+{- 
+
+  -- ideas for XMonad.Prompt running on mode XPMultipleModes
      * Switch to mode by name of the prompt, 1. ':' at an empty(?) buffer, 2. autocomplete name in buffer should happen, 3. switch to mode with enter (cancel switch with C-g)
 
      * Support for actions of type String -> X a
 
+  -- ideas for this module
+  
      * Hoogle mode: add a setting in the action to either go to documentation or to the source code (needs hoogle change?)
 
      * Hoogle mode: add setting to query hoogle at haskell.org instead (with &mode=json)
