@@ -15,12 +15,12 @@
 
 module XMonad.Util.DebugWindow (debugWindow) where
 
-import           Prelude                  hiding (catch)
+import           Prelude
 
 import           XMonad
 
 import           Codec.Binary.UTF8.String        (decodeString)
-import           Control.Exception
+import           Control.Exception.Extensible as E
 import           Control.Monad                   (when)
 import           Data.List                       (unfoldr
                                                  ,intercalate
@@ -117,7 +117,7 @@ catchX' :: X a -> X a -> X a
 catchX' job errcase = do
   st <- get
   c <- ask
-  (a, s') <- io $ runX c st job `catch` \e -> case fromException e of
+  (a, s') <- io $ runX c st job `E.catch` \e -> case fromException e of
     Just x -> throw e `const` (x `asTypeOf` ExitSuccess)
     _ -> runX c st errcase
   put s'

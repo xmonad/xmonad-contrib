@@ -19,7 +19,7 @@
 
 module XMonad.Hooks.DebugEvents (debugEventsHook) where
 
-import           Prelude                              hiding (catch)
+import           Prelude
 
 import           XMonad                               hiding (windowEvent
                                                              ,(-->)
@@ -30,7 +30,7 @@ import           XMonad.Util.DebugWindow                     (debugWindow)
 
 -- import           Graphics.X11.Xlib.Extras.GetAtomName        (getAtomName)
 
-import           Control.Exception.Extensible
+import           Control.Exception.Extensible         as E
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Data.Char                                   (isDigit)
@@ -855,7 +855,7 @@ dumpPixmap =  guardType pIXMAP $ do
                     append $ "pixmap " ++ showHex p ""
                     g' <- inX $ withDisplay $ \d -> io $
                             Just `fmap` getGeometry d (fromIntegral p)
-                            `catch`
+                            `E.catch`
                             \e -> case fromException e of
                                     Just x -> throw e `const` (x `asTypeOf` ExitSuccess)
                                     _      -> return Nothing
@@ -1032,7 +1032,8 @@ dumpPercent =  guardType cARDINAL $ do
                    Nothing -> return False
                    Just n' -> 
                        let pct = 100 * fromIntegral n' / fromIntegral (maxBound :: Word32)
-                        in append $ show (round pct) ++ "%"
+                           pct :: Double
+                        in append $ show (round pct :: Integer) ++ "%"
 
 dumpWmHints :: Decoder Bool
 dumpWmHints =
