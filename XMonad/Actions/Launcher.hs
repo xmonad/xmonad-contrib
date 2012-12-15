@@ -18,11 +18,10 @@ module XMonad.Actions.Launcher(
   , launcherPrompt
 ) where
 
-import           Data.List            (find, findIndex, isPrefixOf, tails)
-import qualified Data.Map             as M
-import           Data.Maybe           (fromMaybe, isJust)
-import           System.Directory     (doesDirectoryExist)
-import           XMonad               hiding (config)
+import           Data.List       (find, findIndex, isPrefixOf, tails)
+import qualified Data.Map        as M
+import           Data.Maybe      (isJust)
+import           XMonad          hiding (config)
 import           XMonad.Prompt
 import           XMonad.Util.Run
 
@@ -53,8 +52,8 @@ data HoogleMode = HMode FilePath String --path to hoogle and browser
 data CalculatorMode = CalcMode
 
 data LauncherConfig = LauncherConfig {
-  browser              :: String
-  , pathToHoogle       :: String
+  browser        :: String
+  , pathToHoogle :: String
 }
 
 type ExtensionActions = M.Map String (String -> X())
@@ -109,28 +108,7 @@ hoogleMode pathToHoogleBin browser' = XPT $ HMode pathToHoogleBin browser'
 calcMode :: XPMode
 calcMode = XPT CalcMode
 
--- | This function takes a map of extensions and a path file. It uses the map to find the pattern that matches the file path, then the corresponding program (listed in the map) is spawned.
-spawnWithActions :: ExtensionActions -> FilePath -> X()
-spawnWithActions actions fp = do
-  isDirectoryPath <- liftIO $ doesDirectoryExist fp
-  let
-    takeExtension = \p -> "." ++ (reverse . takeWhile (/= '.') $ reverse p) --it includes the dot
-    -- Patterns defined by the user
-    extAction = M.lookup (takeExtension fp) actions
-    dirAction = if (isDirectoryPath) then M.lookup "/" actions else Nothing -- / represents a directory
-    anyFileAction = M.lookup ".*" actions  -- .* represents any file
-    action = fromMaybe (spawnNoPatternMessage (takeExtension fp)) $ extAction `orElse1` dirAction `orElse1` anyFileAction
-  action fp
-     where
-       -- | This function is defined in Data.Generics.Aliases (package syb "Scrap your boilerplate"), defined here to avoid dependency
-       orElse1 :: Maybe a -> Maybe a -> Maybe a
-       x `orElse1` y = case x of
-         Just _  -> x
-         Nothing -> y
-       spawnNoPatternMessage :: String -> String -> X ()
-       spawnNoPatternMessage fileExt _ = spawn $ "xmessage No action specified for file extension " ++ fileExt ++ ", add a default action by matching the extension \".*\" in the action map sent to launcherPrompt"
-
-{- 
+{-
 
   -- ideas for XMonad.Prompt running on mode XPMultipleModes
      * Switch to mode by name of the prompt, 1. ':' at an empty(?) buffer, 2. autocomplete name in buffer should happen, 3. switch to mode with enter (cancel switch with C-g)
@@ -138,7 +116,7 @@ spawnWithActions actions fp = do
      * Support for actions of type String -> X a
 
   -- ideas for this module
-  
+
      * Hoogle mode: add a setting in the action to either go to documentation or to the source code (needs hoogle change?)
 
      * Hoogle mode: add setting to query hoogle at haskell.org instead (with &mode=json)
