@@ -44,9 +44,9 @@ import           XMonad.Util.Run
 
     > launcherConfig = LauncherConfig { pathToHoogle = "/home/YOU/.cabal/bin/hoogle" , browser = "firefox"}
 
-Restar xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
+Restart xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
 
- If you used `defaultXPConfig`, you can change mode with xK_grave. If you are using your own `XPConfig`, define the value for `changeModeKey`.
+ If you used 'defaultXPConfig', you can change mode with 'xK_grave'. If you are using your own 'XPConfig', define the value for 'changeModeKey'.
  -}
 
 data HoogleMode = HMode FilePath String --path to hoogle and browser
