@@ -75,7 +75,7 @@ import           XMonad.Util.Font
 import           XMonad.Util.Types
 import           XMonad.Util.XSelection       (getSelection)
 
-import           Codec.Binary.UTF8.String     (decodeString)
+import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
 import           Control.Applicative          ((<$>))
 import           Control.Arrow                (first, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
@@ -662,7 +662,10 @@ keyPressHandle m (ks,str) = do
     Nothing -> case str of
                  "" -> eventLoop handle
                  _ -> when (kmask .&. controlMask == 0) $ do
-                                 insertString (decodeString str)
+                                 let str' = if isUTF8Encoded str
+                                               then decodeString str
+                                               else str
+                                 insertString str'
                                  updateWindows
                                  updateHighlightedCompl
                                  completed <- tryAutoComplete
