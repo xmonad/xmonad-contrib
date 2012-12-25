@@ -117,6 +117,7 @@ library
                         XMonad.Actions.KeyRemap
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
+                        XMonad.Actions.ShowText
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll
                         XMonad.Actions.SpawnOn
