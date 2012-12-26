@@ -53,7 +53,7 @@ import qualified XMonad.Util.ExtensibleState as ES
 -- > ((modMask, xK_Right), flashText defaultSTConfig 1 "->" >> nextWS)
 --
 
--- ShowText contains the map with timers as keys and created windows as values
+-- | ShowText contains the map with timers as keys and created windows as values
 newtype ShowText = ShowText (Map Atom Window)
     deriving (Read,Show,Typeable)
 
@@ -87,7 +87,10 @@ handleTimerEvent (ClientMessageEvent _ _ _ dis _ mtyp d) = do
 handleTimerEvent _ = return ()
 
 -- | Shows a window in the center of the screen with the given text
-flashText :: ShowTextConfig -> Rational -> String -> X ()
+flashText :: ShowTextConfig
+    -> Rational -- ^ number of seconds
+    -> String -- ^ text to display
+    -> X ()
 flashText c i s = do
   f <- initXMF (st_font c)
   d <- asks display
