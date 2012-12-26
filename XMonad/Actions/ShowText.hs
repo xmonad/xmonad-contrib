@@ -23,6 +23,7 @@ module XMonad.Actions.ShowText
 
 import Control.Monad (when)
 import Data.Map (Map,empty,insert,lookup)
+import Data.Monoid (mempty, All)
 import Prelude hiding (lookup)
 import XMonad
 import XMonad.StackSet (current,screen)
@@ -78,13 +79,14 @@ defaultSTConfig =
     }
 
 -- | Handles timer events that notify when a window should be removed
-handleTimerEvent :: Event -> X ()
+handleTimerEvent :: Event -> X All
 handleTimerEvent (ClientMessageEvent _ _ _ dis _ mtyp d) = do
     (ShowText m) <- ES.get :: X ShowText
     a <- io $ internAtom dis "XMONAD_TIMER" False
     when (mtyp == a && length d >= 1)
          (whenJust (lookup (fromIntegral $ d !! 0) m) deleteWindow)
-handleTimerEvent _ = return ()
+    mempty
+handleTimerEvent _ = mempty
 
 -- | Shows a window in the center of the screen with the given text
 flashText :: ShowTextConfig
