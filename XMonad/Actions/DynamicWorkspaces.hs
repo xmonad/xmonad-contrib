@@ -23,6 +23,7 @@ module XMonad.Actions.DynamicWorkspaces (
                                          addHiddenWorkspace,
                                          withWorkspace,
                                          selectWorkspace, renameWorkspace,
+                                         renameWorkspaceByName,
                                          toNthWorkspace, withNthWorkspace
                                        ) where
 
@@ -73,11 +74,13 @@ withWorkspace c job = do ws <- gets (workspaces . windowset)
                          mkXPrompt (Wor "") c (mkCompl ts) job'
 
 renameWorkspace :: XPConfig -> X ()
-renameWorkspace conf = workspacePrompt conf $ \w ->
-                       windows $ \s -> let sett wk = wk { tag = w }
-                                           setscr scr = scr { workspace = sett $ workspace scr }
-                                           sets q = q { current = setscr $ current q }
-                                       in sets $ removeWorkspace' w s
+renameWorkspace conf = workspacePrompt conf renameWorkspaceByName
+
+renameWorkspaceByName :: String -> X ()
+renameWorkspaceByName w = windows $ \s -> let sett wk = wk { tag = w }
+                                              setscr scr = scr { workspace = sett $ workspace scr }
+                                              sets q = q { current = setscr $ current q }
+                                          in sets $ removeWorkspace' w s
 
 toNthWorkspace :: (String -> X ()) -> Int -> X ()
 toNthWorkspace job wnum = do sort <- getSortByIndex
