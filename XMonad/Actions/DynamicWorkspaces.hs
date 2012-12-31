@@ -130,12 +130,11 @@ removeEmptyWorkspace = gets (currentTag . windowset) >>= removeEmptyWorkspaceByT
 removeWorkspace :: X ()
 removeWorkspace = gets (currentTag . windowset) >>= removeWorkspaceByTag
 
--- | Remove workspace with specific tag if it contains no windows. Only works
---   on the current or the last workspace.
+-- | Remove workspace with specific tag if it contains no windows.
 removeEmptyWorkspaceByTag :: String -> X ()
 removeEmptyWorkspaceByTag t = whenX (isEmpty t) $ removeWorkspaceByTag t
 
--- | Remove workspace with specific tag. Only works on the current or the last workspace.
+-- | Remove workspace with specific tag.
 removeWorkspaceByTag :: String -> X ()
 removeWorkspaceByTag torem = do
     s <- gets windowset
@@ -169,13 +168,18 @@ isEmpty t = do wsl <- gets $ workspaces . windowset
 addHiddenWorkspace' :: i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
 addHiddenWorkspace' newtag l s@(StackSet { hidden = ws }) = s { hidden = Workspace newtag l Nothing:ws }
 
+-- | Remove the hidden workspace with the given tag from the StackSet, if
+--   it exists. All the windows in that workspace are moved to the current
+--   workspace.
 removeWorkspace' :: (Eq i) => i -> StackSet i l a sid sd -> StackSet i l a sid sd
 removeWorkspace' torem s@(StackSet { current = scr@(Screen { workspace = wc })
-                                   , hidden = (w:ws) })
-    | tag w == torem = s { current = scr { workspace = wc { stack = meld (stack w) (stack wc) } }
-                         , hidden = ws }
+                                   , hidden = hs })
+    = let (xs, ys) = break ((== torem) . tag) hs
+      in removeWorkspace'' xs ys
    where meld Nothing Nothing = Nothing
          meld x Nothing = x
          meld Nothing x = x
          meld (Just x) (Just y) = differentiate (integrate x ++ integrate y)
-removeWorkspace' _ s = s
+         removeWorkspace'' xs (y:ys) = s { current = scr { workspace = wc { stack = meld (stack y) (stack wc) } }
+                                         , hidden = xs ++ ys }
+         removeWorkspace'' _  _      = s
