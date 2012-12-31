@@ -32,6 +32,17 @@ extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     tests/XPrompt.hs
 cabal-version:      >= 1.2.1
 build-type:         Simple
+bug-reports:        http://code.google.com/p/xmonad/issues/list
+
+tested-with:        GHC==7.6.1,
+                    GHC==7.4.1,
+                    GHC==7.2.1,
+                    GHC==6.12.3,
+                    GHC==6.10.4
+source-repository head
+  type:     darcs
+  location: http://code.haskell.org/XMonadContrib
+
 
 flag small_base
   description: Choose the new smaller, split-up base package.
