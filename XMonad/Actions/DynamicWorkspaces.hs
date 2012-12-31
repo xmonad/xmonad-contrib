@@ -17,6 +17,7 @@ module XMonad.Actions.DynamicWorkspaces (
                                          -- $usage
                                          addWorkspace, addWorkspacePrompt,
                                          removeWorkspace,
+                                         removeWorkspaceByTag,
                                          removeEmptyWorkspace,
                                          removeEmptyWorkspaceAfter,
                                          removeEmptyWorkspaceAfterExcept,
