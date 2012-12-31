@@ -9,7 +9,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- ShowText displays text for sometime on the screen
+-- ShowText displays text for sometime on the screen similar to "XMonad.Util.Dzen"
+-- which offers more features (currently)
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.ShowText
