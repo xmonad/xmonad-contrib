@@ -11,7 +11,7 @@
 -- A workscreen permits to display a set of workspaces on several
 -- screens. In xinerama mode, when a workscreen is viewed, workspaces
 -- associated to all screens are visible.
-
+--
 -- The first workspace of a workscreen is displayed on first screen,
 -- second on second screen, etc. Workspace position can be easily
 -- changed. If the current workscreen is called again, workspaces are
