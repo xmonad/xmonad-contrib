@@ -30,7 +30,7 @@ extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     tests/Selective.hs
                     tests/SwapWorkspaces.hs
                     tests/XPrompt.hs
-cabal-version:      >= 1.2.1
+cabal-version:      >= 1.6
 build-type:         Simple
 bug-reports:        http://code.google.com/p/xmonad/issues/list
 
