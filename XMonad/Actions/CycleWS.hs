@@ -78,11 +78,11 @@ module XMonad.Actions.CycleWS (
 
                              ) where
 
-import Control.Monad ( unless )
-import Data.List ( findIndex )
+import Data.List ( find, findIndex )
 import Data.Maybe ( isNothing, isJust )
 
 import XMonad hiding (workspaces)
+import qualified XMonad.Hooks.WorkspaceHistory as WH
 import XMonad.StackSet hiding (filter)
 import XMonad.Util.Types
 import XMonad.Util.WorkspaceCompare
@@ -119,6 +119,10 @@ import XMonad.Util.WorkspaceCompare
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
+--
+-- When using the toggle functions, in order to ensure that the workspace
+-- to which you switch is the previously viewed workspace, use the
+-- 'logHook' in "XMonad.Hooks.WorkspaceHistory".
 
 {- $moving
 
@@ -158,9 +162,7 @@ toggleWS = toggleWS' []
 -- > -- Ignore the scratchpad workspace while toggling:
 -- > ("M-b", toggleWS' ["NSP"])
 toggleWS' :: [WorkspaceId] -> X ()
-toggleWS' skips = do
-    hs' <- cleanHiddens skips
-    unless (null hs') (windows . view . tag $ head hs')
+toggleWS' skips = lastViewedHiddenExcept skips >>= flip whenJust (windows . view)
 
 -- | 'XMonad.StackSet.greedyView' a workspace, or if already there, view
 -- the previously displayed workspace ala weechat. Change @greedyView@ to
@@ -184,10 +186,9 @@ toggleOrView = toggleOrDoSkip [] greedyView
 toggleOrDoSkip :: [WorkspaceId] -> (WorkspaceId -> WindowSet -> WindowSet)
                                   -> WorkspaceId -> X ()
 toggleOrDoSkip skips f toWS = do
-    hs' <- cleanHiddens skips
     cur <- gets (currentTag . windowset)
     if toWS == cur
-        then unless (null hs') (windows . f . tag $ head hs')
+        then lastViewedHiddenExcept skips >>= flip whenJust (windows . f)
         else windows (f toWS)
 
 -- | List difference ('\\') for workspaces and tags. Removes workspaces
@@ -195,8 +196,16 @@ toggleOrDoSkip skips f toWS = do
 skipTags :: (Eq i) => [Workspace i l a] -> [i] -> [Workspace i l a]
 skipTags wss ids = filter ((`notElem` ids) . tag) wss
 
-cleanHiddens :: [WorkspaceId] -> X [WindowSpace]
-cleanHiddens skips =  gets $ (flip skipTags) skips . hidden . windowset
+-- | Ignoring the skips, find the best candidate for the last viewed hidden
+-- workspace.
+lastViewedHiddenExcept :: [WorkspaceId] -> X (Maybe WorkspaceId)
+lastViewedHiddenExcept skips = do
+    hs <- gets $ map tag . flip skipTags skips . hidden . windowset
+    vs <- WH.workspaceHistory
+    return $ choose hs (find (`elem` hs) vs)
+    where choose []    _           = Nothing
+          choose (h:_) Nothing     = Just h
+          choose _     vh@(Just _) = vh
 
 switchWorkspace :: Int -> X ()
 switchWorkspace d = wsBy d >>= windows . greedyView
