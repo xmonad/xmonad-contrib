@@ -182,6 +182,7 @@ library
                         XMonad.Hooks.ToggleHook
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.WorkspaceByPos
+                        XMonad.Hooks.WorkspaceHistory
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
