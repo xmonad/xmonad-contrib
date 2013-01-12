@@ -127,7 +127,7 @@ focusWin st@(W.Stack f u d) w
 Apply to your layout in a config like:
 
 > main = xmonad (defaultConfig{
->                   layoutHook = useTransientFor (trackFloating
+>                   layoutHook = trackFloating (useTransientFor
 >                       (noBorders Full ||| Tall 1 0.3 0.5)),
 >                   ...
 >               })
@@ -145,7 +145,7 @@ window regardless of which tiled window was focused before.
 > underlyingLayout = magnifier (Tall 1 0.3 0.5)
 >
 > optionA = trackFloating underlyingLayout
-> optionB = useTransientFor (trackFloating underlyingLayout)
+> optionB = trackFloating (useTransientFor underlyingLayout)
 
 -}
 
