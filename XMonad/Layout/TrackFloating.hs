@@ -2,7 +2,8 @@
 {- |
 
 Module      :  XMonad.Layout.TrackFloating
-Copyright   :  (c) 2010 Adam Vogt
+Copyright   :  (c) 2010 & 2013 Adam Vogt
+               2011 Willem Vanlint
 License     :  BSD-style (see xmonad/LICENSE)
 
 Maintainer  :  vogt.adam@gmail.com
@@ -13,8 +14,9 @@ Layout modifier that tracks focus in the tiled layer while the floating layer
 is in use. This is particularly helpful for tiled layouts where the focus
 determines what is visible.
 
-The relevant bug is Issue 4
-<http://code.google.com/p/xmonad/issues/detail?id=4>.
+The relevant bugs are Issue 4 and 306:
+<http://code.google.com/p/xmonad/issues/detail?id=4>,
+<http://code.google.com/p/xmonad/issues/detail?id=306>
 -}
 module XMonad.Layout.TrackFloating
     (-- * Usage
@@ -23,7 +25,11 @@ module XMonad.Layout.TrackFloating
      -- ** For other layout modifiers
      -- $layoutModifier
      trackFloating,
+     useTransientFor,
+
+     -- ** Exported types
      TrackFloating,
+     UseTransientFor,
     ) where
 
 import Control.Monad
@@ -36,6 +42,8 @@ import qualified Data.Set as S
 import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
+
+import qualified Data.Traversable as T
 
 
 data TrackFloating a = TrackFloating
@@ -75,15 +83,69 @@ instance LayoutModifier TrackFloating Window where
                 in guard (n /= os) >> Just n)
 
 
+
+{- | When focus is on the tiled layer, the underlying layout is run with focus
+on the window named by the WM_TRANSIENT_FOR property on the floating window.
+-}
+useTransientFor :: l a -> ModifiedLayout UseTransientFor l a
+useTransientFor x = ModifiedLayout UseTransientFor x
+
+data UseTransientFor a = UseTransientFor deriving (Read,Show,Eq)
+
+instance LayoutModifier UseTransientFor Window where
+    modifyLayout _ ws@(W.Workspace{ W.stack = ms }) r = do
+        m <- gets (W.peek . windowset)
+        d <- asks display
+        parent <- fmap join $ T.traverse (io . getTransientForHint d) m
+
+        s0 <- get
+        whenJust parent $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
+        result <- runLayout ws{ W.stack = fromMaybe ms (liftM2 focusWin ms parent) } r
+
+        m' <- gets (W.peek . windowset)
+
+        when (m' == parent) $
+            -- layout changed the windowset, so don't clobber it
+            whenJust m $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
+
+        return result
+
+
+
+focusWin :: Eq a => W.Stack a -> a -> Maybe (W.Stack a)
+focusWin st@(W.Stack f u d) w
+        | w `elem` u || w `elem` d = Just . head . filter ((==w) . W.focus)
+            $ iterate (if w `elem` u then W.focusUp'
+                                        else W.focusDown') st
+        | w == f = Just st
+        | otherwise = Nothing
+
+
+
 {- $usage
 
 Apply to your layout in a config like:
 
 > main = xmonad (defaultConfig{
->                   layoutHook = trackFloating
->                       (noBorders Full ||| Tall 1 0.3 0.5),
+>                   layoutHook = useTransientFor (trackFloating
+>                       (noBorders Full ||| Tall 1 0.3 0.5)),
 >                   ...
 >               })
+
+
+'useTransientFor' and 'trackFloating' can be enabled independently.  For
+example when the floating window sets @WM_TRANSIENT_FOR@, such as libreoffice's
+file->preferences window, @optionA@ will have the last-focused window magnified
+while @optionB@ will result magnify the window that opened the preferences
+window regardless of which tiled window was focused before.
+
+> import XMonad.Layout.Magnifier
+> import XMonad.Layout.TrackFloating
+>
+> underlyingLayout = magnifier (Tall 1 0.3 0.5)
+>
+> optionA = trackFloating underlyingLayout
+> optionB = useTransientFor (trackFloating underlyingLayout)
 
 -}
 
