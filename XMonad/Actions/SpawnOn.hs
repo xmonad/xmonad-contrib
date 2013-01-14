@@ -20,6 +20,7 @@ module XMonad.Actions.SpawnOn (
     -- $usage
     Spawner,
     manageSpawn,
+    manageSpawnWithGC,
     spawnHere,
     spawnOn,
     spawnAndDo,
@@ -66,8 +67,6 @@ newtype Spawner = Spawner {pidsRef :: [(ProcessID, ManageHook)]} deriving Typeab
 instance ExtensionClass Spawner where
     initialValue = Spawner []
 
-maxPids :: Int
-maxPids = 5
 
 -- | Get the current Spawner or create one if it doesn't exist.
 modifySpawner :: ([(ProcessID, ManageHook)] -> [(ProcessID, ManageHook)]) -> X ()
@@ -76,14 +75,20 @@ modifySpawner f = XS.modify (Spawner . f . pidsRef)
 -- | Provides a manage hook to react on process spawned with
 -- 'spawnOn', 'spawnHere' etc.
 manageSpawn :: ManageHook
-manageSpawn = do
+manageSpawn = manageSpawnWithGC (return . take 20)
+
+manageSpawnWithGC :: ([(ProcessID, ManageHook)] -> X [(ProcessID, ManageHook)])
+        -- ^ function to stop accumulation of entries for windows that never set @_NET_WM_PID@
+       -> ManageHook
+manageSpawnWithGC garbageCollect = do
     Spawner pids <- liftX XS.get
     mp <- pid
     case flip lookup pids =<< mp of
         Nothing -> idHook
         Just mh  -> do
-            whenJust mp $ \p ->
-                liftX . modifySpawner $ filter ((/= p) . fst)
+            whenJust mp $ \p -> liftX $ do
+                ps <- XS.gets pidsRef
+                XS.put . Spawner =<< garbageCollect (filter ((/= p) . fst) ps)
             mh
 
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
@@ -115,7 +120,7 @@ spawnOn ws cmd = spawnAndDo (doShift ws) cmd
 spawnAndDo :: ManageHook -> String -> X ()
 spawnAndDo mh cmd = do
     p <- spawnPID $ mangle cmd
-    modifySpawner $ (take maxPids . ((p,mh) :))
+    modifySpawner $ ((p,mh) :)
  where
     -- TODO this is silly, search for a better solution
     mangle xs | any (`elem` metaChars) xs || "exec" `isInfixOf` xs = xs
