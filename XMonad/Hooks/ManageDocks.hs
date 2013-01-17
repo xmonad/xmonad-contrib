@@ -208,6 +208,7 @@ instance Message SetStruts
 instance LayoutModifier AvoidStruts a where
     modifyLayout (AvoidStruts ss) w r = do
         nr <- fmap ($ r) (calcGap ss)
+        setWorkarea nr
         runLayout w nr
 
     pureMess (AvoidStruts ss) m
@@ -221,6 +222,13 @@ instance LayoutModifier AvoidStruts a where
                         | otherwise = S.empty
             toggleOne x xs | x `S.member` xs = S.delete x xs
                            | otherwise   = x `S.insert` xs
+
+setWorkarea :: Rectangle -> X ()
+setWorkarea (Rectangle x y w h) = withDisplay $ \dpy -> do
+    a <- getAtom "_NET_WORKAREA"
+    c <- getAtom "CARDINAL"
+    r <- asks theRoot
+    io $ changeProperty32 dpy r a c propModeReplace [fi x, fi y, fi w, fi h]
 
 
 -- | (Direction, height\/width, initial pixel, final pixel).
