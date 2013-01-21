@@ -628,16 +628,16 @@ gridselect _ [] = return Nothing
 gridselect gsconfig elements =
  withDisplay $ \dpy -> do
     rootw <- asks theRoot
-    s <- gets $ screenRect . W.screenDetail . W.current . windowset
+    scr <- gets $ screenRect . W.screenDetail . W.current . windowset
     win <- liftIO $ mkUnmanagedWindow dpy (defaultScreenOfDisplay dpy) rootw
-                    (rect_x s) (rect_y s) (rect_width s) (rect_height s)
+                    (rect_x scr) (rect_y scr) (rect_width scr) (rect_height scr)
     liftIO $ mapWindow dpy win
     liftIO $ selectInput dpy win (exposureMask .|. keyPressMask .|. buttonReleaseMask)
     status <- io $ grabKeyboard dpy win True grabModeAsync grabModeAsync currentTime
     io $ grabButton dpy button1 anyModifier win True buttonReleaseMask grabModeAsync grabModeAsync none none
     font <- initXMF (gs_font gsconfig)
-    let screenWidth = toInteger $ rect_width s;
-        screenHeight = toInteger $ rect_height s;
+    let screenWidth = toInteger $ rect_width scr
+        screenHeight = toInteger $ rect_height scr
     selectedElement <- if (status == grabSuccess) then do
                             let restriction ss cs = (fromInteger ss/fromInteger (cs gsconfig)-1)/2 :: Double
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
@@ -645,16 +645,16 @@ gridselect gsconfig elements =
                                 originPosX = floor $ ((gs_originFractX gsconfig) - (1/2)) * 2 * fromIntegral restrictX
                                 originPosY = floor $ ((gs_originFractY gsconfig) - (1/2)) * 2 * fromIntegral restrictY
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
-
-                            evalTwoD (updateAllElements >> (gs_navigate gsconfig)) TwoDState { td_curpos = (head coords),
-                                                                                  td_availSlots = coords,
-                                                                                  td_elements = elements,
-                                                                                  td_gsconfig = gsconfig,
-                                                                                  td_font = font,
-                                                                                  td_paneX = screenWidth,
-                                                                                  td_paneY = screenHeight,
-                                                                                  td_drawingWin = win,
-                                                                                  td_searchString = "" }
+                                s = TwoDState { td_curpos = (head coords),
+                                                td_availSlots = coords,
+                                                td_elements = elements,
+                                                td_gsconfig = gsconfig,
+                                                td_font = font,
+                                                td_paneX = screenWidth,
+                                                td_paneY = screenHeight,
+                                                td_drawingWin = win,
+                                                td_searchString = "" }
+                            evalTwoD (updateAllElements >> (gs_navigate gsconfig)) s
                       else
                           return Nothing
     liftIO $ do
