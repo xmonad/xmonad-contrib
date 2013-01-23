@@ -238,10 +238,11 @@ data TwoDState a = TwoDState { td_curpos :: TwoDPosition
                              , td_paneY :: Integer
                              , td_drawingWin :: Window
                              , td_searchString :: String
+                             , td_elementmap :: TwoDElementMap a
                              }
 
-td_elementmap :: TwoDState a -> [(TwoDPosition,(String,a))]
-td_elementmap s = zipWith (,) positions sortedElements
+generateElementmap :: TwoDState a -> TwoDElementMap a
+generateElementmap s = zip positions sortedElements
   where
     TwoDState {td_availSlots = positions,
                td_searchString = searchString} = s
@@ -337,11 +338,11 @@ updateAllElements =
       s <- get
       updateElements (td_elementmap s)
 
-grayoutAllElements :: TwoD a ()
-grayoutAllElements =
+grayoutElements :: Int -> TwoD a ()
+grayoutElements skip =
     do
       s <- get
-      updateElementsWithColorizer grayOnly (td_elementmap s)
+      updateElementsWithColorizer grayOnly $ drop skip (td_elementmap s)
     where grayOnly _ _ = return ("#808080", "#808080")
 
 updateElements :: TwoDElementMap a -> TwoD a ()
@@ -473,11 +474,17 @@ transformSearchString f = do
           let oldSearchString = td_searchString s
               newSearchString = f oldSearchString
           when (newSearchString /= oldSearchString) $ do
-            -- FIXME: grayoutAllElements + updateAllElements paint some fields twice causing flickering
-            --        we would need a much smarter update strategy to fix that
-            when (length newSearchString > length oldSearchString) grayoutAllElements
             -- FIXME curpos might end up outside new bounds
-            put s { td_searchString = newSearchString }
+            let s' = s { td_searchString = newSearchString }
+                m = generateElementmap s'
+                s'' = s' { td_elementmap = m }
+                oldLen = length $ td_elementmap s
+                newLen = length $ td_elementmap s''
+            -- All the elements in the previous element map should be
+            -- grayed out, except for those which will be covered by
+            -- elements in the new element map.
+            when (newLen < oldLen) $ grayoutElements newLen
+            put s''
             updateAllElements
 
 -- | By default gridselect used the defaultNavigation action, which
@@ -653,8 +660,11 @@ gridselect gsconfig elements =
                                                 td_paneX = screenWidth,
                                                 td_paneY = screenHeight,
                                                 td_drawingWin = win,
-                                                td_searchString = "" }
-                            evalTwoD (updateAllElements >> (gs_navigate gsconfig)) s
+                                                td_searchString = "",
+                                                td_elementmap = [] }
+                                m = generateElementmap s
+                            evalTwoD (updateAllElements >> (gs_navigate gsconfig))
+                                     (s { td_elementmap = m })
                       else
                           return Nothing
     liftIO $ do
