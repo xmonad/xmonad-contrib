@@ -39,6 +39,7 @@ module XMonad.Actions.GridSelect (
     bringSelected,
     goToSelected,
     gridselectWorkspace,
+    gridselectWorkspace',
     spawnSelected,
     runSelectedAction,
 
@@ -65,6 +66,12 @@ module XMonad.Actions.GridSelect (
     select,
     cancel,
     transformSearchString,
+
+    -- * Rearrangers
+    -- $rearrangers
+    Rearranger,
+    noRearranger,
+    searchStringRearrangerGenerator,
 
     -- * Screenshots
     -- $screenshots
@@ -196,6 +203,7 @@ data GSConfig a = GSConfig {
       gs_colorizer :: a -> Bool -> X (String, String),
       gs_font :: String,
       gs_navigate :: TwoD a (Maybe a),
+      gs_rearranger :: Rearranger a,
       gs_originFractX :: Double,
       gs_originFractY :: Double
 }
@@ -241,11 +249,15 @@ data TwoDState a = TwoDState { td_curpos :: TwoDPosition
                              , td_elementmap :: TwoDElementMap a
                              }
 
-generateElementmap :: TwoDState a -> TwoDElementMap a
-generateElementmap s = zip positions sortedElements
+generateElementmap :: TwoDState a -> X (TwoDElementMap a)
+generateElementmap s = do
+    rearrangedElements <- rearranger searchString sortedElements
+    return $ zip positions rearrangedElements
   where
     TwoDState {td_availSlots = positions,
+               td_gsconfig = gsconfig,
                td_searchString = searchString} = s
+    GSConfig {gs_rearranger = rearranger} = gsconfig
     -- Filter out any elements that don't contain the searchString (case insensitive)
     filteredElements = L.filter ((searchString `isInfixOfI`) . fst) (td_elements s)
     -- Sorts the elementmap
@@ -378,7 +390,7 @@ stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
 stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
     | t == buttonRelease = do
         s @  TwoDState { td_paneX = px, td_paneY = py,
-                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _) } <- get
+                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _) } <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) (td_elementmap s) of
@@ -476,8 +488,8 @@ transformSearchString f = do
           when (newSearchString /= oldSearchString) $ do
             -- FIXME curpos might end up outside new bounds
             let s' = s { td_searchString = newSearchString }
-                m = generateElementmap s'
-                s'' = s' { td_elementmap = m }
+            m <- liftX $ generateElementmap s'
+            let s'' = s' { td_elementmap = m }
                 oldLen = length $ td_elementmap s
                 newLen = length $ td_elementmap s''
             -- All the elements in the previous element map should be
@@ -662,7 +674,7 @@ gridselect gsconfig elements =
                                                 td_drawingWin = win,
                                                 td_searchString = "",
                                                 td_elementmap = [] }
-                                m = generateElementmap s
+                            m <- generateElementmap s
                             evalTwoD (updateAllElements >> (gs_navigate gsconfig))
                                      (s { td_elementmap = m })
                       else
@@ -701,7 +713,7 @@ decorateName' w = do
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation (1/2) (1/2)
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2)
 
 borderColor :: String
 borderColor = "white"
@@ -737,6 +749,44 @@ runSelectedAction conf actions = do
 -- > gridselectWorkspace (\ws -> W.greedyView ws . W.shift ws)
 gridselectWorkspace :: GSConfig WorkspaceId ->
                           (WorkspaceId -> WindowSet -> WindowSet) -> X ()
-gridselectWorkspace conf viewFunc = withWindowSet $ \ws -> do
+gridselectWorkspace conf viewFunc = gridselectWorkspace' conf (windows . viewFunc)
+
+-- | Select a workspace and run an arbitrary action on it.
+gridselectWorkspace' :: GSConfig WorkspaceId -> (WorkspaceId -> X ()) -> X ()
+gridselectWorkspace' conf func = withWindowSet $ \ws -> do
     let wss = map W.tag $ W.hidden ws ++ map W.workspace (W.current ws : W.visible ws)
-    gridselect conf (zip wss wss) >>= flip whenJust (windows . viewFunc)
+    gridselect conf (zip wss wss) >>= flip whenJust func
+
+-- $rearrangers
+--
+-- Rearrangers allow for arbitrary post-filter rearranging of the grid
+-- elements.
+--
+-- For example, to be able to switch to a new dynamic workspace by typing
+-- in its name, you can use the following keybinding action:
+--
+-- > import XMonad.Actions.DynamicWorkspaces (addWorkspace)
+-- >
+-- > gridselectWorkspace' defaultGSConfig
+-- >                          { gs_navigate   = navNSearch
+-- >                          , gs_rearranger = searchStringRearrangerGenerator id
+-- >                          }
+-- >                      addWorkspace
+
+-- | A function taking the search string and a list of elements, and
+-- returning a potentially rearranged list of elements.
+type Rearranger a = String -> [(String, a)] -> X [(String, a)]
+
+-- | A rearranger that leaves the elements unmodified.
+noRearranger :: Rearranger a
+noRearranger _ = return
+
+-- | A generator for rearrangers that append a single element based on the
+-- search string, if doing so would not be redundant (empty string or value
+-- already present).
+searchStringRearrangerGenerator :: (String -> a) -> Rearranger a
+searchStringRearrangerGenerator f =
+    let r "" xs                       = return $ xs
+        r s  xs | s `elem` map fst xs = return $ xs
+                | otherwise           = return $ xs ++ [(s, f s)]
+    in r
