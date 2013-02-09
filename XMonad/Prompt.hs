@@ -193,7 +193,6 @@ class XPrompt t where
 
     -- | This method is used to generate the string to be passed to
     -- the completion function.
-    -- This function is not used when in multiple modes (because alwaysHighlight in XPConfig is True)
     commandToComplete :: t -> String -> String
     commandToComplete _ = getLastWord
 
@@ -367,7 +366,7 @@ mkXPromptWithReturn t conf compl action = do
       --When it is false, it is handled depending on the prompt buffer's value
     let selectedCompletion = case alwaysHighlight (config st') of
           False -> command st'
-          True -> fromMaybe "" $ highlightedCompl st'
+          True -> fromMaybe (command st') $ highlightedCompl st' -- 
     Just <$> action selectedCompletion
     else return Nothing
 
