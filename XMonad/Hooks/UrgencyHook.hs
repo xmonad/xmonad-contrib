@@ -78,14 +78,16 @@ import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
+import XMonad.Util.WindowProperties (getProp32)
 
 import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
 import Data.List (delete, (\\))
-import Data.Maybe (listToMaybe, maybeToList)
+import Data.Maybe (listToMaybe, maybeToList, fromMaybe)
 import qualified Data.Set as S
 import System.IO (hPutStrLn, stderr)
+import Foreign.C.Types (CLong)
 
 -- $usage
 --
@@ -310,11 +312,33 @@ readReminders = XS.get
 adjustReminders :: ([Reminder] -> [Reminder]) -> X ()
 adjustReminders = XS.modify
 
-clearUrgency :: Window -> X ()
-clearUrgency w = adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)
 
 data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
     deriving (Read, Show)
+
+-- | Change the _NET_WM_STATE property by applying a function to the list of atoms.
+changeNetWMState :: Display -> Window -> ([CLong] -> [CLong]) -> X ()
+changeNetWMState dpy w f = do
+   wmstate <- getAtom "_NET_WM_STATE"
+   wstate  <- fromMaybe [] `fmap` getProp32 wmstate w
+   let ptype = 4 -- atom property type for changeProperty
+   io $ changeProperty32 dpy w wmstate ptype propModeReplace (f wstate)
+   return ()
+
+-- | Add an atom to the _NET_WM_STATE property.
+addNetWMState :: Display -> Window -> Atom -> X ()
+addNetWMState dpy w atom = changeNetWMState dpy w $ ((fromIntegral atom):)
+
+-- | Remove an atom from the _NET_WM_STATE property.
+removeNetWMState :: Display -> Window -> Atom -> X ()
+removeNetWMState dpy w atom = changeNetWMState dpy w $ delete (fromIntegral atom)
+
+-- | Get the _NET_WM_STATE propertly as a [CLong]
+getNetWMState :: Window -> X [CLong]
+getNetWMState w = do
+    a_wmstate <- getAtom "_NET_WM_STATE"
+    fromMaybe [] `fmap` getProp32 a_wmstate w
+   
 
 -- The Non-ICCCM Manifesto:
 -- Note: Some non-standard choices have been made in this implementation to
@@ -331,20 +355,40 @@ data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
 handleEvent :: UrgencyHook h => WithUrgencyHook h -> Event -> X ()
 handleEvent wuh event =
     case event of
+     -- WM_HINTS urgency flag
       PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
-              if (testBit flags urgencyHintBit) then do
-                  adjustUrgents (\ws -> if elem w ws then ws else w : ws)
-                  callUrgencyHook wuh w
-                else
-                  clearUrgency w
-              userCodeDef () =<< asks (logHook . config)
+              if (testBit flags urgencyHintBit) then markUrgent w else markNotUrgent w
+      -- Window destroyed
       DestroyWindowEvent {ev_window = w} ->
-          clearUrgency w
+          markNotUrgent w
+      -- _NET_WM_STATE_DEMANDS_ATTENTION requested by client
+      ClientMessageEvent {ev_event_display = dpy, ev_window = w, ev_message_type = t, ev_data = action:atoms} -> do
+          a_wmstate <- getAtom "_NET_WM_STATE"
+          a_da      <- getAtom "_NET_WM_STATE_DEMANDS_ATTENTION"
+          wstate    <- getNetWMState w
+          let demandsAttention = fromIntegral a_da `elem` wstate
+              remove = 0
+              add    = 1
+              toggle = 2
+          when (t == a_wmstate && fromIntegral a_da `elem` atoms) $ do
+            when (action == add || (action == toggle && not demandsAttention)) $ do
+              markUrgent w
+              addNetWMState dpy w a_da
+            when (action == remove || (action == toggle && demandsAttention)) $ do
+              markNotUrgent w
+              removeNetWMState dpy w a_da
       _ ->
           mapM_ handleReminder =<< readReminders
       where handleReminder reminder = handleTimer (timer reminder) event $ reminderHook wuh reminder
+            markUrgent w = do
+                adjustUrgents (\ws -> if elem w ws then ws else w : ws)
+                callUrgencyHook wuh w
+                userCodeDef () =<< asks (logHook . config)
+            markNotUrgent w = do
+                adjustUrgents (delete w) >> adjustReminders (filter $ (w /=) . window)
+                userCodeDef () =<< asks (logHook . config)
 
 callUrgencyHook :: UrgencyHook h => WithUrgencyHook h -> Window -> X ()
 callUrgencyHook (WithUrgencyHook hook UrgencyConfig { suppressWhen = sw, remindWhen = rw }) w =
@@ -378,6 +422,9 @@ shouldSuppress sw w = elem w <$> suppressibleWindows sw
 cleanupUrgents :: SuppressWhen -> X ()
 cleanupUrgents sw = do
     sw' <- suppressibleWindows sw
+    a_da <- getAtom "_NET_WM_STATE_DEMANDS_ATTENTION"
+    dpy <- withDisplay (\dpy -> return dpy)
+    mapM_ (\w -> removeNetWMState dpy w a_da) sw'
     adjustUrgents (\\ sw') >> adjustReminders (filter $ ((`notElem` sw') . window))
 
 suppressibleWindows :: SuppressWhen -> X [Window]
