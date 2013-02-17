@@ -99,7 +99,7 @@ class (Eq t, Typeable t) => Transformer t a | t -> a where
     transform :: (LayoutClass l a) => t -> l a ->
         (forall l'. (LayoutClass l' a) => l' a -> (l' a -> l a) -> b) -> b
 
-data (LayoutClass l a) => EL l a = forall l'. (LayoutClass l' a) => EL (l' a) (l' a -> l a)
+data  EL l a = forall l'. (LayoutClass l' a) => EL (l' a) (l' a -> l a)
 
 unEL :: (LayoutClass l a) => EL l a -> (forall l'. (LayoutClass l' a) => l' a -> b) -> b
 unEL (EL x _) k = k x
@@ -159,7 +159,7 @@ data HCons a b = HCons a b deriving (Read, Show)
 infixr 0 ??
 -- | Prepend an element to a heterogeneous list. Used to build transformer
 -- tables for 'mkToggle'.
-(??) :: (HList b w) => a -> b -> HCons a b
+(??) ::  a -> b -> HCons a b
 (??) = HCons
 
 -- | Construct a singleton transformer table.
