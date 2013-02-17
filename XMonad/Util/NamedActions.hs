@@ -12,6 +12,9 @@
 --
 -- A wrapper for keybinding configuration that can list the available
 -- keybindings.
+--
+-- Note that xmonad>=0.11 has by default a list of the default keybindings
+-- bound to @M-S-/@ or @M-?@.
 --------------------------------------------------------------------
 
 module XMonad.Util.NamedActions (
