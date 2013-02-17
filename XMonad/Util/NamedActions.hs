@@ -21,6 +21,7 @@ module XMonad.Util.NamedActions (
     spawn',
     submapName,
     addDescrKeys,
+    addDescrKeys',
     xMessage,
 
     showKmSimple,
