@@ -134,6 +134,8 @@ data XPConfig =
         , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
         , alwaysHighlight   :: !Bool      -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
         , height            :: !Dimension -- ^ Window height
+        , maxComplRows      :: Maybe Dimension
+                                          -- ^ Just x: maximum number of rows to show in completion window
         , historySize       :: !Int       -- ^ The number of history entries to be saved
         , historyFilter     :: [String] -> [String]
                                          -- ^ a filter to determine which
@@ -241,6 +243,7 @@ defaultXPConfig =
         , changeModeKey     = xK_grave
         , position          = Bottom
         , height            = 18
+        , maxComplRows      = Nothing
         , historySize       = 256
         , historyFilter     = id
         , defaultText       = []
@@ -933,7 +936,10 @@ getComplWinDim compl = do
       rem_height =  rect_height scr - ht
       (rows,r) = length compl `divMod` fi columns
       needed_rows = max 1 (rows + if r == 0 then 0 else 1)
-      actual_max_number_of_rows = rem_height `div` ht
+      limit_max_number = case maxComplRows c of
+                           Nothing -> id
+                           Just m -> min m
+      actual_max_number_of_rows = limit_max_number $ rem_height `div` ht
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
       actual_height = actual_rows * ht
       (x,y) = case position c of
