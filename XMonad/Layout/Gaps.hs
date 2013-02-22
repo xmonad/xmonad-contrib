@@ -29,7 +29,7 @@ module XMonad.Layout.Gaps (
                                -- * Usage
                                -- $usage
                           Direction2D(..), Gaps,
-                          GapSpec, gaps, GapMessage(..)
+                          GapSpec, gaps, gaps', GapMessage(..)
 
                           ) where
 
@@ -140,3 +140,8 @@ gaps :: GapSpec   -- ^ The gaps to allow, paired with their initial sizes.
      -> ModifiedLayout Gaps l a
 gaps g = ModifiedLayout (Gaps g (map fst g))
 
+-- | Add togglable manual gaps to a layout, explicitly specifying the initial states.
+gaps' :: [((Direction2D,Int),Bool)] -- ^ The gaps to allow and their initial states.
+      -> l a                        -- ^ The layout to modify.
+      -> ModifiedLayout Gaps l a
+gaps' g = ModifiedLayout (Gaps (map fst g) [d | ((d,_),v) <- g, v])
