@@ -42,26 +42,11 @@ import           Codec.Binary.UTF8.String
 import           Data.Maybe                                  (fromMaybe)
 import           Data.Monoid
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 import           Numeric                                     (showHex)
 import           System.Exit
 import           System.IO
 import           System.Process
-
--- this should move into X11
-foreign import ccall unsafe "XGetAtomName"
-  xGetAtomName :: Display -> Atom -> IO CString
-
-getAtomName     :: Display -> Atom -> IO (Maybe String)
-getAtomName d a =  do
-  n <- xGetAtomName d a
-  if n == nullPtr
-    then return Nothing
-    else do
-      n' <- peekCString n
-      xFree n
-      return $ Just n'
 
 -- | Event hook to dump all received events.  You should probably not use this
 --   unconditionally; it will produce massive amounts of output.
