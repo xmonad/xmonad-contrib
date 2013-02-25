@@ -72,7 +72,7 @@ library
         extensions: ForeignFunctionInterface
         cpp-options: -DXFT
 
-    build-depends:      mtl >= 1 && < 3, unix, X11>=1.6 && < 1.7, xmonad>=0.11   && < 0.12, utf8-string
+    build-depends:      mtl >= 1 && < 3, unix, X11>=1.6.1 && < 1.7, xmonad>=0.11   && < 0.12, utf8-string
 
     if true
         ghc-options:    -fwarn-tabs -Wall
