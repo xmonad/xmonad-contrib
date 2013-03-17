@@ -70,7 +70,7 @@ shellPrompt c = do
 
 {- $spawns
     See safe and unsafeSpawn in "XMonad.Util.Run".
-    prompt is an alias for safePrompt;
+    prompt is an alias for unsafePrompt;
     safePrompt and unsafePrompt work on the same principles, but will use
     XPrompt to interactively query the user for input; the appearance is
     set by passing an XPConfig as the second argument. The first argument
