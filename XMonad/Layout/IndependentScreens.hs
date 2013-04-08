@@ -20,6 +20,7 @@ module XMonad.Layout.IndependentScreens (
     workspaces',
     withScreens, onCurrentScreen,
     marshallPP,
+    whenCurrentOn,
     countScreens,
     -- * Converting between virtual and physical workspaces
     -- $converting
@@ -138,6 +139,40 @@ marshallPP s pp = pp {
     ppHiddenNoWindows   = ppHiddenNoWindows pp . snd . unmarshall,
     ppUrgent            = ppUrgent          pp . snd . unmarshall,
     ppSort              = fmap (marshallSort s) (ppSort pp)
+    }
+
+-- | Take a pretty-printer and turn it into one that only runs when the current
+-- workspace is one associated with the given screen. The way this works is a
+-- bit hacky, so beware: the 'ppOutput' field of the input will not be invoked
+-- if either of the following conditions is met:
+--
+-- 1. The 'ppSort' of the input returns an empty list (when not given one).
+-- 2. The 'ppOrder' of the input returns the exact string "\0".
+--
+-- For example, you can use this to create a pipe which tracks the title of the
+-- window currently focused on a given screen (even if the screen is not
+-- current) by doing something like this:
+--
+-- > ppFocus s = whenCurrentOn s defaultPP
+-- >     { ppOrder  = \(_:_:title:_) -> [title]
+-- >     , ppOutput = appendFile ("focus" ++ show s) . (++ "\n")
+-- >     }
+--
+-- Sequence a few of these pretty-printers to get a log hook that keeps each
+-- screen's title up-to-date.
+whenCurrentOn :: ScreenId -> PP -> PP
+whenCurrentOn s pp = pp
+    { ppSort = do
+        sort <- ppSort pp
+        return $ \xs -> case xs of
+            x:_ | unmarshallS (tag x) == s -> sort xs
+            _ -> []
+    , ppOrder = \i@(wss:rest) -> case wss of
+        "" -> ["\0"] -- we got passed no workspaces; this is the signal from ppSort that this is a boring case
+        _  -> ppOrder pp i
+    , ppOutput = \s -> case s of
+        "\0" -> return () -- we got passed the signal from ppOrder that this is a boring case
+        _ -> ppOutput pp s
     }
 
 marshallSort :: ScreenId -> ([WindowSpace] -> [WindowSpace]) -> ([WindowSpace] -> [WindowSpace])
