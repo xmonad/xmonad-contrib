@@ -147,7 +147,8 @@ marshallPP s pp = pp {
 -- if either of the following conditions is met:
 --
 -- 1. The 'ppSort' of the input returns an empty list (when not given one).
--- 2. The 'ppOrder' of the input returns the exact string "\0".
+--
+-- 2. The 'ppOrder' of the input returns the exact string @\"\\0\"@.
 --
 -- For example, you can use this to create a pipe which tracks the title of the
 -- window currently focused on a given screen (even if the screen is not
