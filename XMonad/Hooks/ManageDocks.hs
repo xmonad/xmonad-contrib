@@ -40,7 +40,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 import XMonad.Util.XUtils (fi)
-import Data.Monoid (All(..))
+import Data.Monoid (All(..), mempty)
 
 import qualified Data.Set as S
 
@@ -102,7 +102,10 @@ import qualified Data.Set as S
 --   it, but does not manage it. If the window has the STRUT property
 --   set, adjust the gap accordingly.
 manageDocks :: ManageHook
-manageDocks = checkDock --> doIgnore
+manageDocks = checkDock --> (doIgnore <+> clearGapCache)
+    where clearGapCache = do
+            liftX (broadcastMessage ClearGapCache)
+            mempty
 
 -- | Checks if a window is a DOCK or DESKTOP window
 checkDock :: Query Bool
@@ -118,7 +121,9 @@ checkDock = ask >>= \w -> liftX $ do
 -- new dock.
 docksEventHook :: Event -> X All
 docksEventHook (MapNotifyEvent {ev_window = w}) = do
-    whenX ((not `fmap` (isClient w)) <&&> runQuery checkDock w) refresh
+    whenX ((not `fmap` (isClient w)) <&&> runQuery checkDock w) $ do
+        broadcastMessage ClearGapCache
+        refresh
     return (All True)
 docksEventHook _ = return (All True)
 
@@ -167,9 +172,12 @@ avoidStrutsOn :: LayoutClass l a =>
                  [Direction2D]
               -> l a
               -> ModifiedLayout AvoidStruts l a
-avoidStrutsOn ss = ModifiedLayout $ AvoidStruts $ S.fromList ss
+avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss) Nothing
 
-data AvoidStruts a = AvoidStruts (S.Set Direction2D) deriving ( Read, Show )
+data AvoidStruts a = AvoidStruts {
+    avoidStrutsDirection :: S.Set Direction2D,
+    avoidStrutsRectCache :: Maybe (S.Set Direction2D, Rectangle, Rectangle )
+}  deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
 --   modifier to alter its behavior.
@@ -178,6 +186,13 @@ data ToggleStruts = ToggleStruts
   deriving (Read,Show,Typeable)
 
 instance Message ToggleStruts
+
+
+-- | message sent to ensure that caching the gaps won't give a wrong result
+-- because a new dock has been added
+data ClearGapCache = ClearGapCache
+  deriving (Read,Show,Typeable)
+instance Message ClearGapCache
 
 -- | SetStruts is a message constructor used to set or unset specific struts,
 -- regardless of whether or not the struts were originally set. Here are some
@@ -206,17 +221,26 @@ data SetStruts = SetStruts { addedStruts   :: [Direction2D]
 instance Message SetStruts
 
 instance LayoutModifier AvoidStruts a where
-    modifyLayout (AvoidStruts ss) w r = do
-        nr <- fmap ($ r) (calcGap ss)
-        setWorkarea nr
-        runLayout w nr
+    modifyLayoutWithUpdate as@(AvoidStruts ss cache) w r = do
+        nr <- case cache of
+            Just (ss', r', nr) | ss' == ss, r' == r -> return nr
+            _ -> do
+                nr <- fmap ($ r) (calcGap ss)
+                setWorkarea nr
+                return nr
+        arranged <- runLayout w nr
+        let newCache = Just (ss, r, nr)
+        return (arranged, if newCache == cache
+                    then Nothing
+                    else Just as{ avoidStrutsRectCache = newCache } )
 
-    pureMess (AvoidStruts ss) m
-        | Just ToggleStruts    <- fromMessage m = Just $ AvoidStruts (toggleAll ss)
-        | Just (ToggleStrut s) <- fromMessage m = Just $ AvoidStruts (toggleOne s ss)
+    pureMess as@(AvoidStruts { avoidStrutsDirection = ss }) m
+        | Just ToggleStruts    <- fromMessage m = Just $ as { avoidStrutsDirection = toggleAll ss }
+        | Just (ToggleStrut s) <- fromMessage m = Just $ as { avoidStrutsDirection = toggleOne s ss }
         | Just (SetStruts n k) <- fromMessage m
         , let newSS = S.fromList n `S.union` (ss S.\\ S.fromList k)
-        , newSS /= ss = Just $ AvoidStruts newSS
+        , newSS /= ss = Just $ as { avoidStrutsDirection = newSS }
+        | Just ClearGapCache <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing }
         | otherwise = Nothing
       where toggleAll x | S.null x = S.fromList [minBound .. maxBound]
                         | otherwise = S.empty
