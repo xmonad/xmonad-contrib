@@ -44,7 +44,8 @@ import Data.Maybe (fromMaybe)
 -- Note that @l1@, @l2@, and @l3@ can be arbitrarily complicated
 -- layouts, e.g. @(Full ||| smartBorders $ tabbed shrinkText
 -- defaultTConf ||| ...)@, and @m1@ can be any layout modifier, i.e. a
--- function of type @(l a -> ModifiedLayout lm l a)@.
+-- function of type @(l a -> ModifiedLayout lm l a)@. (In fact, @m1@ can be any
+-- function @(LayoutClass l a, LayoutClass l' a) => l a -> l' a@.)
 --
 -- In another scenario, suppose you wanted to have layouts A, B, and C
 -- available on all workspaces, except that on workspace foo you want
@@ -69,25 +70,25 @@ onWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
                 -> (l1 a)         -- ^ layout to use on matched workspaces
                 -> (l2 a)         -- ^ layout to use everywhere else
                 -> PerWorkspace l1 l2 a
-onWorkspaces wsIds l1 l2 = PerWorkspace wsIds False l1 l2
+onWorkspaces wsIds = modWorkspaces wsIds . const
 
 -- | Specify a layout modifier to apply to a particular workspace; layouts
 --   on all other workspaces will remain unmodified.
-modWorkspace :: (LayoutClass l a)
-             => WorkspaceId                     -- ^ tag of the workspace to match
-             -> (l a -> ModifiedLayout lm l a)  -- ^ the modifier to apply on the matching workspace
-             -> l a                             -- ^ the base layout
-             -> PerWorkspace (ModifiedLayout lm l) l a
+modWorkspace :: (LayoutClass l1 a, LayoutClass l2 a)
+             => WorkspaceId    -- ^ tag of the workspace to match
+             -> (l2 a -> l1 a)  -- ^ the modifier to apply on the matching workspace
+             -> l2 a           -- ^ the base layout
+             -> PerWorkspace l1 l2 a
 modWorkspace wsId = modWorkspaces [wsId]
 
 -- | Specify a layout modifier to apply to a particular set of
 --   workspaces; layouts on all other workspaces will remain
 --   unmodified.
-modWorkspaces :: (LayoutClass l a)
-              => [WorkspaceId]                   -- ^ tags of the workspaces to match
-              -> (l a -> ModifiedLayout lm l a)  -- ^ the modifier to apply on the matching workspaces
-              -> l a                             -- ^ the base layout
-              -> PerWorkspace (ModifiedLayout lm l) l a
+modWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
+              => [WorkspaceId] -- ^ tags of the workspaces to match
+              -> (l2 a -> l1 a) -- ^ the modifier to apply on the matching workspaces
+              -> l2 a          -- ^ the base layout
+              -> PerWorkspace l1 l2 a
 modWorkspaces wsIds f l = PerWorkspace wsIds False (f l) l
 
 -- | Structure for representing a workspace-specific layout along with
