@@ -73,6 +73,9 @@ import XMonad.Hooks.DynamicLog
 -- of virtual workspaces to functions of physical workspaces, which work
 -- by marshalling the virtual workspace name and the currently focused
 -- screen into a physical workspace name.
+--
+-- A complete example abusing many of the functions below is available in the
+-- "XMonad.Config.Dmwit" module.
 
 type VirtualWorkspace  = WorkspaceId
 type PhysicalWorkspace = WorkspaceId
