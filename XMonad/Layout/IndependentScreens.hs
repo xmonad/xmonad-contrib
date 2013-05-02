@@ -32,7 +32,7 @@ module XMonad.Layout.IndependentScreens (
 import Control.Applicative((<*), liftA2)
 import Control.Arrow hiding ((|||))
 import Control.Monad
-import Data.List
+import Data.List (nub, genericLength)
 import Graphics.X11.Xinerama
 import XMonad
 import XMonad.StackSet hiding (filter, workspaces)
@@ -171,12 +171,12 @@ whenCurrentOn s pp = pp
         return $ \xs -> case xs of
             x:_ | unmarshallS (tag x) == s -> sort xs
             _ -> []
-    , ppOrder = \i@(wss:rest) -> case wss of
+    , ppOrder = \i@(wss:_) -> case wss of
         "" -> ["\0"] -- we got passed no workspaces; this is the signal from ppSort that this is a boring case
         _  -> ppOrder pp i
-    , ppOutput = \s -> case s of
+    , ppOutput = \out -> case out of
         "\0" -> return () -- we got passed the signal from ppOrder that this is a boring case
-        _ -> ppOutput pp s
+        _ -> ppOutput pp out
     }
 
 marshallSort :: ScreenId -> ([WindowSpace] -> [WindowSpace]) -> ([WindowSpace] -> [WindowSpace])
