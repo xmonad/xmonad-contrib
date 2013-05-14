@@ -19,8 +19,8 @@ description:
 category:           System
 license:            BSD3
 license-file:       LICENSE
-author:             Spencer Janssen
-maintainer:         spencerjanssen@gmail.com
+author:             Spencer Janssen & others
+maintainer:         xmonad@haskell.org
 extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
@@ -114,6 +114,8 @@ library
                         XMonad.Actions.FocusNth
                         XMonad.Actions.GridSelect
                         XMonad.Actions.GroupNavigation
+                        XMonad.Actions.Launcher
+                        XMonad.Actions.LinkWorkspaces
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
