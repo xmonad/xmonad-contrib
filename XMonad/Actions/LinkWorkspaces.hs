@@ -26,7 +26,7 @@ module XMonad.Actions.LinkWorkspaces (
                                         MessageConfig(..)
                                        ) where
 
-import XMonad 
+import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Layout.IndependentScreens(countScreens)
 import qualified XMonad.Util.ExtensibleState as XS (get, put)
@@ -38,7 +38,7 @@ import qualified Data.Map as M
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Actions.LinkWorkspaces
--- 
+--
 -- and add a function to print messages like
 -- > message_command (S screen) = " dzen2 -p 1 -w 300 -xs " ++ show (screen + 1)
 -- > message_color_func c1 c2 msg = dzenColor c1 c2 msg
@@ -53,7 +53,7 @@ import qualified Data.Map as M
 --
 -- >   [ ((modm .|. m, k), a i)
 -- >       | (a, m) <- [(switchWS (\y -> windows $ view y) message, 0),(switchWS (\x -> windows $ shift x . view x) message, shiftMask)]
--- >       , (i, k) <- zip [1..] [xK_1 .. xK_9]]
+-- >       , (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]]
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
@@ -63,7 +63,7 @@ data MessageConfig = MessageConfig {  messageFunction :: (ScreenId -> [Char] -> 
                     , alertedForeground :: [Char]
                     , background :: [Char]
                    }
- 
+
 defaultMessageConf :: MessageConfig
 defaultMessageConf = MessageConfig { messageFunction = noMessageFn
                      , background = "#000000"
@@ -122,7 +122,7 @@ setMatching :: MessageConfig -> WorkspaceId -> WorkspaceId -> M.Map WorkspaceId 
 setMatching message t1 t2 matchings = do
    ws <- gets windowset
    let now = W.screen (W.current ws)
-   XS.put $ WorkspaceMap $ M.insert t1 t2 matchings 
+   XS.put $ WorkspaceMap $ M.insert t1 t2 matchings
    messageFunction message now (foreground message) (background message) ("Linked: " ++ (t1 ++ " " ++ t2))
 
 -- currently this function is called manually this means that if workspaces
@@ -133,7 +133,7 @@ removeMatching' :: MessageConfig -> WorkspaceId -> WorkspaceId -> M.Map Workspac
 removeMatching' message t1 t2 matchings = do
    ws <- gets windowset
    let now = W.screen (W.current ws)
-   XS.put $ WorkspaceMap $ M.delete t1 matchings 
+   XS.put $ WorkspaceMap $ M.delete t1 matchings
    messageFunction message now (alertedForeground message) (background message) ("Unlinked: " ++ t1 ++ " " ++ t2)
 
 -- | Remove all maps between workspaces
@@ -146,8 +146,8 @@ removeAllMatchings message = do
 
 -- | remove all matching regarding a given workspace
 unMatch :: WorkspaceId -> X ()
-unMatch workspace = do 
-    WorkspaceMap matchings <- XS.get :: X WorkspaceMap 
+unMatch workspace = do
+    WorkspaceMap matchings <- XS.get :: X WorkspaceMap
     XS.put $ WorkspaceMap $ M.delete workspace (M.filter (/= workspace) matchings)
 
 -- | Toggle the currently displayed workspaces as matching. Starting from the one with focus
