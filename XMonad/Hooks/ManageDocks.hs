@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
--- deriving Typeable for ghc-6.6 compatibility, which is retained in the core
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
