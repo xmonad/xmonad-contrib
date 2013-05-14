@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Layout.Decoration
+-- Module      :  XMonad.Layout.Fullscreen
 -- Copyright   :  (c) 2010 Audun Skaugen
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
