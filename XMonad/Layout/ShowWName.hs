@@ -99,6 +99,5 @@ flashName c (Rectangle sx sy wh ht) wrs = do
   showWindow w
   paintAndWrite w f (fi width) (fi hight) 0 (swn_bgcolor c) "" (swn_color c) (swn_bgcolor c) [AlignCenter] [n]
   releaseXMF f
-  io $ sync d False
   i <- startTimer (swn_fade c)
   return (wrs, Just $ SWN False c $ Just (i,w))
