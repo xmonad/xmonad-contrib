@@ -43,8 +43,8 @@ import Foreign.C.Types(CInt)
 -- Then edit your @layoutHook@ by adding the WindowSwitcherDecoration to
 -- your layout:
 --
--- > myL = windowSwitcherDecoration shrinkText defaultTheme (draggingVisualizer $ layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = windowSwitcherDecoration shrinkText defaultTheme (draggingVisualizer $ layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 -- There is also a version of the decoration that contains buttons like
 -- "XMonad.Layout.ButtonDecoration". To use that version, you will need to
@@ -53,8 +53,8 @@ import Foreign.C.Types(CInt)
 --
 -- > import XMonad.Layout.DecorationAddons
 -- >
--- > myL = windowSwitcherDecorationWithButtons shrinkText defaultThemeWithButtons (draggingVisualizer $ layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = windowSwitcherDecorationWithButtons shrinkText defaultThemeWithButtons (draggingVisualizer $ layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 -- Additionaly, there is a version of the decoration that contains image buttons like
 -- "XMonad.Layout.ImageButtonDecoration". To use that version, you will need to
@@ -63,8 +63,8 @@ import Foreign.C.Types(CInt)
 --
 -- > import XMonad.Layout.ImageButtonDecoration
 -- >
--- > myL = windowSwitcherDecorationWithImageButtons shrinkText defaultThemeWithImageButtons (draggingVisualizer $ layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = windowSwitcherDecorationWithImageButtons shrinkText defaultThemeWithImageButtons (draggingVisualizer $ layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 
 windowSwitcherDecoration :: (Eq a, Shrinker s) => s -> Theme

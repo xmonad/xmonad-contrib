@@ -7,7 +7,7 @@
 --
 -- Maintainer  :  Devin Mullins <me@twifkak.com>
 --
--- Useful helper functions for amending the defaultConfig, and for
+-- Useful helper functions for amending the default configuration, and for
 -- parsing keybindings specified in a special (emacs-like) format.
 --
 -- (See also "XMonad.Util.CustomKeys" in xmonad-contrib.)
@@ -69,7 +69,7 @@ import Text.ParserCombinators.ReadP
 -- |
 -- Add or override keybindings from the existing set. Example use:
 --
--- > main = xmonad $ defaultConfig { terminal = "urxvt" }
+-- > main = xmonad $ def { terminal = "urxvt" }
 -- >                 `additionalKeys`
 -- >                 [ ((mod1Mask, xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
 -- >                 , ((mod1Mask, xK_BackSpace), withFocused hide) -- N.B. this is an absurd thing to do
@@ -88,7 +88,7 @@ additionalKeys conf keyList =
 --   descriptors like @\"M-m\"@ instead of @(modMask, xK_m)@, as
 --   described in the documentation for 'mkKeymap'.  For example:
 --
--- > main = xmonad $ defaultConfig { terminal = "urxvt" }
+-- > main = xmonad $ def { terminal = "urxvt" }
 -- >                 `additionalKeysP`
 -- >                 [ ("M-m", spawn "echo 'Hi, mom!' | dzen2 -p 4")
 -- >                 , ("M-<Backspace>", withFocused hide) -- N.B. this is an absurd thing to do
@@ -101,7 +101,7 @@ additionalKeysP conf keyList =
 -- |
 -- Remove standard keybindings you're not using. Example use:
 --
--- > main = xmonad $ defaultConfig { terminal = "urxvt" }
+-- > main = xmonad $ def { terminal = "urxvt" }
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]
 removeKeys :: XConfig a -> [(ButtonMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
@@ -111,7 +111,7 @@ removeKeys conf keyList =
 --   like @\"M-m\"@ instead of @(modMask, xK_m)@, as described in the
 --   documentation for 'mkKeymap'. For example:
 --
--- > main = xmonad $ defaultConfig { terminal = "urxvt" }
+-- > main = xmonad $ def { terminal = "urxvt" }
 -- >                 `removeKeysP` ["M-S-" ++ [n] | n <- ['1'..'9']]
 
 removeKeysP :: XConfig l -> [String] -> XConfig l
@@ -682,7 +682,7 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
 -- > main = xmonad $ myConfig
 -- >
 -- > myKeymap = [("S-M-c", kill), ...]
--- > myConfig = defaultConfig {
+-- > myConfig = def {
 -- >     ...
 -- >     keys = \c -> mkKeymap c myKeymap
 -- >     startupHook = return () >> checkKeymap myConfig myKeymap

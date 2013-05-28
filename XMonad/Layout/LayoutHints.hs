@@ -54,7 +54,7 @@ import qualified Data.Set as Set
 -- to some layout:
 --
 -- > myLayout = layoutHints (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- Or, to center the adapted window in its available area:
 --
@@ -74,8 +74,8 @@ import qualified Data.Set as Set
 --
 -- > myHandleEventHook = hintsEventHook <+> ...
 -- >
--- > main = xmonad defaultConfig { handleEventHook = myHandleEventHook
--- >                             , ... }
+-- > main = xmonad def { handleEventHook = myHandleEventHook
+-- >                   , ... }
 
 layoutHints :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHints l a
 layoutHints = ModifiedLayout (LayoutHints (0, 0))

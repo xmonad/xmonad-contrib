@@ -38,8 +38,8 @@ import XMonad.Layout.Decoration
 -- Then edit your @layoutHook@ by adding the SimpleDecoration decoration to
 -- your layout:
 --
--- > myL = simpleDeco shrinkText defaultTheme (layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = simpleDeco shrinkText defaultTheme (layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

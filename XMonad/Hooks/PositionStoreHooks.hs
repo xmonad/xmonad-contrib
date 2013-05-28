@@ -58,12 +58,12 @@ import qualified Data.Set as S
 -- otherwise use 'Just defaultTheme' or similar to inform the module about the
 -- decoration theme used.
 --
--- > myManageHook = positionStoreManageHook Nothing <+> manageHook defaultConfig
+-- > myManageHook = positionStoreManageHook Nothing <+> manageHook def
 -- > myHandleEventHook = positionStoreEventHook
 -- >
--- > main = xmonad defaultConfig { manageHook = myManageHook
--- >                             , handleEventHook = myHandleEventHook
--- >                             }
+-- > main = xmonad def { manageHook = myManageHook
+-- >                   , handleEventHook = myHandleEventHook
+-- >                   }
 --
 
 positionStoreManageHook :: Maybe Theme -> ManageHook

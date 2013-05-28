@@ -40,7 +40,7 @@ import Control.Monad
 -- > myLogHook = fadeInactiveLogHook fadeAmount
 -- >     where fadeAmount = 0.8
 -- >
--- > main = xmonad defaultConfig { logHook = myLogHook }
+-- > main = xmonad def { logHook = myLogHook }
 --
 -- fadeAmount can be any rational between 0 and 1.
 -- you will need to have xcompmgr <http://freedesktop.org/wiki/Software/xapps>

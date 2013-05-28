@@ -34,7 +34,7 @@ import XMonad.Layout.Minimize
 -- >
 -- > myHandleEventHook = restoreMinimizedEventHook
 -- >
--- > main = xmonad defaultConfig { handleEventHook = myHandleEventHook }
+-- > main = xmonad def { handleEventHook = myHandleEventHook }
 
 data RestoreMinimized = RestoreMinimized deriving ( Show, Read )
 

@@ -32,7 +32,7 @@ import XMonad.StackSet (integrate, peek)
 -- Then edit your @layoutHook@ by adding the Circle layout:
 --
 -- > myLayout = Circle ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

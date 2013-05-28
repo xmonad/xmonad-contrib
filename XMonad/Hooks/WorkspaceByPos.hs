@@ -33,9 +33,9 @@ import Control.Monad.Error ((<=<),guard,lift,runErrorT,throwError)
 --
 -- > import XMonad.Hooks.WorkspaceByPos
 -- >
--- > myManageHook = workspaceByPos <+> manageHook defaultConfig
+-- > myManageHook = workspaceByPos <+> manageHook def
 -- >
--- > main = xmonad defaultConfig { manageHook = myManageHook }
+-- > main = xmonad def { manageHook = myManageHook }
 
 workspaceByPos :: ManageHook
 workspaceByPos = (maybe idHook doShift <=< liftX . needsMoving) =<< ask

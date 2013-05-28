@@ -31,7 +31,7 @@ import Data.Ratio
 -- Then edit your @layoutHook@ by adding the Accordion layout:
 --
 -- > myLayout = Accordion ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

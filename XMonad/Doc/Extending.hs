@@ -932,7 +932,7 @@ example, you could write:
 
 >    import XMonad
 >
->    main = xmonad $ defaultConfig { keys = myKeys }
+>    main = xmonad $ def { keys = myKeys }
 
 and provide an appropriate definition of @myKeys@, such as:
 
@@ -991,18 +991,18 @@ these:
 then you can create a new key bindings map by joining the default one
 with yours:
 
->    newKeys x  = myKeys x `M.union` keys defaultConfig x
+>    newKeys x  = myKeys x `M.union` keys def x
 
 Finally, you can use @newKeys@ in the 'XMonad.Core.XConfig.keys' field
 of the configuration:
 
->    main = xmonad $ defaultConfig { keys = newKeys }
+>    main = xmonad $ def { keys = newKeys }
 
 Alternatively, the '<+>' operator can be used which in this usage does exactly
 the same as the explicit usage of 'M.union' and propagation of the config
 argument, thanks to appropriate instances in "Data.Monoid".
 
->    main = xmonad $ defaultConfig { keys = myKeys <+> keys defaultConfig }
+>    main = xmonad $ def { keys = myKeys <+> keys def }
 
 All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 
@@ -1018,7 +1018,7 @@ All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 >    import XMonad.Prompt.XMonad
 >
 >    main :: IO ()
->    main = xmonad $ defaultConfig { keys = myKeys <+> keys defaultConfig }
+>    main = xmonad $ def { keys = myKeys <+> keys def }
 >
 >    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
 >             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
@@ -1044,7 +1044,7 @@ For example, suppose you want to get rid of @mod-q@ and @mod-shift-q@
 to define @newKeys@ as a 'Data.Map.difference' between the default
 map and the map of the key bindings you want to remove.  Like so:
 
->    newKeys x = keys defaultConfig x `M.difference` keysToRemove x
+>    newKeys x = keys def x `M.difference` keysToRemove x
 >
 >    keysToRemove :: XConfig Layout ->    M.Map (KeyMask, KeySym) (X ())
 >    keysToRemove x = M.fromList
@@ -1060,7 +1060,7 @@ It is also possible to simply define a list of keys we want to unbind
 and then use 'Data.Map.delete' to remove them. In that case we would
 write something like:
 
->    newKeys x = foldr M.delete (keys defaultConfig x) (keysToRemove x)
+>    newKeys x = foldr M.delete (keys def x) (keysToRemove x)
 >
 >    keysToRemove :: XConfig Layout -> [(KeyMask, KeySym)]
 >    keysToRemove x =
@@ -1081,7 +1081,7 @@ Adding and removing key bindings requires simply combining the steps
 for removing and adding.  Here is an example from
 "XMonad.Config.Arossato":
 
->    defKeys    = keys defaultConfig
+>    defKeys    = keys def
 >    delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
 >    newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
 >    -- remove some of the default key bindings
@@ -1125,9 +1125,9 @@ the window you click on like so:
 >
 >    myMouse x  = [ (0, button4), (\w -> focus w >> kill) ]
 >
->    newMouse x = M.union (mouseBindings defaultConfig x) (M.fromList (myMouse x))
+>    newMouse x = M.union (mouseBindings def x) (M.fromList (myMouse x))
 >
->    main = xmonad $ defaultConfig { ..., mouseBindings = newMouse, ... }
+>    main = xmonad $ def { ..., mouseBindings = newMouse, ... }
 
 Overriding or deleting mouse bindings works similarly.  You can also
 configure mouse bindings much more easily using the
@@ -1180,7 +1180,7 @@ Then we create the combination of layouts we need:
 Now, all we need to do is change the 'XMonad.Core.layoutHook'
 field of the 'XMonad.Core.XConfig' record, like so:
 
->    main = xmonad $ defaultConfig { layoutHook = mylayoutHook }
+>    main = xmonad $ def { layoutHook = mylayoutHook }
 
 Thanks to the new combinator, we can apply a layout modifier to a
 whole combination of layouts, instead of applying it to each one. For
@@ -1204,7 +1204,7 @@ Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 >
 >    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTheme) ||| Accordion
 >
->    main = xmonad $ defaultConfig { layoutHook = mylayoutHook }
+>    main = xmonad $ def { layoutHook = mylayoutHook }
 
 That's it!
 
@@ -1256,7 +1256,7 @@ This is another example of 'XMonad.Config.manageHook', taken from
 >                               , resource =? "win"          --> doF (W.shift "doc") -- xpdf
 >                               , resource =? "firefox-bin"  --> doF (W.shift "web")
 >                               ]
->    newManageHook = myManageHook <+> manageHook defaultConfig
+>    newManageHook = myManageHook <+> manageHook def
 
 
 Again we use 'XMonad.ManageHook.composeAll' to compose a list of
@@ -1318,14 +1318,14 @@ Then we create our own 'XMonad.Config.manageHook':
 We can now use the 'XMonad.ManageHook.<+>' combinator to add our
 'XMonad.Config.manageHook' to the default one:
 
->    newManageHook = myManageHook <+> manageHook defaultConfig
+>    newManageHook = myManageHook <+> manageHook def
 
 (Of course, if we wanted to completely replace the default
 'XMonad.Config.manageHook', this step would not be necessary.) Now,
 all we need to do is change the 'XMonad.Core.manageHook' field of the
 'XMonad.Core.XConfig' record, like so:
 
->    main = xmonad defaultConfig { ..., manageHook = newManageHook, ... }
+>    main = xmonad def { ..., manageHook = newManageHook, ... }
 
 And we are done.
 
@@ -1387,7 +1387,7 @@ Then you just need to update the 'XMonad.Core.logHook' field of the
 'XMonad.Core.XConfig' record with one of the provided functions. For
 example:
 
->    main = xmonad defaultConfig { logHook = dynamicLog }
+>    main = xmonad def { logHook = dynamicLog }
 
 More interesting configurations are also possible; see the
 "XMonad.Hooks.DynamicLog" module for more possibilities.

@@ -115,7 +115,7 @@ import XMonad.Util.Types
 -- and add the configuration of the module to your main function:
 --
 -- > main = xmonad $ withNavigation2DConfig defaultNavigation2DConfig
--- >               $ defaultConfig
+-- >               $ def
 --
 -- For detailed instruction on editing the key binding see:
 --
@@ -150,7 +150,7 @@ import XMonad.Util.Types
 -- > myNavigation2DConfig = defaultNavigation2DConfig { layoutNavigation = [("Full", centerNavigation)] }
 -- >
 -- > main = xmonad $ withNavigation2DConfig myNavigation2DConfig
--- >               $ defaultConfig
+-- >               $ def
 --
 -- The navigation between windows is based on their screen rectangles, which are
 -- available /and meaningful/ only for mapped windows.  Thus, as already said,
@@ -169,7 +169,7 @@ import XMonad.Util.Types
 -- >                                                  }
 -- >
 -- > main = xmonad $ withNavigation2DConfig myNavigation2DConfig
--- >               $ defaultConfig
+-- >               $ def
 --
 -- With this setup, Left/Up navigation behaves like standard
 -- 'XMonad.StackSet.focusUp' and Right/Down navigation behaves like

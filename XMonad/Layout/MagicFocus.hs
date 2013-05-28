@@ -41,8 +41,8 @@ import qualified Data.Map as M
 -- modifier:
 --
 -- > myLayout = magicFocus (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout,
--- >                               handleEventHook = promoteWarp }
+-- > main = xmonad def { layoutHook = myLayout,
+-- >                     handleEventHook = promoteWarp }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

@@ -50,7 +50,7 @@ import Data.Maybe (isJust)
 -- >             $ (layoutN 1 (absBox (-200)     0 0          0) Nothing                 $ simpleTabbed)
 -- >             $ (layoutAll (absBox 0          0 (-512-200) 0)                         $ simpleTabbed)
 -- >             ) ||| Full ||| etc...
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- This will produce a layout similar to DragPane, but with the possibility to have multiple windows in the left half
 -- and tabs that show the available windows. It will also produce a layout similar to ThreeColMid and a special layout

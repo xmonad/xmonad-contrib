@@ -105,7 +105,7 @@ import XMonad.Layout.SimpleFloat
 --
 -- Then edit your @layoutHook@ by adding the layout you want:
 --
--- > main = xmonad defaultConfig { layoutHook = someMadLayout }
+-- > main = xmonad def { layoutHook = someMadLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

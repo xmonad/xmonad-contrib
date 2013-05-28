@@ -84,7 +84,7 @@ some colours:
 >
 >    import XMonad
 >
->    main = xmonad $ defaultConfig
+>    main = xmonad $ def
 >        { borderWidth        = 2
 >        , terminal           = "urxvt"
 >        , normalBorderColor  = "#cccccc"

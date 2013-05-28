@@ -36,7 +36,7 @@ import XMonad.Prompt ( XPPosition (..) )
 --
 -- Then edit your @layoutHook@ by adding the layout you want:
 --
--- > main = xmonad defaultConfig { layoutHook = simpleTabBar $ layoutHook defaultConfig}
+-- > main = xmonad def { layoutHook = simpleTabBar $ layoutHook def}
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

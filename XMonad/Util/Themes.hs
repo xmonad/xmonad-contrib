@@ -56,7 +56,7 @@ import XMonad.Layout.Decoration
 -- >
 -- > myLayout = tabbed shrinkText (theme smallClean)
 -- >
--- > main = xmonad defaultConfig {layoutHook = myLayout}
+-- > main = xmonad def {layoutHook = myLayout}
 --
 -- If you have a theme you would like to share, adding it to this
 -- module is very easy.

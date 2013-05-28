@@ -48,7 +48,7 @@ import Control.Applicative((<$>))
 -- will not work correctly here because of the use of the mouse.)
 --
 -- > myLayout = mouseResizableTile ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 --
 -- For more detailed instructions on editing the layoutHook see:

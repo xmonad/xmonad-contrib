@@ -43,11 +43,11 @@ import XMonad.Util.XUtils
 --
 -- Then edit your @layoutHook@ by modifying a given layout:
 --
--- > myLayout = mouseResize $ windowArrange $ layoutHook defaultConfig
+-- > myLayout = mouseResize $ windowArrange $ layoutHook def
 --
 -- and then:
 --
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

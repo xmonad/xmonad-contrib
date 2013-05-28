@@ -40,7 +40,7 @@ import qualified Data.Map as M
 --
 -- > import XMonad.Layout.BorderResize
 -- > myLayout = borderResize (... layout setup that reacts to SetGeometry ...)
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 
 type BorderBlueprint = (Rectangle, Glyph, BorderType)

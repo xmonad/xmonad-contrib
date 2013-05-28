@@ -53,7 +53,7 @@ hookName = "__float"
 --
 -- and adding 'floatNextHook' to your 'ManageHook':
 --
--- > myManageHook = floatNextHook <+> manageHook defaultConfig
+-- > myManageHook = floatNextHook <+> manageHook def
 --
 -- The 'floatNext' and 'toggleFloatNext' functions can be used in key
 -- bindings to float the next spawned window:

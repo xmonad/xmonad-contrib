@@ -33,8 +33,8 @@ import XMonad.Layout.Minimize
 -- >
 -- > myHandleEventHook = minimizeEventHook
 -- > myLayout = minimize (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout
--- >                             , handleEventHook = myHandleEventHook }
+-- > main = xmonad def { layoutHook = myLayout
+-- >                   , handleEventHook = myHandleEventHook }
 
 minimizeEventHook :: Event -> X All
 minimizeEventHook (ClientMessageEvent {ev_window = w,

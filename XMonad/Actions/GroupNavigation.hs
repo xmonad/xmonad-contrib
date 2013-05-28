@@ -73,7 +73,7 @@ Finally, you can define keybindings to jump to the most recent window
 matching a certain Boolean query.  To do this, you need to add
 'historyHook' to your logHook:
 
-> main = xmonad $ defaultConfig { logHook = historyHook }
+> main = xmonad $ def { logHook = historyHook }
 
 Then the following keybindings, for example, allow you to return to
 the most recent xterm or emacs window or to simply to the most recent

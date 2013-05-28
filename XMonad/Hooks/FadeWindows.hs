@@ -115,7 +115,7 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 -- a tight loop trying to fade the popup in).  I find it useful to
 -- have a key binding to restart the compositing manager; for example,
 --
--- main = xmonad $ defaultConfig {
+-- main = xmonad $ def {
 --                   {- ... -}
 --                 }
 --                 `additionalKeysP`

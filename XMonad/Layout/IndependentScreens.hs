@@ -45,7 +45,7 @@ import XMonad.Hooks.DynamicLog
 --
 -- You can define your workspaces by calling @withScreens@:
 --
--- > myConfig = defaultConfig { workspaces = withScreens 2 ["web", "email", "irc"] }
+-- > myConfig = def { workspaces = withScreens 2 ["web", "email", "irc"] }
 --
 -- This will create \"physical\" workspaces with distinct internal names for
 -- each (screen, virtual workspace) pair.
@@ -114,9 +114,9 @@ onCurrentScreen f vws = screen . current >>= f . flip marshall vws
 --
 -- > main = do
 -- >   nScreens <- countScreens
--- >   xmonad $ defaultConfig {
+-- >   xmonad $ def {
 -- >     ...
--- >     workspaces = withScreens nScreens (workspaces defaultConfig),
+-- >     workspaces = withScreens nScreens (workspaces def),
 -- >     ...
 -- >     }
 --

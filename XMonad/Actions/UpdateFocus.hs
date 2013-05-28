@@ -29,7 +29,7 @@ import Data.Monoid
 -- following to your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Actions.UpdateFocus
--- > xmonad $ defaultConfig {
+-- > xmonad $ def {
 -- >   ..
 -- >   startupHook = adjustEventInput
 -- >   handleEventHook = focusOnMouseMove

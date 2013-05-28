@@ -33,7 +33,7 @@ import qualified Data.Map as M
 --
 -- > import XMonad.Hooks.CurrentWorkspaceOnTop
 -- >
--- > main = xmonad $ defaultConfig {
+-- > main = xmonad $ def {
 -- >    ...
 -- >    logHook = currentWorkspaceOnTop
 -- >    ...

@@ -126,7 +126,7 @@ focusWin st@(W.Stack f u d) w
 
 Apply to your layout in a config like:
 
-> main = xmonad (defaultConfig{
+> main = xmonad (def{
 >                   layoutHook = trackFloating (useTransientFor
 >                       (noBorders Full ||| Tall 1 0.3 0.5)),
 >                   ...

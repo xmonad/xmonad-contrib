@@ -21,21 +21,21 @@ import XMonad.Layout.TwoPane
 import qualified Data.Map as M
 
 sjanssenConfig =
-    ewmh $ defaultConfig
+    ewmh $ def
         { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
                 [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w))
                 , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
                 , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
-        , keys = \c -> mykeys c `M.union` keys defaultConfig c
+        , keys = \c -> mykeys c `M.union` keys def c
         , logHook = dynamicLogString sjanssenPP >>= xmonadPropLog
         , layoutHook  = modifiers layouts
         , manageHook  = composeAll [className =? x --> doShift w
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
-                        <+> manageHook defaultConfig <+> manageDocks <+> manageSpawn
+                        <+> manageHook def <+> manageDocks <+> manageSpawn
                         <+> (isFullscreen --> doFullFloat)
         , startupHook = mapM_ spawnOnce spawns
         }

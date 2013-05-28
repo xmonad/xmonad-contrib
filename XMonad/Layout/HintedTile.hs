@@ -38,7 +38,7 @@ import Control.Monad
 -- >      nmaster    = 1
 -- >      ratio      = 1/2
 -- >      delta      = 3/100
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- Because both Xmonad and Xmonad.Layout.HintedTile define Tall,
 -- you need to disambiguate Tall. If you are replacing the

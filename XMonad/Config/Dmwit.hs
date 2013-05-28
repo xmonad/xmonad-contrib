@@ -206,7 +206,7 @@ instance PPrint ScreenId
 instance (Show a, Show b) => PPrint (Map a b)
 -- }}}
 -- main {{{
-dmwitConfig nScreens = defaultConfig {
+dmwitConfig nScreens = def {
     borderWidth             = 2,
     workspaces              = withScreens nScreens (map show [1..5]),
     terminal                = "urxvt",

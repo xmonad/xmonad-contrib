@@ -30,7 +30,7 @@ import XMonad.StackSet (Workspace (..))
 -- Then edit your @layoutHook@ by adding the ToggleLayouts layout:
 --
 -- > myLayout = toggleLayouts Full (Tall 1 (3/100) (1/2)) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

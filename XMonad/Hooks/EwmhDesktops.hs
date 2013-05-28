@@ -44,8 +44,8 @@ import XMonad.Util.WindowProperties (getProp32)
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad $ ewmh defaultConfig{ handleEventHook =
--- >            handleEventHook defaultConfig <+> fullscreenEventHook }
+-- > main = xmonad $ ewmh def{ handleEventHook =
+-- >            handleEventHook def <+> fullscreenEventHook }
 --
 -- You may also be interested in 'avoidStruts' from "XMonad.Hooks.ManageDocks".
 

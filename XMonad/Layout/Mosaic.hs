@@ -49,7 +49,7 @@ import Data.Monoid(Monoid,mempty, mappend)
 -- Then edit your @layoutHook@ by adding the Mosaic layout:
 --
 -- > myLayout = mosaic 2 [3,2] ||| Full ||| etc..
--- > main = xmonad $ defaultConfig { layoutHook = myLayout }
+-- > main = xmonad $ def { layoutHook = myLayout }
 --
 -- Unfortunately, infinite lists break serialization, so don't use them. And if
 -- the list is too short, it is extended with @++ repeat 1@, which covers the

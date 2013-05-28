@@ -34,7 +34,7 @@ import XMonad.Layout.Renamed
 -- to some layout:
 --
 -- > myLayout = named "real big" Full ||| (nameTail $ named "real big" $ Full) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

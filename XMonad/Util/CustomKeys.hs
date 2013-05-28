@@ -31,7 +31,7 @@ import qualified Data.Map as M
 --
 -- 2. Set key bindings with 'customKeys':
 --
--- > main = xmonad defaultConfig { keys = customKeys delkeys inskeys }
+-- > main = xmonad def { keys = customKeys delkeys inskeys }
 -- >     where
 -- >       delkeys :: XConfig l -> [(KeyMask, KeySym)]
 -- >       delkeys XConfig {modMask = modm} =
@@ -53,17 +53,17 @@ import qualified Data.Map as M
 -- > import System.Exit
 -- > import qualified Data.Map as M
 -- >
--- > main = xmonad defaultConfig {
+-- > main = xmonad def {
 -- >          keys = \_ -> M.fromList [
 -- >                  -- Let me out of here! I want my KDE back! Help! Help!
 -- >                  ( (0, xK_Escape), io (exitWith ExitSuccess) ) ] }
 
--- | Customize 'XMonad.Config.defaultConfig' -- delete needless
+-- | Customize 'XMonad.Config.def' -- delete needless
 -- shortcuts and insert those you will use.
 customKeys :: (XConfig Layout -> [(KeyMask, KeySym)]) -- ^ shortcuts to delete
            -> (XConfig Layout -> [((KeyMask, KeySym), X ())]) -- ^ key bindings to insert
            -> XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-customKeys = customKeysFrom defaultConfig
+customKeys = customKeysFrom def
 
 -- | General variant of 'customKeys': customize key bindings of
 -- third-party configuration.

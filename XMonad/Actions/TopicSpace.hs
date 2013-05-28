@@ -161,7 +161,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- > myConfig = do
 -- >     checkTopicConfig myTopics myTopicConfig
 -- >     myLogHook <- makeMyLogHook
--- >     return $ defaultConfig
+-- >     return $ def
 -- >          { borderWidth = 1 -- Width of the window border in pixels.
 -- >          , workspaces = myTopics
 -- >          , layoutHook = myModifiers myLayout

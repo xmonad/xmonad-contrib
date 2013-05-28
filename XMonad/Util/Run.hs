@@ -134,7 +134,7 @@ safeSpawnProg = flip safeSpawn []
 unsafeSpawn :: MonadIO m => String -> m ()
 unsafeSpawn = spawn
 
--- | Open a terminal emulator. The terminal emulator is specified in @defaultConfig@ as xterm by default. It is then
+-- | Open a terminal emulator. The terminal emulator is specified in the default configuration as xterm by default. It is then
 -- asked to pass the shell a command with certain options. This is unsafe in the sense of 'unsafeSpawn'
 unsafeRunInTerm, runInTerm :: String -> String -> X ()
 unsafeRunInTerm options command = asks (terminal . config) >>= \t -> unsafeSpawn $ t ++ " " ++ options ++ " -e " ++ command

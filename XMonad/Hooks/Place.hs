@@ -59,8 +59,8 @@ import Control.Monad.Trans (lift)
 --
 -- and adding 'placeHook' to your 'manageHook', for example:
 --
--- > main = xmonad $ defaultConfig { manageHook = placeHook simpleSmart
--- >                                              <+> manageHook defaultConfig }
+-- > main = xmonad $ def { manageHook = placeHook simpleSmart
+-- >                                    <+> manageHook def }
 --
 -- Note that 'placeHook' should be applied after most other hooks, especially hooks
 -- such as 'doFloat' and 'doShift'. Since hooks combined with '<+>' are applied from

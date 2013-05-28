@@ -106,7 +106,7 @@ import Foreign.C.Types (CLong)
 -- 'withUrgencyHook'. For example:
 --
 -- > main = xmonad $ withUrgencyHook dzenUrgencyHook { args = ["-bg", "darkgreen", "-xs", "1"] }
--- >               $ defaultConfig
+-- >               $ def
 --
 -- This will pop up a dzen bar for five seconds telling you you've got an
 -- urgent window.
@@ -118,7 +118,7 @@ import Foreign.C.Types (CLong)
 -- extra popup, install NoUrgencyHook, as so:
 --
 -- > main = xmonad $ withUrgencyHook NoUrgencyHook
--- >               $ defaultConfig
+-- >               $ def
 --
 -- Now, your "XMonad.Hooks.DynamicLog" must be set up to display the urgent
 -- windows. If you're using the 'dzen' or 'dzenPP' functions from that module,
@@ -259,7 +259,7 @@ minutes secs = secs * 60
 
 -- | The default 'UrgencyConfig'. suppressWhen = Visible, remindWhen = Dont.
 -- Use a variation of this in your config just as you use a variation of
--- defaultConfig for your xmonad definition.
+-- 'def' for your xmonad definition.
 urgencyConfig :: UrgencyConfig
 urgencyConfig = UrgencyConfig { suppressWhen = Visible, remindWhen = Dont }
 

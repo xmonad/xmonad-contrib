@@ -45,7 +45,7 @@ import XMonad.Util.WindowProperties
 -- to consider is Tabbed layout).
 --
 -- > myLayout = withIM (1%7) (ClassName "Tkabber") Grid ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- Here @1%7@ is the part of the screen which your roster will occupy,
 -- @ClassName \"Tkabber\"@ tells xmonad which window is actually your roster.

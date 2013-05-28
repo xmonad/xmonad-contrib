@@ -42,7 +42,7 @@ infixr 9 .
 -- Then edit your @layoutHook@ by adding the 'Grid' layout:
 --
 -- > myLayout = Grid False ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- You can also specify an aspect ratio for Grid to strive for with the
 -- GridRatio constructor:

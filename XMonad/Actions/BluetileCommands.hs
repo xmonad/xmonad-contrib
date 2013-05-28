@@ -36,7 +36,7 @@ import System.Exit
 --
 -- Then edit your @handleEventHook@:
 --
--- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook' bluetileCommands }
+-- > main = xmonad def { handleEventHook = serverModeEventHook' bluetileCommands }
 --
 -- See the documentation of "XMonad.Hooks.ServerMode" for details on
 -- how to actually invoke the commands from external programs.

@@ -33,7 +33,7 @@ import Control.Monad (ap)
 -- Then edit your @layoutHook@ by adding the Dishes layout:
 --
 -- > myLayout = Dishes 2 (1/6) ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

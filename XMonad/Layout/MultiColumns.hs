@@ -35,12 +35,12 @@ import Control.Monad
 -- Then edit your @layoutHook@ by adding the multiCol layout:
 --
 -- > myLayouts = multiCol [1] 4 0.01 0.5 ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > main = xmonad def { layoutHook = myLayouts }
 --
 -- Or alternatively:
 --
 -- > myLayouts = Mirror (multiCol [1] 2 0.01 (-0.25)) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayouts }
+-- > main = xmonad def { layoutHook = myLayouts }
 --
 -- The maximum number of windows in a column can be controlled using the
 -- IncMasterN messages and the column containing the focused window will be

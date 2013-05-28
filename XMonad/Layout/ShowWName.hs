@@ -34,8 +34,8 @@ import XMonad.Util.XUtils
 -- @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.ShowWName
--- > myLayout = layoutHook defaultConfig
--- > main = xmonad defaultConfig { layoutHook = showWName myLayout }
+-- > myLayout = layoutHook def
+-- > main = xmonad def { layoutHook = showWName myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

@@ -87,7 +87,7 @@ import qualified XMonad.StackSet as W
 -- >
 -- > main = do
 -- >    h <- spawnPipe "xmobar"
--- >    xmonad defaultConfig { logHook = sampleLogHook h }
+-- >    xmonad def { logHook = sampleLogHook h }
 
 -- | Copy the focused window to a workspace.
 copy :: (Eq s, Eq i, Eq a) => i -> W.StackSet i l a s sd -> W.StackSet i l a s sd

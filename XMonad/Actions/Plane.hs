@@ -52,9 +52,9 @@ import XMonad.Util.Run
 --
 -- > import XMonad.Actions.Plane
 -- >
--- > main = xmonad defaultConfig {keys = myKeys}
+-- > main = xmonad def {keys = myKeys}
 -- >
--- > myKeys conf = union (keys defaultConfig conf) $ myNewKeys conf
+-- > myKeys conf = union (keys def conf) $ myNewKeys conf
 -- >
 -- > myNewkeys (XConfig {modMask = modm}) = planeKeys modm (Lines 3) Finite
 --

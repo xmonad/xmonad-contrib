@@ -38,12 +38,12 @@ import Data.List
 -- @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Layout.WindowArranger
--- > myLayout = layoutHook defaultConfig
--- > main = xmonad defaultConfig { layoutHook = windowArrange myLayout }
+-- > myLayout = layoutHook def
+-- > main = xmonad def { layoutHook = windowArrange myLayout }
 --
 -- or
 --
--- > main = xmonad defaultConfig { layoutHook = windowArrangeAll myLayout }
+-- > main = xmonad def { layoutHook = windowArrangeAll myLayout }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --

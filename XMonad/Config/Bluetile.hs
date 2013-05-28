@@ -198,7 +198,7 @@ bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
             floatingDeco l = buttonDeco shrinkText defaultThemeWithButtons l
 
 bluetileConfig =
-    defaultConfig
+    def
         { modMask = mod4Mask,   -- logo key
           manageHook = bluetileManageHook,
           layoutHook = bluetileLayoutHook,

@@ -44,7 +44,7 @@ import XMonad.Util.XUtils
 -- to some layout:
 --
 -- > myLayout = magnifier (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- By default magnifier increases the focused window's size by 1.5.
 -- You can also use:

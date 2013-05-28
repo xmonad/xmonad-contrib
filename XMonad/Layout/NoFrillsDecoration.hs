@@ -37,8 +37,8 @@ import XMonad.Layout.SimpleDecoration
 -- Then edit your @layoutHook@ by adding the NoFrillsDecoration to
 -- your layout:
 --
--- > myL = noFrillsDeco shrinkText defaultTheme (layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = noFrillsDeco shrinkText defaultTheme (layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 
 -- | Add very simple decorations to windows of a layout.

@@ -79,7 +79,7 @@ import XMonad.Actions.Commands
 --
 -- Then edit your @handleEventHook@ by adding the 'serverModeEventHook':
 --
--- > main = xmonad defaultConfig { handleEventHook = serverModeEventHook }
+-- > main = xmonad def { handleEventHook = serverModeEventHook }
 --
 
 data ServerMode = ServerMode deriving ( Show, Read )

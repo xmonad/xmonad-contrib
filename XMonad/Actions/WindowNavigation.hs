@@ -62,7 +62,7 @@ import qualified Data.Set as S
 --
 -- > main = do
 -- >     config <- withWindowNavigation (xK_w, xK_a, xK_s, xK_d)
--- >             $ defaultConfig { ... }
+-- >             $ def { ... }
 -- >     xmonad config
 --
 -- Here, we pass in the keys for navigation in counter-clockwise order from up.

@@ -31,7 +31,7 @@ import Data.Monoid(Endo(Endo))
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Hooks.InsertPosition
--- > xmonad defaultConfig { manageHook = insertPosition Master Newer <+> myManageHook }
+-- > xmonad def { manageHook = insertPosition Master Newer <+> myManageHook }
 --
 -- You should you put the manageHooks that use 'doShift' to take effect
 -- /before/ 'insertPosition', so that the window order will be consistent.

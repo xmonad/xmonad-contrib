@@ -50,8 +50,8 @@ import XMonad.Layout.Maximize
 -- Then edit your @layoutHook@ by adding the ImageButtonDecoration to
 -- your layout:
 --
--- > myL = imageButtonDeco shrinkText defaultThemeWithImageButtons (layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = imageButtonDeco shrinkText defaultThemeWithImageButtons (layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 
 -- The buttons' dimension and placements

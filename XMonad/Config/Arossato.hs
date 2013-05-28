@@ -86,7 +86,7 @@ import XMonad.Util.Themes
 
 arossatoConfig = do
     xmobar <- spawnPipe "xmobar" -- REMOVE this line if you do not have xmobar installed!
-    return $ defaultConfig
+    return $ def
          { workspaces         = ["home","var","dev","mail","web","doc"] ++
                                 map show [7 .. 9 :: Int]
          , logHook            = myDynLog xmobar -- REMOVE this line if you do not have xmobar installed!
@@ -128,7 +128,7 @@ arossatoConfig = do
                       }
 
       -- key bindings stuff
-      defKeys    = keys defaultConfig
+      defKeys    = keys def
       delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
       newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
       -- remove some of the default key bindings

@@ -51,7 +51,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- and then:
 --
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- This layout has hardcoded behaviour for mouse clicks on tab decorations:
 -- Left click on the tab switches focus to that window.
@@ -82,7 +82,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- > import XMonad
 -- > import XMonad.Layout.Tabbed
--- > main = xmonad defaultConfig { layoutHook = simpleTabbed }
+-- > main = xmonad def { layoutHook = simpleTabbed }
 simpleTabbed :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
 simpleTabbed = tabbed shrinkText defaultTheme
 

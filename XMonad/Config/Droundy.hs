@@ -117,7 +117,7 @@ keys x = M.fromList $
     ++
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
-config = ewmh defaultConfig
+config = ewmh def
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
          , layoutHook = showWName $ workspaceDir "~" $
@@ -129,7 +129,7 @@ config = ewmh defaultConfig
                         named "widescreen" ((mytab *||* mytab)
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
-         , manageHook = manageHook defaultConfig <+> manageDocks -- add panel-handling
+         , manageHook = manageHook def <+> manageDocks -- add panel-handling
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#222222" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.

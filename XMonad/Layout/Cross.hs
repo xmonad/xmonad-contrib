@@ -29,7 +29,7 @@ import Control.Monad( msum )
 -- Then edit your @layoutHook@ by adding one of the Cross layouts:
 --
 -- > myLayout =  simpleCross ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 
 -- apply a factor to a Rectangle Dimension

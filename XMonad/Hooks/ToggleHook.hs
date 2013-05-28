@@ -85,12 +85,12 @@ modify' n f = XS.modify (HookState . setter . hooks)
 -- and adding 'toggleHook name hook' to your 'ManageHook' where @name@ is the
 -- name of the hook and @hook@ is the hook to execute based on the state.
 --
--- > myManageHook = toggleHook "float" doFloat <+> manageHook defaultConfig
+-- > myManageHook = toggleHook "float" doFloat <+> manageHook def
 --
 -- Additionally, toggleHook' is provided to toggle between two hooks (rather
 -- than on/off).
 --
--- > myManageHook = toggleHook' "oldfocus" (const id) W.focusWindow <+> manageHook defaultConfig
+-- > myManageHook = toggleHook' "oldfocus" (const id) W.focusWindow <+> manageHook def
 --
 -- The 'hookNext' and 'toggleHookNext' functions can be used in key
 -- bindings to set whether the hook is applied or not.

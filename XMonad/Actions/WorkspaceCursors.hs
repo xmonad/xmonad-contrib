@@ -69,8 +69,8 @@ import Data.Traversable(sequenceA)
 -- >     x <- xmobar conf
 -- >     xmonad x
 -- >
--- > conf = additionalKeysP defaultConfig
--- >        { layoutHook = workspaceCursors myCursors $ layoutHook defaultConfig
+-- > conf = additionalKeysP def
+-- >        { layoutHook = workspaceCursors myCursors $ layoutHook def
 -- >        , workspaces = toList myCursors } $
 -- >        [("M-"++shift++control++[k], f direction depth)
 -- >          | (f,shift) <- zip [modifyLayer,shiftModifyLayer] ["","S-"]

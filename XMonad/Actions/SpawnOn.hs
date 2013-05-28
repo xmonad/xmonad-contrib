@@ -45,9 +45,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >    import XMonad.Actions.SpawnOn
 --
 -- >    main = do
--- >      xmonad defaultConfig {
+-- >      xmonad def {
 -- >         ...
--- >         manageHook = manageSpawn <+> manageHook defaultConfig
+-- >         manageHook = manageSpawn <+> manageHook def
 -- >         ...
 -- >      }
 --

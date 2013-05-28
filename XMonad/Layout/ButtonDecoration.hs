@@ -40,8 +40,8 @@ import XMonad.Layout.DecorationAddons
 -- Then edit your @layoutHook@ by adding the ButtonDecoration to
 -- your layout:
 --
--- > myL = buttonDeco shrinkText defaultThemeWithButtons (layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = buttonDeco shrinkText defaultThemeWithButtons (layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 
 buttonDeco :: (Eq a, Shrinker s) => s -> Theme

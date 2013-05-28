@@ -34,7 +34,7 @@ import XMonad
 -- For example, if you wanted to run the hook "startup" in your script every
 -- time your startup hook ran, you could modify your xmonad config as such:
 --
--- > main = xmonad $ defaultConfig {
+-- > main = xmonad $ def {
 -- >   ...
 -- >   startupHook = execScriptHook "startup"
 -- >   ...

@@ -88,7 +88,7 @@ import XMonad.Hooks.ManageDocks
 --
 -- > main = xmonad =<< xmobar myConfig
 -- >
--- > myConfig = defaultConfig { ... }
+-- > myConfig = def { ... }
 --
 -- There is also 'statusBar' if you'd like to use another status bar, or would
 -- like to use different formatting options.  The 'xmobar', 'dzen', and
@@ -99,7 +99,7 @@ import XMonad.Hooks.ManageDocks
 -- ('dynamicLog' or 'dynamicLogXinerama') by simply setting your logHook to the
 -- appropriate function, for instance:
 --
--- > main = xmonad $ defaultConfig {
+-- > main = xmonad $ def {
 -- >    ...
 -- >    logHook = dynamicLog
 -- >    ...
@@ -124,7 +124,7 @@ import XMonad.Hooks.ManageDocks
 -- >
 -- > main = do
 -- >     h <- spawnPipe "xmobar -options -foo -bar"
--- >     xmonad $ defaultConfig {
+-- >     xmonad $ def {
 -- >       ...
 -- >       logHook = dynamicLogWithPP $ defaultPP { ppOutput = hPutStrLn h }
 --
@@ -153,7 +153,7 @@ import XMonad.Hooks.ManageDocks
 --
 -- > main = xmonad =<< dzen myConfig
 -- >
--- > myConfig = defaultConfig { ... }
+-- > myConfig = def { ... }
 --
 -- The intent is that the above config file should provide a nice
 -- status bar with minimal effort.
@@ -178,7 +178,7 @@ dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
 --
 -- > main = xmonad =<< xmobar myConfig
 -- >
--- > myConfig = defaultConfig { ... }
+-- > myConfig = def { ... }
 --
 -- This works pretty much the same as 'dzen' function above.
 --

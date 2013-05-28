@@ -36,8 +36,8 @@ import XMonad.Layout.Decoration
 -- Then edit your @layoutHook@ by adding the DwmStyle decoration to
 -- your layout:
 --
--- > myL = dwmStyle shrinkText defaultTheme (layoutHook defaultConfig)
--- > main = xmonad defaultConfig { layoutHook = myL }
+-- > myL = dwmStyle shrinkText defaultTheme (layoutHook def)
+-- > main = xmonad def { layoutHook = myL }
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -50,17 +50,17 @@ import XMonad.Layout.Decoration
 --
 -- and
 --
--- > myL = dwmStyle shrinkText myDWConfig (layoutHook defaultConfig)
+-- > myL = dwmStyle shrinkText myDWConfig (layoutHook def)
 --
 -- A complete xmonad.hs file for this would therefore be:
 --
 -- > import XMonad
 -- > import XMonad.Layout.DwmStyle
 -- >
--- > main = xmonad defaultConfig {
+-- > main = xmonad def {
 -- >                    layoutHook =
 -- >                        dwmStyle shrinkText defaultTheme
--- >                            (layoutHook defaultConfig)
+-- >                            (layoutHook def)
 -- >              }
 --
 

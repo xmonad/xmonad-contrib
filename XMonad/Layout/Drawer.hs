@@ -48,7 +48,7 @@ import XMonad.Layout.Reflect
 -- >     where
 -- >         drawer = simpleDrawer 0.01 0.3 (ClassName "Rhythmbox" `Or` ClassName "Xchat")
 -- >
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- This will place the Rhythmbox and Xchat windows in at the top of the screen
 -- only when using the 'Tall' layout.  See "XMonad.Util.WindowProperties" for

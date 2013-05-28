@@ -53,9 +53,9 @@ import Control.Arrow (second)
 -- To use this module, add 'fullscreenEventHook' and 'fullscreenManageHook'
 -- to your config, i.e.
 --
--- > xmonad defaultconfig { handleEventHook = fullscreenEventHook,
--- >                        manageHook = fullscreenManageHook,
--- >                        layoutHook = myLayouts }
+-- > xmonad def { handleEventHook = fullscreenEventHook,
+-- >              manageHook = fullscreenManageHook,
+-- >              layoutHook = myLayouts }
 --
 -- Now you can use layouts that respect fullscreen, for example the
 -- provided 'fullscreenFull':

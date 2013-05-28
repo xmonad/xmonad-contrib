@@ -13,7 +13,7 @@
 --
 -- > import XMonad.Hooks.ManageHelpers
 -- > main =
--- >     xmonad defaultConfig{
+-- >     xmonad def{
 -- >         ...
 -- >         manageHook = composeOne [
 -- >             isKDETrayWindow -?> doIgnore,

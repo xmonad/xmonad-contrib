@@ -40,7 +40,7 @@ import Control.Monad
 -- > import XMonad.Util.Replace
 -- > main = do
 -- >    replace
--- >    xmonad $ defaultConfig { .... }
+-- >    xmonad $ def { .... }
 --
 
 -- $shortcomings
@@ -61,7 +61,7 @@ import Control.Monad
 -- > main = do
 -- >    args <- getArgs
 -- >    when ("--replace" `elem` args) replace
--- >    xmonad $ defaultConfig { .... }
+-- >    xmonad $ def { .... }
 --
 --
 -- Note that your @~\/.xmonad/xmonad-$arch-$os@ binary is not run with the same

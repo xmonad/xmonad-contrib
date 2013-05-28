@@ -123,7 +123,7 @@ import Data.Map(Map)
 --
 -- > myLayout = windowNavigation $ subTabbed $ boringWindows $
 -- >                        Tall 1 (3/100) (1/2) ||| etc..
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- "XMonad.Layout.WindowNavigation" is used to specify which windows to merge,
 -- and it is not integrated into the modifier because it can be configured, and

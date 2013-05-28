@@ -47,7 +47,7 @@ import Data.Maybe(fromJust)
 -- > import XMonad.Layout.LimitWindows
 --
 -- > myLayout = limitWindows 6 $ Tall 1 0.03 0.5 ||| Full ||| RandomOtherLayout...
--- > main = xmonad defaultConfig { layoutHook = myLayout }
+-- > main = xmonad def { layoutHook = myLayout }
 --
 -- You may also be interested in dynamically changing the number dynamically,
 -- by binding keys to the 'increaseLimit', 'decreaseLimit', or 'setLimit'
