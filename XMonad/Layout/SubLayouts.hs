@@ -45,7 +45,7 @@ import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
                                     redoLayout),
                                     ModifiedLayout(..))
 import XMonad.Layout.Simplest(Simplest(..))
-import XMonad.Layout.Tabbed(defaultTheme, shrinkText,
+import XMonad.Layout.Tabbed(shrinkText,
                             TabbedDecoration, addTabs)
 import XMonad.Layout.WindowNavigation(Navigate(Apply))
 import XMonad.Util.Invisible(Invisible(..))
@@ -59,6 +59,7 @@ import Data.List(nubBy, (\\), find)
 import Data.Maybe(isNothing, fromMaybe, listToMaybe, mapMaybe)
 import Data.Traversable(sequenceA)
 
+import qualified XMonad as X
 import qualified XMonad.Layout.BoringWindows as B
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
@@ -182,7 +183,7 @@ import Data.Map(Map)
 --  Ex. The second group is 'Tall', the third is 'Circle', all others are tabbed
 --  with:
 --
---  > myLayout = addTabs shrinkText defaultTheme
+--  > myLayout = addTabs shrinkText def
 --  >          $ subLayout [0,1,2] (Simplest ||| Tall 1 0.2 0.5 ||| Circle)
 --  >          $ Tall 1 0.2 0.5 ||| Full
 subLayout :: [Int] -> subl a -> l a -> ModifiedLayout (Sublayout subl) l a
@@ -192,7 +193,7 @@ subLayout nextLayout sl x = ModifiedLayout (Sublayout (I []) (nextLayout,sl) [])
 subTabbed :: (Eq a, LayoutModifier (Sublayout Simplest) a, LayoutClass l a) =>
     l a -> ModifiedLayout (Decoration TabbedDecoration DefaultShrinker)
                           (ModifiedLayout (Sublayout Simplest) l) a
-subTabbed  x = addTabs shrinkText defaultTheme $ subLayout [] Simplest x
+subTabbed  x = addTabs shrinkText X.def $ subLayout [] Simplest x
 
 -- | @defaultSublMap@ is an attempt to create a set of keybindings like the
 -- defaults ones but to be used as a 'submap' for sending messages to the

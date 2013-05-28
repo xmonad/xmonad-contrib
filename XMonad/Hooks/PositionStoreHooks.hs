@@ -55,7 +55,7 @@ import qualified Data.Set as S
 -- as 'positionStoreEventHook' to your event hooks. To be accurate
 -- about window sizes, the module needs to know if any decoration is in effect.
 -- This is specified with the first argument: Supply 'Nothing' for no decoration,
--- otherwise use 'Just defaultTheme' or similar to inform the module about the
+-- otherwise use 'Just def' or similar to inform the module about the
 -- decoration theme used.
 --
 -- > myManageHook = positionStoreManageHook Nothing <+> manageHook def

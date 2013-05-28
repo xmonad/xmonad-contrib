@@ -56,7 +56,7 @@ import XMonad.StackSet ( tag, currentTag )
 -- WorkspaceDir provides also a prompt. To use it you need to import
 -- "XMonad.Prompt" and add something like this to your key bindings:
 --
--- >  , ((modm .|. shiftMask, xK_x     ), changeDir defaultXPConfig)
+-- >  , ((modm .|. shiftMask, xK_x     ), changeDir def)
 --
 -- For detailed instruction on editing the key binding see:
 --

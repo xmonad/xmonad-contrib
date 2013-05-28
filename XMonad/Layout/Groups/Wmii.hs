@@ -30,6 +30,7 @@ module XMonad.Layout.Groups.Wmii ( -- * Usage
 
                                    -- * Useful re-exports
                                  , shrinkText
+                                 , def
                                  , defaultTheme
                                  , module XMonad.Layout.Groups.Helpers ) where
 
@@ -71,7 +72,7 @@ import XMonad.Layout.Simplest
 -- (with a 'Shrinker' and decoration 'Theme' as
 -- parameters) to your layout hook, for example:
 --
--- > myLayout = wmii shrinkText defaultTheme
+-- > myLayout = wmii shrinkText def
 --
 -- To be able to zoom in and out of groups, change their inner layout, etc.,
 -- create key bindings for the relevant actions:

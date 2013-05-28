@@ -41,7 +41,7 @@ econst = const . return
 
 2. In your keybindings add something like:
 
->   , ((modm .|. controlMask, xK_x), runOrRaisePrompt defaultXPConfig)
+>   , ((modm .|. controlMask, xK_x), runOrRaisePrompt def)
 
 For detailed instruction on editing the key binding see
 "XMonad.Doc.Extending#Editing_key_bindings". -}

@@ -41,7 +41,7 @@ econst = const . return
 --
 -- 2. In your keybindings add something like:
 --
--- >   , ((modm .|. controlMask, xK_s), sshPrompt defaultXPConfig)
+-- >   , ((modm .|. controlMask, xK_s), sshPrompt def)
 --
 -- Keep in mind, that if you want to use the completion you have to
 -- disable the "HashKnownHosts" option in your ssh_config

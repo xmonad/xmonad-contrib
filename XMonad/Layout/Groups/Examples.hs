@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# LANGUAGE MultiParamTypeClasses, Rank2Types #-}
+{-# LANGUAGE MultiParamTypeClasses, Rank2Types, TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -36,6 +36,7 @@ module XMonad.Layout.Groups.Examples ( -- * Usage
                                      , mirrorTallTabs
                                      , fullTabs
                                      , TiledTabsConfig(..)
+                                     , def
                                      , defaultTiledTabsConfig
                                      , increaseNMasterGroups
                                      , decreaseNMasterGroups
@@ -180,9 +181,9 @@ toggleWindowFull = sendMessage ZoomFullToggle
 -- You can use any of these three layouts by including it in your layout hook.
 -- You will need to provide it with a 'TiledTabsConfig' containing the size
 -- parameters for 'Tall' and 'Mirror' 'Tall', and the shrinker and decoration theme
--- for the tabs. If you're happy with defaults, you can use 'defaultTiledTabsConfig':
+-- for the tabs. If you're happy with defaults, you can use 'def':
 --
--- > myLayout = tallTabs defaultTiledTabsConfig
+-- > myLayout = tallTabs def
 --
 -- To be able to increase\/decrease the number of master groups and shrink\/expand
 -- the master area, you can create key bindings for the relevant actions:
@@ -201,8 +202,12 @@ data TiledTabsConfig s = TTC { vNMaster :: Int
                              , tabsShrinker :: s
                              , tabsTheme :: Theme }
 
+instance s ~ DefaultShrinker => Default (TiledTabsConfig s) where
+    def = TTC 1 0.5 (3/100) 1 0.5 (3/100) shrinkText def
+
+{-# DEPRECATED defaultTiledTabsConfig "Use def (from Data.Default, and re-exported by XMonad.Layout.Groups) instead." #-}
 defaultTiledTabsConfig :: TiledTabsConfig DefaultShrinker
-defaultTiledTabsConfig = TTC 1 0.5 (3/100) 1 0.5 (3/100) shrinkText defaultTheme
+defaultTiledTabsConfig = def
 
 fullTabs c = _tab c $ G.group _tabs $ Full ||| _vert c ||| _horiz c
 

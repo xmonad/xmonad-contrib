@@ -17,6 +17,7 @@ module XMonad.Layout.ShowWName
       -- $usage
       showWName
     , showWName'
+    , def
     , defaultSWNConfig
     , SWNConfig(..)
     , ShowWName
@@ -43,7 +44,7 @@ import XMonad.Util.XUtils
 
 -- | A layout modifier to show the workspace name when switching
 showWName :: l a -> ModifiedLayout ShowWName l a
-showWName = ModifiedLayout (SWN True defaultSWNConfig Nothing)
+showWName = ModifiedLayout (SWN True def Nothing)
 
 -- | A layout modifier to show the workspace name when switching. It
 -- is possible to provide a custom configuration.
@@ -60,13 +61,17 @@ data SWNConfig =
          , swn_fade    :: Rational -- ^ Time in seconds of the name visibility
     } deriving (Read, Show)
 
-defaultSWNConfig :: SWNConfig
-defaultSWNConfig =
+instance Default SWNConfig where
+  def =
     SWNC { swn_font    = "-misc-fixed-*-*-*-*-20-*-*-*-*-*-*-*"
          , swn_bgcolor = "black"
          , swn_color   = "white"
          , swn_fade    = 1
          }
+
+{-# DEPRECATED defaultSWNConfig "Use def (from Data.Default, and re-exported from XMonad.Layout.ShowWName) instead." #-}
+defaultSWNConfig :: SWNConfig
+defaultSWNConfig = def
 
 instance LayoutModifier ShowWName a where
     redoLayout      sn r _ wrs = doShow sn r wrs

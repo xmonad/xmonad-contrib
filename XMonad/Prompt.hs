@@ -19,6 +19,7 @@ module XMonad.Prompt
       mkXPrompt
     , mkXPromptWithReturn
     , mkXPromptWithModes
+    , def
     , amberXPConfig
     , defaultXPConfig
     , greenXPConfig
@@ -230,7 +231,8 @@ data XPPosition = Top
 
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
 
-defaultXPConfig =
+instance Default XPConfig where
+  def =
     XPC { font              = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
         , bgColor           = "grey22"
         , fgColor           = "grey80"
@@ -252,8 +254,10 @@ defaultXPConfig =
         , searchPredicate   = isPrefixOf
         , alwaysHighlight   = False
         }
-greenXPConfig = defaultXPConfig { fgColor = "green", bgColor = "black", promptBorderWidth = 0 }
-amberXPConfig = defaultXPConfig { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
+{-# DEPRECATED defaultXPConfig "Use def (from Data.Default, and re-exported from XMonad.Prompt) instead." #-}
+defaultXPConfig = def
+greenXPConfig = def { fgColor = "green", bgColor = "black", promptBorderWidth = 0 }
+amberXPConfig = def { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
 
 initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
           -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> XPState
@@ -377,8 +381,7 @@ mkXPromptWithReturn t conf compl action = do
 --
 -- * a prompt type, instance of the 'XPrompt' class.
 --
--- * a prompt configuration ('defaultXPConfig' can be used as a
--- starting point)
+-- * a prompt configuration ('def' can be used as a starting point)
 --
 -- * a completion function ('mkComplFunFromList' can be used to
 -- create a completions function given a list of possible completions)
@@ -1192,10 +1195,10 @@ historyNextMatching hm@(HistoryMatches ref) next = do
 -- > ..
 -- > ((modMask,xK_p), shellPrompt . myPrompt =<< initMatches)
 -- > ..
--- > myPrompt ref = defaultPrompt
+-- > myPrompt ref = def
 -- >   { promptKeymap = M.union [((0,xK_Up), historyUpMatching ref)
 -- >                            ,((0,xK_Down), historyDownMatching ref)]
--- >                            (promptKeymap defaultPrompt)
+-- >                            (promptKeymap def)
 -- >   , .. }
 --
 historyUpMatching, historyDownMatching :: HistoryMatches -> XP ()

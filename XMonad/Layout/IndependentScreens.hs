@@ -157,7 +157,7 @@ marshallPP s pp = pp {
 -- window currently focused on a given screen (even if the screen is not
 -- current) by doing something like this:
 --
--- > ppFocus s = whenCurrentOn s defaultPP
+-- > ppFocus s = whenCurrentOn s def
 -- >     { ppOrder  = \(_:_:title:_) -> [title]
 -- >     , ppOutput = appendFile ("focus" ++ show s) . (++ "\n")
 -- >     }

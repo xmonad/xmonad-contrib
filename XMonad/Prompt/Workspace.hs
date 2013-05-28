@@ -32,7 +32,7 @@ import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Workspace
 --
--- >   , ((modm .|. shiftMask, xK_m     ), workspacePrompt defaultXPConfig (windows . W.shift))
+-- >   , ((modm .|. shiftMask, xK_m     ), workspacePrompt def (windows . W.shift))
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

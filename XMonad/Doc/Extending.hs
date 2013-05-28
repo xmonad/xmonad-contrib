@@ -937,8 +937,8 @@ example, you could write:
 and provide an appropriate definition of @myKeys@, such as:
 
 > myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
->             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
->             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
+>             [ ((modm, xK_F12), xmonadPrompt def)
+>             , ((modm, xK_F3 ), shellPrompt  def)
 >             ]
 
 This particular definition also requires importing "XMonad.Prompt",
@@ -984,8 +984,8 @@ For instance, if you have defined some additional key bindings like
 these:
 
 >    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
->             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
->             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
+>             [ ((modm, xK_F12), xmonadPrompt def)
+>             , ((modm, xK_F3 ), shellPrompt  def)
 >             ]
 
 then you can create a new key bindings map by joining the default one
@@ -1021,8 +1021,8 @@ All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
 >    main = xmonad $ def { keys = myKeys <+> keys def }
 >
 >    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
->             [ ((modm, xK_F12), xmonadPrompt defaultXPConfig)
->             , ((modm, xK_F3 ), shellPrompt  defaultXPConfig)
+>             [ ((modm, xK_F12), xmonadPrompt def)
+>             , ((modm, xK_F3 ), shellPrompt  def)
 >             ]
 
 There are much simpler ways to accomplish this, however, if you are
@@ -1097,8 +1097,8 @@ for removing and adding.  Here is an example from
 >        [(shiftMask .|. modm, k) | k <- [xK_1 .. xK_9]]
 >    -- These are my personal key bindings
 >    toAdd XConfig{modMask = modm} =
->        [ ((modm              , xK_F12   ), xmonadPrompt defaultXPConfig )
->        , ((modm              , xK_F3    ), shellPrompt  defaultXPConfig )
+>        [ ((modm              , xK_F12   ), xmonadPrompt def )
+>        , ((modm              , xK_F3    ), shellPrompt  def )
 >        ] ++
 >        -- Use modm .|. shiftMask .|. controlMask 1-9 instead
 >        [( (m .|. modm, k), windows $ f i)
@@ -1174,7 +1174,7 @@ Suppose we want a list with the 'XMonad.Layout.Full',
 
 Then we create the combination of layouts we need:
 
->    mylayoutHook = Full ||| tabbed shrinkText defaultTheme ||| Accordion
+>    mylayoutHook = Full ||| tabbed shrinkText def ||| Accordion
 
 
 Now, all we need to do is change the 'XMonad.Core.layoutHook'
@@ -1188,11 +1188,11 @@ example, suppose we want to use the
 'XMonad.Layout.NoBorders.noBorders' layout modifier, from the
 "XMonad.Layout.NoBorders" module (which must be imported):
 
->    mylayoutHook = noBorders (Full ||| tabbed shrinkText defaultTheme ||| Accordion)
+>    mylayoutHook = noBorders (Full ||| tabbed shrinkText def ||| Accordion)
 
 If we want only the tabbed layout without borders, then we may write:
 
->    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTheme) ||| Accordion
+>    mylayoutHook = Full ||| noBorders (tabbed shrinkText def) ||| Accordion
 
 Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 
@@ -1202,7 +1202,7 @@ Our @~\/.xmonad\/xmonad.hs@ will now look like this:
 >    import XMonad.Layout.Accordion
 >    import XMonad.Layout.NoBorders
 >
->    mylayoutHook = Full ||| noBorders (tabbed shrinkText defaultTheme) ||| Accordion
+>    mylayoutHook = Full ||| noBorders (tabbed shrinkText def) ||| Accordion
 >
 >    main = xmonad $ def { layoutHook = mylayoutHook }
 

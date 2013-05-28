@@ -27,6 +27,7 @@ module XMonad.Actions.GridSelect (
 
     -- * Configuration
     GSConfig(..),
+    def,
     defaultGSConfig,
     TwoDPosition,
     buildDefaultGSConfig,
@@ -167,7 +168,7 @@ import Data.Word (Word8)
 --
 -- You can then define @gsconfig3@ which may be used in exactly the same manner as @gsconfig1@:
 --
--- > gsconfig3 = defaultGSConfig
+-- > gsconfig3 = def
 -- >    { gs_cellheight = 30
 -- >    , gs_cellwidth = 100
 -- >    , gs_navigate = myNavigation
@@ -183,6 +184,11 @@ import Data.Word (Word8)
 --
 -- <<http://haskell.org/wikiupload/3/35/Xmonad-gridselect-window-aavogt.png>>
 
+-- | The 'Default' instance gives a basic configuration for 'gridselect', with
+-- the colorizer chosen based on the type.
+--
+-- If you want to replace the 'gs_colorizer' field, use 'buildDefaultGSConfig'
+-- instead of 'def' to avoid ambiguous type variables.
 data GSConfig a = GSConfig {
       gs_cellheight :: Integer,
       gs_cellwidth :: Integer,
@@ -212,12 +218,12 @@ instance HasColorizer a where
         let getColor = if isFg then focusedBorderColor else normalBorderColor
         in asks $ flip (,) "black" . getColor . config
 
--- | A basic configuration for 'gridselect', with the colorizer chosen based on the type.
---
--- If you want to replace the 'gs_colorizer' field, use 'buildDefaultGSConfig'
--- instead, to avoid ambiguous type variables.
+instance HasColorizer a => Default (GSConfig a) where
+    def = buildDefaultGSConfig defaultColorizer
+
+{-# DEPRECATED defaultGSConfig "Use def (from Data.Default, and re-exported from XMonad.Actions.GridSelect) instead." #-}
 defaultGSConfig :: HasColorizer a => GSConfig a
-defaultGSConfig = buildDefaultGSConfig defaultColorizer
+defaultGSConfig = def
 
 type TwoDPosition = (Integer, Integer)
 

@@ -157,7 +157,7 @@ Then add the following to your key bindings:
 
 > ...
 > -- Search commands
-> , ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.defaultXPConfig)
+> , ((modm, xK_s), SM.submap $ searchEngineMap $ S.promptSearch P.def)
 > , ((modm .|. shiftMask, xK_s), SM.submap $ searchEngineMap $ S.selectSearch)
 >
 > ...
@@ -173,7 +173,7 @@ Or in combination with XMonad.Util.EZConfig:
 > ...
 > ] -- end of regular keybindings
 > -- Search commands
-> ++ [("M-s " ++ k, S.promptSearch P.defaultXPConfig f) | (k,f) <- searchList ]
+> ++ [("M-s " ++ k, S.promptSearch P.def f) | (k,f) <- searchList ]
 > ++ [("M-S-s " ++ k, S.selectSearch f) | (k,f) <- searchList ]
 >
 > ...

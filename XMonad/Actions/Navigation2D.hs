@@ -34,6 +34,7 @@ module XMonad.Actions.Navigation2D ( -- * Usage
 
                                      withNavigation2DConfig
                                    , Navigation2DConfig(..)
+                                   , def
                                    , defaultNavigation2DConfig
                                    , Navigation2D
                                    , lineNavigation
@@ -114,8 +115,7 @@ import XMonad.Util.Types
 --
 -- and add the configuration of the module to your main function:
 --
--- > main = xmonad $ withNavigation2DConfig defaultNavigation2DConfig
--- >               $ def
+-- > main = xmonad $ withNavigation2DConfig def $ def
 --
 -- For detailed instruction on editing the key binding see:
 --
@@ -147,7 +147,7 @@ import XMonad.Util.Types
 -- example, for the Full layout, is to switch to center navigation for the Full
 -- layout:
 --
--- > myNavigation2DConfig = defaultNavigation2DConfig { layoutNavigation = [("Full", centerNavigation)] }
+-- > myNavigation2DConfig = def { layoutNavigation = [("Full", centerNavigation)] }
 -- >
 -- > main = xmonad $ withNavigation2DConfig myNavigation2DConfig
 -- >               $ def
@@ -164,9 +164,9 @@ import XMonad.Util.Types
 -- on top of each other so that only the frontmost one is visible.  This can be
 -- done as follows:
 --
--- > myNavigation2DConfig = defaultNavigation2DConfig { layoutNavigation   = [("Full", centerNavigation)]
--- >                                                  , unmappedWindowRect = [("Full", singleWindowRect)]
--- >                                                  }
+-- > myNavigation2DConfig = def { layoutNavigation   = [("Full", centerNavigation)]
+-- >                            , unmappedWindowRect = [("Full", singleWindowRect)]
+-- >                            }
 -- >
 -- > main = xmonad $ withNavigation2DConfig myNavigation2DConfig
 -- >               $ def
@@ -279,7 +279,10 @@ lineNavigation = N 1 doLineNavigation
 centerNavigation :: Navigation2D
 centerNavigation = N 2 doCenterNavigation
 
--- | Stores the configuration of directional navigation
+-- | Stores the configuration of directional navigation. The 'Default' instance
+-- uses line navigation for the tiled layer and for navigation between screens,
+-- and center navigation for the float layer.  No custom navigation strategies
+-- or rectangles for unmapped windows are defined for individual layouts.
 data Navigation2DConfig = Navigation2DConfig
   { defaultTiledNavigation :: Navigation2D             -- ^ default navigation strategy for the tiled layer
   , floatNavigation        :: Navigation2D             -- ^ navigation strategy for the float layer
@@ -305,7 +308,7 @@ type Screen = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
 
 -- So we can store the configuration in extensible state
 instance ExtensionClass Navigation2DConfig where
-  initialValue = defaultNavigation2DConfig
+  initialValue = def
 
 -- | Modifies the xmonad configuration to store the Navigation2D configuration
 withNavigation2DConfig :: Navigation2DConfig -> XConfig a -> XConfig a
@@ -313,12 +316,12 @@ withNavigation2DConfig conf2d xconf = xconf { startupHook  = startupHook xconf
                                                           >> XS.put conf2d
                                             }
 
--- | Default navigation configuration.  It uses line navigation for the tiled
--- layer and for navigation between screens, and center navigation for the float
--- layer.  No custom navigation strategies or rectangles for unmapped windows are
--- defined for individual layouts.
+{-# DEPRECATED defaultNavigation2DConfig "Use def (from Data.Default, and re-exported from XMonad.Actions.Navigation2D) instead." #-}
 defaultNavigation2DConfig :: Navigation2DConfig
-defaultNavigation2DConfig = Navigation2DConfig { defaultTiledNavigation = lineNavigation
+defaultNavigation2DConfig = def
+
+instance Default Navigation2DConfig where
+    def                   = Navigation2DConfig { defaultTiledNavigation = lineNavigation
                                                , floatNavigation        = centerNavigation
                                                , screenNavigation       = lineNavigation
                                                , layoutNavigation       = []

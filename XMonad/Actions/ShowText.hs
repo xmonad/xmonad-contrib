@@ -16,7 +16,8 @@
 module XMonad.Actions.ShowText
     ( -- * Usage
       -- $usage
-      defaultSTConfig
+      def
+    , defaultSTConfig
     , handleTimerEvent
     , flashText
     , ShowTextConfig(..)
@@ -52,7 +53,7 @@ import qualified XMonad.Util.ExtensibleState as ES
 --
 -- You can then use flashText in your keybindings:
 --
--- > ((modMask, xK_Right), flashText defaultSTConfig 1 "->" >> nextWS)
+-- > ((modMask, xK_Right), flashText def 1 "->" >> nextWS)
 --
 
 -- | ShowText contains the map with timers as keys and created windows as values
@@ -72,12 +73,16 @@ data ShowTextConfig =
         , st_fg   :: String -- ^ Foreground color
     }
 
-defaultSTConfig :: ShowTextConfig
-defaultSTConfig =
+instance Default ShowTextConfig where
+  def =
     STC { st_font = "-misc-fixed-*-*-*-*-20-*-*-*-*-*-*-*"
         , st_bg   = "black"
         , st_fg   = "white"
     }
+
+{-# DEPRECATED defaultSTConfig "Use def (from Data.Default, and re-exported by XMonad.Actions.ShowText) instead." #-}
+defaultSTConfig :: ShowTextConfig
+defaultSTConfig = def
 
 -- | Handles timer events that notify when a window should be removed
 handleTimerEvent :: Event -> X All

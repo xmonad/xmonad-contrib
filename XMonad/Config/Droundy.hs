@@ -16,7 +16,7 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import System.Exit ( exitWith, ExitCode(ExitSuccess) )
 
-import XMonad.Layout.Tabbed ( tabbed, defaultTheme,
+import XMonad.Layout.Tabbed ( tabbed,
                               shrinkText, Shrinker, shrinkIt, CustomShrink(CustomShrink) )
 import XMonad.Layout.Combo ( combineTwo )
 import XMonad.Layout.Named ( named )
@@ -32,7 +32,7 @@ import XMonad.Layout.ToggleLayouts ( toggleLayouts, ToggleLayout(ToggleLayout) )
 import XMonad.Layout.ShowWName ( showWName )
 import XMonad.Layout.Magnifier ( maximizeVertical, MagnifyMsg(Toggle) )
 
-import XMonad.Prompt ( defaultXPConfig, font, height, XPConfig )
+import XMonad.Prompt ( font, height, XPConfig )
 import XMonad.Prompt.Layout ( layoutPrompt )
 import XMonad.Prompt.Shell ( shellPrompt )
 
@@ -46,8 +46,8 @@ import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
 import XMonad.Hooks.EwmhDesktops ( ewmh )
 
 myXPConfig :: XPConfig
-myXPConfig = defaultXPConfig {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
-                             ,height=22}
+myXPConfig = def {font="-*-lucida-medium-r-*-*-14-*-*-*-*-*-*-*"
+                 ,height=22}
 
 
 ------------------------------------------------------------------------
@@ -137,7 +137,7 @@ config = ewmh def
          , XMonad.keys = keys
          }
 
-mytab = tabbed CustomShrink defaultTheme
+mytab = tabbed CustomShrink def
 
 instance Shrinker CustomShrink where
     shrinkIt shr s | Just s' <- dropFromHead " " s = shrinkIt shr s'

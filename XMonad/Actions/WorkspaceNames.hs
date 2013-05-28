@@ -55,7 +55,7 @@ import Data.Maybe (fromMaybe)
 --
 -- Then add keybindings like the following:
 --
--- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+-- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace def)
 --
 -- and apply workspaceNamesPP to your DynamicLog pretty-printer:
 --

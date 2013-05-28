@@ -31,7 +31,7 @@ import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Layout
 --
--- >   , ((modm .|. shiftMask, xK_m     ), layoutPrompt defaultXPConfig)
+-- >   , ((modm .|. shiftMask, xK_m     ), layoutPrompt def)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".

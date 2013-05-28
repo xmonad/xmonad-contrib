@@ -41,17 +41,17 @@ econst = const . return
 --
 -- 2. In your keybindings add something like:
 --
--- >   , ("M-C-x", dirExecPrompt defaultXPConfig spawn "/home/joe/.scipts")
+-- >   , ("M-C-x", dirExecPrompt def spawn "/home/joe/.scipts")
 --
 -- or
 --
--- >   , ("M-C-x", dirExecPromptNamed defaultXPConfig spawn
+-- >   , ("M-C-x", dirExecPromptNamed def spawn
 -- >                                  "/home/joe/.scripts" "My Scripts: ")
 --
 -- or add this after your default bindings:
 --
 -- >   ++
--- >   [ ("M-x " ++ key, dirExecPrompt defaultXPConfig fn "/home/joe/.scripts")
+-- >   [ ("M-x " ++ key, dirExecPrompt def fn "/home/joe/.scripts")
 -- >     | (key, fn) <- [ ("x", spawn), ("M-x", runInTerm "-hold") ]
 -- >   ]
 -- >   ++

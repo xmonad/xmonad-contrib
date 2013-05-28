@@ -45,7 +45,7 @@ import Data.List(nub)
 -- BorderResize:
 --
 -- > myLayouts = floatingDeco $ borderResize $ positionStoreFloat ||| etc..
--- >               where floatingDeco l = noFrillsDeco shrinkText defaultTheme l
+-- >               where floatingDeco l = noFrillsDeco shrinkText def l
 -- > main = xmonad def { layoutHook = myLayouts }
 --
 -- See the documentation of "XMonad.Hooks.PositionStoreHooks" on how

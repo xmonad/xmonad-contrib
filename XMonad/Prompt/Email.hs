@@ -36,7 +36,7 @@ import XMonad.Prompt.Input
 --
 -- and adding an appropriate keybinding, for example:
 --
--- >  , ((modm .|. controlMask, xK_e), emailPrompt defaultXPConfig addresses)
+-- >  , ((modm .|. controlMask, xK_e), emailPrompt def addresses)
 --
 -- where @addresses@ is a list of email addresses that should
 -- autocomplete, for example:

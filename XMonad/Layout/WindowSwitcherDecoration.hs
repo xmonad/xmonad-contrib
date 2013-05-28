@@ -43,7 +43,7 @@ import Foreign.C.Types(CInt)
 -- Then edit your @layoutHook@ by adding the WindowSwitcherDecoration to
 -- your layout:
 --
--- > myL = windowSwitcherDecoration shrinkText defaultTheme (draggingVisualizer $ layoutHook def)
+-- > myL = windowSwitcherDecoration shrinkText def (draggingVisualizer $ layoutHook def)
 -- > main = xmonad def { layoutHook = myL }
 --
 -- There is also a version of the decoration that contains buttons like

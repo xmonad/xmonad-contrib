@@ -54,7 +54,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- To ensure that application appears on a workspace it was launched at, add keybindings like:
 --
 -- >  , ((mod1Mask,xK_o), spawnHere "urxvt")
--- >  , ((mod1Mask,xK_s), shellPromptHere defaultXPConfig)
+-- >  , ((mod1Mask,xK_s), shellPromptHere def)
 --
 -- The module can also be used to apply other manage hooks to the window of
 -- the spawned application(e.g. float or resize it).

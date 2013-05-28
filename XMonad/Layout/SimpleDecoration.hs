@@ -20,6 +20,7 @@ module XMonad.Layout.SimpleDecoration
       -- $usage
       simpleDeco
     , Theme (..)
+    , def
     , defaultTheme
     , SimpleDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
@@ -38,7 +39,7 @@ import XMonad.Layout.Decoration
 -- Then edit your @layoutHook@ by adding the SimpleDecoration decoration to
 -- your layout:
 --
--- > myL = simpleDeco shrinkText defaultTheme (layoutHook def)
+-- > myL = simpleDeco shrinkText def (layoutHook def)
 -- > main = xmonad def { layoutHook = myL }
 --
 -- For more detailed instructions on editing the layoutHook see:
@@ -47,12 +48,12 @@ import XMonad.Layout.Decoration
 --
 -- You can also edit the default configuration options.
 --
--- > mySDConfig = defaultTheme { inactiveBorderColor = "red"
--- >                                  , inactiveTextColor   = "red"}
+-- > mySDConfig = def { inactiveBorderColor = "red"
+-- >                  , inactiveTextColor   = "red"}
 --
 -- and
 --
--- > myL = dwmStyle shrinkText mySDConfig (layoutHook defaultTheme)
+-- > myL = dwmStyle shrinkText mySDConfig (layoutHook def)
 
 -- | Add simple decorations to windows of a layout.
 simpleDeco :: (Eq a, Shrinker s) => s -> Theme

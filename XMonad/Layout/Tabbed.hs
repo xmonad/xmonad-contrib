@@ -22,6 +22,7 @@ module XMonad.Layout.Tabbed
     , simpleTabbedBottom, tabbedBottom, addTabsBottom
     , simpleTabbedBottomAlways, tabbedBottomAlways, addTabsBottomAlways
     , Theme (..)
+    , def
     , defaultTheme
     , TabbedDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
@@ -47,7 +48,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- or, if you want a specific theme for you tabbed layout:
 --
--- > myLayout = tabbed shrinkText defaultTheme ||| Full ||| etc..
+-- > myLayout = tabbed shrinkText def ||| Full ||| etc..
 --
 -- and then:
 --
@@ -67,8 +68,8 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 --
 -- You can also edit the default configuration options.
 --
--- > myTabConfig = defaultTheme { inactiveBorderColor = "#FF0000"
--- >                                   , activeTextColor = "#00FF00"}
+-- > myTabConfig = def { inactiveBorderColor = "#FF0000"
+-- >                   , activeTextColor = "#00FF00"}
 --
 -- and
 --
@@ -84,18 +85,18 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 -- > import XMonad.Layout.Tabbed
 -- > main = xmonad def { layoutHook = simpleTabbed }
 simpleTabbed :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
-simpleTabbed = tabbed shrinkText defaultTheme
+simpleTabbed = tabbed shrinkText def
 
 simpleTabbedAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
-simpleTabbedAlways = tabbedAlways shrinkText defaultTheme
+simpleTabbedAlways = tabbedAlways shrinkText def
 
 -- | A bottom-tabbed layout with the default xmonad Theme.
 simpleTabbedBottom :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
-simpleTabbedBottom = tabbedBottom shrinkText defaultTheme
+simpleTabbedBottom = tabbedBottom shrinkText def
 
 -- | A bottom-tabbed layout with the default xmonad Theme.
 simpleTabbedBottomAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
-simpleTabbedBottomAlways = tabbedBottomAlways shrinkText defaultTheme
+simpleTabbedBottomAlways = tabbedBottomAlways shrinkText def
 
 -- | A layout decorated with tabs and the possibility to set a custom
 -- shrinker and theme.

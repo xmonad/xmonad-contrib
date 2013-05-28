@@ -307,12 +307,12 @@ xmobarCommand (S s) = unwords ["xmobar",
 allPPs nScreens = sequence_ [dynamicLogWithPP (pp s) | s <- [0..nScreens-1], pp <- [ppFocus, ppWorkspaces]]
 color c = xmobarColor c ""
 
-ppFocus s@(S s_) = whenCurrentOn s defaultPP {
+ppFocus s@(S s_) = whenCurrentOn s def {
     ppOrder  = \(_:_:windowTitle:_) -> [windowTitle],
     ppOutput = appendFile (pipeName "focus" s_) . (++ "\n")
     }
 
-ppWorkspaces s@(S s_) = marshallPP s defaultPP {
+ppWorkspaces s@(S s_) = marshallPP s def {
     ppCurrent           = color "white",
     ppVisible           = color "white",
     ppHiddenNoWindows   = color dark,

@@ -166,7 +166,7 @@ namedScratchpadFilterOutWorkspace = filter (\(W.Workspace tag _ _) -> tag /= scr
 --
 -- A simple use could be:
 --
--- > logHook = dynamicLogWithPP . namedScratchpadFilterOutWorkspace $ defaultPP
+-- > logHook = dynamicLogWithPP . namedScratchpadFilterOutWorkspace $ def
 --
 -- Here is another example, when using "XMonad.Layout.IndependentScreens".
 -- If you have handles @hLeft@ and @hRight@ for bars on the left and right screens, respectively, and @pp@ is a pretty-printer function that takes a handle, you could write

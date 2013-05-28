@@ -68,7 +68,7 @@ titleBarButtonHandler mainw distFromLeft distFromRight = do
 
 -- | Intended to be used together with 'titleBarButtonHandler'. See above.
 defaultThemeWithButtons :: Theme
-defaultThemeWithButtons = defaultTheme {
+defaultThemeWithButtons = def {
                             windowTitleAddons = [ (" (M)", AlignLeft)
                                                 , ("_"   , AlignRightOffset minimizeButtonOffset)
                                                 , ("[]"  , AlignRightOffset maximizeButtonOffset)

@@ -34,10 +34,10 @@ import           XMonad.Util.Run
 
     To test it, modify your local .xmonad:
 
-    > import XMonad.Prompt(defaultXPConfig)
+    > import XMonad.Prompt(def)
     > import XMonad.Actions.Launcher
 
-    > ((modm .|. controlMask, xK_l), launcherPrompt defaultXPConfig $ defaultLauncherModes launcherConfig)
+    > ((modm .|. controlMask, xK_l), launcherPrompt def $ defaultLauncherModes launcherConfig)
 
     A LauncherConfig contains settings for the default modes, modify them accordingly.
 
@@ -45,7 +45,7 @@ import           XMonad.Util.Run
 
 Restart xmonad. Press Ctrl + Your_Modkey + L and the first prompt should pop up.
 
- If you used 'defaultXPConfig', you can change mode with 'xK_grave'. If you are using your own 'XPConfig', define the value for 'changeModeKey'.
+ If you used the default 'XPConfig', you can change mode with 'xK_grave'. If you are using your own 'XPConfig', define the value for 'changeModeKey'.
  -}
 
 data HoogleMode = HMode FilePath String --path to hoogle and browser

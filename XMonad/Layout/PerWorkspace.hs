@@ -25,8 +25,6 @@ module XMonad.Layout.PerWorkspace
 import XMonad
 import qualified XMonad.StackSet as W
 
-import XMonad.Layout.LayoutModifier
-
 import Data.Maybe (fromMaybe)
 
 -- $usage

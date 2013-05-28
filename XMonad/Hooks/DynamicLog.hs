@@ -35,7 +35,7 @@ module XMonad.Hooks.DynamicLog (
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
-    PP(..), defaultPP,
+    PP(..), defaultPP, def,
 
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
@@ -126,7 +126,7 @@ import XMonad.Hooks.ManageDocks
 -- >     h <- spawnPipe "xmobar -options -foo -bar"
 -- >     xmonad $ def {
 -- >       ...
--- >       logHook = dynamicLogWithPP $ defaultPP { ppOutput = hPutStrLn h }
+-- >       logHook = dynamicLogWithPP $ def { ppOutput = hPutStrLn h }
 --
 -- If you use @spawnPipe@, be sure to redefine the 'ppOutput' field of
 -- your pretty-printer as in the example above; by default the status
@@ -246,7 +246,7 @@ toggleStrutsKey XConfig{modMask = modm} = (modm, xK_b )
 -- To customize the output format, see 'dynamicLogWithPP'.
 --
 dynamicLog :: X ()
-dynamicLog = dynamicLogWithPP defaultPP
+dynamicLog = dynamicLogWithPP def
 
 -- | Format the current status using the supplied pretty-printing format,
 --   and write it to stdout.
@@ -312,10 +312,10 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
 -- using 'dynamicLogWithPP' by setting 'ppSort' to /getSortByXineramaRule/ from
 -- "XMonad.Util.WorkspaceCompare".  For example,
 --
--- > defaultPP { ppCurrent = dzenColor "red" "#efebe7"
--- >           , ppVisible = wrap "[" "]"
--- >           , ppSort    = getSortByXineramaRule
--- >           }
+-- > def { ppCurrent = dzenColor "red" "#efebe7"
+-- >     , ppVisible = wrap "[" "]"
+-- >     , ppSort    = getSortByXineramaRule
+-- >     }
 dynamicLogXinerama :: X ()
 dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 
@@ -459,8 +459,12 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              }
 
 -- | The default pretty printing options, as seen in 'dynamicLog'.
+{-# DEPRECATED defaultPP "Use def (from Data.Default, and re-exported by XMonad.Hooks.DynamicLog) instead." #-}
 defaultPP :: PP
-defaultPP = PP { ppCurrent         = wrap "[" "]"
+defaultPP = def
+
+instance Default PP where
+    def   = PP { ppCurrent         = wrap "[" "]"
                , ppVisible         = wrap "<" ">"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
@@ -477,7 +481,7 @@ defaultPP = PP { ppCurrent         = wrap "[" "]"
 
 -- | Settings to emulate dwm's statusbar, dzen only.
 dzenPP :: PP
-dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
+dzenPP = def { ppCurrent  = dzenColor "white" "#2b4f98" . pad
                    , ppVisible  = dzenColor "black" "#999999" . pad
                    , ppHidden   = dzenColor "black" "#cccccc" . pad
                    , ppHiddenNoWindows = const ""
@@ -496,7 +500,7 @@ dzenPP = defaultPP { ppCurrent  = dzenColor "white" "#2b4f98" . pad
 
 -- | Some nice xmobar defaults.
 xmobarPP :: PP
-xmobarPP = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
+xmobarPP = def { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
                      , ppTitle   = xmobarColor "green"  "" . shorten 40
                      , ppVisible = wrap "(" ")"
                      , ppUrgent  = xmobarColor "red" "yellow"
@@ -504,23 +508,23 @@ xmobarPP = defaultPP { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
 
 -- | The options that sjanssen likes to use with xmobar, as an
 -- example.  Note the use of 'xmobarColor' and the record update on
--- 'defaultPP'.
+-- 'def'.
 sjanssenPP :: PP
-sjanssenPP = defaultPP { ppCurrent = xmobarColor "white" "black"
-                       , ppTitle = xmobarColor "#00ee00" "" . shorten 120
-                       }
+sjanssenPP = def { ppCurrent = xmobarColor "white" "black"
+                 , ppTitle = xmobarColor "#00ee00" "" . shorten 120
+                 }
 
 -- | The options that byorgey likes to use with dzen, as another example.
 byorgeyPP :: PP
-byorgeyPP = defaultPP { ppHiddenNoWindows = showNamedWorkspaces
-                      , ppHidden  = dzenColor "black"  "#a8a3f7" . pad
-                      , ppCurrent = dzenColor "yellow" "#a8a3f7" . pad
-                      , ppUrgent  = dzenColor "red"    "yellow"  . pad
-                      , ppSep     = " | "
-                      , ppWsSep   = ""
-                      , ppTitle   = shorten 70
-                      , ppOrder   = reverse
-                      }
+byorgeyPP = def { ppHiddenNoWindows = showNamedWorkspaces
+                , ppHidden  = dzenColor "black"  "#a8a3f7" . pad
+                , ppCurrent = dzenColor "yellow" "#a8a3f7" . pad
+                , ppUrgent  = dzenColor "red"    "yellow"  . pad
+                , ppSep     = " | "
+                , ppWsSep   = ""
+                , ppTitle   = shorten 70
+                , ppOrder   = reverse
+                }
   where showNamedWorkspaces wsId = if any (`elem` wsId) ['a'..'z']
                                        then pad wsId
                                        else ""

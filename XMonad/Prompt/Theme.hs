@@ -35,7 +35,7 @@ import XMonad.Util.Themes
 --
 -- in your keybindings add:
 --
--- >   , ((modm .|. controlMask, xK_t), themePrompt defaultXPConfig)
+-- >   , ((modm .|. controlMask, xK_t), themePrompt def)
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
@@ -49,7 +49,7 @@ instance XPrompt ThemePrompt where
 
 themePrompt :: XPConfig -> X ()
 themePrompt c = mkXPrompt ThemePrompt c (mkComplFunFromList' . map ppThemeInfo $ listOfThemes) changeTheme
-    where changeTheme t = sendMessage . SetTheme . fromMaybe defaultTheme $ M.lookup t mapOfThemes
+    where changeTheme t = sendMessage . SetTheme . fromMaybe def $ M.lookup t mapOfThemes
 
 mapOfThemes :: M.Map String Theme
 mapOfThemes = M.fromList . uncurry zip . (map ppThemeInfo &&& map theme) $ listOfThemes

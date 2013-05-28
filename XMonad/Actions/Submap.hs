@@ -62,7 +62,7 @@ submap keys = submapDefault (return ()) keys
 
 -- | Like 'submap', but executes a default action if the key did not match.
 submapDefault :: X () -> M.Map (KeyMask, KeySym) (X ()) -> X ()
-submapDefault def keys = do
+submapDefault defAction keys = do
     XConf { theRoot = root, display = d } <- ask
 
     io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
@@ -79,4 +79,4 @@ submapDefault def keys = do
 
     io $ ungrabKeyboard d currentTime
 
-    maybe def id (M.lookup (m', s) keys)
+    maybe defAction id (M.lookup (m', s) keys)

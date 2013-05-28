@@ -164,7 +164,7 @@ imageTitleBarButtonHandler mainw distFromLeft distFromRight = do
     action
 
 defaultThemeWithImageButtons :: Theme
-defaultThemeWithImageButtons = defaultTheme {
+defaultThemeWithImageButtons = def {
                                 windowTitleIcons = [ (menuButton, CenterLeft 3),
                                                      (closeButton, CenterRight 3),
                                                      (maxiButton, CenterRight 18),

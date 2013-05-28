@@ -77,7 +77,7 @@ econst = const . return
 -- For example:
 --
 -- >   -- display load averages and a pithy quote along with xmonad status.
--- >   , logHook = dynamicLogWithPP $ defaultPP {
+-- >   , logHook = dynamicLogWithPP $ def {
 -- >                  ppExtras = [ padL loadAvg, logCmd "fortune -n 40 -s" ]
 -- >                }
 -- >   -- gives something like " 3.27 3.52 3.26 Drive defensively.  Buy a tank."
@@ -193,7 +193,7 @@ logCurrent = withWindowSet $ return . Just . W.currentTag
 -- use instead of \'.\' or \'$\' in hard to read formatting lines.
 -- For example:
 --
--- > myLogHook = dynamicLogWithPP defaultPP {
+-- > myLogHook = dynamicLogWithPP def {
 -- >     -- skipped
 -- >     , ppExtras = [lLoad, lTitle, logSp 3, wrapL "[" "]" $ date "%a %d %b"]
 -- >     , ppOrder = \(ws,l,_,xs) -> [l,ws] ++ xs

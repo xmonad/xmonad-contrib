@@ -50,8 +50,8 @@ configuration and the AppLauncher module itself.
 Then you can add the bindings to the applications.
 
 > ...
-> , ((modm, xK_g), AL.launchApp defaultXPConfig "gimp" )
-> , ((modm, xK_g), AL.launchApp defaultXPConfig "evince" )
+> , ((modm, xK_g), AL.launchApp def "gimp" )
+> , ((modm, xK_g), AL.launchApp def "evince" )
 > ...
 
  -}

@@ -16,7 +16,7 @@ module XMonad.Layout.TabBarDecoration
     ( -- * Usage
       -- $usage
       simpleTabBar, tabBar
-    , defaultTheme, shrinkText
+    , def, defaultTheme, shrinkText
     , TabBarDecoration (..), XPPosition (..)
     , module XMonad.Layout.ResizeScreen
     ) where
@@ -53,7 +53,7 @@ import XMonad.Prompt ( XPPosition (..) )
 -- | layout, with the default theme and the default shrinker.
 simpleTabBar :: Eq a => l a -> ModifiedLayout (Decoration TabBarDecoration DefaultShrinker)
                 (ModifiedLayout ResizeScreen l) a
-simpleTabBar = decoration shrinkText defaultTheme (TabBar Top) . resizeVertical 20
+simpleTabBar = decoration shrinkText def (TabBar Top) . resizeVertical 20
 
 -- | Same of 'simpleTabBar', but with the possibility of setting a
 -- custom shrinker, a custom theme and the position: 'Top' or

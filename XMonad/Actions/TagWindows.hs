@@ -53,12 +53,12 @@ econst = const . return
 -- >   , ((modm,                 xK_d  ), withTaggedP "abc" (W.shiftWin "2"))
 -- >   , ((modm .|. shiftMask,   xK_d  ), withTaggedGlobalP "abc" shiftHere)
 -- >   , ((modm .|. controlMask, xK_d  ), focusUpTaggedGlobal "abc")
--- >   , ((modm,                 xK_g  ), tagPrompt defaultXPConfig (\s -> withFocused (addTag s)))
--- >   , ((modm .|. controlMask, xK_g  ), tagDelPrompt defaultXPConfig)
--- >   , ((modm .|. shiftMask,   xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobal s float))
--- >   , ((modWinMask,                xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedP s (W.shiftWin "2")))
--- >   , ((modWinMask .|. shiftMask,  xK_g  ), tagPrompt defaultXPConfig (\s -> withTaggedGlobalP s shiftHere))
--- >   , ((modWinMask .|. controlMask, xK_g ), tagPrompt defaultXPConfig (\s -> focusUpTaggedGlobal s))
+-- >   , ((modm,                 xK_g  ), tagPrompt def (\s -> withFocused (addTag s)))
+-- >   , ((modm .|. controlMask, xK_g  ), tagDelPrompt def)
+-- >   , ((modm .|. shiftMask,   xK_g  ), tagPrompt def (\s -> withTaggedGlobal s float))
+-- >   , ((modWinMask,                xK_g  ), tagPrompt def (\s -> withTaggedP s (W.shiftWin "2")))
+-- >   , ((modWinMask .|. shiftMask,  xK_g  ), tagPrompt def (\s -> withTaggedGlobalP s shiftHere))
+-- >   , ((modWinMask .|. controlMask, xK_g ), tagPrompt def (\s -> focusUpTaggedGlobal s))
 --
 -- NOTE: Tags are saved as space separated strings and split with
 --       'unwords'. Thus if you add a tag \"a b\" the window will have

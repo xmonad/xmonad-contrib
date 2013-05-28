@@ -36,7 +36,6 @@ import XMonad.Layout.NoBorders
 import XMonad.Layout.SimpleFloat
 import XMonad.Layout.Tabbed
 import XMonad.Layout.WindowArranger
-import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Prompt.Ssh
 import XMonad.Prompt.Theme
@@ -120,7 +119,7 @@ arossatoConfig = do
       newManageHook = myManageHook
 
       -- xmobar
-      myDynLog    h = dynamicLogWithPP defaultPP
+      myDynLog    h = dynamicLogWithPP def
                       { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]"
                       , ppTitle   = xmobarColor "green"  "" . shorten 40
                       , ppVisible = wrap "(" ")"
@@ -144,12 +143,12 @@ arossatoConfig = do
           [(shiftMask .|. modMask x, k) | k <- [xK_1 .. xK_9]]
       -- These are my personal key bindings
       toAdd x   =
-          [ ((modMask x              , xK_F12   ), xmonadPrompt      defaultXPConfig     )
-          , ((modMask x              , xK_F3    ), shellPrompt       defaultXPConfig     )
-          , ((modMask x              , xK_F4    ), sshPrompt         defaultXPConfig     )
-          , ((modMask x              , xK_F5    ), themePrompt       defaultXPConfig     )
-          , ((modMask x              , xK_F6    ), windowPromptGoto  defaultXPConfig     )
-          , ((modMask x              , xK_F7    ), windowPromptBring defaultXPConfig     )
+          [ ((modMask x              , xK_F12   ), xmonadPrompt      def                 )
+          , ((modMask x              , xK_F3    ), shellPrompt       def                 )
+          , ((modMask x              , xK_F4    ), sshPrompt         def                 )
+          , ((modMask x              , xK_F5    ), themePrompt       def                 )
+          , ((modMask x              , xK_F6    ), windowPromptGoto  def                 )
+          , ((modMask x              , xK_F7    ), windowPromptBring def                 )
           , ((modMask x              , xK_comma ), prevWS                                )
           , ((modMask x              , xK_period), nextWS                                )
           , ((modMask x              , xK_Right ), windows W.focusDown                   )

@@ -22,6 +22,7 @@ module XMonad.Actions.TopicSpace
    Topic
   , Dir
   , TopicConfig(..)
+  , def
   , defaultTopicConfig
   , getLastFocusedTopics
   , setLastFocusedTopic
@@ -89,7 +90,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >   ]
 -- >
 -- > myTopicConfig :: TopicConfig
--- > myTopicConfig = defaultTopicConfig
+-- > myTopicConfig = def
 -- >   { topicDirs = M.fromList $
 -- >       [ ("conf", "w/conf")
 -- >       , ("dashboard", "Desktop")
@@ -206,13 +207,17 @@ data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
                                  -- numeric keypad.
                                }
 
-defaultTopicConfig :: TopicConfig
-defaultTopicConfig = TopicConfig { topicDirs = M.empty
+instance Default TopicConfig where
+    def            = TopicConfig { topicDirs = M.empty
                                  , topicActions = M.empty
                                  , defaultTopicAction = const (ask >>= spawn . terminal . config)
                                  , defaultTopic = "1"
                                  , maxTopicHistory = 10
                                  }
+
+{-# DEPRECATED defaultTopicConfig "Use def (from Data.Default, and re-exported by XMonad.Actions.TopicSpace) instead." #-}
+defaultTopicConfig :: TopicConfig
+defaultTopicConfig = def
 
 newtype PrevTopics = PrevTopics { getPrevTopics :: [String] } deriving (Read,Show,Typeable)
 instance ExtensionClass PrevTopics where

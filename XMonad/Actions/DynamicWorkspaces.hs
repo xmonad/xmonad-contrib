@@ -46,10 +46,10 @@ import Control.Monad (when)
 -- Then add keybindings like the following:
 --
 -- >   , ((modm .|. shiftMask, xK_BackSpace), removeWorkspace)
--- >   , ((modm .|. shiftMask, xK_v      ), selectWorkspace defaultXPConfig)
--- >   , ((modm, xK_m                    ), withWorkspace defaultXPConfig (windows . W.shift))
--- >   , ((modm .|. shiftMask, xK_m      ), withWorkspace defaultXPConfig (windows . copy))
--- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace defaultXPConfig)
+-- >   , ((modm .|. shiftMask, xK_v      ), selectWorkspace def)
+-- >   , ((modm, xK_m                    ), withWorkspace def (windows . W.shift))
+-- >   , ((modm .|. shiftMask, xK_m      ), withWorkspace def (windows . copy))
+-- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace def)
 --
 -- > -- mod-[1..9]       %! Switch to workspace N
 -- > -- mod-shift-[1..9] %! Move client to workspace N
@@ -60,7 +60,7 @@ import Control.Monad (when)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
--- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'defaultXPConfig'.
+-- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'XPConfig'.
 
 
 mkCompl :: [String] -> String -> IO [String]

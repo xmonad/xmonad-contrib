@@ -42,7 +42,7 @@ import Control.Exception.Extensible (bracket)
 --
 -- and adding an appropriate keybinding, for example:
 --
--- >  , ((modm .|. controlMask, xK_n), appendFilePrompt defaultXPConfig "/home/me/NOTES")
+-- >  , ((modm .|. controlMask, xK_n), appendFilePrompt def "/home/me/NOTES")
 --
 -- Additional notes can be added via regular Haskell or XMonad functions; for
 -- example, to preface notes with the time they were made, one could write a
@@ -50,7 +50,7 @@ import Control.Exception.Extensible (bracket)
 --
 -- > ,  ((modm .|. controlMask, xK_n), do
 -- >            spawn ("date>>"++"/home/me/NOTES")
--- >            appendFilePrompt defaultXPConfig "/home/me/NOTES"
+-- >            appendFilePrompt def "/home/me/NOTES"
 -- >        )
 --
 -- (Put the spawn on the line after the prompt to append the time instead.)
