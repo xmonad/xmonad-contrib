@@ -40,6 +40,7 @@ import qualified Data.Map as M
 -- > import XMonad.Actions.LinkWorkspaces
 --
 -- and add a function to print messages like
+--
 -- > message_command (S screen) = " dzen2 -p 1 -w 300 -xs " ++ show (screen + 1)
 -- > message_color_func c1 c2 msg = dzenColor c1 c2 msg
 -- > message screen c1 c2 msg = spawn $ "echo '" ++ (message_color_func c1 c2 msg) ++ "' | " ++ message_command screen
