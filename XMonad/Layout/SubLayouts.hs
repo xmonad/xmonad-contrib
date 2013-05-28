@@ -50,7 +50,7 @@ import XMonad.Layout.Tabbed(defaultTheme, shrinkText,
 import XMonad.Layout.WindowNavigation(Navigate(Apply))
 import XMonad.Util.Invisible(Invisible(..))
 import XMonad.Util.Types(Direction2D(..))
-import XMonad
+import XMonad hiding (def)
 import Control.Applicative((<$>),(<*))
 import Control.Arrow(Arrow(second, (&&&)))
 import Control.Monad(MonadPlus(mplus), foldM, guard, when, join)
