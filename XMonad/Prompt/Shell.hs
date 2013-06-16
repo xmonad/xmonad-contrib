@@ -33,7 +33,7 @@ import           Codec.Binary.UTF8.String (encodeString)
 import           Control.Exception        as E
 import           Control.Monad            (forM)
 import           Data.List                (isPrefixOf)
-import           System.Directory         (doesDirectoryExist, getDirectoryContents)
+import           System.Directory         (getDirectoryContents)
 import           System.Environment       (getEnv)
 import           System.Posix.Files       (getFileStatus, isDirectory)
 
@@ -113,11 +113,7 @@ getCommands :: IO [String]
 getCommands = do
     p  <- getEnv "PATH" `E.catch` econst []
     let ds = filter (/= "") $ split ':' p
-    es <- forM ds $ \d -> do
-        exists <- doesDirectoryExist d
-        if exists
-            then getDirectoryContents d
-            else return []
+    es <- forM ds $ \d -> getDirectoryContents d `E.catch` econst []
     return . uniqSort . filter ((/= '.') . head) . concat $ es
 
 split :: Eq a => a -> [a] -> [[a]]
