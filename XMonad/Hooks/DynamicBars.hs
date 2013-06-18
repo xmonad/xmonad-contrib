@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicBars
@@ -24,7 +25,6 @@ module XMonad.Hooks.DynamicBars (
 
 import Prelude
 
-import Control.Concurrent.MVar
 import Control.Monad
 import Control.Monad.Trans (lift)
 import Control.Monad.Writer (WriterT, execWriterT, tell)
@@ -39,11 +39,11 @@ import Graphics.X11.Xlib.Extras
 import Graphics.X11.Xrandr
 
 import System.IO
-import System.IO.Unsafe
 
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.DynamicLog
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- Provides a few helper functions to manage per-screen status bars while
@@ -67,37 +67,36 @@ import XMonad.Hooks.DynamicLog
 data DynStatusBarInfo = DynStatusBarInfo
   { dsbInfoScreens :: [ScreenId]
   , dsbInfoHandles :: [Handle]
-  }
+  } deriving (Typeable)
+
+instance ExtensionClass DynStatusBarInfo where
+  initialValue = DynStatusBarInfo [] []
 
 type DynamicStatusBar = ScreenId -> IO Handle
 type DynamicStatusBarCleanup = IO ()
 
--- Global state
-statusBarInfo :: MVar DynStatusBarInfo
-statusBarInfo = unsafePerformIO $ newMVar (DynStatusBarInfo [] [])
-
 dynStatusBarStartup :: DynamicStatusBar -> DynamicStatusBarCleanup -> X ()
-dynStatusBarStartup sb cleanup = liftIO $ do
-  dpy <- openDisplay ""
-  xrrSelectInput dpy (defaultRootWindow dpy) rrScreenChangeNotifyMask
-  closeDisplay dpy
+dynStatusBarStartup sb cleanup = do
+  liftIO $ do
+      dpy <- openDisplay ""
+      xrrSelectInput dpy (defaultRootWindow dpy) rrScreenChangeNotifyMask
+      closeDisplay dpy
   updateStatusBars sb cleanup
 
 dynStatusBarEventHook :: DynamicStatusBar -> DynamicStatusBarCleanup -> Event -> X All
-dynStatusBarEventHook sb cleanup (RRScreenChangeNotifyEvent {}) = liftIO (updateStatusBars sb cleanup) >> return (All True)
+dynStatusBarEventHook sb cleanup (RRScreenChangeNotifyEvent {}) = updateStatusBars sb cleanup >> return (All True)
 dynStatusBarEventHook _  _       _                              = return (All True)
 
-updateStatusBars :: DynamicStatusBar -> DynamicStatusBarCleanup -> IO ()
-updateStatusBars sb cleanup = liftIO $ do
-  dsbInfo <- takeMVar statusBarInfo
+updateStatusBars :: DynamicStatusBar -> DynamicStatusBarCleanup -> X ()
+updateStatusBars sb cleanup = do
+  dsbInfo <- XS.get
   screens <- getScreens
-  if (screens /= (dsbInfoScreens dsbInfo))
-    then do
-      mapM hClose (dsbInfoHandles dsbInfo)
-      cleanup
-      newHandles <- mapM sb screens
-      putMVar statusBarInfo (DynStatusBarInfo screens newHandles)
-    else putMVar statusBarInfo dsbInfo
+  when (screens /= dsbInfoScreens dsbInfo) $ do
+      newHandles <- liftIO $ do
+          hClose `mapM_` dsbInfoHandles dsbInfo
+          cleanup
+          mapM sb screens
+      XS.put $ DynStatusBarInfo screens newHandles
 
 -----------------------------------------------------------------------------
 -- The following code is from adamvo's xmonad.hs file.
@@ -107,7 +106,7 @@ multiPP :: PP -- ^ The PP to use if the screen is focused
         -> PP -- ^ The PP to use otherwise
         -> X ()
 multiPP focusPP unfocusPP = do
-  dsbInfo <- liftIO $ readMVar statusBarInfo
+  dsbInfo <- XS.get
   multiPP' dynamicLogString focusPP unfocusPP (dsbInfoHandles dsbInfo)
 
 multiPP' :: (PP -> X String) -> PP -> PP -> [Handle] -> X ()
@@ -125,8 +124,8 @@ multiPP' dynlStr focusPP unfocusPP handles = do
     =<< mapM screenWorkspace (zipWith const [0 .. ] handles)
   return ()
 
-getScreens :: IO [ScreenId]
-getScreens = do
+getScreens :: MonadIO m => m [ScreenId]
+getScreens = liftIO $ do
   screens <- do
     dpy <- openDisplay ""
     rects <- getScreenInfo dpy
