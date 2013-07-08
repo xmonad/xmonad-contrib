@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -43,6 +43,7 @@ module XMonad.Hooks.DynamicLog (
     -- * Formatting utilities
     wrap, pad, trim, shorten,
     xmobarColor, xmobarStrip,
+    xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
@@ -57,10 +58,10 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 
 import Codec.Binary.UTF8.String (encodeString)
-import Control.Monad (liftM2)
+import Control.Monad (liftM2, msum)
 import Data.Char ( isSpace, ord )
-import Data.List (intersperse, isPrefixOf, sortBy)
-import Data.Maybe ( isJust, catMaybes )
+import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
+import Data.Maybe ( isJust, catMaybes, mapMaybe )
 import Data.Ord ( comparing )
 import qualified Data.Map as M
 import qualified XMonad.StackSet as S
@@ -279,7 +280,7 @@ dynamicLogString pp = do
     return $ encodeString . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
-                        , ppTitle  pp wt
+                        , ppTitle  pp $ ppTitleSanitize pp wt
                         ]
                         ++ catMaybes extras
 
@@ -394,16 +395,29 @@ xmobarColor fg bg = wrap t "</fc>"
 
 -- ??? add an xmobarEscape function?
 
--- | Strip xmobar markup.
+-- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
+-- the matching tags like </fc>.
 xmobarStrip :: String -> String
-xmobarStrip = strip [] where
+xmobarStrip = xmobarStripTags ["fc","icon","action"] where
+
+xmobarStripTags :: [String] -- ^ tags
+        -> String -> String -- ^ with all <tag>...</tag> removed
+xmobarStripTags tags = strip [] where
+    strip keep [] = keep
     strip keep x
-      | null x                 = keep
-      | "<fc="  `isPrefixOf` x = strip keep (drop 1 . dropWhile (/= '>') $ x)
-      | "</fc>" `isPrefixOf` x = strip keep (drop 5  x)
-      | '<' == head x          = strip (keep ++ "<") (tail x)
-      | otherwise              = let (good,x') = span (/= '<') x
-                                 in strip (keep ++ good) x'
+        | rest: _ <- mapMaybe dropTag tags = strip keep rest
+
+
+        | '<':xs <- x = strip (keep ++ "<") xs
+        | (good,x') <- span (/= '<') x = strip (keep ++ good) x' -- this is n^2 bad... but titles have few tags
+      where dropTag :: String -> Maybe String
+            dropTag tag = msum [fmap dropTilClose (openTag tag `stripPrefix` x),
+                                                   closeTag tag `stripPrefix` x]
+
+    dropTilClose, openTag, closeTag :: String -> String
+    dropTilClose = drop 1 . dropWhile (/= '>')
+    openTag str = "<" ++ str ++ "="
+    closeTag str = "</" ++ str ++ ">"
 
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.
@@ -427,6 +441,8 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
                -- ^ window title format
+             , ppTitleSanitize :: String -> String
+              -- ^  escape / sanitizes input to 'ppTitle'
              , ppLayout :: String -> String
                -- ^ layout name format
              , ppOrder :: [String] -> [String]
@@ -472,6 +488,7 @@ instance Default PP where
                , ppSep             = " : "
                , ppWsSep           = " "
                , ppTitle           = shorten 80
+               , ppTitleSanitize   = xmobarStrip . dzenEscape
                , ppLayout          = id
                , ppOrder           = id
                , ppOutput          = putStrLn
