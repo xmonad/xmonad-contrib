@@ -64,11 +64,15 @@ manPrompt c = do
 
 getMans :: IO [String]
 getMans = do
-  paths <- getCommandOutput "manpath -g 2>/dev/null" `E.catch`
-            \(E.SomeException _) -> return []
+  paths <- do
+    let getout cmd = getCommandOutput cmd `E.catch` \E.SomeException{} -> return ""
+    -- one of these combinations should give some output
+    p1 <- getout "manpath -g 2>/dev/null"
+    p2 <- getout "manpath 2>/dev/null"
+    return $ intercalate ":" $ lines $ p1 ++ p2
   let sects    = ["man" ++ show n | n <- [1..9 :: Int]]
       dirs     = [d ++ "/" ++ s | d <- split ':' paths, s <- sects]
-  mans <- forM dirs $ \d -> do
+  mans <- forM (nub dirs) $ \d -> do
             exists <- doesDirectoryExist d
             if exists
               then map (stripExt . stripSuffixes [".gz", ".bz2"]) `fmap`
