@@ -9,7 +9,7 @@
 -- Portability :  not portable
 --
 -- Handles window manager hints to minimize and restore windows. Use
--- this with XMonad.Layout.Minimize.
+-- this with "XMonad.Layout.Minimize".
 --
 -----------------------------------------------------------------------------
 
