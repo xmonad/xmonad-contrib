@@ -28,7 +28,7 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 
-import XMonad.Actions.UpdatePointer(updatePointer, PointerPosition(TowardsCentre))
+import XMonad.Actions.UpdatePointer (updatePointer)
 import Data.Monoid(All(..))
 import qualified Data.Map as M
 
@@ -75,12 +75,12 @@ swap (W.Stack f u d) focused
 -- This eventHook does nothing when there are floating windows on the current
 -- workspace.
 promoteWarp :: Event -> X All
-promoteWarp = promoteWarp' (TowardsCentre 0.15 0.15)
+promoteWarp = promoteWarp' (0.5, 0.5) (0.85, 0.85)
 
--- | promoteWarp' allows you to specify an arbitrary PointerPosition to apply
--- when the mouse enters another window.
-promoteWarp' :: PointerPosition -> Event -> X All
-promoteWarp' pos e@(CrossingEvent {ev_window = w, ev_event_type = t})
+-- | promoteWarp' allows you to specify an arbitrary pair of arguments to
+-- pass to 'updatePointer' when the mouse enters another window.
+promoteWarp' :: (Rational, Rational) -> (Rational, Rational) -> Event -> X All
+promoteWarp' refPos ratio e@(CrossingEvent {ev_window = w, ev_event_type = t})
     | t == enterNotify && ev_mode   e == notifyNormal = do
         ws <- gets windowset
         let foc = W.peek ws
@@ -88,10 +88,10 @@ promoteWarp' pos e@(CrossingEvent {ev_window = w, ev_event_type = t})
             wsFloats = M.filterWithKey (\k _ -> k `elem` st) $ W.floating ws
         if Just w /= foc && M.null wsFloats then do
             windows (W.swapMaster . W.focusWindow w)
-            updatePointer pos
+            updatePointer refPos ratio
             return $ All False
           else return $ All True
-promoteWarp' _ _ = return $ All True
+promoteWarp' _ _ _ = return $ All True
 
 -- | Another event hook to override the focusFollowsMouse and make the pointer
 -- only follow if a given condition is satisfied. This could be used to disable

@@ -19,12 +19,12 @@ module XMonad.Actions.UpdatePointer
      -- * Usage
      -- $usage
      updatePointer
-     , PointerPosition (..)
     )
     where
 
 import XMonad
 import XMonad.Util.XUtils (fi)
+import Control.Arrow
 import Control.Monad
 import XMonad.StackSet (member, peek, screenDetail, current)
 import Data.Maybe
@@ -35,36 +35,32 @@ import Data.Maybe
 -- > import XMonad
 -- > import XMonad.Actions.UpdatePointer
 --
--- Enable it by including it in your logHook definition. Eg:
+-- Enable it by including it in your logHook definition, e.g.:
 --
--- > logHook = updatePointer Nearest
+-- > logHook = updatePointer (0.5, 0.5) (1, 1)
 --
--- which will move the pointer to the nearest point of a newly focused window, or
+-- which will move the pointer to the nearest point of a newly focused
+-- window. The first argument establishes a reference point within the
+-- newly-focused window, while the second argument linearly interpolates
+-- between said reference point and the edges of the newly-focused window to
+-- obtain a bounding box for the pointer.
 --
--- > logHook = updatePointer (Relative 0.5 0.5)
---
--- which will move the pointer to the center of a newly focused window, or
---
--- > logHook = updatePointer (TowardsCentre 0.75 0.75)
---
--- which will linearly interpolate the pointer between 'Nearest' and ¾ of
--- the way towards the centre of the window.
+-- > logHook = updatePointer (0.5, 0.5) (0, 0) -- exact centre of window
+-- > logHook = updatePointer (0.25, 0.25) (0.25, 0.25) -- near the top-left
+-- > logHook = updatePointer (0.5, 0.5) (1.1, 1.1) -- within 110% of the edge
 --
 -- To use this with an existing logHook, use >> :
 --
 -- > logHook = dynamicLog
--- >           >> updatePointer (Relative 1 1)
+-- >           >> updatePointer (1, 1) (0, 0)
 --
 -- which moves the pointer to the bottom-right corner of the focused window.
-
-data PointerPosition = Nearest | Relative Rational Rational | TowardsCentre Rational Rational
-    deriving (Read,Show)
 
 -- | Update the pointer's location to the currently focused
 -- window or empty screen unless it's already there, or unless the user was changing
 -- focus with the mouse
-updatePointer :: PointerPosition -> X ()
-updatePointer p = do
+updatePointer :: (Rational, Rational) -> (Rational, Rational) -> X ()
+updatePointer refPos ratio = do
   ws <- gets windowset
   dpy <- asks display
   rect <- case peek ws of
@@ -72,39 +68,37 @@ updatePointer p = do
         Just w  -> windowAttributesToRectangle `fmap` io (getWindowAttributes dpy w)
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
-  (_sameRoot,_,currentWindow,rootx,rooty,_,_,_) <- io $ queryPointer dpy root
+  (_sameRoot,_,currentWindow,rootX,rootY,_,_,_) <- io $ queryPointer dpy root
   drag <- gets dragging
-  unless (pointWithin (fi rootx) (fi rooty) rect
+  unless (pointWithin (fi rootX) (fi rootY) rect
           || mouseIsMoving
           || isJust drag
-          || not (currentWindow `member` ws || currentWindow == none)) $
-    case p of
-    Nearest -> do
-      let x = moveWithin (fi rootx) (rect_x rect) (fi (rect_x rect) + fi (rect_width  rect))
-          y = moveWithin (fi rooty) (rect_y rect) (fi (rect_y rect) + fi (rect_height rect))
-      io $ warpPointer dpy none root 0 0 0 0 x y
-    TowardsCentre xfrc yfrc -> do
-      let cx = fi (rect_width rect) / 2 + fi (rect_x rect)
-          cy = fi (rect_height rect) / 2 + fi (rect_y rect)
-          x,y,cx,cy :: Rational
-          x = moveWithin (fi rootx) (fi $ rect_x rect) (fi (rect_x rect) + fi (rect_width  rect))
-          y = moveWithin (fi rooty) (fi $ rect_y rect) (fi (rect_y rect) + fi (rect_height rect))
-      io $ warpPointer dpy none root 0 0 0 0 (round $ x + xfrc*(cx-x)) (round $ y + yfrc*(cy-y))
-    Relative h v ->
-      io $ warpPointer dpy none root 0 0 0 0
-           (rect_x rect + fraction h (rect_width rect))
-           (rect_y rect + fraction v (rect_height rect))
-        where fraction x y = floor (x * fromIntegral y)
+          || not (currentWindow `member` ws || currentWindow == none)) $ let
+    -- focused rectangle
+    (rectX, rectY) = (rect_x &&& rect_y) rect
+    (rectW, rectH) = (fi . rect_width &&& fi . rect_height) rect
+    -- reference position, with (0,0) and (1,1) being top-left and bottom-right
+    refX = lerp (fst refPos) rectX (rectX + rectW)
+    refY = lerp (snd refPos) rectY (rectY + rectH)
+    -- final pointer bounds, lerped *outwards* from reference position
+    boundsX = join (***) (lerp (fst ratio) refX) (rectX, rectX + rectW)
+    boundsY = join (***) (lerp (snd ratio) refY) (rectY, rectY + rectH)
+    -- ideally we ought to move the pointer in a straight line towards the
+    -- reference point until it is within the above bounds, but…
+    in io $ warpPointer dpy none root 0 0 0 0
+        (round . clip boundsX $ fi rootX)
+        (round . clip boundsY $ fi rootY)
 
 windowAttributesToRectangle :: WindowAttributes -> Rectangle
 windowAttributesToRectangle wa = Rectangle (fi (wa_x wa))
                                            (fi (wa_y wa))
                                            (fi (wa_width wa + 2 * wa_border_width wa))
                                            (fi (wa_height wa + 2 * wa_border_width wa))
-moveWithin :: Ord a => a -> a -> a -> a
-moveWithin now lower upper =
-    if now < lower
-    then lower
-    else if now > upper
-         then upper
-         else now
+
+lerp :: (RealFrac r, Real a, Real b) => r -> a -> b -> r
+lerp r a b = (1 - r) * realToFrac a + r * realToFrac b
+
+clip :: Ord a => (a, a) -> a -> a
+clip (lower, upper) x = if x < lower then lower
+    else if x > upper then upper else x
+
