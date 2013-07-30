@@ -43,7 +43,12 @@ import Data.Maybe
 --
 -- > logHook = updatePointer (Relative 0.5 0.5)
 --
--- which will move the pointer to the center of a newly focused window.
+-- which will move the pointer to the center of a newly focused window, or
+--
+-- > logHook = updatePointer (TowardsCentre 0.75 0.75)
+--
+-- which will linearly interpolate the pointer between 'Nearest' and ¾ of
+-- the way towards the centre of the window.
 --
 -- To use this with an existing logHook, use >> :
 --
