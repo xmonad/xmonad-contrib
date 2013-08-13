@@ -28,7 +28,6 @@ import XMonad.Actions.Warp
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.SetWMName
 import XMonad.Layout.Grid
 import XMonad.Layout.IndependentScreens
 import XMonad.Layout.Magnifier
@@ -225,7 +224,7 @@ dmwitConfig nScreens = def {
                               <+> manageDocks
                               <+> manageSpawn,
     logHook                 = allPPs nScreens,
-    startupHook             = refresh >> setWMName "LG3D" -- gotta keep this until all the machines I use have the version of openjdk that respects _JAVA_AWT_WM_NONREPARENTING
+    startupHook             = refresh
                            >> mapM_ (spawnOnce . xmobarCommand) [0 .. nScreens-1]
     }
 
