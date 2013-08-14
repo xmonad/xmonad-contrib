@@ -98,8 +98,7 @@ import qualified Data.Set as S
 --
 
 -- | Detects if the given window is of type DOCK and if so, reveals
---   it, but does not manage it. If the window has the STRUT property
---   set, adjust the gap accordingly.
+--   it, but does not manage it.
 manageDocks :: ManageHook
 manageDocks = checkDock --> (doIgnore <+> clearGapCache)
     where clearGapCache = do
