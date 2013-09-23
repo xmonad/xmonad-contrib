@@ -55,7 +55,7 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook, withUrgencyHookC,
                                  UrgencyConfig(..), urgencyConfig,
                                  SuppressWhen(..), RemindWhen(..),
-                                 focusUrgent, clearUrgents,
+                                 focusUrgent, clearUrgents, clearUrgency,
                                  dzenUrgencyHook,
                                  DzenUrgencyHook(..),
                                  NoUrgencyHook(..),
