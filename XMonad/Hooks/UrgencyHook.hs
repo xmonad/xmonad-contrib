@@ -55,12 +55,13 @@ module XMonad.Hooks.UrgencyHook (
                                  withUrgencyHook, withUrgencyHookC,
                                  UrgencyConfig(..), urgencyConfig,
                                  SuppressWhen(..), RemindWhen(..),
-                                 focusUrgent, clearUrgents, clearUrgency,
+                                 focusUrgent, clearUrgents,
                                  dzenUrgencyHook,
                                  DzenUrgencyHook(..),
                                  NoUrgencyHook(..),
                                  BorderUrgencyHook(..),
                                  FocusHook(..),
+                                 filterUrgencyHook,
                                  minutes, seconds,
                                  -- * Stuff for developers:
                                  readUrgents, withUrgents,
@@ -528,3 +529,18 @@ data StdoutUrgencyHook = StdoutUrgencyHook deriving (Read, Show)
 
 instance UrgencyHook StdoutUrgencyHook where
     urgencyHook    _ w = io $ putStrLn $ "Urgent: " ++ show w
+
+-- | urgencyhook such that windows on certain workspaces
+-- never get urgency set.
+--
+-- Useful for scratchpad workspaces perhaps:
+--
+-- > main = xmonad (withUrgencyHook (filterUrgencyHook ["NSP", "SP"]) defaultConfig)
+filterUrgencyHook :: [WorkspaceId] -> Window -> X ()
+filterUrgencyHook skips w = do
+    ws <- gets windowset
+    case W.findTag w ws of
+        Just tag -> when (tag `elem` skips)
+                        $ adjustUrgents (delete w)
+        _ -> return ()
+
