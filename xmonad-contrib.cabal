@@ -217,6 +217,7 @@ library
                         XMonad.Layout.Groups.Wmii
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
+                        XMonad.Layout.IfMax
                         XMonad.Layout.IM
                         XMonad.Layout.ImageButtonDecoration
                         XMonad.Layout.IndependentScreens
