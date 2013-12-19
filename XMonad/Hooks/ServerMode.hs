@@ -130,7 +130,7 @@ serverModeEventHook = serverModeEventHook' defaultCommands
 serverModeEventHook' :: X [(String,X ())] -> Event -> X All
 serverModeEventHook' cmdAction ev = serverModeEventHookF "XMONAD_COMMAND" (sequence_ . map helper . words) ev
         where helper cmd = do cl <- cmdAction
-                              case lookup cmd (zip (map show [1..]) cl) of
+                              case lookup cmd (zip (map show [1 :: Integer ..]) cl) of
                                 Just (_,action) -> action
                                 Nothing         -> mapM_ (io . hPutStrLn stderr) . listOfCommands $ cl
               listOfCommands cl = map (uncurry (++)) $ zip (map show ([1..] :: [Int])) $ map ((++) " - " . fst) cl
@@ -162,9 +162,9 @@ serverModeEventHookCmd' cmdAction ev = serverModeEventHookF "XMONAD_COMMAND" (se
 serverModeEventHookF :: String -> (String -> X ()) -> Event -> X All
 serverModeEventHookF key func (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) = do
         d <- asks display
-        a <- io $ internAtom d key False
-        when (mt == a && dt /= []) $ do
-	     let atom = fromIntegral $ toInteger $ foldr1 (\a b -> a + (b*2^32)) dt
+        atm <- io $ internAtom d key False
+        when (mt == atm && dt /= []) $ do
+	     let atom = fromIntegral $ toInteger $ foldr1 (\a b -> a + (b*2^(32::Int))) dt
 	     cmd <- io $ getAtomName d atom
 	     case cmd of
 	          Just command -> func command
