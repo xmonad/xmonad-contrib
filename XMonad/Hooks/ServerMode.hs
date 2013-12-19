@@ -168,6 +168,6 @@ serverModeEventHookF key func (ClientMessageEvent {ev_message_type = mt, ev_data
          cmd <- io $ getAtomName d atom
          case cmd of
               Just command -> func command
-          Nothing -> io $ hPutStrLn stderr ("Couldn't retrieve atom " ++ (show atom))
+              Nothing -> io $ hPutStrLn stderr ("Couldn't retrieve atom " ++ (show atom))
         return (All True)
 serverModeEventHookF _ _ _ = return (All True)
