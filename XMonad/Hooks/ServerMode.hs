@@ -9,7 +9,8 @@
 -- Portability :  unportable
 --
 -- This is an 'EventHook' that will receive commands from an external
--- client.
+-- client. Also consider "XMonad.Hooks.EwmhDesktops" together with
+-- @wmctrl@.
 --
 -- This is the example of a client:
 --
