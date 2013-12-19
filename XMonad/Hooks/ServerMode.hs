@@ -164,10 +164,10 @@ serverModeEventHookF key func (ClientMessageEvent {ev_message_type = mt, ev_data
         d <- asks display
         atm <- io $ internAtom d key False
         when (mt == atm && dt /= []) $ do
-	     let atom = fromIntegral $ toInteger $ foldr1 (\a b -> a + (b*2^(32::Int))) dt
-	     cmd <- io $ getAtomName d atom
-	     case cmd of
-	          Just command -> func command
-		  Nothing -> io $ hPutStrLn stderr ("Couldn't retrieve atom " ++ (show atom))
+         let atom = fromIntegral $ toInteger $ foldr1 (\a b -> a + (b*2^(32::Int))) dt
+         cmd <- io $ getAtomName d atom
+         case cmd of
+              Just command -> func command
+          Nothing -> io $ hPutStrLn stderr ("Couldn't retrieve atom " ++ (show atom))
         return (All True)
 serverModeEventHookF _ _ _ = return (All True)
