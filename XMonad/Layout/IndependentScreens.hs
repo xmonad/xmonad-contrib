@@ -25,7 +25,7 @@ module XMonad.Layout.IndependentScreens (
     -- * Converting between virtual and physical workspaces
     -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
-    marshallWindowSpace, unmarshallWindowSpace
+    marshallWindowSpace, unmarshallWindowSpace, marshallSort
 ) where
 
 -- for the screen stuff
@@ -179,6 +179,7 @@ whenCurrentOn s pp = pp
         _ -> ppOutput pp out
     }
 
+-- | If @vSort@ is a function that sorts 'WindowSpace's with virtual names, then @marshallSort s vSort@ is a function which sorts 'WindowSpace's with physical names in an analogous way -- but keeps only the spaces on screen @s@.
 marshallSort :: ScreenId -> ([WindowSpace] -> [WindowSpace]) -> ([WindowSpace] -> [WindowSpace])
 marshallSort s vSort = pScreens . vSort . vScreens where
     onScreen ws = unmarshallS (tag ws) == s
