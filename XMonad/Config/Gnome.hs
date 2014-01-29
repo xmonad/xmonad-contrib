@@ -74,7 +74,7 @@ gnomeRegister = io $ do
     x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
     whenJust x $ \sessionId -> safeSpawn "dbus-send"
             ["--session"
-            ,"--print-reply=string"
+            ,"--print-reply=literal"
             ,"--dest=org.gnome.SessionManager"
             ,"/org/gnome/SessionManager"
             ,"org.gnome.SessionManager.RegisterClient"
