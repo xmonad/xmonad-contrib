@@ -62,7 +62,6 @@ data Shell = Shell
 instance XPrompt Shell where
     showXPrompt Shell     = "Run: "
     completionToCommand _ = escape
-    commandToComplete _ c = c
 
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
