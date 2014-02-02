@@ -51,7 +51,7 @@ import qualified Data.Map.Strict as Map
 -- >                    , logHook = logHook'}
 --
 
-data NamedPipes = NamedPipes { pipeMap :: (Map.Map String Handle) }
+data NamedPipes = NamedPipes { pipeMap :: Map.Map String Handle }
     deriving (Show, Typeable)
 
 instance ExtensionClass NamedPipes where
@@ -64,7 +64,7 @@ instance ExtensionClass NamedPipes where
 spawnNamedPipe :: String -> String -> X ()
 spawnNamedPipe cmd name = do
   b <- XS.gets (Map.member name . pipeMap) 
-  when (not b) $ do
+  unless b $ do
     h <- spawnPipe cmd 
     XS.modify (NamedPipes . Map.insert name h . pipeMap)   
 
