@@ -310,6 +310,7 @@ library
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
                         XMonad.Util.SpawnOnce
+                        XMonad.Util.SpawnNamedPipe
                         XMonad.Util.Stack
                         XMonad.Util.StringProp
                         XMonad.Util.Themes
