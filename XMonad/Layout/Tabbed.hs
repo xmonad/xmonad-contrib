@@ -20,7 +20,11 @@ module XMonad.Layout.Tabbed
       simpleTabbed, tabbed, addTabs
     , simpleTabbedAlways, tabbedAlways, addTabsAlways
     , simpleTabbedBottom, tabbedBottom, addTabsBottom
+    , simpleTabbedLeft, tabbedLeft, addTabsLeft
+    , simpleTabbedRight, tabbedRight, addTabsRight
     , simpleTabbedBottomAlways, tabbedBottomAlways, addTabsBottomAlways
+    , simpleTabbedLeftAlways, tabbedLeftAlways, addTabsLeftAlways
+    , simpleTabbedRightAlways, tabbedRightAlways, addTabsRightAlways
     , Theme (..)
     , def
     , defaultTheme
@@ -98,6 +102,18 @@ simpleTabbedBottom = tabbedBottom shrinkText def
 simpleTabbedBottomAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) Simplest Window
 simpleTabbedBottomAlways = tabbedBottomAlways shrinkText def
 
+-- | A side-tabbed layout with the default xmonad Theme.
+simpleTabbedLeft, simpleTabbedRight :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) 
+                                        Simplest Window
+simpleTabbedLeft = tabbedLeft shrinkText def
+simpleTabbedRight = tabbedRight shrinkText def
+
+-- | A side-tabbed layout with the default xmonad Theme.
+simpleTabbedLeftAlways, simpleTabbedRightAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) 
+                                                  Simplest Window
+simpleTabbedLeftAlways = tabbedLeftAlways shrinkText def
+simpleTabbedRightAlways = tabbedRightAlways shrinkText def
+
 -- | A layout decorated with tabs and the possibility to set a custom
 -- shrinker and theme.
 tabbed     :: (Eq a, Shrinker s) => s -> Theme
@@ -117,6 +133,20 @@ tabbedBottom s c = addTabsBottom s c Simplest
 tabbedBottomAlways     :: (Eq a, Shrinker s) => s -> Theme
                        -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
 tabbedBottomAlways s c = addTabsBottomAlways s c Simplest
+
+-- | A layout decorated with tabs and the possibility to set a custom
+-- shrinker and theme.
+tabbedLeft, tabbedRight :: (Eq a, Shrinker s) => s -> Theme
+                        -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbedLeft s c = addTabsLeft s c Simplest
+tabbedRight s c = addTabsRight s c Simplest
+
+-- | A layout decorated with tabs and the possibility to set a custom
+-- shrinker and theme.
+tabbedLeftAlways, tabbedRightAlways :: (Eq a, Shrinker s) => s -> Theme
+                                    -> ModifiedLayout (Decoration TabbedDecoration s) Simplest a
+tabbedLeftAlways s c = addTabsLeftAlways s c Simplest
+tabbedRightAlways s c = addTabsRightAlways s c Simplest
 
 -- Layout Modifiers
 
@@ -138,6 +168,16 @@ addTabsBottomAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
                     -> ModifiedLayout (Decoration TabbedDecoration s) l a
 addTabsBottomAlways = createTabs Always Bottom
 
+-- | A layout modifier that uses the provided shrinker and theme to add tabs to the side of any layout.
+addTabsRight, addTabsLeft :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
+                            -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabsRight = createTabs WhenPlural RightS
+addTabsLeft = createTabs WhenPlural LeftS
+
+addTabsRightAlways, addTabsLeftAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
+                                      -> ModifiedLayout (Decoration TabbedDecoration s) l a
+addTabsRightAlways = createTabs Always RightS
+addTabsLeftAlways = createTabs Always LeftS
 
 -- Tab creation abstractions.  Internal use only.
 
@@ -145,9 +185,10 @@ addTabsBottomAlways = createTabs Always Bottom
 -- shrinker and theme to the supplied layout.
 createTabs                ::(Eq a, LayoutClass l a, Shrinker s) => TabbarShown -> TabbarLocation -> s
                           -> Theme -> l a -> ModifiedLayout (Decoration TabbedDecoration s) l a
+
 createTabs sh loc tx th l = decoration tx th (Tabbed loc sh) l
 
-data TabbarLocation = Top | Bottom deriving (Read,Show)
+data TabbarLocation = Top | Bottom | LeftS | RightS deriving (Read,Show)
 
 data TabbarShown = Always | WhenPlural deriving (Read, Show, Eq)
 
@@ -156,30 +197,42 @@ data TabbedDecoration a = Tabbed TabbarLocation TabbarShown deriving (Read, Show
 instance Eq a => DecorationStyle TabbedDecoration a where
     describeDeco (Tabbed Top _ ) = "Tabbed"
     describeDeco (Tabbed Bottom _ ) = "Tabbed Bottom"
+    describeDeco (Tabbed LeftS _ ) = "Tabbed Left"
+    describeDeco (Tabbed RightS _ ) = "Tabbed Right"
     decorationEventHook _ ds ButtonEvent { ev_window     = ew
                                          , ev_event_type = et
                                          , ev_button     = eb }
         | et == buttonPress
-        , Just ((w,_),_) <-findWindowByDecoration ew ds =
+        , Just ((w,_),_) <- findWindowByDecoration ew ds =
            if eb == button2
                then killWindow w
                else focus w
     decorationEventHook _ _ _ = return ()
 
-    pureDecoration (Tabbed lc sh) _ ht _ s wrs (w,r@(Rectangle x y wh hh))
+    pureDecoration (Tabbed lc sh) wt ht _ s wrs (w,r@(Rectangle x y wh hh))
         = if ((sh == Always && numWindows > 0) || numWindows > 1)
           then Just $ case lc of
                         Top -> upperTab
                         Bottom -> lowerTab
+                        LeftS -> leftTab
+                        RightS -> rightTab
           else Nothing
         where ws = filter (`elem` map fst (filter ((==r) . snd) wrs)) (S.integrate s)
-              loc i = x + fi ((wh * fi i) `div` max 1 (fi $ length ws))
-              wid = fi $ maybe x (\i -> loc (i+1) - loc i) $ w `elemIndex` ws
-              nx  = maybe x loc $ w `elemIndex` ws
-              upperTab = Rectangle nx y wid (fi ht)
-              lowerTab = Rectangle nx (y+fi(hh-ht)) wid (fi ht)
+              loc k h i = k + fi ((h * fi i) `div` max 1 (fi $ length ws))
+              esize k h = fi $ maybe k (\i -> loc k h (i+1) - loc k h i) $ w `elemIndex` ws
+              wid = esize x wh
+              hid = esize y hh
+              n k h = maybe k (loc k h) $ w `elemIndex` ws
+              nx = n x wh
+              ny = n y hh
+              upperTab = Rectangle nx  y wid (fi ht)
+              lowerTab = Rectangle nx (y + fi (hh - ht)) wid (fi ht)
+              leftTab = Rectangle x ny (fi wt) hid
+              rightTab = Rectangle (x + fi (wh - wt)) ny (fi wt) hid
               numWindows = length ws
-    shrink (Tabbed loc _ ) (Rectangle _ _ _ dh) (Rectangle x y w h)
+    shrink (Tabbed loc _ ) (Rectangle _ _ dw dh) (Rectangle x y w h)
         = case loc of
             Top -> Rectangle x (y + fi dh) w (h - dh)
             Bottom -> Rectangle x y w (h - dh)
+            LeftS -> Rectangle (x + fi dw) y (w - dw) h
+            RightS -> Rectangle x y (w - dw) h
