@@ -31,7 +31,7 @@ module XMonad.Layout.Tabbed
     , TabbedDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)
-    , TabbarShown, TabbarLocation
+    , TabbarShown, Direction2D(..)
     ) where
 
 import Data.List
@@ -40,6 +40,7 @@ import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.Decoration
 import XMonad.Layout.Simplest ( Simplest(Simplest) )
+import XMonad.Util.Types (Direction2D(..))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -153,52 +154,50 @@ tabbedRightAlways s c = addTabsRightAlways s c Simplest
 -- | A layout modifier that uses the provided shrinker and theme to add tabs to any layout.
 addTabs :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
         -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabs = createTabs WhenPlural Top
+addTabs = createTabs WhenPlural U
 
 addTabsAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
               -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabsAlways = createTabs Always Top
+addTabsAlways = createTabs Always U
 
 -- | A layout modifier that uses the provided shrinker and theme to add tabs to the bottom of any layout.
 addTabsBottom :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
               -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabsBottom = createTabs WhenPlural Bottom
+addTabsBottom = createTabs WhenPlural D
 
 addTabsBottomAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
                     -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabsBottomAlways = createTabs Always Bottom
+addTabsBottomAlways = createTabs Always D
 
 -- | A layout modifier that uses the provided shrinker and theme to add tabs to the side of any layout.
 addTabsRight, addTabsLeft :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
                             -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabsRight = createTabs WhenPlural RightS
-addTabsLeft = createTabs WhenPlural LeftS
+addTabsRight = createTabs WhenPlural R
+addTabsLeft = createTabs WhenPlural L
 
 addTabsRightAlways, addTabsLeftAlways :: (Eq a, LayoutClass l a, Shrinker s) => s -> Theme -> l a
                                       -> ModifiedLayout (Decoration TabbedDecoration s) l a
-addTabsRightAlways = createTabs Always RightS
-addTabsLeftAlways = createTabs Always LeftS
+addTabsRightAlways = createTabs Always R
+addTabsLeftAlways = createTabs Always L
 
 -- Tab creation abstractions.  Internal use only.
 
 -- Create tabbar when required at the given location with the given
 -- shrinker and theme to the supplied layout.
-createTabs                ::(Eq a, LayoutClass l a, Shrinker s) => TabbarShown -> TabbarLocation -> s
+createTabs                ::(Eq a, LayoutClass l a, Shrinker s) => TabbarShown -> Direction2D -> s
                           -> Theme -> l a -> ModifiedLayout (Decoration TabbedDecoration s) l a
 
 createTabs sh loc tx th l = decoration tx th (Tabbed loc sh) l
 
-data TabbarLocation = Top | Bottom | LeftS | RightS deriving (Read,Show)
-
 data TabbarShown = Always | WhenPlural deriving (Read, Show, Eq)
 
-data TabbedDecoration a = Tabbed TabbarLocation TabbarShown deriving (Read, Show)
+data TabbedDecoration a = Tabbed Direction2D TabbarShown deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabbedDecoration a where
-    describeDeco (Tabbed Top _ ) = "Tabbed"
-    describeDeco (Tabbed Bottom _ ) = "Tabbed Bottom"
-    describeDeco (Tabbed LeftS _ ) = "Tabbed Left"
-    describeDeco (Tabbed RightS _ ) = "Tabbed Right"
+    describeDeco (Tabbed U _ ) = "Tabbed"
+    describeDeco (Tabbed D _ ) = "Tabbed Bottom"
+    describeDeco (Tabbed L _ ) = "Tabbed Left"
+    describeDeco (Tabbed R _ ) = "Tabbed Right"
     decorationEventHook _ ds ButtonEvent { ev_window     = ew
                                          , ev_event_type = et
                                          , ev_button     = eb }
@@ -212,10 +211,10 @@ instance Eq a => DecorationStyle TabbedDecoration a where
     pureDecoration (Tabbed lc sh) wt ht _ s wrs (w,r@(Rectangle x y wh hh))
         = if ((sh == Always && numWindows > 0) || numWindows > 1)
           then Just $ case lc of
-                        Top -> upperTab
-                        Bottom -> lowerTab
-                        LeftS -> leftTab
-                        RightS -> rightTab
+                        U -> upperTab
+                        D -> lowerTab
+                        L -> leftTab
+                        R -> rightTab
           else Nothing
         where ws = filter (`elem` map fst (filter ((==r) . snd) wrs)) (S.integrate s)
               loc k h i = k + fi ((h * fi i) `div` max 1 (fi $ length ws))
@@ -232,7 +231,7 @@ instance Eq a => DecorationStyle TabbedDecoration a where
               numWindows = length ws
     shrink (Tabbed loc _ ) (Rectangle _ _ dw dh) (Rectangle x y w h)
         = case loc of
-            Top -> Rectangle x (y + fi dh) w (h - dh)
-            Bottom -> Rectangle x y w (h - dh)
-            LeftS -> Rectangle (x + fi dw) y (w - dw) h
-            RightS -> Rectangle x y (w - dw) h
+            U -> Rectangle x (y + fi dh) w (h - dh)
+            D -> Rectangle x y w (h - dh)
+            L -> Rectangle (x + fi dw) y (w - dw) h
+            R -> Rectangle x y (w - dw) h
