@@ -21,12 +21,10 @@ module XMonad.Util.WindowState ( -- * Usage
                                  put,
                                  StateQuery(..),
                                  runStateQuery,
-                                 getQuery ) where
+                                 catchQuery ) where
 import XMonad hiding (get, put, modify)
 import Control.Monad.Reader(ReaderT(..))
 import Control.Monad.State.Class
-import Control.Monad.State(StateT(..), evalStateT)
-import Control.Monad.Trans(MonadTrans, lift)
 import Data.Typeable (Typeable, typeOf)
 import Control.Applicative((<$>))
 -- $usage
