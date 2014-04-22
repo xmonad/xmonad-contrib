@@ -47,8 +47,7 @@ import qualified XMonad.StackSet as W
 data IfMax l1 l2 w = IfMax Int (l1 w) (l2 w)
   deriving (Read, Show)
 
-instance (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a)
-    => LayoutClass (IfMax l1 l2) a where
+instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (IfMax l1 l2) a where
 
   runLayout (W.Workspace _ (IfMax n l1 l2) s) rect = arrange (W.integrate' s)
     where
