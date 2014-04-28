@@ -23,6 +23,7 @@ module XMonad.Actions.DynamicWorkspaceGroups
 
       WSGroupId
 
+    , addRawWSGroup
     , addWSGroup
     , addCurrentWSGroup
     , forgetWSGroup
@@ -72,13 +73,20 @@ instance ExtensionClass WSGroupStorage where
   initialValue = WSG $ M.empty
   extensionType = PersistentExtension
 
+-- | Add a new workspace group of the given name, mapping to an
+--   explicitly specified association between screen IDs and workspace
+--   names.  This function could be useful for, say, creating some
+--   standard workspace groups in your startup hook.
+addRawWSGroup :: WSGroupId -> [(ScreenId, WorkspaceId)] -> X ()
+addRawWSGroup name = XS.modify . withWSG . M.insert name
+
 -- | Add a new workspace group with the given name.
 addWSGroup :: WSGroupId -> [WorkspaceId] -> X ()
 addWSGroup name wids = withWindowSet $ \w -> do
   let wss  = map ((W.tag . W.workspace) &&& W.screen) $ W.screens w
       wmap = mapM (strength . (flip lookup wss &&& id)) wids
   case wmap of
-    Just ps -> XS.modify . withWSG . M.insert name $ ps
+    Just ps -> addRawWSGroup name ps
     Nothing -> return ()
  where strength (ma, b) = ma >>= \a -> return (a,b)
 
