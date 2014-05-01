@@ -12,7 +12,7 @@
 -- Layout where new windows will split the focused window in half, based off of BSPWM
 --
 -----------------------------------------------------------------------------
- 
+
 module XMonad.Layout.BinarySpacePartition (
                                           -- * Usage
                                           -- $usage
@@ -33,15 +33,15 @@ import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
--- 
+--
 -- > import XMonad.Layout.BinarySpacePartition
---    
+--
 -- Then add the layout, using the default BSP (BinarySpacePartition)
 --
 -- > myLayout = emptyBSP ||| etc ..
---     
+--
 -- It will be helpful to add the following key bindings
---      
+--
 -- > , ((modm .|. altMask,               xK_l     ), sendMessage $ ExpandTowards R)
 -- > , ((modm .|. altMask,               xK_h     ), sendMessage $ ExpandTowards L)
 -- > , ((modm .|. altMask,               xK_j     ), sendMessage $ ExpandTowards D)
@@ -52,7 +52,7 @@ import Control.Monad
 -- > , ((modm .|. altMask .|. ctrlMask , xK_k     ), sendMessage $ ShrinkFrom U)
 -- > , ((modm,                           xK_r     ), sendMessage Rotate)
 -- > , ((modm,                           xK_s     ), sendMessage Swap)
--- 
+--
 
 -- |Message for rotating a split in the BSP. Keep in mind that this does not change the order
 -- of the windows, it will just turn a horizontal split into a verticial one and vice versa
@@ -76,7 +76,7 @@ oppositeDirection Vertical = Horizontal
 oppositeDirection Horizontal = Vertical
 
 split :: Direction -> Rational -> Rectangle -> (Rectangle, Rectangle)
-split Horizontal r (Rectangle sx sy sw sh) = (r1, r2) where 
+split Horizontal r (Rectangle sx sy sw sh) = (r1, r2) where
     r1 = Rectangle sx sy sw sh'
     r2 = Rectangle sx (sy + fromIntegral sh') sw (sh - sh')
     sh' = floor $ fromIntegral sh * r
@@ -88,16 +88,16 @@ split Vertical r (Rectangle sx sy sw sh) = (r1, r2) where
 data Split = Split { direction :: Direction
                    , ratio :: Rational
                    } deriving (Show, Read, Eq)
-                              
+
 oppositeSplit :: Split -> Split
 oppositeSplit (Split d r) = Split (oppositeDirection d) r
 
 increaseRatio :: Split -> Rational -> Split
-increaseRatio (Split d r) delta = Split d (min 0.9 (max 0.1 (r + delta))) 
+increaseRatio (Split d r) delta = Split d (min 0.9 (max 0.1 (r + delta)))
 
 data Tree a = Leaf | Node { value :: a
                           , left :: Tree a
-                          , right :: Tree a 
+                          , right :: Tree a
                           } deriving (Show, Read, Eq)
 
 numLeaves :: Tree a -> Int
@@ -143,14 +143,14 @@ goSibling z@(_, RightCrumb _ _:_) = Just z >>= goUp >>= goLeft
 
 goToNthLeaf :: Int -> Zipper a -> Maybe (Zipper a)
 goToNthLeaf _ z@(Leaf, _) = Just z
-goToNthLeaf n z@(t, _) = 
+goToNthLeaf n z@(t, _) =
   if numLeaves (left t) > n
   then do z' <- goLeft z
           goToNthLeaf n z'
   else do z' <- goRight z
           goToNthLeaf (n - (numLeaves . left $ t)) z'
-          
-splitCurrentLeaf :: Zipper Split -> Maybe (Zipper Split)                  
+
+splitCurrentLeaf :: Zipper Split -> Maybe (Zipper Split)
 splitCurrentLeaf (Leaf, []) = Just (Node (Split Vertical 0.5) Leaf Leaf, [])
 splitCurrentLeaf (Leaf, crumb:cs) = Just (Node (Split (oppositeDirection . direction . parentVal $ crumb) 0.5) Leaf Leaf, crumb:cs)
 splitCurrentLeaf _ = Nothing
@@ -168,33 +168,33 @@ rotateCurrentLeaf _ = Nothing
 
 swapCurrentLeaf :: Zipper a -> Maybe (Zipper a)
 swapCurrentLeaf (Leaf, []) = Just (Leaf, [])
-swapCurrentLeaf (Leaf, c:cs) = Just (Leaf, swapCrumb c:cs) 
+swapCurrentLeaf (Leaf, c:cs) = Just (Leaf, swapCrumb c:cs)
 swapCurrentLeaf _ = Nothing
 
 expandTreeTowards :: Direction2D -> Zipper Split -> Maybe (Zipper Split)
 expandTreeTowards _ z@(_, []) = Just z
-expandTreeTowards R (t, LeftCrumb s r:cs) 
+expandTreeTowards R (t, LeftCrumb s r:cs)
   | direction s == Vertical = Just (t, LeftCrumb (increaseRatio s 0.1) r:cs)
-expandTreeTowards L (t, RightCrumb s l:cs)                              
+expandTreeTowards L (t, RightCrumb s l:cs)
   | direction s == Vertical = Just (t, RightCrumb (increaseRatio s (-0.1)) l:cs)
-expandTreeTowards D (t, LeftCrumb s r:cs)                              
+expandTreeTowards D (t, LeftCrumb s r:cs)
   | direction s == Horizontal = Just (t, LeftCrumb (increaseRatio s 0.1) r:cs)
-expandTreeTowards U (t, RightCrumb s l:cs)                                 
+expandTreeTowards U (t, RightCrumb s l:cs)
   | direction s == Horizontal = Just (t, RightCrumb (increaseRatio s (-0.1)) l:cs)
 expandTreeTowards dir z = goUp z >>= expandTreeTowards dir
-                              
-shrinkTreeFrom :: Direction2D -> Zipper Split -> Maybe (Zipper Split)                          
+
+shrinkTreeFrom :: Direction2D -> Zipper Split -> Maybe (Zipper Split)
 shrinkTreeFrom _ z@(_, []) = Just z
-shrinkTreeFrom R z@(_, LeftCrumb s _:_) 
-  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards L 
+shrinkTreeFrom R z@(_, LeftCrumb s _:_)
+  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards L
 shrinkTreeFrom L z@(_, RightCrumb s _:_)
-  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards R 
-shrinkTreeFrom D z@(_, LeftCrumb s _:_)                              
+  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards R
+shrinkTreeFrom D z@(_, LeftCrumb s _:_)
   | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards U
-shrinkTreeFrom U z@(_, RightCrumb s _:_)                                 
-  | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards D 
+shrinkTreeFrom U z@(_, RightCrumb s _:_)
+  | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards D
 shrinkTreeFrom dir z = goUp z >>= shrinkTreeFrom dir
-                       
+
 top :: Zipper a -> Zipper a
 top z = case goUp z of
           Nothing -> z
@@ -204,13 +204,13 @@ toTree :: Zipper a -> Tree a
 toTree = fst . top
 
 index :: W.Stack a -> Int
-index s = case toIndex (Just s) of 
+index s = case toIndex (Just s) of
             (_, Nothing) -> 0
             (_, Just int) -> int
-                       
+
 data BinarySpacePartition a = BinarySpacePartition { getTree :: Maybe (Tree Split) } deriving (Show, Read)
 
--- | an empty BinarySpacePartition to use as a default for adding windows to. 
+-- | an empty BinarySpacePartition to use as a default for adding windows to.
 emptyBSP :: BinarySpacePartition a
 emptyBSP = BinarySpacePartition Nothing
 
@@ -231,9 +231,9 @@ zipperToBinarySpacePartition (Just z) = BinarySpacePartition . Just . toTree . t
 rectangles :: BinarySpacePartition a -> Rectangle -> [Rectangle]
 rectangles (BinarySpacePartition Nothing) _ = []
 rectangles (BinarySpacePartition (Just Leaf)) rootRect = [rootRect]
-rectangles (BinarySpacePartition (Just node)) rootRect = 
-    rectangles (makeBSP . left $ node) leftBox ++ 
-    rectangles (makeBSP . right $ node) rightBox 
+rectangles (BinarySpacePartition (Just node)) rootRect =
+    rectangles (makeBSP . left $ node) leftBox ++
+    rectangles (makeBSP . right $ node) rightBox
     where (leftBox, rightBox) = split (direction info) (ratio info) rootRect
           info = value node
 
@@ -242,44 +242,44 @@ doToNth f b n = zipperToBinarySpacePartition $ makeZipper b >>= goToNthLeaf n >>
 
 splitNth :: BinarySpacePartition a -> Int -> BinarySpacePartition a
 splitNth (BinarySpacePartition Nothing) _ = makeBSP Leaf
-splitNth b n = doToNth splitCurrentLeaf b n 
+splitNth b n = doToNth splitCurrentLeaf b n
 
-removeNth :: BinarySpacePartition a -> Int -> BinarySpacePartition a                    
+removeNth :: BinarySpacePartition a -> Int -> BinarySpacePartition a
 removeNth (BinarySpacePartition Nothing) _ = emptyBSP
 removeNth (BinarySpacePartition (Just Leaf)) _ = emptyBSP
-removeNth b n = doToNth removeCurrentLeaf b n 
-                    
-rotateNth :: BinarySpacePartition a -> Int -> BinarySpacePartition a                    
+removeNth b n = doToNth removeCurrentLeaf b n
+
+rotateNth :: BinarySpacePartition a -> Int -> BinarySpacePartition a
 rotateNth (BinarySpacePartition Nothing) _ = emptyBSP
 rotateNth b@(BinarySpacePartition (Just Leaf)) _ = b
-rotateNth b n = doToNth rotateCurrentLeaf b n 
-                                        
+rotateNth b n = doToNth rotateCurrentLeaf b n
+
 swapNth :: BinarySpacePartition a -> Int -> BinarySpacePartition a
 swapNth (BinarySpacePartition Nothing) _ = emptyBSP
 swapNth b@(BinarySpacePartition (Just Leaf)) _ = b
-swapNth b n = doToNth swapCurrentLeaf b n 
-                    
+swapNth b n = doToNth swapCurrentLeaf b n
+
 growNthTowards :: Direction2D -> BinarySpacePartition a -> Int -> BinarySpacePartition a
 growNthTowards _ (BinarySpacePartition Nothing) _ = emptyBSP
 growNthTowards _ b@(BinarySpacePartition (Just Leaf)) _ = b
-growNthTowards dir b n = doToNth (expandTreeTowards dir) b n 
-                    
-shrinkNthFrom :: Direction2D -> BinarySpacePartition a -> Int -> BinarySpacePartition a                    
+growNthTowards dir b n = doToNth (expandTreeTowards dir) b n
+
+shrinkNthFrom :: Direction2D -> BinarySpacePartition a -> Int -> BinarySpacePartition a
 shrinkNthFrom _ (BinarySpacePartition Nothing) _ = emptyBSP
 shrinkNthFrom _ b@(BinarySpacePartition (Just Leaf)) _ = b
-shrinkNthFrom dir b n = doToNth (shrinkTreeFrom dir) b n 
+shrinkNthFrom dir b n = doToNth (shrinkTreeFrom dir) b n
 
 instance LayoutClass BinarySpacePartition a where
   doLayout b r s = return (zip ws rs, layout b) where
     ws = W.integrate s
-    layout bsp 
+    layout bsp
       | l == count = Just bsp
       | l > count = layout $ splitNth bsp n
-      | otherwise = layout $ removeNth bsp n 
+      | otherwise = layout $ removeNth bsp n
       where count = size bsp
-                        
+
     l = length ws
-    n = index s    
+    n = index s
     rs = case layout b of
       Nothing -> rectangles b r
       Just bsp' -> rectangles bsp' r
