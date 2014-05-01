@@ -20,12 +20,13 @@ module XMonad.Layout.BinarySpacePartition (
                                           , Rotate(..)
                                           , Swap(..)
                                           , ResizeDirectional(..)
-                                          , Bound(..)
+                                          , Direction2D(..)
                                           ) where
 
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Util.Stack hiding (Zipper)
+import XMonad.Util.Types
 import qualified Data.Map as M
 import Data.List ((\\))
 import Control.Monad
@@ -41,14 +42,14 @@ import Control.Monad
 --     
 -- It will be helpful to add the following key bindings
 --      
--- > , ((modm .|. altMask,               xK_l     ), sendMessage $ ExpandTowards East)
--- > , ((modm .|. altMask,               xK_h     ), sendMessage $ ExpandTowards West)
--- > , ((modm .|. altMask,               xK_j     ), sendMessage $ ExpandTowards South)
--- > , ((modm .|. altMask,               xK_k     ), sendMessage $ ExpandTowards North)
--- > , ((modm .|. altMask .|. ctrlMask , xK_l     ), sendMessage $ ShrinkFrom East)
--- > , ((modm .|. altMask .|. ctrlMask , xK_h     ), sendMessage $ ShrinkFrom West)
--- > , ((modm .|. altMask .|. ctrlMask , xK_j     ), sendMessage $ ShrinkFrom South)
--- > , ((modm .|. altMask .|. ctrlMask , xK_k     ), sendMessage $ ShrinkFrom North)
+-- > , ((modm .|. altMask,               xK_l     ), sendMessage $ ExpandTowards R)
+-- > , ((modm .|. altMask,               xK_h     ), sendMessage $ ExpandTowards L)
+-- > , ((modm .|. altMask,               xK_j     ), sendMessage $ ExpandTowards D)
+-- > , ((modm .|. altMask,               xK_k     ), sendMessage $ ExpandTowards U)
+-- > , ((modm .|. altMask .|. ctrlMask , xK_l     ), sendMessage $ ShrinkFrom R)
+-- > , ((modm .|. altMask .|. ctrlMask , xK_h     ), sendMessage $ ShrinkFrom L)
+-- > , ((modm .|. altMask .|. ctrlMask , xK_j     ), sendMessage $ ShrinkFrom D)
+-- > , ((modm .|. altMask .|. ctrlMask , xK_k     ), sendMessage $ ShrinkFrom U)
 -- > , ((modm,                           xK_r     ), sendMessage Rotate)
 -- > , ((modm,                           xK_s     ), sendMessage Swap)
 -- 
@@ -59,7 +60,7 @@ data Rotate = Rotate deriving Typeable
 instance Message Rotate
 
 -- |Message for resizing one of the cells in the BSP
-data ResizeDirectional = ExpandTowards Bound | ShrinkFrom Bound deriving Typeable
+data ResizeDirectional = ExpandTowards Direction2D | ShrinkFrom Direction2D deriving Typeable
 instance Message ResizeDirectional
 
 -- |Message for swapping the left child of a split with the right child of split.
@@ -67,8 +68,6 @@ instance Message ResizeDirectional
 -- if you are not expecting them.
 data Swap = Swap deriving Typeable
 instance Message Swap
-
-data Bound = East | West | North | South deriving Typeable
 
 data Direction = Horizontal | Vertical deriving (Show, Read, Eq)
 
@@ -172,28 +171,28 @@ swapCurrentLeaf (Leaf, []) = Just (Leaf, [])
 swapCurrentLeaf (Leaf, c:cs) = Just (Leaf, swapCrumb c:cs) 
 swapCurrentLeaf _ = Nothing
 
-expandTreeTowards :: Bound -> Zipper Split -> Maybe (Zipper Split)
+expandTreeTowards :: Direction2D -> Zipper Split -> Maybe (Zipper Split)
 expandTreeTowards _ z@(_, []) = Just z
-expandTreeTowards East (t, LeftCrumb s r:cs) 
+expandTreeTowards R (t, LeftCrumb s r:cs) 
   | direction s == Vertical = Just (t, LeftCrumb (increaseRatio s 0.1) r:cs)
-expandTreeTowards West (t, RightCrumb s l:cs)                              
+expandTreeTowards L (t, RightCrumb s l:cs)                              
   | direction s == Vertical = Just (t, RightCrumb (increaseRatio s (-0.1)) l:cs)
-expandTreeTowards South (t, LeftCrumb s r:cs)                              
+expandTreeTowards D (t, LeftCrumb s r:cs)                              
   | direction s == Horizontal = Just (t, LeftCrumb (increaseRatio s 0.1) r:cs)
-expandTreeTowards North (t, RightCrumb s l:cs)                                 
+expandTreeTowards U (t, RightCrumb s l:cs)                                 
   | direction s == Horizontal = Just (t, RightCrumb (increaseRatio s (-0.1)) l:cs)
 expandTreeTowards dir z = goUp z >>= expandTreeTowards dir
                               
-shrinkTreeFrom :: Bound -> Zipper Split -> Maybe (Zipper Split)                          
+shrinkTreeFrom :: Direction2D -> Zipper Split -> Maybe (Zipper Split)                          
 shrinkTreeFrom _ z@(_, []) = Just z
-shrinkTreeFrom East z@(_, LeftCrumb s _:_) 
-  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards West
-shrinkTreeFrom West z@(_, RightCrumb s _:_)
-  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards East
-shrinkTreeFrom South z@(_, LeftCrumb s _:_)                              
-  | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards North
-shrinkTreeFrom North z@(_, RightCrumb s _:_)                                 
-  | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards South
+shrinkTreeFrom R z@(_, LeftCrumb s _:_) 
+  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards L 
+shrinkTreeFrom L z@(_, RightCrumb s _:_)
+  | direction s == Vertical = Just z >>= goSibling >>= expandTreeTowards R 
+shrinkTreeFrom D z@(_, LeftCrumb s _:_)                              
+  | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards U
+shrinkTreeFrom U z@(_, RightCrumb s _:_)                                 
+  | direction s == Horizontal = Just z >>= goSibling >>= expandTreeTowards D 
 shrinkTreeFrom dir z = goUp z >>= shrinkTreeFrom dir
                        
 top :: Zipper a -> Zipper a
@@ -260,12 +259,12 @@ swapNth (BinarySpacePartition Nothing) _ = emptyBSP
 swapNth b@(BinarySpacePartition (Just Leaf)) _ = b
 swapNth b n = doToNth swapCurrentLeaf b n 
                     
-growNthTowards :: Bound -> BinarySpacePartition a -> Int -> BinarySpacePartition a
+growNthTowards :: Direction2D -> BinarySpacePartition a -> Int -> BinarySpacePartition a
 growNthTowards _ (BinarySpacePartition Nothing) _ = emptyBSP
 growNthTowards _ b@(BinarySpacePartition (Just Leaf)) _ = b
 growNthTowards dir b n = doToNth (expandTreeTowards dir) b n 
                     
-shrinkNthFrom :: Bound -> BinarySpacePartition a -> Int -> BinarySpacePartition a                    
+shrinkNthFrom :: Direction2D -> BinarySpacePartition a -> Int -> BinarySpacePartition a                    
 shrinkNthFrom _ (BinarySpacePartition Nothing) _ = emptyBSP
 shrinkNthFrom _ b@(BinarySpacePartition (Just Leaf)) _ = b
 shrinkNthFrom dir b n = doToNth (shrinkTreeFrom dir) b n 
