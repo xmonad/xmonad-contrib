@@ -29,6 +29,7 @@ import Control.Exception as E
 
 import Control.Monad
 import Data.Maybe
+import Data.List(elemIndex)
 
 econst :: Monad m => a -> IOException -> m a
 econst = const . return
@@ -53,8 +54,11 @@ data Ssh = Ssh
 
 instance XPrompt Ssh where
     showXPrompt       Ssh = "SSH to: "
-    commandToComplete _ c = c
-    nextCompletion      _ = getNextCompletion
+    commandToComplete _ c = maybe c (\(u,h) -> h) (parseHost c)
+    nextCompletion t c l = maybe next (\(u,h) -> u ++ "@" ++ next) hostPared
+                            where 
+                              hostPared = parseHost c
+                              next = getNextCompletion (maybe c (\(u,h) -> h) hostPared) l
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
@@ -135,3 +139,6 @@ getWithPort ('[':str) = host ++ " -p " ++ port
                    ']':':':x -> x
                    _         -> "22"
 getWithPort  str = str
+
+parseHost :: String -> Maybe (String, String)
+parseHost a = elemIndex '@' a  >>= (\c-> Just ( (take c a), (drop (c+1) a) ) )
