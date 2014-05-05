@@ -54,11 +54,11 @@ data Ssh = Ssh
 
 instance XPrompt Ssh where
     showXPrompt       Ssh = "SSH to: "
-    commandToComplete _ c = maybe c (\(u,h) -> h) (parseHost c)
-    nextCompletion t c l = maybe next (\(u,h) -> u ++ "@" ++ next) hostPared
+    commandToComplete _ c = maybe c (\(_u,h) -> h) (parseHost c)
+    nextCompletion _t c l = maybe next (\(u,_h) -> u ++ "@" ++ next) hostPared
                             where 
                               hostPared = parseHost c
-                              next = getNextCompletion (maybe c (\(u,h) -> h) hostPared) l
+                              next = getNextCompletion (maybe c (\(_u,h) -> h) hostPared) l
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
