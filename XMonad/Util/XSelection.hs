@@ -46,6 +46,10 @@ import Codec.Binary.UTF8.String (decode)
 
 -- | Returns a String corresponding to the current mouse selection in X;
 --   if there is none, an empty string is returned.
+--
+-- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
+-- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
+-- (These errors are generally very rare in practice, but still exist.)
 getSelection :: MonadIO m => m String
 getSelection = io $ do
   dpy <- openDisplay ""
@@ -63,10 +67,12 @@ getSelection = io $ do
   allocaXEvent $ \e -> do
     nextEvent dpy e
     ev <- getEvent e
-    if ev_event_type ev == selectionNotify
-       then do res <- getWindowProperty8 dpy clp win
-               return $ decode . map fromIntegral . fromMaybe [] $ res
-       else destroyWindow dpy win >> return ""
+    result <- if ev_event_type ev == selectionNotify
+                 then do res <- getWindowProperty8 dpy clp win
+                         return $ decode . map fromIntegral . fromMaybe [] $ res
+                 else destroyWindow dpy win >> return ""
+    closeDisplay dpy
+    return result
 
 {- | A wrapper around 'getSelection'. Makes it convenient to run a program with the current selection as an argument.
   This is convenient for handling URLs, in particular. For example, in your Config.hs you could bind a key to
