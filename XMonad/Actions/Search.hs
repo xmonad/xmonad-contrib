@@ -51,6 +51,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  wikipedia,
                                  wiktionary,
                                  youtube,
+                                 duckduckgo,
                                  multi,
                                   -- * Use case: searching with a submap
                                   -- $tip
@@ -137,6 +138,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'wikipedia' -- basic Wikipedia search.
 
 * 'youtube' -- Youtube video search.
+
+* 'duckduckgo' -- DuckDuckGo search engine.
 
 * 'multi' -- Search based on the prefix. \"amazon:Potter\" will use amazon, etc. With no prefix searches google.
 
@@ -272,7 +275,7 @@ searchEngineF = SearchEngine
 -- The engines.
 amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
   images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary,
-  youtube :: SearchEngine
+  youtube, duckduckgo :: SearchEngine
 amazon        = searchEngine "amazon"        "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
 alpha         = searchEngine "alpha"         "http://www.wolframalpha.com/input/?i="
 codesearch    = searchEngine "codesearch"    "http://www.google.com/codesearch?q="
@@ -296,9 +299,10 @@ wikipedia     = searchEngine "wiki"          "http://en.wikipedia.org/wiki/Speci
 wiktionary    = searchEngine "wikt"          "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "http://www.youtube.com/results?search_type=search_videos&search_query="
 wayback       = searchEngineF "wayback"      ("http://web.archive.org/web/*/"++)
+duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, (prefixAware google)]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
