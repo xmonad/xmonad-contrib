@@ -47,6 +47,7 @@ import           Numeric                                     (showHex)
 import           System.Exit
 import           System.IO
 import           System.Process
+import           Control.Applicative
 
 -- | Event hook to dump all received events.  You should probably not use this
 --   unconditionally; it will produce massive amounts of output.
@@ -270,6 +271,7 @@ data DecodeState = DecS {value :: Raw           -- unconsumed raw property value
 newtype Decoder a = Decoder (ReaderT Decode (StateT DecodeState X) a)
 #ifndef __HADDOCK__
     deriving (Functor
+             ,Applicative
              ,Monad
              ,MonadIO
              ,MonadState  DecodeState
