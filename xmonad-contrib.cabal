@@ -45,9 +45,6 @@ source-repository head
   location: http://code.haskell.org/XMonadContrib
 
 
-flag small_base
-  description: Choose the new smaller, split-up base package.
-
 flag use_xft
   description: Use Xft to render text
 
@@ -56,29 +53,26 @@ flag testing
   default: False
 
 library
-    if flag(small_base)
-        build-depends: base >= 3 && < 5,
-                       containers,
-                       directory,
-                       extensible-exceptions,
-                       old-locale,
-                       old-time,
-                       process,
-                       random
-    else
-        build-depends: base < 3
+    build-depends: base >= 3 && < 5,
+                    containers,
+                    directory,
+                    extensible-exceptions,
+                    old-locale,
+                    old-time,
+                    process,
+                    random,
+                    mtl >= 1 && < 3,
+                    unix,
+                    X11>=1.6.1 && < 1.7,
+                    xmonad>=0.12   && < 0.13,
+                    utf8-string
 
     if flag(use_xft)
-        build-depends: X11-xft >= 0.2, utf8-string
-        extensions: ForeignFunctionInterface
+        build-depends: X11-xft >= 0.2
         cpp-options: -DXFT
-
-    build-depends:      mtl >= 1 && < 3, unix, X11>=1.6.1 && < 1.7, xmonad>=0.12   && < 0.13, utf8-string
 
     if true
         ghc-options:    -fwarn-tabs -Wall
-
-    extensions:         ForeignFunctionInterface
 
     if flag(testing)
         ghc-options:    -fwarn-tabs -Werror
