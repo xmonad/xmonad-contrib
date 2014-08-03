@@ -166,6 +166,7 @@ library
                         XMonad.Hooks.FloatNext
                         XMonad.Hooks.ICCCMFocus
                         XMonad.Hooks.InsertPosition
+                        XMonad.Hooks.ManageDebug
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Minimize
