@@ -151,6 +151,7 @@ library
                         XMonad.Config.Droundy
                         XMonad.Config.Gnome
                         XMonad.Config.Kde
+                        XMonad.Config.Mate
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
                         XMonad.Hooks.CurrentWorkspaceOnTop
