@@ -1,6 +1,7 @@
 {-#
   LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving,
-  FlexibleInstances, MultiParamTypeClasses
+  FlexibleInstances, MultiParamTypeClasses,
+  FlexibleContexts -- ghc-6.12 only
   #-}
 -----------------------------------------------------------------------------
 -- |
