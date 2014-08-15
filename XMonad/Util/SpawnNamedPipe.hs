@@ -26,7 +26,7 @@ import XMonad.Util.Run
 import System.IO
 import qualified XMonad.Util.ExtensibleState as XS
 import Control.Monad
-import qualified Data.Map.Strict as Map
+import qualified Data.Map as Map
 
 -- $usage
 -- This module makes it possible to spawn a pipe to Dzen2 in the startupHook
