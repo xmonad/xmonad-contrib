@@ -225,6 +225,12 @@ clientMessages =  [("_NET_ACTIVE_WINDOW",("_NET_ACTIVE_WINDOW",32,1))
                   ,("WM_SAVE_YOURSELF"  ,("STRING"            , 8,0))
                   ]
 
+#if __GLASGOW_HASKELL__ < 707
+finiteBitSize :: Bits a => a -> Int
+finiteBitSize x = bitSize x
+#endif
+
+
 -- | Convert a modifier mask into a useful string
 vmask                 :: KeyMask -> KeyMask -> String
 vmask numLockMask msk =  unwords $
@@ -232,7 +238,7 @@ vmask numLockMask msk =  unwords $
                          fst     $
                          foldr vmask' ([],msk) masks
     where
-      masks = map (\m -> (m,show m)) [0..toEnum (bitSize msk - 1)] ++
+      masks = map (\m -> (m,show m)) [0..toEnum (finiteBitSize msk - 1)] ++
               [(numLockMask,"num"  )
               ,(   lockMask,"lock" )
               ,(controlMask,"ctrl" )
