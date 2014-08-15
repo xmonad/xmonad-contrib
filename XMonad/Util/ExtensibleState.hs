@@ -23,7 +23,7 @@ module XMonad.Util.ExtensibleState (
                               , gets
                               ) where
 
-import Data.Typeable (typeOf,Typeable,cast)
+import Data.Typeable (typeOf,cast)
 import qualified Data.Map as M
 import XMonad.Core
 import qualified Control.Monad.State as State

@@ -26,7 +26,7 @@ module XMonad.Util.WindowState ( -- * Usage
 import XMonad hiding (get, put, modify)
 import Control.Monad.Reader(ReaderT(..))
 import Control.Monad.State.Class
-import Data.Typeable (Typeable, typeOf)
+import Data.Typeable (typeOf)
 import Control.Applicative((<$>), Applicative)
 -- $usage
 --

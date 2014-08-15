@@ -64,7 +64,7 @@ import Codec.Binary.UTF8.String (encode)
 import Data.Char (isAlphaNum, isAscii)
 import Data.List (isPrefixOf)
 import Text.Printf
-import XMonad (X(), MonadIO, liftIO)
+import XMonad (X(), liftIO)
 import XMonad.Prompt (XPrompt(showXPrompt, nextCompletion, commandToComplete), mkXPrompt, XPConfig(), historyCompletionP, getNextCompletion)
 import XMonad.Prompt.Shell (getBrowser)
 import XMonad.Util.Run (safeSpawn)
