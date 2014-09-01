@@ -307,6 +307,7 @@ library
                         XMonad.Util.NamedWindows
                         XMonad.Util.Paste
                         XMonad.Util.PositionStore
+                        XMonad.Util.RemoteWindows
                         XMonad.Util.Replace
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad

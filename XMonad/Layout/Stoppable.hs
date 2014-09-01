@@ -46,10 +46,10 @@ module XMonad.Layout.Stoppable
 import XMonad
 import XMonad.Actions.WithAll
 import XMonad.Util.WindowProperties
+import XMonad.Util.RemoteWindows
 import XMonad.Util.Timer
 import XMonad.StackSet hiding (filter)
 import XMonad.Layout.LayoutModifier
-import System.Posix.Env
 import System.Posix.Signals
 import Data.Maybe
 import Control.Monad
@@ -67,8 +67,10 @@ import Control.Monad
 -- proccesses, which means that it needs to know the hostname, so it looks
 -- for environment variables (e.g. HOST).
 --
--- Beware that as of now this module does not support dynamically changing
--- hostnames.
+-- Environment variables will work for most cases, but won't work if the
+-- hostname changes. To cover dynamic hostnames case, in addition to
+-- layoutHook you have to provide manageHook from
+-- "XMonad.Util.RemoteWindows" module.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -80,12 +82,7 @@ signalWindow s w = do
     io $ (signalProcess s . fromIntegral) `mapM_` fromMaybe [] pid
 
 signalLocalWindow :: Signal -> Window -> X ()
-signalLocalWindow s w  = do
-    host <- io $ pickOneMaybe `liftM` (getEnv `mapM` vars)
-    hasProperty (Machine host) w >>= flip when (signalWindow s w)
-  where
-    pickOneMaybe = last . (mzero:) . take 1 . catMaybes
-    vars = ["XAUTHLOCALHOSTNAME","HOST","HOSTNAME"]
+signalLocalWindow s w  = isLocalWindow w >>= flip when (signalWindow s w)
 
 withAllOn :: (a -> X ()) -> Workspace i l a -> X ()
 withAllOn f wspc = f `mapM_` integrate' (stack wspc)
