@@ -93,7 +93,7 @@ addWSGroup name wids = withWindowSet $ \w -> do
 -- | Give a name to the current workspace group.
 addCurrentWSGroup :: WSGroupId -> X ()
 addCurrentWSGroup name = withWindowSet $ \w ->
-  addWSGroup name $ map (W.tag . W.workspace) (W.current w : W.visible w)
+  addWSGroup name $ map (W.tag . W.workspace) (reverse $ W.current w : W.visible w)
 
 -- | Delete the named workspace group from the list of workspace
 --   groups.  Note that this has no effect on the workspaces involved;
