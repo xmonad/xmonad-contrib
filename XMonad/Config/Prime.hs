@@ -138,9 +138,9 @@ type Prime l l' = XConfig l -> IO (XConfig l')
 (>>) :: Prime l l' -> Prime l' l'' -> Prime l l''
 (>>) x y c = (P.>>=) (x c) y
 
--- | This is the xmonad main function. It passes the default config 'def' to
--- your do-block, takes the modified config out of your do-block, and runs
--- xmonad.
+-- | This is the xmonad main function. It passes the default config
+-- 'XMonad.Config.def' to your do-block, takes the modified config out of your
+-- do-block, and runs xmonad.
 --
 -- The do-block is a 'Prime'. Advanced readers can skip right to that
 -- definition.
