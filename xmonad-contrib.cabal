@@ -153,6 +153,7 @@ library
                         XMonad.Config.Gnome
                         XMonad.Config.Kde
                         XMonad.Config.Mate
+                        XMonad.Config.Prime
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
                         XMonad.Hooks.CurrentWorkspaceOnTop

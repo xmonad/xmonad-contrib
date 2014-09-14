@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Fullscreen
@@ -15,7 +15,8 @@
 module XMonad.Layout.Fullscreen
     ( -- * Usage:
       -- $usage
-     fullscreenFull
+     fullscreenSupport
+    ,fullscreenFull
     ,fullscreenFocus
     ,fullscreenFullRect
     ,fullscreenFocusRect
@@ -62,6 +63,20 @@ import Control.Arrow (second)
 --
 -- > myLayouts = fullscreenFull someLayout
 --
+
+-- | Modifies your config to apply basic fullscreen support -- fullscreen
+-- windows when they request it. Example usage:
+--
+-- > main = xmonad
+-- >      $ fullscreenSupport
+-- >      $ defaultConfig { ... }
+fullscreenSupport :: LayoutClass l Window =>
+  XConfig l -> XConfig (ModifiedLayout FullscreenFull l)
+fullscreenSupport c = c {
+    layoutHook = fullscreenFull $ layoutHook c,
+    handleEventHook = handleEventHook c <+> fullscreenEventHook,
+    manageHook = manageHook c <+> fullscreenManageHook
+  }
 
 -- | Messages that control the fullscreen state of the window.
 -- AddFullscreen and RemoveFullscreen are sent to all layouts
