@@ -123,8 +123,8 @@ import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeym
 -- starting with double dashes are comments. You may delete them. Note that
 -- Haskell is a bit precise about indentation. Make sure all the statements in
 -- your do-block start at the same column, and make sure that any multi-line
--- statements are indented further on the subsequent lines. (For an example,
--- see the 'addKeys' statement in the /Example config/ section, below.)
+-- statements are formatted with a hanging indent. (For an example, see the
+-- 'keys =+' statement in the /Example config/ section, below.)
 
 --
 -- The Prime "Monad"
@@ -138,9 +138,9 @@ type Prime l l' = XConfig l -> IO (XConfig l')
 (>>) :: Prime l l' -> Prime l' l'' -> Prime l l''
 (>>) x y c = (P.>>=) (x c) y
 
--- | This is the xmonad main function. It passes the default config
--- 'XMonad.Config.def' to your do-block, takes the modified config out of your
--- do-block, and runs xmonad.
+-- | This is the xmonad main function. It passes 'XMonad.Config.def' (the
+-- default 'XConfig') into your do-block, takes the modified config out of your
+-- do-block, and then runs xmonad.
 --
 -- The do-block is a 'Prime'. Advanced readers can skip right to that
 -- definition.
