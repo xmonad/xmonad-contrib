@@ -87,6 +87,7 @@ module Prelude,
 -- Regular people shouldn't need to know about these.
 Prime,
 (>>),
+ifThenElse,
 
 -- * Example config
 -- $example
@@ -137,6 +138,12 @@ type Prime l l' = XConfig l -> IO (XConfig l')
 -- | Composes two Primes using 'Prelude.>>=' from "Prelude".
 (>>) :: Prime l l' -> Prime l' l'' -> Prime l l''
 (>>) x y c = (P.>>=) (x c) y
+
+-- | Because of RebindableSyntax, this is necessary to enable you to use
+-- if-then-else expressions. No need to call it directly.
+ifThenElse :: Bool -> a -> a -> a
+ifThenElse True  a _ = a
+ifThenElse False _ b = b
 
 -- | This is the xmonad main function. It passes 'XMonad.Config.def' (the
 -- default 'XConfig') into your do-block, takes the modified config out of your
