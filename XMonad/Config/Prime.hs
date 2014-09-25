@@ -60,6 +60,14 @@ keys,
 mouseBindings,
 RemovableClass(..),
 
+-- * Modifying the list of workspaces
+-- $workspaces
+withWorkspaces,
+wsNames,
+wsKeyspecs,
+wsActions,
+wsSetName,
+
 -- * Modifying the layoutHook
 -- $layout
 addLayout,
@@ -86,6 +94,7 @@ module Prelude,
 -- | These are the building blocks on which the config language is built.
 -- Regular people shouldn't need to know about these.
 Prime,
+Arr,
 (>>),
 ifThenElse,
 
@@ -96,17 +105,17 @@ ifThenElse,
 -- $troubleshooting
 ) where
 
-import Prelude hiding ((>>))
+import Prelude hiding ((>>), mod)
 import qualified Prelude as P ((>>=), (>>))
 
-import qualified Data.Map as M
 import Data.Monoid (All)
 
 import XMonad hiding (xmonad, XConfig(..))
 import XMonad (XConfig(XConfig))
+import qualified XMonad.StackSet as W
 import qualified XMonad as X (xmonad, XConfig(..))
 
-import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, mkKeymap, removeKeysP, removeMouseBindings)
+import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, removeKeysP, removeMouseBindings)
 
 -- $start_here
 -- To start with, create a @~\/.xmonad\/xmonad.hs@ that looks like this:
@@ -133,10 +142,14 @@ import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeym
 
 -- | A Prime is a function that transforms an XConfig. It's not a monad, but we
 -- turn on RebindableSyntax so we can abuse the pretty do notation.
-type Prime l l' = XConfig l -> IO (XConfig l')
+type Prime l l' = Arr (XConfig l) (XConfig l')
 
--- | Composes two Primes using 'Prelude.>>=' from "Prelude".
-(>>) :: Prime l l' -> Prime l' l'' -> Prime l l''
+-- | An Arr is a generalization of Prime. Don't reference the type, if you can
+-- avoid it. It might go away in the future.
+type Arr x y = x -> IO y
+
+-- | Composes two Arrs using 'Prelude.>>=' from "Prelude".
+(>>) :: Arr x y -> Arr y z -> Arr x z
 (>>) x y c = (P.>>=) (x c) y
 
 -- | Because of RebindableSyntax, this is necessary to enable you to use
@@ -173,53 +186,53 @@ nothing = return
 
 class UpdateableClass s x y | s -> x y where
   -- | This lets you apply a function to an attribute (i.e. read, modify, write).
-  (=.) :: s l -> (x -> y) -> Prime l l
+  (=.) :: s c -> (x -> y) -> Arr c c
 
 class SettableClass s x y | s -> x y where
   -- | This lets you modify an attribute.
-  (=:) :: s l -> y -> Prime l l
+  (=:) :: s c -> y -> Arr c c
 
 -- Undecideable instance. But it's nice to leave open the possibility to write
 -- fields you can't read (e.g. `wmName =: ...`).
 instance UpdateableClass s x y => SettableClass s x y where
   s =: y = s =. const y
 
-data Settable x l = Settable (XConfig l -> x)              -- getter
-                             (x -> XConfig l -> XConfig l) -- setter
+data Settable x c = Settable (c -> x)      -- getter
+                             (x -> c -> c) -- setter
 
 instance UpdateableClass (Settable x) x x where
   (Settable g s =. f) c = return $ s (f $ g c) c
 
 -- | Non-focused windows border color. Default: @\"#dddddd\"@
-normalBorderColor  :: Settable String l
+normalBorderColor :: Settable String (XConfig l)
 normalBorderColor = Settable X.normalBorderColor (\x c -> c { X.normalBorderColor = x })
 
 -- | Focused windows border color. Default: @\"#ff0000\"@
-focusedBorderColor :: Settable String l
+focusedBorderColor :: Settable String (XConfig l)
 focusedBorderColor = Settable X.focusedBorderColor (\x c -> c { X.focusedBorderColor = x })
 
 -- | The preferred terminal application. Default: @\"xterm\"@
-terminal :: Settable String l
+terminal :: Settable String (XConfig l)
 terminal = Settable X.terminal (\x c -> c { X.terminal = x })
 
 -- | The mod modifier, as used by key bindings. Default: @mod1Mask@ (which is
 -- probably alt on your computer).
-modMask :: Settable KeyMask l
+modMask :: Settable KeyMask (XConfig l)
 modMask = Settable X.modMask (\x c -> c { X.modMask = x })
 
 -- | The border width (in pixels). Default: @1@
-borderWidth :: Settable Dimension l
+borderWidth :: Settable Dimension (XConfig l)
 borderWidth = Settable X.borderWidth (\x c -> c { X.borderWidth = x })
 
 -- | Whether window focus follows the mouse cursor on move, or requires a mouse
 -- click. (Mouse? What's that?) Default: @True@
-focusFollowsMouse :: Settable Bool l
+focusFollowsMouse :: Settable Bool (XConfig l)
 focusFollowsMouse = Settable X.focusFollowsMouse (\x c -> c { X.focusFollowsMouse = x })
 
 -- | If True, a mouse click on an inactive window focuses it, but the click is
 -- not passed to the window. If False, the click is also passed to the window.
 -- Default @True@
-clickJustFocuses :: Settable Bool l
+clickJustFocuses :: Settable Bool (XConfig l)
 clickJustFocuses = Settable X.clickJustFocuses (\x c -> c { X.clickJustFocuses = x })
 
 -- $summables
@@ -230,12 +243,12 @@ clickJustFocuses = Settable X.clickJustFocuses (\x c -> c { X.clickJustFocuses =
 
 class SummableClass s y | s -> y where
   -- | This lets you add to an attribute.
-  (=+) :: s l -> y -> Prime l l
+  (=+) :: s c -> y -> Arr c c
   infix 0 =+
 
-data Summable x y l = Summable (XConfig l -> x)              -- getter
-                               (x -> XConfig l -> XConfig l) -- setter
-                               (x -> y -> x)                 -- accumulator
+data Summable x y c = Summable (c -> x)      -- getter
+                               (x -> c -> c) -- setter
+                               (x -> y -> x) -- accumulator
 
 instance UpdateableClass (Summable x y) x x where
   (Summable g s _ =. f) c = return $ s (f $ g c) c
@@ -255,7 +268,7 @@ instance SummableClass (Summable x y) y where
 -- >   manageHook =+ (className =? "Vim" --> doF shiftMaster)
 --
 -- Note that operator precedence mandates the parentheses here.
-manageHook :: Summable ManageHook ManageHook l
+manageHook :: Summable ManageHook ManageHook (XConfig l)
 manageHook = Summable X.manageHook (\x c -> c { X.manageHook = x }) (<+>)
 
 -- | Custom X event handler. Return @All True@ if the default handler should
@@ -264,7 +277,7 @@ manageHook = Summable X.manageHook (\x c -> c { X.manageHook = x }) (<+>)
 -- > import XMonad.Hooks.ServerMode
 -- > ...
 -- >   handleEventHook =+ serverModeEventHook
-handleEventHook :: Summable (Event -> X All) (Event -> X All) l
+handleEventHook :: Summable (Event -> X All) (Event -> X All) (XConfig l)
 handleEventHook = Summable X.handleEventHook (\x c -> c { X.handleEventHook = x }) (<+>)
 
 -- | List of workspaces' names. Default: @map show [1 .. 9 :: Int]@. Adding
@@ -273,10 +286,8 @@ handleEventHook = Summable X.handleEventHook (\x c -> c { X.handleEventHook = x 
 -- >   workspaces =+ ["0"]
 --
 -- This is useless unless you also create keybindings for this.
-workspaces :: Summable [String] [String] l
+workspaces :: Summable [String] [String] (XConfig l)
 workspaces = Summable X.workspaces (\x c -> c { X.workspaces = x }) (++)
-
--- TODO: Rework the workspaces thing to pair names with keybindings.
 
 -- | The action to perform when the windows set is changed. This happens
 -- whenever focus change, a window is moved, etc. @logHook =+@ takes an @X ()@
@@ -290,7 +301,7 @@ workspaces = Summable X.workspaces (\x c -> c { X.workspaces = x }) (++)
 -- @MonadIO m => m ()@), you'll need to explicitly annotate it, like so:
 --
 -- >   logHook =+ (io $ putStrLn "Hello, world!" :: X ())
-logHook :: Summable (X ()) (X ()) l
+logHook :: Summable (X ()) (X ()) (XConfig l)
 logHook = Summable X.logHook (\x c -> c { X.logHook = x }) (P.>>)
 
 -- | The action to perform on startup. @startupHook =+@ takes an @X ()@ and
@@ -303,7 +314,7 @@ logHook = Summable X.logHook (\x c -> c { X.logHook = x }) (P.>>)
 -- Note that if your expression is parametrically typed (e.g. of type
 -- @MonadIO m => m ()@), you'll need to explicitly annotate it, as documented
 -- in 'logHook'.
-startupHook :: Summable (X ()) (X ()) l
+startupHook :: Summable (X ()) (X ()) (XConfig l)
 startupHook = Summable X.startupHook (\x c -> c { X.startupHook = x }) (P.>>)
 
 -- | The client events that xmonad is interested in. This is useful in
@@ -311,14 +322,14 @@ startupHook = Summable X.startupHook (\x c -> c { X.startupHook = x }) (P.>>)
 -- enterWindowMask .|. propertyChangeMask@
 --
 -- >   clientMask =+ keyPressMask .|. keyReleaseMask
-clientMask :: Summable EventMask EventMask l
+clientMask :: Summable EventMask EventMask (XConfig l)
 clientMask = Summable X.clientMask (\x c -> c { X.clientMask = x }) (.|.)
 
 -- | The root events that xmonad is interested in. This is useful in
 -- combination with handleEventHook. Default: @substructureRedirectMask .|.
 -- substructureNotifyMask .|. enterWindowMask .|. leaveWindowMask .|.
 -- structureNotifyMask .|. buttonPressMask@
-rootMask :: Summable EventMask EventMask l
+rootMask :: Summable EventMask EventMask (XConfig l)
 rootMask = Summable X.rootMask (\x c -> c { X.rootMask = x }) (.|.)
 
 -- $removables
@@ -327,26 +338,17 @@ rootMask = Summable X.rootMask (\x c -> c { X.rootMask = x }) (.|.)
 
 class RemovableClass r y | r -> y where
   -- | This lets you remove from an attribute.
-  (=-) :: r l -> y -> Prime l l
+  (=-) :: r c -> y -> Arr c c
   infix 0 =-
 
-data Keys (l :: * -> *) = Keys
-
--- Note that since checkKeymap happens on newKeys, it doesn't check for
--- duplicates between repeated applications. Probably OK. (Especially since
--- overriding defaults is a common behavior.) Also note that there's no
--- reference cycle here. Yay!
-
-instance UpdateableClass Keys (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())) [(String, X ())] where
-  (_ =. f) c = return c { X.keys = \c' -> mkKeymap c' newKeys,
-                          X.startupHook = (P.>>) (X.startupHook c) (checkKeymap c newKeys) }
-    where newKeys = f $ X.keys c
+data Keys c = Keys { kAdd :: [(String, X ())] -> c -> c,
+                     kRemove :: [String] -> c -> c }
 
 instance SummableClass Keys [(String, X ())] where
-  (_ =+ newKeys) c = return (c `additionalKeysP` newKeys) { X.startupHook = (P.>>) (X.startupHook c) (checkKeymap c newKeys) }
+  Keys { kAdd = a } =+ newKeys = return . a newKeys
 
 instance RemovableClass Keys [String] where
-  (_ =- sadKeys) c = return (c `removeKeysP` sadKeys)
+  Keys { kRemove = r } =- sadKeys = return . r sadKeys
 
 -- | Key bindings to 'X' actions. Default: see @`man xmonad`@. 'keys'
 -- takes a list of keybindings specified emacs-style, as documented in
@@ -355,16 +357,24 @@ instance RemovableClass Keys [String] where
 --
 -- >   keys =- ["M-S-c"]
 -- >   keys =+ [("M-M1-x", kill)]
-keys :: Keys l
-keys = Keys
+keys :: Keys (XConfig l)
+keys = Keys {
+  -- Note that since checkKeymap happens on newKeys, it doesn't check for
+  -- duplicates between repeated applications. Probably OK. (Especially since
+  -- overriding defaults is a common behavior.) Also note that there's no
+  -- reference cycle here. Yay!
+  kAdd = \newKeys c -> (c `additionalKeysP` newKeys) { X.startupHook = (P.>>) (X.startupHook c) (checkKeymap c newKeys) },
+  kRemove = flip removeKeysP
+}
 
-data MouseBindings (l :: * -> *) = MouseBindings
+data MouseBindings c = MouseBindings { mAdd :: [((ButtonMask, Button), Window -> X ())] -> c -> c,
+                                       mRemove :: [(ButtonMask, Button)] -> c -> c }
 
 instance SummableClass MouseBindings [((ButtonMask, Button), Window -> X ())] where
-  (_ =+ newBindings) c = return (c `additionalMouseBindings` newBindings)
+  MouseBindings { mAdd = a } =+ newBindings = return . a newBindings
 
 instance RemovableClass MouseBindings [(ButtonMask, Button)] where
-  (_ =- sadBindings) c = return (c `removeMouseBindings` sadBindings)
+  MouseBindings { mRemove = r } =- sadBindings = return . r sadBindings
 
 -- | Mouse button bindings to an 'X' actions on a window. Default: see @`man
 -- xmonad`@. To make mod-<scrollwheel> switch workspaces:
@@ -376,8 +386,93 @@ instance RemovableClass MouseBindings [(ButtonMask, Button)] where
 --
 -- Note that you need to specify the numbered mod-mask e.g. 'mod4Mask' instead
 -- of just 'modMask'.
-mouseBindings :: MouseBindings l
-mouseBindings = MouseBindings
+mouseBindings :: MouseBindings (XConfig l)
+mouseBindings = MouseBindings {
+  mAdd = flip additionalMouseBindings,
+  mRemove = flip removeMouseBindings
+}
+
+-- $workspaces
+-- Workspaces can be configured through 'workspaces', but then the 'keys' need
+-- to be set, and this can be a bit laborious. 'withWorkspaces' provides a
+-- convenient mechanism for common workspace updates.
+
+-- | Configure workspaces through a Prime-like interface. Example:
+--
+-- >   withWorkspaces $ do
+-- >     wsKeyspecs =+ ["0"]
+-- >     wsActions =+ [("M-M1-", windows . swapWithCurrent)]
+-- >     wsSetName 1 "mail"
+--
+-- This will set 'workspaces' and add the necessary keybindings to 'keys'. Note
+-- that it won't remove old keybindings; it's just not that clever.
+withWorkspaces :: Arr WorkspaceConfig WorkspaceConfig -> Prime l l
+withWorkspaces wsarr xconf = (P.>>=) (wsarr def) $ \wsconf -> wsprime wsconf xconf
+  where wsprime :: WorkspaceConfig -> Prime l l
+        wsprime wsconf =
+          (workspaces =: allNames) >>
+          (keys =+ [(mod ++ key, action name) | (name, key) <- zip allNames (wsKeyspecs_ wsconf),
+                                                (mod, action) <- wsActions_ wsconf])
+          where allNames = zipWith chooseName (wsNames_ wsconf) (wsKeyspecs_ wsconf)
+                chooseName name keyspec = if not (null name) then name else keyspec
+
+data WorkspaceConfig = WorkspaceConfig {
+  wsNames_ :: [String],
+  wsKeyspecs_ :: [String],
+  wsActions_ :: [(String, String -> X ())]
+}
+
+instance Default WorkspaceConfig where
+  def = WorkspaceConfig {
+    wsNames_ = repeat "",
+    wsKeyspecs_ = map (:[]) ['1'..'9'], -- The hungry monkey eats dots and turns them into numbers.
+    wsActions_ = [("M-", windows . W.greedyView),
+                  ("M-S-", windows . W.shift)]
+  }
+
+-- | The list of workspace names, like 'workspaces' but with two differences:
+--
+--   1. If any entry is the empty string, it'll be replaced with the
+--      corresponding entry in 'wsKeyspecs'.
+--   2. The list is truncated to the size of 'wsKeyspecs'.
+--
+-- The default value is @'repeat' ""@.
+--
+-- If you'd like to create workspaces without associated keyspecs, you can do
+-- that afterwards, outside the 'withWorkspaces' block, with @'workspaces' =+@.
+wsNames :: Settable [String] WorkspaceConfig
+wsNames = Settable wsNames_ (\x c -> c { wsNames_ = x })
+
+-- | The list of workspace keys. These are combined with the modifiers in
+-- 'wsActions' to form the keybindings for navigating to workspaces. Default:
+-- @["1","2",...,"9"]@.
+wsKeyspecs :: Summable [String] [String] WorkspaceConfig
+wsKeyspecs = Summable wsKeyspecs_ (\x c -> c { wsKeyspecs_ = x }) (++)
+
+-- | Mapping from key prefix to command. Its type is @[(String, String ->
+-- X())]@. The key prefix may be a modifier such as @\"M-\"@, or a submap
+-- prefix such as @\"M-a \"@. The command is a function that takes a workspace
+-- name and returns an @X ()@. 'withWorkspaces' creates keybindings for the
+-- cartesian product of 'wsKeyspecs' and 'wsActions'.
+--
+-- Default:
+--
+-- > [("M-", windows . W.greedyView),
+-- >  ("M-S-", windows . W.shift)]
+wsActions :: Summable [(String, String -> X ())] [(String, String -> X ())] WorkspaceConfig
+wsActions = Summable wsActions_ (\x c -> c { wsActions_ = x }) (++)
+
+-- | A convenience for just modifying one entry in 'wsNames', in case you only
+-- want a few named workspaces. Example:
+--
+-- >     wsSetName 1 "mail"
+-- >     wsSetName 2 "web"
+wsSetName :: Int -> String -> Arr WorkspaceConfig WorkspaceConfig
+wsSetName index newName = wsNames =. (map maybeSet . zip [0..])
+  where maybeSet (i, oldName) | i == (index - 1) = newName
+                              | otherwise = oldName
+
+-- TODO: Something for screens, too.
 
 -- $layout
 -- Layouts are special. You can't modify them using the @=:@ or @=.@ operator.
@@ -460,6 +555,7 @@ applyIO = id  -- This is here in case we want to change the Prime type later.
 -- > import XMonad.Config.Prime
 -- >
 -- > import XMonad.Actions.CycleWS (prevWS, nextWS)
+-- > import XMonad.Actions.SwapWorkspaces (swapWithCurrent)
 -- > import XMonad.Actions.WindowNavigation (withWindowNavigation)
 -- > import XMonad.Layout.Fullscreen (fullscreenSupport)
 -- > import XMonad.Layout.NoBorders (smartBorders)
@@ -474,6 +570,9 @@ applyIO = id  -- This is here in case we want to change the Prime type later.
 -- >   modifyLayout smartBorders
 -- >   apply fullscreenSupport
 -- >   applyIO $ withWindowNavigation (xK_w, xK_a, xK_s, xK_d)
+-- >   withWorkspaces $ do
+-- >     wsKeyspecs =+ ["0"]
+-- >     wsActions =+ [("M-M1-", windows . swapWithCurrent)]
 -- >   keys =+ [
 -- >       ("M-,",                      sendMessage $ IncMasterN (-1)),
 -- >       ("M-.",                      sendMessage $ IncMasterN 1),
