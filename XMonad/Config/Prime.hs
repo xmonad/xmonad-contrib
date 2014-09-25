@@ -74,7 +74,7 @@ addLayout,
 resetLayout,
 modifyLayout,
 
--- * Update entire XConfig
+-- * Updating the XConfig en masse
 -- $update
 startWith,
 apply,
@@ -599,3 +599,17 @@ applyIO = id  -- This is here in case we want to change the Prime type later.
 -- > test2 = do spawn "echo Hi"
 -- >            spawn "echo Bye"
 -- >   where (>>) = (P.>>)
+--
+-- === How do I use the old keyboard syntax?
+-- You can use 'apply' and supply your own Haskell function. For instance:
+--
+-- > apply $ flip additionalKeys $ [((mod1Mask, xK_z), spawn "date | dzen2 -fg '#eeeeee' -p 2")]
+--
+-- === How do I run command before xmonad starts (like 'spawnPipe')?
+-- If you're using it for a status bar, see if 'XMonad.Hooks.DynamicLog.dzen'
+-- or 'XMonad.Hooks.DynamicLog.xmobar' does what you want. If so, you can apply
+-- it with 'applyIO'.
+--
+-- If not, you can write your own @XConfig l -> IO (XConfig l)@ and apply it
+-- with 'applyIO'. When writing this function, see the above tip about using
+-- normal monads.
