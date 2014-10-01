@@ -486,7 +486,7 @@ wsSetName index newName = wsNames =. (map maybeSet . zip [0..])
 -- | Configure screen keys through a Prime-like interface:
 --
 -- >   withScreens $ do
--- >     sKeys =+ ["e", "r"]
+-- >     sKeys =: ["e", "r"]
 --
 -- This will add the necessary keybindings to 'keys'. Note that it won't remove
 -- old keybindings; it's just not that clever.
@@ -526,7 +526,7 @@ sKeys = Summable sKeys_ (\x c -> c { sKeys_ = x }) (++)
 sActions :: Summable [(String, ScreenId -> X ())] [(String, ScreenId -> X ())] ScreenConfig
 sActions = Summable sActions_ (\x c -> c { sActions_ = x }) (++)
 
--- Converts a stackset transformer parameterized on the workspace type into one
+-- | Converts a stackset transformer parameterized on the workspace type into one
 -- parameterized on the screen type. For example, you can use @onScreens W.view
 -- 0@ to navigate to the workspace on the 0th screen. If the screen id is not
 -- recognized, the returned transformer acts as an identity function.
