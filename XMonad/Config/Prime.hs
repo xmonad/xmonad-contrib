@@ -64,9 +64,16 @@ RemovableClass(..),
 -- $workspaces
 withWorkspaces,
 wsNames,
-wsKeyspecs,
+wsKeys,
 wsActions,
 wsSetName,
+
+-- * Modifying the screen keybindings
+-- $screens
+withScreens,
+sKeys,
+sActions,
+onScreens,
 
 -- * Modifying the layoutHook
 -- $layout
@@ -400,7 +407,7 @@ mouseBindings = MouseBindings {
 -- | Configure workspaces through a Prime-like interface. Example:
 --
 -- >   withWorkspaces $ do
--- >     wsKeyspecs =+ ["0"]
+-- >     wsKeys =+ ["0"]
 -- >     wsActions =+ [("M-M1-", windows . swapWithCurrent)]
 -- >     wsSetName 1 "mail"
 --
@@ -411,21 +418,21 @@ withWorkspaces wsarr xconf = (P.>>=) (wsarr def) $ \wsconf -> wsprime wsconf xco
   where wsprime :: WorkspaceConfig -> Prime l l
         wsprime wsconf =
           (workspaces =: allNames) >>
-          (keys =+ [(mod ++ key, action name) | (name, key) <- zip allNames (wsKeyspecs_ wsconf),
+          (keys =+ [(mod ++ key, action name) | (name, key) <- zip allNames (wsKeys_ wsconf),
                                                 (mod, action) <- wsActions_ wsconf])
-          where allNames = zipWith chooseName (wsNames_ wsconf) (wsKeyspecs_ wsconf)
+          where allNames = zipWith chooseName (wsNames_ wsconf) (wsKeys_ wsconf)
                 chooseName name keyspec = if not (null name) then name else keyspec
 
 data WorkspaceConfig = WorkspaceConfig {
   wsNames_ :: [String],
-  wsKeyspecs_ :: [String],
+  wsKeys_ :: [String],
   wsActions_ :: [(String, String -> X ())]
 }
 
 instance Default WorkspaceConfig where
   def = WorkspaceConfig {
     wsNames_ = repeat "",
-    wsKeyspecs_ = map (:[]) ['1'..'9'], -- The hungry monkey eats dots and turns them into numbers.
+    wsKeys_ = map (:[]) ['1'..'9'], -- The hungry monkey eats dots and turns them into numbers.
     wsActions_ = [("M-", windows . W.greedyView),
                   ("M-S-", windows . W.shift)]
   }
@@ -433,8 +440,8 @@ instance Default WorkspaceConfig where
 -- | The list of workspace names, like 'workspaces' but with two differences:
 --
 --   1. If any entry is the empty string, it'll be replaced with the
---      corresponding entry in 'wsKeyspecs'.
---   2. The list is truncated to the size of 'wsKeyspecs'.
+--      corresponding entry in 'wsKeys'.
+--   2. The list is truncated to the size of 'wsKeys'.
 --
 -- The default value is @'repeat' ""@.
 --
@@ -446,14 +453,14 @@ wsNames = Settable wsNames_ (\x c -> c { wsNames_ = x })
 -- | The list of workspace keys. These are combined with the modifiers in
 -- 'wsActions' to form the keybindings for navigating to workspaces. Default:
 -- @["1","2",...,"9"]@.
-wsKeyspecs :: Summable [String] [String] WorkspaceConfig
-wsKeyspecs = Summable wsKeyspecs_ (\x c -> c { wsKeyspecs_ = x }) (++)
+wsKeys :: Summable [String] [String] WorkspaceConfig
+wsKeys = Summable wsKeys_ (\x c -> c { wsKeys_ = x }) (++)
 
 -- | Mapping from key prefix to command. Its type is @[(String, String ->
 -- X())]@. The key prefix may be a modifier such as @\"M-\"@, or a submap
 -- prefix such as @\"M-a \"@. The command is a function that takes a workspace
 -- name and returns an @X ()@. 'withWorkspaces' creates keybindings for the
--- cartesian product of 'wsKeyspecs' and 'wsActions'.
+-- cartesian product of 'wsKeys' and 'wsActions'.
 --
 -- Default:
 --
@@ -472,7 +479,60 @@ wsSetName index newName = wsNames =. (map maybeSet . zip [0..])
   where maybeSet (i, oldName) | i == (index - 1) = newName
                               | otherwise = oldName
 
--- TODO: Something for screens, too.
+-- $screens
+-- 'withScreens' provides a convenient mechanism to set keybindings for moving
+-- between screens, much like 'withWorkspaces'.
+
+-- | Configure screen keys through a Prime-like interface:
+--
+-- >   withScreens $ do
+-- >     sKeys =+ ["e", "r"]
+--
+-- This will add the necessary keybindings to 'keys'. Note that it won't remove
+-- old keybindings; it's just not that clever.
+withScreens :: Arr ScreenConfig ScreenConfig -> Prime l l
+withScreens sarr xconf = (P.>>=) (sarr def) $ \sconf -> sprime sconf xconf
+  where sprime :: ScreenConfig -> Prime l l
+        sprime sconf =
+          (keys =+ [(mod ++ key, action sid) | (sid, key) <- zip [0..] (sKeys_ sconf),
+                                               (mod, action) <- sActions_ sconf])
+
+data ScreenConfig = ScreenConfig {
+  sKeys_ :: [String],
+  sActions_ :: [(String, ScreenId -> X ())]
+}
+
+instance Default ScreenConfig where
+  def = ScreenConfig {
+    sKeys_ = ["w", "e", "r"],
+    sActions_ = [("M-", windows . onScreens W.view),
+                 ("M-S-", windows . onScreens W.shift)]
+  }
+
+
+-- | The list of screen keys. These are combined with the modifiers in
+-- 'sActions' to form the keybindings for navigating to workspaces. Default:
+-- @["w","e","r"]@.
+sKeys :: Summable [String] [String] ScreenConfig
+sKeys = Summable sKeys_ (\x c -> c { sKeys_ = x }) (++)
+
+-- | Mapping from key prefix to command. Its type is @[(String, ScreenId ->
+-- X())]@. Works the same as 'wsActions' except for a different function type.
+--
+-- Default:
+--
+-- > [("M-", windows . onScreens W.view),
+-- >  ("M-S-", windows . onScreens W.shift)]
+sActions :: Summable [(String, ScreenId -> X ())] [(String, ScreenId -> X ())] ScreenConfig
+sActions = Summable sActions_ (\x c -> c { sActions_ = x }) (++)
+
+-- Converts a stackset transformer parameterized on the workspace type into one
+-- parameterized on the screen type. For example, you can use @onScreens W.view
+-- 0@ to navigate to the workspace on the 0th screen. If the screen id is not
+-- recognized, the returned transformer acts as an identity function.
+onScreens :: Eq s => (i -> W.StackSet i l a s sd -> W.StackSet i l a s sd) ->
+                     s -> W.StackSet i l a s sd -> W.StackSet i l a s sd
+onScreens f sc ws = maybe id f (W.lookupWorkspace sc ws) ws
 
 -- $layout
 -- Layouts are special. You can't modify them using the @=:@ or @=.@ operator.
@@ -571,7 +631,7 @@ applyIO = id  -- This is here in case we want to change the Prime type later.
 -- >   apply fullscreenSupport
 -- >   applyIO $ withWindowNavigation (xK_w, xK_a, xK_s, xK_d)
 -- >   withWorkspaces $ do
--- >     wsKeyspecs =+ ["0"]
+-- >     wsKeys =+ ["0"]
 -- >     wsActions =+ [("M-M1-", windows . swapWithCurrent)]
 -- >   keys =+ [
 -- >       ("M-,",                      sendMessage $ IncMasterN (-1)),
@@ -605,7 +665,7 @@ applyIO = id  -- This is here in case we want to change the Prime type later.
 --
 -- > apply $ flip additionalKeys $ [((mod1Mask, xK_z), spawn "date | dzen2 -fg '#eeeeee' -p 2")]
 --
--- === How do I run command before xmonad starts (like 'spawnPipe')?
+-- === How do I run a command before xmonad starts (like 'spawnPipe')?
 -- If you're using it for a status bar, see if 'XMonad.Hooks.DynamicLog.dzen'
 -- or 'XMonad.Hooks.DynamicLog.xmobar' does what you want. If so, you can apply
 -- it with 'applyIO'.
@@ -613,3 +673,14 @@ applyIO = id  -- This is here in case we want to change the Prime type later.
 -- If not, you can write your own @XConfig l -> IO (XConfig l)@ and apply it
 -- with 'applyIO'. When writing this function, see the above tip about using
 -- normal monads.
+--
+-- Alternatively, you could do something like this this:
+--
+-- > import qualified Prelude as P (>>)
+-- >
+-- > main =
+-- >   openFile ".xmonad.log" AppendMode >>= \log ->
+-- >   hSetBuffering log LineBuffering P.>>
+-- >   (xmonad $ do
+-- >      nothing -- Prime config here.
+-- >   )
