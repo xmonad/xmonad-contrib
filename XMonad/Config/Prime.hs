@@ -3,10 +3,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Config.Prime
--- Copyright   :  Devin Mullins <devinmullins@gmail.com>
+-- Copyright   :  Devin Mullins <devin.mullins@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --
--- Maintainer  :  Devin Mullins <devinmullins@gmail.com>
+-- Maintainer  :  Devin Mullins <devin.mullins@gmail.com>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -142,6 +142,9 @@ import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeym
 -- your do-block start at the same column, and make sure that any multi-line
 -- statements are formatted with a hanging indent. (For an example, see the
 -- 'keys =+' statement in the /Example config/ section, below.)
+--
+-- After changing your config file, restart xmonad with mod-q (where, by
+-- default, "mod" == "alt").
 
 --
 -- The Prime "Monad"
@@ -458,9 +461,9 @@ wsKeys = Summable wsKeys_ (\x c -> c { wsKeys_ = x }) (++)
 
 -- | Mapping from key prefix to command. Its type is @[(String, String ->
 -- X())]@. The key prefix may be a modifier such as @\"M-\"@, or a submap
--- prefix such as @\"M-a \"@. The command is a function that takes a workspace
--- name and returns an @X ()@. 'withWorkspaces' creates keybindings for the
--- cartesian product of 'wsKeys' and 'wsActions'.
+-- prefix such as @\"M-a \"@, or both, as in @\"M-a M-\"@. The command is a
+-- function that takes a workspace name and returns an @X ()@. 'withWorkspaces'
+-- creates keybindings for the cartesian product of 'wsKeys' and 'wsActions'.
 --
 -- Default:
 --
