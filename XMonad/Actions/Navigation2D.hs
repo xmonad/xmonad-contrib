@@ -32,7 +32,11 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                      -- * Exported functions and types
                                      -- #Exports#
 
-                                     withNavigation2DConfig
+                                     navigation2D
+                                   , navigation2DP
+                                   , additionalNav2DKeys
+                                   , additionalNav2DKeysP
+                                   , withNavigation2DConfig
                                    , Navigation2DConfig(..)
                                    , def
                                    , defaultNavigation2DConfig
@@ -57,6 +61,7 @@ import Data.Maybe
 import XMonad hiding (Screen)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
+import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
 import XMonad.Util.Types
 
 -- $usage
@@ -78,10 +83,46 @@ import XMonad.Util.Types
 --
 -- > import XMonad.Actions.Navigation2D
 --
--- Then edit your keybindings:
+-- Then add the configuration of the module to your main function:
+--
+-- > main = xmonad $ navigation2D def
+-- >                              (xK_Up, xK_Left, xK_Down, xK_Right)
+-- >                              [(mod4Mask,               windowGo  ),
+-- >                               (mod4Mask .|. shiftMask, windowSwap)]
+-- >                              False
+-- >               $ def
+--
+-- Alternatively, you can use navigation2DP:
+--
+-- > main = xmonad $ navigation2D def
+-- >                              ("<Up>", "<Left>", "<Down>", "<Right>")
+-- >                              [("M-",   windowGo  ),
+-- >                               ("M-S-", windowSwap)]
+-- >                              False
+-- >               $ def
+--
+-- That's it. If instead you'd like more control, you can combine
+-- withNavigation2DConfig and additionalNav2DKeys or additionalNav2DKeysP:
+--
+-- > main = xmonad $ withNavigation2DConfig def
+-- >               $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
+-- >                                     [(mod4Mask,               windowGo  ),
+-- >                                      (mod4Mask .|. shiftMask, windowSwap)]
+-- >                                     False
+-- >               $ additionalNav2DKeys (xK_u, xK_l, xK_d, xK_r)
+-- >                                     [(mod4Mask,               screenGo  ),
+-- >                                      (mod4Mask .|. shiftMask, screenSwap)]
+-- >                                     False
+-- >               $ def
+--
+-- Or you can add the configuration of the module to your main function:
+--
+-- > main = xmonad $ withNavigation2DConfig def $ def
+--
+-- And specify your keybindings normally:
 --
 -- >    -- Switch between layers
--- >    , ((modm,                 xK_space), switchLayers)
+-- >    , ((modm,                 xK_space), switchLayer)
 -- >
 -- >    -- Directional navigation of windows
 -- >    , ((modm,                 xK_Right), windowGo R False)
@@ -112,10 +153,6 @@ import XMonad.Util.Types
 -- >    , ((modm .|. mod1Mask,    xK_l    ), windowToScreen L False)
 -- >    , ((modm .|. mod1Mask,    xK_u    ), windowToScreen U False)
 -- >    , ((modm .|. mod1Mask,    xK_d    ), windowToScreen D False)
---
--- and add the configuration of the module to your main function:
---
--- > main = xmonad $ withNavigation2DConfig def $ def
 --
 -- For detailed instruction on editing the key binding see:
 --
@@ -305,6 +342,56 @@ data Navigation2DConfig = Navigation2DConfig
 
 -- | Shorthand for the tedious screen type
 type Screen = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
+
+-- | Convenience function for enabling Navigation2D with typical keybindings.
+-- Takes a Navigation2DConfig, an (up, left, down, right) tuple, a mapping from
+-- modifier key to action, and a bool to indicate if wrapping should occur, and
+-- returns a function from XConfig to XConfig.
+-- Example:
+--
+-- >  navigation2D def (xK_w, xK_a, xK_s, xK_d) [(mod4Mask, windowGo), (mod4Mask .|. shiftMask, windowSwap)] False myConfig
+navigation2D :: Navigation2DConfig -> (KeySym, KeySym, KeySym, KeySym) -> [(ButtonMask, Direction2D -> Bool -> X ())] ->
+                Bool -> XConfig l -> XConfig l
+navigation2D navConfig (u, l, d, r) modifiers wrap xconfig =
+  additionalNav2DKeys (u, l, d, r) modifiers wrap $
+  withNavigation2DConfig navConfig xconfig
+
+-- | Convenience function for enabling Navigation2D with typical keybindings,
+-- using the syntax defined in 'XMonad.Util.EZConfig.mkKeymap'. Takes a
+-- Navigation2DConfig, an (up, left, down, right) tuple, a mapping from key
+-- prefix to action, and a bool to indicate if wrapping should occur, and
+-- returns a function from XConfig to XConfig. Example:
+--
+-- >  navigation2DP def ("w", "a", "s", "d") [("M-", windowGo), ("M-S-", windowSwap)] False myConfig
+navigation2DP :: Navigation2DConfig -> (String, String, String, String) -> [(String, Direction2D -> Bool -> X ())] ->
+                 Bool -> XConfig l -> XConfig l
+navigation2DP navConfig (u, l, d, r) modifiers wrap xconfig =
+  additionalNav2DKeysP (u, l, d, r) modifiers wrap $
+  withNavigation2DConfig navConfig xconfig
+
+-- | Convenience function for adding keybindings. Takes an (up, left, down,
+-- right) tuple, a mapping from key prefix to action, and a bool to indicate if
+-- wrapping should occur, and returns a function from XConfig to XConfig.
+-- Example:
+--
+-- >  additionalNav2DKeys (xK_w, xK_a, xK_s, xK_d) [(mod4Mask, windowGo), (mod4Mask .|. shiftMask, windowSwap)] False myConfig
+additionalNav2DKeys :: (KeySym, KeySym, KeySym, KeySym) -> [(ButtonMask, Direction2D -> Bool -> X ())] ->
+                       Bool -> XConfig l -> XConfig l
+additionalNav2DKeys (u, l, d, r) modifiers wrap =
+  flip additionalKeys [((modif, k), func dir wrap) | (modif, func) <- modifiers, (k, dir) <- dirKeys]
+  where dirKeys = [(u, U), (l, L), (d, D), (r, R)]
+
+-- | Convenience function for adding keybindings, using the syntax defined in
+-- 'XMonad.Util.EZConfig.mkKeymap'. Takes an (up, left, down, right) tuple, a
+-- mapping from key prefix to action, and a bool to indicate if wrapping should
+-- occur, and returns a function from XConfig to XConfig. Example:
+--
+-- >  additionalNav2DKeysP def ("w", "a", "s", "d") [("M-", windowGo), ("M-S-", windowSwap)] False myConfig
+additionalNav2DKeysP :: (String, String, String, String) -> [(String, Direction2D -> Bool -> X ())] ->
+                        Bool -> XConfig l -> XConfig l
+additionalNav2DKeysP (u, l, d, r) modifiers wrap =
+  flip additionalKeysP [(modif ++ k, func dir wrap) | (modif, func) <- modifiers, (k, dir) <- dirKeys]
+  where dirKeys = [(u, U), (l, L), (d, D), (r, R)]
 
 -- So we can store the configuration in extensible state
 instance ExtensionClass Navigation2DConfig where
