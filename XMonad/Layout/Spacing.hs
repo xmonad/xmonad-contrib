@@ -18,12 +18,16 @@ module XMonad.Layout.Spacing (
                                -- $usage
 
                                spacing, Spacing,
+                               spacingWithEdge, SpacingWithEdge,
                                smartSpacing, SmartSpacing,
+                               smartSpacingWithEdge, SmartSpacingWithEdge,
 
                              ) where
 
 import Graphics.X11 (Rectangle(..))
 import Control.Arrow (second)
+import XMonad.Core (runLayout)
+import XMonad.StackSet (up, down, Workspace(..))
 import XMonad.Util.Font (fi)
 
 import XMonad.Layout.LayoutModifier
@@ -51,6 +55,21 @@ instance LayoutModifier Spacing a where
 
     modifierDescription (Spacing p) = "Spacing " ++ show p
 
+-- | Surround all windows by a certain number of pixels of blank space, and
+-- additionally adds the same amount of spacing around the edge of the screen.
+spacingWithEdge :: Int -> l a -> ModifiedLayout SpacingWithEdge l a
+spacingWithEdge p = ModifiedLayout (SpacingWithEdge p)
+
+data SpacingWithEdge a = SpacingWithEdge Int deriving (Show, Read)
+
+instance LayoutModifier SpacingWithEdge a where
+
+    pureModifier (SpacingWithEdge p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    modifyLayout (SpacingWithEdge p) w r = runLayout w (shrinkRect p r)
+
+    modifierDescription (SpacingWithEdge p) = "SpacingWithEdge " ++ show p
+
 shrinkRect :: Int -> Rectangle -> Rectangle
 shrinkRect p (Rectangle x y w h) = Rectangle (x+fi p) (y+fi p) (w-2*fi p) (h-2*fi p)
 
@@ -67,3 +86,22 @@ instance LayoutModifier SmartSpacing a where
     pureModifier (SmartSpacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
 
     modifierDescription (SmartSpacing p) = "SmartSpacing " ++ show p
+
+-- | Surrounds all windows with blank space, and adds the same amount of spacing
+-- around the edge of the screen, except when the window is the only visible
+-- window on the current workspace.
+smartSpacingWithEdge :: Int -> l a -> ModifiedLayout SmartSpacingWithEdge l a
+smartSpacingWithEdge p = ModifiedLayout (SmartSpacingWithEdge p)
+
+data SmartSpacingWithEdge a = SmartSpacingWithEdge Int deriving (Show, Read)
+
+instance LayoutModifier SmartSpacingWithEdge a where
+
+    pureModifier _ _ _ [x] = ([x], Nothing)
+    pureModifier (SmartSpacingWithEdge p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    modifyLayout (SmartSpacingWithEdge p) w r
+        | maybe False (\s -> null (up s) && null (down s)) (stack w) = runLayout w r
+        | otherwise = runLayout w (shrinkRect p r)
+
+    modifierDescription (SmartSpacingWithEdge p) = "SmartSpacingWithEdge " ++ show p
