@@ -16,12 +16,14 @@ module XMonad.Actions.DynamicWorkspaces (
                                          -- * Usage
                                          -- $usage
                                          addWorkspace, addWorkspacePrompt,
+                                         appendWorkspace, appendWorkspacePrompt,
+                                         addWorkspaceAt,
                                          removeWorkspace,
                                          removeWorkspaceByTag,
                                          removeEmptyWorkspace,
                                          removeEmptyWorkspaceAfter,
                                          removeEmptyWorkspaceAfterExcept,
-                                         addHiddenWorkspace,
+                                         addHiddenWorkspace, addHiddenWorkspaceAt,
                                          withWorkspace,
                                          selectWorkspace, renameWorkspace,
                                          renameWorkspaceByName,
@@ -61,6 +63,7 @@ import Control.Monad (when)
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
 -- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'XPConfig'.
+
 
 
 mkCompl :: [String] -> String -> IO [String]
@@ -108,20 +111,41 @@ selectWorkspace conf = workspacePrompt conf $ \w ->
 --   workspace with the given name already exists; then switch to the
 --   newly created workspace.
 addWorkspace :: String -> X ()
-addWorkspace newtag = addHiddenWorkspace newtag >> windows (greedyView newtag)
+addWorkspace = addWorkspaceAt (:)
+
+-- | Same as addWorkspace, but adds the workspace to the end of the list of workspaces
+appendWorkspace :: String -> X()
+appendWorkspace = addWorkspaceAt (flip (++) . return)
+
+-- | Adds a new workspace with the given name to the current list of workspaces.
+--   This function allows the user to pass a function that inserts an element
+--   into a list at an arbitrary spot.
+addWorkspaceAt :: (WindowSpace -> [WindowSpace] -> [WindowSpace]) -> String -> X ()
+addWorkspaceAt add newtag = addHiddenWorkspaceAt add newtag >> windows (greedyView newtag)
 
 -- | Prompt for the name of a new workspace, add it if it does not
 --   already exist, and switch to it.
 addWorkspacePrompt :: XPConfig -> X ()
 addWorkspacePrompt conf = mkXPrompt (Wor "New workspace name: ") conf (const (return [])) addWorkspace
 
+-- | Prompt for the name of a new workspace, appending it to the end of the list of workspaces 
+--   if it does not already exist, and switch to it.
+appendWorkspacePrompt :: XPConfig -> X ()
+appendWorkspacePrompt conf = mkXPrompt (Wor "New workspace name: ") conf (const (return [])) appendWorkspace
+
+-- | Add a new hidden workspace with the given name, or do nothing if
+--   a workspace with the given name already exists. Takes a function to insert
+--   the workspace at an arbitrary spot in the list.
+addHiddenWorkspaceAt :: (WindowSpace -> [WindowSpace] -> [WindowSpace]) -> String -> X ()
+addHiddenWorkspaceAt add newtag =
+  whenX (gets (not . tagMember newtag . windowset)) $ do
+    l <- asks (layoutHook . config)
+    windows (addHiddenWorkspace' add newtag l)
+
 -- | Add a new hidden workspace with the given name, or do nothing if
 --   a workspace with the given name already exists.
 addHiddenWorkspace :: String -> X ()
-addHiddenWorkspace newtag =
-  whenX (gets (not . tagMember newtag . windowset)) $ do
-    l <- asks (layoutHook . config)
-    windows (addHiddenWorkspace' newtag l)
+addHiddenWorkspace = addHiddenWorkspaceAt (:)
 
 -- | Remove the current workspace if it contains no windows.
 removeEmptyWorkspace :: X ()
@@ -166,8 +190,8 @@ isEmpty t = do wsl <- gets $ workspaces . windowset
                let mws = find (\ws -> tag ws == t) wsl
                return $ maybe True (isNothing . stack) mws
 
-addHiddenWorkspace' :: i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
-addHiddenWorkspace' newtag l s@(StackSet { hidden = ws }) = s { hidden = Workspace newtag l Nothing:ws }
+addHiddenWorkspace' :: (Workspace i l a -> [Workspace i l a] -> [Workspace i l a]) -> i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
+addHiddenWorkspace' add newtag l s@(StackSet { hidden = ws }) = s { hidden = add (Workspace newtag l Nothing) ws }
 
 -- | Remove the hidden workspace with the given tag from the StackSet, if
 --   it exists. All the windows in that workspace are moved to the current
