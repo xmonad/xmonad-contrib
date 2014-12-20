@@ -18,6 +18,7 @@ module XMonad.Layout.Master (
     -- $usage
 
     mastered,
+    fixMastered,
     multimastered,
     AddMaster,
 ) where
@@ -25,6 +26,7 @@ module XMonad.Layout.Master (
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.LayoutModifier
+import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -35,6 +37,10 @@ import XMonad.Layout.LayoutModifier
 -- you prefer.
 --
 -- > mastered (1/100) (1/2) $ Grid
+--
+-- Or if you prefer to have a master with fixed width:
+--
+-- > fixMastered (1/100) (1/2) $ Grid
 --
 -- Or if you want multiple (here two) master windows from the beginning:
 --
@@ -53,7 +59,6 @@ import XMonad.Layout.LayoutModifier
 -- layout
 data AddMaster a = AddMaster Int Rational Rational deriving (Show, Read)
 
--- | Modifier which converts given layout to a mastered one
 multimastered :: (LayoutClass l a) =>
        Int -- ^ @k@, number of master windows
     -> Rational -- ^ @delta@, the ratio of the screen to resize by
@@ -70,7 +75,7 @@ mastered :: (LayoutClass l a) =>
 mastered delta frac = multimastered 1 delta frac
 
 instance LayoutModifier AddMaster Window where
-    modifyLayout (AddMaster k delta frac) = applyMaster k delta frac
+    modifyLayout (AddMaster k delta frac) = applyMaster False k delta frac
     modifierDescription _               = "Mastered"
 
     pureMess (AddMaster k delta frac) m
@@ -80,19 +85,34 @@ instance LayoutModifier AddMaster Window where
 
     pureMess _ _ = Nothing
 
+data FixMaster a = FixMaster (AddMaster a) deriving (Show, Read)
+
+instance LayoutModifier FixMaster Window where
+    modifyLayout (FixMaster (AddMaster k d f)) = applyMaster True k d f
+    modifierDescription (FixMaster a) = "Fix" ++ modifierDescription a
+    pureMess (FixMaster a) m = liftM FixMaster (pureMess a m)
+
+fixMastered :: (LayoutClass l a) =>
+       Rational -- ^ @delta@, the ratio of the screen to resize by
+    -> Rational -- ^ @frac@, what portion of the screen to use for the master window
+    -> l a      -- ^ the layout to be modified
+    -> ModifiedLayout FixMaster l a
+fixMastered delta frac = ModifiedLayout . FixMaster $ AddMaster 1 delta frac
+
 -- | Internal function for adding a master window and let the modified
 -- layout handle the rest of the windows
 applyMaster :: (LayoutClass l Window) =>
-                  Int
+                  Bool
+               -> Int
                -> Rational
                -> Rational
                -> S.Workspace WorkspaceId (l Window) Window
                -> Rectangle
                -> X ([(Window, Rectangle)], Maybe (l Window))
-applyMaster k _ frac wksp rect = do
+applyMaster f k _ frac wksp rect = do
     let st= S.stack wksp
     let ws = S.integrate' $ st
-    let n = length ws
+    let n = length ws + fromEnum f
     if n > 1 then do
         if(n<=k) then
              return ((divideCol rect ws), Nothing)
