@@ -57,6 +57,7 @@ library
                     containers,
                     directory,
                     extensible-exceptions,
+                    filepath,
                     old-locale,
                     old-time,
                     process,
