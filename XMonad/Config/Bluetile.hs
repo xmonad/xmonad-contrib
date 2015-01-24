@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
 ----------------------------------------------------------------------------
 -- |
