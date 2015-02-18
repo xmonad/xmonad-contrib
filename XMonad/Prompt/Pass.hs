@@ -50,8 +50,9 @@ import XMonad.Prompt ( XPrompt
                      , mkXPrompt
                      , mkComplFunFromList)
 import System.Directory (getDirectoryContents, getHomeDirectory)
-import System.FilePath (takeBaseName, combine)
+import System.FilePath (takeBaseName, takeExtension, dropExtension, combine)
 import System.Posix.Env (getEnv)
+import XMonad.Util.Run (runProcessWithInput)
 
 -- $usages
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -137,6 +138,14 @@ removePassword :: String -> X ()
 removePassword passLabel = spawn $ "pass rm --force " ++ passLabel
 
 -- | Retrieve the list of passwords from the password storage 'passwordStoreDir
---
-getPasswords :: String -> IO [String]
-getPasswords passwordStoreDir = liftM (map takeBaseName) $ getDirectoryContents passwordStoreDir
+getPasswords passwordStoreDir = do
+  files <- runProcessWithInput "find" [
+    passwordStoreDir,
+    "-type", "f",
+    "-name", "*.gpg",
+    "-printf", "%P\n"] []
+  return $ map removeGpgExtension $ lines files
+
+removeGpgExtension :: String -> String
+removeGpgExtension file | takeExtension file == ".gpg" = dropExtension file
+                        | otherwise                    = file
