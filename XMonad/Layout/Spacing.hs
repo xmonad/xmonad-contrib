@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -21,12 +21,12 @@ module XMonad.Layout.Spacing (
                                spacingWithEdge, SpacingWithEdge,
                                smartSpacing, SmartSpacing,
                                smartSpacingWithEdge, SmartSpacingWithEdge,
-
+                               SpacingMsg(..)
                              ) where
 
 import Graphics.X11 (Rectangle(..))
 import Control.Arrow (second)
-import XMonad.Core (runLayout)
+import XMonad.Core (runLayout,Message,fromMessage,Typeable)
 import XMonad.StackSet (up, down, Workspace(..))
 import XMonad.Util.Font (fi)
 
@@ -49,9 +49,18 @@ spacing p = ModifiedLayout (Spacing p)
 
 data Spacing a = Spacing Int deriving (Show, Read)
 
+-- | Message to dynamically increase, decrease or set the size of the window spacing
+data SpacingMsg = SetSpacing Int | IncSpacing Int deriving (Show,Read,Eq,Typeable)
+instance Message SpacingMsg
+
 instance LayoutModifier Spacing a where
 
     pureModifier (Spacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    pureMess (Spacing px) m
+     | Just (SetSpacing px') <- fromMessage m = Just $ Spacing (max 0 px')
+     | Just (IncSpacing n)   <- fromMessage m = Just $ Spacing (max 0 (px+n))
+     | otherwise = Nothing
 
     modifierDescription (Spacing p) = "Spacing " ++ show p
 
@@ -65,6 +74,11 @@ data SpacingWithEdge a = SpacingWithEdge Int deriving (Show, Read)
 instance LayoutModifier SpacingWithEdge a where
 
     pureModifier (SpacingWithEdge p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    pureMess (SpacingWithEdge px) m
+     | Just (SetSpacing px') <- fromMessage m = Just $ SpacingWithEdge (max 0 px')
+     | Just (IncSpacing n)   <- fromMessage m = Just $ SpacingWithEdge (max 0 (px+n))
+     | otherwise = Nothing
 
     modifyLayout (SpacingWithEdge p) w r = runLayout w (shrinkRect p r)
 
