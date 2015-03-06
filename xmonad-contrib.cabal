@@ -88,6 +88,7 @@ library
                         XMonad.Doc.Configuring
                         XMonad.Doc.Extending
                         XMonad.Doc.Developing
+                        XMonad.Actions.AfterDrag
                         XMonad.Actions.BluetileCommands
                         XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
@@ -189,7 +190,6 @@ library
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
-                        XMonad.Layout.BinarySpacePartition
                         XMonad.Layout.BorderResize
                         XMonad.Layout.BoringWindows
                         XMonad.Layout.ButtonDecoration

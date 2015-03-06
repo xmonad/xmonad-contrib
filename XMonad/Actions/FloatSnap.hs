@@ -21,18 +21,21 @@ module XMonad.Actions.FloatSnap (
                 snapShrink,
                 snapMagicMove,
                 snapMagicResize,
-                snapMagicMouseResize) where
+                snapMagicMouseResize,
+                afterDrag,
+                ifClick,
+                ifClick') where
 
 import XMonad
 import Control.Applicative((<$>))
 import Data.List (sort)
 import Data.Maybe (listToMaybe,fromJust,isNothing)
 import qualified XMonad.StackSet as W
+import qualified Data.Set as S
 
 import XMonad.Hooks.ManageDocks (calcGap)
 import XMonad.Util.Types (Direction2D(..))
-
-import qualified Data.Set as S
+import XMonad.Actions.AfterDrag
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -53,17 +56,24 @@ import qualified Data.Set as S
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
--- And possibly add an appropriate mouse binding, for example:
+-- And possibly add appropriate mouse bindings, for example:
 --
--- >        , ((modm,               button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicMove (Just 50) (Just 50) w))
--- >        , ((modm .|. shiftMask, button1), (\w -> focus w >> mouseMoveWindow w >> snapMagicResize [L,R,U,D] (Just 50) (Just 50) w))
--- >        , ((modm,               button3), (\w -> focus w >> mouseResizeWindow w >> snapMagicResize [R,D] (Just 50) (Just 50) w))
+-- >        , ((modm,               button1), (\w -> focus w >> mouseMoveWindow w >> ifClick (snapMagicMove (Just 50) (Just 50) w)))
+-- >        , ((modm .|. shiftMask, button1), (\w -> focus w >> mouseMoveWindow w >> ifClick (snapMagicResize [L,R,U,D] (Just 50) (Just 50) w)))
+-- >        , ((modm,               button3), (\w -> focus w >> mouseResizeWindow w >> ifClick (snapMagicResize [R,D] (Just 50) (Just 50) w)))
 --
 -- For detailed instructions on editing your mouse bindings, see
 -- "XMonad.Doc.Extending#Editing_mouse_bindings".
 --
 -- Using these mouse bindings, it will not snap while moving, but allow you to click the window once after it has been moved or resized to snap it into place.
--- Note that the order in which the commands are applied in the mouse bindings are important.
+-- Note that the order in which the commands are applied in the mouse bindings are important. Snapping can also be used together with other window resizing
+-- functions, such as those from "XMonad.Actions.FlexibleResize"
+--
+-- An alternative set of mouse bindings that will always snap after the drag is:
+--
+-- >        , ((modm,               button1), (\w -> focus w >> mouseMoveWindow w >> afterDrag (snapMagicMove (Just 50) (Just 50) w)))
+-- >        , ((modm .|. shiftMask, button1), (\w -> focus w >> mouseMoveWindow w >> afterDrag (snapMagicResize [L,R,U,D] (Just 50) (Just 50) w)))
+-- >        , ((modm,               button3), (\w -> focus w >> mouseResizeWindow w >> afterDrag (snapMagicResize [R,D] (Just 50) (Just 50) w)))
 --
 -- Interesting values for the distance to look for window in the orthogonal axis are Nothing (to snap against every window), Just 0 (to only snap
 -- against windows that we should collide with geometrically while moving) and Just 1 (to also snap against windows we brush against).
