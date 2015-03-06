@@ -10,7 +10,11 @@
 -- Portability :  unportable
 --
 -- A layout combinator that sends a specified number of windows to one rectangle
--- and the rest to another.
+-- and the rest to another. Each of these rectangles are given a layout that
+-- is used within them. This can be chained to provide an arbitrary number of
+-- rectangles. The layout combinator allows overlapping rectangles, but such
+-- layouts does not work well together with hinting
+-- ("XMonad.Layout.LayoutHints", "XMonad.Layout.HintedGrid" etc.)
 --
 -----------------------------------------------------------------------------
 
@@ -30,7 +34,7 @@ module XMonad.Layout.LayoutBuilder (
 
 import XMonad
 import qualified XMonad.StackSet as W
-import Data.Maybe (isJust)
+import Data.Maybe (isJust,isNothing,listToMaybe)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -49,12 +53,22 @@ import Data.Maybe (isJust)
 -- >             ( (layoutN 1 (absBox (-512-200) 0 512        0) (Just $ relBox 0 0 1 1) $ simpleTabbed)
 -- >             $ (layoutN 1 (absBox (-200)     0 0          0) Nothing                 $ simpleTabbed)
 -- >             $ (layoutAll (absBox 0          0 (-512-200) 0)                         $ simpleTabbed)
+-- >             ) |||
+-- >             ( (layoutN 1 (absBox 10 0 0 (-10)) Nothing $ Tall 0 0.01 0.5)
+-- >             $ (layoutN 1 (absBox 0 0 200 0) Nothing $ Tall 0 0.01 0.5)
+-- >             $ (layoutAll (absBox 10 10 0 0) $ Tall 2 0.01 0.5)
 -- >             ) ||| Full ||| etc...
 -- > main = xmonad def { layoutHook = myLayout }
 --
 -- This will produce a layout similar to DragPane, but with the possibility to have multiple windows in the left half
 -- and tabs that show the available windows. It will also produce a layout similar to ThreeColMid and a special layout
 -- created for use with a 80 columns wide Emacs window, its sidebar and a tabbed area for all other windows.
+--
+-- The final layout is for applications that use a toolbar in a separate window, shown on a low resolution screen. It has
+-- a master area that cover almost the whole screen. It leaves 10 px to the left and 10 px at the bottom. To the left
+-- the toolbar is located and can be accessed by focusing this area. It is actually 200 px wide, but usually below the
+-- other windows. Similarly all other windows are tiled, but behind the master window and can be accessed by moving the
+-- mouse to the bottom of the screen. Everything can also be accessed by the standard focus changing key bindings.
 --
 -- This module can be used to create many different custom layouts, but there are limitations. The primary limitation
 -- can be observed in the second and third example when there are only two columns with windows in them. The leftmost
@@ -154,17 +168,24 @@ instance (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) 
                               then box
                               else maybe box id mbox
 
-                 (sublist,sub') <- handle sub subs $ calcArea selBox rect
+                 (sublist,sub',schange) <- handle sub subs $ calcArea selBox rect
 
-                 (nextlist,next') <- case next of Nothing -> return ([],Nothing)
-                                                  Just n -> do (res,l) <- handle n nexts rect
-                                                               return (res,Just l)
+                 (nextlist,next',nchange) <- case next of Nothing -> return ([], Nothing, False)
+                                                          Just n -> do (res, l, ch) <- handle n nexts rect
+                                                                       return (res, Just l, ch)
 
-                 return (sublist++nextlist, Just $ LayoutN subf' nextf' num box mbox sub' next' )
+                 let newlist =  if (length $ maybe [] W.up s) < (length $ W.integrate' subs)
+                                then sublist++nextlist
+                                else nextlist++sublist
+                     newstate = if subf' /= subf || nextf' /= nextf || schange || nchange
+                                then Just $ LayoutN subf' nextf' num box mbox sub' next'
+                                else Nothing
+
+                 return (newlist, newstate)
               where
                   handle l s' r = do (res,ml) <- runLayout (W.Workspace "" l s') r
                                      l' <- return $ maybe l id ml
-                                     return (res,l')
+                                     return (res, l', isNothing ml)
 
         -- |  Propagate messages.
         handleMessage l m
@@ -244,11 +265,9 @@ splitStack (Just s) num subf nextf = ( differentiate' subf' subl
         subf' = foc subl subf
         nextf' = foc nextl nextf
         foc [] _ = Nothing
-        foc l f = if W.focus s `elem` l
-                  then Just $ W.focus s
-                  else if maybe False (`elem` l) f
-                       then f
-                       else Just $ head l
+        foc l f | W.focus s `elem` l = Just $ W.focus s
+                | maybe False (`elem` l) f = f
+                | otherwise = listToMaybe l
 
 calcArea :: SubBox -> Rectangle -> Rectangle
 calcArea (SubBox xpos ypos width height) rect = Rectangle (rect_x rect + fromIntegral xpos') (rect_y rect + fromIntegral ypos') width' height'
