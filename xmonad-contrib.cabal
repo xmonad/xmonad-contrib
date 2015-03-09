@@ -219,6 +219,7 @@ library
                         XMonad.Layout.Groups.Examples
                         XMonad.Layout.Groups.Helpers
                         XMonad.Layout.Groups.Wmii
+                        XMonad.Layout.Hidden
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IfMax
