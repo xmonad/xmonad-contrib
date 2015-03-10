@@ -96,6 +96,9 @@ data WallpaperConf = WallpaperConf {
 defWallpaperConf :: WallpaperConf
 defWallpaperConf = WallpaperConf "" $ WallpaperList []
 
+instance Default WallpaperConf where
+    def = defWallpaperConf
+
 -- |returns the default association list (maps name to name.jpg, non-alphanumeric characters are omitted)
 defWPNames :: [WorkspaceId] -> WallpaperList
 defWPNames xs = WallpaperList $ map (\x -> (x,WallpaperFix (filter isAlphaNum x++".jpg"))) xs
