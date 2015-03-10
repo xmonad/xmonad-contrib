@@ -147,6 +147,7 @@ library
                         XMonad.Config.Arossato
                         XMonad.Config.Azerty
                         XMonad.Config.Bluetile
+                        XMonad.Config.Bepo
                         XMonad.Config.Desktop
                         XMonad.Config.Dmwit
                         XMonad.Config.Droundy
