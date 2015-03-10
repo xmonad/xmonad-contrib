@@ -62,7 +62,6 @@ library
                     old-time,
                     process,
                     random,
-                    text,
                     mtl >= 1 && < 3,
                     unix,
                     X11>=1.6.1 && < 1.7,
