@@ -42,12 +42,12 @@ import qualified Data.Set as S
 -- and modify the layouts to call avoidFloats on the layouts where you want the
 -- non-floating windows to not be behind floating windows.
 --
--- > layoutHook = ... ||| avoidFloats True Full ||| ...
+-- > layoutHook = ... ||| avoidFloats Full ||| ...
 --
 -- For more detailed instructions on editing the layoutHook see:
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
--- Then optionally add appropriate key bindings, for example:
+-- Then add appropriate key bindings, for example:
 --
 -- > ,((modm .|. shiftMask, xK_b), sendMessage AvoidFloatToggle)
 -- > ,((modm .|. controlMask, xK_b), withFocused $ sendMessage . AvoidFloatToggleItem)
@@ -62,14 +62,14 @@ import qualified Data.Set as S
 
 -- | Avoid floating windows unless the resulting area for windows would be too small.
 --   In that case, use the whole screen as if this layout modifier wasn't there.
+--   No windows are avoided by default, they need to be added using signals.
 avoidFloats
-    :: Bool -- ^ If floating windows should be avoided by default.
-    -> l a  -- ^ Layout to modify.
+    :: l a  -- ^ Layout to modify.
     -> ModifiedLayout AvoidFloats l a
-avoidFloats act = avoidFloats' 100 100 act
+avoidFloats = avoidFloats' 100 100 False
 
 -- | Avoid floating windows unless the resulting area for windows would be too small.
---   In that case, use the whole screen as if this layout modifier wasn't used.
+--   In that case, use the whole screen as if this layout modifier wasn't there.
 avoidFloats'
     :: Int  -- ^ Minimum width of the area used for non-floating windows.
     -> Int  -- ^ Minimum height of the area used for non-floating windows.
