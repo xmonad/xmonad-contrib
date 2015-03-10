@@ -28,7 +28,7 @@ module XMonad.Layout.Spacing (
 import Graphics.X11 (Rectangle(..))
 import Control.Arrow (second)
 import XMonad.Operations (sendMessage)
-import XMonad.Core (runLayout,Message,fromMessage,Typeable)
+import XMonad.Core (X,runLayout,Message,fromMessage,Typeable)
 import XMonad.StackSet (up, down, Workspace(..))
 import XMonad.Util.Font (fi)
 
