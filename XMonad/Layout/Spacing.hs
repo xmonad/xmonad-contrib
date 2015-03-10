@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -21,12 +22,13 @@ module XMonad.Layout.Spacing (
                                spacingWithEdge, SpacingWithEdge,
                                smartSpacing, SmartSpacing,
                                smartSpacingWithEdge, SmartSpacingWithEdge,
-
+                               ModifySpacing(..), setSpacing, incSpacing
                              ) where
 
 import Graphics.X11 (Rectangle(..))
 import Control.Arrow (second)
-import XMonad.Core (runLayout)
+import XMonad.Operations (sendMessage)
+import XMonad.Core (runLayout,Message,fromMessage,Typeable)
 import XMonad.StackSet (up, down, Workspace(..))
 import XMonad.Util.Font (fi)
 
@@ -49,9 +51,25 @@ spacing p = ModifiedLayout (Spacing p)
 
 data Spacing a = Spacing Int deriving (Show, Read)
 
+-- | Message to dynamically modify (e.g. increase/decrease/set) the size of the window spacing
+data ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
+instance Message ModifySpacing
+
+-- | Set spacing to given amount
+setSpacing :: Int -> X ()
+setSpacing n = sendMessage $ ModifySpacing $ const n
+
+-- | Increase spacing by given amount
+incSpacing :: Int -> X ()
+incSpacing n = sendMessage $ ModifySpacing $ (+n)
+
 instance LayoutModifier Spacing a where
 
     pureModifier (Spacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    pureMess (Spacing px) m
+     | Just (ModifySpacing f) <- fromMessage m = Just $ Spacing $ max 0 $ f px
+     | otherwise = Nothing
 
     modifierDescription (Spacing p) = "Spacing " ++ show p
 
@@ -65,6 +83,10 @@ data SpacingWithEdge a = SpacingWithEdge Int deriving (Show, Read)
 instance LayoutModifier SpacingWithEdge a where
 
     pureModifier (SpacingWithEdge p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+
+    pureMess (SpacingWithEdge px) m
+     | Just (ModifySpacing f) <- fromMessage m = Just $ SpacingWithEdge $ max 0 $ f px
+     | otherwise = Nothing
 
     modifyLayout (SpacingWithEdge p) w r = runLayout w (shrinkRect p r)
 
