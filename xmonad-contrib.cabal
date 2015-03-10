@@ -277,6 +277,7 @@ library
                         XMonad.Prompt
                         XMonad.Prompt.AppendFile
                         XMonad.Prompt.AppLauncher
+                        XMonad.Prompt.ConfirmPrompt
                         XMonad.Prompt.Directory
                         XMonad.Prompt.DirExec
                         XMonad.Prompt.Email
