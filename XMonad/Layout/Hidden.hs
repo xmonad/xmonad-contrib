@@ -76,7 +76,6 @@ instance LayoutModifier HiddenWindows Window where
     | Just (HideWindow win)        <- fromMessage mess = hideWindowMsg h win
     | Just (PopNewestHiddenWindow) <- fromMessage mess = popNewestMsg h
     | Just (PopOldestHiddenWindow) <- fromMessage mess = popOldestMsg h
-    | Just Hide                    <- fromMessage mess = doUnhook
     | Just ReleaseResources        <- fromMessage mess = doUnhook
     | otherwise                                        = return Nothing
     where doUnhook = do mapM_ restoreWindow hidden
