@@ -49,8 +49,8 @@ import XMonad.Prompt ( XPrompt
                      , XPConfig
                      , mkXPrompt
                      , mkComplFunFromList)
-import System.Directory (getDirectoryContents, getHomeDirectory)
-import System.FilePath (takeBaseName, takeExtension, dropExtension, combine)
+import System.Directory (getHomeDirectory)
+import System.FilePath (takeExtension, dropExtension, combine)
 import System.Posix.Env (getEnv)
 import XMonad.Util.Run (runProcessWithInput)
 
@@ -138,6 +138,7 @@ removePassword :: String -> X ()
 removePassword passLabel = spawn $ "pass rm --force " ++ passLabel
 
 -- | Retrieve the list of passwords from the password storage 'passwordStoreDir
+getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
   files <- runProcessWithInput "find" [
     passwordStoreDir,
