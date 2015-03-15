@@ -208,6 +208,7 @@ library
                         XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.DragPane
                         XMonad.Layout.Drawer
+                        XMonad.Layout.Dwindle
                         XMonad.Layout.DwmStyle
                         XMonad.Layout.FixedColumn
                         XMonad.Layout.Fullscreen
