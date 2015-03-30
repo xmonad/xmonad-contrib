@@ -67,8 +67,10 @@ mateRun = withDisplay $ \dpy -> do
 -- | Register xmonad with mate. 'dbus-send' must be in the $PATH with which
 -- xmonad is started.
 --
--- This action reduces a delay on startup only only if you have configured
+-- This action reduces a delay on startup only if you have configured
 -- mate-session to start xmonad with a command such as (check local
+-- documentation):
+--
 -- > dconf write /org/mate/desktop/session/required_components/windowmanager "'xmonad'"
 --
 -- (the extra quotes are required by dconf)
