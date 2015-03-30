@@ -37,9 +37,9 @@ import System.Environment (getEnvironment)
 -- > import XMonad
 -- > import XMonad.Config.Mate
 -- >
--- > main = xmonad gnomeConfig
+-- > main = xmonad mateConfig
 --
--- For examples of how to further customize @gnomeConfig@ see "XMonad.Config.Desktop".
+-- For examples of how to further customize @mateConfig@ see "XMonad.Config.Desktop".
 
 mateConfig = desktopConfig
     { terminal = "mate-terminal"
@@ -50,7 +50,7 @@ mateKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_p), mateRun)
     , ((modm .|. shiftMask, xK_q), spawn "mate-session-save --logout-dialog") ]
 
--- | Launch the "Run Application" dialog.  gnome-panel must be running for this
+-- | Launch the "Run Application" dialog.  mate-panel must be running for this
 -- to work.
 mateRun :: X ()
 mateRun = withDisplay $ \dpy -> do
@@ -68,10 +68,10 @@ mateRun = withDisplay $ \dpy -> do
 -- xmonad is started.
 --
 -- This action reduces a delay on startup only only if you have configured
--- mate-session  to start xmonad with a command such as (check local
--- documentation):
+-- mate-session to start xmonad with a command such as (check local
+-- > dconf write /org/mate/desktop/session/required_components/windowmanager "'xmonad'"
 --
--- > gconftool-2 -s /desktop/gnome/session/required_components/windowmanager xmonad --type string
+-- (the extra quotes are required by dconf)
 mateRegister :: MonadIO m => m ()
 mateRegister = io $ do
     x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
