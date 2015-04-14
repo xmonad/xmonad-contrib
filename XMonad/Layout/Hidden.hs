@@ -28,7 +28,6 @@ module XMonad.Layout.Hidden
        ) where
 
 --------------------------------------------------------------------------------
-import Data.List
 import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
