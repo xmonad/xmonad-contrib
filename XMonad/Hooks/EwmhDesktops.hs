@@ -55,7 +55,8 @@ ewmh :: XConfig a -> XConfig a
 ewmh c = c { startupHook     = startupHook c +++ ewmhDesktopsStartup
            , handleEventHook = handleEventHook c +++ ewmhDesktopsEventHook
            , logHook         = logHook c +++ ewmhDesktopsLogHook }
- where x +++ y = mappend x y
+ -- @@@ will fix this correctly later with the rewrite
+ where x +++ y = mappend y x
 
 -- |
 -- Initializes EwmhDesktops and advertises EWMH support to the X
