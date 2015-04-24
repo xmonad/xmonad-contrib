@@ -51,12 +51,13 @@ import XMonad.Util.Run
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
 --
 -- > import XMonad.Actions.Plane
+-- > import Data.Map (union)
 -- >
 -- > main = xmonad def {keys = myKeys}
 -- >
 -- > myKeys conf = union (keys def conf) $ myNewKeys conf
 -- >
--- > myNewkeys (XConfig {modMask = modm}) = planeKeys modm (Lines 3) Finite
+-- > myNewKeys (XConfig {modMask = modm}) = planeKeys modm (Lines 3) Finite
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
