@@ -252,6 +252,7 @@ library
                         XMonad.Layout.NoFrillsDecoration
                         XMonad.Layout.OnHost
                         XMonad.Layout.OneBig
+                        XMonad.Layout.PerScreen
                         XMonad.Layout.PerWorkspace
                         XMonad.Layout.PositionStoreFloat
                         XMonad.Layout.Reflect
