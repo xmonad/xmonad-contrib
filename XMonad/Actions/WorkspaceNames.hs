@@ -32,6 +32,9 @@ module XMonad.Actions.WorkspaceNames (
     swapTo,
     swapTo',
     swapWithCurrent,
+
+    -- * Workspace prompt
+    workspaceNamePrompt
     ) where
 
 import XMonad
@@ -47,6 +50,7 @@ import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+import Data.List (isInfixOf)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -150,3 +154,18 @@ swapNames w1 w2 = do
     let getname w = fromMaybe "" $ M.lookup w m
         set w name m' = if null name then M.delete w m' else M.insert w name m'
     XS.put $ WorkspaceNames $ set w1 (getname w2) $ set w2 (getname w1) $ m
+
+-- | Same behavior than 'XMonad.Prompt.Workspace.workspacePrompt' excepted it acts on the workspace name provided by this module.
+workspaceNamePrompt :: XPConfig -> (String -> X ()) -> X ()
+workspaceNamePrompt conf job = do
+        myWorkspaces <- gets $ map W.tag . W.workspaces . windowset
+	myWorkspacesName <- getWorkspaceNames >>= \f -> return $ map f myWorkspaces
+	let pairs = zip myWorkspacesName myWorkspaces
+	mkXPrompt (Wor "Select workspace: ") conf
+		      (contains myWorkspacesName)
+                      (job . toWsId pairs)
+    where toWsId pairs name = case lookup name pairs of
+                                Nothing -> ""
+				Just i -> i
+          contains completions input =
+	      return $ filter (Data.List.isInfixOf input) completions
