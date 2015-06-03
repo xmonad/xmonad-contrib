@@ -158,14 +158,14 @@ swapNames w1 w2 = do
 -- | Same behavior than 'XMonad.Prompt.Workspace.workspacePrompt' excepted it acts on the workspace name provided by this module.
 workspaceNamePrompt :: XPConfig -> (String -> X ()) -> X ()
 workspaceNamePrompt conf job = do
-        myWorkspaces <- gets $ map W.tag . W.workspaces . windowset
-	myWorkspacesName <- getWorkspaceNames >>= \f -> return $ map f myWorkspaces
-	let pairs = zip myWorkspacesName myWorkspaces
-	mkXPrompt (Wor "Select workspace: ") conf
-		      (contains myWorkspacesName)
-                      (job . toWsId pairs)
-    where toWsId pairs name = case lookup name pairs of
+    myWorkspaces <- gets $ map W.tag . W.workspaces . windowset
+    myWorkspacesName <- getWorkspaceNames >>= \f -> return $ map f myWorkspaces
+    let pairs = zip myWorkspacesName myWorkspaces
+    mkXPrompt (Wor "Select workspace: ") conf
+              (contains myWorkspacesName)
+              (job . toWsId pairs)
+  where toWsId pairs name = case lookup name pairs of
                                 Nothing -> ""
-				Just i -> i
-          contains completions input =
-	      return $ filter (Data.List.isInfixOf input) completions
+                                Just i -> i
+        contains completions input =
+          return $ filter (Data.List.isInfixOf input) completions
