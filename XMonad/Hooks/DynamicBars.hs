@@ -77,10 +77,9 @@ type DynamicStatusBarCleanup = IO ()
 
 dynStatusBarStartup :: DynamicStatusBar -> DynamicStatusBarCleanup -> X ()
 dynStatusBarStartup sb cleanup = do
-  liftIO $ do
-      dpy <- openDisplay ""
-      xrrSelectInput dpy (defaultRootWindow dpy) rrScreenChangeNotifyMask
-      closeDisplay dpy
+  dpy <- asks display
+  root <- asks theRoot
+  io $ xrrSelectInput dpy root rrScreenChangeNotifyMask
   updateStatusBars sb cleanup
 
 dynStatusBarEventHook :: DynamicStatusBar -> DynamicStatusBarCleanup -> Event -> X All
