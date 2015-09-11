@@ -398,7 +398,11 @@ xmobarColor fg bg = wrap t "</fc>"
 -- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
 -- the matching tags like </fc>.
 xmobarStrip :: String -> String
-xmobarStrip = xmobarStripTags ["fc","icon","action"] where
+xmobarStrip = converge (xmobarStripTags ["fc","icon","action"]) where
+
+converge :: (Eq a) => (a -> a) -> a -> a
+converge f a = let xs = iterate f a
+    in fst $ head $ dropWhile (uncurry (/=)) $ zip xs $ tail xs
 
 xmobarStripTags :: [String] -- ^ tags
         -> String -> String -- ^ with all <tag>...</tag> removed
