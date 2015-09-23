@@ -1,8 +1,8 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ScreenCorners
--- Copyright   :  (c) 2009 Nils Schweinsberg
+-- Copyright   :  (c) 2009 Nils Schweinsberg, 2015 Evgeny Kurnevsky
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Nils Schweinsberg <mail@n-sch.de>
@@ -25,12 +25,16 @@ module XMonad.Hooks.ScreenCorners
 
     -- * Event hook
     , screenCornerEventHook
+
+    -- * Layout hook
+    , screenCornerLayoutHook
     ) where
 
 import Data.Monoid
 import Data.List (find)
 import XMonad
 import XMonad.Util.XUtils (fi)
+import XMonad.Layout.LayoutModifier
 
 import qualified Data.Map as M
 import qualified XMonad.Util.ExtensibleState as XS
@@ -143,6 +147,23 @@ screenCornerEventHook _ = return (All True)
 
 
 --------------------------------------------------------------------------------
+-- Layout hook
+--------------------------------------------------------------------------------
+
+data ScreenCornerLayout a = ScreenCornerLayout
+    deriving ( Read, Show )
+
+instance LayoutModifier ScreenCornerLayout a where
+    hook ScreenCornerLayout = withDisplay $ \dpy -> do
+        ScreenCornerState m <- XS.get
+        io $ mapM_ (raiseWindow dpy) $ M.keys m
+    unhook = hook
+
+screenCornerLayoutHook :: l a -> ModifiedLayout ScreenCornerLayout l a
+screenCornerLayoutHook = ModifiedLayout ScreenCornerLayout
+
+
+--------------------------------------------------------------------------------
 -- $usage
 --
 -- This extension adds KDE-like screen corners to XMonad. By moving your cursor
@@ -162,6 +183,13 @@ screenCornerEventHook _ = return (All True)
 -- >     addScreenCorners [ (SCLowerRight, nextWS)
 -- >                      , (SCLowerLeft,  prevWS)
 -- >                      ]
+--
+-- Then add layout hook:
+-- > myLayout = screenCornerLayoutHook $ tiled ||| Mirror tiled ||| Full where
+-- >     tiled   = Tall nmaster delta ratio
+-- >     nmaster = 1
+-- >     ratio   = 1 / 2
+-- >     delta   = 3 / 100
 --
 -- And finally wait for screen corner events in your event hook:
 --
