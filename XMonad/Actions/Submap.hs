@@ -75,17 +75,23 @@ submapDefaultWithKey defAction keys = do
     XConf { theRoot = root, display = d } <- ask
 
     io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
+    io $ grabPointer d root False buttonPressMask grabModeAsync grabModeAsync
+                     none none currentTime
 
     (m, s) <- io $ allocaXEvent $ \p -> fix $ \nextkey -> do
-        maskEvent d keyPressMask p
-        KeyEvent { ev_keycode = code, ev_state = m } <- getEvent p
-        keysym <- keycodeToKeysym d code 0
-        if isModifierKey keysym
-            then nextkey
-            else return (m, keysym)
+        maskEvent d (keyPressMask .|. buttonPressMask) p
+        ev <- getEvent p
+        case ev of
+          KeyEvent { ev_keycode = code, ev_state = m } -> do
+            keysym <- keycodeToKeysym d code 0
+            if isModifierKey keysym
+                then nextkey
+                else return (m, keysym)
+          _ -> return (0, 0)
     -- Remove num lock mask and Xkb group state bits
     m' <- cleanMask $ m .&. ((1 `shiftL` 12) - 1)
 
+    io $ ungrabPointer d currentTime
     io $ ungrabKeyboard d currentTime
 
     fromMaybe (defAction (m', s)) (M.lookup (m', s) keys)
