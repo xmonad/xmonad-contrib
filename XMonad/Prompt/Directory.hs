@@ -36,7 +36,7 @@ directoryPrompt c prom = mkXPrompt (Dir prom) c getDirCompl
 
 getDirCompl :: String -> IO [String]
 getDirCompl s = (filter notboring . lines) `fmap`
-                runProcessWithInput "/bin/bash" [] ("compgen -A directory " ++ s ++ "\n")
+                runProcessWithInput "bash" [] ("compgen -A directory " ++ s ++ "\n")
 
 notboring :: String -> Bool
 notboring ('.':'.':_) = True
