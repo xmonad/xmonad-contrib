@@ -158,9 +158,8 @@ dynamicProjectsLogHook = do
   
   unless (Just name == previousProject state) $ do
     XS.modify $ \s -> s {previousProject = Just name}
-    activateProject $ case Map.lookup name (projects state) of
-      Nothing -> Project name "~/" Nothing
-      Just p  -> p
+    activateProject . fromMaybe (defProject name) $
+      Map.lookup name (projects state)
 
 --------------------------------------------------------------------------------
 -- | Start-up hook for recording configured projects.  
@@ -180,7 +179,9 @@ dynamicProjectsStartupHook ps = XS.modify go
     -- get deleted when switching away from a workspace with no
     -- windows.
     addDefaultHook :: Project -> Project
-    addDefaultHook p = p {projectStartHook = projectStartHook p <|> Just (return ())}
+    addDefaultHook p = p { projectStartHook = projectStartHook p <|>
+                                              Just (return ())
+                         }
     
 --------------------------------------------------------------------------------
 -- | Find a project based on its name.
@@ -194,10 +195,7 @@ currentProject :: X Project
 currentProject = do
   name <- gets (W.tag . W.workspace . W.current . windowset)
   proj <- lookupProject name
-
-  return $ case proj of
-    Just p  -> p
-    Nothing -> Project name "~/" Nothing
+  return $ fromMaybe (defProject name) proj
 
 --------------------------------------------------------------------------------
 -- | Switch to the given project.
@@ -251,9 +249,8 @@ shiftToProjectPrompt :: XPConfig -> X ()
 shiftToProjectPrompt c = projectPrompt c go
   where
     go :: ProjectTable -> ProjectName -> X ()
-    go ps name = shiftToProject $ case Map.lookup name ps of
-      Just p  -> p
-      Nothing -> Project name "~/" Nothing
+    go ps name = shiftToProject . fromMaybe (defProject name) $
+                 Map.lookup name ps
 
 --------------------------------------------------------------------------------
 -- | Prompt for a project name.
@@ -287,3 +284,8 @@ activateProject p = do
     expandHome home dir = case stripPrefix "~" dir of
       Nothing -> dir
       Just xs -> home ++ xs
+
+--------------------------------------------------------------------------------
+-- | Default project.
+defProject :: ProjectName -> Project   
+defProject name = Project name "~/" Nothing
