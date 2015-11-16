@@ -101,6 +101,7 @@ library
                         XMonad.Actions.DynamicWorkspaces
                         XMonad.Actions.DynamicWorkspaceGroups
                         XMonad.Actions.DynamicWorkspaceOrder
+                        XMonad.Actions.DynamicProjects
                         XMonad.Actions.FindEmptyWorkspace
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
