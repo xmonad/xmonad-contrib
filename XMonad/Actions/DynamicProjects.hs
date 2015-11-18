@@ -26,7 +26,7 @@ module XMonad.Actions.DynamicProjects
 
          -- * Hooks
        , dynamicProjects
-        
+
          -- * Bindings
        , switchProjectPrompt
        , shiftToProjectPrompt
@@ -43,10 +43,10 @@ module XMonad.Actions.DynamicProjects
 import Control.Applicative ((<|>))
 import Control.Monad (when, unless)
 import Data.List (sort, union, stripPrefix)
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe, isNothing)
-import Data.Monoid ((<>))       
+import Data.Monoid ((<>))
 import System.Directory (setCurrentDirectory, getHomeDirectory)
 import XMonad
 import XMonad.Actions.DynamicWorkspaces
@@ -62,7 +62,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- @DynamicProjects@ treats workspaces as projects while maintaining
 -- compatibility with all existing workspace-related functionality in
 -- XMonad.
--- 
+--
 -- Instead of using generic workspace names such as @3@ or @work@,
 -- @DynamicProjects@ allows you to dedicate workspaces to specific
 -- projects and then switch between projects easily.
@@ -89,7 +89,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- configuration and then configure some optional key bindings.
 --
 -- > import XMonad.Actions.DynamicProjects
---       
+--
 -- Start by defining some projects:
 --
 -- > projects :: [Project]
@@ -98,16 +98,16 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >             , projectDirectory = "~/"
 -- >             , projectStartHook = Nothing
 -- >             }
--- > 
+-- >
 -- >   , Project { projectName      = "browser"
 -- >             , projectDirectory = "~/download"
 -- >             , projectStartHook = Just $ do spawn "conkeror"
 -- >                                            spawn "chromium"
 -- >             }
--- >   ]       
+-- >   ]
 --
 -- Then inject @DynamicProjects@ into your XMonad configuration:
---       
+--
 -- > main = xmonad $ dynamicProjects projects def
 --
 -- And finally, configure some optional key bindings:
@@ -117,24 +117,24 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
-       
+
 --------------------------------------------------------------------------------
 type ProjectName  = String
 type ProjectTable = Map ProjectName Project
 
 --------------------------------------------------------------------------------
--- | Details about a workspace that represents a project.                    
+-- | Details about a workspace that represents a project.
 data Project = Project
-  { projectName      :: ProjectName  -- ^ Workspace name.
-  , projectDirectory :: FilePath     -- ^ Working directory.
-  , projectStartHook :: Maybe (X ()) -- ^ Optional start-up hook.
+  { projectName      :: !ProjectName    -- ^ Workspace name.
+  , projectDirectory :: !FilePath       -- ^ Working directory.
+  , projectStartHook :: !(Maybe (X ())) -- ^ Optional start-up hook.
   } deriving Typeable
 
 --------------------------------------------------------------------------------
 -- | Internal project state.
 data ProjectState = ProjectState
-  { projects        :: ProjectTable
-  , previousProject :: Maybe WorkspaceId
+  { projects        :: !ProjectTable
+  , previousProject :: !(Maybe WorkspaceId)
   } deriving Typeable
 
 --------------------------------------------------------------------------------
@@ -155,14 +155,14 @@ dynamicProjectsLogHook :: X ()
 dynamicProjectsLogHook = do
   name  <- gets (W.tag . W.workspace . W.current . windowset)
   state <- XS.get
-  
+
   unless (Just name == previousProject state) $ do
     XS.modify $ \s -> s {previousProject = Just name}
     activateProject . fromMaybe (defProject name) $
       Map.lookup name (projects state)
 
 --------------------------------------------------------------------------------
--- | Start-up hook for recording configured projects.  
+-- | Start-up hook for recording configured projects.
 dynamicProjectsStartupHook :: [Project] -> X ()
 dynamicProjectsStartupHook ps = XS.modify go
   where
@@ -171,10 +171,10 @@ dynamicProjectsStartupHook ps = XS.modify go
 
     update :: ProjectTable -> ProjectTable
     update = Map.union (Map.fromList $ map entry ps)
-                      
+
     entry :: Project -> (ProjectName, Project)
     entry p = (projectName p, addDefaultHook p)
-    
+
     -- Force the hook to be a @Just@ so that it doesn't automatically
     -- get deleted when switching away from a workspace with no
     -- windows.
@@ -182,7 +182,7 @@ dynamicProjectsStartupHook ps = XS.modify go
     addDefaultHook p = p { projectStartHook = projectStartHook p <|>
                                               Just (return ())
                          }
-    
+
 --------------------------------------------------------------------------------
 -- | Find a project based on its name.
 lookupProject :: ProjectName -> X (Maybe Project)
@@ -211,7 +211,7 @@ switchProject p = do
   -- it's a dynamic project, remove it from the configuration.
   when (null ws && isNothing (projectStartHook oldp)) $
     XS.modify (\s -> s {projects = Map.delete name $ projects s})
-          
+
   -- Remove the old workspace (if empty) and activate the new
   -- workspace.  The project will be activated by the log hook.
   removeEmptyWorkspace
@@ -233,8 +233,8 @@ switchProjectPrompt c = projectPrompt c switch
     mkProject name dir = do
       let p = Project name dir Nothing
       XS.modify $ \s -> s {projects = Map.insert name p $ projects s}
-      switchProject p                   
-    
+      switchProject p
+
 --------------------------------------------------------------------------------
 -- | Shift the currently focused window to the given project.
 shiftToProject :: Project -> X ()
@@ -258,7 +258,7 @@ projectPrompt :: XPConfig -> (ProjectTable -> ProjectName -> X ()) -> X ()
 projectPrompt c f = do
   ws <- map W.tag `fmap` gets (W.workspaces . windowset)
   ps <- XS.gets projects
-  
+
   let names = sort (Map.keys ps `union` ws)
   mkXPrompt (Wor "Project: ") c (mkComplFunFromList' names) (f ps)
 
@@ -270,10 +270,10 @@ activateProject :: Project -> X ()
 activateProject p = do
     ws   <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
     home <- io getHomeDirectory
-    
+
     -- Change to the project's directory.
     catchIO (setCurrentDirectory $ expandHome home $ projectDirectory p)
-    
+
     -- Possibly run the project's startup hook.
     when (null ws) $ fromMaybe (return ()) (projectStartHook p)
 
@@ -287,5 +287,5 @@ activateProject p = do
 
 --------------------------------------------------------------------------------
 -- | Default project.
-defProject :: ProjectName -> Project   
+defProject :: ProjectName -> Project
 defProject name = Project name "~/" Nothing
