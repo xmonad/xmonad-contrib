@@ -157,7 +157,7 @@ dynamicProjectsLogHook = do
   state <- XS.get
 
   unless (Just name == previousProject state) $ do
-    XS.modify $ \s -> s {previousProject = Just name}
+    XS.put (state {previousProject = Just name})
     activateProject . fromMaybe (defProject name) $
       Map.lookup name (projects state)
 
