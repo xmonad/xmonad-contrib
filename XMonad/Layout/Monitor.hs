@@ -10,7 +10,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Layout modfier for displaying some window (monitor) above other windows
+-- Layout modifier for displaying some window (monitor) above other windows.
 --
 -----------------------------------------------------------------------------
 module XMonad.Layout.Monitor (
