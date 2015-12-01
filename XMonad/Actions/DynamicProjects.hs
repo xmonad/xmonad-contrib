@@ -30,6 +30,7 @@ module XMonad.Actions.DynamicProjects
          -- * Bindings
        , switchProjectPrompt
        , shiftToProjectPrompt
+       , renameProjectPrompt
 
          -- * Helper Functions
        , switchProject
@@ -227,7 +228,10 @@ switchProjectPrompt c = projectPrompt c switch
     switch ps name = case Map.lookup name ps of
       Just p              -> switchProject p
       Nothing | null name -> return ()
-              | otherwise -> directoryPrompt c "Project Dir: " (mkProject name)
+              | otherwise -> directoryPrompt dirC "Project Dir: " (mkProject name)
+
+    dirC :: XPConfig
+    dirC = c { alwaysHighlight = False } -- Fix broken tab completion.
 
     mkProject :: ProjectName -> FilePath -> X ()
     mkProject name dir = do
@@ -260,7 +264,26 @@ projectPrompt c f = do
   ps <- XS.gets projects
 
   let names = sort (Map.keys ps `union` ws)
-  mkXPrompt (Wor "Project: ") c (mkComplFunFromList' names) (f ps)
+      label = "Switch or Create Project: "
+
+  mkXPrompt (Wor label) c (mkComplFunFromList' names) (f ps)
+
+--------------------------------------------------------------------------------
+-- | Rename the current project.
+renameProjectPrompt :: XPConfig -> X ()
+renameProjectPrompt c = mkXPrompt (Wor "New Project Name: ") c (return . (:[])) go
+  where
+    go :: String -> X ()
+    go name = do
+      p  <- currentProject
+      ps <- XS.gets projects
+      renameWorkspaceByName name
+
+      let p'  = fromMaybe (p { projectName = name }) $ Map.lookup name ps
+          ps' = Map.insert name p' $ Map.delete (projectName p) ps
+
+      XS.modify $ \s -> s {projects = ps'}
+      activateProject p'
 
 --------------------------------------------------------------------------------
 -- | Activate a project by updating the working directory and
