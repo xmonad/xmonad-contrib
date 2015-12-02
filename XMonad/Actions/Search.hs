@@ -46,11 +46,13 @@ module XMonad.Actions.Search (   -- * Usage
                                  mathworld,
                                  openstreetmap,
                                  scholar,
+                                 stackage,
                                  thesaurus,
                                  wayback,
                                  wikipedia,
                                  wiktionary,
                                  youtube,
+                                 vocabulary,
                                  duckduckgo,
                                  multi,
                                   -- * Use case: searching with a submap
@@ -115,6 +117,8 @@ import XMonad.Util.XSelection (getSelection)
 
 * 'hoogle' -- Hoogle, the Haskell libraries API search engine.
 
+* 'stackage' -- Stackage, An alternative Haskell libraries API search engine.
+
 * 'images' -- Google images.
 
 * 'imdb'   -- the Internet Movie Database.
@@ -138,6 +142,8 @@ import XMonad.Util.XSelection (getSelection)
 * 'wikipedia' -- basic Wikipedia search.
 
 * 'youtube' -- Youtube video search.
+
+* 'vocabulary' -- Dictionary search
 
 * 'duckduckgo' -- DuckDuckGo search engine.
 
@@ -294,11 +300,13 @@ maps          = searchEngine "maps"          "http://maps.google.com/maps?q="
 mathworld     = searchEngine "mathworld"     "http://mathworld.wolfram.com/search/?query="
 openstreetmap = searchEngine "openstreetmap" "http://gazetteer.openstreetmap.org/namefinder/?find="
 scholar       = searchEngine "scholar"       "http://scholar.google.com/scholar?q="
+stackage      = searchEngine "stackage"      "www.stackage.org/lts/hoogle?q="
 thesaurus     = searchEngine "thesaurus"     "http://thesaurus.reference.com/search?q="
 wikipedia     = searchEngine "wiki"          "http://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary    = searchEngine "wikt"          "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "http://www.youtube.com/results?search_type=search_videos&search_query="
 wayback       = searchEngineF "wayback"      ("http://web.archive.org/web/*/"++)
+vocabulary    = searchEngine "vocabulary"    "http://www.vocabulary.com/search?q="
 duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 
 multi :: SearchEngine
