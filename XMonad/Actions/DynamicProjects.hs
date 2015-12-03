@@ -76,13 +76,13 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- or further configure the workspace/project.
 --
 -- When using the @switchProjectPrompt@ function, workspaces are
--- created and deleted as necessary.  This means you can create new
--- project spaces on the fly as needed.  (These dynamic projects are
+-- created as needed.  This means you can create new project spaces
+-- (and therefore workspaces) on the fly.  (These dynamic projects are
 -- not preserved across restarts.)
 --
 -- Additionally, frequently used projects can be configured statically
 -- in your XMonad configuration.  Doing so allows you to configure the
--- start-up hook.
+-- per-project start-up hook.
 
 --------------------------------------------------------------------------------
 -- $usage
@@ -213,10 +213,7 @@ switchProject p = do
   when (null ws && isNothing (projectStartHook oldp)) $
     XS.modify (\s -> s {projects = Map.delete name $ projects s})
 
-  -- Remove the old workspace (if empty) and activate the new
-  -- workspace.  The project will be activated by the log hook.
-  removeEmptyWorkspace
-  addWorkspace (projectName p)
+  appendWorkspace (projectName p)
 
 --------------------------------------------------------------------------------
 -- | Prompt for a project name and then switch to it.  Automatically
