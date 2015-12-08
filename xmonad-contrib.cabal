@@ -21,7 +21,7 @@ license:            BSD3
 license-file:       LICENSE
 author:             Spencer Janssen & others
 maintainer:         xmonad@haskell.org
-extra-source-files: README scripts/generate-configs scripts/run-xmonad.sh
+extra-source-files: README.md scripts/generate-configs scripts/run-xmonad.sh
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c
@@ -35,8 +35,8 @@ cabal-version:      >= 1.6
 build-type:         Simple
 bug-reports:        http://code.google.com/p/xmonad/issues/list
 
-tested-with:        GHC==7.10.2 
-                    GHC==7.8.4, 
+tested-with:        GHC==7.10.2
+                    GHC==7.8.4,
                     GHC==7.6.3,
                     GHC==7.4.2
 source-repository head
