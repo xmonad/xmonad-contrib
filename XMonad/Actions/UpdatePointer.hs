@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.UpdatePointer
--- Copyright   :  (c) Robert Marlow <robreim@bobturf.org>
+-- Copyright   :  (c) Robert Marlow <robreim@bobturf.org>, 2015 Evgeny Kurnevsky
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Robert Marlow <robreim@bobturf.org>
@@ -28,6 +28,7 @@ import Control.Arrow
 import Control.Monad
 import XMonad.StackSet (member, peek, screenDetail, current)
 import Data.Maybe
+import qualified Foreign as Foreign (peek, alloca)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -63,9 +64,15 @@ updatePointer :: (Rational, Rational) -> (Rational, Rational) -> X ()
 updatePointer refPos ratio = do
   ws <- gets windowset
   dpy <- asks display
+  let defaultRect = screenRect $ screenDetail $ current ws
   rect <- case peek ws of
-        Nothing -> return $ (screenRect . screenDetail .current) ws
-        Just w  -> windowAttributesToRectangle `fmap` io (getWindowAttributes dpy w)
+        Nothing -> return defaultRect
+        Just w  -> do -- We can't use just getWindowAttributes here bacause
+                      -- the window might be closed.
+                      maybeAttributes <- io $ getWindowAttributesMaybe dpy w
+                      return $ case maybeAttributes of
+                        Nothing         -> defaultRect
+                        Just attributes -> windowAttributesToRectangle attributes
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   (_sameRoot,_,currentWindow,rootX,rootY,_,_,_) <- io $ queryPointer dpy root
@@ -88,6 +95,13 @@ updatePointer refPos ratio = do
     in io $ warpPointer dpy none root 0 0 0 0
         (round . clip boundsX $ fi rootX)
         (round . clip boundsY $ fi rootY)
+
+getWindowAttributesMaybe :: Display -> Window -> IO (Maybe WindowAttributes)
+getWindowAttributesMaybe d w = Foreign.alloca $ \p -> do
+    status <- xGetWindowAttributes d w p
+    if status /= 0
+      then fmap Just $ Foreign.peek p
+      else return Nothing
 
 windowAttributesToRectangle :: WindowAttributes -> Rectangle
 windowAttributesToRectangle wa = Rectangle (fi (wa_x wa))
