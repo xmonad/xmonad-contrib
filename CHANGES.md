@@ -9,11 +9,11 @@
     `TowardsCentre` and `Relative` methods. To keep the same behavior,
     replace the entry in the left column with the entry on the right:
 
-    < 0.12                               >= 0.12
-    ----------                           -------------
-    `updatePointer Nearest`              `updatePointer (0.5, 0.5) (1,1)`
-    `updatePointer (Relative x y)`       `updatePointer (x,y) (1,1)`
-    `updatePointer (TowardsCentre x y)`  `updatePointer (0.5,0.5) (x,y)`
+    | < 0.12                              |   >= 0.12                        |
+    |-------------------------------------|----------------------------------|
+    | `updatePointer Nearest`             | `updatePointer (0.5, 0.5) (1,1)` |
+    | `updatePointer (Relative x y)`      | `updatePointer (x,y) (1,1)`      |
+    | `updatePointer (TowardsCentre x y)` | `updatePointer (0.5,0.5) (x,y)`  |
 
 ### New Modules
 
