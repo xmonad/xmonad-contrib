@@ -91,8 +91,6 @@ setBordersIf query width event = do
     dpy = ev_event_display event
     window = ev_window event
 
-setBordersIf _ _ _ = return (All True)
-
 isNotification = isInType     "_NET_WM_WINDOW_TYPE_NOTIFICATION"
 isPlasmaOSD    = isInType "_KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY"
 kdeOverride    = isInType "_KDE_NET_WM_WINDOW_TYPE_OVERRIDE"
@@ -117,5 +115,3 @@ removeFromTaskbarIf query event = do
   where
     dpy = ev_event_display event
     window = ev_window event
-
-removeFromTaskbarIf _ _ = return (All True)
