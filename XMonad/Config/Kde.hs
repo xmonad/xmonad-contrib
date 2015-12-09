@@ -34,7 +34,6 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.NoBorders
-import qualified XMonad.StackSet      as W
 import XMonad.Util.WindowProperties   (getProp32)
 import XMonad.Util.XUtils             (fi)
 
