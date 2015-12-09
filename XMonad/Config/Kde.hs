@@ -83,10 +83,13 @@ kde5Config conf = ewmh $ conf
 
 
 setBordersIf :: Query Bool -> Dimension -> Event -> X All
-setBordersIf query width (ClientMessageEvent _ _ _ dpy window _ _) = do
+setBordersIf query width event = do
   whenX (runQuery query window) $
     io $ setWindowBorderWidth dpy window width
   return (All True)
+  where
+    dpy = ev_event_display event
+    window = ev_window event
 
 setBordersIf _ _ _ = return (All True)
 
@@ -100,7 +103,7 @@ isInType :: String -> Query Bool
 isInType = isInProperty "_NET_WM_WINDOW_TYPE"
 
 removeFromTaskbarIf :: Query Bool -> Event -> X All
-removeFromTaskbarIf query (ClientMessageEvent _ _ _ dpy window _ _) = do
+removeFromTaskbarIf query event = do
   whenX (runQuery query window) $ do
     wmstate <- getAtom "_NET_WM_STATE"
     wstate <- fromMaybe [] <$> getProp32 wmstate window
@@ -111,5 +114,8 @@ removeFromTaskbarIf query (ClientMessageEvent _ _ _ dpy window _ _) = do
     when (newwstate /= wstate) $ do
       io $ changeProperty32 dpy window wmstate 4 propModeReplace newwstate
   return (All True)
+  where
+    dpy = ev_event_display event
+    window = ev_window event
 
 removeFromTaskbarIf _ _ = return (All True)
