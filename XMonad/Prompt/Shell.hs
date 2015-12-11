@@ -110,7 +110,7 @@ getShellCompl cmds p s | s == "" || last s == ' ' = return []
         | x `startsWith` s && not (y `startsWith` s) = LT
         | y `startsWith` s && not (x `startsWith` s) = GT
         | otherwise = x `compare` y
-    startsWith s ps = isPrefixOf (map toLower ps) (map toLower s)
+    startsWith str ps = isPrefixOf (map toLower ps) (map toLower str)
 
 commandCompletionFunction :: [String] -> Predicate -> String -> [String]
 commandCompletionFunction cmds p str | '/' `elem` str = []
