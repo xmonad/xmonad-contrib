@@ -14,7 +14,8 @@
 module XMonad.Actions.FocusNth (
                  -- * Usage
                  -- $usage
-                 focusNth,focusNth') where
+                 focusNth,focusNth',
+                 swapNth,swapNth') where
 
 import XMonad.StackSet
 import XMonad
@@ -40,6 +41,16 @@ focusNth = windows . modify' . focusNth'
 focusNth' :: Int -> Stack a -> Stack a
 focusNth' n s@(Stack _ ls rs) | (n < 0) || (n > length(ls) + length(rs)) = s
                               | otherwise = listToStack n (integrate s)
+
+swapNth :: Int -> X ()
+swapNth = windows . modify' . swapNth'
+
+swapNth' :: Int -> Stack a -> Stack a
+swapNth' n s(Stack c l r)
+  | (n < 0) || (n > length ls + length rs) || (n == length ls) = s
+  | n < length ls = let (nl, (nc : nr)) = splitAt (n + 1)        l in Stack nc (nl ++ c : nr) r
+  | otherwise     = let (nl, (nc : nr)) = splitAt (n - length l) r in Stack nc l (nl ++ c : nr)
+                                                                          
 
 listToStack :: Int -> [a] -> Stack a
 listToStack n l = Stack t ls rs
