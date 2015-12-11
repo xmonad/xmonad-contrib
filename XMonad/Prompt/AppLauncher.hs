@@ -25,7 +25,7 @@ module XMonad.Prompt.AppLauncher ( -- * Usage
 
 import XMonad (X(),MonadIO)
 import XMonad.Core (spawn)
-import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig())
+import XMonad.Prompt (XPrompt(showXPrompt), mkXPrompt, XPConfig(searchPredicate))
 import XMonad.Prompt.Shell (getShellCompl)
 
 {- $usage
@@ -72,4 +72,4 @@ launch app params = spawn ( app ++ " " ++ params )
 {- | Get the user's response to a prompt an launch an application using the
    input as command parameters of the application.-}
 launchApp :: XPConfig -> Application -> X ()
-launchApp config app = mkXPrompt (AppPrompt app) config (getShellCompl []) $ launch app
+launchApp config app = mkXPrompt (AppPrompt app) config (getShellCompl [] $ searchPredicate config) $ launch app

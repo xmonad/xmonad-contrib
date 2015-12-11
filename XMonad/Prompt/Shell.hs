@@ -32,7 +32,8 @@ module XMonad.Prompt.Shell
 import           Codec.Binary.UTF8.String (encodeString)
 import           Control.Exception        as E
 import           Control.Monad            (forM)
-import           Data.List                (isPrefixOf)
+import           Data.Char                (toLower)
+import           Data.List                (isPrefixOf, sortBy)
 import           System.Directory         (getDirectoryContents)
 import           System.Environment       (getEnv)
 import           System.Posix.Files       (getFileStatus, isDirectory)
@@ -58,6 +59,7 @@ For detailed instruction on editing the key binding see
 "XMonad.Doc.Extending#Editing_key_bindings". -}
 
 data Shell = Shell
+type Predicate = String -> String -> Bool
 
 instance XPrompt Shell where
     showXPrompt Shell     = "Run: "
@@ -66,7 +68,7 @@ instance XPrompt Shell where
 shellPrompt :: XPConfig -> X ()
 shellPrompt c = do
     cmds <- io getCommands
-    mkXPrompt Shell c (getShellCompl cmds) spawn
+    mkXPrompt Shell c (getShellCompl cmds $ searchPredicate c) spawn
 
 {- $spawns
     See safe and unsafeSpawn in "XMonad.Util.Run".
@@ -87,14 +89,14 @@ shellPrompt c = do
 
 prompt, unsafePrompt, safePrompt :: FilePath -> XPConfig -> X ()
 prompt = unsafePrompt
-safePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
+safePrompt c config = mkXPrompt Shell config (getShellCompl [c] $ searchPredicate config) run
     where run = safeSpawn c . return
-unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c]) run
+unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c] $ searchPredicate config) run
     where run a = unsafeSpawn $ c ++ " " ++ a
 
-getShellCompl :: [String] -> String -> IO [String]
-getShellCompl cmds s | s == "" || last s == ' ' = return []
-                     | otherwise                = do
+getShellCompl :: [String] -> Predicate -> String -> IO [String]
+getShellCompl cmds p s | s == "" || last s == ' ' = return []
+                       | otherwise                = do
     f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file -- "
                                                         ++ s ++ "\n")
     files <- case f of
@@ -102,11 +104,17 @@ getShellCompl cmds s | s == "" || last s == ' ' = return []
                          if isDirectory fs then return [x ++ "/"]
                                            else return [x]
                _   -> return f
-    return . uniqSort $ files ++ commandCompletionFunction cmds s
+    return . sortBy typedFirst . uniqSort $ files ++ commandCompletionFunction cmds p s
+    where
+    typedFirst x y
+        | x `startsWith` s && not (y `startsWith` s) = LT
+        | y `startsWith` s && not (x `startsWith` s) = GT
+        | otherwise = x `compare` y
+    startsWith str ps = isPrefixOf (map toLower ps) (map toLower str)
 
-commandCompletionFunction :: [String] -> String -> [String]
-commandCompletionFunction cmds str | '/' `elem` str = []
-                                   | otherwise      = filter (isPrefixOf str) cmds
+commandCompletionFunction :: [String] -> Predicate -> String -> [String]
+commandCompletionFunction cmds p str | '/' `elem` str = []
+                                     | otherwise      = filter (p str) cmds
 
 getCommands :: IO [String]
 getCommands = do

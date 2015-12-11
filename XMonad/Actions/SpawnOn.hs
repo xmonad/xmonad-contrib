@@ -94,7 +94,7 @@ manageSpawnWithGC garbageCollect = do
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
 mkPrompt cb c = do
     cmds <- io $ getCommands
-    mkXPrompt Shell c (getShellCompl cmds) cb
+    mkXPrompt Shell c (getShellCompl cmds $ searchPredicate c) cb
 
 -- | Replacement for Shell prompt ("XMonad.Prompt.Shell") which launches
 -- application on current workspace.

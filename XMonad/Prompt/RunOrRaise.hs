@@ -52,7 +52,7 @@ instance XPrompt RunOrRaisePrompt where
 
 runOrRaisePrompt :: XPConfig -> X ()
 runOrRaisePrompt c = do cmds <- io getCommands
-                        mkXPrompt RRP c (getShellCompl cmds) open
+                        mkXPrompt RRP c (getShellCompl cmds $ searchPredicate c) open
 open :: String -> X ()
 open path = io (isNormalFile path) >>= \b ->
             if b

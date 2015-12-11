@@ -3,7 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
--- Copyright   :  (C) 2007 Andrea Rossato
+-- Copyright   :  (C) 2007 Andrea Rossato, 2015 Evgeny Kurnevsky
 -- License     :  BSD3
 --
 -- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
@@ -374,7 +374,7 @@ mkXPromptWithReturn t conf compl action = do
       --When it is false, it is handled depending on the prompt buffer's value
     let selectedCompletion = case alwaysHighlight (config st') of
           False -> command st'
-          True -> fromMaybe (command st') $ highlightedCompl st' -- 
+          True -> fromMaybe (command st') $ highlightedCompl st'
     Just <$> action selectedCompletion
     else return Nothing
 
@@ -801,9 +801,13 @@ moveWord' p d = do
   modify $ \s -> s { offset = newoff }
 
 moveHistory :: (W.Stack String -> W.Stack String) -> XP ()
-moveHistory f = modify $ \s -> let ch = f $ commandHistory s
-                               in s { commandHistory = ch
-                                    , offset         = length $ W.focus ch }
+moveHistory f = do
+  modify $ \s -> let ch = f $ commandHistory s
+                 in s { commandHistory = ch
+                      , offset         = length $ W.focus ch
+                      , complIndex     = (0,0) }
+  updateWindows
+  updateHighlightedCompl
 
 updateHighlightedCompl :: XP ()
 updateHighlightedCompl = do
