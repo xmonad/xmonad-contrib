@@ -21,6 +21,11 @@
 
     Perform an action after the current mouse drag is completed.
 
+  * `XMonad.Actions.DynamicProjects`
+
+    Imbues workspaces with additional features so they can be treated
+    as individual project areas.
+
   * `XMonad.Actions.LinkWorkspaces`
 
     Provides bindings to add and delete links between workspaces. It
@@ -143,6 +148,11 @@
     Functions for saving per-window data.
 
 ### Miscellaneous Changes
+
+  * Fix issue #9: `XMonad.Prompt.Shell` `searchPredicate` is ignored,
+    defaults to `isPrefixOf`
+
+  * Fix moveHistory when alwaysHighlight is enabled
 
   * `XMonad.Actions.DynamicWorkspaceGroups` now exports `addRawWSGroup`
 
