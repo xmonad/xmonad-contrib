@@ -1,6 +1,6 @@
 # Change Log / Release Notes
 
-## 0.12 (?)
+## 0.12 (December 14, 2015)
 
 ### Breaking Changes
 
