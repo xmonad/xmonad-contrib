@@ -41,7 +41,15 @@ debugWindow w =  do
   case w' of
     Nothing                                   ->
       return $ "(deleted window " ++ wx ++ ")"
-    Just (WindowAttributes x y wid ht bw m o) -> do
+    Just (WindowAttributes
+      { wa_x                 = x
+      , wa_y                 = y
+      , wa_width             = wid
+      , wa_height            = ht
+      , wa_border_width      = bw
+      , wa_map_state         = m
+      , wa_override_redirect = o
+      }) -> do
       c' <- withDisplay $ \d ->
             io (getWindowProperty8 d wM_CLASS w)
       let c = case c' of
