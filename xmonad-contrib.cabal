@@ -50,6 +50,7 @@ flag use_xft
 
 flag testing
   description: Testing mode
+  manual: True
   default: False
 
 library
