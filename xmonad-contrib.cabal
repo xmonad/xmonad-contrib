@@ -82,9 +82,6 @@ library
     if impl(ghc >= 6.12.1)
         ghc-options:    -fno-warn-unused-do-bind
 
-    if impl (ghc == 6.10.1) && arch (x86_64)
-        ghc-options:    -O0
-
     exposed-modules:    XMonad.Doc
                         XMonad.Doc.Configuring
                         XMonad.Doc.Extending
