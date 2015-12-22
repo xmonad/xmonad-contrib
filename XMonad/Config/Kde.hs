@@ -68,12 +68,12 @@ kde5Config conf = ewmh $ conf
                        layoutHook $ conf
     , handleEventHook = composeAll [ docksEventHook
                                    , setBordersIf kdeOverride 0
-                                   , dontShowIf kdeOverride
+                                   , skipIf kdeOverride
                                    , handleEventHook conf ]
     , manageHook = composeAll [ isDesktop <||> isDock --> doIgnore
                               , isPlasmaOSD <||> isNotification --> doIgnore
                               , kdeOverride --> doFloat
-                              , (not <$> isFloating) -> manageDocks
+                              , (not <$> isFloating) --> manageDocks
                               , manageHook conf ]
     , startupHook = startupHook desktopConfig >> startupHook conf }
 
@@ -101,8 +101,8 @@ isDock         = isInType     "_NET_WM_WINDOW_TYPE_DOCK"
 isInType :: String -> Query Bool
 isInType = isInProperty "_NET_WM_WINDOW_TYPE"
 
-dontShowIf :: Query Bool -> Event -> X All
-dontShowIf query event = do
+skipIf :: Query Bool -> Event -> X All
+skipIf query event = do
   whenX (runQuery query window) $ do
     wmstate <- getAtom "_NET_WM_STATE"
     atom <- getAtom "ATOM"
