@@ -21,20 +21,17 @@ module XMonad.Config.Kde (
     kde4Config
     ) where
 
-import Control.Monad                  (forM_, unless, when)
-import Data.List                      (union)
 import qualified Data.Map             as M
-import Data.Maybe                     (fromMaybe)
 import Data.Monoid                    (All(..))
 
 import XMonad
+import qualified XMonad.StackSet as W
 import XMonad.Config.Desktop
 import XMonad.Hooks.EwmhDesktops      (ewmh)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.NoBorders
-import XMonad.Util.WindowProperties   (getProp32)
 import XMonad.Util.XUtils             (fi)
 
 -- $usage
@@ -49,13 +46,15 @@ import XMonad.Util.XUtils             (fi)
 -- > main = xmonad kde4Config
 --
 -- For examples of how to further customize @kde4Config@ see "XMonad.Config.Desktop".
+-- Don't use @kde5Config@ from this module with @transience@ (or @transience'@) from
+-- "XMonad.Hooks.ManageHelpers"
 
 
 kde4Config = desktopConfig
     { terminal = "konsole"
     , keys     = kde4Keys <+> keys desktopConfig }
 
-kde4Keys (XConfig {modMask = modm}) = M.fromList $
+kde4Keys XConfig {modMask = modm} = M.fromList
     [ ((modm,               xK_p), spawn "krunner")
     , ((modm .|. shiftMask, xK_q), spawn "dbus-send --print-reply --dest=org.kde.ksmserver /KSMServer org.kde.KSMServerInterface.logout int32:1 int32:0 int32:1")
     ]
@@ -69,15 +68,20 @@ kde5Config conf = ewmh $ conf
                        layoutHook $ conf
     , handleEventHook = composeAll [ docksEventHook
                                    , setBordersIf kdeOverride 0
-                                   , removeFromTaskbarIf (isPlasmaOSD <||> isNotification <||> kdeOverride)
+                                   , dontShowIf kdeOverride
                                    , handleEventHook conf ]
     , manageHook = composeAll [ isDesktop <||> isDock --> doIgnore
                               , isPlasmaOSD <||> isNotification --> doIgnore
                               , kdeOverride --> doFloat
-                              , manageHook conf
-                              , (not <$> kdeOverride) --> manageDocks ]
+                              , (not <$> isFloating) -> manageDocks
+                              , manageHook conf ]
     , startupHook = startupHook desktopConfig >> startupHook conf }
 
+
+isFloating :: Query Bool
+isFloating = ask >>= \w -> do
+  ws <- liftX $ gets windowset
+  return $ w `elem` M.keys (W.floating ws)
 
 setBordersIf :: Query Bool -> Dimension -> Event -> X All
 setBordersIf query width event = do
@@ -97,17 +101,15 @@ isDock         = isInType     "_NET_WM_WINDOW_TYPE_DOCK"
 isInType :: String -> Query Bool
 isInType = isInProperty "_NET_WM_WINDOW_TYPE"
 
-removeFromTaskbarIf :: Query Bool -> Event -> X All
-removeFromTaskbarIf query event = do
+dontShowIf :: Query Bool -> Event -> X All
+dontShowIf query event = do
   whenX (runQuery query window) $ do
     wmstate <- getAtom "_NET_WM_STATE"
-    wstate <- fromMaybe [] <$> getProp32 wmstate window
-    skipTaskbar <- getAtom "_NET_WM_STATE_SKIP_TASKBAR"
-    skipPager <- getAtom "_NET_WM_STATE_SKIP_PAGER"
-    above <- getAtom "_NET_WM_STATE_ABOVE"
-    let newwstate = union wstate (map fi [skipTaskbar, skipPager, above])
-    when (newwstate /= wstate) $ do
-      io $ changeProperty32 dpy window wmstate 4 propModeReplace newwstate
+    atom <- getAtom "ATOM"
+    skip <- mapM getAtom [ "_NET_WM_STATE_SKIP_TASKBAR"
+                         , "_NET_WM_STATE_SKIP_PAGER"
+                         , "_NET_WM_STATE_ABOVE"]
+    io $ changeProperty32 dpy window wmstate atom propModeAppend (map fi skip)
   return (All True)
   where
     dpy = ev_event_display event
