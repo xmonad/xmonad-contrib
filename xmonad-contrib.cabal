@@ -54,20 +54,20 @@ flag testing
   default: False
 
 library
-    build-depends: base >= 3 && < 5,
-                    containers,
-                    directory,
-                    extensible-exceptions,
-                    filepath,
-                    old-locale,
-                    old-time,
-                    process,
-                    random,
-                    mtl >= 1 && < 3,
-                    unix,
-                    X11>=1.6.1 && < 1.7,
-                    xmonad>=0.12   && < 0.13,
-                    utf8-string
+    build-depends: base >= 4.5 && < 5,
+                   containers >= 0.5 && < 0.6,
+                   directory,
+                   extensible-exceptions,
+                   filepath,
+                   old-locale,
+                   old-time,
+                   process,
+                   random,
+                   mtl >= 1 && < 3,
+                   unix,
+                   X11>=1.6.1 && < 1.7,
+                   xmonad>=0.12   && < 0.13,
+                   utf8-string
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
