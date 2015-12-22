@@ -69,15 +69,13 @@ kde5Config conf = ewmh $ conf
                        layoutHook $ conf
     , handleEventHook = composeAll [ docksEventHook
                                    , setBordersIf kdeOverride 0
-                                   , setBordersIf isPlasmaOSD (borderWidth conf)
                                    , removeFromTaskbarIf (isPlasmaOSD <||> isNotification <||> kdeOverride)
                                    , handleEventHook conf ]
     , manageHook = composeAll [ isDesktop <||> isDock --> doIgnore
-                              , isPlasmaOSD --> doSideFloat SC
+                              , isPlasmaOSD <||> isNotification --> doIgnore
                               , kdeOverride --> doFloat
-                              , isNotification --> doIgnore
                               , manageHook conf
-                              , (not <$> (kdeOverride <||> isPlasmaOSD)) --> manageDocks ]
+                              , (not <$> kdeOverride) --> manageDocks ]
     , startupHook = startupHook desktopConfig >> startupHook conf }
 
 
