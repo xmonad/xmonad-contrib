@@ -46,10 +46,10 @@ swapNth :: Int -> X ()
 swapNth = windows . modify' . swapNth'
 
 swapNth' :: Int -> Stack a -> Stack a
-swapNth' n s(Stack c l r)
-  | (n < 0) || (n > length ls + length rs) || (n == length ls) = s
-  | n < length ls = let (nl, (nc : nr)) = splitAt (n + 1)        l in Stack nc (nl ++ c : nr) r
-  | otherwise     = let (nl, (nc : nr)) = splitAt (n - length l) r in Stack nc l (nl ++ c : nr)
+swapNth' n s@(Stack c l r)
+  | (n < 0) || (n > length l + length r) || (n == length l) = s
+  | n < length l = let (nl, nc:nr) = splitAt (length l - n - 1) l in Stack nc (nl ++ c : nr) r
+  | otherwise    = let (nl, nc:nr) = splitAt (n - length l    ) r in Stack nc l (nl ++ c : nr)
                                                                           
 
 listToStack :: Int -> [a] -> Stack a
