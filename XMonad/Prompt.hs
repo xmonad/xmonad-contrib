@@ -133,7 +133,7 @@ data XPConfig =
         , bgHLight          :: String     -- ^ Background color of a highlighted completion entry
         , borderColor       :: String     -- ^ Border color
         , promptBorderWidth :: !Dimension -- ^ Border width
-        , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
+        , position          :: XPPosition -- ^ Position: 'Top', 'Bottom', or 'CenteredAt'
         , alwaysHighlight   :: !Bool      -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
         , height            :: !Dimension -- ^ Window height
         , maxComplRows      :: Maybe Dimension
