@@ -859,7 +859,7 @@ drawWin = do
   let (c,(d,(w,gc))) = (config &&& dpy &&& win &&& gcon) st
       scr = defaultScreenOfDisplay d
       wh = case position c of
-             CenteredAt _ wd -> floor $ ((1 - wd) / 2) * fi (widthOfScreen scr)
+             CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
              _               -> widthOfScreen scr
       ht = height c
       bw = promptBorderWidth c
