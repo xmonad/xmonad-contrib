@@ -858,7 +858,9 @@ drawWin = do
   st <- get
   let (c,(d,(w,gc))) = (config &&& dpy &&& win &&& gcon) st
       scr = defaultScreenOfDisplay d
-      wh = widthOfScreen scr
+      wh = case position c of
+             CenteredAt _ wd -> floor $ ((1 - wd) / 2) * fi (widthOfScreen scr)
+             _               -> widthOfScreen scr
       ht = height c
       bw = promptBorderWidth c
   Just bgcolor <- io $ initColor d (bgColor c)
