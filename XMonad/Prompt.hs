@@ -228,6 +228,8 @@ class XPrompt t where
 
 data XPPosition = Top
                 | Bottom
+                | CenteredAt { xpHeight :: Rational
+                             , xpWidth  :: Rational }
                   deriving (Show,Read)
 
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
@@ -842,8 +844,12 @@ createWin d rw c s = do
   let (x,y) = case position c of
                 Top -> (0,0)
                 Bottom -> (0, rect_height s - height c)
+                CenteredAt py w -> (floor $ fi (rect_width s) * ((1 - w) / 2), floor $ py * fi (rect_height s))
+      width = case position c of
+                CenteredAt _ w -> floor $ fi (rect_width s) * w
+                _              -> rect_width s
   w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw
-                      (rect_x s + x) (rect_y s + fi y) (rect_width s) (height c)
+                      (rect_x s + x) (rect_y s + fi y) width (height c)
   mapWindow d w
   return w
 
@@ -935,7 +941,9 @@ getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
   st <- get
   let (c,(scr,fs)) = (config &&& screen &&& fontS) st
-      wh = rect_width scr
+      wh = case position c of
+             CenteredAt _ w -> floor $ fi (rect_width scr) * w
+             _ -> rect_width scr
       ht = height c
 
   tws <- mapM (textWidthXMF (dpy st) fs) compl
@@ -953,6 +961,7 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
+                CenteredAt py w -> (floor $ fi (rect_width scr) * ((1 - w) / 2), ht + floor (py * fi (rect_height scr)))
   (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
