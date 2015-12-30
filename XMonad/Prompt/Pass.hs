@@ -48,7 +48,7 @@ import XMonad.Prompt ( XPrompt
                      , getNextCompletion
                      , XPConfig
                      , mkXPrompt
-                     , mkComplFunFromList)
+                     , searchPredicate)
 import System.Directory (getHomeDirectory)
 import System.FilePath (takeExtension, dropExtension, combine)
 import System.Posix.Env (getEnv)
@@ -71,6 +71,11 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- - how to setup the password storage, see <http://git.zx2c4.com/password-store/about/>
 --
+
+type Predicate = String -> String -> Bool
+
+getPassCompl :: [String] -> Predicate -> String -> IO [String]
+getPassCompl compls p s = do return $ filter (p s) compls
 
 type PromptLabel = String
 
@@ -101,7 +106,7 @@ passwordStoreFolder =
 mkPassPrompt :: PromptLabel -> (String -> X ()) -> XPConfig -> X ()
 mkPassPrompt promptLabel passwordFunction xpconfig = do
   passwords <- io (passwordStoreFolder >>= getPasswords)
-  mkXPrompt (Pass promptLabel) xpconfig (mkComplFunFromList passwords) passwordFunction
+  mkXPrompt (Pass promptLabel) xpconfig (getPassCompl passwords $ searchPredicate xpconfig) passwordFunction
 
 -- | A prompt to retrieve a password from a given entry.
 --
