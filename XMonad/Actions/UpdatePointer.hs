@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.UpdatePointer
@@ -28,7 +29,7 @@ import Control.Arrow
 import Control.Monad
 import XMonad.StackSet (member, peek, screenDetail, current)
 import Data.Maybe
-import qualified Foreign as Foreign (peek, alloca)
+import Control.Exception
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -67,12 +68,10 @@ updatePointer refPos ratio = do
   let defaultRect = screenRect $ screenDetail $ current ws
   rect <- case peek ws of
         Nothing -> return defaultRect
-        Just w  -> do -- We can't use just getWindowAttributes here bacause
-                      -- the window might be closed.
-                      maybeAttributes <- io $ getWindowAttributesMaybe dpy w
-                      return $ case maybeAttributes of
-                        Nothing         -> defaultRect
-                        Just attributes -> windowAttributesToRectangle attributes
+        Just w  -> do tryAttributes <- io $ try $ getWindowAttributes dpy w
+                      return $ case tryAttributes of
+                        Left (_ :: SomeException) -> defaultRect
+                        Right attributes          -> windowAttributesToRectangle attributes
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   (_sameRoot,_,currentWindow,rootX,rootY,_,_,_) <- io $ queryPointer dpy root
@@ -95,13 +94,6 @@ updatePointer refPos ratio = do
     in io $ warpPointer dpy none root 0 0 0 0
         (round . clip boundsX $ fi rootX)
         (round . clip boundsY $ fi rootY)
-
-getWindowAttributesMaybe :: Display -> Window -> IO (Maybe WindowAttributes)
-getWindowAttributesMaybe d w = Foreign.alloca $ \p -> do
-    status <- xGetWindowAttributes d w p
-    if status /= 0
-      then fmap Just $ Foreign.peek p
-      else return Nothing
 
 windowAttributesToRectangle :: WindowAttributes -> Rectangle
 windowAttributesToRectangle wa = Rectangle (fi (wa_x wa))
