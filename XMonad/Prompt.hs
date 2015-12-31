@@ -228,8 +228,11 @@ class XPrompt t where
 
 data XPPosition = Top
                 | Bottom
-                | CenteredAt { xpHeight :: Rational
-                             , xpWidth  :: Rational }
+                | CenteredAt { xpTopY :: Rational
+                             -- ^ Relative Y coordinate of top of the prompt.
+                             , xpWidth  :: Rational
+                             -- ^ Relative width of the prompt
+                             }
                   deriving (Show,Read)
 
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
