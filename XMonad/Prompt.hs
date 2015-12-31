@@ -947,6 +947,7 @@ getComplWinDim compl = do
              CenteredAt _ w -> floor $ fi (rect_width scr) * w
              _ -> rect_width scr
       ht = height c
+      bw = promptBorderWidth c
 
   tws <- mapM (textWidthXMF (dpy st) fs) compl
   let max_compl_len =  fromIntegral ((fi ht `div` 2) + maximum tws)
@@ -963,7 +964,7 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht)
                 Bottom -> (0, (0 + rem_height - actual_height))
-                CenteredAt py w -> (floor $ fi (rect_width scr) * ((1 - w) / 2), ht + floor (py * fi (rect_height scr)))
+                CenteredAt py w -> (floor $ fi (rect_width scr) * ((1 - w) / 2), ht + floor (py * fi (rect_height scr)) - bw)
   (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
