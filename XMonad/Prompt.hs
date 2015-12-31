@@ -228,8 +228,12 @@ class XPrompt t where
 
 data XPPosition = Top
                 | Bottom
-                | CenteredAt { xpTopY :: Rational
-                             -- ^ Relative Y coordinate of top of the prompt.
+                -- | Prompt will be placed in the center horizontally and
+                --   in the certain place of screen vertically. If it's in the upper
+                --   part of the screen, completion window will be placed below(like
+                --   in 'Top') and otherwise above(like in 'Bottom')
+                | CenteredAt { xpCenterY :: Rational
+                             -- ^ Relative Y coordinate of center of the prompt.
                              , xpWidth  :: Rational
                              -- ^ Relative width of the prompt
                              }
@@ -847,7 +851,7 @@ createWin d rw c s = do
   let (x,y) = case position c of
                 Top -> (0,0)
                 Bottom -> (0, rect_height s - height c)
-                CenteredAt py w -> (floor $ fi (rect_width s) * ((1 - w) / 2), floor $ py * fi (rect_height s))
+                CenteredAt py w -> (floor $ (fi $ rect_width s) * ((1 - w) / 2), floor $ py * fi (rect_height s) - (fi (height c) / 2))
       width = case position c of
                 CenteredAt _ w -> floor $ fi (rect_width s) * w
                 _              -> rect_width s
@@ -967,7 +971,9 @@ getComplWinDim compl = do
       (x,y) = case position c of
                 Top -> (0,ht - bw)
                 Bottom -> (0, (0 + rem_height - actual_height + bw))
-                CenteredAt py w -> (floor $ fi (rect_width scr) * ((1 - w) / 2), ht + floor (py * fi (rect_height scr)) - bw)
+                CenteredAt py w
+                  | py <= 1/2 -> (floor $ fi (rect_width scr) * ((1 - w) / 2), ht + floor (py * fi (rect_height scr)) - bw)
+                  | otherwise -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr)) - actual_height + bw)
   (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
