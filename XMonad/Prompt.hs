@@ -962,8 +962,8 @@ getComplWinDim compl = do
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
       actual_height = actual_rows * ht
       (x,y) = case position c of
-                Top -> (0,ht)
-                Bottom -> (0, (0 + rem_height - actual_height))
+                Top -> (0,ht - bw)
+                Bottom -> (0, (0 + rem_height - actual_height + bw))
                 CenteredAt py w -> (floor $ fi (rect_width scr) * ((1 - w) / 2), ht + floor (py * fi (rect_height scr)) - bw)
   (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
