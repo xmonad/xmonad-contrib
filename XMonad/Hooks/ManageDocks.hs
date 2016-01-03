@@ -42,6 +42,7 @@ import XMonad.Util.XUtils (fi)
 import Data.Monoid (All(..), mempty)
 
 import qualified Data.Set as S
+import Data.Maybe (fromMaybe, catMaybes)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -125,6 +126,23 @@ docksEventHook (MapNotifyEvent {ev_window = w}) = do
     return (All True)
 docksEventHook _ = return (All True)
 
+getRawStrut :: Window -> X(Maybe (Window, Either [CLong] [CLong]))
+getRawStrut w = do
+    msp <- fromMaybe [] <$> getProp32s "_NET_WM_STRUT_PARTIAL" w
+    if null msp
+        then do
+            mp <- fromMaybe [] <$> getProp32s "_NET_WM_STRUT" w
+            if null mp then return Nothing
+                       else return (Just (w, Left mp))
+        else return (Just (w, Right msp))
+
+getRawStruts :: X (S.Set (Window, Either [CLong] [CLong]))
+getRawStruts = withDisplay $ \dpy -> do
+  rootw <- asks theRoot
+  (_,_,wins) <- io $ queryTree dpy rootw
+  (S.fromList . catMaybes) <$> mapM getRawStrut wins
+
+
 -- | Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X [Strut]
 getStrut w = do
@@ -170,11 +188,12 @@ avoidStrutsOn :: LayoutClass l a =>
                  [Direction2D]
               -> l a
               -> ModifiedLayout AvoidStruts l a
-avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss) Nothing
+avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss) Nothing S.empty
 
 data AvoidStruts a = AvoidStruts {
     avoidStrutsDirection :: S.Set Direction2D,
-    avoidStrutsRectCache :: Maybe (S.Set Direction2D, Rectangle, Rectangle )
+    avoidStrutsRectCache :: Maybe (S.Set Direction2D, Rectangle, Rectangle ),
+    strutSet :: S.Set (Window, Either [CLong] [CLong])
 }  deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
@@ -219,18 +238,28 @@ data SetStruts = SetStruts { addedStruts   :: [Direction2D]
 instance Message SetStruts
 
 instance LayoutModifier AvoidStruts a where
-    modifyLayoutWithUpdate as@(AvoidStruts ss cache) w r = do
-        nr <- case cache of
-            Just (ss', r', nr) | ss' == ss, r' == r -> return nr
+    modifyLayoutWithUpdate as@(AvoidStruts ss cache sset) w r = do
+        (nr, nsset) <- case cache of
+            Just (ss', r', nr) | ss' == ss, r' == r -> do
+                nsset <- getRawStruts
+                if nsset /= sset
+                  then do
+                    nr <- fmap ($ r) (calcGap ss)
+                    setWorkarea nr
+                    return (nr, nsset)
+                  else do
+                    return (nr, sset)
             _ -> do
+                nsset <- getRawStruts
                 nr <- fmap ($ r) (calcGap ss)
                 setWorkarea nr
-                return nr
+                return (nr, nsset)
         arranged <- runLayout w nr
         let newCache = Just (ss, r, nr)
-        return (arranged, if newCache == cache
+        return (arranged, if newCache == cache && sset == nsset
                     then Nothing
-                    else Just as{ avoidStrutsRectCache = newCache } )
+                    else Just as{ avoidStrutsRectCache = newCache
+                                , strutSet = nsset} )
 
     pureMess as@(AvoidStruts { avoidStrutsDirection = ss }) m
         | Just ToggleStruts    <- fromMessage m = Just $ as { avoidStrutsDirection = toggleAll ss }
