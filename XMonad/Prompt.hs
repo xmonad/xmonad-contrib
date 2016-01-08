@@ -233,9 +233,11 @@ data XPPosition = Top
                 --   part of the screen, completion window will be placed below(like
                 --   in 'Top') and otherwise above(like in 'Bottom')
                 | CenteredAt { xpCenterY :: Rational
-                             -- ^ Y coordinate of center of the prompt relative to the screen height.
+                             -- ^ Rational between 0 and 1, giving
+                             -- y coordinate of center of the prompt relative to the screen height.
                              , xpWidth  :: Rational
-                             -- ^ Width of the prompt relatave to the screen width.
+                             -- ^ Rational between 0 and 1, giving
+                             -- width of the prompt relatave to the screen width.
                              }
                   deriving (Show,Read)
 
