@@ -1,5 +1,13 @@
 # Change Log / Release Notes
 
+## 0.13
+
+### Breaking Changes
+
+  * The type of `completionKey` (of `XPConfig` record) has been
+    changed from `KeySym` to `(KeyMask, KeySym)`. The default value
+    for this is still binded to `Tab` key.
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
