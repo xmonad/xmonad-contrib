@@ -9,7 +9,7 @@
     for this is still binded to `Tab` key.
 
   * New constructor `CenteredAt Rational Rational` added for
-    XMonad.Prompt.XPPosition.
+    `XMonad.Prompt.XPPosition`.
 
 ## 0.12 (December 14, 2015)
 
