@@ -4,6 +4,7 @@
 -- |
 -- Module      :  XMonad.Prompt
 -- Copyright   :  (C) 2007 Andrea Rossato, 2015 Evgeny Kurnevsky
+--                    2015 Sibi Prabakaran
 -- License     :  BSD3
 --
 -- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
@@ -144,7 +145,7 @@ data XPConfig =
                                          -- history entries to remember
         , promptKeymap      :: M.Map (KeyMask,KeySym) (XP ())
                                          -- ^ Mapping from key combinations to actions
-        , completionKey     :: KeySym     -- ^ Key that should trigger completion
+        , completionKey     :: (KeyMask, KeySym)     -- ^ Key that should trigger completion
         , changeModeKey     :: KeySym     -- ^ Key to change mode (when the prompt has multiple modes)
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
@@ -242,7 +243,7 @@ instance Default XPConfig where
         , borderColor       = "white"
         , promptBorderWidth = 1
         , promptKeymap      = defaultXPKeymap
-        , completionKey     = xK_Tab
+        , completionKey     = (0,xK_Tab)
         , changeModeKey     = xK_grave
         , position          = Bottom
         , height            = 18
@@ -489,7 +490,7 @@ handle ks@(sym,_) e@(KeyEvent {ev_event_type = t, ev_state = m}) = do
   chgModeKey <- gets $ changeModeKey . config
   c <- getCompletions
   when (length c > 1) $ modify (\s -> s { showComplWin = True })
-  if complKey == sym
+  if complKey == (m,sym)
      then completionHandle c ks e
      else if (sym == chgModeKey) then
            do
@@ -507,7 +508,7 @@ completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = d
   complKey <- gets $ completionKey . config
   alwaysHlight <- gets $ alwaysHighlight . config
   case () of
-    () | t == keyPress && sym == complKey ->
+    () | t == keyPress && (m,sym) == complKey ->
           do
             st <- get
             let updateState l = case alwaysHlight of
@@ -523,7 +524,7 @@ completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = d
               []  -> updateWindows   >> eventLoop handle
               [x] -> updateState [x] >> getCompletions >>= updateWins
               l   -> updateState l   >> updateWins l
-      | t == keyRelease && sym == complKey -> eventLoop (completionHandle c)
+      | t == keyRelease && (m,sym) == complKey -> eventLoop (completionHandle c)
       | otherwise -> keyPressHandle m ks -- some other key, handle it normally
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
