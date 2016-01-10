@@ -134,7 +134,7 @@ data XPConfig =
         , bgHLight          :: String     -- ^ Background color of a highlighted completion entry
         , borderColor       :: String     -- ^ Border color
         , promptBorderWidth :: !Dimension -- ^ Border width
-        , position          :: XPPosition -- ^ Position: 'Top' or 'Bottom'
+        , position          :: XPPosition -- ^ Position: 'Top', 'Bottom', or 'CenteredAt'
         , alwaysHighlight   :: !Bool      -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
         , height            :: !Dimension -- ^ Window height
         , maxComplRows      :: Maybe Dimension
@@ -229,6 +229,17 @@ class XPrompt t where
 
 data XPPosition = Top
                 | Bottom
+                -- | Prompt will be placed in the center horizontally and
+                --   in the certain place of screen vertically. If it's in the upper
+                --   part of the screen, completion window will be placed below(like
+                --   in 'Top') and otherwise above(like in 'Bottom')
+                | CenteredAt { xpCenterY :: Rational
+                             -- ^ Rational between 0 and 1, giving
+                             -- y coordinate of center of the prompt relative to the screen height.
+                             , xpWidth  :: Rational
+                             -- ^ Rational between 0 and 1, giving
+                             -- width of the prompt relatave to the screen width.
+                             }
                   deriving (Show,Read)
 
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
@@ -843,8 +854,12 @@ createWin d rw c s = do
   let (x,y) = case position c of
                 Top -> (0,0)
                 Bottom -> (0, rect_height s - height c)
+                CenteredAt py w -> (floor $ (fi $ rect_width s) * ((1 - w) / 2), floor $ py * fi (rect_height s) - (fi (height c) / 2))
+      width = case position c of
+                CenteredAt _ w -> floor $ fi (rect_width s) * w
+                _              -> rect_width s
   w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw
-                      (rect_x s + x) (rect_y s + fi y) (rect_width s) (height c)
+                      (rect_x s + x) (rect_y s + fi y) width (height c)
   mapWindow d w
   return w
 
@@ -853,7 +868,9 @@ drawWin = do
   st <- get
   let (c,(d,(w,gc))) = (config &&& dpy &&& win &&& gcon) st
       scr = defaultScreenOfDisplay d
-      wh = widthOfScreen scr
+      wh = case position c of
+             CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
+             _               -> widthOfScreen scr
       ht = height c
       bw = promptBorderWidth c
   Just bgcolor <- io $ initColor d (bgColor c)
@@ -936,8 +953,11 @@ getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
   st <- get
   let (c,(scr,fs)) = (config &&& screen &&& fontS) st
-      wh = rect_width scr
+      wh = case position c of
+             CenteredAt _ w -> floor $ fi (rect_width scr) * w
+             _ -> rect_width scr
       ht = height c
+      bw = promptBorderWidth c
 
   tws <- mapM (textWidthXMF (dpy st) fs) compl
   let max_compl_len =  fromIntegral ((fi ht `div` 2) + maximum tws)
@@ -952,8 +972,11 @@ getComplWinDim compl = do
       actual_rows = min actual_max_number_of_rows (fi needed_rows)
       actual_height = actual_rows * ht
       (x,y) = case position c of
-                Top -> (0,ht)
-                Bottom -> (0, (0 + rem_height - actual_height))
+                Top -> (0,ht - bw)
+                Bottom -> (0, (0 + rem_height - actual_height + bw))
+                CenteredAt py w
+                  | py <= 1/2 -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) + (fi ht)/2) - bw)
+                  | otherwise -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) - (fi ht)/2) - actual_height + bw)
   (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
