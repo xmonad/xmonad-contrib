@@ -40,6 +40,7 @@ import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 import XMonad.Util.XUtils (fi)
 import Data.Monoid (All(..), mempty)
+import Data.Functor((<$>))
 
 import qualified Data.Set as S
 import Data.Maybe (fromMaybe, catMaybes)
