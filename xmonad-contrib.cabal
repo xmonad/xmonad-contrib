@@ -326,6 +326,7 @@ library
                         XMonad.Util.Themes
                         XMonad.Util.Timer
                         XMonad.Util.Types
+                        XMonad.Util.Ungrab
                         XMonad.Util.WindowProperties
                         XMonad.Util.WindowState
                         XMonad.Util.WorkspaceCompare
