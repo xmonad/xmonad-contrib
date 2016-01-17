@@ -16,7 +16,7 @@ module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
     manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
-    docksEventHook,
+    docksEventHook, docksStartupHook,
     ToggleStruts(..),
     SetStruts(..),
     module XMonad.Util.Types,
@@ -45,7 +45,7 @@ import Data.Functor((<$>))
 import qualified Data.Set as S
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, catMaybes)
-import Control.Monad (when)
+import Control.Monad (when, forM_, filterM)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -145,6 +145,17 @@ docksEventHook (UnmapEvent {ev_window = w}) = do
         broadcastMessage (RemoveDock w)
     return (All True)
 docksEventHook _ = return (All True)
+
+docksStartupHook :: X ()
+docksStartupHook = withDisplay $ \dpy -> do
+    rootw <- asks theRoot
+    (_,_,wins) <- io $ queryTree dpy rootw
+    docks <- filterM (runQuery checkDock) wins
+    forM_ docks $ \win -> do
+        rstrut <- getRawStrut win
+        broadcastMessage (UpdateDock rstrut)
+
+    refresh
 
 getRawStrut :: Window -> X (Window, Maybe (Either [CLong] [CLong]))
 getRawStrut w = do
