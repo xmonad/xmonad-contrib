@@ -141,8 +141,7 @@ getRawStrut w = do
         else return (Just (w, Right msp))
 
 getRawStruts :: S.Set Window -> X (S.Set (Window, Either [CLong] [CLong]))
-getRawStruts wins = withDisplay $ \dpy -> do
-  (S.fromList . catMaybes) <$> mapM getRawStrut (S.toList wins)
+getRawStruts wins = (S.fromList . catMaybes) <$> mapM getRawStrut (S.toList wins)
 
 
 -- | Gets the STRUT config, if present, in xmonad gap order
@@ -166,7 +165,7 @@ getStrut w = do
 calcGap :: S.Set Window -> S.Set Direction2D -> X (Rectangle -> Rectangle)
 calcGap dockWins ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
-    struts <- (filter careAbout . concat) `fmap` mapM getStrut dockWins
+    struts <- (filter careAbout . concat) `fmap` mapM getStrut (S.toList dockWins)
 
     -- we grab the window attributes of the root window rather than checking
     -- the width of the screen because xlib caches this info and it tends to
