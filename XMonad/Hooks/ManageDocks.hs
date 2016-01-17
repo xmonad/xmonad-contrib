@@ -104,7 +104,7 @@ import Data.Maybe (fromMaybe, catMaybes)
 manageDocks :: ManageHook
 manageDocks = checkDock --> (doIgnore <+> clearGapCache)
     where clearGapCache = do
-            liftX (broadcastMessage ClearGapCache)
+            liftX $ (broadcastMessage ClearGapCache)
             mempty
 
 -- | Checks if a window is a DOCK or DESKTOP window
@@ -122,26 +122,24 @@ checkDock = ask >>= \w -> liftX $ do
 docksEventHook :: Event -> X All
 docksEventHook (MapNotifyEvent {ev_window = w}) = do
     whenX ((not `fmap` (isClient w)) <&&> runQuery checkDock w) $ do
-        mrstrut <- getRawStrut w
-        case mrstrut of
-            Just rstrut -> broadcastMessage (NewDock rstrut)
-            Nothing     -> broadcastMessage ClearGapCache
+        rstrut <- getRawStrut w
+        broadcastMessage (NewDock rstrut)
         refresh
     return (All True)
 docksEventHook _ = return (All True)
 
-getRawStrut :: Window -> X (Maybe (Window, Either [CLong] [CLong]))
+getRawStrut :: Window -> X (Window, Maybe (Either [CLong] [CLong]))
 getRawStrut w = do
     msp <- fromMaybe [] <$> getProp32s "_NET_WM_STRUT_PARTIAL" w
     if null msp
         then do
             mp <- fromMaybe [] <$> getProp32s "_NET_WM_STRUT" w
-            if null mp then return Nothing
-                       else return (Just (w, Left mp))
-        else return (Just (w, Right msp))
+            if null mp then return (w, Nothing)
+                       else return (w, Just (Left mp))
+        else return (w, Just (Right msp))
 
-getRawStruts :: S.Set Window -> X (S.Set (Window, Either [CLong] [CLong]))
-getRawStruts wins = (S.fromList . catMaybes) <$> mapM getRawStrut (S.toList wins)
+getRawStruts :: S.Set Window -> X (S.Set (Window, Maybe (Either [CLong] [CLong])))
+getRawStruts wins = S.fromList <$> mapM getRawStrut (S.toList wins)
 
 
 -- | Gets the STRUT config, if present, in xmonad gap order
@@ -198,7 +196,7 @@ avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss) Nothing S.empty
 data AvoidStruts a = AvoidStruts {
     avoidStrutsDirection :: S.Set Direction2D,
     avoidStrutsRectCache :: Maybe (S.Set Direction2D, Rectangle, Rectangle ),
-    strutSet :: S.Set (Window, Either [CLong] [CLong])
+    strutSet :: S.Set (Window, Maybe (Either [CLong] [CLong]))
 }  deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
@@ -213,7 +211,7 @@ instance Message ToggleStruts
 -- | message sent to ensure that caching the gaps won't give a wrong result
 -- because a new dock has been added
 data NewDock = ClearGapCache
-             | NewDock (Window, Either [CLong] [CLong])
+             | NewDock (Window, Maybe (Either [CLong] [CLong]))
   deriving (Read,Show,Typeable)
 instance Message NewDock
 
