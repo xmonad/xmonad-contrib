@@ -160,7 +160,7 @@ getStrut w = do
         [(L, l, ly1, ly2), (R, r, ry1, ry2), (U, t, tx1, tx2), (D, b, bx1, bx2)]
     parseStrutPartial _ = []
 
-calcGapForAll :: S Set Direction2D -> X (Rectangle -> Rectangle)
+calcGapForAll :: S.Set Direction2D -> X (Rectangle -> Rectangle)
 calcGapForAll ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     (_,_,wins) <- io $ queryTree dpy rootw
