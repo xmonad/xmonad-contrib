@@ -43,7 +43,9 @@ import Data.Monoid (All(..), mempty)
 import Data.Functor((<$>))
 
 import qualified Data.Set as S
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe, catMaybes)
+import Control.Monad (when)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -104,7 +106,10 @@ import Data.Maybe (fromMaybe, catMaybes)
 manageDocks :: ManageHook
 manageDocks = checkDock --> (doIgnore <+> clearGapCache)
     where clearGapCache = do
-            liftX $ (broadcastMessage ClearGapCache)
+            ask >>= \win -> liftX $ withDisplay $ \dpy -> do
+                io $ selectInput dpy win propertyChangeMask
+                rstrut <- getRawStrut win
+                broadcastMessage (UpdateDock rstrut)
             mempty
 
 -- | Checks if a window is a DOCK or DESKTOP window
@@ -123,8 +128,21 @@ docksEventHook :: Event -> X All
 docksEventHook (MapNotifyEvent {ev_window = w}) = do
     whenX ((not `fmap` (isClient w)) <&&> runQuery checkDock w) $ do
         rstrut <- getRawStrut w
-        broadcastMessage (NewDock rstrut)
+        broadcastMessage (UpdateDock rstrut)
         refresh
+    return (All True)
+docksEventHook (PropertyEvent { ev_window = w
+                              , ev_atom = a }) = do
+    whenX (runQuery checkDock w) $ do
+        nws <- getAtom "_NET_WM_STRUT"
+        nwsp <- getAtom "_NET_WM_STRUT_PARTIAL"
+        when (a == nws || a == nwsp) $ do
+            rstrut <- getRawStrut w
+            broadcastMessage $ UpdateDock rstrut
+    return (All True)
+docksEventHook (UnmapEvent {ev_window = w}) = do
+    whenX (runQuery checkDock w) $
+        broadcastMessage (RemoveDock w)
     return (All True)
 docksEventHook _ = return (All True)
 
@@ -138,8 +156,8 @@ getRawStrut w = do
                        else return (w, Just (Left mp))
         else return (w, Just (Right msp))
 
-getRawStruts :: S.Set Window -> X (S.Set (Window, Maybe (Either [CLong] [CLong])))
-getRawStruts wins = S.fromList <$> mapM getRawStrut (S.toList wins)
+getRawStruts :: [Window] -> X (M.Map Window (Maybe (Either [CLong] [CLong])))
+getRawStruts wins = M.fromList <$> mapM getRawStrut wins
 
 
 -- | Gets the STRUT config, if present, in xmonad gap order
@@ -162,14 +180,14 @@ calcGapForAll :: S.Set Direction2D -> X (Rectangle -> Rectangle)
 calcGapForAll ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
     (_,_,wins) <- io $ queryTree dpy rootw
-    calcGap (S.fromList wins) ss
+    calcGap wins ss
 
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.
-calcGap :: S.Set Window -> S.Set Direction2D -> X (Rectangle -> Rectangle)
-calcGap dockWins ss = withDisplay $ \dpy -> do
+calcGap :: [Window] -> S.Set Direction2D -> X (Rectangle -> Rectangle)
+calcGap wins ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
-    struts <- (filter careAbout . concat) `fmap` mapM getStrut (S.toList dockWins)
+    struts <- (filter careAbout . concat) `fmap` mapM getStrut wins
 
     -- we grab the window attributes of the root window rather than checking
     -- the width of the screen because xlib caches this info and it tends to
@@ -191,12 +209,12 @@ avoidStrutsOn :: LayoutClass l a =>
                  [Direction2D]
               -> l a
               -> ModifiedLayout AvoidStruts l a
-avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss) Nothing S.empty
+avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss) Nothing M.empty
 
 data AvoidStruts a = AvoidStruts {
     avoidStrutsDirection :: S.Set Direction2D,
-    avoidStrutsRectCache :: Maybe (S.Set Direction2D, Rectangle, Rectangle ),
-    strutSet :: S.Set (Window, Maybe (Either [CLong] [CLong]))
+    avoidStrutsRectCache :: Maybe (S.Set Direction2D, Rectangle, Rectangle),
+    strutMap :: M.Map Window (Maybe (Either [CLong] [CLong]))
 }  deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
@@ -210,10 +228,10 @@ instance Message ToggleStruts
 
 -- | message sent to ensure that caching the gaps won't give a wrong result
 -- because a new dock has been added
-data NewDock = ClearGapCache
-             | NewDock (Window, Maybe (Either [CLong] [CLong]))
+data DockMessage = UpdateDock (Window, Maybe (Either [CLong] [CLong]))
+                 | RemoveDock Window
   deriving (Read,Show,Typeable)
-instance Message NewDock
+instance Message DockMessage
 
 
 -- | SetStruts is a message constructor used to set or unset specific struts,
@@ -243,18 +261,19 @@ data SetStruts = SetStruts { addedStruts   :: [Direction2D]
 instance Message SetStruts
 
 instance LayoutModifier AvoidStruts a where
-    modifyLayoutWithUpdate as@(AvoidStruts ss cache sset) w r = do
-        let dockWins = S.map fst sset
-        (nr, nsset) <- case cache of
+    modifyLayoutWithUpdate as@(AvoidStruts ss cache smap) w r = do
+        let dockWins = M.keys smap
+        nsmap <- getRawStruts dockWins
+        (nr, nsmap) <- case cache of
             Just (ss', r', nr) | ss' == ss, r' == r -> do
-                nsset <- getRawStruts dockWins
-                if nsset /= sset
+                nsmap <- getRawStruts dockWins
+                if nsmap /= smap
                   then do
                     nr <- fmap ($ r) (calcGap dockWins ss)
                     setWorkarea nr
-                    return (nr, nsset)
+                    return (nr, nsmap)
                   else do
-                    return (nr, sset)
+                    return (nr, smap)
             _ -> do
                 nsset <- getRawStruts dockWins
                 nr <- fmap ($ r) (calcGap dockWins ss)
@@ -262,10 +281,10 @@ instance LayoutModifier AvoidStruts a where
                 return (nr, nsset)
         arranged <- runLayout w nr
         let newCache = Just (ss, r, nr)
-        return (arranged, if newCache == cache && sset == nsset
+        return (arranged, if newCache == cache && smap == nsmap
                     then Nothing
-                    else Just as{ avoidStrutsRectCache = newCache
-                                , strutSet = nsset })
+                    else Just as { avoidStrutsRectCache = newCache
+                                 , strutMap = nsmap })
 
     pureMess as@(AvoidStruts { avoidStrutsDirection = ss }) m
         | Just ToggleStruts    <- fromMessage m = Just $ as { avoidStrutsDirection = toggleAll ss }
@@ -273,9 +292,10 @@ instance LayoutModifier AvoidStruts a where
         | Just (SetStruts n k) <- fromMessage m
         , let newSS = S.fromList n `S.union` (ss S.\\ S.fromList k)
         , newSS /= ss = Just $ as { avoidStrutsDirection = newSS }
-        | Just ClearGapCache <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing }
-        | Just (NewDock dock) <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing
-                                                           , strutSet = S.insert dock $ strutSet as }
+        | Just (UpdateDock dock) <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing
+                                                              , strutMap = M.insert (fst dock) (snd dock) $ strutMap as }
+        | Just (RemoveDock dock) <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing
+                                                              , strutMap = M.delete dock $ strutMap as }
         | otherwise = Nothing
       where toggleAll x | S.null x = S.fromList [minBound .. maxBound]
                         | otherwise = S.empty
