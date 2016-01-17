@@ -28,7 +28,7 @@ module XMonad.Hooks.ManageDocks (
 #endif
 
     -- for XMonad.Actions.FloatSnap
-    calcGap
+    calcGap, calcGapForAll
     ) where
 
 
@@ -159,6 +159,12 @@ getStrut w = do
      = filter (\(_, n, _, _) -> n /= 0)
         [(L, l, ly1, ly2), (R, r, ry1, ry2), (U, t, tx1, tx2), (D, b, bx1, bx2)]
     parseStrutPartial _ = []
+
+calcGapForAll :: S Set Direction2D -> X (Rectangle -> Rectangle)
+calcGapForAll ss = withDisplay $ \dpy -> do
+    rootw <- asks theRoot
+    (_,_,wins) <- io $ queryTree dpy rootw
+    calcGap (S.fromList wins) ss
 
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.

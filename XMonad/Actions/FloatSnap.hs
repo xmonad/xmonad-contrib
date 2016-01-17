@@ -33,7 +33,7 @@ import Data.Maybe (listToMaybe,fromJust,isNothing)
 import qualified XMonad.StackSet as W
 import qualified Data.Set as S
 
-import XMonad.Hooks.ManageDocks (calcGap)
+import XMonad.Hooks.ManageDocks (calcGapForAll)
 import XMonad.Util.Types (Direction2D(..))
 import XMonad.Actions.AfterDrag
 
@@ -291,7 +291,7 @@ getSnap horiz collidedist d w = do
     screen <- W.current <$> gets windowset
     let sr = screenRect $ W.screenDetail screen
         wl = W.integrate' . W.stack $ W.workspace screen
-    gr <- fmap ($sr) $ calcGap $ S.fromList [minBound .. maxBound]
+    gr <- fmap ($sr) $ calcGapForAll $ S.fromList [minBound .. maxBound]
     wla <- filter (collides wa) `fmap` (io $ mapM (getWindowAttributes d) $ filter (/=w) wl)
 
     return ( neighbours (back wa sr gr wla) (wpos wa)
