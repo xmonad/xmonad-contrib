@@ -107,7 +107,7 @@ manageDocks :: ManageHook
 manageDocks = checkDock --> (doIgnore <+> clearGapCache)
     where clearGapCache = do
             ask >>= \win -> liftX $ withDisplay $ \dpy -> do
-                io $ selectInput dpy win propertyChangeMask
+                io $ selectInput dpy win (propertyChangeMask .|. structureNotifyMask)
                 rstrut <- getRawStrut win
                 broadcastMessage (UpdateDock rstrut)
             mempty
@@ -139,10 +139,11 @@ docksEventHook (PropertyEvent { ev_window = w
         when (a == nws || a == nwsp) $ do
             rstrut <- getRawStrut w
             broadcastMessage $ UpdateDock rstrut
+            refresh
     return (All True)
-docksEventHook (UnmapEvent {ev_window = w}) = do
-    whenX (runQuery checkDock w) $
-        broadcastMessage (RemoveDock w)
+docksEventHook (DestroyWindowEvent {ev_window = w}) = do
+    broadcastMessage (RemoveDock w)
+    refresh
     return (All True)
 docksEventHook _ = return (All True)
 
@@ -305,8 +306,10 @@ instance LayoutModifier AvoidStruts a where
         , newSS /= ss = Just $ as { avoidStrutsDirection = newSS }
         | Just (UpdateDock dock) <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing
                                                               , strutMap = M.insert (fst dock) (snd dock) $ strutMap as }
-        | Just (RemoveDock dock) <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing
-                                                              , strutMap = M.delete dock $ strutMap as }
+        | Just (RemoveDock dock) <- fromMessage m = if M.member dock $ strutMap as
+                                                       then Just $ as { avoidStrutsRectCache = Nothing
+                                                                      , strutMap = M.delete dock $ strutMap as }
+                                                       else Nothing
         | otherwise = Nothing
       where toggleAll x | S.null x = S.fromList [minBound .. maxBound]
                         | otherwise = S.empty
