@@ -142,8 +142,8 @@ docksEventHook (PropertyEvent { ev_window = w
             refresh
     return (All True)
 docksEventHook (DestroyWindowEvent {ev_window = w}) = do
+    sendMessage (RemoveDock w)
     broadcastMessage (RemoveDock w)
-    refresh
     return (All True)
 docksEventHook _ = return (All True)
 
