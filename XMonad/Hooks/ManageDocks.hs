@@ -104,13 +104,10 @@ import Control.Monad (when, forM_, filterM)
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
 manageDocks :: ManageHook
-manageDocks = checkDock --> (doIgnore <+> doUpdateLayout)
-    where doUpdateLayout = do
+manageDocks = checkDock --> (doIgnore <+> setDocksMask)
+    where setDocksMask = do
             ask >>= \win -> liftX $ withDisplay $ \dpy -> do
                 io $ selectInput dpy win (propertyChangeMask .|. structureNotifyMask)
-                strut <- getRawStrut win
-                broadcastMessage $ UpdateDock win strut
-                refresh
             mempty
 
 -- | Checks if a window is a DOCK or DESKTOP window
@@ -126,6 +123,12 @@ checkDock = ask >>= \w -> liftX $ do
 -- | Whenever a new dock appears, refresh the layout immediately to avoid the
 -- new dock.
 docksEventHook :: Event -> X All
+docksEventHook (MapNotifyEvent { ev_window = w }) = do
+    whenX (runQuery checkDock w <&&> (not <$> isClient w)) $ do
+        strut <- getRawStrut w
+        sendMessage $ UpdateDock w strut
+        broadcastMessage $ UpdateDock w strut
+    return (All True)
 docksEventHook (PropertyEvent { ev_window = w
                               , ev_atom = a }) = do
     whenX (runQuery checkDock w) $ do
