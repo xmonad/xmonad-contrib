@@ -104,12 +104,13 @@ import Control.Monad (when, forM_, filterM)
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
 manageDocks :: ManageHook
-manageDocks = checkDock --> (doIgnore <+> clearGapCache)
-    where clearGapCache = do
+manageDocks = checkDock --> (doIgnore <+> doUpdateLayout)
+    where doUpdateLayout = do
             ask >>= \win -> liftX $ withDisplay $ \dpy -> do
                 io $ selectInput dpy win (propertyChangeMask .|. structureNotifyMask)
-                rstrut <- getRawStrut win
-                broadcastMessage (UpdateDock rstrut)
+                strut <- getRawStrut win
+                broadcastMessage $ UpdateDock win strut
+                refresh
             mempty
 
 -- | Checks if a window is a DOCK or DESKTOP window
@@ -125,20 +126,14 @@ checkDock = ask >>= \w -> liftX $ do
 -- | Whenever a new dock appears, refresh the layout immediately to avoid the
 -- new dock.
 docksEventHook :: Event -> X All
-docksEventHook (MapNotifyEvent {ev_window = w}) = do
-    whenX ((not `fmap` (isClient w)) <&&> runQuery checkDock w) $ do
-        rstrut <- getRawStrut w
-        broadcastMessage (UpdateDock rstrut)
-        refresh
-    return (All True)
 docksEventHook (PropertyEvent { ev_window = w
                               , ev_atom = a }) = do
     whenX (runQuery checkDock w) $ do
         nws <- getAtom "_NET_WM_STRUT"
         nwsp <- getAtom "_NET_WM_STRUT_PARTIAL"
         when (a == nws || a == nwsp) $ do
-            rstrut <- getRawStrut w
-            broadcastMessage $ UpdateDock rstrut
+            strut <- getRawStrut w
+            broadcastMessage $ UpdateDock w strut
             refresh
     return (All True)
 docksEventHook (DestroyWindowEvent {ev_window = w}) = do
@@ -153,23 +148,22 @@ docksStartupHook = withDisplay $ \dpy -> do
     (_,_,wins) <- io $ queryTree dpy rootw
     docks <- filterM (runQuery checkDock) wins
     forM_ docks $ \win -> do
-        rstrut <- getRawStrut win
-        broadcastMessage (UpdateDock rstrut)
-
+        strut <- getRawStrut win
+        broadcastMessage (UpdateDock win strut)
     refresh
 
-getRawStrut :: Window -> X (Window, Maybe (Either [CLong] [CLong]))
+getRawStrut :: Window -> X (Maybe (Either [CLong] [CLong]))
 getRawStrut w = do
     msp <- fromMaybe [] <$> getProp32s "_NET_WM_STRUT_PARTIAL" w
     if null msp
         then do
             mp <- fromMaybe [] <$> getProp32s "_NET_WM_STRUT" w
-            if null mp then return (w, Nothing)
-                       else return (w, Just (Left mp))
-        else return (w, Just (Right msp))
+            if null mp then return Nothing
+                       else return $ Just (Left mp)
+        else return $ Just (Right msp)
 
 getRawStruts :: [Window] -> X (M.Map Window (Maybe (Either [CLong] [CLong])))
-getRawStruts wins = M.fromList <$> mapM getRawStrut wins
+getRawStruts wins = M.fromList <$> zip wins <$> mapM getRawStrut wins
 
 
 -- | Gets the STRUT config, if present, in xmonad gap order
@@ -240,7 +234,7 @@ instance Message ToggleStruts
 
 -- | message sent to ensure that caching the gaps won't give a wrong result
 -- because a new dock has been added
-data DockMessage = UpdateDock (Window, Maybe (Either [CLong] [CLong]))
+data DockMessage = UpdateDock Window (Maybe (Either [CLong] [CLong]))
                  | RemoveDock Window
   deriving (Read,Show,Typeable)
 instance Message DockMessage
@@ -298,18 +292,20 @@ instance LayoutModifier AvoidStruts a where
                     else Just as { avoidStrutsRectCache = newCache
                                  , strutMap = nsmap })
 
-    pureMess as@(AvoidStruts { avoidStrutsDirection = ss }) m
+    pureMess as@(AvoidStruts { avoidStrutsDirection = ss, strutMap = sm }) m
         | Just ToggleStruts    <- fromMessage m = Just $ as { avoidStrutsDirection = toggleAll ss }
         | Just (ToggleStrut s) <- fromMessage m = Just $ as { avoidStrutsDirection = toggleOne s ss }
         | Just (SetStruts n k) <- fromMessage m
         , let newSS = S.fromList n `S.union` (ss S.\\ S.fromList k)
         , newSS /= ss = Just $ as { avoidStrutsDirection = newSS }
-        | Just (UpdateDock dock) <- fromMessage m = Just $ as { avoidStrutsRectCache = Nothing
-                                                              , strutMap = M.insert (fst dock) (snd dock) $ strutMap as }
-        | Just (RemoveDock dock) <- fromMessage m = if M.member dock $ strutMap as
-                                                       then Just $ as { avoidStrutsRectCache = Nothing
-                                                                      , strutMap = M.delete dock $ strutMap as }
-                                                       else Nothing
+        | Just (UpdateDock dock strut) <- fromMessage m = if maybe True (/= strut) (M.lookup dock sm)
+                                            then Just $ as { avoidStrutsRectCache = Nothing
+                                                           , strutMap = M.insert dock strut sm }
+                                            else Nothing
+        | Just (RemoveDock dock) <- fromMessage m = if M.member dock sm
+                                            then Just $ as { avoidStrutsRectCache = Nothing
+                                                           , strutMap = M.delete dock sm }
+                                            else Nothing
         | otherwise = Nothing
       where toggleAll x | S.null x = S.fromList [minBound .. maxBound]
                         | otherwise = S.empty
