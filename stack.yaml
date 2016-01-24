@@ -1,0 +1,6 @@
+flags: {}
+packages:
+- '.'
+extra-deps:
+  - 'X11-xft-0.3.1'
+resolver: lts-4.1
