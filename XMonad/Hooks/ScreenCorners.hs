@@ -185,6 +185,7 @@ screenCornerLayoutHook = ModifiedLayout ScreenCornerLayout
 -- >                      ]
 --
 -- Then add layout hook:
+--
 -- > myLayout = screenCornerLayoutHook $ tiled ||| Mirror tiled ||| Full where
 -- >     tiled   = Tall nmaster delta ratio
 -- >     nmaster = 1
