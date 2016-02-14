@@ -93,7 +93,7 @@ instance LayoutModifier SpacingWithEdge a where
     modifierDescription (SpacingWithEdge p) = "SpacingWithEdge " ++ show p
 
 shrinkRect :: Int -> Rectangle -> Rectangle
-shrinkRect p (Rectangle x y w h) = Rectangle (x+fi p) (y+fi p) (w-2*fi p) (h-2*fi p)
+shrinkRect p (Rectangle x y w h) = Rectangle (x+fi p) (y+fi p) (fi $ max 1 $ fi w-2*p) (fi $ max 1 $ fi h-2*p)
 
 -- | Surrounds all windows with blank space, except when the window is the only
 -- visible window on the current workspace.
