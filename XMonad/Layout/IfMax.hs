@@ -23,6 +23,7 @@ module XMonad.Layout.IfMax
     , ifMax
     ) where
 
+import Control.Applicative((<$>))
 import Data.Maybe
 
 import XMonad
@@ -62,6 +63,16 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (IfMax l1 l2) a whe
                                     (wrs, ml2') <- runLayout (W.Workspace "" l2 s) rect
                                     let l2' = fromMaybe l2 ml2'
                                     return (wrs, Just $ IfMax n l1 l2')
+
+  handleMessage (IfMax n l1 l2) m = do
+      len <- gets (length . W.integrate' . W.stack . W.workspace . W.current . windowset)
+      if len <= n
+        then do
+          l1' <- handleMessage l1 m
+          return $ flip (IfMax n) l2 <$> l1'
+        else do
+          l2' <- handleMessage l2 m
+          return $ IfMax n l1 <$> l2'
 
   description (IfMax n l1 l2) = "If number of windows is <= " ++ show n ++ ", then " ++
                                 description l1 ++ ", else " ++ description l2
