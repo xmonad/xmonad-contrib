@@ -31,7 +31,7 @@ import Control.Monad.Writer (WriterT, execWriterT, tell)
 
 import Data.Maybe
 import Data.Monoid
-import Data.Traversable (traverse)
+import Data.Foldable (traverse_)
 
 import Graphics.X11.Xinerama
 import Graphics.X11.Xlib
@@ -118,10 +118,9 @@ multiPP' dynlStr focusPP unfocusPP handles = do
         out <- lift $ dynlStr $ if isFoc then focusPP else unfocusPP
         when isFoc $ get >>= tell . Last . Just
         return out
-  traverse put . getLast
+  traverse_ put . getLast
     =<< execWriterT . (io . zipWithM_ hPutStrLn handles <=< mapM pickPP) . catMaybes
     =<< mapM screenWorkspace (zipWith const [0 .. ] handles)
-  return ()
 
 getScreens :: MonadIO m => m [ScreenId]
 getScreens = liftIO $ do
