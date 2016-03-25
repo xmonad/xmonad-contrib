@@ -53,15 +53,15 @@ data IfMax l1 l2 w = IfMax Int (l1 w) (l2 w)
 
 instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1 l2) Window where
 
-  runLayout (W.Workspace _ (IfMax n l1 l2) s) rect = withWindowSet $ \ws -> arrange (W.integrate' s) (M.keys . W.floating $ ws)
+  runLayout (W.Workspace wname (IfMax n l1 l2) s) rect = withWindowSet $ \ws -> arrange (W.integrate' s) (M.keys . W.floating $ ws)
     where
       arrange ws fw | length (ws L.\\ fw) <= n = do
-                                    (wrs, ml1') <- runLayout (W.Workspace "" l1 s) rect
+                                    (wrs, ml1') <- runLayout (W.Workspace wname l1 s) rect
                                     let l1' = fromMaybe l1 ml1'
                                     l2' <- fromMaybe l2 <$> handleMessage l2 (SomeMessage Hide)
                                     return (wrs, Just $ IfMax n l1' l2')
                     | otherwise      = do
-                                    (wrs, ml2') <- runLayout (W.Workspace "" l2 s) rect
+                                    (wrs, ml2') <- runLayout (W.Workspace wname l2 s) rect
                                     l1' <- fromMaybe l1 <$> handleMessage l1 (SomeMessage Hide)
                                     let l2' = fromMaybe l2 ml2'
                                     return (wrs, Just $ IfMax n l1' l2')
