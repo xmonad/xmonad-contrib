@@ -66,6 +66,12 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1
                                     let l2' = fromMaybe l2 ml2'
                                     return (wrs, Just $ IfMax n l1' l2')
 
+  handleMessage (IfMax n l1 l2) m | Just ReleaseResources <- fromMessage m = do
+      l1' <- handleMessage l1 (SomeMessage ReleaseResources)
+      l2' <- handleMessage l2 (SomeMessage ReleaseResources)
+      if isNothing l1' && isNothing l2'
+         then return Nothing
+         else return $ Just $ IfMax n (fromMaybe l1 l1') (fromMaybe l2 l2')
   handleMessage (IfMax n l1 l2) m = do
       (allWindows, floatingWindows) <- gets ((W.integrate' . W.stack . W.workspace . W.current &&& M.keys . W.floating) . windowset)
       if length (allWindows L.\\ floatingWindows) <= n
