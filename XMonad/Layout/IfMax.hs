@@ -55,9 +55,6 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1
 
   runLayout (W.Workspace _ (IfMax n l1 l2) s) rect = withWindowSet $ \ws -> arrange (W.integrate' s) (M.keys . W.floating $ ws)
     where
-      arrange [] _ = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage ReleaseResources)
-                        l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage ReleaseResources)
-                        return ([], Just $ IfMax n l1' l2')
       arrange ws fw | length (ws L.\\ fw) <= n = do
                                     (wrs, ml1') <- runLayout (W.Workspace "" l1 s) rect
                                     let l1' = fromMaybe l1 ml1'
