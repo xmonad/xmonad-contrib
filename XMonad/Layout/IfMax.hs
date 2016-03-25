@@ -61,11 +61,13 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1
       arrange ws fw | length (ws L.\\ fw) <= n = do
                                     (wrs, ml1') <- runLayout (W.Workspace "" l1 s) rect
                                     let l1' = fromMaybe l1 ml1'
-                                    return (wrs, Just $ IfMax n l1' l2)
+                                    l2' <- fromMaybe l2 <$> handleMessage l2 (SomeMessage Hide)
+                                    return (wrs, Just $ IfMax n l1' l2')
                     | otherwise      = do
                                     (wrs, ml2') <- runLayout (W.Workspace "" l2 s) rect
+                                    l1' <- fromMaybe l1 <$> handleMessage l1 (SomeMessage Hide)
                                     let l2' = fromMaybe l2 ml2'
-                                    return (wrs, Just $ IfMax n l1 l2')
+                                    return (wrs, Just $ IfMax n l1' l2')
 
   handleMessage (IfMax n l1 l2) m = do
       (allWindows, floatingWindows) <- gets ((W.integrate' . W.stack . W.workspace . W.current &&& M.keys . W.floating) . windowset)
