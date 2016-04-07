@@ -500,14 +500,15 @@ handle ks@(sym,_) e@(KeyEvent {ev_event_type = t, ev_state = m}) = do
   complKey <- gets $ completionKey . config
   chgModeKey <- gets $ changeModeKey . config
   c <- getCompletions
+  mCleaned <- cleanMask m
   when (length c > 1) $ modify (\s -> s { showComplWin = True })
-  if complKey == (m,sym)
+  if complKey == (mCleaned,sym)
      then completionHandle c ks e
      else if (sym == chgModeKey) then
            do
              modify setNextMode
              updateWindows
-          else when (t == keyPress) $ keyPressHandle m ks
+          else when (t == keyPress) $ keyPressHandle mCleaned ks
 handle _ (ExposeEvent {ev_window = w}) = do
   st <- get
   when (win st == w) updateWindows
@@ -518,8 +519,9 @@ completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
 completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = do
   complKey <- gets $ completionKey . config
   alwaysHlight <- gets $ alwaysHighlight . config
+  mCleaned <- cleanMask m
   case () of
-    () | t == keyPress && (m,sym) == complKey ->
+    () | t == keyPress && (mCleaned,sym) == complKey ->
           do
             st <- get
             let updateState l = case alwaysHlight of
@@ -535,8 +537,8 @@ completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = d
               []  -> updateWindows   >> eventLoop handle
               [x] -> updateState [x] >> getCompletions >>= updateWins
               l   -> updateState l   >> updateWins l
-      | t == keyRelease && (m,sym) == complKey -> eventLoop (completionHandle c)
-      | otherwise -> keyPressHandle m ks -- some other key, handle it normally
+      | t == keyRelease && (mCleaned,sym) == complKey -> eventLoop (completionHandle c)
+      | otherwise -> keyPressHandle mCleaned ks -- some other key, handle it normally
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
 
@@ -674,12 +676,11 @@ emacsLikeXPKeymap' p = M.fromList $
 keyPressHandle :: KeyMask -> KeyStroke -> XP ()
 keyPressHandle m (ks,str) = do
   km <- gets (promptKeymap . config)
-  kmask <- cleanMask m -- mask is defined in ghc7
-  case M.lookup (kmask,ks) km of
+  case M.lookup (m,ks) km of
     Just action -> action >> updateWindows
     Nothing -> case str of
                  "" -> eventLoop handle
-                 _ -> when (kmask .&. controlMask == 0) $ do
+                 _ -> when (m .&. controlMask == 0) $ do
                                  let str' = if isUTF8Encoded str
                                                then decodeString str
                                                else str

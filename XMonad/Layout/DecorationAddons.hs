@@ -106,8 +106,8 @@ handleScreenCrossing w decoWin = withDisplay $ \d -> do
                         {-- somewhat ugly hack to get proper ScreenRect,
                             creates unwanted inter-dependencies
                             TODO: get ScreenRects in a proper way --}
-                        oldScreenRect' <- fmap ($ oldScreenRect) (calcGap $ S.fromList [minBound .. maxBound])
-                        newScreenRect' <- fmap ($ newScreenRect) (calcGap $ S.fromList [minBound .. maxBound])
+                        oldScreenRect' <- fmap ($ oldScreenRect) (calcGapForAll $ S.fromList [minBound .. maxBound])
+                        newScreenRect' <- fmap ($ newScreenRect) (calcGapForAll $ S.fromList [minBound .. maxBound])
                         wa <- io $ getWindowAttributes d decoWin
                         modifyPosStore (\ps ->
                             posStoreMove ps w (fi $ wa_x wa) (fi $ wa_y wa)

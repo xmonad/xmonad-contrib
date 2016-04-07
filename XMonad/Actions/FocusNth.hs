@@ -14,7 +14,8 @@
 module XMonad.Actions.FocusNth (
                  -- * Usage
                  -- $usage
-                 focusNth,focusNth') where
+                 focusNth,focusNth',
+                 swapNth,swapNth') where
 
 import XMonad.StackSet
 import XMonad
@@ -40,6 +41,17 @@ focusNth = windows . modify' . focusNth'
 focusNth' :: Int -> Stack a -> Stack a
 focusNth' n s@(Stack _ ls rs) | (n < 0) || (n > length(ls) + length(rs)) = s
                               | otherwise = listToStack n (integrate s)
+
+-- | Swap current window with nth. Focus stays in the same position
+swapNth :: Int -> X ()
+swapNth = windows . modify' . swapNth'
+
+swapNth' :: Int -> Stack a -> Stack a
+swapNth' n s@(Stack c l r)
+  | (n < 0) || (n > length l + length r) || (n == length l) = s
+  | n < length l = let (nl, nc:nr) = splitAt (length l - n - 1) l in Stack nc (nl ++ c : nr) r
+  | otherwise    = let (nl, nc:nr) = splitAt (n - length l - 1) r in Stack nc l (nl ++ c : nr)
+                                                                          
 
 listToStack :: Int -> [a] -> Stack a
 listToStack n l = Stack t ls rs

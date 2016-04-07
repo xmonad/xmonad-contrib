@@ -114,7 +114,7 @@ zoomGroupReset = zoomColumnReset
 -- | Toggle whether the currently focused group should be maximized
 -- whenever it has focus.
 toggleGroupFull :: X ()
-toggleGroupFull = toggleGroupFull
+toggleGroupFull = toggleColumnFull
 
 -- | Rotate the layouts in the focused group.
 groupToNextLayout :: X ()
