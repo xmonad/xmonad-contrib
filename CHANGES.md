@@ -11,6 +11,14 @@
   * New constructor `CenteredAt Rational Rational` added for
     `XMonad.Prompt.XPPosition`.
 
+### New Modules
+
+  * `XMonad.Util.Ungrab`
+
+    Release xmonad's keyboard and pointer grabs immediately, so
+    screen grabbers and lock utilities, etc. will work. Replaces
+    the short sleep hackaround.
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
