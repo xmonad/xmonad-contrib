@@ -12,6 +12,8 @@
 --
 -----------------------------------------------------------------------------
 
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module XMonad.Util.Loggers.NamedScratchpad (-- * Usage
                                             -- $usage
                                             nspTrackStartup
