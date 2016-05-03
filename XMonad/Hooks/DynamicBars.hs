@@ -21,6 +21,7 @@ module XMonad.Hooks.DynamicBars (
   , dynStatusBarStartup
   , dynStatusBarEventHook
   , multiPP
+  , multiPPFormat
   ) where
 
 import Prelude
@@ -57,6 +58,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- * The 'multiPP' function which allows for different output based on whether
 -- the screen for the status bar has focus.
+--
+-- * The 'multiPPFormat' function is the same as the 'multiPP' function, but it
+-- also takes in a function that can customize the output to status bars.
 --
 -- The hooks take a 'DynamicStatusBar' function which is given the id of the
 -- screen to start up and returns the 'Handle' to the pipe to write to. The
@@ -104,9 +108,12 @@ updateStatusBars sb cleanup = do
 multiPP :: PP -- ^ The PP to use if the screen is focused
         -> PP -- ^ The PP to use otherwise
         -> X ()
-multiPP focusPP unfocusPP = do
+multiPP = multiPPFormat dynamicLogString
+
+multiPPFormat :: (PP -> X String) -> PP -> PP -> X ()
+multiPPFormat dynlStr focusPP unfocusPP = do
   dsbInfo <- XS.get
-  multiPP' dynamicLogString focusPP unfocusPP (dsbInfoHandles dsbInfo)
+  multiPP' dynlStr focusPP unfocusPP (dsbInfoHandles dsbInfo)
 
 multiPP' :: (PP -> X String) -> PP -> PP -> [Handle] -> X ()
 multiPP' dynlStr focusPP unfocusPP handles = do
