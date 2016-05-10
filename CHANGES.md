@@ -19,6 +19,17 @@
     screen grabbers and lock utilities, etc. will work. Replaces
     the short sleep hackaround.
 
+  * `XMonad.Util.Loggers.NamedScratchpad`
+
+    A collection of Loggers (see `XMonad.Util.Loggers`) for NamedScratchpads
+    (see `XMonad.Util.NamedScratchpad`).
+
+  * `XMonad.Util.NoTaskbar`
+
+    Utility function and `ManageHook` to mark a window to be ignored by
+    EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
+    you will usually be taken to the `NSP` workspace by them.
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
