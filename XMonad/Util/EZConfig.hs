@@ -80,7 +80,7 @@ import Text.ParserCombinators.ReadP
 -- Note that, unlike in xmonad 0.4 and previous, you can't use modMask to refer
 -- to the modMask you configured earlier. You must specify mod1Mask (or
 -- whichever), or add your own @myModMask = mod1Mask@ line.
-additionalKeys :: XConfig a -> [((ButtonMask, KeySym), X ())] -> XConfig a
+additionalKeys :: XConfig a -> [((KeyMask, KeySym), X ())] -> XConfig a
 additionalKeys conf keyList =
     conf { keys = \cnf -> M.union (M.fromList keyList) (keys conf cnf) }
 
@@ -103,7 +103,7 @@ additionalKeysP conf keyList =
 --
 -- > main = xmonad $ def { terminal = "urxvt" }
 -- >                 `removeKeys` [(mod1Mask .|. shiftMask, n) | n <- [xK_1 .. xK_9]]
-removeKeys :: XConfig a -> [(ButtonMask, KeySym)] -> XConfig a
+removeKeys :: XConfig a -> [(KeyMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
     conf { keys = \cnf -> keys conf cnf `M.difference` M.fromList (zip keyList $ repeat ()) }
 
