@@ -55,13 +55,25 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- dynamically responding to screen changes. A startup action, event hook, and
 -- a way to separate PP styles based on the screen's focus are provided:
 --
--- * The 'dynStatusBarStartup' hook which initializes the status bars.
+-- * The 'dynStatusBarStartup' hook which initializes the status bars. The
+-- first argument is an `ScreenId -> IO Handle` which spawns a status bar on the
+-- given screen and returns the pipe which the string should be written to.
+-- The second argument is a `IO ()` to shut down all status bars. This should
+-- be placed in your `startupHook`.
 --
 -- * The 'dynStatusBarEventHook' hook which respawns status bars when the
--- number of screens changes.
+-- number of screens changes. The arguments are the same as for the
+-- `dynStatusBarStartup` function. This should be placed in your
+-- `handleEventHook`.
+--
+-- * Each of the above functions have an alternate form
+-- (`dynStatusBarStartup'` and `dynStatusBarEventHook'`) which use a cleanup
+-- function which takes an additional `ScreenId` argument which allows for
+-- more fine-grained control for shutting down a specific screen's status bar.
 --
 -- * The 'multiPP' function which allows for different output based on whether
--- the screen for the status bar has focus.
+-- the screen for the status bar has focus (the first argument) or not (the
+-- second argument). This is for use in your `logHook`.
 --
 -- * The 'multiPPFormat' function is the same as the 'multiPP' function, but it
 -- also takes in a function that can customize the output to status bars.
