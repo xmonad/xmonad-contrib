@@ -127,7 +127,7 @@ data XPState =
         }
 
 data XPConfig =
-    XPC { font              :: String     -- ^ Font
+    XPC { font              :: String     -- ^ Font; use the prefix @"xft:"@ for TrueType fonts
         , bgColor           :: String     -- ^ Background color
         , fgColor           :: String     -- ^ Font color
         , fgHLight          :: String     -- ^ Font color of a highlighted completion entry
