@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
 
 module XMonad.Layout.IfMax
     ( -- * Usage
@@ -23,6 +23,10 @@ module XMonad.Layout.IfMax
     , ifMax
     ) where
 
+import Control.Applicative((<$>))
+import Control.Arrow
+import qualified Data.List as L
+import qualified Data.Map  as M
 import Data.Maybe
 
 import XMonad
@@ -47,21 +51,36 @@ import qualified XMonad.StackSet as W
 data IfMax l1 l2 w = IfMax Int (l1 w) (l2 w)
   deriving (Read, Show)
 
-instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (IfMax l1 l2) a where
+instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1 l2) Window where
 
-  runLayout (W.Workspace _ (IfMax n l1 l2) s) rect = arrange (W.integrate' s)
+  runLayout (W.Workspace wname (IfMax n l1 l2) s) rect = withWindowSet $ \ws -> arrange (W.integrate' s) (M.keys . W.floating $ ws)
     where
-      arrange [] = do l1' <- maybe l1 id `fmap` handleMessage l1 (SomeMessage ReleaseResources)
-                      l2' <- maybe l2 id `fmap` handleMessage l2 (SomeMessage ReleaseResources)
-                      return ([], Just $ IfMax n l1' l2')
-      arrange ws | length ws <= n = do
-                                    (wrs, ml1') <- runLayout (W.Workspace "" l1 s) rect
+      arrange ws fw | length (ws L.\\ fw) <= n = do
+                                    (wrs, ml1') <- runLayout (W.Workspace wname l1 s) rect
                                     let l1' = fromMaybe l1 ml1'
-                                    return (wrs, Just $ IfMax n l1' l2)
-                 | otherwise      = do
-                                    (wrs, ml2') <- runLayout (W.Workspace "" l2 s) rect
+                                    l2' <- fromMaybe l2 <$> handleMessage l2 (SomeMessage Hide)
+                                    return (wrs, Just $ IfMax n l1' l2')
+                    | otherwise      = do
+                                    (wrs, ml2') <- runLayout (W.Workspace wname l2 s) rect
+                                    l1' <- fromMaybe l1 <$> handleMessage l1 (SomeMessage Hide)
                                     let l2' = fromMaybe l2 ml2'
-                                    return (wrs, Just $ IfMax n l1 l2')
+                                    return (wrs, Just $ IfMax n l1' l2')
+
+  handleMessage (IfMax n l1 l2) m | Just ReleaseResources <- fromMessage m = do
+      l1' <- handleMessage l1 (SomeMessage ReleaseResources)
+      l2' <- handleMessage l2 (SomeMessage ReleaseResources)
+      if isNothing l1' && isNothing l2'
+         then return Nothing
+         else return $ Just $ IfMax n (fromMaybe l1 l1') (fromMaybe l2 l2')
+  handleMessage (IfMax n l1 l2) m = do
+      (allWindows, floatingWindows) <- gets ((W.integrate' . W.stack . W.workspace . W.current &&& M.keys . W.floating) . windowset)
+      if length (allWindows L.\\ floatingWindows) <= n
+        then do
+          l1' <- handleMessage l1 m
+          return $ flip (IfMax n) l2 <$> l1'
+        else do
+          l2' <- handleMessage l2 m
+          return $ IfMax n l1 <$> l2'
 
   description (IfMax n l1 l2) = "If number of windows is <= " ++ show n ++ ", then " ++
                                 description l1 ++ ", else " ++ description l2

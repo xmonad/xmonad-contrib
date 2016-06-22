@@ -23,7 +23,6 @@ module XMonad.Actions.WindowBringer (
                     bringWindow
                    ) where
 
-import Data.Char (toLower)
 import qualified Data.Map as M
 
 import qualified XMonad.StackSet as W
@@ -50,10 +49,14 @@ import XMonad.Util.NamedWindows (getName)
 defaultCmd :: String
 defaultCmd = "dmenu"
 
+-- | Make dmenu case insensitive
+defaultArgs :: [String]
+defaultArgs = ["-i"]
+
 -- | Pops open a dmenu with window titles. Choose one, and you will be
 --   taken to the corresponding workspace.
 gotoMenu :: X ()
-gotoMenu = gotoMenuArgs []
+gotoMenu = gotoMenuArgs defaultArgs
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
 --   taken to the corresponding workspace. This version takes a list of
@@ -75,7 +78,7 @@ gotoMenuArgs' menuCmd menuArgs = actionMenu menuCmd menuArgs W.focusWindow
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace.
 bringMenu :: X ()
-bringMenu = bringMenuArgs []
+bringMenu = bringMenuArgs defaultArgs
 
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace. This version
@@ -116,10 +119,9 @@ windowMap = do
        keyValuePair ws w = flip (,) w `fmap` decorateName ws w
 
 -- | Returns the window name as will be listed in dmenu.
---   Lowercased, for your convenience (since dmenu is case-sensitive).
 --   Tagged with the workspace ID, to guarantee uniqueness, and to let the user
 --   know where he's going.
 decorateName :: X.WindowSpace -> Window -> X String
 decorateName ws w = do
-  name <- fmap (map toLower . show) $ getName w
+  name <- fmap show $ getName w
   return $ name ++ " [" ++ W.tag ws ++ "]"

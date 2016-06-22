@@ -94,7 +94,7 @@ runProcessWithInputAndWait cmd args input timeout = io $ do
 --
 -- to the top of your file) or use seconds in prefix form:
 --
--- > 5.5 seconds
+-- > seconds 5.5
 seconds :: Rational -> Int
 seconds = fromEnum . (* 1000000)
 

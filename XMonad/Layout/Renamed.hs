@@ -50,7 +50,7 @@ data Rename a = CutLeft Int -- ^ Remove a number of characters from the left
                                    -- if necessary
               | PrependWords String -- ^ Add a string to the left, appending a space to it if
                                     -- necessary
-              | Replace String -- ^ Repace with another wtring
+              | Replace String -- ^ Replace with another string
               | Chain [Rename a] -- ^ Apply a list of modifications in left-to-right order
   deriving (Show, Read, Eq)
 

@@ -653,7 +653,7 @@ gridselect gsconfig elements =
     liftIO $ mapWindow dpy win
     liftIO $ selectInput dpy win (exposureMask .|. keyPressMask .|. buttonReleaseMask)
     status <- io $ grabKeyboard dpy win True grabModeAsync grabModeAsync currentTime
-    io $ grabButton dpy button1 anyModifier win True buttonReleaseMask grabModeAsync grabModeAsync none none
+    io $ grabPointer dpy win True buttonReleaseMask grabModeAsync grabModeAsync none none currentTime
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width scr
         screenHeight = toInteger $ rect_height scr
@@ -682,6 +682,7 @@ gridselect gsconfig elements =
     liftIO $ do
       unmapWindow dpy win
       destroyWindow dpy win
+      ungrabPointer dpy currentTime
       sync dpy False
     releaseXMF font
     return selectedElement

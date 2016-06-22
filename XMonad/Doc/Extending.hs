@@ -102,7 +102,7 @@ For more information about any particular module, just click on its
 name to view its Haddock documentation; each module should come with
 extensive documentation.  If you find a module that could be better
 documented, or has incorrect documentation, please report it as a bug
-(<http://code.google.com/p/xmonad/issues/list>)!
+(<https://github.com/xmonad/xmonad/issues>)!
 
 -}
 

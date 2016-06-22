@@ -49,9 +49,9 @@ import XMonad.Doc.Developing ()
 xmonad is a tiling window manager for X. The xmonad-contrib library
 collects third party tiling algorithms, hooks, configurations,
 scripts, and other extensions to xmonad.  The source for this library
-is available from <http://code.haskell.org/XMonadContrib> via darcs:
+is available from <https://github.com/xmonad/xmonad-contrib> via git:
 
-> darcs get http://code.haskell.org/XMonadContrib
+> git clone https://github.com/xmonad/xmonad-contrib.git
 
 Each stable release of xmonad is accompanied by a stable release of
 the contrib library, which you should use if (and only if) you're
