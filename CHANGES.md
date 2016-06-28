@@ -13,6 +13,13 @@
 
 ### New Modules
 
+  * `XMonad.Layout.SortedLayout`
+
+    A new LayoutModifier that sorts a given layout by a list of
+    properties. The order of properties in the list determines
+    the order of windows in the final layout. Any unmatched windows
+    go to the end of the order.
+
   * `XMonad.Util.Ungrab`
 
     Release xmonad's keyboard and pointer grabs immediately, so
