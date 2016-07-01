@@ -920,6 +920,12 @@ For more information on using those modules for customizing your
 * "XMonad.Layout.SimplestFloat":
     A basic floating layout like SimpleFloat but without the decoration.
 
+* "XMonad.Layout.SortedLayout":
+    A new LayoutModifier that sorts a given layout by a list of
+    properties. The order of properties in the list determines
+    the order of windows in the final layout. Any unmatched windows
+    go to the end of the order.
+
 * "XMonad.Layout.Spacing":
     Add a configurable amount of space around windows.
 
@@ -1129,6 +1135,10 @@ A non complete list with a brief description:
     a pretty-printing status logger format. See "XMonad.Hooks.DynamicLog"
     for more information.
 
+*   * "XMonad.Util.Loggers.NamedScratchpad":
+        A collection of Loggers (see "XMonad.Util.Loggers") for NamedScratchpads
+        (see "XMonad.Util.NamedScratchpad").
+
 * "XMonad.Util.NamedActions":
     A wrapper for keybinding configuration that can list the available
     keybindings.
@@ -1140,6 +1150,11 @@ A non complete list with a brief description:
 * "XMonad.Util.NamedWindows":
     This module allows you to associate the X titles of windows with
     them.
+
+* "XMonad.Util.NoTaskbar":
+    Utility function and 'ManageHook` to mark a window to be ignored by
+    EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
+    you will usually be taken to the `NSP` workspace by them.
 
 * "XMonad.Util.Paste":
     A module for sending key presses to windows. This modules provides generalized
@@ -1187,6 +1202,11 @@ A non complete list with a brief description:
 
 * "XMonad.Util.Types":
     Miscellaneous commonly used types.
+
+* "XMonad.Util.Ungrab":
+    Release xmonad's keyboard and pointer grabs immediately, so
+    screen grabbers and lock utilities, etc. will work. Replaces
+    the short sleep hackaround.
 
 * "XMonad.Util.WindowProperties":
     EDSL for specifying window properties; various utilities related to window
