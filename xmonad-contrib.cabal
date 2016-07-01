@@ -264,6 +264,7 @@ library
                         XMonad.Layout.SimpleFloat
                         XMonad.Layout.Simplest
                         XMonad.Layout.SimplestFloat
+                        XMonad.Layout.SortedLayout
                         XMonad.Layout.Spacing
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
