@@ -17,7 +17,8 @@ module XMonad.Config.Kde (
     -- * Usage
     -- $usage
     kdeConfig,
-    kde4Config
+    kde4Config,
+    desktopLayoutModifiers
     ) where
 
 import XMonad

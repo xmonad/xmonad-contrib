@@ -16,7 +16,8 @@
 module XMonad.Config.Xfce (
     -- * Usage
     -- $usage
-    xfceConfig
+    xfceConfig,
+    desktopLayoutModifiers
     ) where
 
 import XMonad

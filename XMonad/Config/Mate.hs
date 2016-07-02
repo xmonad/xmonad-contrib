@@ -20,7 +20,8 @@ module XMonad.Config.Mate (
     -- $usage
     mateConfig,
     mateRun,
-    mateRegister
+    mateRegister,
+    desktopLayoutModifiers
     ) where
 
 import XMonad

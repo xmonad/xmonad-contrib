@@ -18,7 +18,8 @@ module XMonad.Config.Gnome (
     -- $usage
     gnomeConfig,
     gnomeRun,
-    gnomeRegister
+    gnomeRegister,
+    desktopLayoutModifiers
     ) where
 
 import XMonad
