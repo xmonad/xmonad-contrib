@@ -60,7 +60,7 @@ import Data.Map (fromList)
 -- "XMonad.Actions.Submap".
 keychords :: [([(KeyMask, KeySym)], X ())] -> X ()
 keychords kCombos =
-  let trees = fromPaths $ tupLast <$> kCombos
+  let trees = fromPaths $ map tupLast kCombos
   in sm . buildChord $ fmap toEither trees
   where
     tupLast :: ([n], a) -> [NEither n a]
