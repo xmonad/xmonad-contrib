@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, FlexibleContexts, PatternGuards #-}
 
 module XMonad.Layout.IfMax
     ( -- * Usage
