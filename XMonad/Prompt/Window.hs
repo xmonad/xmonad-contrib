@@ -91,9 +91,9 @@ allWindows = windowMap
 
 -- | A helper to get the map of windows of the current workspace.
 wsWindows :: XWindowMap
-wsWindows = withWindowSet (return . W.index) >>= windowMap
+wsWindows = withWindowSet (return . W.index) >>= winmap
     where
-      windowMap = fmap M.fromList . mapM pair
+      winmap = fmap M.fromList . mapM pair
       pair w = do name <- fmap show $ getName w
                   return (name, w)
 
@@ -102,16 +102,16 @@ wsWindows = withWindowSet (return . W.index) >>= windowMap
 type XWindowMap = X (M.Map String Window)
 
 -- | Pops open a prompt with window titles belonging to
--- windowMap. Choose one, and an action is applied on the
+-- winmap. Choose one, and an action is applied on the
 -- selected window, according to WindowPrompt.
 windowPrompt :: XPConfig -> WindowPrompt -> XWindowMap -> X ()
-windowPrompt c t windowMap = do
+windowPrompt c t winmap = do
   a <- case t of
-         Goto  -> fmap gotoAction  windowMap
-         Bring -> fmap bringAction windowMap
-         BringCopy -> fmap bringCopyAction windowMap
-         BringToMaster -> fmap bringToMaster windowMap
-  wm <- windowMap
+         Goto  -> fmap gotoAction  winmap
+         Bring -> fmap bringAction winmap
+         BringCopy -> fmap bringCopyAction winmap
+         BringToMaster -> fmap bringToMaster winmap
+  wm <- winmap
   mkXPrompt t c (compList wm) a
 
     where

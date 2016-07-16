@@ -278,9 +278,9 @@ instance LayoutModifier AvoidStruts a where
                 nsmap <- getRawStruts dockWins
                 if nsmap /= smap
                   then do
-                    nr <- fmap ($ r) (calcGap dockWins ss)
-                    setWorkarea nr
-                    return (nr, nsmap)
+                    wnr <- fmap ($ r) (calcGap dockWins ss)
+                    setWorkarea wnr
+                    return (wnr, nsmap)
                   else do
                     return (nr, smap)
             _ -> do
