@@ -44,7 +44,7 @@ import Data.Functor((<$>))
 
 import qualified Data.Set as S
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe)
 import Control.Monad (when, forM_, filterM)
 
 -- $usage
@@ -272,7 +272,6 @@ instance Message SetStruts
 instance LayoutModifier AvoidStruts a where
     modifyLayoutWithUpdate as@(AvoidStruts ss cache smap) w r = do
         let dockWins = M.keys smap
-        nsmap <- getRawStruts dockWins
         (nr, nsmap) <- case cache of
             Just (ss', r', nr) | ss' == ss, r' == r -> do
                 nsmap <- getRawStruts dockWins

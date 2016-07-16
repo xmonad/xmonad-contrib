@@ -7,8 +7,7 @@ import XMonad.Core
 import XMonad.ManageHook
 import Graphics.X11.Xlib (Window)
 import Graphics.X11.Xlib.Atom (aTOM)
-import Graphics.X11.Xlib.Extras (getWindowProperty32
-                                ,changeProperty32
+import Graphics.X11.Xlib.Extras (changeProperty32
                                 ,propModePrepend)
 import Control.Monad.Reader (ask)
 
@@ -27,7 +26,6 @@ markNoTaskbar w = withDisplay $ \d -> do
                     ws <- getAtom "_NET_WM_STATE"
                     ntb <- getAtom "_NET_WM_STATE_SKIP_TASKBAR"
                     npg <- getAtom "_NET_WM_STATE_SKIP_PAGER"
-                    wst' <- io $ getWindowProperty32 d ws w
                     io $ changeProperty32 d w ws aTOM propModePrepend [fi ntb,fi npg]
 
 -- sigh

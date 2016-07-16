@@ -88,8 +88,6 @@ positionStoreInit mDecoTheme w  = withDisplay $ \d -> do
             else do
                 sc <- fromMaybe (W.current ws) <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
                 let sr = screenRect . W.screenDetail $ sc
-                rootw <- asks theRoot
-                (_,_,wins) <- io $ queryTree d rootw
                 sr' <- fmap ($ sr) (calcGapForAll $ S.fromList [minBound .. maxBound]) -- take docks into account, accepting
                                                                                        -- a somewhat unfortunate inter-dependency
                                                                                        -- with 'XMonad.Hooks.ManageDocks'
