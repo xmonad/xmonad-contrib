@@ -284,7 +284,7 @@ searchEngineF = SearchEngine
 amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
   images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, stackage, thesaurus, vocabulary, wayback, wikipedia, wiktionary,
   youtube, duckduckgo :: SearchEngine
-amazon        = searchEngine "amazon"        "http://www.amazon.com/exec/obidos/external-search?index=all&keyword="
+amazon        = searchEngine "amazon"        "http://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
 alpha         = searchEngine "alpha"         "http://www.wolframalpha.com/input/?i="
 codesearch    = searchEngine "codesearch"    "http://www.google.com/codesearch?q="
 deb           = searchEngine "deb"           "http://packages.debian.org/"
