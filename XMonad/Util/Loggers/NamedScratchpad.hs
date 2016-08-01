@@ -93,7 +93,7 @@ nspTrackHook _ (DestroyWindowEvent {ev_window = w}) = do
   return (All True)
 nspTrackHook ns (ConfigureRequestEvent {ev_window = w}) = do
   NSPTrack ws <- XS.get
-  ws' <- forM (zip3 [0..] ws ns) $ \(n,w',NS _ _ q _) -> do
+  ws' <- forM (zip3 [0..] ws ns) $ \(_,w',NS _ _ q _) -> do
     p <- runQuery q w
     return $ if p then Just w else w'
   XS.put $ NSPTrack ws'

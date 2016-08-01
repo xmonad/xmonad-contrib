@@ -154,13 +154,13 @@ dynamicProjects ps c =
 -- | Log hook for tracking workspace changes.
 dynamicProjectsLogHook :: X ()
 dynamicProjectsLogHook = do
-  name  <- gets (W.tag . W.workspace . W.current . windowset)
-  state <- XS.get
+  name   <- gets (W.tag . W.workspace . W.current . windowset)
+  xstate <- XS.get
 
-  unless (Just name == previousProject state) $ do
-    XS.put (state {previousProject = Just name})
+  unless (Just name == previousProject xstate) $ do
+    XS.put (xstate {previousProject = Just name})
     activateProject . fromMaybe (defProject name) $
-      Map.lookup name (projects state)
+      Map.lookup name (projects xstate)
 
 --------------------------------------------------------------------------------
 -- | Start-up hook for recording configured projects.

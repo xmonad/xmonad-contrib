@@ -425,6 +425,7 @@ optimizeOrientation rct (t, cs) = Just (opt t rct, cs)
 
 -- initially focused leaf, path from root to selected node, window ids of borders highlighting the selection
 data NodeRef = NodeRef { refLeaf :: Int, refPath :: [Direction2D], refWins :: [Window] } deriving (Show,Read,Eq)
+noRef :: NodeRef
 noRef = NodeRef (-1) [] []
 
 goToNode :: NodeRef -> Zipper a -> Maybe (Zipper a)
