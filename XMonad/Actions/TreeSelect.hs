@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase, RecordWildCards #-}
+{-# LANGUAGE RecordWildCards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TreeSelect
@@ -57,6 +57,7 @@ module XMonad.Actions.TreeSelect
     , treeselectAt
     ) where
 
+import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (find)
@@ -377,9 +378,6 @@ treeselectWorkspace c xs f = do
         name <- maybe (return "") (fmap show . getName . W.focus) $ stack w
         return $ TSNode n name (tag w)
 
-    forMForest :: Monad m => [Tree a] -> (a -> m b) -> m [Tree b]
-    forMForest x g = mapM (mapM g) x
-
 -- | Convert the workspace-tree to a flat list of paths such that XMonad can use them
 --
 -- The Nodes will be separated by a dot (\'.\') character
@@ -415,7 +413,16 @@ splitPath i = case break (== '.') i of
 -- >        ]
 -- >    ]
 treeselectAction :: TSConfig (X a) -> Forest (TSNode (X a)) -> X ()
-treeselectAction c xs = treeselect c xs >>= sequence_
+treeselectAction c xs = treeselect c xs >>= \x -> case x of
+    Just a  -> a >> return ()
+    Nothing -> return ()
+
+forMForest :: (Functor m, Applicative m, Monad m) => [Tree a] -> (a -> m b) -> m [Tree b]
+forMForest x g = mapM (mapMTree g) x
+
+mapMTree :: (Functor m, Applicative m, Monad m) => (a -> m b) -> Tree a -> m (Tree b)
+mapMTree f (Node x xs) = Node <$> f x <*>  mapM (mapMTree f) xs
+
 
 -- | Quit returning the currently selected node
 select :: TreeSelect a (Maybe a)
