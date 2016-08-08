@@ -18,6 +18,11 @@
 -- This module is fully configurable and very useful if you like to have a
 -- lot of workspaces.
 --
+-- Only the nodes up to the currently selected are displayed.
+-- This will be configurable in the near future by changing 'ts_hidechildren' to @False@, this is not yet implemented.
+--
+-- <<https://wiki.haskell.org/wikiupload/thumb/0/0b/Treeselect-Workspace.png/800px-Treeselect-Workspace.png>>
+--
 -----------------------------------------------------------------------------
 module XMonad.Actions.TreeSelect
     (
@@ -393,6 +398,8 @@ splitPath i = case break (== '.') i of
     (x, _:xs) -> x : splitPath xs
 
 -- | Select from a Tree of 'X' actions
+--
+-- <<https://wiki.haskell.org/wikiupload/thumb/9/9b/Treeselect-Action.png/800px-Treeselect-Action.png>>
 --
 -- Each of these actions have to be specified inside a 'TSNode'
 --
