@@ -97,7 +97,7 @@ rootNode z = maybe z rootNode $ parent z
 parent :: TreeZipper a -> Maybe (TreeZipper a)
 parent t = case tz_parents t of
     (xs,a,ys) : ps -> Just
-        TreeZipper { tz_current  = Node a (tz_before t ++ tz_current t : tz_after t)
+        TreeZipper { tz_current  = Node a (reverse (tz_before t) ++ tz_current t : tz_after t)
                    , tz_before   = xs
                    , tz_after    = ys
                    , tz_parents  = ps
