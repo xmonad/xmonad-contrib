@@ -125,7 +125,7 @@ import Graphics.X11.Xrender
 --
 -- > tsDefaultConfig = TSConfig { ts_hidechildren = True
 -- >                            , ts_background   = 0xc0c0c0c0
--- >                            , ts_font         = "xft:Sans-16" -- "xft:Sans-16"
+-- >                            , ts_font         = "xft:Sans-16"
 -- >                            , ts_node         = (0xff000000, 0xff50d0db)
 -- >                            , ts_nodealt      = (0xff000000, 0xff10b8d6)
 -- >                            , ts_highlight    = (0xffffffff, 0xffff0000)
@@ -206,7 +206,7 @@ data TSConfig a = TSConfig { ts_hidechildren :: Bool -- ^ when enabled, only the
 instance Default (TSConfig a) where
     def = TSConfig { ts_hidechildren = True
                    , ts_background   = 0xc0c0c0c0
-                   , ts_font         = "xft:Sans-16" -- "xft:Sans-16"
+                   , ts_font         = "xft:Sans-16"
                    , ts_node         = (0xff000000, 0xff50d0db)
                    , ts_nodealt      = (0xff000000, 0xff10b8d6)
                    , ts_highlight    = (0xffffffff, 0xffff0000)
