@@ -64,6 +64,8 @@ import Data.List (find)
 import Data.Maybe
 import Data.Tree
 import Foreign
+import System.IO
+import System.Posix.Process (forkProcess, executeFile)
 import XMonad hiding (liftX)
 import XMonad.StackSet as W
 import XMonad.Util.Font
@@ -366,12 +368,27 @@ treeselectWorkspace c xs f = do
     -- They have to be set with 'toWorkspaces'!
     ws <- gets (W.workspaces . windowset)
 
-    -- convert the 'Forest WorkspaceId' to 'Forest (TSNode WorkspaceId)'
-    wsf <- forMForest (mkPaths xs) $ \(n, i) -> maybe (return (TSNode n "Does not exist!" "")) (mkNode n) (find (\w -> i == tag w) ws)
+    -- check the 'XConfig.workspaces'
+    if all (`elem` map tag ws) (toWorkspaces xs)
+      then do
+        -- convert the 'Forest WorkspaceId' to 'Forest (TSNode WorkspaceId)'
+        wsf <- forMForest (mkPaths xs) $ \(n, i) -> maybe (return (TSNode n "Does not exist!" "")) (mkNode n) (find (\w -> i == tag w) ws)
 
-    -- get the current workspace path
-    me <- gets (W.tag . W.workspace . W.current . windowset)
-    treeselectAt c (fromJust $ followPath tsn_name (splitPath me) $ fromForest wsf) >>= maybe (return ()) (windows . f)
+        -- get the current workspace path
+        me <- gets (W.tag . W.workspace . W.current . windowset)
+        treeselectAt c (fromJust $ followPath tsn_name (splitPath me) $ fromForest wsf) >>= maybe (return ()) (windows . f)
+
+      else liftIO $ do
+        -- error!
+        let msg = unlines $ [ "Please add:"
+                            , "    workspaces = toWorkspaces myWorkspaces"
+                            , "to your XMonad config!"
+                            , ""
+                            , "XConfig.workspaces: "
+                            ] ++ map tag ws
+        hPutStrLn stderr msg
+        _ <- forkProcess $ executeFile "xmessage" True [msg] Nothing
+        return ()
   where
     mkNode n w = do
         -- find the focused window's name on this workspace
