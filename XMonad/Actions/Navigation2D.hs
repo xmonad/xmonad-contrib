@@ -43,6 +43,7 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                    , Navigation2D
                                    , lineNavigation
                                    , centerNavigation
+                                   , hybridNavigation
                                    , fullScreenRect
                                    , singleWindowRect
                                    , switchLayer
@@ -74,10 +75,11 @@ import XMonad.Util.Types
 -- natural but may make it impossible to navigate to a given window from the
 -- current window, particularly in the floating layer.  /Center navigation/
 -- feels less natural in certain situations but ensures that all windows can be
--- reached without the need to involve the mouse.  Navigation2D allows different
--- navigation strategies to be used in the two layers and allows customization
--- of the navigation strategy for the tiled layer based on the layout currently
--- in effect.
+-- reached without the need to involve the mouse. A third option is to use
+-- /Hybrid navigation/, which automatically chooses between the two whenever
+-- navigation is attempted.  Navigation2D allows different navigation strategies
+-- to be used in the two layers and allows customization of the navigation strategy
+-- for the tiled layer based on the layout currently in effect.
 --
 -- You can use this module with (a subset of) the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -315,6 +317,14 @@ lineNavigation = N 1 doLineNavigation
 -- them.
 centerNavigation :: Navigation2D
 centerNavigation = N 2 doCenterNavigation
+
+
+-- | Hybrid navigation. This attempts Line navigation, then falls back on Center
+-- navigation if it does not find any suitable target windows. This is useful since
+-- Line navigation tends to fail on gaps, but provides more intuitive motions
+-- when it succeeds, provided there are no floating windows.
+hybridNavigation :: Navigation2D
+hybridNavigation = N 2 doHybridNavigation
 
 -- | Stores the configuration of directional navigation. The 'Default' instance
 -- uses line navigation for the tiled layer and for navigation between screens,
@@ -664,7 +674,7 @@ doScreenNavigation conf dir act cur wsrects
 -- these lists for all visible workspaces.)
 doLineNavigation :: Eq a => Direction2D -> Rect a -> [Rect a] -> Maybe a
 doLineNavigation dir (cur, rect) winrects
-  | null winrects' = doCenterNavigation dir (cur, rect) winrects -- MY MODIFICATION HERE
+  | null winrects' = Nothing -- doCenterNavigation dir (cur, rect) winrects
   | otherwise      = Just . fst $ L.foldl1' closer winrects'
   where
     -- The current window's center
@@ -757,6 +767,13 @@ doCenterNavigation dir (cur, rect) winrects
       | otherwise                       = wp -- q is farther away from the bottom ray than p
                                              -- or it has the same distance but comes later
                                              -- in the window stack
+
+-- | Implements Hybrid navigation. This attempts Line navigation first,
+-- then falls back on Center navigation if it finds no suitable target window.
+doHybridNavigation :: Eq a => Direction2D -> Rect a -> [Rect a] -> Maybe a
+doHybridNavigation dir (cur, rect) winrects
+  | (doLineNavigation dir (cur, rect) winrects == Nothing) = doCenterNavigation dir (cur, rect) winrects
+  | otherwise = doLineNavigation dir (cur, rect) winrects
 
 -- | Swaps the current window with the window given as argument
 swap :: Window -> WindowSet -> WindowSet
