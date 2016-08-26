@@ -674,7 +674,7 @@ doScreenNavigation conf dir act cur wsrects
 -- these lists for all visible workspaces.)
 doLineNavigation :: Eq a => Direction2D -> Rect a -> [Rect a] -> Maybe a
 doLineNavigation dir (cur, rect) winrects
-  | null winrects' = Nothing -- doCenterNavigation dir (cur, rect) winrects
+  | null winrects' = Nothing
   | otherwise      = Just . fst $ L.foldl1' closer winrects'
   where
     -- The current window's center
