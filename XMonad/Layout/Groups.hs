@@ -274,7 +274,7 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
                results <- forM areas $ \(g, r') -> runLayout ws { W.layout = gLayout g
                                                                 , W.stack = gZipper g } r'
 
-               let hidden = map gLayout (W.integrate $ groups l) \\ map (gLayout . fst) areas
+               let hidden = map gLayout (W.integrate $ groups _l) \\ map (gLayout . fst) areas
                hidden' <- mapM (flip handleMessage $ SomeMessage Hide) hidden
 
                let placements = concatMap fst results
