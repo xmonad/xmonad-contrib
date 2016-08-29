@@ -771,9 +771,11 @@ doCenterNavigation dir (cur, rect) winrects
 -- | Implements Hybrid navigation. This attempts Line navigation first,
 -- then falls back on Center navigation if it finds no suitable target window.
 doHybridNavigation :: Eq a => Direction2D -> Rect a -> [Rect a] -> Maybe a
-doHybridNavigation dir (cur, rect) winrects
-  | (doLineNavigation dir (cur, rect) winrects == Nothing) = doCenterNavigation dir (cur, rect) winrects
-  | otherwise = doLineNavigation dir (cur, rect) winrects
+doHybridNavigation = applyToBoth pickSomething doLineNavigation doCenterNavigation
+    where
+        applyToBoth f g h a b c = f (g a b c) (h a b c)
+        pickSomething Nothing b = b
+        pickSomething a _ = a
 
 -- | Swaps the current window with the window given as argument
 swap :: Window -> WindowSet -> WindowSet
