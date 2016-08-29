@@ -318,7 +318,6 @@ lineNavigation = N 1 doLineNavigation
 centerNavigation :: Navigation2D
 centerNavigation = N 2 doCenterNavigation
 
-
 -- | Hybrid navigation. This attempts Line navigation, then falls back on Center
 -- navigation if it does not find any suitable target windows. This is useful since
 -- Line navigation tends to fail on gaps, but provides more intuitive motions
