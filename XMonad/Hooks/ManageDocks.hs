@@ -34,10 +34,12 @@ module XMonad.Hooks.ManageDocks (
 
 -----------------------------------------------------------------------------
 import XMonad
+import qualified XMonad.StackSet as W
 import Foreign.C.Types (CLong)
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
+import XMonad.Util.WorkspaceCompare(getWsIndex)
 import XMonad.Util.XUtils (fi)
 import Data.Monoid (All(..), mempty)
 import Data.Functor((<$>))
@@ -271,6 +273,8 @@ instance Message SetStruts
 
 instance LayoutModifier AvoidStruts a where
     modifyLayoutWithUpdate as@(AvoidStruts ss cache smap) w r = do
+        wsIndex <- getWsIndex
+        let mwid = wsIndex (W.tag w)
         let dockWins = M.keys smap
         (nr, nsmap) <- case cache of
             Just (ss', r', nr) | ss' == ss, r' == r -> do
@@ -278,14 +282,16 @@ instance LayoutModifier AvoidStruts a where
                 if nsmap /= smap
                   then do
                     wnr <- fmap ($ r) (calcGap dockWins ss)
-                    setWorkarea wnr
+                    whenJust mwid $ \wid ->
+                      setWorkareaAt wid wnr
                     return (wnr, nsmap)
                   else do
                     return (nr, smap)
             _ -> do
                 nsset <- getRawStruts dockWins
                 nr <- fmap ($ r) (calcGap dockWins ss)
-                setWorkarea nr
+                whenJust mwid $ \wid ->
+                  setWorkareaAt wid nr
                 return (nr, nsset)
         arranged <- runLayout w nr
         let newCache = Just (ss, r, nr)
@@ -314,13 +320,25 @@ instance LayoutModifier AvoidStruts a where
             toggleOne x xs | x `S.member` xs = S.delete x xs
                            | otherwise   = x `S.insert` xs
 
-setWorkarea :: Rectangle -> X ()
-setWorkarea (Rectangle x y w h) = withDisplay $ \dpy -> do
+setWorkarea :: [Rectangle] -> X ()
+setWorkarea rects = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WORKAREA"
     c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fi x, fi y, fi w, fi h]
+    let newWA = concatMap (\(Rectangle x y w h) -> [fi x, fi y, fi w, fi h]) rects
+    io $ changeProperty32 dpy r a c propModeReplace newWA
 
+getWorkarea :: X [Rectangle]
+getWorkarea = do
+    r <- asks theRoot
+    let toRects (x:y:w:h:other) = Rectangle (fi x) (fi y) (fi w) (fi h):toRects other
+        toRects _               = []
+    maybe [] toRects <$> getProp32s "_NET_WORKAREA" r
+
+setWorkareaAt :: Int -> Rectangle -> X ()
+setWorkareaAt i rect = setWorkarea =<< (changeElemAt i rect (Rectangle 0 0 0 0) <$> getWorkarea)
+  where changeElemAt j e d l | i >= length l = l ++ [d | _ <- [length l..i-1]] ++ [rect]
+                             | otherwise     = a ++ (e:b) where (a, _:b) = splitAt j l
 
 -- | (Direction, height\/width, initial pixel, final pixel).
 
