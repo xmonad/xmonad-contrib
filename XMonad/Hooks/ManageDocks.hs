@@ -156,6 +156,9 @@ docksStartupHook = withDisplay $ \dpy -> do
         strut <- getRawStrut win
         broadcastMessage (UpdateDock win strut)
     refresh
+    rect <- ((!! 0) . filter (/= Rectangle 0 0 0 0)) <$> getWorkarea
+    wslen <- gets (length . W.workspaces . windowset)
+    setWorkarea $ replicate wslen rect
 
 getRawStrut :: Window -> X (Maybe (Either [CLong] [CLong]))
 getRawStrut w = do
