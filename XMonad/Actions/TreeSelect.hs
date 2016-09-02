@@ -361,7 +361,9 @@ treeselectWorkspace :: TSConfig WorkspaceId
                                                                -- Instances can be 'W.greedyView' for switching to a workspace
                                                                -- and/or 'W.shift' for moving the focused window to a selected workspace.
                                                                --
-                                                               -- These actions can also be combined by doing @'W.greedyView' . 'W.shift'@
+                                                               -- These actions can also be combined by doing
+                                                               --
+                                                               -- > \i -> W.greedyView i . W.shift i
                     -> X ()
 treeselectWorkspace c xs f = do
     -- get all defined workspaces
