@@ -35,6 +35,9 @@
 -- (Linux-centric) approach may be used. See
 -- <https://www.kernel.org/doc/Documentation/cgroups/freezer-subsystem.txt>
 --
+-- * Note
+-- This module doesn't work on programs that do fancy things with processes
+-- (such as Chromium) and programs that do not set _NET_WM_PID.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Stoppable
