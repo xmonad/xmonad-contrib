@@ -25,6 +25,7 @@ module XMonad.Util.TreeZipper(
     , getSubForest
 
     -- * Navigation
+    , rootNode
     , parent
     , children
     , nextChild
@@ -86,12 +87,15 @@ toForest = getSubForest . rootNode
 
 -- | Create a 'Data.Tree.Forest' from all the children of the current parent
 getSubForest :: TreeZipper a -> Forest a
-getSubForest TreeZipper{..} = tz_before ++ tz_current : tz_after
+getSubForest TreeZipper{..} = reverse tz_before ++ tz_current : tz_after
 
 -- | Go to the upper most node such that
 -- nothing is before nor above the cursor
 rootNode :: TreeZipper a -> TreeZipper a
-rootNode z = maybe z rootNode $ parent z
+rootNode = f
+  where
+    f z = maybe (g z) f $ parent z
+    g z = maybe z g $ previousChild z
 
 -- | Move to the parent node
 parent :: TreeZipper a -> Maybe (TreeZipper a)
