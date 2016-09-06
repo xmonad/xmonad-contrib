@@ -164,11 +164,9 @@ import qualified Data.Map as M
 -- >        adjustEventInput
 --
 
-desktopConfig = ewmh def
-    { startupHook     = setDefaultCursor xC_left_ptr <+> docksStartupHook <+> startupHook def
+desktopConfig = docks $ ewmh def
+    { startupHook     = setDefaultCursor xC_left_ptr <+> startupHook def
     , layoutHook      = desktopLayoutModifiers $ layoutHook def
-    , manageHook      = manageDocks <+> manageHook def
-    , handleEventHook = docksEventHook <+> handleEventHook def
     , keys            = desktopKeys <+> keys def }
 
 desktopKeys (XConfig {modMask = modm}) = M.fromList $

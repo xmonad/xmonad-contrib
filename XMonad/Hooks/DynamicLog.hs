@@ -199,12 +199,11 @@ statusBar :: LayoutClass l Window
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar cmd pp k conf = do
     h <- spawnPipe cmd
-    return $ conf
+    return $ docks $ conf
         { layoutHook = avoidStruts (layoutHook conf)
         , logHook = do
                         logHook conf
                         dynamicLogWithPP pp { ppOutput = hPutStrLn h }
-        , manageHook = manageHook conf <+> manageDocks
         , keys       = liftM2 M.union keys' (keys conf)
         }
  where

@@ -15,7 +15,7 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
+    docks, manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
     docksEventHook, docksStartupHook,
     ToggleStruts(..),
     SetStruts(..),
@@ -52,24 +52,15 @@ import Control.Monad (when, forM_, filterM)
 --
 -- > import XMonad.Hooks.ManageDocks
 --
--- The first component is a 'ManageHook' which recognizes these
--- windows and de-manages them, so that xmonad does not try to tile
--- them.  To enable it:
+-- Wrap your xmonad config with a call to 'docks', like so:
 --
--- > manageHook = ... <+> manageDocks
+-- > main = xmonad $ docks def
 --
--- The second component is a layout modifier that prevents windows
--- from overlapping these dock windows.  It is intended to replace
--- xmonad's so-called \"gap\" support.  First, you must add it to your
--- list of layouts:
+-- Then add 'avoidStruts' or 'avoidStrutsOn' layout modifier to your layout
+-- to prevent windows from overlapping these windows.
 --
 -- > layoutHook = avoidStruts (tall ||| mirror tall ||| ...)
 -- >                   where  tall = Tall 1 (3/100) (1/2)
---
--- The third component is an event hook that causes new docks to appear
--- immediately, instead of waiting for the next focus change.
---
--- > handleEventHook = ... <+> docksEventHook
 --
 -- 'AvoidStruts' also supports toggling the dock gaps; add a keybinding
 -- similar to:
@@ -90,16 +81,15 @@ import Control.Monad (when, forM_, filterM)
 --
 -- > layoutHook = avoidStrutsOn [U,L] (tall ||| mirror tall ||| ...)
 --
--- /Important note/: if you are switching from manual gaps
--- (defaultGaps in your config) to avoidStruts (recommended, since
--- manual gaps will probably be phased out soon), be sure to switch
--- off all your gaps (with mod-b) /before/ reloading your config with
--- avoidStruts!  Toggling struts with a 'ToggleStruts' message will
--- not work unless your gaps are set to zero.
---
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 --
+
+-- | Add docks functionality to the given config.  See above for an example.
+docks :: XConfig a -> XConfig a
+docks c = c { startupHook     = docksStartupHook <+> startupHook c
+            , handleEventHook = docksEventHook <+> handleEventHook c
+            , manageHook      = manageDocks <+> manageHook c }
 
 newtype StrutCache = StrutCache { fromStrutCache :: M.Map Window [Strut] }
     deriving (Eq, Typeable)
