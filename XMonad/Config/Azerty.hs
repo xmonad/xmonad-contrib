@@ -36,7 +36,7 @@ import qualified Data.Map as M
 -- If you prefer, an azertyKeys function is provided which you can use as so:
 --
 -- > import qualified Data.Map as M
--- > main = xmonad someConfig { keys = \c -> azertyKeys c `M.union` keys someConfig c }
+-- > main = xmonad someConfig { keys = \c -> azertyKeys c <+> keys someConfig c }
 
 azertyConfig = def { keys = azertyKeys <+> keys def }
 
