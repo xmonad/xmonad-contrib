@@ -49,6 +49,9 @@ module XMonad.Actions.TreeSelect
     , moveChild
     , moveNext
     , movePrev
+    , moveHistBack
+    , moveHistForward
+    , moveTo
 
       -- * Advanced usage
       -- $advusage
@@ -71,6 +74,7 @@ import XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.NamedWindows
 import XMonad.Util.TreeZipper
+import XMonad.Hooks.WorkspaceHistory
 import qualified Data.Map as M
 
 #ifdef XFT
@@ -80,10 +84,11 @@ import Graphics.X11.Xrender
 
 -- $usage
 --
--- These imports are needed in the following example
+-- These imports are used in the following example
 --
 -- > import Data.Tree
 -- > import XMonad.Actions.TreeSelect
+-- > import XMonad.Hooks.WorkspaceHistory
 -- > import qualified XMonad.StackSet as W
 --
 -- For selecting Workspaces, you need to define them in a tree structure using 'Data.Tree.Node' instead of just a standard list
@@ -104,10 +109,13 @@ import Graphics.X11.Xrender
 -- >                    ]
 -- >                ]
 --
--- Then add it to your XMonad Config using the 'toWorkspaces' function
+-- Then add it to your 'XMonad.Core.workspaces' using the 'toWorkspaces' function.
+--
+-- Optionally, if you add 'workspaceHistory' to your 'logHook' you can use the \'o\' and \'i\' keys to select from previously-visited workspaces
 --
 -- > xmonad $ defaultConfig { ...
 -- >                        , workspaces = toWorkspaces myWorkspaces
+-- >                        , logHook = workspaceHistory
 -- >                        }
 --
 -- After that you still need to bind buttons to 'treeselectWorkspace' to start selecting a workspaces and moving windows
@@ -176,6 +184,8 @@ import Graphics.X11.Xrender
 -- >     , ((0, xK_j),      moveNext)
 -- >     , ((0, xK_h),      moveParent)
 -- >     , ((0, xK_l),      moveChild)
+-- >     , ((0, xK_o),      moveHistBack)
+-- >     , ((0, xK_i),      moveHistForward)
 -- >     ]
 
 -- $advusage
@@ -239,6 +249,8 @@ defaultNavigation = M.fromList
     , ((0, xK_j),      moveNext)
     , ((0, xK_h),      moveParent)
     , ((0, xK_l),      moveChild)
+    , ((0, xK_o),      moveHistBack)
+    , ((0, xK_i),      moveHistForward)
     ]
 
 -- | Default configuration.
@@ -264,6 +276,7 @@ data TSState a = TSState { tss_tree     :: TreeZipper (TSNode a)
                          , tss_gc       :: GC
                          , tss_visual   :: Visual
                          , tss_colormap :: Colormap
+                         , tss_history  :: ([[String]], [[String]]) -- ^ history zipper, navigated with 'moveHistBack' and 'moveHistForward'
                          }
 
 -- | State monad transformer using 'TSState'
@@ -282,13 +295,14 @@ liftX = TreeSelect . lift . lift
 treeselect :: TSConfig a         -- ^ config file
            -> Forest (TSNode a)  -- ^ a list of 'Data.Tree.Tree's to select from.
            -> X (Maybe a)
-treeselect c = treeselectAt c . fromForest
+treeselect c t = treeselectAt c (fromForest t) []
 
 -- | Same as 'treeselect' but ad a specific starting position
 treeselectAt :: TSConfig a         -- ^ config file
              -> TreeZipper (TSNode a)  -- ^ tree structure with a cursor position (starting node)
+             -> [[String]] -- ^ list of paths that can be navigated with 'moveHistBack' and 'moveHistForward' (bound to the 'o' and 'i' keys)
              -> X (Maybe a)
-treeselectAt conf@TSConfig{..} zipper = withDisplay $ \display -> do
+treeselectAt conf@TSConfig{..} zipper hist = withDisplay $ \display -> do
     -- create a window on the currently focused screen
     rootw <- asks theRoot
     Rectangle{..} <- gets $ screenRect . W.screenDetail . W.current . windowset
@@ -335,6 +349,7 @@ treeselectAt conf@TSConfig{..} zipper = withDisplay $ \display -> do
                        , tss_gc       = gc
                        , tss_visual   = visualInfo_visual vinfo
                        , tss_colormap = colormap
+                       , tss_history = ([], hist)
                        }
 
             -- release the XMF font
@@ -378,7 +393,8 @@ treeselectWorkspace c xs f = do
 
         -- get the current workspace path
         me <- gets (W.tag . W.workspace . W.current . windowset)
-        treeselectAt c (fromJust $ followPath tsn_name (splitPath me) $ fromForest wsf) >>= maybe (return ()) (windows . f)
+        hist <- workspaceHistory
+        treeselectAt c (fromJust $ followPath tsn_name (splitPath me) $ fromForest wsf) (map splitPath hist) >>= maybe (return ()) (windows . f)
 
       else liftIO $ do
         -- error!
@@ -469,6 +485,31 @@ moveNext = moveWith nextChild >> redraw >> navigate
 -- | Move the cursor to the previous child-node
 movePrev :: TreeSelect a (Maybe a)
 movePrev = moveWith previousChild >> redraw >> navigate
+
+-- | Move backwards in history
+moveHistBack :: TreeSelect a (Maybe a)
+moveHistBack = do
+    s <- get
+    case tss_history s of
+        (xs, a:y:ys) -> do
+            put s{tss_history = (a:xs, y:ys)}
+            moveTo y
+        _ -> navigate
+
+-- | Move forward in history
+moveHistForward :: TreeSelect a (Maybe a)
+moveHistForward = do
+    s <- get
+    case tss_history s of
+        (x:xs, ys) -> do
+            put s{tss_history = (xs, x:ys)}
+            moveTo x
+        _ -> navigate
+
+-- | Move to a specific node
+moveTo :: [String] -- ^ path, always starting from the top
+       -> TreeSelect a (Maybe a)
+moveTo i = moveWith (followPath tsn_name i . rootNode) >> redraw >> navigate
 
 -- | Apply a transformation on the internal 'XMonad.Util.TreeZipper.TreeZipper'.
 moveWith :: (TreeZipper (TSNode a) -> Maybe (TreeZipper (TSNode a))) -> TreeSelect a ()
