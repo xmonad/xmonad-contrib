@@ -111,11 +111,11 @@ import Graphics.X11.Xrender
 --
 -- Then add it to your 'XMonad.Core.workspaces' using the 'toWorkspaces' function.
 --
--- Optionally, if you add 'workspaceHistory' to your 'logHook' you can use the \'o\' and \'i\' keys to select from previously-visited workspaces
+-- Optionally, if you add 'workspaceHistoryHook' to your 'logHook' you can use the \'o\' and \'i\' keys to select from previously-visited workspaces
 --
 -- > xmonad $ defaultConfig { ...
 -- >                        , workspaces = toWorkspaces myWorkspaces
--- >                        , logHook = workspaceHistory
+-- >                        , logHook = workspaceHistoryHook
 -- >                        }
 --
 -- After that you still need to bind buttons to 'treeselectWorkspace' to start selecting a workspaces and moving windows
