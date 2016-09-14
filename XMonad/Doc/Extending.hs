@@ -301,6 +301,12 @@ edit your key bindings.
 * "XMonad.Actions.TopicSpace":
     Turns your workspaces into a more topic oriented system.
 
+* "XMonad.Actions.TreeSelect":
+    TreeSelect displays your workspaces or actions in a Tree-like format.
+    You can select the desired workspace/action with the cursor or hjkl keys.
+    This module is fully configurable and very useful if you like to have a
+    lot of workspaces.
+
 * "XMonad.Actions.UpdateFocus":
     Updates the focus on mouse move in unfocused windows.
 

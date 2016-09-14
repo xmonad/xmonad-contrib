@@ -133,6 +133,7 @@ library
                         XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows
                         XMonad.Actions.TopicSpace
+                        XMonad.Actions.TreeSelect
                         XMonad.Actions.UpdateFocus
                         XMonad.Actions.UpdatePointer
                         XMonad.Actions.Warp
@@ -328,6 +329,7 @@ library
                         XMonad.Util.StringProp
                         XMonad.Util.Themes
                         XMonad.Util.Timer
+                        XMonad.Util.TreeZipper
                         XMonad.Util.Types
                         XMonad.Util.Ungrab
                         XMonad.Util.WindowProperties
