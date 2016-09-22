@@ -36,7 +36,7 @@ import qualified Data.Map as M
 -- If you prefer, an azertyKeys function is provided which you can use as so:
 --
 -- > import qualified Data.Map as M
--- > main = xmonad someConfig { keys = \c -> azertyKeys c `M.union` keys someConfig c }
+-- > main = xmonad someConfig { keys = \c -> azertyKeys c <+> keys someConfig c }
 
 azertyConfig = def { keys = azertyKeys <+> keys def }
 
@@ -46,3 +46,9 @@ azertyKeys conf@(XConfig {modMask = modm}) = M.fromList $
     [((m .|. modm, k), windows $ f i)
         | (i, k) <- zip (workspaces conf) [0x26,0xe9,0x22,0x27,0x28,0x2d,0xe8,0x5f,0xe7,0xe0],
           (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+    ++
+    -- mod-{z,e,r} %! Switch to physical/Xinerama screens 1, 2, or 3
+    -- mod-shift-{z,e,r} %! Move client to screen 1, 2, or 3
+    [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
+        | (key, sc) <- zip [xK_z, xK_e, xK_r] [0..],
+          (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
