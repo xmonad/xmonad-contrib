@@ -194,6 +194,7 @@ removeMouseBindings conf mouseBindingList =
 -- > <Insert>
 -- > <Break>
 -- > <Space>
+-- > <Alt>
 -- > <Super>
 -- > <F1>-<F24>
 -- > <KP_Space>
@@ -478,6 +479,7 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("Break"      , xK_Break)
               , ("Space"      , xK_space)
               , ("Super"      , xK_Super_L)
+              , ("Alt"        , xK_Alt_L)
               , ("KP_Space"   , xK_KP_Space)
               , ("KP_Tab"     , xK_KP_Tab)
               , ("KP_Enter"   , xK_KP_Enter)
