@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicWorkspaces
@@ -27,7 +29,9 @@ module XMonad.Actions.DynamicWorkspaces (
                                          withWorkspace,
                                          selectWorkspace, renameWorkspace,
                                          renameWorkspaceByName,
-                                         toNthWorkspace, withNthWorkspace
+                                         toNthWorkspace, withNthWorkspace,
+                                         setWorkspaceIndex, withWorkspaceIndex,
+                                         WorkspaceIndex
                                        ) where
 
 import XMonad hiding (workspaces)
@@ -38,6 +42,8 @@ import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 import Data.List (find)
 import Data.Maybe (isNothing)
 import Control.Monad (when)
+import qualified Data.Map.Strict as Map
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -53,17 +59,55 @@ import Control.Monad (when)
 -- >   , ((modm .|. shiftMask, xK_m      ), withWorkspace def (windows . copy))
 -- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace def)
 --
--- > -- mod-[1..9]       %! Switch to workspace N
--- > -- mod-shift-[1..9] %! Move client to workspace N
+-- > -- mod-[1..9]       %! Switch to workspace N in the list of workspaces
+-- > -- mod-shift-[1..9] %! Move client to workspace N in the list of workspaces
 -- >    ++
 -- >    zip (zip (repeat (modm)) [xK_1..xK_9]) (map (withNthWorkspace W.greedyView) [0..])
 -- >    ++
 -- >    zip (zip (repeat (modm .|. shiftMask)) [xK_1..xK_9]) (map (withNthWorkspace W.shift) [0..])
 --
+-- Alternatively, you can associate indexes (which don't depend of the
+-- workspace list order) to workspaces by using following keybindings:
+--
+-- > -- mod-[1..9]         %! Switch to workspace of index N
+-- > -- mod-control-[1..9] %! Set index N to the current workspace
+-- >    ++
+-- >    zip (zip (repeat (modm)) [xK_1..xK_9]) (map (withWorkspaceIndex W.greedyView) [1..])
+-- >    ++
+-- >    zip (zip (repeat (modm .|. controlMask)) [xK_1..xK_9]) (map (setWorkspaceIndex) [1..])
+--
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
 -- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'XPConfig'.
 
+type WorkspaceTag = String
+-- | The workspace index is mapped to a workspace tag by the user and
+-- can be updated.
+type WorkspaceIndex  = Int
+
+-- | Internal dynamic project state that stores a mapping between
+--   workspace indexes and workspace tags.
+data DynamicWorkspaceState = DynamicWorkspaceState {workspaceIndexMap :: Map.Map WorkspaceIndex WorkspaceTag}
+  deriving (Typeable, Read, Show)
+
+instance ExtensionClass DynamicWorkspaceState where
+  initialValue = DynamicWorkspaceState Map.empty
+  extensionType = PersistentExtension
+
+-- | Set the index of the current workspace.
+setWorkspaceIndex :: WorkspaceIndex -> X ()
+setWorkspaceIndex widx = do
+  wtag  <- gets (currentTag . windowset)
+  wmap <- XS.gets workspaceIndexMap
+  XS.modify $ \s -> s {workspaceIndexMap = Map.insert widx wtag wmap}
+
+withWorkspaceIndex :: (String -> WindowSet -> WindowSet) -> WorkspaceIndex -> X ()
+withWorkspaceIndex job widx = do
+  wtag <- ilookup widx
+  maybe (return ()) (windows . job) wtag
+    where
+      ilookup :: WorkspaceIndex -> X (Maybe WorkspaceTag)
+      ilookup idx = Map.lookup idx `fmap` XS.gets workspaceIndexMap
 
 
 mkCompl :: [String] -> String -> IO [String]
@@ -81,10 +125,15 @@ renameWorkspace :: XPConfig -> X ()
 renameWorkspace conf = workspacePrompt conf renameWorkspaceByName
 
 renameWorkspaceByName :: String -> X ()
-renameWorkspaceByName w = windows $ \s -> let sett wk = wk { tag = w }
-                                              setscr scr = scr { workspace = sett $ workspace scr }
-                                              sets q = q { current = setscr $ current q }
-                                          in sets $ removeWorkspace' w s
+renameWorkspaceByName w = do old  <- gets (currentTag . windowset)
+			     windows $ \s -> let sett wk = wk { tag = w }
+						 setscr scr = scr { workspace = sett $ workspace scr }
+						 sets q = q { current = setscr $ current q }
+                                             in sets $ removeWorkspace' w s
+			     updateIndexMap old w
+  where updateIndexMap old new = do
+          wmap <- XS.gets workspaceIndexMap
+          XS.modify $ \s -> s {workspaceIndexMap = Map.map (\t -> if t == old then new else t) wmap}
 
 toNthWorkspace :: (String -> X ()) -> Int -> X ()
 toNthWorkspace job wnum = do sort <- getSortByIndex
