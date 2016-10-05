@@ -31,6 +31,7 @@ module XMonad.Actions.Workscreen (
   ,shiftToWorkscreen
   ,fromWorkspace
   ,expandWorkspace
+  ,WorkscreenId
   ) where
 
 import XMonad hiding (workspaces)
