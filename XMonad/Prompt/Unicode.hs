@@ -22,6 +22,7 @@ module XMonad.Prompt.Unicode (
 import qualified Data.ByteString.Char8 as BS
 import Data.Char
 import Data.Maybe
+import Data.Ord
 import Numeric
 import System.Environment
 import System.IO
@@ -61,7 +62,7 @@ entries = unsafePerformIO $ do
             hPutStrLn stderr $ show e
             hPutStrLn stderr $ "Do you have unicode-data installed?"
             return []
-        Right dat -> return $ sortOn (BS.length . snd) $ parseUnicodeData dat
+        Right dat -> return $ sortBy (comparing (BS.length . snd)) $ parseUnicodeData dat
 {-# NOINLINE entries #-}
 
 parseUnicodeData :: BS.ByteString -> [(Char, BS.ByteString)]
