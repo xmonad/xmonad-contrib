@@ -54,8 +54,7 @@ flag testing
   default: False
 
 library
-    build-depends: attoparsec >= 0.13 && < 0.14,
-                   base >= 4.5 && < 5,
+    build-depends: base >= 4.5 && < 5,
                    bytestring >= 0.10 && < 0.11,
                    containers >= 0.5 && < 0.6,
                    directory,

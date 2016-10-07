@@ -20,9 +20,9 @@ module XMonad.Prompt.Unicode (
  ) where
 
 import qualified Data.ByteString.Char8 as BS
-import Data.Attoparsec.ByteString.Char8 hiding (take)
 import Data.Char
-import Control.Applicative
+import Data.Maybe
+import Numeric
 import System.Environment
 import System.IO
 import System.IO.Unsafe
@@ -33,7 +33,7 @@ import Text.Printf
 
 import XMonad
 import XMonad.Util.Run
-import XMonad.Prompt hiding (endOfLine)
+import XMonad.Prompt
 
 {- $usage
 
@@ -61,21 +61,16 @@ entries = unsafePerformIO $ do
             hPutStrLn stderr $ show e
             hPutStrLn stderr $ "Do you have unicode-data installed?"
             return []
-        Right dat -> case parseOnly (p <* endOfInput) dat of
-            Left e -> do
-                hPutStrLn stderr $ "Failed to parse UnicodeData: " ++ show e
-                return []
-            Right r -> return $ sortOn (BS.length.snd) r
+        Right dat -> return $ sortOn (BS.length . snd) $ parseUnicodeData dat
 {-# NOINLINE entries #-}
 
-p = many' $ do
-    c <- chr <$> hexadecimal
-    char ';'
-    d <- takeTill (== ';')
-    char ';'
-    skipWhile (/= '\n')
-    endOfLine
-    return (c,d)
+parseUnicodeData :: BS.ByteString -> [(Char, BS.ByteString)]
+parseUnicodeData = mapMaybe parseLine . BS.lines
+  where
+    parseLine l = do
+        field1 : field2 : _ <- return $ BS.split ';' l
+        [(c,"")] <- return $ readHex (BS.unpack field1)
+        return (chr c, field2)
 
 searchUnicode :: String -> [(Char, String)]
 searchUnicode s = map (second BS.unpack) $ filter go entries
