@@ -22,6 +22,7 @@ module XMonad.Hooks.FocusGuard
     , guardHook
     ) where
 
+import Data.Functor
 import Data.Monoid
 
 import XMonad
