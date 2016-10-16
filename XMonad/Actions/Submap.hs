@@ -59,7 +59,7 @@ For detailed instructions on editing your key bindings, see
 --   corresponding action, or does nothing if the key is not found in
 --   the map.
 submap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
-submap keys = submapDefault (return ()) keys
+submap = submapDefault (return ())
 
 -- | Like 'submap', but executes a default action if the key did not match.
 submapDefault :: X () -> M.Map (KeyMask, KeySym) (X ()) -> X ()
