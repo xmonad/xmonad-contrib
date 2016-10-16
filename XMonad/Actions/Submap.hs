@@ -19,6 +19,7 @@ module XMonad.Actions.Submap (
                              submapDefault
                             ) where
 import Data.Bits
+import Data.Maybe (fromMaybe)
 import XMonad hiding (keys)
 import qualified Data.Map as M
 import Control.Monad.Fix (fix)
@@ -79,4 +80,4 @@ submapDefault defAction keys = do
 
     io $ ungrabKeyboard d currentTime
 
-    maybe defAction id (M.lookup (m', s) keys)
+    fromMaybe defAction (M.lookup (m', s) keys)
