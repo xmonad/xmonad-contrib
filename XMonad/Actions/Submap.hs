@@ -16,9 +16,11 @@ module XMonad.Actions.Submap (
                              -- * Usage
                              -- $usage
                              submap,
-                             submapDefault
+                             submapDefault,
+                             submapDefaultWithKey
                             ) where
 import Data.Bits
+import Data.Maybe (fromMaybe)
 import XMonad hiding (keys)
 import qualified Data.Map as M
 import Control.Monad.Fix (fix)
@@ -58,11 +60,18 @@ For detailed instructions on editing your key bindings, see
 --   corresponding action, or does nothing if the key is not found in
 --   the map.
 submap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
-submap keys = submapDefault (return ()) keys
+submap = submapDefault (return ())
 
 -- | Like 'submap', but executes a default action if the key did not match.
 submapDefault :: X () -> M.Map (KeyMask, KeySym) (X ()) -> X ()
-submapDefault defAction keys = do
+submapDefault = submapDefaultWithKey . const
+
+-- | Like 'submapDefault', but sends the unmatched key to the default
+-- action as argument.
+submapDefaultWithKey :: ((KeyMask, KeySym) -> X ())
+                     -> M.Map (KeyMask, KeySym) (X ())
+                     -> X ()
+submapDefaultWithKey defAction keys = do
     XConf { theRoot = root, display = d } <- ask
 
     io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
@@ -79,4 +88,4 @@ submapDefault defAction keys = do
 
     io $ ungrabKeyboard d currentTime
 
-    maybe defAction id (M.lookup (m', s) keys)
+    fromMaybe (defAction (m', s)) (M.lookup (m', s) keys)
