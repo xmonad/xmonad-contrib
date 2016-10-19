@@ -20,6 +20,11 @@
     the order of windows in the final layout. Any unmatched windows
     go to the end of the order.
 
+  * `XMonad.Prompt.Unicode`
+
+    A prompt to search a unicode character by its name, and put it into the
+    clipboard.
+
   * `XMonad.Util.Ungrab`
 
     Release xmonad's keyboard and pointer grabs immediately, so
