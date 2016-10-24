@@ -149,8 +149,8 @@ data XPConfig =
         , changeModeKey     :: KeySym     -- ^ Key to change mode (when the prompt has multiple modes)
         , defaultText       :: String     -- ^ The text by default in the prompt line
         , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
-        , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
                                           --   and delay by x microseconds
+        , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
         , searchPredicate   :: String -> String -> Bool
                                           -- ^ Given the typed string and a possible
                                           --   completion, is the completion valid?
