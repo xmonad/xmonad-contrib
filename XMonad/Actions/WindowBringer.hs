@@ -46,10 +46,11 @@ import XMonad.Util.NamedWindows (getName)
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data WindowBringerConfig = WindowBringerConfig { menuCommand :: String
-                                               , menuArgs :: [String]
-                                               , windowTitler :: X.WindowSpace -> Window -> X String
-                                               }
+data WindowBringerConfig = WindowBringerConfig
+    { menuCommand :: String -- ^ The shell command that will handle window selection
+    , menuArgs :: [String] -- ^ Arguments to be passed to menuCommand
+    , windowTitler :: X.WindowSpace -> Window -> X String -- ^ A function that produces window titles given a workspace and a window
+    }
 
 instance Default WindowBringerConfig where
     def = WindowBringerConfig{ menuCommand="dmenu"
