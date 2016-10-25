@@ -38,7 +38,7 @@ import XMonad.Layout.DecorationAddons
 import XMonad.Util.Image
 
 import XMonad.Actions.WindowMenu
-import XMonad.Layout.Minimize
+import XMonad.Actions.Minimize
 import XMonad.Layout.Maximize
 
 -- $usage

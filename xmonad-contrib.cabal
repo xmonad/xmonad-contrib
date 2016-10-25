@@ -111,6 +111,7 @@ library
                         XMonad.Actions.Launcher
                         XMonad.Actions.LinkWorkspaces
                         XMonad.Actions.MessageFeedback
+                        XMonad.Actions.Minimize
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
                         XMonad.Actions.Navigation2D
@@ -313,6 +314,7 @@ library
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers
                         XMonad.Util.Loggers.NamedScratchpad
+                        XMonad.Util.Minimize
                         XMonad.Util.NamedActions
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows

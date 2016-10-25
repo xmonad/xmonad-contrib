@@ -44,6 +44,7 @@ import XMonad.Layout.WindowSwitcherDecoration
 
 import XMonad.Actions.BluetileCommands
 import XMonad.Actions.CycleWS
+import XMonad.Actions.Minimize
 import XMonad.Actions.WindowMenu
 
 import XMonad.Hooks.CurrentWorkspaceOnTop
@@ -143,7 +144,7 @@ bluetileKeys conf@(XConfig {XMonad.modMask = modMask'}) = M.fromList $
 
     -- Minimizing
     , ((modMask',               xK_m     ), withFocused minimizeWindow)
-    , ((modMask' .|. shiftMask, xK_m     ), sendMessage RestoreNextMinimizedWin)
+    , ((modMask' .|. shiftMask, xK_m     ), withLastMinimized maximizeWindow)
     ]
     ++
     -- mod-[1..9] ++ [0] %! Switch to workspace N

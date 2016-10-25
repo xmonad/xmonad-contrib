@@ -24,7 +24,7 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Layout.Decoration
 import XMonad.Actions.WindowMenu
-import XMonad.Layout.Minimize
+import XMonad.Actions.Minimize
 import XMonad.Layout.Maximize
 import XMonad.Hooks.ManageDocks
 import XMonad.Util.Font

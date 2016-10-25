@@ -22,6 +22,16 @@
     Also, you can use regular 'ManageHook' combinators for changing window
     activation behavior.
 
+  * `XMonad.Layout.Minimize`
+
+     Though the interface it offers is quite similar, this module has been
+     almost completely rewritten. The new `XMonad.Actions.Minimize` contains
+     several functions that allow interaction with minimization window state.
+     If you are using this module, you must upgrade your configuration to import
+     `X.A.Minimize` and use `maximizeWindow` and `withLastMinimized` instead of
+     sending messages to `Minimized` layout. `XMonad.Hooks.RestoreMinimized` has
+     been completely deprecated, and its functions have no effect.
+
 ### New Modules
 
   * `XMonad.Hooks.Focus`
@@ -75,7 +85,7 @@
   * `XMonad.Hooks.ManageHelpers`
 
     Make type of ManageHook combinators more general.
-    
+
   * `XMonad.Prompt.Window`
 
     - New function: `windowMultiPrompt` for using `mkXPromptWithModes`
