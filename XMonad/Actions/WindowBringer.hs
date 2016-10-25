@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.WindowBringer
@@ -17,11 +18,10 @@
 module XMonad.Actions.WindowBringer (
                     -- * Usage
                     -- $usage
-                    WindowBringerConfig(WindowBringerConfig), menuCommand, menuArgs, windowTitler,
+                    WindowBringerConfig(..),
                     gotoMenu, gotoMenuConfig, gotoMenu', gotoMenuArgs, gotoMenuArgs',
                     bringMenu, bringMenuConfig, bringMenu', bringMenuArgs, bringMenuArgs',
-                    windowMap, windowMap',
-                    bringWindow,
+                    windowMap, windowMap', bringWindow, actionMenu
                    ) where
 
 import qualified Data.Map as M
@@ -53,9 +53,9 @@ data WindowBringerConfig = WindowBringerConfig
     }
 
 instance Default WindowBringerConfig where
-    def = WindowBringerConfig{ menuCommand="dmenu"
-                             , menuArgs=["-i"]
-                             , windowTitler=decorateName
+    def = WindowBringerConfig{ menuCommand = "dmenu"
+                             , menuArgs = ["-i"]
+                             , windowTitler = decorateName
                              }
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
@@ -124,8 +124,9 @@ bringWindow w ws = W.shiftWin (W.currentTag ws) w ws
 actionMenu :: WindowBringerConfig -> (Window -> X.WindowSet -> X.WindowSet) -> X ()
 actionMenu WindowBringerConfig{ menuCommand = cmd
                               , menuArgs = args
-                              , windowTitler = titler} action = windowMap' titler
-               >>= menuMapFunction >>= flip X.whenJust (windows . action)
+                              , windowTitler = titler
+                              } action
+    = windowMap' titler >>= menuMapFunction >>= flip X.whenJust (windows . action)
     where
       menuMapFunction :: M.Map String a -> X (Maybe a)
       menuMapFunction = menuMapArgs cmd args
