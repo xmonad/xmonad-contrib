@@ -103,20 +103,13 @@ refreshDocks = sendMessage UpdateDocks
 instance ExtensionClass StrutCache where
   initialValue = StrutCache M.empty
 
-modifyXS :: (ExtensionClass a, Eq a) => (a -> a) -> X Bool
-modifyXS f = do
-    v <- XS.get
-    case f v of
-        v' | v' == v   -> return False
-           | otherwise -> XS.put v' >> return True
-
 updateStrutCache :: Window -> [Strut] -> X Bool
 updateStrutCache w strut = do
-  modifyXS $ StrutCache . M.insert w strut . fromStrutCache
+  XS.modified $ StrutCache . M.insert w strut . fromStrutCache
 
 deleteFromStructCache :: Window -> X Bool
 deleteFromStructCache w = do
-  modifyXS $ StrutCache . M.delete w . fromStrutCache
+  XS.modified $ StrutCache . M.delete w . fromStrutCache
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
