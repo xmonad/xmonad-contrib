@@ -24,6 +24,7 @@ module XMonad.Actions.WindowBringer (
                     windowMap, windowMap', bringWindow, actionMenu
                    ) where
 
+import Control.Applicative((<$>))
 import qualified Data.Map as M
 
 import qualified XMonad.StackSet as W
@@ -140,14 +141,14 @@ windowMap = windowMap' decorateName
 windowMap' :: (X.WindowSpace -> Window -> X String) -> X (M.Map String Window)
 windowMap' titler = do
   ws <- gets X.windowset
-  M.fromList `fmap` concat `fmap` mapM keyValuePairs (W.workspaces ws)
+  M.fromList . concat <$> mapM keyValuePairs (W.workspaces ws)
  where keyValuePairs ws = mapM (keyValuePair ws) $ W.integrate' (W.stack ws)
-       keyValuePair ws w = flip (,) w `fmap` titler ws w
+       keyValuePair ws w = flip (,) w <$> titler ws w
 
 -- | Returns the window name as will be listed in dmenu.
 --   Tagged with the workspace ID, to guarantee uniqueness, and to let the user
 --   know where he's going.
 decorateName :: X.WindowSpace -> Window -> X String
 decorateName ws w = do
-  name <- show `fmap` getName w
+  name <- show <$> getName w
   return $ name ++ " [" ++ W.tag ws ++ "]"
