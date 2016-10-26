@@ -21,6 +21,7 @@ module XMonad.Actions.WorkspaceNames (
     -- * Usage
     -- $usage
 
+    WorkspaceNames(..),
     -- * Workspace naming
     renameWorkspace,
     workspaceNamesPP,
