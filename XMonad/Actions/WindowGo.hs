@@ -21,6 +21,7 @@ module XMonad.Actions.WindowGo (
                  runOrRaiseNext,
                  raiseMaybe,
                  raiseNextMaybe,
+                 raiseNextMaybeCustomFocus,
 
                  raiseBrowser,
                  raiseEditor,
@@ -38,7 +39,7 @@ module XMonad.Actions.WindowGo (
 import Control.Monad
 import Data.Char (toLower)
 import Data.Monoid
-import XMonad (Query(), X(), ManageHook, withWindowSet, runQuery, liftIO, ask)
+import XMonad (Query(), X(), ManageHook, WindowSet, withWindowSet, runQuery, liftIO, ask)
 import Graphics.X11 (Window)
 import XMonad.ManageHook
 import XMonad.Operations (windows)
@@ -141,12 +142,15 @@ raiseNext = raiseNextMaybe $ return ()
 -}
 
 raiseNextMaybe :: X () -> Query Bool -> X ()
-raiseNextMaybe f qry = flip (ifWindows qry) f $ \ws -> do
+raiseNextMaybe = raiseNextMaybeCustomFocus W.focusWindow
+
+raiseNextMaybeCustomFocus :: (Window -> (WindowSet -> WindowSet)) -> X() -> Query Bool -> X()
+raiseNextMaybeCustomFocus focusFn f qry = flip (ifWindows qry) f $ \ws -> do
   foc <- withWindowSet $ return . W.peek
   case foc of
     Just w | w `elem` ws -> let (_:y:_) = dropWhile (/=w) $ cycle ws -- cannot fail to match
-                            in windows $ W.focusWindow y
-    _ -> windows . W.focusWindow . head $ ws
+                            in windows $ focusFn y
+    _ -> windows . focusFn . head $ ws
 
 -- | Given a function which gets us a String, we try to raise a window with that classname,
 --   or we then interpret that String as a executable name.
