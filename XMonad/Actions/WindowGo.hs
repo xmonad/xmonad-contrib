@@ -144,7 +144,7 @@ raiseNext = raiseNextMaybe $ return ()
 raiseNextMaybe :: X () -> Query Bool -> X ()
 raiseNextMaybe = raiseNextMaybeCustomFocus W.focusWindow
 
-raiseNextMaybeCustomFocus :: (Window -> (WindowSet -> WindowSet)) -> X() -> Query Bool -> X()
+raiseNextMaybeCustomFocus :: (Window -> WindowSet -> WindowSet) -> X() -> Query Bool -> X()
 raiseNextMaybeCustomFocus focusFn f qry = flip (ifWindows qry) f $ \ws -> do
   foc <- withWindowSet $ return . W.peek
   case foc of
