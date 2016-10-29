@@ -231,8 +231,7 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       remove = 0
       add = 1
       toggle = 2
-      ptype = 4 -- The atom property type for changeProperty
-      chWstate f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+      chWstate f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
 
   when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
@@ -249,16 +248,14 @@ fullscreenEventHook _ = return $ All True
 setNumberOfDesktops :: (Integral a) => a -> X ()
 setNumberOfDesktops n = withDisplay $ \dpy -> do
     a <- getAtom "_NET_NUMBER_OF_DESKTOPS"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral n]
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace [fromIntegral n]
 
 setCurrentDesktop :: (Integral a) => a -> X ()
 setCurrentDesktop i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_CURRENT_DESKTOP"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral i]
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace [fromIntegral i]
 
 setDesktopNames :: [String] -> X ()
 setDesktopNames names = withDisplay $ \dpy -> do
@@ -273,23 +270,20 @@ setClientList :: [Window] -> X ()
 setClientList wins = withDisplay $ \dpy -> do
     -- (What order do we really need? Something about age and stacking)
     r <- asks theRoot
-    c <- getAtom "WINDOW"
     a <- getAtom "_NET_CLIENT_LIST"
-    io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral wins)
+    io $ changeProperty32 dpy r a wINDOW propModeReplace (fmap fromIntegral wins)
     a' <- getAtom "_NET_CLIENT_LIST_STACKING"
-    io $ changeProperty32 dpy r a' c propModeReplace (fmap fromIntegral wins)
+    io $ changeProperty32 dpy r a' wINDOW propModeReplace (fmap fromIntegral wins)
 
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_DESKTOP"
-    c <- getAtom "CARDINAL"
-    io $ changeProperty32 dpy win a c propModeReplace [fromIntegral i]
+    io $ changeProperty32 dpy win a cARDINAL propModeReplace [fromIntegral i]
 
 setSupported :: X ()
 setSupported = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_SUPPORTED"
-    c <- getAtom "ATOM"
     supp <- mapM getAtom ["_NET_WM_STATE_HIDDEN"
                          ,"_NET_NUMBER_OF_DESKTOPS"
                          ,"_NET_CLIENT_LIST"
@@ -300,7 +294,7 @@ setSupported = withDisplay $ \dpy -> do
                          ,"_NET_WM_DESKTOP"
                          ,"_NET_WM_STRUT"
                          ]
-    io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral supp)
+    io $ changeProperty32 dpy r a aTOM propModeReplace (fmap fromIntegral supp)
 
     setWMName "xmonad"
 
@@ -308,5 +302,4 @@ setActiveWindow :: Window -> X ()
 setActiveWindow w = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
-    c <- getAtom "WINDOW"
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral w]
+    io $ changeProperty32 dpy r a wINDOW propModeReplace [fromIntegral w]

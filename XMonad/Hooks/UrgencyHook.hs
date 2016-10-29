@@ -321,8 +321,7 @@ changeNetWMState :: Display -> Window -> ([CLong] -> [CLong]) -> X ()
 changeNetWMState dpy w f = do
    wmstate <- getAtom "_NET_WM_STATE"
    wstate  <- fromMaybe [] <$> getProp32 wmstate w
-   let ptype = 4 -- atom property type for changeProperty
-   io $ changeProperty32 dpy w wmstate ptype propModeReplace (f wstate)
+   io $ changeProperty32 dpy w wmstate aTOM propModeReplace (f wstate)
    return ()
 
 -- | Add an atom to the _NET_WM_STATE property.

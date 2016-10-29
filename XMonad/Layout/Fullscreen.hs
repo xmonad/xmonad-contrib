@@ -203,8 +203,7 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       remove = 0
       add = 1
       toggle = 2
-      ptype = 4
-      chWState f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+      chWState f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
   when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWState (fi fullsc:)
