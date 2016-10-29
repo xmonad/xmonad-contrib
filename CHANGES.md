@@ -11,6 +11,9 @@
     support in `_NET_SUPPORTED` and fixes fullscreening of applications that
     explicitly check it, e.g. mupdf-gl, sxiv, …
 
+    `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
+    and no configuration changes are required in this case.
+
 ### New Modules
 
   * `XMonad.Layout.TallMastersCombo`
