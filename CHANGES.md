@@ -145,6 +145,10 @@
   * `XMonad.Util.EZConfig`
     - Added support for XF86Bluetooth.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    Added `ignoreNetActiveWindow`, to selectively ignore window activation
+    requests from focus-stealing apps.
 
 ## 0.16
 
