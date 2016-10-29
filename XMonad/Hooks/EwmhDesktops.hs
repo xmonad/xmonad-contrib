@@ -21,7 +21,9 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsLogHookCustom,
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
-    fullscreenEventHook
+    ewmhFullscreen,
+    fullscreenEventHook,
+    fullscreenStartup
     ) where
 
 import Codec.Binary.UTF8.String (encode)
@@ -47,19 +49,20 @@ import XMonad.Util.WindowProperties (getProp32)
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad $ ewmh def{ handleEventHook =
--- >            handleEventHook def <+> fullscreenEventHook }
+-- > main = xmonad $ ewmhFullscreen $ ewmh def
+--
+-- or, if fullscreen handling is not desired, just
+--
+-- > main = xmonad $ ewmh def
 --
 -- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
 
 
 -- | Add EWMH functionality to the given config.  See above for an example.
 ewmh :: XConfig a -> XConfig a
-ewmh c = c { startupHook     = startupHook c +++ ewmhDesktopsStartup
-           , handleEventHook = handleEventHook c +++ ewmhDesktopsEventHook
-           , logHook         = logHook c +++ ewmhDesktopsLogHook }
- -- @@@ will fix this correctly later with the rewrite
- where x +++ y = mappend y x
+ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
+           , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
+           , logHook         = ewmhDesktopsLogHook <+> logHook c }
 
 -- |
 -- Initializes EwmhDesktops and advertises EWMH support to the X
@@ -213,6 +216,23 @@ handle f (ClientMessageEvent {
           return ()
 handle _ _ = return ()
 
+-- | Add EWMH fullscreen functionality to the given config.
+--
+-- This must be applied after 'ewmh', like so:
+--
+-- > main = xmonad $ ewmhFullscreen $ ewmh def
+--
+-- NOT:
+--
+-- > main = xmonad $ ewmh $ ewmhFullscreen def
+ewmhFullscreen :: XConfig a -> XConfig a
+ewmhFullscreen c = c { startupHook     = startupHook c <+> fullscreenStartup
+                     , handleEventHook = handleEventHook c <+> fullscreenEventHook }
+
+-- | Advertises EWMH fullscreen support to the X server.
+fullscreenStartup :: X ()
+fullscreenStartup = setFullscreenSupported
+
 -- |
 -- An event hook to handle applications that wish to fullscreen using the
 -- _NET_WM_STATE protocol. This includes users of the gtk_window_fullscreen()
@@ -297,6 +317,20 @@ setSupported = withDisplay $ \dpy -> do
     io $ changeProperty32 dpy r a aTOM propModeReplace (fmap fromIntegral supp)
 
     setWMName "xmonad"
+
+-- TODO: use in SetWMName, UrgencyHook
+addSupported :: [String] -> X ()
+addSupported props = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_SUPPORTED"
+    fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
+    newSupportedList <- mapM (fmap fromIntegral . getAtom) props
+    io $ do
+        supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r
+        changeProperty32 dpy r a aTOM propModeReplace (nub $ newSupportedList ++ supportedList)
+
+setFullscreenSupported :: X ()
+setFullscreenSupported = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
 
 setActiveWindow :: Window -> X ()
 setActiveWindow w = withDisplay $ \dpy -> do

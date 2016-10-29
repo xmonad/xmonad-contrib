@@ -4,6 +4,13 @@
 
 ### Breaking Changes
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    It is no longer recommended to use `fullscreenEventHook` directly.
+    Instead, use `ewmhFullscreen` which additionally advertises fullscreen
+    support in `_NET_SUPPORTED` and fixes fullscreening of applications that
+    explicitly check it, e.g. mupdf-gl, sxiv, …
+
 ### New Modules
 
   * `XMonad.Layout.TallMastersCombo`
