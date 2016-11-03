@@ -25,6 +25,8 @@ module XMonad.Actions.WorkspaceNames (
     renameWorkspace,
     workspaceNamesPP,
     getWorkspaceNames,
+    getWorkspaceName,
+    getCurrentWorkspaceName,
     setWorkspaceName,
     setCurrentWorkspaceName,
 
@@ -96,6 +98,17 @@ getWorkspaceNames = do
     return $ \wks -> case M.lookup wks m of
         Nothing -> wks
         Just s  -> wks ++ ":" ++ s
+
+-- | Gets the name of a workspace, if set, otherwise returns nothing.
+getWorkspaceName :: WorkspaceId -> X (Maybe String)
+getWorkspaceName w = do
+    WorkspaceNames m <- XS.get
+    return $ M.lookup w m
+
+-- | Gets the name of the current workspace. See 'getWorkspaceName'
+getCurrentWorkspaceName :: X (Maybe String)
+getCurrentWorkspaceName = do
+    getWorkspaceName =<< gets (W.currentTag . windowset)
 
 -- | Sets the name of a workspace. Empty string makes the workspace unnamed
 -- again.
