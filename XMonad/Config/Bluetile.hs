@@ -180,8 +180,7 @@ bluetileManageHook :: ManageHook
 bluetileManageHook = composeAll
                [ workspaceByPos, positionStoreManageHook (Just defaultThemeWithButtons)
                 , className =? "MPlayer" --> doFloat
-                , isFullscreen --> doFullFloat
-                , manageDocks]
+                , isFullscreen --> doFullFloat]
 
 bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
                         named "Floating" floating |||
@@ -199,6 +198,7 @@ bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
             floatingDeco l = buttonDeco shrinkText defaultThemeWithButtons l
 
 bluetileConfig =
+    docks $
     def
         { modMask = mod4Mask,   -- logo key
           manageHook = bluetileManageHook,

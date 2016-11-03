@@ -205,7 +205,7 @@ instance PPrint ScreenId
 instance (Show a, Show b) => PPrint (Map a b)
 -- }}}
 -- main {{{
-dmwitConfig nScreens = def {
+dmwitConfig nScreens = docks $ def {
     borderWidth             = 2,
     workspaces              = withScreens nScreens (map show [1..5]),
     terminal                = "urxvt",
@@ -221,7 +221,6 @@ dmwitConfig nScreens = def {
                               <+> (appName =? "huludesktop" --> doRectFloat fullscreen43on169)
                               <+> fullscreenMPlayer
                               <+> floatAll ["Gimp", "Wine"]
-                              <+> manageDocks
                               <+> manageSpawn,
     logHook                 = allPPs nScreens,
     startupHook             = refresh

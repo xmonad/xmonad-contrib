@@ -21,7 +21,7 @@ import XMonad.Layout.TwoPane
 import qualified Data.Map as M
 
 sjanssenConfig =
-    ewmh $ def
+    docks $ ewmh $ def
         { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
         , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
@@ -35,7 +35,7 @@ sjanssenConfig =
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
-                        <+> manageHook def <+> manageDocks <+> manageSpawn
+                        <+> manageHook def <+> manageSpawn
                         <+> (isFullscreen --> doFullFloat)
         , startupHook = mapM_ spawnOnce spawns
         }
