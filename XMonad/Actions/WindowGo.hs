@@ -138,9 +138,7 @@ raiseNext = raiseNextMaybe $ return ()
      'raiseNextMaybe' is an alternative version that allows cycling
      through the matching windows. If the focused window matches the
      query the next matching window is raised. If no matches are found
-     the function f is executed.
--}
-
+     the function f is executed. -}
 raiseNextMaybe :: X () -> Query Bool -> X ()
 raiseNextMaybe = raiseNextMaybeCustomFocus W.focusWindow
 
@@ -175,7 +173,8 @@ raiseAndDo :: X () -> Query Bool -> (Window -> X ()) -> X ()
 raiseAndDo f qry after = ifWindow qry (afterRaise `mappend` raiseHook) f
     where afterRaise = ask >>= (>> idHook) . liftX . after
 
-{- | If a window matching the second argument is found, the window is focused and the third argument is called;
+{- | If a window matching the second argument is found, the window is focused and
+     the third argument is called;
      otherwise, the first argument is called. -}
 runOrRaiseAndDo :: String -> Query Bool -> (Window -> X ()) -> X ()
 runOrRaiseAndDo = raiseAndDo . safeSpawnProg
@@ -190,7 +189,6 @@ raiseMaster raisef thatUserQuery = raiseAndDo raisef thatUserQuery (\_ -> window
 {- |  If the window is found the window is focused and set to master
       otherwise, action is run.
 
-      > runOrRaiseMaster "firefox" (className =? "Firefox"))
-  -}
+      > runOrRaiseMaster "firefox" (className =? "Firefox")) -}
 runOrRaiseMaster :: String -> Query Bool -> X ()
 runOrRaiseMaster run query = runOrRaiseAndDo run query (\_ -> windows W.swapMaster)
