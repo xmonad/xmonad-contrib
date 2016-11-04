@@ -88,7 +88,7 @@ positionStoreInit mDecoTheme w  = withDisplay $ \d -> do
             else do
                 sc <- fromMaybe (W.current ws) <$> pointScreen (fi $ wa_x wa) (fi $ wa_y wa)
                 let sr = screenRect . W.screenDetail $ sc
-                sr' <- fmap ($ sr) (calcGapForAll $ S.fromList [minBound .. maxBound]) -- take docks into account, accepting
+                sr' <- fmap ($ sr) (calcGap $ S.fromList [minBound .. maxBound]) -- take docks into account, accepting
                                                                                        -- a somewhat unfortunate inter-dependency
                                                                                        -- with 'XMonad.Hooks.ManageDocks'
                 modifyPosStore (\ps -> posStoreInsert ps w

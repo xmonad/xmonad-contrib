@@ -21,6 +21,7 @@ module XMonad.Util.ExtensibleState (
                               , remove
                               , get
                               , gets
+                              , modified
                               ) where
 
 import Data.Typeable (typeOf,cast)
@@ -115,3 +116,10 @@ gets = flip fmap get
 -- | Remove the value from the extensible state field that has the same type as the supplied argument
 remove :: ExtensionClass a => a -> X ()
 remove wit = modifyStateExts $ M.delete (show . typeOf $ wit)
+
+modified :: (ExtensionClass a, Eq a) => (a -> a) -> X Bool
+modified f = do
+    v <- get
+    case f v of
+        v' | v' == v   -> return False
+           | otherwise -> put v' >> return True

@@ -42,7 +42,7 @@ import XMonad.Actions.DynamicWorkspaces ( withNthWorkspace, withWorkspace,
 import XMonad.Actions.CycleWS ( moveTo, WSType( HiddenNonEmptyWS ),
                                 Direction1D( Prev, Next) )
 
-import XMonad.Hooks.ManageDocks ( avoidStruts, manageDocks )
+import XMonad.Hooks.ManageDocks ( avoidStruts, docks )
 import XMonad.Hooks.EwmhDesktops ( ewmh )
 
 myXPConfig :: XPConfig
@@ -117,7 +117,7 @@ keys x = M.fromList $
     ++
     zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
-config = ewmh def
+config = docks $ ewmh def
          { borderWidth = 1 -- Width of the window border in pixels.
          , XMonad.workspaces = ["mutt","iceweasel"]
          , layoutHook = showWName $ workspaceDir "~" $
@@ -129,7 +129,6 @@ config = ewmh def
                         named "widescreen" ((mytab *||* mytab)
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
-         , manageHook = manageHook def <+> manageDocks -- add panel-handling
          , terminal = "xterm" -- The preferred terminal program.
          , normalBorderColor = "#222222" -- Border color for unfocused windows.
          , focusedBorderColor = "#00ff00" -- Border color for focused windows.
