@@ -144,6 +144,10 @@ raiseNext = raiseNextMaybe $ return ()
 raiseNextMaybe :: X () -> Query Bool -> X ()
 raiseNextMaybe = raiseNextMaybeCustomFocus W.focusWindow
 
+{- | See 'raiseMaybe' and 'raiseNextMaybe'.
+     In addition to all of the options offered by 'raiseNextMaybe'
+     'raiseNextMaybeCustomFocus' allows the user to supply the function that
+     should be used to shift the focus to any window that is found. -}
 raiseNextMaybeCustomFocus :: (Window -> WindowSet -> WindowSet) -> X() -> Query Bool -> X()
 raiseNextMaybeCustomFocus focusFn f qry = flip (ifWindows qry) f $ \ws -> do
   foc <- withWindowSet $ return . W.peek
