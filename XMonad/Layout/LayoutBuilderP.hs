@@ -9,12 +9,11 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A layout combinator that sends windows matching given predicate to one rectangle
--- and the rest to another.
+-- DEPRECATED.  Use 'XMonad.Layout.LayoutBuilder' instead.
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.LayoutBuilderP (
+module XMonad.Layout.LayoutBuilderP {-# DEPRECATED "Use XMonad.Layout.LayoutBuilder instead" #-} (
   LayoutP (..),
   layoutP, layoutAll,
   B.relBox, B.absBox,
@@ -59,6 +58,7 @@ data LayoutP p l1 l2 a =
 
 -- | Use the specified layout in the described area windows that match given predicate and send the rest of the windows to the next layout in the chain.
 --   It is possible to supply an alternative area that will then be used instead, if there are no windows to send to the next layout.
+{-# DEPRECATED layoutP "Use XMonad.Layout.LayoutBuilder.layoutP instead." #-}
 layoutP :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a, Predicate p a) =>
        p
     -> B.SubBox                       -- ^ The box to place the windows in
@@ -69,6 +69,7 @@ layoutP :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a, 
 layoutP prop box mbox sub next = LayoutP Nothing Nothing prop box mbox sub (Just next)
 
 -- | Use the specified layout in the described area for all remaining windows.
+{-# DEPRECATED layoutAll "Use XMonad.Layout.LayoutBuilder.layoutAll instead." #-}
 layoutAll :: forall l1 p a. (Read a, Eq a, LayoutClass l1 a, Predicate p a) =>
        B.SubBox             -- ^ The box to place the windows in
     -> l1 a               -- ^ The layout to use in the specified area
@@ -207,4 +208,3 @@ differentiate' (Just f) w
 instance Predicate Property Window where
   alwaysTrue _ = Const True
   checkPredicate = hasProperty
-
