@@ -24,6 +24,7 @@ module XMonad.Actions.WorkspaceNames (
     -- * Workspace naming
     renameWorkspace,
     workspaceNamesPP,
+    getWorkspaceNames',
     getWorkspaceNames,
     getWorkspaceName,
     getCurrentWorkspaceName,
@@ -90,20 +91,22 @@ instance ExtensionClass WorkspaceNames where
     initialValue = WorkspaceNames M.empty
     extensionType = PersistentExtension
 
+-- | Returns a lookup function that maps workspace tags to workspace names.
+getWorkspaceNames' :: X (WorkspaceId -> Maybe String)
+getWorkspaceNames' = do
+    WorkspaceNames m <- XS.get
+    return (`M.lookup` m)
+
 -- | Returns a function that maps workspace tag @\"t\"@ to @\"t:name\"@ for
 -- workspaces with a name, and to @\"t\"@ otherwise.
 getWorkspaceNames :: X (WorkspaceId -> String)
 getWorkspaceNames = do
-    WorkspaceNames m <- XS.get
-    return $ \wks -> case M.lookup wks m of
-        Nothing -> wks
-        Just s  -> wks ++ ":" ++ s
+    lookup <- getWorkspaceNames'
+    return $ \wks -> wks ++ maybe "" (':' :) (lookup wks)
 
 -- | Gets the name of a workspace, if set, otherwise returns nothing.
 getWorkspaceName :: WorkspaceId -> X (Maybe String)
-getWorkspaceName w = do
-    WorkspaceNames m <- XS.get
-    return $ M.lookup w m
+getWorkspaceName w = ($ w) `fmap` getWorkspaceNames'
 
 -- | Gets the name of the current workspace. See 'getWorkspaceName'
 getCurrentWorkspaceName :: X (Maybe String)
