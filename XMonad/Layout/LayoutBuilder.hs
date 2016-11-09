@@ -1,11 +1,26 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances, PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards         #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LayoutBuilder
--- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>
+--
+-- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>,
+--                    2011 Ilya Portnov <portnov84@rambler.ru>,
+--                    2015 Peter Jones <pjones@devalot.com>
+--
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  Anders Engstrom <ankaan@gmail.com>
+-- Maintainer  :  Anders Engstrom <ankaan@gmail.com>,
+--                Ilya Portnov <portnov84@rambler.ru>,
+--                Peter Jones <pjones@devalot.com>
+--
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -17,25 +32,40 @@
 -- ("XMonad.Layout.LayoutHints", "XMonad.Layout.HintedGrid" etc.)
 --
 -----------------------------------------------------------------------------
-
 module XMonad.Layout.LayoutBuilder (
   -- * Usage
   -- $usage
   layoutN,
   layoutR,
+  layoutP,
   layoutAll,
+
+  -- * Selecting Windows
+  -- $selectWin
+  Predicate (..),
+  Proxy(..),
+
+  -- * Messages
   IncLayoutN (..),
+
+  -- * Utilities
   SubMeasure (..),
   SubBox (..),
   absBox,
   relBox,
+  LayoutB,
   LayoutN,
 ) where
 
+--------------------------------------------------------------------------------
+import Control.Applicative ((<|>))
+import Control.Monad (foldM)
+import Data.Maybe
 import XMonad
 import qualified XMonad.StackSet as W
-import Data.Maybe (isJust,isNothing,listToMaybe)
+import XMonad.Util.WindowProperties
 
+--------------------------------------------------------------------------------
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -89,56 +119,126 @@ import Data.Maybe (isJust,isNothing,listToMaybe)
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-type WindowNum = Either Int (Rational,Rational)
+--------------------------------------------------------------------------------
+-- $selectWin
+--
+-- 'Predicate' exists because layouts are required to be serializable, and
+-- "XMonad.Util.WindowProperties" is not sufficient (for example it does not
+-- allow using regular expressions).
+--
+-- compare "XMonad.Util.Invisible"
 
--- | Use one layout in the specified area for a number of windows and possibly let another layout handle the rest.
-data LayoutN l1 l2 a =
-    LayoutN (Maybe a) (Maybe a) WindowNum SubBox (Maybe SubBox) (l1 a) (Maybe (l2 a))
-    deriving (Show,Read)
+-- | Type class for predicates. This enables us to manage not only Windows,
+-- but any objects, for which instance Predicate is defined.
+--
+-- Another instance exists in XMonad.Util.WindowPropertiesRE in xmonad-extras
+class Predicate p w where
+  alwaysTrue     :: Proxy w -> p     -- ^ A predicate that is always True.
+  checkPredicate :: p -> w -> X Bool -- ^ Check if given object (window or smth else) matches that predicate
 
--- | Use the specified layout in the described area for N windows and send the rest of the windows to the next layout in the chain.
---   It is possible to supply an alternative area that will then be used instead, if there are no windows to send to the next layout.
+instance Predicate () a where
+  alwaysTrue _       = ()
+  checkPredicate _ _ = return True
+
+instance Predicate Property Window where
+  alwaysTrue _   = Const True
+  checkPredicate = hasProperty
+
+--------------------------------------------------------------------------------
+-- | Contains no actual data, but is needed to help select the correct instance
+-- of 'Predicate'
+data Proxy a = Proxy
+
+--------------------------------------------------------------------------------
+-- | Information about how to split windows between layouts.
+data Limit p = LimitN Int                  -- ^ See: 'layoutN'.
+             | LimitR (Rational, Rational) -- ^ See: 'layoutR'.
+             | LimitP p                    -- ^ See: 'layoutP'.
+             deriving (Show, Read)
+
+--------------------------------------------------------------------------------
+-- | Use one layout in the specified area for a number of windows and
+-- possibly let another layout handle the rest.
+data LayoutB l1 l2 p a = LayoutB
+    { subFocus  :: Maybe a      -- ^ The focused window in this layout.
+    , nextFocus :: Maybe a      -- ^ The focused window in the next layout.
+    , limit     :: Limit p      -- ^ How to split windows between layouts.
+    , box       :: SubBox       -- ^ Normal size of layout.
+    , mbox      :: Maybe SubBox -- ^ Size of layout when handling all windows.
+    , sub       :: l1 a         -- ^ The layout to use in this box.
+    , next      :: Maybe (l2 a) -- ^ The next layout in the chain.
+    } deriving (Show, Read)
+
+--------------------------------------------------------------------------------
+-- | A variant of 'LayoutB' that can't use 'layoutP'.  For backwards
+-- compatibility with previous versions of LayoutBuilder.
+type LayoutN l1 l2 a = LayoutB l1 l2 () a
+
+--------------------------------------------------------------------------------
+-- | Use the specified layout in the described area for N windows and
+-- send the rest of the windows to the next layout in the chain.  It
+-- is possible to supply an alternative area that will then be used
+-- instead, if there are no windows to send to the next layout.
 layoutN :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a) =>
-       Int                          -- ^ The number of windows to handle
-    -> SubBox                       -- ^ The box to place the windows in
-    -> Maybe SubBox                 -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
-    -> l1 a                         -- ^ The layout to use in the specified area
-    -> LayoutN l2 l3 a              -- ^ Where to send the remaining windows
-    -> LayoutN l1 (LayoutN l2 l3) a -- ^ The resulting layout
-layoutN num box mbox sub next = LayoutN Nothing Nothing (Left num) box mbox sub (Just next)
+       Int                               -- ^ The number of windows to handle
+    -> SubBox                            -- ^ The box to place the windows in
+    -> Maybe SubBox                      -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
+    -> l1 a                              -- ^ The layout to use in the specified area
+    -> LayoutB l2 l3 p a                 -- ^ Where to send the remaining windows
+    -> LayoutB l1 (LayoutB l2 l3 p) () a -- ^ The resulting layout
+layoutN num box mbox sub next = LayoutB Nothing Nothing (LimitN num) box mbox sub (Just next)
 
 -- | As layoutN, but the number of windows is given relative to the total number of windows remaining to be handled. The first
 --   argument is how much to change the ratio when using IncLayoutN, and the second is the initial ratio.
 layoutR :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a) =>
-       Rational                     -- ^ How much to change the ratio with each IncLayoutN
-    -> Rational                     -- ^ The ratio of the remaining windows to handle
-    -> SubBox                       -- ^ The box to place the windows in
-    -> Maybe SubBox                 -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
-    -> l1 a                         -- ^ The layout to use in the specified area
-    -> LayoutN l2 l3 a              -- ^ Where to send the remaining windows
-    -> LayoutN l1 (LayoutN l2 l3) a -- ^ The resulting layout
-layoutR numdiff num box mbox sub next = LayoutN Nothing Nothing (Right (numdiff,num)) box mbox sub (Just next)
+       Rational                         -- ^ How much to change the ratio with each IncLayoutN
+    -> Rational                         -- ^ The ratio of the remaining windows to handle
+    -> SubBox                           -- ^ The box to place the windows in
+    -> Maybe SubBox                     -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
+    -> l1 a                             -- ^ The layout to use in the specified area
+    -> LayoutB l2 l3 p a                -- ^ Where to send the remaining windows
+    -> LayoutB l1 (LayoutB l2 l3 p) p a -- ^ The resulting layout
+layoutR numdiff num box mbox sub next = LayoutB Nothing Nothing (LimitR (numdiff,num)) box mbox sub (Just next)
 
+--------------------------------------------------------------------------------
+-- | Use the specified layout in the described area windows that match
+-- given predicate and send the rest of the windows to the next layout
+-- in the chain.  It is possible to supply an alternative area that
+-- will then be used instead, if there are no windows to send to the
+-- next layout.
+layoutP :: (Read a, Eq a, LayoutClass l1 a, LayoutClass l2 a, LayoutClass l3 a, Predicate p a, Predicate p' a) =>
+       p                                 -- ^ The predicate to use
+    -> SubBox                            -- ^ The box to place the windows in
+    -> Maybe SubBox                      -- ^ Possibly an alternative box that is used when this layout handles all windows that are left
+    -> l1 a                              -- ^ The layout to use in the specified area
+    -> LayoutB l2 l3 p' a                -- ^ Where to send the remaining windows
+    -> LayoutB l1 (LayoutB l2 l3 p') p a -- ^ The resulting layout
+layoutP prop box mbox sub next = LayoutB Nothing Nothing (LimitP prop) box mbox sub (Just next)
+
+--------------------------------------------------------------------------------
 -- | Use the specified layout in the described area for all remaining windows.
 layoutAll :: (Read a, Eq a, LayoutClass l1 a) =>
-       SubBox             -- ^ The box to place the windows in
-    -> l1 a               -- ^ The layout to use in the specified area
-    -> LayoutN l1 Full a  -- ^ The resulting layout
-layoutAll box sub = LayoutN Nothing Nothing (Right (0,1)) box Nothing sub Nothing
+       SubBox                -- ^ The box to place the windows in
+    -> l1 a                  -- ^ The layout to use in the specified area
+    -> LayoutB l1 Full () a  -- ^ The resulting layout
+layoutAll box sub = LayoutB Nothing Nothing (LimitR (0,1)) box Nothing sub Nothing
 
+--------------------------------------------------------------------------------
 -- | Change the number of windows handled by the focused layout.
 data IncLayoutN = IncLayoutN Int deriving Typeable
 instance Message IncLayoutN
 
+--------------------------------------------------------------------------------
 -- | The absolute or relative measures used to describe the area a layout should be placed in. For negative absolute values
 --   the total remaining space will be added. For sizes, the remaining space will also be added for zeroes. Relative values
 --   are applied on the remaining space after the top-left corner of the box have been removed.
 data SubMeasure = Abs Int | Rel Rational deriving (Show,Read)
 
+--------------------------------------------------------------------------------
 -- | A box to place a layout in. The stored values are xpos, ypos, width and height.
 data SubBox = SubBox SubMeasure SubMeasure SubMeasure SubMeasure deriving (Show,Read)
 
-
+--------------------------------------------------------------------------------
 -- | Create a box with only absolute measurements. If the values are negative, the total remaining space will be added. For
 --   sizes it will also be added for zeroes.
 absBox :: Int     -- ^ Absolute X-Position
@@ -148,7 +248,7 @@ absBox :: Int     -- ^ Absolute X-Position
        -> SubBox  -- ^ The resulting 'SubBox' describing the area
 absBox x y w h = SubBox (Abs x) (Abs y) (Abs w) (Abs h)
 
-
+--------------------------------------------------------------------------------
 -- | Create a box with only relative measurements.
 relBox :: Rational  -- ^ Relative X-Position with respect to the surrounding area
        -> Rational  -- ^ Relative Y-Position with respect to the surrounding area
@@ -157,138 +257,209 @@ relBox :: Rational  -- ^ Relative X-Position with respect to the surrounding are
        -> SubBox    -- ^ The resulting 'SubBox' describing the area
 relBox x y w h = SubBox (Rel x) (Rel y) (Rel w) (Rel h)
 
+--------------------------------------------------------------------------------
+instance ( LayoutClass l1 a, LayoutClass l2 a
+         , Read a, Show a, Show p, Eq a, Typeable a, Predicate p a
+         ) => LayoutClass (LayoutB l1 l2 p) a where
 
-instance (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) =>
-    LayoutClass (LayoutN l1 l2) a where
+    -- | Update window locations.
+    runLayout (W.Workspace _ LayoutB {..} s) rect = do
+        (subs, nexts, subFocus', nextFocus') <- splitStack s limit subFocus nextFocus
 
-        -- | Update window locations.
-        runLayout (W.Workspace _ (LayoutN subf nextf num box mbox sub next) s) rect
-            = do let (subs,nexts,subf',nextf') = splitStack s num subf nextf
-                     selBox = if isJust nextf'
-                              then box
-                              else maybe box id mbox
+        let selBox = if isJust nextFocus' then box else fromMaybe box mbox
 
-                 (sublist,sub',schange) <- handle sub subs $ calcArea selBox rect
+        (sublist, sub', schange) <- handle sub subs (calcArea selBox rect)
 
-                 (nextlist,next',nchange) <- case next of Nothing -> return ([], Nothing, False)
-                                                          Just n -> do (res, l, ch) <- handle n nexts rect
-                                                                       return (res, Just l, ch)
+        (nextlist, next', nchange) <- case next of
+          Nothing -> return ([], Nothing, False)
+          Just n  -> do (res, l, ch) <- handle n nexts rect
+                        return (res, Just l, ch)
 
-                 let newlist =  if (length $ maybe [] W.up s) < (length $ W.integrate' subs)
-                                then sublist++nextlist
-                                else nextlist++sublist
-                     newstate = if subf' /= subf || nextf' /= nextf || schange || nchange
-                                then Just $ LayoutN subf' nextf' num box mbox sub' next'
-                                else Nothing
+        let newlist =  if length (maybe [] W.up s) < length (W.integrate' subs)
+                         then sublist++nextlist
+                         else nextlist++sublist
 
-                 return (newlist, newstate)
-              where
-                  handle l s' r = do (res,ml) <- runLayout (W.Workspace "" l s') r
-                                     l' <- return $ maybe l id ml
-                                     return (res, l', isNothing ml)
+            newstate = if subFocus' /= subFocus || nextFocus' /= nextFocus || schange || nchange
+                         then Just $ LayoutB subFocus' nextFocus' limit box mbox sub' next'
+                         else Nothing
 
-        -- |  Propagate messages.
-        handleMessage l m
-            | Just (IncLayoutN _) <- fromMessage m = windowNum l m
-            | Just (IncMasterN _) <- fromMessage m = sendFocus l m
-            | Just (Shrink) <- fromMessage m = sendFocus l m
-            | Just (Expand) <- fromMessage m = sendFocus l m
-            | otherwise = sendBoth l m
+        return (newlist, newstate)
+      where
+          handle l s' r = do (res,ml) <- runLayout (W.Workspace "" l s') r
+                             return (res, fromMaybe l ml, isNothing ml)
 
-        -- |  Descriptive name for layout.
-        description (LayoutN _ _ _ _ _ sub Nothing) = "layoutAll "++ description sub
-        description (LayoutN _ _ (Left _) _ _ sub (Just next)) = "layoutN "++ description sub ++" "++ description next
-        description (LayoutN _ _ (Right _) _ _ sub (Just next)) = "layoutR "++ description sub ++" "++ description next
+    -- |  Propagate messages.
+    handleMessage l m
+        | Just (IncLayoutN n) <- fromMessage m = incLayoutN l m n
+        | Just (IncMasterN _) <- fromMessage m = sendFocus  l m
+        | Just Shrink         <- fromMessage m = sendFocus  l m
+        | Just Expand         <- fromMessage m = sendFocus  l m
+        | otherwise                            = sendBoth   l m
 
+    -- | Descriptive name for layout.
+    description layout = case layout of
+        (LayoutB _ _ _ _ _ sub Nothing) ->
+          "layoutAll " ++ description sub
 
-windowNum :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutN l1 l2 a -> SomeMessage -> X (Maybe (LayoutN l1 l2 a))
-windowNum l@(LayoutN subf nextf num box mbox subl nextl) m | (Just (IncLayoutN n)) <- fromMessage m =
-    do foc <- isFocus subf
-       if foc then do let newnum = case num of
-                                       (Left oldnum) -> Left $ max 1 $ oldnum + n
-                                       (Right (diff,oldnum)) -> Right (diff, min 1 $ max 0 $ oldnum + (fromIntegral n)*diff)
-                      return $ Just $ LayoutN subf nextf newnum box mbox subl nextl
-              else sendNext l m
-windowNum l m = sendNext l m
+        (LayoutB _ _ (LimitN _) _ _ sub (Just next)) ->
+          "layoutN " ++ description sub ++ " " ++ description next
 
-sendSub :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutN l1 l2 a -> SomeMessage -> X (Maybe (LayoutN l1 l2 a))
-sendSub (LayoutN subf nextf num box mbox sub next) m =
+        (LayoutB _ _ (LimitR _) _ _ sub (Just next)) ->
+          "layoutR " ++ description sub ++ " " ++ description next
+
+        (LayoutB _ _ (LimitP _) _ _ sub (Just next)) ->
+          "layoutP " ++ description sub ++ " " ++ description next
+
+--------------------------------------------------------------------------------
+-- | Increase the number of windows allowed in the focused layout.
+incLayoutN :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a)
+           => LayoutB l1 l2 p a
+           -> SomeMessage
+           -> Int
+           -> X (Maybe (LayoutB l1 l2 p a))
+incLayoutN layout@LayoutB {..} message n = do
+    incThis <- isFocus subFocus
+
+    if incThis
+       then return $ Just layout { limit = newLimit }
+       else sendNext layout message
+
+  where
+    newLimit = case limit of
+      LimitN oldnum         -> LimitN (max 1 $ oldnum + n)
+      LimitR (diff, oldnum) -> LimitR (diff, min 1 $ max 0 $ oldnum + fromIntegral n * diff)
+      LimitP _              -> limit
+
+--------------------------------------------------------------------------------
+sendSub :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutB l1 l2 p a -> SomeMessage -> X (Maybe (LayoutB l1 l2 p a))
+sendSub (LayoutB subFocus nextFocus num box mbox sub next) m =
     do sub' <- handleMessage sub m
        return $ if isJust sub'
-                then Just $ LayoutN subf nextf num box mbox (maybe sub id sub') next
+                then Just $ LayoutB subFocus nextFocus num box mbox (fromMaybe sub sub') next
                 else Nothing
 
-sendBoth :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutN l1 l2 a -> SomeMessage -> X (Maybe (LayoutN l1 l2 a))
-sendBoth l@(LayoutN _ _ _ _ _ _ Nothing) m = sendSub l m
-sendBoth (LayoutN subf nextf num box mbox sub (Just next)) m =
+--------------------------------------------------------------------------------
+sendBoth :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutB l1 l2 p a -> SomeMessage -> X (Maybe (LayoutB l1 l2 p a))
+sendBoth l@(LayoutB _ _ _ _ _ _ Nothing) m = sendSub l m
+sendBoth (LayoutB subFocus nextFocus num box mbox sub (Just next)) m =
     do sub' <- handleMessage sub m
        next' <- handleMessage next m
        return $ if isJust sub' || isJust next'
-                then Just $ LayoutN subf nextf num box mbox (maybe sub id sub') (Just $ maybe next id next')
+                then Just $ LayoutB subFocus nextFocus num box mbox (fromMaybe sub sub') (next' <|> Just next)
                 else Nothing
 
-sendNext :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutN l1 l2 a -> SomeMessage -> X (Maybe (LayoutN l1 l2 a))
-sendNext (LayoutN _ _ _ _ _ _ Nothing) _ = return Nothing
-sendNext (LayoutN subf nextf num box mbox sub (Just next)) m =
+--------------------------------------------------------------------------------
+sendNext :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutB l1 l2 p a -> SomeMessage -> X (Maybe (LayoutB l1 l2 p a))
+sendNext (LayoutB _ _ _ _ _ _ Nothing) _ = return Nothing
+sendNext (LayoutB subFocus nextFocus num box mbox sub (Just next)) m =
     do next' <- handleMessage next m
        return $ if isJust next'
-                then Just $ LayoutN subf nextf num box mbox sub next'
+                then Just $ LayoutB subFocus nextFocus num box mbox sub next'
                 else Nothing
 
-sendFocus :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutN l1 l2 a -> SomeMessage -> X (Maybe (LayoutN l1 l2 a))
-sendFocus l@(LayoutN subf _ _ _ _ _ _) m = do foc <- isFocus subf
-                                              if foc then sendSub l m
-                                                     else sendNext l m
+--------------------------------------------------------------------------------
+sendFocus :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a) => LayoutB l1 l2 p a -> SomeMessage -> X (Maybe (LayoutB l1 l2 p a))
+sendFocus l@(LayoutB subFocus _ _ _ _ _ _) m = do
+  foc <- isFocus subFocus
 
+  if foc
+    then sendSub  l m
+    else sendNext l m
+
+--------------------------------------------------------------------------------
+-- | Check to see if the given window is currently focused.
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
 isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
-                      return $ maybe False (\s -> show w == (show $ W.focus s)) ms
+                      return $ maybe False (\s -> show w == show (W.focus s)) ms
 
+--------------------------------------------------------------------------------
+calcNum :: Int -> Limit p -> Int
+calcNum tot num = max 1 $ case num of LimitN i     -> i
+                                      LimitR (_,r) -> ceiling $ r * fromIntegral tot
+                                      LimitP _     -> 1
 
-calcNum :: Int -> WindowNum -> Int
-calcNum tot num = max 1 $ case num of Left i -> i
-                                      Right (_,r) -> ceiling $ r * fromIntegral tot
+--------------------------------------------------------------------------------
+-- | Split given list of objects (i.e. windows) using predicate.
+splitBy :: (Predicate p a) => p -> [a] -> X ([a], [a])
+splitBy prop = foldM step ([], [])
+  where
+    step (good, bad) w = do
+      ok <- checkPredicate prop w
+      return $ if ok
+                then (w:good, bad)
+                else (good,   w:bad)
 
-splitStack :: Eq a => Maybe (W.Stack a) -> WindowNum -> Maybe a -> Maybe a -> (Maybe (W.Stack a),Maybe (W.Stack a),Maybe a,Maybe a)
-splitStack Nothing _ _ _ = (Nothing,Nothing,Nothing,Nothing)
-splitStack (Just s) num subf nextf = ( differentiate' subf' subl
-                                     , differentiate' nextf' nextl
-                                     , subf'
-                                     , nextf'
-                                     )
-    where
-        ws = W.integrate s
-        n = calcNum (length ws) num
-        subl = take n ws
-        nextl = drop n ws
-        subf' = foc subl subf
-        nextf' = foc nextl nextf
-        foc [] _ = Nothing
-        foc l f | W.focus s `elem` l = Just $ W.focus s
-                | maybe False (`elem` l) f = f
-                | otherwise = listToMaybe l
+--------------------------------------------------------------------------------
+splitStack :: forall a p. (Eq a, Predicate p a)
+           => Maybe (W.Stack a) -- ^ Window set.
+           -> Limit p           -- ^ How to split the stack.
+           -> Maybe a           -- ^ The window that was focused in this layout.
+           -> Maybe a           -- ^ The window that was focused in the next layout.
+           -> X (Maybe (W.Stack a), Maybe (W.Stack a), Maybe a, Maybe a)
+splitStack Nothing _ _ _ = return (Nothing, Nothing, Nothing, Nothing)
+splitStack (Just s) limit subFocus nextFocus =
+  case limit of
+    LimitN _    -> splitN
+    LimitR _    -> splitN
+    LimitP prop -> splitP prop
 
+  where
+    ws        = W.integrate s
+    n         = calcNum (length ws) limit
+    subl      = take n ws
+    nextl     = drop n ws
+    subFocus' xs  = foc xs subFocus
+    nextFocus' xs = foc xs nextFocus
+
+    -- Pick a new focused window if necessary.
+    foc :: [a] -> Maybe a -> Maybe a
+    foc [] _                           = Nothing
+    foc l f | W.focus s `elem` l       = Just (W.focus s)
+            | maybe False (`elem` l) f = f
+            | otherwise                = listToMaybe l
+
+    -- Split based on max number of windows.
+    splitN = return ( differentiate' (subFocus' subl)   subl
+                    , differentiate' (nextFocus' nextl) nextl
+                    , subFocus'  subl
+                    , nextFocus' nextl
+                    )
+
+    -- Split based on a predicate.
+    splitP prop = do
+      (this, other) <- splitBy prop ws
+      return ( differentiate' (subFocus' this)   this
+             , differentiate' (nextFocus' other) other
+             , subFocus' this
+             , nextFocus' other
+             )
+
+--------------------------------------------------------------------------------
 calcArea :: SubBox -> Rectangle -> Rectangle
-calcArea (SubBox xpos ypos width height) rect = Rectangle (rect_x rect + fromIntegral xpos') (rect_y rect + fromIntegral ypos') width' height'
-    where
-        xpos' = calc False xpos $ rect_width rect
-        ypos' = calc False ypos $ rect_height rect
-        width' = calc True width $ rect_width rect - xpos'
-        height' = calc True height $ rect_height rect - ypos'
+calcArea (SubBox xpos ypos width height) rect =
+    Rectangle (rect_x rect + fromIntegral xpos')
+              (rect_y rect + fromIntegral ypos')
+              width' height'
+  where
+    xpos' = calc False xpos $ rect_width rect
+    ypos' = calc False ypos $ rect_height rect
+    width' = calc True width $ rect_width rect - xpos'
+    height' = calc True height $ rect_height rect - ypos'
 
-        calc zneg val tot = fromIntegral $ min (fromIntegral tot) $ max 0 $
-            case val of Rel v -> floor $ v * fromIntegral tot
-                        Abs v -> if v<0 || (zneg && v==0)
-                                 then (fromIntegral tot)+v
-                                 else v
+    calc zneg val tot = fromIntegral $ min (fromIntegral tot) $ max 0 $
+        case val of Rel v -> floor $ v * fromIntegral tot
+                    Abs v -> if v<0 || (zneg && v==0)
+                               then fromIntegral tot + v
+                               else v
 
+--------------------------------------------------------------------------------
 differentiate' :: Eq q => Maybe q -> [q] -> Maybe (W.Stack q)
 differentiate' _ [] = Nothing
 differentiate' Nothing w = W.differentiate w
 differentiate' (Just f) w
-    | f `elem` w = Just $ W.Stack { W.focus = f
-                                  , W.up    = reverse $ takeWhile (/=f) w
-                                  , W.down  = tail $ dropWhile (/=f) w
-                                  }
+    | f `elem` w = Just W.Stack { W.focus = f
+                                , W.up    = reverse $ takeWhile (/=f) w
+                                , W.down  = tail $ dropWhile (/=f) w
+                                }
     | otherwise = W.differentiate w

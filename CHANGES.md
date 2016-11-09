@@ -42,6 +42,13 @@
     EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
     you will usually be taken to the `NSP` workspace by them.
 
+### Minor Changes
+
+  * `XMonad.Layout.LayoutBuilder`
+
+    Merge all functionality from `XMonad.Layout.LayoutBuilderP` into
+    `XMonad.Layout.LayoutBuilder`.
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
