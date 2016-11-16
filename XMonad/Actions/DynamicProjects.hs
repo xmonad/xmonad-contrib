@@ -146,8 +146,8 @@ instance ExtensionClass ProjectState where
 -- | Add dynamic projects support to the given config.
 dynamicProjects :: [Project] -> XConfig a -> XConfig a
 dynamicProjects ps c =
-  c { startupHook     = startupHook c <> dynamicProjectsStartupHook ps
-    , logHook         = logHook c     <> dynamicProjectsLogHook
+  c { startupHook     = dynamicProjectsStartupHook ps <> startupHook c
+    , logHook         = dynamicProjectsLogHook        <> logHook c
     }
 
 --------------------------------------------------------------------------------
