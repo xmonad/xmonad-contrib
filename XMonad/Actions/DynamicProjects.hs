@@ -210,7 +210,8 @@ switchProject p = do
 
   -- If the project we are switching away from has no windows, and
   -- it's a dynamic project, remove it from the configuration.
-  when (null ws && isNothing (projectStartHook oldp)) $
+  when (null ws && isNothing (projectStartHook oldp)) $ do
+    removeWorkspaceByTag name -- also remove the old workspace
     XS.modify (\s -> s {projects = Map.delete name $ projects s})
 
   appendWorkspace (projectName p)

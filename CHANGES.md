@@ -49,6 +49,14 @@
     Merge all functionality from `XMonad.Layout.LayoutBuilderP` into
     `XMonad.Layout.LayoutBuilder`.
 
+  * `XMonad.Actions.DynamicProjects`
+
+    - Switching away from a dynamic project that contains no windows
+      automatically deletes that project's workspace.
+
+      The project itself was already being deleted, this just deletes
+      the workspace created for it as well.
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
