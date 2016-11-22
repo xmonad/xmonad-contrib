@@ -23,6 +23,7 @@ module XMonad.Actions.DynamicWorkspaces (
                                          removeWorkspace,
                                          removeWorkspaceByTag,
                                          removeEmptyWorkspace,
+                                         removeEmptyWorkspaceByTag,
                                          removeEmptyWorkspaceAfter,
                                          removeEmptyWorkspaceAfterExcept,
                                          addHiddenWorkspace, addHiddenWorkspaceAt,
@@ -177,7 +178,7 @@ addWorkspaceAt add newtag = addHiddenWorkspaceAt add newtag >> windows (greedyVi
 addWorkspacePrompt :: XPConfig -> X ()
 addWorkspacePrompt conf = mkXPrompt (Wor "New workspace name: ") conf (const (return [])) addWorkspace
 
--- | Prompt for the name of a new workspace, appending it to the end of the list of workspaces 
+-- | Prompt for the name of a new workspace, appending it to the end of the list of workspaces
 --   if it does not already exist, and switch to it.
 appendWorkspacePrompt :: XPConfig -> X ()
 appendWorkspacePrompt conf = mkXPrompt (Wor "New workspace name: ") conf (const (return [])) appendWorkspace
