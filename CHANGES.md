@@ -233,6 +233,10 @@
     - New function `appendFilePrompt'` which allows for transformation of the
       string passed by a user before writing to a file.
 
+  * `XMonad.Actions.WorkspaceNames` and `XMonad.Hooks.EwmhDesktops`
+
+    Support for workspace names was added to the EwmhDesktops module.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
