@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-{-# LANGUAGE MultiParamTypeClasses, Rank2Types, ImpredicativeTypes #-}
+{-# LANGUAGE MultiParamTypeClasses, Rank2Types #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -178,7 +178,7 @@ focusFloatDown = focusHelper id id
 -- ** Groups-specific actions
 
 wrap :: G.ModifySpec -> X ()
-wrap = sendMessage . G.Modify
+wrap x = sendMessage (G.Modify x)
 
 -- | Swap the focused group with the previous one
 swapGroupUp :: X ()
