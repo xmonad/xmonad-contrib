@@ -4,11 +4,9 @@
 -- Copyright  : (c) 2007 Valery V. Vorotyntsev
 -- License    : BSD3-style (see LICENSE)
 --
--- Maintainer : Valery V. Vorotynsev <valery.vv@gmail.com>
---
 -- Customized key bindings.
 --
--- (See also "XMonad.Util.EZConfig" in xmonad-contrib.)
+-- See also "XMonad.Util.EZConfig" in xmonad-contrib.
 --------------------------------------------------------------------
 
 module XMonad.Util.CustomKeys (
@@ -25,38 +23,30 @@ import qualified Data.Map as M
 
 -- $usage
 --
--- 1. In @~\/.xmonad\/xmonad.hs@ add:
+-- In @~\/.xmonad\/xmonad.hs@ add:
 --
 -- > import XMonad.Util.CustomKeys
 --
--- 2. Set key bindings with 'customKeys':
+-- Set key bindings with 'customKeys':
 --
 -- > main = xmonad def { keys = customKeys delkeys inskeys }
 -- >     where
 -- >       delkeys :: XConfig l -> [(KeyMask, KeySym)]
 -- >       delkeys XConfig {modMask = modm} =
--- >           -- we're preferring Futurama to Xinerama here
--- >           [ (modm .|. m, k) | (m, k) <- zip [0, shiftMask] [xK_w, xK_e, xK_r] ]
+-- >           [ (modm .|. shiftMask, xK_Return) -- > terminal
+-- >           , (modm .|. shiftMask, xK_c)      -- > close the focused window
+-- >           ]
+-- >           ++
+-- >           [ (modm .|. m, k) | m <- [0, shiftMask], k <- [xK_w, xK_e, xK_r] ]
 -- >
 -- >       inskeys :: XConfig l -> [((KeyMask, KeySym), X ())]
 -- >       inskeys conf@(XConfig {modMask = modm}) =
--- >           [ ((mod1Mask,             xK_F2  ), spawn $ terminal conf)
+-- >           [ ((mod1Mask,             xK_F2  ), spawn $ terminal conf) -- mod1-f2 %! Run a terminal emulator
+-- >           , ((modm,                 xK_Delete), kill) -- %! Close the focused window
 -- >           , ((modm .|. controlMask, xK_F11 ), spawn "xscreensaver-command -lock")
 -- >           , ((mod1Mask,             xK_Down), spawn "amixer set Master 1-")
 -- >           , ((mod1Mask,             xK_Up  ), spawn "amixer set Master 1+")
 -- >           ]
---
--- 0 (/hidden feature/). You can always replace bindings map
---   entirely. No need to import "CustomKeys" this time:
---
--- > import XMonad
--- > import System.Exit
--- > import qualified Data.Map as M
--- >
--- > main = xmonad def {
--- >          keys = \_ -> M.fromList [
--- >                  -- Let me out of here! I want my KDE back! Help! Help!
--- >                  ( (0, xK_Escape), io (exitWith ExitSuccess) ) ] }
 
 -- | Customize 'XMonad.Config.def' -- delete needless
 -- shortcuts and insert those you will use.
