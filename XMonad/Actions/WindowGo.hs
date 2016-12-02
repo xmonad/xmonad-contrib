@@ -38,13 +38,14 @@ module XMonad.Actions.WindowGo (
 
 import Control.Monad
 import Data.Char (toLower)
+import qualified Data.List as L (nub,sortBy)
 import Data.Monoid
 import XMonad (Query(), X(), ManageHook, WindowSet, withWindowSet, runQuery, liftIO, ask)
 import Graphics.X11 (Window)
 import XMonad.ManageHook
 import XMonad.Operations (windows)
 import XMonad.Prompt.Shell (getBrowser, getEditor)
-import qualified XMonad.StackSet as W (allWindows, peek, swapMaster, focusWindow)
+import qualified XMonad.StackSet as W (peek, swapMaster, focusWindow, workspaces, StackSet, Workspace, integrate', tag, stack)
 import XMonad.Util.Run (safeSpawnProg)
 {- $usage
 
@@ -66,12 +67,20 @@ appropriate one, or cover your bases by using instead something like:
 For detailed instructions on editing your key bindings, see
 "XMonad.Doc.Extending#Editing_key_bindings". -}
 
+workspacesSorted :: Ord i => W.StackSet i l a s sd -> [W.Workspace i l a]
+workspacesSorted s = L.sortBy (\u t -> W.tag u `compare` W.tag t) $
+                       W.workspaces s
+
+-- | Get a list of all windows in the 'StackSet' with an absolute ordering of workspaces
+allWindowsSorted :: Ord i => Eq a => W.StackSet i l a s sd -> [a]
+allWindowsSorted = L.nub . concatMap (W.integrate' . W.stack) . workspacesSorted
+
 -- | If windows that satisfy the query exist, apply the supplied
 -- function to them, otherwise run the action given as
 -- second parameter.
 ifWindows :: Query Bool -> ([Window] -> X ()) -> X () -> X ()
 ifWindows qry f el = withWindowSet $ \wins -> do
-  matches <- filterM (runQuery qry) $ W.allWindows wins
+  matches <- filterM (runQuery qry) $ allWindowsSorted wins
   case matches of
     [] -> el
     ws -> f ws
