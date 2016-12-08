@@ -57,6 +57,11 @@
       The project itself was already being deleted, this just deletes
       the workspace created for it as well.
 
+  * `XMonad.Actions.WindowGo`
+
+    - Fix `raiseNextMaybe` cycling between 2 workspaces only.
+
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
