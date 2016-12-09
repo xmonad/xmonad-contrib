@@ -42,6 +42,12 @@
     EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
     you will usually be taken to the `NSP` workspace by them.
 
+  * `XMonad.Actions.Submap`
+
+    Establish pointer grab to avoid freezing X, when button press occurs after
+    submap key press.  And terminate submap at button press in the same way,
+    as we do for wrong key press.
+
 ### Minor Changes
 
   * `XMonad.Layout.LayoutBuilder`
