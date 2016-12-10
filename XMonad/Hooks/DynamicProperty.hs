@@ -58,8 +58,8 @@ dynamicPropertyChange prop hook PropertyEvent { ev_window = w, ev_atom = a, ev_p
   when (ps == propertyNewValue && a == pa) $ do
     g <- appEndo <$> userCodeDef (Endo id) (runQuery hook w)
     windows g
-  return (All False) -- so anything else also processes it
-dynamicPropertyChange _ _ _ = return (All False)
+  return mempty -- so anything else also processes it
+dynamicPropertyChange _ _ _ = return mempty
 
 -- | A shorthand for the most common case, dynamic titles
 dynamicTitle :: ManageHook -> Event -> X All
