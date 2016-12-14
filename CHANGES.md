@@ -67,6 +67,10 @@
 
     - Fix `raiseNextMaybe` cycling between 2 workspaces only.
 
+  * `XMonad.Actions.UpdatePointer`
+
+    - Fix bug when cursor gets stuck in one of the corners.
+
 
 ## 0.12 (December 14, 2015)
 
