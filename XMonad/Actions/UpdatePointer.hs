@@ -1,7 +1,8 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.UpdatePointer
--- Copyright   :  (c) Robert Marlow <robreim@bobturf.org>
+-- Copyright   :  (c) Robert Marlow <robreim@bobturf.org>, 2015 Evgeny Kurnevsky
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Robert Marlow <robreim@bobturf.org>
@@ -28,6 +29,7 @@ import Control.Arrow
 import Control.Monad
 import XMonad.StackSet (member, peek, screenDetail, current)
 import Data.Maybe
+import Control.Exception
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -63,9 +65,13 @@ updatePointer :: (Rational, Rational) -> (Rational, Rational) -> X ()
 updatePointer refPos ratio = do
   ws <- gets windowset
   dpy <- asks display
+  let defaultRect = screenRect $ screenDetail $ current ws
   rect <- case peek ws of
-        Nothing -> return $ (screenRect . screenDetail .current) ws
-        Just w  -> windowAttributesToRectangle `fmap` io (getWindowAttributes dpy w)
+        Nothing -> return defaultRect
+        Just w  -> do tryAttributes <- io $ try $ getWindowAttributes dpy w
+                      return $ case tryAttributes of
+                        Left (_ :: SomeException) -> defaultRect
+                        Right attributes          -> windowAttributesToRectangle attributes
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   (_sameRoot,_,currentWindow,rootX,rootY,_,_,_) <- io $ queryPointer dpy root
