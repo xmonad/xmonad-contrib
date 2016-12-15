@@ -92,6 +92,10 @@
 
     Do not overwrite wm name in `handleFocusQuery`, if user has already set it.
 
+  * `XMonad.Hooks.ManageHelpers`
+
+    Make type of ManageHook combinators more general.
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
