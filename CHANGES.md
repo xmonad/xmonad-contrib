@@ -31,7 +31,8 @@
 
     You can use regular `ManageHook` combinators for changing window
     activation behavior and then add resulting `ManageHook` using
-    `activateLogHook` to your `logHook`.
+    `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
+    additional combinators.
 
   * `XMonad.Prompt.Directory`
 
@@ -108,6 +109,10 @@
 
     Provides a modifier that semi-permanently (requires manual intervention)
     disables borders for windows from the layout it modifies.
+
+  * `XMonad.Hooks.Focus`
+
+    Extends ManageHook EDSL to work on focused windows and current workspace.
 
 ### Bug Fixes and Minor Changes
 
