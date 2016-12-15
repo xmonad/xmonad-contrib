@@ -84,6 +84,13 @@
 
     - Fix bug when cursor gets stuck in one of the corners.
 
+  * `XMonad.Hooks.SetWMName`
+
+    Add function `getWMName`.
+
+  * `XMonad.Hooks.Focus`
+
+    Do not overwrite wm name in `handleFocusQuery`, if user has already set it.
 
 ## 0.12 (December 14, 2015)
 

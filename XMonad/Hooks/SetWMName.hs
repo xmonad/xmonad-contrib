@@ -36,17 +36,44 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.SetWMName (
-    setWMName) where
+      setWMName
+    , getWMName
+    )
+  where
 
-import Control.Monad (join)
+import Control.Monad (guard, join)
 import Data.Char (ord)
 import Data.List (nub)
-import Data.Maybe (fromJust, listToMaybe, maybeToList)
+import Data.Maybe (listToMaybe, maybeToList)
+import qualified Data.Traversable as T
 import Foreign.C.Types (CChar)
 
 import Foreign.Marshal.Alloc (alloca)
 
 import XMonad
+
+-- is there a better way to check the validity of the window?
+isValidWindow :: Window -> X Bool
+isValidWindow w = withDisplay $ \dpy -> io $ alloca $ \p -> do
+    status <- xGetWindowAttributes dpy w p
+    return (status /= 0)
+
+netSupportingWMCheckAtom :: X Atom
+netSupportingWMCheckAtom = getAtom "_NET_SUPPORTING_WM_CHECK"
+
+-- Return either valid support window or @Nothing@.
+getSupportWindow :: X (Maybe Window)
+getSupportWindow    = withDisplay $ \dpy -> do
+    at <- netSupportingWMCheckAtom
+    root <- asks theRoot
+    mw <- fmap (fmap fromIntegral . join . fmap listToMaybe) $ liftIO
+            $ getWindowProperty32 dpy at root
+    mb <- T.mapM isValidWindow mw
+    return (mb >>= guard >> mw)
+
+-- | Get WM name.
+getWMName :: X (Maybe String)
+getWMName           = getSupportWindow >>= T.mapM (runQuery title)
 
 -- | sets WM name
 setWMName :: String -> X ()
@@ -57,7 +84,8 @@ setWMName name = do
     atom_UTF8_STRING <- getAtom "UTF8_STRING"
 
     root <- asks theRoot
-    supportWindow <- getSupportWindow
+    mw <- getSupportWindow
+    supportWindow <- maybe createSupportWindow return mw
     dpy <- asks display
     io $ do
         -- _NET_SUPPORTING_WM_CHECK atom of root and support windows refers to the support window
@@ -68,32 +96,8 @@ setWMName name = do
         supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy atom_NET_SUPPORTED_ATOM root
         changeProperty32 dpy root atom_NET_SUPPORTED_ATOM aTOM 0 (nub $ fromIntegral atom_NET_SUPPORTING_WM_CHECK : fromIntegral atom_NET_WM_NAME : supportedList)
   where
-    netSupportingWMCheckAtom :: X Atom
-    netSupportingWMCheckAtom = getAtom "_NET_SUPPORTING_WM_CHECK"
-
     latin1StringToCCharList :: String -> [CChar]
     latin1StringToCCharList str = map (fromIntegral . ord) str
-
-    getSupportWindow :: X Window
-    getSupportWindow = withDisplay $ \dpy -> do
-        atom_NET_SUPPORTING_WM_CHECK <- netSupportingWMCheckAtom
-        root <- asks theRoot
-        supportWindow <- fmap (join . fmap listToMaybe) $ io $ getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root
-        validateWindow (fmap fromIntegral supportWindow)
-
-    validateWindow :: Maybe Window -> X Window
-    validateWindow w = do
-        valid <- maybe (return False) isValidWindow w
-        if valid then
-            return $ fromJust w
-          else
-            createSupportWindow
-
-    -- is there a better way to check the validity of the window?
-    isValidWindow :: Window -> X Bool
-    isValidWindow w = withDisplay $ \dpy -> io $ alloca $ \p -> do
-        status <- xGetWindowAttributes dpy w p
-        return (status /= 0)
 
     -- this code was translated from C (see OpenBox WM, screen.c)
     createSupportWindow :: X Window
