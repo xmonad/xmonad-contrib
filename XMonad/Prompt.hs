@@ -91,7 +91,8 @@ import           Data.List
 import qualified Data.Map                     as M
 import           Data.Maybe                   (fromMaybe)
 import           Data.Set                     (fromList, toList)
-import           System.Directory             (getAppUserDataDirectory)
+import           System.Directory             (createDirectoryIfMissing,
+                                               getAppUserDataDirectory)
 import           System.IO
 import           System.Posix.Files
 
@@ -1063,8 +1064,14 @@ type History = M.Map String [String]
 emptyHistory :: History
 emptyHistory = M.empty
 
+getDataDirectory :: IO FilePath
+getDataDirectory = do
+    path <- getAppUserDataDirectory "xmonad"
+    createDirectoryIfMissing True path
+    return path
+
 getHistoryFile :: IO FilePath
-getHistoryFile = fmap (++ "/history") $ getAppUserDataDirectory "xmonad"
+getHistoryFile = fmap (++ "/history") getDataDirectory
 
 readHistory :: IO History
 readHistory = readHist `E.catch` \(SomeException _) -> return emptyHistory
