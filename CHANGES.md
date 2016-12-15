@@ -48,6 +48,19 @@
     submap key press.  And terminate submap at button press in the same way,
     as we do for wrong key press.
 
+  * `XMonad.Hooks.Focus`
+
+    A new module extending ManageHook EDSL to work on focused windows and
+    current workspace.
+
+    This module will enable window activation (`_NET_ACTIVE_WINDOW`) and apply
+    `manageHook` to activated window too. Thus, it may lead to unexpected
+    results, when `manageHook` previously working only for new windows, start
+    working for activated windows too. It may be solved, by adding
+    `not <$> activated` before those part of `manageHook`, which should not be
+    called for activated windows.  But this lifts `manageHook` into
+    `FocusHook` and it needs to be converted back later using `manageFocus`.
+
 ### Minor Changes
 
   * `XMonad.Layout.LayoutBuilder`
