@@ -11,6 +11,18 @@
   * New constructor `CenteredAt Rational Rational` added for
     `XMonad.Prompt.XPPosition`.
 
+  * `ewmh` function from `X.H.EwmhDesktops` will use `manageHook` for handling
+    activated window. That means, actions, which you don't want to happen on
+    activated windows, should be guarded by
+
+        not <$> activated
+
+    predicate. By default, with empty `ManageHook`, window activation will do
+    nothing.
+
+    Also, you can use regular 'ManageHook' combinators for changing window
+    activation behavior.
+
 ### New Modules
 
   * `XMonad.Layout.SortedLayout`
