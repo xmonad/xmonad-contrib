@@ -55,3 +55,54 @@ runMenu m = do
   dpy    <- asks display
   io $ sync dpy False
   return ()
+
+-- | waitKey returns the next KeyStroke that occurs
+waitKey :: X KeyStroke
+waitKey = do
+  XConf { display=dpy } <- ask
+  (sym, e) <- io $
+    -- X-stuff to grab the next (Modifiers, KeyPress) from the system
+    allocaXEvent $ \e -> do
+        maskEvent dpy keyPressMask e
+        ev <- getEvent e
+        (ks, _) <- lookupString $ asKeyEvent e
+        return (fromMaybe xK_VoidSymbol ks, ev)
+  -- Remove unused modifiers
+  cleaned <- cleanMask . ev_state $ e
+  return (cleaned, sym)
+
+-- | showKey shows the next key that is pushed using Dzen (for debugging purposes)
+showKey :: X ()
+showKey =  do
+  k <- withKB waitKey
+  case showStroke <$> k of
+    Nothing  -> spawn "echo \"Error\" | dzen2 -p 2"
+    (Just "q") -> return ()
+    (Just c) -> do
+      spawn $ "echo \"" ++ c ++ "\" | dzen2 -p 2"
+      showKey
+  return ()
+
+-- | getItem looks up the next keystroke in the KeyMap
+getItem :: KeyMap a -> X (Maybe a)
+getItem m = waitKey >>= \k -> return $ M.lookup k m
+
+-- | waitItem waits until a matched keystroke is found and looks that up
+waitItem :: KeyMap a -> X a
+waitItem m = do
+  x <- getItem m
+  case x of
+    Just a  -> return a
+    Nothing -> waitItem m
+
+-- | withKB performs an X-action in the context of having the keyboard grabbed
+withKB :: X a -> X (Maybe a)
+withKB x = do
+  XConf { display = dpy, theRoot = win } <- ask
+  status <- io $ grabKeyboard dpy win False grabModeAsync grabModeAsync currentTime
+  if status == grabSuccess then
+    do out <- userCode x
+       io $ ungrabKeyboard dpy currentTime
+       return out
+    else
+       return Nothing
