@@ -25,11 +25,12 @@ module XMonad.Actions.Menu.Core
 
 where
 
-import           Control.Arrow     ((&&&))
-import           Control.Monad     (void)
-import qualified Data.Map          as M
+import           Control.Applicative ((<$>))
+import           Control.Arrow       ((&&&))
+import           Control.Monad       (void)
+import qualified Data.Map            as M
 import           XMonad
-import           XMonad.Keys.Core  (KeyStroke, withKB, waitItem)
+import           XMonad.Keys.Core    (KeyStroke, waitItem, withKB)
 
 type Renderer a = Menu a -> X (X ())
 
