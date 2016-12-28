@@ -17,10 +17,11 @@ displayed.
 
 module XMonad.Actions.Menu.Hidden where
 
-import           Data.Maybe           (fromJust)
+import           Data.Maybe               (fromJust)
 import           XMonad
-import           XMonad.Actions.Menu.KeyParse (readStroke)
 import           XMonad.Actions.Menu.Core
+import           XMonad.Keys.Core         (KeyStroke)
+import qualified XMonad.Keys.Parse        as P
 
 type HiddenCfg      = ()
 type HiddenItem     = Item HiddenCfg
@@ -28,6 +29,8 @@ type HiddenMenu     = Menu HiddenCfg
 type HiddenRenderer = Renderer HiddenCfg
 type HiddenTuple    = (String, String, X())
 
+readStroke :: String -> Maybe KeyStroke
+readStroke = P.readStroke (def { modMask = mod4Mask })
 
 -- Make a hidden item
 hiddenItem :: HiddenTuple -> HiddenItem
