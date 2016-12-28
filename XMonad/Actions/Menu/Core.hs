@@ -20,6 +20,7 @@ module XMonad.Actions.Menu.Core
   , Menu (..)
   , Renderer
   , runMenu
+  , showKey
   )
 
 

@@ -58,15 +58,21 @@ library
                    directory,
                    extensible-exceptions,
                    filepath,
+                   mtl >= 1 && < 3,
                    old-locale,
                    old-time,
                    process,
                    random,
-                   mtl >= 1 && < 3,
                    unix,
+<<<<<<< HEAD
                    X11>=1.6.1 && < 1.9,
                    xmonad>=0.13   && < 0.14,
                    utf8-string
+=======
+                   utf8-string,
+                   X11>=1.6.1 && < 1.8,
+                   xmonad>=0.12   && < 0.13
+>>>>>>> Refactored key-parsing from EZConfig
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
