@@ -26,13 +26,14 @@ module XMonad.Actions.Menu.Dzen
   )
 where
 
-import           Data.Maybe           (fromJust)
-import           Data.List            (transpose, intercalate)
+import           Data.List                (intercalate, transpose)
+import           Data.Maybe               (fromJust)
 import           System.IO
-import           XMonad               hiding (Color)
-import           XMonad.Actions.Menu.KeyParse (readStroke, showStroke)
+import           XMonad                   hiding (Color)
+-- import           XMonad.Actions.Menu.KeyParse (readStroke, showStroke)
 import           XMonad.Actions.Menu.Core
-import           XMonad.Util.Run      (spawnPipe)
+import           XMonad.Keys.Parse        (readStroke, showStroke)
+import           XMonad.Util.Run          (spawnPipe)
 
 -- | Colors in Dzen are just hex-strings
 type Color        = String
@@ -45,16 +46,18 @@ type DzenTuple    = (String, String, X(), DzenItemCfg)
 
 -- | DzenCfg describes the behavior of the menu
 data DzenCfg = DzenCfg {
-    name     :: String
-  , nameCol  :: Color
-  , fgCol    :: Color
-  , bgCol    :: Color
-  , font     :: String
-  , tAlign   :: String
-  , layout   :: DzenLayout
-  , top      :: Int
-  , left     :: Int
-  , width    :: Int
+    name    :: String
+  , nameCol :: Color
+  , fgCol   :: Color
+  , bgCol   :: Color
+  , font    :: String
+  , tAlign  :: String
+  , layout  :: DzenLayout
+  , top     :: Int
+  , left    :: Int
+  , width   :: Int
+  -- Inserted to deal with EZConfig's parsing
+  , modMask':: KeyMask
   }
 
 instance Default DzenCfg where
@@ -69,6 +72,7 @@ instance Default DzenCfg where
   , top      = 0
   , left     = 0
   , width    = 1600
+  , modMask' = mod4Mask
   }
 
 data DzenItemCfg = DzenItemCfg {
@@ -93,13 +97,15 @@ data DzenLayout = Naive
                 | FixedCol { nRow :: Int , wMax :: Int , vMargin :: Int, bMargin :: Int }
                 deriving (Eq, Show)
 
+
 -- | mkItem creates 1 DzenItem
-mkItem :: DzenTuple -> DzenItem
-mkItem (ks, d, x, cfg) = Item (fromJust . readStroke $ ks) d x cfg
+mkItem :: KeyMask -> DzenTuple -> DzenItem
+mkItem mm (ks, d, x, cfg) = Item (fromJust . readStroke' $ ks) d x cfg
+  where readStroke' = readStroke $ def {modMask = mm}
 
 -- | mkMenu creates a DzenMenu
 dzenMenu :: DzenCfg -> [DzenTuple] -> DzenMenu
-dzenMenu cfg es = Menu (dzenRender cfg) (map mkItem es)
+dzenMenu cfg es = Menu (dzenRender cfg) (map (mkItem (modMask' cfg)) es)
 
 -- | dzenRender displays the menu in Dzen and returns an action that closes the
 -- handle to Dzen's stdin (which in turn closes dzen)

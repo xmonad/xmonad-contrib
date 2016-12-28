@@ -108,6 +108,9 @@ library
                         XMonad.Actions.KeyRemap
                         XMonad.Actions.Launcher
                         XMonad.Actions.LinkWorkspaces
+                        XMonad.Actions.Menu.Core
+                        XMonad.Actions.Menu.Hidden
+                        XMonad.Actions.Menu.Dzen
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.Minimize
                         XMonad.Actions.MouseGestures
@@ -190,6 +193,8 @@ library
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.WorkspaceHistory
                         XMonad.Hooks.XPropManage
+                        XMonad.Keys.Core
+                        XMonad.Keys.Parse
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
                         XMonad.Layout.AvoidFloats
