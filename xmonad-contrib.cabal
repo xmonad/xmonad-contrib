@@ -57,15 +57,15 @@ library
                    directory,
                    extensible-exceptions,
                    filepath,
+                   mtl >= 1 && < 3,
                    old-locale,
                    old-time,
                    process,
                    random,
-                   mtl >= 1 && < 3,
                    unix,
+                   utf8-string,
                    X11>=1.6.1 && < 1.8,
-                   xmonad>=0.12   && < 0.13,
-                   utf8-string
+                   xmonad>=0.12   && < 0.13
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
@@ -109,6 +109,9 @@ library
                         XMonad.Actions.GroupNavigation
                         XMonad.Actions.Launcher
                         XMonad.Actions.LinkWorkspaces
+                        XMonad.Actions.Menu.Core
+                        XMonad.Actions.Menu.Hidden
+                        XMonad.Actions.Menu.Dzen
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
@@ -187,6 +190,8 @@ library
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.WorkspaceHistory
                         XMonad.Hooks.XPropManage
+                        XMonad.Keys.Core
+                        XMonad.Keys.Parse
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
                         XMonad.Layout.AvoidFloats
