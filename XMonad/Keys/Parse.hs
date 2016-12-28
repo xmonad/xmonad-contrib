@@ -19,6 +19,7 @@ import           XMonad.Actions.Submap
 import           XMonad.Keys.Core             (KeyStroke (..), toKeyStroke)
 import           XMonad.Util.NamedActions
 
+import           Control.Applicative          ((<$>))
 import           Control.Arrow                (first, (&&&))
 import           Data.Bits                    (complement, (.&.))
 import           Data.List                    (foldl', groupBy, nub, sortBy)
