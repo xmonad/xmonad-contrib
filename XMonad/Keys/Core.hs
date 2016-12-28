@@ -23,10 +23,12 @@ Future refactoring opportunities:
 
 module XMonad.Keys.Core where
 
-import           Control.Arrow ((&&&))
-import           Data.Bits     ((.|.))
-import qualified Data.Map      as M
-import           Data.Maybe    (fromMaybe)
+import           Control.Applicative (Applicative)
+import           Control.Arrow       ((&&&))
+import           Data.Bits           ((.|.))
+import qualified Data.Map            as M
+import           Data.Maybe          (fromMaybe)
+import           Data.Monoid         (Monoid)
 import           XMonad
 
 type KeyMap a   = M.Map KeyStroke a
