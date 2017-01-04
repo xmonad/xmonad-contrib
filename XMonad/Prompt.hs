@@ -91,7 +91,6 @@ import           Data.List
 import qualified Data.Map                     as M
 import           Data.Maybe                   (fromMaybe)
 import           Data.Set                     (fromList, toList)
-import           System.Directory             (getAppUserDataDirectory)
 import           System.IO
 import           System.Posix.Files
 
@@ -1064,7 +1063,7 @@ emptyHistory :: History
 emptyHistory = M.empty
 
 getHistoryFile :: IO FilePath
-getHistoryFile = fmap (++ "/history") $ getAppUserDataDirectory "xmonad"
+getHistoryFile = fmap (++ "/prompt-history") getXMonadCacheDir
 
 readHistory :: IO History
 readHistory = readHist `E.catch` \(SomeException _) -> return emptyHistory
@@ -1170,7 +1169,7 @@ breakAtSpace s
 
 -- | 'historyCompletion' provides a canned completion function much like
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
---   from the query history stored in ~\/.xmonad\/history.
+--   from the query history stored in the XMonad cache directory.
 historyCompletion :: ComplFunction
 historyCompletion = historyCompletionP (const True)
 
