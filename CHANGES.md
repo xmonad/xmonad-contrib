@@ -54,12 +54,6 @@
     EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
     you will usually be taken to the `NSP` workspace by them.
 
-  * `XMonad.Actions.Submap`
-
-    Establish pointer grab to avoid freezing X, when button press occurs after
-    submap key press.  And terminate submap at button press in the same way,
-    as we do for wrong key press.
-
   * `XMonad.Hooks.Focus`
 
     A new module extending ManageHook EDSL to work on focused windows and
@@ -96,13 +90,15 @@
 
     - Fix bug when cursor gets stuck in one of the corners.
 
+  * `XMonad.Actions.Submap`
+
+    Establish pointer grab to avoid freezing X, when button press occurs after
+    submap key press.  And terminate submap at button press in the same way,
+    as we do for wrong key press.
+
   * `XMonad.Hooks.SetWMName`
 
     Add function `getWMName`.
-
-  * `XMonad.Hooks.Focus`
-
-    Do not overwrite wm name in `handleFocusQuery`, if user has already set it.
 
   * `XMonad.Hooks.ManageHelpers`
 
