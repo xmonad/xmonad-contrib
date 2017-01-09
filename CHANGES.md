@@ -11,6 +11,9 @@
   * New constructor `CenteredAt Rational Rational` added for
     `XMonad.Prompt.XPPosition`.
 
+  * `XMonad.Prompt` now stores its history file in the XMonad cache
+    directory in a file named `prompt-history`.
+
 ### New Modules
 
   * `XMonad.Layout.SortedLayout`
