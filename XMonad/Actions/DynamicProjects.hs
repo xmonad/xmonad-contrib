@@ -23,6 +23,7 @@ module XMonad.Actions.DynamicProjects
          -- * Types
          Project (..)
        , ProjectName
+       , ProjectIdx
 
          -- * Hooks
        , dynamicProjects
@@ -31,8 +32,9 @@ module XMonad.Actions.DynamicProjects
        , switchProjectPrompt
        , shiftToProjectPrompt
        , renameProjectPrompt
-
-         -- * Helper Functions
+       , setProjectIdx
+       , switchProjectByIdx
+       -- * Helper Functions
        , switchProject
        , shiftToProject
        , lookupProject
@@ -83,7 +85,12 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- Additionally, frequently used projects can be configured statically
 -- in your XMonad configuration.  Doing so allows you to configure the
 -- per-project start-up hook.
-
+--
+-- Finally, projects can also be dynamically associated to a range of
+-- keybindings. You can then dynamically change the mapping between
+-- keybindings and projects in order to access most used projects
+-- quickly.
+---
 --------------------------------------------------------------------------------
 -- $usage
 -- To use @DynamicProjects@ you need to add it to your XMonad
@@ -113,15 +120,28 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- And finally, configure some optional key bindings:
 --
--- >  , ((modm, xK_space), switchProjectPrompt)
--- >  , ((modm, xK_slash), shiftToProjectPrompt)
+-- >  , ((modm, xK_space), switchProjectPrompt def)
+-- >  , ((modm, xK_slash), shiftToProjectPrompt def)
+--
+--
+-- You can also set the current project index to N:
+--
+-- >  [((modm .|. controlMask, k), setProjectIdx i)
+-- >      | (i, k) <- zip [1..] [xK_1 .. xK_9]]
+--
+-- And then switch to project with index N:
+--
+-- >  [((modm, k), switchProjectByIdx i)
+-- >      | (i, k) <- zip [1..] [xK_1 .. xK_9]]
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 --------------------------------------------------------------------------------
-type ProjectName  = String
-type ProjectTable = Map ProjectName Project
+type ProjectName     = String
+type ProjectIdx      = Int
+type ProjectTable    = Map ProjectName Project
+type ProjectTableIdx = Map ProjectIdx Project
 
 --------------------------------------------------------------------------------
 -- | Details about a workspace that represents a project.
@@ -135,12 +155,13 @@ data Project = Project
 -- | Internal project state.
 data ProjectState = ProjectState
   { projects        :: !ProjectTable
+  , projectsIdx     :: !ProjectTableIdx
   , previousProject :: !(Maybe WorkspaceId)
   } deriving Typeable
 
 --------------------------------------------------------------------------------
 instance ExtensionClass ProjectState where
-  initialValue = ProjectState Map.empty Nothing
+  initialValue = ProjectState Map.empty Map.empty Nothing
 
 --------------------------------------------------------------------------------
 -- | Add dynamic projects support to the given config.
@@ -188,6 +209,27 @@ dynamicProjectsStartupHook ps = XS.modify go
 -- | Find a project based on its name.
 lookupProject :: ProjectName -> X (Maybe Project)
 lookupProject name = Map.lookup name `fmap` XS.gets projects
+
+--------------------------------------------------------------------------------
+-- | Find a project based on its index.
+lookupProjectByIdx :: ProjectIdx -> X (Maybe Project)
+lookupProjectByIdx idx = Map.lookup idx `fmap` XS.gets projectsIdx
+
+--------------------------------------------------------------------------------
+-- | Set index of the current project.
+setProjectIdx :: ProjectIdx -> X ()
+setProjectIdx idx = do
+  p  <- currentProject
+  ps <- XS.gets projectsIdx
+  let ps' = Map.insert idx p ps
+  XS.modify $ \s -> s {projectsIdx = ps'}
+
+-- | Switch to a project based on an index. If no project is
+-- associated to this index, stay on the current one.
+switchProjectByIdx :: ProjectIdx -> X ()
+switchProjectByIdx idx = do
+  idx <- lookupProjectByIdx idx
+  maybe (return ()) switchProject idx
 
 --------------------------------------------------------------------------------
 -- | Fetch the current project (the one being used for the currently
