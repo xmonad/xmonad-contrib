@@ -419,8 +419,12 @@
 
   * `XMonad.Prompt.WindowBringer`
 
-    - Added `windowApMap` function which maps application executable
+    - Added `windowAppMap` function which maps application executable
       names to its underlying window.
+
+    - A new field `windowFilter` was added to the config, which allows the user
+      to provide a function which will decide whether each window should be
+      included in the window bringer menu.
 
   * `XMonad.Actions.Search`
 

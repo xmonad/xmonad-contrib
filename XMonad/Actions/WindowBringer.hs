@@ -24,6 +24,7 @@ module XMonad.Actions.WindowBringer (
                     windowMap, windowAppMap, windowMap', bringWindow, actionMenu
                    ) where
 
+import Control.Monad
 import qualified Data.Map as M
 
 import qualified XMonad.StackSet as W
@@ -50,12 +51,14 @@ data WindowBringerConfig = WindowBringerConfig
     { menuCommand :: String -- ^ The shell command that will handle window selection
     , menuArgs :: [String] -- ^ Arguments to be passed to menuCommand
     , windowTitler :: X.WindowSpace -> Window -> X String -- ^ A function that produces window titles given a workspace and a window
+    , windowFilter :: Window -> X Bool -- ^ Filter function to decide which windows to consider
     }
 
 instance Default WindowBringerConfig where
     def = WindowBringerConfig{ menuCommand = "dmenu"
                              , menuArgs = ["-i"]
                              , windowTitler = decorateName
+                             , windowFilter = \_ -> return True
                              }
 
 -- | Pops open a dmenu with window titles. Choose one, and you will be
@@ -122,11 +125,8 @@ bringWindow w ws = W.shiftWin (W.currentTag ws) w ws
 -- | Calls dmenuMap to grab the appropriate Window, and hands it off to action
 --   if found.
 actionMenu :: WindowBringerConfig -> (Window -> X.WindowSet -> X.WindowSet) -> X ()
-actionMenu WindowBringerConfig{ menuCommand = cmd
-                              , menuArgs = args
-                              , windowTitler = titler
-                              } action
-    = windowMap' titler >>= menuMapFunction >>= flip X.whenJust (windows . action)
+actionMenu c@WindowBringerConfig{ menuCommand = cmd, menuArgs = args } action =
+  windowMap' c >>= menuMapFunction >>= flip X.whenJust (windows . action)
     where
       menuMapFunction :: M.Map String a -> X (Maybe a)
       menuMapFunction = menuMapArgs cmd args
@@ -134,18 +134,19 @@ actionMenu WindowBringerConfig{ menuCommand = cmd
 
 -- | A map from window names to Windows.
 windowMap :: X (M.Map String Window)
-windowMap = windowMap' decorateName
+windowMap = windowMap' def
 
 -- | A map from application executable names to Windows.
 windowAppMap :: X (M.Map String Window)
-windowAppMap = windowMap' decorateAppName
+windowAppMap = windowMap' def { windowTitler = decorateAppName }
 
 -- | A map from window names to Windows, given a windowTitler function.
-windowMap' :: (X.WindowSpace -> Window -> X String) -> X (M.Map String Window)
-windowMap' titler = do
-  ws <- gets X.windowset
-  M.fromList . concat <$> mapM keyValuePairs (W.workspaces ws)
- where keyValuePairs ws = mapM (keyValuePair ws) $ W.integrate' (W.stack ws)
+windowMap' :: WindowBringerConfig -> X (M.Map String Window)
+windowMap' WindowBringerConfig{ windowTitler = titler, windowFilter = include } = do
+  windowSet <- gets X.windowset
+  M.fromList . concat <$> mapM keyValuePairs (W.workspaces windowSet)
+ where keyValuePairs ws = let wins = W.integrate' (W.stack ws)
+                           in mapM (keyValuePair ws) =<< filterM include wins
        keyValuePair ws w = (, w) <$> titler ws w
 
 -- | Returns the window name as will be listed in dmenu.
