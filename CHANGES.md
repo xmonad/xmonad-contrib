@@ -75,6 +75,13 @@
     as we do for wrong key press.
 
 
+  * `XMonad.Actions.DynamicProjects`
+
+    - Added function to change the working directory (`changeProjectDirPrompt`)
+
+    - All of the prompts are now multiple mode prompts.  Try using the
+      `changeModeKey` in a prompt and see what happens!
+
 ## 0.12 (December 14, 2015)
 
 ### Breaking Changes
