@@ -16,7 +16,8 @@ module XMonad.Prompt.Directory (
                              -- * Usage
                              -- $usage
                              directoryPrompt,
-                             Dir,
+                             directoryMultipleModes,
+                             Dir
                               ) where
 
 import XMonad
@@ -26,13 +27,23 @@ import XMonad.Util.Run ( runProcessWithInput )
 -- $usage
 -- For an example usage see "XMonad.Layout.WorkspaceDir"
 
-data Dir = Dir String
+data Dir = Dir String (String -> X ())
 
 instance XPrompt Dir where
-    showXPrompt (Dir x) = x
+    showXPrompt (Dir x _) = x
+    completionFunction _ = getDirCompl
+    modeAction (Dir _ f) buf auto =
+      let dir = if null auto then buf else auto
+      in f dir
 
 directoryPrompt :: XPConfig -> String -> (String -> X ()) -> X ()
-directoryPrompt c prom = mkXPrompt (Dir prom) c getDirCompl
+directoryPrompt c prom f = mkXPrompt (Dir prom f) c getDirCompl f
+
+-- | A @XPType@ entry suitable for using with @mkXPromptWithModes@.
+directoryMultipleModes :: String            -- ^ Prompt.
+                       -> (String -> X ())  -- ^ Action.
+                       -> XPType
+directoryMultipleModes p f = XPT (Dir p f)
 
 getDirCompl :: String -> IO [String]
 getDirCompl s = (filter notboring . lines) `fmap`
