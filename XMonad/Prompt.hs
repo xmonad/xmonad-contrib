@@ -520,24 +520,59 @@ completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = d
   alwaysHlight <- gets $ alwaysHighlight . config
   mCleaned <- cleanMask m
   case () of
-    () | t == keyPress && (mCleaned,sym) == complKey ->
-          do
-            st <- get
-            let updateState l = case alwaysHlight of
-                  -- modify the buffer's value
-                  False -> let newCommand = nextCompletion (currentXPMode st) (command st) l
-                           in modify $ \s -> setCommand newCommand $ s { offset = length newCommand, highlightedCompl = Just newCommand}
-                  --TODO: Scroll or paginate results
-                  True -> let complIndex' = nextComplIndex st (length l)
-                              highlightedCompl' = highlightedItem st { complIndex = complIndex'} c
-                          in modify $ \s -> setHighlightedCompl highlightedCompl' $ s { complIndex = complIndex' }
-                updateWins l = redrawWindows l >> eventLoop (completionHandle l)
-            case c of
-              []  -> updateWindows   >> eventLoop handle
-              [x] -> updateState [x] >> getCompletions >>= updateWins
-              l   -> updateState l   >> updateWins l
+    () | t == keyPress && (mCleaned,sym) == complKey -> do
+           st <- get
+
+           let updateWins  l = redrawWindows l >> eventLoop (completionHandle l)
+               updateState l = case alwaysHlight of
+                 False                                           -> simpleComplete l st
+                 True | Just (command st) /= highlightedCompl st -> alwaysHighlightCurrent st
+                      | otherwise                                -> alwaysHighlightNext l st
+
+           case c of
+             []  -> updateWindows   >> eventLoop handle
+             [x] -> updateState [x] >> getCompletions >>= updateWins
+             l   -> updateState l   >> updateWins l
       | t == keyRelease && (mCleaned,sym) == complKey -> eventLoop (completionHandle c)
       | otherwise -> keyPressHandle mCleaned ks -- some other key, handle it normally
+  where
+    -- When alwaysHighlight is off, just complete based on what the
+    -- user has typed so far.
+    simpleComplete :: [String] -> XPState -> XP ()
+    simpleComplete l st = do
+      let newCommand = nextCompletion (currentXPMode st) (command st) l
+      modify $ \s -> setCommand newCommand $
+                     s { offset = length newCommand
+                       , highlightedCompl = Just newCommand
+                       }
+
+    -- If alwaysHighlight is on, and this is the first use of the
+    -- completion key, update the buffer so that it contains the
+    -- current completion item.
+    alwaysHighlightCurrent :: XPState -> XP ()
+    alwaysHighlightCurrent st = do
+      let newCommand = fromMaybe (command st) $ highlightedItem st c
+      modify $ \s -> setCommand newCommand $
+                     setHighlightedCompl (Just newCommand) $
+                     s { offset = length newCommand
+                       }
+
+    -- If alwaysHighlight is on, and the user wants the next
+    -- completion, move to the next completion item and update the
+    -- buffer to reflect that.
+    --
+    --TODO: Scroll or paginate results
+    alwaysHighlightNext :: [String] -> XPState -> XP ()
+    alwaysHighlightNext l st = do
+      let complIndex' = nextComplIndex st (length l)
+          highlightedCompl' = highlightedItem st { complIndex = complIndex'} c
+          newCommand = fromMaybe (command st) $ highlightedCompl'
+      modify $ \s -> setHighlightedCompl highlightedCompl' $
+                     setCommand newCommand $
+                     s { complIndex = complIndex'
+                       , offset = length newCommand
+                       }
+
 -- some other event: go back to main loop
 completionHandle _ k e = handle k e
 
