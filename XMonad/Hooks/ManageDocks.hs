@@ -246,7 +246,9 @@ instance Message SetStruts
 instance LayoutModifier AvoidStruts a where
     modifyLayout (AvoidStruts ss) w r = do
         srect <- fmap ($ r) (calcGap ss)
-        setWorkarea srect
+        -- Ensure _NET_WORKAREA is not set.
+        -- See: https://github.com/xmonad/xmonad-contrib/pull/79
+        rmWorkarea
         runLayout w srect
 
     pureMess as@(AvoidStruts ss) m
@@ -262,13 +264,11 @@ instance LayoutModifier AvoidStruts a where
             toggleOne x xs | x `S.member` xs = S.delete x xs
                            | otherwise   = x `S.insert` xs
 
-setWorkarea :: Rectangle -> X ()
-setWorkarea (Rectangle x y w h) = withDisplay $ \dpy -> do
+rmWorkarea :: X ()
+rmWorkarea = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WORKAREA"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fi x, fi y, fi w, fi h]
-
+    io (deleteProperty dpy r a)
 
 -- | (Direction, height\/width, initial pixel, final pixel).
 
