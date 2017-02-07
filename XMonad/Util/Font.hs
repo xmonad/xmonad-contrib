@@ -29,6 +29,7 @@ module XMonad.Util.Font
     , textExtentsXMF
     , printStringXMF
     , stringToPixel
+    , pixelToString
     , fi
     ) where
 
@@ -37,6 +38,8 @@ import Foreign
 import Control.Applicative
 import Control.Exception as E
 import Data.Maybe
+import Data.Bits (shiftR)
+import Text.Printf (printf)
 
 #ifdef XFT
 import Data.List
@@ -60,6 +63,19 @@ stringToPixel :: (Functor m, MonadIO m) => Display -> String -> m Pixel
 stringToPixel d s = fromMaybe fallBack <$> io getIt
     where getIt    = initColor d s
           fallBack = blackPixel d (defaultScreen d)
+
+-- | Convert a @Pixel@ into a @String@.
+pixelToString :: (MonadIO m) => Display -> Pixel -> m String
+pixelToString d p = do
+    let cm = defaultColormap d (defaultScreen d)
+    (Color _ r g b _) <- io (queryColor d cm $ Color p 0 0 0 0)
+    return ("#" ++ hex r ++ hex g ++ hex b)
+  where
+    -- NOTE: The @Color@ type has 16-bit values for red, green, and
+    -- blue, even though the actual type in X is only 8 bits wide.  It
+    -- seems that the upper and lower 8-bit sections of the @Word16@
+    -- values are the same.  So, we just discard the lower 8 bits.
+    hex = printf "%02x" . (`shiftR` 8)
 
 econst :: a -> IOException -> a
 econst = const

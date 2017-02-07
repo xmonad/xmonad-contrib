@@ -339,7 +339,7 @@ getNetWMState :: Window -> X [CLong]
 getNetWMState w = do
     a_wmstate <- getAtom "_NET_WM_STATE"
     fromMaybe [] `fmap` getProp32 a_wmstate w
-   
+
 
 -- The Non-ICCCM Manifesto:
 -- Note: Some non-standard choices have been made in this implementation to
@@ -497,14 +497,14 @@ data BorderUrgencyHook = BorderUrgencyHook { urgencyBorderColor :: !String }
 
 instance UrgencyHook BorderUrgencyHook where
   urgencyHook BorderUrgencyHook { urgencyBorderColor = cs } w =
-    withDisplay $ \dpy -> io $ do
-      c' <- initColor dpy cs
+    withDisplay $ \dpy -> do
+      c' <- io (initColor dpy cs)
       case c' of
-        Just c -> setWindowBorder dpy w c
-        _      -> hPutStrLn stderr $ concat ["Warning: bad urgentBorderColor "
-                                            ,show cs
-                                            ," in BorderUrgencyHook"
-                                            ]
+        Just c -> setWindowBorderWithFallback dpy w cs c
+        _      -> io $ hPutStrLn stderr $ concat ["Warning: bad urgentBorderColor "
+                                                 ,show cs
+                                                 ," in BorderUrgencyHook"
+                                                 ]
 
 -- | Flashes when a window requests your attention and you can't see it.
 -- Defaults to a duration of five seconds, and no extra args to dzen.
@@ -543,4 +543,3 @@ filterUrgencyHook skips w = do
         Just tag -> when (tag `elem` skips)
                         $ adjustUrgents (delete w)
         _ -> return ()
-
