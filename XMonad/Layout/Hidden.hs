@@ -110,7 +110,7 @@ popNewestHiddenWindow = sendMessage PopNewestHiddenWindow
 --------------------------------------------------------------------------------
 hideWindowMsg :: HiddenWindows a -> Window -> X (Maybe (HiddenWindows a))
 hideWindowMsg (HiddenWindows hidden) win = do
-  windows (W.delete' win)
+  modify (\s -> s { windowset = W.delete' win $ windowset s })
   return . Just . HiddenWindows $ hidden ++ [win]
 
 --------------------------------------------------------------------------------
@@ -130,4 +130,5 @@ popOldestMsg (HiddenWindows (win:rest)) = do
 
 --------------------------------------------------------------------------------
 restoreWindow :: Window -> X ()
-restoreWindow = windows . W.insertUp
+restoreWindow win =
+  modify (\s -> s { windowset = W.insertUp win $ windowset s })
