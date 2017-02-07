@@ -140,12 +140,11 @@ docksEventHook (MapNotifyEvent { ev_window = w }) = do
     return (All True)
 docksEventHook (PropertyEvent { ev_window = w
                               , ev_atom = a }) = do
-    whenX (runQuery checkDock w) $ do
-        nws <- getAtom "_NET_WM_STRUT"
-        nwsp <- getAtom "_NET_WM_STRUT_PARTIAL"
-        when (a == nws || a == nwsp) $ do
-            strut <- getStrut w
-            whenX (updateStrutCache w strut) refreshDocks
+    nws <- getAtom "_NET_WM_STRUT"
+    nwsp <- getAtom "_NET_WM_STRUT_PARTIAL"
+    when (a == nws || a == nwsp) $ do
+        strut <- getStrut w
+        whenX (updateStrutCache w strut) refreshDocks
     return (All True)
 docksEventHook (DestroyWindowEvent {ev_window = w}) = do
     whenX (deleteFromStructCache w) refreshDocks
