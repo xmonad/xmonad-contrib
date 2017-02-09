@@ -1,12 +1,12 @@
 # Change Log / Release Notes
 
-## 0.13
+## 0.13 (February 10, 2017)
 
 ### Breaking Changes
 
   * The type of `completionKey` (of `XPConfig` record) has been
     changed from `KeySym` to `(KeyMask, KeySym)`. The default value
-    for this is still binded to `Tab` key.
+    for this is still bound to the `Tab` key.
 
   * New constructor `CenteredAt Rational Rational` added for
     `XMonad.Prompt.XPPosition`.
