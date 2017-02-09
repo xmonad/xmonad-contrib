@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.12
+version:            0.13
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
@@ -63,8 +63,8 @@ library
                    random,
                    mtl >= 1 && < 3,
                    unix,
-                   X11>=1.6.1 && < 1.8,
-                   xmonad>=0.12   && < 0.13,
+                   X11>=1.6.1 && < 1.9,
+                   xmonad>=0.13   && < 0.14,
                    utf8-string
 
     if flag(use_xft)
