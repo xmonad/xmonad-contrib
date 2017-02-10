@@ -45,20 +45,20 @@
     EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
     you will usually be taken to the `NSP` workspace by them.
 
-### Minor Changes
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Hooks.ManageDocks`,
+
+    - Fix a very annoying bug where taskbars/docs would be
+      covered by windows.
+
+    - Also fix a bug that caused certain Gtk and Qt application to
+      have issues displaying menus and popups.
 
   * `XMonad.Layout.LayoutBuilder`
 
     Merge all functionality from `XMonad.Layout.LayoutBuilderP` into
     `XMonad.Layout.LayoutBuilder`.
-
-  * `XMonad.Actions.DynamicProjects`
-
-    - Switching away from a dynamic project that contains no windows
-      automatically deletes that project's workspace.
-
-      The project itself was already being deleted, this just deletes
-      the workspace created for it as well.
 
   * `XMonad.Actions.WindowGo`
 
@@ -74,8 +74,13 @@
     submap key press.  And terminate submap at button press in the same way,
     as we do for wrong key press.
 
-
   * `XMonad.Actions.DynamicProjects`
+
+    - Switching away from a dynamic project that contains no windows
+      automatically deletes that project's workspace.
+
+      The project itself was already being deleted, this just deletes
+      the workspace created for it as well.
 
     - Added function to change the working directory (`changeProjectDirPrompt`)
 
