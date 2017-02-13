@@ -126,7 +126,10 @@ data XPState =
         }
 
 data XPConfig =
-    XPC { font              :: String     -- ^ Font; use the prefix @"xft:"@ for TrueType fonts
+    XPC { font              :: String     -- ^ Font. For TrueType fonts, use something like
+                                          -- @"xft:Hack:pixelsize=1"@. Alternatively, use X Logical Font
+                                          -- Description, i.e. something like
+                                          -- @"-*-dejavu sans mono-medium-r-normal--*-80-*-*-*-*-iso10646-1"@.
         , bgColor           :: String     -- ^ Background color
         , fgColor           :: String     -- ^ Font color
         , fgHLight          :: String     -- ^ Font color of a highlighted completion entry
