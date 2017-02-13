@@ -80,6 +80,9 @@ instance XPrompt WindowPrompt where
     nextCompletion      _ = getNextCompletion
 
 -- | Deprecated. Use windowPrompt instead.
+{-# DEPRECATED windowPromptGoto      "Use windowPrompt instead." #-}
+{-# DEPRECATED windowPromptBring     "Use windowPrompt instead." #-}
+{-# DEPRECATED windowPromptBringCopy "Use windowPrompt instead." #-}
 windowPromptGoto, windowPromptBring, windowPromptBringCopy :: XPConfig -> X ()
 windowPromptGoto c = windowPrompt c Goto windowMap
 windowPromptBring c = windowPrompt c Bring windowMap
