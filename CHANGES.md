@@ -1,5 +1,25 @@
 # Change Log / Release Notes
 
+## 0.14 (No Release Date Announced)
+
+### Breaking Changes
+
+These are changes that users should review and prepare for before
+upgrading XMonad.
+
+### New Modules
+
+Exciting new modules added to xmonad-contrib.
+
+### Bug Fixes and Minor Changes
+
+These are changes to existing modules.
+
+  * `XMonad.Prompt.Window`
+
+    - New function: `windowMultiPrompt` for using `mkXPromptWithModes`
+      with window prompts.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
