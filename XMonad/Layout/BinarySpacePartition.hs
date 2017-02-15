@@ -20,6 +20,7 @@ module XMonad.Layout.BinarySpacePartition (
   -- * Usage
   -- $usage
     emptyBSP
+  , BinarySpacePartition
   , Rotate(..)
   , Swap(..)
   , ResizeDirectional(..)
