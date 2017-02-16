@@ -2,6 +2,12 @@
 
 ## 0.14 (Not Yet)
 
+### Breaking Changes
+
+  * `XMonad.Actions.GridSelect`
+
+    - Added field `gs_bordercolor` to `GSConfig` to specify border color.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Util.WindowProperties`
