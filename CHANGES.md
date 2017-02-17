@@ -1,5 +1,14 @@
 # Change Log / Release Notes
 
+## 0.14 (Not Yet)
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Util.WindowProperties`
+
+    - Added the ability to test if a window has a tag from
+      `XMonad.Actions.TagWindows`
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
