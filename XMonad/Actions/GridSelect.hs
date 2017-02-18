@@ -341,7 +341,10 @@ drawWinBox win font (fg,bg) bc ch cw text x y cp =
            (\n -> do size <- liftIO $ textWidthXMF dpy font n
                      return $ size > (fromInteger (cw-(2*cp))))
            text
-  printStringXMF dpy win font gc bg fg (fromInteger (x+cp)) (fromInteger (y+(div ch 2))) stext
+  -- calculate the offset to vertically centre the text based on the ascender and descender
+  (asc,desc) <- liftIO $ textExtentsXMF font stext
+  let offset = ((ch - fromIntegral (asc + desc)) `div` 2) + fromIntegral asc
+  printStringXMF dpy win font gc bg fg (fromInteger (x+cp)) (fromInteger (y+offset)) stext
   liftIO $ freeGC dpy gc
   liftIO $ freeGC dpy bordergc
 

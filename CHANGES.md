@@ -10,6 +10,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.GridSelect`
+
+    - The vertical centring of text in each cell has been improved.
+
   * `XMonad.Util.WindowProperties`
 
     - Added the ability to test if a window has a tag from
