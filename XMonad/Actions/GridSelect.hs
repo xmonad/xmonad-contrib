@@ -205,7 +205,8 @@ data GSConfig a = GSConfig {
       gs_navigate :: TwoD a (Maybe a),
       gs_rearranger :: Rearranger a,
       gs_originFractX :: Double,
-      gs_originFractY :: Double
+      gs_originFractY :: Double,
+      gs_bordercolor :: String
 }
 
 -- | That is 'fromClassName' if you are selecting a 'Window', or
@@ -322,15 +323,15 @@ diamondRestrict x y originX originY =
 findInElementMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
 findInElementMap pos = find ((== pos) . fst)
 
-drawWinBox :: Window -> XMonadFont -> (String, String) -> Integer -> Integer -> String -> Integer -> Integer -> Integer -> X ()
-drawWinBox win font (fg,bg) ch cw text x y cp =
+drawWinBox :: Window -> XMonadFont -> (String, String) -> String -> Integer -> Integer -> String -> Integer -> Integer -> Integer -> X ()
+drawWinBox win font (fg,bg) bc ch cw text x y cp =
   withDisplay $ \dpy -> do
   gc <- liftIO $ createGC dpy win
   bordergc <- liftIO $ createGC dpy win
   liftIO $ do
     Just fgcolor <- initColor dpy fg
     Just bgcolor <- initColor dpy bg
-    Just bordercolor <- initColor dpy borderColor
+    Just bordercolor <- initColor dpy bc
     setForeground dpy gc fgcolor
     setBackground dpy gc bgcolor
     setForeground dpy bordergc bordercolor
@@ -340,7 +341,10 @@ drawWinBox win font (fg,bg) ch cw text x y cp =
            (\n -> do size <- liftIO $ textWidthXMF dpy font n
                      return $ size > (fromInteger (cw-(2*cp))))
            text
-  printStringXMF dpy win font gc bg fg (fromInteger (x+cp)) (fromInteger (y+(div ch 2))) stext
+  -- calculate the offset to vertically centre the text based on the ascender and descender
+  (asc,desc) <- liftIO $ textExtentsXMF font stext
+  let offset = ((ch - fromIntegral (asc + desc)) `div` 2) + fromIntegral asc
+  printStringXMF dpy win font gc bg fg (fromInteger (x+cp)) (fromInteger (y+offset)) stext
   liftIO $ freeGC dpy gc
   liftIO $ freeGC dpy bordergc
 
@@ -378,6 +382,7 @@ updateElementsWithColorizer colorizer elementmap = do
             colors <- colorizer element (pos == curpos)
             drawWinBox win font
                        colors
+                       (gs_bordercolor gsconfig)
                        cellheight
                        cellwidth
                        text
@@ -390,7 +395,7 @@ stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
 stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
     | t == buttonRelease = do
         s @  TwoDState { td_paneX = px, td_paneY = py,
-                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _) } <- get
+                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _ _) } <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) (td_elementmap s) of
@@ -714,10 +719,7 @@ decorateName' w = do
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2)
-
-borderColor :: String
-borderColor = "white"
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2) "white"
 
 -- | Brings selected window to the current workspace.
 bringSelected :: GSConfig Window -> X ()
