@@ -19,6 +19,10 @@
     - Added the ability to test if a window has a tag from
       `XMonad.Actions.TagWindows`
 
+  * `XMonad.Layout.Magnifier`
+
+    - Handle `IncMasterN` messages.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes

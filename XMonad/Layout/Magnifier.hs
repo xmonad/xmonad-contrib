@@ -83,63 +83,65 @@ import XMonad.Util.XUtils
 
 -- | Increase the size of the window that has focus
 magnifier :: l a -> ModifiedLayout Magnifier l a
-magnifier = ModifiedLayout (Mag (1.5,1.5) On All)
+magnifier = ModifiedLayout (Mag 1 (1.5,1.5) On All)
 
 -- | Change the size of the window that has focus by a custom zoom
 magnifiercz :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz cz = ModifiedLayout (Mag (fromRational cz, fromRational cz) On All)
+magnifiercz cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On All)
 
--- | Increase the size of the window that has focus, unless if it is the
--- master window.
+-- | Increase the size of the window that has focus, unless if it is one of the
+-- master windows.
 magnifier' :: l a -> ModifiedLayout Magnifier l a
-magnifier' = ModifiedLayout (Mag (1.5,1.5) On NoMaster)
+magnifier' = ModifiedLayout (Mag 1 (1.5,1.5) On NoMaster)
 
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
-magnifierOff = ModifiedLayout (Mag (1.5,1.5) Off All)
+magnifierOff = ModifiedLayout (Mag 1 (1.5,1.5) Off All)
 
 -- | Increase the size of the window that has focus by a custom zoom,
--- unless if it is the master window.
+-- unless if it is one of the the master windows.
 magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz' cz = ModifiedLayout (Mag (fromRational cz, fromRational cz) On NoMaster)
+magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On NoMaster)
 
 -- | A magnifier that greatly magnifies just the vertical direction
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
-maximizeVertical = ModifiedLayout (Mag (1,1000) Off All)
+maximizeVertical = ModifiedLayout (Mag 1 (1,1000) Off All)
 
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
 
-data Magnifier a = Mag (Double,Double) Toggle MagnifyMaster deriving (Read, Show)
+data Magnifier a = Mag !Int (Double,Double) Toggle MagnifyMaster deriving (Read, Show)
 
 data Toggle        = On  | Off      deriving  (Read, Show)
 data MagnifyMaster = All | NoMaster deriving  (Read, Show)
 
 instance LayoutModifier Magnifier Window where
-    redoLayout  (Mag z On All     ) r (Just s) wrs = applyMagnifier z r s wrs
-    redoLayout  (Mag z On NoMaster) r (Just s) wrs = unlessMaster (applyMagnifier z) r s wrs
+    redoLayout  (Mag _ z On All     ) r (Just s) wrs = applyMagnifier z r s wrs
+    redoLayout  (Mag n z On NoMaster) r (Just s) wrs = unlessMaster n (applyMagnifier z) r s wrs
     redoLayout  _                   _ _        wrs = return (wrs, Nothing)
 
-    handleMess (Mag z On  t) m
-                    | Just MagnifyMore <- fromMessage m = return . Just $ (Mag (z `addto`   0.1 ) On  t)
-                    | Just MagnifyLess <- fromMessage m = return . Just $ (Mag (z `addto` (-0.1)) On  t)
-                    | Just ToggleOff   <- fromMessage m = return . Just $ (Mag (z      ) Off t)
-                    | Just Toggle      <- fromMessage m = return . Just $ (Mag (z      ) Off t)
+    handleMess (Mag n z On  t) m
+                    | Just MagnifyMore    <- fromMessage m = return . Just $ Mag n             (z `addto`   0.1 ) On  t
+                    | Just MagnifyLess    <- fromMessage m = return . Just $ Mag n             (z `addto` (-0.1)) On  t
+                    | Just ToggleOff      <- fromMessage m = return . Just $ Mag n             z                  Off t
+                    | Just Toggle         <- fromMessage m = return . Just $ Mag n             z                  Off t
+                    | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  On  t
                     where addto (x,y) i = (x+i,y+i)
-    handleMess (Mag z Off t) m
-                    | Just ToggleOn    <- fromMessage m = return . Just $ (Mag z         On  t)
-                    | Just Toggle      <- fromMessage m = return . Just $ (Mag z         On  t)
+    handleMess (Mag n z Off t) m
+                    | Just ToggleOn       <- fromMessage m = return . Just $ Mag n             z                  On  t
+                    | Just Toggle         <- fromMessage m = return . Just $ Mag n             z                  On  t
+                    | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  Off t
     handleMess _ _ = return Nothing
 
-    modifierDescription (Mag _ On  All     ) = "Magnifier"
-    modifierDescription (Mag _ On  NoMaster) = "Magnifier NoMaster"
-    modifierDescription (Mag _ Off _       ) = "Magnifier (off)"
+    modifierDescription (Mag _ _ On  All     ) = "Magnifier"
+    modifierDescription (Mag _ _ On  NoMaster) = "Magnifier NoMaster"
+    modifierDescription (Mag _ _ Off _       ) = "Magnifier (off)"
 
 type NewLayout a = Rectangle -> Stack a -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe (Magnifier a))
 
-unlessMaster :: NewLayout a -> NewLayout a
-unlessMaster mainmod r s wrs = if null (up s) then return (wrs, Nothing)
-                                              else mainmod r s wrs
+unlessMaster :: Int -> NewLayout a -> NewLayout a
+unlessMaster n mainmod r s wrs = if null (drop (n-1) (up s)) then return (wrs, Nothing)
+                                                             else mainmod r s wrs
 
 applyMagnifier :: (Double,Double) -> Rectangle -> t -> [(Window, Rectangle)]
                -> X ([(Window, Rectangle)], Maybe a)
