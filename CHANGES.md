@@ -4,6 +4,8 @@
 
 ### Breaking Changes
 
+  * Adding handling of modifySpacing message in smartSpacing and smartSpacingWithEdge layout modifier
+
   * `XMonad.Actions.GridSelect`
 
     - Added field `gs_bordercolor` to `GSConfig` to specify border color.
