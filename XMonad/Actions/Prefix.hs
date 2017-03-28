@@ -130,7 +130,7 @@ usePrefixArgument prefix conf = conf {
   }
   where keys' conf' =
           let binding = prefix conf'
-          in M.singleton binding (handlePrefixArg binding)
+          in M.singleton binding (handlePrefixArg [binding])
 
 -- | Set Prefix up with default prefix key (C-u).
 useDefaultPrefixArgument :: LayoutClass l Window
@@ -138,8 +138,8 @@ useDefaultPrefixArgument :: LayoutClass l Window
                          -> XConfig l
 useDefaultPrefixArgument = usePrefixArgument (\_ -> (controlMask, xK_u))
 
-handlePrefixArg :: (KeyMask, KeySym) -> X ()
-handlePrefixArg prefixBinding = do
+handlePrefixArg :: [(KeyMask, KeySym)] -> X ()
+handlePrefixArg events = do
   ks <- asks keyActions
   logger <- asks (logHook . config)
   flip finallyX (XS.put None >> logger) $ do
@@ -159,8 +159,12 @@ handlePrefixArg prefixBinding = do
               Raw _ -> XS.put $ Numeric x
               Numeric a -> XS.put $ Numeric $ a * 10 + x
               None -> return () -- should never happen
-            handlePrefixArg prefixBinding
-          else mapM_ (uncurry sendKey) [prefixBinding, key]
+            handlePrefixArg (key:events)
+          else do
+            prefix <- XS.get
+            mapM_ (uncurry sendKey) $ case prefix of
+              Raw a -> replicate a (head events) ++ [key]
+              _ -> reverse (key:events)
         keyToNum = (xK_0, 0) : zip [xK_1 .. xK_9] [1..9]
 
 -- | Turn a prefix-aware X action into an X-action.
