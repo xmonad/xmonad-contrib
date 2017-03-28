@@ -26,6 +26,8 @@ module XMonad.Actions.Prefix
        , usePrefixArgument
        , useDefaultPrefixArgument
        , withPrefixArgument
+       , isPrefixRaw
+       , isPrefixNumeric
        , ppFormatPrefix
        ) where
 
@@ -159,6 +161,16 @@ handlePrefixArg prefixBinding = do
 
 withPrefixArgument :: (PrefixArgument -> X ()) -> X ()
 withPrefixArgument = (>>=) XS.get
+
+-- | Test if 'PrefixArgument' is 'Raw' or not.
+isPrefixRaw :: PrefixArgument -> Bool
+isPrefixRaw (Raw _) = True
+isPrefixRaw _ = False
+
+-- | Test if 'PrefixArgument' is 'Numeric' or not.
+isPrefixNumeric :: PrefixArgument -> Bool
+isPrefixNumeric (Numeric _) = True
+isPrefixNumeric _ = False
 
 -- | Format the prefix using the Emacs convetion for use in a
 -- statusbar, like xmobar.
