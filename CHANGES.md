@@ -305,6 +305,11 @@
     that are exclusive on the same screen. It also allows to remove this
     constraint of being mutually exclusive with another scratchpad.
 
+  * `XMonad.Actions.Prefix`
+
+    A module that allows the user to use an Emacs-style prefix
+    argument (raw or numeric).
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Layout.Tabbed`
