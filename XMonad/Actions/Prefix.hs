@@ -118,6 +118,9 @@ instance ExtensionClass PrefixArgument where
 finallyX :: X a -> X a -> X a
 finallyX job cleanup = catchX (job >>= \r -> cleanup >> return r) cleanup
 
+-- | Set Prefix up with custom configuration.
+--
+-- See usage section.
 usePrefixArgument :: LayoutClass l Window
                   => (XConfig Layout -> (KeyMask, KeySym))
                   -> XConfig l
@@ -129,6 +132,7 @@ usePrefixArgument prefix conf = conf {
           let binding = prefix conf'
           in M.singleton binding (handlePrefixArg binding)
 
+-- | Set Prefix up with default prefix key (C-u).
 useDefaultPrefixArgument :: LayoutClass l Window
                          => XConfig l
                          -> XConfig l
@@ -159,6 +163,10 @@ handlePrefixArg prefixBinding = do
           else mapM_ (uncurry sendKey) [prefixBinding, key]
         keyToNum = (xK_0, 0) : zip [xK_1 .. xK_9] [1..9]
 
+-- | Turn a prefix-aware X action into an X-action.
+--
+-- First, fetch the current prefix, then pass it as argument to the
+-- original function.  You should use this to "run" your commands.
 withPrefixArgument :: (PrefixArgument -> X ()) -> X ()
 withPrefixArgument = (>>=) XS.get
 
