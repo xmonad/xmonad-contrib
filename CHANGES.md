@@ -23,6 +23,11 @@
 
     - Handle `IncMasterN` messages.
 
+  * `XMonad.Util.EZConfig`
+
+    - Can now parse Latin1 keys, to better accommodate users with
+      non-US keyboards.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
