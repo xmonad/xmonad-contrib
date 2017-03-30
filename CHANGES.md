@@ -68,6 +68,11 @@
   * `XMonad.Hooks.ManageHelpers`
 
     Make type of ManageHook combinators more general.
+    
+  * `XMonad.Prompt.Window`
+
+    - New function: `windowMultiPrompt` for using `mkXPromptWithModes`
+      with window prompts.
 
 ## 0.13 (February 10, 2017)
 

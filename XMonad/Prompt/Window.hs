@@ -20,6 +20,7 @@ module XMonad.Prompt.Window
     -- $usage
     WindowPrompt(..),
     windowPrompt,
+    windowMultiPrompt,
     allWindows,
     wsWindows,
     XWindowMap,
@@ -30,6 +31,7 @@ module XMonad.Prompt.Window
     windowPromptBringCopy,
     ) where
 
+import Control.Monad (forM)
 import qualified Data.Map as M
 
 import qualified XMonad.StackSet as W
@@ -79,6 +81,32 @@ instance XPrompt WindowPrompt where
     commandToComplete _ c = c
     nextCompletion      _ = getNextCompletion
 
+-- | Internal type used for the multiple mode prompt.
+data WindowModePrompt =
+  WindowModePrompt WindowPrompt (M.Map String Window) (String -> String -> Bool)
+
+instance XPrompt WindowModePrompt where
+    showXPrompt (WindowModePrompt action _ _) =
+        showXPrompt action
+
+    completionFunction (WindowModePrompt _ winmap predicate) =
+        \s -> return . filter (predicate s) . map fst . M.toList $ winmap
+
+    modeAction (WindowModePrompt action winmap _) buf auto = do
+        let name = if null auto then buf else auto
+            a = case action of
+                  Goto          -> gotoAction  winmap
+                  Bring         -> bringAction winmap
+                  BringCopy     -> bringCopyAction winmap
+                  BringToMaster -> bringToMaster winmap
+        a name
+      where
+        winAction a m    = flip whenJust (windows . a) . flip M.lookup m
+        gotoAction       = winAction W.focusWindow
+        bringAction      = winAction bringWindow
+        bringCopyAction  = winAction bringCopyWindow
+        bringToMaster    = winAction (\w s -> W.shiftMaster . W.focusWindow w $ bringWindow w s)
+
 -- | Deprecated. Use windowPrompt instead.
 {-# DEPRECATED windowPromptGoto      "Use windowPrompt instead." #-}
 {-# DEPRECATED windowPromptBring     "Use windowPrompt instead." #-}
@@ -109,22 +137,31 @@ type XWindowMap = X (M.Map String Window)
 -- selected window, according to WindowPrompt.
 windowPrompt :: XPConfig -> WindowPrompt -> XWindowMap -> X ()
 windowPrompt c t winmap = do
-  a <- case t of
-         Goto  -> fmap gotoAction  winmap
-         Bring -> fmap bringAction winmap
-         BringCopy -> fmap bringCopyAction winmap
-         BringToMaster -> fmap bringToMaster winmap
   wm <- winmap
-  mkXPrompt t c (compList wm) a
+  let mode     = WindowModePrompt t wm (searchPredicate c)
+      action   = modeAction mode
+      compList = completionFunction mode
+  mkXPrompt t c compList (\s -> action s s)
 
-    where
-      winAction a m    = flip whenJust (windows . a) . flip M.lookup m
-      gotoAction       = winAction W.focusWindow
-      bringAction      = winAction bringWindow
-      bringCopyAction  = winAction bringCopyWindow
-      bringToMaster    = winAction (\w s -> W.shiftMaster . W.focusWindow w $ bringWindow w s)
+-- | Like 'windowPrompt', but uses the multiple modes feature of
+-- @Prompt@ (via 'mkXPromptWithModes').
+--
+-- Given a list of actions along with the windows they should work
+-- with, display the appropriate prompt with the ability to switch
+-- between them using the @changeModeKey@.
+--
+-- For example, to have a prompt that first shows you all windows, but
+-- allows you to narrow the list down to just the windows on the
+-- current workspace:
+--
+-- > windowMultiPrompt config [(Goto, allWindows), (Goto, wsWindows)]
+windowMultiPrompt :: XPConfig -> [(WindowPrompt, XWindowMap)] -> X ()
+windowMultiPrompt c modes = do
+  modes' <- forM modes $ \(t, wm) -> do
+    wm' <- wm
+    return . XPT $ WindowModePrompt t wm' (searchPredicate c)
 
-      compList m s = return . filter (searchPredicate c s) . map fst . M.toList $ m
+  mkXPromptWithModes modes' c
 
 -- | Brings a copy of the specified window into the current workspace.
 bringCopyWindow :: Window -> WindowSet -> WindowSet
