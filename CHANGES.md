@@ -1,20 +1,74 @@
 # Change Log / Release Notes
 
-## 0.14 (No Release Date Announced)
+## 0.14 (Not Yet)
 
 ### Breaking Changes
 
-These are changes that users should review and prepare for before
-upgrading XMonad.
+  * `XMonad.Actions.GridSelect`
+
+    - Added field `gs_bordercolor` to `GSConfig` to specify border color.
+
+  * `ewmh` function from `X.H.EwmhDesktops` will use `manageHook` for handling
+    activated window. That means, actions, which you don't want to happen on
+    activated windows, should be guarded by
+
+        not <$> activated
+
+    predicate. By default, with empty `ManageHook`, window activation will do
+    nothing.
+
+    Also, you can use regular 'ManageHook' combinators for changing window
+    activation behavior.
 
 ### New Modules
 
-Exciting new modules added to xmonad-contrib.
+  * `XMonad.Hooks.Focus`
+
+    A new module extending ManageHook EDSL to work on focused windows and
+    current workspace.
+
+    This module will enable window activation (`_NET_ACTIVE_WINDOW`) and apply
+    `manageHook` to activated window too. Thus, it may lead to unexpected
+    results, when `manageHook` previously working only for new windows, start
+    working for activated windows too. It may be solved, by adding
+    `not <$> activated` before those part of `manageHook`, which should not be
+    called for activated windows.  But this lifts `manageHook` into
+    `FocusHook` and it needs to be converted back later using `manageFocus`.
 
 ### Bug Fixes and Minor Changes
 
-These are changes to existing modules.
+  * `XMonad.Actions.GridSelect`
 
+    - The vertical centring of text in each cell has been improved.
+
+  * `XMonad.Util.WindowProperties`
+
+    - Added the ability to test if a window has a tag from
+      `XMonad.Actions.TagWindows`
+
+  * `XMonad.Layout.Magnifier`
+
+    - Handle `IncMasterN` messages.
+
+  * `XMonad.Util.EZConfig`
+
+    - Can now parse Latin1 keys, to better accommodate users with
+      non-US keyboards.
+
+  * `XMonad.Actions.Submap`
+
+    Establish pointer grab to avoid freezing X, when button press occurs after
+    submap key press.  And terminate submap at button press in the same way,
+    as we do for wrong key press.
+
+  * `XMonad.Hooks.SetWMName`
+
+    Add function `getWMName`.
+
+  * `XMonad.Hooks.ManageHelpers`
+
+    Make type of ManageHook combinators more general.
+    
   * `XMonad.Prompt.Window`
 
     - New function: `windowMultiPrompt` for using `mkXPromptWithModes`
@@ -87,12 +141,6 @@ These are changes to existing modules.
   * `XMonad.Actions.UpdatePointer`
 
     - Fix bug when cursor gets stuck in one of the corners.
-
-  * `XMonad.Actions.Submap`
-
-    Establish pointer grab to avoid freezing X, when button press occurs after
-    submap key press.  And terminate submap at button press in the same way,
-    as we do for wrong key press.
 
   * `XMonad.Actions.DynamicProjects`
 

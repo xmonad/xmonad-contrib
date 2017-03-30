@@ -427,7 +427,11 @@ parseKey = parseRegular +++ parseSpecial
 -- | Parse a regular key name (represented by itself).
 parseRegular :: ReadP KeySym
 parseRegular = choice [ char s >> return k
-                      | (s,k) <- zip ['!'..'~'] [xK_exclam..xK_asciitilde]
+                      | (s,k) <- zip ['!'             .. '~'          ] -- ASCII
+                                     [xK_exclam       .. xK_asciitilde]
+
+                              ++ zip ['\xa0'          .. '\xff'       ] -- Latin1
+                                     [xK_nobreakspace .. xK_ydiaeresis]
                       ]
 
 -- | Parse a special key name (one enclosed in angle brackets).
