@@ -31,6 +31,7 @@ module XMonad.Actions.DynamicProjects
        , switchProjectPrompt
        , shiftToProjectPrompt
        , renameProjectPrompt
+       , changeProjectDirPrompt
 
          -- * Helper Functions
        , switchProject
@@ -43,6 +44,7 @@ module XMonad.Actions.DynamicProjects
 --------------------------------------------------------------------------------
 import Control.Applicative ((<|>))
 import Control.Monad (when, unless)
+import Data.Char (isSpace)
 import Data.List (sort, union, stripPrefix)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
@@ -52,8 +54,7 @@ import System.Directory (setCurrentDirectory, getHomeDirectory)
 import XMonad
 import XMonad.Actions.DynamicWorkspaces
 import XMonad.Prompt
-import XMonad.Prompt.Directory (directoryPrompt)
-import XMonad.Prompt.Workspace (Wor(..))
+import XMonad.Prompt.Directory
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 
@@ -143,6 +144,48 @@ instance ExtensionClass ProjectState where
   initialValue = ProjectState Map.empty Nothing
 
 --------------------------------------------------------------------------------
+-- Internal types for working with XPrompt.
+data ProjectPrompt = ProjectPrompt ProjectMode [ProjectName]
+data ProjectMode = SwitchMode | ShiftMode | RenameMode | DirMode
+
+instance XPrompt ProjectPrompt where
+  showXPrompt (ProjectPrompt submode _) =
+    case submode of
+      SwitchMode -> "Switch or Create Project: "
+      ShiftMode  -> "Send Window to Project: "
+      RenameMode -> "New Project Name: "
+      DirMode    -> "Change Project Directory: "
+
+  completionFunction (ProjectPrompt RenameMode _) = return . (:[])
+  completionFunction (ProjectPrompt DirMode _) =
+    let xpt = directoryMultipleModes "" (const $ return ())
+    in completionFunction xpt
+  completionFunction (ProjectPrompt _ ns) = mkComplFunFromList' ns
+
+  modeAction (ProjectPrompt SwitchMode _) buf auto = do
+    let name = if null auto then buf else auto
+    ps <- XS.gets projects
+
+    case Map.lookup name ps of
+      Just p              -> switchProject p
+      Nothing | null name -> return ()
+              | otherwise -> switchProject (defProject name)
+
+  modeAction (ProjectPrompt ShiftMode _) buf auto = do
+    let name = if null auto then buf else auto
+    ps <- XS.gets projects
+    shiftToProject . fromMaybe (defProject name) $ Map.lookup name ps
+
+  modeAction (ProjectPrompt RenameMode _) name _ =
+    when (not (null name) && not (all isSpace name)) $ do
+      renameWorkspaceByName name
+      modifyProject (\p -> p { projectName = name })
+
+  modeAction (ProjectPrompt DirMode _) buf auto = do
+    let dir = if null auto then buf else auto
+    modifyProject (\p -> p { projectDirectory = dir })
+
+--------------------------------------------------------------------------------
 -- | Add dynamic projects support to the given config.
 dynamicProjects :: [Project] -> XConfig a -> XConfig a
 dynamicProjects ps c =
@@ -199,6 +242,21 @@ currentProject = do
   return $ fromMaybe (defProject name) proj
 
 --------------------------------------------------------------------------------
+-- | Modify the current project using a pure function.
+modifyProject :: (Project -> Project) -> X ()
+modifyProject f = do
+  p  <- currentProject
+  ps <- XS.gets projects
+
+  -- If a project is renamed to match another project, the old project
+  -- will be removed and replaced with this one.
+  let new = f p
+      ps' = Map.insert (projectName new) new $ Map.delete (projectName p) ps
+
+  XS.modify $ \s -> s {projects = ps'}
+  activateProject new
+
+--------------------------------------------------------------------------------
 -- | Switch to the given project.
 switchProject :: Project -> X ()
 switchProject p = do
@@ -220,22 +278,11 @@ switchProject p = do
 -- | Prompt for a project name and then switch to it.  Automatically
 -- creates a project if a new name is returned from the prompt.
 switchProjectPrompt :: XPConfig -> X ()
-switchProjectPrompt c = projectPrompt c switch
-  where
-    switch :: ProjectTable -> ProjectName -> X ()
-    switch ps name = case Map.lookup name ps of
-      Just p              -> switchProject p
-      Nothing | null name -> return ()
-              | otherwise -> directoryPrompt dirC "Project Dir: " (mkProject name)
-
-    dirC :: XPConfig
-    dirC = c { alwaysHighlight = False } -- Fix broken tab completion.
-
-    mkProject :: ProjectName -> FilePath -> X ()
-    mkProject name dir = do
-      let p = Project name dir Nothing
-      XS.modify $ \s -> s {projects = Map.insert name p $ projects s}
-      switchProject p
+switchProjectPrompt = projectPrompt [ SwitchMode
+                                    , ShiftMode
+                                    , RenameMode
+                                    , DirMode
+                                    ]
 
 --------------------------------------------------------------------------------
 -- | Shift the currently focused window to the given project.
@@ -248,40 +295,44 @@ shiftToProject p = do
 -- | Prompts for a project name and then shifts the currently focused
 -- window to that project.
 shiftToProjectPrompt :: XPConfig -> X ()
-shiftToProjectPrompt c = projectPrompt c go
-  where
-    go :: ProjectTable -> ProjectName -> X ()
-    go ps name = shiftToProject . fromMaybe (defProject name) $
-                 Map.lookup name ps
-
---------------------------------------------------------------------------------
--- | Prompt for a project name.
-projectPrompt :: XPConfig -> (ProjectTable -> ProjectName -> X ()) -> X ()
-projectPrompt c f = do
-  ws <- map W.tag `fmap` gets (W.workspaces . windowset)
-  ps <- XS.gets projects
-
-  let names = sort (Map.keys ps `union` ws)
-      label = "Switch or Create Project: "
-
-  mkXPrompt (Wor label) c (mkComplFunFromList' names) (f ps)
+shiftToProjectPrompt = projectPrompt [ ShiftMode
+                                     , RenameMode
+                                     , SwitchMode
+                                     , DirMode
+                                     ]
 
 --------------------------------------------------------------------------------
 -- | Rename the current project.
 renameProjectPrompt :: XPConfig -> X ()
-renameProjectPrompt c = mkXPrompt (Wor "New Project Name: ") c (return . (:[])) go
-  where
-    go :: String -> X ()
-    go name = do
-      p  <- currentProject
-      ps <- XS.gets projects
-      renameWorkspaceByName name
+renameProjectPrompt = projectPrompt [ RenameMode
+                                    , DirMode
+                                    , SwitchMode
+                                    , ShiftMode
+                                    ]
 
-      let p'  = fromMaybe (p { projectName = name }) $ Map.lookup name ps
-          ps' = Map.insert name p' $ Map.delete (projectName p) ps
+--------------------------------------------------------------------------------
+-- | Change the working directory used for the current project.
+--
+-- NOTE: This will only affect new processed started in this project.
+-- Existing processes will maintain the previous working directory.
+changeProjectDirPrompt :: XPConfig -> X ()
+changeProjectDirPrompt = projectPrompt [ DirMode
+                                       , SwitchMode
+                                       , ShiftMode
+                                       , RenameMode
+                                       ]
 
-      XS.modify $ \s -> s {projects = ps'}
-      activateProject p'
+--------------------------------------------------------------------------------
+-- | Prompt for a project name.
+projectPrompt :: [ProjectMode] -> XPConfig -> X ()
+projectPrompt submodes c = do
+  ws <- map W.tag `fmap` gets (W.workspaces . windowset)
+  ps <- XS.gets projects
+
+  let names = sort (Map.keys ps `union` ws)
+      modes = map (\m -> XPT $ ProjectPrompt m names) submodes
+
+  mkXPromptWithModes modes c
 
 --------------------------------------------------------------------------------
 -- | Activate a project by updating the working directory and

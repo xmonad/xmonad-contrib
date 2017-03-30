@@ -195,7 +195,9 @@ navigable :: Direction2D -> Point -> [(Window, Rectangle)] -> [(Window, Rectangl
 navigable d pt = sortby d . filter (inr d pt . snd)
 
 sc :: Pixel -> Window -> X ()
-sc c win = withDisplay $ \dpy -> io $ setWindowBorder dpy win c
+sc c win = withDisplay $ \dpy -> do
+    colorName <- io (pixelToString dpy c)
+    setWindowBorderWithFallback dpy win colorName c
 
 center :: Rectangle -> Point
 center (Rectangle x y w h) = P (fromIntegral x + fromIntegral w/2)  (fromIntegral y + fromIntegral h/2)

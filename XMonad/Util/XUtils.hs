@@ -28,6 +28,7 @@ module XMonad.Util.XUtils
     , paintAndWrite
     , paintTextAndIcons
     , stringToPixel
+    , pixelToString
     , fi
     ) where
 
@@ -208,4 +209,3 @@ mkWindow d s rw x y w h p o = do
            set_background_pixel  attributes p
            createWindow d rw x y w h 0 (defaultDepthOfScreen s)
                         inputOutput visual attrmask attributes
-

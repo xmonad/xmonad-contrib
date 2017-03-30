@@ -239,6 +239,7 @@ data WSType = EmptyWS     -- ^ cycle through empty workspaces
             | NonEmptyWS  -- ^ cycle through non-empty workspaces
             | HiddenWS    -- ^ cycle through non-visible workspaces
             | HiddenNonEmptyWS  -- ^ cycle through non-empty non-visible workspaces
+            | HiddenEmptyWS  -- ^ cycle through empty non-visible workspaces
             | AnyWS       -- ^ cycle through all workspaces
             | WSTagGroup Char
                           -- ^ cycle through workspaces in the same group, the
@@ -257,6 +258,9 @@ wsTypeToPred HiddenWS   = do hs <- gets (map tag . hidden . windowset)
 wsTypeToPred HiddenNonEmptyWS  = do ne <- wsTypeToPred NonEmptyWS
                                     hi <- wsTypeToPred HiddenWS
                                     return (\w -> hi w && ne w)
+wsTypeToPred HiddenEmptyWS  = do ne <- wsTypeToPred EmptyWS
+                                 hi <- wsTypeToPred HiddenWS
+                                 return (\w -> hi w && ne w)
 wsTypeToPred AnyWS      = return (const True)
 wsTypeToPred (WSTagGroup sep) = do cur <- (groupName.workspace.current) `fmap` gets windowset
                                    return $ (cur ==).groupName

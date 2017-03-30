@@ -96,11 +96,11 @@ import XMonad.Util.Types
 --
 -- Alternatively, you can use navigation2DP:
 --
--- > main = xmonad $ navigation2D def
--- >                              ("<Up>", "<Left>", "<Down>", "<Right>")
--- >                              [("M-",   windowGo  ),
--- >                               ("M-S-", windowSwap)]
--- >                              False
+-- > main = xmonad $ navigation2DP def
+-- >                               ("<Up>", "<Left>", "<Down>", "<Right>")
+-- >                               [("M-",   windowGo  ),
+-- >                                ("M-S-", windowSwap)]
+-- >                               False
 -- >               $ def
 --
 -- That's it. If instead you'd like more control, you can combine

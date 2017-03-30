@@ -21,10 +21,12 @@ module XMonad.Util.WindowProperties (
     -- $helpers
     getProp32, getProp32s)
 where
-import XMonad
-import qualified XMonad.StackSet as W
-import Foreign.C.Types (CLong)
+
 import Control.Monad
+import Foreign.C.Types (CLong)
+import XMonad
+import XMonad.Actions.TagWindows (hasTag)
+import qualified XMonad.StackSet as W
 
 -- $edsl
 -- Allows to specify window properties, such as title, classname or
@@ -43,6 +45,7 @@ data Property = Title String
               | Or  Property Property
               | Not Property
               | Const Bool
+              | Tagged String -- ^ Tagged via 'XMonad.Actions.TagWindows'
               deriving (Read, Show)
 infixr 9 `And`
 infixr 8 `Or`
@@ -78,6 +81,7 @@ propertyToQuery (And p1 p2) = propertyToQuery p1 <&&> propertyToQuery p2
 propertyToQuery (Or p1 p2) = propertyToQuery p1 <||> propertyToQuery p2
 propertyToQuery (Not p) = not `fmap` propertyToQuery p
 propertyToQuery (Const b) = return b
+propertyToQuery (Tagged s) = ask >>= \w -> liftX (hasTag s w)
 
 -- $helpers
 
