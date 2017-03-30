@@ -39,6 +39,18 @@
   * New constructor `CenteredAt Rational Rational` added for
     `XMonad.Prompt.XPPosition`.
 
+  * `ewmh` function from `X.H.EwmhDesktops` will use `manageHook` for handling
+    activated window. That means, actions, which you don't want to happen on
+    activated windows, should be guarded by
+
+        not <$> activated
+
+    predicate. By default, with empty `ManageHook`, window activation will do
+    nothing.
+
+    Also, you can use regular 'ManageHook' combinators for changing window
+    activation behavior.
+
   * `XMonad.Prompt` now stores its history file in the XMonad cache
     directory in a file named `prompt-history`.
 
@@ -72,6 +84,19 @@
     Utility function and `ManageHook` to mark a window to be ignored by
     EWMH taskbars and pagers. Useful for `NamedScratchpad` windows, since
     you will usually be taken to the `NSP` workspace by them.
+
+  * `XMonad.Hooks.Focus`
+
+    A new module extending ManageHook EDSL to work on focused windows and
+    current workspace.
+
+    This module will enable window activation (`_NET_ACTIVE_WINDOW`) and apply
+    `manageHook` to activated window too. Thus, it may lead to unexpected
+    results, when `manageHook` previously working only for new windows, start
+    working for activated windows too. It may be solved, by adding
+    `not <$> activated` before those part of `manageHook`, which should not be
+    called for activated windows.  But this lifts `manageHook` into
+    `FocusHook` and it needs to be converted back later using `manageFocus`.
 
 ### Bug Fixes and Minor Changes
 
@@ -111,9 +136,23 @@
       the workspace created for it as well.
 
     - Added function to change the working directory (`changeProjectDirPrompt`)
-
+    
     - All of the prompts are now multiple mode prompts.  Try using the
       `changeModeKey` in a prompt and see what happens!
+
+  * `XMonad.Actions.Submap`
+
+    Establish pointer grab to avoid freezing X, when button press occurs after
+    submap key press.  And terminate submap at button press in the same way,
+    as we do for wrong key press.
+
+  * `XMonad.Hooks.SetWMName`
+
+    Add function `getWMName`.
+
+  * `XMonad.Hooks.ManageHelpers`
+
+    Make type of ManageHook combinators more general.
 
 ## 0.12 (December 14, 2015)
 
