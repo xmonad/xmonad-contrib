@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable     #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.EwmhDesktops
@@ -21,8 +19,6 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
-    NetActivated (..),
-    activated,
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
     fullscreenEventHook
@@ -41,7 +37,6 @@ import XMonad.Hooks.SetWMName
 import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
-import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -53,36 +48,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >            handleEventHook def <+> fullscreenEventHook }
 --
 -- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
---
--- __/WARNING!/__ 'ewmh' function will use 'manageHook' for handling activated
--- window. That means, actions, which you don't want to happen on activated
--- windows, should be guarded by
---
--- > not <$> activated
---
--- predicate.
---
--- And now by default window activation will do nothing: neither switch
--- workspace, nor focus. You can use regular 'ManageHook' combinators for
--- changing window activation behavior. Also, you may be interested in
--- "XMonad.Hooks.Focus", which provides additional predicates for using in
--- 'ManageHook'.
---
--- To get back old 'ewmh' window activation behavior (switch workspace and
--- focus to activated window) you may use:
---
--- > import XMonad
--- >
--- > import XMonad.Hooks.EwmhDesktops
--- > import XMonad.Hooks.ManageHelpers
--- > import XMonad.Hooks.Focus
--- >
--- > main :: IO ()
--- > main = do
--- >         let fh :: ManageHook
--- >             fh = manageFocus (liftQuery activated --> switchWorkspace <+> switchFocus)
--- >             xcf = ewmh $ def {modMask = mod4Mask, manageHook = fh}
--- >         xmonad xcf
+
 
 -- | Add EWMH functionality to the given config.  See above for an example.
 ewmh :: XConfig a -> XConfig a
@@ -162,19 +128,6 @@ ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
 ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
 ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
 
--- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
--- this value in global state, because i use 'ManageHook' for handling
--- activated windows and i need a way to tell 'manageHook', that now a window
--- is activated.
-newtype NetActivated    = NetActivated {netActivated :: Bool}
-  deriving (Show, Typeable)
-instance ExtensionClass NetActivated where
-    initialValue        = NetActivated False
-
--- | Was new window @_NET_ACTIVE_WINDOW@ activated?
-activated :: Query Bool
-activated           = fmap netActivated (liftX XS.get)
-
 handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
 handle f (ClientMessageEvent {
                ev_window = w,
@@ -200,10 +153,7 @@ handle f (ClientMessageEvent {
                        windows $ W.shiftWin (W.tag (ws !! fi n)) w
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
         else if mt == a_aw then do
-                mh <- asks (manageHook . config)
-                XS.put (NetActivated True)
-                runQuery mh w >>= windows . appEndo
-                XS.put (NetActivated False)
+               windows $ W.focusWindow w
         else if mt == a_cw then do
                killWindow w
         else if mt `elem` a_ignore then do

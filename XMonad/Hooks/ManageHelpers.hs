@@ -73,8 +73,8 @@ data Match a = Match Bool a
 -- | An alternative 'ManageHook' composer. Unlike 'composeAll' it stops as soon as
 -- a candidate returns a 'Just' value, effectively running only the first match
 -- (whereas 'composeAll' continues and executes all matching rules).
-composeOne :: (Monoid a, Monad m) => [m (Maybe a)] -> m a
-composeOne = foldr try (return mempty)
+composeOne :: [MaybeManageHook] -> ManageHook
+composeOne = foldr try idHook
     where
     try q z = do
         x <- q
@@ -85,17 +85,17 @@ composeOne = foldr try (return mempty)
 infixr 0 -?>, -->>, -?>>
 
 -- | q \/=? x. if the result of q equals x, return False
-(/=?) :: (Eq a, Functor m) => m a -> a -> m Bool
+(/=?) :: Eq a => Query a -> a -> Query Bool
 q /=? x = fmap (/= x) q
 
 -- | q <==? x. if the result of q equals x, return True grouped with q
-(<==?) :: (Eq a, Functor m) => m a -> a -> m (Match a)
+(<==?) :: Eq a => Query a -> a -> Query (Match a)
 q <==? x = fmap (`eq` x) q
     where
     eq q' x' = Match (q' == x') q'
 
 -- | q <\/=? x. if the result of q notequals x, return True grouped with q
-(</=?) :: (Eq a, Functor m) => m a -> a -> m (Match a)
+(</=?) :: Eq a => Query a -> a -> Query (Match a)
 q </=? x = fmap (`neq` x) q
     where
     neq q' x' = Match (q' /= x') q'
@@ -103,19 +103,19 @@ q </=? x = fmap (`neq` x) q
 -- | A helper operator for use in 'composeOne'. It takes a condition and an action;
 -- if the condition fails, it returns 'Nothing' from the 'Query' so 'composeOne' will
 -- go on and try the next rule.
-(-?>) :: (Functor m, Monad m) => m Bool -> m a -> m (Maybe a)
+(-?>) :: Query Bool -> ManageHook -> MaybeManageHook
 p -?> f = do
     x <- p
     if x then fmap Just f else return Nothing
 
 -- | A helper operator for use in 'composeAll'. It takes a condition and a function taking a grouped datum to action.  If 'p' is true, it executes the resulting action.
-(-->>) :: (Monoid b, Monad m) => m (Match a) -> (a -> m b) -> m b
+(-->>) :: Query (Match a) -> (a -> ManageHook) -> ManageHook
 p -->> f = do
     Match b m <- p
-    if b then (f m) else return mempty
+    if b then (f m) else mempty
 
 -- | A helper operator for use in 'composeOne'.  It takes a condition and a function taking a groupdatum to action.  If 'p' is true, it executes the resulting action.  If it fails, it returns 'Nothing' from the 'Query' so 'composeOne' will go on and try the next rule.
-(-?>>) :: (Functor m, Monad m) => m (Match a) -> (a -> m b) -> m (Maybe b)
+(-?>>) :: Query (Match a) -> (a -> ManageHook) -> MaybeManageHook
 p -?>> f = do
     Match b m <- p
     if b then fmap  Just (f m) else return Nothing
@@ -179,7 +179,7 @@ transience' :: ManageHook
 transience' = maybeToDefinite transience
 
 -- | converts 'MaybeManageHook's to 'ManageHook's
-maybeToDefinite :: (Monoid a, Functor m) => m (Maybe a) -> m a
+maybeToDefinite :: MaybeManageHook -> ManageHook
 maybeToDefinite = fmap (fromMaybe mempty)
 
 
