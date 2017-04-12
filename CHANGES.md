@@ -41,6 +41,11 @@
 
     - The vertical centring of text in each cell has been improved.
 
+  * `XMonad.Actions.SpawnOn`
+
+    - Bind windows spawns by child processes of the original window to the same
+      workspace as the original window.
+
   * `XMonad.Util.WindowProperties`
 
     - Added the ability to test if a window has a tag from

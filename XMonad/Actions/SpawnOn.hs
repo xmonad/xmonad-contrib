@@ -28,8 +28,14 @@ module XMonad.Actions.SpawnOn (
     shellPromptOn
 ) where
 
+import Control.Exception (tryJust)
+import Control.Monad (guard)
 import Data.List (isInfixOf)
+import Data.Maybe (isJust)
+import System.IO.Error (isDoesNotExistError)
+import System.IO.Unsafe (unsafePerformIO)
 import System.Posix.Types (ProcessID)
+import Text.Printf (printf)
 
 import XMonad
 import qualified XMonad.StackSet as W
@@ -68,6 +74,25 @@ instance ExtensionClass Spawner where
     initialValue = Spawner []
 
 
+getPPIDOf :: ProcessID -> Maybe ProcessID
+getPPIDOf pid =
+    case unsafePerformIO . tryJust (guard . isDoesNotExistError) . readFile . printf "/proc/%d/stat" $ toInteger pid of
+      Left _         -> Nothing
+      Right contents -> case lines contents of
+                          []        -> Nothing
+                          first : _ -> case words first of
+                                         _ : _ : _ : ppid : _ -> Just $ fromIntegral (read ppid :: Int)
+                                         _                    -> Nothing
+
+getPPIDChain :: ProcessID -> [ProcessID]
+getPPIDChain pid' = ppid_chain pid' []
+    where ppid_chain pid acc =
+              if pid == 0
+              then acc
+              else case getPPIDOf pid of
+                     Nothing   -> acc
+                     Just ppid -> ppid_chain ppid (ppid : acc)
+
 -- | Get the current Spawner or create one if it doesn't exist.
 modifySpawner :: ([(ProcessID, ManageHook)] -> [(ProcessID, ManageHook)]) -> X ()
 modifySpawner f = XS.modify (Spawner . f . pidsRef)
@@ -83,9 +108,17 @@ manageSpawnWithGC :: ([(ProcessID, ManageHook)] -> X [(ProcessID, ManageHook)])
 manageSpawnWithGC garbageCollect = do
     Spawner pids <- liftX XS.get
     mp <- pid
-    case flip lookup pids =<< mp of
-        Nothing -> idHook
-        Just mh  -> do
+    let ppid_chain = case mp of
+                       Just winpid -> winpid : getPPIDChain winpid
+                       Nothing     -> []
+        known_window_handlers = [ mh
+                                | ppid <- ppid_chain
+                                , let mpid = lookup ppid pids
+                                , isJust mpid
+                                , let (Just mh) = mpid ]
+    case known_window_handlers of
+        [] -> idHook
+        (mh:_)  -> do
             whenJust mp $ \p -> liftX $ do
                 ps <- XS.gets pidsRef
                 XS.put . Spawner =<< garbageCollect (filter ((/= p) . fst) ps)
