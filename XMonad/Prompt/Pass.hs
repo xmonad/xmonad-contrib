@@ -61,9 +61,9 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- Then add a keybinding for 'passPrompt', 'passGeneratePrompt' or 'passRemovePrompt':
 --
--- >   , ((modMask x , xK_p)                              , passPrompt xpconfig)
--- >   , ((modMask x .|. controlMask, xK_p)               , passGeneratePrompt xpconfig)
--- >   , ((modMask x .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt xpconfig)
+-- >   , ((modMask , xK_p)                              , passPrompt xpconfig)
+-- >   , ((modMask .|. controlMask, xK_p)               , passGeneratePrompt xpconfig)
+-- >   , ((modMask .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt xpconfig)
 --
 -- For detailed instructions on:
 --
