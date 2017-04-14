@@ -81,25 +81,22 @@ library
     if impl(ghc >= 6.12.1)
         ghc-options:    -fno-warn-unused-do-bind
 
-    exposed-modules:    XMonad.Doc
-                        XMonad.Doc.Configuring
-                        XMonad.Doc.Extending
-                        XMonad.Doc.Developing
-                        XMonad.Actions.AfterDrag
+    exposed-modules:    XMonad.Actions.AfterDrag
                         XMonad.Actions.BluetileCommands
                         XMonad.Actions.Commands
                         XMonad.Actions.ConstrainedResize
                         XMonad.Actions.CopyWindow
                         XMonad.Actions.CycleRecentWS
                         XMonad.Actions.CycleSelectedLayouts
-                        XMonad.Actions.CycleWindows
                         XMonad.Actions.CycleWS
+                        XMonad.Actions.CycleWindows
+                        XMonad.Actions.CycleWorkspaceByScreen
                         XMonad.Actions.DeManage
                         XMonad.Actions.DwmPromote
-                        XMonad.Actions.DynamicWorkspaces
+                        XMonad.Actions.DynamicProjects
                         XMonad.Actions.DynamicWorkspaceGroups
                         XMonad.Actions.DynamicWorkspaceOrder
-                        XMonad.Actions.DynamicProjects
+                        XMonad.Actions.DynamicWorkspaces
                         XMonad.Actions.FindEmptyWorkspace
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
@@ -108,6 +105,7 @@ library
                         XMonad.Actions.FocusNth
                         XMonad.Actions.GridSelect
                         XMonad.Actions.GroupNavigation
+                        XMonad.Actions.KeyRemap
                         XMonad.Actions.Launcher
                         XMonad.Actions.LinkWorkspaces
                         XMonad.Actions.MessageFeedback
@@ -121,7 +119,6 @@ library
                         XMonad.Actions.Plane
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
-                        XMonad.Actions.KeyRemap
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
                         XMonad.Actions.ShowText
@@ -141,13 +138,13 @@ library
                         XMonad.Actions.WindowMenu
                         XMonad.Actions.WindowNavigation
                         XMonad.Actions.WithAll
+                        XMonad.Actions.Workscreen
                         XMonad.Actions.WorkspaceCursors
                         XMonad.Actions.WorkspaceNames
-                        XMonad.Actions.Workscreen
                         XMonad.Config.Arossato
                         XMonad.Config.Azerty
-                        XMonad.Config.Bluetile
                         XMonad.Config.Bepo
+                        XMonad.Config.Bluetile
                         XMonad.Config.Desktop
                         XMonad.Config.Dmwit
                         XMonad.Config.Droundy
@@ -157,14 +154,18 @@ library
                         XMonad.Config.Prime
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
+                        XMonad.Doc
+                        XMonad.Doc.Configuring
+                        XMonad.Doc.Developing
+                        XMonad.Doc.Extending
                         XMonad.Hooks.CurrentWorkspaceOnTop
                         XMonad.Hooks.DebugEvents
                         XMonad.Hooks.DebugKeyEvents
+                        XMonad.Hooks.DebugStack
                         XMonad.Hooks.DynamicBars
                         XMonad.Hooks.DynamicHooks
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.DynamicProperty
-                        XMonad.Hooks.DebugStack
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FadeWindows
@@ -205,8 +206,8 @@ library
                         XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
-                        XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.DragPane
+                        XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.Drawer
                         XMonad.Layout.Dwindle
                         XMonad.Layout.DwmStyle
@@ -222,8 +223,8 @@ library
                         XMonad.Layout.Hidden
                         XMonad.Layout.HintedGrid
                         XMonad.Layout.HintedTile
-                        XMonad.Layout.IfMax
                         XMonad.Layout.IM
+                        XMonad.Layout.IfMax
                         XMonad.Layout.ImageButtonDecoration
                         XMonad.Layout.IndependentScreens
                         XMonad.Layout.LayoutBuilder
@@ -283,11 +284,11 @@ library
                         XMonad.Layout.WorkspaceDir
                         XMonad.Layout.ZoomRow
                         XMonad.Prompt
-                        XMonad.Prompt.AppendFile
                         XMonad.Prompt.AppLauncher
+                        XMonad.Prompt.AppendFile
                         XMonad.Prompt.ConfirmPrompt
-                        XMonad.Prompt.Directory
                         XMonad.Prompt.DirExec
+                        XMonad.Prompt.Directory
                         XMonad.Prompt.Email
                         XMonad.Prompt.Input
                         XMonad.Prompt.Layout
@@ -306,8 +307,8 @@ library
                         XMonad.Util.DebugWindow
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
-                        XMonad.Util.ExtensibleState
                         XMonad.Util.EZConfig
+                        XMonad.Util.ExtensibleState
                         XMonad.Util.Font
                         XMonad.Util.Image
                         XMonad.Util.Invisible
@@ -323,8 +324,8 @@ library
                         XMonad.Util.Replace
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
-                        XMonad.Util.SpawnOnce
                         XMonad.Util.SpawnNamedPipe
+                        XMonad.Util.SpawnOnce
                         XMonad.Util.Stack
                         XMonad.Util.StringProp
                         XMonad.Util.Themes

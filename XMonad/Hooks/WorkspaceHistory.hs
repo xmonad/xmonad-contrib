@@ -15,19 +15,24 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.WorkspaceHistory
-    ( -- * Usage
+      -- * Usage
       -- $usage
-
       -- * Hooking
-      workspaceHistoryHook
-
+  ( workspaceHistoryHook
       -- * Querying
-    , workspaceHistory
+  , workspaceHistory
+  , workspaceHistoryByScreen
+  , workspaceHistoryWithScreen
+    -- * Handling edits
+  , workspaceHistoryTransaction
+  ) where
 
-    ) where
+import           Control.Applicative
+import           Prelude
 
 import XMonad
-import XMonad.StackSet (currentTag)
+import XMonad.StackSet hiding (filter, delete)
+import Data.List
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
@@ -46,10 +51,10 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- To make use of the collected data, a query function is provided.
 
-data WorkspaceHistory =
-    WorkspaceHistory { history :: [WorkspaceId] -- ^ Workspaces in reverse-chronological order.
-                     }
-    deriving (Typeable, Read, Show)
+data WorkspaceHistory = WorkspaceHistory
+  { history :: [(ScreenId, WorkspaceId)] -- ^ Workspace Screens in
+                                         -- reverse-chronological order.
+  } deriving (Typeable, Read, Show)
 
 instance ExtensionClass WorkspaceHistory where
     initialValue = WorkspaceHistory []
@@ -58,17 +63,41 @@ instance ExtensionClass WorkspaceHistory where
 -- | A 'logHook' that keeps track of the order in which workspaces have
 -- been viewed.
 workspaceHistoryHook :: X ()
-workspaceHistoryHook = gets (currentTag . windowset) >>= (XS.modify . makeFirst)
+workspaceHistoryHook = gets windowset >>= (XS.modify . updateLastActiveOnEachScreen)
+
+workspaceHistoryWithScreen :: X [(ScreenId, WorkspaceId)]
+workspaceHistoryWithScreen = XS.gets history
+
+workspaceHistoryByScreen :: X [(ScreenId, [WorkspaceId])]
+workspaceHistoryByScreen =
+  map (\wss -> (fst $ head wss, map snd wss)) .
+  groupBy (\a b -> fst a == fst b) .
+  sortBy (\a b -> compare (fst a) $ fst b)<$>
+  workspaceHistoryWithScreen
 
 -- | A list of workspace tags in the order they have been viewed, with the
 -- most recent first. No duplicates are present, but not all workspaces are
 -- guaranteed to appear, and there may be workspaces that no longer exist.
 workspaceHistory :: X [WorkspaceId]
-workspaceHistory = XS.gets history
+workspaceHistory = nub . map snd <$> XS.gets history
 
+workspaceHistoryTransaction :: X () -> X ()
+workspaceHistoryTransaction action = do
+  startingHistory <- XS.gets history
+  action
+  new <- (flip updateLastActiveOnEachScreen $ WorkspaceHistory startingHistory) <$> gets windowset
+  XS.put new
 
--- | Cons the 'WorkspaceId' onto the 'WorkspaceHistory' if it is not
+-- | Update the last visible workspace on each monitor if needed
 -- already there, or move it to the front if it is.
-makeFirst :: WorkspaceId -> WorkspaceHistory -> WorkspaceHistory
-makeFirst w v = let (xs, ys) = break (w ==) $ history v
-                in v { history = w : (xs ++ drop 1 ys) }
+updateLastActiveOnEachScreen :: WindowSet -> WorkspaceHistory -> WorkspaceHistory
+updateLastActiveOnEachScreen StackSet {current = cur, visible = vis} wh =
+  WorkspaceHistory { history = doUpdate cur $ foldl updateLastForScreen (history wh) $ vis ++ [cur] }
+  where
+    firstOnScreen sid = find ((== sid) . fst)
+    doUpdate Screen {workspace = Workspace { tag = wid }, screen = sid} curr =
+      let newEntry = (sid, wid) in newEntry:delete newEntry curr
+    updateLastForScreen curr Screen {workspace = Workspace { tag = wid }, screen = sid} =
+      let newEntry = (sid, wid)
+          alreadyCurrent = maybe False (== newEntry) $ firstOnScreen sid curr
+      in if alreadyCurrent then curr else newEntry:delete newEntry curr
