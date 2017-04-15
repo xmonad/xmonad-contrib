@@ -41,6 +41,7 @@ module XMonad.Actions.GridSelect (
     gridselectWorkspace,
     gridselectWorkspace',
     spawnSelected,
+    spawnNamedSelected,
     runSelectedAction,
 
     -- * Colorizers
@@ -735,6 +736,10 @@ goToSelected = withSelectedWindow $ windows . W.focusWindow
 -- | Select an application to spawn from a given list
 spawnSelected :: GSConfig String -> [String] -> X ()
 spawnSelected conf lst = gridselect conf (zip lst lst) >>= flip whenJust spawn
+
+-- | Select an application to spawn from a give list with extra name
+spawnNamedSelected :: GSConfig String -> [(String, String)] -> X ()
+spawnNamedSelected conf lst = gridselect conf lst >>= flip whenJust spawn
 
 -- | Select an action and run it in the X monad
 runSelectedAction :: GSConfig (X ()) -> [(String, X ())] -> X ()
