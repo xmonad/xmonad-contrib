@@ -91,6 +91,16 @@ setMinimizedState win st f = do
             fi_mini = fromIntegral mini
         io $ changeProperty32 dpy win wm_state ptype propModeReplace (f fi_mini wstate)
 
+-- We need that to redraw border without running hooks in `windows`
+modifyAndRedrawBorder :: (WindowSet -> WindowSet) -> X ()
+modifyAndRedrawBorder f = do
+    XState { windowset = old } <- get
+    let ws = f old
+    XConf { display = d , normalBorder = nbc, focusedBorder = fbc } <- ask
+    whenJust (W.peek old) $ \otherw -> io $ setWindowBorder d otherw nbc
+    whenJust (W.peek ws) $ \w -> io $ setWindowBorder d w fbc
+    modify (\s -> s { windowset = ws })
+
 setMinimized :: Window -> X ()
 setMinimized win = setMinimizedState win iconicState (:)
 
@@ -112,7 +122,7 @@ instance LayoutModifier Minimize Window where
                 case M.lookup w (W.floating ws) of
                   Nothing -> return $ Just $ Minimize (w:minimized) unfloated
                   Just r -> do
-                    modify (\s -> s { windowset = W.sink w ws})
+                    modifyAndRedrawBorder (W.sink w)
                     return $ Just $ Minimize (w:minimized) (M.insert w r unfloated)
         | Just (RestoreMinimizedWin w) <- fromMessage m = do
             setNotMinimized w
@@ -120,7 +130,7 @@ instance LayoutModifier Minimize Window where
               Nothing -> return $ Just $ Minimize (minimized \\ [w]) unfloated
               Just r -> do
                 ws <- gets windowset
-                modify (\s -> s { windowset = W.float w r ws})
+                modifyAndRedrawBorder (W.float w r)
                 return $ Just $ Minimize (minimized \\ [w]) (M.delete w unfloated)
         | Just RestoreNextMinimizedWin <- fromMessage m = do
           ws <- gets windowset
@@ -129,12 +139,12 @@ instance LayoutModifier Minimize Window where
               Nothing -> do
                 let w = head minimized
                 setNotMinimized w
-                modify (\s -> s { windowset = W.focusWindow w ws})
+                modifyAndRedrawBorder (W.focusWindow w)
                 return $ Just $ Minimize (tail minimized) unfloated
               Just r -> do
                 let w = head minimized
                 setNotMinimized w
-                modify (\s -> s { windowset = (W.focusWindow w . W.float w r) ws})
+                modifyAndRedrawBorder (W.focusWindow w . W.float w r)
                 return $ Just $ Minimize (tail minimized) (M.delete w unfloated)
             else return Nothing
         | Just BW.UpdateBoring <- fromMessage m = do
