@@ -107,6 +107,10 @@ instance LayoutModifier SmartSpacing a where
     pureModifier _ _ _ [x] = ([x], Nothing)
     pureModifier (SmartSpacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
 
+    pureMess (SmartSpacing px) m
+     | Just (ModifySpacing f) <- fromMessage m = Just $ SmartSpacing $ max 0 $ f px
+     | otherwise = Nothing
+
     modifierDescription (SmartSpacing p) = "SmartSpacing " ++ show p
 
 -- | Surrounds all windows with blank space, and adds the same amount of spacing
@@ -125,5 +129,9 @@ instance LayoutModifier SmartSpacingWithEdge a where
     modifyLayout (SmartSpacingWithEdge p) w r
         | maybe False (\s -> null (up s) && null (down s)) (stack w) = runLayout w r
         | otherwise = runLayout w (shrinkRect p r)
+
+    pureMess (SmartSpacingWithEdge px) m
+     | Just (ModifySpacing f) <- fromMessage m = Just $ SmartSpacingWithEdge $ max 0 $ f px
+     | otherwise = Nothing
 
     modifierDescription (SmartSpacingWithEdge p) = "SmartSpacingWithEdge " ++ show p
