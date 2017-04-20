@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedScratchpad
@@ -29,7 +30,9 @@ module XMonad.Util.NamedScratchpad (
   ) where
 
 import XMonad
-import XMonad.Hooks.ManageHelpers (doRectFloat)
+import XMonad.Hooks.ManageHelpers (doRectFloat, isInProperty)
+import XMonad.Actions.Minimize
+import XMonad.Actions.CopyWindow
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Hooks.DynamicLog (PP, ppSort)
 
@@ -132,20 +135,27 @@ someNamedScratchpadAction :: ((Window -> X ()) -> [Window] -> X ())
                           -> X ()
 someNamedScratchpadAction f confs n
     | Just conf <- findByName confs n = withWindowSet $ \s -> do
-                     filterCurrent <- filterM (runQuery (query conf))
-                                        ((maybe [] W.integrate . W.stack . W.workspace . W.current) s)
-                     filterAll <- filterM (runQuery (query conf)) (W.allWindows s)
-                     case filterCurrent of
-                       [] -> do
-                         case filterAll of
-                           [] -> runApplication conf
-                           _  -> f (windows . W.shiftWin (W.currentTag s)) filterAll
-                       _ -> do
-                         if null (filter ((== scratchpadWorkspaceTag) . W.tag) (W.workspaces s))
-                             then addHiddenWorkspace scratchpadWorkspaceTag
-                             else return ()
-                         f (windows . W.shiftWin scratchpadWorkspaceTag) filterAll
+        allScratchpads <- filterM (runQuery (query conf)) (W.allWindows s)
+        let allWindows = (maybe [] W.integrate . W.stack . W.workspace . W.current) s
+        scratchpads <- filterM (runQuery (query conf)) allWindows
+        case allScratchpads of
+          [] -> runApplication conf
+          scratchpad : _ -> case scratchpads of
+            [] -> windows $ copyWindowToAll scratchpad
+            _ ->  f toggleMinimize scratchpads
     | otherwise = return ()
+  where
+    toggleMinimize :: Window -> X ()
+    toggleMinimize window = runQuery isMinimized window >>= \case
+        True -> maximizeWindow window
+        False -> minimizeWindow window
+
+    isMinimized :: Query Bool
+    isMinimized = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_HIDDEN"
+
+    copyWindowToAll :: (Eq s, Eq i, Eq a) => a -> W.StackSet i l a s sd
+                                               -> W.StackSet i l a s sd
+    copyWindowToAll w s = foldr (copyWindow w) s $ map W.tag (W.workspaces s)
 
 
 -- tag of the scratchpad workspace
@@ -155,7 +165,7 @@ scratchpadWorkspaceTag = "NSP"
 -- | Manage hook to use with named scratchpads
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
-namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
+namedScratchpadManageHook = composeAll . fmap (\c -> query c --> (hook c >> doF copyToAll))
 
 -- | Transforms a workspace list containing the NSP workspace into one that
 -- doesn't contain it. Intended for use with logHooks.
