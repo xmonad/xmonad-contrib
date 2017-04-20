@@ -25,16 +25,12 @@ module XMonad.Util.NamedScratchpad (
   namedScratchpadAction,
   allNamedScratchpadAction,
   namedScratchpadManageHook,
-  namedScratchpadFilterOutWorkspace,
-  namedScratchpadFilterOutWorkspacePP
   ) where
 
 import XMonad
 import XMonad.Hooks.ManageHelpers (doRectFloat, isInProperty)
 import XMonad.Actions.Minimize
 import XMonad.Actions.CopyWindow
-import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
-import XMonad.Hooks.DynamicLog (PP, ppSort)
 
 import Control.Monad (filterM)
 import Data.Maybe (listToMaybe)
@@ -147,7 +143,7 @@ someNamedScratchpadAction f confs n
   where
     toggleMinimize :: Window -> X ()
     toggleMinimize window = runQuery isMinimized window >>= \case
-        True -> maximizeWindow window
+        True -> maximizeWindow window >> windows (W.focusWindow window)
         False -> minimizeWindow window
 
     isMinimized :: Query Bool
@@ -158,34 +154,9 @@ someNamedScratchpadAction f confs n
     copyWindowToAll w s = foldr (copyWindow w) s $ map W.tag (W.workspaces s)
 
 
--- tag of the scratchpad workspace
-scratchpadWorkspaceTag :: String
-scratchpadWorkspaceTag = "NSP"
-
 -- | Manage hook to use with named scratchpads
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
 namedScratchpadManageHook = composeAll . fmap (\c -> query c --> (hook c >> doF copyToAll))
-
--- | Transforms a workspace list containing the NSP workspace into one that
--- doesn't contain it. Intended for use with logHooks.
-namedScratchpadFilterOutWorkspace :: [WindowSpace] -> [WindowSpace]
-namedScratchpadFilterOutWorkspace = filter (\(W.Workspace tag _ _) -> tag /= scratchpadWorkspaceTag)
-
--- | Transforms a pretty-printer into one not displaying the NSP workspace.
---
--- A simple use could be:
---
--- > logHook = dynamicLogWithPP . namedScratchpadFilterOutWorkspace $ def
---
--- Here is another example, when using "XMonad.Layout.IndependentScreens".
--- If you have handles @hLeft@ and @hRight@ for bars on the left and right screens, respectively, and @pp@ is a pretty-printer function that takes a handle, you could write
---
--- > logHook = let log screen handle = dynamicLogWithPP . namedScratchpadFilterOutWorkspacePP . marshallPP screen . pp $ handle
--- >           in log 0 hLeft >> log 1 hRight
-namedScratchpadFilterOutWorkspacePP :: PP -> PP
-namedScratchpadFilterOutWorkspacePP pp = pp {
-  ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
-  }
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:

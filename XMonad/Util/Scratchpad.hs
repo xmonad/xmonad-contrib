@@ -20,7 +20,6 @@ module XMonad.Util.Scratchpad (
   ,scratchpadSpawnActionCustom
   ,scratchpadManageHookDefault
   ,scratchpadManageHook
-  ,scratchpadFilterOutWorkspace
   ) where
 
 import XMonad
@@ -108,13 +107,5 @@ scratchpadManageHook :: W.RationalRect -- ^ User-specified screen rectangle.
 scratchpadManageHook rect = namedScratchpadManageHook [NS "" "" scratchpadQuery (customFloating rect)]
 
 
--- | Transforms a workspace list containing the SP workspace into one that
--- doesn't contain it. Intended for use with logHooks.
-scratchpadFilterOutWorkspace :: [WindowSpace] -> [WindowSpace]
-scratchpadFilterOutWorkspace = namedScratchpadFilterOutWorkspace
-
-
 scratchpadDefaultRect :: W.RationalRect
 scratchpadDefaultRect = W.RationalRect 0.25 0.375 0.5 0.25
-
-
