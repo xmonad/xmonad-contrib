@@ -23,7 +23,7 @@ import Data.Monoid
 import Control.Monad(when)
 
 import XMonad
-import XMonad.Layout.Minimize
+import XMonad.Actions.Minimize
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -43,10 +43,10 @@ minimizeEventHook (ClientMessageEvent {ev_window = w,
     a_aw <- getAtom "_NET_ACTIVE_WINDOW"
     a_cs <- getAtom "WM_CHANGE_STATE"
 
-    when (mt == a_aw) $ sendMessage (RestoreMinimizedWin w)
+    when (mt == a_aw) $ maximizeWindow w
     when (mt == a_cs) $ do
       let message = fromIntegral . head $ dt
-      when (message == normalState) $ sendMessage (RestoreMinimizedWin w)
+      when (message == normalState) $ maximizeWindow w
       when (message == iconicState) $ minimizeWindow w
 
     return (All True)
