@@ -157,6 +157,6 @@ someNamedScratchpadAction f confs n
 -- | Manage hook to use with named scratchpads
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
-namedScratchpadManageHook = composeAll . fmap (\c -> query c --> (hook c >> doF copyToAll))
+namedScratchpadManageHook = composeAll . fmap (\c -> query c --> (hook c <+> doF copyToAll))
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:
