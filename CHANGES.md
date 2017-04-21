@@ -47,6 +47,15 @@
     called for activated windows.  But this lifts `manageHook` into
     `FocusHook` and it needs to be converted back later using `manageFocus`.
 
+  * `XMonad.Actions.CycleWorkspaceByScreen`
+
+    A new module that allows cycling through previously viewed workspaces in the
+    order they were viewed most recently on the screen where cycling is taking
+    place.
+
+    Also provides the `repeatableAction` helper function which can be used to
+    build actions that can be repeated while a modifier key is held down.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.GridSelect`
@@ -90,6 +99,10 @@
 
     - New function: `windowMultiPrompt` for using `mkXPromptWithModes`
       with window prompts.
+
+  * `XMonad.Hooks.WorkspaceHistory`
+
+    - Now supports per screen history.
 
 ## 0.13 (February 10, 2017)
 
