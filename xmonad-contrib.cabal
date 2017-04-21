@@ -158,6 +158,7 @@ library
                         XMonad.Config.Prime
                         XMonad.Config.Sjanssen
                         XMonad.Config.Xfce
+                        XMonad.Float.SimplestFloatDec
                         XMonad.Hooks.CurrentWorkspaceOnTop
                         XMonad.Hooks.DebugEvents
                         XMonad.Hooks.DebugKeyEvents
