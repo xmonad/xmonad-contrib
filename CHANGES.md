@@ -104,6 +104,13 @@
 
     - Now supports per screen history.
 
+  * `XMonad.Layout.ComboP`
+
+    - New `PartitionWins` message to re-partition all windows into the
+      configured sub-layouts.  Useful when window properties have
+      changed and you want to re-sort windows into the appropriate
+      sub-layout.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes

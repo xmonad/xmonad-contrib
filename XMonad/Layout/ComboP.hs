@@ -20,6 +20,7 @@ module XMonad.Layout.ComboP (
                              combineTwoP,
                              CombineTwoP,
                              SwapWindow(..),
+                             PartitionWins(..),
                              Property(..)
                             ) where
 
@@ -71,6 +72,16 @@ data SwapWindow =  SwapWindow        -- ^ Swap window between panes
                  deriving (Read, Show, Typeable)
 instance Message SwapWindow
 
+data PartitionWins = PartitionWins  -- ^ Reset the layout and
+                                    -- partition all windows into the
+                                    -- correct sub-layout.  Useful for
+                                    -- when window properties have
+                                    -- changed and you want ComboP to
+                                    -- update which layout a window
+                                    -- belongs to.
+                   deriving (Read, Show, Typeable)
+instance Message PartitionWins
+
 data CombineTwoP l l1 l2 a = C2P [a] [a] [a] l (l1 a) (l2 a) Property
                                 deriving (Read, Show)
 
@@ -100,6 +111,7 @@ instance (LayoutClass l (), LayoutClass l1 Window, LayoutClass l2 Window) =>
                 (maybe l1 id ml1') (maybe l2 id ml2') prop)
 
     handleMessage us@(C2P f ws1 ws2 super l1 l2 prop) m
+        | Just PartitionWins   <- fromMessage m = return . Just $ C2P [] [] [] super l1 l2 prop
         | Just SwapWindow      <- fromMessage m = swap us
         | Just (SwapWindowN 0) <- fromMessage m = swap us
         | Just (SwapWindowN n) <- fromMessage m = forwardToFocused us $ SomeMessage $ SwapWindowN $ n-1
