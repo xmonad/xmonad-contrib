@@ -14,11 +14,11 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Hooks.WorkspaceHistory
+module XMonad.Hooks.WorkspaceHistory (
       -- * Usage
       -- $usage
       -- * Hooking
-  ( workspaceHistoryHook
+    workspaceHistoryHook
       -- * Querying
   , workspaceHistory
   , workspaceHistoryByScreen
