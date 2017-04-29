@@ -14,8 +14,8 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.CycleWorkspaceByScreen
-  ( -- * Usage
+module XMonad.Actions.CycleWorkspaceByScreen (
+    -- * Usage
     -- $usage
     cycleWorkspaceOnScreen
   , cycleWorkspaceOnCurrentScreen
