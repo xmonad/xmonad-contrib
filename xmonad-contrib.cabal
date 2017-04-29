@@ -316,6 +316,7 @@ library
                         XMonad.Util.Loggers
                         XMonad.Util.Loggers.NamedScratchpad
                         XMonad.Util.Minimize
+                        XMonad.Util.MutexScratchpads
                         XMonad.Util.NamedActions
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
