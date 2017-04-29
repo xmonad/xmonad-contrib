@@ -1,9 +1,3 @@
-module XMonad.Actions.CycleWorkspaceByScreen
-  ( cycleWorkspaceOnScreen
-  , cycleWorkspaceOnCurrentScreen
-  , handleKeyEvent
-  , repeatableAction
-  ) where
 
 -----------------------------------------------------------------------------
 -- |
@@ -19,6 +13,15 @@ module XMonad.Actions.CycleWorkspaceByScreen
 -- recently on the screen where cycling is taking place.
 --
 -----------------------------------------------------------------------------
+
+module XMonad.Actions.CycleWorkspaceByScreen (
+    -- * Usage
+    -- $usage
+    cycleWorkspaceOnScreen
+  , cycleWorkspaceOnCurrentScreen
+  , handleKeyEvent
+  , repeatableAction
+  ) where
 
 import           Control.Monad
 import           Data.IORef
