@@ -68,12 +68,12 @@ ewmhDesktopsStartup = setSupported
 -- Notifies pagers and window lists, such as those in the gnome-panel
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
-ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id id
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
-ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
-ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
+ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> (String -> String) -> X ()
+ewmhDesktopsLogHookCustom f workspaceNamesRemap = withWindowSet $ \s -> do
     sort' <- getSortByIndex
     let ws = f $ sort' $ W.workspaces s
 
@@ -81,7 +81,7 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     setNumberOfDesktops (length ws)
 
     -- Names thereof
-    setDesktopNames (map W.tag ws)
+    setDesktopNames $ map (workspaceNamesRemap . W.tag) ws
 
     -- all windows, with focused windows last
     let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
