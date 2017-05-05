@@ -38,6 +38,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 import XMonad.Util.WorkspaceCompare (WorkspaceCompare, WorkspaceSort, mkWsSort)
 import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..), doTo)
+import XMonad.Util.NamedScratchpad (namedScratchpadFilterOutWorkspace)
 
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -110,7 +111,7 @@ updateOrder = do
       XS.put . WSO . Just . M.fromList $ zip ws [0..]
     Just m -> do
       -- check for new workspaces and add them at the end
-      curWs <- gets (S.fromList . map W.tag . W.workspaces . windowset)
+      curWs <- gets (S.fromList . map W.tag . namedScratchpadFilterOutWorkspace . W.workspaces . windowset)
       let mappedWs  = M.keysSet m
           newWs     = curWs `S.difference` mappedWs
           nextIndex = 1 + maximum (-1 : M.elems m)
@@ -172,7 +173,7 @@ shiftTo dir t = doTo dir t getSortByOrder (windows . W.shift)
 withNthWorkspace :: (String -> WindowSet -> WindowSet) -> Int -> X ()
 withNthWorkspace job wnum = do
   sort <- getSortByOrder
-  ws <- gets (map W.tag . sort . W.workspaces . windowset)
+  ws <- gets (map W.tag . sort . namedScratchpadFilterOutWorkspace . W.workspaces . windowset)
   case drop wnum ws of
     (w:_) -> windows $ job w
     []    -> return ()
