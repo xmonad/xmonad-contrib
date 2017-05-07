@@ -309,6 +309,7 @@ library
                         XMonad.Util.Dmenu
                         XMonad.Util.Dzen
                         XMonad.Util.EZConfig
+                        XMonad.Util.ExclusiveScratchpads
                         XMonad.Util.ExtensibleState
                         XMonad.Util.Font
                         XMonad.Util.Image
@@ -316,7 +317,6 @@ library
                         XMonad.Util.Loggers
                         XMonad.Util.Loggers.NamedScratchpad
                         XMonad.Util.Minimize
-                        XMonad.Util.MutexScratchpads
                         XMonad.Util.NamedActions
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
