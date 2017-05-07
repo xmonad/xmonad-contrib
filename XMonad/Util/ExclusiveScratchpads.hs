@@ -35,6 +35,7 @@ module XMonad.Util.ExclusiveScratchpads (
   customFloating
   ) where
 
+import Control.Applicative ((<$>))
 import Control.Monad (filterM,unless,void,(<=<))
 import Data.Monoid (appEndo)
 import XMonad hiding (hide)
