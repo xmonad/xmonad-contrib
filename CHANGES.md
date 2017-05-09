@@ -39,7 +39,7 @@
     Named scratchpads that can be mutually exclusive: This new module extends the
     idea of named scratchpads such that you can define "families of scratchpads"
     that are exclusive on the same screen. It also allows to remove this
-    constraint of being mutually exclusive with another scratchpad when.
+    constraint of being mutually exclusive with another scratchpad.
 
   * `XMonad.Hooks.Focus`
 
