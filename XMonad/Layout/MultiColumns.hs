@@ -77,10 +77,9 @@ data MultiCol a = MultiCol
   } deriving (Show,Read,Eq)
 
 instance LayoutClass MultiCol a where
-    doLayout l r s = return (zip w rlist, resl)
+    doLayout l r s = return (combine s rlist, resl)
         where rlist = doL (multiColNWin l') (multiColSize l') r wlen
-              w = W.integrate s
-              wlen = length w
+              wlen = length $ W.integrate s
               -- Make sure the list of columns is big enough and update active column
               nw = multiColNWin l ++ repeat (multiColDefWin l)
               l' = l { multiColNWin = take (max (length $ multiColNWin l) $ getCol (wlen-1) nw + 1) nw
@@ -90,6 +89,7 @@ instance LayoutClass MultiCol a where
               resl = if l'==l
                      then Nothing
                      else Just l'
+              combine (W.Stack foc left right) rs = zip (foc : reverse left ++ right) $ raiseFocused (length left) rs
     handleMessage l m =
         return $ msum [fmap resize     (fromMessage m)
                       ,fmap incmastern (fromMessage m)]
@@ -104,6 +104,10 @@ instance LayoutClass MultiCol a where
                   a = multiColActive l
     description _ = "MultiCol"
 
+raiseFocused :: Int -> [a] -> [a]
+raiseFocused n xs = actual ++ before ++ after
+    where (before,rest) = splitAt n xs
+          (actual,after) = splitAt 1 rest
 
 -- | Get which column a window is in, starting at 0.
 getCol :: Int -> [Int] -> Int

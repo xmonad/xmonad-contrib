@@ -44,6 +44,7 @@ import Data.Monoid(All(..))
 
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.Maybe(fromJust)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -147,9 +148,14 @@ instance LayoutModifier LayoutHintsToCenter Window where
     modifyLayout _ ws@(W.Workspace _ _ (Just st)) r = do
         (arrs,ol) <- runLayout ws r
         flip (,) ol
+            . changeOrder (W.focus st : (filter (/= W.focus st) $ map fst arrs))
             . head . reverse . sortBy (compare `on` (fitting . map snd))
             . map (applyHints st r) . applyOrder r
             <$> mapM (\x -> fmap ((,) x) $ mkAdjust (fst x)) arrs
+
+changeOrder :: [Window] -> [(Window, Rectangle)] -> [(Window, Rectangle)]
+changeOrder w wr = zip w' $ map (fromJust . flip lookup wr) w'
+    where w' = filter (`elem` map fst wr) w
 
 -- apply hints to first, grow adjacent windows
 applyHints :: W.Stack Window -> Rectangle -> [((Window, Rectangle),(D -> D))] -> [(Window, Rectangle)]
