@@ -58,6 +58,19 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.LayoutHints`
+
+    Preserve the window order of the modified layout, except for the focused
+    window that is placed on top. This fixes an issue where the border of the
+    focused window in certain situations could be rendered below borders of
+    unfocused windows. It also has a lower risk of interfering with the
+    modified layout.
+
+  * `XMonad.Layout.MultiColumns`
+
+    The focused window is placed above the other windows if they would be made to
+    overlap due to a layout modifier. (As long as it preserves the window order.)
+
   * `XMonad.Actions.GridSelect`
 
     - The vertical centring of text in each cell has been improved.
