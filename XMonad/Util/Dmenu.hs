@@ -41,28 +41,32 @@ import XMonad.Util.Run
 -- <http://www.jcreigh.com/dmenu/dmenu-3.2-xinerama.patch>
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
-    curscreen <- (fromIntegral . W.screen . W.current) `fmap` gets windowset :: X Int
-    runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
+    curscreen <-
+      (fromIntegral . W.screen . W.current) `fmap` gets windowset :: X Int
+    _ <-
+      runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
     menuArgs "dmenu" ["-xs", show (curscreen+1)] opts
 
 -- | Run dmenu to select an option from a list.
-dmenu :: [String] -> X String
+dmenu :: MonadIO m => [String] -> m String
 dmenu opts = menu "dmenu" opts
 
 -- | like 'dmenu' but also takes the command to run.
-menu :: String -> [String] -> X String
+menu :: MonadIO m => String -> [String] -> m String
 menu menuCmd opts = menuArgs menuCmd [] opts
 
 -- | Like 'menu' but also takes a list of command line arguments.
-menuArgs :: String -> [String] -> [String] -> X String
-menuArgs menuCmd args opts = fmap (filter (/='\n')) $ runProcessWithInput menuCmd args (unlines opts)
+menuArgs :: MonadIO m => String -> [String] -> [String] -> m String
+menuArgs menuCmd args opts = fmap (filter (/='\n')) $
+  runProcessWithInput menuCmd args (unlines opts)
 
 -- | Like 'dmenuMap' but also takes the command to run.
-menuMap :: String -> M.Map String a -> X (Maybe a)
+menuMap :: MonadIO m => String -> M.Map String a -> m (Maybe a)
 menuMap menuCmd selectionMap = menuMapArgs menuCmd [] selectionMap
 
 -- | Like 'menuMap' but also takes a list of command line arguments.
-menuMapArgs :: String -> [String] -> M.Map String a -> X (Maybe a)
+menuMapArgs :: MonadIO m => String -> [String] -> M.Map String a ->
+               m (Maybe a)
 menuMapArgs menuCmd args selectionMap = do
   selection <- menuFunction (M.keys selectionMap)
   return $ M.lookup selection selectionMap
@@ -70,5 +74,5 @@ menuMapArgs menuCmd args selectionMap = do
         menuFunction = menuArgs menuCmd args
 
 -- | Run dmenu to select an entry from a map based on the key.
-dmenuMap :: M.Map String a -> X (Maybe a)
+dmenuMap :: MonadIO m => M.Map String a -> m (Maybe a)
 dmenuMap selectionMap = menuMap "dmenu" selectionMap
