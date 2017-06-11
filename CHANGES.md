@@ -31,6 +31,14 @@
      `X.A.Minimize` and use `maximizeWindow` and `withLastMinimized` instead of
      sending messages to `Minimized` layout. `XMonad.Hooks.RestoreMinimized` has
      been completely deprecated, and its functions have no effect.
+     
+  * `XMonad.Actions.MessageFeedback`
+  
+     The existing functions now perform a refresh if the a message was handled by the
+     layout. The old behaviour can still be accessed by newly introduced functions.
+     Manual calls to `refresh` after calling `send` can now be removed. But in the
+     unlikely case that `send` is used from within a custom layout or any code invoked
+     via `XMonad.Operations.windows`, it needs to be replaced with `sendWithNoRefresh`.
 
   * `XMonad.Prompt.Unicode`
 
