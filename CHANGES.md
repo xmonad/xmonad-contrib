@@ -124,6 +124,11 @@
       changed and you want to re-sort windows into the appropriate
       sub-layout.
 
+  * `XMonad.Actions.Minimize`
+
+    - Now has `withFirstMinimized` and `withFirstMinimized'` so you can perform
+      actions with both the last and first minimized windows easily.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
