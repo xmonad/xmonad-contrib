@@ -74,7 +74,7 @@ import XMonad.Util.Run (runProcessWithInput)
 type Predicate = String -> String -> Bool
 
 getPassCompl :: [String] -> Predicate -> String -> IO [String]
-getPassCompl compls p s = pure $ filter (p s) compls
+getPassCompl compls p s = return $ filter (p s) compls
 
 type PromptLabel = String
 
@@ -97,8 +97,8 @@ passwordStoreFolderDefault home = combine home ".password-store"
 passwordStoreFolder :: IO String
 passwordStoreFolder =
   getEnv "PASSWORD_STORE_DIR" >>= computePasswordStoreDir
-  where computePasswordStoreDir Nothing         = passwordStoreFolderDefault <$> getHomeDirectory
-        computePasswordStoreDir (Just storeDir) = pure storeDir
+  where computePasswordStoreDir Nothing         = fmap passwordStoreFolderDefault getHomeDirectory
+        computePasswordStoreDir (Just storeDir) = return storeDir
 
 -- | A pass prompt factory
 --
@@ -150,13 +150,14 @@ removePassword passLabel = spawn $ "pass rm --force \"" ++ escapeQuote passLabel
 -- | Type a password stored for a given entry using xdotool.
 --
 typePassword :: String -> X ()
-typePassword passLabel = spawn $ "xdotool type --clearmodifiers $(pass \"" ++ escapeQuote passLabel ++ "\"|head -n1)"
+typePassword passLabel = spawn $ "pass \"" ++ escapeQuote passLabel
+  ++ "\"|head -n1|tr -d '\n'|xdotool type --clearmodifiers --file -"
 
 escapeQuote :: String -> String
 escapeQuote = concatMap escape
   where escape :: Char -> String
         escape '"' = ['\\', '\"']
-        escape x = pure x
+        escape x = return x
 
 -- | Retrieve the list of passwords from the password store 'passwordStoreDir
 getPasswords :: FilePath -> IO [String]
@@ -166,7 +167,7 @@ getPasswords passwordStoreDir = do
     "-type", "f",
     "-name", "*.gpg",
     "-printf", "%P\n"] []
-  pure . map removeGpgExtension $ lines files
+  return . map removeGpgExtension $ lines files
 
 removeGpgExtension :: String -> String
 removeGpgExtension file | takeExtension file == ".gpg" = dropExtension file
