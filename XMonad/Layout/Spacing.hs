@@ -12,6 +12,8 @@
 -- Portability :  portable
 --
 -- Add a configurable amount of space around windows.
+--
+-- Note: For space\/gaps along edges of the /screen/ see "XMonad.Layout.Gaps".
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.Spacing (
