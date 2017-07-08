@@ -124,6 +124,10 @@
       changed and you want to re-sort windows into the appropriate
       sub-layout.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Add the -dock argument to the dzen spawn arguments
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
