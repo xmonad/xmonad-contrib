@@ -19,6 +19,7 @@ module XMonad.Actions.Commands (
                              -- $usage
                              commandMap,
                              runCommand,
+                             runCommandConfig,
                              runCommand',
                              workspaceCommands,
                              screenCommands,
@@ -103,11 +104,18 @@ defaultCommands = do
         ]
 
 -- | Given a list of command\/action pairs, prompt the user to choose a
---   command and return the corresponding action.
+--   command using dmenu and return the corresponding action.
 runCommand :: [(String, X ())] -> X ()
-runCommand cl = do
+runCommand = runCommandConfig dmenu
+
+
+-- | Given a list of command\/action pairs, prompt the user to choose a
+--   command using dmenu-compatible launcher and return the corresponding action.
+--   See X.U.Dmenu for compatible launchers.
+runCommandConfig :: ([String] -> X String) -> [(String, X ())] -> X()
+runCommandConfig f cl = do
   let m = commandMap cl
-  choice <- dmenu (M.keys m)
+  choice <- f (M.keys m)
   fromMaybe (return ()) (M.lookup choice m)
 
 -- | Given the name of a command from 'defaultCommands', return the
