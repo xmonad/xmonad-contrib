@@ -124,6 +124,11 @@
       changed and you want to re-sort windows into the appropriate
       sub-layout.
 
+  * `XMonad.Config.Gnome`
+
+    - Update logout key combination (modm+shift+Q) to work with modern
+      versions of GNOME
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes

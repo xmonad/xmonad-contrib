@@ -47,7 +47,7 @@ gnomeConfig = desktopConfig
 
 gnomeKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_p), gnomeRun)
-    , ((modm .|. shiftMask, xK_q), spawn "gnome-session-save --kill") ]
+    , ((modm .|. shiftMask, xK_q), spawn "gnome-session-quit --logout") ]
 
 -- | Launch the "Run Application" dialog.  gnome-panel must be running for this
 -- to work.
