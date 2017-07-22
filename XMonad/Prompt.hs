@@ -35,7 +35,7 @@ module XMonad.Prompt
     , emacsLikeXPKeymap, emacsLikeXPKeymap'
     , quit
     , killBefore, killAfter, startOfLine, endOfLine
-    , pasteString, moveCursor
+    , insertString, pasteString, moveCursor
     , setInput, getInput
     , moveWord, moveWord', killWord, killWord', deleteString
     , moveHistory, setSuccess, setDone
