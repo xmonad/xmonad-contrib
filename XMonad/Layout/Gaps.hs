@@ -14,7 +14,9 @@
 -- be used for tiling, along with support for toggling gaps on and
 -- off.
 --
--- Note that "XMonad.Hooks.ManageDocks" is the preferred solution for
+-- Note 1: For gaps\/space around /windows/ see "XMonad.Layout.Spacing".
+--
+-- Note 2: "XMonad.Hooks.ManageDocks" is the preferred solution for
 -- leaving space for your dock-type applications (status bars,
 -- toolbars, docks, etc.), since it automatically sets up appropriate
 -- gaps, allows them to be toggled, etc.  However, this module may

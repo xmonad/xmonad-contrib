@@ -129,6 +129,10 @@
     - Now has `withFirstMinimized` and `withFirstMinimized'` so you can perform
       actions with both the last and first minimized windows easily.
 
+  * `XMonad.Config.Gnome`
+
+    - Update logout key combination (modm+shift+Q) to work with modern
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
