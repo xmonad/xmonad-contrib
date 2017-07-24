@@ -108,6 +108,10 @@
 
     Make type of ManageHook combinators more general.
 
+  * `XMonad.Prompt`
+
+    Export `insertString`.
+
   * `XMonad.Prompt.Window`
 
     - New function: `windowMultiPrompt` for using `mkXPromptWithModes`
