@@ -327,6 +327,7 @@ library
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
                         XMonad.Util.SpawnNamedPipe
+                        XMonad.Util.SessionStart
                         XMonad.Util.SpawnOnce
                         XMonad.Util.Stack
                         XMonad.Util.StringProp

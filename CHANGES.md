@@ -56,6 +56,14 @@
     Also provides the `repeatableAction` helper function which can be used to
     build actions that can be repeated while a modifier key is held down.
 
+  * `XMonad.Utils.SessionStart`
+
+    A new module that allows to query if this is the first time xmonad is
+    started of the session, or a xmonad restart.
+
+    Currently needs manual setting of the session start flag. This could be
+    automated when this moves to the core repository.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Layout.LayoutHints`
