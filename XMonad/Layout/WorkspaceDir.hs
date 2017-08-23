@@ -27,6 +27,7 @@ module XMonad.Layout.WorkspaceDir (
                                    workspaceDir,
                                    changeDir,
                                    WorkspaceDir,
+                                   Chdir(Chdir),
                                   ) where
 
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
