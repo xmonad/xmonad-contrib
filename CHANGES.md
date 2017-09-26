@@ -66,6 +66,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.Navigation2D`
+
+    Generalised (and hence deprecated) hybridNavigation to hybridOf.
+
   * `XMonad.Layout.LayoutHints`
 
     Preserve the window order of the modified layout, except for the focused
