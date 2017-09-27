@@ -63,6 +63,12 @@
 
     Currently needs manual setting of the session start flag. This could be
     automated when this moves to the core repository.
+    
+ * `XMonad.Actions.InputMode`
+
+    A new Module that allows to declare a temporary keybindings Map. It's
+    built on top of `XMonad.Actions.Submap` by creating a recursive
+    submap that re-activate itself after each action.
 
 ### Bug Fixes and Minor Changes
 
