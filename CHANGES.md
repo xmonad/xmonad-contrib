@@ -149,6 +149,13 @@
 
     - Update logout key combination (modm+shift+Q) to work with modern
 
+  * `XMonad.Prompt.Pass`
+
+    - New function `passTypePrompt` which uses `xdotool` to type in a password
+      from the store, bypassing the clipboard.
+    - Now handles password labels with spaces and special characters inside
+      them.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
