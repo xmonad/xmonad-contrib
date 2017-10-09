@@ -71,6 +71,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.Navigation2D`
+
+    Generalised (and hence deprecated) hybridNavigation to hybridOf.
+
   * `XMonad.Layout.LayoutHints`
 
     Preserve the window order of the modified layout, except for the focused
@@ -149,6 +153,13 @@
   * `XMonad.Config.Gnome`
 
     - Update logout key combination (modm+shift+Q) to work with modern
+
+  * `XMonad.Prompt.Pass`
+
+    - New function `passTypePrompt` which uses `xdotool` to type in a password
+      from the store, bypassing the clipboard.
+    - Now handles password labels with spaces and special characters inside
+      them.
 
   * `XMonad.Prompt.Unicode`
 

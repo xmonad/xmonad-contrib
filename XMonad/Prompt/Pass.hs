@@ -8,9 +8,10 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This module provides 3 <XMonad.Prompt> to ease passwords manipulation (generate, read, remove):
+-- This module provides 4 <XMonad.Prompt> to ease password manipulation (generate, read, remove):
 --
--- - one to lookup passwords in the password-storage.
+-- - two to lookup passwords in the password-store; one of which copies to the
+--   clipboard, and the other uses @xdotool@ to type the password directly.
 --
 -- - one to generate a password for a given password label that the user inputs.
 --
@@ -18,28 +19,26 @@
 --
 -- All those prompts benefit from the completion system provided by the module <XMonad.Prompt>.
 --
--- The password store is setuped through an environment variable PASSWORD_STORE_DIR.
--- If this is set, use the content of the variable.
--- Otherwise, the password store is located on user's home @$HOME\/.password-store@.
---
+-- The password store is setup through an environment variable PASSWORD_STORE_DIR,
+-- or @$HOME\/.password-store@ if it is unset.
 --
 -- Source:
 --
--- - The password storage implementation is <http://git.zx2c4.com/password-store the password-store cli>.
+-- - The password store implementation is <http://git.zx2c4.com/password-store the password-store cli>.
 --
--- - Inspired from <http://babushk.in/posts/combining-xmonad-and-pass.html>
+-- - Inspired by <http://babushk.in/posts/combining-xmonad-and-pass.html>
 --
 -----------------------------------------------------------------------------
 
 module XMonad.Prompt.Pass (
-                            -- * Usages
-                            -- $usages
+                            -- * Usage
+                            -- $usage
                               passPrompt
                             , passGeneratePrompt
                             , passRemovePrompt
+                            , passTypePrompt
                             ) where
 
-import Control.Monad (liftM)
 import XMonad.Core
 import XMonad.Prompt ( XPrompt
                      , showXPrompt
@@ -54,7 +53,7 @@ import System.FilePath (takeExtension, dropExtension, combine)
 import System.Posix.Env (getEnv)
 import XMonad.Util.Run (runProcessWithInput)
 
--- $usages
+-- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Prompt.Pass
@@ -69,17 +68,17 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- - editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings".
 --
--- - how to setup the password storage, see <http://git.zx2c4.com/password-store/about/>
+-- - how to setup the password store, see <http://git.zx2c4.com/password-store/about/>
 --
 
 type Predicate = String -> String -> Bool
 
 getPassCompl :: [String] -> Predicate -> String -> IO [String]
-getPassCompl compls p s = do return $ filter (p s) compls
+getPassCompl compls p s = return $ filter (p s) compls
 
 type PromptLabel = String
 
-data Pass = Pass PromptLabel
+newtype Pass = Pass PromptLabel
 
 instance XPrompt Pass where
   showXPrompt       (Pass prompt) = prompt ++ ": "
@@ -98,7 +97,7 @@ passwordStoreFolderDefault home = combine home ".password-store"
 passwordStoreFolder :: IO String
 passwordStoreFolder =
   getEnv "PASSWORD_STORE_DIR" >>= computePasswordStoreDir
-  where computePasswordStoreDir Nothing         = liftM passwordStoreFolderDefault getHomeDirectory
+  where computePasswordStoreDir Nothing         = fmap passwordStoreFolderDefault getHomeDirectory
         computePasswordStoreDir (Just storeDir) = return storeDir
 
 -- | A pass prompt factory
@@ -126,23 +125,41 @@ passGeneratePrompt = mkPassPrompt "Generate password" generatePassword
 passRemovePrompt :: XPConfig -> X ()
 passRemovePrompt = mkPassPrompt "Remove password" removePassword
 
+-- | A prompt to type in a password for a given entry.
+-- This doesn't touch the clipboard.
+--
+passTypePrompt :: XPConfig -> X ()
+passTypePrompt = mkPassPrompt "Type password" typePassword
+
 -- | Select a password.
 --
 selectPassword :: String -> X ()
-selectPassword passLabel = spawn $ "pass --clip " ++ passLabel
+selectPassword passLabel = spawn $ "pass --clip \"" ++ escapeQuote passLabel ++ "\""
 
 -- | Generate a 30 characters password for a given entry.
 -- If the entry already exists, it is updated with a new password.
 --
 generatePassword :: String -> X ()
-generatePassword passLabel = spawn $ "pass generate --force " ++ passLabel ++ " 30"
+generatePassword passLabel = spawn $ "pass generate --force \"" ++ escapeQuote passLabel ++ "\" 30"
 
 -- | Remove a password stored for a given entry.
 --
 removePassword :: String -> X ()
-removePassword passLabel = spawn $ "pass rm --force " ++ passLabel
+removePassword passLabel = spawn $ "pass rm --force \"" ++ escapeQuote passLabel ++ "\""
 
--- | Retrieve the list of passwords from the password storage 'passwordStoreDir
+-- | Type a password stored for a given entry using xdotool.
+--
+typePassword :: String -> X ()
+typePassword passLabel = spawn $ "pass \"" ++ escapeQuote passLabel
+  ++ "\"|head -n1|tr -d '\n'|xdotool type --clearmodifiers --file -"
+
+escapeQuote :: String -> String
+escapeQuote = concatMap escape
+  where escape :: Char -> String
+        escape '"' = ['\\', '\"']
+        escape x = return x
+
+-- | Retrieve the list of passwords from the password store 'passwordStoreDir
 getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
   files <- runProcessWithInput "find" [
@@ -150,7 +167,7 @@ getPasswords passwordStoreDir = do
     "-type", "f",
     "-name", "*.gpg",
     "-printf", "%P\n"] []
-  return $ map removeGpgExtension $ lines files
+  return . map removeGpgExtension $ lines files
 
 removeGpgExtension :: String -> String
 removeGpgExtension file | takeExtension file == ".gpg" = dropExtension file
