@@ -32,6 +32,11 @@
      sending messages to `Minimized` layout. `XMonad.Hooks.RestoreMinimized` has
      been completely deprecated, and its functions have no effect.
 
+  * `XMonad.Prompt.Unicode`
+
+    - `unicodePrompt :: String -> XPConfig -> X ()` now additionally takes a
+      filepath to the `UnicodeData.txt` file containing unicode data.
+
 ### New Modules
 
   * `XMonad.Hooks.Focus`
@@ -155,6 +160,16 @@
       from the store, bypassing the clipboard.
     - Now handles password labels with spaces and special characters inside
       them.
+
+  * `XMonad.Prompt.Unicode`
+
+    - Persist unicode data cache across XMonad instances due to
+      `ExtensibleState` now used instead of `unsafePerformIO`.
+    - `typeUnicodePrompt :: String -> XPConfig -> X ()` provided to insert the
+      Unicode character via `xdotool` instead of copying it to the paste buffer.
+    - `mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()`
+      acts as a generic function to pass the selected Unicode character to any
+      program.
 
 ## 0.13 (February 10, 2017)
 
