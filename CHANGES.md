@@ -71,6 +71,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.Gaps`
+
+    Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
+    modifications to the `GapSpec`.
+
   * `XMonad.Actions.Navigation2D`
 
     Generalised (and hence deprecated) hybridNavigation to hybridOf.
