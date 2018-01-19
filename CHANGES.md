@@ -37,6 +37,26 @@
     - `unicodePrompt :: String -> XPConfig -> X ()` now additionally takes a
       filepath to the `UnicodeData.txt` file containing unicode data.
 
+  * `XMonad.Actions.PhysicalScreen`
+
+    `getScreen`, `viewScreen`, `sendToScreen`, `onNextNeighbour`, `onPrevNeighbour` now need a extra parameter
+    of type `ScreenComparator`. This allow the user to specify how he want his screen to be ordered default
+    value are:
+
+     - `def`(same as verticalScreenOrderer) will keep previous behavior
+     - `verticalScreenOrderer`
+     - `horizontalScreenOrderer`
+
+    One can build his custom ScreenOrderer using:
+     - `screenComparatorById` (allow to order by Xinerama id)
+     - `screenComparatorByRectangle` (allow to order by screen coordonate)
+     - `ScreenComparator` (allow to mix ordering by screen coordonate and xinerama id)
+
+  * `XMonad.Util.WorkspaceCompare`
+
+    `getXineramaPhysicalWsCompare` now need a extra argument of type `ScreenComparator` defined in
+    `XMonad.Actions.PhysicalScreen` (see changelog of this module for more information)
+
 ### New Modules
 
   * `XMonad.Hooks.Focus`
