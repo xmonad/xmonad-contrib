@@ -89,6 +89,11 @@
     Currently needs manual setting of the session start flag. This could be
     automated when this moves to the core repository.
 
+  * `XMonad.Actions.SelectWindow`
+
+    A new module that lets you quickly select any visible window by pressing
+    a key displayed in a hint on top of that window.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Layout.Gaps`
