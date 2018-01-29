@@ -17,26 +17,32 @@ module XMonad.Util.NamedScratchpad (
   -- * Usage
   -- $usage
   NamedScratchpad(..),
+  DynNamedScratchpad(..),
   nonFloating,
   defaultFloating,
   customFloating,
   NamedScratchpads,
+  DynNamedScratchpads,
   namedScratchpadAction,
+  dynNamedScratchpadAction,
   allNamedScratchpadAction,
+  dynAllNamedScratchpadAction,
   namedScratchpadManageHook,
+  dynNamedScratchpadManageHook,
   namedScratchpadFilterOutWorkspace,
   namedScratchpadFilterOutWorkspacePP
   ) where
 
-import XMonad
-import XMonad.Hooks.ManageHelpers (doRectFloat)
-import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
-import XMonad.Hooks.DynamicLog (PP, ppSort)
+import           XMonad
+import           XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
+import           XMonad.Hooks.DynamicLog          (PP, ppSort)
+import           XMonad.Hooks.ManageHelpers       (doRectFloat)
 
-import Control.Monad (filterM)
-import Data.Maybe (listToMaybe)
+import           Control.Monad                    (filterM)
+import           Data.Maybe                       (listToMaybe)
+import           Data.Monoid                      (All)
 
-import qualified XMonad.StackSet as W
+import qualified XMonad.StackSet                  as W
 
 
 -- $usage
@@ -86,11 +92,15 @@ import qualified XMonad.StackSet as W
 --
 
 -- | Single named scratchpad configuration
-data NamedScratchpad = NS { name   :: String      -- ^ Scratchpad name
-                          , cmd    :: String      -- ^ Command used to run application
-                          , query  :: Query Bool  -- ^ Query to find already running application
-                          , hook   :: ManageHook  -- ^ Manage hook called for application window, use it to define the placement. See @nonFloating@, @defaultFloating@ and @customFloating@
+data NamedScratchpad = NS { name  :: String      -- ^ Scratchpad name
+                          , cmd   :: String      -- ^ Command used to run application
+                          , query :: Query Bool  -- ^ Query to find already running application
+                          , hook  :: ManageHook  -- ^ Manage hook called for application window, use it to define the placement. See @nonFloating@, @defaultFloating@ and @customFloating@
                           }
+
+data DynNamedScratchpad = DNS { event      :: ManageHook -> Event -> X All -- ^ When to check the Query
+                              , scratchpad :: NamedScratchpad -- ^ The named scrach pad
+                              }
 
 -- | Manage hook that makes the window non-floating
 nonFloating :: ManageHook
@@ -107,6 +117,9 @@ customFloating = doRectFloat
 -- | Named scratchpads configuration
 type NamedScratchpads = [NamedScratchpad]
 
+-- | Dynamic Named scratchpads configuration
+type DynNamedScratchpads = [DynNamedScratchpad]
+
 -- | Finds named scratchpad configuration by name
 findByName :: NamedScratchpads -> String -> Maybe NamedScratchpad
 findByName c s = listToMaybe $ filter ((s==) . name) c
@@ -121,10 +134,21 @@ namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> X ()
 namedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ head ws)
 
+-- | Action to pop up specified named dynamic scratchpad
+dynNamedScratchpadAction :: DynNamedScratchpads
+                         -> String
+                         -> X ()
+dynNamedScratchpadAction = namedScratchpadAction . fmap scratchpad
+
 allNamedScratchpadAction :: NamedScratchpads
                          -> String
                          -> X ()
 allNamedScratchpadAction = someNamedScratchpadAction mapM_
+
+dynAllNamedScratchpadAction :: DynNamedScratchpads
+                            -> String
+                            -> X ()
+dynAllNamedScratchpadAction = allNamedScratchpadAction . fmap scratchpad
 
 someNamedScratchpadAction :: ((Window -> X ()) -> [Window] -> X ())
                           -> NamedScratchpads
@@ -156,6 +180,13 @@ scratchpadWorkspaceTag = "NSP"
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
 namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
+
+
+-- | Event hook to use with dynamic named scratchpads
+dynNamedScratchpadManageHook :: DynNamedScratchpads
+                             -> Event
+                             -> X All
+dynNamedScratchpadManageHook = composeAll . fmap (\(DNS f np) -> f (query np --> hook np))
 
 -- | Transforms a workspace list containing the NSP workspace into one that
 -- doesn't contain it. Intended for use with logHooks.
