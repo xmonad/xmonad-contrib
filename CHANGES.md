@@ -91,6 +91,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.Navigation2D`
+
+    Added `sideNavigation` and a parameterised variant, providing a navigation
+    strategy with fewer quirks for tiled layouts using X.L.Spacing.
+
   * `XMonad.Layout.Gaps`
 
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
