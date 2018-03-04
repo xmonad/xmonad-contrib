@@ -89,6 +89,11 @@
     Currently needs manual setting of the session start flag. This could be
     automated when this moves to the core repository.
 
+  * `XMonad.Layout.MultiDishes`
+
+    A new layout based on Dishes, however it accepts additional configuration
+    to allow multiple windows within a single stack.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.Navigation2D`
