@@ -207,6 +207,7 @@ library
                         XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
+                        XMonad.Layout.MultiDishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.Drawer
