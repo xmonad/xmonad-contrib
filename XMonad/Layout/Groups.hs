@@ -22,6 +22,7 @@ module XMonad.Layout.Groups ( -- * Usage
                               -- $usage
                               -- * Creation
                               group
+                            , group3
                               -- * Messages
                             , GroupsMessage(..)
                             , ModifySpec
@@ -99,6 +100,26 @@ group :: l Window -> l2 (Group l Window) -> Groups l l2 Window
 group l l2 = Groups l l2 startingGroups (U 1 0)
     where startingGroups = fromJust $ singletonZ $ G (ID (U 0 0) l) emptyZ
 
+-- | Create a three-dimensional 'Groups' layout.
+--
+-- This creates a layout with a second level of indirection, allowing
+-- one to, for example, have a tabbed layout for a given group. Using
+-- some functionality from "XMonad.Layout.Groups.Examples", one could
+-- create a layout like the following:
+--
+-- group3 (addTabs shrinkText myTabsTheme Simplest)
+--        (Mirror (zoomRowWith GroupEQ) ||| Full)
+--        (zoomRowWith GroupEQ ||| Full)
+--
+-- See http://lynnard.me/blog/2013/12/30/more-xmonad-goodies/ for more
+-- details.
+group3 :: l Window
+       -> l2 (Group l Window)
+       -> l3 (Group (Groups l l2) Window)
+       -> Groups (Groups l l2) l3 Window
+group3 l l2 l3 = Groups g l3 start (U 2 0)
+   where g = group l l2
+         start = fromJust $ singletonZ $ G (ID (U 2 1) g) emptyZ
 
 -- * Stuff with unique keys
 
