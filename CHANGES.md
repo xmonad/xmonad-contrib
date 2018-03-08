@@ -211,6 +211,11 @@
     - New function `appendFilePrompt'` which allows for transformation of the
       string passed by a user before writing to a file.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added `ppVisibleNoWindows` to differentiate between empty and non-empty
+      visible workspaces for pretty printing.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
