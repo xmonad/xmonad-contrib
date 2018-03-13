@@ -226,6 +226,12 @@
     - New function `appendFilePrompt'` which allows for transformation of the
       string passed by a user before writing to a file.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added a new function `dzenWithFlags` which allows specifying the arguments
+    passed to `dzen2` invocation. The behaviour of current `dzen` function is
+    unchanged.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
