@@ -96,6 +96,21 @@
 
 ### Bug Fixes and Minor Changes
 
+  * XMonad.Hooks.FadeWindows
+
+    Added support for GHC version 8.4.x by adding a Semigroup instance for
+    Monoids
+
+  * XMonad.Hooks.WallpaperSetter
+
+    Added support for GHC version 8.4.x by adding a Semigroup instance for
+    Monoids
+
+  * XMonad.Hooks.Mosaic
+
+    Added support for GHC version 8.4.x by adding a Semigroup instance for
+    Monoids
+
   * `XMonad.Actions.Navigation2D`
 
     Added `sideNavigation` and a parameterised variant, providing a navigation
