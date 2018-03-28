@@ -57,6 +57,13 @@
     `getXineramaPhysicalWsCompare` now need a extra argument of type `ScreenComparator` defined in
     `XMonad.Actions.PhysicalScreen` (see changelog of this module for more information)
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Simplify ewmhDesktopsLogHookCustom, and remove the gnome-panel specific
+      remapping of all visible windows to the active workspace (#216).
+    - Handle workspace renames that might be occuring in the custom function
+      that is provided to ewmhDesktopsLogHookCustom.
+
 ### New Modules
 
   * `XMonad.Hooks.Focus`
