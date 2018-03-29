@@ -4,6 +4,11 @@
 
 ### Breaking Changes
 
+  * `XMonad.Util.SpawnOnce`
+
+    - Added `spawnOnOnce`, `spawnNOnOnce` and `spawnAndDoOnce`. These are useful in startup hooks
+      to shift spawned windows to a specific workspace.
+
   * Adding handling of modifySpacing message in smartSpacing and smartSpacingWithEdge layout modifier
 
   * `XMonad.Actions.GridSelect`
