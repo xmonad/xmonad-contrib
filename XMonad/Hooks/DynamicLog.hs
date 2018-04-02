@@ -24,6 +24,7 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Drop-in loggers
     dzen,
+    dzenWithFlags,
     xmobar,
     statusBar,
     dynamicLog,
@@ -150,6 +151,32 @@ import XMonad.Hooks.ManageDocks
 
 ------------------------------------------------------------------------
 
+-- | Run xmonad with a dzen status bar with specified dzen
+--   command line arguments.
+--
+-- > main = xmonad =<< dzenWithFlags flags myConfig
+-- >
+-- > myConfig = def { ... }
+-- >
+-- > flags = "-e onstart lower -w 800 -h 24 -ta l -fg #a8a3f7 -bg #3f3c6d"
+--
+-- This function can be used to customize the arguments passed to dzen2.
+-- e.g changing the default width and height of dzen2.
+--
+-- If you wish to customize the status bar format at all, you'll have to
+-- use the 'statusBar' function instead.
+--
+-- The binding uses the XMonad.Hooks.ManageDocks module to automatically
+-- handle screen placement for dzen, and enables 'mod-b' for toggling
+-- the menu bar.
+--
+-- You should use this function only when the default 'dzen' function does not
+-- serve your purpose.
+--
+dzenWithFlags :: LayoutClass l Window
+    => String -> XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
 -- > main = xmonad =<< dzen myConfig
@@ -159,16 +186,14 @@ import XMonad.Hooks.ManageDocks
 -- The intent is that the above config file should provide a nice
 -- status bar with minimal effort.
 --
--- If you wish to customize the status bar format at all, you'll have to
--- use the 'statusBar' function instead.
---
 -- The binding uses the XMonad.Hooks.ManageDocks module to automatically
 -- handle screen placement for dzen, and enables 'mod-b' for toggling
--- the menu bar.
+-- the menu bar. Please refer to 'dzenWithFlags' function for further
+-- documentation.
 --
 dzen :: LayoutClass l Window
      => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+dzen conf = dzenWithFlags flags conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
