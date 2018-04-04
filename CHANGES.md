@@ -239,6 +239,13 @@
     passed to `dzen2` invocation. The behaviour of current `dzen` function is
     unchanged.
 
+  * `XMonad.Util.Dzen`
+
+    - Now provides functions `fgColor` and `bgColor` to specify foreground and
+    background color, `align` and `slaveAlign` to set text alignment, and
+    `lineCount` to enable a second (slave) window that displays lines beyond
+    the initial (title) one.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
