@@ -36,7 +36,7 @@ cabal-version:      >= 1.6
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0.1
+tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0.1, GHC==8.2.2, GHC==8.4.1
 
 source-repository head
   type:     git
@@ -66,7 +66,8 @@ library
                    unix,
                    X11>=1.6.1 && < 1.9,
                    xmonad>=0.13   && < 0.14,
-                   utf8-string
+                   utf8-string,
+                   semigroups
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
@@ -292,6 +293,7 @@ library
                         XMonad.Prompt.DirExec
                         XMonad.Prompt.Directory
                         XMonad.Prompt.Email
+                        XMonad.Prompt.FuzzyMatch
                         XMonad.Prompt.Input
                         XMonad.Prompt.Layout
                         XMonad.Prompt.Man
