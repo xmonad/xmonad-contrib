@@ -128,6 +128,11 @@
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
     modifications to the `GapSpec`.
 
+  * `XMonad.Layout.Groups`
+
+    Added a new `ModifyX` message type that allows the modifying
+    function to return values in the `X` monad.
+
   * `XMonad.Actions.Navigation2D`
 
     Generalised (and hence deprecated) hybridNavigation to hybridOf.

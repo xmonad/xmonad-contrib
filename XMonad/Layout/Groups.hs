@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds #-}
 {-# LANGUAGE StandaloneDeriving, FlexibleContexts, DeriveDataTypeable
-  , UndecidableInstances, FlexibleInstances, MultiParamTypeClasses
+  , UndecidableInstances, FlexibleInstances, LambdaCase, MultiParamTypeClasses
   , PatternGuards, Rank2Types, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
@@ -22,10 +22,10 @@ module XMonad.Layout.Groups ( -- * Usage
                               -- $usage
                               -- * Creation
                               group
-                            , group3
                               -- * Messages
                             , GroupsMessage(..)
                             , ModifySpec
+                            , ModifySpecX
                               -- ** Useful 'ModifySpec's
                             , swapUp
                             , swapDown
@@ -99,27 +99,6 @@ import Control.Monad (forM)
 group :: l Window -> l2 (Group l Window) -> Groups l l2 Window
 group l l2 = Groups l l2 startingGroups (U 1 0)
     where startingGroups = fromJust $ singletonZ $ G (ID (U 0 0) l) emptyZ
-
--- | Create a three-dimensional 'Groups' layout.
---
--- This creates a layout with a second level of indirection, allowing
--- one to, for example, have a tabbed layout for a given group. Using
--- some functionality from "XMonad.Layout.Groups.Examples", one could
--- create a layout like the following:
---
--- group3 (addTabs shrinkText myTabsTheme Simplest)
---        (Mirror (zoomRowWith GroupEQ) ||| Full)
---        (zoomRowWith GroupEQ ||| Full)
---
--- See http://lynnard.me/blog/2013/12/30/more-xmonad-goodies/ for more
--- details.
-group3 :: l Window
-       -> l2 (Group l Window)
-       -> l3 (Group (Groups l l2) Window)
-       -> Groups (Groups l l2) l3 Window
-group3 l l2 l3 = Groups g l3 start (U 2 0)
-   where g = group l l2
-         start = fromJust $ singletonZ $ G (ID (U 2 1) g) emptyZ
 
 -- * Stuff with unique keys
 
@@ -208,6 +187,7 @@ data GroupsMessage = ToEnclosing SomeMessage -- ^ Send a message to the enclosin
                              -- to the layout.
                    | Modify ModifySpec -- ^ Modify the ordering\/grouping\/focusing
                                        -- of windows according to a 'ModifySpec'
+                   | ModifyX ModifySpecX -- ^ Same as 'Modify', but within the 'X' monad
                      deriving Typeable
 
 instance Show GroupsMessage where
@@ -227,6 +207,13 @@ modifyGroups f g = let (seed', id:_) = gen (seed g)
                    in g { groups = fromMaybe defaultGroups . f . Just $ groups g
                         , seed = seed' }
 
+modifyGroupsX :: (Zipper (Group l a) -> X (Zipper (Group l a)))
+              -> Groups l l2 a -> X (Groups l l2 a)
+modifyGroupsX f g = do
+  let (seed', id:_) = gen (seed g)
+      defaultGroups = fromJust $ singletonZ $ G (ID id $ baseLayout g) emptyZ
+  g' <- f . Just $ groups g
+  return g { groups = fromMaybe defaultGroups g', seed = seed' }
 
 -- ** Readaptation
 
@@ -326,6 +313,9 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
               Just (Modify spec) -> case applySpec spec l of
                                       Just l' -> refocus l' >> return (Just l')
                                       Nothing -> return $ Just l
+              Just (ModifyX spec) -> applySpecX spec l >>= \case
+                                      Just l' -> refocus l' >> return (Just l')
+                                      Nothing -> return $ Just l
               Just Refocus -> refocus l >> return (Just l)
               Just _ -> return Nothing
               Nothing -> handleMessage l $ SomeMessage (ToFocused sm)
@@ -382,29 +372,50 @@ type ModifySpec = forall l. WithID l Window
                 -> Zipper (Group l Window)
                 -> Zipper (Group l Window)
 
+-- ** ModifierSpecX type
+
+-- | This is the same as 'ModifySpec', but it allows the function to use
+-- actions inside the 'X' monad. This is useful, for example, if the function
+-- has to make decisions based on the results of a 'runQuery'.
+type ModifySpecX = forall l. WithID l Window
+                 -> Zipper (Group l Window)
+                 -> X (Zipper (Group l Window))
+
 -- | Apply a ModifySpec.
 applySpec :: ModifySpec -> Groups l l2 Window -> Maybe (Groups l l2 Window)
-applySpec f g = let (seed', id:ids) = gen $ seed g
-                    g' = flip modifyGroups g $ f (ID id $ baseLayout g)
-                                               >>> toTags
-                                               >>> foldr reID ((ids, []), [])
-                                               >>> snd
-                                               >>> fromTags
-                in case groups g == groups g' of
-                     True -> Nothing
-                     False -> Just g' { seed = seed' }
+applySpec f g =
+    let (seed', id:ids) =  gen $ seed g
+        g' = flip modifyGroups g $ f (ID id $ baseLayout g)
+                                   >>> toTags
+                                   >>> foldr (reID g) ((ids, []), [])
+                                   >>> snd
+                                   >>> fromTags
+    in case groups g == groups g' of
+      True -> Nothing
+      False -> Just g' { seed = seed' }
 
-    where reID eg ((id:ids, seen), egs)
-              = let myID = getID $ gLayout $ fromE eg
-                in case elem myID seen of
-                     False -> ((id:ids, myID:seen), eg:egs)
-                     True -> ((ids, seen), mapE_ (setID id) eg:egs)
-              where setID id (G (ID _ _) z) = G (ID id $ baseLayout g) z
-          reID _ (([], _), _) = undefined -- The list of ids is infinite
+applySpecX :: ModifySpecX -> Groups l l2 Window -> X (Maybe (Groups l l2 Window))
+applySpecX f g = do
+    let (seed', id:ids) = gen $ seed g
+    g' <- flip modifyGroupsX g $ f (ID id $ baseLayout g)
+                                >>> fmap toTags
+                                >>> fmap (foldr (reID g) ((ids, []), []))
+                                >>> fmap snd
+                                >>> fmap fromTags
+    return $ case groups g == groups g' of
+      True -> Nothing
+      False -> Just g' { seed = seed' }
 
-
-
-
+reID :: Groups l l2 Window
+     -> Either (Group l Window) (Group l Window)
+     -> (([Uniq], [Uniq]), [Either (Group l Window) (Group l Window)])
+     -> (([Uniq], [Uniq]), [Either (Group l Window) (Group l Window)])
+reID _ _ (([], _), _) = undefined -- The list of ids is infinite
+reID g eg ((id:ids, seen), egs) = case elem myID seen of
+                                    False -> ((id:ids, myID:seen), eg:egs)
+                                    True -> ((ids, seen), mapE_ (setID id) eg:egs)
+    where myID = getID $ gLayout $ fromE eg
+          setID id (G (ID _ _) z) = G (ID id $ baseLayout g) z
 
 -- ** Misc. ModifySpecs
 
