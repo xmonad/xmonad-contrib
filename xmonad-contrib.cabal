@@ -293,6 +293,7 @@ library
                         XMonad.Prompt.DirExec
                         XMonad.Prompt.Directory
                         XMonad.Prompt.Email
+                        XMonad.Prompt.FuzzyMatch
                         XMonad.Prompt.Input
                         XMonad.Prompt.Layout
                         XMonad.Prompt.Man

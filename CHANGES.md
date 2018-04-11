@@ -88,6 +88,13 @@
     Also provides the `repeatableAction` helper function which can be used to
     build actions that can be repeated while a modifier key is held down.
 
+  * `XMonad.Prompt.FuzzyMatch`
+
+    Provides a predicate 'fuzzyMatch' that is much more lenient in matching
+    completions in XMonad.Prompt than the default prefix match.  Also provides
+    a function 'fuzzySort' that allows sorting the fuzzy matches by "how well"
+    they match.
+
   * `XMonad.Utils.SessionStart`
 
     A new module that allows to query if this is the first time xmonad is
