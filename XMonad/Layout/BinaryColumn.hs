@@ -10,9 +10,14 @@
 -- Portability :  unportable
 --
 -- Provides Column layout that places all windows in one column.
--- Each window is half the height of the previous.
+-- Each window is half the height of the previous,
+-- except for the last pair of windows.
 --
--- Note: Originally based on XMonad.Layout.Column with edits.
+-- Note: Originally based on 'XMonad.Layout.Column' with changes:
+--
+-- * Adding/removing windows doesn't resize all other windows.
+-- (last window pair exception).
+-- * Minimum window height option.
 --
 -----------------------------------------------------------------------------
 
@@ -26,11 +31,13 @@ import qualified XMonad.StackSet
 import qualified Data.List
 
 -- $usage
--- This module defines layot named BinaryColumn.
+-- This module defines layout named BinaryColumn.
 -- It places all windows in one column.
--- Windows heights are calculated that.
+-- Windows heights are calculated to prevent window resizing whenever
+-- a window is added or removed.
+-- This is done by keeping the last two windows in the stack the same height.
 --
--- You can use this module by adding folowing in your @xmonad.hs@:
+-- You can use this module by adding following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.BinaryColumn
 --
@@ -41,12 +48,12 @@ import qualified Data.List
 -- The first value causes the master window to take exactly half of the screen,
 -- the second ensures that windows are no less than 32 pixels tall.
 --
--- Shring/Expand can be used to adjust the first value by increments of 0.1.
+-- Shrink/Expand can be used to adjust the first value by increments of 0.1.
 --
--- 2.0 uses all space for the master window
--- (minus the space for windows which get their fixed height)
--- 0.0 gives an evenly spaced grid.
--- Negative values reverse the sixes so the last
+-- * 2.0 uses all space for the master window
+-- (minus the space for windows which get their fixed height).
+-- * 0.0 gives an evenly spaced grid.
+-- Negative values reverse the sizes so the last
 -- window in the stack becomes larger.
 --
 
