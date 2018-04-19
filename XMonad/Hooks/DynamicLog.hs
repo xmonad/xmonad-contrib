@@ -43,8 +43,8 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Formatting utilities
     wrap, pad, trim, shorten,
-    xmobarColor, xmobarStrip,
-    xmobarStripTags,
+    xmobarColor, xmobarAction, xmobarRaw,
+    xmobarStrip, xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
@@ -416,6 +416,31 @@ xmobarColor :: String  -- ^ foreground color: a color name, or #rrggbb format
             -> String
 xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
+
+-- | Encapsulate text with an action. The text will be displayed, and the
+-- action executed when the displayed text is clicked. Illegal input is not
+-- filtered, allowing xmobar to display any parse errors. Uses xmobar's new
+-- syntax wherein the command is surrounded by backticks.
+xmobarAction :: String
+                -- ^ Command. Use of backticks (`) will cause a parse error.
+             -> String
+                -- ^ Buttons 1-5, such as "145". Other characters will cause a
+                -- parse error.
+             -> String
+                -- ^ Displayed/wrapped text.
+             -> String
+xmobarAction command button = wrap l r
+    where
+        l = "<action=`" ++ command ++ "` button=" ++ button ++ ">"
+        r = "</action>"
+
+-- | Encapsulate arbitrary text for display only, i.e. untrusted content if
+-- wrapped (perhaps from window titles) will be displayed only, with all tags
+-- ignored. Introduced in xmobar 0.21; see their documentation. Be careful not
+-- to shorten the result.
+xmobarRaw :: String -> String
+xmobarRaw "" = ""
+xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
 
 -- ??? add an xmobarEscape function?
 
