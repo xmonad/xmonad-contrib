@@ -1,139 +1,163 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Spacing
--- Copyright   :  (c) Brent Yorgey
+-- Copyright   :  (C) --   Brent Yorgey
+--                    2018 Yclept Nemo
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  <byorgey@gmail.com>
 -- Stability   :  unstable
--- Portability :  portable
+-- Portability :  unportable
 --
 -- Add a configurable amount of space around windows.
 --
 -- Note: For space\/gaps along edges of the /screen/ see "XMonad.Layout.Gaps".
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.Spacing (
-                               -- * Usage
-                               -- $usage
+module XMonad.Layout.Spacing
+    ( -- * Usage
+      -- $usage
+      Border (..)
+    , Spacing (..)
+    , ModifySpacing (..)
+    , spacing
+    , setWindowSpacing, setScreenSpacing
+    , toggleSmartSpacing
+    , incWindowSpacing, incScreenSpacing
+    , decWindowSpacing, decScreenSpacing
+    , borderIncrementBy
+    ) where
 
-                               spacing, Spacing,
-                               spacingWithEdge, SpacingWithEdge,
-                               smartSpacing, SmartSpacing,
-                               smartSpacingWithEdge, SmartSpacingWithEdge,
-                               ModifySpacing(..), setSpacing, incSpacing
-                             ) where
+import           XMonad
+import qualified XMonad.StackSet                as W
+import           XMonad.Layout.LayoutModifier
+import qualified XMonad.Util.Rectangle          as R
 
-import Graphics.X11 (Rectangle(..))
-import Control.Arrow (second)
-import XMonad.Operations (sendMessage)
-import XMonad.Core (X,runLayout,Message,fromMessage,Typeable)
-import XMonad.StackSet (up, down, Workspace(..))
-import XMonad.Util.Font (fi)
+import           Control.Arrow
 
-import XMonad.Layout.LayoutModifier
 
 -- $usage
--- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@
+-- file:
 --
 -- > import XMonad.Layout.Spacing
 --
 -- and modifying your layoutHook as follows (for example):
 --
--- > layoutHook = spacing 2 $ Tall 1 (3/100) (1/2)
--- >                      -- put a 2px space around every window
---
+-- > layoutHook = spacing True (Border 0 10 10 10) (Border 10 10 10 10) $
+-- >              layoutHook def
 
--- | Surround all windows by a certain number of pixels of blank space.
-spacing :: Int -> l a -> ModifiedLayout Spacing l a
-spacing p = ModifiedLayout (Spacing p)
+-- | Represent the borders of a rectangle.
+data Border = Border
+    { top       :: Integer
+    , bottom    :: Integer
+    , right     :: Integer
+    , left      :: Integer
+    } deriving (Read,Show)
 
-data Spacing a = Spacing Int deriving (Show, Read)
-
--- | Message to dynamically modify (e.g. increase/decrease/set) the size of the window spacing
-data ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
-instance Message ModifySpacing
-
--- | Set spacing to given amount
-setSpacing :: Int -> X ()
-setSpacing n = sendMessage $ ModifySpacing $ const n
-
--- | Increase spacing by given amount
-incSpacing :: Int -> X ()
-incSpacing n = sendMessage $ ModifySpacing $ (+n)
+-- | A 'LayoutModifier' providing customizable screen and window borders.
+-- Borders are clamped to @[0,Infinity]@ before being applied.
+data Spacing a = Spacing
+    { smartBorder   :: Bool     -- ^ When @True@ borders are not applied if
+                                --   there fewer than two windows.
+    , screenBorder  :: Border   -- ^ The screen border.
+    , windowBorder  :: Border   -- ^ The window borders.
+    } deriving (Show,Read)
 
 instance LayoutModifier Spacing a where
+    pureModifier (Spacing True  _ _)  _ _ [x] =
+        ([x], Nothing)
+    pureModifier (Spacing _     _ wb) _ _ wrs =
+        let wb' = borderClampGTZero wb
+        in  (map (second $ withBorder' wb' 2) wrs, Nothing)
 
-    pureModifier (Spacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+    modifyLayout (Spacing b sb _) wsp lr
+        | b == True
+        , null . drop 1 . W.integrate' . W.stack $ wsp
+        = runLayout wsp lr
+        | otherwise
+        = let sb' = borderClampGTZero sb
+          in  runLayout wsp (withBorder' sb' 2 lr)
 
-    pureMess (Spacing px) m
-     | Just (ModifySpacing f) <- fromMessage m = Just $ Spacing $ max 0 $ f px
-     | otherwise = Nothing
+    pureMess (Spacing b sb wb) m
+        | Just (ModifyWindowSpacing f) <- fromMessage m
+        = Just $ Spacing b sb (f wb)
+        | Just (ModifyScreenSpacing f) <- fromMessage m
+        = Just $ Spacing b (f sb) wb
+        | Just (ModifySmartSpacing f) <- fromMessage m
+        = Just $ Spacing (f b) sb wb
+        | otherwise
+        = Nothing
 
-    modifierDescription (Spacing p) = "Spacing " ++ show p
+    modifierDescription Spacing {} =
+        "Spacing"
 
--- | Surround all windows by a certain number of pixels of blank space, and
--- additionally adds the same amount of spacing around the edge of the screen.
-spacingWithEdge :: Int -> l a -> ModifiedLayout SpacingWithEdge l a
-spacingWithEdge p = ModifiedLayout (SpacingWithEdge p)
 
-data SpacingWithEdge a = SpacingWithEdge Int deriving (Show, Read)
+-- | Generate the 'ModifiedLayout', exposing all initial state of 'Spacing'.
+spacing :: Bool     -- ^ The 'smartBorder'.
+        -> Border   -- ^ The 'screenBorder'.
+        -> Border   -- ^ The 'windowBorder'.
+        -> l a -> ModifiedLayout Spacing l a
+spacing b sb wb = ModifiedLayout (Spacing b sb wb)
 
-instance LayoutModifier SpacingWithEdge a where
+-- | Messages to alter the state of 'Spacing' using the endomorphic function
+-- arguments.
+data ModifySpacing
+    = ModifyWindowSpacing (Border -> Border)
+    | ModifyScreenSpacing (Border -> Border)
+    | ModifySmartSpacing (Bool -> Bool)
+    deriving (Typeable)
 
-    pureModifier (SpacingWithEdge p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+instance Message ModifySpacing
 
-    pureMess (SpacingWithEdge px) m
-     | Just (ModifySpacing f) <- fromMessage m = Just $ SpacingWithEdge $ max 0 $ f px
-     | otherwise = Nothing
+-- | Set 'windowBorder' to the given 'Border'.
+setWindowSpacing :: Border -> X ()
+setWindowSpacing = sendMessage . ModifyWindowSpacing . const
 
-    modifyLayout (SpacingWithEdge p) w r = runLayout w (shrinkRect p r)
+-- | Set 'screenBorder' to the given 'Border'.
+setScreenSpacing :: Border -> X ()
+setScreenSpacing = sendMessage . ModifyScreenSpacing . const
 
-    modifierDescription (SpacingWithEdge p) = "SpacingWithEdge " ++ show p
+-- | Toggle 'smartBorder'.
+toggleSmartSpacing :: X ()
+toggleSmartSpacing = sendMessage $ ModifySmartSpacing not
 
-shrinkRect :: Int -> Rectangle -> Rectangle
-shrinkRect p (Rectangle x y w h) = Rectangle (x+fi p) (y+fi p) (fi $ max 1 $ fi w-2*p) (fi $ max 1 $ fi h-2*p)
+-- | Increment the borders of 'windowBorder' using 'borderIncrementBy', which
+-- preserves border ratios during clamping.
+incWindowSpacing :: Integer -> X ()
+incWindowSpacing = sendMessage . ModifyWindowSpacing . borderIncrementBy
 
--- | Surrounds all windows with blank space, except when the window is the only
--- visible window on the current workspace.
-smartSpacing :: Int -> l a -> ModifiedLayout SmartSpacing l a
-smartSpacing p = ModifiedLayout (SmartSpacing p)
+-- | Increment the borders of 'screenBorder' using 'borderIncrementBy'.
+incScreenSpacing :: Integer -> X ()
+incScreenSpacing = sendMessage . ModifyScreenSpacing . borderIncrementBy
 
-data SmartSpacing a = SmartSpacing Int deriving (Show, Read)
+-- | Inverse of 'incWindowSpacing', equivalent to applying 'negate'.
+decWindowSpacing :: Integer -> X ()
+decWindowSpacing = incWindowSpacing . negate
 
-instance LayoutModifier SmartSpacing a where
+-- | Inverse of 'incScreenSpacing'.
+decScreenSpacing :: Integer -> X ()
+decScreenSpacing = incScreenSpacing . negate
 
-    pureModifier _ _ _ [x] = ([x], Nothing)
-    pureModifier (SmartSpacing p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
+-- | Change the border spacing by the provided amount, adjusted so that at
+-- least one border field is @>=0@.
+borderIncrementBy :: Integer -> Border -> Border
+borderIncrementBy i (Border t b r l) =
+    let bl = [t,b,r,l]
+        o  = maximum bl
+        o' = max i $ negate o
+        [t',b',r',l'] = map (+o') bl
+    in  Border t' b' r' l'
 
-    pureMess (SmartSpacing px) m
-     | Just (ModifySpacing f) <- fromMessage m = Just $ SmartSpacing $ max 0 $ f px
-     | otherwise = Nothing
+-- | Interface to 'XMonad.Util.Rectangle.withBorder'.
+withBorder' :: Border -> Integer -> Rectangle -> Rectangle
+withBorder' (Border t b r l) = R.withBorder t b r l
 
-    modifierDescription (SmartSpacing p) = "SmartSpacing " ++ show p
-
--- | Surrounds all windows with blank space, and adds the same amount of spacing
--- around the edge of the screen, except when the window is the only visible
--- window on the current workspace.
-smartSpacingWithEdge :: Int -> l a -> ModifiedLayout SmartSpacingWithEdge l a
-smartSpacingWithEdge p = ModifiedLayout (SmartSpacingWithEdge p)
-
-data SmartSpacingWithEdge a = SmartSpacingWithEdge Int deriving (Show, Read)
-
-instance LayoutModifier SmartSpacingWithEdge a where
-
-    pureModifier _ _ _ [x] = ([x], Nothing)
-    pureModifier (SmartSpacingWithEdge p) _ _ wrs = (map (second $ shrinkRect p) wrs, Nothing)
-
-    modifyLayout (SmartSpacingWithEdge p) w r
-        | maybe False (\s -> null (up s) && null (down s)) (stack w) = runLayout w r
-        | otherwise = runLayout w (shrinkRect p r)
-
-    pureMess (SmartSpacingWithEdge px) m
-     | Just (ModifySpacing f) <- fromMessage m = Just $ SmartSpacingWithEdge $ max 0 $ f px
-     | otherwise = Nothing
-
-    modifierDescription (SmartSpacingWithEdge p) = "SmartSpacingWithEdge " ++ show p
+-- | Clamp borders to within @[0,Infinity]@.
+borderClampGTZero :: Border -> Border
+borderClampGTZero (Border t b r l) =
+    let bl = [t,b,r,l]
+        [t',b',r',l'] = map (max 0) bl
+    in  Border t' b' r' l'
