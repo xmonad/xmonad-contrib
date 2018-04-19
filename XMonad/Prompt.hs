@@ -4,7 +4,7 @@
 -- |
 -- Module      :  XMonad.Prompt
 -- Copyright   :  (C) 2007 Andrea Rossato, 2015 Evgeny Kurnevsky
---                    2015 Sibi Prabakaran
+--                    2015 Sibi Prabakaran, 2018 Yclept Nemo
 -- License     :  BSD3
 --
 -- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
@@ -13,6 +13,17 @@
 --
 -- A module for writing graphical prompts for XMonad
 --
+-----------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------
+-- Bugs:
+-- if 'alwaysHighlight' is True, and
+--  1 type several characters
+--  2 tab-complete past several entries
+--  3 backspace back to the several characters
+--  4 tab-complete once (results in the entry past the one in [2])
+--  5 tab-complete against this shorter list of completions
+-- then the prompt will freeze (XMonad continues however).
 -----------------------------------------------------------------------------
 
 module XMonad.Prompt
@@ -27,18 +38,25 @@ module XMonad.Prompt
     , greenXPConfig
     , XPMode
     , XPType (..)
+    , XPColor (..)
     , XPPosition (..)
     , XPConfig (..)
     , XPrompt (..)
     , XP
     , defaultXPKeymap, defaultXPKeymap'
     , emacsLikeXPKeymap, emacsLikeXPKeymap'
+    , vimLikeXPKeymap, vimLikeXPKeymap'
     , quit
+    , promptSubmap, promptBuffer, toHeadChar, bufferOne
     , killBefore, killAfter, startOfLine, endOfLine
-    , insertString, pasteString, moveCursor
-    , setInput, getInput
-    , moveWord, moveWord', killWord, killWord', deleteString
-    , moveHistory, setSuccess, setDone
+    , insertString, pasteString, pasteString'
+    , clipCursor, moveCursor, moveCursorClip
+    , setInput, getInput, getOffset
+    , modifyColor, setColor, resetColor, setBorderColor
+    , modifyPrompter, setPrompter, resetPrompter
+    , moveWord, moveWord', killWord, killWord'
+    , changeWord, deleteString
+    , moveHistory, setSuccess, setDone, setModeDone
     , Direction1D(..)
     , ComplFunction
     -- * X Utilities
@@ -80,7 +98,7 @@ import           XMonad.Util.XSelection       (getSelection)
 
 import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
 import           Control.Applicative          ((<$>))
-import           Control.Arrow                (first, (&&&), (***))
+import           Control.Arrow                (first, second, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
 import           Control.Exception.Extensible as E hiding (handle)
 import           Control.Monad.State
@@ -105,61 +123,65 @@ import           System.Posix.Files
 type XP = StateT XPState IO
 
 data XPState =
-    XPS { dpy                :: Display
-        , rootw              :: !Window
-        , win                :: !Window
-        , screen             :: !Rectangle
-        , complWin           :: Maybe Window
-        , complWinDim        :: Maybe ComplWindowDim
-        , complIndex         :: !(Int,Int)
-        , showComplWin       :: Bool
-        , operationMode      :: XPOperationMode
-        , highlightedCompl   :: Maybe String
-        , gcon               :: !GC
-        , fontS              :: !XMonadFont
-        , commandHistory     :: W.Stack String
-        , offset             :: !Int
-        , config             :: XPConfig
-        , successful         :: Bool
-        , numlockMask        :: KeyMask
-        , done               :: Bool
+    XPS { dpy                   :: Display
+        , rootw                 :: !Window
+        , win                   :: !Window
+        , screen                :: !Rectangle
+        , complWin              :: Maybe Window
+        , complWinDim           :: Maybe ComplWindowDim
+        , complIndex            :: !(Int,Int)
+        , showComplWin          :: Bool
+        , operationMode         :: XPOperationMode
+        , highlightedCompl      :: Maybe String
+        , gcon                  :: !GC
+        , fontS                 :: !XMonadFont
+        , commandHistory        :: W.Stack String
+        , offset                :: !Int
+        , config                :: XPConfig
+        , successful            :: Bool
+        , numlockMask           :: KeyMask
+        , done                  :: Bool
+        , modeDone              :: Bool
+        , color                 :: XPColor
+        , prompter              :: String -> String
+        , eventBuffer           :: [(KeySym, String, Event)]
+        , inputBuffer           :: String
+        , currentCompletions    :: Maybe [String]
         }
 
 data XPConfig =
-    XPC { font              :: String     -- ^ Font. For TrueType fonts, use something like
-                                          -- @"xft:Hack:pixelsize=1"@. Alternatively, use X Logical Font
-                                          -- Description, i.e. something like
-                                          -- @"-*-dejavu sans mono-medium-r-normal--*-80-*-*-*-*-iso10646-1"@.
-        , bgColor           :: String     -- ^ Background color
-        , fgColor           :: String     -- ^ Font color
-        , fgHLight          :: String     -- ^ Font color of a highlighted completion entry
-        , bgHLight          :: String     -- ^ Background color of a highlighted completion entry
-        , borderColor       :: String     -- ^ Border color
-        , promptBorderWidth :: !Dimension -- ^ Border width
-        , position          :: XPPosition -- ^ Position: 'Top', 'Bottom', or 'CenteredAt'
-        , alwaysHighlight   :: !Bool      -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
-        , height            :: !Dimension -- ^ Window height
-        , maxComplRows      :: Maybe Dimension
-                                          -- ^ Just x: maximum number of rows to show in completion window
-        , historySize       :: !Int       -- ^ The number of history entries to be saved
-        , historyFilter     :: [String] -> [String]
-                                         -- ^ a filter to determine which
-                                         -- history entries to remember
-        , promptKeymap      :: M.Map (KeyMask,KeySym) (XP ())
-                                         -- ^ Mapping from key combinations to actions
-        , completionKey     :: (KeyMask, KeySym)     -- ^ Key that should trigger completion
-        , changeModeKey     :: KeySym     -- ^ Key to change mode (when the prompt has multiple modes)
-        , defaultText       :: String     -- ^ The text by default in the prompt line
-        , autoComplete      :: Maybe Int  -- ^ Just x: if only one completion remains, auto-select it,
-                                          --   and delay by x microseconds
-        , showCompletionOnTab :: Bool     -- ^ Only show list of completions when Tab was pressed
-        , searchPredicate   :: String -> String -> Bool
-                                          -- ^ Given the typed string and a possible
-                                          --   completion, is the completion valid?
-        , sorter            :: String -> [String] -> [String]
-                                          -- ^ Used to sort the possible completions by how well they
-                                          --   match the search string (see X.P.FuzzyMatch for an
-                                          --   example).
+    XPC { font                  :: String       -- ^ Font. For TrueType fonts, use something like
+                                                -- @"xft:Hack:pixelsize=1"@. Alternatively, use X Logical Font
+                                                -- Description, i.e. something like
+                                                -- @"-*-dejavu sans mono-medium-r-normal--*-80-*-*-*-*-iso10646-1"@.
+        , promptBorderWidth     :: !Dimension   -- ^ Border width
+        , position              :: XPPosition   -- ^ Position: 'Top', 'Bottom', or 'CenteredAt'
+        , alwaysHighlight       :: !Bool        -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
+        , height                :: !Dimension   -- ^ Window height
+        , maxComplRows          :: Maybe Dimension
+                                                -- ^ Just x: maximum number of rows to show in completion window
+        , historySize           :: !Int         -- ^ The number of history entries to be saved
+        , historyFilter         :: [String] -> [String]
+                                                -- ^ a filter to determine which
+                                                -- history entries to remember
+        , promptKeymap          :: M.Map (KeyMask,KeySym) (XP ())
+                                                -- ^ Mapping from key combinations to actions
+        , completionKey         :: (KeyMask, KeySym)     -- ^ Key that should trigger completion
+        , changeModeKey         :: KeySym       -- ^ Key to change mode (when the prompt has multiple modes)
+        , defaultText           :: String       -- ^ The text by default in the prompt line
+        , autoComplete          :: Maybe Int    -- ^ Just x: if only one completion remains, auto-select it,
+                                                --   and delay by x microseconds
+        , showCompletionOnTab   :: Bool         -- ^ Only show list of completions when Tab was pressed
+        , searchPredicate       :: String -> String -> Bool
+                                                -- ^ Given the typed string and a possible
+                                                --   completion, is the completion valid?
+        , defaultPrompter       :: String -> String
+                                                -- ^ Modifies the prompt given by 'showXPrompt'
+        , defaultColor          :: XPColor      -- ^ Prompt colors
+        , sorter                :: String -> [String] -> [String]
+                                                -- ^ Used to sort the possible completions by how well they
+                                                --   match the search string (see X.P.FuzzyMatch for an
+                                                --   example).
         }
 
 data XPType = forall p . XPrompt p => XPT p
@@ -248,60 +270,87 @@ data XPPosition = Top
                              }
                   deriving (Show,Read)
 
+data XPColor =
+    XPColor { bgNormal  :: String   -- ^ Background color
+            , fgNormal  :: String   -- ^ Font color
+            , bgHLight  :: String   -- ^ Background color of a highlighted completion entry
+            , fgHLight  :: String   -- ^ Font color of a highlighted completion entry
+            , border    :: String   -- ^ Border color
+            }
+
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
+
+instance Default XPColor where
+    def =
+        XPColor { bgNormal = "grey22"
+                , fgNormal = "grey80"
+                , fgHLight = "black"
+                , bgHLight = "grey"
+                , border   = "white"
+                }
 
 instance Default XPConfig where
   def =
-    XPC { font              = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
-        , bgColor           = "grey22"
-        , fgColor           = "grey80"
-        , fgHLight          = "black"
-        , bgHLight          = "grey"
-        , borderColor       = "white"
-        , promptBorderWidth = 1
-        , promptKeymap      = defaultXPKeymap
-        , completionKey     = (0,xK_Tab)
-        , changeModeKey     = xK_grave
-        , position          = Bottom
-        , height            = 18
-        , maxComplRows      = Nothing
-        , historySize       = 256
-        , historyFilter     = id
-        , defaultText       = []
-        , autoComplete      = Nothing
-        , showCompletionOnTab = False
-        , searchPredicate   = isPrefixOf
-        , alwaysHighlight   = False
-        , sorter            = const id
+    XPC { font                  = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
+        , promptBorderWidth     = 1
+        , promptKeymap          = defaultXPKeymap
+        , completionKey         = (0,xK_Tab)
+        , changeModeKey         = xK_grave
+        , position              = Bottom
+        , height                = 18
+        , maxComplRows          = Nothing
+        , historySize           = 256
+        , historyFilter         = id
+        , defaultText           = []
+        , autoComplete          = Nothing
+        , showCompletionOnTab   = False
+        , searchPredicate       = isPrefixOf
+        , alwaysHighlight       = False
+        , defaultPrompter       = id
+        , defaultColor          = def
+        , sorter                = const id
         }
 {-# DEPRECATED defaultXPConfig "Use def (from Data.Default, and re-exported from XMonad.Prompt) instead." #-}
 defaultXPConfig = def
-greenXPConfig = def { fgColor = "green", bgColor = "black", promptBorderWidth = 0 }
-amberXPConfig = def { fgColor = "#ca8f2d", bgColor = "black", fgHLight = "#eaaf4c" }
+greenXPConfig = def { defaultColor = def { fgNormal = "green", bgNormal = "black" }
+                    , promptBorderWidth = 0
+                    }
+amberXPConfig = def { defaultColor = def { fgNormal = "#ca8f2d"
+                                         , bgNormal = "black"
+                                         , fgHLight = "#eaaf4c"
+                                         }
+                    }
 
 initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
           -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> XPState
 initState d rw w s opMode gc fonts h c nm =
-    XPS { dpy                = d
-        , rootw              = rw
-        , win                = w
-        , screen             = s
-        , complWin           = Nothing
-        , complWinDim        = Nothing
-        , showComplWin       = not (showCompletionOnTab c)
-        , operationMode      = opMode
-        , highlightedCompl   = Nothing
-        , gcon               = gc
-        , fontS              = fonts
-        , commandHistory     = W.Stack { W.focus = defaultText c
-                                       , W.up    = []
-                                       , W.down  = h }
-        , complIndex         = (0,0) --(column index, row index), used when `alwaysHighlight` in XPConfig is True
-        , offset             = length (defaultText c)
-        , config             = c
-        , successful         = False
-        , done               = False
-        , numlockMask        = nm
+    XPS { dpy                   = d
+        , rootw                 = rw
+        , win                   = w
+        , screen                = s
+        , complWin              = Nothing
+        , complWinDim           = Nothing
+        , showComplWin          = not (showCompletionOnTab c)
+        , operationMode         = opMode
+        , highlightedCompl      = Nothing
+        , gcon                  = gc
+        , fontS                 = fonts
+        , commandHistory        = W.Stack { W.focus = defaultText c
+                                          , W.up    = []
+                                          , W.down  = h
+                                          }
+        , complIndex            = (0,0) --(column index, row index), used when `alwaysHighlight` in XPConfig is True
+        , offset                = length (defaultText c)
+        , config                = c
+        , successful            = False
+        , done                  = False
+        , modeDone              = False
+        , numlockMask           = nm
+        , prompter              = defaultPrompter c
+        , color                 = defaultColor c
+        , eventBuffer           = []
+        , inputBuffer           = ""
+        , currentCompletions    = Nothing
         }
 
 -- Returns the current XPType
@@ -349,9 +398,51 @@ setInput :: String -> XP ()
 setInput = modify . setCommand
 
 -- | Returns the current input string. Intented for use in custom keymaps
--- where the 'get' or similar can't be used to retrieve it.
+-- where 'get' or similar can't be used to retrieve it.
 getInput :: XP String
 getInput = gets command
+
+-- | Returns the offset of the current input string. Intended for use in custom
+-- keys where 'get' or similar can't be used to retrieve it.
+getOffset :: XP Int
+getOffset = gets offset
+
+-- | Modify the prompt colors.
+modifyColor :: (XPColor -> XPColor) -> XP ()
+modifyColor c = modify $ \s -> s { color = c $ color s }
+
+-- | Set the prompt colors.
+setColor :: XPColor -> XP ()
+setColor = modifyColor . const
+
+-- | Reset the prompt colors to those from 'XPConfig'.
+resetColor :: XP ()
+resetColor = gets (defaultColor . config) >>= setColor
+
+-- | Set the prompt border color.
+setBorderColor :: String -> XPColor -> XPColor
+setBorderColor bc xpc = xpc { border = bc }
+
+-- | Modify the prompter, i.e. for chaining prompters.
+modifyPrompter :: ((String -> String) -> (String -> String)) -> XP ()
+modifyPrompter p = modify $ \s -> s { prompter = p $ prompter s }
+
+-- | Set the prompter.
+setPrompter :: (String -> String) -> XP ()
+setPrompter = modifyPrompter . const
+
+-- | Reset the prompter to the one from 'XPConfig'.
+resetPrompter :: XP ()
+resetPrompter = gets (defaultPrompter . config) >>= setPrompter
+
+-- | Set the current completion list, or 'Nothing' to invalidate the current
+-- completions.
+setCurrentCompletions :: Maybe [String] -> XP ()
+setCurrentCompletions cs = modify $ \s -> s { currentCompletions = cs }
+
+-- | Get the current completion list.
+getCurrentCompletions :: XP (Maybe [String])
+getCurrentCompletions = gets currentCompletions
 
 -- | Same as 'mkXPrompt', except that the action function can have
 --   type @String -> X a@, for any @a@, and the final action returned
@@ -464,34 +555,6 @@ mkXPromptWithModes modes conf = do
       return ()
 
 
-runXP :: XP ()
-runXP = do
-  (d,w) <- gets (dpy &&& win)
-  status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
-  when (status == grabSuccess) $ do
-          updateWindows
-          eventLoop handle
-          io $ ungrabKeyboard d currentTime
-  io $ destroyWindow d w
-  destroyComplWin
-  io $ sync d False
-
-type KeyStroke = (KeySym, String)
-
-eventLoop :: (KeyStroke -> Event -> XP ()) -> XP ()
-eventLoop action = do
-  d <- gets dpy
-  (keysym,string,event) <- io $
-            allocaXEvent $ \e -> do
-              maskEvent d (exposureMask .|. keyPressMask) e
-              ev <- getEvent e
-              (ks,s) <- if ev_event_type ev == keyPress
-                        then lookupString $ asKeyEvent e
-                        else return (Nothing, "")
-              return (ks,s,ev)
-  action (fromMaybe xK_VoidSymbol keysym,string) event
-  gets done >>= flip unless (eventLoop handle)
-
 -- | Removes numlock and capslock from a keymask.
 -- Duplicate of cleanMask from core, but in the
 -- XP monad instead of X.
@@ -501,88 +564,268 @@ cleanMask msk = do
   let highMasks = 1 `shiftL` 12 - 1
   return (complement (numlock .|. lockMask) .&. msk .&. highMasks)
 
--- Main event handler
-handle :: KeyStroke -> Event -> XP ()
-handle ks@(sym,_) e@(KeyEvent {ev_event_type = t, ev_state = m}) = do
-  complKey <- gets $ completionKey . config
-  chgModeKey <- gets $ changeModeKey . config
-  c <- getCompletions
-  mCleaned <- cleanMask m
-  when (length c > 1) $ modify (\s -> s { showComplWin = True })
-  if complKey == (mCleaned,sym)
-     then completionHandle c ks e
-     else if (sym == chgModeKey) then
-           do
-             modify setNextMode
-             updateWindows
-          else when (t == keyPress) $ keyPressHandle mCleaned ks
-handle _ (ExposeEvent {ev_window = w}) = do
-  st <- get
-  when (win st == w) updateWindows
-handle _  _ = return ()
+-- | Inverse of 'Codec.Binary.UTF8.String.utf8Encode', that is, a convenience
+-- function that checks to see if the input string is UTF8 encoded before
+-- decoding.
+utf8Decode :: String -> String
+utf8Decode str
+    | isUTF8Encoded str = decodeString str
+    | otherwise         = str
 
--- completion event handler
-completionHandle ::  [String] -> KeyStroke -> Event -> XP ()
-completionHandle c ks@(sym,_) (KeyEvent { ev_event_type = t, ev_state = m }) = do
-  complKey <- gets $ completionKey . config
-  alwaysHlight <- gets $ alwaysHighlight . config
-  mCleaned <- cleanMask m
-  case () of
-    () | t == keyPress && (mCleaned,sym) == complKey -> do
-           st <- get
+runXP :: XP ()
+runXP = do
+  (d,w) <- gets (dpy &&& win)
+  status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
+  when (status == grabSuccess) $ do
+          updateWindows
+          eventLoop handleMain evDefaultStop
+          io $ ungrabKeyboard d currentTime
+  io $ destroyWindow d w
+  destroyComplWin
+  io $ sync d False
 
-           let updateWins  l = redrawWindows l >> eventLoop (completionHandle l)
-               updateState l = case alwaysHlight of
-                 False                                           -> simpleComplete l st
-                 True | Just (command st) /= highlightedCompl st -> alwaysHighlightCurrent st
-                      | otherwise                                -> alwaysHighlightNext l st
+type KeyStroke = (KeySym, String)
 
-           case c of
-             []  -> updateWindows   >> eventLoop handle
-             [x] -> updateState [x] >> getCompletions >>= updateWins
-             l   -> updateState l   >> updateWins l
-      | t == keyRelease && (mCleaned,sym) == complKey -> eventLoop (completionHandle c)
-      | otherwise -> keyPressHandle mCleaned ks -- some other key, handle it normally
-  where
-    -- When alwaysHighlight is off, just complete based on what the
-    -- user has typed so far.
-    simpleComplete :: [String] -> XPState -> XP ()
-    simpleComplete l st = do
-      let newCommand = nextCompletion (currentXPMode st) (command st) l
-      modify $ \s -> setCommand newCommand $
-                     s { offset = length newCommand
-                       , highlightedCompl = Just newCommand
-                       }
+-- | Main event "loop". Gives priority to events from the state's event buffer.
+eventLoop :: (KeyStroke -> Event -> XP ())
+          -> XP Bool
+          -> XP ()
+eventLoop handle stopAction = do
+    b <- gets eventBuffer
+    (keysym,keystr,event) <- case b of
+        []  -> do
+                d <- gets dpy
+                io $ allocaXEvent $ \e -> do
+                    maskEvent d (exposureMask .|. keyPressMask) e
+                    ev <- getEvent e
+                    (ks,s) <- if ev_event_type ev == keyPress
+                              then lookupString $ asKeyEvent e
+                              else return (Nothing, "")
+                    return (fromMaybe xK_VoidSymbol ks,s,ev)
+        l   -> do
+                modify $ \s -> s { eventBuffer = tail l }
+                return $ head l
+    handle (keysym,keystr) event
+    stopAction >>= flip unless (eventLoop handle stopAction)
 
-    -- If alwaysHighlight is on, and this is the first use of the
-    -- completion key, update the buffer so that it contains the
-    -- current completion item.
-    alwaysHighlightCurrent :: XPState -> XP ()
-    alwaysHighlightCurrent st = do
-      let newCommand = fromMaybe (command st) $ highlightedItem st c
-      modify $ \s -> setCommand newCommand $
-                     setHighlightedCompl (Just newCommand) $
-                     s { offset = length newCommand
-                       }
+-- | Default event loop stop condition.
+evDefaultStop :: XP Bool
+evDefaultStop = (||) <$> (gets modeDone) <*> (gets done)
 
-    -- If alwaysHighlight is on, and the user wants the next
-    -- completion, move to the next completion item and update the
-    -- buffer to reflect that.
-    --
-    --TODO: Scroll or paginate results
-    alwaysHighlightNext :: [String] -> XPState -> XP ()
-    alwaysHighlightNext l st = do
-      let complIndex' = nextComplIndex st (length l)
-          highlightedCompl' = highlightedItem st { complIndex = complIndex'} c
-          newCommand = fromMaybe (command st) $ highlightedCompl'
-      modify $ \s -> setHighlightedCompl highlightedCompl' $
-                     setCommand newCommand $
-                     s { complIndex = complIndex'
-                       , offset = length newCommand
-                       }
+-- | Common patterns shared by all event handlers. Expose events can be
+-- triggered by switching virtual consoles.
+handleOther :: KeyStroke -> Event -> XP ()
+handleOther _ (ExposeEvent {ev_window = w}) = do
+    st <- get
+    when (win st == w) updateWindows
+handleOther _ _ = return ()
 
--- some other event: go back to main loop
-completionHandle _ k e = handle k e
+-- | Prompt event handler for the main loop. Dispatches to input, completion
+-- and mode switching handlers.
+handleMain :: KeyStroke -> Event -> XP ()
+handleMain stroke@(keysym,_) (KeyEvent {ev_event_type = t, ev_state = m}) = do
+    (compKey,modeKey) <- gets $ (completionKey &&& changeModeKey) . config
+    keymask <- cleanMask m
+    -- haven't subscribed to keyRelease, so just in case
+    when (t == keyPress) $
+        if (keymask,keysym) == compKey
+           then getCurrentCompletions >>= handleCompletionMain
+           else do
+                setCurrentCompletions Nothing
+                if (keysym == modeKey)
+                   then modify setNextMode >> updateWindows
+                   else handleInputMain keymask stroke
+handleMain stroke event = handleOther stroke event
+
+-- | Prompt input handler for the main loop.
+handleInputMain :: KeyMask -> KeyStroke -> XP ()
+handleInputMain keymask (keysym,keystr) = do
+    keymap <- gets (promptKeymap . config)
+    case M.lookup (keymask,keysym) keymap of
+        -- 'null keystr' i.e. when only a modifier was pressed
+        Just action -> action >> updateWindows
+        Nothing     -> unless (null keystr) $
+            when (keymask .&. controlMask == 0) $ do
+                insertString $ utf8Decode keystr
+                updateWindows
+                updateHighlightedCompl
+                complete <- tryAutoComplete
+                when complete $ setSuccess True >> setDone True
+
+-- There are two options to store the completion list during the main loop:
+-- * Use the State monad, with 'Nothing' as the initial state.
+-- * Join the output of the event loop handler to the input of the (same)
+--   subsequent handler, using 'Nothing' as the initial input.
+-- Both approaches are, under the hood, equivalent.
+--
+-- | Prompt completion handler for the main loop. Given 'Nothing', generate the
+-- current completion list. With the current list, trigger a completion.
+handleCompletionMain :: Maybe [String] -> XP ()
+handleCompletionMain Nothing   = do
+    cs <- getCompletions
+    when (length cs > 1) $
+        modify $ \s -> s { showComplWin = True }
+    setCurrentCompletions $ Just cs
+    handleCompletion cs
+handleCompletionMain (Just cs) = handleCompletion cs
+
+handleCompletion :: [String] -> XP ()
+handleCompletion cs = do
+    alwaysHlight <- gets $ alwaysHighlight . config
+    st <- get
+
+    let updateWins  l = redrawWindows l
+        updateState l = case alwaysHlight of
+            False                                           -> simpleComplete l st
+            True | Just (command st) /= highlightedCompl st -> alwaysHighlightCurrent st
+                 | otherwise                                -> alwaysHighlightNext l st
+
+    case cs of
+      []  -> updateWindows
+      [x] -> do updateState [x] 
+                cs' <- getCompletions
+                updateWins cs'
+                setCurrentCompletions $ Just cs'
+      l   -> updateState l   >> updateWins l
+    where
+        -- When alwaysHighlight is off, just complete based on what the
+        -- user has typed so far.
+        simpleComplete :: [String] -> XPState -> XP ()
+        simpleComplete l st = do
+          let newCommand = nextCompletion (currentXPMode st) (command st) l
+          modify $ \s -> setCommand newCommand $
+                         s { offset = length newCommand
+                           , highlightedCompl = Just newCommand
+                           }
+
+        -- If alwaysHighlight is on, and this is the first use of the
+        -- completion key, update the buffer so that it contains the
+        -- current completion item.
+        alwaysHighlightCurrent :: XPState -> XP ()
+        alwaysHighlightCurrent st = do
+          let newCommand = fromMaybe (command st) $ highlightedItem st cs
+          modify $ \s -> setCommand newCommand $
+                         setHighlightedCompl (Just newCommand) $
+                         s { offset = length newCommand
+                           }
+
+        -- If alwaysHighlight is on, and the user wants the next
+        -- completion, move to the next completion item and update the
+        -- buffer to reflect that.
+        --
+        --TODO: Scroll or paginate results
+        alwaysHighlightNext :: [String] -> XPState -> XP ()
+        alwaysHighlightNext l st = do
+          let complIndex' = nextComplIndex st (length l)
+              highlightedCompl' = highlightedItem st { complIndex = complIndex'} cs
+              newCommand = fromMaybe (command st) $ highlightedCompl'
+          modify $ \s -> setHighlightedCompl highlightedCompl' $
+                         setCommand newCommand $
+                         s { complIndex = complIndex'
+                           , offset = length newCommand
+                           }
+
+-- | Initiate a prompt sub-map event loop. Submaps are intended to provide
+-- alternate keybindings. Accepts a default action and a mapping from key
+-- combinations to actions. If no entry matches, the default action is run.
+promptSubmap :: XP ()
+             -> M.Map (KeyMask, KeySym) (XP ())
+             -> XP ()
+promptSubmap defaultAction keymap = do
+    md <- gets modeDone
+    setModeDone False
+    updateWindows
+    eventLoop (handleSubmap defaultAction keymap) evDefaultStop
+    setModeDone md
+
+handleSubmap :: XP ()
+             -> M.Map (KeyMask, KeySym) (XP ())
+             -> KeyStroke
+             -> Event
+             -> XP ()
+handleSubmap defaultAction keymap stroke (KeyEvent {ev_event_type = t, ev_state = m}) = do
+    keymask <- cleanMask m
+    when (t == keyPress) $ handleInputSubmap defaultAction keymap keymask stroke
+handleSubmap _ _ stroke event = handleOther stroke event
+
+handleInputSubmap :: XP ()
+                  -> M.Map (KeyMask, KeySym) (XP ())
+                  -> KeyMask
+                  -> KeyStroke
+                  -> XP ()
+handleInputSubmap defaultAction keymap keymask (keysym,keystr) = do
+    case M.lookup (keymask,keysym) keymap of
+        Just action -> action >> updateWindows
+        Nothing     -> unless (null keystr) $ defaultAction >> updateWindows
+
+-- | Initiate a prompt input buffer event loop. Input is sent to a buffer and
+-- bypasses the prompt. The provided function is given the existing buffer and
+-- the input keystring. The first field of the result determines whether the
+-- input loop continues (if @True@). The second field determines whether the
+-- input is appended to the buffer, or dropped (if @False@). If the loop is to
+-- stop without keeping input - that is, @(False,False)@ - the event is
+-- prepended to the event buffer to be processed by the parent loop. This
+-- allows loop to process both fixed and indeterminate inputs.
+--
+-- Result given @(continue,keep)@:
+--
+-- * cont and keep
+--
+--      * grow input buffer
+--
+-- * stop and keep
+--
+--      * grow input buffer
+--      * stop loop
+--
+-- * stop and drop
+--
+--      * buffer event
+--      * stop loop
+--
+-- * cont and drop
+--
+--      * do nothing
+promptBuffer :: (String -> String -> (Bool,Bool)) -> XP (String)
+promptBuffer f = do
+    md <- gets modeDone
+    setModeDone False
+    eventLoop (handleBuffer f) evDefaultStop
+    buff <- gets inputBuffer
+    modify $ \s -> s { inputBuffer = "" }
+    setModeDone md
+    return buff
+
+handleBuffer :: (String -> String -> (Bool,Bool))
+             -> KeyStroke
+             -> Event
+             -> XP ()
+handleBuffer f stroke event@(KeyEvent {ev_event_type = t, ev_state = m}) = do
+    keymask <- cleanMask m
+    when (t == keyPress) $ handleInputBuffer f keymask stroke event
+handleBuffer _ stroke event = handleOther stroke event
+
+handleInputBuffer :: (String -> String -> (Bool,Bool))
+                  -> KeyMask
+                  -> KeyStroke
+                  -> Event
+                  -> XP ()
+handleInputBuffer f keymask (keysym,keystr) event = do
+    unless (null keystr || keymask .&. controlMask /= 0) $ do
+        (evB,inB) <- gets (eventBuffer &&& inputBuffer)
+        let keystr' = utf8Decode keystr
+        let (cont,keep) = f inB keystr'
+        when (keep) $
+            modify $ \s -> s { inputBuffer = inB ++ keystr' }
+        unless (cont) $
+            setModeDone True
+        unless (cont || keep) $
+            modify $ \s -> s { eventBuffer = (keysym,keystr,event) : evB }
+
+-- | Predicate instructing 'promptBuffer' to get (and keep) a single non-empty
+-- 'KeyEvent'.
+bufferOne :: String -> String -> (Bool,Bool)
+bufferOne xs x = (null xs && null x,True)
 
 --Receives an state of the prompt, the size of the autocompletion list and returns the column,row
 --which should be highlighted next
@@ -642,8 +885,9 @@ defaultXPKeymap' p = M.fromList $
   , (xK_a, startOfLine)
   , (xK_e, endOfLine)
   , (xK_y, pasteString)
-  , (xK_Right, moveWord' p Next)
-  , (xK_Left, moveWord' p Prev)
+  -- Retain the pre-0.14 moveWord' behavior:
+  , (xK_Right, moveWord' p Next >> moveCursor Next)
+  , (xK_Left, moveCursor Prev >> moveWord' p Prev)
   , (xK_Delete, killWord' p Next)
   , (xK_BackSpace, killWord' p Prev)
   , (xK_w, killWord' p Prev)
@@ -694,8 +938,9 @@ emacsLikeXPKeymap' p = M.fromList $
   ] ++
   map (first $ (,) mod1Mask) -- meta key + <key>
   [ (xK_BackSpace, killWord' p Prev)
-  , (xK_f, moveWord' p Next) -- move a word forward
-  , (xK_b, moveWord' p Prev) -- move a word backward
+  -- Retain the pre-0.14 moveWord' behavior:
+  , (xK_f, moveWord' p Next >> moveCursor Next) -- move a word forward
+  , (xK_b, moveCursor Prev >> moveWord' p Prev) -- move a word backward
   , (xK_d, killWord' p Next) -- kill the next word
   , (xK_n, moveHistory W.focusUp')
   , (xK_p, moveHistory W.focusDown')
@@ -715,34 +960,141 @@ emacsLikeXPKeymap' p = M.fromList $
   , (xK_Escape, quit)
   ]
 
-keyPressHandle :: KeyMask -> KeyStroke -> XP ()
-keyPressHandle m (ks,str) = do
-  km <- gets (promptKeymap . config)
-  case M.lookup (m,ks) km of
-    Just action -> action >> updateWindows
-    Nothing -> case str of
-                 "" -> eventLoop handle
-                 _ -> when (m .&. controlMask == 0) $ do
-                                 let str' = if isUTF8Encoded str
-                                               then decodeString str
-                                               else str
-                                 insertString str'
-                                 updateWindows
-                                 updateHighlightedCompl
-                                 completed <- tryAutoComplete
-                                 when completed $ setSuccess True >> setDone True
+-- | Vim-ish key bindings. Click on the \"Source\" link to the right to see the
+-- complete list. See also 'vimLikeXPKeymap''.
+vimLikeXPKeymap :: M.Map (KeyMask,KeySym) (XP ())
+vimLikeXPKeymap = vimLikeXPKeymap' (setBorderColor "grey22") id id isSpace
 
+-- | A variant of 'vimLikeXPKeymap' with customizable aspects:
+vimLikeXPKeymap' :: (XPColor -> XPColor)
+                    -- ^ Modifies the prompt color when entering normal mode.
+                    -- The default is @setBorderColor "grey22"@ - same color as
+                    -- the default background color.
+                 -> (String -> String)
+                    -- ^ Prompter to use in normal mode. The default of 'id'
+                    -- balances 'defaultPrompter' but @("[n] " ++)@ is a good
+                    -- alternate with 'defaultPrompter' as @("[i] " ++)@.
+                 -> (String -> String)
+                    -- ^ Filter applied to the X Selection before pasting. The
+                    -- default is 'id' but @filter isPrint@ is a good
+                    -- alternate.
+                 -> (Char -> Bool)
+                    -- ^ Predicate identifying non-word characters. The default
+                    -- is 'isSpace'. See the documentation of other keymaps for
+                    -- alternates.
+                 -> M.Map (KeyMask,KeySym) (XP ())
+vimLikeXPKeymap' fromColor promptF pasteFilter notWord = M.fromList $
+    map (first $ (,) 0)
+    [ (xK_Return,       setSuccess True >> setDone True)
+    , (xK_KP_Enter,     setSuccess True >> setDone True)
+    , (xK_BackSpace,    deleteString Prev)
+    , (xK_Delete,       deleteString Next)
+    , (xK_Left,         moveCursor Prev)
+    , (xK_Right,        moveCursor Next)
+    , (xK_Home,         startOfLine)
+    , (xK_End,          endOfLine)
+    , (xK_Down,         moveHistory W.focusUp')
+    , (xK_Up,           moveHistory W.focusDown')
+    , (xK_Escape,       moveCursor Prev
+                            >> modifyColor fromColor
+                            >> setPrompter promptF
+                            >> promptSubmap (return ()) normalVimXPKeymap
+                            >> resetColor
+                            >> resetPrompter
+      )
+    ] where
+    normalVimXPKeymap = M.fromList $
+        map (first $ (,) 0)
+        [ (xK_i,            setModeDone True)
+        , (xK_a,            moveCursor Next >> setModeDone True)
+        , (xK_s,            deleteString Next >> setModeDone True)
+        , (xK_x,            deleteString Next >> clipCursor)
+        , (xK_Delete,       deleteString Next >> clipCursor)
+        , (xK_p,            moveCursor Next
+                                >> pasteString' pasteFilter
+                                >> moveCursor Prev
+          )
+        , (xK_0,            startOfLine)
+        , (xK_Escape,       quit)
+        , (xK_Down,         moveHistory W.focusUp')
+        , (xK_j,            moveHistory W.focusUp')
+        , (xK_Up,           moveHistory W.focusDown')
+        , (xK_k,            moveHistory W.focusDown')
+        , (xK_Right,        moveCursorClip Next)
+        , (xK_l,            moveCursorClip Next)
+        , (xK_h,            moveCursorClip Prev)
+        , (xK_Left,         moveCursorClip Prev)
+        , (xK_BackSpace,    moveCursorClip Prev)
+        -- Implementation using the original 'moveWord'':
+        --, (xK_e,            moveCursor Next >> moveWord' notWord Next >> moveCursor Prev)
+        --, (xK_b,            moveWord' notWord Prev)
+        --, (xK_w,            moveWord' (not . notWord) Next >> clipCursor)
+        , (xK_e,            moveCursorClip Next >> moveWord' notWord Next)
+        , (xK_b,            moveCursorClip Prev >> moveWord' notWord Prev)
+        , (xK_w,            moveWord' (not . notWord) Next >> moveCursorClip Next)
+        , (xK_f,            promptBuffer bufferOne >>= toHeadChar Next)
+        , (xK_d,            promptSubmap (setModeDone True) deleteVimXPKeymap)
+        , (xK_c,            promptSubmap (setModeDone True) changeVimXPKeymap
+                                >> setModeDone True
+          )
+        ] ++
+        map (first $ (,) shiftMask)
+        [ (xK_dollar,       endOfLine >> moveCursor Prev)
+        , (xK_D,            killAfter >> moveCursor Prev)
+        , (xK_C,            killAfter >> setModeDone True)
+        , (xK_P,            pasteString' pasteFilter >> moveCursor Prev)
+        , (xK_A,            endOfLine >> setModeDone True)
+        , (xK_I,            startOfLine >> setModeDone True)
+        , (xK_F,            promptBuffer bufferOne >>= toHeadChar Prev)
+        ]
+    deleteVimXPKeymap = M.fromList $
+        map ((first $ (,) 0) . (second $ flip (>>) (setModeDone True)))
+        [ (xK_e,            deleteString Next >> killWord' notWord Next >> clipCursor)
+        , (xK_w,            killWord' (not . notWord) Next >> clipCursor)
+        , (xK_0,            killBefore)
+        , (xK_b,            killWord' notWord Prev)
+        , (xK_d,            setInput "")
+        ] ++
+        map ((first $ (,) shiftMask) . (second $ flip (>>) (setModeDone True)))
+        [ (xK_dollar,       killAfter >> moveCursor Prev)
+        ]
+    changeVimXPKeymap = M.fromList $
+        map ((first $ (,) 0) . (second $ flip (>>) (setModeDone True)))
+        [ (xK_e,            deleteString Next >> killWord' notWord Next)
+        , (xK_0,            killBefore)
+        , (xK_b,            killWord' notWord Prev)
+        , (xK_c,            setInput "")
+        , (xK_w,            changeWord notWord)
+        ] ++
+        map ((first $ (,) shiftMask) . (second $ flip (>>) (setModeDone True)))
+        [ (xK_dollar,       killAfter)
+        ]
+
+-- Useful for exploring off-by-one issues.
+--testOffset :: XP ()
+--testOffset = do
+--    off <- getOffset
+--    str <- getInput
+--    setInput $ str ++ "|" ++ (show off) ++ ":" ++ (show $ length str)
+
+-- | Set @True@ to save the prompt's entry to history and run it via the
+-- provided action.
 setSuccess :: Bool -> XP ()
 setSuccess b = modify $ \s -> s { successful = b }
 
+-- | Set @True@ to leave all event loops, no matter how nested.
 setDone :: Bool -> XP ()
 setDone b = modify $ \s -> s { done = b }
+
+-- | Set @True@ to leave the current event loop, i.e. submaps.
+setModeDone :: Bool -> XP ()
+setModeDone b = modify $ \s -> s { modeDone = b }
 
 -- KeyPress and State
 
 -- | Quit.
 quit :: XP ()
-quit = flushString >> setSuccess False >> setDone True
+quit = flushString >> setSuccess False >> setDone True >> setModeDone True
 
 -- | Kill the portion of the command before the cursor
 killBefore :: XP ()
@@ -781,6 +1133,19 @@ killWord' p d = do
             Prev -> (delPrevWord f ++ ss, length $ delPrevWord f) -- laziness!!
   modify $ \s -> setCommand ncom $ s { offset = noff}
 
+-- | From Vim's @:help cw@:
+--
+-- * Special case: When the cursor is in a word, "cw" and "cW" do not include
+--   the white space after a word, they only change up to the end of the word.
+changeWord :: (Char -> Bool) -> XP ()
+changeWord p = f <$> getInput <*> getOffset <*> (pure p) >>= id
+    where
+        f :: String -> Int -> (Char -> Bool) -> XP ()
+        f str off _ | length str <= off ||
+                      length str <= 0       = return ()
+        f str off p'| p' $ str !! off       = killWord' (not . p') Next
+                    | otherwise             = killWord' p' Next
+
 -- | Put the cursor at the end of line
 endOfLine :: XP ()
 endOfLine  =
@@ -812,9 +1177,15 @@ insertString str =
                 | otherwise = f ++ str ++ ss
                 where (f,ss) = splitAt oo oc
 
--- | Insert the current X selection string at the cursor position.
+-- | Insert the current X selection string at the cursor position. The X
+-- selection is not modified.
 pasteString :: XP ()
-pasteString = join $ io $ liftM insertString getSelection
+pasteString = pasteString' id
+
+-- | A variant of 'pasteString' which allows modifying the X selection before
+-- pasting.
+pasteString' :: (String -> String) -> XP ()
+pasteString' f = join $ io $ liftM (insertString . f) getSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction1D -> XP ()
@@ -828,33 +1199,69 @@ deleteString d =
             | otherwise = oc
             where (f,ss) = splitAt oo oc
 
--- | move the cursor one position
+-- | Ensure the cursor remains over the command by shifting left if necessary.
+clipCursor :: XP ()
+clipCursor = modify $ \s -> s { offset = o (offset s) (command s)}
+    where o oo c = min (max 0 $ length c - 1) oo
+
+-- | Move the cursor one position.
 moveCursor :: Direction1D -> XP ()
 moveCursor d =
   modify $ \s -> s { offset = o (offset s) (command s)}
   where o oo c = if d == Prev then max 0 (oo - 1) else min (length c) (oo + 1)
+
+-- | Move the cursor one position, but not beyond the command.
+moveCursorClip :: Direction1D -> XP ()
+moveCursorClip = (>> clipCursor) . moveCursor
+--  modify $ \s -> s { offset = o (offset s) (command s)}
+--  where o oo c = if d == Prev then max 0 (oo - 1) else min (max 0 $ length c - 1) (oo + 1)
 
 -- | Move the cursor one word, using 'isSpace' as the default
 --   predicate for non-word characters.  See 'moveWord''.
 moveWord :: Direction1D -> XP ()
 moveWord = moveWord' isSpace
 
--- | Move the cursor one word, given a predicate to identify non-word
---   characters. First move past any consecutive non-word characters;
---   then move to just before the next non-word character.
+-- | Given a direction, move the cursor to just before the next
+-- (predicate,not-predicate) character transition. This means a (not-word,word)
+-- transition should be followed by a 'moveCursorClip' action. Always considers
+-- the character under the current cursor position.  This means a
+-- (word,not-word) transition should be preceded by a 'moveCursorClip' action.
+-- Calculated as the length of consecutive non-predicate characters starting
+-- from the cursor position, plus the length of subsequent consecutive
+-- predicate characters, plus when moving backwards the distance of the cursor
+-- beyond the input. Reduced by one to avoid jumping off either end of the
+-- input, when present.
+--
+-- Use these identities to retain the pre-0.14 behavior:
+--
+-- @
+--     (oldMoveWord' p Prev) = (moveCursor Prev >> moveWord' p Prev)
+-- @
+--
+-- @
+--     (oldMoveWord' p Next) = (moveWord' p Next >> moveCursor Next)
+-- @
 moveWord' :: (Char -> Bool) -> Direction1D -> XP ()
 moveWord' p d = do
   c <- gets command
   o <- gets offset
-  let (f,ss) = splitAt o c
-      len = uncurry (+)
+  let (f,ss) = splitOn o c
+      splitOn n xs = (take (n+1) xs, drop n xs)
+      gap = case d of
+                Prev -> max 0 $ (o + 1) - (length c)
+                Next -> 0
+      len = max 0 . flip (-) 1 . (gap +)
+          . uncurry (+)
           . (length *** (length . fst . break p))
           . break (not . p)
       newoff = case d of
-                 Prev -> o - len (reverse f)
-                 Next -> o + len ss
+                Prev -> o - len (reverse f)
+                Next -> o + len ss
   modify $ \s -> s { offset = newoff }
 
+-- | Set the prompt's input to an entry further up or further down the history
+-- stack. Use 'Stack' functions from 'XMonad.StackSet', i.e. 'focusUp'' or
+-- 'focusDown''.
 moveHistory :: (W.Stack String -> W.Stack String) -> XP ()
 moveHistory f = do
   modify $ \s -> let ch = f $ commandHistory s
@@ -863,6 +1270,21 @@ moveHistory f = do
                       , complIndex     = (0,0) }
   updateWindows
   updateHighlightedCompl
+
+-- | Move the cursor in the given direction to the first instance of the first
+-- character of the given string, assuming the string is not empty. The
+-- starting cursor character is not considered, and the cursor is placed over
+-- the matching character.
+toHeadChar :: Direction1D -> String -> XP ()
+toHeadChar d s = unless (null s) $ do
+    cmd <- gets command
+    off <- gets offset
+    let c = head s
+        off' = (if d == Prev then negate . fst else snd)
+             . join (***) (fromMaybe 0 . fmap (+1) . elemIndex c)
+             . (reverse *** drop 1)
+             $ (splitAt off cmd)
+    modify $ \st -> st { offset = offset st + off' }
 
 updateHighlightedCompl :: XP ()
 updateHighlightedCompl = do
@@ -909,18 +1331,18 @@ createWin d rw c s = do
 drawWin :: XP ()
 drawWin = do
   st <- get
-  let (c,(d,(w,gc))) = (config &&& dpy &&& win &&& gcon) st
+  let (c,(cr,(d,(w,gc)))) = (config &&& color &&& dpy &&& win &&& gcon) st
       scr = defaultScreenOfDisplay d
       wh = case position c of
              CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
              _               -> widthOfScreen scr
       ht = height c
       bw = promptBorderWidth c
-  Just bgcolor <- io $ initColor d (bgColor c)
-  Just border  <- io $ initColor d (borderColor c)
+  Just bgcolor <- io $ initColor d (bgNormal cr)
+  Just borderC <- io $ initColor d (border cr)
   p <- io $ createPixmap d w wh ht
                          (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
+  io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
   printPrompt p
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
@@ -928,8 +1350,9 @@ drawWin = do
 printPrompt :: Drawable -> XP ()
 printPrompt drw = do
   st <- get
-  let (gc,(c,(d,fs))) = (gcon &&& config &&& dpy &&& fontS) st
-      (prt,(com,off)) = (show . currentXPMode &&& command &&& offset) st
+  let (pr,(cr,gc)) = (prompter &&& color &&& gcon) st
+      (c,(d,fs)) = (config &&& dpy &&& fontS) st
+      (prt,(com,off)) = (pr . show . currentXPMode &&& command &&& offset) st
       str = prt ++ com
       -- break the string in 3 parts: till the cursor, the cursor and the rest
       (f,p,ss) = if off >= length com
@@ -945,11 +1368,11 @@ printPrompt drw = do
 
   let draw = printStringXMF d drw fs gc
   -- print the first part
-  draw (fgColor c) (bgColor c) x y f
+  draw (fgNormal cr) (bgNormal cr) x y f
   -- reverse the colors and print the "cursor" ;-)
-  draw (bgColor c) (fgColor c) (x + fromIntegral fsl) y p
+  draw (bgNormal cr) (fgNormal cr) (x + fromIntegral fsl) y p
   -- reverse the colors and print the rest of the string
-  draw (fgColor c) (bgColor c) (x + fromIntegral (fsl + psl)) y ss
+  draw (fgNormal cr) (bgNormal cr) (x + fromIntegral (fsl + psl)) y ss
 
 -- get the current completion function depending on the active mode
 getCompletionFunction :: XPState -> ComplFunction
@@ -1034,21 +1457,22 @@ drawComplWin :: Window -> [String] -> XP ()
 drawComplWin w compl = do
   st <- get
   let c   = config st
+      cr  = color st
       d   = dpy st
       scr = defaultScreenOfDisplay d
       bw  = promptBorderWidth c
       gc  = gcon st
-  Just bgcolor <- io $ initColor d (bgColor c)
-  Just border  <- io $ initColor d (borderColor c)
+  Just bgcolor <- io $ initColor d (bgNormal cr)
+  Just borderC <- io $ initColor d (border cr)
 
   (_,_,wh,ht,xx,yy) <- getComplWinDim compl
 
   p <- io $ createPixmap d w wh ht
                          (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc border bgcolor (fi bw) wh ht
+  io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
   let ac = splitInSubListsAt (length yy) (take (length xx * length yy) compl)
 
-  printComplList d p gc (fgColor c) (bgColor c) xx yy ac
+  printComplList d p gc (fgNormal cr) (bgNormal cr) xx yy ac
   --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
   io $ copyArea d p w gc 0 0 wh ht 0 0
   io $ freePixmap d p
@@ -1090,12 +1514,12 @@ printComplList d drw gc fc bc xs ys sss =
                     let
                       (colIndex,rowIndex) = findComplIndex item sss
                     in -- assign some colors
-                     if ((complIndex st) == (colIndex,rowIndex)) then (fgHLight $ config st,bgHLight $ config st)
+                     if ((complIndex st) == (colIndex,rowIndex)) then (fgHLight $ color st,bgHLight $ color st)
                      else (fc,bc)
                   False ->
                     -- compare item with buffer's value
                     if completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
-                    then (fgHLight $ config st,bgHLight $ config st)
+                    then (fgHLight $ color st,bgHLight $ color st)
                     else (fc,bc)
             printStringXMF d drw (fontS st) gc f b x y item)
         ys ss) xs sss
@@ -1132,9 +1556,9 @@ writeHistory hist = do
 -- | Fills a 'Drawable' with a rectangle and a border
 fillDrawable :: Display -> Drawable -> GC -> Pixel -> Pixel
              -> Dimension -> Dimension -> Dimension -> IO ()
-fillDrawable d drw gc border bgcolor bw wh ht = do
+fillDrawable d drw gc borderC bgcolor bw wh ht = do
   -- we start with the border
-  setForeground d gc border
+  setForeground d gc borderC
   fillRectangle d drw gc 0 0 wh ht
   -- here foreground means the background of the text
   setForeground d gc bgcolor
