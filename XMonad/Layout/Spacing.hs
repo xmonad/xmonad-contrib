@@ -23,18 +23,21 @@ module XMonad.Layout.Spacing
     , Spacing (..)
     , ModifySpacing (..)
     , spacing
-    , setWindowSpacing, setScreenSpacing
+    , setSmartSpacing
+    , setScreenSpacing, setScreenSpacingEnabled
+    , setWindowSpacing, setWindowSpacingEnabled
     , toggleSmartSpacing
+    , toggleScreenSpacingEnabled
+    , toggleWindowSpacingEnabled
     , incWindowSpacing, incScreenSpacing
     , decWindowSpacing, decScreenSpacing
     , borderIncrementBy
     ) where
 
 import           XMonad
+import           XMonad.StackSet                as W
 import           XMonad.Layout.LayoutModifier
 import qualified XMonad.Util.Rectangle          as R
-
-import           Control.Arrow
 
 
 -- $usage
@@ -45,7 +48,7 @@ import           Control.Arrow
 --
 -- and modifying your layoutHook as follows (for example):
 --
--- > layoutHook = spacing True (Border 0 10 10 10) (Border 10 10 10 10) $
+-- > layoutHook = spacing True (Border 0 10 10 10) True (Border 10 10 10 10) True $
 -- >              layoutHook def
 
 -- | Represent the borders of a rectangle.
@@ -59,13 +62,20 @@ data Border = Border
 -- | A 'LayoutModifier' providing customizable screen and window borders.
 -- Borders are clamped to @[0,Infinity]@ before being applied.
 data Spacing a = Spacing
-    { smartBorder   :: Bool     -- ^ When @True@ borders are not applied if
-                                --   there fewer than two windows.
-    , screenBorder  :: Border   -- ^ The screen border.
-    , windowBorder  :: Border   -- ^ The window borders.
+    { smartBorder           :: Bool
+        -- ^ When @True@ borders are not applied if
+        --   there fewer than two windows.
+    , screenBorder          :: Border
+        -- ^ The screen border.
+    , screenBorderEnabled   :: Bool
+        -- ^ Is the screen border enabled?
+    , windowBorder          :: Border
+        -- ^ The window borders.
+    , windowBorderEnabled   :: Bool
+        -- ^ Is the window border enabled?
     } deriving (Show,Read)
 
-instance LayoutModifier Spacing a where
+instance Eq a => LayoutModifier Spacing a where
     -- This is a bit of a chicken-and-egg problem - the visible window list has
     -- yet to be generated. Several workarounds to incorporate the screen
     -- border:
@@ -97,32 +107,69 @@ instance LayoutModifier Spacing a where
     -- layout when appropriate (per the original approach), I can't. Since the
     -- screen border is always present whether displayed or not, child layouts
     -- can't depend on an accurate layout rectangle.
-    modifyLayout (Spacing b sb _) wsp lr = do
+    --
+    -- Note #2: If there are fewer than two stack windows displayed, the stack
+    -- window (if present) is scaled up while the non-stack windows are moved a
+    -- border-dependent amount based on their quadrant. So a non-stack window
+    -- in the top-left quadrant will be moved using only the border's top and
+    -- left components. Originally I was going to use an edge-attachment
+    -- algorithm, but this is much simpler and covers most cases. Edge
+    -- attachment would have scaled non-stack windows, but most non-stack
+    -- windows are created by XMonad and therefore cannot be scaled. I suggest
+    -- this layout be disabled for any incompatible child layouts.
+    modifyLayout (Spacing _b _sb False _wb _wbe) wsp lr =
+        runLayout wsp lr
+    modifyLayout (Spacing b sb _sbe _wb _wbe) wsp lr = do
         let sb1 = borderClampGTZero sb
-        (wl,ml) <- runLayout wsp (withBorder' sb1 2 lr)
-        let wl' = case wl of
-                [(w,r)] | b ->
-                    let sb2 = borderMap negate sb1
-                        r'  = withBorder' sb2 2 r
-                    in  [(w,r')]
-                _ ->
-                    wl
-        return (wl',ml)
+            lr' = withBorder' sb1 2 lr
+            sb2 = toBorder lr' lr
+        (wrs,ml) <- runLayout wsp lr'
+        let ff (w,wr) (i,ps) = if w `elem` (W.integrate' . W.stack $ wsp)
+                               then let wr' = withBorder' sb2 2 wr
+                                    in  (i+1,(w,wr'):ps)
+                               else let wr' = moveByQuadrant lr wr sb2
+                                    in  (i,(w,wr'):ps)
+            (c,wrs') = foldr ff (0::Integer,[]) wrs
+        return $ if c <= 1 && b
+            then (wrs',ml)
+            else (wrs,ml)
+      where
+        moveByQuadrant :: Rectangle -> Rectangle -> Border -> Rectangle
+        moveByQuadrant rr mr@(Rectangle {rect_x = x, rect_y = y}) (Border bt bb br bl) =
+            let (rcx,rcy) = R.center rr
+                (mcx,mcy) = R.center mr
+                dx = orderSelect (compare mcx rcx) (bl,0,negate br)
+                dy = orderSelect (compare mcy rcy) (bt,0,negate bb)
+            in  mr { rect_x = x + fromIntegral dx, rect_y = y + fromIntegral dy }
 
-    -- This is run after 'modifyLayout'.
-    pureModifier (Spacing True  _ _)  _ _ [x] =
-        ([x], Nothing)
-    pureModifier (Spacing _     _ wb) _ _ wrs =
+    -- This is run after 'modifyLayout' but receives the original stack, not
+    -- one possibly modified by the child layout. Does not remove borders from
+    -- windows not in the stack, i.e. decorations generated by
+    -- 'XMonad.Layout.Decorations'.
+    pureModifier (Spacing _b _sb _sbe _wb False) _lr _mst wrs =
+        (wrs, Nothing)
+    pureModifier (Spacing b _sb _sbe wb _wbe) _lr mst wrs =
         let wb' = borderClampGTZero wb
-        in  (map (second $ withBorder' wb' 2) wrs, Nothing)
+            ff p@(w,wr) (i,ps) = if w `elem` W.integrate' mst
+                                 then let wr' = withBorder' wb' 2 wr
+                                      in  (i+1,(w,wr'):ps)
+                                 else (i,p:ps)
+            (c,wrs') = foldr ff (0::Integer,[]) wrs
+        in  if c <= 1 && b
+            then (wrs, Nothing)
+            else (wrs', Nothing)
 
-    pureMess (Spacing b sb wb) m
-        | Just (ModifyWindowSpacing f) <- fromMessage m
-        = Just $ Spacing b sb (f wb)
-        | Just (ModifyScreenSpacing f) <- fromMessage m
-        = Just $ Spacing b (f sb) wb
-        | Just (ModifySmartSpacing f) <- fromMessage m
-        = Just $ Spacing (f b) sb wb
+    pureMess s@(Spacing b sb sbe wb wbe) m
+        | Just (ModifySmartBorder f) <- fromMessage m
+        = Just $ s { smartBorder = f b }
+        | Just (ModifyScreenBorder f) <- fromMessage m
+        = Just $ s { screenBorder = f sb }
+        | Just (ModifyScreenBorderEnabled f) <- fromMessage m
+        = Just $ s { screenBorderEnabled = f sbe }
+        | Just (ModifyWindowBorder f) <- fromMessage m
+        = Just $ s { windowBorder = f wb }
+        | Just (ModifyWindowBorderEnabled f) <- fromMessage m
+        = Just $ s { windowBorderEnabled = f wbe }
         | otherwise
         = Nothing
 
@@ -133,40 +180,64 @@ instance LayoutModifier Spacing a where
 -- | Generate the 'ModifiedLayout', exposing all initial state of 'Spacing'.
 spacing :: Bool     -- ^ The 'smartBorder'.
         -> Border   -- ^ The 'screenBorder'.
+        -> Bool     -- ^ The 'screenBorderEnabled'.
         -> Border   -- ^ The 'windowBorder'.
+        -> Bool     -- ^ The 'windowBorderEnabled'.
         -> l a -> ModifiedLayout Spacing l a
-spacing b sb wb = ModifiedLayout (Spacing b sb wb)
+spacing b sb sbe wb wbe = ModifiedLayout (Spacing b sb sbe wb wbe)
 
 -- | Messages to alter the state of 'Spacing' using the endomorphic function
 -- arguments.
 data ModifySpacing
-    = ModifyWindowSpacing (Border -> Border)
-    | ModifyScreenSpacing (Border -> Border)
-    | ModifySmartSpacing (Bool -> Bool)
+    = ModifySmartBorder (Bool -> Bool)
+    | ModifyScreenBorder (Border -> Border)
+    | ModifyScreenBorderEnabled (Bool -> Bool)
+    | ModifyWindowBorder (Border -> Border)
+    | ModifyWindowBorderEnabled (Bool -> Bool)
     deriving (Typeable)
 
 instance Message ModifySpacing
 
--- | Set 'windowBorder' to the given 'Border'.
-setWindowSpacing :: Border -> X ()
-setWindowSpacing = sendMessage . ModifyWindowSpacing . const
+-- | Set 'smartBorder' to the given 'Bool'.
+setSmartSpacing :: Bool -> X ()
+setSmartSpacing = sendMessage . ModifySmartBorder . const
 
 -- | Set 'screenBorder' to the given 'Border'.
 setScreenSpacing :: Border -> X ()
-setScreenSpacing = sendMessage . ModifyScreenSpacing . const
+setScreenSpacing = sendMessage . ModifyScreenBorder . const
+
+-- | Set 'screenBorderEnabled' to the given 'Bool'.
+setScreenSpacingEnabled :: Bool -> X ()
+setScreenSpacingEnabled = sendMessage . ModifyScreenBorderEnabled . const
+
+-- | Set 'windowBorder' to the given 'Border'.
+setWindowSpacing :: Border -> X ()
+setWindowSpacing = sendMessage . ModifyWindowBorder . const
+
+-- | Set 'windowBorderEnabled' to the given 'Bool'.
+setWindowSpacingEnabled :: Bool -> X ()
+setWindowSpacingEnabled = sendMessage . ModifyWindowBorderEnabled . const
 
 -- | Toggle 'smartBorder'.
 toggleSmartSpacing :: X ()
-toggleSmartSpacing = sendMessage $ ModifySmartSpacing not
+toggleSmartSpacing = sendMessage $ ModifySmartBorder not
+
+-- | Toggle 'screenBorderEnabled'.
+toggleScreenSpacingEnabled :: X ()
+toggleScreenSpacingEnabled = sendMessage $ ModifyScreenBorderEnabled not
+
+-- | Toggle 'windowBorderEnabled'.
+toggleWindowSpacingEnabled :: X ()
+toggleWindowSpacingEnabled = sendMessage $ ModifyWindowBorderEnabled not
 
 -- | Increment the borders of 'windowBorder' using 'borderIncrementBy', which
 -- preserves border ratios during clamping.
 incWindowSpacing :: Integer -> X ()
-incWindowSpacing = sendMessage . ModifyWindowSpacing . borderIncrementBy
+incWindowSpacing = sendMessage . ModifyWindowBorder . borderIncrementBy
 
 -- | Increment the borders of 'screenBorder' using 'borderIncrementBy'.
 incScreenSpacing :: Integer -> X ()
-incScreenSpacing = sendMessage . ModifyScreenSpacing . borderIncrementBy
+incScreenSpacing = sendMessage . ModifyScreenBorder . borderIncrementBy
 
 -- | Inverse of 'incWindowSpacing', equivalent to applying 'negate'.
 decWindowSpacing :: Integer -> X ()
@@ -179,6 +250,10 @@ decScreenSpacing = incScreenSpacing . negate
 -- | Map a function over a 'Border'. That is, over the four individual borders.
 borderMap :: (Integer -> Integer) -> Border -> Border
 borderMap f (Border t b r l) = Border (f t) (f b) (f r) (f l)
+
+-- | Clamp borders to within @[0,Infinity]@.
+borderClampGTZero :: Border -> Border
+borderClampGTZero = borderMap (max 0)
 
 -- | Change the border spacing by the provided amount, adjusted so that at
 -- least one border field is @>=0@.
@@ -194,9 +269,24 @@ borderIncrementBy i (Border t b r l) =
 withBorder' :: Border -> Integer -> Rectangle -> Rectangle
 withBorder' (Border t b r l) = R.withBorder t b r l
 
--- | Clamp borders to within @[0,Infinity]@.
-borderClampGTZero :: Border -> Border
-borderClampGTZero (Border t b r l) =
-    let bl = [t,b,r,l]
-        [t',b',r',l'] = map (max 0) bl
-    in  Border t' b' r' l'
+-- | Return the border necessary to derive the second rectangle from the first.
+-- Since 'R.withBorder' may scale the borders to stay within rectangle bounds,
+-- it is not an invertible operation, i.e. applying a negated border may not
+-- return the original rectangle. Use this instead.
+toBorder :: Rectangle -> Rectangle -> Border
+toBorder r1 r2 =
+    let R.PointRectangle r1_x1 r1_y1 r1_x2 r1_y2 = R.pixelsToCoordinates r1
+        R.PointRectangle r2_x1 r2_y1 r2_x2 r2_y2 = R.pixelsToCoordinates r2
+        l = r2_x1 - r1_x1
+        r = r1_x2 - r2_x2
+        t = r2_y1 - r1_y1
+        b = r1_y2 - r2_y2
+    in Border t b r l
+
+-- | Given an ordering and a three-tuple, return the first tuple entry if 'LT',
+-- second if 'EQ' and third if 'GT'.
+orderSelect :: Ordering -> (a,a,a) -> a
+orderSelect o (lt,eq,gt) = case o of
+    LT -> lt
+    EQ -> eq
+    GT -> gt
