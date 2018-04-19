@@ -179,12 +179,12 @@ withBorder t b r l i (Rectangle x y w h) =
         bh = w' - iw
         bv = h' - ih
         -- scaled border ratios
-        rh = if l + r == 0
+        rh = if l + r <= 0
              then 1
-             else min 1 $ abs $ bh % (l + r)
-        rv = if t + b == 0
+             else min 1 $ bh % (l + r)
+        rv = if t + b <= 0
              then 1
-             else min 1 $ abs $ bv % (t + b)
+             else min 1 $ bv % (t + b)
         -- scaled border pixels
         t' = truncate $ rv * fromIntegral t
         b' = truncate $ rv * fromIntegral b
