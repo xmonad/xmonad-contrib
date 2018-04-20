@@ -89,6 +89,17 @@
     - Support xmobar's \<action> and \<raw> tags; see `xmobarAction` and
       `xmobarRaw`.
 
+  * `XMonad.Layout.NoBorders`
+
+    The layout now maintains a list of windows that never have borders, and a
+    list of windows that always have borders. Use `BorderMessage` to manage
+    these lists and the accompanying event hook (`borderEventHook`) to remove
+    destroyed windows from them. Also provides the `hasBorder` manage hook.
+
+    Two new conditions have been added to `Ambiguity`: `OnlyLayoutFloat` and
+    `OnlyLayoutFloatBelow`; `OnlyFloat` was renamed to `OnlyScreenFloat`.  See
+    the documentation for more information.
+
 ### New Modules
 
   * `XMonad.Hooks.RefocusLast`
