@@ -4,7 +4,20 @@
 
 ### Breaking Changes
 
-  * Adding handling of modifySpacing message in smartSpacing and smartSpacingWithEdge layout modifier
+  * `XMonad.Layout.Spacing`
+
+    Rewrite `XMonad.Layout.Spacing`. Borders are no longer uniform but composed
+    of four sides each with its own border width. The screen and window borders
+    are now separate and can be independently toggled on/off. The screen border
+    examines the window/rectangle list resulting from 'runLayout' rather than
+    the stack, which makes it compatible with layouts such as the builtin
+    `Full`. The child layout will always be called with the screen border. If
+    only a single window is displayed (and `smartBorder` enabled), it will be
+    expanded into the original layout rectangle. Windows that are displayed but
+    not part of the stack, such as those created by 'XMonad.Layout.Decoration',
+    will be shifted out of the way, but not scaled (not possible for windows
+    created by XMonad). This isn't perfect, so you might want to disable
+    `Spacing` on such layouts.
 
   * `XMonad.Actions.GridSelect`
 
