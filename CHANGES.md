@@ -64,6 +64,11 @@
     - Handle workspace renames that might be occuring in the custom function
       that is provided to ewmhDesktopsLogHookCustom.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Support xmobar's \<action> and \<raw> tags; see `xmobarAction` and
+      `xmobarRaw`.
+
 ### New Modules
 
   * `XMonad.Hooks.Focus`
