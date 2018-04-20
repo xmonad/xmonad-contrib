@@ -108,6 +108,10 @@
     A new layout based on Dishes, however it accepts additional configuration
     to allow multiple windows within a single stack.
 
+  * `XMonad.Util.Rectangle`
+
+    A new module for handling pixel rectangles.
+
 ### Bug Fixes and Minor Changes
 
   * XMonad.Hooks.FadeWindows
