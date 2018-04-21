@@ -22,7 +22,7 @@ module XMonad.Layout.Spacing
       Border (..)
     , Spacing (..)
     , ModifySpacing (..)
-    , spacing
+    , spacingRaw
     , setSmartSpacing
     , setScreenSpacing, setScreenSpacingEnabled
     , setWindowSpacing, setWindowSpacingEnabled
@@ -32,6 +32,11 @@ module XMonad.Layout.Spacing
     , incWindowSpacing, incScreenSpacing
     , decWindowSpacing, decScreenSpacing
     , borderIncrementBy
+      -- * Backwards Compatibility
+      -- $backwardsCompatibility
+    , spacing, spacingWithEdge
+    , smartSpacing, smartSpacingWithEdge
+    , setSpacing, incSpacing
     ) where
 
 import           XMonad
@@ -48,7 +53,7 @@ import qualified XMonad.Util.Rectangle          as R
 --
 -- and modifying your layoutHook as follows (for example):
 --
--- > layoutHook = spacing True (Border 0 10 10 10) True (Border 10 10 10 10) True $
+-- > layoutHook = spacingRaw True (Border 0 10 10 10) True (Border 10 10 10 10) True $
 -- >              layoutHook def
 
 -- | Represent the borders of a rectangle.
@@ -178,13 +183,13 @@ instance Eq a => LayoutModifier Spacing a where
 
 
 -- | Generate the 'ModifiedLayout', exposing all initial state of 'Spacing'.
-spacing :: Bool     -- ^ The 'smartBorder'.
-        -> Border   -- ^ The 'screenBorder'.
-        -> Bool     -- ^ The 'screenBorderEnabled'.
-        -> Border   -- ^ The 'windowBorder'.
-        -> Bool     -- ^ The 'windowBorderEnabled'.
-        -> l a -> ModifiedLayout Spacing l a
-spacing b sb sbe wb wbe = ModifiedLayout (Spacing b sb sbe wb wbe)
+spacingRaw :: Bool     -- ^ The 'smartBorder'.
+           -> Border   -- ^ The 'screenBorder'.
+           -> Bool     -- ^ The 'screenBorderEnabled'.
+           -> Border   -- ^ The 'windowBorder'.
+           -> Bool     -- ^ The 'windowBorderEnabled'.
+           -> l a -> ModifiedLayout Spacing l a
+spacingRaw b sb sbe wb wbe = ModifiedLayout (Spacing b sb sbe wb wbe)
 
 -- | Messages to alter the state of 'Spacing' using the endomorphic function
 -- arguments.
@@ -290,3 +295,47 @@ orderSelect o (lt,eq,gt) = case o of
     LT -> lt
     EQ -> eq
     GT -> gt
+
+-----------------------------------------------------------------------------
+-- Backwards Compatibility:
+-----------------------------------------------------------------------------
+{-# DEPRECATED spacing, spacingWithEdge, smartSpacing, smartSpacingWithEdge "Use spacingRaw instead." #-}
+{-# DEPRECATED setSpacing "Use setWindowSpacing/setScreenSpacing instead." #-}
+{-# DEPRECATED incSpacing "Use incWindowSpacing/incScreenSpacing instead." #-}
+
+-- $backwardsCompatibility
+-- The following functions exist solely for compatibility with pre-0.14
+-- releases.
+
+-- | Surround all windows by a certain number of pixels of blank space. See
+-- 'spacingRaw'.
+spacing :: Integer -> l a -> ModifiedLayout Spacing l a
+spacing i = spacingRaw False (Border 0 0 0 0) False (Border i i i i) True
+
+-- | Surround all windows by a certain number of pixels of blank space, and
+-- additionally adds the same amount of spacing around the edge of the screen.
+-- See 'spacingRaw'.
+spacingWithEdge :: Integer -> l a -> ModifiedLayout Spacing l a
+spacingWithEdge i = spacingRaw False (Border i i i i) True (Border i i i i) True
+
+-- | Surrounds all windows with blank space, except when the window is the only
+-- visible window on the current workspace. See 'spacingRaw'.
+smartSpacing :: Integer -> l a -> ModifiedLayout Spacing l a
+smartSpacing i = spacingRaw True (Border 0 0 0 0) False (Border i i i i) True
+
+-- | Surrounds all windows with blank space, and adds the same amount of
+-- spacing around the edge of the screen, except when the window is the only
+-- visible window on the current workspace. See 'spacingRaw'.
+smartSpacingWithEdge :: Integer -> l a -> ModifiedLayout Spacing l a
+smartSpacingWithEdge i = spacingRaw True (Border i i i i) True (Border i i i i) True
+
+-- | Set all borders to a uniform size; see 'setWindowSpacing' and
+-- 'setScreenSpacing'.
+setSpacing :: Integer -> X ()
+setSpacing i = setWindowSpacing b >> setScreenSpacing b
+    where b = Border i i i i
+
+-- | Increment both screen and window borders; see 'incWindowSpacing' and
+-- 'incScreenSpacing'.
+incSpacing :: Integer -> X ()
+incSpacing i = incWindowSpacing i >> incScreenSpacing i
