@@ -252,6 +252,10 @@
 
   * `XMonad.Hooks.DynamicLog`
 
+
+    - Added `ppVisibleNoWindows` to differentiate between empty and non-empty
+      visible workspaces for pretty printing.
+
     - Added a new function `dzenWithFlags` which allows specifying the arguments
     passed to `dzen2` invocation. The behaviour of current `dzen` function is
     unchanged.

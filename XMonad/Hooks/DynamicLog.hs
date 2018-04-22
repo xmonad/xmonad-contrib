@@ -320,7 +320,8 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
          fmt w = printer pp (S.tag w)
           where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
                         | S.tag w == this                                               = ppCurrent
-                        | S.tag w `elem` visibles                                       = ppVisible
+                        | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
+                        | S.tag w `elem` visibles                                       = ppVisibleNoWindows
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
@@ -460,6 +461,8 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- contain windows
              , ppHiddenNoWindows :: WorkspaceId -> String
                -- ^ how to print tags of empty hidden workspaces
+             , ppVisibleNoWindows :: WorkspaceId -> String
+               -- ^ how to print tags of empty visible workspaces
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
              , ppSep :: String
@@ -512,6 +515,7 @@ instance Default PP where
                , ppVisible         = wrap "<" ">"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
+               , ppVisibleNoWindows= id
                , ppUrgent          = id
                , ppSep             = " : "
                , ppWsSep           = " "
