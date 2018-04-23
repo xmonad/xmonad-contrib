@@ -109,7 +109,7 @@ instance LayoutModifier FullscreenFull Window where
   pureModifier (FullscreenFull frect fulls) rect _ list =
     (map (flip (,) rect') visfulls ++ rest, Nothing)
     where visfulls = intersect fulls $ map fst list
-          rest = filter (flip notElem visfulls . fst) list
+          rest = filter (not . (flip elem visfulls `orP` covers rect')) list
           rect' = scaleRationalRect rect frect
 
 instance LayoutModifier FullscreenFocus Window where
@@ -122,7 +122,7 @@ instance LayoutModifier FullscreenFocus Window where
   pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list
      | f `elem` fulls = ((f, rect') : rest, Nothing)
      | otherwise = (list, Nothing)
-     where rest = filter ((/= f) . fst) list
+     where rest = filter (not . ((== f) `orP` covers rect')) list
            rect' = scaleRationalRect rect frect
   pureModifier _ _ Nothing list = (list, Nothing)
 
@@ -240,3 +240,15 @@ fullscreenManageHook' isFull = isFull --> do
     sendMessageWithNoRefresh FullscreenChanged cw
   idHook
 
+-- | True iff one rectangle completely contains another.
+covers :: Rectangle -> Rectangle -> Bool
+(Rectangle x1 y1 w1 h1) `covers` (Rectangle x2 y2 w2 h2) =
+  let fi = fromIntegral
+      in x1 <= x2 &&
+         y1 <= y2 &&
+         x1 + fi w1 >= x2 + fi w2 &&
+         y1 + fi h1 >= y2 + fi h2
+
+-- | Applies a pair of predicates to a pair of operands, combining them with ||.
+orP :: (a -> Bool) -> (b -> Bool) -> (a, b) -> Bool
+orP f g (x, y) = f x || g y

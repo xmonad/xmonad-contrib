@@ -135,6 +135,11 @@
     Added `sideNavigation` and a parameterised variant, providing a navigation
     strategy with fewer quirks for tiled layouts using X.L.Spacing.
 
+  * `XMonad.Layout.Fullscreen`
+    
+    The fullscreen layouts will now not render any window that is totally
+    obscured by fullscreen windows.
+    
   * `XMonad.Layout.Gaps`
 
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
