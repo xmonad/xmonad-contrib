@@ -263,6 +263,11 @@
     `lineCount` to enable a second (slave) window that displays lines beyond
     the initial (title) one.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added optional `ppVisibleNoWindows` to differentiate between empty
+      and non-empty visible workspaces in pretty printing.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
