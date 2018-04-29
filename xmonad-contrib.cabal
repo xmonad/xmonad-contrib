@@ -129,6 +129,7 @@ library
                         XMonad.Actions.SpawnOn
                         XMonad.Actions.Submap
                         XMonad.Actions.SwapWorkspaces
+                        XMonad.Actions.SwapPromote
                         XMonad.Actions.TagWindows
                         XMonad.Actions.TopicSpace
                         XMonad.Actions.TreeSelect
