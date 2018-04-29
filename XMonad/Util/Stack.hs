@@ -38,6 +38,8 @@ module XMonad.Util.Stack ( -- * Usage
                          , focusUpZ
                          , focusDownZ
                          , focusMasterZ
+                         , findS
+                         , findZ
                            -- ** Extraction
                          , getFocusZ
                          , getIZ
@@ -73,10 +75,13 @@ module XMonad.Util.Stack ( -- * Usage
                          , mapE_
                          , mapEM
                          , mapEM_
+                         , reverseS
+                         , reverseZ
                          ) where
 
 import qualified XMonad.StackSet as W
-import Control.Monad (liftM)
+import Control.Applicative ((<|>))
+import Control.Monad (guard,liftM)
 import Data.List (sortBy)
 
 
@@ -174,6 +179,22 @@ focusMasterZ Nothing = Nothing
 focusMasterZ (Just (W.Stack f up down)) | not $ null up
     = Just $ W.Stack (last up) [] (reverse (init up) ++ [f] ++ down)
 focusMasterZ (Just s) = Just s
+
+-- | Refocus a @Stack a@ on an element satisfying the predicate, or fail to
+--   @Nothing@.
+findS :: Eq a => (a -> Bool) -> W.Stack a -> Maybe (W.Stack a)
+findS p st = st <$ (guard . p . W.focus) st <|> findUp st <|> findDown st
+  where findDown = reverseZ . findUp . reverseS
+        findUp s | u:ups <- W.up s = (if p u then Just else findUp)
+                                   $ W.Stack u ups (W.focus s : W.down s)
+                 | otherwise       = Nothing
+
+-- | Refocus a @Zipper a@ on an element satisfying the predicate, or fail to
+--   @Nothing@. Never returns @Just Nothing@, so the second layer of @Maybe@ is
+--   actually redundant.
+findZ :: Eq a => (a -> Bool) -> Zipper a -> Maybe (Zipper a)
+findZ _ Nothing   = Nothing
+findZ p (Just st) = Just <$> findS p st
 
 -- ** Extraction
 
@@ -338,3 +359,11 @@ fromE (Left a) = a
 -- | Tag the element with 'Right' if the property is true, 'Left' otherwise
 tagBy :: (a -> Bool) -> a -> Either a a
 tagBy p a = if p a then Right a else Left a
+
+-- | Reverse a @Stack a@; O(1).
+reverseS :: W.Stack a -> W.Stack a
+reverseS (W.Stack foc ups downs) = W.Stack foc downs ups
+
+-- | Reverse a @Zipper a@; O(1).
+reverseZ :: Zipper a -> Zipper a
+reverseZ = (reverseS <$>)
