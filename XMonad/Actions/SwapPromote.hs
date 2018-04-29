@@ -106,6 +106,7 @@ import           Control.Monad
 -- windows will be ignored.
 --
 -- All together:
+--
 -- > , ((mod1Mask, xK_Return), whenX (swapHybrid True) dwmpromote)
 
 
@@ -315,18 +316,20 @@ cycleN n ls =
     let l = length ls
     in  take l $ drop (n `mod` l) $ cycle ls
 
--- Wrap 'split'' with an initial index of @0@, discarding the list's length.
+-- | Wrap 'split'' with an initial index of @0@, discarding the list's length.
 split :: (Num a, Enum a) => (b -> Bool) -> [b] -> ([(a,b)],[b])
 split p l =
     let (_,ys,ns) = split' p 0 l
     in  (ys,ns)
 
--- Given a predicate, an initial index and a list, return a tuple containing:
+-- | Given a predicate, an initial index and a list, return a tuple containing:
+--
 --  * List length.
 --  * Indexed list of elements which satisfy the predicate. An indexed element
 --    is a tuple containing the element index (offset by the initial index) and
 --    the element.
 --  * List of elements which do not satisfy the predicate.
+--
 -- The initial index and length of the list simplify chaining calls to this
 -- function, such as for zippers of lists.
 split' :: (Num a, Enum a) => (b -> Bool) -> a -> [b] -> (a,[(a,b)],[b])
@@ -337,17 +340,18 @@ split' p i l =
         (c',ys',ns') = foldr accumulate (0,[],[]) $ zip [i..] l
     in  (c',ys',snd . unzip $ ns')
 
--- Wrap 'merge'' with an initial virtual index of @0@. Return only the
+-- | Wrap 'merge'' with an initial virtual index of @0@. Return only the
 -- unindexed list with elements from the leftover indexed list appended.
 merge :: (Ord a, Num a) => [(a,b)] -> [b] -> [b]
 merge il ul =
     let (_,il',ul') = merge' 0 il ul
     in  ul' ++ map snd il'
 
--- Inverse of 'split'. Merge an indexed list with an unindexed list (see
+-- | Inverse of 'split'. Merge an indexed list with an unindexed list (see
 -- 'split''). Given a virtual index, an indexed list and an unindexed list,
 -- return a tuple containing:
---  * Virtual index *after* the unindexed list
+--
+--  * Virtual index /after/ the unindexed list
 --  * Remainder of the indexed list
 --  * Merged unindexed list
 --
@@ -391,10 +395,10 @@ stackSplit (W.Stack x l r) s =
 
 -- | Inverse of 'stackSplit'. Given a list of elements and their original
 -- indices, re-insert the elements into these same positions within the stack.
--- Skip the currently focused member.  Works best if the stack's length hasn't
--- changed. Some elements may be excluded if shorter.
+-- Skip the currently focused member. Works best if the stack's length hasn't
+-- changed, though if shorter any leftover elements will be tacked on.
 stackMerge :: (Ord a, Num a) => W.Stack b -> [(a,b)] -> W.Stack b
 stackMerge (W.Stack x l r) il =
     let (i,il1,l') = merge' 0 il (reverse l)
-        (_,_  ,r') = merge' (i+1) il1 r
-    in  W.Stack x (reverse l') r'
+        (_,il2,r') = merge' (i+1) il1 r
+    in  W.Stack x (reverse l') (r' ++ map snd il2)
