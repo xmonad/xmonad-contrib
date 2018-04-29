@@ -76,6 +76,15 @@
 
 ### New Modules
 
+  * `XMonad.Layout.StateFull`
+
+    Provides StateFull: a stateful form of Full that does not misbehave when
+    floats are focused, and the FocusTracking layout transformer by means of
+    which StateFull is implemented. FocusTracking simply holds onto the last
+    true focus it was given and continues to use it as the focus for the
+    transformed layout until it sees another. It can be used to improve the
+    behaviour of a child layout that has not been given the focused window.
+
   * `XMonad.Hooks.Focus`
 
     A new module extending ManageHook EDSL to work on focused windows and
