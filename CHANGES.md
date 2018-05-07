@@ -113,6 +113,15 @@
     A new layout based on Dishes, however it accepts additional configuration
     to allow multiple windows within a single stack.
 
+  * `XMonad.Hooks.BinaryColumn`
+
+    A new module which provides a simple grid layout, halving the window
+    sizes of each window after master.
+
+    This is similar to Column, but splits the window in a way
+    that maintains window sizes upon adding & removing windows as well as the
+    option to specify a minimum window size.
+
 ### Bug Fixes and Minor Changes
 
   * XMonad.Hooks.FadeWindows
