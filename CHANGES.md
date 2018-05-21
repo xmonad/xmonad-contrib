@@ -282,6 +282,11 @@
     - Added optional `ppVisibleNoWindows` to differentiate between empty
       and non-empty visible workspaces in pretty printing.
 
+  * `XMonad.Actions.DynamicWorkspaceOrder`
+
+    - Added `updateName` and `removeName` to better control ordering when
+      workspace names are changed or workspaces are removed.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
