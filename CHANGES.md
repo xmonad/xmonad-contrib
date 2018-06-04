@@ -142,6 +142,10 @@
     A new layout based on Dishes, however it accepts additional configuration
     to allow multiple windows within a single stack.
 
+  * `XMonad.Util.Rectangle`
+
+    A new module for handling pixel rectangles.
+
   * `XMonad.Layout.BinaryColumn`
 
     A new module which provides a simple grid layout, halving the window
