@@ -4,6 +4,26 @@
 
 ### Breaking Changes
 
+  * `XMonad.Layout.Spacing`
+
+    Rewrite `XMonad.Layout.Spacing`. Borders are no longer uniform but composed
+    of four sides each with its own border width. The screen and window borders
+    are now separate and can be independently toggled on/off. The screen border
+    examines the window/rectangle list resulting from 'runLayout' rather than
+    the stack, which makes it compatible with layouts such as the builtin
+    `Full`. The child layout will always be called with the screen border. If
+    only a single window is displayed (and `smartBorder` enabled), it will be
+    expanded into the original layout rectangle. Windows that are displayed but
+    not part of the stack, such as those created by 'XMonad.Layout.Decoration',
+    will be shifted out of the way, but not scaled (not possible for windows
+    created by XMonad). This isn't perfect, so you might want to disable
+    `Spacing` on such layouts.
+
+  * `XMonad.Util.SpawnOnce`
+
+    - Added `spawnOnOnce`, `spawnNOnOnce` and `spawnAndDoOnce`. These are useful in startup hooks
+      to shift spawned windows to a specific workspace.
+
   * Adding handling of modifySpacing message in smartSpacing and smartSpacingWithEdge layout modifier
 
   * `XMonad.Actions.GridSelect`
@@ -64,7 +84,21 @@
     - Handle workspace renames that might be occuring in the custom function
       that is provided to ewmhDesktopsLogHookCustom.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Support xmobar's \<action> and \<raw> tags; see `xmobarAction` and
+      `xmobarRaw`.
+
 ### New Modules
+
+  * `XMonad.Layout.StateFull`
+
+    Provides StateFull: a stateful form of Full that does not misbehave when
+    floats are focused, and the FocusTracking layout transformer by means of
+    which StateFull is implemented. FocusTracking simply holds onto the last
+    true focus it was given and continues to use it as the focus for the
+    transformed layout until it sees another. It can be used to improve the
+    behaviour of a child layout that has not been given the focused window.
 
   * `XMonad.Hooks.Focus`
 
@@ -112,6 +146,15 @@
 
     A new module for handling pixel rectangles.
 
+  * `XMonad.Layout.BinaryColumn`
+
+    A new module which provides a simple grid layout, halving the window
+    sizes of each window after master.
+
+    This is similar to Column, but splits the window in a way
+    that maintains window sizes upon adding & removing windows as well as the
+    option to specify a minimum window size.
+
 ### Bug Fixes and Minor Changes
 
   * XMonad.Hooks.FadeWindows
@@ -134,6 +177,11 @@
     Added `sideNavigation` and a parameterised variant, providing a navigation
     strategy with fewer quirks for tiled layouts using X.L.Spacing.
 
+  * `XMonad.Layout.Fullscreen`
+    
+    The fullscreen layouts will now not render any window that is totally
+    obscured by fullscreen windows.
+    
   * `XMonad.Layout.Gaps`
 
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
@@ -261,6 +309,11 @@
     background color, `align` and `slaveAlign` to set text alignment, and
     `lineCount` to enable a second (slave) window that displays lines beyond
     the initial (title) one.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added optional `ppVisibleNoWindows` to differentiate between empty
+      and non-empty visible workspaces in pretty printing.
 
 ## 0.13 (February 10, 2017)
 
