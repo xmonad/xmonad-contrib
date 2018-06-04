@@ -273,6 +273,7 @@ library
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
                         XMonad.Layout.StackTile
+                        XMonad.Layout.StateFull
                         XMonad.Layout.Stoppable
                         XMonad.Layout.SubLayouts
                         XMonad.Layout.TabBarDecoration
