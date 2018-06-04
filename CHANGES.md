@@ -142,7 +142,7 @@
     A new layout based on Dishes, however it accepts additional configuration
     to allow multiple windows within a single stack.
 
-  * `XMonad.Hooks.BinaryColumn`
+  * `XMonad.Layout.BinaryColumn`
 
     A new module which provides a simple grid layout, halving the window
     sizes of each window after master.
