@@ -19,6 +19,13 @@
     created by XMonad). This isn't perfect, so you might want to disable
     `Spacing` on such layouts.
 
+  * `XMonad.Util.SpawnOnce`
+
+    - Added `spawnOnOnce`, `spawnNOnOnce` and `spawnAndDoOnce`. These are useful in startup hooks
+      to shift spawned windows to a specific workspace.
+
+  * Adding handling of modifySpacing message in smartSpacing and smartSpacingWithEdge layout modifier
+
   * `XMonad.Actions.GridSelect`
 
     - Added field `gs_bordercolor` to `GSConfig` to specify border color.
@@ -77,6 +84,11 @@
     - Handle workspace renames that might be occuring in the custom function
       that is provided to ewmhDesktopsLogHookCustom.
 
+  * `XMonad.Hooks.DynamicLog`
+
+    - Support xmobar's \<action> and \<raw> tags; see `xmobarAction` and
+      `xmobarRaw`.
+
 ### New Modules
 
   * `XMonad.Hooks.Focus`
@@ -120,6 +132,15 @@
 
     A new layout based on Dishes, however it accepts additional configuration
     to allow multiple windows within a single stack.
+
+  * `XMonad.Hooks.BinaryColumn`
+
+    A new module which provides a simple grid layout, halving the window
+    sizes of each window after master.
+
+    This is similar to Column, but splits the window in a way
+    that maintains window sizes upon adding & removing windows as well as the
+    option to specify a minimum window size.
 
 ### Bug Fixes and Minor Changes
 
@@ -270,6 +291,11 @@
     background color, `align` and `slaveAlign` to set text alignment, and
     `lineCount` to enable a second (slave) window that displays lines beyond
     the initial (title) one.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added optional `ppVisibleNoWindows` to differentiate between empty
+      and non-empty visible workspaces in pretty printing.
 
 ## 0.13 (February 10, 2017)
 

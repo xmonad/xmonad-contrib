@@ -18,6 +18,10 @@ module XMonad.Prompt.FuzzyMatch ( -- * Usage
                                 , fuzzySort
                                 ) where
 
+import Data.Char
+import Data.Function
+import Data.List
+
 -- $usage
 -- 
 -- This module offers two aspects of fuzzy matching of completions offered by
@@ -60,10 +64,6 @@ module XMonad.Prompt.FuzzyMatch ( -- * Usage
 --
 -- For detailed instructions on editing the key bindings, see
 -- "Xmonad.Doc.Extending#Editing_key_bindings".
-
-import Data.Char
-import Data.Function
-import Data.List
 
 -- | Returns True if the first argument is a subsequence of the second argument,
 -- that is, it can be obtained from the second sequence by deleting elements.
