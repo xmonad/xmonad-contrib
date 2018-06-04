@@ -327,6 +327,7 @@ library
                         XMonad.Util.NoTaskbar
                         XMonad.Util.Paste
                         XMonad.Util.PositionStore
+                        XMonad.Util.Rectangle
                         XMonad.Util.RemoteWindows
                         XMonad.Util.Replace
                         XMonad.Util.Run
