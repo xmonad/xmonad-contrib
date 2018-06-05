@@ -8,23 +8,33 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This module provides 4 <XMonad.Prompt> to ease password manipulation (generate, read, remove):
+-- This module provides 5 <XMonad.Prompt>s to ease password
+-- manipulation (generate, read, edit, remove):
 --
--- - two to lookup passwords in the password-store; one of which copies to the
---   clipboard, and the other uses @xdotool@ to type the password directly.
+-- - two to lookup passwords in the password-store; one of which
+--   copies to the clipboard, and the other uses @xdotool@ to type the
+--   password directly.
 --
--- - one to generate a password for a given password label that the user inputs.
+-- - one to generate a password for a given password label that the
+--   user inputs.
 --
--- - one to delete a stored password for a given password label that the user inputs.
+-- - one to edit a password for a given password label that the user
+--   inputs.
 --
--- All those prompts benefit from the completion system provided by the module <XMonad.Prompt>.
+-- - one to delete a stored password for a given password label that
+--   the user inputs.
 --
--- The password store is setup through an environment variable PASSWORD_STORE_DIR,
--- or @$HOME\/.password-store@ if it is unset.
+-- All those prompts benefit from the completion system provided by
+-- the module <XMonad.Prompt>.
+--
+-- The password store is setup through an environment variable
+-- PASSWORD_STORE_DIR, or @$HOME\/.password-store@ if it is unset.
+-- The editor is determined from the environment variable EDITOR.
 --
 -- Source:
 --
--- - The password store implementation is <http://git.zx2c4.com/password-store the password-store cli>.
+-- - The <https://www.passwordstore.org/ password store>
+--   implementation is <http://git.zx2c4.com/password-store here>.
 --
 -- - Inspired by <http://babushk.in/posts/combining-xmonad-and-pass.html>
 --
@@ -36,6 +46,7 @@ module XMonad.Prompt.Pass (
                               passPrompt
                             , passGeneratePrompt
                             , passRemovePrompt
+                            , passEditPrompt
                             , passTypePrompt
                             ) where
 
@@ -58,10 +69,12 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- > import XMonad.Prompt.Pass
 --
--- Then add a keybinding for 'passPrompt', 'passGeneratePrompt' or 'passRemovePrompt':
+-- Then add a keybinding for 'passPrompt', 'passGeneratePrompt',
+-- 'passRemovePrompt', 'passEditPrompt' or 'passTypePrompt':
 --
 -- >   , ((modMask , xK_p)                              , passPrompt xpconfig)
 -- >   , ((modMask .|. controlMask, xK_p)               , passGeneratePrompt xpconfig)
+-- >   , ((modMask .|. shiftMask, xK_p)                 , passEditPrompt xpconfig)
 -- >   , ((modMask .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt xpconfig)
 --
 -- For detailed instructions on:
@@ -131,6 +144,12 @@ passRemovePrompt = mkPassPrompt "Remove password" removePassword
 passTypePrompt :: XPConfig -> X ()
 passTypePrompt = mkPassPrompt "Type password" typePassword
 
+-- | A prompt to edit a given entry.
+-- This doesn't touch the clipboard.
+--
+passEditPrompt :: XPConfig -> X ()
+passEditPrompt = mkPassPrompt "Edit password" editPassword
+
 -- | Select a password.
 --
 selectPassword :: String -> X ()
@@ -146,6 +165,11 @@ generatePassword passLabel = spawn $ "pass generate --force \"" ++ escapeQuote p
 --
 removePassword :: String -> X ()
 removePassword passLabel = spawn $ "pass rm --force \"" ++ escapeQuote passLabel ++ "\""
+
+-- | Edit a password stored for a given entry.
+--
+editPassword :: String -> X ()
+editPassword passLabel = spawn $ "pass edit \"" ++ escapeQuote passLabel ++ "\""
 
 -- | Type a password stored for a given entry using xdotool.
 --

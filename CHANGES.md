@@ -279,6 +279,8 @@
 
     - New function `passTypePrompt` which uses `xdotool` to type in a password
       from the store, bypassing the clipboard.
+    - New function `passEditPrompt` for editing a password from the
+      store.
     - Now handles password labels with spaces and special characters inside
       them.
 
