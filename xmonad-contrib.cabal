@@ -180,6 +180,7 @@ library
                         XMonad.Hooks.Minimize
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
+                        XMonad.Hooks.RefocusLast
                         XMonad.Hooks.RestoreMinimized
                         XMonad.Hooks.ScreenCorners
                         XMonad.Hooks.Script
