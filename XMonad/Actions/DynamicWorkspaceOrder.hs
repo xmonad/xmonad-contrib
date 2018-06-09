@@ -23,6 +23,8 @@ module XMonad.Actions.DynamicWorkspaceOrder
       getWsCompareByOrder
     , getSortByOrder
     , swapWith
+    , updateName
+    , removeName
 
     , moveTo
     , moveToGreedy
@@ -151,6 +153,21 @@ swapOrder w1 w2 = do
   let [i1,i2] = map (fromJust . flip M.lookup m) [w1,w2]
   XS.modify (withWSO (M.insert w1 i2 . M.insert w2 i1))
   windows id  -- force a status bar update
+
+-- | Update the name of a workspace in the stored order.
+updateName :: WorkspaceId -> WorkspaceId -> X ()
+updateName oldId newId = XS.modify . withWSO $ changeKey oldId newId
+
+-- | Remove a workspace from the stored order.
+removeName :: WorkspaceId -> X ()
+removeName = XS.modify . withWSO . M.delete
+
+-- | Update a key in a Map.
+changeKey :: Ord k => k -> k -> M.Map k a -> M.Map k a
+changeKey oldKey newKey oldMap =
+  case M.updateLookupWithKey (\_ _ -> Nothing) oldKey oldMap of
+    (Nothing, _) -> oldMap
+    (Just val, newMap) -> M.insert newKey val newMap
 
 -- | View the next workspace of the given type in the given direction,
 -- where \"next\" is determined using the dynamic workspace order.
