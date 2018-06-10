@@ -182,7 +182,9 @@ instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder
 -- should not have borders drawn through 'ConfigurableBorder'
 --
 -- To add your own (though perhaps those options would better belong as an
--- aditional constructor to 'Ambiguity'), you can add the function as such:
+-- additional constructor to 'Ambiguity'), you can add the following function.
+-- Note that @lr@, the parameter representing the 'Rectangle' of the parent
+-- layout, was added to 'hiddens' in 0.14. Update your instance accordingly.
 --
 -- > data MyAmbiguity = MyAmbiguity deriving (Read, Show)
 --

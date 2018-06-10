@@ -100,6 +100,13 @@
     `OnlyLayoutFloatBelow`; `OnlyFloat` was renamed to `OnlyScreenFloat`.  See
     the documentation for more information.
 
+    The type signature of `hiddens` was changed to accept a new `Rectangle`
+    parameter representing the bounds of the parent layout, placed after the
+    `WindowSet` parameter. Anyone defining a new instance of `SetsAmbiguous`
+    will need to update their configuration. For example, replace "`hiddens amb
+    wset mst wrs =`" either with "`hiddens amb wset _ mst wrs =`" or to make
+    use of the new parameter with "`hiddens amb wset lr mst wrs =`".
+
 ### New Modules
 
   * `XMonad.Hooks.RefocusLast`
