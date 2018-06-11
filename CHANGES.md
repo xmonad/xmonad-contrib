@@ -10,7 +10,8 @@
       `vimLikeXPKeymap'`. A reworked event loop supports new vim-like prompt
       actions.
     - Prompt supports dynamic colors. Colors are now specified by the `XPColor`
-      type, so update your `XPConfig` to match.
+      type in `XPState` while `XPConfig` colors remain unchanged for backwards
+      compatibility.
     - Fixes `showCompletionOnTab`.
     - The behavior of `moveWord` and `moveWord'` has changed; brought in line
       with the documentation and now internally consistent. The old keymaps

@@ -52,7 +52,8 @@ module XMonad.Prompt
     , insertString, pasteString, pasteString'
     , clipCursor, moveCursor, moveCursorClip
     , setInput, getInput, getOffset
-    , modifyColor, setColor, resetColor, setBorderColor
+    , defaultColor, modifyColor, setColor
+    , resetColor, setBorderColor
     , modifyPrompter, setPrompter, resetPrompter
     , moveWord, moveWord', killWord, killWord'
     , changeWord, deleteString
@@ -154,6 +155,11 @@ data XPConfig =
                                                 -- @"xft:Hack:pixelsize=1"@. Alternatively, use X Logical Font
                                                 -- Description, i.e. something like
                                                 -- @"-*-dejavu sans mono-medium-r-normal--*-80-*-*-*-*-iso10646-1"@.
+        , bgColor               :: String       -- ^ Background color
+        , fgColor               :: String       -- ^ Font color
+        , bgHLight              :: String       -- ^ Background color of a highlighted completion entry
+        , fgHLight              :: String       -- ^ Font color of a highlighted completion entry
+        , borderColor           :: String       -- ^ Border color
         , promptBorderWidth     :: !Dimension   -- ^ Border width
         , position              :: XPPosition   -- ^ Position: 'Top', 'Bottom', or 'CenteredAt'
         , alwaysHighlight       :: !Bool        -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
@@ -177,7 +183,6 @@ data XPConfig =
                                                 --   completion, is the completion valid?
         , defaultPrompter       :: String -> String
                                                 -- ^ Modifies the prompt given by 'showXPrompt'
-        , defaultColor          :: XPColor      -- ^ Prompt colors
         , sorter                :: String -> [String] -> [String]
                                                 -- ^ Used to sort the possible completions by how well they
                                                 --   match the search string (see X.P.FuzzyMatch for an
@@ -271,27 +276,32 @@ data XPPosition = Top
                   deriving (Show,Read)
 
 data XPColor =
-    XPColor { bgNormal  :: String   -- ^ Background color
-            , fgNormal  :: String   -- ^ Font color
-            , bgHLight  :: String   -- ^ Background color of a highlighted completion entry
-            , fgHLight  :: String   -- ^ Font color of a highlighted completion entry
-            , border    :: String   -- ^ Border color
+    XPColor { bgNormal      :: String   -- ^ Background color
+            , fgNormal      :: String   -- ^ Font color
+            , bgHighlight   :: String   -- ^ Background color of a highlighted completion entry
+            , fgHighlight   :: String   -- ^ Font color of a highlighted completion entry
+            , border        :: String   -- ^ Border color
             }
 
 amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
 
 instance Default XPColor where
     def =
-        XPColor { bgNormal = "grey22"
-                , fgNormal = "grey80"
-                , fgHLight = "black"
-                , bgHLight = "grey"
-                , border   = "white"
+        XPColor { bgNormal    = "grey22"
+                , fgNormal    = "grey80"
+                , bgHighlight = "grey"
+                , fgHighlight = "black"
+                , border      = "white"
                 }
 
 instance Default XPConfig where
   def =
     XPC { font                  = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
+        , bgColor               = bgNormal def
+        , fgColor               = fgNormal def
+        , bgHLight              = bgHighlight def
+        , fgHLight              = fgHighlight def
+        , borderColor           = border def
         , promptBorderWidth     = 1
         , promptKeymap          = defaultXPKeymap
         , completionKey         = (0,xK_Tab)
@@ -307,18 +317,17 @@ instance Default XPConfig where
         , searchPredicate       = isPrefixOf
         , alwaysHighlight       = False
         , defaultPrompter       = id
-        , defaultColor          = def
         , sorter                = const id
         }
 {-# DEPRECATED defaultXPConfig "Use def (from Data.Default, and re-exported from XMonad.Prompt) instead." #-}
 defaultXPConfig = def
-greenXPConfig = def { defaultColor = def { fgNormal = "green", bgNormal = "black" }
+greenXPConfig = def { bgColor           = "black"
+                    , fgColor           = "green"
                     , promptBorderWidth = 0
                     }
-amberXPConfig = def { defaultColor = def { fgNormal = "#ca8f2d"
-                                         , bgNormal = "black"
-                                         , fgHLight = "#eaaf4c"
-                                         }
+amberXPConfig = def { bgColor   = "black"
+                    , fgColor   = "#ca8f2d"
+                    , fgHLight  = "#eaaf4c"
                     }
 
 initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
@@ -406,6 +415,16 @@ getInput = gets command
 -- keys where 'get' or similar can't be used to retrieve it.
 getOffset :: XP Int
 getOffset = gets offset
+
+-- | Accessor encapsulating disparate color fields of 'XPConfig' into an
+-- 'XPColor' (the configuration provides default values).
+defaultColor :: XPConfig -> XPColor
+defaultColor c = XPColor { bgNormal     = bgColor c
+                         , fgNormal     = fgColor c
+                         , bgHighlight  = bgHLight c
+                         , fgHighlight  = fgHLight c
+                         , border       = borderColor c
+                         }
 
 -- | Modify the prompt colors.
 modifyColor :: (XPColor -> XPColor) -> XP ()
@@ -682,7 +701,7 @@ handleCompletion cs = do
 
     case cs of
       []  -> updateWindows
-      [x] -> do updateState [x] 
+      [x] -> do updateState [x]
                 cs' <- getCompletions
                 updateWins cs'
                 setCurrentCompletions $ Just cs'
@@ -1514,12 +1533,13 @@ printComplList d drw gc fc bc xs ys sss =
                     let
                       (colIndex,rowIndex) = findComplIndex item sss
                     in -- assign some colors
-                     if ((complIndex st) == (colIndex,rowIndex)) then (fgHLight $ color st,bgHLight $ color st)
+                     if ((complIndex st) == (colIndex,rowIndex))
+                     then (fgHighlight $ color st,bgHighlight $ color st)
                      else (fc,bc)
                   False ->
                     -- compare item with buffer's value
                     if completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
-                    then (fgHLight $ color st,bgHLight $ color st)
+                    then (fgHighlight $ color st,bgHighlight $ color st)
                     else (fc,bc)
             printStringXMF d drw (fontS st) gc f b x y item)
         ys ss) xs sss
