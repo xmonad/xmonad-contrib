@@ -29,8 +29,10 @@ module XMonad.Layout.Spacing
     , toggleSmartSpacing
     , toggleScreenSpacingEnabled
     , toggleWindowSpacingEnabled
+    , setScreenWindowSpacing
     , incWindowSpacing, incScreenSpacing
     , decWindowSpacing, decScreenSpacing
+    , incScreenWindowSpacing, decScreenWindowSpacing
     , borderIncrementBy
       -- * Backwards Compatibility
       -- $backwardsCompatibility
@@ -40,9 +42,10 @@ module XMonad.Layout.Spacing
     ) where
 
 import           XMonad
-import           XMonad.StackSet                as W
+import           XMonad.StackSet                    as W
+import qualified XMonad.Util.Rectangle              as R
 import           XMonad.Layout.LayoutModifier
-import qualified XMonad.Util.Rectangle          as R
+import           XMonad.Actions.MessageFeedback
 
 
 -- $usage
@@ -235,6 +238,12 @@ toggleScreenSpacingEnabled = sendMessage $ ModifyScreenBorderEnabled not
 toggleWindowSpacingEnabled :: X ()
 toggleWindowSpacingEnabled = sendMessage $ ModifyWindowBorderEnabled not
 
+-- | Set all borders to a uniform size; see 'setWindowSpacing' and
+-- 'setScreenSpacing'.
+setScreenWindowSpacing :: Integer -> X ()
+setScreenWindowSpacing = sendMessages . flip map [ModifyWindowBorder,ModifyScreenBorder]
+                                      . flip id . const . uniformBorder
+
 -- | Increment the borders of 'windowBorder' using 'borderIncrementBy', which
 -- preserves border ratios during clamping.
 incWindowSpacing :: Integer -> X ()
@@ -251,6 +260,20 @@ decWindowSpacing = incWindowSpacing . negate
 -- | Inverse of 'incScreenSpacing'.
 decScreenSpacing :: Integer -> X ()
 decScreenSpacing = incScreenSpacing . negate
+
+-- | Increment both screen and window borders; see 'incWindowSpacing' and
+-- 'incScreenSpacing'.
+incScreenWindowSpacing :: Integer -> X ()
+incScreenWindowSpacing = sendMessages . flip map [ModifyWindowBorder,ModifyScreenBorder]
+                                      . flip id . borderIncrementBy
+
+-- | Inverse of 'incScreenWindowSpacing'.
+decScreenWindowSpacing :: Integer -> X ()
+decScreenWindowSpacing = incScreenWindowSpacing . negate
+
+-- | Construct a uniform 'Border'. That is, having equal individual borders.
+uniformBorder :: Integer -> Border
+uniformBorder i = Border i i i i
 
 -- | Map a function over a 'Border'. That is, over the four individual borders.
 borderMap :: (Integer -> Integer) -> Border -> Border
@@ -300,8 +323,8 @@ orderSelect o (lt,eq,gt) = case o of
 -- Backwards Compatibility:
 -----------------------------------------------------------------------------
 {-# DEPRECATED spacing, spacingWithEdge, smartSpacing, smartSpacingWithEdge "Use spacingRaw instead." #-}
-{-# DEPRECATED setSpacing "Use setWindowSpacing/setScreenSpacing instead." #-}
-{-# DEPRECATED incSpacing "Use incWindowSpacing/incScreenSpacing instead." #-}
+{-# DEPRECATED setSpacing "Use setScreenWindowSpacing instead." #-}
+{-# DEPRECATED incSpacing "Use incScreenWindowSpacing instead." #-}
 
 -- $backwardsCompatibility
 -- The following functions exist solely for compatibility with pre-0.14
@@ -309,33 +332,34 @@ orderSelect o (lt,eq,gt) = case o of
 
 -- | Surround all windows by a certain number of pixels of blank space. See
 -- 'spacingRaw'.
-spacing :: Integer -> l a -> ModifiedLayout Spacing l a
-spacing i = spacingRaw False (Border 0 0 0 0) False (Border i i i i) True
+spacing :: Int -> l a -> ModifiedLayout Spacing l a
+spacing i = spacingRaw False (uniformBorder 0) False (uniformBorder i') True
+    where i' = fromIntegral i
 
 -- | Surround all windows by a certain number of pixels of blank space, and
 -- additionally adds the same amount of spacing around the edge of the screen.
 -- See 'spacingRaw'.
-spacingWithEdge :: Integer -> l a -> ModifiedLayout Spacing l a
-spacingWithEdge i = spacingRaw False (Border i i i i) True (Border i i i i) True
+spacingWithEdge :: Int -> l a -> ModifiedLayout Spacing l a
+spacingWithEdge i = spacingRaw False (uniformBorder i') True (uniformBorder i') True
+    where i' = fromIntegral i
 
 -- | Surrounds all windows with blank space, except when the window is the only
 -- visible window on the current workspace. See 'spacingRaw'.
-smartSpacing :: Integer -> l a -> ModifiedLayout Spacing l a
-smartSpacing i = spacingRaw True (Border 0 0 0 0) False (Border i i i i) True
+smartSpacing :: Int -> l a -> ModifiedLayout Spacing l a
+smartSpacing i = spacingRaw True (uniformBorder 0) False (uniformBorder i') True
+    where i' = fromIntegral i
 
 -- | Surrounds all windows with blank space, and adds the same amount of
 -- spacing around the edge of the screen, except when the window is the only
 -- visible window on the current workspace. See 'spacingRaw'.
-smartSpacingWithEdge :: Integer -> l a -> ModifiedLayout Spacing l a
-smartSpacingWithEdge i = spacingRaw True (Border i i i i) True (Border i i i i) True
+smartSpacingWithEdge :: Int -> l a -> ModifiedLayout Spacing l a
+smartSpacingWithEdge i = spacingRaw True (uniformBorder i') True (uniformBorder i') True
+    where i' = fromIntegral i
 
--- | Set all borders to a uniform size; see 'setWindowSpacing' and
--- 'setScreenSpacing'.
-setSpacing :: Integer -> X ()
-setSpacing i = setWindowSpacing b >> setScreenSpacing b
-    where b = Border i i i i
+-- | See 'setScreenWindowSpacing'.
+setSpacing :: Int -> X ()
+setSpacing = setScreenWindowSpacing . fromIntegral
 
--- | Increment both screen and window borders; see 'incWindowSpacing' and
--- 'incScreenSpacing'.
-incSpacing :: Integer -> X ()
-incSpacing i = incWindowSpacing i >> incScreenSpacing i
+-- | See 'incScreenWindowSpacing'.
+incSpacing :: Int -> X ()
+incSpacing = incScreenWindowSpacing . fromIntegral
