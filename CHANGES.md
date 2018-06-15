@@ -126,6 +126,11 @@
     transformed layout until it sees another. It can be used to improve the
     behaviour of a child layout that has not been given the focused window.
 
+  * `XMonad.Actions.SwapPromote`
+
+    Module for tracking master window history per workspace, and associated
+    functions for manipulating the stack using such history.
+
   * `XMonad.Hooks.Focus`
 
     A new module extending ManageHook EDSL to work on focused windows and
