@@ -4,7 +4,8 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.NoBorders
--- Copyright   :  (c) David Roundy <droundy@darcs.net>
+-- Copyright   :  (c) --    David Roundy <droundy@darcs.net>
+--                    2018  Yclept Nemo
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Spencer Janssen <spencerjanssen@gmail.com>
@@ -18,25 +19,31 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.NoBorders (
-                                -- * Usage
-                                -- $usage
-                                noBorders,
-                                smartBorders,
-                                withBorder,
-                                lessBorders,
-                                SetsAmbiguous(..),
-                                Ambiguity(..),
-                                With(..),
-                                SmartBorder, WithBorder, ConfigurableBorder,
+module XMonad.Layout.NoBorders ( -- * Usage
+                                 -- $usage
+                                 noBorders
+                               , smartBorders
+                               , withBorder
+                               , lessBorders
+                               , hasBorder
+                               , SetsAmbiguous(..)
+                               , Ambiguity(..)
+                               , With(..)
+                               , BorderMessage (..), borderEventHook
+                               , SmartBorder, WithBorder, ConfigurableBorder
                                ) where
 
-import XMonad
-import XMonad.Layout.LayoutModifier
-import qualified XMonad.StackSet as W
-import Data.List
-import qualified Data.Map as M
-import Data.Function (on)
+import           XMonad
+import           XMonad.Layout.LayoutModifier
+import qualified XMonad.StackSet                as W
+import qualified XMonad.Util.Rectangle          as R
+
+import           Data.List
+import           Data.Monoid
+import qualified Data.Map                       as M
+import           Data.Function                  (on)
+import           Control.Monad                  (guard)
+
 
 -- $usage
 -- You can use this module with the following in your ~\/.xmonad\/xmonad.hs file:
@@ -100,34 +107,94 @@ smartBorders = lessBorders Never
 -- instances
 lessBorders :: (SetsAmbiguous p, Read p, Show p, LayoutClass l a) =>
         p -> l a -> ModifiedLayout (ConfigurableBorder p) l a
-lessBorders amb = ModifiedLayout (ConfigurableBorder amb [])
+lessBorders amb = ModifiedLayout (ConfigurableBorder amb [] [] [])
 
-data ConfigurableBorder p w = ConfigurableBorder p [w] deriving (Read, Show)
+-- | 'ManageHook' for sending 'HasBorder' messages:
+--
+-- >    title =? "foo" --> hasBorder True
+--
+-- There is no equivalent for 'ResetBorder'.
+hasBorder :: Bool -> ManageHook
+hasBorder b = ask >>= \w -> liftX (broadcastMessage $ HasBorder b w) >> idHook
+
+data BorderMessage
+    = HasBorder Bool Window
+        -- ^ If @True@, never remove the border from the specified window. If
+        -- @False@, always remove the border from the specified window.
+    | ResetBorder Window
+        -- ^ Reset the effects of any 'HasBorder' messages on the specified
+        -- window.
+    deriving (Typeable)
+
+instance Message BorderMessage
+
+data ConfigurableBorder p w = ConfigurableBorder
+    { _generateHidden :: p
+        -- ^ Generates a list of windows without borders. Uses 'SetsAmbiguous'
+        -- to filter the current layout.
+    , alwaysHidden   :: [w]
+        -- ^ Windows that never have borders. This list is added to the result
+        -- of 'generateHidden'.
+    , neverHidden    :: [w]
+        -- ^ Windows that always have borders - i.e. ignored by this module.
+        -- This list is subtraced from 'alwaysHidden' and so has higher
+        -- precendence.
+    , currentHidden  :: [w]
+        -- ^ The current set of windows without borders, i.e. the state.
+    } deriving (Read, Show)
+
+-- | Only necessary with 'BorderMessage' - remove non-existent windows from the
+-- 'alwaysHidden' or 'neverHidden' lists.
+borderEventHook :: Event -> X All
+borderEventHook (DestroyWindowEvent { ev_window = w }) = do
+    broadcastMessage $ ResetBorder w
+    return $ All True
+borderEventHook _ = return $ All True
 
 instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder p) Window where
-    unhook (ConfigurableBorder _p s) = asks (borderWidth . config) >>= setBorders s
+    unhook (ConfigurableBorder _ _ _ ch) = asks (borderWidth . config) >>= setBorders ch
 
-    redoLayout (ConfigurableBorder p s) _ mst wrs = do
-        ws <- withWindowSet (\wset -> return (hiddens p wset mst wrs))
-        asks (borderWidth . config) >>= setBorders (s \\ ws)
-        setBorders ws 0
-        return (wrs, Just $ ConfigurableBorder p ws)
+    redoLayout cb@(ConfigurableBorder gh ah nh ch) lr mst wrs = do
+        let gh' wset = let lh = (hiddens gh wset lr mst wrs)
+                       in  return $ (ah `union` lh) \\ nh
+        ch' <- withWindowSet gh'
+        asks (borderWidth . config) >>= setBorders (ch \\ ch')
+        setBorders ch' 0
+        return (wrs, Just $ cb { currentHidden = ch' })
+
+    pureMess cb@(ConfigurableBorder gh ah nh ch) m
+        | Just (HasBorder b w) <- fromMessage m =
+            let consNewIf l True  = if w `elem` l then Nothing else Just (w:l)
+                consNewIf l False = Just l
+            in  (ConfigurableBorder gh) <$> consNewIf ah (not b)
+                                        <*> consNewIf nh b
+                                        <*> pure ch
+        | Just (ResetBorder w) <- fromMessage m =
+            let delete' e l = if e `elem` l then (True,delete e l) else (False,l)
+                (da,ah') = delete' w ah
+                (dn,nh') = delete' w nh
+            in  if da || dn
+                then Just cb { alwaysHidden = ah', neverHidden = nh' }
+                else Nothing
+        | otherwise = Nothing
 
 -- | SetsAmbiguous allows custom actions to generate lists of windows that
 -- should not have borders drawn through 'ConfigurableBorder'
 --
 -- To add your own (though perhaps those options would better belong as an
--- aditional constructor to 'Ambiguity'), you can add the function as such:
+-- additional constructor to 'Ambiguity'), you can add the following function.
+-- Note that @lr@, the parameter representing the 'Rectangle' of the parent
+-- layout, was added to 'hiddens' in 0.14. Update your instance accordingly.
 --
 -- > data MyAmbiguity = MyAmbiguity deriving (Read, Show)
 --
 -- > instance SetsAmbiguous MyAmbiguity where
--- >  hiddens _ wset mst wrs = otherHiddens Screen \\ otherHiddens OnlyFloat
--- >     where otherHiddens p = hiddens p wset mst wrs
+-- >  hiddens _ wset lr mst wrs = otherHiddens Screen \\ otherHiddens OnlyScreenFloat
+-- >     where otherHiddens p = hiddens p wset lr mst wrs
 --
 -- The above example is redundant, because you can have the same result with:
 --
--- > layoutHook = lessBorders (Combine Difference Screen OnlyFloat) (Tall 1 0.5 0.03 ||| ... )
+-- > layoutHook = lessBorders (Combine Difference Screen OnlyScreenFloat) (Tall 1 0.5 0.03 ||| ... )
 --
 -- To get the same result as 'smartBorders':
 --
@@ -136,32 +203,87 @@ instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder
 -- This indirect method is required to keep the 'Read' and 'Show' for
 -- ConfigurableBorder so that xmonad can serialize state.
 class SetsAmbiguous p where
-    hiddens :: p -> WindowSet -> Maybe (W.Stack Window) -> [(Window, Rectangle)] -> [Window]
+    hiddens :: p -> WindowSet -> Rectangle -> Maybe (W.Stack Window) -> [(Window, Rectangle)] -> [Window]
 
+-- Quick overview since the documentation lacks clarity:
+-- * Overall stacking order =
+--      tiled stacking order ++ floating stacking order
+--   Where tiled windows are (obviously) stacked below floating windows.
+-- * Tiled stacking order =
+--      [(window, Rectangle] order
+--   Given by 'XMonad.Core.LayoutClass' where earlier entries are stacked
+--   higher.
+-- * Floating stacking order =
+--      focus order
+--   Given by the workspace stack where a higher focus corresponds to a higher
+--   stacking position.
+--
+-- Integrating a stack returns a list in order of [highest...lowest].
+--
+-- 'XMonad.Core.LayoutClass' is given a stack with all floating windows removed
+-- and returns a list (in stack order) of only the visible tiled windows, while
+-- the workspace stack contains all windows (visible/hidden, floating/tiled) in
+-- focus order. The StackSet 'floating' field maps all floating windows across
+-- all workspaces to relative rectangles - without the associated screen.
+--
+-- 'XMonad.Operations.windows' gets the windowset from the state, mutates it,
+-- then updates the state before calling 'runLayout' with the new windowset -
+-- excluding any floating windows. Aside from the filtering, the stack received
+-- by the layout should be identical to the one received from 'withWindowSet'.
 instance SetsAmbiguous Ambiguity where
-    hiddens amb wset mst wrs
+    hiddens amb wset lr mst wrs
       | Combine Union a b <- amb = on union next a b
       | Combine Difference a b <- amb = on (\\) next a b
       | Combine Intersection a b <- amb = on intersect next a b
       | otherwise = tiled ms ++ floating
-      where next p = hiddens p wset mst wrs
-            nonzerorect (Rectangle _ _ 0 0) = False
-            nonzerorect _ = True
+      where next p = hiddens p wset lr mst wrs
 
-            screens =
-              [ scr | scr <- W.screens wset,
-                      case amb of
-                            Never -> True
-                            _ -> not $ null $ integrate scr,
-                      nonzerorect . screenRect $ W.screenDetail scr]
-            floating = [ w |
-                        (w, W.RationalRect px py wx wy) <- M.toList . W.floating $ wset,
-                        px <= 0, py <= 0,
-                        wx + px >= 1, wy + py >= 1]
+            screens = [ scr | scr <- W.screens wset
+                            , case amb of
+                                    Never -> True
+                                    _     -> not $ null $ integrate scr
+                            , not . R.empty . screenRect
+                                $ W.screenDetail scr
+                            ]
+
+            -- This originally considered all floating windows across all
+            -- workspaces. It seems more efficient to have each layout manage
+            -- its own floating windows - and equally valid though untested
+            -- against a multihead setup. In some cases the previous code would
+            -- redundantly add then remove borders from already-borderless
+            -- windows.
+            floating = do
+                let wz :: Integer -> (Window,Rectangle)
+                       -> (Integer,Window,Rectangle)
+                    wz i (w,wr) = (i,w,wr)
+                    -- For the following: in stacking order lowest -> highest.
+                    ts = reverse . zipWith wz [-1,-2..] $ wrs
+                    fs = zipWith wz [0..] $ do
+                        w       <- reverse . W.index $ wset
+                        Just wr <- [M.lookup w (W.floating wset)]
+                        return (w,scaleRationalRect sr wr)
+                    sr = screenRect . W.screenDetail . W.current $ wset
+                (i1,w1,wr1) <- fs
+                guard $ case amb of
+                    OnlyLayoutFloatBelow ->
+                        let vu = do
+                            gr           <- sr `R.difference` lr
+                            (i2,_w2,wr2) <- ts ++ fs
+                            guard $ i2 < i1
+                            [wr2 `R.intersects` gr]
+                        in lr == wr1 && (not . or) vu
+                    OnlyLayoutFloat ->
+                        lr == wr1
+                    _ ->
+                        wr1 `R.supersetOf` sr
+                return w1
+
             ms = filter (`elem` W.integrate' mst) $ map fst wrs
             tiled [w]
               | Screen <- amb = [w]
-              | OnlyFloat <- amb = []
+              | OnlyScreenFloat <- amb = []
+              | OnlyLayoutFloat <- amb = []
+              | OnlyLayoutFloatBelow <- amb = []
               | OtherIndicated <- amb
               , let nonF = map integrate $ W.current wset : W.visible wset
               , length (concat nonF) > length wrs
@@ -174,23 +296,34 @@ instance SetsAmbiguous Ambiguity where
 -- subsequent constructors add additional cases where borders are not drawn
 -- than their predecessors. These behaviors make most sense with with multiple
 -- screens: for single screens, 'Never' or 'smartBorders' makes more sense.
-data Ambiguity = Combine With Ambiguity Ambiguity
-                             -- ^ This constructor is used to combine the
-                             -- borderless windows provided by the
-                             -- SetsAmbiguous instances from two other
-                             -- 'Ambiguity' data types.
-               | OnlyFloat   -- ^ Only remove borders on floating windows that
-                             -- cover the whole screen
-               | Never       -- ^ Never remove borders when ambiguous:
-                             -- this is the same as smartBorders
-               | EmptyScreen -- ^ Focus in an empty screens does not count as
-                             -- ambiguous.
-               | OtherIndicated
-                             -- ^ No borders on full when all other screens
-                             -- have borders.
-               | Screen      -- ^ Borders are never drawn on singleton screens.
-                             -- With this one you really need another way such
-                             -- as a statusbar to detect focus.
+data Ambiguity
+    = Combine With Ambiguity Ambiguity
+        -- ^ This constructor is used to combine the borderless windows
+        -- provided by the SetsAmbiguous instances from two other 'Ambiguity'
+        -- data types.
+    | OnlyScreenFloat
+        -- ^ Only remove borders on floating windows that cover the whole
+        -- screen.
+    | OnlyLayoutFloatBelow
+        -- ^ Like 'OnlyLayoutFloat', but only removes borders if no window
+        -- stacked below remains visible. Considers all floating windows on the
+        -- current screen and all visible tiled windows of the child layout. If
+        -- any such window (that is stacked below) shows in any gap between the
+        -- parent layout rectangle and the physical screen, the border will
+        -- remain drawn.
+    | OnlyLayoutFloat
+        -- ^ Only remove borders on floating windows that exactly cover the
+        -- parent layout rectangle.
+    | Never
+        -- ^ Never remove borders when ambiguous: this is the same as
+        -- smartBorders.
+    | EmptyScreen
+        -- ^ Focus in an empty screen does not count as ambiguous.
+    | OtherIndicated
+        -- ^ No borders on full when all other screens have borders.
+    | Screen
+        -- ^ Borders are never drawn on singleton screens.  With this one you
+        -- really need another way such as a statusbar to detect focus.
     deriving (Read, Show)
 
 -- | Used to indicate to the 'SetsAmbiguous' instance for 'Ambiguity' how two
