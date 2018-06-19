@@ -75,20 +75,37 @@ ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
 
 -- |
--- The values of @_NET_NUMBER_OF_DESKTOPS@, @_NET_CLIENT_LIST@,
--- @_NET_CLIENT_LIST_STACKING@, and @_NET_CURRENT_DESKTOP@, cached to avoid
--- unnecessary property updates. Another design would be to cache each of these
--- independently to allow us to avoid even more updates.
-data DesktopState
-    = DesktopState { desktopNames :: [String]
-                   , clientList :: [Window]
-                   , currentDesktop :: Maybe Int
-                   , windowDesktops :: M.Map Window Int
-                   }
-    deriving (Eq)
+-- Cached desktop names (e.g. @_NET_NUMBER_OF_DESKTOPS@ and
+-- @_NET_DESKTOP_NAMES@).
+newtype DesktopNames = DesktopNames [String]
+                     deriving (Eq)
 
-instance ExtensionClass DesktopState where
-    initialValue = DesktopState [] [] Nothing M.empty
+instance ExtensionClass DesktopNames where
+    initialValue = DesktopNames []
+
+-- |
+-- Cached client list (e.g. @_NET_CLIENT_LIST@).
+newtype ClientList = ClientList [Window]
+                   deriving (Eq)
+
+instance ExtensionClass ClientList where
+    initialValue = ClientList []
+
+-- |
+-- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
+newtype CurrentDesktop = CurrentDesktop Int
+                       deriving (Eq)
+
+instance ExtensionClass CurrentDesktop where
+    initialValue = CurrentDesktop 0
+
+-- |
+-- Cached window-desktop assignments (e.g. @_NET_CLIENT_LIST_STACKING@).
+newtype WindowDesktops = WindowDesktops (M.Map Window Int)
+                       deriving (Eq)
+
+instance ExtensionClass WindowDesktops where
+    initialValue = WindowDesktops M.empty
 
 -- |
 -- The value of @_NET_ACTIVE_WINDOW@, cached to avoid unnecessary property
@@ -98,20 +115,6 @@ newtype ActiveWindow = ActiveWindow Window
 
 instance ExtensionClass ActiveWindow where
     initialValue = ActiveWindow none
-
-toDesktopState :: ([WindowSpace] -> [WindowSpace]) -> WindowSet -> DesktopState
-toDesktopState f s =
-    DesktopState
-    { desktopNames = map W.tag ws
-    , clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
-    , currentDesktop =
-          let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
-          in join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
-    , windowDesktops =
-          let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
-          in M.unions $ zipWith f [0..] ws
-    }
-  where ws = f $ W.workspaces s
 
 -- | Compare the given value against the value in the extensible state. Run the
 -- action if it has changed.
@@ -128,25 +131,34 @@ whenChanged v action = do
 ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
 ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let s' = toDesktopState (f . sort') s
-    whenChanged s' $ do
-        -- Number of Workspaces
-        setNumberOfDesktops (length $ desktopNames s')
+    let ws = f $ sort' $ W.workspaces s
 
-        -- Names thereof
-        setDesktopNames $ desktopNames s'
+    -- Set number of workspaces and names thereof
+    let desktopNames = map W.tag ws
+    whenChanged (DesktopNames desktopNames) $ do
+        setNumberOfDesktops (length desktopNames)
+        setDesktopNames desktopNames
 
-        -- all windows, with focused windows last
-        setClientList $ clientList s'
+    -- Set client list; all windows, with focused windows last
+    let clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
+    whenChanged (ClientList clientList) $ setClientList clientList
 
-        -- Remap the current workspace to handle any renames that f might be doing.
-        fromMaybe (return ()) $ setCurrentDesktop <$> currentDesktop s'
+    -- Remap the current workspace to handle any renames that f might be doing.
+    let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
+        current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+    whenChanged (CurrentDesktop $ fromMaybe 0 current) $ do
+        mapM_ setCurrentDesktop current
 
-        mapM_ (uncurry setWindowDesktop) (M.toList $ windowDesktops s')
+    -- Set window-desktop mapping
+    let windowDesktops =
+          let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
+          in M.unions $ zipWith f [0..] ws
+    whenChanged (WindowDesktops windowDesktops) $ do
+        mapM_ (uncurry setWindowDesktop) (M.toList windowDesktops)
 
+    -- Set active window
     let activeWindow' = fromMaybe none (W.peek s)
-    whenChanged (ActiveWindow activeWindow') $ do
-        setActiveWindow activeWindow'
+    whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
 -- |
 -- Intercepts messages from pagers and similar applications and reacts on them.
