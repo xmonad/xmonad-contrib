@@ -30,6 +30,8 @@ import Data.IORef
 import Data.List
 import Data.Maybe
 import Data.Monoid
+import qualified Data.Map.Strict as M
+import System.IO.Unsafe
 
 import XMonad
 import Control.Monad
@@ -73,13 +75,30 @@ ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
 
 
-data CacheState = CacheState { cachedWs :: [WindowSpace] }
-                deriving (Eq)
+data EwmhState = EwmhState { desktopNames :: [String]
+                           , clientList :: [Window]
+                           , currentDesktop :: Maybe Int
+                           , windowDesktops :: M.Map Window Int
+                           }
+               deriving (Eq, Show)
+
+toEwmhState :: ([WindowSpace] -> [WindowSpace]) -> WindowSet -> EwmhState
+toEwmhState f s =
+    EwmhState { desktopNames = map W.tag ws
+              , clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
+              , currentDesktop =
+                  let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
+                  in join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+              , windowDesktops =
+                  let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
+                  in M.unions $ zipWith f [0..] ws
+              }
+  where ws = f $ W.workspaces s
 
 -- |
 -- Cache last property state to avoid needless property changes.
-cachedState :: IORef CacheState
-cachedState = newIORef []
+cachedState :: IORef (Maybe EwmhState)
+cachedState = unsafePerformIO $ newIORef Nothing
 {-# NOINLINE cachedState #-}
 
 -- |
@@ -88,31 +107,27 @@ cachedState = newIORef []
 ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
 ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let ws = f $ sort' $ W.workspaces s
+    let s' = toEwmhState (f . sort') s
 
-    cached <- readIORef cachedState
-    unless (cached == ws) $ do
-        writeIORef cachedState ws
+    cached <- io $ readIORef cachedState
+    unless (cached == Just s') $ do
+        io $ writeIORef cachedState $ Just s'
 
         -- Number of Workspaces
-        setNumberOfDesktops (length ws)
+        setNumberOfDesktops (length $ desktopNames s')
 
         -- Names thereof
-        setDesktopNames (map W.tag ws)
+        setDesktopNames $ desktopNames s'
 
         -- all windows, with focused windows last
-        let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
-        setClientList wins
+        setClientList $ clientList s'
 
         -- Remap the current workspace to handle any renames that f might be doing.
-        let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
-            maybeCurrent  = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+        fromMaybe (return ()) $ setCurrentDesktop <$> currentDesktop s'
 
-        fromMaybe (return ()) $ setCurrentDesktop <$> maybeCurrent
+        mapM_ (uncurry setWindowDesktop) (M.toList $ windowDesktops s')
 
-        sequence_ $ zipWith setWorkspaceWindowDesktops [0..] ws
-
-        setActiveWindow
+    setActiveWindow
 
 
 -- |
@@ -234,10 +249,6 @@ setClientList wins = withDisplay $ \dpy -> do
     io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral wins)
     a' <- getAtom "_NET_CLIENT_LIST_STACKING"
     io $ changeProperty32 dpy r a' c propModeReplace (fmap fromIntegral wins)
-
-setWorkspaceWindowDesktops :: (Integral a) => a -> WindowSpace -> X()
-setWorkspaceWindowDesktops index workspace =
-  mapM_ (flip setWindowDesktop index) (W.integrate' $ W.stack workspace)
 
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do
