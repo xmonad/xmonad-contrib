@@ -26,6 +26,7 @@ module XMonad.Hooks.EwmhDesktops (
 
 import Codec.Binary.UTF8.String (encode)
 import Control.Applicative((<$>))
+import Data.IORef
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -70,6 +71,17 @@ ewmhDesktopsStartup = setSupported
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+
+
+data CacheState = CacheState { cachedWs :: [WindowSpace] }
+                deriving (Eq)
+
+-- |
+-- Cache last property state to avoid needless property changes.
+cachedState :: IORef CacheState
+cachedState = newIORef []
+{-# NOINLINE cachedState #-}
+
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
@@ -78,27 +90,29 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
     let ws = f $ sort' $ W.workspaces s
 
-    -- Number of Workspaces
-    setNumberOfDesktops (length ws)
+    cached <- readIORef cachedState
+    unless (cached == ws) $ do
+        writeIORef cachedState ws
 
-    -- Names thereof
-    setDesktopNames (map W.tag ws)
+        -- Number of Workspaces
+        setNumberOfDesktops (length ws)
 
-    -- all windows, with focused windows last
-    let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
-    setClientList wins
+        -- Names thereof
+        setDesktopNames (map W.tag ws)
 
-    -- Remap the current workspace to handle any renames that f might be doing.
-    let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
-        maybeCurrent  = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+        -- all windows, with focused windows last
+        let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
+        setClientList wins
 
-    fromMaybe (return ()) $ setCurrentDesktop <$> maybeCurrent
+        -- Remap the current workspace to handle any renames that f might be doing.
+        let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
+            maybeCurrent  = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
 
-    sequence_ $ zipWith setWorkspaceWindowDesktops [0..] ws
+        fromMaybe (return ()) $ setCurrentDesktop <$> maybeCurrent
 
-    setActiveWindow
+        sequence_ $ zipWith setWorkspaceWindowDesktops [0..] ws
 
-    return ()
+        setActiveWindow
 
 
 -- |
