@@ -26,7 +26,6 @@ module XMonad.Hooks.EwmhDesktops (
 
 import Codec.Binary.UTF8.String (encode)
 import Control.Applicative((<$>))
-import Data.IORef
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -38,6 +37,7 @@ import Control.Monad
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
+import qualified XMonad.Util.ExtensibleState as E
 import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
@@ -74,32 +74,44 @@ ewmhDesktopsStartup = setSupported
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
 
+-- |
+-- The values of @_NET_NUMBER_OF_DESKTOPS@, @_NET_CLIENT_LIST@,
+-- @_NET_CLIENT_LIST_STACKING@, and @_NET_CURRENT_DESKTOP@, cached to avoid
+-- unnecessary property updates. Another design would be to cache each of these
+-- independently to allow us to avoid even more updates.
+data DesktopState
+    = DesktopState { desktopNames :: [String]
+                   , clientList :: [Window]
+                   , currentDesktop :: Maybe Int
+                   , windowDesktops :: M.Map Window Int
+                   }
+    deriving (Eq)
 
-data EwmhState = EwmhState { desktopNames :: [String]
-                           , clientList :: [Window]
-                           , currentDesktop :: Maybe Int
-                           , windowDesktops :: M.Map Window Int
-                           }
-               deriving (Eq, Show)
+instance ExtensionClass DesktopState where
+    initialValue = DesktopState [] [] Nothing M.empty
 
-toEwmhState :: ([WindowSpace] -> [WindowSpace]) -> WindowSet -> EwmhState
-toEwmhState f s =
-    EwmhState { desktopNames = map W.tag ws
-              , clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
-              , currentDesktop =
-                  let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
-                  in join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
-              , windowDesktops =
-                  let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
-                  in M.unions $ zipWith f [0..] ws
-              }
+toDesktopState :: ([WindowSpace] -> [WindowSpace]) -> WindowSet -> DesktopState
+toDesktopState f s =
+    DesktopState
+    { desktopNames = map W.tag ws
+    , clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
+    , currentDesktop =
+          let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
+          in join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+    , windowDesktops =
+          let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
+          in M.unions $ zipWith f [0..] ws
+    }
   where ws = f $ W.workspaces s
 
--- |
--- Cache last property state to avoid needless property changes.
-cachedState :: IORef (Maybe EwmhState)
-cachedState = unsafePerformIO $ newIORef Nothing
-{-# NOINLINE cachedState #-}
+-- | Compare the given value against the value in the extensible state. Run the
+-- action if it has changed.
+whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
+whenChanged v action = do
+    v0 <- E.get
+    unless (v == v0) $ do
+        action
+        E.put v
 
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
@@ -107,12 +119,8 @@ cachedState = unsafePerformIO $ newIORef Nothing
 ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
 ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let s' = toEwmhState (f . sort') s
-
-    cached <- io $ readIORef cachedState
-    unless (cached == Just s') $ do
-        io $ writeIORef cachedState $ Just s'
-
+    let s' = toDesktopState (f . sort') s
+    whenChanged s' $ do
         -- Number of Workspaces
         setNumberOfDesktops (length $ desktopNames s')
 
