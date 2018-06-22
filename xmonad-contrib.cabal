@@ -285,6 +285,7 @@ library
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TrackFloating
                         XMonad.Layout.TwoPane
+                        XMonad.Layout.TwoPanePersistent
                         XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
                         XMonad.Layout.WindowSwitcherDecoration

@@ -109,6 +109,14 @@
 
 ### New Modules
 
+  * `XMonad.Layout.TwoPanePersistent`
+
+    A layout that is like TwoPane but keeps track of the slave window that is
+    currently beside the master. In TwoPane, the default behavior when the master
+    is focused is to display the next window in the stack on the slave pane. This
+    is a problem when a different slave window is selected without changing the stack
+    order.
+
   * `XMonad.Hooks.RefocusLast`
 
     Provides log and event hooks that keep track of recently focused windows on
@@ -209,10 +217,10 @@
     strategy with fewer quirks for tiled layouts using X.L.Spacing.
 
   * `XMonad.Layout.Fullscreen`
-    
+
     The fullscreen layouts will now not render any window that is totally
     obscured by fullscreen windows.
-    
+
   * `XMonad.Layout.Gaps`
 
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
