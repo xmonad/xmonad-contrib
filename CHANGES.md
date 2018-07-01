@@ -111,11 +111,9 @@
 
   * `XMonad.Hooks.RefocusLast`
 
-    Provides log and event hooks that keep track of recently focused windows on
-    a per workspace basis and automatically refocus the last window when the
-    current one is closed. Also provides an action to toggle focus between the
-    current and previous window, and one that refocuses appropriately on sending
-    the current window to another workspace.
+    Provides hooks and actions that keep track of recently focused windows on a
+    per workspace basis and automatically refocus the last window on loss of the
+    current (if appropriate as determined by user specified criteria).
 
   * `XMonad.Layout.StateFull`
 
