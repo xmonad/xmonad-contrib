@@ -351,6 +351,12 @@
     - Added `updateName` and `removeName` to better control ordering when
       workspace names are changed or workspaces are removed.
 
+  * XMonad.Config.Azerty
+
+    * Added `belgianConfig` and `belgianKeys` to support Belgian AZERTY
+      keyboards, which are slightly different from the French ones in the top
+      row.
+
 ## 0.13 (February 10, 2017)
 
 ### Breaking Changes
