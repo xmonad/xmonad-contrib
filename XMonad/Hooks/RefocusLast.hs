@@ -25,17 +25,22 @@ module XMonad.Hooks.RefocusLast (
   refocusLastLogHook,
   refocusLastLayoutHook,
   refocusLastWhen,
-  alwaysRefocusLastEvHook,
-  refocusFromFloatsEvHook,
+  -- ** Predicates
+  -- $Predicates
+  refocusingIsActive,
+  isFloat,
   -- * Actions
+  toggleRefocusing,
   toggleFocus,
-  refocus,
-  shiftRL,
+  refocusWhen,
+  shiftRLWhen,
   updateRecentsOn,
   -- * Types
+  -- $Types
   RecentWins(..),
   RecentsMap(..),
-  RefocusLastLayoutHook(..)
+  RefocusLastLayoutHook(..),
+  RefocusLastToggle(..)
 ) where
 
 import XMonad
@@ -57,15 +62,14 @@ import Control.Monad (when)
 -- $Usage
 -- To use this module, you must either include 'refocusLastLogHook' in your log
 -- hook __or__ 'refocusLastLayoutHook' in your layout hook; don't use both.
--- This suffices to make use of both 'toggleFocus' and 'shiftRL' but will not
--- refocus automatically upon loss of the current window; for that you must
--- include in your event hook exactly one of 'alwaysRefocusLastEvHook',
--- 'refocusFromFloatsEvHook' or @'refocusLastWhen' pred@ for some valid @pred@.
+-- This suffices to make use of both 'toggleFocus' and 'shiftRLWhen' but will
+-- not refocus automatically upon loss of the current window; for that you must
+-- include in your event hook @'refocusLastWhen' pred@ for some valid @pred@.
 --
 -- The event hooks that trigger refocusing only fire when a window is lost
--- completely, not when it's simply moved to another workspace. Hence you will
--- need to use 'shiftRL' or 'refocus' as appropriate if you want the same
--- behaviour in such a case.
+-- completely, not when it's simply e.g. moved to another workspace. Hence you
+-- will need to use @'shiftRLWhen' pred@ or @'refocusWhen' pred@ as appropriate
+-- if you want the same behaviour in such cases.
 --
 -- Example configuration:
 --
@@ -75,16 +79,20 @@ import Control.Monad (when)
 -- >
 -- > main :: IO ()
 -- > main = xmonad def
--- >     { handleEventHook = alwaysRefocusLastEvHook <+> handleEventHook def
--- > --  { handleEventHook = refocusFromFloatsEvHook <+> handleEventHook def
--- >     , logHook         = refocusLastLogHook      <+> logHook         def
--- > --  , layoutHook      = refocusLastLayoutHook    $  layoutHook      def
--- >     , keys            = rlKeys                  <+> keys            def
+-- >     { handleEventHook = refocusLastWhen myPred <+> handleEventHook def
+-- >     , logHook         = refocusLastLogHook     <+> logHook         def
+-- > --  , layoutHook      = refocusLastLayoutHook   $  layoutHook      def
+-- >     , keys            = refocusLastKeys        <+> keys            def
 -- >     } where
--- >         rlKeys
--- >           = \cnf -> M.fromList
--- >           $   ((modMask cnf              , xK_a), toggleFocus)
--- >           : [ ((modMask cnf .|. shiftMask, n   ), windows =<< shiftRL wksp)
+-- >         myPred = refocusingIsActive
+-- > --      myPred = refocusingIsActive <||> isFloat
+-- >         refocusLastKeys cnf
+-- >           = M.fromList
+-- >           $ ((modMask cnf, xK_a), toggleRefocusing)
+-- >           : ((modMask cnf, xK_b), toggleFocus)
+-- >           : [ ( (modMask cnf .|. shiftMask, n)
+-- >               , windows =<< shiftRLWhen myPred wksp
+-- >               )
 -- >             | (n, wksp) <- zip [xK_1..xK_9] (workspaces cnf)
 -- >             ]
 --
@@ -93,9 +101,13 @@ import Control.Monad (when)
 
 -- --< Types >-- {{{
 
+-- $Types
+-- The types and constructors used in this module are exported principally to
+-- aid extensibility; typical users will have nothing to gain from this section.
+
 -- | Data type holding onto the previous and current @Window@.
 data RecentWins = Recent { previous :: !Window, current :: !Window }
-  deriving (Show, Read, Eq, Typeable)
+  deriving (Show, Read, Eq)
 
 -- | Newtype wrapper for a @Map@ holding the @RecentWins@ for each workspace.
 --   Is an instance of @ExtensionClass@ with persistence of state.
@@ -112,9 +124,15 @@ data RefocusLastLayoutHook a = RefocusLastLayoutHook
   deriving (Show, Read)
 
 instance LayoutModifier RefocusLastLayoutHook a where
-  modifyLayout _ w@(W.Workspace tag _ _) r = do
-    updateRecentsOn tag
-    runLayout w r
+  modifyLayout _ w@(W.Workspace tg _ _) r = updateRecentsOn tg >> runLayout w r
+
+-- | A newtype on @Bool@ to act as a universal toggle for refocusing.
+newtype RefocusLastToggle = RefocusLastToggle { refocusing :: Bool }
+  deriving (Show, Read, Eq, Typeable)
+
+instance ExtensionClass RefocusLastToggle where
+  initialValue  = RefocusLastToggle { refocusing = True }
+  extensionType = PersistentExtension
 
 -- }}}
 
@@ -123,7 +141,7 @@ instance LayoutModifier RefocusLastLayoutHook a where
 -- | A log hook recording the current workspace's most recently focused windows
 --   into extensible state.
 refocusLastLogHook :: X ()
-refocusLastLogHook = updateRecentsOn =<< gets (W.currentTag . windowset)
+refocusLastLogHook = withWindowSet (updateRecentsOn . W.currentTag)
 
 -- | Records a workspace's recently focused windows into extensible state upon
 --   relayout. Potentially a less wasteful alternative to @refocusLastLogHook@,
@@ -135,7 +153,7 @@ refocusLastLayoutHook = ModifiedLayout RefocusLastLayoutHook
 --   construct an event hook that runs iff the core xmonad event handler will
 --   unmanage the window, and which shifts focus to the last focused window on
 --   the appropriate workspace if desired.
-refocusLastWhen :: (Window -> X Bool) -> Event -> X All
+refocusLastWhen :: Query Bool -> Event -> X All
 refocusLastWhen p event = All True <$ case event of
   UnmapEvent { ev_send_event = synth, ev_window = w } -> do
     e <- gets (fromMaybe 0 . M.lookup w . waitingUnmap)
@@ -143,59 +161,88 @@ refocusLastWhen p event = All True <$ case event of
   DestroyWindowEvent {                ev_window = w } -> refocusLast w
   _                                                   -> return ()
   where
-    refocusLast w = whenX (p w) . withWindowSet $ \ws ->
+    refocusLast w = whenX (runQuery p w) . withWindowSet $ \ws ->
       whenJust (W.findTag w ws) $ \tag ->
         withRecentsIn tag () $ \lw cw ->
           when (w == cw) . modify $ \xs ->
             xs { windowset = tryFocusIn tag [lw] ws }
 
--- | Always refocus the last window.
-alwaysRefocusLastEvHook :: Event -> X All
-alwaysRefocusLastEvHook = refocusLastWhen $ \_ ->
-  return True
+-- }}}
 
--- | Refocus from floating windows only.
-refocusFromFloatsEvHook :: Event -> X All
-refocusFromFloatsEvHook = refocusLastWhen $ \w ->
-  gets (M.member w . W.floating . windowset)
+-- --< Predicates >-- {{{
+
+-- $Predicates
+-- Impure @Query Bool@ predicates on event windows for use as arguments to
+-- 'refocusLastWhen', 'shiftRLWhen' and 'refocusWhen'. Can be combined with
+-- '<||>' or '<&&>'. Use like e.g.
+--
+-- > , handleEventHook = refocusLastWhen refocusingIsActive
+--
+-- or in a keybinding:
+--
+-- > windows =<< shiftRLWhen (refocusingIsActive <&&> isFloat) "3"
+--
+-- It's also valid to use a property lookup like @className =? "someProgram"@ as
+-- a predicate, and it should function as expected with e.g. @shiftRLWhen@.
+-- In the event hook on the other hand, the window in question has already been
+-- unmapped or destroyed, so external lookups to X properties don't work:
+-- only the information fossilised in xmonad's state is available.
+
+-- | Holds iff refocusing is toggled active.
+refocusingIsActive :: Query Bool
+refocusingIsActive = (liftX . XS.gets) refocusing
+
+-- | Holds iff the event window is a float.
+isFloat :: Query Bool
+isFloat = ask >>= \w -> (liftX . gets) (M.member w . W.floating . windowset)
 
 -- }}}
 
 -- --< Public Actions >-- {{{
 
--- | Refocuses the previously focused window; acts as a toggle.
+-- | Toggle automatic refocusing at runtime. Has no effect unless the
+--   @refocusingIsActive@ predicate has been used.
+toggleRefocusing :: X ()
+toggleRefocusing = XS.modify (RefocusLastToggle . not . refocusing)
+
+-- | Refocuses the previously focused window; acts as a toggle. Is not affected
+--   by @toggleRefocusing@.
 toggleFocus :: X ()
 toggleFocus = withFocii () $ \_ tag ->
   withRecentsIn tag () $ \lw cw ->
     when (cw /= lw) (windows $ tryFocusInCurrent [lw])
 
--- | Given a target workspace, produce a 'windows' suitable function that will
---   refocus that workspace appropriately. Allows you to hook refocusing into
---   any action you can run through @windows@. @shiftRL@ is implemented
---   straight-forwardly in terms of this.
-refocus :: WorkspaceId -> X (WindowSet -> WindowSet)
-refocus tag = withRecentsIn tag id $ \lw cw -> return (tryFocusIn tag [cw, lw])
+-- | Given a target workspace and a predicate on its current window, produce a
+--   'windows' suitable function that will refocus that workspace appropriately.
+--   Allows you to hook refocusing into any action you can run through
+--   @windows@. See the implementation of @shiftRLWhen@ for a straight-forward
+--   usage example.
+refocusWhen :: Query Bool -> WorkspaceId -> X (WindowSet -> WindowSet)
+refocusWhen p tag = withRecentsIn tag id $ \lw cw -> do
+  b <- runQuery p cw
+  return (if b then tryFocusIn tag [cw, lw] else id)
 
 -- | Sends the focused window to the specified workspace, refocusing the last
---   focused window. Note that the native version of this, @windows . W.shift@,
---   has a nice property that this does not: shifting a window to another
---   workspace then shifting it back preserves its place in the stack. Can be
---   used in a keybinding like e.g.
+--   focused window if the predicate holds on the current window. Note that the
+--   native version of this, @windows . W.shift@, has a nice property that this
+--   does not: shifting a window to another workspace then shifting it back
+--   preserves its place in the stack. Can be used in a keybinding like e.g.
 --
--- > windows =<< shiftRL "3"
+-- > windows =<< shiftRLWhen refocusingIsActive "3"
 --
 --   or
 --
--- > (windows <=< shiftRL) "3"
+-- > (windows <=< shiftRLWhen refocusingIsActive) "3"
 --
-shiftRL :: WorkspaceId -> X (WindowSet -> WindowSet)
-shiftRL to = withFocii id $ \fw from -> do
-  f <- refocus from
+--   where '<=<' is imported from "Control.Monad".
+shiftRLWhen :: Query Bool -> WorkspaceId -> X (WindowSet -> WindowSet)
+shiftRLWhen p to = withFocii id $ \fw from -> do
+  f <- refocusWhen p from
   return (f . W.shiftWin to fw)
 
 -- | Perform an update to the 'RecentWins' for the specified workspace.
 --   The RefocusLast log and layout hooks are both implemented trivially in
---   terms of this function.
+--   terms of this function. Only exported to aid extensibility.
 updateRecentsOn :: WorkspaceId -> X ()
 updateRecentsOn tag = withWindowSet $ \ws ->
   whenJust (W.peek $ W.view tag ws) $ \fw -> do
@@ -226,8 +273,8 @@ getRecentsMap = XS.get >>= \(RecentsMap m) -> return m
 -- | Given a default return value, perform an X action dependent on the focused
 --   window and current workspace.
 withFocii :: a -> (Window -> WorkspaceId -> X a) -> X a
-withFocii a f = withWindowSet $ \ws ->
-  maybe (return a) (\w -> f w $ W.currentTag ws) (W.peek ws)
+withFocii dflt f = withWindowSet $ \ws ->
+  maybe (return dflt) (\w -> f w $ W.currentTag ws) (W.peek ws)
 
 -- | Perform an X action dependent on successful lookup of the RecentWins for
 --   the specified workspace, or return a default value.
