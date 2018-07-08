@@ -188,6 +188,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.Grid`
+
+    Fix as per issue #223; Grid will no longer calculate more columns than there
+    are windows.
+
   * XMonad.Hooks.FadeWindows
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
