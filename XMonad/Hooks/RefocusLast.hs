@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, MultiWayIf #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -32,6 +32,7 @@ module XMonad.Hooks.RefocusLast (
   -- * Actions
   toggleRefocusing,
   toggleFocus,
+  swapWithLast,
   refocusWhen,
   shiftRLWhen,
   updateRecentsOn,
@@ -46,7 +47,7 @@ module XMonad.Hooks.RefocusLast (
 import XMonad
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
-import XMonad.Util.Stack (findS)
+import XMonad.Util.Stack (findS, mapZ_)
 import XMonad.Layout.LayoutModifier
 
 import Data.Maybe (fromMaybe)
@@ -84,12 +85,12 @@ import Control.Monad (when)
 -- > --  , layoutHook      = refocusLastLayoutHook   $  layoutHook      def
 -- >     , keys            = refocusLastKeys        <+> keys            def
 -- >     } where
--- >         myPred = refocusingIsActive
--- > --      myPred = refocusingIsActive <||> isFloat
+-- >         myPred = refocusingIsActive <||> isFloat
 -- >         refocusLastKeys cnf
 -- >           = M.fromList
--- >           $ ((modMask cnf, xK_a), toggleRefocusing)
--- >           : ((modMask cnf, xK_b), toggleFocus)
+-- >           $ ((modMask cnf              , xK_a), toggleFocus)
+-- >           : ((modMask cnf .|. shiftMask, xK_a), swapWithLast)
+-- >           : ((modMask cnf              , xK_b), toggleRefocusing)
 -- >           : [ ( (modMask cnf .|. shiftMask, n)
 -- >               , windows =<< shiftRLWhen myPred wksp
 -- >               )
@@ -205,12 +206,21 @@ isFloat = ask >>= \w -> (liftX . gets) (M.member w . W.floating . windowset)
 toggleRefocusing :: X ()
 toggleRefocusing = XS.modify (RefocusLastToggle . not . refocusing)
 
--- | Refocuses the previously focused window; acts as a toggle. Is not affected
---   by @toggleRefocusing@.
+-- | Refocuses the previously focused window; acts as a toggle.
+--   Is not affected by @toggleRefocusing@.
 toggleFocus :: X ()
-toggleFocus = withFocii () $ \_ tag ->
-  withRecentsIn tag () $ \lw cw ->
-    when (cw /= lw) (windows $ tryFocusInCurrent [lw])
+toggleFocus = withRecents $ \lw cw ->
+  when (cw /= lw) . windows $ tryFocus [lw]
+
+-- | Swaps the current and previous windows of the current workspace.
+--   Is not affected by @toggleRefocusing@.
+swapWithLast :: X ()
+swapWithLast = withRecents $ \lw cw ->
+  when (cw /= lw) . windows . modify''. mapZ_ $ \w ->
+    if | (w == lw) -> cw
+       | (w == cw) -> lw
+       | otherwise ->  w
+  where modify'' f = W.modify (f Nothing) (f . Just)
 
 -- | Given a target workspace and a predicate on its current window, produce a
 --   'windows' suitable function that will refocus that workspace appropriately.
@@ -236,9 +246,10 @@ refocusWhen p tag = withRecentsIn tag id $ \lw cw -> do
 --
 --   where '<=<' is imported from "Control.Monad".
 shiftRLWhen :: Query Bool -> WorkspaceId -> X (WindowSet -> WindowSet)
-shiftRLWhen p to = withFocii id $ \fw from -> do
-  f <- refocusWhen p from
-  return (f . W.shiftWin to fw)
+shiftRLWhen p to = withWindowSet $ \ws -> do
+  refocus <- refocusWhen p (W.currentTag ws)
+  let shift = maybe id (W.shiftWin to) (W.peek ws)
+  return (refocus . shift)
 
 -- | Perform an update to the 'RecentWins' for the specified workspace.
 --   The RefocusLast log and layout hooks are both implemented trivially in
@@ -257,30 +268,28 @@ updateRecentsOn tag = withWindowSet $ \ws ->
 -- --< Private Utilities >-- {{{
 
 -- | Focuses the first window in the list it can find on the current workspace.
-tryFocusInCurrent :: [Window] -> WindowSet -> WindowSet
-tryFocusInCurrent wins = W.modify' $ \s ->
+tryFocus :: [Window] -> WindowSet -> WindowSet
+tryFocus wins = W.modify' $ \s ->
   fromMaybe s . asum $ (\w -> findS (== w) s) <$> wins
 
 -- | Operate the above on a specified workspace.
 tryFocusIn :: WorkspaceId -> [Window] -> WindowSet -> WindowSet
 tryFocusIn tag wins ws =
-  W.view (W.currentTag ws) . tryFocusInCurrent wins . W.view tag $ ws
+  W.view (W.currentTag ws) . tryFocus wins . W.view tag $ ws
 
 -- | Get the RecentsMap out of extensible state and remove its newtype wrapper.
 getRecentsMap :: X (M.Map WorkspaceId RecentWins)
 getRecentsMap = XS.get >>= \(RecentsMap m) -> return m
-
--- | Given a default return value, perform an X action dependent on the focused
---   window and current workspace.
-withFocii :: a -> (Window -> WorkspaceId -> X a) -> X a
-withFocii dflt f = withWindowSet $ \ws ->
-  maybe (return dflt) (\w -> f w $ W.currentTag ws) (W.peek ws)
 
 -- | Perform an X action dependent on successful lookup of the RecentWins for
 --   the specified workspace, or return a default value.
 withRecentsIn :: WorkspaceId -> a -> (Window -> Window -> X a) -> X a
 withRecentsIn tag dflt f = M.lookup tag <$> getRecentsMap
                        >>= maybe (return dflt) (\(Recent lw cw) -> f lw cw)
+
+-- | The above specialised to the current workspace and unit.
+withRecents :: (Window -> Window -> X ()) -> X ()
+withRecents f = withWindowSet $ \ws -> withRecentsIn (W.currentTag ws) () f
 
 -- }}}
 
