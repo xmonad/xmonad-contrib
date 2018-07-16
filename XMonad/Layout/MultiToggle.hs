@@ -90,7 +90,8 @@ import Data.Maybe
 -- > instance Transformer MIRROR Window where
 -- >     transform _ x k = k (Mirror x) (\(Mirror x') -> x')
 --
--- Note, you need to put @{-\# LANGUAGE DeriveDataTypeable \#-}@ at the
+-- Note, you need to put @{-\# LANGUAGE DeriveDataTypeable,
+-- TypeSynonymInstances, MultiParamTypeClasses \#-}@ at the
 -- beginning of your file.
 
 -- | A class to identify custom transformers (and look up transforming
