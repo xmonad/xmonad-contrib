@@ -21,7 +21,7 @@ module XMonad.Layout.Spacing
       -- $usage
       Border (..)
     , Spacing (..)
-    , ModifySpacing (..)
+    , SpacingModifier (..)
     , spacingRaw
     , setSmartSpacing
     , setScreenSpacing, setScreenSpacingEnabled
@@ -33,9 +33,12 @@ module XMonad.Layout.Spacing
     , incWindowSpacing, incScreenSpacing
     , decWindowSpacing, decScreenSpacing
     , incScreenWindowSpacing, decScreenWindowSpacing
-    , borderIncrementBy
+    , borderMap, borderIncrementBy
       -- * Backwards Compatibility
       -- $backwardsCompatibility
+    , SpacingWithEdge
+    , SmartSpacing, SmartSpacingWithEdge
+    , ModifySpacing (..)
     , spacing, spacingWithEdge
     , smartSpacing, smartSpacingWithEdge
     , setSpacing, incSpacing
@@ -178,6 +181,9 @@ instance Eq a => LayoutModifier Spacing a where
         = Just $ s { windowBorder = f wb }
         | Just (ModifyWindowBorderEnabled f) <- fromMessage m
         = Just $ s { windowBorderEnabled = f wbe }
+        | Just (ModifySpacing f) <- fromMessage m
+        = Just $ let f' = borderMap (fromIntegral . f . fromIntegral)
+                 in  s { screenBorder = f' sb, windowBorder = f' wb }
         | otherwise
         = Nothing
 
@@ -196,7 +202,7 @@ spacingRaw b sb sbe wb wbe = ModifiedLayout (Spacing b sb sbe wb wbe)
 
 -- | Messages to alter the state of 'Spacing' using the endomorphic function
 -- arguments.
-data ModifySpacing
+data SpacingModifier
     = ModifySmartBorder (Bool -> Bool)
     | ModifyScreenBorder (Border -> Border)
     | ModifyScreenBorderEnabled (Bool -> Bool)
@@ -204,7 +210,7 @@ data ModifySpacing
     | ModifyWindowBorderEnabled (Bool -> Bool)
     deriving (Typeable)
 
-instance Message ModifySpacing
+instance Message SpacingModifier
 
 -- | Set 'smartBorder' to the given 'Bool'.
 setSmartSpacing :: Bool -> X ()
@@ -322,13 +328,30 @@ orderSelect o (lt,eq,gt) = case o of
 -----------------------------------------------------------------------------
 -- Backwards Compatibility:
 -----------------------------------------------------------------------------
+{-# DEPRECATED SpacingWithEdge, SmartSpacing, SmartSpacingWithEdge "Use Spacing instead." #-}
+{-# DEPRECATED ModifySpacing "Use SpacingModifier instead, perhaps with sendMessages." #-}
 {-# DEPRECATED spacing, spacingWithEdge, smartSpacing, smartSpacingWithEdge "Use spacingRaw instead." #-}
 {-# DEPRECATED setSpacing "Use setScreenWindowSpacing instead." #-}
 {-# DEPRECATED incSpacing "Use incScreenWindowSpacing instead." #-}
 
 -- $backwardsCompatibility
--- The following functions exist solely for compatibility with pre-0.14
--- releases.
+-- The following functions and types exist solely for compatibility with
+-- pre-0.14 releases.
+
+-- | A type synonym for the 'Spacing' 'LayoutModifier'.
+type SpacingWithEdge = Spacing
+
+-- | A type synonym for the 'Spacing' 'LayoutModifier'.
+type SmartSpacing = Spacing
+
+-- | A type synonym for the 'Spacing' 'LayoutModifier'.
+type SmartSpacingWithEdge = Spacing
+
+-- | Message to dynamically modify (e.g. increase\/decrease\/set) the size of
+-- the screen spacing and window spacing. See 'SpacingModifier'.
+data ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
+
+instance Message ModifySpacing
 
 -- | Surround all windows by a certain number of pixels of blank space. See
 -- 'spacingRaw'.
