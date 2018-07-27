@@ -253,6 +253,7 @@ library
                         XMonad.Layout.MultiColumns
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.MultiToggle.Instances
+                        XMonad.Layout.MultiToggle.TabBarDecoration
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
                         XMonad.Layout.NoFrillsDecoration

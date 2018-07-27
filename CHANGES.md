@@ -109,6 +109,11 @@
 
 ### New Modules
 
+  * `XMonad.Layout.MultiToggle.TabBarDecoration`
+
+    Provides a simple transformer for use with `XMonad.Layout.MultiToggle` to
+    dynamically toggle `XMonad.Layout.TabBarDecoration`.
+
   * `XMonad.Hooks.RefocusLast`
 
     Provides log and event hooks that keep track of recently focused windows on
