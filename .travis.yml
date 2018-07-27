@@ -38,11 +38,6 @@ matrix:
       addons: { apt: { packages: [cabal-install-1.18, ghc-7.8.4,  libxrandr-dev]
                      , sources:  [hvr-ghc]
                      } }
-    - env: GHCVER=7.6.3  CABALVER=1.16
-      compiler: ": #GHC 7.6.3"
-      addons: { apt: { packages: [cabal-install-1.16, ghc-7.6.3,  libxrandr-dev]
-                     , sources:  [hvr-ghc]
-                     } }
 
 before_install:
  - unset CC
