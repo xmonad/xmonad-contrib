@@ -107,6 +107,30 @@
     wset mst wrs =`" either with "`hiddens amb wset _ mst wrs =`" or to make
     use of the new parameter with "`hiddens amb wset lr mst wrs =`".
 
+  * `XMonad.Actions.MessageFeedback`
+
+    - Follow the naming conventions of `XMonad.Operations`. Functions returning
+      `X ()` are named regularly (previously these ended in underscore) while
+      those returning `X Bool` are suffixed with an uppercase 'B'.
+    - Provide all `X Bool` and `SomeMessage` variations for `sendMessage` and
+      `sendMessageWithNoRefresh`, not just `sendMessageWithNoRefreshToCurrent`
+      (renamed from `send`).
+    - The new `tryInOrderB` and `tryMessageB` functions accept a parameter of
+      type `SomeMessage -> X Bool`, which means you are no longer constrained
+      to the behavior of the `sendMessageWithNoRefreshToCurrent` dispatcher.
+    - The `send*Messages*` family of funtions allows for sequencing arbitrary
+      sets of messages with minimal refresh. It makes little sense for these
+      functions to support custom message dispatchers.
+    - Remain backwards compatible. Maintain deprecated aliases of all renamed
+      functions:
+      - `send`          -> `sendMessageWithNoRefreshToCurrentB`
+      - `sendSM`        -> `sendSomeMessageWithNoRefreshToCurrentB`
+      - `sendSM_`       -> `sendSomeMessageWithNoRefreshToCurrent`
+      - `tryInOrder`    -> `tryInOrderWithNoRefreshToCurrentB`
+      - `tryInOrder_`   -> `tryInOrderWithNoRefreshToCurrent`
+      - `tryMessage`    -> `tryMessageWithNoRefreshToCurrentB`
+      - `tryMessage_`   -> `tryMessageWithNoRefreshToCurrent`
+
 ### New Modules
 
   * `XMonad.Layout.MultiToggle.TabBarDecoration`
@@ -211,10 +235,10 @@
     strategy with fewer quirks for tiled layouts using X.L.Spacing.
 
   * `XMonad.Layout.Fullscreen`
-    
+
     The fullscreen layouts will now not render any window that is totally
     obscured by fullscreen windows.
-    
+
   * `XMonad.Layout.Gaps`
 
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
