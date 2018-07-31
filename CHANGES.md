@@ -1,6 +1,6 @@
 # Change Log / Release Notes
 
-## 0.14 (Not Yet)
+## 0.14
 
 ### Breaking Changes
 
@@ -30,18 +30,6 @@
 
     - Added field `gs_bordercolor` to `GSConfig` to specify border color.
 
-  * `ewmh` function from `X.H.EwmhDesktops` will use `manageHook` for handling
-    activated window. That means, actions, which you don't want to happen on
-    activated windows, should be guarded by
-
-        not <$> activated
-
-    predicate. By default, with empty `ManageHook`, window activation will do
-    nothing.
-
-    Also, you can use regular 'ManageHook' combinators for changing window
-    activation behavior.
-
   * `XMonad.Layout.Minimize`
 
      Though the interface it offers is quite similar, this module has been
@@ -57,7 +45,7 @@
     - `unicodePrompt :: String -> XPConfig -> X ()` now additionally takes a
       filepath to the `UnicodeData.txt` file containing unicode data.
 
-  * `XMonad.Actions.PhysicalScreen`
+  * `XMonad.Actions.PhysicalScreens`
 
     `getScreen`, `viewScreen`, `sendToScreen`, `onNextNeighbour`, `onPrevNeighbour` now need a extra parameter
     of type `ScreenComparator`. This allow the user to specify how he want his screen to be ordered default
@@ -75,7 +63,7 @@
   * `XMonad.Util.WorkspaceCompare`
 
     `getXineramaPhysicalWsCompare` now need a extra argument of type `ScreenComparator` defined in
-    `XMonad.Actions.PhysicalScreen` (see changelog of this module for more information)
+    `XMonad.Actions.PhysicalScreens` (see changelog of this module for more information)
 
   * `XMonad.Hooks.EwmhDesktops`
 
@@ -140,9 +128,9 @@
 
   * `XMonad.Layout.StateFull`
 
-    Provides StateFull: a stateful form of Full that does not misbehave when
-    floats are focused, and the FocusTracking layout transformer by means of
-    which StateFull is implemented. FocusTracking simply holds onto the last
+    Provides `StateFull`: a stateful form of `Full` that does not misbehave when
+    floats are focused, and the `FocusTracking` layout transformer by means of
+    which `StateFull` is implemented. `FocusTracking` simply holds onto the last
     true focus it was given and continues to use it as the focus for the
     transformed layout until it sees another. It can be used to improve the
     behaviour of a child layout that has not been given the focused window.
@@ -151,19 +139,6 @@
 
     Module for tracking master window history per workspace, and associated
     functions for manipulating the stack using such history.
-
-  * `XMonad.Hooks.Focus`
-
-    A new module extending ManageHook EDSL to work on focused windows and
-    current workspace.
-
-    This module will enable window activation (`_NET_ACTIVE_WINDOW`) and apply
-    `manageHook` to activated window too. Thus, it may lead to unexpected
-    results, when `manageHook` previously working only for new windows, start
-    working for activated windows too. It may be solved, by adding
-    `not <$> activated` before those part of `manageHook`, which should not be
-    called for activated windows.  But this lifts `manageHook` into
-    `FocusHook` and it needs to be converted back later using `manageFocus`.
 
   * `XMonad.Actions.CycleWorkspaceByScreen`
 
@@ -176,9 +151,9 @@
 
   * `XMonad.Prompt.FuzzyMatch`
 
-    Provides a predicate 'fuzzyMatch' that is much more lenient in matching
-    completions in XMonad.Prompt than the default prefix match.  Also provides
-    a function 'fuzzySort' that allows sorting the fuzzy matches by "how well"
+    Provides a predicate `fuzzyMatch` that is much more lenient in matching
+    completions in `XMonad.Prompt` than the default prefix match.  Also provides
+    a function `fuzzySort` that allows sorting the fuzzy matches by "how well"
     they match.
 
   * `XMonad.Utils.SessionStart`
@@ -214,17 +189,17 @@
     Fix as per issue #223; Grid will no longer calculate more columns than there
     are windows.
 
-  * XMonad.Hooks.FadeWindows
+  * `XMonad.Hooks.FadeWindows`
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
     Monoids
 
-  * XMonad.Hooks.WallpaperSetter
+  * `XMonad.Hooks.WallpaperSetter`
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
     Monoids
 
-  * XMonad.Hooks.Mosaic
+  * `XMonad.Hooks.Mosaic`
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
     Monoids
@@ -377,7 +352,7 @@
     - Added `updateName` and `removeName` to better control ordering when
       workspace names are changed or workspaces are removed.
 
-  * XMonad.Config.Azerty
+  * `XMonad.Config.Azerty`
 
     * Added `belgianConfig` and `belgianKeys` to support Belgian AZERTY
       keyboards, which are slightly different from the French ones in the top
