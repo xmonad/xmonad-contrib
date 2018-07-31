@@ -45,7 +45,7 @@ import qualified XMonad.StackSet as W
 
 import qualified XMonad.Layout.Groups as G
 
-import XMonad.Actions.MessageFeedback
+import XMonad.Actions.MessageFeedback (sendMessageB)
 
 import Control.Monad (unless)
 import qualified Data.Map as M
@@ -92,7 +92,7 @@ alt :: G.ModifySpec -> (WindowSet -> WindowSet) -> X ()
 alt f g = alt2 (G.Modify f) $ windows g
 
 alt2 :: G.GroupsMessage -> X () -> X ()
-alt2 m x = do b <- send m
+alt2 m x = do b <- sendMessageB m
               unless b x
 
 -- | Swap the focused window with the previous one
