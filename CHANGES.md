@@ -1,5 +1,16 @@
 # Change Log / Release Notes
 
+## unknown
+
+### Breaking Changes
+
+### New Modules
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Actions.MessageHandling`
+    Refresh-performing functions updated to better reflect the new `sendMessage`.
+
 ## 0.14
 
 ### Breaking Changes
