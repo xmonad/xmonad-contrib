@@ -38,7 +38,8 @@ import Control.Monad(mplus)
 import Data.Foldable(Foldable,foldMap, sum)
 import Data.Function(on)
 import Data.List(sortBy)
-import Data.Monoid(Monoid,mempty, mappend)
+import Data.Monoid(Monoid,mempty, mappend, (<>))
+import Data.Semigroup
 
 
 -- $usage
@@ -201,6 +202,9 @@ instance Monoid (Tree a) where
     mappend Empty x = x
     mappend x Empty = x
     mappend x y = Branch x y
+
+instance Semigroup (Tree a) where
+    (<>) = mappend
 
 makeTree ::  (Num a1, Ord a1) => (a -> a1) -> [a] -> Tree a
 makeTree _ [] = Empty

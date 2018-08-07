@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.13
+version:            0.14
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
@@ -36,7 +36,7 @@ cabal-version:      >= 1.6
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0.1
+tested-with: GHC==7.8.4, GHC==7.10.3, GHC==8.0.1, GHC==8.2.2, GHC==8.4.3
 
 source-repository head
   type:     git
@@ -64,9 +64,10 @@ library
                    random,
                    mtl >= 1 && < 3,
                    unix,
-                   X11>=1.6.1 && < 1.9,
-                   xmonad>=0.13   && < 0.14,
-                   utf8-string
+                   X11>=1.6.1 && < 1.10,
+                   xmonad>=0.14   && < 0.15,
+                   utf8-string,
+                   semigroups
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
@@ -129,6 +130,7 @@ library
                         XMonad.Actions.SpawnOn
                         XMonad.Actions.Submap
                         XMonad.Actions.SwapWorkspaces
+                        XMonad.Actions.SwapPromote
                         XMonad.Actions.TagWindows
                         XMonad.Actions.TopicSpace
                         XMonad.Actions.TreeSelect
@@ -194,6 +196,7 @@ library
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
                         XMonad.Layout.AvoidFloats
+                        XMonad.Layout.BinaryColumn
                         XMonad.Layout.BinarySpacePartition
                         XMonad.Layout.BorderResize
                         XMonad.Layout.BoringWindows
@@ -208,6 +211,7 @@ library
                         XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
+                        XMonad.Layout.MultiDishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.Drawer
@@ -249,6 +253,7 @@ library
                         XMonad.Layout.MultiColumns
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.MultiToggle.Instances
+                        XMonad.Layout.MultiToggle.TabBarDecoration
                         XMonad.Layout.Named
                         XMonad.Layout.NoBorders
                         XMonad.Layout.NoFrillsDecoration
@@ -272,6 +277,7 @@ library
                         XMonad.Layout.Spiral
                         XMonad.Layout.Square
                         XMonad.Layout.StackTile
+                        XMonad.Layout.StateFull
                         XMonad.Layout.Stoppable
                         XMonad.Layout.SubLayouts
                         XMonad.Layout.TabBarDecoration
@@ -292,6 +298,7 @@ library
                         XMonad.Prompt.DirExec
                         XMonad.Prompt.Directory
                         XMonad.Prompt.Email
+                        XMonad.Prompt.FuzzyMatch
                         XMonad.Prompt.Input
                         XMonad.Prompt.Layout
                         XMonad.Prompt.Man
@@ -323,6 +330,7 @@ library
                         XMonad.Util.NoTaskbar
                         XMonad.Util.Paste
                         XMonad.Util.PositionStore
+                        XMonad.Util.Rectangle
                         XMonad.Util.RemoteWindows
                         XMonad.Util.Replace
                         XMonad.Util.Run

@@ -23,6 +23,7 @@ module XMonad.Prompt.AppendFile (
                                  -- $usage
 
                                  appendFilePrompt,
+                                 appendFilePrompt',
                                  AppendFile,
                                 ) where
 
@@ -55,6 +56,17 @@ import Control.Exception.Extensible (bracket)
 --
 -- (Put the spawn on the line after the prompt to append the time instead.)
 --
+-- 'appendFilePrompt'' can be used to transform the string input in the prompt
+-- before saving into the file. Previous example with date can be rewritten as:
+--
+-- > ,  ((modm .|. controlMask, xK_n), do
+-- >            date <- io $ liftM (formatTime defaultTimeLocale "[%Y-%m-%d %H:%M] ") getZonedTime
+-- >            appendFilePrompt' def (date ++) $ "/home/me/NOTES"
+-- >        )
+--
+-- A benefit is that if the prompt is cancelled the date is not output to
+-- the file too.
+--
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
@@ -66,11 +78,17 @@ instance XPrompt AppendFile where
 -- | Given an XPrompt configuration and a file path, prompt the user
 --   for a line of text, and append it to the given file.
 appendFilePrompt :: XPConfig -> FilePath -> X ()
-appendFilePrompt c fn = mkXPrompt (AppendFile fn)
+appendFilePrompt c fn = appendFilePrompt' c id fn
+
+-- | Given an XPrompt configuration, string transformation function
+--   and a file path, prompt the user for a line of text, transform it
+--   and append the result to the given file.
+appendFilePrompt' :: XPConfig -> (String -> String) -> FilePath -> X ()
+appendFilePrompt' c trans fn = mkXPrompt (AppendFile fn)
                                   c
                                   (const (return []))
-                                  (doAppend fn)
+                                  (doAppend trans fn)
 
 -- | Append a string to a file.
-doAppend :: FilePath -> String -> X ()
-doAppend fn = io . bracket (openFile fn AppendMode) hClose . flip hPutStrLn
+doAppend :: (String -> String) -> FilePath -> String -> X ()
+doAppend trans fn = io . bracket (openFile fn AppendMode) hClose . flip hPutStrLn . trans

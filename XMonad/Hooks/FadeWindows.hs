@@ -61,7 +61,8 @@ import           Control.Monad.Reader                    (ask
                                                          ,asks)
 import           Control.Monad.State                     (gets)
 import qualified Data.Map                    as M
-import           Data.Monoid
+import           Data.Monoid                      hiding ((<>))
+import           Data.Semigroup
 
 import           Graphics.X11.Xlib.Extras                (Event(..))
 
@@ -133,6 +134,9 @@ instance Monoid Opacity where
   mempty                  = OEmpty
   r      `mappend` OEmpty = r
   _      `mappend` r      = r
+
+instance Semigroup Opacity where
+  (<>) = mappend
 
 -- | A FadeHook is similar to a ManageHook, but records window opacity.
 type FadeHook = Query Opacity

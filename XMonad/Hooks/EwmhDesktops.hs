@@ -25,6 +25,7 @@ module XMonad.Hooks.EwmhDesktops (
     ) where
 
 import Codec.Binary.UTF8.String (encode)
+import Control.Applicative((<$>))
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -87,28 +88,18 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
     setClientList wins
 
-    -- Current desktop
-    case (elemIndex (W.currentTag s) $ map W.tag ws) of
-      Nothing -> return ()
-      Just curr -> do
-        setCurrentDesktop curr
+    -- Remap the current workspace to handle any renames that f might be doing.
+    let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
+        maybeCurrent  = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
 
-        -- Per window Desktop
-        -- To make gnome-panel accept our xinerama stuff, we display
-        -- all visible windows on the current desktop.
-        forM_ (W.current s : W.visible s) $ \x ->
-            forM_ (W.integrate' (W.stack (W.workspace x))) $ \win -> do
-                setWindowDesktop win curr
+    fromMaybe (return ()) $ setCurrentDesktop <$> maybeCurrent
 
-    forM_ (W.hidden s) $ \w ->
-        case elemIndex (W.tag w) (map W.tag ws) of
-          Nothing -> return ()
-          Just wn -> forM_ (W.integrate' (W.stack w)) $ \win -> do
-                         setWindowDesktop win wn
+    sequence_ $ zipWith setWorkspaceWindowDesktops [0..] ws
 
     setActiveWindow
 
     return ()
+
 
 -- |
 -- Intercepts messages from pagers and similar applications and reacts on them.
@@ -229,6 +220,10 @@ setClientList wins = withDisplay $ \dpy -> do
     io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral wins)
     a' <- getAtom "_NET_CLIENT_LIST_STACKING"
     io $ changeProperty32 dpy r a' c propModeReplace (fmap fromIntegral wins)
+
+setWorkspaceWindowDesktops :: (Integral a) => a -> WindowSpace -> X()
+setWorkspaceWindowDesktops index workspace =
+  mapM_ (flip setWindowDesktop index) (W.integrate' $ W.stack workspace)
 
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do

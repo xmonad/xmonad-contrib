@@ -41,7 +41,8 @@ import Data.Ord (comparing)
 import Control.Monad
 import Control.Applicative
 import Data.Maybe
-import Data.Monoid
+import Data.Monoid hiding ((<>))
+import Data.Semigroup
 
 -- $usage
 -- This module requires imagemagick and feh to be installed, as these are utilized
@@ -85,6 +86,9 @@ instance Monoid WallpaperList where
   mempty = WallpaperList []
   mappend (WallpaperList w1) (WallpaperList w2) =
     WallpaperList $ M.toList $ (M.fromList w2) `M.union` (M.fromList w1)
+
+instance Semigroup WallpaperList where
+  (<>) = mappend
 
 -- | Complete wallpaper configuration passed to the hook
 data WallpaperConf = WallpaperConf {
