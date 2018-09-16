@@ -28,16 +28,16 @@ matrix:
       addons: { apt: { packages: [cabal-install-1.24, ghc-8.0.1,  libxrandr-dev]
                      , sources:  [hvr-ghc]
                      } }
-    - env: GHCVER=7.10.3 CABALVER=1.22
-      compiler: ": #GHC 7.10.3"
-      addons: { apt: { packages: [cabal-install-1.22, ghc-7.10.3, libxrandr-dev]
-                     , sources:  [hvr-ghc]
-                     } }
-    - env: GHCVER=7.8.4  CABALVER=1.18
-      compiler: ": #GHC 7.8.4"
-      addons: { apt: { packages: [cabal-install-1.18, ghc-7.8.4,  libxrandr-dev]
-                     , sources:  [hvr-ghc]
-                     } }
+#   - env: GHCVER=7.10.3 CABALVER=1.22
+#     compiler: ": #GHC 7.10.3"
+#     addons: { apt: { packages: [cabal-install-1.22, ghc-7.10.3, libxrandr-dev]
+#                    , sources:  [hvr-ghc]
+#                    } }
+#   - env: GHCVER=7.8.4  CABALVER=1.18
+#     compiler: ": #GHC 7.8.4"
+#     addons: { apt: { packages: [cabal-install-1.18, ghc-7.8.4,  libxrandr-dev]
+#                    , sources:  [hvr-ghc]
+#                    } }
 
 before_install:
  - unset CC
