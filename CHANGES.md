@@ -1,5 +1,22 @@
 # Change Log / Release Notes
 
+## unknown
+
+### Breaking Changes
+
+  * `XMonad.Layout.Groups` & `XMonad.Layout.Groups.Helpers`
+    The layout will no longer perform refreshes inside of its message handling.
+    If you have been relying on it to in your xmonad.hs, you will need to start
+    sending its messages in a manner that properly handles refreshing, e.g. with
+    `sendMessage`.
+
+### New Modules
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Actions.MessageHandling`
+    Refresh-performing functions updated to better reflect the new `sendMessage`.
+
 ## 0.14
 
 ### Breaking Changes
