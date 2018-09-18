@@ -27,6 +27,7 @@ module XMonad.Util.ExtensibleState (
 import Data.Typeable (typeOf,cast)
 import qualified Data.Map as M
 import XMonad.Core
+import XMonad.Util.PureX
 import qualified Control.Monad.State as State
 import Data.Maybe (fromMaybe)
 
@@ -75,27 +76,29 @@ import Data.Maybe (fromMaybe)
 --
 
 -- | Modify the map of state extensions by applying the given function.
-modifyStateExts :: (M.Map String (Either String StateExtension)
-                   -> M.Map String (Either String StateExtension))
-                -> X ()
+modifyStateExts
+  :: XLike m
+  => (M.Map String (Either String StateExtension)
+  -> M.Map String (Either String StateExtension))
+  -> m ()
 modifyStateExts f = State.modify $ \st -> st { extensibleState = f (extensibleState st) }
 
 -- | Apply a function to a stored value of the matching type or the initial value if there
 -- is none.
-modify :: ExtensionClass a => (a -> a) -> X ()
+modify :: (ExtensionClass a, XLike m) => (a -> a) -> m ()
 modify f = put . f =<< get
 
 -- | Add a value to the extensible state field. A previously stored value with the same
 -- type will be overwritten. (More precisely: A value whose string representation of its type
 -- is equal to the new one's)
-put :: ExtensionClass a => a -> X ()
+put :: (ExtensionClass a, XLike m) => a -> m ()
 put v = modifyStateExts . M.insert (show . typeOf $ v) . Right . extensionType $ v
 
 -- | Try to retrieve a value of the requested type, return an initial value if there is no such value.
-get :: ExtensionClass a => X a
+get :: (ExtensionClass a, XLike m) => m a
 get = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
   where toValue val = maybe initialValue id $ cast val
-        getState' :: ExtensionClass a => a -> X a
+        getState' :: (ExtensionClass a, XLike m) => a -> m a
         getState' k = do
           v <- State.gets $ M.lookup (show . typeOf $ k) . extensibleState
           case v of
@@ -110,14 +113,14 @@ get = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
                          [(x,"")] -> Just x
                          _ -> Nothing
 
-gets :: ExtensionClass a => (a -> b) -> X b
+gets :: (ExtensionClass a, XLike m) => (a -> b) -> m b
 gets = flip fmap get
 
 -- | Remove the value from the extensible state field that has the same type as the supplied argument
-remove :: ExtensionClass a => a -> X ()
+remove :: (ExtensionClass a, XLike m) => a -> m ()
 remove wit = modifyStateExts $ M.delete (show . typeOf $ wit)
 
-modified :: (ExtensionClass a, Eq a) => (a -> a) -> X Bool
+modified :: (ExtensionClass a, Eq a, XLike m) => (a -> a) -> m Bool
 modified f = do
     v <- get
     case f v of
