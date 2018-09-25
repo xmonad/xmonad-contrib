@@ -12,6 +12,23 @@
 
 ### New Modules
 
+  * `XMonad.Util.Purex`
+
+    Unlike the opaque `IO` actions that `X` actions can wrap, regular reads from
+    the `XConf` and modifications to the `XState` are fundamentally pure --
+    contrary to the current treatment of such actions in most xmonad code. Pure
+    modifications to the `WindowSet` can be readily composed, but due to the
+    need for those modifications to be properly handled by `windows`, other pure
+    changes to the `XState` cannot be interleaved with those changes to the
+    `WindowSet` without superfluous refreshes, hence breaking composability.
+
+    This module aims to rectify that situation by drawing attention to it and
+    providing `PureX`: a pure type with the same monadic interface to state as
+    `X`. The `XLike` typeclass enables writing actions generic over the two
+    monads; if pure, existing `X` actions can be generalised with only a change
+    to the type signature. Various other utilities are provided, in particular
+    the `defile` function which is needed by end-users.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.MessageHandling`
