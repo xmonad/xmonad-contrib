@@ -55,8 +55,8 @@ import Data.List
 -- > import XMonad.Prompt.FuzzyMatch
 -- >
 -- > myXPConfig = def { searchPredicate = fuzzyMatch
---                    , sorter          = fuzzySort
---                    }
+-- >                  , sorter          = fuzzySort
+-- >                  }
 -- 
 -- then add this to your keys definition:
 --
