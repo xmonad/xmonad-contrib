@@ -696,30 +696,31 @@ dumpList'' m ((l,p,t):ps) sep = do
 dumpString :: Decoder Bool
 dumpString =  do
   fmt <- asks pType
-  [cOMPOUND_TEXT,uTF8_STRING] <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
-  case () of
-    () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
-       | fmt == sTRING        -> guardSize  8 $ do
-                                   vs <- gets value
-                                   modify (\r -> r {value = []})
-                                   let ss = flip unfoldr (map twiddle vs) $
-                                            \s -> if null s
-                                                  then Nothing
-                                                  else let (w,s'') = break (== '\NUL') s
-                                                           s'      = if null s''
-                                                                     then s''
-                                                                     else tail s''
-                                                        in Just (w,s')
-                                   case ss of
-                                     [s] -> append $ show s
-                                     ss' -> let go (s:ss'') c = append c        >>
-                                                                append (show s) >>
-                                                                go ss'' ","
-                                                go []       _ = append "]"
-                                             in append "[" >> go ss' ""
-       | fmt == uTF8_STRING   -> dumpUTF -- duplicate type test instead of code :)
-       | otherwise            -> (inX $ atomName fmt) >>=
-                                 failure . ("unrecognized string type " ++)
+  x <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
+  case x of
+    [cOMPOUND_TEXT,uTF8_STRING] -> case () of
+      () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
+         | fmt == sTRING        -> guardSize  8 $ do
+                                     vs <- gets value
+                                     modify (\r -> r {value = []})
+                                     let ss = flip unfoldr (map twiddle vs) $
+                                              \s -> if null s
+                                                    then Nothing
+                                                    else let (w,s'') = break (== '\NUL') s
+                                                             s'      = if null s''
+                                                                       then s''
+                                                                       else tail s''
+                                                          in Just (w,s')
+                                     case ss of
+                                       [s] -> append $ show s
+                                       ss' -> let go (s:ss'') c = append c        >>
+                                                                  append (show s) >>
+                                                                  go ss'' ","
+                                                  go []       _ = append "]"
+                                               in append "[" >> go ss' ""
+         | fmt == uTF8_STRING   -> dumpUTF -- duplicate type test instead of code :)
+         | otherwise            -> (inX $ atomName fmt) >>=
+                                   failure . ("unrecognized string type " ++)
 
 -- show who owns a selection
 dumpSelection :: Decoder Bool
