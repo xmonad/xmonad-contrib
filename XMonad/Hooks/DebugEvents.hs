@@ -1178,20 +1178,23 @@ getInt w f =  getInt' w >>= maybe (return False) (append . f)
 -- @@@@@@@@@ evil beyond evil.  there *has* to be a better way
 inhale    :: Int -> Decoder Integer
 inhale  8 =  do
-               [b] <- eat 1
-               return $ fromIntegral b
+               x <- eat 1
+               case x of
+                 [b] -> return $ fromIntegral b
 inhale 16 =  do
-               [b0,b1] <- eat 2
-               io $ allocaArray 2 $ \p -> do
-                 pokeArray p [b0,b1]
-                 [v] <- peekArray 1 (castPtr p :: Ptr Word16)
-                 return $ fromIntegral v
+               x <- eat 2
+               case x of
+                 [b0,b1] -> io $ allocaArray 2 $ \p -> do
+                              pokeArray p [b0,b1]
+                              [v] <- peekArray 1 (castPtr p :: Ptr Word16)
+                              return $ fromIntegral v
 inhale 32 =  do
-               [b0,b1,b2,b3] <- eat 4
-               io $ allocaArray 4 $ \p -> do
-                 pokeArray p [b0,b1,b2,b3]
-                 [v] <- peekArray 1 (castPtr p :: Ptr Word32)
-                 return $ fromIntegral v
+               x <- eat 4
+               case x of
+                 [b0,b1,b2,b3] -> io $ allocaArray 4 $ \p -> do
+                                    pokeArray p [b0,b1,b2,b3]
+                                    [v] <- peekArray 1 (castPtr p :: Ptr Word32)
+                                    return $ fromIntegral v
 inhale  b =  error $ "inhale " ++ show b
 
 eat   :: Int -> Decoder Raw
