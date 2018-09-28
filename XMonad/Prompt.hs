@@ -1215,7 +1215,7 @@ historyCompletion = historyCompletionP (const True)
 -- name satisfies the given predicate.
 historyCompletionP :: (String -> Bool) -> ComplFunction
 historyCompletionP p x = fmap (toComplList . M.filterWithKey (const . p)) readHistory
-    where toComplList = deleteConsecutive . filter (isInfixOf x) . M.fold (++) []
+    where toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.
