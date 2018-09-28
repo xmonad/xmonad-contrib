@@ -34,6 +34,7 @@ import           Control.Exception.Extensible         as E
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Data.Char                                   (isDigit)
+import           Data.Maybe                                  (fromJust)
 import           Data.List                                   (genericIndex
                                                              ,genericLength
                                                              ,unfoldr
@@ -918,7 +919,7 @@ dumpExcept xs item = do
     let w = (length (value sp) - length vs) * 8
     -- now we get to reparse again so we get our copy of it
     put sp
-    Just v <- getInt' w
+    v <- fmap fromJust (getInt' w)
     -- and after all that, we can process the exception list
     dumpExcept' xs that v
 
