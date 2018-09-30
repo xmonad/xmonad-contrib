@@ -2,6 +2,8 @@
 
 ## unknown
 
+## 0.15
+
 ### Breaking Changes
 
   * `XMonad.Layout.Groups` & `XMonad.Layout.Groups.Helpers`
@@ -30,6 +32,8 @@
     the `defile` function which is needed by end-users.
 
 ### Bug Fixes and Minor Changes
+
+  * Add support for GHC 8.6.1.
 
   * `XMonad.Actions.MessageHandling`
     Refresh-performing functions updated to better reflect the new `sendMessage`.
