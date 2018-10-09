@@ -61,8 +61,8 @@ import XMonad.Util.Stack
 import Data.Maybe (isJust, isNothing, fromMaybe, catMaybes, fromJust)
 import Data.List ((\\))
 import Control.Arrow ((>>>))
-import Control.Applicative ((<$>))
-import Control.Monad (forM)
+import Control.Applicative ((<$>),(<|>),(<$))
+import Control.Monad (forM,void)
 
 -- $usage
 -- This module provides a layout combinator that allows you
@@ -311,12 +311,12 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
               Just (ToGroup i sm') -> do mg's <- handleOnIndex i sm' z
                                          return $ maybeMakeNew l Nothing mg's
               Just (Modify spec) -> case applySpec spec l of
-                                      Just l' -> refocus l' >> return (Just l')
-                                      Nothing -> return $ Just l
-              Just (ModifyX spec) -> applySpecX spec l >>= \case
-                                      Just l' -> refocus l' >> return (Just l')
-                                      Nothing -> return $ Just l
-              Just Refocus -> refocus l >> return (Just l)
+                                      Just l' -> refocus l'
+                                      Nothing -> return Nothing
+              Just (ModifyX spec) -> do ml' <- applySpecX spec l
+                                        whenJust ml' (void . refocus)
+                                        return (ml' <|> Just l)
+              Just Refocus -> refocus l
               Just _ -> return Nothing
               Nothing -> handleMessage l $ SomeMessage (ToFocused sm)
             where handleOnFocused sm z = mapZM step $ Just z
@@ -343,10 +343,10 @@ maybeMakeNew :: Groups l l2 a -> Maybe (l2 (Group l a)) -> [Maybe (WithID l a)]
 maybeMakeNew _ Nothing ml's | all isNothing ml's = Nothing
 maybeMakeNew g mpart' ml's = justMakeNew g mpart' ml's
 
-refocus :: Groups l l2 Window -> X ()
-refocus g = case getFocusZ $ gZipper $ W.focus $ groups g
-            of Just w -> focus w
-               Nothing -> return ()
+refocus :: Groups l l2 Window -> X (Maybe (Groups l l2 Window))
+refocus g =
+  let mw = (getFocusZ . gZipper . W.focus . groups) g
+  in  g <$ mw <$ whenJust mw (modifyWindowSet . W.focusWindow)
 
 -- ** ModifySpec type
 

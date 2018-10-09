@@ -52,10 +52,10 @@ module XMonad.Actions.MessageFeedback
 import XMonad               ( Window )
 import XMonad.Core          ( X(), Message, SomeMessage(..), LayoutClass(..), windowset, catchX, WorkspaceId, Layout, whenJust )
 import XMonad.StackSet      ( Workspace, current, workspace, layout, tag )
-import XMonad.Operations    ( updateLayout, refresh, windows )
+import XMonad.Operations    ( updateLayout, windowBracket, modifyWindowSet )
 
 import Data.Maybe           ( isJust )
-import Control.Monad        ( when, void )
+import Control.Monad        ( void )
 import Control.Monad.State  ( gets )
 import Control.Applicative  ( (<$>), liftA2 )
 
@@ -107,11 +107,11 @@ import Control.Applicative  ( (<$>), liftA2 )
 -- for efficiency this is pretty much an exact copy of the
 -- 'XMonad.Operations.sendMessage' code - foregoes the O(n) 'updateLayout'.
 sendSomeMessageB :: SomeMessage -> X Bool
-sendSomeMessageB m = do
+sendSomeMessageB m = windowBracket id $ do
     w  <- workspace . current <$> gets windowset
     ml <- handleMessage (layout w) m `catchX` return Nothing
     whenJust ml $ \l ->
-        windows $ \ws -> ws { current = (current ws)
+        modifyWindowSet $ \ws -> ws { current = (current ws)
                                 { workspace = (workspace $ current ws)
                                     { layout = l }}}
     return $ isJust ml
@@ -178,9 +178,9 @@ sendMessageWithNoRefreshToCurrent = void . sendMessageWithNoRefreshToCurrentB
 -- that would have otherwise used 'XMonad.Operations.sendMessage' while
 -- minimizing refreshes, use this.
 sendSomeMessagesB :: [SomeMessage] -> X [Bool]
-sendSomeMessagesB m
-    =   mapM sendSomeMessageWithNoRefreshToCurrentB m
-    >>= liftA2 (>>) (flip when refresh . or) return
+sendSomeMessagesB
+    = windowBracket or
+    . mapM sendSomeMessageWithNoRefreshToCurrentB
 
 -- | Variant of 'sendSomeMessagesB' that discards the results.
 sendSomeMessages :: [SomeMessage] -> X ()
