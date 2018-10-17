@@ -2,6 +2,17 @@
 
 ## unknown
 
+### Breaking Changes
+
+### New Modules
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Prompt`
+
+    Added `sorter` to `XPConfig` used to sort the possible completions by how
+    well they match the search string (example: `XMonad.Prompt.FuzzyMatch`).
+
 ## 0.15
 
 ### Breaking Changes
@@ -37,12 +48,6 @@
 
   * `XMonad.Actions.MessageHandling`
     Refresh-performing functions updated to better reflect the new `sendMessage`.
-
-  * `XMonad.Prompt`
-
-	Added `sorter` to `XPConfig` used to sort the possible completions by how
-	well they match the search string (example: `XMonad.Prompt.FuzzyMatch`).
-
 
 ## 0.14
 
