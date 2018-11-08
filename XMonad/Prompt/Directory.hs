@@ -21,6 +21,8 @@ module XMonad.Prompt.Directory (
                              Dir
                               ) where
 
+import Data.List ( sort )
+
 import XMonad
 import XMonad.Prompt
 import XMonad.Prompt.Shell ( compgenDirectories )
@@ -55,7 +57,7 @@ directoryMultipleModes' :: ComplCaseSensitivity -- ^ Completion case sensitivity
 directoryMultipleModes' csn p f = XPT (Dir p csn f)
 
 getDirCompl :: ComplCaseSensitivity -> String -> IO [String]
-getDirCompl csn s = filter notboring . lines <$> compgenDirectories csn s
+getDirCompl csn s = sort . filter notboring . lines <$> compgenDirectories csn s
 
 notboring :: String -> Bool
 notboring ('.':'.':_) = True
