@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.Tabbed
+module Tabbed
     ( -- * Usage:
       -- $usage
       simpleTabbed, tabbed, addTabs
@@ -226,8 +226,12 @@ instance Eq a => DecorationStyle TabbedDecoration a where
               ny = n y hh
               upperTab = Rectangle nx  y wid (fi ht)
               lowerTab = Rectangle nx (y + fi (hh - ht)) wid (fi ht)
-              leftTab = Rectangle x ny (fi wt) hid
-              rightTab = Rectangle (x + fi (wh - wt)) ny (fi wt) hid
+              fixHeightLoc i = y + fi (((fi ht) * fi i)) 
+              fixHeightTab k = Rectangle k
+                (maybe y (fixHeightLoc)
+                 $ w `elemIndex` ws) (fi wt) (fi ht)
+              rightTab = fixHeightTab (x + fi (wh - wt))
+              leftTab = fixHeightTab x
               numWindows = length ws
     shrink (Tabbed loc _ ) (Rectangle _ _ dw dh) (Rectangle x y w h)
         = case loc of
