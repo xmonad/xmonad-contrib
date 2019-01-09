@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Tabbed
+module XMonad.Layout.Tabbed
     ( -- * Usage:
       -- $usage
       simpleTabbed, tabbed, addTabs
