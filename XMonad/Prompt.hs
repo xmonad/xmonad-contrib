@@ -156,6 +156,10 @@ data XPConfig =
         , searchPredicate   :: String -> String -> Bool
                                           -- ^ Given the typed string and a possible
                                           --   completion, is the completion valid?
+        , sorter            :: String -> [String] -> [String]
+                                          -- ^ Used to sort the possible completions by how well they
+                                          --   match the search string (see X.P.FuzzyMatch for an
+                                          --   example).
         }
 
 data XPType = forall p . XPrompt p => XPT p
@@ -268,6 +272,7 @@ instance Default XPConfig where
         , showCompletionOnTab = False
         , searchPredicate   = isPrefixOf
         , alwaysHighlight   = False
+        , sorter            = const id
         }
 {-# DEPRECATED defaultXPConfig "Use def (from Data.Default, and re-exported from XMonad.Prompt) instead." #-}
 defaultXPConfig = def
@@ -956,8 +961,10 @@ getCompletionFunction st = case operationMode st of
 getCompletions :: XP [String]
 getCompletions = do
   s <- get
-  io $ getCompletionFunction s (commandToComplete (currentXPMode s) (command s))
-       `E.catch` \(SomeException _) -> return []
+  let q     = commandToComplete (currentXPMode s) (command s)
+      compl = getCompletionFunction s
+      srt   = sorter (config s)
+  io $ (srt q <$> compl q) `E.catch` \(SomeException _) -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
 setComplWin w wi =
@@ -1215,7 +1222,7 @@ historyCompletion = historyCompletionP (const True)
 -- name satisfies the given predicate.
 historyCompletionP :: (String -> Bool) -> ComplFunction
 historyCompletionP p x = fmap (toComplList . M.filterWithKey (const . p)) readHistory
-    where toComplList = deleteConsecutive . filter (isInfixOf x) . M.fold (++) []
+    where toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.

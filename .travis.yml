@@ -1,7 +1,6 @@
 # This file has been generated -- see https://github.com/hvr/multi-ghc-travis
 language: c
 sudo: false
-dist: precise
 
 cache:
   directories:
@@ -14,27 +13,32 @@ before_cache:
 
 matrix:
   include:
-    - env: CABALVER=1.16 GHCVER=7.6.3
-      compiler: ": #GHC 7.6.3"
-      addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3], sources: [hvr-ghc]}}
-    - env: CABALVER=1.18 GHCVER=7.8.4
-      compiler: ": #GHC 7.8.4"
-      addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: CABALVER=1.22 GHCVER=7.10.3
-      compiler: ": #GHC 7.10.3"
-      addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
-    - env: CABALVER=1.24 GHCVER=8.0.1
+    - env: GHCVER=8.6.1  CABALVER=2.4
+      compiler: ": #GHC 8.6.1"
+      addons: { apt: { packages: [cabal-install-2.4,  ghc-8.6.1,  libxrandr-dev]
+                     , sources:  [hvr-ghc]
+                     } }
+    - env: GHCVER=8.4.3  CABALVER=2.2
+      compiler: ": #GHC 8.4.3"
+      addons: { apt: { packages: [cabal-install-2.2,  ghc-8.4.3,  libxrandr-dev]
+                     , sources:  [hvr-ghc]
+                     } }
+    - env: GHCVER=8.2.2  CABALVER=2.0
+      compiler: ": #GHC 8.2.2"
+      addons: { apt: { packages: [cabal-install-2.0,  ghc-8.2.2,  libxrandr-dev]
+                     , sources:  [hvr-ghc]
+                     } }
+    - env: GHCVER=8.0.1  CABALVER=1.24
       compiler: ": #GHC 8.0.1"
-      addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1], sources: [hvr-ghc]}}
+      addons: { apt: { packages: [cabal-install-1.24, ghc-8.0.1,  libxrandr-dev]
+                     , sources:  [hvr-ghc]
+                     } }
 
 before_install:
  - unset CC
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
 
 install:
- # build xmonad from HEAD
- - git clone https://github.com/xmonad/xmonad.git
-
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
  - if [ -f $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz ];
@@ -43,6 +47,11 @@ install:
           $HOME/.cabal/packages/hackage.haskell.org/00-index.tar;
    fi
  - travis_retry cabal update -v
+
+ # build xmonad from HEAD
+ - git clone https://github.com/xmonad/xmonad.git
+ - cabal install xmonad/
+
  - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
  - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt
  - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt
@@ -58,8 +67,8 @@ install:
      echo "cabal build-cache MISS";
      rm -rf $HOME/.cabsnap;
      mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-     cabal install --only-dependencies --enable-tests --enable-benchmarks;
    fi
+ - cabal install --only-dependencies --enable-tests --enable-benchmarks;
 
 # snapshot package-db on cache miss
  - if [ ! -d $HOME/.cabsnap ];
@@ -69,8 +78,6 @@ install:
       cp -a $HOME/.ghc $HOME/.cabsnap/ghc;
       cp -a $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin installplan.txt $HOME/.cabsnap/;
    fi
-
- - cabal install xmonad/
 
 # Here starts the actual work to be performed for the package under test;
 # any command which exits with a non-zero exit code causes the build to fail.

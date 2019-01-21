@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.SwapPromote
@@ -63,6 +65,7 @@ import qualified Data.Set                       as S
 import           Data.List
 import           Data.Maybe
 import           Control.Arrow
+import           Control.Applicative ((<$>),(<*>))
 import           Control.Monad
 
 

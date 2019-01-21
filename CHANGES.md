@@ -1,6 +1,63 @@
 # Change Log / Release Notes
 
-## 0.14 (Not Yet)
+## unknown
+
+### Breaking Changes
+
+### New Modules
+
+  * `XMonad.Layout.TwoPanePersistent`
+
+    A layout that is like TwoPane but keeps track of the slave window that is
+    currently beside the master. In TwoPane, the default behavior when the master
+    is focused is to display the next window in the stack on the slave pane. This
+    is a problem when a different slave window is selected without changing the stack
+    order.
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Prompt`
+
+    Added `sorter` to `XPConfig` used to sort the possible completions by how
+    well they match the search string (example: `XMonad.Prompt.FuzzyMatch`).
+
+## 0.15
+
+### Breaking Changes
+
+  * `XMonad.Layout.Groups` & `XMonad.Layout.Groups.Helpers`
+    The layout will no longer perform refreshes inside of its message handling.
+    If you have been relying on it to in your xmonad.hs, you will need to start
+    sending its messages in a manner that properly handles refreshing, e.g. with
+    `sendMessage`.
+
+### New Modules
+
+  * `XMonad.Util.Purex`
+
+    Unlike the opaque `IO` actions that `X` actions can wrap, regular reads from
+    the `XConf` and modifications to the `XState` are fundamentally pure --
+    contrary to the current treatment of such actions in most xmonad code. Pure
+    modifications to the `WindowSet` can be readily composed, but due to the
+    need for those modifications to be properly handled by `windows`, other pure
+    changes to the `XState` cannot be interleaved with those changes to the
+    `WindowSet` without superfluous refreshes, hence breaking composability.
+
+    This module aims to rectify that situation by drawing attention to it and
+    providing `PureX`: a pure type with the same monadic interface to state as
+    `X`. The `XLike` typeclass enables writing actions generic over the two
+    monads; if pure, existing `X` actions can be generalised with only a change
+    to the type signature. Various other utilities are provided, in particular
+    the `defile` function which is needed by end-users.
+
+### Bug Fixes and Minor Changes
+
+  * Add support for GHC 8.6.1.
+
+  * `XMonad.Actions.MessageHandling`
+    Refresh-performing functions updated to better reflect the new `sendMessage`.
+
+## 0.14
 
 ### Breaking Changes
 
@@ -30,18 +87,6 @@
 
     - Added field `gs_bordercolor` to `GSConfig` to specify border color.
 
-  * `ewmh` function from `X.H.EwmhDesktops` will use `manageHook` for handling
-    activated window. That means, actions, which you don't want to happen on
-    activated windows, should be guarded by
-
-        not <$> activated
-
-    predicate. By default, with empty `ManageHook`, window activation will do
-    nothing.
-
-    Also, you can use regular 'ManageHook' combinators for changing window
-    activation behavior.
-
   * `XMonad.Layout.Minimize`
 
      Though the interface it offers is quite similar, this module has been
@@ -57,7 +102,7 @@
     - `unicodePrompt :: String -> XPConfig -> X ()` now additionally takes a
       filepath to the `UnicodeData.txt` file containing unicode data.
 
-  * `XMonad.Actions.PhysicalScreen`
+  * `XMonad.Actions.PhysicalScreens`
 
     `getScreen`, `viewScreen`, `sendToScreen`, `onNextNeighbour`, `onPrevNeighbour` now need a extra parameter
     of type `ScreenComparator`. This allow the user to specify how he want his screen to be ordered default
@@ -75,7 +120,7 @@
   * `XMonad.Util.WorkspaceCompare`
 
     `getXineramaPhysicalWsCompare` now need a extra argument of type `ScreenComparator` defined in
-    `XMonad.Actions.PhysicalScreen` (see changelog of this module for more information)
+    `XMonad.Actions.PhysicalScreens` (see changelog of this module for more information)
 
   * `XMonad.Hooks.EwmhDesktops`
 
@@ -107,29 +152,42 @@
     wset mst wrs =`" either with "`hiddens amb wset _ mst wrs =`" or to make
     use of the new parameter with "`hiddens amb wset lr mst wrs =`".
 
+  * `XMonad.Actions.MessageFeedback`
+
+    - Follow the naming conventions of `XMonad.Operations`. Functions returning
+      `X ()` are named regularly (previously these ended in underscore) while
+      those returning `X Bool` are suffixed with an uppercase 'B'.
+    - Provide all `X Bool` and `SomeMessage` variations for `sendMessage` and
+      `sendMessageWithNoRefresh`, not just `sendMessageWithNoRefreshToCurrent`
+      (renamed from `send`).
+    - The new `tryInOrderB` and `tryMessageB` functions accept a parameter of
+      type `SomeMessage -> X Bool`, which means you are no longer constrained
+      to the behavior of the `sendMessageWithNoRefreshToCurrent` dispatcher.
+    - The `send*Messages*` family of funtions allows for sequencing arbitrary
+      sets of messages with minimal refresh. It makes little sense for these
+      functions to support custom message dispatchers.
+    - Remain backwards compatible. Maintain deprecated aliases of all renamed
+      functions:
+      - `send`          -> `sendMessageWithNoRefreshToCurrentB`
+      - `sendSM`        -> `sendSomeMessageWithNoRefreshToCurrentB`
+      - `sendSM_`       -> `sendSomeMessageWithNoRefreshToCurrent`
+      - `tryInOrder`    -> `tryInOrderWithNoRefreshToCurrentB`
+      - `tryInOrder_`   -> `tryInOrderWithNoRefreshToCurrent`
+      - `tryMessage`    -> `tryMessageWithNoRefreshToCurrentB`
+      - `tryMessage_`   -> `tryMessageWithNoRefreshToCurrent`
+
 ### New Modules
 
-  * `XMonad.Layout.TwoPanePersistent`
+  * `XMonad.Layout.MultiToggle.TabBarDecoration`
 
-    A layout that is like TwoPane but keeps track of the slave window that is
-    currently beside the master. In TwoPane, the default behavior when the master
-    is focused is to display the next window in the stack on the slave pane. This
-    is a problem when a different slave window is selected without changing the stack
-    order.
-
-  * `XMonad.Hooks.RefocusLast`
-
-    Provides log and event hooks that keep track of recently focused windows on
-    a per workspace basis and automatically refocus the last window when the
-    current one is closed. Also provides an action to toggle focus between the
-    current and previous window, and one that refocuses appropriately on sending
-    the current window to another workspace.
+    Provides a simple transformer for use with `XMonad.Layout.MultiToggle` to
+    dynamically toggle `XMonad.Layout.TabBarDecoration`.
 
   * `XMonad.Layout.StateFull`
 
-    Provides StateFull: a stateful form of Full that does not misbehave when
-    floats are focused, and the FocusTracking layout transformer by means of
-    which StateFull is implemented. FocusTracking simply holds onto the last
+    Provides `StateFull`: a stateful form of `Full` that does not misbehave when
+    floats are focused, and the `FocusTracking` layout transformer by means of
+    which `StateFull` is implemented. `FocusTracking` simply holds onto the last
     true focus it was given and continues to use it as the focus for the
     transformed layout until it sees another. It can be used to improve the
     behaviour of a child layout that has not been given the focused window.
@@ -138,19 +196,6 @@
 
     Module for tracking master window history per workspace, and associated
     functions for manipulating the stack using such history.
-
-  * `XMonad.Hooks.Focus`
-
-    A new module extending ManageHook EDSL to work on focused windows and
-    current workspace.
-
-    This module will enable window activation (`_NET_ACTIVE_WINDOW`) and apply
-    `manageHook` to activated window too. Thus, it may lead to unexpected
-    results, when `manageHook` previously working only for new windows, start
-    working for activated windows too. It may be solved, by adding
-    `not <$> activated` before those part of `manageHook`, which should not be
-    called for activated windows.  But this lifts `manageHook` into
-    `FocusHook` and it needs to be converted back later using `manageFocus`.
 
   * `XMonad.Actions.CycleWorkspaceByScreen`
 
@@ -163,9 +208,9 @@
 
   * `XMonad.Prompt.FuzzyMatch`
 
-    Provides a predicate 'fuzzyMatch' that is much more lenient in matching
-    completions in XMonad.Prompt than the default prefix match.  Also provides
-    a function 'fuzzySort' that allows sorting the fuzzy matches by "how well"
+    Provides a predicate `fuzzyMatch` that is much more lenient in matching
+    completions in `XMonad.Prompt` than the default prefix match.  Also provides
+    a function `fuzzySort` that allows sorting the fuzzy matches by "how well"
     they match.
 
   * `XMonad.Utils.SessionStart`
@@ -196,17 +241,22 @@
 
 ### Bug Fixes and Minor Changes
 
-  * XMonad.Hooks.FadeWindows
+  * `XMonad.Layout.Grid`
+
+    Fix as per issue #223; Grid will no longer calculate more columns than there
+    are windows.
+
+  * `XMonad.Hooks.FadeWindows`
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
     Monoids
 
-  * XMonad.Hooks.WallpaperSetter
+  * `XMonad.Hooks.WallpaperSetter`
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
     Monoids
 
-  * XMonad.Hooks.Mosaic
+  * `XMonad.Hooks.Mosaic`
 
     Added support for GHC version 8.4.x by adding a Semigroup instance for
     Monoids
@@ -358,6 +408,12 @@
 
     - Added `updateName` and `removeName` to better control ordering when
       workspace names are changed or workspaces are removed.
+
+  * `XMonad.Config.Azerty`
+
+    * Added `belgianConfig` and `belgianKeys` to support Belgian AZERTY
+      keyboards, which are slightly different from the French ones in the top
+      row.
 
 ## 0.13 (February 10, 2017)
 

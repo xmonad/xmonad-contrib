@@ -48,19 +48,19 @@ import Data.List
 -- 11.  "FastSPR" is ranked before "FasterSPR" because its match starts at
 -- position 5 while the match in "FasterSPR" starts at position 7.
 --
--- To use these functions in an XPrompt, for example, for windowPromptGoto:
+-- To use these functions in an XPrompt, for example, for windowPrompt:
 --
 -- > import XMonad.Prompt
--- > import XMonad.Prompt.Window ( windowPromptGoto )
+-- > import XMonad.Prompt.Window ( windowPrompt )
 -- > import XMonad.Prompt.FuzzyMatch
 -- >
 -- > myXPConfig = def { searchPredicate = fuzzyMatch
---                    , sorter          = fuzzySort
---                    }
+-- >                  , sorter          = fuzzySort
+-- >                  }
 -- 
 -- then add this to your keys definition:
 --
--- > , ((modm .|. shiftMask, xK_g), windowPromptGoto myXPConfig)
+-- > , ((modm .|. shiftMask, xK_g), windowPrompt myXPConfig Goto allWindows)
 --
 -- For detailed instructions on editing the key bindings, see
 -- "Xmonad.Doc.Extending#Editing_key_bindings".

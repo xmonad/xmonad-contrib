@@ -17,7 +17,7 @@
 module XMonad.Config.Azerty (
     -- * Usage
     -- $usage
-    azertyConfig, azertyKeys
+    azertyConfig, azertyKeys, belgianConfig, belgianKeys
     ) where
 
 import XMonad
@@ -40,11 +40,17 @@ import qualified Data.Map as M
 
 azertyConfig = def { keys = azertyKeys <+> keys def }
 
-azertyKeys conf@(XConfig {modMask = modm}) = M.fromList $
+belgianConfig = def { keys = belgianKeys <+> keys def }
+
+azertyKeys = azertyKeysTop [0x26,0xe9,0x22,0x27,0x28,0x2d,0xe8,0x5f,0xe7,0xe0]
+
+belgianKeys = azertyKeysTop [0x26,0xe9,0x22,0x27,0x28,0xa7,0xe8,0x21,0xe7,0xe0]
+
+azertyKeysTop topRow conf@(XConfig {modMask = modm}) = M.fromList $
     [((modm, xK_semicolon), sendMessage (IncMasterN (-1)))]
     ++
     [((m .|. modm, k), windows $ f i)
-        | (i, k) <- zip (workspaces conf) [0x26,0xe9,0x22,0x27,0x28,0x2d,0xe8,0x5f,0xe7,0xe0],
+        | (i, k) <- zip (workspaces conf) topRow,
           (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
     ++
     -- mod-{z,e,r} %! Switch to physical/Xinerama screens 1, 2, or 3

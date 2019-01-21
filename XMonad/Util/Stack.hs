@@ -80,7 +80,7 @@ module XMonad.Util.Stack ( -- * Usage
                          ) where
 
 import qualified XMonad.StackSet as W
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>),(<$>),(<$))
 import Control.Monad (guard,liftM)
 import Data.List (sortBy)
 
