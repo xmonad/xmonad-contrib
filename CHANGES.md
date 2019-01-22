@@ -6,6 +6,14 @@
 
 ### New Modules
 
+  * `XMonad.Layout.TwoPanePersistent`
+
+    A layout that is like TwoPane but keeps track of the slave window that is
+    currently beside the master. In TwoPane, the default behavior when the master
+    is focused is to display the next window in the stack on the slave pane. This
+    is a problem when a different slave window is selected without changing the stack
+    order.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt`
