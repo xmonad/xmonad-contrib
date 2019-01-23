@@ -531,21 +531,25 @@ mkXPromptWithModes modes conf = do
 mkXPromptImplementation :: String -> XPConfig -> XPOperationMode -> X XPState
 mkXPromptImplementation historyKey conf om = do
   XConf { display = d, theRoot = rw } <- ask
-  s    <- gets $ screenRect . W.screenDetail . W.current . windowset
+  s <- gets $ screenRect . W.screenDetail . W.current . windowset
+  numlock <- gets X.numberlockMask
   hist <- io readHistory
-  w    <- io $ createWin d rw conf s
-  io $ selectInput d w $ exposureMask .|. keyPressMask
-  gc <- io $ createGC d w
-  io $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
-  numlock <- gets $ X.numberlockMask
-  let hs = fromMaybe [] $ M.lookup historyKey hist
-      st = initState d rw w s om gc fs hs conf numlock
-  st' <- io $ execStateT runXP st
-
+  st' <- io $
+    bracket
+      (createWin d rw conf s)
+      (destroyWindow d)
+      (\w ->
+        bracket
+          (createGC d w)
+          (freeGC d)
+          (\gc -> do
+            selectInput d w $ exposureMask .|. keyPressMask
+            setGraphicsExposures d gc False
+            let hs = fromMaybe [] $ M.lookup historyKey hist
+                st = initState d rw w s om gc fs hs conf numlock
+            runXP st))
   releaseXMF fs
-  io $ freeGC d gc
-
   when (successful st') $ do
     let prune = take (historySize conf)
     io $ writeHistory $
@@ -576,17 +580,21 @@ utf8Decode str
     | isUTF8Encoded str = decodeString str
     | otherwise         = str
 
-runXP :: XP ()
-runXP = do
-  (d,w) <- gets (dpy &&& win)
-  status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
-  when (status == grabSuccess) $ do
+runXP :: XPState -> IO XPState
+runXP st = do
+  let d = dpy st
+      w = win st
+  st' <- bracket
+    (grabKeyboard d w True grabModeAsync grabModeAsync currentTime)
+    (\_ -> ungrabKeyboard d currentTime)
+    (\status ->
+      (flip execStateT st $ do
+        when (status == grabSuccess) $ do
           updateWindows
           eventLoop handleMain evDefaultStop
-          io $ ungrabKeyboard d currentTime
-  io $ destroyWindow d w
-  destroyComplWin
-  io $ sync d False
+        destroyComplWin)
+      `finally` sync d False)
+  return st'
 
 type KeyStroke = (KeySym, String)
 

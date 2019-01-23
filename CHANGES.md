@@ -35,6 +35,10 @@
     Added `sorter` to `XPConfig` used to sort the possible completions by how
     well they match the search string (example: `XMonad.Prompt.FuzzyMatch`).
 
+    Fixes a potential bug where an error during prompt execution would
+    leave the window open and keep the keyboard grabbed. See issue
+    [#180](https://github.com/xmonad/xmonad-contrib/issues/180).
+
 ## 0.15
 
 ### Breaking Changes
