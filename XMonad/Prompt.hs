@@ -111,6 +111,7 @@ import qualified Data.Map                     as M
 import           Data.Maybe                   (fromMaybe)
 import           Data.Set                     (fromList, toList)
 import           System.IO
+import           System.IO.Unsafe             (unsafePerformIO)
 import           System.Posix.Files
 
 -- $usage
@@ -131,6 +132,12 @@ data XPState =
         , complWin              :: Maybe Window
         , complWinDim           :: Maybe ComplWindowDim
         , complIndex            :: !(Int,Int)
+        -- | This IORef should always have the same value as
+        -- complWin. Its purpose is to enable removal of the
+        -- completion window if an exception occurs, since the most
+        -- recent value of complWin is not available when handling
+        -- exceptions.
+        , complWinRef           :: IORef (Maybe Window)
         , showComplWin          :: Bool
         , operationMode         :: XPOperationMode
         , highlightedCompl      :: Maybe String
@@ -339,6 +346,7 @@ initState d rw w s opMode gc fonts h c nm =
         , screen                = s
         , complWin              = Nothing
         , complWinDim           = Nothing
+        , complWinRef        = unsafePerformIO (newIORef Nothing)
         , showComplWin          = not (showCompletionOnTab c)
         , operationMode         = opMode
         , highlightedCompl      = Nothing
@@ -591,8 +599,8 @@ runXP st = do
       (flip execStateT st $ do
         when (status == grabSuccess) $ do
           updateWindows
-          eventLoop handleMain evDefaultStop
-        destroyComplWin)
+          eventLoop handleMain evDefaultStop)
+      `finally` (mapM_ (destroyWindow d) =<< readIORef (complWinRef st))
       `finally` sync d False)
   return st'
 
@@ -1402,15 +1410,19 @@ getCompletions = do
   io $ (srt q <$> compl q) `E.catch` \(SomeException _) -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
-setComplWin w wi =
+setComplWin w wi = do
+  wr <- gets complWinRef
+  io $ writeIORef wr (Just w)
   modify (\s -> s { complWin = Just w, complWinDim = Just wi })
 
 destroyComplWin :: XP ()
 destroyComplWin = do
   d  <- gets dpy
   cw <- gets complWin
+  wr <- gets complWinRef
   case cw of
     Just w -> do io $ destroyWindow d w
+                 io $ writeIORef wr Nothing
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
 
