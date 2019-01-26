@@ -4,6 +4,20 @@
 
 ### Breaking Changes
 
+  * `XMonad.Prompt`
+
+    - Prompt ships a vim-like keymap, see `vimLikeXPKeymap` and
+      `vimLikeXPKeymap'`. A reworked event loop supports new vim-like prompt
+      actions.
+    - Prompt supports dynamic colors. Colors are now specified by the `XPColor`
+      type in `XPState` while `XPConfig` colors remain unchanged for backwards
+      compatibility.
+    - Fixes `showCompletionOnTab`.
+    - The behavior of `moveWord` and `moveWord'` has changed; brought in line
+      with the documentation and now internally consistent. The old keymaps
+      retain the original behavior; see the documentation to do the same your
+      XMonad configuration.
+
 ### New Modules
 
   * `XMonad.Layout.TwoPanePersistent`
