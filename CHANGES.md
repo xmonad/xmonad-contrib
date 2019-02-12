@@ -39,6 +39,10 @@
     leave the window open and keep the keyboard grabbed. See issue
     [#180](https://github.com/xmonad/xmonad-contrib/issues/180).
 
+    Fixes [issue #217](https://github.com/xmonad/xmonad-contrib/issues/217), where
+    using tab to wrap around the completion rows would fail when maxComplRows is
+    restricting the number of rows of output.
+
 ## 0.15
 
 ### Breaking Changes

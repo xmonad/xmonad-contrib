@@ -852,8 +852,8 @@ bufferOne xs x = (null xs && null x,True)
 nextComplIndex :: XPState -> Int -> (Int,Int)
 nextComplIndex st nitems = case complWinDim st of
   Nothing -> (0,0) --no window dims (just destroyed or not created)
-  Just (_,_,_,_,_,yy) -> let
-    (ncols,nrows) = (nitems `div` length yy + if (nitems `mod` length yy > 0) then 1 else 0, length yy)
+  Just (_,_,_,_,xx,yy) -> let
+    (ncols,nrows) = (length xx, length yy)
     (currentcol,currentrow) = complIndex st
     in if (currentcol + 1 >= ncols) then --hlight is in the last column
          if (currentrow + 1 < nrows ) then --hlight is still not at the last row
