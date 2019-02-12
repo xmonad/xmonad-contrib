@@ -111,6 +111,7 @@ import qualified Data.Map                     as M
 import           Data.Maybe                   (fromMaybe)
 import           Data.Set                     (fromList, toList)
 import           System.IO
+import           System.IO.Unsafe             (unsafePerformIO)
 import           System.Posix.Files
 
 -- $usage
@@ -131,6 +132,12 @@ data XPState =
         , complWin              :: Maybe Window
         , complWinDim           :: Maybe ComplWindowDim
         , complIndex            :: !(Int,Int)
+        -- | This IORef should always have the same value as
+        -- complWin. Its purpose is to enable removal of the
+        -- completion window if an exception occurs, since the most
+        -- recent value of complWin is not available when handling
+        -- exceptions.
+        , complWinRef           :: IORef (Maybe Window)
         , showComplWin          :: Bool
         , operationMode         :: XPOperationMode
         , highlightedCompl      :: Maybe String
@@ -339,6 +346,7 @@ initState d rw w s opMode gc fonts h c nm =
         , screen                = s
         , complWin              = Nothing
         , complWinDim           = Nothing
+        , complWinRef        = unsafePerformIO (newIORef Nothing)
         , showComplWin          = not (showCompletionOnTab c)
         , operationMode         = opMode
         , highlightedCompl      = Nothing
@@ -471,40 +479,18 @@ getCurrentCompletions = gets currentCompletions
 --   module.
 mkXPromptWithReturn :: XPrompt p => p -> XPConfig -> ComplFunction -> (String -> X a)  -> X (Maybe a)
 mkXPromptWithReturn t conf compl action = do
-  XConf { display = d, theRoot = rw } <- ask
-  s    <- gets $ screenRect . W.screenDetail . W.current . windowset
-  hist <- io readHistory
-  w    <- io $ createWin d rw conf s
-  io $ selectInput d w $ exposureMask .|. keyPressMask
-  gc <- io $ createGC d w
-  io $ setGraphicsExposures d gc False
-  fs <- initXMF (font conf)
-  numlock <- gets $ X.numberlockMask
-  let hs = fromMaybe [] $ M.lookup (showXPrompt t) hist
-      om = (XPSingleMode compl (XPT t)) --operation mode
-      st = initState d rw w s om gc fs hs conf numlock
-  st' <- io $ execStateT runXP st
-
-  releaseXMF fs
-  io $ freeGC d gc
-  if successful st' then do
-    let
-      prune = take (historySize conf)
-
-    io $ writeHistory $ M.insertWith
-      (\xs ys -> prune . historyFilter conf $ xs ++ ys)
-      (showXPrompt t)
-      (prune $ historyFilter conf [command st'])
-      hist
-                                -- we need to apply historyFilter before as well, since
-                                -- otherwise the filter would not be applied if
-                                -- there is no history
-      --When alwaysHighlight is True, autocompletion is handled with indexes.
-      --When it is false, it is handled depending on the prompt buffer's value
-    let selectedCompletion = case alwaysHighlight (config st') of
-          False -> command st'
-          True -> fromMaybe (command st') $ highlightedCompl st'
-    Just <$> action selectedCompletion
+  st' <- mkXPromptImplementation (showXPrompt t) conf (XPSingleMode compl (XPT t))
+  if successful st'
+    then do
+      let selectedCompletion =
+            case alwaysHighlight (config st') of
+              -- When alwaysHighlight is True, autocompletion is
+              -- handled with indexes.
+              False -> command st'
+              -- When it is false, it is handled depending on the
+              -- prompt buffer's value.
+              True -> fromMaybe (command st') $ highlightedCompl st'
+      Just <$> action selectedCompletion
     else return Nothing
 
 -- | Creates a prompt given:
@@ -532,47 +518,58 @@ mkXPrompt t conf compl action = mkXPromptWithReturn t conf compl action >> retur
 -- that means that this prompt overrides the value `alwaysHighlight` for its configuration to True.
 mkXPromptWithModes :: [XPType] -> XPConfig -> X ()
 mkXPromptWithModes modes conf = do
+  let defaultMode = head modes
+      modeStack = W.Stack { W.focus = defaultMode -- Current mode
+                          , W.up = []
+                          , W.down = tail modes -- Other modes
+                          }
+      om = XPMultipleModes modeStack
+  st' <- mkXPromptImplementation (showXPrompt defaultMode) conf { alwaysHighlight = True } om
+  if successful st'
+    then do
+      case operationMode st' of
+        XPMultipleModes ms -> let
+          action = modeAction $ W.focus ms
+          in action (command st') $ (fromMaybe "" $ highlightedCompl st')
+        _ -> error "The impossible occurred: This prompt runs with multiple modes but they could not be found." --we are creating a prompt with multiple modes, so its operationMode should have been constructed with XPMultipleMode
+    else return ()
+
+-- Internal function used to implement 'mkXPromptWithReturn' and
+-- 'mkXPromptWithModes'.
+mkXPromptImplementation :: String -> XPConfig -> XPOperationMode -> X XPState
+mkXPromptImplementation historyKey conf om = do
   XConf { display = d, theRoot = rw } <- ask
-  s    <- gets $ screenRect . W.screenDetail . W.current . windowset
+  s <- gets $ screenRect . W.screenDetail . W.current . windowset
+  numlock <- gets X.numberlockMask
   hist <- io readHistory
-  w    <- io $ createWin d rw conf s
-  io $ selectInput d w $ exposureMask .|. keyPressMask
-  gc <- io $ createGC d w
-  io $ setGraphicsExposures d gc False
   fs <- initXMF (font conf)
-  numlock <- gets $ X.numberlockMask
-  let
-    defaultMode = head modes
-    hs = fromMaybe [] $ M.lookup (showXPrompt defaultMode) hist
-    modeStack = W.Stack{ W.focus = defaultMode --current mode
-                       , W.up = []
-                       , W.down = tail modes --other modes
-                       }
-    st = initState d rw w s (XPMultipleModes modeStack) gc fs hs conf { alwaysHighlight = True} numlock
-  st' <- io $ execStateT runXP st
-
+  st' <- io $
+    bracket
+      (createWin d rw conf s)
+      (destroyWindow d)
+      (\w ->
+        bracket
+          (createGC d w)
+          (freeGC d)
+          (\gc -> do
+            selectInput d w $ exposureMask .|. keyPressMask
+            setGraphicsExposures d gc False
+            let hs = fromMaybe [] $ M.lookup historyKey hist
+                st = initState d rw w s om gc fs hs conf numlock
+            runXP st))
   releaseXMF fs
-  io $ freeGC d gc
-
-  if successful st' then do
-    let
-      prune = take (historySize conf)
-
-      -- insert into history the buffers value
-    io $ writeHistory $ M.insertWith
+  when (successful st') $ do
+    let prune = take (historySize conf)
+    io $ writeHistory $
+      M.insertWith
       (\xs ys -> prune . historyFilter conf $ xs ++ ys)
-      (showXPrompt defaultMode)
+      historyKey
+      -- We need to apply historyFilter before as well, since
+      -- otherwise the filter would not be applied if there is no
+      -- history
       (prune $ historyFilter conf [command st'])
       hist
-
-    case operationMode st' of
-      XPMultipleModes ms -> let
-        action = modeAction $ W.focus ms
-        in action (command st') $ (fromMaybe "" $ highlightedCompl st')
-      _ -> error "The impossible occurred: This prompt runs with multiple modes but they could not be found." --we are creating a prompt with multiple modes, so its operationMode should have been constructed with XPMultipleMode
-    else
-      return ()
-
+  return st'
 
 -- | Removes numlock and capslock from a keymask.
 -- Duplicate of cleanMask from core, but in the
@@ -591,17 +588,21 @@ utf8Decode str
     | isUTF8Encoded str = decodeString str
     | otherwise         = str
 
-runXP :: XP ()
-runXP = do
-  (d,w) <- gets (dpy &&& win)
-  status <- io $ grabKeyboard d w True grabModeAsync grabModeAsync currentTime
-  when (status == grabSuccess) $ do
+runXP :: XPState -> IO XPState
+runXP st = do
+  let d = dpy st
+      w = win st
+  st' <- bracket
+    (grabKeyboard d w True grabModeAsync grabModeAsync currentTime)
+    (\_ -> ungrabKeyboard d currentTime)
+    (\status ->
+      (flip execStateT st $ do
+        when (status == grabSuccess) $ do
           updateWindows
-          eventLoop handleMain evDefaultStop
-          io $ ungrabKeyboard d currentTime
-  io $ destroyWindow d w
-  destroyComplWin
-  io $ sync d False
+          eventLoop handleMain evDefaultStop)
+      `finally` (mapM_ (destroyWindow d) =<< readIORef (complWinRef st))
+      `finally` sync d False)
+  return st'
 
 type KeyStroke = (KeySym, String)
 
@@ -1409,15 +1410,19 @@ getCompletions = do
   io $ (srt q <$> compl q) `E.catch` \(SomeException _) -> return []
 
 setComplWin :: Window -> ComplWindowDim -> XP ()
-setComplWin w wi =
+setComplWin w wi = do
+  wr <- gets complWinRef
+  io $ writeIORef wr (Just w)
   modify (\s -> s { complWin = Just w, complWinDim = Just wi })
 
 destroyComplWin :: XP ()
 destroyComplWin = do
   d  <- gets dpy
   cw <- gets complWin
+  wr <- gets complWinRef
   case cw of
     Just w -> do io $ destroyWindow d w
+                 io $ writeIORef wr Nothing
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
 
