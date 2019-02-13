@@ -89,6 +89,11 @@
   * `XMonad.Actions.MessageHandling`
     Refresh-performing functions updated to better reflect the new `sendMessage`.
 
+  * `XMonad.Actions.DynamicProjects`
+    Add a version of `withNthWorkspace` that takes a `[WorkspaceId] ->
+	[WorkspaceId]` transformation to apply over the list of workspace tags
+	resulting from the dynamic order.
+
 ## 0.14
 
 ### Breaking Changes
