@@ -44,15 +44,20 @@
     restricting the number of rows of output.
 
   * `XMonad.Actions.DynamicProjects`
-    
+
     Make the input directory read from the prompt in `DynamicProjects`
     absolute wrt the current directory.
-    
+
     Before this, the directory set by the prompt was treated like a relative
     directory. This means that when you switch from a project with directory
     `foo` into a project with directory `bar`, xmonad actually tries to `cd`
     into `foo/bar`, instead of `~/bar` as expected.
-    
+
+  * `XMonad.Actions.DynamicWorkspaceOrder`
+    Add a version of `withNthWorkspace` that takes a `[WorkspaceId] ->
+	[WorkspaceId]` transformation to apply over the list of workspace tags
+	resulting from the dynamic order.
+
 ## 0.15
 
 ### Breaking Changes
@@ -88,11 +93,6 @@
 
   * `XMonad.Actions.MessageHandling`
     Refresh-performing functions updated to better reflect the new `sendMessage`.
-
-  * `XMonad.Actions.DynamicProjects`
-    Add a version of `withNthWorkspace` that takes a `[WorkspaceId] ->
-	[WorkspaceId]` transformation to apply over the list of workspace tags
-	resulting from the dynamic order.
 
 ## 0.14
 
