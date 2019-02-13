@@ -43,6 +43,16 @@
     using tab to wrap around the completion rows would fail when maxComplRows is
     restricting the number of rows of output.
 
+  * `XMonad.Actions.DynamicProjects`
+    
+    Make the input directory read from the prompt in `DynamicProjects`
+    absolute wrt the current directory.
+    
+    Before this, the directory set by the prompt was treated like a relative
+    directory. This means that when you switch from a project with directory
+    `foo` into a project with directory `bar`, xmonad actually tries to `cd`
+    into `foo/bar`, instead of `~/bar` as expected.
+    
 ## 0.15
 
 ### Breaking Changes
