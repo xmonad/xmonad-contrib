@@ -16,12 +16,15 @@
 -- query.
 --
 -- Also provides a method for jumping back to the most recently used
--- window in any given group.
+-- window in any given group, and predefined groups.
 --
 ----------------------------------------------------------------------
 
 module XMonad.Actions.GroupNavigation ( -- * Usage
                                         -- $usage
+
+                                        -- * Utilities
+                                        -- $utilities
                                         Direction (..)
                                       , nextMatch
                                       , nextMatchOrDo
@@ -219,6 +222,14 @@ findM cond xs = findM' cond (viewl xs)
         else findM qry xs'
 
 
+-- $utilities
+-- #utilities#
+-- Below are handy queries for use with 'nextMatch', 'nextMatchOrDo',
+-- and 'nextMatchWithThis'.
+
+-- | A query that matches all windows on visible workspaces. This is
+-- useful for configurations with multiple screens, and matches even
+-- invisible windows.
 isOnAnyVisibleWS :: Query Bool
 isOnAnyVisibleWS = do
   w <- ask
