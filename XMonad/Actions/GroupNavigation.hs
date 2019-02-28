@@ -27,6 +27,7 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       , nextMatchOrDo
                                       , nextMatchWithThis
                                       , historyHook
+                                      , isOnAnyVisibleWS
                                       ) where
 
 import Control.Monad.Reader
@@ -216,3 +217,14 @@ findM cond xs = findM' cond (viewl xs)
       if isMatch
         then return (Just x')
         else findM qry xs'
+
+
+isOnAnyVisibleWS :: Query Bool
+isOnAnyVisibleWS = do
+  w <- ask
+  ws <- liftX $ gets windowset
+  let allVisible = concat $ maybe [] W.integrate . W.stack . W.workspace <$> W.current ws:W.visible ws
+      visibleWs = w `elem` allVisible
+      unfocused = maybe True (w /=) $ W.peek ws
+  return $ visibleWs && unfocused
+
