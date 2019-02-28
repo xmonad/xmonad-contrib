@@ -142,7 +142,7 @@ orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
     where
       wspcs      = SS.workspaces ss
       wspcsMap   = Fold.foldl' (\m ws -> Map.insert (SS.tag ws) ws m) Map.empty wspcs
-      wspcs'     = fmap (\wsid -> wspcsMap ! wsid) wsids
+      wspcs'     = fmap (wspcsMap !) wsids
       isCurWS ws = SS.tag ws == SS.tag (SS.workspace $ SS.current ss)
 
 --- History navigation, requires a layout modifier -------------------
@@ -167,7 +167,7 @@ updateHistory :: HistoryDB -> X HistoryDB
 updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
   let newcur   = SS.peek ss
       wins     = Set.fromList $ SS.allWindows ss
-      newhist  = flt (flip Set.member wins) (ins oldcur oldhist)
+      newhist  = flt (`Set.member` wins) (ins oldcur oldhist)
   return $ HistoryDB newcur (del newcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
