@@ -22,14 +22,14 @@
 
 module XMonad.Actions.GroupNavigation ( -- * Usage
                                         -- $usage
-
-                                        -- * Utilities
-                                        -- $utilities
                                         Direction (..)
                                       , nextMatch
                                       , nextMatchOrDo
                                       , nextMatchWithThis
                                       , historyHook
+
+                                        -- * Utilities
+                                        -- $utilities
                                       , isOnAnyVisibleWS
                                       ) where
 
