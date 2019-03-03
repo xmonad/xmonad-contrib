@@ -234,8 +234,8 @@ isOnAnyVisibleWS :: Query Bool
 isOnAnyVisibleWS = do
   w <- ask
   ws <- liftX $ gets windowset
-  let allVisible = concat $ maybe [] W.integrate . W.stack . W.workspace <$> W.current ws:W.visible ws
+  let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
       visibleWs = w `elem` allVisible
-      unfocused = maybe True (w /=) $ W.peek ws
+      unfocused = maybe True (w /=) $ SS.peek ws
   return $ visibleWs && unfocused
 
