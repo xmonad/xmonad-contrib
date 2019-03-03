@@ -54,9 +54,16 @@
     into `foo/bar`, instead of `~/bar` as expected.
 
   * `XMonad.Actions.DynamicWorkspaceOrder`
+
     Add a version of `withNthWorkspace` that takes a `[WorkspaceId] ->
-	[WorkspaceId]` transformation to apply over the list of workspace tags
-	resulting from the dynamic order.
+    [WorkspaceId]` transformation to apply over the list of workspace tags
+    resulting from the dynamic order.
+
+  * `XMonad.Actions.GroupNavigation`
+
+    Add a utility function `isOnAnyVisibleWS :: Query Bool` to allow easy
+    cycling between all windows on all visible workspaces.
+
 
 ## 0.15
 
