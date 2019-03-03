@@ -233,7 +233,7 @@ findM cond xs = findM' cond (viewl xs)
 isOnAnyVisibleWS :: Query Bool
 isOnAnyVisibleWS = do
   w <- ask
-  ws <- liftX $ gets windowset
+  ws <- liftX $ XS.gets windowset
   let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
       visibleWs = w `elem` allVisible
       unfocused = maybe True (w /=) $ SS.peek ws
