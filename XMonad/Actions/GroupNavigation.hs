@@ -34,6 +34,7 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       ) where
 
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Foldable as Fold
 import Data.Map as Map
 import Data.Sequence as Seq
@@ -233,7 +234,7 @@ findM cond xs = findM' cond (viewl xs)
 isOnAnyVisibleWS :: Query Bool
 isOnAnyVisibleWS = do
   w <- ask
-  ws <- liftX $ XS.gets windowset
+  ws <- liftX $ gets windowset
   let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
       visibleWs = w `elem` allVisible
       unfocused = maybe True (w /=) $ SS.peek ws
