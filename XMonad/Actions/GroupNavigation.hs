@@ -34,6 +34,7 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       ) where
 
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Foldable as Fold
 import Data.Map as Map
 import Data.Sequence as Seq
@@ -234,8 +235,8 @@ isOnAnyVisibleWS :: Query Bool
 isOnAnyVisibleWS = do
   w <- ask
   ws <- liftX $ gets windowset
-  let allVisible = concat $ maybe [] W.integrate . W.stack . W.workspace <$> W.current ws:W.visible ws
+  let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
       visibleWs = w `elem` allVisible
-      unfocused = maybe True (w /=) $ W.peek ws
+      unfocused = maybe True (w /=) $ SS.peek ws
   return $ visibleWs && unfocused
 
