@@ -28,6 +28,13 @@
     is a problem when a different slave window is selected without changing the stack
     order.
 
+  * `XMonad.Util.ExclusiveScratchpads`
+
+    Named scratchpads that can be mutually exclusive: This new module extends the
+    idea of named scratchpads such that you can define "families of scratchpads"
+    that are exclusive on the same screen. It also allows to remove this
+    constraint of being mutually exclusive with another scratchpad.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt`
