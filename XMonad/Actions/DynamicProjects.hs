@@ -50,7 +50,7 @@ import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Monoid ((<>))
-import System.Directory (setCurrentDirectory, getHomeDirectory)
+import System.Directory (setCurrentDirectory, getHomeDirectory, makeAbsolute)
 import XMonad
 import XMonad.Actions.DynamicWorkspaces
 import XMonad.Prompt
@@ -182,7 +182,8 @@ instance XPrompt ProjectPrompt where
       modifyProject (\p -> p { projectName = name })
 
   modeAction (ProjectPrompt DirMode _) buf auto = do
-    let dir = if null auto then buf else auto
+    let dir' = if null auto then buf else auto
+    dir <- io $ makeAbsolute dir'
     modifyProject (\p -> p { projectDirectory = dir })
 
 --------------------------------------------------------------------------------

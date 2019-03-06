@@ -56,7 +56,7 @@ arrange :: Double -> Rectangle -> [a] -> [(a, Rectangle)]
 arrange aspectRatio (Rectangle rx ry rw rh) st = zip st rectangles
     where
     nwins = length st
-    ncols = max 1 . round . sqrt $ fromIntegral nwins * fromIntegral rw / (fromIntegral rh * aspectRatio)
+    ncols = max 1 . min nwins . round . sqrt $ fromIntegral nwins * fromIntegral rw / (fromIntegral rh * aspectRatio)
     mincs = max 1 $ nwins `div` ncols
     extrs = nwins - ncols * mincs
     chop :: Int -> Dimension -> [(Position, Dimension)]

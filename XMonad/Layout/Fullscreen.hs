@@ -30,17 +30,19 @@ module XMonad.Layout.Fullscreen
     ,FullscreenFloat, FullscreenFocus, FullscreenFull
     ) where
 
-import XMonad
-import XMonad.Layout.LayoutModifier
-import XMonad.Util.WindowProperties
-import XMonad.Hooks.ManageHelpers (isFullscreen)
-import qualified XMonad.StackSet as W
-import Data.List
-import Data.Maybe
-import Data.Monoid
-import qualified Data.Map as M
-import Control.Monad
-import Control.Arrow (second)
+import           XMonad
+import           XMonad.Layout.LayoutModifier
+import           XMonad.Hooks.ManageHelpers     (isFullscreen)
+import           XMonad.Util.WindowProperties
+import qualified XMonad.Util.Rectangle          as R
+import qualified XMonad.StackSet                as W
+
+import           Data.List
+import           Data.Maybe
+import           Data.Monoid
+import qualified Data.Map                       as M
+import           Control.Monad
+import           Control.Arrow                  (second)
 
 -- $usage
 -- Provides a ManageHook and an EventHook that sends layout messages
@@ -107,9 +109,12 @@ instance LayoutModifier FullscreenFull Window where
     _ -> Nothing
 
   pureModifier (FullscreenFull frect fulls) rect _ list =
-    (map (flip (,) rect') visfulls ++ rest, Nothing)
-    where visfulls = intersect fulls $ map fst list
-          rest = filter (flip notElem visfulls . fst) list
+    (visfulls' ++ rest', Nothing)
+    where (visfulls,rest) = partition (flip elem fulls . fst) list
+          visfulls' = map (second $ const rect') visfulls
+          rest' = if null visfulls'
+                  then rest
+                  else filter (not . R.supersetOf rect' . snd) rest
           rect' = scaleRationalRect rect frect
 
 instance LayoutModifier FullscreenFocus Window where
@@ -122,7 +127,7 @@ instance LayoutModifier FullscreenFocus Window where
   pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list
      | f `elem` fulls = ((f, rect') : rest, Nothing)
      | otherwise = (list, Nothing)
-     where rest = filter ((/= f) . fst) list
+     where rest = filter (not . orP (== f) (R.supersetOf rect')) list
            rect' = scaleRationalRect rect frect
   pureModifier _ _ Nothing list = (list, Nothing)
 
@@ -240,3 +245,6 @@ fullscreenManageHook' isFull = isFull --> do
     sendMessageWithNoRefresh FullscreenChanged cw
   idHook
 
+-- | Applies a pair of predicates to a pair of operands, combining them with ||.
+orP :: (a -> Bool) -> (b -> Bool) -> (a, b) -> Bool
+orP f g (x, y) = f x || g y

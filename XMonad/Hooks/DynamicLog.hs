@@ -24,6 +24,7 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Drop-in loggers
     dzen,
+    dzenWithFlags,
     xmobar,
     statusBar,
     dynamicLog,
@@ -42,8 +43,8 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Formatting utilities
     wrap, pad, trim, shorten,
-    xmobarColor, xmobarStrip,
-    xmobarStripTags,
+    xmobarColor, xmobarAction, xmobarRaw,
+    xmobarStrip, xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
@@ -61,7 +62,7 @@ import Codec.Binary.UTF8.String (encodeString)
 import Control.Monad (liftM2, msum)
 import Data.Char ( isSpace, ord )
 import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
-import Data.Maybe ( isJust, catMaybes, mapMaybe )
+import Data.Maybe ( isJust, catMaybes, mapMaybe, fromMaybe )
 import Data.Ord ( comparing )
 import qualified Data.Map as M
 import qualified XMonad.StackSet as S
@@ -150,6 +151,32 @@ import XMonad.Hooks.ManageDocks
 
 ------------------------------------------------------------------------
 
+-- | Run xmonad with a dzen status bar with specified dzen
+--   command line arguments.
+--
+-- > main = xmonad =<< dzenWithFlags flags myConfig
+-- >
+-- > myConfig = def { ... }
+-- >
+-- > flags = "-e onstart lower -w 800 -h 24 -ta l -fg #a8a3f7 -bg #3f3c6d"
+--
+-- This function can be used to customize the arguments passed to dzen2.
+-- e.g changing the default width and height of dzen2.
+--
+-- If you wish to customize the status bar format at all, you'll have to
+-- use the 'statusBar' function instead.
+--
+-- The binding uses the XMonad.Hooks.ManageDocks module to automatically
+-- handle screen placement for dzen, and enables 'mod-b' for toggling
+-- the menu bar.
+--
+-- You should use this function only when the default 'dzen' function does not
+-- serve your purpose.
+--
+dzenWithFlags :: LayoutClass l Window
+    => String -> XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
 -- > main = xmonad =<< dzen myConfig
@@ -159,16 +186,14 @@ import XMonad.Hooks.ManageDocks
 -- The intent is that the above config file should provide a nice
 -- status bar with minimal effort.
 --
--- If you wish to customize the status bar format at all, you'll have to
--- use the 'statusBar' function instead.
---
 -- The binding uses the XMonad.Hooks.ManageDocks module to automatically
 -- handle screen placement for dzen, and enables 'mod-b' for toggling
--- the menu bar.
+-- the menu bar. Please refer to 'dzenWithFlags' function for further
+-- documentation.
 --
 dzen :: LayoutClass l Window
      => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+dzen conf = dzenWithFlags flags conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
@@ -295,7 +320,8 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
          fmt w = printer pp (S.tag w)
           where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
                         | S.tag w == this                                               = ppCurrent
-                        | S.tag w `elem` visibles                                       = ppVisible
+                        | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
+                        | S.tag w `elem` visibles                                       = liftM2 fromMaybe ppVisible ppVisibleNoWindows
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
@@ -392,6 +418,31 @@ xmobarColor :: String  -- ^ foreground color: a color name, or #rrggbb format
 xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
 
+-- | Encapsulate text with an action. The text will be displayed, and the
+-- action executed when the displayed text is clicked. Illegal input is not
+-- filtered, allowing xmobar to display any parse errors. Uses xmobar's new
+-- syntax wherein the command is surrounded by backticks.
+xmobarAction :: String
+                -- ^ Command. Use of backticks (`) will cause a parse error.
+             -> String
+                -- ^ Buttons 1-5, such as "145". Other characters will cause a
+                -- parse error.
+             -> String
+                -- ^ Displayed/wrapped text.
+             -> String
+xmobarAction command button = wrap l r
+    where
+        l = "<action=`" ++ command ++ "` button=" ++ button ++ ">"
+        r = "</action>"
+
+-- | Encapsulate arbitrary text for display only, i.e. untrusted content if
+-- wrapped (perhaps from window titles) will be displayed only, with all tags
+-- ignored. Introduced in xmobar 0.21; see their documentation. Be careful not
+-- to shorten the result.
+xmobarRaw :: String -> String
+xmobarRaw "" = ""
+xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
+
 -- ??? add an xmobarEscape function?
 
 -- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
@@ -435,6 +486,8 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- contain windows
              , ppHiddenNoWindows :: WorkspaceId -> String
                -- ^ how to print tags of empty hidden workspaces
+             , ppVisibleNoWindows :: Maybe (WorkspaceId -> String)
+               -- ^ how to print tags of empty visible workspaces
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
              , ppSep :: String
@@ -487,6 +540,7 @@ instance Default PP where
                , ppVisible         = wrap "<" ">"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
+               , ppVisibleNoWindows= Nothing
                , ppUrgent          = id
                , ppSep             = " : "
                , ppWsSep           = " "

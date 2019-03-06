@@ -14,7 +14,9 @@
 -- be used for tiling, along with support for toggling gaps on and
 -- off.
 --
--- Note that "XMonad.Hooks.ManageDocks" is the preferred solution for
+-- Note 1: For gaps\/space around /windows/ see "XMonad.Layout.Spacing".
+--
+-- Note 2: "XMonad.Hooks.ManageDocks" is the preferred solution for
 -- leaving space for your dock-type applications (status bars,
 -- toolbars, docks, etc.), since it automatically sets up appropriate
 -- gaps, allows them to be toggled, etc.  However, this module may
@@ -29,8 +31,8 @@ module XMonad.Layout.Gaps (
                                -- * Usage
                                -- $usage
                           Direction2D(..), Gaps,
-                          GapSpec, gaps, gaps', GapMessage(..)
-
+                          GapSpec, gaps, gaps', GapMessage(..),
+                          weakModifyGaps, modifyGap, setGaps, setGap
                           ) where
 
 import XMonad.Core
@@ -55,10 +57,23 @@ import Data.List (delete)
 -- You can additionally add some keybindings to toggle or modify the gaps,
 -- for example:
 --
--- > , ((modm .|. controlMask, xK_g), sendMessage $ ToggleGaps)  -- toggle all gaps
--- > , ((modm .|. controlMask, xK_t), sendMessage $ ToggleGap U) -- toggle the top gap
--- > , ((modm .|. controlMask, xK_w), sendMessage $ IncGap 5 R)  -- increment the right-hand gap
--- > , ((modm .|. controlMask, xK_q), sendMessage $ DecGap 5 R)  -- decrement the right-hand gap
+-- > , ((modm .|. controlMask, xK_g), sendMessage $ ToggleGaps)               -- toggle all gaps
+-- > , ((modm .|. controlMask, xK_t), sendMessage $ ToggleGap U)              -- toggle the top gap
+-- > , ((modm .|. controlMask, xK_w), sendMessage $ IncGap 5 R)               -- increment the right-hand gap
+-- > , ((modm .|. controlMask, xK_q), sendMessage $ DecGap 5 R)               -- decrement the right-hand gap
+-- > , ((modm .|. controlMask, xK_r), sendMessage $ ModifyGaps rotateGaps)    -- rotate gaps 90 degrees clockwise
+-- > , ((modm .|. controlMask, xK_h), sendMessage $ weakModifyGaps halveHor)  -- halve the left and right-hand gaps
+-- > , ((modm .|. controlMask, xK_d), sendMessage $ modifyGap (*2) L)         -- double the left-hand gap
+-- > , ((modm .|. controlMask, xK_s), sendMessage $ setGaps [(U,18), (R,23)]) -- reset the GapSpec
+-- > , ((modm .|. controlMask, xK_b), sendMessage $ setGap 30 D)              -- set the bottom gap to 30
+-- > ]
+-- >   where rotateGaps gs = zip (map (rotate . fst) gs) (map snd gs)
+-- >         rotate U = R
+-- >         rotate R = D
+-- >         rotate D = L
+-- >         rotate L = U
+-- >         halveHor d i | d `elem` [L, R] = i `div` 2
+-- >                      | otherwise       = i
 --
 -- If you want complete control over all gaps, you could include
 -- something like this in your keybindings, assuming in this case you
@@ -93,6 +108,7 @@ data GapMessage = ToggleGaps              -- ^ Toggle all gaps.
                 | ToggleGap  !Direction2D    -- ^ Toggle a single gap.
                 | IncGap !Int !Direction2D    -- ^ Increase a gap by a certain number of pixels.
                 | DecGap !Int !Direction2D    -- ^ Decrease a gap.
+                | ModifyGaps (GapSpec -> GapSpec) -- ^ Modify arbitrarily.
   deriving (Typeable)
 
 instance Message GapMessage
@@ -106,10 +122,45 @@ instance LayoutModifier Gaps a where
       | Just (ToggleGap d) <- fromMessage m
         = Just $ Gaps conf (toggleGap conf cur d)
       | Just (IncGap i d)  <- fromMessage m
-        = Just $ Gaps (incGap conf d i) cur
+        = Just $ Gaps (limit . continuation (+  i ) d $ conf) cur
       | Just (DecGap i d)  <- fromMessage m
-        = Just $ Gaps (incGap conf d (-i)) cur
+        = Just $ Gaps (limit . continuation (+(-i)) d $ conf) cur
+      | Just (ModifyGaps f) <- fromMessage m
+        = Just $ Gaps (limit . f $ conf) cur
       | otherwise = Nothing
+
+-- | Modifies gaps weakly, for convenience.
+weakModifyGaps :: (Direction2D -> Int -> Int) -> GapMessage
+weakModifyGaps = ModifyGaps . weakToStrong
+
+-- | Arbitrarily modify a single gap with the given function.
+modifyGap :: (Int -> Int) -> Direction2D -> GapMessage
+modifyGap f d = ModifyGaps $ continuation f d
+
+-- | Set the GapSpec.
+setGaps :: GapSpec -> GapMessage
+setGaps = ModifyGaps . const
+
+-- | Set a gap to the given value.
+setGap :: Int -> Direction2D -> GapMessage
+setGap = modifyGap . const
+
+-- | Imposes limits upon a GapSpec, ensuring gaps are at least 0. Not exposed.
+limit :: GapSpec -> GapSpec
+limit = weakToStrong $ \_ -> max 0
+
+-- | Takes a weak gaps-modifying function f and returns a GapSpec modifying
+-- function. Not exposed.
+weakToStrong :: (Direction2D -> Int -> Int) -> GapSpec -> GapSpec
+weakToStrong f gs = zip (map fst gs) (map (uncurry f) gs)
+
+-- | Given f as a definition for the behaviour of a gaps modifying function in
+-- one direction d, produces a continuation of the function to the other
+-- directions using the identity. Not exposed.
+continuation :: (Int -> Int) -> Direction2D -> GapSpec -> GapSpec
+continuation f d1 = weakToStrong h
+  where h d2 | d2 == d1  = f
+             | otherwise = id
 
 applyGaps :: Gaps a -> Rectangle -> Rectangle
 applyGaps gs r = foldr applyGap r (activeGaps gs)
@@ -130,9 +181,6 @@ toggleGap :: GapSpec -> [Direction2D] -> Direction2D -> [Direction2D]
 toggleGap conf cur d | d `elem` cur            = delete d cur
                      | d `elem` (map fst conf) = d:cur
                      | otherwise               = cur
-
-incGap :: GapSpec -> Direction2D -> Int -> GapSpec
-incGap gs d i = map (\(dir,j) -> if dir == d then (dir,max (j+i) 0) else (dir,j)) gs
 
 -- | Add togglable manual gaps to a layout.
 gaps :: GapSpec   -- ^ The gaps to allow, paired with their initial sizes.

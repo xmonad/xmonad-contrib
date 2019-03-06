@@ -20,6 +20,7 @@ module XMonad.Util.Themes
     , xmonadTheme
     , smallClean
     , robertTheme
+    , darkTheme
     , deiflTheme
     , oxymor00nTheme
     , donaldTheme
@@ -90,6 +91,7 @@ ppThemeInfo t = themeName t <> themeDescription t <> "by" <> themeAuthor t
 listOfThemes :: [ThemeInfo]
 listOfThemes = [ xmonadTheme
                , smallClean
+               , darkTheme
                , deiflTheme
                , oxymor00nTheme
                , robertTheme
@@ -160,6 +162,22 @@ robertTheme =
                                       , inactiveTextColor   = "#d5d3a7"
                                       , fontName            = "-*-profont-*-*-*-*-11-*-*-*-*-*-iso8859"
                                       , decoHeight          = 16
+                                      }
+             }
+
+-- | Dark Theme, by Lucian Poston.
+darkTheme :: ThemeInfo
+darkTheme =
+    newTheme { themeName        = "darkTheme"
+             , themeAuthor      = "Lucian Poston"
+             , themeDescription = "Dark Theme"
+             , theme            = def { inactiveBorderColor = "#202030"
+                                      , activeBorderColor   = "#a0a0d0"
+                                      , inactiveColor       = "#000000"
+                                      , activeColor         = "#000000"
+                                      , inactiveTextColor   = "#607070"
+                                      , activeTextColor     = "#a0d0d0"
+                                      , decoHeight          = 15
                                       }
              }
 
