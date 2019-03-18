@@ -221,7 +221,7 @@ layerCommand (rect, path) = do
   res <- getPicRes path
   return $ case needsRotation rect <$> res of
     Nothing -> ""
-    Just rotate ->
+    Just rotate -> let size = show (rect_width rect) ++ "x" ++ show (rect_height rect) in
                      " \\( '"++path++"' "++(if rotate then "-rotate 90 " else "")
-                      ++ " -scale "++(show$rect_width rect)++"x"++(show$rect_height rect)++"! \\)"
+                      ++ " -scale "++size++"^ -gravity center -extent "++size++" +gravity \\)"
                       ++ " -geometry +"++(show$rect_x rect)++"+"++(show$rect_y rect)++" -composite "

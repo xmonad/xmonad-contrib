@@ -71,6 +71,12 @@
     Add a utility function `isOnAnyVisibleWS :: Query Bool` to allow easy
     cycling between all windows on all visible workspaces.
 
+  * `XMonad.Hooks.WallpaperSetter`
+
+    Preserve the aspect ratio of wallpapers that xmonad sets. When previous
+    versions would distort images to fit the screen size, it will now find a
+    best fit by cropping instead.
+
 
 ## 0.15
 
