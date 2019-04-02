@@ -71,6 +71,11 @@
     Add a utility function `isOnAnyVisibleWS :: Query Bool` to allow easy
     cycling between all windows on all visible workspaces.
 
+  * `XMonad.Util.Themes`
+
+    Add adwaitaTheme and adwaitaDarkTheme to match their respective
+    GTK themes.
+
 
 ## 0.15
 
