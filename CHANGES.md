@@ -50,6 +50,12 @@
     using tab to wrap around the completion rows would fail when maxComplRows is
     restricting the number of rows of output.
 
+  * `XMonad.Prompt.Pass`
+
+    Added 'passOTPPrompt' to support getting OTP type password. This require
+    pass-otp (https://github.com/tadfisher/pass-otp) has been setup in the running
+    machine.
+
   * `XMonad.Actions.DynamicProjects`
 
     Make the input directory read from the prompt in `DynamicProjects`
