@@ -63,7 +63,7 @@ import Data.List
 -- > , ((modm .|. shiftMask, xK_g), windowPrompt myXPConfig Goto allWindows)
 --
 -- For detailed instructions on editing the key bindings, see
--- "Xmonad.Doc.Extending#Editing_key_bindings".
+-- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- | Returns True if the first argument is a subsequence of the second argument,
 -- that is, it can be obtained from the second sequence by deleting elements.

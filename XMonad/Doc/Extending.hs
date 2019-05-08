@@ -467,7 +467,7 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.DebugStack":
     Dump the state of the StackSet. A logHook and handleEventHook are also provided.
 
-* "Xmonad.Hooks.DynamicBars":
+* "XMonad.Hooks.DynamicBars":
     Manage per-screen status bars.
 
 * "XMonad.Hooks.DynamicHooks":
