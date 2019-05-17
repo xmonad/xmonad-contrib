@@ -89,6 +89,11 @@
     Add adwaitaTheme and adwaitaDarkTheme to match their respective
     GTK themes.
 
+  * 'XMonad.Layout.BinarySpacePartition'
+
+    Add a new `SplitShiftDirectional` message that allows moving windows by
+    splitting its neighbours.
+
 
 ## 0.15
 
