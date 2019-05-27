@@ -252,6 +252,12 @@
     Provides a simple transformer for use with `XMonad.Layout.MultiToggle` to
     dynamically toggle `XMonad.Layout.TabBarDecoration`.
 
+  * `XMonad.Hooks.RefocusLast`
+
+    Provides hooks and actions that keep track of recently focused windows on a
+    per workspace basis and automatically refocus the last window on loss of the
+    current (if appropriate as determined by user specified criteria).
+
   * `XMonad.Layout.StateFull`
 
     Provides `StateFull`: a stateful form of `Full` that does not misbehave when
