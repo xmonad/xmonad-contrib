@@ -89,6 +89,10 @@
     Add adwaitaTheme and adwaitaDarkTheme to match their respective
     GTK themes.
 
+  * `XMonad.Actions.GridSelect`
+
+
+    - Added gridselectWindowFiltered to allow filltering windows 
 
 ## 0.15
 

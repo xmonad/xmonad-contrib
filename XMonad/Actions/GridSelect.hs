@@ -38,6 +38,7 @@ module XMonad.Actions.GridSelect (
     withSelectedWindow,
     bringSelected,
     goToSelected,
+    goToSelectedFiltered,
     gridselectWorkspace,
     gridselectWorkspace',
     spawnSelected,
@@ -696,6 +697,9 @@ gridselect gsconfig elements =
 gridselectWindow :: GSConfig Window -> X (Maybe Window)
 gridselectWindow gsconf = windowMap >>= gridselect gsconf
 
+gridselectWindowFiltered :: (Window -> X Bool) -> GSConfig Window -> X (Maybe Window)
+gridselectWindowFiltered f gsconf = (filteredWindowMap f) >>= gridselect gsconf
+
 -- | Brings up a 2D grid of windows in the center of the screen, and one can
 -- select a window with cursors keys. The selected window is then passed to
 -- a callback function.
@@ -706,12 +710,22 @@ withSelectedWindow callback conf = do
         Just w -> callback w
         Nothing -> return ()
 
+withFilteredSelectedWindow :: (Window -> X Bool) -> (Window -> X ()) -> GSConfig Window -> X ()
+withFilteredSelectedWindow f callback gsconfig = do
+    mbWindow <- gridselectWindowFiltered f gsconfig
+    case mbWindow of
+        Just w -> callback w
+        Nothing -> return ()
+
 windowMap :: X [(String,Window)]
 windowMap = do
     ws <- gets windowset
     wins <- mapM keyValuePair (W.allWindows ws)
     return wins
  where keyValuePair w = flip (,) w `fmap` decorateName' w
+
+filteredWindowMap :: (Window -> X Bool) -> X [(String,Window)]
+filteredWindowMap f =  windowMap >>= filterM (f . snd)
 
 decorateName' :: Window -> X String
 decorateName' w = do
@@ -731,6 +745,9 @@ bringSelected = withSelectedWindow $ \w -> do
 -- | Switches to selected window's workspace and focuses that window.
 goToSelected :: GSConfig Window -> X ()
 goToSelected = withSelectedWindow $ windows . W.focusWindow
+
+goToSelectedFiltered :: (Window -> X Bool) -> GSConfig Window -> X ()
+goToSelectedFiltered f = (withFilteredSelectedWindow f) $ windows . W.focusWindow
 
 -- | Select an application to spawn from a given list
 spawnSelected :: GSConfig String -> [String] -> X ()
