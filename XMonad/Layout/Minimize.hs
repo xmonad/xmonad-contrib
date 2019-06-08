@@ -17,7 +17,9 @@
 module XMonad.Layout.Minimize (
         -- * Usage
         -- $usage
+        Minimize,
         minimize,
+        minimizeNoDescription
     ) where
 
 import XMonad
@@ -51,21 +53,24 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- Also see "XMonad.Hooks.Minimize" if you want to be able to minimize
 -- and restore windows from your taskbar.
 
-data Minimize a = Minimize deriving ( Read, Show )
-minimize :: l Window -> ModifiedLayout Minimize l Window
-minimize = ModifiedLayout Minimize
+data Minimize a = Minimize String deriving ( Read, Show )
 
+minimize :: l Window -> ModifiedLayout Minimize l Window
+minimize = ModifiedLayout (Minimize "Minimize")
+
+minimizeNoDescription :: l Window -> ModifiedLayout Minimize l Window
+minimizeNoDescription = ModifiedLayout (Minimize "")
 
 instance LayoutModifier Minimize Window where
-    modifierDescription _ = "Minimize"
+    modifierDescription (Minimize description) = description
 
-    modifyLayout Minimize wksp rect = do
+    modifyLayout (Minimize _) wksp rect = do
         minimized <- XS.gets minimizedStack
         let stack = W.stack wksp
             filtStack = stack >>= W.filter (`notElem` minimized)
         runLayout (wksp {W.stack = filtStack}) rect
 
-    handleMess Minimize m
+    handleMess (Minimize _) m
         | Just BW.UpdateBoring <- fromMessage m = do
             minimized <- XS.gets minimizedStack
             ws <- gets (W.workspace . W.current . windowset)

@@ -89,6 +89,11 @@
     Add adwaitaTheme and adwaitaDarkTheme to match their respective
     GTK themes.
 
+  * `XMonad.Layout.Minimize`
+
+	Provide a version of the minimize layout modifier that does not modify the
+    layout name.
+
 
 ## 0.15
 
