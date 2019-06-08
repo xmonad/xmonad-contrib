@@ -681,6 +681,11 @@
 
     - Added `swapWithCurrent` and `swapOrder` to the list of exported names.
 
+  - `XMonad.Layout.Minimize`
+
+    - Provide a version of the minimize layout modifier (minimizeNoDescription)
+      that does not modify the layout name.
+
 ## 0.16
 
 ### Breaking Changes
@@ -798,6 +803,7 @@
   * `XMonad.Prompt.FuzzyMatch`
 
     Make fuzzy sort show shorter strings first.
+
 
 ## 0.15
 
