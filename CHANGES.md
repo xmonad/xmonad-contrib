@@ -2,6 +2,94 @@
 
 ## unknown
 
+### Breaking Changes
+
+  * `XMonad.Prompt`
+
+    - Prompt ships a vim-like keymap, see `vimLikeXPKeymap` and
+      `vimLikeXPKeymap'`. A reworked event loop supports new vim-like prompt
+      actions.
+    - Prompt supports dynamic colors. Colors are now specified by the `XPColor`
+      type in `XPState` while `XPConfig` colors remain unchanged for backwards
+      compatibility.
+    - Fixes `showCompletionOnTab`.
+    - The behavior of `moveWord` and `moveWord'` has changed; brought in line
+      with the documentation and now internally consistent. The old keymaps
+      retain the original behavior; see the documentation to do the same your
+      XMonad configuration.
+
+### New Modules
+
+  * `XMonad.Layout.TwoPanePersistent`
+
+    A layout that is like TwoPane but keeps track of the slave window that is
+    currently beside the master. In TwoPane, the default behavior when the master
+    is focused is to display the next window in the stack on the slave pane. This
+    is a problem when a different slave window is selected without changing the stack
+    order.
+
+  * `XMonad.Util.ExclusiveScratchpads`
+
+    Named scratchpads that can be mutually exclusive: This new module extends the
+    idea of named scratchpads such that you can define "families of scratchpads"
+    that are exclusive on the same screen. It also allows to remove this
+    constraint of being mutually exclusive with another scratchpad.
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Prompt`
+
+    Added `sorter` to `XPConfig` used to sort the possible completions by how
+    well they match the search string (example: `XMonad.Prompt.FuzzyMatch`).
+
+    Fixes a potential bug where an error during prompt execution would
+    leave the window open and keep the keyboard grabbed. See issue
+    [#180](https://github.com/xmonad/xmonad-contrib/issues/180).
+
+    Fixes [issue #217](https://github.com/xmonad/xmonad-contrib/issues/217), where
+    using tab to wrap around the completion rows would fail when maxComplRows is
+    restricting the number of rows of output.
+
+  * `XMonad.Prompt.Pass`
+
+    Added 'passOTPPrompt' to support getting OTP type password. This require
+    pass-otp (https://github.com/tadfisher/pass-otp) has been setup in the running
+    machine.
+
+  * `XMonad.Actions.DynamicProjects`
+
+    Make the input directory read from the prompt in `DynamicProjects`
+    absolute wrt the current directory.
+
+    Before this, the directory set by the prompt was treated like a relative
+    directory. This means that when you switch from a project with directory
+    `foo` into a project with directory `bar`, xmonad actually tries to `cd`
+    into `foo/bar`, instead of `~/bar` as expected.
+
+  * `XMonad.Actions.DynamicWorkspaceOrder`
+
+    Add a version of `withNthWorkspace` that takes a `[WorkspaceId] ->
+    [WorkspaceId]` transformation to apply over the list of workspace tags
+    resulting from the dynamic order.
+
+  * `XMonad.Actions.GroupNavigation`
+
+    Add a utility function `isOnAnyVisibleWS :: Query Bool` to allow easy
+    cycling between all windows on all visible workspaces.
+
+
+  * `XMonad.Hooks.WallpaperSetter`
+
+    Preserve the aspect ratio of wallpapers that xmonad sets. When previous
+    versions would distort images to fit the screen size, it will now find a
+    best fit by cropping instead.
+
+  * `XMonad.Util.Themes`
+
+    Add adwaitaTheme and adwaitaDarkTheme to match their respective
+    GTK themes.
+
+
 ## 0.15
 
 ### Breaking Changes
@@ -163,6 +251,12 @@
 
     Provides a simple transformer for use with `XMonad.Layout.MultiToggle` to
     dynamically toggle `XMonad.Layout.TabBarDecoration`.
+
+  * `XMonad.Hooks.RefocusLast`
+
+    Provides hooks and actions that keep track of recently focused windows on a
+    per workspace basis and automatically refocus the last window on loss of the
+    current (if appropriate as determined by user specified criteria).
 
   * `XMonad.Layout.StateFull`
 
@@ -356,6 +450,8 @@
 
     - New function `passTypePrompt` which uses `xdotool` to type in a password
       from the store, bypassing the clipboard.
+    - New function `passEditPrompt` for editing a password from the
+      store.
     - Now handles password labels with spaces and special characters inside
       them.
 

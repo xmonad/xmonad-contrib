@@ -29,12 +29,15 @@ import Control.Applicative((<$>))
 import Data.List
 import Data.Maybe
 import Data.Monoid
+import qualified Data.Map.Strict as M
+import System.IO.Unsafe
 
 import XMonad
 import Control.Monad
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
+import qualified XMonad.Util.ExtensibleState as E
 import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
@@ -70,6 +73,58 @@ ewmhDesktopsStartup = setSupported
 -- of the current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+
+-- |
+-- Cached desktop names (e.g. @_NET_NUMBER_OF_DESKTOPS@ and
+-- @_NET_DESKTOP_NAMES@).
+newtype DesktopNames = DesktopNames [String]
+                     deriving (Eq)
+
+instance ExtensionClass DesktopNames where
+    initialValue = DesktopNames []
+
+-- |
+-- Cached client list (e.g. @_NET_CLIENT_LIST@).
+newtype ClientList = ClientList [Window]
+                   deriving (Eq)
+
+instance ExtensionClass ClientList where
+    initialValue = ClientList []
+
+-- |
+-- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
+newtype CurrentDesktop = CurrentDesktop Int
+                       deriving (Eq)
+
+instance ExtensionClass CurrentDesktop where
+    initialValue = CurrentDesktop 0
+
+-- |
+-- Cached window-desktop assignments (e.g. @_NET_CLIENT_LIST_STACKING@).
+newtype WindowDesktops = WindowDesktops (M.Map Window Int)
+                       deriving (Eq)
+
+instance ExtensionClass WindowDesktops where
+    initialValue = WindowDesktops M.empty
+
+-- |
+-- The value of @_NET_ACTIVE_WINDOW@, cached to avoid unnecessary property
+-- updates.
+newtype ActiveWindow = ActiveWindow Window
+                     deriving (Eq)
+
+instance ExtensionClass ActiveWindow where
+    initialValue = ActiveWindow none
+
+-- | Compare the given value against the value in the extensible state. Run the
+-- action if it has changed.
+whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
+whenChanged v action = do
+    v0 <- E.get
+    unless (v == v0) $ do
+        action
+        E.put v
+
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
@@ -78,28 +133,32 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     sort' <- getSortByIndex
     let ws = f $ sort' $ W.workspaces s
 
-    -- Number of Workspaces
-    setNumberOfDesktops (length ws)
+    -- Set number of workspaces and names thereof
+    let desktopNames = map W.tag ws
+    whenChanged (DesktopNames desktopNames) $ do
+        setNumberOfDesktops (length desktopNames)
+        setDesktopNames desktopNames
 
-    -- Names thereof
-    setDesktopNames (map W.tag ws)
-
-    -- all windows, with focused windows last
-    let wins =  nub . concatMap (maybe [] (\(W.Stack x l r)-> reverse l ++ r ++ [x]) . W.stack) $ ws
-    setClientList wins
+    -- Set client list; all windows, with focused windows last
+    let clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
+    whenChanged (ClientList clientList) $ setClientList clientList
 
     -- Remap the current workspace to handle any renames that f might be doing.
     let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
-        maybeCurrent  = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+        current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+    whenChanged (CurrentDesktop $ fromMaybe 0 current) $ do
+        mapM_ setCurrentDesktop current
 
-    fromMaybe (return ()) $ setCurrentDesktop <$> maybeCurrent
+    -- Set window-desktop mapping
+    let windowDesktops =
+          let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
+          in M.unions $ zipWith f [0..] ws
+    whenChanged (WindowDesktops windowDesktops) $ do
+        mapM_ (uncurry setWindowDesktop) (M.toList windowDesktops)
 
-    sequence_ $ zipWith setWorkspaceWindowDesktops [0..] ws
-
-    setActiveWindow
-
-    return ()
-
+    -- Set active window
+    let activeWindow' = fromMaybe none (W.peek s)
+    whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
 -- |
 -- Intercepts messages from pagers and similar applications and reacts on them.
@@ -221,10 +280,6 @@ setClientList wins = withDisplay $ \dpy -> do
     a' <- getAtom "_NET_CLIENT_LIST_STACKING"
     io $ changeProperty32 dpy r a' c propModeReplace (fmap fromIntegral wins)
 
-setWorkspaceWindowDesktops :: (Integral a) => a -> WindowSpace -> X()
-setWorkspaceWindowDesktops index workspace =
-  mapM_ (flip setWindowDesktop index) (W.integrate' $ W.stack workspace)
-
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_DESKTOP"
@@ -250,9 +305,8 @@ setSupported = withDisplay $ \dpy -> do
 
     setWMName "xmonad"
 
-setActiveWindow :: X ()
-setActiveWindow = withWindowSet $ \s -> withDisplay $ \dpy -> do
-    let w = fromMaybe none (W.peek s)
+setActiveWindow :: Window -> X ()
+setActiveWindow w = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
     c <- getAtom "WINDOW"

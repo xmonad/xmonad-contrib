@@ -214,7 +214,7 @@ infixr 5 |||
 -- layouts, and use those.
 --
 -- For the ability to select a layout from a prompt, see
--- "Xmonad.Prompt.Layout".
+-- "XMonad.Prompt.Layout".
 
 -- | A reimplementation of the combinator of the same name from the
 --   xmonad core, providing layout choice, and the ability to support

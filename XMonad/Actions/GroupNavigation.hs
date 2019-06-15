@@ -16,7 +16,7 @@
 -- query.
 --
 -- Also provides a method for jumping back to the most recently used
--- window in any given group.
+-- window in any given group, and predefined groups.
 --
 ----------------------------------------------------------------------
 
@@ -27,9 +27,14 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       , nextMatchOrDo
                                       , nextMatchWithThis
                                       , historyHook
+
+                                        -- * Utilities
+                                        -- $utilities
+                                      , isOnAnyVisibleWS
                                       ) where
 
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Foldable as Fold
 import Data.Map as Map
 import Data.Sequence as Seq
@@ -142,7 +147,7 @@ orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
     where
       wspcs      = SS.workspaces ss
       wspcsMap   = Fold.foldl' (\m ws -> Map.insert (SS.tag ws) ws m) Map.empty wspcs
-      wspcs'     = fmap (\wsid -> wspcsMap ! wsid) wsids
+      wspcs'     = fmap (wspcsMap !) wsids
       isCurWS ws = SS.tag ws == SS.tag (SS.workspace $ SS.current ss)
 
 --- History navigation, requires a layout modifier -------------------
@@ -167,7 +172,7 @@ updateHistory :: HistoryDB -> X HistoryDB
 updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
   let newcur   = SS.peek ss
       wins     = Set.fromList $ SS.allWindows ss
-      newhist  = flt (flip Set.member wins) (ins oldcur oldhist)
+      newhist  = flt (`Set.member` wins) (ins oldcur oldhist)
   return $ HistoryDB newcur (del newcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
@@ -216,3 +221,22 @@ findM cond xs = findM' cond (viewl xs)
       if isMatch
         then return (Just x')
         else findM qry xs'
+
+
+-- $utilities
+-- #utilities#
+-- Below are handy queries for use with 'nextMatch', 'nextMatchOrDo',
+-- and 'nextMatchWithThis'.
+
+-- | A query that matches all windows on visible workspaces. This is
+-- useful for configurations with multiple screens, and matches even
+-- invisible windows.
+isOnAnyVisibleWS :: Query Bool
+isOnAnyVisibleWS = do
+  w <- ask
+  ws <- liftX $ gets windowset
+  let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
+      visibleWs = w `elem` allVisible
+      unfocused = maybe True (w /=) $ SS.peek ws
+  return $ visibleWs && unfocused
+
