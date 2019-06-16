@@ -25,28 +25,30 @@ module XMonad.Actions.EasyMotion (
                                    selectWindow
                                  , def
                                  , EasyMotionConfig(..)
+                                 , fullSize
+                                 , fixedSize
+                                 , textSize
+                                 , bar
                                  ) where
 
-import XMonad
-import XMonad.StackSet as W
-import XMonad.Util.Font (releaseXMF, initXMF, Align(AlignCenter), XMonadFont(..), textExtentsXMF)
-import XMonad.Util.XUtils (fi, createNewWindow, paintAndWrite, deleteWindow, showWindow)
-import Control.Applicative ((<$>))
-import Control.Monad (when, replicateM)
-import Control.Arrow ((&&&))
-import Data.Maybe (isJust)
-import Data.Set (fromList, toList)
-import Graphics.X11.Xlib
-import Graphics.X11.Xlib.Extras (getWindowAttributes, getEvent)
-import qualified Data.List as L (filter, foldl', partition, find)
+import           XMonad
+import           XMonad.StackSet          as W
+import           XMonad.Util.Font         (releaseXMF, initXMF, Align(AlignCenter), XMonadFont(..), textExtentsXMF)
+import           XMonad.Util.XUtils       (fi, createNewWindow, paintAndWrite, deleteWindow, showWindow)
+import           Control.Monad            (replicateM)
+import           Control.Arrow            ((&&&))
+import           Data.Maybe               (isJust)
+import           Data.Set                 (fromList, toList)
+import           Graphics.X11.Xlib.Extras (getWindowAttributes, getEvent)
+import qualified Data.List as L           (filter, foldl', partition, find)
 #if __GLASGOW_HASKELL__ <= 708
-import Data.List (sortBy)
-import Data.Ord (comparing)
+import           Data.List                (sortBy)
+import           Data.Ord                 (comparing)
 sortOn :: Ord b => (a -> b) -> [a] -> [a]
 sortOn f = map snd . sortBy (comparing fst)
                    . map (\x -> let y = f x in y `seq` (y, x))
 #else
-import Data.List (sortOn)
+import           Data.List                (sortOn)
 #endif
 
 -- $usage
@@ -166,7 +168,7 @@ instance Default EasyMotionConfig where
   def =
     EMConf { txtCol      = "#ffffff"
            , bgCol       = "#000000"
-           , overlayF    = proportional 0.3
+           , overlayF    = proportional (0.3::Double)
            , borderCol   = "#ffffff"
            , sKeys       = [[xK_s, xK_d, xK_f, xK_j, xK_k, xK_l]]
            , cancelKey   = xK_q
@@ -177,7 +179,7 @@ instance Default EasyMotionConfig where
 
 -- | Use to create overlay windows the same size as the window they select
 fullSize :: Position -> Rectangle -> Rectangle
-fullSize th = id
+fullSize _ = id
 
 -- | Use to create overlay windows a proportion of the size of the window they select
 proportional :: RealFrac f => f -> Position -> Rectangle -> Rectangle
@@ -229,7 +231,7 @@ handleSelectWindow c = do
       winBuckets :: X [[Overlay]]
       winBuckets = sequence $ fmap (sequence . fmap buildOverlay) $
         case sKeys c of
-          [x] -> [toList mappedWins]
+          [_] -> [toList mappedWins]
           _ -> map (L.filter (`elem` (toList mappedWins)) . W.integrate' . W.stack . W.workspace) sortedScreens
             where
               sortedScreens = sortOn ((rect_x &&& rect_y) . screenRect . W.screenDetail) (W.current ws : W.visible ws)
@@ -242,11 +244,11 @@ handleSelectWindow c = do
         wAttrs <- io $ getWindowAttributes dpy w
         let r = overlayF c th $ makeRect wAttrs
         o <- createNewWindow r Nothing "" True
-        return Overlay { rect=r, overlay=o, win=w, attrs=wAttrs }
+        return Overlay { rect=r, overlay=o, win=w, attrs=wAttrs, chord=[] }
   overlays <- fmap concat sortedOverlays
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
-  case status of
-    grabSuccess -> do
+  if (status == grabSuccess)
+    then do
       resultWin <- handleKeyboard dpy displayF (cancelKey c) overlays []
       io $ ungrabKeyboard dpy currentTime
       mapM_ (deleteWindow . overlay) overlays
@@ -255,9 +257,7 @@ handleSelectWindow c = do
       case resultWin of
         Selected o -> return . Just $ win o
         _ -> whenJust currentW (windows . W.focusWindow . W.focus) >> return Nothing -- return focus correctly
-    _  -> do
-      releaseXMF f
-      return Nothing
+    else releaseXMF f >> return Nothing
 
 -- | Display overlay windows and chords for window selection
 selectWindow :: EasyMotionConfig -> X (Maybe Window)
@@ -278,14 +278,15 @@ selectWindow conf =
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
 appendChords :: Int -> [KeySym] -> [Overlay] -> [Overlay]
 appendChords _ [] _ = []
-appendChords maxLen keys overlays =
+appendChords maxLen ks overlays =
   zipWith (\o c -> o { chord=c }) overlays chords
     where
-      chords = replicateM chordLen keys
-      tempLen = -((-(length overlays)) `div` length keys)
+      chords = replicateM chordLen ks
+      tempLen = -((-(length overlays)) `div` length ks)
       chordLen = if maxLen <= 0 then tempLen else min tempLen maxLen
 
 -- | Get a key event, translate it to an event type and keysym
+event :: Display -> IO (EventType, KeySym)
 event d = allocaXEvent $ \e -> do
   maskEvent d (keyPressMask .|. keyReleaseMask) e
   KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent e
@@ -298,26 +299,26 @@ data HandleResult a = Exit | Selected a | Backspace
 -- | Handle key press events for window selection.
 handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X (HandleResult Overlay)
 handleKeyboard _ _ _ [] _ = return Exit
-handleKeyboard dpy drawFn cancelKey fgOverlays bgOverlays = do
+handleKeyboard dpy drawFn cancel fgOverlays bgOverlays = do
   let redraw = mapM (mapM_ drawFn) [fgOverlays, bgOverlays]
   let retryBackspace x =
         case x of
-          Backspace -> redraw >> handleKeyboard dpy drawFn cancelKey fgOverlays bgOverlays
+          Backspace -> redraw >> handleKeyboard dpy drawFn cancel fgOverlays bgOverlays
           _ -> return x
   redraw
   (t, s) <- io $ event dpy
   case () of
-    () | t == keyPress && s == cancelKey -> return Exit
+    () | t == keyPress && s == cancel -> return Exit
     () | t == keyPress && s == xK_BackSpace -> return Backspace
     () | t == keyPress && isJust (L.find ((== s) . head .chord) fgOverlays) ->
       case fg of
         [x] -> return $ Selected x
-        _   -> handleKeyboard dpy drawFn cancelKey (trim fg) (clear bg) >>= retryBackspace
+        _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
       where
         (fg, bg) = L.partition ((== s) . head . chord) fgOverlays
         trim = map (\o -> o { chord = tail $ chord o })
         clear = map (\o -> o { chord = [] })
-    () -> handleKeyboard dpy drawFn cancelKey fgOverlays bgOverlays
+    () -> handleKeyboard dpy drawFn cancel fgOverlays bgOverlays
 
 -- | Create a rectangle from window attributes
 makeRect :: WindowAttributes -> Rectangle
