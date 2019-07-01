@@ -25,11 +25,11 @@
 ### New Modules
 
   * `XMonad.Layout.TallMastersCombo`
-    A layout combinator that support Shrink, Expand, and IncMasterN just as 
-    the 'Tall' layout, and also support operations of two master windows: 
+    A layout combinator that support Shrink, Expand, and IncMasterN just as
+    the 'Tall' layout, and also support operations of two master windows:
     a main master, which is the original master window;
     a sub master, the first window of the second pane.
-    This combinator can be nested, and has a good support for using 
+    This combinator can be nested, and has a good support for using
     'XMonad.Layout.Tabbed' as a sublayout.
 
   * `XMonad.Layout.TwoPanePersistent`
@@ -78,6 +78,16 @@
 
     Made password prompts traverse symlinks when gathering password names for
     autocomplete.
+
+* `XMonad.Prompt.Window`
+
+    Added 'allApplications' function which maps application executable
+    names to it's underlying window.
+
+* `XMonad.Prompt.WindowBringer`
+
+    Added 'windowApMap' function which maps application executable
+    names to it's underlying window.
 
   * `XMonad.Actions.DynamicProjects`
 

@@ -18,6 +18,7 @@ module XMonad.Util.NamedWindows (
                                    -- $usage
                                    NamedWindow,
                                    getName,
+                                   getNameWMClass,
                                    withNamedWindow,
                                    unName
                                   ) where
@@ -54,6 +55,20 @@ getName w = withDisplay $ \d -> do
         copy prop = fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
 
     io $ getIt `E.catch` \(SomeException _) ->  ((`NW` w) . resName) `fmap` getClassHint d w
+
+-- | Get 'NamedWindow' using 'wM_CLASS'
+getNameWMClass :: Window -> X NamedWindow
+getNameWMClass w =
+  withDisplay $ \d
+    -- TODO, this code is ugly and convoluted -- clean it up
+   -> do
+    let getIt = bracket getProp (xFree . tp_value) (fmap (`NW` w) . copy)
+        getProp = getTextProperty d w wM_CLASS
+        copy prop =
+          fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
+    io $
+      getIt `E.catch` \(SomeException _) ->
+        ((`NW` w) . resName) `fmap` getClassHint d w
 
 unName :: NamedWindow -> Window
 unName (NW _ w) = w
