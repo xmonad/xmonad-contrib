@@ -198,6 +198,7 @@ escapeQuote = concatMap escape
 getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
   files <- runProcessWithInput "find" [
+    "-L", -- Traverse symlinks
     passwordStoreDir,
     "-type", "f",
     "-name", "*.gpg",
