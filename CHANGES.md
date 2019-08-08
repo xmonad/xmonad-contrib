@@ -56,6 +56,9 @@
     pass-otp (https://github.com/tadfisher/pass-otp) has been setup in the running
     machine.
 
+    Made password prompts traverse symlinks when gathering password names for
+    autocomplete.
+
   * `XMonad.Actions.DynamicProjects`
 
     Make the input directory read from the prompt in `DynamicProjects`
