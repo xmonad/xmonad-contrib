@@ -92,6 +92,10 @@
     Add adwaitaTheme and adwaitaDarkTheme to match their respective
     GTK themes.
 
+  * `XMonad.Prompt.FuzzyMatch`
+
+    Make fuzzy sort show shorter strings first.
+
 
 ## 0.15
 
