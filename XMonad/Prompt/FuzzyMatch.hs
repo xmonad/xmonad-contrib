@@ -23,7 +23,7 @@ import Data.Function
 import Data.List
 
 -- $usage
--- 
+--
 -- This module offers two aspects of fuzzy matching of completions offered by
 -- XMonad.Prompt.
 --
@@ -57,7 +57,7 @@ import Data.List
 -- > myXPConfig = def { searchPredicate = fuzzyMatch
 -- >                  , sorter          = fuzzySort
 -- >                  }
--- 
+--
 -- then add this to your keys definition:
 --
 -- > , ((modm .|. shiftMask, xK_g), windowPrompt myXPConfig Goto allWindows)
@@ -77,7 +77,7 @@ fuzzyMatch xxs@(x:xs) (y:ys) | toLower x == toLower y = fuzzyMatch xs  ys
 -- measured first by the length of the substring containing the match and second
 -- by the positions of the matching characters in the string.
 fuzzySort :: String -> [String] -> [String]
-fuzzySort q = map snd . sortBy (compare `on` fst) . map (rankMatch q)
+fuzzySort q = map snd . sort . map (rankMatch q)
 
 rankMatch :: String -> String -> ((Int, Int), String)
 rankMatch q s = (minimum $ rankMatches q s, s)
@@ -95,7 +95,7 @@ findOccurrences :: String -> Char -> [Int]
 findOccurrences s c = map snd $ filter ((toLower c ==) . toLower . fst) $ zip s [0..]
 
 extendMatches :: [(Int, Int)] -> [Int] -> [(Int, Int)]
-extendMatches spans xs = map last $ groupBy ((==) `on` snd) $ extendMatches' spans xs
+extendMatches spans = map last . groupBy ((==) `on` snd) . extendMatches' spans
 
 extendMatches' :: [(Int, Int)] -> [Int] -> [(Int, Int)]
 extendMatches' []                    _          = []
