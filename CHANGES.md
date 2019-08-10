@@ -56,6 +56,10 @@
     pass-otp (https://github.com/tadfisher/pass-otp) has been setup in the running
     machine.
 
+    Added 'passGenerateAndCopyPrompt', which both generates a new password and
+    copies it to the clipboard.  These two actions are commonly desirable to
+    take together, e.g. when establishing a new account.
+
     Made password prompts traverse symlinks when gathering password names for
     autocomplete.
 
