@@ -56,6 +56,13 @@
     pass-otp (https://github.com/tadfisher/pass-otp) has been setup in the running
     machine.
 
+    Added 'passGenerateAndCopyPrompt', which both generates a new password and
+    copies it to the clipboard.  These two actions are commonly desirable to
+    take together, e.g. when establishing a new account.
+
+    Made password prompts traverse symlinks when gathering password names for
+    autocomplete.
+
   * `XMonad.Actions.DynamicProjects`
 
     Make the input directory read from the prompt in `DynamicProjects`
@@ -94,6 +101,9 @@
     Add a new `SplitShiftDirectional` message that allows moving windows by
     splitting its neighbours.
 
+  * `XMonad.Prompt.FuzzyMatch`
+
+    Make fuzzy sort show shorter strings first.
 
 ## 0.15
 
@@ -256,6 +266,12 @@
 
     Provides a simple transformer for use with `XMonad.Layout.MultiToggle` to
     dynamically toggle `XMonad.Layout.TabBarDecoration`.
+
+  * `XMonad.Hooks.RefocusLast`
+
+    Provides hooks and actions that keep track of recently focused windows on a
+    per workspace basis and automatically refocus the last window on loss of the
+    current (if appropriate as determined by user specified criteria).
 
   * `XMonad.Layout.StateFull`
 

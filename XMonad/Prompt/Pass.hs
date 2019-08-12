@@ -46,6 +46,7 @@ module XMonad.Prompt.Pass (
                               passPrompt
                             , passOTPPrompt
                             , passGeneratePrompt
+                            , passGenerateAndCopyPrompt
                             , passRemovePrompt
                             , passEditPrompt
                             , passTypePrompt
@@ -138,6 +139,13 @@ passOTPPrompt = mkPassPrompt "Select OTP" selectOTP
 passGeneratePrompt :: XPConfig -> X ()
 passGeneratePrompt = mkPassPrompt "Generate password" generatePassword
 
+-- | A prompt to generate a password for a given entry and immediately copy it
+-- to the clipboard.  This can be used to override an already stored entry.
+-- (Beware that no confirmation is asked)
+--
+passGenerateAndCopyPrompt :: XPConfig -> X ()
+passGenerateAndCopyPrompt = mkPassPrompt "Generate and copy password" generateAndCopyPassword
+
 -- | A prompt to remove a password for a given entry.
 -- (Beware that no confirmation is asked)
 --
@@ -172,6 +180,13 @@ selectOTP passLabel = spawn $ "pass otp --clip \"" ++ escapeQuote passLabel ++ "
 generatePassword :: String -> X ()
 generatePassword passLabel = spawn $ "pass generate --force \"" ++ escapeQuote passLabel ++ "\" 30"
 
+-- | Generate a 30 characters password for a given entry.
+-- If the entry already exists, it is updated with a new password.
+-- After generating the password, it is copied to the clipboard.
+--
+generateAndCopyPassword :: String -> X ()
+generateAndCopyPassword passLabel = spawn $ "pass generate --force -c \"" ++ escapeQuote passLabel ++ "\" 30"
+
 -- | Remove a password stored for a given entry.
 --
 removePassword :: String -> X ()
@@ -198,6 +213,7 @@ escapeQuote = concatMap escape
 getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
   files <- runProcessWithInput "find" [
+    "-L", -- Traverse symlinks
     passwordStoreDir,
     "-type", "f",
     "-name", "*.gpg",
