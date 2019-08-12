@@ -4,6 +4,8 @@
 
 ### Breaking Changes
 
+  * `XMonad.Layout.Decoration`
+    - Added `Theme` record fields for controlling decoration border width for active/inactive/urgent windows.
   * `XMonad.Prompt`
 
     - Prompt ships a vim-like keymap, see `vimLikeXPKeymap` and

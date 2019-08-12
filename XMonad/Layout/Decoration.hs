@@ -68,18 +68,21 @@ decoration s t ds = ModifiedLayout (Decoration (I Nothing) s t ds)
 --
 -- For a collection of 'Theme's see "XMonad.Util.Themes"
 data Theme =
-    Theme { activeColor        :: String                   -- ^ Color of the active window
-          , inactiveColor       :: String                   -- ^ Color of the inactive window
-          , urgentColor         :: String                   -- ^ Color of the urgent window
-          , activeBorderColor   :: String                   -- ^ Color of the border of the active window
-          , inactiveBorderColor :: String                   -- ^ Color of the border of the inactive window
-          , urgentBorderColor   :: String                   -- ^ Color of the border of the urgent window
-          , activeTextColor     :: String                   -- ^ Color of the text of the active window
-          , inactiveTextColor   :: String                   -- ^ Color of the text of the inactive window
-          , urgentTextColor     :: String                   -- ^ Color of the text of the urgent window
-          , fontName            :: String                   -- ^ Font name
-          , decoWidth           :: Dimension                -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
-          , decoHeight          :: Dimension                -- ^ Height of the decorations
+    Theme { activeColor         :: String                  -- ^ Color of the active window
+          , inactiveColor       :: String                  -- ^ Color of the inactive window
+          , urgentColor         :: String                  -- ^ Color of the urgent window
+          , activeBorderColor   :: String                  -- ^ Color of the border of the active window
+          , inactiveBorderColor :: String                  -- ^ Color of the border of the inactive window
+          , urgentBorderColor   :: String                  -- ^ Color of the border of the urgent window
+          , activeBorderWidth   :: Dimension               -- ^ Width of the border of the active window
+          , inactiveBorderWidth :: Dimension               -- ^ Width of the border of the inactive window
+          , urgentBorderWidth   :: Dimension               -- ^ Width of the border of the urgent window
+          , activeTextColor     :: String                  -- ^ Color of the text of the active window
+          , inactiveTextColor   :: String                  -- ^ Color of the text of the inactive window
+          , urgentTextColor     :: String                  -- ^ Color of the text of the urgent window
+          , fontName            :: String                  -- ^ Font name
+          , decoWidth           :: Dimension               -- ^ Maximum width of the decorations (if supported by the 'DecorationStyle')
+          , decoHeight          :: Dimension               -- ^ Height of the decorations
           , windowTitleAddons   :: [(String, Align)]       -- ^ Extra text to appear in a window's title bar.
                                                            --    Refer to for a use "XMonad.Layout.ImageButtonDecoration"
           , windowTitleIcons    :: [([[Bool]], Placement)] -- ^ Extra icons to appear in a window's title bar.
@@ -94,6 +97,9 @@ instance Default Theme where
           , activeBorderColor   = "#FFFFFF"
           , inactiveBorderColor = "#BBBBBB"
           , urgentBorderColor   = "##00FF00"
+          , activeBorderWidth   = 1
+          , inactiveBorderWidth = 1
+          , urgentBorderWidth   = 1
           , activeTextColor     = "#FFFFFF"
           , inactiveTextColor   = "#BFBFBF"
           , urgentTextColor     = "#FF0000"
@@ -395,9 +401,10 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
                                                          | win `elem` ur -> uc
                                                          | otherwise     -> ic) . W.peek)
                                 `fmap` gets windowset
-  (bc,borderc,tc) <- focusColor w (inactiveColor t, inactiveBorderColor t, inactiveTextColor t)
-                                  (activeColor   t, activeBorderColor   t, activeTextColor   t)
-                                  (urgentColor   t, urgentBorderColor   t, urgentTextColor   t)
+  (bc,borderc,borderw,tc) <-
+    focusColor w (inactiveColor t, inactiveBorderColor t, inactiveBorderWidth t, inactiveTextColor t)
+                 (activeColor   t, activeBorderColor   t, activeBorderWidth   t, activeTextColor   t)
+                 (urgentColor   t, urgentBorderColor   t, urgentBorderWidth   t, urgentTextColor   t)
   let s = shrinkIt sh
   name <- shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy fs n
                                   return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
@@ -405,7 +412,7 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
       strs = name : map fst (windowTitleAddons t)
       i_als = map snd (windowTitleIcons t)
       icons = map fst (windowTitleIcons t)
-  paintTextAndIcons dw fs wh ht 1 bc borderc tc bc als strs i_als icons
+  paintTextAndIcons dw fs wh ht borderw bc borderc tc bc als strs i_als icons
 updateDeco _ _ _ (_,(Just w,Nothing)) = hideWindow w
 updateDeco _ _ _ _ = return ()
 
