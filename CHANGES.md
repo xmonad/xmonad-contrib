@@ -96,10 +96,14 @@
     Add adwaitaTheme and adwaitaDarkTheme to match their respective
     GTK themes.
 
+  * 'XMonad.Layout.BinarySpacePartition'
+
+    Add a new `SplitShiftDirectional` message that allows moving windows by
+    splitting its neighbours.
+
   * `XMonad.Prompt.FuzzyMatch`
 
     Make fuzzy sort show shorter strings first.
-
 
 ## 0.15
 

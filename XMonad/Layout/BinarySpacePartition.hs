@@ -6,6 +6,7 @@
 -- Module      :  XMonad.Layout.BinarySpacePartition
 -- Copyright   :  (c) 2013 Ben Weitzman    <benweitzman@gmail.com>
 --                    2015 Anton Pirogov   <anton.pirogov@gmail.com>
+--                    2019 Mateusz Karbowy <obszczymucha@gmail.com
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  Ben Weitzman <benweitzman@gmail.com>
@@ -29,6 +30,7 @@ module XMonad.Layout.BinarySpacePartition (
   , FocusParent(..)
   , SelectMoveNode(..)
   , Direction2D(..)
+  , SplitShiftDirectional(..)
   ) where
 
 import XMonad
@@ -66,19 +68,21 @@ import Data.Ratio ((%))
 --
 -- If you don't want to use the mouse, add the following key bindings to resize the splits with the keyboard:
 --
--- > , ((modm .|. altMask,               xK_l     ), sendMessage $ ExpandTowards R)
--- > , ((modm .|. altMask,               xK_h     ), sendMessage $ ExpandTowards L)
--- > , ((modm .|. altMask,               xK_j     ), sendMessage $ ExpandTowards D)
--- > , ((modm .|. altMask,               xK_k     ), sendMessage $ ExpandTowards U)
--- > , ((modm .|. altMask .|. ctrlMask , xK_l     ), sendMessage $ ShrinkFrom R)
--- > , ((modm .|. altMask .|. ctrlMask , xK_h     ), sendMessage $ ShrinkFrom L)
--- > , ((modm .|. altMask .|. ctrlMask , xK_j     ), sendMessage $ ShrinkFrom D)
--- > , ((modm .|. altMask .|. ctrlMask , xK_k     ), sendMessage $ ShrinkFrom U)
--- > , ((modm,                           xK_r     ), sendMessage Rotate)
--- > , ((modm,                           xK_s     ), sendMessage Swap)
--- > , ((modm,                           xK_n     ), sendMessage FocusParent)
--- > , ((modm .|. ctrlMask,              xK_n     ), sendMessage SelectNode)
--- > , ((modm .|. shiftMask,             xK_n     ), sendMessage MoveNode)
+-- > , ((modm .|. altMask,                 xK_l     ), sendMessage $ ExpandTowards R)
+-- > , ((modm .|. altMask,                 xK_h     ), sendMessage $ ExpandTowards L)
+-- > , ((modm .|. altMask,                 xK_j     ), sendMessage $ ExpandTowards D)
+-- > , ((modm .|. altMask,                 xK_k     ), sendMessage $ ExpandTowards U)
+-- > , ((modm .|. altMask .|. ctrlMask ,   xK_l     ), sendMessage $ ShrinkFrom R)
+-- > , ((modm .|. altMask .|. ctrlMask ,   xK_h     ), sendMessage $ ShrinkFrom L)
+-- > , ((modm .|. altMask .|. ctrlMask ,   xK_j     ), sendMessage $ ShrinkFrom D)
+-- > , ((modm .|. altMask .|. ctrlMask ,   xK_k     ), sendMessage $ ShrinkFrom U)
+-- > , ((modm,                             xK_r     ), sendMessage Rotate)
+-- > , ((modm,                             xK_s     ), sendMessage Swap)
+-- > , ((modm,                             xK_n     ), sendMessage FocusParent)
+-- > , ((modm .|. ctrlMask,                xK_n     ), sendMessage SelectNode)
+-- > , ((modm .|. shiftMask,               xK_n     ), sendMessage MoveNode)
+-- > , ((modm .|. shiftMask .|. ctrlMask , xK_j     ), sendMessage $ SplitShift Prev)
+-- > , ((modm .|. shiftMask .|. ctrlMask , xK_k     ), sendMessage $ SplitShift Next)
 --
 -- Here's an alternative key mapping, this time using additionalKeysP,
 -- arrow keys, and slightly different behavior when resizing windows
@@ -92,7 +96,9 @@ import Data.Ratio ((%))
 -- > , ("M-M1-C-<Up>",    sendMessage $ ShrinkFrom D)
 -- > , ("M-M1-C-<Down>",  sendMessage $ ExpandTowards D)
 -- > , ("M-s",            sendMessage $ BSP.Swap)
--- > , ("M-M1-s",         sendMessage $ Rotate) ]
+-- > , ("M-M1-s",         sendMessage $ Rotate)
+-- > , ("M-S-C-j",        sendMessage $ SplitShift Prev)
+-- > , ("M-S-C-k",        sendMessage $ SplitShift Next)
 --
 -- If you have many windows open and the layout begins to look too hard to manage, you can 'Balance'
 -- the layout, so that the current splittings are discarded and windows are tiled freshly in a way that
@@ -132,6 +138,10 @@ data SelectMoveNode = SelectNode | MoveNode deriving Typeable
 instance Message SelectMoveNode
 
 data Axis = Horizontal | Vertical deriving (Show, Read, Eq)
+
+-- |Message for shifting window by splitting its neighbour
+data SplitShiftDirectional = SplitShift Direction1D deriving Typeable
+instance Message SplitShiftDirectional
 
 oppositeDirection :: Direction2D -> Direction2D
 oppositeDirection U = D
@@ -272,6 +282,42 @@ rotateCurrent (n, c:cs) = Just (n, modifyParentVal oppositeSplit c:cs)
 swapCurrent :: Zipper a -> Maybe (Zipper a)
 swapCurrent l@(_, []) = Just l
 swapCurrent (n, c:cs) = Just (n, swapCrumb c:cs)
+
+insertLeftLeaf :: Tree Split -> Zipper Split -> Maybe (Zipper Split)
+insertLeftLeaf (Leaf n) ((Node x l r), crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Node x l r), crumb:cs)
+insertLeftLeaf (Leaf n) (Leaf x, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Leaf x), crumb:cs)
+insertLeftLeaf (Node _ _ _) z = Just z
+
+insertRightLeaf :: Tree Split -> Zipper Split -> Maybe (Zipper Split)
+insertRightLeaf (Leaf n) ((Node x l r), crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Node x l r) (Leaf n), crumb:cs)
+insertRightLeaf (Leaf n) (Leaf x, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf x) (Leaf n), crumb:cs)
+insertRightLeaf (Node _ _ _) z = Just z
+
+findRightLeaf :: Zipper Split -> Maybe (Zipper Split)
+findRightLeaf n@(Node _ _ _, _) = goRight n >>= findRightLeaf
+findRightLeaf l@(Leaf _, _) = Just l
+
+findLeftLeaf :: Zipper Split -> Maybe (Zipper Split)
+findLeftLeaf n@(Node _ _ _, _) = goLeft n
+findLeftLeaf l@(Leaf _, _) = Just l
+
+findTheClosestLeftmostLeaf :: Zipper Split -> Maybe (Zipper Split)
+findTheClosestLeftmostLeaf s@(_, (RightCrumb _ _):_) = goUp s >>= goLeft >>= findRightLeaf
+findTheClosestLeftmostLeaf s@(_, (LeftCrumb _ _):_) = goUp s >>= findTheClosestLeftmostLeaf
+
+findTheClosestRightmostLeaf :: Zipper Split -> Maybe (Zipper Split)
+findTheClosestRightmostLeaf s@(_, (RightCrumb _ _):_) = goUp s >>= findTheClosestRightmostLeaf
+findTheClosestRightmostLeaf s@(_, (LeftCrumb _ _):_) = goUp s >>= goRight >>= findLeftLeaf
+
+splitShiftLeftCurrent :: Zipper Split -> Maybe (Zipper Split)
+splitShiftLeftCurrent l@(_, []) = Just l
+splitShiftLeftCurrent l@(_, (RightCrumb _ _):_) = Just l -- Do nothing. We can swap windows instead.
+splitShiftLeftCurrent l@(n, c:cs) = removeCurrent l >>= findTheClosestLeftmostLeaf >>= insertRightLeaf n
+
+splitShiftRightCurrent :: Zipper Split -> Maybe (Zipper Split)
+splitShiftRightCurrent l@(_, []) = Just l
+splitShiftRightCurrent l@(_, (LeftCrumb _ _):_) = Just l -- Do nothing. We can swap windows instead.
+splitShiftRightCurrent l@(n, c:cs) = removeCurrent l >>= findTheClosestRightmostLeaf >>= insertLeftLeaf n
 
 isAllTheWay :: Direction2D -> Zipper Split -> Bool
 isAllTheWay _ (_, []) = True
@@ -513,6 +559,12 @@ swapNth (BinarySpacePartition _ _ _ Nothing) = emptyBSP
 swapNth b@(BinarySpacePartition _ _ _ (Just (Leaf _))) = b
 swapNth b = doToNth swapCurrent b
 
+splitShiftNth :: Direction1D -> BinarySpacePartition a -> BinarySpacePartition a
+splitShiftNth _ (BinarySpacePartition _ _ _ Nothing) = emptyBSP
+splitShiftNth _ b@(BinarySpacePartition _ _ _ (Just (Leaf _))) = b
+splitShiftNth Prev b = doToNth splitShiftLeftCurrent b
+splitShiftNth Next b = doToNth splitShiftRightCurrent b
+
 growNthTowards :: Direction2D -> BinarySpacePartition a -> BinarySpacePartition a
 growNthTowards _ (BinarySpacePartition _ _ _ Nothing) = emptyBSP
 growNthTowards _ b@(BinarySpacePartition _ _ _ (Just (Leaf _))) = b
@@ -687,6 +739,7 @@ instance LayoutClass BinarySpacePartition Window where
                               , fmap rotateTr      (fromMessage m)
                               , fmap (balanceTr r) (fromMessage m)
                               , fmap move          (fromMessage m)
+                              , fmap splitShift    (fromMessage m)
                               ]
           resize (ExpandTowards dir) = growNthTowards dir b
           resize (ShrinkFrom dir) = shrinkNthFrom dir b
@@ -699,6 +752,7 @@ instance LayoutClass BinarySpacePartition Window where
           balanceTr r Balance  = resetFoc $ rebalanceNth b r
           move MoveNode = resetFoc $ moveNode b
           move SelectNode = b --should not happen here, is done above, as we need X monad
+          splitShift (SplitShift dir) = resetFoc $ splitShiftNth dir b
 
           b = numerateLeaves b_orig
           resetFoc bsp = bsp{getFocusedNode=(getFocusedNode bsp){refLeaf=(-1)}
