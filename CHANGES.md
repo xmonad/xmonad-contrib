@@ -37,6 +37,12 @@
     that are exclusive on the same screen. It also allows to remove this
     constraint of being mutually exclusive with another scratchpad.
 
+  * `XMonad.Actions.PerWindowKeys`
+
+    Create actions that run on a `Query Bool`, usually associated with
+    conditions on a window, basis. Useful for creating bindings that are
+    excluded or exclusive for some windows.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt`
