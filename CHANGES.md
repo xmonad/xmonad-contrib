@@ -39,6 +39,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.Tabbed`
+
+    tabbedLeft and tabbedRight will set their tabs' height and width according to decoHeight/decoWidth
+
   * `XMonad.Prompt`
 
     Added `sorter` to `XPConfig` used to sort the possible completions by how
