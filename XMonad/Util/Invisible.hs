@@ -34,7 +34,7 @@ import           Control.Monad.Fail  (MonadFail)
 
 newtype Invisible m a = I (m a) deriving (Monad, Applicative, Functor, MonadFail)
 
-instance (Functor m, Monad m, MonadFail (Invisible m)) => Read (Invisible m a) where
+instance (MonadFail (Invisible m)) => Read (Invisible m a) where
     readsPrec _ s = [(fail "Read Invisible", s)]
 
 instance Monad m => Show (Invisible m a) where
