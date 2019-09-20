@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -----------------------------------------------------------------------------
@@ -22,7 +23,8 @@ module XMonad.Util.Invisible (
                             , fromIMaybe
                             ) where
 
-import Control.Applicative
+import           Control.Applicative
+import           Control.Monad.Fail  (MonadFail)
 
 -- $usage
 -- A wrapper data type to store layout state that shouldn't be persisted across
@@ -30,17 +32,17 @@ import Control.Applicative
 -- Invisible derives trivial definitions for Read and Show, so the wrapped data
 -- type need not do so.
 
-newtype Invisible m a = I (m a) deriving (Monad, Applicative, Functor)
+newtype Invisible m a = I (m a) deriving (Monad, Applicative, Functor, MonadFail)
 
-instance (Functor m, Monad m) => Read (Invisible m a) where
+instance (Functor m, Monad m, MonadFail (Invisible m)) => Read (Invisible m a) where
     readsPrec _ s = [(fail "Read Invisible", s)]
 
 instance Monad m => Show (Invisible m a) where
     show _ = ""
 
 whenIJust :: (Monad m) => Invisible Maybe a -> (a -> m ()) -> m ()
-whenIJust (I (Just x)) f  = f x
-whenIJust (I  Nothing) _  = return ()
+whenIJust (I (Just x)) f = f x
+whenIJust (I  Nothing) _ = return ()
 
 fromIMaybe :: a -> Invisible Maybe a -> a
 fromIMaybe _ (I (Just x)) = x
