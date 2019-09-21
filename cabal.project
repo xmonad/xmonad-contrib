@@ -1,3 +1,6 @@
 packages: ./
           ../xmonad/
           ../x11/
+
+allow-newer:
+  setlocale:base
