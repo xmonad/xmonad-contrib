@@ -1,5 +1,2 @@
 packages:
   xmonad-contrib.cabal
-
-allow-newer:
-  setlocale:base
