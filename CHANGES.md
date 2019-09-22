@@ -19,6 +19,8 @@
       with the documentation and now internally consistent. The old keymaps
       retain the original behavior; see the documentation to do the same your
       XMonad configuration.
+  * `XMonad.Util.Invisble`
+    - Requires `MonadFail` for `Read` instance
 
 ### New Modules
 
