@@ -1,3 +1,5 @@
-packages: ./
-          ../xmonad/
-          ../x11/
+packages:
+  xmonad-contrib.cabal
+
+allow-newer:
+  setlocale:base
