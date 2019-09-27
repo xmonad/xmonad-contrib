@@ -24,6 +24,14 @@
 
 ### New Modules
 
+  * `XMonad.Layout.TallMastersCombo`
+    A layout combinator that support Shrink, Expand, and IncMasterN just as 
+    the 'Tall' layout, and also support operations of two master windows: 
+    a main master, which is the original master window;
+    a sub master, the first window of the second pane.
+    This combinator can be nested, and has a good support for using 
+    'XMonad.Layout.Tabbed' as a sublayout.
+
   * `XMonad.Layout.TwoPanePersistent`
 
     A layout that is like TwoPane but keeps track of the slave window that is
