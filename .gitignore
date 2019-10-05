@@ -24,3 +24,6 @@ tags
 # stack artifacts
 /.stack-work/
 /cabal.project.local
+
+stack.yaml.lock
+
