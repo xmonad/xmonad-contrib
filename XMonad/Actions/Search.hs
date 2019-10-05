@@ -191,7 +191,7 @@ Or in combination with XMonad.Util.EZConfig:
 >
 > searchList :: [(String, S.SearchEngine)]
 > searchList = [ ("g", S.google)
->              , ("h", S.hoohle)
+>              , ("h", S.hoogle)
 >              , ("w", S.wikipedia)
 >              ]
 
