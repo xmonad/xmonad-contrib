@@ -113,6 +113,10 @@
 
     Make fuzzy sort show shorter strings first.
 
+  * `XMonad.Actions.Search`
+
+    The `hoogle` function now uses the new URL `hoogle.haskell.org`.
+
 ## 0.15
 
 ### Breaking Changes
