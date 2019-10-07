@@ -42,6 +42,7 @@ import XMonad hiding (focus)
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
 import Data.Maybe (fromJust,isJust)
+import Data.List (delete)
 import Control.Monad (join, foldM)
 
 ---------------------------------------------------------------------------------
@@ -188,8 +189,8 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombi
 
   runLayout (Workspace wid (TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
       let slst = integrate' s
-          f' = case s of (Just s') -> [focus s']
-                         Nothing   -> []
+          f' = case s of (Just s') -> focus s':delete (focus s') f
+                         Nothing   -> f
           snum = length(slst)
           (slst1, slst2) = splitAt nmaster slst
           s0 = differentiate f' slst
