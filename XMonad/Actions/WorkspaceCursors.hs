@@ -48,8 +48,8 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMess, redoLayout))
 import XMonad(Typeable, Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
+import Control.Applicative (liftA2)
 import Control.Monad((<=<), guard, liftM, liftM2, when)
-import Control.Applicative((<$>))
 import Data.Foldable(Foldable(foldMap), toList)
 import Data.Maybe(fromJust, listToMaybe)
 import Data.Monoid(Monoid(mappend, mconcat))
@@ -161,12 +161,12 @@ focusDepth (Cons x) = 1 + focusDepth (W.focus x)
 focusDepth (End  _) = 0
 
 descend :: Monad m =>(W.Stack (Cursors a) -> m (W.Stack (Cursors a)))-> Int-> Cursors a-> m (Cursors a)
-descend f 1 (Cons x) = Cons `liftM` f x
-descend f n (Cons x) | n > 1 = liftM Cons $ descend f (pred n) `onFocus` x
+descend f 1 (Cons x) = Cons <$> f x
+descend f n (Cons x) | n > 1 = fmap Cons $ descend f (pred n) `onFocus` x
 descend _ _ x = return x
 
 onFocus :: (Monad m) => (a1 -> m a1) -> W.Stack a1 -> m (W.Stack a1)
-onFocus f st = (\x -> st { W.focus = x}) `liftM` f (W.focus st)
+onFocus f st = (\x -> st { W.focus = x}) <$> f (W.focus st)
 
 -- | @modifyLayer@ is used to change the focus at a given depth
 modifyLayer :: (W.Stack (Cursors String) -> W.Stack (Cursors String)) -> Int -> X ()
@@ -192,7 +192,7 @@ modifyLayer' :: (W.Stack (Cursors String) -> X (W.Stack (Cursors String))) -> In
 modifyLayer' f depth = modifyCursors (descend f depth)
 
 modifyCursors ::  (Cursors String -> X (Cursors String)) -> X ()
-modifyCursors = sendMessage . ChangeCursors . (liftM2 (>>) updateXMD return <=<)
+modifyCursors = sendMessage . ChangeCursors . (liftA2 (>>) updateXMD return <=<)
 
 data WorkspaceCursors a = WorkspaceCursors (Cursors String)
     deriving (Typeable,Read,Show)

@@ -77,7 +77,7 @@ mateRun = withDisplay $ \dpy -> do
 -- (the extra quotes are required by dconf)
 mateRegister :: MonadIO m => m ()
 mateRegister = io $ do
-    x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
+    x <- lookup "DESKTOP_AUTOSTART_ID" <$> getEnvironment
     whenJust x $ \sessionId -> safeSpawn "dbus-send"
             ["--session"
             ,"--print-reply=literal"

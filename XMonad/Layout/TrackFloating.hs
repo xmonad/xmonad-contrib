@@ -32,6 +32,7 @@ module XMonad.Layout.TrackFloating
      UseTransientFor,
     ) where
 
+import Control.Applicative (liftA2)
 import Control.Monad
 import Data.Function
 import Data.List
@@ -96,11 +97,11 @@ instance LayoutModifier UseTransientFor Window where
     modifyLayout _ ws@(W.Workspace{ W.stack = ms }) r = do
         m <- gets (W.peek . windowset)
         d <- asks display
-        parent <- fmap join $ T.traverse (io . getTransientForHint d) m
+        parent <- join <$> T.traverse (io . getTransientForHint d) m
 
         s0 <- get
         whenJust parent $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
-        result <- runLayout ws{ W.stack = fromMaybe ms (liftM2 focusWin ms parent) } r
+        result <- runLayout ws{ W.stack = fromMaybe ms (liftA2 focusWin ms parent) } r
 
         m' <- gets (W.peek . windowset)
 

@@ -435,7 +435,7 @@ shadowWithKeymap keymap dflt keyEvent@(ks,_,m') = fromMaybe (dflt keyEvent) (M.l
 select :: TwoD a (Maybe a)
 select = do
   s <- get
-  return $ fmap (snd . snd) $ findInElementMap (td_curpos s) (td_elementmap s)
+  return $ snd . snd <$> findInElementMap (td_curpos s) (td_elementmap s)
 
 -- | Closes gridselect returning no element.
 cancel :: TwoD a (Maybe a)
@@ -711,11 +711,11 @@ windowMap = do
     ws <- gets windowset
     wins <- mapM keyValuePair (W.allWindows ws)
     return wins
- where keyValuePair w = flip (,) w `fmap` decorateName' w
+ where keyValuePair w = flip (,) w <$> decorateName' w
 
 decorateName' :: Window -> X String
 decorateName' w = do
-  fmap show $ getName w
+  show <$> getName w
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a

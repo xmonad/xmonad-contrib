@@ -22,6 +22,7 @@ module XMonad.Prompt.Window
     windowPrompt,
     windowMultiPrompt,
     allWindows,
+    allApplications,
     wsWindows,
     XWindowMap,
 
@@ -120,12 +121,16 @@ windowPromptBringCopy c = windowPrompt c BringCopy windowMap
 allWindows :: XWindowMap
 allWindows = windowMap
 
+-- | A helper to get the map of all applications
+allApplications :: XWindowMap
+allApplications = windowAppMap
+
 -- | A helper to get the map of windows of the current workspace.
 wsWindows :: XWindowMap
 wsWindows = withWindowSet (return . W.index) >>= winmap
     where
       winmap = fmap M.fromList . mapM pair
-      pair w = do name <- fmap show $ getName w
+      pair w = do name <- show <$> getName w
                   return (name, w)
 
 -- | A Map where keys are pretty printable window names and values are

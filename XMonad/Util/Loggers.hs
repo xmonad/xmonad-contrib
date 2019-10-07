@@ -41,8 +41,6 @@ module XMonad.Util.Loggers (
     , shortenL
     , dzenColorL, xmobarColorL
 
-    , (<$>)
-
   ) where
 
 import XMonad (liftIO)
@@ -52,7 +50,6 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Util.Font (Align (..))
 import XMonad.Util.NamedWindows (getName)
 
-import Control.Applicative ((<$>))
 import Control.Exception as E
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
@@ -189,8 +186,8 @@ logCurrent = withWindowSet $ return . Just . W.currentTag
 -- $format
 -- Combine logger formatting functions to make your
 -- 'XMonad.Hooks.DynamicLog.ppExtras' more colorful and readable.
--- (For convenience this module exports 'Control.Applicative.<$>' to
--- use instead of \'.\' or \'$\' in hard to read formatting lines.
+-- (For convenience, you can use '<$>' instead of \'.\' or \'$\' in hard to read
+-- formatting lines.
 -- For example:
 --
 -- > myLogHook = dynamicLogWithPP def {

@@ -122,7 +122,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
                            -> Workspace WorkspaceId (l a) a
                            -> Rectangle
                            -> X (([(a,Rectangle)], Maybe (l a)), Maybe (m a))
-    modifyLayoutWithUpdate m w r = flip (,) Nothing `fmap` modifyLayout m w r
+    modifyLayoutWithUpdate m w r = flip (,) Nothing <$> modifyLayout m w r
 
     -- | 'handleMess' allows you to spy on messages to the underlying
     --   layout, in order to have an effect in the X monad, or alter
@@ -156,7 +156,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     --   simply passes on the message to 'handleMess'.
     handleMessOrMaybeModifyIt :: m a -> SomeMessage -> X (Maybe (Either (m a) SomeMessage))
     handleMessOrMaybeModifyIt m mess = do mm' <- handleMess m mess
-                                          return (Left `fmap` mm')
+                                          return (Left <$> mm')
 
     -- | 'pureMess' allows you to spy on messages sent to the
     --   underlying layout, in order to possibly change the layout
@@ -256,7 +256,7 @@ instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m 
            (ws', mm'') <- redoLayout (maybe m id mm') r ms ws
            let ml'' = case mm'' `mplus` mm' of
                         Just m' -> Just $ (ModifiedLayout m') $ maybe l id ml'
-                        Nothing -> ModifiedLayout m `fmap` ml'
+                        Nothing -> ModifiedLayout m <$> ml'
            return (ws', ml'')
 
     handleMessage (ModifiedLayout m l) mess =
@@ -266,7 +266,7 @@ instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m 
                   _ -> handleMessage l mess
            return $ case mm' of
                     Just (Left m') -> Just $ (ModifiedLayout m') $ maybe l id ml'
-                    _ -> (ModifiedLayout m) `fmap` ml'
+                    _ -> (ModifiedLayout m) <$> ml'
     description (ModifiedLayout m l) = modifyDescription m l
 
 -- | A 'ModifiedLayout' is simply a container for a layout modifier

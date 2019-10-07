@@ -35,7 +35,6 @@ import XMonad.Layout.Decoration(isInStack)
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(modifyLayout, redoLayout, modifierDescription))
 import XMonad.Util.Types(Direction2D(..))
-import Control.Applicative((<$>))
 import Control.Arrow(Arrow((***), first, second))
 import Control.Monad(join)
 import Data.Function(on)

@@ -79,7 +79,7 @@ propertyToQuery (Role s) = stringProperty "WM_WINDOW_ROLE" =? s
 propertyToQuery (Machine s) = stringProperty "WM_CLIENT_MACHINE" =? s
 propertyToQuery (And p1 p2) = propertyToQuery p1 <&&> propertyToQuery p2
 propertyToQuery (Or p1 p2) = propertyToQuery p1 <||> propertyToQuery p2
-propertyToQuery (Not p) = not `fmap` propertyToQuery p
+propertyToQuery (Not p) = not <$> propertyToQuery p
 propertyToQuery (Const b) = return b
 propertyToQuery (Tagged s) = ask >>= \w -> liftX (hasTag s w)
 

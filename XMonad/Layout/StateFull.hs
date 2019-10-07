@@ -34,7 +34,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.Stack (findZ)
 
 import Data.Maybe (fromMaybe)
-import Control.Applicative ((<|>),(<$>))
+import Control.Applicative ((<|>))
 import Control.Monad (join)
 
 -- $Usage

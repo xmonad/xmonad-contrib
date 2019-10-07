@@ -81,7 +81,6 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 import XMonad.Util.WindowProperties (getProp32)
 
-import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
 import Data.List (delete, (\\))
@@ -321,7 +320,7 @@ data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
 changeNetWMState :: Display -> Window -> ([CLong] -> [CLong]) -> X ()
 changeNetWMState dpy w f = do
    wmstate <- getAtom "_NET_WM_STATE"
-   wstate  <- fromMaybe [] `fmap` getProp32 wmstate w
+   wstate  <- fromMaybe [] <$> getProp32 wmstate w
    let ptype = 4 -- atom property type for changeProperty
    io $ changeProperty32 dpy w wmstate ptype propModeReplace (f wstate)
    return ()
@@ -338,7 +337,7 @@ removeNetWMState dpy w atom = changeNetWMState dpy w $ delete (fromIntegral atom
 getNetWMState :: Window -> X [CLong]
 getNetWMState w = do
     a_wmstate <- getAtom "_NET_WM_STATE"
-    fromMaybe [] `fmap` getProp32 a_wmstate w
+    fromMaybe [] <$> getProp32 a_wmstate w
 
 
 -- The Non-ICCCM Manifesto:

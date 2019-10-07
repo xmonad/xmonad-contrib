@@ -89,7 +89,7 @@ getTags w = withDisplay $ \d ->
 
 -- | check a window for the given tag
 hasTag :: String -> Window -> X Bool
-hasTag s w = (s `elem`) `fmap` getTags w
+hasTag s w = (s `elem`) <$> getTags w
 
 -- | add a tag to the existing ones
 addTag :: String -> Window -> X ()

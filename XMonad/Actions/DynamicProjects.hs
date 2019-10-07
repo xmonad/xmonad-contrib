@@ -231,7 +231,7 @@ dynamicProjectsStartupHook ps = XS.modify go
 --------------------------------------------------------------------------------
 -- | Find a project based on its name.
 lookupProject :: ProjectName -> X (Maybe Project)
-lookupProject name = Map.lookup name `fmap` XS.gets projects
+lookupProject name = Map.lookup name <$> XS.gets projects
 
 --------------------------------------------------------------------------------
 -- | Fetch the current project (the one being used for the currently
@@ -327,7 +327,7 @@ changeProjectDirPrompt = projectPrompt [ DirMode
 -- | Prompt for a project name.
 projectPrompt :: [ProjectMode] -> XPConfig -> X ()
 projectPrompt submodes c = do
-  ws <- map W.tag `fmap` gets (W.workspaces . windowset)
+  ws <- map W.tag <$> gets (W.workspaces . windowset)
   ps <- XS.gets projects
 
   let names = sort (Map.keys ps `union` ws)

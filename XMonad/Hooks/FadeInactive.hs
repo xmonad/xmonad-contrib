@@ -28,6 +28,7 @@ module XMonad.Hooks.FadeInactive (
 
 import XMonad
 import qualified XMonad.StackSet as W
+import Control.Applicative (liftA2)
 import Control.Monad
 
 -- $usage
@@ -112,4 +113,4 @@ fadeOutLogHook :: Query Rational -> X ()
 fadeOutLogHook qry = withWindowSet $ \s -> do
     let visibleWins = (W.integrate' . W.stack . W.workspace . W.current $ s) ++
                       concatMap (W.integrate' . W.stack . W.workspace) (W.visible s)
-    forM_ visibleWins $ liftM2 (=<<) setOpacity (runQuery qry)
+    forM_ visibleWins $ liftA2 (=<<) setOpacity (runQuery qry)

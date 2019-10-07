@@ -27,6 +27,7 @@ import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
 import Control.Exception as E
+import Control.Applicative (liftA2)
 import Control.Monad (liftM, liftM2)
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
@@ -60,14 +61,14 @@ open path = io (isNormalFile path) >>= \b ->
             else uncurry runOrRaise . getTarget $ path
     where
       isNormalFile f = exists f >>= \e -> if e then notExecutable f else return False
-      exists f = fmap or $ sequence [doesFileExist f,doesDirectoryExist f]
+      exists f = or <$> sequence [doesFileExist f,doesDirectoryExist f]
       notExecutable = fmap (not . executable) . getPermissions
       getTarget x = (x,isApp x)
 
 isApp :: String -> Query Bool
 isApp "firefox"     = className =? "Firefox-bin"     <||> className =? "Firefox"
 isApp "thunderbird" = className =? "Thunderbird-bin" <||> className =? "Thunderbird"
-isApp x = liftM2 (==) pid $ pidof x
+isApp x = liftA2 (==) pid $ pidof x
 
 pidof :: String -> Query Int
 pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `E.catch` econst 0
@@ -75,7 +76,7 @@ pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `E.catch` econst 
 pid :: Query Int
 pid = ask >>= (\w -> liftX $ withDisplay $ \d -> getPID d w)
     where getPID d w = getAtom "_NET_WM_PID" >>= \a -> io $
-                       liftM getPID' (getWindowProperty32 d a w)
+                       fmap getPID' (getWindowProperty32 d a w)
           getPID' (Just (x:_)) = fromIntegral x
           getPID' (Just [])     = -1
           getPID' (Nothing)     = -1

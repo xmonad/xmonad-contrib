@@ -370,7 +370,7 @@ sendFocus l@(LayoutB subFocus _ _ _ _ _ _) m = do
 -- | Check to see if the given window is currently focused.
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
-isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
+isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
                       return $ maybe False (\s -> show w == show (W.focus s)) ms
 
 --------------------------------------------------------------------------------

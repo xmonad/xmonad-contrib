@@ -106,7 +106,7 @@ getWorkspaceNames = do
 
 -- | Gets the name of a workspace, if set, otherwise returns nothing.
 getWorkspaceName :: WorkspaceId -> X (Maybe String)
-getWorkspaceName w = ($ w) `fmap` getWorkspaceNames'
+getWorkspaceName w = ($ w) <$> getWorkspaceNames'
 
 -- | Gets the name of the current workspace. See 'getWorkspaceName'
 getCurrentWorkspaceName :: X (Maybe String)
