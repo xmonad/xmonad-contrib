@@ -78,7 +78,7 @@ setWMName name = do
     getSupportWindow = withDisplay $ \dpy -> do
         atom_NET_SUPPORTING_WM_CHECK <- netSupportingWMCheckAtom
         root <- asks theRoot
-        supportWindow <- join . fmap listToMaybe <$> io (getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root)
+        supportWindow <- (listToMaybe =<<) <$> io (getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root)
         validateWindow (fmap fromIntegral supportWindow)
 
     validateWindow :: Maybe Window -> X Window
