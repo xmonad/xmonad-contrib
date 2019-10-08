@@ -42,7 +42,6 @@ import XMonad
 import qualified XMonad.Util.ExtensibleState as XS
 
 import Control.Monad (join,guard)
-import Control.Applicative ((<$>))
 import Control.Arrow (first, second)
 
 import Data.Map

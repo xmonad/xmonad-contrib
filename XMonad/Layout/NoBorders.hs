@@ -42,7 +42,6 @@ import           Data.List
 import           Data.Monoid
 import qualified Data.Map                       as M
 import           Data.Function                  (on)
-import           Control.Applicative            ((<$>),(<*>),pure)
 import           Control.Monad                  (guard)
 
 

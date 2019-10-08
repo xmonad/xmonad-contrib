@@ -23,7 +23,6 @@ module XMonad.Util.NamedWindows (
                                    unName
                                   ) where
 
-import Control.Applicative ( (<$>) )
 import Control.Exception.Extensible as E
 import Data.Maybe ( fromMaybe, listToMaybe )
 

@@ -36,7 +36,6 @@ module XMonad.Layout.MouseResizableTile (
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
 import qualified XMonad.StackSet as W
 import XMonad.Util.XUtils
-import Control.Applicative((<$>))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

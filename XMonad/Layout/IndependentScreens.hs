@@ -29,7 +29,7 @@ module XMonad.Layout.IndependentScreens (
 ) where
 
 -- for the screen stuff
-import Control.Applicative((<*), liftA2)
+import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
 import Control.Monad
 import Data.List (nub, genericLength)

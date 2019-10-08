@@ -49,7 +49,6 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
 import XMonad(Typeable, Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
 import Control.Monad((<=<), guard, liftM, liftM2, when)
-import Control.Applicative((<$>))
 import Data.Foldable(Foldable(foldMap), toList)
 import Data.Maybe(fromJust, listToMaybe)
 import Data.Monoid(Monoid(mappend, mconcat))

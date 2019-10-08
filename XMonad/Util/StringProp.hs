@@ -21,7 +21,6 @@ module XMonad.Util.StringProp (
 
 import XMonad
 import Control.Monad(liftM)
-import Control.Applicative((<$>))
 import Foreign.C.String (castCCharToChar,castCharToCChar)
 
 type StringProp = String

@@ -40,7 +40,6 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Layout.Decoration
 
 import System.Random(randomRIO)
-import Control.Applicative((<$>))
 import Control.Monad(when)
 import Data.Maybe
 import Data.Monoid
