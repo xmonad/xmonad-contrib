@@ -37,7 +37,7 @@ module XMonad.Util.ExclusiveScratchpads (
   ) where
 
 import Control.Applicative (liftA2)
-import Control.Monad ((<=<),filterM,liftM2)
+import Control.Monad ((<=<),filterM)
 import Data.Monoid (appEndo)
 import XMonad
 import XMonad.Actions.Minimize

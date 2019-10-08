@@ -24,7 +24,6 @@ import XMonad
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import XMonad.Util.Run
-import Control.Monad (liftM)
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:

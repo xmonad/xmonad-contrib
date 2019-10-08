@@ -28,7 +28,6 @@ import XMonad.Util.Run (runProcessWithInput)
 
 import Control.Exception as E
 import Control.Applicative (liftA2)
-import Control.Monad (liftM, liftM2)
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
 econst :: Monad m => a -> IOException -> m a

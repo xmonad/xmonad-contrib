@@ -47,7 +47,7 @@ import Data.Maybe (fromMaybe, isNothing, listToMaybe, fromJust)
 import Data.Ord
 import qualified Data.Map as M
 import Control.Applicative (liftA2)
-import Control.Monad (liftM2,when,unless,replicateM_)
+import Control.Monad (when,unless,replicateM_)
 import System.IO
 
 import qualified XMonad.StackSet as W

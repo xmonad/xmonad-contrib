@@ -42,7 +42,7 @@ import XMonad hiding (focus)
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
 import Data.Maybe (fromJust,isJust)
-import Control.Monad (join, foldM)
+import Control.Monad (foldM)
 
 ---------------------------------------------------------------------------------
 -- $usage
