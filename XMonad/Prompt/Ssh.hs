@@ -27,6 +27,7 @@ import System.Directory
 import System.Environment
 import Control.Exception as E
 
+import Control.Applicative (liftA2)
 import Control.Monad
 import Data.Maybe
 import Data.List(elemIndex)
@@ -69,7 +70,7 @@ ssh :: String -> X ()
 ssh = runInTerm "" . ("ssh " ++ )
 
 sshComplList :: IO [String]
-sshComplList = uniqSort <$> liftM2 (++) sshComplListLocal sshComplListGlobal
+sshComplList = uniqSort <$> liftA2 (++) sshComplListLocal sshComplListGlobal
 
 sshComplListLocal :: IO [String]
 sshComplListLocal = do

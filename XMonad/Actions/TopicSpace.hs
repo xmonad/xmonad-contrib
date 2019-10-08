@@ -46,6 +46,7 @@ import Data.List
 import Data.Maybe (fromMaybe, isNothing, listToMaybe, fromJust)
 import Data.Ord
 import qualified Data.Map as M
+import Control.Applicative (liftA2)
 import Control.Monad (liftM2,when,unless,replicateM_)
 import System.IO
 
@@ -264,7 +265,7 @@ pprWindowSet tg pp = do
 -- | Given a prompt configuration and a topic configuration, triggers the action associated with
 -- the topic given in prompt.
 topicActionWithPrompt :: XPConfig -> TopicConfig -> X ()
-topicActionWithPrompt xp tg = workspacePrompt xp (liftM2 (>>) (switchTopic tg) (topicAction tg))
+topicActionWithPrompt xp tg = workspacePrompt xp (liftA2 (>>) (switchTopic tg) (topicAction tg))
 
 -- | Given a configuration and a topic, triggers the action associated with the given topic.
 topicAction :: TopicConfig -> Topic -> X ()

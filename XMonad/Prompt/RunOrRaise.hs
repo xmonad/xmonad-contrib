@@ -27,6 +27,7 @@ import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
 import Control.Exception as E
+import Control.Applicative (liftA2)
 import Control.Monad (liftM, liftM2)
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
@@ -67,7 +68,7 @@ open path = io (isNormalFile path) >>= \b ->
 isApp :: String -> Query Bool
 isApp "firefox"     = className =? "Firefox-bin"     <||> className =? "Firefox"
 isApp "thunderbird" = className =? "Thunderbird-bin" <||> className =? "Thunderbird"
-isApp x = liftM2 (==) pid $ pidof x
+isApp x = liftA2 (==) pid $ pidof x
 
 pidof :: String -> Query Int
 pidof x = io $ (runProcessWithInput "pidof" [x] [] >>= readIO) `E.catch` econst 0

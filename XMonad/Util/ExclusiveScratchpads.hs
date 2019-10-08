@@ -36,6 +36,7 @@ module XMonad.Util.ExclusiveScratchpads (
   customFloating
   ) where
 
+import Control.Applicative (liftA2)
 import Control.Monad ((<=<),filterM,liftM2)
 import Data.Monoid (appEndo)
 import XMonad
@@ -149,7 +150,7 @@ scratchpadAction xs n =
                                   (w:_) -> do toggleWindow w
                                               whenX (runQuery isExclusive w) (hideOthers xs n)
   where
-    toggleWindow w = liftM2 (&&) (runQuery isMaximized w) (onCurrentScreen w) >>= \case
+    toggleWindow w = liftA2 (&&) (runQuery isMaximized w) (onCurrentScreen w) >>= \case
       True  -> whenX (onCurrentScreen w) (minimizeWindow w)
       False -> do windows (flip W.shiftWin w =<< W.currentTag)
                   maximizeWindowAndFocus w

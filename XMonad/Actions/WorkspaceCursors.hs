@@ -48,6 +48,7 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMess, redoLayout))
 import XMonad(Typeable, Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
+import Control.Applicative (liftA2)
 import Control.Monad((<=<), guard, liftM, liftM2, when)
 import Data.Foldable(Foldable(foldMap), toList)
 import Data.Maybe(fromJust, listToMaybe)
@@ -191,7 +192,7 @@ modifyLayer' :: (W.Stack (Cursors String) -> X (W.Stack (Cursors String))) -> In
 modifyLayer' f depth = modifyCursors (descend f depth)
 
 modifyCursors ::  (Cursors String -> X (Cursors String)) -> X ()
-modifyCursors = sendMessage . ChangeCursors . (liftM2 (>>) updateXMD return <=<)
+modifyCursors = sendMessage . ChangeCursors . (liftA2 (>>) updateXMD return <=<)
 
 data WorkspaceCursors a = WorkspaceCursors (Cursors String)
     deriving (Typeable,Read,Show)
