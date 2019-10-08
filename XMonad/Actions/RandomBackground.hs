@@ -55,7 +55,7 @@ randPermutation xs g = swap $ zip (randoms g) xs
 
 -- | @randomBg'@ produces a random hex number in the form @'#xxyyzz'@
 randomBg' ::  (MonadIO m) => RandomColor -> m String
-randomBg' (RGB l h) = io $ liftM (toHex . take 3 . randomRs (l,h)) newStdGen
+randomBg' (RGB l h) = io $ fmap (toHex . take 3 . randomRs (l,h)) newStdGen
 randomBg' (HSV s v) = io $ do
     g <- newStdGen
     let x = (^(2::Int)) $ fst $ randomR (0,sqrt $ pi / 3) g

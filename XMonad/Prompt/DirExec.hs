@@ -103,5 +103,5 @@ getDirectoryExecutables path =
         filterM (\x -> let x' = path ++ x in
             liftA2 (&&)
                 (doesFileExist x')
-                (liftM executable (getPermissions x'))))
+                (fmap executable (getPermissions x'))))
     `E.catch` econst []

@@ -127,7 +127,7 @@ focusNextMatchOrDo qry act = findM (runQuery qry)
 -- Returns the list of windows ordered by workspace as specified in
 -- ~/.xmonad/xmonad.hs
 orderedWindowList :: Direction -> X (Seq Window)
-orderedWindowList History = liftM (\(HistoryDB w ws) -> maybe ws (ws |>) w) XS.get
+orderedWindowList History = fmap (\(HistoryDB w ws) -> maybe ws (ws |>) w) XS.get
 orderedWindowList dir     = withWindowSet $ \ss -> do
   wsids <- asks (Seq.fromList . workspaces . config)
   let wspcs = orderedWorkspaceList ss wsids

@@ -162,7 +162,7 @@ focusDepth (End  _) = 0
 
 descend :: Monad m =>(W.Stack (Cursors a) -> m (W.Stack (Cursors a)))-> Int-> Cursors a-> m (Cursors a)
 descend f 1 (Cons x) = Cons <$> f x
-descend f n (Cons x) | n > 1 = liftM Cons $ descend f (pred n) `onFocus` x
+descend f n (Cons x) | n > 1 = fmap Cons $ descend f (pred n) `onFocus` x
 descend _ _ x = return x
 
 onFocus :: (Monad m) => (a1 -> m a1) -> W.Stack a1 -> m (W.Stack a1)

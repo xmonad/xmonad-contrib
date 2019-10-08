@@ -1204,7 +1204,7 @@ pasteString = pasteString' id
 -- | A variant of 'pasteString' which allows modifying the X selection before
 -- pasting.
 pasteString' :: (String -> String) -> XP ()
-pasteString' f = join $ io $ liftM (insertString . f) getSelection
+pasteString' f = join $ io $ fmap (insertString . f) getSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction1D -> XP ()

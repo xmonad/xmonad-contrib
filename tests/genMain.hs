@@ -56,7 +56,7 @@ genModule imports props = vcat [header,imports', main ]
                     hang (text "let props = ") 8
                         (brackets $ foldr1 (\x xs -> x <> comma $$ xs) props')
                     $$
-                    text "(results, passed) <- liftM unzip $ \
+                    text "(results, passed) <- fmap unzip $ \
                             \mapM (\\(s,a) -> printf \"%-40s: \" s >> a n) props"
                     $$
                     text "printf \"Passed %d tests!\\n\" (sum passed)"
