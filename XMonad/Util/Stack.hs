@@ -230,7 +230,7 @@ mapZ_ = mapZ . const
 
 -- | Monadic version of 'mapZ'
 mapZM :: Monad m => (Bool -> a -> m b) -> Zipper a -> m (Zipper b)
-mapZM f as = fromTags `liftM` (mapM (mapEM f) . toTags) as
+mapZM f as = fromTags <$> (mapM (mapEM f) . toTags) as
 
 
 -- | Monadic version of 'mapZ_'
@@ -345,8 +345,8 @@ mapE_ = mapE . const
 
 -- | Monadic version of 'mapE'
 mapEM :: Monad m => (Bool -> a -> m b) -> Either a a -> m (Either b b)
-mapEM f (Left a) = Left `liftM` f False a
-mapEM f (Right a) = Right `liftM` f True a
+mapEM f (Left a) = Left <$> f False a
+mapEM f (Right a) = Right <$> f True a
 
 mapEM_ :: Monad m => (a -> m b) -> Either a a -> m (Either b b)
 mapEM_ = mapEM . const

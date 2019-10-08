@@ -43,7 +43,7 @@ import Control.Monad (liftM)
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
     curscreen <-
-      (fromIntegral . W.screen . W.current) `fmap` gets windowset :: X Int
+      (fromIntegral . W.screen . W.current) <$> gets windowset :: X Int
     _ <-
       runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
     menuArgs "dmenu" ["-xs", show (curscreen+1)] opts

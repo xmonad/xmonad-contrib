@@ -105,4 +105,4 @@ followOnlyIf _ _ = return $ All True
 
 -- | Disables focusFollow on the given workspaces:
 disableFollowOnWS :: [WorkspaceId] -> X Bool
-disableFollowOnWS wses = (`notElem` wses) `fmap` gets (W.currentTag . windowset)
+disableFollowOnWS wses = (`notElem` wses) <$> gets (W.currentTag . windowset)

@@ -69,7 +69,7 @@ ssh :: String -> X ()
 ssh = runInTerm "" . ("ssh " ++ )
 
 sshComplList :: IO [String]
-sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
+sshComplList = uniqSort <$> liftM2 (++) sshComplListLocal sshComplListGlobal
 
 sshComplListLocal :: IO [String]
 sshComplListLocal = do

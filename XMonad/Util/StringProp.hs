@@ -47,7 +47,7 @@ getStringProp dpy prop =
 -- | Given a property name, returns its contents as a list. It uses the empty
 -- list as default value.
 getStringListProp :: (MonadIO m) => Display -> StringProp -> m [String]
-getStringListProp dpy prop = maybe [] words `liftM` getStringProp dpy prop
+getStringListProp dpy prop = maybe [] words <$> getStringProp dpy prop
 
 -- | Given a property name and a list, sets the value of this property with
 -- the list given as argument.

@@ -118,7 +118,7 @@ instance LayoutClass Mosaic a where
         nextIx (ov,ix,mix)
                 | mix <= 0 || ov = fromIntegral $ nls `div` 2
                 | otherwise = max 0 $ (*fi (pred nls)) $ min 1 $ ix / fi mix
-        rect = rects !! maybe (nls `div` 2) round (nextIx `fmap` state)
+        rect = rects !! maybe (nls `div` 2) round (nextIx <$> state)
         state' = fmap (\x@(ov,_,_) -> (ov,nextIx x,pred nls)) state
                     `mplus` Just (True,fromIntegral nls / 2,pred nls)
         ss' = maybe ss (const ss `either` const ssExt) $ zipRemain ss ssExt

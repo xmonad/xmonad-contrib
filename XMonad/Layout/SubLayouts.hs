@@ -428,7 +428,7 @@ updateGroup mst gs =
 
             -- update the current tab group's order and focus
             followFocus hs = fromMaybe hs $ do
-                f' <- W.focus `fmap` mst
+                f' <- W.focus <$> mst
                 xs <- find (elem f' . W.integrate) $ M.elems hs
                 xs' <- W.filter (`elem` W.integrate xs) =<< mst
                 return $ M.insert f' xs' $ M.delete (W.focus xs) hs

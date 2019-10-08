@@ -153,8 +153,8 @@ textExtentsXMF (Core fs) s = do
   return (a,d)
 #ifdef XFT
 textExtentsXMF (Xft xftfont) _ = io $ do
-  ascent  <- fi `fmap` xftfont_ascent  xftfont
-  descent <- fi `fmap` xftfont_descent xftfont
+  ascent  <- fi <$> xftfont_ascent  xftfont
+  descent <- fi <$> xftfont_descent xftfont
   return (ascent, descent)
 #endif
 

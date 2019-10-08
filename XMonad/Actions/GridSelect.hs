@@ -711,7 +711,7 @@ windowMap = do
     ws <- gets windowset
     wins <- mapM keyValuePair (W.allWindows ws)
     return wins
- where keyValuePair w = flip (,) w `fmap` decorateName' w
+ where keyValuePair w = flip (,) w <$> decorateName' w
 
 decorateName' :: Window -> X String
 decorateName' w = do

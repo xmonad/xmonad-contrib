@@ -6,7 +6,7 @@ import Foreign.C.Types
 import Properties
 
 instance Arbitrary CLong where
-    arbitrary = fromIntegral `fmap` (arbitrary :: Gen Int)
+    arbitrary = fromIntegral <$> (arbitrary :: Gen Int)
 instance Arbitrary RectC where
     arbitrary = do
         (x,y) <- arbitrary

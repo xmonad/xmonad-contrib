@@ -200,7 +200,7 @@ instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (Mult
         , i@(Just _) <- find (transformers mt) t
             = case currLayout mt of
                 EL l det -> do
-                    l' <- fromMaybe l `fmap` handleMessage l (SomeMessage ReleaseResources)
+                    l' <- fromMaybe l <$> handleMessage l (SomeMessage ReleaseResources)
                     return . Just $
                         mt {
                             currLayout = (if cur then id else transform' t) (EL (det l') id),

@@ -160,12 +160,12 @@ focusDepth (Cons x) = 1 + focusDepth (W.focus x)
 focusDepth (End  _) = 0
 
 descend :: Monad m =>(W.Stack (Cursors a) -> m (W.Stack (Cursors a)))-> Int-> Cursors a-> m (Cursors a)
-descend f 1 (Cons x) = Cons `liftM` f x
+descend f 1 (Cons x) = Cons <$> f x
 descend f n (Cons x) | n > 1 = liftM Cons $ descend f (pred n) `onFocus` x
 descend _ _ x = return x
 
 onFocus :: (Monad m) => (a1 -> m a1) -> W.Stack a1 -> m (W.Stack a1)
-onFocus f st = (\x -> st { W.focus = x}) `liftM` f (W.focus st)
+onFocus f st = (\x -> st { W.focus = x}) <$> f (W.focus st)
 
 -- | @modifyLayer@ is used to change the focus at a given depth
 modifyLayer :: (W.Stack (Cursors String) -> W.Stack (Cursors String)) -> Int -> X ()

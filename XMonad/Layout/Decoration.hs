@@ -400,7 +400,7 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
                                                        _ | focusw == win -> ac
                                                          | win `elem` ur -> uc
                                                          | otherwise     -> ic) . W.peek)
-                                `fmap` gets windowset
+                                <$> gets windowset
   (bc,borderc,borderw,tc) <-
     focusColor w (inactiveColor t, inactiveBorderColor t, inactiveBorderWidth t, inactiveTextColor t)
                  (activeColor   t, activeBorderColor   t, activeBorderWidth   t, activeTextColor   t)
