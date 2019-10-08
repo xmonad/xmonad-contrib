@@ -45,10 +45,10 @@ module XMonad.Layout.TallMastersCombo (
 import XMonad hiding (focus, (|||))
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
-import Data.Maybe (fromJust,isJust)
+import Data.Maybe (fromJust,isJust,fromMaybe)
 import Data.List (delete)
 import Control.Monad (join, foldM)
-import XMonad.Layout (Choose)
+import XMonad.Layout (Choose, ChangeLayout(..))
 import qualified XMonad.Layout as L
 import Data.Typeable
 
@@ -389,27 +389,65 @@ elseOr x y = case y of
               Nothing -> x
 
 -- a wrapper for Choose
-data Choose1 l r a = Choose1 (Choose l r a) deriving (Show, Read)
+data LR = L | R deriving (Show, Read, Eq)
+data Choose1 l r a = Choose1 LR (l a) (r a) (Choose l r a) deriving (Show, Read)
+
+data NextNoWrap = NextNoWrap deriving (Eq, Show, Typeable)
+instance Message NextNoWrap
+
+handle :: (LayoutClass l a, Message m) => l a -> m -> X (Maybe (l a))
+handle l m = handleMessage l (SomeMessage m)
 
 instance (LayoutClass l a, LayoutClass r a) => LayoutClass (Choose1 l r) a where
-  description (Choose1 l) = description l
+  description (Choose1 d l r lr) = description lr
 
-  runLayout (Workspace wid (Choose1 l) s) rec = 
+  runLayout (Workspace wid (Choose1 d l r lr) s) rec = 
     do 
-      (ws, ml0) <- runLayout (Workspace wid l s) rec
-      let l1 = case ml0 of Just l0 -> Just $ Choose1 l0
-                           Nothing -> Nothing
+      (ws, ml0) <- runLayout (Workspace wid lr s) rec
+      let l1 = case ml0 of Just l0 -> Just $ Choose1 d l r l0
+                           Nothing -> Just $ Choose1 d l r lr
       return $ (ws,l1)
     
-  handleMessage (Choose1 l) m = 
-    do
-      ml0 <- handleMessage l m
-      let l1 = case ml0 of Just l0 -> Just $ Choose1 l0
-                           Nothing -> Nothing
-      return l1
+  handleMessage c@(Choose1 d l r lr) m 
+    | Just NextLayout <- fromMessage m = do
+        mlr' <- handleMessage lr m
+        let lr' = fromMaybe lr mlr'
+        return $ Just $ Choose1 d l r lr'
+        -- mlr' <- handle c NextNoWrap
+        -- maybe (handle c FirstLayout) (return . Just) mlr'
+    | Just NextNoWrap <- fromMessage m = do
+        mlr' <- handleMessage lr m
+        let lr' = fromMaybe lr mlr' 
+        case d of
+          L -> do
+            ml <- handle l NextNoWrap
+            case ml of
+              Just l0 -> return (Just $ Choose1 L l0 r lr')
+              Nothing -> do
+                mr <- handle r FirstLayout
+                case mr of
+                  Just r0 -> return (Just $ Choose1 R l r0 lr')
+                  Nothing -> return Nothing
+          R -> do
+            mr <- handle r NextNoWrap
+            case mr of 
+              Just r0 -> return $ Just $ Choose1 R l r0 lr'
+              Nothing -> return Nothing
+    | Just FirstLayout <- fromMessage m = do
+        mlr' <- handleMessage lr m
+        let lr' = fromMaybe lr mlr'
+        ml  <- handle l FirstLayout
+        case ml of
+          Just l0 -> return $ Just $ Choose1 L l0 r lr'
+          Nothing -> return $ Just $ Choose1 L l r lr'
+    | otherwise = do
+        mlr' <- handleMessage lr m
+        let lr' = fromMaybe lr mlr'
+        return $ Just $ Choose1 d l r lr'
+
 
 (|||) :: l a -> r a -> Choose1 l r a
-(|||) l r = Choose1 (l L.||| r)
+(|||) l r = Choose1 L l r (l L.||| r)
 
 -- class for getting focused windows
 class (LayoutClass l a) => LayoutClass' l a where
