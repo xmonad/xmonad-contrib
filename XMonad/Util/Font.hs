@@ -118,7 +118,7 @@ initXMF s =
         return (Xft xftdraw)
   else
 #endif
-      fmap Utf8 $ initUtf8Font s
+      Utf8 <$> initUtf8Font s
 #ifdef XFT
   where xftPrefix = "xft:"
 #endif

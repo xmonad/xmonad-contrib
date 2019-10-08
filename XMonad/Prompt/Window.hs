@@ -130,7 +130,7 @@ wsWindows :: XWindowMap
 wsWindows = withWindowSet (return . W.index) >>= winmap
     where
       winmap = fmap M.fromList . mapM pair
-      pair w = do name <- fmap show $ getName w
+      pair w = do name <- show <$> getName w
                   return (name, w)
 
 -- | A Map where keys are pretty printable window names and values are

@@ -390,7 +390,7 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             in fgs $ nxsAdd $ M.insert x zs $ M.delete yf gs
 
 
-        | otherwise = fmap join $ sequenceA $ catchLayoutMess <$> fromMessage m
+        | otherwise = join <$> sequenceA (catchLayoutMess <$> fromMessage m)
      where gs = toGroups sls
            fgs gs' = do
                 st <- currentStack

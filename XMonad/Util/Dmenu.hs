@@ -58,7 +58,7 @@ menu menuCmd opts = menuArgs menuCmd [] opts
 
 -- | Like 'menu' but also takes a list of command line arguments.
 menuArgs :: MonadIO m => String -> [String] -> [String] -> m String
-menuArgs menuCmd args opts = fmap (filter (/='\n')) $
+menuArgs menuCmd args opts = (filter (/='\n')) <$>
   runProcessWithInput menuCmd args (unlines opts)
 
 -- | Like 'dmenuMap' but also takes the command to run.

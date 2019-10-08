@@ -65,7 +65,7 @@ setWMName name = do
         -- set WM_NAME in supportWindow (now only accepts latin1 names to eliminate dependency on utf8 encoder)
         changeProperty8 dpy supportWindow atom_NET_WM_NAME atom_UTF8_STRING 0 (latin1StringToCCharList name)
         -- declare which _NET protocols are supported (append to the list if it exists)
-        supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy atom_NET_SUPPORTED_ATOM root
+        supportedList <- join . maybeToList <$> getWindowProperty32 dpy atom_NET_SUPPORTED_ATOM root
         changeProperty32 dpy root atom_NET_SUPPORTED_ATOM aTOM 0 (nub $ fromIntegral atom_NET_SUPPORTING_WM_CHECK : fromIntegral atom_NET_WM_NAME : supportedList)
   where
     netSupportingWMCheckAtom :: X Atom
@@ -78,7 +78,7 @@ setWMName name = do
     getSupportWindow = withDisplay $ \dpy -> do
         atom_NET_SUPPORTING_WM_CHECK <- netSupportingWMCheckAtom
         root <- asks theRoot
-        supportWindow <- fmap (join . fmap listToMaybe) $ io $ getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root
+        supportWindow <- join . fmap listToMaybe <$> io (getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root)
         validateWindow (fmap fromIntegral supportWindow)
 
     validateWindow :: Maybe Window -> X Window

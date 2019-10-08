@@ -61,7 +61,7 @@ open path = io (isNormalFile path) >>= \b ->
             else uncurry runOrRaise . getTarget $ path
     where
       isNormalFile f = exists f >>= \e -> if e then notExecutable f else return False
-      exists f = fmap or $ sequence [doesFileExist f,doesDirectoryExist f]
+      exists f = or <$> sequence [doesFileExist f,doesDirectoryExist f]
       notExecutable = fmap (not . executable) . getPermissions
       getTarget x = (x,isApp x)
 

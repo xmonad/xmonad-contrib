@@ -241,15 +241,15 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
     description (NewSelect True l1 _) = description l1
     description (NewSelect False _ l2) = description l2
     handleMessage l@(NewSelect False _ _) m
-        | Just Wrap <- fromMessage m = fmap Just $ swap l >>= passOn m
+        | Just Wrap <- fromMessage m = Just <$> (swap l >>= passOn m)
     handleMessage l@(NewSelect amfirst _ _) m
         | Just NextLayoutNoWrap <- fromMessage m =
                   if amfirst then when' isNothing (passOnM m l) $
-                                  fmap Just $ swap l >>= passOn (SomeMessage Wrap)
+                                  Just <$> (swap l >>= passOn (SomeMessage Wrap))
                              else passOnM m l
     handleMessage l m
         | Just NextLayout <- fromMessage m = when' isNothing (passOnM (SomeMessage NextLayoutNoWrap) l) $
-                                             fmap Just $ swap l >>= passOn (SomeMessage Wrap)
+                                             Just <$> (swap l >>= passOn (SomeMessage Wrap))
     handleMessage l@(NewSelect True _ l2) m
         | Just (JumpToLayout d) <- fromMessage m, d == description l2 = Just <$> swap l
     handleMessage l@(NewSelect False l1 _) m

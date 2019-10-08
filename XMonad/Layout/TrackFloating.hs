@@ -97,7 +97,7 @@ instance LayoutModifier UseTransientFor Window where
     modifyLayout _ ws@(W.Workspace{ W.stack = ms }) r = do
         m <- gets (W.peek . windowset)
         d <- asks display
-        parent <- fmap join $ T.traverse (io . getTransientForHint d) m
+        parent <- join <$> T.traverse (io . getTransientForHint d) m
 
         s0 <- get
         whenJust parent $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }

@@ -167,7 +167,7 @@ getStrut w = do
     msp <- getProp32s "_NET_WM_STRUT_PARTIAL" w
     case msp of
         Just sp -> return $ parseStrutPartial sp
-        Nothing -> fmap (maybe [] parseStrut) $ getProp32s "_NET_WM_STRUT" w
+        Nothing -> maybe [] parseStrut <$> getProp32s "_NET_WM_STRUT" w
  where
     parseStrut xs@[_, _, _, _] = parseStrutPartial . take 12 $ xs ++ cycle [minBound, maxBound]
     parseStrut _ = []

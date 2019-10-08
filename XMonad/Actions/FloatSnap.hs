@@ -290,7 +290,7 @@ getSnap horiz collidedist d w = do
     screen <- W.current <$> gets windowset
     let sr = screenRect $ W.screenDetail screen
         wl = W.integrate' . W.stack $ W.workspace screen
-    gr <- fmap ($sr) $ calcGap $ S.fromList [minBound .. maxBound]
+    gr <- ($sr) <$> calcGap (S.fromList [minBound .. maxBound])
     wla <- filter (collides wa) <$> (io $ mapM (getWindowAttributes d) $ filter (/=w) wl)
 
     return ( neighbours (back wa sr gr wla) (wpos wa)
