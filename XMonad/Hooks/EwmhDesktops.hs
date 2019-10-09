@@ -25,7 +25,6 @@ module XMonad.Hooks.EwmhDesktops (
     ) where
 
 import Codec.Binary.UTF8.String (encode)
-import Control.Applicative((<$>))
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -224,7 +223,7 @@ fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
+  wstate <- fromMaybe [] <$> getProp32 wmstate win
 
   let isFull = fromIntegral fullsc `elem` wstate
 

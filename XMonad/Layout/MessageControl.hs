@@ -32,7 +32,6 @@ import XMonad.StackSet (Workspace(..))
 import XMonad.Layout.LayoutModifier (LayoutModifier(..), ModifiedLayout(..))
 
 import Data.Typeable (Typeable)
-import Control.Applicative ((<$>))
 import Control.Arrow (second)
 
 -- $usage

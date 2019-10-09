@@ -90,7 +90,7 @@ data FixMaster a = FixMaster (AddMaster a) deriving (Show, Read)
 instance LayoutModifier FixMaster Window where
     modifyLayout (FixMaster (AddMaster k d f)) = applyMaster True k d f
     modifierDescription (FixMaster a) = "Fix" ++ modifierDescription a
-    pureMess (FixMaster a) m = liftM FixMaster (pureMess a m)
+    pureMess (FixMaster a) m = fmap FixMaster (pureMess a m)
 
 fixMastered :: (LayoutClass l a) =>
        Rational -- ^ @delta@, the ratio of the screen to resize by

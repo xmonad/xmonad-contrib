@@ -75,7 +75,7 @@ getMans = do
   mans <- forM (nub dirs) $ \d -> do
             exists <- doesDirectoryExist d
             if exists
-              then map (stripExt . stripSuffixes [".gz", ".bz2"]) `fmap`
+              then map (stripExt . stripSuffixes [".gz", ".bz2"]) <$>
                    getDirectoryContents d
               else return []
   return $ uniqSort $ concat mans
@@ -84,7 +84,7 @@ manCompl :: [String] -> String -> IO [String]
 manCompl mans s | s == "" || last s == ' ' = return []
                 | otherwise                = do
   -- XXX readline instead of bash's compgen?
-  f <- lines `fmap` getCommandOutput ("bash -c 'compgen -A file " ++ s ++ "'")
+  f <- lines <$> getCommandOutput ("bash -c 'compgen -A file " ++ s ++ "'")
   mkComplFunFromList (f ++ mans) s
 
 -- | Run a command using shell and return its output.

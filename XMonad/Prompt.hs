@@ -98,7 +98,6 @@ import           XMonad.Util.Types
 import           XMonad.Util.XSelection       (getSelection)
 
 import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
-import           Control.Applicative          ((<$>))
 import           Control.Arrow                (first, second, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
 import           Control.Exception.Extensible as E hiding (handle)
@@ -1205,7 +1204,7 @@ pasteString = pasteString' id
 -- | A variant of 'pasteString' which allows modifying the X selection before
 -- pasting.
 pasteString' :: (String -> String) -> XP ()
-pasteString' f = join $ io $ liftM (insertString . f) getSelection
+pasteString' f = insertString . f =<< getSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction1D -> XP ()

@@ -34,7 +34,6 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
 import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
               sendMessage, windows, withFocused, Window)
-import Control.Applicative((<$>))
 import Data.List((\\), union)
 import Data.Maybe(fromMaybe, listToMaybe, maybeToList)
 import qualified Data.Map as M

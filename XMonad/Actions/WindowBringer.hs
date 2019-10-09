@@ -24,7 +24,6 @@ module XMonad.Actions.WindowBringer (
                     windowMap, windowAppMap, windowMap', bringWindow, actionMenu
                    ) where
 
-import Control.Applicative((<$>))
 import qualified Data.Map as M
 
 import qualified XMonad.StackSet as W

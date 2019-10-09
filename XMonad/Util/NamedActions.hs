@@ -53,8 +53,6 @@ import Data.Bits(Bits((.&.), complement))
 import Data.List (groupBy)
 import System.Exit(ExitCode(ExitSuccess), exitWith)
 
-import Control.Applicative ((<*>))
-
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
 

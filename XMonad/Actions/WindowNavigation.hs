@@ -43,7 +43,6 @@ import XMonad
 import XMonad.Util.Types (Direction2D(..))
 import qualified XMonad.StackSet as W
 
-import Control.Applicative ((<$>))
 import Control.Arrow (second)
 import Data.IORef
 import Data.List (sortBy)

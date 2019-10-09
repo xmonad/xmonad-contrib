@@ -72,7 +72,7 @@ gnomeRun = withDisplay $ \dpy -> do
 -- > gconftool-2 -s /desktop/gnome/session/required_components/windowmanager xmonad --type string
 gnomeRegister :: MonadIO m => m ()
 gnomeRegister = io $ do
-    x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
+    x <- lookup "DESKTOP_AUTOSTART_ID" <$> getEnvironment
     whenJust x $ \sessionId -> safeSpawn "dbus-send"
             ["--session"
             ,"--print-reply=literal"

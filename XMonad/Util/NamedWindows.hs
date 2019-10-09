@@ -23,7 +23,6 @@ module XMonad.Util.NamedWindows (
                                    unName
                                   ) where
 
-import Control.Applicative ( (<$>) )
 import Control.Exception.Extensible as E
 import Data.Maybe ( fromMaybe, listToMaybe )
 
@@ -54,7 +53,7 @@ getName w = withDisplay $ \d -> do
 
         copy prop = fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
 
-    io $ getIt `E.catch` \(SomeException _) ->  ((`NW` w) . resName) `fmap` getClassHint d w
+    io $ getIt `E.catch` \(SomeException _) ->  ((`NW` w) . resName) <$> getClassHint d w
 
 -- | Get 'NamedWindow' using 'wM_CLASS'
 getNameWMClass :: Window -> X NamedWindow
@@ -68,7 +67,7 @@ getNameWMClass w =
           fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
     io $
       getIt `E.catch` \(SomeException _) ->
-        ((`NW` w) . resName) `fmap` getClassHint d w
+        ((`NW` w) . resName) <$> getClassHint d w
 
 unName :: NamedWindow -> Window
 unName (NW _ w) = w

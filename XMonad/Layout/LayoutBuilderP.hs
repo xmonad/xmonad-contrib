@@ -147,7 +147,7 @@ sendFocus l@(LayoutP subf _ _ _ _ _ _) m = do foc <- isFocus subf
 
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
-isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
+isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
                       return $ maybe False (\s -> show w == (show $ W.focus s)) ms
 
 

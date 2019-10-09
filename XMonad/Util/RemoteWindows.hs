@@ -54,7 +54,7 @@ import System.Posix.Env
 -- >    { manageHook = manageRemote =<< io getHostName }
 
 guessHostName :: IO String
-guessHostName = pickOneMaybe `liftM` (getEnv `mapM` vars)
+guessHostName = pickOneMaybe <$> (getEnv `mapM` vars)
   where
     pickOneMaybe = last . (mzero:) . take 1 . catMaybes
     vars = ["XAUTHLOCALHOSTNAME","HOST","HOSTNAME"]

@@ -134,7 +134,7 @@ instance LayoutModifier FullscreenFocus Window where
 instance LayoutModifier FullscreenFloat Window where
   handleMess (FullscreenFloat frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> do
-      mrect <- (M.lookup win . W.floating) `fmap` gets windowset
+      mrect <- (M.lookup win . W.floating) <$> gets windowset
       return $ case mrect of
         Just rect -> Just $ FullscreenFloat frect $ M.insert win (rect,True) fulls
         Nothing -> Nothing
@@ -196,7 +196,7 @@ fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
+  wstate <- fromMaybe [] <$> getProp32 wmstate win
   let fi :: (Integral i, Num n) => i -> n
       fi = fromIntegral
       isFull = fi fullsc `elem` wstate
@@ -220,7 +220,7 @@ fullscreenEventHook (DestroyWindowEvent {ev_window = w}) = do
   -- When a window is destroyed, the layouts should remove that window
   -- from their states.
   broadcastMessage $ RemoveFullscreen w
-  cw <- (W.workspace . W.current) `fmap` gets windowset
+  cw <- (W.workspace . W.current) <$> gets windowset
   sendMessageWithNoRefresh FullscreenChanged cw
   return $ All True
 
@@ -241,7 +241,7 @@ fullscreenManageHook' isFull = isFull --> do
   w <- ask
   liftX $ do
     broadcastMessage $ AddFullscreen w
-    cw <- (W.workspace . W.current) `fmap` gets windowset
+    cw <- (W.workspace . W.current) <$> gets windowset
     sendMessageWithNoRefresh FullscreenChanged cw
   idHook
 

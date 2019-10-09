@@ -29,7 +29,7 @@ module XMonad.Layout.IndependentScreens (
 ) where
 
 -- for the screen stuff
-import Control.Applicative((<*), liftA2)
+import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
 import Control.Monad
 import Data.List (nub, genericLength)
@@ -121,7 +121,7 @@ onCurrentScreen f vws = screen . current >>= f . flip marshall vws
 -- >     }
 --
 countScreens :: (MonadIO m, Integral i) => m i
-countScreens = liftM genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getScreenInfo closeDisplay
+countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getScreenInfo closeDisplay
 
 -- | This turns a naive pretty-printer into one that is aware of the
 -- independent screens. That is, you can write your pretty printer to behave

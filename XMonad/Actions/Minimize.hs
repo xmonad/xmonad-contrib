@@ -43,7 +43,6 @@ import XMonad.Util.Minimize
 import XMonad.Util.WindowProperties (getProp32)
 
 import Foreign.C.Types (CLong)
-import Control.Applicative((<$>))
 import Control.Monad (join)
 import Data.Maybe (fromMaybe, listToMaybe)
 import qualified Data.List as L

@@ -28,7 +28,7 @@ main = do
         guard $ f `notElem` ["Main.hs", "Common.hs", "Properties.hs"]
         let b = takeBaseName f
         nesting <- io $ newIORef 0
-        decl : _ <- ListT $ (map words . lines) `fmap` readFile f
+        decl : _ <- ListT $ (map words . lines) <$> readFile f
         case decl of
             "{-" -> io $ modifyIORef nesting succ
             "-}" -> io $ modifyIORef nesting pred
@@ -37,7 +37,7 @@ main = do
         guard $ "prop_" `isPrefixOf` decl
         io $ modifyIORef imports (S.insert b)
         return (b ++ "." ++ decl)
-    imports <- S.toList `fmap` readIORef imports
+    imports <- S.toList <$> readIORef imports
     print $ genModule imports props
 
 genModule :: [String] -> [String] -> Doc
@@ -56,7 +56,7 @@ genModule imports props = vcat [header,imports', main ]
                     hang (text "let props = ") 8
                         (brackets $ foldr1 (\x xs -> x <> comma $$ xs) props')
                     $$
-                    text "(results, passed) <- liftM unzip $ \
+                    text "(results, passed) <- fmap unzip $ \
                             \mapM (\\(s,a) -> printf \"%-40s: \" s >> a n) props"
                     $$
                     text "printf \"Passed %d tests!\\n\" (sum passed)"

@@ -63,9 +63,9 @@ debugWindow w =  do
                                                           then s''
                                                           else tail s''
                                           in Just (w'',s')
-      t <- catchX' (wrap `fmap` getEWMHTitle  "VISIBLE" w) $
-           catchX' (wrap `fmap` getEWMHTitle  ""        w) $
-           catchX' (wrap `fmap` getICCCMTitle           w) $
+      t <- catchX' (wrap <$> getEWMHTitle  "VISIBLE" w) $
+           catchX' (wrap <$> getEWMHTitle  ""        w) $
+           catchX' (wrap <$> getICCCMTitle           w) $
            return ""
       h' <- getMachine w
       let h = if null h' then "" else '@':h'
@@ -114,14 +114,14 @@ getDecodedStringProp w a =  do
   t@(TextProperty t' _ 8 _) <- withDisplay $ \d -> io $ getTextProperty d w a
   [s] <- catchX' (tryUTF8     t) $
          catchX' (tryCompound t) $
-         io ((:[]) `fmap` peekCString t')
+         io ((:[]) <$> peekCString t')
   return s
 
 tryUTF8                          :: TextProperty -> X [String]
 tryUTF8 (TextProperty s enc _ _) =  do
   uTF8_STRING <- getAtom "UTF8_STRING"
   when (enc == uTF8_STRING) $ error "String is not UTF8_STRING"
-  (map decodeString . splitNul) `fmap` io (peekCString s)
+  (map decodeString . splitNul) <$> io (peekCString s)
 
 tryCompound                            :: TextProperty -> X [String]
 tryCompound t@(TextProperty _ enc _ _) =  do
@@ -161,7 +161,7 @@ safeGetWindowAttributes d w =  alloca $ \p -> do
   s <- xGetWindowAttributes d w p
   case s of
     0 -> return Nothing
-    _ -> Just `fmap` peek p
+    _ -> Just <$> peek p
 
 -- and so is getCommand
 safeGetCommand     :: Display -> Window -> X [String]

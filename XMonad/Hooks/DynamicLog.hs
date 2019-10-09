@@ -59,7 +59,8 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 
 import Codec.Binary.UTF8.String (encodeString)
-import Control.Monad (liftM2, msum)
+import Control.Applicative (liftA2)
+import Control.Monad (msum)
 import Data.Char ( isSpace, ord )
 import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
 import Data.Maybe ( isJust, catMaybes, mapMaybe, fromMaybe )
@@ -229,7 +230,7 @@ statusBar cmd pp k conf = do
         , logHook = do
                         logHook conf
                         dynamicLogWithPP pp { ppOutput = hPutStrLn h }
-        , keys       = liftM2 M.union keys' (keys conf)
+        , keys       = liftA2 M.union keys' (keys conf)
         }
  where
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
@@ -321,7 +322,7 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
           where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
                         | S.tag w == this                                               = ppCurrent
                         | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
-                        | S.tag w `elem` visibles                                       = liftM2 fromMaybe ppVisible ppVisibleNoWindows
+                        | S.tag w `elem` visibles                                       = liftA2 fromMaybe ppVisible ppVisibleNoWindows
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
