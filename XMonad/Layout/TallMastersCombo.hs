@@ -6,7 +6,8 @@
     TypeSynonymInstances, 
     MultiParamTypeClasses, 
     UndecidableInstances,
-    FunctionalDependencies
+    FunctionalDependencies,
+    AllowAmbiguousTypes
 #-}
 ---------------------------------------------------------------------------
 -- |
@@ -59,9 +60,6 @@ import Control.Monad (join, foldM)
 import XMonad.Layout (Choose, ChangeLayout(..))
 import qualified XMonad.Layout as LL
 import Data.Typeable
-import XMonad.Layout.Simplest
-import XMonad.Layout.Tabbed (TabbedDecoration(..))
-import XMonad.Layout.Decoration
 
 ---------------------------------------------------------------------------------
 -- $usage
@@ -206,7 +204,7 @@ instance Message FocusedNextLayout
 data TestMsg = TestMsg deriving (Read, Show, Typeable)
 instance Message TestMsg
 
-instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window, LayoutBase l1 Window, LayoutBase l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
+instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
   description _ = "TallMasters"
 
   runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
@@ -228,10 +226,10 @@ instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window
       do 
          (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
          (ws2,ml2) <- runLayout (Workspace wid layout2 s2) r2
-         let str1 = "echo 'ml1:" ++ show (typeOf ml1) ++ "' >> ~/.xmonad/debug1.txt"
-             str2 = "echo 'ml2:" ++ show (typeOf ml2) ++ "' >> ~/.xmonad/debug1.txt"
-         spawn $ str1
-         spawn $ str2
+         -- let str1 = "echo 'ml1:" ++ show (typeOf ml1) ++ "' >> ~/.xmonad/debug1.txt"
+         --     str2 = "echo 'ml2:" ++ show (typeOf ml2) ++ "' >> ~/.xmonad/debug1.txt"
+         -- spawn $ str1
+         -- spawn $ str2
          let newlayout1 = maybe layout1 id ml1
              newlayout2 = maybe layout2 id ml2
              fnew1 = case ml1 of Just l1 -> getFocused l1 s1
@@ -416,91 +414,106 @@ instance (LayoutClass l a, LayoutClass r a) => LayoutClass (Choose1 l r) a where
     do 
       (ws, ml0) <- runLayout (Workspace wid lr s) rec
       let l1 = case ml0 of Just l0 -> Just $ Choose1 d l r l0
-                           Nothing -> Just $ Choose1 d l r lr
+                           Nothing -> Nothing
       return $ (ws,l1)
     
   handleMessage c@(Choose1 d l r lr) m 
     | Just NextLayout <- fromMessage m = do
         mlr' <- handleMessage lr m
-        let lr' = fromMaybe lr mlr'
-        return $ Just $ Choose1 d l r lr'
-        -- mlr' <- handle c NextNoWrap
-        -- maybe (handle c FirstLayout) (return . Just) mlr'
+        mlrf <- handle c NextNoWrap
+        fstf <- handle c FirstLayout
+        let mlf = elseOr fstf mlrf
+            (d',l',r') = case mlf of Just (Choose1 d0 l0 r0 lr0) -> (d0,l0,r0)
+                                     Nothing                     -> (d,l,r)
+        case mlr' of Just lrt -> return $ Just $ Choose1 d' l' r' lrt
+                     Nothing  -> return Nothing
     | Just NextNoWrap <- fromMessage m = do
         mlr' <- handleMessage lr m
-        let lr' = fromMaybe lr mlr' 
-        case d of
-          L -> do
-            ml <- handle l NextNoWrap
-            case ml of
-              Just l0 -> return (Just $ Choose1 L l0 r lr')
-              Nothing -> do
-                mr <- handle r FirstLayout
-                case mr of
-                  Just r0 -> return (Just $ Choose1 R l r0 lr')
-                  Nothing -> return Nothing
-          R -> do
-            mr <- handle r NextNoWrap
-            case mr of 
-              Just r0 -> return $ Just $ Choose1 R l r0 lr'
-              Nothing -> return Nothing
+        (d',l',r') <- 
+              case d of 
+                L -> do
+                       ml <- handle l NextNoWrap
+                       case ml of 
+                           Just l0 -> return (L,l0,r)
+                           Nothing -> do
+                                  mr <- handle r FirstLayout
+                                  case mr of
+                                    Just r0 -> return (R,l,r0)
+                                    Nothing -> return (d,l,r)
+                R -> do
+                       mr <- handle r NextNoWrap
+                       case mr of
+                         Just r0 -> return (R,l,r0)
+                         Nothing -> return (d,l,r)
+        case mlr' of Just lrt -> return $ Just $ Choose1 d' l' r' lrt
+                     Nothing  -> return Nothing
     | Just FirstLayout <- fromMessage m = do
         mlr' <- handleMessage lr m
-        let lr' = fromMaybe lr mlr'
-        ml  <- handle l FirstLayout
-        case ml of
-          Just l0 -> return $ Just $ Choose1 L l0 r lr'
-          Nothing -> return $ Just $ Choose1 L l r lr'
+        (d',l',r') <- do
+                        ml <- handle l FirstLayout
+                        case ml of
+                          Just l0 -> return (L,l0,r)
+                          Nothing -> return (L,l,r)
+        case mlr' of Just lrt -> return $ Just $ Choose1 d' l' r' lrt
+                     Nothing  -> return Nothing
     | otherwise = do
         mlr' <- handleMessage lr m
-        let lr' = fromMaybe lr mlr'
-        return $ Just $ Choose1 d l r lr'
+        case mlr' of Just lrt -> return $ Just $ Choose1 d l r lrt
+                     Nothing  -> return Nothing
+
+--  handleMessage c@(Choose1 d l r lr) m 
+--    | Just NextLayout <- fromMessage m = do
+--        mlrt <- handleMessage lr m
+--        mlrf <- handle c NextNoWrap
+--        fstf <- (handle c FirstLayout)
+--        let resf = elseOr fstf mlrf
+--            lrt  = fromMaybe lr mlrt
+--        case resf of Just (Choose1 d l0 r0 lr) -> return $ Just $ Choose1 d l0 r0 lrt
+--                     Nothing                   -> return Nothing
+--    | Just NextNoWrap <- fromMessage m = do
+--        mlr' <- handleMessage lr m
+--        let lr' = fromMaybe lr mlr' 
+--        case d of
+--          L -> do
+--            ml <- handle l NextNoWrap
+--            case ml of
+--              Just l0 -> return (Just $ Choose1 L l0 r lr')
+--              Nothing -> do
+--                mr <- handle r FirstLayout
+--                case mr of
+--                  Just r0 -> return (Just $ Choose1 R l r0 lr')
+--                  Nothing -> return Nothing
+--          R -> do
+--            mr <- handle r NextNoWrap
+--            case mr of 
+--              Just r0 -> return $ Just $ Choose1 R l r0 lr'
+--              Nothing -> return Nothing
+--    | Just FirstLayout <- fromMessage m = do
+--        mlr' <- handleMessage lr m
+--        let lr' = fromMaybe lr mlr'
+--        ml  <- handle l FirstLayout
+--        case ml of
+--          Just l0 -> return $ Just $ Choose1 L l0 r lr'
+--          Nothing -> return $ Just $ Choose1 L l r lr'
+--    | otherwise = do
+--        mlr' <- handleMessage lr m
+--        let lr' = fromMaybe lr mlr'
+--        return $ Just $ Choose1 d l r lr'
 
 
 (|||) :: l a -> r a -> Choose1 l r a
 (|||) l r = Choose1 L l r (l LL.||| r)
 
 
-data LayoutWrapper l a = LayoutWrapper {layout :: l a }
-
-instance (LayoutClass l a) => LayoutClass (LayoutWrapper l) a where
-  description (LayoutWrapper l) = description l
-  runLayout (Workspace wid (LayoutWrapper l) s) rec = 
-    do (ws, ml) <- runLayout (Workspace wid l s) rec
-       let ml' = case ml of
-                  Just l0 -> Just (LayoutWrapper l0)
-                  Nothing -> Nothing
-       return (ws, ml')
-    
-  pureMessage (RowsOrColumns rows) m
-    | Just Row <- fromMessage m = Just $ RowsOrColumns True
-    | Just Col <- fromMessage m = Just $ RowsOrColumns False
-    | otherwise = Nothing
-
 -- class for layout combinators
-class (LayoutClass l a, LayoutClass r a, LayoutClass lr a) => LayoutCombo lr l r a | lr -> l, lr -> r where
-  layouts :: lr a -> (l a, r a)
-  stacks  :: lr a -> Maybe (Stack a) -> (Maybe (Stack a), Maybe (Stack a))
-  mergeFocused :: lr a -> [a] -> [a] -> [a]
-  getFocused :: l a -> Maybe (Stack a) -> [a]
-  getFocused lr ms =
-    let (l1,l2) = layouts lr
-        (s1,s2) = stacks lr ms
-        f1 = getFocused l1 s1
-        f2 = getFocused l2 s2
-    in  mergeFocused lr f1 f2
+class LayoutClass l a => GetFocused l a where
+   getFocused :: l a -> Maybe (Stack a) -> [a]
+   getFocused _ ms =
+     case ms of (Just s) -> [focus s]
+                Nothing  -> []
 
-instance {-# OVERLAPPABLE #-} (LayoutClass l a) => LayoutCombo l l l a where
-  layouts l           = (l, l)
-  stacks  l ms        = (ms, ms)
-  mergeFocused l a b  = a
-  getFocused l ms = 
-    case ms of Just s  -> [focus s]
-               Nothing -> []
-
-instance LayoutCombo (TMSCombineTwo l r) l r Window where
-  layouts (TMSCombineTwo _ _ _ _ _ _ _ lay1 lay2) = (lay1, lay2)
-  stacks  (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s = 
+instance (LayoutClass l Window, LayoutClass r Window, GetFocused l a, GetFocused r a) => GetFocused (TMSCombineTwo l r) Window where
+  getFocused (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s =
     let slst = integrate' s
         f' = case s of (Just s') -> focus s':delete (focus s') f
                        Nothing   -> f
@@ -512,50 +525,70 @@ instance LayoutCombo (TMSCombineTwo l r) l r Window where
         (s1,s2) | nmaster == 0    = (Nothing,s0)
                 | nmaster >= snum = (s0,Nothing)
                 | otherwise       = (s1',s2')
-    in  (s1,s2)
-  mergeFocused lr a b = a ++ b
+        f1 = getFocused lay1 s1
+        f2 = getFocused lay2 s2
+    in  f1 ++ f2
+  
+instance (LayoutClass l Window, LayoutClass r Window, GetFocused l a, GetFocused r a) => GetFocused (Choose1 l r) Window where
+  getFocused (Choose1 d l r _) s = 
+    case d of L -> getFocused l s
+              R -> getFocused r s
 
- 
--- instance {-# OVERLAPPING #-} (Typeable l1, Typeable l2, Typeable r1, Typeable r2, 
---                               LayoutClass l1 Window, LayoutClass l2 Window, 
---                               LayoutClass r1 Window, LayoutClass r2 Window) 
---                               => SaveFocused (TMSCombineTwo (TMSCombineTwo l1 r1) (TMSCombineTwo l2 r2)) Window where
---   getFocused = getFocusedFunc
+instance {-# OVERLAPPABLE #-} (LayoutClass l a) => GetFocused l a
+
+-- instance {-# OVERLAPPING #-} (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r1 Window, 
+--                               LayoutClass r2 Window)
+--     => GetFocused (TMSCombineTwo (TMSCombineTwo l1 r1) (TMSCombineTwo l2 r2)) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPPING #-} (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r1 Window, 
+--                               LayoutClass r2 Window)
+--     => GetFocused (TMSCombineTwo (TMSCombineTwo l1 r1) (Choose1 l2 r2)) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPS #-}    (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r1 Window)
+--     => GetFocused (TMSCombineTwo (TMSCombineTwo l1 r1) l2) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPPING #-} (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r1 Window, 
+--                               LayoutClass r2 Window)
+--     => GetFocused (TMSCombineTwo (Choose1 l1 r1) (TMSCombineTwo l2 r2)) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPPING #-} (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r1 Window, 
+--                               LayoutClass r2 Window)
+--     => GetFocused (TMSCombineTwo (Choose1 l1 r1) (Choose1 l2 r2)) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPS #-}    (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r1 Window)
+--     => GetFocused (TMSCombineTwo (Choose1 l1 r1) l2) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPS #-}    (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r2 Window)
+--     => GetFocused (TMSCombineTwo l1 (TMSCombineTwo l2 r2)) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPS #-}    (LayoutClass l1 Window, 
+--                               LayoutClass l2 Window, 
+--                               LayoutClass r2 Window)
+--     => GetFocused (TMSCombineTwo l1 (Choose1 l2 r2)) Window where
+--   getFocused = tmsGetFocused
+-- instance {-# OVERLAPS #-}    (LayoutClass l1 Window, LayoutClass l2 Window)
+--     => GetFocused (TMSCombineTwo l1 l2) Window where
+--   getFocused = tmsGetFocused
 -- 
--- instance {-# OVERLAPS #-} (Typeable l1, Typeable l2, Typeable r1,
---                            LayoutClass l1 Window, LayoutClass l2 Window, LayoutClass r1 Window) 
---                            => SaveFocused (TMSCombineTwo (TMSCombineTwo l1 r1) l2) Window where
---   getFocused = getFocusedFunc
--- 
--- instance {-# OVERLAPS #-} (Typeable l1, Typeable l2, Typeable r2,
---                            LayoutClass l1 Window, LayoutClass l2 Window, LayoutClass r2 Window) 
---                            => SaveFocused (TMSCombineTwo l1 (TMSCombineTwo l2 r2)) Window where
---   getFocused = getFocusedFunc
--- 
--- instance {-# OVERLAPS #-} (Typeable l1, Typeable l2,
---                            LayoutClass l1 Window, LayoutClass l2 Window) 
---                            => SaveFocused (TMSCombineTwo l1 l2) Window where
---   getFocused = getFocusedFunc
+-- instance {-# OVERLAPS #-}    (LayoutClass l1 Window, LayoutClass l2 Window)
+--     => GetFocused (Choose1 l1 l2) Window where
+--   getFocused = chsGetFocused
 
 
--- getFocusedFunc (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s =
---     let slst = integrate' s
---         f' = case s of (Just s') -> focus s':delete (focus s') f
---                        Nothing   -> f
---         snum = length(slst)
---         (slst1, slst2) = splitAt nmaster slst
---         s0 = differentiate f' slst
---         s1' = differentiate f' slst1
---         s2' = differentiate f' slst2
---         (s1,s2) | nmaster == 0    = (Nothing,s0)
---                 | nmaster >= snum = (s0,Nothing)
---                 | otherwise       = (s1',s2')
---         f1 = getFocused lay1 s1
---         f2 = getFocused lay2 s2
---     in  f1 ++ f2
--- 
--- instance {-# OVERLAPPABLE #-} (LayoutClass l a) => LayoutClass' l a where
---   getFocused _ s =
---     case s of (Just s') -> [focus s']
---               Nothing   -> []
+
+
 
