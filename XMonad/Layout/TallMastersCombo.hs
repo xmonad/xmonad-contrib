@@ -5,9 +5,7 @@
     DeriveDataTypeable, 
     TypeSynonymInstances, 
     MultiParamTypeClasses, 
-    UndecidableInstances,
-    FunctionalDependencies,
-    AllowAmbiguousTypes
+    UndecidableInstances
 #-}
 ---------------------------------------------------------------------------
 -- |
@@ -60,6 +58,10 @@ import Control.Monad (join, foldM)
 import XMonad.Layout (Choose, ChangeLayout(..))
 import qualified XMonad.Layout as LL
 import Data.Typeable
+import XMonad.Layout.Simplest
+import XMonad.Layout hiding ((|||))
+import XMonad.Layout.Tabbed (tabbed, fontName, shrinkText)
+
 
 ---------------------------------------------------------------------------------
 -- $usage
@@ -204,13 +206,18 @@ instance Message FocusedNextLayout
 data TestMsg = TestMsg deriving (Read, Show, Typeable)
 instance Message TestMsg
 
-instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
+-- instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
+instance (Typeable l1, Typeable l2, GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
   description _ = "TallMasters"
 
   runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
       let slst = integrate' s
-          f' = case s of (Just s') -> focus s':delete (focus s') f
-                         Nothing   -> f
+          f0 = getFocused l s
+          f' = case s of (Just s') -> focus s':delete (focus s') f0
+                         Nothing   -> f0
+          layStr1 = showInfo layout1
+          layStr2 = showInfo layout2
+          layStr  = layStr1 ++ layStr2
           snum = length(slst)
           (slst1, slst2) = splitAt nmaster slst
           s0 = differentiate f' slst
@@ -224,6 +231,7 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombi
                      else splitVerticallyBy frac' r
       in 
       do 
+         spawn $ "echo '" ++ layStr ++ "' >> ~/.xmonad/debug2.txt"
          (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
          (ws2,ml2) <- runLayout (Workspace wid layout2 s2) r2
          -- let str1 = "echo 'ml1:" ++ show (typeOf ml1) ++ "' >> ~/.xmonad/debug1.txt"
@@ -232,12 +240,7 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombi
          -- spawn $ str2
          let newlayout1 = maybe layout1 id ml1
              newlayout2 = maybe layout2 id ml2
-             fnew1 = case ml1 of Just l1 -> getFocused l1 s1
-                                 Nothing -> []
-             fnew2 = case ml2 of Just l2 -> getFocused l2 s2
-                                 Nothing -> []
-             fnew  = fnew1 ++ fnew2
-         return (ws1++ws2, Just $ TMSCombineTwo fnew slst1 slst2 vsp nmaster delta frac newlayout1 newlayout2)
+         return (ws1++ws2, Just $ TMSCombineTwo f' slst1 slst2 vsp nmaster delta frac newlayout1 newlayout2)
 
 
   handleMessage i@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) m
@@ -461,58 +464,16 @@ instance (LayoutClass l a, LayoutClass r a) => LayoutClass (Choose1 l r) a where
         case mlr' of Just lrt -> return $ Just $ Choose1 d l r lrt
                      Nothing  -> return Nothing
 
---  handleMessage c@(Choose1 d l r lr) m 
---    | Just NextLayout <- fromMessage m = do
---        mlrt <- handleMessage lr m
---        mlrf <- handle c NextNoWrap
---        fstf <- (handle c FirstLayout)
---        let resf = elseOr fstf mlrf
---            lrt  = fromMaybe lr mlrt
---        case resf of Just (Choose1 d l0 r0 lr) -> return $ Just $ Choose1 d l0 r0 lrt
---                     Nothing                   -> return Nothing
---    | Just NextNoWrap <- fromMessage m = do
---        mlr' <- handleMessage lr m
---        let lr' = fromMaybe lr mlr' 
---        case d of
---          L -> do
---            ml <- handle l NextNoWrap
---            case ml of
---              Just l0 -> return (Just $ Choose1 L l0 r lr')
---              Nothing -> do
---                mr <- handle r FirstLayout
---                case mr of
---                  Just r0 -> return (Just $ Choose1 R l r0 lr')
---                  Nothing -> return Nothing
---          R -> do
---            mr <- handle r NextNoWrap
---            case mr of 
---              Just r0 -> return $ Just $ Choose1 R l r0 lr'
---              Nothing -> return Nothing
---    | Just FirstLayout <- fromMessage m = do
---        mlr' <- handleMessage lr m
---        let lr' = fromMaybe lr mlr'
---        ml  <- handle l FirstLayout
---        case ml of
---          Just l0 -> return $ Just $ Choose1 L l0 r lr'
---          Nothing -> return $ Just $ Choose1 L l r lr'
---    | otherwise = do
---        mlr' <- handleMessage lr m
---        let lr' = fromMaybe lr mlr'
---        return $ Just $ Choose1 d l r lr'
-
-
 (|||) :: l a -> r a -> Choose1 l r a
 (|||) l r = Choose1 L l r (l LL.||| r)
-
 
 -- class for layout combinators
 class LayoutClass l a => GetFocused l a where
    getFocused :: l a -> Maybe (Stack a) -> [a]
-   getFocused _ ms =
-     case ms of (Just s) -> [focus s]
-                Nothing  -> []
+   getDescription :: l a -> String
+   showInfo :: l a -> String
 
-instance (LayoutClass l Window, LayoutClass r Window, GetFocused l a, GetFocused r a) => GetFocused (TMSCombineTwo l r) Window where
+instance (Typeable l, Typeable r, GetFocused l Window, GetFocused r Window) => GetFocused (TMSCombineTwo l r) Window where
   getFocused (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s =
     let slst = integrate' s
         f' = case s of (Just s') -> focus s':delete (focus s') f
@@ -528,13 +489,27 @@ instance (LayoutClass l Window, LayoutClass r Window, GetFocused l a, GetFocused
         f1 = getFocused lay1 s1
         f2 = getFocused lay2 s2
     in  f1 ++ f2
+  getDescription (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) =
+    "TMS: " ++ getDescription lay1 ++ "--" ++ getDescription lay2
+  showInfo i@(TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) =
+    "TMS: " ++ description i ++ "--" ++ showInfo lay1 ++ "+" ++ showInfo lay2
   
-instance (LayoutClass l Window, LayoutClass r Window, GetFocused l a, GetFocused r a) => GetFocused (Choose1 l r) Window where
+instance (Typeable l, Typeable r, Typeable a, GetFocused l a, GetFocused r a) => GetFocused (Choose1 l r) a where
   getFocused (Choose1 d l r _) s = 
     case d of L -> getFocused l s
               R -> getFocused r s
+  getDescription (Choose1 d l r _) =
+    case d of L -> "Choose_L: " ++ getDescription l
+              R -> "Choose_R: " ++ getDescription r
+  showInfo i@(Choose1 d l r _) = 
+      "Choose: " ++ description i ++ "--" ++ showInfo l ++ "+" ++ showInfo r
 
-instance {-# OVERLAPPABLE #-} (LayoutClass l a) => GetFocused l a
+instance {-# OVERLAPPABLE #-} (Typeable l, Typeable a, LayoutClass l a) => GetFocused l a where
+  getFocused l ms =
+    case ms of (Just s) -> [focus s]
+               Nothing  -> []
+  getDescription l = "Base: " ++ description l ++ " type: " ++ show (typeOf l)
+  showInfo l = "Base: " ++ description l
 
 -- instance {-# OVERLAPPING #-} (LayoutClass l1 Window, 
 --                               LayoutClass l2 Window, 
@@ -588,7 +563,61 @@ instance {-# OVERLAPPABLE #-} (LayoutClass l a) => GetFocused l a
 --     => GetFocused (Choose1 l1 l2) Window where
 --   getFocused = chsGetFocused
 
+c1' = RowsOrColumns True ||| Simplest
+c2' = tmsCombineTwoDefault Simplest Simplest
+mylayout1' = tmsCombineTwoDefault c1' c2'
+mylayout2' = mylayout1' ||| Simplest 
+
+rows = RowsOrColumns True
+myTheme = def { fontName = "xft:DejaVu Sans:size=8" }
+myTabbed = tabbed shrinkText myTheme
+subLayout = tmsCombineTwoDefault Simplest myTabbed
+layout1 = myTabbed ||| subLayout
+layout2 = subLayout ||| myTabbed ||| rows
+-- *********  Guess: **********
+-- Maybe because when called the 
+-- GetFocused methods, all the layouts are
+-- define to be the superclass instance
+-- *********  Guess: **********
 
 
-
+-- class LayoutX l a where
+--   runLayoutX :: l a -> String
+-- 
+-- data ChooseX l r a = ChooseX (l a) (r a)
+-- instance (LayoutX l a, LayoutX r a) => LayoutX (ChooseX l r) a where
+--   runLayoutX _ = "1;"
+-- 
+-- data TMSX l r a = TMSX (l a) (r a)
+-- instance (LayoutX l a, LayoutX r a) => LayoutX (TMSX l r) a where
+--   runLayoutX _ = "2;"
+-- 
+-- data SimplestX a = SimplestX a
+-- instance LayoutX SimplestX a where
+--   runLayoutX _ = "3;"
+-- 
+-- data TabbedX a = TabbedX a
+-- instance LayoutX TabbedX a where
+--   runLayoutX _ = "4;"
+-- 
+-- class (LayoutX l a) => SaveInfo l a where
+--   showInfoX :: l a -> String
+-- 
+-- instance (SaveInfo l Int, SaveInfo r Int) => SaveInfo (ChooseX l r) Int where
+--   showInfoX i@(ChooseX l r) = 
+--       "Choose: " ++ runLayoutX i ++ "--" ++ showInfoX l ++ " + " ++ showInfoX r
+-- 
+-- instance (SaveInfo l Int, SaveInfo r Int) => SaveInfo (TMSX l r) Int where
+--   showInfoX i@(TMSX l r) = 
+--       "TMS: " ++ runLayoutX i ++ "--" ++ showInfoX l ++ " + " ++ showInfoX r
+-- 
+-- instance {-# OVERLAPPABLE #-} (LayoutX l a) => SaveInfo l a where
+--   showInfoX l = 
+--       "Base: " ++ runLayoutX l
+-- 
+-- 
+-- c1 = ChooseX (SimplestX (3::Int)) (SimplestX (3::Int))
+-- c2 = TMSX (TabbedX (2::Int)) (TabbedX (2::Int))
+-- mylayout1 = TMSX c1 c2
+-- mylayout2 = ChooseX (SimplestX (1::Int)) mylayout1 
 
