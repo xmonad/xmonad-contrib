@@ -99,7 +99,7 @@ positionStoreInit mDecoTheme w  = withDisplay $ \d -> do
 
 positionStoreEventHook :: Event -> X All
 positionStoreEventHook (DestroyWindowEvent {ev_window = w, ev_event_type = et}) = do
-    when (et == destroyNotify) $ do
+    when (et == destroyNotify) $
         modifyPosStore (\ps -> posStoreRemove ps w)
     return (All True)
 positionStoreEventHook _ = return (All True)
