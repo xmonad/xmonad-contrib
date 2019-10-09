@@ -1,5 +1,13 @@
 -- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE PatternGuards,
+    FlexibleContexts, 
+    FlexibleInstances, 
+    DeriveDataTypeable, 
+    TypeSynonymInstances, 
+    MultiParamTypeClasses, 
+    UndecidableInstances,
+    FunctionalDependencies
+#-}
 ---------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TallMastersCombo
@@ -49,8 +57,11 @@ import Data.Maybe (fromJust,isJust,fromMaybe)
 import Data.List (delete)
 import Control.Monad (join, foldM)
 import XMonad.Layout (Choose, ChangeLayout(..))
-import qualified XMonad.Layout as L
+import qualified XMonad.Layout as LL
 import Data.Typeable
+import XMonad.Layout.Simplest
+import XMonad.Layout.Tabbed (TabbedDecoration(..))
+import XMonad.Layout.Decoration
 
 ---------------------------------------------------------------------------------
 -- $usage
@@ -195,7 +206,7 @@ instance Message FocusedNextLayout
 data TestMsg = TestMsg deriving (Read, Show, Typeable)
 instance Message TestMsg
 
-instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
+instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window, LayoutBase l1 Window, LayoutBase l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
   description _ = "TallMasters"
 
   runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
@@ -447,35 +458,49 @@ instance (LayoutClass l a, LayoutClass r a) => LayoutClass (Choose1 l r) a where
 
 
 (|||) :: l a -> r a -> Choose1 l r a
-(|||) l r = Choose1 L l r (l L.||| r)
+(|||) l r = Choose1 L l r (l LL.||| r)
 
--- class for getting focused windows
-class (LayoutClass l a) => LayoutClass' l a where
+
+data LayoutWrapper l a = LayoutWrapper {layout :: l a }
+
+instance (LayoutClass l a) => LayoutClass (LayoutWrapper l) a where
+  description (LayoutWrapper l) = description l
+  runLayout (Workspace wid (LayoutWrapper l) s) rec = 
+    do (ws, ml) <- runLayout (Workspace wid l s) rec
+       let ml' = case ml of
+                  Just l0 -> Just (LayoutWrapper l0)
+                  Nothing -> Nothing
+       return (ws, ml')
+    
+  pureMessage (RowsOrColumns rows) m
+    | Just Row <- fromMessage m = Just $ RowsOrColumns True
+    | Just Col <- fromMessage m = Just $ RowsOrColumns False
+    | otherwise = Nothing
+
+-- class for layout combinators
+class (LayoutClass l a, LayoutClass r a, LayoutClass lr a) => LayoutCombo lr l r a | lr -> l, lr -> r where
+  layouts :: lr a -> (l a, r a)
+  stacks  :: lr a -> Maybe (Stack a) -> (Maybe (Stack a), Maybe (Stack a))
+  mergeFocused :: lr a -> [a] -> [a] -> [a]
   getFocused :: l a -> Maybe (Stack a) -> [a]
- 
-instance {-# OVERLAPPING #-} (Typeable l1, Typeable l2, Typeable r1, Typeable r2, 
-                              LayoutClass l1 Window, LayoutClass l2 Window, 
-                              LayoutClass r1 Window, LayoutClass r2 Window) 
-                              => LayoutClass' (TMSCombineTwo (TMSCombineTwo l1 r1) (TMSCombineTwo l2 r2)) Window where
-  getFocused = getFocusedFunc
+  getFocused lr ms =
+    let (l1,l2) = layouts lr
+        (s1,s2) = stacks lr ms
+        f1 = getFocused l1 s1
+        f2 = getFocused l2 s2
+    in  mergeFocused lr f1 f2
 
-instance {-# OVERLAPS #-} (Typeable l1, Typeable l2, Typeable r1,
-                           LayoutClass l1 Window, LayoutClass l2 Window, LayoutClass r1 Window) 
-                           => LayoutClass' (TMSCombineTwo (TMSCombineTwo l1 r1) l2) Window where
-  getFocused = getFocusedFunc
+instance {-# OVERLAPPABLE #-} (LayoutClass l a) => LayoutCombo l l l a where
+  layouts l           = (l, l)
+  stacks  l ms        = (ms, ms)
+  mergeFocused l a b  = a
+  getFocused l ms = 
+    case ms of Just s  -> [focus s]
+               Nothing -> []
 
-instance {-# OVERLAPS #-} (Typeable l1, Typeable l2, Typeable r2,
-                           LayoutClass l1 Window, LayoutClass l2 Window, LayoutClass r2 Window) 
-                           => LayoutClass' (TMSCombineTwo l1 (TMSCombineTwo l2 r2)) Window where
-  getFocused = getFocusedFunc
-
-instance {-# OVERLAPS #-} (Typeable l1, Typeable l2,
-                           LayoutClass l1 Window, LayoutClass l2 Window) 
-                           => LayoutClass' (TMSCombineTwo l1 l2) Window where
-  getFocused = getFocusedFunc
-
-
-getFocusedFunc (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s =
+instance LayoutCombo (TMSCombineTwo l r) l r Window where
+  layouts (TMSCombineTwo _ _ _ _ _ _ _ lay1 lay2) = (lay1, lay2)
+  stacks  (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s = 
     let slst = integrate' s
         f' = case s of (Just s') -> focus s':delete (focus s') f
                        Nothing   -> f
@@ -487,12 +512,50 @@ getFocusedFunc (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s =
         (s1,s2) | nmaster == 0    = (Nothing,s0)
                 | nmaster >= snum = (s0,Nothing)
                 | otherwise       = (s1',s2')
-        f1 = getFocused lay1 s1
-        f2 = getFocused lay2 s2
-    in  f1 ++ f2
+    in  (s1,s2)
+  mergeFocused lr a b = a ++ b
 
-instance {-# OVERLAPPABLE #-} (LayoutClass l a) => LayoutClass' l a where
-  getFocused _ s =
-    case s of (Just s') -> [focus s']
-              Nothing   -> []
+ 
+-- instance {-# OVERLAPPING #-} (Typeable l1, Typeable l2, Typeable r1, Typeable r2, 
+--                               LayoutClass l1 Window, LayoutClass l2 Window, 
+--                               LayoutClass r1 Window, LayoutClass r2 Window) 
+--                               => SaveFocused (TMSCombineTwo (TMSCombineTwo l1 r1) (TMSCombineTwo l2 r2)) Window where
+--   getFocused = getFocusedFunc
+-- 
+-- instance {-# OVERLAPS #-} (Typeable l1, Typeable l2, Typeable r1,
+--                            LayoutClass l1 Window, LayoutClass l2 Window, LayoutClass r1 Window) 
+--                            => SaveFocused (TMSCombineTwo (TMSCombineTwo l1 r1) l2) Window where
+--   getFocused = getFocusedFunc
+-- 
+-- instance {-# OVERLAPS #-} (Typeable l1, Typeable l2, Typeable r2,
+--                            LayoutClass l1 Window, LayoutClass l2 Window, LayoutClass r2 Window) 
+--                            => SaveFocused (TMSCombineTwo l1 (TMSCombineTwo l2 r2)) Window where
+--   getFocused = getFocusedFunc
+-- 
+-- instance {-# OVERLAPS #-} (Typeable l1, Typeable l2,
+--                            LayoutClass l1 Window, LayoutClass l2 Window) 
+--                            => SaveFocused (TMSCombineTwo l1 l2) Window where
+--   getFocused = getFocusedFunc
+
+
+-- getFocusedFunc (TMSCombineTwo f _ _ _ nmaster _ _ lay1 lay2) s =
+--     let slst = integrate' s
+--         f' = case s of (Just s') -> focus s':delete (focus s') f
+--                        Nothing   -> f
+--         snum = length(slst)
+--         (slst1, slst2) = splitAt nmaster slst
+--         s0 = differentiate f' slst
+--         s1' = differentiate f' slst1
+--         s2' = differentiate f' slst2
+--         (s1,s2) | nmaster == 0    = (Nothing,s0)
+--                 | nmaster >= snum = (s0,Nothing)
+--                 | otherwise       = (s1',s2')
+--         f1 = getFocused lay1 s1
+--         f2 = getFocused lay2 s2
+--     in  f1 ++ f2
+-- 
+-- instance {-# OVERLAPPABLE #-} (LayoutClass l a) => LayoutClass' l a where
+--   getFocused _ s =
+--     case s of (Just s') -> [focus s']
+--               Nothing   -> []
 
