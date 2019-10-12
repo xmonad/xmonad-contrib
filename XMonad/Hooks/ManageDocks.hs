@@ -104,11 +104,11 @@ instance ExtensionClass StrutCache where
   initialValue = StrutCache M.empty
 
 updateStrutCache :: Window -> [Strut] -> X Bool
-updateStrutCache w strut = do
+updateStrutCache w strut =
   XS.modified $ StrutCache . M.insert w strut . fromStrutCache
 
 deleteFromStructCache :: Window -> X Bool
-deleteFromStructCache w = do
+deleteFromStructCache w =
   XS.modified $ StrutCache . M.delete w . fromStrutCache
 
 -- | Detects if the given window is of type DOCK and if so, reveals
@@ -116,7 +116,7 @@ deleteFromStructCache w = do
 manageDocks :: ManageHook
 manageDocks = checkDock --> (doIgnore <+> setDocksMask)
     where setDocksMask = do
-            ask >>= \win -> liftX $ withDisplay $ \dpy -> do
+            ask >>= \win -> liftX $ withDisplay $ \dpy ->
                 io $ selectInput dpy win (propertyChangeMask .|. structureNotifyMask)
             mempty
 

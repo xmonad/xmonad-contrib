@@ -356,7 +356,7 @@ handleEvent :: UrgencyHook h => WithUrgencyHook h -> Event -> X ()
 handleEvent wuh event =
     case event of
      -- WM_HINTS urgency flag
-      PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
+      PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } ->
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then markUrgent w else markNotUrgent w
