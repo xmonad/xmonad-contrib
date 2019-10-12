@@ -108,7 +108,7 @@ withWorkspaceIndex job widx = do
   maybe (return ()) (windows . job) wtag
     where
       ilookup :: WorkspaceIndex -> X (Maybe WorkspaceTag)
-      ilookup idx = Map.lookup idx `fmap` XS.gets workspaceIndexMap
+      ilookup idx = Map.lookup idx <$> XS.gets workspaceIndexMap
 
 
 mkCompl :: [String] -> String -> IO [String]

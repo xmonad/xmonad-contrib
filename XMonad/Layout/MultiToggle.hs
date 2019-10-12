@@ -192,7 +192,7 @@ instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (Mult
     description mt = currLayout mt `unEL` \l -> description l
 
     runLayout (Workspace i mt s) r = case currLayout mt of
-        EL l det -> fmap (fmap . fmap $ (\x -> mt { currLayout = EL x det })) $
+        EL l det -> (fmap . fmap $ (\x -> mt { currLayout = EL x det })) <$>
             runLayout (Workspace i l s) r
 
     handleMessage mt m
@@ -200,7 +200,7 @@ instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (Mult
         , i@(Just _) <- find (transformers mt) t
             = case currLayout mt of
                 EL l det -> do
-                    l' <- fromMaybe l `fmap` handleMessage l (SomeMessage ReleaseResources)
+                    l' <- fromMaybe l <$> handleMessage l (SomeMessage ReleaseResources)
                     return . Just $
                         mt {
                             currLayout = (if cur then id else transform' t) (EL (det l') id),
@@ -209,5 +209,5 @@ instance (Typeable a, Show ts, HList ts a, LayoutClass l a) => LayoutClass (Mult
                     where cur = (i == currIndex mt)
         | otherwise
             = case currLayout mt of
-                EL l det -> fmap (fmap (\x -> mt { currLayout = EL x det })) $
+                EL l det -> (fmap (\x -> mt { currLayout = EL x det })) <$>
                     handleMessage l m

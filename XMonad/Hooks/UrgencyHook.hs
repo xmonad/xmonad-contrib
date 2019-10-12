@@ -81,7 +81,6 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 import XMonad.Util.WindowProperties (getProp32)
 
-import Control.Applicative ((<$>))
 import Control.Monad (when)
 import Data.Bits (testBit)
 import Data.List (delete, (\\))
@@ -321,7 +320,7 @@ data WithUrgencyHook h = WithUrgencyHook h UrgencyConfig
 changeNetWMState :: Display -> Window -> ([CLong] -> [CLong]) -> X ()
 changeNetWMState dpy w f = do
    wmstate <- getAtom "_NET_WM_STATE"
-   wstate  <- fromMaybe [] `fmap` getProp32 wmstate w
+   wstate  <- fromMaybe [] <$> getProp32 wmstate w
    let ptype = 4 -- atom property type for changeProperty
    io $ changeProperty32 dpy w wmstate ptype propModeReplace (f wstate)
    return ()
@@ -338,7 +337,7 @@ removeNetWMState dpy w atom = changeNetWMState dpy w $ delete (fromIntegral atom
 getNetWMState :: Window -> X [CLong]
 getNetWMState w = do
     a_wmstate <- getAtom "_NET_WM_STATE"
-    fromMaybe [] `fmap` getProp32 a_wmstate w
+    fromMaybe [] <$> getProp32 a_wmstate w
 
 
 -- The Non-ICCCM Manifesto:
@@ -357,7 +356,7 @@ handleEvent :: UrgencyHook h => WithUrgencyHook h -> Event -> X ()
 handleEvent wuh event =
     case event of
      -- WM_HINTS urgency flag
-      PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } -> do
+      PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } ->
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
               if (testBit flags urgencyHintBit) then markUrgent w else markNotUrgent w

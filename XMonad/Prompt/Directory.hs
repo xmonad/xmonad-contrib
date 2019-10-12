@@ -46,7 +46,7 @@ directoryMultipleModes :: String            -- ^ Prompt.
 directoryMultipleModes p f = XPT (Dir p f)
 
 getDirCompl :: String -> IO [String]
-getDirCompl s = (filter notboring . lines) `fmap`
+getDirCompl s = (filter notboring . lines) <$>
                 runProcessWithInput "bash" [] ("compgen -A directory " ++ s ++ "\n")
 
 notboring :: String -> Bool

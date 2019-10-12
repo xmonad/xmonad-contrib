@@ -61,7 +61,6 @@ import XMonad.Layout.Decoration
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.Tabbed (tabbed, fontName, shrinkText)
 
-
 ---------------------------------------------------------------------------------
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

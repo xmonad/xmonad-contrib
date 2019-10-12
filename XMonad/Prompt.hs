@@ -98,7 +98,6 @@ import           XMonad.Util.Types
 import           XMonad.Util.XSelection       (getSelection)
 
 import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
-import           Control.Applicative          ((<$>))
 import           Control.Arrow                (first, second, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
 import           Control.Exception.Extensible as E hiding (handle)
@@ -526,7 +525,7 @@ mkXPromptWithModes modes conf = do
       om = XPMultipleModes modeStack
   st' <- mkXPromptImplementation (showXPrompt defaultMode) conf { alwaysHighlight = True } om
   if successful st'
-    then do
+    then
       case operationMode st' of
         XPMultipleModes ms -> let
           action = modeAction $ W.focus ms
@@ -596,7 +595,7 @@ runXP st = do
     (grabKeyboard d w True grabModeAsync grabModeAsync currentTime)
     (\_ -> ungrabKeyboard d currentTime)
     (\status ->
-      (flip execStateT st $ do
+      (flip execStateT st $
         when (status == grabSuccess) $ do
           updateWindows
           eventLoop handleMain evDefaultStop)
@@ -773,7 +772,7 @@ handleInputSubmap :: XP ()
                   -> KeyMask
                   -> KeyStroke
                   -> XP ()
-handleInputSubmap defaultAction keymap keymask (keysym,keystr) = do
+handleInputSubmap defaultAction keymap keymask (keysym,keystr) =
     case M.lookup (keymask,keysym) keymap of
         Just action -> action >> updateWindows
         Nothing     -> unless (null keystr) $ defaultAction >> updateWindows
@@ -830,7 +829,7 @@ handleInputBuffer :: (String -> String -> (Bool,Bool))
                   -> KeyStroke
                   -> Event
                   -> XP ()
-handleInputBuffer f keymask (keysym,keystr) event = do
+handleInputBuffer f keymask (keysym,keystr) event =
     unless (null keystr || keymask .&. controlMask /= 0) $ do
         (evB,inB) <- gets (eventBuffer &&& inputBuffer)
         let keystr' = utf8Decode keystr
@@ -1205,7 +1204,7 @@ pasteString = pasteString' id
 -- | A variant of 'pasteString' which allows modifying the X selection before
 -- pasting.
 pasteString' :: (String -> String) -> XP ()
-pasteString' f = join $ io $ liftM (insertString . f) getSelection
+pasteString' f = insertString . f =<< getSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction1D -> XP ()

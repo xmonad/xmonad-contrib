@@ -65,7 +65,7 @@ addScreenCorner corner xF = do
     (win,xFunc) <- case find (\(_,(sc,_)) -> sc == corner) (M.toList m) of
 
                         Just (w, (_,xF')) -> return (w, xF' >> xF) -- chain X actions
-                        Nothing           -> flip (,) xF `fmap` createWindowAt corner
+                        Nothing           -> flip (,) xF <$> createWindowAt corner
 
     XS.modify $ \(ScreenCornerState m') -> ScreenCornerState $ M.insert win (corner,xFunc) m'
 

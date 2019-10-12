@@ -319,7 +319,7 @@ handleMouseFocusDrag ds (DS dwrs _) ButtonEvent { ev_window     = ew
             distFromLeft = ex - fi dx
             distFromRight = fi dwh - (ex - fi dx)
         dealtWith <- decorationCatchClicksHook ds mainw (fi distFromLeft) (fi distFromRight)
-        when (not dealtWith) $ do
+        when (not dealtWith) $
             mouseDrag (\x y -> focus mainw >> decorationWhileDraggingHook ds ex ey (mainw, r) x y)
                         (decorationAfterDraggingHook ds (mainw, r) ew)
 handleMouseFocusDrag _ _ _ = return ()
@@ -400,7 +400,7 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
                                                        _ | focusw == win -> ac
                                                          | win `elem` ur -> uc
                                                          | otherwise     -> ic) . W.peek)
-                                `fmap` gets windowset
+                                <$> gets windowset
   (bc,borderc,borderw,tc) <-
     focusColor w (inactiveColor t, inactiveBorderColor t, inactiveBorderWidth t, inactiveTextColor t)
                  (activeColor   t, activeBorderColor   t, activeBorderWidth   t, activeTextColor   t)

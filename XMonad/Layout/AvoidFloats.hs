@@ -108,10 +108,10 @@ instance LayoutModifier AvoidFloats Window where
     modifyLayoutWithUpdate lm w r = withDisplay $ \d -> do
         floating <- gets $ W.floating . windowset
         case cache lm of
-            Just (key, mer) | key == (floating,r) -> flip (,) Nothing `fmap` runLayout w mer
-            _ -> do rs <- io $ map toRect `fmap` mapM (getWindowAttributes d) (filter shouldAvoid $ M.keys floating)
+            Just (key, mer) | key == (floating,r) -> flip (,) Nothing <$> runLayout w mer
+            _ -> do rs <- io $ map toRect <$> mapM (getWindowAttributes d) (filter shouldAvoid $ M.keys floating)
                     let mer = maximumBy (comparing area) $ filter bigEnough $ maxEmptyRectangles r rs
-                    flip (,) (Just $ pruneWindows $ lm { cache = Just ((floating,r),mer) }) `fmap` runLayout w mer
+                    flip (,) (Just $ pruneWindows $ lm { cache = Just ((floating,r),mer) }) <$> runLayout w mer
         where
             toRect :: WindowAttributes -> Rectangle
             toRect wa = let b = fi $ wa_border_width wa

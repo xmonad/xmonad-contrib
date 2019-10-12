@@ -84,7 +84,7 @@ instance LayoutClass FixedColumn Window where
 widthCols :: Int -> Int -> Window -> X Int
 widthCols inc n w = withDisplay $ \d -> io $ do
     sh <- getWMNormalHints d w
-    bw <- fmap (fromIntegral . wa_border_width) $ getWindowAttributes d w
+    bw <- fromIntegral . wa_border_width <$> getWindowAttributes d w
     let widthHint f = f sh >>= return . fromIntegral . fst
         oneCol      = fromMaybe inc $ widthHint sh_resize_inc
         base        = fromMaybe 0 $ widthHint sh_base_size

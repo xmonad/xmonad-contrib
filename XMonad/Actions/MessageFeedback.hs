@@ -57,7 +57,7 @@ import XMonad.Operations    ( updateLayout, windowBracket, modifyWindowSet )
 import Data.Maybe           ( isJust )
 import Control.Monad        ( void )
 import Control.Monad.State  ( gets )
-import Control.Applicative  ( (<$>), liftA2 )
+import Control.Applicative  ( liftA2 )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

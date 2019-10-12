@@ -61,7 +61,7 @@ import XMonad.Util.Stack
 import Data.Maybe (isJust, isNothing, fromMaybe, catMaybes, fromJust)
 import Data.List ((\\))
 import Control.Arrow ((>>>))
-import Control.Applicative ((<$>),(<|>),(<$))
+import Control.Applicative ((<|>))
 import Control.Monad (forM,void)
 
 -- $usage

@@ -191,7 +191,7 @@ Or in combination with XMonad.Util.EZConfig:
 >
 > searchList :: [(String, S.SearchEngine)]
 > searchList = [ ("g", S.google)
->              , ("h", S.hoohle)
+>              , ("h", S.hoogle)
 >              , ("w", S.wikipedia)
 >              ]
 
@@ -293,7 +293,7 @@ debpts        = searchEngine "debpts"        "http://packages.qa.debian.org/"
 dictionary    = searchEngine "dict"          "http://dictionary.reference.com/browse/"
 google        = searchEngine "google"        "http://www.google.com/search?num=100&q="
 hackage       = searchEngine "hackage"       "http://hackage.haskell.org/package/"
-hoogle        = searchEngine "hoogle"        "http://www.haskell.org/hoogle/?q="
+hoogle        = searchEngine "hoogle"        "http://hoogle.haskell.org/?hoogle="
 images        = searchEngine "images"        "http://images.google.fr/images?q="
 imdb          = searchEngine "imdb"          "http://www.imdb.com/find?s=all&q="
 isohunt       = searchEngine "isohunt"       "http://isohunt.com/torrents/?ihq="

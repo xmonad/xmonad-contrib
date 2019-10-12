@@ -136,7 +136,7 @@ someNamedScratchpadAction f confs n
                                         ((maybe [] W.integrate . W.stack . W.workspace . W.current) s)
                      filterAll <- filterM (runQuery (query conf)) (W.allWindows s)
                      case filterCurrent of
-                       [] -> do
+                       [] ->
                          case filterAll of
                            [] -> runApplication conf
                            _  -> f (windows . W.shiftWin (W.currentTag s)) filterAll

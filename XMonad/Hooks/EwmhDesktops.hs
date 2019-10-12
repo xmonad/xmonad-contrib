@@ -25,7 +25,6 @@ module XMonad.Hooks.EwmhDesktops (
     ) where
 
 import Codec.Binary.UTF8.String (encode)
-import Control.Applicative((<$>))
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -146,14 +145,14 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     -- Remap the current workspace to handle any renames that f might be doing.
     let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
         current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
-    whenChanged (CurrentDesktop $ fromMaybe 0 current) $ do
+    whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
 
     -- Set window-desktop mapping
     let windowDesktops =
           let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
           in M.unions $ zipWith f [0..] ws
-    whenChanged (WindowDesktops windowDesktops) $ do
+    whenChanged (WindowDesktops windowDesktops) $
         mapM_ (uncurry setWindowDesktop) (M.toList windowDesktops)
 
     -- Set active window
@@ -202,13 +201,13 @@ handle f (ClientMessageEvent {
                if 0 <= n && fi n < length ws then
                        windows $ W.shiftWin (W.tag (ws !! fi n)) w
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
-        else if mt == a_aw then do
+        else if mt == a_aw then
                windows $ W.focusWindow w
-        else if mt == a_cw then do
+        else if mt == a_cw then
                killWindow w
-        else if mt `elem` a_ignore then do
+        else if mt `elem` a_ignore then
            return ()
-        else do
+        else
           -- The Message is unknown to us, but that is ok, not all are meant
           -- to be handled by the window manager
           return ()
@@ -224,7 +223,7 @@ fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
+  wstate <- fromMaybe [] <$> getProp32 wmstate win
 
   let isFull = fromIntegral fullsc `elem` wstate
 
