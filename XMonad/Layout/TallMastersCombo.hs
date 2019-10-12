@@ -37,7 +37,7 @@ module XMonad.Layout.TallMastersCombo (
   -- * Messages
   SwitchOrientation (..),
   SwapSubMaster (..),
-  FocusSubMaster (..), FocusedNextLayout (..), TestMsg (..),
+  FocusSubMaster (..), FocusedNextLayout (..), ChangeFocus (..),
 
   -- * Utilities
   (|||),
@@ -50,7 +50,7 @@ import XMonad hiding (focus, (|||))
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
 import Data.Maybe (fromJust,isJust,fromMaybe)
-import Data.List (delete)
+import Data.List (delete,find)
 import Control.Monad (join, foldM)
 import XMonad.Layout (Choose, ChangeLayout(..))
 import qualified XMonad.Layout as LL
@@ -157,7 +157,7 @@ data TMSCombineTwo l1 l2 a =
   TMSCombineTwo { focusLst :: [a]
                 , ws1 :: [a]
                 , ws2 :: [a]
-                , columnMode :: Bool  -- ^ merge two layouts in a column or a row
+                , rowMod :: Bool  -- ^ merge two layouts in a column or a row
                 , nMaster :: !Int     -- ^ number of windows in the master pane
                 , rationInc :: !Rational -- ^ percent of screen to increment by when resizing panes
                 , tallComboRatio :: !Rational -- ^ default proportion of screen occupied by master pane
@@ -201,9 +201,9 @@ instance Message FocusSubMaster
 data FocusedNextLayout = FocusedNextLayout deriving (Read, Show, Typeable)
 instance Message FocusedNextLayout
 
--- | This is a message for testing
-data TestMsg = TestMsg deriving (Read, Show, Typeable)
-instance Message TestMsg
+-- | This is a message for changing to the previous and next focused window across all the sub-layouts.
+data ChangeFocus = NextFocus | PrevFocus deriving (Read, Show, Typeable)
+instance Message ChangeFocus
 
 -- instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
 instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
@@ -212,9 +212,10 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
   runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
       let slst = integrate' s
           f0 = getFocused l s
-          f' = case s of (Just s') -> focus s':delete (focus s') f
-                         Nothing   -> f
+          f' = case s of (Just s') -> focus s':delete (focus s') f0
+                         Nothing   -> f0
           layStr  = showInfo l
+          layStr1 = show l
           -- layStr1 = showInfo layout1
           -- layStr2 = showInfo layout2
           -- layStr  = layStr1 ++ layStr2
@@ -232,6 +233,7 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
       in 
       do 
          spawn $ "echo '" ++ layStr ++ "' >> ~/.xmonad/debug2.txt"
+         spawn $ "echo '" ++ layStr1 ++ "' >> ~/.xmonad/debug3.txt"
          (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
          (ws2,ml2) <- runLayout (Workspace wid layout2 s2) r2
          -- let str1 = "echo 'ml1:" ++ show (typeOf ml1) ++ "' >> ~/.xmonad/debug1.txt"
@@ -272,6 +274,22 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
             Just mw -> do windows $ W.modify' $ focusWindow mw
                           return Nothing
             Nothing -> return Nothing
+    | Just NextFocus <- fromMessage m =
+        do
+          -- All toggle message is passed to the sublayout with focused window
+          mst <- gets (W.stack . W.workspace . W.current . windowset) 
+          let nextw = adjFocus f mst True
+          case nextw of Nothing -> return Nothing
+                        Just w  -> do windows $ W.modify' $ focusWindow w
+                                      return Nothing
+    | Just PrevFocus <- fromMessage m =
+        do
+          -- All toggle message is passed to the sublayout with focused window
+          mst <- gets (W.stack . W.workspace . W.current . windowset) 
+          let prevw = adjFocus f mst False
+          case prevw of Nothing -> return Nothing
+                        Just w  -> do windows $ W.modify' $ focusWindow w
+                                      return Nothing
     -- messages that traverse recursively
     | Just Row <- fromMessage m =
         do mlayout1 <- handleMessage layout1 (SomeMessage Col)
@@ -296,10 +314,6 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
                  let mlay1 = Nothing
                  mlay2 <- handleMessages layout2 [(SomeMessage NextLayout), m1]
                  return $ mergeSubLayouts mlay1 mlay2 i True
-    | Just TestMsg <- fromMessage m = 
-       do
-         spawn $ "xmessage " ++ show f
-         return Nothing
     | otherwise = 
             do
               mlayout1 <- handleMessage layout1 m
@@ -394,6 +408,16 @@ handleMaybeMsg ml m = case ml of Just l  -> do
                                               return $ elseOr (Just l) res
                                  Nothing -> return Nothing
 
+-- find adjacent window of the current focus window
+type Next = Bool
+adjFocus :: (Eq a) => [a] -> Maybe (Stack a) -> Next -> Maybe a
+adjFocus ws ms next =
+  case ms of Nothing -> Nothing
+             Just s  -> let searchLst = 
+                              case next of True  -> (down s) ++ (reverse (up s))
+                                           False -> (up s) ++ (reverse (down s))
+                        in  find (flip elem ws) searchLst
+
 -- right biased maybe merge
 elseOr :: Maybe a -> Maybe a -> Maybe a
 elseOr x y = case y of
@@ -425,7 +449,9 @@ instance (LayoutClass l a, LayoutClass r a) => LayoutClass (Choose1 l r) a where
     | Just NextLayout <- fromMessage m = do
         mlr' <- handleMessage lr m
         mlrf <- handle c NextNoWrap
+        debug 4 ("mlrf: " ++ show mlrf)
         fstf <- handle c FirstLayout
+        debug 4 ("fstf: " ++ show fstf)
         let mlf = elseOr fstf mlrf
             (d',l',r') = case mlf of Just (Choose1 d0 l0 r0 lr0) -> (d0,l0,r0)
                                      Nothing                     -> (d,l,r)
@@ -433,33 +459,45 @@ instance (LayoutClass l a, LayoutClass r a) => LayoutClass (Choose1 l r) a where
                      Nothing  -> return Nothing
     | Just NextNoWrap <- fromMessage m = do
         mlr' <- handleMessage lr m
-        (d',l',r') <- 
+        (d',l',r', end) <- 
               case d of 
                 L -> do
+                       debug 4 "NextNoWrap: L: "
                        ml <- handle l NextNoWrap
                        case ml of 
-                           Just l0 -> return (L,l0,r)
+                           Just l0 -> debug 4 ("L found l0: " ++ (show l0)) >>
+                                      return (L,l0,r,0)
                            Nothing -> do
                                   mr <- handle r FirstLayout
                                   case mr of
-                                    Just r0 -> return (R,l,r0)
-                                    Nothing -> return (d,l,r)
+                                    Just r0 -> debug 4 ("L found r0: " ++ (show r0)) >>
+                                               return (R,l,r0,0)
+                                    Nothing -> debug 4 "L found nothing" >>
+                                               return (R,l,r,0)
                 R -> do
+                       debug 4 "NextNoWrap: R: "
                        mr <- handle r NextNoWrap
                        case mr of
-                         Just r0 -> return (R,l,r0)
-                         Nothing -> return (d,l,r)
+                         Just r0 -> debug 4 ("R found r0: " ++ (show r0)) >>
+                                    return (R,l,r0,0)
+                         Nothing -> debug 4 "R found nothing" >>
+                                    return (d,l,r,1)
         case mlr' of Just lrt -> return $ Just $ Choose1 d' l' r' lrt
-                     Nothing  -> return Nothing
+                     Nothing  -> 
+                        case end of 0 -> return $ Just $ Choose1 d' l' r' lr
+                                    1 -> return Nothing
     | Just FirstLayout <- fromMessage m = do
         mlr' <- handleMessage lr m
         (d',l',r') <- do
+                        debug 4 "FirstLayout: "
                         ml <- handle l FirstLayout
                         case ml of
-                          Just l0 -> return (L,l0,r)
-                          Nothing -> return (L,l,r)
+                          Just l0 -> debug 4 ("FirstLayout: found l0: " ++ (show l0)) >>
+                                     return (L,l0,r)
+                          Nothing -> debug 4 "FirstLayout: found nothing" >>
+                                     return (L,l,r)
         case mlr' of Just lrt -> return $ Just $ Choose1 d' l' r' lrt
-                     Nothing  -> return Nothing
+                     Nothing  -> return $ Just $ Choose1 d' l' r' lr
     | otherwise = do
         mlr' <- handleMessage lr m
         case mlr' of Just lrt -> return $ Just $ Choose1 d l r lrt
@@ -509,16 +547,8 @@ instance (Typeable a) => GetFocused Full a
 instance (Typeable a) => GetFocused Tall a
 instance (Typeable l, Typeable a, Typeable m, LayoutModifier m a, LayoutClass l a) => GetFocused (ModifiedLayout m l) a
 
+-- function for debugging
+debug debugId debugStr = spawn $ "echo '" ++ debugStr ++ "' >> ~/.xmonad/debug" ++ show debugId ++ ".txt"
 
--- c1' = RowsOrColumns True ||| Simplest
--- c2' = tmsCombineTwoDefault Simplest Simplest
--- mylayout1' = tmsCombineTwoDefault c1' c2'
--- mylayout2' = mylayout1' ||| Simplest 
--- 
--- rows = RowsOrColumns True
--- myTheme = def { fontName = "xft:DejaVu Sans:size=8" }
--- myTabbed = tabbed shrinkText myTheme
--- subLayout = tmsCombineTwoDefault Simplest myTabbed
--- layout1 = myTabbed ||| subLayout
--- layout2 = subLayout ||| myTabbed ||| rows
+                
 
