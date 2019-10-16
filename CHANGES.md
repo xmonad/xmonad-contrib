@@ -1,5 +1,42 @@
 # Change Log / Release Notes
 
+## unknown
+
+### Breaking Changes
+
+### New Modules
+
+  * `XMonad.Layout.TallMastersCombo`
+
+    A layout combinator that support Shrink, Expand, and IncMasterN just as
+    the 'Tall' layout, and also support operations of two master windows:
+    a main master, which is the original master window;
+    a sub master, the first window of the second pane.
+    This combinator can be nested, and has a good support for using
+    'XMonad.Layout.Tabbed' as a sublayout.
+
+  * `XMonad.Actions.PerWindowKeys`
+
+    Create actions that run on a `Query Bool`, usually associated with
+    conditions on a window, basis. Useful for creating bindings that are
+    excluded or exclusive for some windows.
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Prompt.Window`
+
+    Added 'allApplications' function which maps application executable
+    names to it's underlying window.
+
+  * `XMonad.Prompt.WindowBringer`
+
+    Added 'windowApMap' function which maps application executable
+    names to it's underlying window.
+
+  * `XMonad.Actions.Search`
+
+    The `hoogle` function now uses the new URL `hoogle.haskell.org`.
+
 ## 0.16
 
 ### Breaking Changes
@@ -24,14 +61,6 @@
 
 ### New Modules
 
-  * `XMonad.Layout.TallMastersCombo`
-    A layout combinator that support Shrink, Expand, and IncMasterN just as
-    the 'Tall' layout, and also support operations of two master windows:
-    a main master, which is the original master window;
-    a sub master, the first window of the second pane.
-    This combinator can be nested, and has a good support for using
-    'XMonad.Layout.Tabbed' as a sublayout.
-
   * `XMonad.Layout.TwoPanePersistent`
 
     A layout that is like TwoPane but keeps track of the slave window that is
@@ -46,12 +75,6 @@
     idea of named scratchpads such that you can define "families of scratchpads"
     that are exclusive on the same screen. It also allows to remove this
     constraint of being mutually exclusive with another scratchpad.
-
-  * `XMonad.Actions.PerWindowKeys`
-
-    Create actions that run on a `Query Bool`, usually associated with
-    conditions on a window, basis. Useful for creating bindings that are
-    excluded or exclusive for some windows.
 
 ### Bug Fixes and Minor Changes
 
@@ -84,16 +107,6 @@
 
     Made password prompts traverse symlinks when gathering password names for
     autocomplete.
-
-* `XMonad.Prompt.Window`
-
-    Added 'allApplications' function which maps application executable
-    names to it's underlying window.
-
-* `XMonad.Prompt.WindowBringer`
-
-    Added 'windowApMap' function which maps application executable
-    names to it's underlying window.
 
   * `XMonad.Actions.DynamicProjects`
 
@@ -136,10 +149,6 @@
   * `XMonad.Prompt.FuzzyMatch`
 
     Make fuzzy sort show shorter strings first.
-
-  * `XMonad.Actions.Search`
-
-    The `hoogle` function now uses the new URL `hoogle.haskell.org`.
 
 ## 0.15
 
