@@ -20,7 +20,6 @@ module XMonad.Util.StringProp (
     ) where
 
 import XMonad
-import Control.Monad(liftM)
 import Foreign.C.String (castCCharToChar,castCharToCChar)
 
 type StringProp = String

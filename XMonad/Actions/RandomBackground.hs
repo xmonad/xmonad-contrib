@@ -24,7 +24,6 @@ module XMonad.Actions.RandomBackground (
 import XMonad(X, XConf(config), XConfig(terminal), io, spawn,
               MonadIO, asks)
 import System.Random
-import Control.Monad(liftM)
 import Numeric(showHex)
 
 -- $usage

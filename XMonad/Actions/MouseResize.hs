@@ -105,7 +105,7 @@ handleResize st ButtonEvent { ev_window = ew, ev_event_type = et }
 handleResize _ _ = return ()
 
 createInputWindow :: ((Window,Rectangle), Maybe Rectangle) -> X ((Window,Rectangle),Maybe Window)
-createInputWindow ((w,r),mr) = do
+createInputWindow ((w,r),mr) =
   case mr of
     Just tr  -> withDisplay $ \d -> do
                   tw <- mkInputWindow d tr

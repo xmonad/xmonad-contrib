@@ -136,11 +136,11 @@ withTargetWindow adj posRef dir = fromCurrentPoint posRef $ \win pos -> do
       setPosition posRef pos targetRect
 
 trackMovement :: IORef WNState -> X ()
-trackMovement posRef = fromCurrentPoint posRef $ \win pos -> do
+trackMovement posRef = fromCurrentPoint posRef $ \win pos ->
                            windowRect win >>= flip whenJust (setPosition posRef pos . snd)
 
 fromCurrentPoint :: IORef WNState -> (Window -> Point -> X ()) -> X ()
-fromCurrentPoint posRef f = withFocused $ \win -> do
+fromCurrentPoint posRef f = withFocused $ \win ->
                                 currentPosition posRef >>= f win
 
 -- Gets the current position from the IORef passed in, or if nothing (say, from

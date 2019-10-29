@@ -62,7 +62,7 @@ type ExtensionActions = M.Map String (String -> X())
 instance XPrompt CalculatorMode where
   showXPrompt CalcMode = "calc %s> "
   commandToComplete CalcMode = id --send the whole string to `calc`
-  completionFunction CalcMode = \s -> if (length s == 0) then return [] else do
+  completionFunction CalcMode = \s -> if (length s == 0) then return [] else
     lines <$> runProcessWithInput "calc" [s] ""
   modeAction CalcMode _ _ = return () -- do nothing; this might copy the result to the clipboard
 
@@ -88,7 +88,7 @@ instance XPrompt HoogleMode where
 
 -- | Creates an autocompletion function for a programm given the program's name and a list of args to send to the command.
 completionFunctionWith :: String -> [String] -> IO [String]
-completionFunctionWith cmd args = do lines <$> runProcessWithInput cmd args ""
+completionFunctionWith cmd args = lines <$> runProcessWithInput cmd args ""
 
 -- | Creates a prompt with the given modes
 launcherPrompt :: XPConfig -> [XPMode] -> X()

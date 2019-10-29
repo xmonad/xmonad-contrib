@@ -525,7 +525,7 @@ mkXPromptWithModes modes conf = do
       om = XPMultipleModes modeStack
   st' <- mkXPromptImplementation (showXPrompt defaultMode) conf { alwaysHighlight = True } om
   if successful st'
-    then do
+    then
       case operationMode st' of
         XPMultipleModes ms -> let
           action = modeAction $ W.focus ms
@@ -595,7 +595,7 @@ runXP st = do
     (grabKeyboard d w True grabModeAsync grabModeAsync currentTime)
     (\_ -> ungrabKeyboard d currentTime)
     (\status ->
-      (flip execStateT st $ do
+      (flip execStateT st $
         when (status == grabSuccess) $ do
           updateWindows
           eventLoop handleMain evDefaultStop)
@@ -772,7 +772,7 @@ handleInputSubmap :: XP ()
                   -> KeyMask
                   -> KeyStroke
                   -> XP ()
-handleInputSubmap defaultAction keymap keymask (keysym,keystr) = do
+handleInputSubmap defaultAction keymap keymask (keysym,keystr) =
     case M.lookup (keymask,keysym) keymap of
         Just action -> action >> updateWindows
         Nothing     -> unless (null keystr) $ defaultAction >> updateWindows
@@ -829,7 +829,7 @@ handleInputBuffer :: (String -> String -> (Bool,Bool))
                   -> KeyStroke
                   -> Event
                   -> XP ()
-handleInputBuffer f keymask (keysym,keystr) event = do
+handleInputBuffer f keymask (keysym,keystr) event =
     unless (null keystr || keymask .&. controlMask /= 0) $ do
         (evB,inB) <- gets (eventBuffer &&& inputBuffer)
         let keystr' = utf8Decode keystr

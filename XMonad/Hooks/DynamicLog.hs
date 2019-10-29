@@ -60,7 +60,7 @@ module XMonad.Hooks.DynamicLog (
 
 import Codec.Binary.UTF8.String (encodeString)
 import Control.Applicative (liftA2)
-import Control.Monad (liftM2, msum)
+import Control.Monad (msum)
 import Data.Char ( isSpace, ord )
 import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
 import Data.Maybe ( isJust, catMaybes, mapMaybe, fromMaybe )

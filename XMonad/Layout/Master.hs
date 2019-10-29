@@ -113,7 +113,7 @@ applyMaster f k _ frac wksp rect = do
     let st= S.stack wksp
     let ws = S.integrate' $ st
     let n = length ws + fromEnum f
-    if n > 1 then do
+    if n > 1 then
         if(n<=k) then
              return ((divideCol rect ws), Nothing)
              else do
