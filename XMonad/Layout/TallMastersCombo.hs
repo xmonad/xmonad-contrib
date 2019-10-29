@@ -1,4 +1,11 @@
-{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
+-- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards,
+    FlexibleContexts, 
+    FlexibleInstances, 
+    DeriveDataTypeable, 
+    TypeSynonymInstances, 
+    MultiParamTypeClasses
+#-}
 ---------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TallMastersCombo
@@ -25,22 +32,34 @@ module XMonad.Layout.TallMastersCombo (
   tmsCombineTwo,
   TMSCombineTwo (..),
   RowsOrColumns (..),
+  (|||),
 
   -- * Messages
   SwitchOrientation (..),
   SwapSubMaster (..),
-  FocusSubMaster (..),
-  FocusedNextLayout (..),
+  FocusSubMaster (..), FocusedNextLayout (..), ChangeFocus (..),
 
   -- * Utilities
+  ChooseWrapper (..),
   swapWindow,
   focusWindow,
   handleMessages
 ) where
 
-import XMonad hiding (focus)
+import XMonad hiding (focus, (|||))
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
+import Data.Maybe (fromJust,isJust,fromMaybe)
+import Data.List (delete,find)
+import Control.Monad (join, foldM)
+import XMonad.Layout (Choose, ChangeLayout(..))
+import qualified XMonad.Layout as LL
+import Data.Typeable
+import XMonad.Layout.Simplest (Simplest(..))
+import XMonad.Layout hiding ((|||))
+import XMonad.Layout.Decoration
+import XMonad.Layout.LayoutModifier
+import XMonad.Layout.Tabbed (tabbed, fontName, shrinkText)
 import Data.Maybe (fromJust,isJust)
 import Control.Monad (foldM)
 
@@ -50,11 +69,16 @@ import Control.Monad (foldM)
 --
 -- > import XMonad.Layout.TallMastersCombo
 --
--- and add something like
+-- and make sure the Choose layout operator (|||) is hidden by adding the followings:
+--
+-- > import XMonad hiding ((|||))
+-- > import XMonad.Layout hiding ((|||))
+--
+-- then, add something like
 --
 -- > tmsCombineTwoDefault (Tall 0 (3/100) 0) simpleTabbed
 --
--- This will make the 'Tall' as the master pane, and 'simpleTabbed' as the second pane. 
+-- This will make the 'Tall' layout as the master pane, and 'simpleTabbed' layout as the second pane. 
 -- You can shrink, expand, and increase more windows to the master pane just like using the
 -- 'Tall' layout.
 --
@@ -64,8 +88,8 @@ import Control.Monad (foldM)
 -- >      , ((modm .|. shiftMask, m),         sendMessage $ FocusSubMaster)
 -- >      , ((modm .|. shiftMask, xK_Return), sendMessage $ SwapSubMaster)
 --
--- In each pane, you can use multiple layouts with 'Choose' combinator, and switch
--- between them with the 'FocusedNextLayout' message. Below is one example
+-- In each pane, you can use multiple layouts with the '(|||)' combinator provided by this module, 
+-- and switch between them with the 'FocusedNextLayout' message. Below is one example
 --
 -- > layout1 = Simplest ||| Tabbed
 -- > layout2 = Full ||| Tabbed ||| (RowsOrColumns True)
@@ -82,7 +106,7 @@ import Control.Monad (foldM)
 --
 -- >      , ((modm, xK_space), sendMessage $ SwitchOrientation)
 -- 
--- This will not mirror the tabbed decoration, and will keep sublayouts that made by TallMastersCombo
+-- This will not mirror the tabbed decoration, and will keep sub-layouts that made by TallMastersCombo
 -- and RowsOrColumns display in natural orientations.
 --
 -- To merge layouts more flexibly, you can use 'tmsCombineTwo' instead.
@@ -91,6 +115,15 @@ import Control.Monad (foldM)
 --
 -- This creates a vertical merged layout with 1 window in the master pane, and the master pane shrinks 
 -- and expands with a step of (3\/100), and occupies (1\/3) of the screen.
+--
+-- Each sub-layout have a focused window. To rotate between the focused windows across all the
+-- sub-layouts, using the following messages:
+--
+-- >      , ((modm .|. mod1, j), sendMessage $ NextFocus)
+-- >      , ((modm .|. mod1, k), sendMessage $ PrevFocus)
+--
+-- this let you jump to the focused window in the next/previous sub-layout.
+--
 --
 -- Finally, this combinator can be nested. Here is one example,
 --
@@ -118,7 +151,7 @@ import Control.Monad (foldM)
 data RowsOrColumns a = RowsOrColumns { rowMode :: Bool -- ^ arrange windows in rows or columns
                                      } deriving (Show, Read)
 
-instance LayoutClass RowsOrColumns Window where
+instance LayoutClass RowsOrColumns a where
   description (RowsOrColumns rows) = 
     if rows then "Rows" else "Columns"
 
@@ -139,7 +172,7 @@ data TMSCombineTwo l1 l2 a =
   TMSCombineTwo { focusLst :: [a]
                 , ws1 :: [a]
                 , ws2 :: [a]
-                , columnMode :: Bool  -- ^ merge two layouts in a column or a row
+                , rowMod :: Bool  -- ^ merge two layouts in a column or a row
                 , nMaster :: !Int     -- ^ number of windows in the master pane
                 , rationInc :: !Rational -- ^ percent of screen to increment by when resizing panes
                 , tallComboRatio :: !Rational -- ^ default proportion of screen occupied by master pane
@@ -183,29 +216,29 @@ instance Message FocusSubMaster
 data FocusedNextLayout = FocusedNextLayout deriving (Read, Show, Typeable)
 instance Message FocusedNextLayout
 
-instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
+-- | This is a message for changing to the previous or next focused window across all the sub-layouts.
+data ChangeFocus = NextFocus | PrevFocus deriving (Read, Show, Typeable)
+instance Message ChangeFocus
+
+-- instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
+instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
   description _ = "TallMasters"
 
-  runLayout (Workspace wid (TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
-      let slst = integrate' s
-          f' = case s of (Just s') -> [focus s']
-                         Nothing   -> []
-          snum = length(slst)
-          (slst1, slst2) = splitAt nmaster slst
-          s0 = differentiate f' slst
-          s1' = differentiate f' slst1
-          s2' = differentiate f' slst2
-          (s1,s2,frac') | nmaster == 0    = (Nothing,s0,0)
-                        | nmaster >= snum = (s0,Nothing,1)
-                        | otherwise       = (s1',s2',frac)
+  runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
+      let (s1,s2,frac',slst1,slst2) = splitStack f nmaster frac s
           (r1, r2) = if vsp
                      then splitHorizontallyBy frac' r
                      else splitVerticallyBy frac' r
       in 
-      do (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
+      do 
+         (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
          (ws2,ml2) <- runLayout (Workspace wid layout2 s2) r2
-         return (ws1++ws2, Just $ TMSCombineTwo f' slst1 slst2 vsp nmaster delta frac 
-            (maybe layout1 id ml1) (maybe layout2 id ml2))
+         let newlayout1 = maybe layout1 id ml1
+             newlayout2 = maybe layout2 id ml2
+             (f1, str1) = getFocused newlayout1 s1
+             (f2, str2) = getFocused newlayout2 s2
+             fnew = f1 ++ f2
+         return (ws1++ws2, Just $ TMSCombineTwo fnew slst1 slst2 vsp nmaster delta frac newlayout1 newlayout2)
 
 
   handleMessage i@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) m
@@ -237,6 +270,22 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombi
             Just mw -> do windows $ W.modify' $ focusWindow mw
                           return Nothing
             Nothing -> return Nothing
+    | Just NextFocus <- fromMessage m =
+        do
+          -- All toggle message is passed to the sublayout with focused window
+          mst <- gets (W.stack . W.workspace . W.current . windowset) 
+          let nextw = adjFocus f mst True
+          case nextw of Nothing -> return Nothing
+                        Just w  -> do windows $ W.modify' $ focusWindow w
+                                      return Nothing
+    | Just PrevFocus <- fromMessage m =
+        do
+          -- All toggle message is passed to the sublayout with focused window
+          mst <- gets (W.stack . W.workspace . W.current . windowset) 
+          let prevw = adjFocus f mst False
+          case prevw of Nothing -> return Nothing
+                        Just w  -> do windows $ W.modify' $ focusWindow w
+                                      return Nothing
     -- messages that traverse recursively
     | Just Row <- fromMessage m =
         do mlayout1 <- handleMessage layout1 (SomeMessage Col)
@@ -355,8 +404,148 @@ handleMaybeMsg ml m = case ml of Just l  -> do
                                               return $ elseOr (Just l) res
                                  Nothing -> return Nothing
 
+-- function for splitting given stack for TallMastersCombo Layouts
+splitStack :: (Eq a) => [a] -> Int -> Rational -> Maybe (Stack a) -> (Maybe (Stack a), Maybe (Stack a), Rational, [a], [a])
+splitStack f nmaster frac s =
+    let slst = integrate' s
+        f' = case s of (Just s') -> focus s':delete (focus s') f
+                       Nothing   -> f
+        snum = length(slst)
+        (slst1, slst2) = splitAt nmaster slst
+        s0 = differentiate f' slst
+        s1' = differentiate f' slst1
+        s2' = differentiate f' slst2
+        (s1,s2,frac') | nmaster == 0    = (Nothing,s0,0)
+                      | nmaster >= snum = (s0,Nothing,1)
+                      | otherwise       = (s1',s2',frac)
+    in (s1,s2,frac',slst1,slst2)
+
+-- find adjacent window of the current focus window
+type Next = Bool
+adjFocus :: (Eq a) => [a] -> Maybe (Stack a) -> Next -> Maybe a
+adjFocus ws ms next =
+  case ms of Nothing -> Nothing
+             Just s  -> let searchLst = 
+                              case next of True  -> (down s) ++ (reverse (up s))
+                                           False -> (up s) ++ (reverse (down s))
+                        in  find (flip elem ws) searchLst
+
 -- right biased maybe merge
 elseOr :: Maybe a -> Maybe a -> Maybe a
 elseOr x y = case y of
               Just _  -> y
               Nothing -> x
+
+----------------- All the rest are for changing focus functionality -------------------
+
+-- | A wrapper for Choose, for monitoring the current active layout. This is because
+-- the original Choose layout does not export the data constructor.
+data LR = L | R deriving (Show, Read, Eq)
+data ChooseWrapper l r a = ChooseWrapper LR (l a) (r a) (Choose l r a) deriving (Show, Read)
+
+data NextNoWrap = NextNoWrap deriving (Eq, Show, Typeable)
+instance Message NextNoWrap
+
+handle :: (LayoutClass l a, Message m) => l a -> m -> X (Maybe (l a))
+handle l m = handleMessage l (SomeMessage m)
+
+instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a where
+  description (ChooseWrapper d l r lr) = description lr
+
+  runLayout (Workspace wid (ChooseWrapper d l r lr) s) rec = 
+    do 
+      let (l', r') = case d of L -> (savFocused l s, r)
+                               R -> (l, savFocused r s)
+      (ws, ml0) <- runLayout (Workspace wid lr s) rec
+      let l1 = case ml0 of Just l0 -> Just $ ChooseWrapper d l' r' l0
+                           Nothing -> Nothing
+      return $ (ws,l1)
+    
+  handleMessage c@(ChooseWrapper d l r lr) m 
+    | Just NextLayout <- fromMessage m = do
+        mlr' <- handleMessage lr m
+        mlrf <- handle c NextNoWrap
+        fstf <- handle c FirstLayout
+        let mlf = elseOr fstf mlrf
+            (d',l',r') = case mlf of Just (ChooseWrapper d0 l0 r0 lr0) -> (d0,l0,r0)
+                                     Nothing                     -> (d,l,r)
+        case mlr' of Just lrt -> return $ Just $ ChooseWrapper d' l' r' lrt
+                     Nothing  -> return Nothing
+    | Just NextNoWrap <- fromMessage m = do
+        mlr' <- handleMessage lr m
+        (d',l',r', end) <- 
+              case d of 
+                L -> do
+                       ml <- handle l NextNoWrap
+                       case ml of 
+                           Just l0 -> return (L,l0,r,0)
+                           Nothing -> do
+                                  mr <- handle r FirstLayout
+                                  case mr of
+                                    Just r0 -> return (R,l,r0,0)
+                                    Nothing -> return (R,l,r,0)
+                R -> do
+                       mr <- handle r NextNoWrap
+                       case mr of
+                         Just r0 -> return (R,l,r0,0)
+                         Nothing -> return (d,l,r,1)
+        case mlr' of Just lrt -> return $ Just $ ChooseWrapper d' l' r' lrt
+                     Nothing  -> 
+                        case end of 0 -> return $ Just $ ChooseWrapper d' l' r' lr
+                                    1 -> return Nothing
+    | Just FirstLayout <- fromMessage m = do
+        mlr' <- handleMessage lr m
+        (d',l',r') <- do
+                        ml <- handle l FirstLayout
+                        case ml of
+                          Just l0 -> return (L,l0,r)
+                          Nothing -> return (L,l,r)
+        case mlr' of Just lrt -> return $ Just $ ChooseWrapper d' l' r' lrt
+                     Nothing  -> return $ Just $ ChooseWrapper d' l' r' lr
+    | otherwise = do
+        mlr' <- handleMessage lr m
+        case mlr' of Just lrt -> return $ Just $ ChooseWrapper d l r lrt
+                     Nothing  -> return Nothing
+
+-- | This is same as the Choose combination operator.
+(|||) :: l a -> r a -> ChooseWrapper l r a
+(|||) l r = ChooseWrapper L l r (l LL.||| r)
+
+-- a subclass of layout, which contain extra method to return focused window in sub-layouts
+class (LayoutClass l a) => GetFocused l a where
+  getFocused :: l a -> Maybe (Stack a) -> ([a], String)
+  getFocused l ms =
+    case ms of (Just s) -> ([focus s], "Base")
+               Nothing  -> ([], "Base")
+  savFocused :: l a -> Maybe (Stack a) -> l a
+  savFocused l _ = l
+
+instance (GetFocused l Window, GetFocused r Window) => GetFocused (TMSCombineTwo l r) Window where
+  getFocused (TMSCombineTwo f _ _ _ nmaster _ frac lay1 lay2) s =
+    let (s1,s2,_,_,_) = splitStack f nmaster frac s
+        (f1, str1) = getFocused lay1 s1
+        (f2, str2) = getFocused lay2 s2
+    in  (f1 ++ f2, "TMS: " ++ show f ++ "::" ++ str1 ++ "--" ++ str2)
+  savFocused i@(TMSCombineTwo f _ _ _ nmaster _ frac lay1 lay2) s =
+    let (s1,s2,_,_,_) = splitStack f nmaster frac s 
+        (f', mstr) = getFocused i s
+        lay1' = savFocused lay1 s1
+        lay2' = savFocused lay2 s2
+    in i {focusLst = f', layoutFst=lay1', layoutSnd=lay2'}
+  
+instance (GetFocused l a, GetFocused r a) => GetFocused (ChooseWrapper l r) a where
+  getFocused (ChooseWrapper d l r _) s = 
+    case d of L -> getFocused l s
+              R -> getFocused r s
+  savFocused (ChooseWrapper d l r lr) s =
+    let (l', r') =
+                  case d of L -> (savFocused l s, r)
+                            R -> (l, savFocused r s)
+    in ChooseWrapper d l' r' lr
+
+instance (Typeable a) => GetFocused Simplest a
+instance (Typeable a) => GetFocused RowsOrColumns a
+instance (Typeable a) => GetFocused Full a
+instance (Typeable a) => GetFocused Tall a
+instance (Typeable l, Typeable a, Typeable m, LayoutModifier m a, LayoutClass l a) => GetFocused (ModifiedLayout m l) a
+
