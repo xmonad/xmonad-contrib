@@ -65,8 +65,7 @@ rationalToOpacity perc
 setOpacity :: Window -> Rational -> X ()
 setOpacity w t = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_WINDOW_OPACITY"
-    c <- getAtom "CARDINAL"
-    io $ changeProperty32 dpy w a c propModeReplace [rationalToOpacity t]
+    io $ changeProperty32 dpy w a cARDINAL propModeReplace [rationalToOpacity t]
 
 -- | Fades a window out by setting the opacity
 fadeOut :: Rational -> Window -> X ()

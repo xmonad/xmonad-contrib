@@ -32,6 +32,7 @@ module XMonad.Layout.Fullscreen
 
 import           XMonad
 import           XMonad.Layout.LayoutModifier
+import           XMonad.Hooks.EwmhDesktops      (fullscreenStartup)
 import           XMonad.Hooks.ManageHelpers     (isFullscreen)
 import           XMonad.Util.WindowProperties
 import qualified XMonad.Util.Rectangle          as R
@@ -77,7 +78,8 @@ fullscreenSupport :: LayoutClass l Window =>
 fullscreenSupport c = c {
     layoutHook = fullscreenFull $ layoutHook c,
     handleEventHook = handleEventHook c <+> fullscreenEventHook,
-    manageHook = manageHook c <+> fullscreenManageHook
+    manageHook = manageHook c <+> fullscreenManageHook,
+    startupHook = startupHook c <+> fullscreenStartup
   }
 
 -- | Messages that control the fullscreen state of the window.
@@ -203,8 +205,7 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       remove = 0
       add = 1
       toggle = 2
-      ptype = 4
-      chWState f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+      chWState f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
   when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWState (fi fullsc:)

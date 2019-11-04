@@ -21,7 +21,9 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsLogHookCustom,
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
-    fullscreenEventHook
+    ewmhFullscreen,
+    fullscreenEventHook,
+    fullscreenStartup
     ) where
 
 import Codec.Binary.UTF8.String (encode)
@@ -47,19 +49,20 @@ import XMonad.Util.WindowProperties (getProp32)
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad $ ewmh def{ handleEventHook =
--- >            handleEventHook def <+> fullscreenEventHook }
+-- > main = xmonad $ ewmhFullscreen $ ewmh def
+--
+-- or, if fullscreen handling is not desired, just
+--
+-- > main = xmonad $ ewmh def
 --
 -- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
 
 
 -- | Add EWMH functionality to the given config.  See above for an example.
 ewmh :: XConfig a -> XConfig a
-ewmh c = c { startupHook     = startupHook c +++ ewmhDesktopsStartup
-           , handleEventHook = handleEventHook c +++ ewmhDesktopsEventHook
-           , logHook         = logHook c +++ ewmhDesktopsLogHook }
- -- @@@ will fix this correctly later with the rewrite
- where x +++ y = mappend y x
+ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
+           , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
+           , logHook         = ewmhDesktopsLogHook <+> logHook c }
 
 -- |
 -- Initializes EwmhDesktops and advertises EWMH support to the X
@@ -213,6 +216,23 @@ handle f (ClientMessageEvent {
           return ()
 handle _ _ = return ()
 
+-- | Add EWMH fullscreen functionality to the given config.
+--
+-- This must be applied after 'ewmh', like so:
+--
+-- > main = xmonad $ ewmhFullscreen $ ewmh def
+--
+-- NOT:
+--
+-- > main = xmonad $ ewmh $ ewmhFullscreen def
+ewmhFullscreen :: XConfig a -> XConfig a
+ewmhFullscreen c = c { startupHook     = startupHook c <+> fullscreenStartup
+                     , handleEventHook = handleEventHook c <+> fullscreenEventHook }
+
+-- | Advertises EWMH fullscreen support to the X server.
+fullscreenStartup :: X ()
+fullscreenStartup = setFullscreenSupported
+
 -- |
 -- An event hook to handle applications that wish to fullscreen using the
 -- _NET_WM_STATE protocol. This includes users of the gtk_window_fullscreen()
@@ -231,8 +251,7 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       remove = 0
       add = 1
       toggle = 2
-      ptype = 4 -- The atom property type for changeProperty
-      chWstate f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+      chWstate f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
 
   when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
@@ -249,16 +268,14 @@ fullscreenEventHook _ = return $ All True
 setNumberOfDesktops :: (Integral a) => a -> X ()
 setNumberOfDesktops n = withDisplay $ \dpy -> do
     a <- getAtom "_NET_NUMBER_OF_DESKTOPS"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral n]
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace [fromIntegral n]
 
 setCurrentDesktop :: (Integral a) => a -> X ()
 setCurrentDesktop i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_CURRENT_DESKTOP"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral i]
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace [fromIntegral i]
 
 setDesktopNames :: [String] -> X ()
 setDesktopNames names = withDisplay $ \dpy -> do
@@ -273,23 +290,20 @@ setClientList :: [Window] -> X ()
 setClientList wins = withDisplay $ \dpy -> do
     -- (What order do we really need? Something about age and stacking)
     r <- asks theRoot
-    c <- getAtom "WINDOW"
     a <- getAtom "_NET_CLIENT_LIST"
-    io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral wins)
+    io $ changeProperty32 dpy r a wINDOW propModeReplace (fmap fromIntegral wins)
     a' <- getAtom "_NET_CLIENT_LIST_STACKING"
-    io $ changeProperty32 dpy r a' c propModeReplace (fmap fromIntegral wins)
+    io $ changeProperty32 dpy r a' wINDOW propModeReplace (fmap fromIntegral wins)
 
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_DESKTOP"
-    c <- getAtom "CARDINAL"
-    io $ changeProperty32 dpy win a c propModeReplace [fromIntegral i]
+    io $ changeProperty32 dpy win a cARDINAL propModeReplace [fromIntegral i]
 
 setSupported :: X ()
 setSupported = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_SUPPORTED"
-    c <- getAtom "ATOM"
     supp <- mapM getAtom ["_NET_WM_STATE_HIDDEN"
                          ,"_NET_NUMBER_OF_DESKTOPS"
                          ,"_NET_CLIENT_LIST"
@@ -300,13 +314,26 @@ setSupported = withDisplay $ \dpy -> do
                          ,"_NET_WM_DESKTOP"
                          ,"_NET_WM_STRUT"
                          ]
-    io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral supp)
+    io $ changeProperty32 dpy r a aTOM propModeReplace (fmap fromIntegral supp)
 
     setWMName "xmonad"
+
+-- TODO: use in SetWMName, UrgencyHook
+addSupported :: [String] -> X ()
+addSupported props = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_SUPPORTED"
+    fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
+    newSupportedList <- mapM (fmap fromIntegral . getAtom) props
+    io $ do
+        supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r
+        changeProperty32 dpy r a aTOM propModeReplace (nub $ newSupportedList ++ supportedList)
+
+setFullscreenSupported :: X ()
+setFullscreenSupported = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
 
 setActiveWindow :: Window -> X ()
 setActiveWindow w = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
-    c <- getAtom "WINDOW"
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral w]
+    io $ changeProperty32 dpy r a wINDOW propModeReplace [fromIntegral w]
