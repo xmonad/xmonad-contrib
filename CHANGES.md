@@ -168,6 +168,10 @@
 
     - Export `Minimize` type constructor.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    Fixed flicker in Steam caused by no-op `_NET_ACTIVE_WINDOW` requests.
+
 ## 0.16
 
 ### Breaking Changes
