@@ -172,6 +172,10 @@
 
     Fixed flicker in Steam caused by no-op `_NET_ACTIVE_WINDOW` requests.
 
+  * `XMonad.Util.PureX`
+
+    Added `focusWindow` and `focusNth` to enable flicker-less keybindings.
+
 ## 0.16
 
 ### Breaking Changes
@@ -297,7 +301,7 @@
 
 ### New Modules
 
-  * `XMonad.Util.Purex`
+  * `XMonad.Util.PureX`
 
     Unlike the opaque `IO` actions that `X` actions can wrap, regular reads from
     the `XConf` and modifications to the `XState` are fundamentally pure --
