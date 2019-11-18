@@ -133,7 +133,7 @@ instance XPrompt WSGPrompt where
 promptWSGroupView :: XPConfig -> String -> X ()
 promptWSGroupView xp s = do
   gs <- fmap (M.keys . unWSG) XS.get
-  mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' gs) viewWSGroup
+  mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' xp gs) viewWSGroup
 
 -- | Prompt for a name for the current workspace group.
 promptWSGroupAdd :: XPConfig -> String -> X ()
@@ -144,4 +144,4 @@ promptWSGroupAdd xp s =
 promptWSGroupForget :: XPConfig -> String -> X ()
 promptWSGroupForget xp s = do
   gs <- fmap (M.keys . unWSG) XS.get
-  mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' gs) forgetWSGroup
+  mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' xp gs) forgetWSGroup

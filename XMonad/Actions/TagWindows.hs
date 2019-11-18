@@ -180,7 +180,7 @@ instance XPrompt TagPrompt where
 tagPrompt :: XPConfig -> (String -> X ()) -> X ()
 tagPrompt c f = do
   sc <- tagComplList
-  mkXPrompt TagPrompt c (mkComplFunFromList' sc) f
+  mkXPrompt TagPrompt c (mkComplFunFromList' c sc) f
 
 tagComplList :: X [String]
 tagComplList = gets (concat . map (integrate' . stack) . workspaces . windowset) >>=
@@ -192,7 +192,7 @@ tagDelPrompt :: XPConfig -> X ()
 tagDelPrompt c = do
   sc <- tagDelComplList
   if (sc /= [])
-    then mkXPrompt TagPrompt c (mkComplFunFromList' sc) (\s -> withFocused (delTag s))
+    then mkXPrompt TagPrompt c (mkComplFunFromList' c sc) (\s -> withFocused (delTag s))
     else return ()
 
 tagDelComplList :: X [String]

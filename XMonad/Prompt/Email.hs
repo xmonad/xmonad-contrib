@@ -56,7 +56,7 @@ import XMonad.Prompt.Input
 --   of addresses for autocompletion.
 emailPrompt :: XPConfig -> [String] -> X ()
 emailPrompt c addrs =
-    inputPromptWithCompl c "To" (mkComplFunFromList addrs) ?+ \to ->
+    inputPromptWithCompl c "To" (mkComplFunFromList c addrs) ?+ \to ->
     inputPrompt c "Subject" ?+ \subj ->
     inputPrompt c "Body" ?+ \body ->
     runProcessWithInput "mail" ["-s", subj, to] (body ++ "\n")

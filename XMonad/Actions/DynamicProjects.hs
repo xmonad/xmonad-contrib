@@ -145,24 +145,24 @@ instance ExtensionClass ProjectState where
 
 --------------------------------------------------------------------------------
 -- Internal types for working with XPrompt.
-data ProjectPrompt = ProjectPrompt ProjectMode [ProjectName]
+data ProjectPrompt = ProjectPrompt XPConfig ProjectMode [ProjectName]
 data ProjectMode = SwitchMode | ShiftMode | RenameMode | DirMode
 
 instance XPrompt ProjectPrompt where
-  showXPrompt (ProjectPrompt submode _) =
+  showXPrompt (ProjectPrompt _ submode _) =
     case submode of
       SwitchMode -> "Switch or Create Project: "
       ShiftMode  -> "Send Window to Project: "
       RenameMode -> "New Project Name: "
       DirMode    -> "Change Project Directory: "
 
-  completionFunction (ProjectPrompt RenameMode _) = return . (:[])
-  completionFunction (ProjectPrompt DirMode _) =
+  completionFunction (ProjectPrompt _ RenameMode _) = return . (:[])
+  completionFunction (ProjectPrompt _ DirMode _) =
     let xpt = directoryMultipleModes "" (const $ return ())
     in completionFunction xpt
-  completionFunction (ProjectPrompt _ ns) = mkComplFunFromList' ns
+  completionFunction (ProjectPrompt c _ ns) = mkComplFunFromList' c ns
 
-  modeAction (ProjectPrompt SwitchMode _) buf auto = do
+  modeAction (ProjectPrompt _ SwitchMode _) buf auto = do
     let name = if null auto then buf else auto
     ps <- XS.gets projects
 
@@ -171,17 +171,17 @@ instance XPrompt ProjectPrompt where
       Nothing | null name -> return ()
               | otherwise -> switchProject (defProject name)
 
-  modeAction (ProjectPrompt ShiftMode _) buf auto = do
+  modeAction (ProjectPrompt _ ShiftMode _) buf auto = do
     let name = if null auto then buf else auto
     ps <- XS.gets projects
     shiftToProject . fromMaybe (defProject name) $ Map.lookup name ps
 
-  modeAction (ProjectPrompt RenameMode _) name _ =
+  modeAction (ProjectPrompt _ RenameMode _) name _ =
     when (not (null name) && not (all isSpace name)) $ do
       renameWorkspaceByName name
       modifyProject (\p -> p { projectName = name })
 
-  modeAction (ProjectPrompt DirMode _) buf auto = do
+  modeAction (ProjectPrompt _ DirMode _) buf auto = do
     let dir' = if null auto then buf else auto
     dir <- io $ makeAbsolute dir'
     modifyProject (\p -> p { projectDirectory = dir })
@@ -331,7 +331,7 @@ projectPrompt submodes c = do
   ps <- XS.gets projects
 
   let names = sort (Map.keys ps `union` ws)
-      modes = map (\m -> XPT $ ProjectPrompt m names) submodes
+      modes = map (\m -> XPT $ ProjectPrompt c m names) submodes
 
   mkXPromptWithModes modes c
 
