@@ -18,8 +18,9 @@ module XMonad.Layout.BoringWindows (
                                    -- * Usage
                                    -- $usage
                                    boringWindows, boringAuto,
-                                   markBoring, clearBoring,
-                                   focusUp, focusDown, focusMaster,
+                                   markBoring, markBoringEverywhere,
+                                   clearBoring, focusUp, focusDown,
+                                   focusMaster,
 
                                    UpdateBoring(UpdateBoring),
                                    BoringMessage(Replace,Merge),
@@ -33,7 +34,7 @@ module XMonad.Layout.BoringWindows (
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
 import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
-              sendMessage, windows, withFocused, Window)
+              broadcastMessage, sendMessage, windows, withFocused, Window)
 import Data.List((\\), union)
 import Data.Maybe(fromMaybe, listToMaybe, maybeToList)
 import qualified Data.Map as M
@@ -80,6 +81,11 @@ clearBoring = sendMessage ClearBoring
 focusUp = sendMessage UpdateBoring >> sendMessage FocusUp
 focusDown = sendMessage UpdateBoring >> sendMessage FocusDown
 focusMaster = sendMessage UpdateBoring >> sendMessage FocusMaster
+
+-- | Mark current focused window boring for all layouts.
+-- This is useful in combination with the 'XMonad.Actions.CopyWindow' module.
+markBoringEverywhere :: X ()
+markBoringEverywhere = withFocused (broadcastMessage . IsBoring)
 
 data BoringWindows a = BoringWindows
     { namedBoring :: M.Map String [a] -- ^ store borings with a specific source
