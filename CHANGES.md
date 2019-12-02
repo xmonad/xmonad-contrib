@@ -47,6 +47,11 @@
 
     The `hoogle` function now uses the new URL `hoogle.haskell.org`.
 
+  * `XMonad.Layout.MouseResizableTile`
+
+    When we calculate dragger widths, we first try to get the border width of
+    the focused window, before failing over to using the initial `borderWidth`.
+
 ## 0.16
 
 ### Breaking Changes
