@@ -126,11 +126,9 @@ getCommands = do
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []
 split e l =
-    f : split e (rest ls)
+    f : split e (drop 1 ls)
         where
           (f,ls) = span (/=e) l
-          rest s | s == []   = []
-                 | otherwise = tail s
 
 escape :: String -> String
 escape []       = ""
