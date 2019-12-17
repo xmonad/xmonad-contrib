@@ -48,4 +48,4 @@ instance XPrompt EnterPrompt where
      and simply ask to confirm (ENTER) or cancel (ESCAPE). The actual key
      handling is done by mkXPrompt.-}
 confirmPrompt :: XPConfig -> String -> X() -> X()
-confirmPrompt config app func = mkXPrompt (EnterPrompt app) config (mkComplFunFromList []) $ const func
+confirmPrompt config app func = mkXPrompt (EnterPrompt app) config (mkComplFunFromList config []) $ const func

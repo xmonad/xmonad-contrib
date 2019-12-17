@@ -4,6 +4,12 @@
 
 ### Breaking Changes
 
+  * `XMonad.Prompt`
+
+    Now `mkComplFunFromList` and `mkComplFunFromList'` take an
+    additional `XPConfig` argument, so that they can take into
+    account the given `searchPredicate`.
+
   * `XMonad.Hooks.EwmhDesktops`
 
     It is no longer recommended to use `fullscreenEventHook` directly.

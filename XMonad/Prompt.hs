@@ -1605,19 +1605,18 @@ mkUnmanagedWindow d s rw x y w h = do
 
 -- | This function takes a list of possible completions and returns a
 -- completions function to be used with 'mkXPrompt'
-mkComplFunFromList :: [String] -> String -> IO [String]
-mkComplFunFromList _ [] = return []
-mkComplFunFromList l s =
-  return $ filter (\x -> take (length s) x == s) l
+mkComplFunFromList :: XPConfig -> [String] -> String -> IO [String]
+mkComplFunFromList _ _ [] = return []
+mkComplFunFromList c l s =
+  pure $ filter (searchPredicate c s) l
 
 -- | This function takes a list of possible completions and returns a
 -- completions function to be used with 'mkXPrompt'. If the string is
 -- null it will return all completions.
-mkComplFunFromList' :: [String] -> String -> IO [String]
-mkComplFunFromList' l [] = return l
-mkComplFunFromList' l s =
-  return $ filter (\x -> take (length s) x == s) l
-
+mkComplFunFromList' :: XPConfig -> [String] -> String -> IO [String]
+mkComplFunFromList' _ l [] = return l
+mkComplFunFromList' c l s =
+  pure $ filter (searchPredicate c s) l
 
 -- | Given the prompt type, the command line and the completion list,
 -- return the next completion in the list for the last word of the
