@@ -52,6 +52,11 @@
   * `XMonad.Actions.Search`
 
     The `hoogle` function now uses the new URL `hoogle.haskell.org`.
+    
+  * `XMonad.Layout.BoringWindows`
+  
+    Added 'markBoringEverywhere' function, to mark the currently
+    focused window boring on all layouts, when using 'XMonad.Actions.CopyWindow'.
 
 ## 0.16
 
