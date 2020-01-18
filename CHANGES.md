@@ -58,6 +58,11 @@
     Added 'markBoringEverywhere' function, to mark the currently
     focused window boring on all layouts, when using 'XMonad.Actions.CopyWindow'.
 
+  * `XMonad.Layout.MouseResizableTile`
+
+    When we calculate dragger widths, we first try to get the border width of
+    the focused window, before failing over to using the initial `borderWidth`.
+
 ## 0.16
 
 ### Breaking Changes

@@ -36,6 +36,7 @@ module XMonad.Layout.MouseResizableTile (
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
 import qualified XMonad.StackSet as W
 import XMonad.Util.XUtils
+import Graphics.X11 as X
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -189,8 +190,17 @@ draggerGeometry :: DraggerType -> X DraggerGeometry
 draggerGeometry (FixedDragger g d) =
     return (fromIntegral $ g `div` 2, g, fromIntegral $ d `div` 2, d)
 draggerGeometry BordersDragger = do
-    w <- asks (borderWidth . config)
+    wins <- gets windowset
+    w <- case W.peek wins of
+          Just win -> getBorderWidth win
+          _        -> asks (borderWidth . config)
     return (0, 0, fromIntegral w, 2*w)
+
+getBorderWidth :: Window -> X Dimension
+getBorderWidth win = do
+    d <- asks display
+    (_,_,_,_,_,w,_) <- io $ X.getGeometry d win
+    return w
 
 adjustForMirror :: Bool -> DraggerWithRect -> DraggerWithRect
 adjustForMirror False dragger = dragger
