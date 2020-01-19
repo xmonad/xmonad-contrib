@@ -51,8 +51,10 @@
 
   * `XMonad.Actions.Search`
 
-    The `hoogle` function now uses the new URL `hoogle.haskell.org`.
-    
+    - The `hoogle` function now uses the new URL `hoogle.haskell.org`.
+    - Added `promptSearchBrowser'` function to only suggest previous searches of
+      the selected search engine (instead of all search engines).
+
   * `XMonad.Layout.BoringWindows`
   
     Added 'markBoringEverywhere' function, to mark the currently
