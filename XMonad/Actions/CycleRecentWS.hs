@@ -19,13 +19,15 @@ module XMonad.Actions.CycleRecentWS (
                                 -- * Usage
                                 -- $usage
                                 cycleRecentWS,
+                                cycleRecentNonEmptyWS,
                                 cycleWindowSets,
                                 toggleRecentWS,
+                                toggleRecentNonEmptyWS,
                                 toggleWindowSets
 ) where
 
 import XMonad hiding (workspaces)
-import XMonad.StackSet
+import XMonad.StackSet hiding (filter)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -49,18 +51,35 @@ cycleRecentWS :: [KeySym] -- ^ A list of modifier keys used when invoking this a
               -> KeySym   -- ^ Key used to switch to previous (more recent) workspace.
                           --   If it's the same as the nextWorkspace key, it is effectively ignored.
               -> X ()
-cycleRecentWS = cycleWindowSets recentWS
+cycleRecentWS = cycleWindowSets $ recentWS (const True)
+
+
+-- | Like 'cycleRecentWS', but restricted to non-empty workspaces.
+cycleRecentNonEmptyWS :: [KeySym] -- ^ A list of modifier keys used when invoking this action.
+                                  --   As soon as one of them is released, the final switch is made.
+                      -> KeySym   -- ^ Key used to switch to next (less recent) workspace.
+                      -> KeySym   -- ^ Key used to switch to previous (more recent) workspace.
+                                  --   If it's the same as the nextWorkspace key, it is effectively ignored.
+                      -> X ()
+cycleRecentNonEmptyWS = cycleWindowSets $ recentWS (not . null . stack)
 
 
 -- | Switch to the most recent workspace. The stack of most recently used workspaces
 -- is updated, so repeated use toggles between a pair of workspaces.
 toggleRecentWS :: X ()
-toggleRecentWS = toggleWindowSets recentWS
+toggleRecentWS = toggleWindowSets $ recentWS (const True)
 
 
-recentWS :: WindowSet -> [WindowSet]
-recentWS w = map (`view` w) recentTags
- where recentTags = map tag $ tail (workspaces w) ++ [head (workspaces w)]
+-- | Like 'toggleRecentWS', but restricted to non-empty workspaces.
+toggleRecentNonEmptyWS :: X ()
+toggleRecentNonEmptyWS = toggleWindowSets $ recentWS (not . null . stack)
+
+
+recentWS :: (WindowSpace -> Bool) -> WindowSet -> [WindowSet]
+recentWS p w = map (`view` w) recentTags
+ where recentTags = map tag
+                  $ filter p
+                  $ tail (workspaces w) ++ [head (workspaces w)]
 
 
 cycref :: [a] -> Int -> a
