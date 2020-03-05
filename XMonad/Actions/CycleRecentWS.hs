@@ -19,7 +19,9 @@ module XMonad.Actions.CycleRecentWS (
                                 -- * Usage
                                 -- $usage
                                 cycleRecentWS,
-                                cycleWindowSets
+                                cycleWindowSets,
+                                toggleRecentWS,
+                                toggleWindowSets
 ) where
 
 import XMonad hiding (workspaces)
@@ -47,9 +49,18 @@ cycleRecentWS :: [KeySym] -- ^ A list of modifier keys used when invoking this a
               -> KeySym   -- ^ Key used to switch to previous (more recent) workspace.
                           --   If it's the same as the nextWorkspace key, it is effectively ignored.
               -> X ()
-cycleRecentWS = cycleWindowSets options
- where options w = map (view `flip` w) (recentTags w)
-       recentTags w = map tag $ tail (workspaces w) ++ [head (workspaces w)]
+cycleRecentWS = cycleWindowSets recentWS
+
+
+-- | Switch to the most recent workspace. The stack of most recently used workspaces
+-- is updated, so repeated use toggles between a pair of workspaces.
+toggleRecentWS :: X ()
+toggleRecentWS = toggleWindowSets recentWS
+
+
+recentWS :: WindowSet -> [WindowSet]
+recentWS w = map (`view` w) recentTags
+ where recentTags = map tag $ tail (workspaces w) ++ [head (workspaces w)]
 
 
 cycref :: [a] -> Int -> a
@@ -83,3 +94,12 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
   io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
   setOption 0
   io $ ungrabKeyboard d currentTime
+
+
+-- | Switch to the first of a finite list of WindowSets.
+toggleWindowSets :: (WindowSet -> [WindowSet]) -> X ()
+toggleWindowSets genOptions = do
+  options <- gets $ genOptions . windowset
+  case options of
+    []  -> return ()
+    o:_ -> windows (const o)
