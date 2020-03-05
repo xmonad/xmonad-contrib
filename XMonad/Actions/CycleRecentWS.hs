@@ -79,7 +79,9 @@ recentWS :: (WindowSpace -> Bool) -> WindowSet -> [WindowSet]
 recentWS p w = map (`view` w) recentTags
  where recentTags = map tag
                   $ filter p
-                  $ tail (workspaces w) ++ [head (workspaces w)]
+                  $ map workspace (visible w)
+                    ++ hidden w
+                    ++ [workspace (current w)]
 
 
 cycref :: [a] -> Int -> a
