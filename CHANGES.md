@@ -65,6 +65,18 @@
     When we calculate dragger widths, we first try to get the border width of
     the focused window, before failing over to using the initial `borderWidth`.
 
+  * `XMonad.Actions.CycleRecentWS`
+
+    - Added `cycleRecentNonEmptyWS` function which behaves like `cycleRecentWS`
+      but is constrainded to non-empty workspaces.
+
+    - Added `toggleRecentWS` and `toggleRecentNonEmptyWS` functions which toggle
+      between the current and most recent workspace, and continue to toggle back
+      and forth on repeated presses, rather than cycling through other workspaces.
+
+    - Added `recentWS` function which allows the recency list to be filtered with
+      a user-provided predicate.
+
 ## 0.16
 
 ### Breaking Changes
