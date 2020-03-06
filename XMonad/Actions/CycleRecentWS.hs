@@ -23,7 +23,8 @@ module XMonad.Actions.CycleRecentWS (
                                 cycleWindowSets,
                                 toggleRecentWS,
                                 toggleRecentNonEmptyWS,
-                                toggleWindowSets
+                                toggleWindowSets,
+                                recentWS
 ) where
 
 import XMonad hiding (workspaces)
@@ -75,7 +76,11 @@ toggleRecentNonEmptyWS :: X ()
 toggleRecentNonEmptyWS = toggleWindowSets $ recentWS (not . null . stack)
 
 
-recentWS :: (WindowSpace -> Bool) -> WindowSet -> [WindowSet]
+-- | Given a predicate p and the current WindowSet w, create a list of recent WindowSets,
+-- most recent first, where the focused workspace satisfies p.
+recentWS :: (WindowSpace -> Bool) -- ^ A workspace predicate.
+         -> WindowSet             -- ^ The current WindowSet
+         -> [WindowSet]
 recentWS p w = map (`view` w) recentTags
  where recentTags = map tag
                   $ filter p
