@@ -77,6 +77,11 @@
     - Added `recentWS` function which allows the recency list to be filtered with
       a user-provided predicate.
 
+  * `XMonad.Prompt.Window`
+    
+    - Added a `WithWindow` constructor to `WindowPrompt` to allow executing
+      actions of type `Window -> X ()` on the chosen window.
+
 ## 0.16
 
 ### Breaking Changes
