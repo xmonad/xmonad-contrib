@@ -232,9 +232,11 @@ ignoreNetActiveWindow q c =
 
 ignoreNetActiveWindowEventHook :: Query Bool -> (Event -> X All) -> Event -> X All
 ignoreNetActiveWindowEventHook q hook
-    e@ClientMessageEvent{ ev_window = w, ev_message_type = mt } = do
+    e@ClientMessageEvent{ ev_window = w, ev_message_type = mt, ev_data = d } = do
         a_aw <- getAtom "_NET_ACTIVE_WINDOW"
-        if mt == a_aw
+        -- https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#sourceindication
+        let fromPager = [2] `isPrefixOf` d
+        if mt == a_aw && not fromPager
             then do
                 ignore <- runQuery q w
                 if ignore
