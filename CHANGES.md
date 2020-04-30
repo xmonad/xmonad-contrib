@@ -513,7 +513,8 @@
 
   * `XMonad.Hooks.ManageHelpers`
 
-    Make type of ManageHook combinators more general.
+    - Make type of ManageHook combinators more general.
+    - New manage hook `doSink` for sinking windows (as upposed to the `doFloat` manage hook)
 
   * `XMonad.Prompt`
 
