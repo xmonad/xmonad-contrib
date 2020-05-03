@@ -20,7 +20,8 @@
 module XMonad.Layout.Hidden
        ( -- * Usage
          -- $usage
-         HiddenMsg (..)
+         HiddenWindows
+       , HiddenMsg (..)
        , hiddenWindows
        , hideWindow
        , popOldestHiddenWindow
