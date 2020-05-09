@@ -39,6 +39,12 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Util.Run` 
+  
+     Added two new functions to the module: `spawnPipeWithLocaleEncoding` and
+     `spawnPipeWithUtf8Encoding`. Using these function should be
+     preferred over `spawnPipe`.
+
   * `XMonad.Prompt.Window`
 
     Added 'allApplications' function which maps application executable
