@@ -22,6 +22,11 @@
 
 ### New Modules
 
+  * `XMonad.Layout.ResizableThreeColumns`
+
+    A layout based on 'XMonad.Layout.ThreeColumns' but with each slave window's
+    height resizable.
+
   * `XMonad.Layout.TallMastersCombo`
 
     A layout combinator that support Shrink, Expand, and IncMasterN just as
