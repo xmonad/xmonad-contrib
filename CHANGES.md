@@ -88,6 +88,10 @@
     - Added a `WithWindow` constructor to `WindowPrompt` to allow executing
       actions of type `Window -> X ()` on the chosen window.
 
+  * `XMonad.Layout.Hidden`
+
+    - Export `HiddenWindows` type constructor.
+
 ## 0.16
 
 ### Breaking Changes
