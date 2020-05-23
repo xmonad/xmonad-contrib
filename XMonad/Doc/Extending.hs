@@ -899,6 +899,10 @@ For more information on using those modules for customizing your
     More useful tiled layout that allows you to change a width\/height of window.
     See also "XMonad.Layout.MouseResizableTile".
 
+* "XMonad.Layout.ResizableThreeColumns":
+    The same layout as ThreeColumns but, similar to ResizableTile, allows you
+    to change the width\/height of the slave windows.
+
 * "XMonad.Layout.ResizeScreen":
     A layout transformer to have a layout respect a given screen
     geometry. Mostly used with "Decoration" (the Horizontal and the
