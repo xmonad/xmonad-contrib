@@ -101,6 +101,7 @@ library
                         XMonad.Actions.FindEmptyWorkspace
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
+                        XMonad.Actions.TiledWindowDragging
                         XMonad.Actions.FloatKeys
                         XMonad.Actions.FloatSnap
                         XMonad.Actions.FocusNth
