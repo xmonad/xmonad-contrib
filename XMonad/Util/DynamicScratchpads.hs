@@ -93,4 +93,12 @@ removeDynamicSP s = XS.modify $ alterSPStorage (\_ -> Nothing) s
 hideWindow :: Window -> X ()
 hideWindow = windows . W.shiftWin "NSP"
 
+-- | Move window to current workspace and focus it
+showWindow :: Window -> X ()
+showWindow w = windows $ \ws ->
+    (W.focusWindow w) . (W.shiftWin (W.currentTag ws) w) $ ws
+
+alterSPStorage :: (Maybe Window -> Maybe Window) -> String -> SPStorage -> SPStorage
+alterSPStorage f k (SPStorage m) = SPStorage $ M.alter f k m
+
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:
