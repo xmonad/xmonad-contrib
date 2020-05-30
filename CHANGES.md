@@ -46,9 +46,13 @@
 
   * `XMonad.Util.Run` 
   
-     Added two new functions to the module: `spawnPipeWithLocaleEncoding` and
-     `spawnPipeWithUtf8Encoding`. Using these function should be
-     preferred over `spawnPipe`.
+     Added two new functions to the module:
+     `spawnPipeWithLocaleEncoding` and
+     `spawnPipeWithUtf8Encoding`. `spawnPipe` is now alias for
+     `spawnPipeWithLocaleEncoding`.
+
+     Added the function `spawnPipeWithNoEncoding` for cases where
+     binary handle is required.
 
   * `XMonad.Prompt.Window`
 

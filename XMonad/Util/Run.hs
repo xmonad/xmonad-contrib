@@ -29,6 +29,7 @@ module XMonad.Util.Run (
                           spawnPipe,
                           spawnPipeWithLocaleEncoding,
                           spawnPipeWithUtf8Encoding,
+                          spawnPipeWithNoEncoding,
                           hPutStr, hPutStrLn  -- re-export for convenience
                          ) where
 
@@ -148,11 +149,15 @@ runInTerm = unsafeRunInTerm
 safeRunInTerm :: String -> String -> X ()
 safeRunInTerm options command = asks (terminal . config) >>= \t -> safeSpawn t [options, " -e " ++ command]
 
+-- | Same as 'spawnPipeWithLocaleEncoding'
+spawnPipe :: MonadIO m => String -> m Handle
+spawnPipe = spawnPipeWithLocaleEncoding
+
 -- | Launch an external application through the system shell and
 -- return a @Handle@ to its standard input. Note that the @Handle@
 -- is a binary Handle. You should probably use 'spawnPipeWithUtf8Encoding'.
-spawnPipe :: MonadIO m => String -> m Handle
-spawnPipe x = io $ do
+spawnPipeWithNoEncoding :: MonadIO m => String -> m Handle
+spawnPipeWithNoEncoding x = io $ do
     (rd, wr) <- createPipe
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr
