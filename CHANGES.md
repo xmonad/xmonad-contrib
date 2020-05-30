@@ -42,6 +42,11 @@
     conditions on a window, basis. Useful for creating bindings that are
     excluded or exclusive for some windows.
 
+  * `XMonad.Util.DynamicScratchpads`
+
+    Declare any window as a scratchpad on the fly. Once declared, the
+    scratchpad behaves like `XMonad.Util.NamedScratchpad`.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Util.Run` 

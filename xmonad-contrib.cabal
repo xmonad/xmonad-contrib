@@ -319,6 +319,7 @@ library
                         XMonad.Util.CustomKeys
                         XMonad.Util.DebugWindow
                         XMonad.Util.Dmenu
+                        XMonad.Util.DynamicScratchpads
                         XMonad.Util.Dzen
                         XMonad.Util.EZConfig
                         XMonad.Util.ExclusiveScratchpads
