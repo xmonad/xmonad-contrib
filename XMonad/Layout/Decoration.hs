@@ -1,4 +1,10 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE CPP                   #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Decoration
@@ -104,7 +110,11 @@ instance Default Theme where
           , activeTextColor     = "#FFFFFF"
           , inactiveTextColor   = "#BFBFBF"
           , urgentTextColor     = "#FF0000"
+#ifdef XFT
+          , fontName            = "xft:monospace"
+#else
           , fontName            = "-misc-fixed-*-*-*-*-10-*-*-*-*-*-*-*"
+#endif
           , decoWidth           = 200
           , decoHeight          = 20
           , windowTitleAddons   = []

@@ -1,4 +1,7 @@
-{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards         #-}
+{-# LANGUAGE CPP                   #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ShowWName
@@ -62,7 +65,11 @@ data SWNConfig =
 
 instance Default SWNConfig where
   def =
+#ifdef XFT
+    SWNC { swn_font    = "xft:monospace-20"
+#else
     SWNC { swn_font    = "-misc-fixed-*-*-*-*-20-*-*-*-*-*-*-*"
+#endif
          , swn_bgcolor = "black"
          , swn_color   = "white"
          , swn_fade    = 1
