@@ -22,6 +22,9 @@
 
 ### New Modules
 
+  * `XMonad.Actions.TiledWindowDragging`
+    An action that allows you to change the position of windows by dragging them around.
+
   * `XMonad.Layout.ResizableThreeColumns`
 
     A layout based on 'XMonad.Layout.ThreeColumns' but with each slave window's
