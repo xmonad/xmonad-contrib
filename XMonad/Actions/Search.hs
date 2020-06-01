@@ -36,6 +36,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  debbts,
                                  debpts,
                                  dictionary,
+                                 ebay,
                                  google,
                                  hackage,
                                  hoogle,
@@ -113,6 +114,8 @@ import           XMonad.Util.XSelection   (getSelection)
 * 'debpts'  -- Debian Package Tracking System.
 
 * 'dictionary' -- dictionary.reference.com search.
+
+* 'ebay' -- Ebay keyword search.
 
 * 'google' -- basic Google search.
 
@@ -282,7 +285,7 @@ searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
 
 -- The engines.
-amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle,
+amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, google, hackage, hoogle,
   images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, stackage, thesaurus, vocabulary, wayback, wikipedia, wiktionary,
   youtube, duckduckgo :: SearchEngine
 amazon        = searchEngine "amazon"        "http://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
@@ -292,6 +295,7 @@ deb           = searchEngine "deb"           "http://packages.debian.org/"
 debbts        = searchEngine "debbts"        "http://bugs.debian.org/"
 debpts        = searchEngine "debpts"        "http://packages.qa.debian.org/"
 dictionary    = searchEngine "dict"          "http://dictionary.reference.com/browse/"
+ebay          = searchEngine "ebay"          "http://www.ebay.com/sch/i.html?_nkw="
 google        = searchEngine "google"        "http://www.google.com/search?num=100&q="
 hackage       = searchEngine "hackage"       "http://hackage.haskell.org/package/"
 hoogle        = searchEngine "hoogle"        "http://hoogle.haskell.org/?hoogle="
@@ -313,7 +317,7 @@ vocabulary    = searchEngine "vocabulary"    "http://www.vocabulary.com/search?q
 duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, (prefixAware google)]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
