@@ -22,6 +22,8 @@ module XMonad.Util.NamedScratchpad (
   customFloating,
   NamedScratchpads,
   namedScratchpadAction,
+  spawnHereNamedScratchpadAction,
+  customRunNamedScratchpadAction,
   allNamedScratchpadAction,
   namedScratchpadManageHook,
   namedScratchpadFilterOutWorkspace,
@@ -32,6 +34,7 @@ import XMonad
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Hooks.DynamicLog (PP, ppSort)
+import XMonad.Actions.SpawnOn (spawnHere)
 
 import Control.Monad (filterM)
 import Data.Maybe (listToMaybe)
@@ -115,22 +118,40 @@ findByName c s = listToMaybe $ filter ((s==) . name) c
 runApplication :: NamedScratchpad -> X ()
 runApplication = spawn . cmd
 
+-- | Runs application which should appear in a specified scratchpad on the workspace it was launched on
+runApplicationHere :: NamedScratchpad -> X ()
+runApplicationHere = spawnHere . cmd
+
 -- | Action to pop up specified named scratchpad
 namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> String           -- ^ Scratchpad name
                       -> X ()
-namedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ head ws)
+namedScratchpadAction = customRunNamedScratchpadAction runApplication
+
+-- | Action to pop up specified named scratchpad, initially starting it on the current workspace.
+spawnHereNamedScratchpadAction :: NamedScratchpads           -- ^ Named scratchpads configuration
+                               -> String                     -- ^ Scratchpad name
+                               -> X ()
+spawnHereNamedScratchpadAction = customRunNamedScratchpadAction runApplicationHere
+
+-- | Action to pop up specified named scratchpad, given a custom way to initially start the application.
+customRunNamedScratchpadAction :: (NamedScratchpad -> X ())  -- ^ Function initially running the application, given the configured @scratchpad@ cmd
+                               -> NamedScratchpads           -- ^ Named scratchpads configuration
+                               -> String                     -- ^ Scratchpad name
+                               -> X ()
+customRunNamedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ head ws)
 
 allNamedScratchpadAction :: NamedScratchpads
                          -> String
                          -> X ()
-allNamedScratchpadAction = someNamedScratchpadAction mapM_
+allNamedScratchpadAction = someNamedScratchpadAction mapM_ runApplication
 
 someNamedScratchpadAction :: ((Window -> X ()) -> [Window] -> X ())
+                          -> (NamedScratchpad -> X ())
                           -> NamedScratchpads
                           -> String
                           -> X ()
-someNamedScratchpadAction f confs n
+someNamedScratchpadAction f runApp confs n
     | Just conf <- findByName confs n = withWindowSet $ \s -> do
                      filterCurrent <- filterM (runQuery (query conf))
                                         ((maybe [] W.integrate . W.stack . W.workspace . W.current) s)
@@ -138,7 +159,7 @@ someNamedScratchpadAction f confs n
                      case filterCurrent of
                        [] ->
                          case filterAll of
-                           [] -> runApplication conf
+                           [] -> runApp conf
                            _  -> f (windows . W.shiftWin (W.currentTag s)) filterAll
                        _ -> do
                          if null (filter ((== scratchpadWorkspaceTag) . W.tag) (W.workspaces s))
