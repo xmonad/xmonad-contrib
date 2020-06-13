@@ -108,6 +108,7 @@
   * `XMonad.Layout.Hidden`
 
     - Export `HiddenWindows` type constructor.
+    - Export `popHiddenWindow` function restoring a specific window.
 
 ## 0.16
 
