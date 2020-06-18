@@ -52,6 +52,14 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Util.NamedScratchpad`
+
+     Added two new exported functions to the module:
+     - `customRunNamedScratchpadAction` 
+         (provides the option to customize the `X ()` action the scratchpad is launched by) 
+     - `spawnHereNamedScratchpadAction` 
+         (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
+
   * `XMonad.Util.Run` 
   
      Added two new functions to the module:
