@@ -50,6 +50,11 @@
     Declare any window as a scratchpad on the fly. Once declared, the
     scratchpad behaves like `XMonad.Util.NamedScratchpad`.
 
+  * `XMonad.Prompt.Zsh`
+
+    A version of `XMonad.Prompt.Shell` that lets you use completions supplied by
+    zsh.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Util.NamedScratchpad`
