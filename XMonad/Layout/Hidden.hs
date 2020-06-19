@@ -26,6 +26,7 @@ module XMonad.Layout.Hidden
        , hideWindow
        , popOldestHiddenWindow
        , popNewestHiddenWindow
+       , popHiddenWindow
        ) where
 
 --------------------------------------------------------------------------------
@@ -63,9 +64,10 @@ data HiddenWindows a = HiddenWindows [Window] deriving (Show, Read)
 
 --------------------------------------------------------------------------------
 -- | Messages for the @HiddenWindows@ layout modifier.
-data HiddenMsg = HideWindow Window       -- ^ Hide a window.
-               | PopNewestHiddenWindow   -- ^ Restore window (FILO).
-               | PopOldestHiddenWindow   -- ^ Restore window (FIFO).
+data HiddenMsg = HideWindow Window                -- ^ Hide a window.
+               | PopNewestHiddenWindow            -- ^ Restore window (FILO).
+               | PopOldestHiddenWindow            -- ^ Restore window (FIFO).
+               | PopSpecificHiddenWindow Window   -- ^ Restore specific window.
                deriving (Typeable, Eq)
 
 instance Message HiddenMsg
@@ -73,10 +75,11 @@ instance Message HiddenMsg
 --------------------------------------------------------------------------------
 instance LayoutModifier HiddenWindows Window where
   handleMess h@(HiddenWindows hidden) mess
-    | Just (HideWindow win)        <- fromMessage mess = hideWindowMsg h win
-    | Just (PopNewestHiddenWindow) <- fromMessage mess = popNewestMsg h
-    | Just (PopOldestHiddenWindow) <- fromMessage mess = popOldestMsg h
-    | Just ReleaseResources        <- fromMessage mess = doUnhook
+    | Just (HideWindow win)              <- fromMessage mess = hideWindowMsg h win
+    | Just (PopNewestHiddenWindow)       <- fromMessage mess = popNewestMsg h
+    | Just (PopOldestHiddenWindow)       <- fromMessage mess = popOldestMsg h
+    | Just (PopSpecificHiddenWindow win) <- fromMessage mess = popSpecificMsg win h
+    | Just ReleaseResources              <- fromMessage mess = doUnhook
     | otherwise                                        = return Nothing
     where doUnhook = do mapM_ restoreWindow hidden
                         return Nothing
@@ -108,6 +111,9 @@ popOldestHiddenWindow = sendMessage PopOldestHiddenWindow
 popNewestHiddenWindow :: X ()
 popNewestHiddenWindow = sendMessage PopNewestHiddenWindow
 
+popHiddenWindow :: Window -> X ()
+popHiddenWindow = sendMessage . PopSpecificHiddenWindow
+
 --------------------------------------------------------------------------------
 hideWindowMsg :: HiddenWindows a -> Window -> X (Maybe (HiddenWindows a))
 hideWindowMsg (HiddenWindows hidden) win = do
@@ -130,6 +136,15 @@ popOldestMsg (HiddenWindows (win:rest)) = do
   return . Just . HiddenWindows $ rest
 
 --------------------------------------------------------------------------------
+popSpecificMsg :: Window -> HiddenWindows a -> X (Maybe (HiddenWindows a))
+popSpecificMsg _   (HiddenWindows []) = return Nothing
+popSpecificMsg win (HiddenWindows hiddenWins) = if win `elem` hiddenWins
+  then do
+    restoreWindow win
+    return . Just . HiddenWindows $ filter (/= win) hiddenWins
+  else 
+    return . Just . HiddenWindows $ hiddenWins
+  
+--------------------------------------------------------------------------------
 restoreWindow :: Window -> X ()
-restoreWindow win =
-  modify (\s -> s { windowset = W.insertUp win $ windowset s })
+restoreWindow = windows . W.insertUp
