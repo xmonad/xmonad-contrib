@@ -194,6 +194,7 @@ library
                         XMonad.Hooks.WallpaperSetter
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.WorkspaceHistory
+                        XMonad.Hooks.WindowSwallowing
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
