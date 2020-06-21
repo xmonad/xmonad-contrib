@@ -58,7 +58,7 @@ import           Control.Monad                  ( when )
 --
 -- and using 'swallowEventHook' somewhere in your 'handleEventHook', for example:
 --
--- > myHandleEventHook = swallowEventHook [className =? "Alacritty", className =? "Termite"] [return True]
+-- > myHandleEventHook = swallowEventHook (className =? "Alacritty" <||> className =? "Termite") (return True)
 --
 -- For more information on editing your handleEventHook and key bindings,
 -- see "XMonad.Doc.Extending".
@@ -67,13 +67,11 @@ import           Control.Monad                  ( when )
 -- | handleEventHook that will swallow child windows when they are
 -- opened from another window.
 swallowEventHook
-  :: [Query Bool] -- ^ list of queries, at least one of which has to match
-                  --   the parent process for window swallowing to occur.
-                  --   Set this to @[return True]@ to run swallowing for every parent.
-  -> [Query Bool] -- ^ list of queries, at least one of which has to match
-                  --   the child process for window swallowing to occur.
-                  --   Set this to @[return True]@ to run swallowing for every child
-  -> Event        -- ^ The event to handle.
+  :: Query Bool -- ^ query the parent window has to match for window swallowing to occur.
+                --   Set this to @return True@ to run swallowing for every parent.
+  -> Query Bool -- ^ query the child window has to match for window swallowing to occur.
+                --   Set this to @return True@ to run swallowing for every child
+  -> Event      -- ^ The event to handle.
   -> X All
 swallowEventHook parentQueries childQueries event = do
   case event of
@@ -86,8 +84,8 @@ swallowEventHook parentQueries childQueries event = do
       -- the currently focused window.
       withFocused $ \parentWindow -> do
         -- First verify that both windows match the given queries
-        parentMatches <- or <$> mapM (`runQuery` parentWindow) parentQueries
-        childMatches  <- or <$> mapM (`runQuery` childWindow) childQueries
+        parentMatches <- runQuery parentQueries parentWindow
+        childMatches  <- runQuery childQueries childWindow
         when (parentMatches && childMatches) $ do
           -- read the windows _NET_WM_PID properties
           childWindowPid  <- getProp32s "_NET_WM_PID" childWindow
@@ -101,9 +99,10 @@ swallowEventHook parentQueries childQueries event = do
                 -- We set the newly opened window as the focused window, replacing the parent window.
                 -- If the parent window was floating, we transfer that data to the child,
                 -- such that it shows up at the same position, with the same dimensions.
+
                 windows
-                  (updateCurrentStack (fmap (\x -> x { W.focus = childWindow }))
-                  . copyFloatingState parentWindow childWindow
+                  ( W.modify' (\x -> x { W.focus = childWindow })
+                  . moveFloatingState parentWindow childWindow
                   )
                 XS.modify (addSwallowedParent parentWindow childWindow)
             _ -> return ()
@@ -139,7 +138,7 @@ swallowEventHook parentQueries childQueries event = do
               (\ws ->
                 updateCurrentStack
                     (const $ Just $ oldStack { W.focus = parent })
-                  $ copyFloatingState childWindow parent
+                  $ moveFloatingState childWindow parent
                   $ ws { W.floating = oldFloating }
               )
             -- after restoring, we remove the information about the swallowing from the state.
@@ -156,28 +155,23 @@ updateCurrentStack
   :: (Maybe (W.Stack a) -> Maybe (W.Stack a))
   -> W.StackSet i l a sid sd
   -> W.StackSet i l a sid sd
-updateCurrentStack f ws = ws
-  { W.current = (W.current ws)
-    { W.workspace = currentWsp { W.stack = f $ currentStack ws }
-    }
-  }
-  where currentWsp = W.workspace $ W.current ws
+updateCurrentStack f = W.modify (f Nothing) (f . Just)
 
 currentStack :: W.StackSet i l a sid sd -> Maybe (W.Stack a)
 currentStack = W.stack . W.workspace . W.current
 
 
--- | copy the floating related state of one window to another window in a StackSet.
-copyFloatingState
+-- | move the floating state from one window to another, sinking the original window
+moveFloatingState
   :: Ord a
-  => a -- ^ window to copy from
-  -> a -- ^ window to copy to
+  => a -- ^ window to move from
+  -> a -- ^ window to move to
   -> W.StackSet i l a s sd
   -> W.StackSet i l a s sd
-copyFloatingState from to ws = ws
-  { W.floating = maybe (M.delete to (W.floating ws))
-                       (\r -> M.insert to r (W.floating ws))
-                       (M.lookup from (W.floating ws))
+moveFloatingState from to ws = ws
+  { W.floating = M.delete from $ maybe (M.delete to (W.floating ws))
+                                       (\r -> M.insert to r (W.floating ws))
+                                       (M.lookup from (W.floating ws))
   }
 
 
@@ -228,3 +222,5 @@ instance ExtensionClass SwallowingState where
 
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
+
+
