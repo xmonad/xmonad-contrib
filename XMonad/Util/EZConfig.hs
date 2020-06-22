@@ -29,7 +29,11 @@ module XMonad.Util.EZConfig (
                              mkKeymap, checkKeymap,
                              mkNamedKeymap,
 
-                             parseKey -- used by XMonad.Util.Paste
+                             -- * Parsers
+
+                             parseKey, -- used by XMonad.Util.Paste
+                             parseKeyCombo,
+                             parseKeySequence, readKeySequence
                             ) where
 
 import XMonad
