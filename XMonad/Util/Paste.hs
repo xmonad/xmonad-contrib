@@ -30,7 +30,8 @@ import XMonad.Operations (withFocused)
 import Data.Char (isUpper)
 import Data.Maybe (listToMaybe)
 import XMonad.Util.XSelection (getSelection)
-import XMonad.Util.EZConfig (parseKey)
+-- import XMonad.Util.EZConfig (parseKey)
+import XMonad.Keys.Parse (parseKey)
 import Text.ParserCombinators.ReadP (readP_to_S)
 
 {- $usage
