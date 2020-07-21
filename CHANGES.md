@@ -65,9 +65,10 @@
   * `XMonad.Hooks.ClickableWorkspaces`
 
     A pair of logHooks to transiently make workspace tags clickable (for ws
-    switching) at the moment that they are sent to XMobar (using
-    UnsafeStdinReader and xdotool) without having to alter the tags in a way that will affect
-    other functions that may want to use or display them (such as XMonad.Layout.ShowWName).
+    switching) when they are sent to XMobar (using UnsafeStdinReader and
+    xdotool) without having to alter the tags in a way that will affect other
+    functions that may want to use or display them (such as
+    XMonad.Layout.ShowWName). 
 
 ### Bug Fixes and Minor Changes
 
