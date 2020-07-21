@@ -65,7 +65,7 @@
   * `XMonad.Util.ClickableWorkspaces`
 
     Provides clickablePP, which when applied to the PP pretty-printer used by
-    `dynamicLogWithPP` of `XMonad.Hooks.DynamicLog`, will make the workspace tags
+    `XMonad.Hooks.DynamicLog.dynamicLogWithPP`, will make the workspace tags
     clickable in XMobar (for switching focus).
 
 ### Bug Fixes and Minor Changes
