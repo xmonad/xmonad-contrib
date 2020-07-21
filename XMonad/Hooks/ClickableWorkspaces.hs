@@ -10,15 +10,16 @@
 --
 -----------------------------------------------------------------------------
 
-module ClickableWsHook ( doClickableWsHook
-                       , undoClickableWsHook
-                       , getClickableSortByWsTag
-                       , getSortByClickableIndex
-                       , getClickableSortByXineramaRuleAndTag
-                       , getClickableSortByXineramaRuleAndIndex
-                       , getClickableSortByXineramaPhysicalRuleAndTag
-                       , getClickableSortByXineramaPhysicalRuleAndIndex
-                       ) where
+module XMonad.Hooks.ClickableWorkspaces
+  ( doClickableWsHook
+  , undoClickableWsHook
+  , getClickableSortByWsTag
+  , getSortByClickableIndex
+  , getClickableSortByXineramaRuleAndTag
+  , getClickableSortByXineramaRuleAndIndex
+  , getClickableSortByXineramaPhysicalRuleAndTag
+  , getClickableSortByXineramaPhysicalRuleAndIndex
+  ) where
 
 import XMonad
 import qualified XMonad.StackSet as W
