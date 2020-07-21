@@ -145,7 +145,7 @@ getClickableSortByXineramaRuleAndIndex :: X WorkspaceSort
 getClickableSortByXineramaRuleAndIndex =
   mkWsSort $ getXineramaClickableWsCompare clickableIndexOrdering
 
-getClickableSortByXineramaPhysicalRuleAndTag:: ScreenComparator -> X WorkspaceSort
+getClickableSortByXineramaPhysicalRuleAndTag :: ScreenComparator -> X WorkspaceSort
 getClickableSortByXineramaPhysicalRuleAndTag sc =
   mkWsSort $ getXineramaPhysicalClickableWsCompare sc clickableTagOrdering
 
