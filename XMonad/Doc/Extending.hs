@@ -447,6 +447,13 @@ occur. The two most important hooks are:
 
 Here is a list of the modules found in @XMonad.Hooks@:
 
+* "XMonad.Hooks.ClickableWorkspaces":
+
+    A pair of logHooks to transiently make workspace tags clickable (for ws
+    switching) when they are sent to XMobar (using UnsafeStdinReader and xdotool)
+    without having to alter the tags in a way that will affect other functions
+    that may want to use or display them (such as XMonad.Layout.ShowWName).
+
 * "XMonad.Hooks.CurrentWorkspaceOnTop":
     Ensures that the windows of the current workspace are always in front of
     windows that are located on other visible screens. This becomes important if
