@@ -32,10 +32,9 @@ import XMonad.Hooks.DynamicLog (PP(..))
 -- > myLogHook xmprocs = (clickablePP . myPP) xmprocs >>= dynamicLogWithPP
 --
 -- * Requirements:
---   * xdotool on system (in path)
+--   * wmctrl on system (in path)
+--   * "XMonad.Hooks.EwmhDesktops" for wmctrl support (see Hackage docs for setup)
 --   * use of UnsafeStdinReader in xmobarrc (rather than StdinReader)
---   * Workspace switch bindings are expected to be "super + i",
---     where i is the workspace index (beginning with 1), as in default bindings.
 
 
 -- In case workspace tags include any '<', escape them
@@ -47,16 +46,15 @@ xmobarEscape = concatMap doubleLts
 
 clickableWrap :: Integer -> String -> String
 clickableWrap num ws =
-  "<action=xdotool key super+" ++ show num ++ ">" ++ xmobarEscape ws ++ "</action>"
+  "<action=wmctrl -s " ++ show num ++ ">" ++ xmobarEscape ws ++ "</action>"
 
--- Use index of workspace in users config to assign workspace switch binding.
+-- Use index of workspace in users config to target workspace with wmctrl switch.
 getClickable :: X (WorkspaceId -> String)
 getClickable = do
   wsIndex <- getWsIndex
   return $ \ws -> case wsIndex ws of
-                    Just idx -> clickableWrap (indexToKey idx) ws
+                    Just idx -> clickableWrap (toInteger idx) ws
                     Nothing -> ws
-  where indexToKey = (+ 1) . toInteger
 
 -- | Apply clickable wrapping to all workspace fields in given PP.
 clickablePP :: PP -> X PP
