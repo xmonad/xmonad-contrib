@@ -356,6 +356,7 @@ removeMouseBindings conf mouseBindingList =
 -- > <XF86_ClearGrab>
 -- > <XF86_Next_VMode>
 -- > <XF86_Prev_VMode>
+-- > <XF86Bluetooth>
 
 mkKeymap :: XConfig l -> [(String, X ())] -> M.Map (KeyMask, KeySym) (X ())
 mkKeymap c = M.fromList . mkSubmaps . readKeymap c
@@ -677,7 +678,8 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
                  , "XF86_Ungrab"
                  , "XF86_ClearGrab"
                  , "XF86_Next_VMode"
-                 , "XF86_Prev_VMode" ]
+                 , "XF86_Prev_VMode"
+                 , "XF86Bluetooth" ]
 
 -- | Given a configuration record and a list of (key sequence
 --   description, action) pairs, check the key sequence descriptions

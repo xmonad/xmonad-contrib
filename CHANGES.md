@@ -130,6 +130,10 @@
     - Export `HiddenWindows` type constructor.
     - Export `popHiddenWindow` function restoring a specific window.
 
+  * `XMonad.Util.EZConfig`
+
+    - Added support for XF86Bluetooth.
+
 ## 0.16
 
 ### Breaking Changes
