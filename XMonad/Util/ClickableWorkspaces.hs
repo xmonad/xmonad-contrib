@@ -28,8 +28,7 @@ import XMonad.Hooks.DynamicLog (PP(..))
 -- However you have set up your PP, apply @clickablePP@ to it, and bind the result
 -- to "XMonad.Hooks.DynamicLog"\'s dynamicLogWithPP like so:
 -- 
--- > myPP xmprocs = xmobarPP { ... }
--- > myLogHook xmprocs = (clickablePP . myPP) xmprocs >>= dynamicLogWithPP
+-- > logHook = clickablePP xmobarPP { ... } >>= dynamicLogWithPP
 --
 -- * Requirements:
 --   * wmctrl on system (in path)
