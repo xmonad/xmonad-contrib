@@ -62,6 +62,12 @@
     A version of `XMonad.Prompt.Shell` that lets you use completions supplied by
     zsh.
 
+  * `XMonad.Util.ClickableWorkspaces`
+
+    Provides clickablePP, which when applied to the PP pretty-printer used by
+    `XMonad.Hooks.DynamicLog.dynamicLogWithPP`, will make the workspace tags
+    clickable in XMobar (for switching focus).
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Util.NamedScratchpad`

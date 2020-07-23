@@ -1111,6 +1111,11 @@ external utilities.
 
 A non complete list with a brief description:
 
+* "XMonad.Util.ClickableWorkspaces":
+    Provides clickablePP, which when applied to the PP pretty-printer used by
+    'XMonad.Hooks.DynamicLog.dynamicLogWithPP', will make the workspace tags
+    clickable in XMobar (for switching focus).
+
 * "XMonad.Util.Cursor": configure the default cursor/pointer glyph.
 
 * "XMonad.Util.CustomKeys": configure key bindings (see
