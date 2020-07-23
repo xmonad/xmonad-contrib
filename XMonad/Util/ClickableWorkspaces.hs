@@ -22,7 +22,7 @@ module XMonad.Util.ClickableWorkspaces (
 
 import XMonad
 import XMonad.Util.WorkspaceCompare (getWsIndex)
-import XMonad.Hooks.DynamicLog (PP(..))
+import XMonad.Hooks.DynamicLog (xmobarAction, xmobarRaw, PP(..))
 
 -- $usage
 -- However you have set up your PP, apply @clickablePP@ to it, and bind the result
@@ -36,23 +36,15 @@ import XMonad.Hooks.DynamicLog (PP(..))
 --   * use of UnsafeStdinReader in xmobarrc (rather than StdinReader)
 
 
--- In case workspace tags include any '<', escape them
-xmobarEscape :: String -> String
-xmobarEscape = concatMap doubleLts
-  where
-    doubleLts '<' = "<<"
-    doubleLts x   = [x]
-
-clickableWrap :: Integer -> String -> String
-clickableWrap num ws =
-  "<action=wmctrl -s " ++ show num ++ ">" ++ xmobarEscape ws ++ "</action>"
+clickableWrap :: Int -> String -> String
+clickableWrap i ws = xmobarAction ("wmctrl -s " ++ show i) "1" $ xmobarRaw ws
 
 -- Use index of workspace in users config to target workspace with wmctrl switch.
 getClickable :: X (WorkspaceId -> String)
 getClickable = do
   wsIndex <- getWsIndex
   return $ \ws -> case wsIndex ws of
-                    Just idx -> clickableWrap (toInteger idx) ws
+                    Just idx -> clickableWrap idx ws
                     Nothing -> ws
 
 -- | Apply clickable wrapping to all workspace fields in given PP.
