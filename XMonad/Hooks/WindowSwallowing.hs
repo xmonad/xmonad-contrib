@@ -44,8 +44,8 @@ where
 import           XMonad
 import qualified XMonad.StackSet               as W
 import qualified XMonad.Util.ExtensibleState   as XS
-import           XMonad.Util.Run                ( runProcessWithInput )
 import           XMonad.Util.WindowProperties
+import           XMonad.Util.Run                ( runProcessWithInput )
 import           Data.Semigroup                 ( All(..) )
 import qualified Data.Map.Strict               as M
 import           Data.List                      ( isInfixOf )
@@ -130,17 +130,27 @@ swallowEventHook parentQueries childQueries event = do
         case (maybeSwallowedParent, maybeOldStack) of
           (Just parent, Just oldStack) -> do
             -- If there actually is a corresponding swallowed parent window for this window,
-            -- we will restore and place it where the closed window was.
-            -- For this, we look at the stack-state that was stored /before/ the window was closed,
-            -- and replace the focused window with the now restored parent.
-            -- we do this to make sure the parent is restored in the exact position the child was at.
-            windows
-              (\ws ->
-                updateCurrentStack
-                    (const $ Just $ oldStack { W.focus = parent })
-                  $ moveFloatingState childWindow parent
-                  $ ws { W.floating = oldFloating }
-              )
+            -- we will try to restore it.
+            -- because there are some cases where the stack-state is not stored correctly in the ConfigureEvent hook,
+            -- we have to first check if the stack-state is valid.
+            -- if it is, we can restore the parent exactly where the child window was before being closed
+            -- if the stored stack-state is invalid however, we still restore the window
+            -- by just inserting it as the focused window in the stack.
+            stackStoredCorrectly <- do
+              curStack <- withWindowSet (return . currentStack)
+              let oldLen = length (W.integrate oldStack)
+              let curLen = length (W.integrate' curStack)
+              return (oldLen - 1 == curLen && childWindow == W.focus oldStack)
+
+            if stackStoredCorrectly
+              then windows
+                (\ws ->
+                  updateCurrentStack
+                      (const $ Just $ oldStack { W.focus = parent })
+                    $ moveFloatingState childWindow parent
+                    $ ws { W.floating = oldFloating }
+                )
+              else windows (insertIntoStack parent)
             -- after restoring, we remove the information about the swallowing from the state.
             XS.modify $ removeSwallowed childWindow
             XS.modify $ setStackBeforeWindowClosing Nothing
@@ -148,6 +158,13 @@ swallowEventHook parentQueries childQueries event = do
         return ()
     _ -> return ()
   return $ All True
+
+
+-- | insert a window as focused into the current stack, moving the previously focused window down the stack
+insertIntoStack :: a -> W.StackSet i l a sid sd -> W.StackSet i l a sid sd
+insertIntoStack win = W.modify
+  (Just $ W.Stack win [] [])
+  (\s -> Just $ s { W.focus = win, W.down = W.focus s : W.down s })
 
 
 -- | run a pure transformation on the Stack of the currently focused workspace.
