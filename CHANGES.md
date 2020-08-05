@@ -136,6 +136,12 @@
     - Export `HiddenWindows` type constructor.
     - Export `popHiddenWindow` function restoring a specific window.
 
+  * `XMonad.Hooks.ManageDocks`
+    - Export `AvoidStruts` constructor
+
+  * `XMonad.Hooks.ManageHelpers`
+    - Export `doSink`
+
 ## 0.16
 
 ### Breaking Changes
