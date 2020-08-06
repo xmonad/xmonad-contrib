@@ -142,6 +142,10 @@
   * `XMonad.Hooks.ManageHelpers`
     - Export `doSink`
 
+  * `XMonad.Util.EZConfig`
+    - Added support for XF86Bluetooth.
+
+
 ## 0.16
 
 ### Breaking Changes
