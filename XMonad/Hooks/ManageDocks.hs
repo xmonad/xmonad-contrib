@@ -15,7 +15,7 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    docks, manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
+    docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn,
     docksEventHook, docksStartupHook,
     ToggleStruts(..),
     SetStruts(..),

@@ -136,9 +136,15 @@
     - Export `HiddenWindows` type constructor.
     - Export `popHiddenWindow` function restoring a specific window.
 
-  * `XMonad.Util.EZConfig`
+  * `XMonad.Hooks.ManageDocks`
+    - Export `AvoidStruts` constructor
 
+  * `XMonad.Hooks.ManageHelpers`
+    - Export `doSink`
+
+  * `XMonad.Util.EZConfig`
     - Added support for XF86Bluetooth.
+
 
 ## 0.16
 

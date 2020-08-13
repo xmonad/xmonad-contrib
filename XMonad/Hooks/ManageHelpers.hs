@@ -46,6 +46,7 @@ module XMonad.Hooks.ManageHelpers (
     doFloatAt,
     doFloatDep,
     doHideIgnore,
+    doSink,
     Match,
 ) where
 
