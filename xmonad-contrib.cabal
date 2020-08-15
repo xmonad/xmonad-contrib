@@ -66,8 +66,9 @@ library
                    unix,
                    X11>=1.6.1 && < 1.10,
                    xmonad >= 0.15 && < 0.16,
-                   utf8-string,
-                   semigroups
+                   utf8-string
+    if impl(ghc < 8.0)
+        build-depends: semigroups
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
