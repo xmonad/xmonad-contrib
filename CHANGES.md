@@ -146,7 +146,7 @@
     - Added support for XF86Bluetooth.
 
   * `XMonad.Hooks.DynamicLog`
-    - Added `xmobarBorder` function to create boorders around strings.
+    - Added `xmobarBorder` function to create borders around strings.
 
 ## 0.16
 
