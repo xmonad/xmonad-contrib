@@ -145,6 +145,8 @@
   * `XMonad.Util.EZConfig`
     - Added support for XF86Bluetooth.
 
+  * `XMonad.Hooks.DynamicLog`
+    - Added `xmobarBorder` function to create boorders around strings.
 
 ## 0.16
 

@@ -43,8 +43,8 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Formatting utilities
     wrap, pad, trim, shorten,
-    xmobarColor, xmobarAction, xmobarRaw,
-    xmobarStrip, xmobarStripTags,
+    xmobarColor, xmobarAction, xmobarBorder,
+    xmobarRaw, xmobarStrip, xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
@@ -435,6 +435,18 @@ xmobarAction command button = wrap l r
     where
         l = "<action=`" ++ command ++ "` button=" ++ button ++ ">"
         r = "</action>"
+
+-- | Use xmobar box to add a border to an arbitrary string.
+xmobarBorder :: String -- ^ Border type. Possible values: VBoth, HBoth, Full,
+                       -- Top, Bottom, Left or Right
+             -> String -- ^ color: a color name, or #rrggbb format
+             -> Int    -- ^ width in pixels
+             -> String -- ^ output string
+             -> String
+xmobarBorder border color width = wrap prefix "</box>"
+  where
+    prefix = "<box type=" ++ border ++ " width=" ++ show width ++ " color="
+      ++ color ++ ">"
 
 -- | Encapsulate arbitrary text for display only, i.e. untrusted content if
 -- wrapped (perhaps from window titles) will be displayed only, with all tags
