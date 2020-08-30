@@ -148,6 +148,10 @@
   * `XMonad.Hooks.DynamicLog`
     - Added `xmobarBorder` function to create borders around strings.
 
+  * `XMonad.Layout.Minimize`
+
+    - Export `Minimize` type constructor.
+
 ## 0.16
 
 ### Breaking Changes
