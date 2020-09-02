@@ -22,6 +22,7 @@ module XMonad.Util.NamedScratchpad (
   customFloating,
   NamedScratchpads,
   namedScratchpadAction,
+  namedScratchpadActionRLWhen,
   spawnHereNamedScratchpadAction,
   customRunNamedScratchpadAction,
   allNamedScratchpadAction,
@@ -35,6 +36,7 @@ import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Hooks.DynamicLog (PP, ppSort)
 import XMonad.Actions.SpawnOn (spawnHere)
+import XMonad.Hooks.RefocusLast (refocusWhen, shiftRLWhen)
 
 import qualified Data.List.NonEmpty as NE
 
@@ -130,6 +132,20 @@ namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> X ()
 namedScratchpadAction = customRunNamedScratchpadAction runApplication
 
+-- | Action to up specified named scratchpad, with RefocusLast behavior.
+namedScratchpadActionRLWhen :: Query Bool       -- ^ Predicate determining whether to apply RefocusLast
+                            -> NamedScratchpads -- ^ Named scratchpads configuration
+                            -> String           -- ^ Scratchpad name
+                            -> X ()
+namedScratchpadActionRLWhen p =
+    someNamedScratchpadAction' (\f ws -> f $ NE.head ws) launchTo dismissTo runApplication
+    where
+        launchTo :: WorkspaceId -> Window -> X ()
+        launchTo i w = shiftWinRLWhen p i w >>= windows
+
+        dismissTo :: WorkspaceId -> Window -> X ()
+        dismissTo i _ = shiftRLWhen p i >>= windows
+
 -- | Action to pop up specified named scratchpad, initially starting it on the current workspace.
 spawnHereNamedScratchpadAction :: NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
@@ -155,26 +171,51 @@ someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> String
                           -> X ()
 someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
+    someNamedScratchpadAction' f shift shift runApp scratchpadConfig scratchpadName
+    where
+        shift :: WorkspaceId -> Window -> X ()
+        shift i = windows . W.shiftWin i
+
+someNamedScratchpadAction' :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
+                           -> (WorkspaceId -> Window -> X ())
+                           -> (WorkspaceId -> Window -> X ())
+                           -> (NamedScratchpad -> X ())
+                           -> NamedScratchpads
+                           -> String
+                           -> X ()
+someNamedScratchpadAction' f launchTo dismissTo runApp scratchpadConfig scratchpadName =
     case findByName scratchpadConfig scratchpadName of
+        Nothing -> return ()
+
         Just conf -> withWindowSet $ \winSet -> do
             let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
-                allWindows        = W.allWindows winSet
             matchingOnCurrent <- filterM (runQuery (query conf)) focusedWspWindows
-            matchingOnAll     <- filterM (runQuery (query conf)) allWindows
 
             case NE.nonEmpty matchingOnCurrent of
                 -- no matching window on the current workspace -> scratchpad not running or in background
-                Nothing -> case NE.nonEmpty matchingOnAll of
-                    Nothing   -> runApp conf
-                    Just wins -> f (windows . W.shiftWin (W.currentTag winSet)) wins
-
+                Nothing -> doLaunch conf winSet
                 -- matching window running on current workspace -> window should be shifted to scratchpad workspace
-                Just wins -> do
-                    unless (any (\wsp -> scratchpadWorkspaceTag == W.tag wsp) (W.workspaces winSet))
-                        (addHiddenWorkspace scratchpadWorkspaceTag)
-                    f (windows . W.shiftWin scratchpadWorkspaceTag) wins
+                Just wins -> doDismiss winSet wins
+    where
+        doLaunch conf winSet = do
+            matchingOnAll <- filterM (runQuery (query conf)) (W.allWindows winSet)
+            case NE.nonEmpty matchingOnAll of
+                Nothing   -> runApp conf
+                Just wins -> f (launchTo (W.currentTag winSet)) wins
 
-        Nothing -> return ()
+        doDismiss winSet wins = do
+            unless (any (\wsp -> scratchpadWorkspaceTag == W.tag wsp) (W.workspaces winSet))
+                (addHiddenWorkspace scratchpadWorkspaceTag)
+            f (dismissTo scratchpadWorkspaceTag) wins
+
+shiftWinRLWhen :: Query Bool -> WorkspaceId -> Window -> X (WindowSet -> WindowSet)
+shiftWinRLWhen p to w = withWindowSet $ \winSet ->
+  case W.findTag w winSet of
+    Just from -> do
+      refocus <- refocusWhen p from
+      let shift = W.shiftWin to w
+      return (refocus . shift)
+    _ -> return id
 
 
 -- tag of the scratchpad workspace
