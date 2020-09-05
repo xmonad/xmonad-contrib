@@ -132,7 +132,7 @@ namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> X ()
 namedScratchpadAction = customRunNamedScratchpadAction runApplication
 
--- | Action to up specified named scratchpad, with RefocusLast behavior.
+-- | Action to pop up specified named scratchpad, with RefocusLast behavior.
 namedScratchpadActionRLWhen :: Query Bool       -- ^ Predicate determining whether to apply RefocusLast
                             -> NamedScratchpads -- ^ Named scratchpads configuration
                             -> String           -- ^ Scratchpad name
