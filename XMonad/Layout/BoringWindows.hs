@@ -20,7 +20,7 @@ module XMonad.Layout.BoringWindows (
                                    boringWindows, boringAuto,
                                    markBoring, markBoringEverywhere,
                                    clearBoring, focusUp, focusDown,
-                                   focusMaster,
+                                   focusMaster, swapUp, swapDown,
 
                                    UpdateBoring(UpdateBoring),
                                    BoringMessage(Replace,Merge),
@@ -65,6 +65,8 @@ import qualified XMonad.StackSet as W
 data BoringMessage = FocusUp | FocusDown | FocusMaster | IsBoring Window | ClearBoring
                      | Replace String [Window]
                      | Merge String [Window]
+                     | SwapUp
+                     | SwapDown
                      deriving ( Read, Show, Typeable )
 
 instance Message BoringMessage
@@ -75,12 +77,14 @@ data UpdateBoring = UpdateBoring
     deriving (Typeable)
 instance Message UpdateBoring
 
-markBoring, clearBoring, focusUp, focusDown, focusMaster :: X ()
+markBoring, clearBoring, focusUp, focusDown, focusMaster, swapUp, swapDown :: X ()
 markBoring = withFocused (sendMessage . IsBoring)
 clearBoring = sendMessage ClearBoring
 focusUp = sendMessage UpdateBoring >> sendMessage FocusUp
 focusDown = sendMessage UpdateBoring >> sendMessage FocusDown
 focusMaster = sendMessage UpdateBoring >> sendMessage FocusMaster
+swapUp = sendMessage UpdateBoring >> sendMessage SwapUp
+swapDown = sendMessage UpdateBoring >> sendMessage SwapDown
 
 -- | Mark current focused window boring for all layouts.
 -- This is useful in combination with the 'XMonad.Actions.CopyWindow' module.
@@ -130,12 +134,24 @@ instance LayoutModifier BoringWindows Window where
                                             . skipBoring W.focusUp'   -- no boring window gets the focus
                                             . focusMaster'
                                return Nothing
+        | Just SwapUp <- fromMessage m =
+                            do windows $ W.modify' skipBoringSwapUp
+                               return Nothing
+        | Just SwapDown <- fromMessage m =
+                            do windows $ W.modify' (reverseStack . skipBoringSwapUp . reverseStack)
+                               return Nothing
         where skipBoring f st = fromMaybe st $ listToMaybe
                                 $ filter ((`notElem` W.focus st:bs) . W.focus)
                                 $ take (length $ W.integrate st)
                                 $ iterate f st
+              skipBoringSwapUp st = fromMaybe st $ listToMaybe
+                                    $ filter (maybe True (`notElem` bs) . listToMaybe . W.down)
+                                    $ drop 1 -- drop 0th swap
+                                    $ take (length $ W.integrate st)
+                                    $ iterate swapUp' st
               bs = concat $ cbs:maybeToList lbs ++ M.elems nbs
               rjl = return . Just . Left
+              reverseStack (W.Stack t ls rs) = W.Stack t rs ls
     handleMessOrMaybeModifyIt _ _ = return Nothing
 
 -- | Variant of 'focusMaster' that works on a
@@ -143,6 +159,10 @@ instance LayoutModifier BoringWindows Window where
 focusMaster' :: W.Stack a -> W.Stack a
 focusMaster' c@(W.Stack _ [] _) = c
 focusMaster' (W.Stack t ls rs) = W.Stack x [] (xs ++ t : rs) where (x:xs) = reverse ls
+
+swapUp' :: W.Stack a -> W.Stack a
+swapUp' (W.Stack t (l:ls) rs) = W.Stack t ls (l:rs)
+swapUp' (W.Stack t []     rs) = W.Stack t (reverse rs) []
 
 {- $simplest
 
