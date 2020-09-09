@@ -140,16 +140,15 @@ instance LayoutModifier BoringWindows Window where
         | Just SwapDown <- fromMessage m =
                             do windows $ W.modify' (reverseStack . skipBoringSwapUp . reverseStack)
                                return Nothing
-        where skipBoring f st = fromMaybe st $ listToMaybe
-                                $ filter ((`notElem` bs) . W.focus)
-                                $ drop 1
-                                $ take (length $ W.integrate st)
-                                $ iterate f st
-              skipBoringSwapUp st = fromMaybe st $ listToMaybe
-                                    $ filter (maybe True (`notElem` bs) . listToMaybe . W.down)
-                                    $ drop 1 -- drop 0th swap
-                                    $ take (length $ W.integrate st)
-                                    $ iterate swapUp' st
+        where skipBoring = skipBoring' ((`notElem` bs) . W.focus)
+              skipBoringSwapUp = skipBoring'
+                                   (maybe True (`notElem` bs) . listToMaybe . W.down)
+                                   swapUp'
+              skipBoring' p f st = fromMaybe st $ listToMaybe
+                                   $ filter p
+                                   $ drop 1
+                                   $ take (length $ W.integrate st)
+                                   $ iterate f st
               bs = concat $ cbs:maybeToList lbs ++ M.elems nbs
               rjl = return . Just . Left
               reverseStack (W.Stack t ls rs) = W.Stack t rs ls
