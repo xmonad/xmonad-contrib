@@ -141,7 +141,8 @@ instance LayoutModifier BoringWindows Window where
                             do windows $ W.modify' (reverseStack . skipBoringSwapUp . reverseStack)
                                return Nothing
         where skipBoring f st = fromMaybe st $ listToMaybe
-                                $ filter ((`notElem` W.focus st:bs) . W.focus)
+                                $ filter ((`notElem` bs) . W.focus)
+                                $ drop 1
                                 $ take (length $ W.integrate st)
                                 $ iterate f st
               skipBoringSwapUp st = fromMaybe st $ listToMaybe
