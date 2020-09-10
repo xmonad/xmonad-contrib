@@ -70,6 +70,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.BoringWindows`
+
+     Added boring-aware `swapUp` and `swapDown` functions.
+
   * `XMonad.Util.NamedScratchpad`
 
      Added two new exported functions to the module:
