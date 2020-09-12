@@ -22,6 +22,12 @@
 
 ### New Modules
 
+  * `XMonad.Actions.Sift`
+
+    Provide 'siftUp' and 'siftDown' actions, which behave like 'swapUp' and 'swapDown'
+    but handle the wrapping case by exchanging the windows at either end of the stack
+    instead of rotating the stack.
+
   * `XMonad.Hooks.WindowSwallowing`
 
     A handleEventHook that implements window swallowing:
