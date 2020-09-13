@@ -21,6 +21,7 @@ module XMonad.Layout.BoringWindows (
                                    markBoring, markBoringEverywhere,
                                    clearBoring, focusUp, focusDown,
                                    focusMaster, swapUp, swapDown,
+                                   siftUp, siftDown,
 
                                    UpdateBoring(UpdateBoring),
                                    BoringMessage(Replace,Merge),
@@ -67,6 +68,8 @@ data BoringMessage = FocusUp | FocusDown | FocusMaster | IsBoring Window | Clear
                      | Merge String [Window]
                      | SwapUp
                      | SwapDown
+                     | SiftUp
+                     | SiftDown
                      deriving ( Read, Show, Typeable )
 
 instance Message BoringMessage
@@ -77,7 +80,7 @@ data UpdateBoring = UpdateBoring
     deriving (Typeable)
 instance Message UpdateBoring
 
-markBoring, clearBoring, focusUp, focusDown, focusMaster, swapUp, swapDown :: X ()
+markBoring, clearBoring, focusUp, focusDown, focusMaster, swapUp, swapDown, siftUp, siftDown :: X ()
 markBoring = withFocused (sendMessage . IsBoring)
 clearBoring = sendMessage ClearBoring
 focusUp = sendMessage UpdateBoring >> sendMessage FocusUp
@@ -85,6 +88,8 @@ focusDown = sendMessage UpdateBoring >> sendMessage FocusDown
 focusMaster = sendMessage UpdateBoring >> sendMessage FocusMaster
 swapUp = sendMessage UpdateBoring >> sendMessage SwapUp
 swapDown = sendMessage UpdateBoring >> sendMessage SwapDown
+siftUp = sendMessage UpdateBoring >> sendMessage SiftUp
+siftDown = sendMessage UpdateBoring >> sendMessage SiftDown
 
 -- | Mark current focused window boring for all layouts.
 -- This is useful in combination with the 'XMonad.Actions.CopyWindow' module.
@@ -140,6 +145,12 @@ instance LayoutModifier BoringWindows Window where
         | Just SwapDown <- fromMessage m =
                             do windows $ W.modify' (reverseStack . skipBoringSwapUp . reverseStack)
                                return Nothing
+        | Just SiftUp <- fromMessage m =
+                            do windows $ W.modify' (siftUpSkipping bs)
+                               return Nothing
+        | Just SiftDown <- fromMessage m =
+                            do windows $ W.modify' (reverseStack . siftUpSkipping bs . reverseStack)
+                               return Nothing
         where skipBoring = skipBoring' ((`notElem` bs) . W.focus)
               skipBoringSwapUp = skipBoring'
                                    (maybe True (`notElem` bs) . listToMaybe . W.down)
@@ -163,6 +174,15 @@ focusMaster' (W.Stack t ls rs) = W.Stack x [] (xs ++ t : rs) where (x:xs) = reve
 swapUp' :: W.Stack a -> W.Stack a
 swapUp' (W.Stack t (l:ls) rs) = W.Stack t ls (l:rs)
 swapUp' (W.Stack t []     rs) = W.Stack t (reverse rs) []
+
+siftUpSkipping :: Eq a => [a] -> W.Stack a -> W.Stack a
+siftUpSkipping bs (W.Stack t ls rs)
+  | (skips, l:ls') <- spanLeft  = W.Stack t ls' (reverse skips ++ l : rs)
+  | (skips, r:rs') <- spanRight = W.Stack t (rs' ++ r : ls) (reverse skips)
+  | otherwise                   = W.Stack t ls rs
+  where
+    spanLeft  = span (`elem` bs) ls
+    spanRight = span (`elem` bs) (reverse rs)
 
 {- $simplest
 
