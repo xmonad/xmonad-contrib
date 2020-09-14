@@ -60,6 +60,7 @@ module XMonad.Prompt
     , moveHistory, setSuccess, setDone, setModeDone
     , Direction1D(..)
     , ComplFunction
+    , ComplCaseSensitivity(..)
     -- * X Utilities
     -- $xutils
     , mkUnmanagedWindow
@@ -199,6 +200,8 @@ data XPType = forall p . XPrompt p => XPT p
 type ComplFunction = String -> IO [String]
 type XPMode = XPType
 data XPOperationMode = XPSingleMode ComplFunction XPType | XPMultipleModes (W.Stack XPType)
+
+newtype ComplCaseSensitivity = ComplCaseSensitive Bool
 
 instance Show XPType where
     show (XPT p) = showXPrompt p

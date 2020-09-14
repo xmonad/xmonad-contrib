@@ -16,13 +16,14 @@ module XMonad.Prompt.Directory (
                              -- * Usage
                              -- $usage
                              directoryPrompt,
+                             directoryPrompt',
                              directoryMultipleModes,
                              Dir
                               ) where
 
 import XMonad
 import XMonad.Prompt
-import XMonad.Util.Run ( runProcessWithInput )
+import XMonad.Prompt.Shell ( compgenDirectories )
 
 -- $usage
 -- For an example usage see "XMonad.Layout.WorkspaceDir"
@@ -31,13 +32,16 @@ data Dir = Dir String (String -> X ())
 
 instance XPrompt Dir where
     showXPrompt (Dir x _) = x
-    completionFunction _ = getDirCompl
+    completionFunction _ = getDirCompl (ComplCaseSensitive True)
     modeAction (Dir _ f) buf auto =
       let dir = if null auto then buf else auto
       in f dir
 
 directoryPrompt :: XPConfig -> String -> (String -> X ()) -> X ()
-directoryPrompt c prom f = mkXPrompt (Dir prom f) c getDirCompl f
+directoryPrompt = directoryPrompt' (ComplCaseSensitive True)
+
+directoryPrompt' :: ComplCaseSensitivity -> XPConfig -> String -> (String -> X ()) -> X ()
+directoryPrompt' csn c prom f = mkXPrompt (Dir prom f) c (getDirCompl csn) f
 
 -- | A @XPType@ entry suitable for using with @mkXPromptWithModes@.
 directoryMultipleModes :: String            -- ^ Prompt.
@@ -45,9 +49,8 @@ directoryMultipleModes :: String            -- ^ Prompt.
                        -> XPType
 directoryMultipleModes p f = XPT (Dir p f)
 
-getDirCompl :: String -> IO [String]
-getDirCompl s = (filter notboring . lines) <$>
-                runProcessWithInput "bash" [] ("compgen -A directory " ++ s ++ "\n")
+getDirCompl :: ComplCaseSensitivity -> String -> IO [String]
+getDirCompl csn s = filter notboring . lines <$> compgenDirectories csn s
 
 notboring :: String -> Bool
 notboring ('.':'.':_) = True
