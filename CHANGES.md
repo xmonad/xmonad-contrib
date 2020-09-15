@@ -76,6 +76,12 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Hooks.DynamicLog`
+
+    Added `statusBar'` function, like existing `statusBar` but accepts a pretty
+    printing options argument embedded in the X monad, to allow for dynamically
+    modified options such as `workspaceNamesPP`.
+
   * `XMonad.Layout.BoringWindows`
 
      Added boring-aware `swapUp` and `swapDown` functions.
