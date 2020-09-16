@@ -59,6 +59,10 @@ import XMonad.StackSet ( tag, currentTag )
 --
 -- >  , ((modm .|. shiftMask, xK_x     ), changeDir def)
 --
+-- If you prefer a prompt with case-insensitive completion:
+--
+-- >  , ((modm .|. shiftMask, xK_x     ), changeDir' (ComplCaseSensitive False) def)
+--
 -- For detailed instruction on editing the key binding see:
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
