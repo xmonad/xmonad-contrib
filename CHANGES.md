@@ -20,6 +20,11 @@
     `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
     and no configuration changes are required in this case.
 
+  * `XMonad.Prompt.Directory`
+
+    The `Dir` constructor now takes an additional `ComplCaseSensitivity`
+    argument to indicate whether directory completion is case sensitive.
+
 ### New Modules
 
   * `XMonad.Actions.RotateSome`
@@ -87,6 +92,35 @@
     clickable in XMobar (for switching focus).
 
 ### Bug Fixes and Minor Changes
+
+  * `XMonad.Actions.DynamicProjects`
+
+    Added four new functions:
+    - `switchProjectPrompt'`
+    - `shiftToProjectPrompt'`
+    - `renameProjectPrompt'`,
+    - `changeProjectDirPrompt'`
+
+    These are like the corresponding sans `'` functions, but accept an additional
+    `ComplCaseSensitivity` argument.
+
+  * `XMonad.Layout.WorkspaceDir`
+
+    Added `changeDir'`, like `changeDir` with an additional `ComplCaseSensitivity`
+    argument.
+
+  * `XMonad.Prompt.Directory`
+
+    Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
+    `ComplCaseSensitivity` argument.
+
+  * `XMonad.Prompt.Shell`
+
+    Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
+    argument.
+
+    Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
+    matches returned by the compgen shell builtin.
 
   * `XMonad.Hooks.DynamicLog`
 
