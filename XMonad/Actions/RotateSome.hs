@@ -24,8 +24,9 @@ module XMonad.Actions.RotateSome (
 
 import Control.Arrow ((***))
 import Data.List (partition, sortOn, (\\))
-import XMonad (Window, X, gets, runLayout, screenRect, windows, windowset)
-import XMonad.StackSet (Screen (Screen), Stack (Stack), current, modify', stack)
+import qualified Data.Map as M
+import XMonad (Window, X, runLayout, screenRect, windows, withWindowSet)
+import XMonad.StackSet (Screen (Screen), Stack (Stack), current, floating, modify', stack)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -53,12 +54,20 @@ surfacePrev = do
   windows . modify' $ reverseStack . rotateSome (`elem` ring) . reverseStack
 
 surfaceRing :: X [Window]
-surfaceRing = gets (current . windowset) >>= \(Screen wkspc _ sd) ->
-  case stack wkspc of
+surfaceRing = withWindowSet $ \wset -> do
+  let Screen wsp _ sd = current wset
+
+  case stack wsp >>= filter' (`M.notMember` floating wset) of
     Nothing -> pure []
-    Just st -> go st . fst <$> runLayout wkspc (screenRect sd)
+    Just st -> go st . fst <$> runLayout wsp {stack = Just st} (screenRect sd)
   where
     go (Stack t ls rs) recs = t : ((ls ++ rs) \\ map fst recs)
+
+-- | Like "XMonad.StackSet.filter" but won't move focus.
+filter' :: (a -> Bool) -> Stack a -> Maybe (Stack a)
+filter' p (Stack f ls rs)
+  | p f       = Just $ Stack f (filter p ls) (filter p rs)
+  | otherwise = Nothing
 
 -- |
 -- @'rotateSome' p stack@ treats the elements of @stack@ that satisfy predicate
