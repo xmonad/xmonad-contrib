@@ -27,6 +27,7 @@ module XMonad.Hooks.DynamicLog (
     dzenWithFlags,
     xmobar,
     statusBar,
+    statusBar',
     dynamicLog,
     dynamicLogXinerama,
 
@@ -223,12 +224,25 @@ statusBar :: LayoutClass l Window
                        -- ^ the desired key binding to toggle bar visibility
           -> XConfig l -- ^ the base config
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
-statusBar cmd pp k conf = do
+statusBar cmd pp = statusBar' cmd (return pp)
+
+-- | Like 'statusBar' with the pretty printing options embedded in the
+-- X monad. The X PP value is re-executed every time the 'logHook' runs.
+-- Useful if printing options need to be modified dynamically.
+statusBar' :: LayoutClass l Window
+           => String       -- ^ the command line to launch the status bar
+           -> X PP         -- ^ the pretty printing options
+           -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ the desired key binding to toggle bar visibility
+           -> XConfig l    -- ^ the base config
+           -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBar' cmd xpp k conf = do
     h <- spawnPipe cmd
     return $ docks $ conf
         { layoutHook = avoidStruts (layoutHook conf)
         , logHook = do
                         logHook conf
+                        pp <- xpp
                         dynamicLogWithPP pp { ppOutput = hPutStrLn h }
         , keys       = liftA2 M.union keys' (keys conf)
         }
