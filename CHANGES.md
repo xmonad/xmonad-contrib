@@ -78,7 +78,7 @@
 
   * `XMonad.Layout.BoringWindows`
 
-     Added boring-aware `swapUp` and `swapDown` functions.
+     Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
 
   * `XMonad.Util.NamedScratchpad`
 
