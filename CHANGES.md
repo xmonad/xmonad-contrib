@@ -22,6 +22,18 @@
 
 ### New Modules
 
+  * `XMonad.Actions.RotateSome`
+
+    Functions for rotating some elements around the stack while keeping others
+    anchored in place. Useful in combination with layouts that dictate window
+    visibility based on stack position, such as "XMonad.Layout.LimitWindows".
+
+    Export 'surfaceNext' and 'surfacePrev' actions, which treat the focused window
+    and any hidden windows as a ring that can be rotated through the focused position.
+
+    Export 'rotateSome', a pure function that rotates some elements around a stack
+    while keeping others anchored in place.
+
   * `XMonad.Actions.Sift`
 
     Provide 'siftUp' and 'siftDown' actions, which behave like 'swapUp' and 'swapDown'

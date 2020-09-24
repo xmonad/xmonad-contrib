@@ -27,6 +27,7 @@ extra-source-files: README.md CHANGES.md scripts/generate-configs scripts/run-xm
                     scripts/xmonad-clock.c
                     tests/genMain.hs
                     tests/ManageDocks.hs
+                    tests/RotateSome.hs
                     tests/Selective.hs
                     tests/SwapWorkspaces.hs
                     tests/XPrompt.hs
@@ -124,6 +125,7 @@ library
                         XMonad.Actions.Plane
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
+                        XMonad.Actions.RotateSome
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
                         XMonad.Actions.ShowText
