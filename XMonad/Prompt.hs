@@ -185,6 +185,8 @@ data XPConfig =
         , autoComplete          :: Maybe Int    -- ^ Just x: if only one completion remains, auto-select it,
                                                 --   and delay by x microseconds
         , showCompletionOnTab   :: Bool         -- ^ Only show list of completions when Tab was pressed
+        , complCaseSensitivity  :: ComplCaseSensitivity
+                                                -- ^ Perform completion in a case-sensitive manner
         , searchPredicate       :: String -> String -> Bool
                                                 -- ^ Given the typed string and a possible
                                                 --   completion, is the completion valid?
@@ -323,6 +325,7 @@ instance Default XPConfig where
         , defaultText           = []
         , autoComplete          = Nothing
         , showCompletionOnTab   = False
+        , complCaseSensitivity  = ComplCaseSensitive True
         , searchPredicate       = isPrefixOf
         , alwaysHighlight       = False
         , defaultPrompter       = id
