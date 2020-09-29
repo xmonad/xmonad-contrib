@@ -26,7 +26,6 @@ module XMonad.Layout.WorkspaceDir (
                                    -- $usage
                                    workspaceDir,
                                    changeDir,
-                                   changeDir',
                                    WorkspaceDir,
                                   ) where
 
@@ -34,8 +33,8 @@ import System.Directory ( setCurrentDirectory, getCurrentDirectory )
 import Control.Monad ( when )
 
 import XMonad hiding ( focus )
-import XMonad.Prompt ( ComplCaseSensitivity (ComplCaseSensitive), XPConfig )
-import XMonad.Prompt.Directory ( directoryPrompt' )
+import XMonad.Prompt ( XPConfig )
+import XMonad.Prompt.Directory ( directoryPrompt )
 import XMonad.Layout.LayoutModifier
 import XMonad.StackSet ( tag, currentTag )
 
@@ -61,7 +60,8 @@ import XMonad.StackSet ( tag, currentTag )
 --
 -- If you prefer a prompt with case-insensitive completion:
 --
--- >  , ((modm .|. shiftMask, xK_x     ), changeDir' (ComplCaseSensitive False) def)
+-- >  , ((modm .|. shiftMask, xK_x     ),
+--       changeDir def {complCaseSensitivity = ComplCaseSensitive False})
 --
 -- For detailed instruction on editing the key binding see:
 --
@@ -92,7 +92,4 @@ scd :: String -> X ()
 scd x = catchIO $ setCurrentDirectory x
 
 changeDir :: XPConfig -> X ()
-changeDir = changeDir' (ComplCaseSensitive True)
-
-changeDir' :: ComplCaseSensitivity -> XPConfig -> X ()
-changeDir' csn c = directoryPrompt' csn c "Set working directory: " (sendMessage . Chdir)
+changeDir c = directoryPrompt c "Set working directory: " (sendMessage . Chdir)

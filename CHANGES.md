@@ -10,6 +10,9 @@
     additional `XPConfig` argument, so that they can take into
     account the given `searchPredicate`.
 
+    A `complCaseSensitivity` field has been added to `XPConfig`, indicating
+    whether case-sensitivity is desired when performing completion.
+
   * `XMonad.Hooks.EwmhDesktops`
 
     It is no longer recommended to use `fullscreenEventHook` directly.
@@ -95,19 +98,13 @@
 
   * `XMonad.Actions.DynamicProjects`
 
-    Added four new functions:
-    - `switchProjectPrompt'`
-    - `shiftToProjectPrompt'`
-    - `renameProjectPrompt'`,
-    - `changeProjectDirPrompt'`
-
-    These are like the corresponding sans `'` functions, but accept an additional
-    `ComplCaseSensitivity` argument.
+    The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
+    of `XPConfig` when performing directory completion.
 
   * `XMonad.Layout.WorkspaceDir`
 
-    Added `changeDir'`, like `changeDir` with an additional `ComplCaseSensitivity`
-    argument.
+    The `changeDir` function respects the `complCaseSensitivity` field of `XPConfig`
+    when performing directory completion.
 
   * `XMonad.Prompt.Directory`
 

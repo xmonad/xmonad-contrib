@@ -29,13 +29,9 @@ module XMonad.Actions.DynamicProjects
 
          -- * Bindings
        , switchProjectPrompt
-       , switchProjectPrompt'
        , shiftToProjectPrompt
-       , shiftToProjectPrompt'
        , renameProjectPrompt
-       , renameProjectPrompt'
        , changeProjectDirPrompt
-       , changeProjectDirPrompt'
 
          -- * Helper Functions
        , switchProject
@@ -149,24 +145,24 @@ instance ExtensionClass ProjectState where
 
 --------------------------------------------------------------------------------
 -- Internal types for working with XPrompt.
-data ProjectPrompt = ProjectPrompt XPConfig ComplCaseSensitivity ProjectMode [ProjectName]
+data ProjectPrompt = ProjectPrompt XPConfig ProjectMode [ProjectName]
 data ProjectMode = SwitchMode | ShiftMode | RenameMode | DirMode
 
 instance XPrompt ProjectPrompt where
-  showXPrompt (ProjectPrompt _ _ submode _) =
+  showXPrompt (ProjectPrompt _ submode _) =
     case submode of
       SwitchMode -> "Switch or Create Project: "
       ShiftMode  -> "Send Window to Project: "
       RenameMode -> "New Project Name: "
       DirMode    -> "Change Project Directory: "
 
-  completionFunction (ProjectPrompt _ _ RenameMode _) = return . (:[])
-  completionFunction (ProjectPrompt _ csn DirMode _) =
-    let xpt = directoryMultipleModes' csn "" (const $ return ())
+  completionFunction (ProjectPrompt _ RenameMode _) = return . (:[])
+  completionFunction (ProjectPrompt c DirMode _) =
+    let xpt = directoryMultipleModes' (complCaseSensitivity c) "" (const $ return ())
     in completionFunction xpt
-  completionFunction (ProjectPrompt c _ _ ns) = mkComplFunFromList' c ns
+  completionFunction (ProjectPrompt c _ ns) = mkComplFunFromList' c ns
 
-  modeAction (ProjectPrompt _ _ SwitchMode _) buf auto = do
+  modeAction (ProjectPrompt _ SwitchMode _) buf auto = do
     let name = if null auto then buf else auto
     ps <- XS.gets projects
 
@@ -175,17 +171,17 @@ instance XPrompt ProjectPrompt where
       Nothing | null name -> return ()
               | otherwise -> switchProject (defProject name)
 
-  modeAction (ProjectPrompt _ _ ShiftMode _) buf auto = do
+  modeAction (ProjectPrompt _ ShiftMode _) buf auto = do
     let name = if null auto then buf else auto
     ps <- XS.gets projects
     shiftToProject . fromMaybe (defProject name) $ Map.lookup name ps
 
-  modeAction (ProjectPrompt _ _ RenameMode _) name _ =
+  modeAction (ProjectPrompt _ RenameMode _) name _ =
     when (not (null name) && not (all isSpace name)) $ do
       renameWorkspaceByName name
       modifyProject (\p -> p { projectName = name })
 
-  modeAction (ProjectPrompt _ _ DirMode _) buf auto = do
+  modeAction (ProjectPrompt _ DirMode _) buf auto = do
     let dir' = if null auto then buf else auto
     dir <- io $ makeAbsolute dir'
     modifyProject (\p -> p { projectDirectory = dir })
@@ -283,16 +279,11 @@ switchProject p = do
 -- | Prompt for a project name and then switch to it.  Automatically
 -- creates a project if a new name is returned from the prompt.
 switchProjectPrompt :: XPConfig -> X ()
-switchProjectPrompt = switchProjectPrompt' (ComplCaseSensitive True)
-
--- | Like @switchProjectPrompt@ with a parameter controlling
--- completion case-sensitivity.
-switchProjectPrompt' :: ComplCaseSensitivity -> XPConfig -> X ()
-switchProjectPrompt' csn = projectPrompt csn [ SwitchMode
-                                             , ShiftMode
-                                             , RenameMode
-                                             , DirMode
-                                             ]
+switchProjectPrompt = projectPrompt [ SwitchMode
+                                    , ShiftMode
+                                    , RenameMode
+                                    , DirMode
+                                    ]
 
 --------------------------------------------------------------------------------
 -- | Shift the currently focused window to the given project.
@@ -305,30 +296,20 @@ shiftToProject p = do
 -- | Prompts for a project name and then shifts the currently focused
 -- window to that project.
 shiftToProjectPrompt :: XPConfig -> X ()
-shiftToProjectPrompt = shiftToProjectPrompt' (ComplCaseSensitive True)
-
--- | Like @shiftToProjectPrompt@ with a parameter controlling
--- completion case-sensitivity.
-shiftToProjectPrompt' :: ComplCaseSensitivity -> XPConfig -> X ()
-shiftToProjectPrompt' csn = projectPrompt csn [ ShiftMode
-                                              , RenameMode
-                                              , SwitchMode
-                                              , DirMode
-                                              ]
+shiftToProjectPrompt = projectPrompt [ ShiftMode
+                                     , RenameMode
+                                     , SwitchMode
+                                     , DirMode
+                                     ]
 
 --------------------------------------------------------------------------------
 -- | Rename the current project.
 renameProjectPrompt :: XPConfig -> X ()
-renameProjectPrompt = renameProjectPrompt' (ComplCaseSensitive True)
-
--- | Like @renameProjectPrompt@ with a parameter controlling
--- completion case-sensitivity.
-renameProjectPrompt' :: ComplCaseSensitivity -> XPConfig -> X ()
-renameProjectPrompt' csn = projectPrompt csn [ RenameMode
-                                             , DirMode
-                                             , SwitchMode
-                                             , ShiftMode
-                                             ]
+renameProjectPrompt = projectPrompt [ RenameMode
+                                    , DirMode
+                                    , SwitchMode
+                                    , ShiftMode
+                                    ]
 
 --------------------------------------------------------------------------------
 -- | Change the working directory used for the current project.
@@ -336,26 +317,21 @@ renameProjectPrompt' csn = projectPrompt csn [ RenameMode
 -- NOTE: This will only affect new processed started in this project.
 -- Existing processes will maintain the previous working directory.
 changeProjectDirPrompt :: XPConfig -> X ()
-changeProjectDirPrompt = changeProjectDirPrompt' (ComplCaseSensitive True)
-
--- | Like @changeProjectDirPrompt@ with a parameter controlling
--- completion case-sensitivity.
-changeProjectDirPrompt' :: ComplCaseSensitivity -> XPConfig -> X ()
-changeProjectDirPrompt' csn = projectPrompt csn [ DirMode
-                                                , SwitchMode
-                                                , ShiftMode
-                                                , RenameMode
-                                                ]
+changeProjectDirPrompt = projectPrompt [ DirMode
+                                       , SwitchMode
+                                       , ShiftMode
+                                       , RenameMode
+                                       ]
 
 --------------------------------------------------------------------------------
 -- | Prompt for a project name.
-projectPrompt :: ComplCaseSensitivity -> [ProjectMode] -> XPConfig -> X ()
-projectPrompt csn submodes c = do
+projectPrompt :: [ProjectMode] -> XPConfig -> X ()
+projectPrompt submodes c = do
   ws <- map W.tag <$> gets (W.workspaces . windowset)
   ps <- XS.gets projects
 
   let names = sort (Map.keys ps `union` ws)
-      modes = map (\m -> XPT $ ProjectPrompt c csn m names) submodes
+      modes = map (\m -> XPT $ ProjectPrompt c m names) submodes
 
   mkXPromptWithModes modes c
 

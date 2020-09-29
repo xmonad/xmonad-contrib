@@ -16,7 +16,6 @@ module XMonad.Prompt.Directory (
                              -- * Usage
                              -- $usage
                              directoryPrompt,
-                             directoryPrompt',
                              directoryMultipleModes,
                              directoryMultipleModes',
                              Dir
@@ -39,10 +38,8 @@ instance XPrompt Dir where
       in f dir
 
 directoryPrompt :: XPConfig -> String -> (String -> X ()) -> X ()
-directoryPrompt = directoryPrompt' (ComplCaseSensitive True)
-
-directoryPrompt' :: ComplCaseSensitivity -> XPConfig -> String -> (String -> X ()) -> X ()
-directoryPrompt' csn c prom f = mkXPrompt (Dir prom csn f) c (getDirCompl csn) f
+directoryPrompt c prom f = mkXPrompt (Dir prom csn f) c (getDirCompl csn) f
+    where csn = complCaseSensitivity c
 
 -- | A @XPType@ entry suitable for using with @mkXPromptWithModes@.
 directoryMultipleModes :: String            -- ^ Prompt.
