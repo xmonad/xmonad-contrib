@@ -157,8 +157,8 @@ instance XPrompt ProjectPrompt where
       DirMode    -> "Change Project Directory: "
 
   completionFunction (ProjectPrompt _ RenameMode _) = return . (:[])
-  completionFunction (ProjectPrompt _ DirMode _) =
-    let xpt = directoryMultipleModes "" (const $ return ())
+  completionFunction (ProjectPrompt c DirMode _) =
+    let xpt = directoryMultipleModes' (complCaseSensitivity c) "" (const $ return ())
     in completionFunction xpt
   completionFunction (ProjectPrompt c _ ns) = mkComplFunFromList' c ns
 

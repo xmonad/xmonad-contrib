@@ -10,6 +10,9 @@
     additional `XPConfig` argument, so that they can take into
     account the given `searchPredicate`.
 
+    A `complCaseSensitivity` field has been added to `XPConfig`, indicating
+    whether case-sensitivity is desired when performing completion.
+
   * `XMonad.Hooks.EwmhDesktops`
 
     It is no longer recommended to use `fullscreenEventHook` directly.
@@ -19,6 +22,11 @@
 
     `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
     and no configuration changes are required in this case.
+
+  * `XMonad.Prompt.Directory`
+
+    The `Dir` constructor now takes an additional `ComplCaseSensitivity`
+    argument to indicate whether directory completion is case sensitive.
 
 ### New Modules
 
@@ -87,6 +95,29 @@
     clickable in XMobar (for switching focus).
 
 ### Bug Fixes and Minor Changes
+
+  * `XMonad.Actions.DynamicProjects`
+
+    The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
+    of `XPConfig` when performing directory completion.
+
+  * `XMonad.Layout.WorkspaceDir`
+
+    The `changeDir` function respects the `complCaseSensitivity` field of `XPConfig`
+    when performing directory completion.
+
+  * `XMonad.Prompt.Directory`
+
+    Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
+    `ComplCaseSensitivity` argument.
+
+  * `XMonad.Prompt.Shell`
+
+    Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
+    argument.
+
+    Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
+    matches returned by the compgen shell builtin.
 
   * `XMonad.Hooks.DynamicLog`
 

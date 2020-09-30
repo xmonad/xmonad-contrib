@@ -60,6 +60,7 @@ module XMonad.Prompt
     , moveHistory, setSuccess, setDone, setModeDone
     , Direction1D(..)
     , ComplFunction
+    , ComplCaseSensitivity(..)
     -- * X Utilities
     -- $xutils
     , mkUnmanagedWindow
@@ -184,6 +185,8 @@ data XPConfig =
         , autoComplete          :: Maybe Int    -- ^ Just x: if only one completion remains, auto-select it,
                                                 --   and delay by x microseconds
         , showCompletionOnTab   :: Bool         -- ^ Only show list of completions when Tab was pressed
+        , complCaseSensitivity  :: ComplCaseSensitivity
+                                                -- ^ Perform completion in a case-sensitive manner
         , searchPredicate       :: String -> String -> Bool
                                                 -- ^ Given the typed string and a possible
                                                 --   completion, is the completion valid?
@@ -199,6 +202,8 @@ data XPType = forall p . XPrompt p => XPT p
 type ComplFunction = String -> IO [String]
 type XPMode = XPType
 data XPOperationMode = XPSingleMode ComplFunction XPType | XPMultipleModes (W.Stack XPType)
+
+newtype ComplCaseSensitivity = ComplCaseSensitive Bool
 
 instance Show XPType where
     show (XPT p) = showXPrompt p
@@ -320,6 +325,7 @@ instance Default XPConfig where
         , defaultText           = []
         , autoComplete          = Nothing
         , showCompletionOnTab   = False
+        , complCaseSensitivity  = ComplCaseSensitive True
         , searchPredicate       = isPrefixOf
         , alwaysHighlight       = False
         , defaultPrompter       = id
