@@ -322,6 +322,7 @@ library
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
                         XMonad.Prompt.Zsh
+                        XMonad.Util.ClickableWorkspaces
                         XMonad.Util.Cursor
                         XMonad.Util.CustomKeys
                         XMonad.Util.DebugWindow
