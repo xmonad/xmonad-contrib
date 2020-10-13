@@ -94,6 +94,11 @@
     `XMonad.Hooks.DynamicLog.dynamicLogWithPP`, will make the workspace tags
     clickable in XMobar (for switching focus).
 
+  * `XMonad.Layout.VoidBorders`
+
+    Provides a modifier that semi-permanently (requires manual intervention)
+    disables borders for windows from the layout it modifies.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.DynamicProjects`
