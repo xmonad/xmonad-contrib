@@ -112,8 +112,10 @@ mkUnicodePrompt prog args unicodeDataFilename config =
       let m = searchUnicode entries s
       return . map (\(c,d) -> printf "%s %s" [c] d) $ take 20 m
     paste [] = return ()
-    paste (c:_) = do
-      runProcessWithInput prog args [c]
+    paste (c:_) = liftIO $ do
+      handle <- spawnPipe $ unwords $ prog : args
+      hPutChar handle c
+      hClose handle
       return ()
 
 -- | Prompt the user for a Unicode character to be inserted into the paste buffer of the X server.

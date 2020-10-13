@@ -119,6 +119,11 @@
     Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
     matches returned by the compgen shell builtin.
 
+  * `XMonad.Prompt.Unicode`
+
+    Reworked internally to be call `spawnPipe` (asynchronous) instead of
+    `runProcessWithInput` (synchronous), which fixes `typeUnicodePrompt`.
+
   * `XMonad.Hooks.DynamicLog`
 
     Added `statusBar'` function, like existing `statusBar` but accepts a pretty
