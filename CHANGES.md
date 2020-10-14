@@ -111,6 +111,11 @@
     Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
     `ComplCaseSensitivity` argument.
 
+  * `XMonad.Prompt.FuzzyMatch`
+
+    `fuzzySort` will now accept cases where the input is not a subsequence of
+    every completion.
+
   * `XMonad.Prompt.Shell`
 
     Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
