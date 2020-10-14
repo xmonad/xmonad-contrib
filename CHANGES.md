@@ -124,6 +124,8 @@
     Reworked internally to be call `spawnPipe` (asynchronous) instead of
     `runProcessWithInput` (synchronous), which fixes `typeUnicodePrompt`.
 
+    Now respects `searchPredicate` and `sorter` from user-supplied `XPConfig`.
+
   * `XMonad.Hooks.DynamicLog`
 
     Added `statusBar'` function, like existing `statusBar` but accepts a pretty
