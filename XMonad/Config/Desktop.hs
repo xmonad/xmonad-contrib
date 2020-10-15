@@ -58,6 +58,7 @@ import XMonad
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Util.Cursor
+import qualified XMonad.StackSet as W
 
 import qualified Data.Map as M
 
@@ -167,10 +168,16 @@ import qualified Data.Map as M
 desktopConfig = docks $ ewmh def
     { startupHook     = setDefaultCursor xC_left_ptr <+> startupHook def
     , layoutHook      = desktopLayoutModifiers $ layoutHook def
+    , logHook         = desktopLogHook <+> logHook def
     , keys            = desktopKeys <+> keys def }
 
 desktopKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_b), sendMessage ToggleStruts) ]
 
 desktopLayoutModifiers layout = avoidStruts layout
+
+-- | 'logHook' preserving old 'ewmh' behavior to switch workspace and focus to
+-- activated window.
+desktopLogHook :: X ()
+desktopLogHook      = activateLogHook (reader W.focusWindow >>= doF)
 

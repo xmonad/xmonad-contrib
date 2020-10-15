@@ -23,6 +23,16 @@
     `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
     and no configuration changes are required in this case.
 
+
+  * `XMonad.Hooks.EwmhDesktops`
+
+    `ewmh` function will use `logHook` for handling activated window. And now
+    by default window activation will do nothing.
+
+    You can use regular `ManageHook` combinators for changing window
+    activation behavior and then add resulting `ManageHook` using
+    `activateLogHook` to your `logHook`.
+
   * `XMonad.Prompt.Directory`
 
     The `Dir` constructor now takes an additional `ComplCaseSensitivity`

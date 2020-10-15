@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable     #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.EwmhDesktops
@@ -19,6 +21,9 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
+    NetActivated (..),
+    activated,
+    activateLogHook,
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
     ewmhFullscreen,
@@ -42,6 +47,7 @@ import qualified XMonad.Util.ExtensibleState as E
 import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -56,7 +62,34 @@ import XMonad.Util.WindowProperties (getProp32)
 -- > main = xmonad $ ewmh def
 --
 -- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
-
+--
+-- __/NOTE:/__ 'ewmh' function will call 'logHook' for handling activated
+-- window.
+--
+-- And now by default window activation will do nothing: neither switch
+-- workspace, nor focus. You can use regular 'ManageHook' combinators for
+-- changing window activation behavior and then add resulting 'ManageHook'
+-- using 'activateLogHook' to your 'logHook'. Also, you may be interested in
+-- "XMonad.Hooks.Focus", which provides additional predicates for using in
+-- 'ManageHook'.
+--
+-- To get back old 'ewmh' window activation behavior (switch workspace and
+-- focus to activated window) you may use:
+--
+-- > import XMonad
+-- >
+-- > import XMonad.Hooks.EwmhDesktops
+-- > import qualified XMonad.StackSet as W
+-- >
+-- > main :: IO ()
+-- > main = do
+-- >         let acMh :: ManageHook
+-- >             acMh = reader W.focusWindow >>= doF
+-- >             xcf = ewmh $ def
+-- >                    { modMask = mod4Mask
+-- >                    , logHook = activateLogHook acMh <+> logHook def
+-- >                    }
+-- >         xmonad xcf
 
 -- | Add EWMH functionality to the given config.  See above for an example.
 ewmh :: XConfig a -> XConfig a
@@ -180,6 +213,40 @@ ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
 ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
 ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
 
+-- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
+-- this value in global state, because i use 'logHook' for handling activated
+-- windows and i need a way to tell 'logHook' what window is activated.
+newtype NetActivated    = NetActivated {netActivated :: Maybe Window}
+  deriving (Show, Typeable)
+instance ExtensionClass NetActivated where
+    initialValue        = NetActivated Nothing
+
+-- | Was new window @_NET_ACTIVE_WINDOW@ activated?
+activated :: Query Bool
+activated           = fmap (isJust . netActivated) (liftX XS.get)
+
+-- | Run supplied 'ManageHook' for activated windows /only/. If you want to
+-- run this 'ManageHook' for new windows too, add it to 'manageHook'.
+--
+-- __/NOTE:/__ 'activateLogHook' will work only _once_. I.e. if several
+-- 'activateLogHook'-s was used, only first one will actually run (because it
+-- resets 'NetActivated' at the end and others won't know, that window is
+-- activated).
+activateLogHook :: ManageHook -> X ()
+activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
+  where
+    go :: Window -> X ()
+    go w            = do
+        f <- runQuery mh w
+        -- I should reset 'NetActivated' here, because:
+        --  * 'windows' calls 'logHook' and i shouldn't go here the second
+        --  time for one window.
+        --  * if i reset 'NetActivated' before running 'logHook' once,
+        --  then 'activated' predicate won't match.
+        -- Thus, here is the /only/ correct place.
+        XS.put NetActivated{netActivated = Nothing}
+        windows (appEndo f)
+
 handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
 handle f (ClientMessageEvent {
                ev_window = w,
@@ -204,8 +271,10 @@ handle f (ClientMessageEvent {
                if 0 <= n && fi n < length ws then
                        windows $ W.shiftWin (W.tag (ws !! fi n)) w
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
-        else if mt == a_aw then
-               windows $ W.focusWindow w
+        else if mt == a_aw then do
+               lh <- asks (logHook . config)
+               XS.put (NetActivated (Just w))
+               lh
         else if mt == a_cw then
                killWindow w
         else if mt `elem` a_ignore then
