@@ -80,7 +80,8 @@ fuzzySort :: String -> [String] -> [String]
 fuzzySort q = map snd . sort . map (rankMatch q)
 
 rankMatch :: String -> String -> ((Int, Int), String)
-rankMatch q s = (minimum $ rankMatches q s, s)
+rankMatch q s = (if null matches then (maxBound, maxBound) else minimum matches, s)
+  where matches = rankMatches q s
 
 rankMatches :: String -> String -> [(Int, Int)]
 rankMatches [] _ = [(0, 0)]

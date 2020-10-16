@@ -111,6 +111,11 @@
     Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
     `ComplCaseSensitivity` argument.
 
+  * `XMonad.Prompt.FuzzyMatch`
+
+    `fuzzySort` will now accept cases where the input is not a subsequence of
+    every completion.
+
   * `XMonad.Prompt.Shell`
 
     Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
@@ -118,6 +123,13 @@
 
     Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
     matches returned by the compgen shell builtin.
+
+  * `XMonad.Prompt.Unicode`
+
+    Reworked internally to be call `spawnPipe` (asynchronous) instead of
+    `runProcessWithInput` (synchronous), which fixes `typeUnicodePrompt`.
+
+    Now respects `searchPredicate` and `sorter` from user-supplied `XPConfig`.
 
   * `XMonad.Hooks.DynamicLog`
 

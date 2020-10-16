@@ -1052,6 +1052,9 @@ These are the available prompts:
     intended mostly as an example of using "XMonad.Prompt.Input" to
     build an action requiring user input.
 
+* "XMonad.Prompt.FuzzyMatch":
+    A module for fuzzy completion matching in prompts akin to emacs ido mode
+
 * "XMonad.Prompt.Input":
     A generic framework for prompting the user for input and passing it
     along to some other action.
@@ -1084,6 +1087,9 @@ These are the available prompts:
 
 * "XMonad.Prompt.Theme":
     A prompt for changing the theme of the current workspace
+
+* "XMonad.Prompt.Unicode":
+    A prompt for inputting Unicode characters
 
 * "XMonad.Prompt.Window":
     xprompt operations to bring windows to you, and bring you to windows.
