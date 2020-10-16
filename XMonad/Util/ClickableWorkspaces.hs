@@ -17,7 +17,8 @@
 module XMonad.Util.ClickableWorkspaces (
   -- * Usage
   -- $usage
-  clickablePP
+  clickablePP,
+  clickableWrap
   ) where
 
 import XMonad
