@@ -228,6 +228,11 @@
 
     - Export `Minimize` type constructor.
 
+  * `XMonad.Layout.Fullscreen`
+
+    - Added a `ToggleFullscreen` constructor to `FullscreenMessage` to allow
+      toggling the fullscreen state of a window
+
 ## 0.16
 
 ### Breaking Changes
