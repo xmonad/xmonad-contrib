@@ -36,7 +36,10 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.SetWMName (
-    setWMName) where
+      setWMName
+    , getWMName
+    )
+  where
 
 import Control.Monad (join)
 import Data.Char (ord)
@@ -68,19 +71,19 @@ setWMName name = do
         supportedList <- join . maybeToList <$> getWindowProperty32 dpy atom_NET_SUPPORTED_ATOM root
         changeProperty32 dpy root atom_NET_SUPPORTED_ATOM aTOM propModeReplace (nub $ fromIntegral atom_NET_SUPPORTING_WM_CHECK : fromIntegral atom_NET_WM_NAME : supportedList)
   where
-    netSupportingWMCheckAtom :: X Atom
-    netSupportingWMCheckAtom = getAtom "_NET_SUPPORTING_WM_CHECK"
-
     latin1StringToCCharList :: String -> [CChar]
     latin1StringToCCharList str = map (fromIntegral . ord) str
 
-    getSupportWindow :: X Window
-    getSupportWindow = withDisplay $ \dpy -> do
-        atom_NET_SUPPORTING_WM_CHECK <- netSupportingWMCheckAtom
-        root <- asks theRoot
-        supportWindow <- (listToMaybe =<<) <$> io (getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root)
-        validateWindow (fmap fromIntegral supportWindow)
+netSupportingWMCheckAtom :: X Atom
+netSupportingWMCheckAtom = getAtom "_NET_SUPPORTING_WM_CHECK"
 
+getSupportWindow :: X Window
+getSupportWindow = withDisplay $ \dpy -> do
+    atom_NET_SUPPORTING_WM_CHECK <- netSupportingWMCheckAtom
+    root <- asks theRoot
+    supportWindow <- (listToMaybe =<<) <$> io (getWindowProperty32 dpy atom_NET_SUPPORTING_WM_CHECK root)
+    validateWindow (fmap fromIntegral supportWindow)
+  where
     validateWindow :: Maybe Window -> X Window
     validateWindow w = do
         valid <- maybe (return False) isValidWindow w
@@ -110,3 +113,8 @@ setWMName name = do
         io $ mapWindow dpy window   -- not sure if this is needed
         io $ lowerWindow dpy window -- not sure if this is needed
         return window
+
+-- | Get WM name.
+getWMName :: X String
+getWMName = getSupportWindow >>= runQuery title
+

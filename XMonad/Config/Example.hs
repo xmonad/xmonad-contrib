@@ -30,7 +30,8 @@ main = do
     { modMask    = mod4Mask -- Use the "Win" key for the mod key
     , manageHook = myManageHook <+> manageHook desktopConfig
     , layoutHook = desktopLayoutModifiers $ myLayouts
-    , logHook    = dynamicLogString def >>= xmonadPropLog
+    , logHook    = (dynamicLogString def >>= xmonadPropLog)
+                    <+> logHook desktopConfig
     }
 
     `additionalKeysP` -- Add some extra key bindings:
