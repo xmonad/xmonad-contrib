@@ -123,13 +123,18 @@
 
   * `XMonad.Layout.WorkspaceDir`
 
-    The `changeDir` function respects the `complCaseSensitivity` field of `XPConfig`
-    when performing directory completion.
+    - The `changeDir` function respects the `complCaseSensitivity` field of `XPConfig`
+      when performing directory completion.
+
+    - `Chdir` message is exported, so it's now possible to change the
+      directory programmaticaly, not just via a user prompt.
 
   * `XMonad.Prompt.Directory`
 
-    Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
-    `ComplCaseSensitivity` argument.
+    - Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
+     `ComplCaseSensitivity` argument.
+
+    - Directory completions are now sorted.
 
   * `XMonad.Prompt.FuzzyMatch`
 
@@ -153,9 +158,12 @@
 
   * `XMonad.Hooks.DynamicLog`
 
-    Added `statusBar'` function, like existing `statusBar` but accepts a pretty
-    printing options argument embedded in the X monad, to allow for dynamically
-    modified options such as `workspaceNamesPP`.
+    - Added `statusBar'` function, like existing `statusBar` but accepts a pretty
+      printing options argument embedded in the X monad, to allow for dynamically
+      modified options such as `workspaceNamesPP`.
+
+    - Added `shortenLeft` function, like existing `shorten` but shortens by
+      truncating from left instead of right. Useful for showing directories.
 
   * `XMonad.Layout.BoringWindows`
 
