@@ -265,6 +265,10 @@ handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
                 windows $ W.shiftWin (W.tag ww) w
             | mt == a_d ->
                 trace $ "Bad _NET_WM_DESKTOP with data=" ++ show d
+            | mt == a_aw, 2 : _ <- d ->
+                -- when the request comes from a pager, honor it unconditionally
+                -- https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#sourceindication
+                windows $ W.focusWindow w
             | mt == a_aw -> do
                 lh <- asks (logHook . config)
                 XS.put (NetActivated (Just w))
