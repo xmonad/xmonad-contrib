@@ -251,6 +251,11 @@
 
     - Export `Minimize` type constructor.
 
+  * Several `LayoutClass` instances now have an additional `Typeable`
+    constraint which may break some advanced configs. The upside is that we
+    can now add `Typeable` to `LayoutClass` in `XMonad.Core` and make it
+    possible to introspect the current layout and its modifiers.
+
 ## 0.16
 
 ### Breaking Changes

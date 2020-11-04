@@ -185,7 +185,7 @@ zoomReset = ZoomTo 1
 
 -- * LayoutClass instance
 
-instance (EQF f a, Show a, Read a, Show (f a), Read (f a))
+instance (EQF f a, Show a, Read a, Show (f a), Read (f a), Typeable f)
     => LayoutClass (ZoomRow f) a where
     description (ZC _ Nothing) = "ZoomRow"
     description (ZC _ (Just s)) = "ZoomRow" ++ if full $ W.focus s
