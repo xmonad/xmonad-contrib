@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE MultiWayIf #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -200,6 +201,8 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
 --  * _NET_WM_DESKTOP (move windows to other desktops)
 --
 --  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
+--
+--  * _NET_CLOSE_WINDOW (close window)
 ewmhDesktopsEventHook :: Event -> X All
 ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
 
@@ -244,41 +247,34 @@ activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
         windows (appEndo f)
 
 handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
-handle f (ClientMessageEvent {
-               ev_window = w,
-               ev_message_type = mt,
-               ev_data = d
-       }) = withWindowSet $ \s -> do
-       sort' <- getSortByIndex
-       let ws = f $ sort' $ W.workspaces s
+handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
+    withWindowSet $ \s -> do
+        sort' <- getSortByIndex
+        let ws = f $ sort' $ W.workspaces s
 
-       a_cd <- getAtom "_NET_CURRENT_DESKTOP"
-       a_d <- getAtom "_NET_WM_DESKTOP"
-       a_aw <- getAtom "_NET_ACTIVE_WINDOW"
-       a_cw <- getAtom "_NET_CLOSE_WINDOW"
-       a_ignore <- mapM getAtom ["XMONAD_TIMER"]
-       if  mt == a_cd then do
-               let n = head d
-               if 0 <= n && fi n < length ws then
-                       windows $ W.view (W.tag (ws !! fi n))
-                 else  trace $ "Bad _NET_CURRENT_DESKTOP with data[0]="++show n
-        else if mt == a_d then do
-               let n = head d
-               if 0 <= n && fi n < length ws then
-                       windows $ W.shiftWin (W.tag (ws !! fi n)) w
-                 else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
-        else if mt == a_aw then do
-               lh <- asks (logHook . config)
-               XS.put (NetActivated (Just w))
-               lh
-        else if mt == a_cw then
-               killWindow w
-        else if mt `elem` a_ignore then
-           return ()
-        else
-          -- The Message is unknown to us, but that is ok, not all are meant
-          -- to be handled by the window manager
-          return ()
+        a_cd <- getAtom "_NET_CURRENT_DESKTOP"
+        a_d <- getAtom "_NET_WM_DESKTOP"
+        a_aw <- getAtom "_NET_ACTIVE_WINDOW"
+        a_cw <- getAtom "_NET_CLOSE_WINDOW"
+
+        if  | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
+                windows $ W.view (W.tag ww)
+            | mt == a_cd ->
+                trace $ "Bad _NET_CURRENT_DESKTOP with data=" ++ show d
+            | mt == a_d, n : _ <- d, Just ww <- ws !? fi n ->
+                windows $ W.shiftWin (W.tag ww) w
+            | mt == a_d ->
+                trace $ "Bad _NET_WM_DESKTOP with data=" ++ show d
+            | mt == a_aw -> do
+                lh <- asks (logHook . config)
+                XS.put (NetActivated (Just w))
+                lh
+            | mt == a_cw ->
+                killWindow w
+            | otherwise ->
+                -- The Message is unknown to us, but that is ok, not all are meant
+                -- to be handled by the window manager
+                return ()
 handle _ _ = return ()
 
 -- | Add EWMH fullscreen functionality to the given config.

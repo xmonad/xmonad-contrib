@@ -46,7 +46,8 @@ chunksOf i xs = chunk : chunksOf i rest
 
 -- | Safe version of '(!!)'.
 (!?) :: [a] -> Int -> Maybe a
-(!?) xs n = listToMaybe $ drop n xs
+(!?) xs n | n < 0 = Nothing
+          | otherwise = listToMaybe $ drop n xs
 
 -- | Multivariant composition.
 --
