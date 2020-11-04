@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
 
 -----------------------------------------------------------------------------
@@ -19,13 +20,18 @@
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
+    EwmhConfig(..),
+    ewmh',
     ewmh,
+    ewmhDesktopsStartup',
     ewmhDesktopsStartup,
+    ewmhDesktopsLogHook',
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
     NetActivated (..),
     activated,
     activateLogHook,
+    ewmhDesktopsEventHook',
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
     ewmhFullscreen,
@@ -89,23 +95,37 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >                    }
 -- >         xmonad xcf
 
--- | Add EWMH functionality to the given config.  See above for an example.
+-- | TODO
+data EwmhConfig = EwmhConfig
+    { workspaceListTransform :: [WindowSpace] -> [WindowSpace]
+    }
+
+instance Default EwmhConfig where
+    def = EwmhConfig
+        { workspaceListTransform = id
+        }
+
+-- | 'ewmh'' with default 'EwmhConfig'.
 ewmh :: XConfig a -> XConfig a
-ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
-           , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
-           , logHook         = ewmhDesktopsLogHook <+> logHook c }
+ewmh = ewmh' def
+
+-- | Add EWMH functionality to the given config.  See above for an example.
+ewmh' :: EwmhConfig -> XConfig a -> XConfig a
+ewmh' ewmhConfig xConfig =
+    xConfig{ startupHook     = ewmhDesktopsStartup'   ewmhConfig <+> startupHook xConfig
+           , handleEventHook = ewmhDesktopsEventHook' ewmhConfig <+> handleEventHook xConfig
+           , logHook         = ewmhDesktopsLogHook'   ewmhConfig <+> logHook xConfig
+           }
+
+-- | 'ewmhDesktopsStartup'' with default 'EwmhConfig'.
+ewmhDesktopsStartup :: X ()
+ewmhDesktopsStartup = ewmhDesktopsStartup' def
 
 -- |
 -- Initializes EwmhDesktops and advertises EWMH support to the X
 -- server
-ewmhDesktopsStartup :: X ()
-ewmhDesktopsStartup = setSupported
-
--- |
--- Notifies pagers and window lists, such as those in the gnome-panel
--- of the current state of workspaces and windows.
-ewmhDesktopsLogHook :: X ()
-ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+ewmhDesktopsStartup' :: EwmhConfig -> X ()
+ewmhDesktopsStartup' _ = setSupported
 
 -- |
 -- Cached desktop names (e.g. @_NET_NUMBER_OF_DESKTOPS@ and
@@ -158,13 +178,24 @@ whenChanged v action = do
         action
         E.put v
 
+-- | 'ewmhDesktopsLogHook'' with default 'EwmhConfig'.
+ewmhDesktopsLogHook :: X ()
+ewmhDesktopsLogHook = ewmhDesktopsLogHook' def
+
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
+{-# DEPRECATED ewmhDesktopsLogHookCustom "Use ewmhDesktopsLogHook' instead" #-}
 ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
-ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
+ewmhDesktopsLogHookCustom f = ewmhDesktopsLogHook' def{ workspaceListTransform = f }
+
+-- |
+-- Notifies pagers and window lists, such as those in the gnome-panel
+-- of the current state of workspaces and windows.
+ewmhDesktopsLogHook' :: EwmhConfig -> X ()
+ewmhDesktopsLogHook' EwmhConfig{workspaceListTransform} = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let ws = t $ sort' $ W.workspaces s
+    let ws = workspaceListTransform $ sort' $ W.workspaces s
 
     -- Set number of workspaces and names thereof
     let desktopNames = map W.tag ws
@@ -177,7 +208,7 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     whenChanged (ClientList clientList) $ setClientList clientList
 
     -- Remap the current workspace to handle any renames that f might be doing.
-    let maybeCurrent' = W.tag <$> listToMaybe (t [W.workspace $ W.current s])
+    let maybeCurrent' = W.tag <$> listToMaybe (workspaceListTransform [W.workspace $ W.current s])
         current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
     whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
@@ -193,25 +224,16 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     let activeWindow' = fromMaybe none (W.peek s)
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
--- |
--- Intercepts messages from pagers and similar applications and reacts on them.
--- Currently supports:
---
---  * _NET_CURRENT_DESKTOP (switching desktops)
---
---  * _NET_WM_DESKTOP (move windows to other desktops)
---
---  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
---
---  * _NET_CLOSE_WINDOW (close window)
+-- | 'ewmhDesktopsEventHook'' with default 'EwmhConfig'.
 ewmhDesktopsEventHook :: Event -> X All
-ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
+ewmhDesktopsEventHook = ewmhDesktopsEventHook' def
 
 -- |
 -- Generalized version of ewmhDesktopsEventHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
+{-# DEPRECATED ewmhDesktopsEventHookCustom "Use ewmhDesktopsEventHook' instead" #-}
 ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
-ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
+ewmhDesktopsEventHookCustom f = ewmhDesktopsEventHook' def{ workspaceListTransform = f }
 
 -- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
 -- this value in global state, because i use 'logHook' for handling activated
@@ -247,11 +269,23 @@ activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
         XS.put NetActivated{netActivated = Nothing}
         windows (appEndo f)
 
-handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
-handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
+-- |
+-- Intercepts messages from pagers and similar applications and reacts on them.
+-- Currently supports:
+--
+--  * _NET_CURRENT_DESKTOP (switching desktops)
+--
+--  * _NET_WM_DESKTOP (move windows to other desktops)
+--
+--  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
+--
+--  * _NET_CLOSE_WINDOW (close window)
+ewmhDesktopsEventHook' :: EwmhConfig -> Event -> X All
+ewmhDesktopsEventHook' EwmhConfig{ workspaceListTransform }
+        ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
     withWindowSet $ \s -> do
         sort' <- getSortByIndex
-        let ws = f $ sort' $ W.workspaces s
+        let ws = workspaceListTransform $ sort' $ W.workspaces s
 
         a_cd <- getAtom "_NET_CURRENT_DESKTOP"
         a_d <- getAtom "_NET_WM_DESKTOP"
@@ -280,7 +314,9 @@ handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager
                 return ()
-handle _ _ = return ()
+
+        return (All True)
+ewmhDesktopsEventHook' _ _ = return (All True)
 
 -- | Add EWMH fullscreen functionality to the given config.
 --
