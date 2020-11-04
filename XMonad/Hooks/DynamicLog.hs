@@ -43,7 +43,7 @@ module XMonad.Hooks.DynamicLog (
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
     -- * Formatting utilities
-    wrap, pad, trim, shorten,
+    wrap, pad, trim, shorten, shortenLeft,
     xmobarColor, xmobarAction, xmobarBorder,
     xmobarRaw, xmobarStrip, xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip,
@@ -390,6 +390,14 @@ shorten n xs | length xs < n = xs
              | otherwise     = take (n - length end) xs ++ end
  where
     end = "..."
+
+-- | Like 'shorten', but truncate from the left instead of right.
+shortenLeft :: Int -> String -> String
+shortenLeft n xs | l < n     = xs
+                 | otherwise = end ++ (drop (l - n + length end) xs)
+ where
+    end = "..."
+    l = length xs
 
 -- | Output a list of strings, ignoring empty ones and separating the
 --   rest with the given separator.
