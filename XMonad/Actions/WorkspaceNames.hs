@@ -101,8 +101,8 @@ getWorkspaceNames' = do
 -- workspaces with a name, and to @\"t\"@ otherwise.
 getWorkspaceNames :: X (WorkspaceId -> String)
 getWorkspaceNames = do
-    lookup <- getWorkspaceNames'
-    return $ \wks -> wks ++ maybe "" (':' :) (lookup wks)
+    lookup' <- getWorkspaceNames'
+    return $ \wks -> wks ++ maybe "" (':' :) (lookup' wks)
 
 -- | Gets the name of a workspace, if set, otherwise returns nothing.
 getWorkspaceName :: WorkspaceId -> X (Maybe String)
