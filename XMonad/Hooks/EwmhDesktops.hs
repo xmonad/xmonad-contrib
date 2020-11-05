@@ -259,18 +259,18 @@ handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
         a_cw <- getAtom "_NET_CLOSE_WINDOW"
 
         if  | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
-                windows $ W.view (W.tag ww)
+                if W.currentTag s == W.tag ww then mempty else windows $ W.view (W.tag ww)
             | mt == a_cd ->
                 trace $ "Bad _NET_CURRENT_DESKTOP with data=" ++ show d
             | mt == a_d, n : _ <- d, Just ww <- ws !? fi n ->
-                windows $ W.shiftWin (W.tag ww) w
+                if W.findTag w s == Just (W.tag ww) then mempty else windows $ W.shiftWin (W.tag ww) w
             | mt == a_d ->
                 trace $ "Bad _NET_WM_DESKTOP with data=" ++ show d
             | mt == a_aw, 2 : _ <- d ->
                 -- when the request comes from a pager, honor it unconditionally
                 -- https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#sourceindication
                 windows $ W.focusWindow w
-            | mt == a_aw -> do
+            | mt == a_aw, W.peek s /= Just w -> do
                 lh <- asks (logHook . config)
                 XS.put (NetActivated (Just w))
                 lh
