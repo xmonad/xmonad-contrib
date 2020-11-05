@@ -72,14 +72,14 @@ import XMonad.Util.WindowProperties (getProp32)
 
 -- | TODO
 data EwmhConfig = EwmhConfig
-    { workspaceListTransform :: [WindowSpace] -> [WindowSpace]
+    { workspaceListTransform :: X ([WindowSpace] -> [WindowSpace])
     , activateHook :: ManageHook
     , fullscreen :: Bool
     }
 
 instance Default EwmhConfig where
     def = EwmhConfig
-        { workspaceListTransform = id
+        { workspaceListTransform = pure id
         , activateHook = doFocus
         , fullscreen = False
         }
@@ -166,7 +166,7 @@ ewmhDesktopsLogHook = ewmhDesktopsLogHook' def
 -- user-specified function to transform the workspace list (post-sorting)
 {-# DEPRECATED ewmhDesktopsLogHookCustom "Use ewmhDesktopsLogHook' instead" #-}
 ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
-ewmhDesktopsLogHookCustom f = ewmhDesktopsLogHook' def{ workspaceListTransform = f }
+ewmhDesktopsLogHookCustom f = ewmhDesktopsLogHook' def{ workspaceListTransform = pure f }
 
 -- |
 -- Notifies pagers and window lists, such as those in the gnome-panel
@@ -174,7 +174,8 @@ ewmhDesktopsLogHookCustom f = ewmhDesktopsLogHook' def{ workspaceListTransform =
 ewmhDesktopsLogHook' :: EwmhConfig -> X ()
 ewmhDesktopsLogHook' EwmhConfig{workspaceListTransform} = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let ws = workspaceListTransform $ sort' $ W.workspaces s
+    workspaceListTransform' <- workspaceListTransform
+    let ws = workspaceListTransform' $ sort' $ W.workspaces s
 
     -- Set number of workspaces and names thereof
     let desktopNames = map W.tag ws
@@ -187,7 +188,7 @@ ewmhDesktopsLogHook' EwmhConfig{workspaceListTransform} = withWindowSet $ \s -> 
     whenChanged (ClientList clientList) $ setClientList clientList
 
     -- Remap the current workspace to handle any renames that f might be doing.
-    let maybeCurrent' = W.tag <$> listToMaybe (workspaceListTransform [W.workspace $ W.current s])
+    let maybeCurrent' = W.tag <$> listToMaybe (workspaceListTransform' [W.workspace $ W.current s])
         current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
     whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
@@ -212,7 +213,7 @@ ewmhDesktopsEventHook = ewmhDesktopsEventHook' def
 -- user-specified function to transform the workspace list (post-sorting)
 {-# DEPRECATED ewmhDesktopsEventHookCustom "Use ewmhDesktopsEventHook' instead" #-}
 ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
-ewmhDesktopsEventHookCustom f = ewmhDesktopsEventHook' def{ workspaceListTransform = f }
+ewmhDesktopsEventHookCustom f = ewmhDesktopsEventHook' def{ workspaceListTransform = pure f }
 
 -- |
 -- Intercepts messages from pagers and similar applications and reacts on them.
@@ -234,7 +235,8 @@ ewmhDesktopsEventHook' EwmhConfig{ workspaceListTransform, activateHook, fullscr
         e@ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
     withWindowSet $ \s -> do
         sort' <- getSortByIndex
-        let ws = workspaceListTransform $ sort' $ W.workspaces s
+        workspaceListTransform' <- workspaceListTransform
+        let ws = workspaceListTransform' $ sort' $ W.workspaces s
 
         a_cd <- getAtom "_NET_CURRENT_DESKTOP"
         a_d <- getAtom "_NET_WM_DESKTOP"
