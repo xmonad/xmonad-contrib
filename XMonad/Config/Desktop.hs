@@ -164,7 +164,8 @@ import qualified Data.Map as M
 -- >        adjustEventInput
 --
 
-desktopConfig = docks $ ewmh def
+desktopConfig = docks $ ewmh' def{fullscreen = True} $
+    def
     { startupHook     = setDefaultCursor xC_left_ptr <+> startupHook def
     , layoutHook      = desktopLayoutModifiers $ layoutHook def
     , keys            = desktopKeys <+> keys def }

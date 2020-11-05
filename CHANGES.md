@@ -33,9 +33,9 @@
   * `XMonad.Hooks.EwmhDesktops`
 
     - It is no longer recommended to use `fullscreenEventHook` directly.
-      Instead, use `ewmhFullscreen` which additionally advertises fullscreen
-      support in `_NET_SUPPORTED` and fixes fullscreening of applications that
-      explicitly check it, e.g. mupdf-gl, sxiv, …
+      Instead, use `ewmh' def{fullscreen = True}` which additionally advertises
+      fullscreen support in `_NET_SUPPORTED` and fixes fullscreening of
+      applications that explicitly check it, e.g. mupdf-gl, sxiv, …
 
       `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
       and no configuration changes are required in this case.

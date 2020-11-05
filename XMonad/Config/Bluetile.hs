@@ -186,27 +186,26 @@ bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
                         named "Floating" floating |||
                         named "Tiled1" tiled1 |||
                         named "Tiled2" tiled2 |||
-                        named "Fullscreen" fullscreen
+                        named "Fullscreen" full
                         )
         where
             floating = floatingDeco $ maximize $ borderResize $ positionStoreFloat
             tiled1 = tilingDeco $ maximize $ mouseResizableTileMirrored
             tiled2 = tilingDeco $ maximize $ mouseResizableTile
-            fullscreen = tilingDeco $ maximize $ smartBorders Full
+            full = tilingDeco $ maximize $ smartBorders Full
 
             tilingDeco l = windowSwitcherDecorationWithButtons shrinkText defaultThemeWithButtons (draggingVisualizer l)
             floatingDeco l = buttonDeco shrinkText defaultThemeWithButtons l
 
 bluetileConfig =
     docks $
+    ewmh' def{ fullscreen = True } $
     def
         { modMask = mod4Mask,   -- logo key
           manageHook = bluetileManageHook,
           layoutHook = bluetileLayoutHook,
-          logHook = currentWorkspaceOnTop >> ewmhDesktopsLogHook,
-          handleEventHook = ewmhDesktopsEventHook
-                                `mappend` fullscreenEventHook
-                                `mappend` minimizeEventHook
+          logHook = currentWorkspaceOnTop,
+          handleEventHook = minimizeEventHook
                                 `mappend` serverModeEventHook' bluetileCommands
                                 `mappend` positionStoreEventHook,
           workspaces = bluetileWorkspaces,
