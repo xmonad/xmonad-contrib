@@ -637,6 +637,10 @@
     - Added a variant of `filterUrgencyHook` that takes a generic `Query Bool`
       to select which windows should never be marked urgent.
 
+    - Added `askUrgent` and a `doAskUrgent` manage hook helper for marking
+      windows as urgent from inside of xmonad. This can be used as a less
+      intrusive action for windows requesting focus.
+
   * `XMonad.Hooks.ServerMode`
 
     - To make it easier to use, the `xmonadctl` client is now included in
