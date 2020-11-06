@@ -49,6 +49,7 @@
       additional combinators.
 
       TODO: refactor and update and make it not a breaking change
+      TODO: mention doAskUrgent
 
   * All modules still exporting a `defaultFoo` constructor
 
