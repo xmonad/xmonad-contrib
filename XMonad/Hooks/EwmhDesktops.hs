@@ -32,6 +32,7 @@ module XMonad.Hooks.EwmhDesktops (
     ) where
 
 import Codec.Binary.UTF8.String (encode)
+import Data.Bits
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -124,7 +125,7 @@ newtype ClientList = ClientList [Window]
                    deriving (Eq)
 
 instance ExtensionClass ClientList where
-    initialValue = ClientList []
+    initialValue = ClientList [none]
 
 -- |
 -- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
@@ -132,7 +133,7 @@ newtype CurrentDesktop = CurrentDesktop Int
                        deriving (Eq)
 
 instance ExtensionClass CurrentDesktop where
-    initialValue = CurrentDesktop 0
+    initialValue = CurrentDesktop (-1)
 
 -- |
 -- Cached window-desktop assignments (e.g. @_NET_CLIENT_LIST_STACKING@).
@@ -140,7 +141,7 @@ newtype WindowDesktops = WindowDesktops (M.Map Window Int)
                        deriving (Eq)
 
 instance ExtensionClass WindowDesktops where
-    initialValue = WindowDesktops M.empty
+    initialValue = WindowDesktops (M.singleton none (-1))
 
 -- |
 -- The value of @_NET_ACTIVE_WINDOW@, cached to avoid unnecessary property
@@ -149,7 +150,7 @@ newtype ActiveWindow = ActiveWindow Window
                      deriving (Eq)
 
 instance ExtensionClass ActiveWindow where
-    initialValue = ActiveWindow none
+    initialValue = ActiveWindow (complement none)
 
 -- | Compare the given value against the value in the extensible state. Run the
 -- action if it has changed.
