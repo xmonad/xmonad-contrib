@@ -250,7 +250,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
 
 -- | The 'LayoutClass' instance for a 'ModifiedLayout' defines the
 --   semantics of a 'LayoutModifier' applied to an underlying layout.
-instance (LayoutModifier m a, LayoutClass l a) => LayoutClass (ModifiedLayout m l) a where
+instance (LayoutModifier m a, LayoutClass l a, Typeable m) => LayoutClass (ModifiedLayout m l) a where
     runLayout (Workspace i (ModifiedLayout m l) ms) r =
         do ((ws, ml'),mm')  <- modifyLayoutWithUpdate m (Workspace i l ms) r
            (ws', mm'') <- redoLayout (maybe m id mm') r ms ws

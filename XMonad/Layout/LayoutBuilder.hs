@@ -259,7 +259,7 @@ relBox x y w h = SubBox (Rel x) (Rel y) (Rel w) (Rel h)
 
 --------------------------------------------------------------------------------
 instance ( LayoutClass l1 a, LayoutClass l2 a
-         , Read a, Show a, Show p, Eq a, Typeable a, Predicate p a
+         , Read a, Show a, Show p, Typeable p, Eq a, Typeable a, Predicate p a
          ) => LayoutClass (LayoutB l1 l2 p) a where
 
     -- | Update window locations.

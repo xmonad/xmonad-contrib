@@ -78,7 +78,7 @@ layoutAll box sub =
   let a = alwaysTrue (Proxy :: Proxy a)
   in  LayoutP Nothing Nothing a box Nothing sub Nothing
 
-instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq w, Typeable w, Show p) =>
+instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq w, Typeable w, Show p, Typeable p) =>
     LayoutClass (LayoutP p l1 l2) w where
 
         -- | Update window locations.
