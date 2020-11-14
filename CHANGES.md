@@ -165,6 +165,11 @@
     - Added `shortenLeft` function, like existing `shorten` but shortens by
       truncating from left instead of right. Useful for showing directories.
 
+    - Fixed a bug which caused the status bar command to be unnecessarily
+      invoked multiple times with no input before xmonad recompiled itself and
+      handed over execution to the configuration binary. The bar is now
+      started only once in `startupHook`.
+
   * `XMonad.Layout.BoringWindows`
 
      Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.

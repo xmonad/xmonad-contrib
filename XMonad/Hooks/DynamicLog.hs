@@ -63,6 +63,7 @@ import Codec.Binary.UTF8.String (encodeString)
 import Control.Applicative (liftA2)
 import Control.Monad (msum)
 import Data.Char ( isSpace, ord )
+import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
 import Data.Maybe ( isJust, catMaybes, mapMaybe, fromMaybe )
 import Data.Ord ( comparing )
@@ -237,13 +238,20 @@ statusBar' :: LayoutClass l Window
            -> XConfig l    -- ^ the base config
            -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar' cmd xpp k conf = do
-    h <- spawnPipe cmd
+    -- don't spawnPipe cmd just now, this function is called before xmonad is
+    -- recompiled and the correct arch-specific binary is executed
+    hRef <- newIORef Nothing
     return $ docks $ conf
         { layoutHook = avoidStruts (layoutHook conf)
+        , startupHook = do
+                        startupHook conf
+                        liftIO $ writeIORef hRef . Just =<< spawnPipe cmd
         , logHook = do
                         logHook conf
                         pp <- xpp
-                        dynamicLogWithPP pp { ppOutput = hPutStrLn h }
+                        h' <- liftIO $ readIORef hRef
+                        whenJust h' $ \h ->
+                            dynamicLogWithPP pp { ppOutput = hPutStrLn h }
         , keys       = liftA2 M.union keys' (keys conf)
         }
  where
