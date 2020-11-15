@@ -38,7 +38,9 @@
 --   application and asking them to set that property.
 -----------------------------------------------------------------------------
 module XMonad.Hooks.WindowSwallowing
-  ( swallowEventHook
+  ( -- * Usage
+    -- $usage
+    swallowEventHook
   )
 where
 import           XMonad
