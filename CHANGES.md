@@ -39,6 +39,38 @@
     The `Dir` constructor now takes an additional `ComplCaseSensitivity`
     argument to indicate whether directory completion is case sensitive.
 
+  * `XMonad.Actions.Navigation2D`
+
+    Removed deprecated function `hybridNavigation`.
+
+  * `XMonad.Layout.Spacing`
+
+    Removed deprecated functions `SpacingWithEdge`, `SmartSpacing`,
+    `SmartSpacingWithEdge`, `ModifySpacing`, `spacing`, `spacingWithEdge`,
+    `smartSpacing`, `smartSpacingWithEdge`, `setSpacing`, and `incSpacing`.
+
+  * `XMonad.Actions.MessageFeedback`
+
+    Removed deprecated functions `send`, `sendSM`, `sendSM`_, `tryInOrder`,
+    `tryInOrder`_, `tryMessage`, and `tryMessage`_.
+
+  * `XMonad.Prompt.Window`
+
+    Removed deprecated functions `windowPromptGoto`, `windowPromptBring`, and
+    `windowPromptBringCopy`.
+
+  * `XMonad.Hooks.ICCCMFocus`
+
+    Removed deprecated module.  This was merged into xmonad.
+
+  * `XMonad.Layout.LayoutBuilderP`
+
+    Removed deprecated module; use `XMonad.Layout.LayoutBuilder` instead.
+
+  * `XMonad.Hooks.RestoreMinimized`
+
+    Removed deprecated module; use `XMonad.Hooks.Minimize` instead.
+
 ### New Modules
 
   * `XMonad.Actions.RotateSome`
