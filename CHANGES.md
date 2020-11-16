@@ -39,6 +39,11 @@
     The `Dir` constructor now takes an additional `ComplCaseSensitivity`
     argument to indicate whether directory completion is case sensitive.
 
+  * All modules still exporting a `defaultFoo` constructor
+
+    All of these were now removed. You can use the re-exported `def` from
+    `Data.Default` instead.
+
 ### New Modules
 
   * `XMonad.Actions.RotateSome`
