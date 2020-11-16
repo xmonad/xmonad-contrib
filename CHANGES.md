@@ -177,8 +177,8 @@
      - `spawnHereNamedScratchpadAction` 
          (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
 
-  * `XMonad.Util.Run` 
-  
+  * `XMonad.Util.Run`
+
      Added two new functions to the module:
      `spawnPipeWithLocaleEncoding` and
      `spawnPipeWithUtf8Encoding`. `spawnPipe` is now alias for
@@ -204,7 +204,7 @@
       the selected search engine (instead of all search engines).
 
   * `XMonad.Layout.BoringWindows`
-  
+
     Added 'markBoringEverywhere' function, to mark the currently
     focused window boring on all layouts, when using 'XMonad.Actions.CopyWindow'.
 
@@ -226,7 +226,7 @@
       a user-provided predicate.
 
   * `XMonad.Prompt.Window`
-    
+
     - Added a `WithWindow` constructor to `WindowPrompt` to allow executing
       actions of type `Window -> X ()` on the chosen window.
 
