@@ -31,6 +31,7 @@ module XMonad.Actions.TopicSpace
   , topicAction
   , currentTopicAction
   , switchTopic
+  , switchTopicWith
   , switchNthLastFocused
   , switchNthLastFocusedExclude
   , shiftNthLastFocused
@@ -318,10 +319,15 @@ currentTopicAction tg = topicAction tg =<< gets (W.tag . W.workspace . W.current
 
 -- | Switch to the given topic.
 switchTopic :: TopicConfig -> Topic -> X ()
-switchTopic tg topic = do
+switchTopic = switchTopicWith (const True)
+
+-- | Like 'switchTopic', but give a custom filtering function to
+-- 'setLastFocusedTopic'.
+switchTopicWith :: (Topic -> Bool) -> TopicConfig -> Topic -> X ()
+switchTopicWith predicate tg topic = do
   -- Switch to topic and add it to the last seen topics
   windows $ W.greedyView topic
-  setLastFocusedTopic tg topic (const True)
+  setLastFocusedTopic tg topic predicate
 
   -- If applicable, execute the topic action
   wins <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
