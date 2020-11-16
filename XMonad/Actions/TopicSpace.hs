@@ -300,7 +300,7 @@ pprWindowSet tg pp = do
   let depth topic = fromJust $ elemIndex topic (lastWs ++ [topic])
       add_depth proj topic = proj pp . (((topic++":")++) . show) . depth $ topic
       pp' = pp { ppHidden = add_depth ppHidden, ppVisible = add_depth ppVisible }
-      sortWindows = take maxDepth . sortBy (comparing $ depth . W.tag)
+      sortWindows = take maxDepth . sortOn (depth . W.tag)
   return $ DL.pprWindowSet sortWindows urgents pp' winset
 
 -- | Given a prompt configuration and a topic configuration, trigger the action associated with
