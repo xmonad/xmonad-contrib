@@ -34,14 +34,6 @@ module XMonad.Layout.Spacing
     , decWindowSpacing, decScreenSpacing
     , incScreenWindowSpacing, decScreenWindowSpacing
     , borderMap, borderIncrementBy
-      -- * Backwards Compatibility
-      -- $backwardsCompatibility
-    , SpacingWithEdge
-    , SmartSpacing, SmartSpacingWithEdge
-    , ModifySpacing (..)
-    , spacing, spacingWithEdge
-    , smartSpacing, smartSpacingWithEdge
-    , setSpacing, incSpacing
     ) where
 
 import           XMonad
@@ -181,9 +173,6 @@ instance Eq a => LayoutModifier Spacing a where
         = Just $ s { windowBorder = f wb }
         | Just (ModifyWindowBorderEnabled f) <- fromMessage m
         = Just $ s { windowBorderEnabled = f wbe }
-        | Just (ModifySpacing f) <- fromMessage m
-        = Just $ let f' = borderMap (fromIntegral . f . fromIntegral)
-                 in  s { screenBorder = f' sb, windowBorder = f' wb }
         | otherwise
         = Nothing
 
@@ -324,65 +313,3 @@ orderSelect o (lt,eq,gt) = case o of
     LT -> lt
     EQ -> eq
     GT -> gt
-
------------------------------------------------------------------------------
--- Backwards Compatibility:
------------------------------------------------------------------------------
-{-# DEPRECATED SpacingWithEdge, SmartSpacing, SmartSpacingWithEdge "Use Spacing instead." #-}
-{-# DEPRECATED ModifySpacing "Use SpacingModifier instead, perhaps with sendMessages." #-}
-{-# DEPRECATED spacing, spacingWithEdge, smartSpacing, smartSpacingWithEdge "Use spacingRaw instead." #-}
-{-# DEPRECATED setSpacing "Use setScreenWindowSpacing instead." #-}
-{-# DEPRECATED incSpacing "Use incScreenWindowSpacing instead." #-}
-
--- $backwardsCompatibility
--- The following functions and types exist solely for compatibility with
--- pre-0.14 releases.
-
--- | A type synonym for the 'Spacing' 'LayoutModifier'.
-type SpacingWithEdge = Spacing
-
--- | A type synonym for the 'Spacing' 'LayoutModifier'.
-type SmartSpacing = Spacing
-
--- | A type synonym for the 'Spacing' 'LayoutModifier'.
-type SmartSpacingWithEdge = Spacing
-
--- | Message to dynamically modify (e.g. increase\/decrease\/set) the size of
--- the screen spacing and window spacing. See 'SpacingModifier'.
-data ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
-
-instance Message ModifySpacing
-
--- | Surround all windows by a certain number of pixels of blank space. See
--- 'spacingRaw'.
-spacing :: Int -> l a -> ModifiedLayout Spacing l a
-spacing i = spacingRaw False (uniformBorder 0) False (uniformBorder i') True
-    where i' = fromIntegral i
-
--- | Surround all windows by a certain number of pixels of blank space, and
--- additionally adds the same amount of spacing around the edge of the screen.
--- See 'spacingRaw'.
-spacingWithEdge :: Int -> l a -> ModifiedLayout Spacing l a
-spacingWithEdge i = spacingRaw False (uniformBorder i') True (uniformBorder i') True
-    where i' = fromIntegral i
-
--- | Surrounds all windows with blank space, except when the window is the only
--- visible window on the current workspace. See 'spacingRaw'.
-smartSpacing :: Int -> l a -> ModifiedLayout Spacing l a
-smartSpacing i = spacingRaw True (uniformBorder 0) False (uniformBorder i') True
-    where i' = fromIntegral i
-
--- | Surrounds all windows with blank space, and adds the same amount of
--- spacing around the edge of the screen, except when the window is the only
--- visible window on the current workspace. See 'spacingRaw'.
-smartSpacingWithEdge :: Int -> l a -> ModifiedLayout Spacing l a
-smartSpacingWithEdge i = spacingRaw True (uniformBorder i') True (uniformBorder i') True
-    where i' = fromIntegral i
-
--- | See 'setScreenWindowSpacing'.
-setSpacing :: Int -> X ()
-setSpacing = setScreenWindowSpacing . fromIntegral
-
--- | See 'incScreenWindowSpacing'.
-incSpacing :: Int -> X ()
-incSpacing = incScreenWindowSpacing . fromIntegral
