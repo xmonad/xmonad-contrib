@@ -271,13 +271,13 @@ getLastFocusedTopics = XS.gets getPrevTopics
 
 -- | Given a 'TopicConfig', a topic, and a predicate to select topics that one
 -- wants to keep, this function will filter the list of last focused topics
--- according to the predicate and cons the topic in front of that list.
-setLastFocusedTopic :: Topic -> (Topic -> Bool) -> X ()
-setLastFocusedTopic w predicate =
+-- according to the predicate and cons the topic in front of that list.  Note
+-- that we prune the list in case its length exceeds 'maxTopicHistory'.
+setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
+setLastFocusedTopic tc w predicate =
   XS.modify $ PrevTopics
-    . seqList . nub . (w:) . filter predicate
-    . getPrevTopics
-  where seqList xs = length xs `seq` xs
+            . take (maxTopicHistory tc)
+            . nub . (w :) . filter predicate . getPrevTopics
 
 -- | Reverse the list of "last focused topics"
 reverseLastFocusedTopics :: X ()
@@ -293,7 +293,8 @@ pprWindowSet tg pp = do
   urgents <- readUrgents
   let empty_workspaces = map W.tag $ filter (isNothing . W.stack) $ W.workspaces winset
       maxDepth = maxTopicHistory tg
-  setLastFocusedTopic (W.tag . W.workspace . W.current $ winset)
+  setLastFocusedTopic tg
+                      (W.tag . W.workspace . W.current $ winset)
                       (`notElem` empty_workspaces)
   lastWs <- getLastFocusedTopics
   let depth topic = fromJust $ elemIndex topic (lastWs ++ [topic])
@@ -320,7 +321,7 @@ switchTopic :: TopicConfig -> Topic -> X ()
 switchTopic tg topic = do
   -- Switch to topic and add it to the last seen topics
   windows $ W.greedyView topic
-  setLastFocusedTopic topic (const True)
+  setLastFocusedTopic tg topic (const True)
 
   -- If applicable, execute the topic action
   wins <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
