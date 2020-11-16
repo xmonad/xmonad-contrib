@@ -270,14 +270,14 @@ getLastFocusedTopics :: X [String]
 getLastFocusedTopics = XS.gets getPrevTopics
 
 -- | Given a 'TopicConfig', a topic, and a predicate to select topics that one
--- wants to keep, this function will filter the list of last focused topics
--- according to the predicate and cons the topic in front of that list.  Note
--- that we prune the list in case its length exceeds 'maxTopicHistory'.
+-- wants to keep, this function will cons the topic in front of the list of
+-- last focused topics and filter it according to the predicate.  Note that we
+-- prune the list in case that its length exceeds 'maxTopicHistory'.
 setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
 setLastFocusedTopic tc w predicate =
   XS.modify $ PrevTopics
             . take (maxTopicHistory tc)
-            . nub . (w :) . filter predicate . getPrevTopics
+            . nub . filter predicate . (w :) . getPrevTopics
 
 -- | Reverse the list of "last focused topics"
 reverseLastFocusedTopics :: X ()
