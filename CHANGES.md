@@ -177,9 +177,9 @@
   * `XMonad.Util.NamedScratchpad`
 
      Added two new exported functions to the module:
-     - `customRunNamedScratchpadAction` 
-         (provides the option to customize the `X ()` action the scratchpad is launched by) 
-     - `spawnHereNamedScratchpadAction` 
+     - `customRunNamedScratchpadAction`
+         (provides the option to customize the `X ()` action the scratchpad is launched by)
+     - `spawnHereNamedScratchpadAction`
          (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
 
   * `XMonad.Util.Run`
@@ -265,6 +265,26 @@
     constraint which may break some advanced configs. The upside is that we
     can now add `Typeable` to `LayoutClass` in `XMonad.Core` and make it
     possible to introspect the current layout and its modifiers.
+
+  * `XMonad.Actions.TopicSpace`
+
+    - `switchTopic` now correctly updates the last used topics.
+    - `setLastFocusedTopic` will now check whether we have exceeded the
+      `maxTopicHistory` and prune the topic history as necessary, as well as
+      cons the given topic onto the list __before__ filtering it.
+    - Added `switchNthLastFocusedExclude`, which works like
+      `switchNthLastFocused` but is able to exclude certain topics.
+    - Added `switchTopicWith`, which works like `switchTopic`, but one is able
+      to give `setLastFocusedTopic` a custom filtering function as well.
+    - Instead of a hand-rolled history, use the oneu from
+      `XMonad.Hooks.WorkspaceHistory`.
+    - Added the screen-aware functions `getLastFocusedTopicsByScreen` and
+      `switchNthLastFocusedByScreen`.
+
+  * `XMonad.Hooks.WorkspaceHistory`
+
+    - Added `workspaceHistoryModify` to modify the workspace history with a pure
+      function.
 
 ## 0.16
 
