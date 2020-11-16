@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
@@ -45,7 +46,7 @@ import Data.Functor((<$>))
 
 import qualified Data.Set as S
 import qualified Data.Map as M
-import Control.Monad (when, forM_, filterM)
+import Control.Monad (when, filterM, void)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -91,7 +92,10 @@ docks c = c { startupHook     = docksStartupHook <+> startupHook c
             , handleEventHook = docksEventHook <+> handleEventHook c
             , manageHook      = manageDocks <+> manageHook c }
 
-newtype StrutCache = StrutCache { fromStrutCache :: M.Map Window [Strut] }
+type WindowStruts = M.Map Window [Strut]
+
+-- Nothing means cache hasn't been initialized yet
+newtype StrutCache = StrutCache { fromStrutCache :: Maybe WindowStruts }
     deriving (Eq, Typeable)
 
 data UpdateDocks = UpdateDocks deriving Typeable
@@ -101,15 +105,35 @@ refreshDocks :: X ()
 refreshDocks = sendMessage UpdateDocks
 
 instance ExtensionClass StrutCache where
-  initialValue = StrutCache M.empty
+    initialValue = StrutCache Nothing
+
+initStrutCache :: X WindowStruts
+initStrutCache = withDisplay $ \dpy -> do
+    rootw <- asks theRoot
+    (_,_,wins) <- io $ queryTree dpy rootw
+    dockws <- filterM (runQuery checkDock) wins
+    M.fromList . zip dockws <$> mapM getStrut dockws
+
+getStrutCache :: X (Bool, WindowStruts)
+getStrutCache = XS.gets fromStrutCache >>= \case
+    Just cache ->
+        return (False, cache)
+    Nothing -> do
+        cache <- initStrutCache
+        XS.put $ StrutCache $ Just cache
+        return (True, cache)
 
 updateStrutCache :: Window -> [Strut] -> X Bool
-updateStrutCache w strut =
-  XS.modified $ StrutCache . M.insert w strut . fromStrutCache
+updateStrutCache w strut = do
+    ch1 <- fst <$> getStrutCache
+    ch2 <- XS.modified $ StrutCache . fmap (M.insert w strut) . fromStrutCache
+    return $ ch1 || ch2
 
 deleteFromStructCache :: Window -> X Bool
-deleteFromStructCache w =
-  XS.modified $ StrutCache . M.delete w . fromStrutCache
+deleteFromStructCache w = do
+    ch1 <- fst <$> getStrutCache
+    ch2 <- XS.modified $ StrutCache . fmap (M.delete w) . fromStrutCache
+    return $ ch1 || ch2
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
@@ -152,14 +176,7 @@ docksEventHook (DestroyWindowEvent {ev_window = w}) = do
 docksEventHook _ = return (All True)
 
 docksStartupHook :: X ()
-docksStartupHook = withDisplay $ \dpy -> do
-    rootw <- asks theRoot
-    (_,_,wins) <- io $ queryTree dpy rootw
-    docks <- filterM (runQuery checkDock) wins
-    forM_ docks $ \win -> do
-        strut <- getStrut win
-        updateStrutCache win strut
-    refreshDocks
+docksStartupHook = void $ getStrutCache
 
 -- | Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X [Strut]
@@ -182,7 +199,7 @@ getStrut w = do
 calcGap :: S.Set Direction2D -> X (Rectangle -> Rectangle)
 calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
-    struts <- (filter careAbout . concat) <$> XS.gets (M.elems . fromStrutCache)
+    struts <- filter careAbout . concat . M.elems . snd <$> getStrutCache
 
     -- we grab the window attributes of the root window rather than checking
     -- the width of the screen because xlib caches this info and it tends to
