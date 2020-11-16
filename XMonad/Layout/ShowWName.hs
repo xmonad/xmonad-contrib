@@ -18,7 +18,6 @@ module XMonad.Layout.ShowWName
       showWName
     , showWName'
     , def
-    , defaultSWNConfig
     , SWNConfig(..)
     , ShowWName
     ) where
@@ -68,10 +67,6 @@ instance Default SWNConfig where
          , swn_color   = "white"
          , swn_fade    = 1
          }
-
-{-# DEPRECATED defaultSWNConfig "Use def (from Data.Default, and re-exported from XMonad.Layout.ShowWName) instead." #-}
-defaultSWNConfig :: SWNConfig
-defaultSWNConfig = def
 
 instance LayoutModifier ShowWName a where
     redoLayout      sn r _ wrs = doShow sn r wrs

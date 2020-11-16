@@ -23,7 +23,6 @@ module XMonad.Actions.TopicSpace
   , Dir
   , TopicConfig(..)
   , def
-  , defaultTopicConfig
   , getLastFocusedTopics
   , setLastFocusedTopic
   , reverseLastFocusedTopics
@@ -215,10 +214,6 @@ instance Default TopicConfig where
                                  , defaultTopic = "1"
                                  , maxTopicHistory = 10
                                  }
-
-{-# DEPRECATED defaultTopicConfig "Use def (from Data.Default, and re-exported by XMonad.Actions.TopicSpace) instead." #-}
-defaultTopicConfig :: TopicConfig
-defaultTopicConfig = def
 
 newtype PrevTopics = PrevTopics { getPrevTopics :: [String] } deriving (Read,Show,Typeable)
 instance ExtensionClass PrevTopics where

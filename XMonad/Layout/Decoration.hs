@@ -17,7 +17,7 @@ module XMonad.Layout.Decoration
     ( -- * Usage:
       -- $usage
       decoration
-    , Theme (..), defaultTheme, def
+    , Theme (..), def
     , Decoration
     , DecorationMsg (..)
     , DecorationStyle (..)
@@ -89,6 +89,7 @@ data Theme =
                                                            --    Inner @[Bool]@ is a row in a icon bitmap.
           } deriving (Show, Read)
 
+-- | The default xmonad 'Theme'.
 instance Default Theme where
   def =
     Theme { activeColor         = "#999999"
@@ -109,11 +110,6 @@ instance Default Theme where
           , windowTitleAddons   = []
           , windowTitleIcons    = []
           }
-
-{-# DEPRECATED defaultTheme "Use def (from Data.Default, and re-exported by XMonad.Layout.Decoration) instead." #-}
--- | The default xmonad 'Theme'.
-defaultTheme :: Theme
-defaultTheme = def
 
 -- | A 'Decoration' layout modifier will handle 'SetTheme', a message
 -- to dynamically change the decoration 'Theme'.

@@ -21,7 +21,6 @@ module XMonad.Layout.SimpleDecoration
       simpleDeco
     , Theme (..)
     , def
-    , defaultTheme
     , SimpleDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)

@@ -18,7 +18,6 @@ module XMonad.Layout.DwmStyle
       dwmStyle
     , Theme (..)
     , def
-    , defaultTheme
     , DwmStyle (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)

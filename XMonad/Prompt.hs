@@ -34,7 +34,6 @@ module XMonad.Prompt
     , mkXPromptWithModes
     , def
     , amberXPConfig
-    , defaultXPConfig
     , greenXPConfig
     , XPMode
     , XPType (..)
@@ -294,7 +293,7 @@ data XPColor =
             , border        :: String   -- ^ Border color
             }
 
-amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
+amberXPConfig, greenXPConfig :: XPConfig
 
 instance Default XPColor where
     def =
@@ -331,8 +330,6 @@ instance Default XPConfig where
         , defaultPrompter       = id
         , sorter                = const id
         }
-{-# DEPRECATED defaultXPConfig "Use def (from Data.Default, and re-exported from XMonad.Prompt) instead." #-}
-defaultXPConfig = def
 greenXPConfig = def { bgColor           = "black"
                     , fgColor           = "green"
                     , promptBorderWidth = 0

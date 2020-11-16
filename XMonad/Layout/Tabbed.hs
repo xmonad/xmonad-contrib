@@ -27,7 +27,6 @@ module XMonad.Layout.Tabbed
     , simpleTabbedRightAlways, tabbedRightAlways, addTabsRightAlways
     , Theme (..)
     , def
-    , defaultTheme
     , TabbedDecoration (..)
     , shrinkText, CustomShrink(CustomShrink)
     , Shrinker(..)

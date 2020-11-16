@@ -35,7 +35,7 @@ will then run normally if the user confirms.
 This should be used something like this:
 
 > ...
-> , ((modm , xK_l), confirmPrompt defaultXPConfig "exit" $ io (exitWith ExitSuccess))
+> , ((modm , xK_l), confirmPrompt def "exit" $ io (exitWith ExitSuccess))
 > ...
 -}
 

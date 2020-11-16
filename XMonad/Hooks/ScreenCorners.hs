@@ -179,7 +179,7 @@ screenCornerLayoutHook = ModifiedLayout ScreenCornerLayout
 --
 -- > myStartupHook = do
 -- >     ...
--- >     addScreenCorner SCUpperRight (goToSelected defaultGSConfig { gs_cellwidth = 200})
+-- >     addScreenCorner SCUpperRight (goToSelected def { gs_cellwidth = 200})
 -- >     addScreenCorners [ (SCLowerRight, nextWS)
 -- >                      , (SCLowerLeft,  prevWS)
 -- >                      ]
