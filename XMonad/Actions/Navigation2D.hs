@@ -46,7 +46,6 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                    , sideNavigation
                                    , sideNavigationWithBias
                                    , hybridOf
-                                   , hybridNavigation
                                    , fullScreenRect
                                    , singleWindowRect
                                    , switchLayer
@@ -359,10 +358,6 @@ hybridOf :: Navigation2D -> Navigation2D -> Navigation2D
 hybridOf (N g1 s1) (N g2 s2) = N (max g1 g2) $ applyToBoth s1 s2
   where
     applyToBoth f g a b c = f a b c <|> g a b c
-
-{-# DEPRECATED hybridNavigation "Use hybridOf with lineNavigation and centerNavigation as arguments." #-}
-hybridNavigation :: Navigation2D
-hybridNavigation = hybridOf lineNavigation centerNavigation
 
 -- | Stores the configuration of directional navigation. The 'Default' instance
 -- uses line navigation for the tiled layer and for navigation between screens,
