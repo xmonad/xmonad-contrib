@@ -32,6 +32,7 @@ module XMonad.Actions.TopicSpace
   , currentTopicAction
   , switchTopic
   , switchNthLastFocused
+  , switchNthLastFocusedExclude
   , shiftNthLastFocused
   , currentTopicDir
   , checkTopicConfig
@@ -283,9 +284,13 @@ switchTopic tg topic = do
 
 -- | Switch to the Nth last focused topic or failback to the 'defaultTopic'.
 switchNthLastFocused :: TopicConfig -> Int -> X ()
-switchNthLastFocused tg depth = do
-  lastWs <- getLastFocusedTopics
-  switchTopic tg $ (lastWs ++ repeat (defaultTopic tg)) !! depth
+switchNthLastFocused = switchNthLastFocusedExclude []
+
+-- | Like 'switchNthLastFocused', but also filter out certain topics.
+switchNthLastFocusedExclude :: [Topic] -> TopicConfig -> Int -> X ()
+switchNthLastFocusedExclude excludes tc depth = do
+  lastWs <- filter (`notElem` excludes) <$> getLastFocusedTopics
+  switchTopic tc $ (lastWs ++ repeat (defaultTopic tc)) !! depth
 
 -- | Shift the focused window to the Nth last focused topic, or fallback to doing nothing.
 shiftNthLastFocused :: Int -> X ()
