@@ -273,7 +273,11 @@ currentTopicAction tg = topicAction tg =<< gets (W.tag . W.workspace . W.current
 -- | Switch to the given topic.
 switchTopic :: TopicConfig -> Topic -> X ()
 switchTopic tg topic = do
+  -- Switch to topic and add it to the last seen topics
   windows $ W.greedyView topic
+  setLastFocusedTopic topic (const True)
+
+  -- If applicable, execute the topic action
   wins <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
   when (null wins) $ topicAction tg topic
 
