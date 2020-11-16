@@ -4,9 +4,51 @@
 
 ### Breaking Changes
 
-* `XMonad.Util.NamedScratchpad`:
+  * `XMonad.Util.NamedScratchpad`:
 
   - Deprecated the module; use `XMonad.Util.NamedScratchpad` instead.
+
+  * `XMonad.Actions.Navigation2D`
+
+    - Removed deprecated function `hybridNavigation`.
+
+  * `XMonad.Layout.Spacing`
+
+    - Removed deprecated functions `SpacingWithEdge`, `SmartSpacing`,
+      `SmartSpacingWithEdge`, `ModifySpacing`, `setSpacing`, and
+      `incSpacing`.
+
+  * `XMonad.Actions.MessageFeedback`
+
+    - Removed deprecated functions `send`, `sendSM`, `sendSM`_,
+      `tryInOrder`, `tryInOrder`_, `tryMessage`, and `tryMessage`_.
+
+  * `XMonad.Prompt.Window`
+
+    - Removed deprecated functions `windowPromptGoto`,
+      `windowPromptBring`, and `windowPromptBringCopy`.
+
+  * `XMonad.Hooks.ICCCMFocus`
+
+    - Removed deprecated module.  This was merged into xmonad.
+
+  * `XMonad.Layout.LayoutBuilderP`
+
+    - Removed deprecated module; use `XMonad.Layout.LayoutBuilder`
+      instead.
+
+  * `XMonad.Hooks.RestoreMinimized`
+
+    - Removed deprecated module; use `XMonad.Hooks.Minimize` instead.
+
+  * `XMonad.Layout.Named`
+
+    - Deprecated the entire module, use `XMonad.Layout.Renamed` instead.
+
+  * `XMonad.Actions.SinkAll`
+
+    - Deprecated the entire module, use `XMonad.Actions.WithAll`
+      instead.
 
 ### New Modules
 
