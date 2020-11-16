@@ -253,17 +253,17 @@ data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
                                }
 
 instance Default TopicConfig where
-    def            = TopicConfig { topicDirs = M.empty
-                                 , topicActions = M.empty
-                                 , defaultTopicAction = const (ask >>= spawn . terminal . config)
-                                 , defaultTopic = "1"
-                                 , maxTopicHistory = 10
-                                 }
+  def            = TopicConfig { topicDirs = M.empty
+                               , topicActions = M.empty
+                               , defaultTopicAction = const (ask >>= spawn . terminal . config)
+                               , defaultTopic = "1"
+                               , maxTopicHistory = 10
+                               }
 
 newtype PrevTopics = PrevTopics { getPrevTopics :: [String] } deriving (Read,Show,Typeable)
 instance ExtensionClass PrevTopics where
-    initialValue = PrevTopics []
-    extensionType = PersistentExtension
+  initialValue  = PrevTopics []
+  extensionType = PersistentExtension
 
 -- | Return the (possibly empty) list of last focused topics.
 getLastFocusedTopics :: X [String]
@@ -289,18 +289,18 @@ reverseLastFocusedTopics =
 -- and highlight topics with urgent windows.
 pprWindowSet :: TopicConfig -> PP -> X String
 pprWindowSet tg pp = do
-    winset <- gets windowset
-    urgents <- readUrgents
-    let empty_workspaces = map W.tag $ filter (isNothing . W.stack) $ W.workspaces winset
-        maxDepth = maxTopicHistory tg
-    setLastFocusedTopic (W.tag . W.workspace . W.current $ winset)
-                        (`notElem` empty_workspaces)
-    lastWs <- getLastFocusedTopics
-    let depth topic = fromJust $ elemIndex topic (lastWs ++ [topic])
-        add_depth proj topic = proj pp . (((topic++":")++) . show) . depth $ topic
-        pp' = pp { ppHidden = add_depth ppHidden, ppVisible = add_depth ppVisible }
-        sortWindows = take maxDepth . sortBy (comparing $ depth . W.tag)
-    return $ DL.pprWindowSet sortWindows urgents pp' winset
+  winset <- gets windowset
+  urgents <- readUrgents
+  let empty_workspaces = map W.tag $ filter (isNothing . W.stack) $ W.workspaces winset
+      maxDepth = maxTopicHistory tg
+  setLastFocusedTopic (W.tag . W.workspace . W.current $ winset)
+                      (`notElem` empty_workspaces)
+  lastWs <- getLastFocusedTopics
+  let depth topic = fromJust $ elemIndex topic (lastWs ++ [topic])
+      add_depth proj topic = proj pp . (((topic++":")++) . show) . depth $ topic
+      pp' = pp { ppHidden = add_depth ppHidden, ppVisible = add_depth ppVisible }
+      sortWindows = take maxDepth . sortBy (comparing $ depth . W.tag)
+  return $ DL.pprWindowSet sortWindows urgents pp' winset
 
 -- | Given a prompt configuration and a topic configuration, trigger the action associated with
 -- the topic given in prompt.
@@ -352,16 +352,16 @@ currentTopicDir tg = do
 -- | Check the given topic configuration for duplicate or undefined topics.
 checkTopicConfig :: [Topic] -> TopicConfig -> IO ()
 checkTopicConfig tags tg = do
-    -- tags <- gets $ map W.tag . workspaces . windowset
+  -- tags <- gets $ map W.tag . workspaces . windowset
 
-    let
-      seenTopics = nub $ sort $ M.keys (topicDirs tg) ++ M.keys (topicActions tg)
-      dups       = tags \\ nub tags
-      diffTopic  = seenTopics \\ sort tags
-      check lst msg = unless (null lst) $ xmessage $ msg ++ " (tags): " ++ show lst
+  let
+    seenTopics = nub $ sort $ M.keys (topicDirs tg) ++ M.keys (topicActions tg)
+    dups       = tags \\ nub tags
+    diffTopic  = seenTopics \\ sort tags
+    check lst msg = unless (null lst) $ xmessage $ msg ++ " (tags): " ++ show lst
 
-    check diffTopic "Seen but missing topics/workspaces"
-    check dups      "Duplicate topics/workspaces"
+  check diffTopic "Seen but missing topics/workspaces"
+  check dups      "Duplicate topics/workspaces"
 
 -- | Display the given message using the @xmessage@ program.
 xmessage :: String -> IO ()
