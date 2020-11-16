@@ -76,7 +76,23 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- of last focused topics.
 
 -- $usage
--- Here is an example of configuration using TopicSpace:
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import qualified Data.Map        as M
+-- > import qualified XMonad.StackSet as W
+-- >
+-- > import XMonad.Actions.TopicSpace
+--
+-- You will then have to
+--
+--   * Define new a new 'TopicConfig'
+--
+--   * Add the appropriate keybindings
+--
+--   * Replace the @workspaces@ field in your 'XConfig' with a list of your
+--     topics names
+--
+-- Let us go through a full example together.  Given the following topic names
 --
 -- > -- The list of all topics/workspaces of your xmonad configuration.
 -- > -- The order is important, new topics must be inserted
@@ -89,7 +105,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >   , "mail", "movie", "music", "talk", "text", "tools", "web", "xmonad"
 -- >   , "yi", "documents", "twitter", "pdf"
 -- >   ]
--- >
+--
+-- we can define a 'TopicConfig' like this
+--
 -- > myTopicConfig :: TopicConfig
 -- > myTopicConfig = def
 -- >   { topicDirs = M.fromList $
@@ -132,25 +150,22 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >       , ("pdf",        spawn pdfViewerCmd)
 -- >       ]
 -- >   }
--- >
--- > -- extend your keybindings
--- > myKeys conf@XConfig{modMask=modm} =
--- >   [ ((modm              , xK_n     ), spawnShell) -- %! Launch terminal
--- >   , ((modm              , xK_a     ), currentTopicAction myTopicConfig)
--- >   , ((modm              , xK_g     ), promptedGoto)
--- >   , ((modm .|. shiftMask, xK_g     ), promptedShift)
--- >   {- more  keys ... -}
--- >   ]
--- >   ++
--- >   [ ((modm, k), switchNthLastFocused myTopicConfig i)
--- >   | (i, k) <- zip [1..] workspaceKeys]
--- >
+--
+-- Above we have used the `spawnShell` and `spawnShellIn` helper functions; here
+-- they are:
+--
 -- > spawnShell :: X ()
 -- > spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 -- >
 -- > spawnShellIn :: Dir -> X ()
 -- > spawnShellIn dir = spawn $ "urxvt '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
--- >
+-- > -- Some terminals support a working-directory option directly:
+-- > -- spawnShellIn dir = spawn $ "alacritty --working-directory " ++ dir
+--
+-- Next, we define some other other useful helper functions.  Note that some of
+-- these function make use of the 'workspacePrompt' function.  You will also
+-- have to have an already defined 'XPConfig' (here called @myXPConfig@).
+--
 -- > goto :: Topic -> X ()
 -- > goto = switchTopic myTopicConfig
 -- >
@@ -160,22 +175,51 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- > promptedShift :: X ()
 -- > promptedShift = workspacePrompt myXPConfig $ windows . W.shift
 -- >
+-- > -- Toggle between the two most recently used topics while filtering
+-- > -- out the scratchpad topic.
+-- > toggleTopic :: X ()
+-- > toggleTopic = switchNthLastFocusedExclude ["NSP"] myTopicConfig 1
+--
+-- Hopefully you've gotten a general feeling of how to define these kind of
+-- small helper functions using what's provided in this module.
+--
+-- Adding the appropriate keybindings works as it normally would:
+--
+-- > -- extend your keybindings
+-- > myKeys conf@XConfig{modMask=modm} =
+-- >   [ ((modm              , xK_n     ), spawnShell) -- %! Launch terminal
+-- >   , ((modm              , xK_a     ), currentTopicAction myTopicConfig)
+-- >   , ((modm              , xK_g     ), promptedGoto)
+-- >   , ((modm .|. shiftMask, xK_g     ), promptedShift)
+-- >   , ((modm .|. shiftMask, xK_space ), toggleTopic)
+-- >   {- more  keys ... -}
+-- >   ]
+-- >   ++
+-- >   -- Switching to recently used topics
+-- >   [ ((modm, k), switchNthLastFocused myTopicConfig i)
+-- >   | (i, k) <- zip [1..] workspaceKeys]
+--
+-- If you want a more "default" experience with regards to @M-1@ through @M-9@
+-- (i.e. switch to the first nine topics in `myTopics` instead of switching to
+-- the last used ones), you can replace the last list above with the following
+-- (using "EZConfig" syntax):
+--
+-- >   -- The following does two things:
+-- >   --   1. Switch topics (no modifier)
+-- >   --   2. Move focused window to topic N (shift modifier)
+-- >   [ ("M-" ++ m ++ k, f i)
+-- >   | (i, k) <- zip myTopics (map show [1 .. 9 :: Int])
+-- >   , (f, m) <- [(goto, ""), (windows . W.shift, "S-")]
+-- >   ]
+--
+-- We can now put the whole configuration together with the following (while
+-- also checking that we haven't made any mistakes):
+--
 -- > myConfig = do
 -- >     checkTopicConfig myTopics myTopicConfig
--- >     myLogHook <- makeMyLogHook
 -- >     return $ def
--- >          { borderWidth = 1 -- Width of the window border in pixels.
--- >          , workspaces = myTopics
--- >          , layoutHook = myModifiers myLayout
--- >          , manageHook = myManageHook
--- >          , logHook = myLogHook
--- >          , handleEventHook = myHandleEventHook
--- >          , terminal = myTerminal -- The preferred terminal program.
--- >          , normalBorderColor = "#3f3c6d"
--- >          , focusedBorderColor = "#4f66ff"
--- >          , XMonad.modMask = mod1Mask
--- >          , keys = myKeys
--- >          , mouseBindings = myMouseBindings
+-- >          { workspaces = myTopics
+-- >          , keys       = myKeys
 -- >          }
 -- >
 -- > main :: IO ()
@@ -189,7 +233,7 @@ infix >*>
 -- | 'Topic' is just an alias for 'WorkspaceId'
 type Topic = WorkspaceId
 
--- | 'Dir' is just an alias for 'FilePath' but should points to a directory.
+-- | 'Dir' is just an alias for 'FilePath' but should point to a directory.
 type Dir = FilePath
 
 -- | Here is the topic space configuration area.
@@ -201,7 +245,7 @@ data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
                                , defaultTopicAction :: Topic -> X ()
                                  -- ^ This is the default topic action.
                                , defaultTopic       :: Topic
-                                 -- ^ This is the default topic.
+                                 -- ^ This is the default (= fallback) topic.
                                , maxTopicHistory    :: Int
                                  -- ^ This setups the maximum depth of topic history, usually
                                  -- 10 is a good default since we can bind all of them using
@@ -221,13 +265,13 @@ instance ExtensionClass PrevTopics where
     initialValue = PrevTopics []
     extensionType = PersistentExtension
 
--- | Returns the list of last focused workspaces the empty list otherwise.
+-- | Return the (possibly empty) list of last focused topics.
 getLastFocusedTopics :: X [String]
 getLastFocusedTopics = XS.gets getPrevTopics
 
--- | Given a 'TopicConfig', the last focused topic, and a predicate that will
--- select topics that one want to keep, this function will set the property
--- of last focused topics.
+-- | Given a 'TopicConfig', a topic, and a predicate to select topics that one
+-- wants to keep, this function will filter the list of last focused topics
+-- according to the predicate and cons the topic in front of that list.
 setLastFocusedTopic :: Topic -> (Topic -> Bool) -> X ()
 setLastFocusedTopic w predicate =
   XS.modify $ PrevTopics
@@ -242,7 +286,7 @@ reverseLastFocusedTopics =
 
 -- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
 -- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
--- and highlighting topics with urgent windows.
+-- and highlight topics with urgent windows.
 pprWindowSet :: TopicConfig -> PP -> X String
 pprWindowSet tg pp = do
     winset <- gets windowset
@@ -258,12 +302,12 @@ pprWindowSet tg pp = do
         sortWindows = take maxDepth . sortBy (comparing $ depth . W.tag)
     return $ DL.pprWindowSet sortWindows urgents pp' winset
 
--- | Given a prompt configuration and a topic configuration, triggers the action associated with
+-- | Given a prompt configuration and a topic configuration, trigger the action associated with
 -- the topic given in prompt.
 topicActionWithPrompt :: XPConfig -> TopicConfig -> X ()
 topicActionWithPrompt xp tg = workspacePrompt xp (liftA2 (>>) (switchTopic tg) (topicAction tg))
 
--- | Given a configuration and a topic, triggers the action associated with the given topic.
+-- | Given a configuration and a topic, trigger the action associated with the given topic.
 topicAction :: TopicConfig -> Topic -> X ()
 topicAction tg topic = fromMaybe (defaultTopicAction tg topic) $ M.lookup topic $ topicActions tg
 
@@ -282,7 +326,7 @@ switchTopic tg topic = do
   wins <- gets (W.integrate' . W.stack . W.workspace . W.current . windowset)
   when (null wins) $ topicAction tg topic
 
--- | Switch to the Nth last focused topic or failback to the 'defaultTopic'.
+-- | Switch to the Nth last focused topic or fall back to the 'defaultTopic'.
 switchNthLastFocused :: TopicConfig -> Int -> X ()
 switchNthLastFocused = switchNthLastFocusedExclude []
 
@@ -292,19 +336,20 @@ switchNthLastFocusedExclude excludes tc depth = do
   lastWs <- filter (`notElem` excludes) <$> getLastFocusedTopics
   switchTopic tc $ (lastWs ++ repeat (defaultTopic tc)) !! depth
 
--- | Shift the focused window to the Nth last focused topic, or fallback to doing nothing.
+-- | Shift the focused window to the Nth last focused topic, or fall back to doing nothing.
 shiftNthLastFocused :: Int -> X ()
 shiftNthLastFocused n = do
   ws <- fmap (listToMaybe . drop n) getLastFocusedTopics
   whenJust ws $ windows . W.shift
 
--- | Returns the directory associated with current topic returns the empty string otherwise.
+-- | Return the directory associated with the current topic, or return the empty
+-- string if the topic could not be found.
 currentTopicDir :: TopicConfig -> X String
 currentTopicDir tg = do
   topic <- gets (W.tag . W.workspace . W.current . windowset)
   return . fromMaybe "" . M.lookup topic $ topicDirs tg
 
--- | Check the given topic configuration for duplicates topics or undefined topics.
+-- | Check the given topic configuration for duplicate or undefined topics.
 checkTopicConfig :: [Topic] -> TopicConfig -> IO ()
 checkTopicConfig tags tg = do
     -- tags <- gets $ map W.tag . workspaces . windowset
