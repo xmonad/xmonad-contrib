@@ -62,7 +62,6 @@ import qualified XMonad.Layout.BoringWindows as B
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.Map(Map)
-import qualified Data.Set as S
 
 -- $screenshots
 --
@@ -442,16 +441,12 @@ updateWs = windowsMaybe . updateWs'
 
 updateWs' :: Groups Window -> WindowSet -> Maybe WindowSet
 updateWs' gs ws = do
-    f <- W.peek ws
-    let wins = W.index ws
-    let wset = S.fromList wins
-    let gset = S.fromList $ concatMap W.integrate $ M.elems $
-            M.filterWithKey (\k _ -> k `S.member` wset) gs -- M.restrictKeys (ghc 8.2+)
-    st <- W.differentiate . concat $ flip map wins $ \w ->
-        if w `S.member` gset then maybe [] W.integrate (w `M.lookup` gs) else [w]
-    let ws' = W.focusWindow f $ W.modify' (const st) ws
-    guard $ W.index ws' /= W.index ws
-    return ws'
+    w <- W.stack . W.workspace . W.current $ ws
+    let gs' = updateGroup (Just w) gs
+        nes = concatMap W.integrate $ mapMaybe (flip M.lookup gs') $ W.integrate w
+    w' <- focusWindow' (W.focus w) =<< W.differentiate nes
+    guard $ w' /= w
+    return $ W.modify' (const w') ws
 
 -- | focusWindow'. focus an element of a stack, is Nothing if that element is
 -- absent. See also 'W.focusWindow'
