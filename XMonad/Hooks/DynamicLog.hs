@@ -25,7 +25,10 @@ module XMonad.Hooks.DynamicLog (
     -- * Drop-in loggers
     dzen,
     dzenWithFlags,
+    xmobarProp,
     xmobar,
+    statusBarProp,
+    statusBarPropTo,
     statusBar,
     statusBar',
     dynamicLog,
@@ -62,20 +65,23 @@ module XMonad.Hooks.DynamicLog (
 import Codec.Binary.UTF8.String (encodeString)
 import Control.Applicative (liftA2)
 import Control.Monad (msum)
-import Data.Char ( isSpace, ord )
-import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
-import Data.Maybe ( isJust, catMaybes, mapMaybe, fromMaybe )
-import Data.Ord ( comparing )
-import qualified Data.Map as M
+import Data.Char (isSpace, ord)
+import Data.List (intersperse, isPrefixOf, sortBy, stripPrefix)
+import Data.Map (Map)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
+import Data.Ord (comparing)
+
+import qualified Data.Map        as M
 import qualified XMonad.StackSet as S
 
 import Foreign.C (CChar)
 
 import XMonad
 
-import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
+import XMonad.Util.SpawnOnce (spawnOnce)
+import XMonad.Util.WorkspaceCompare
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.UrgencyHook
@@ -201,12 +207,19 @@ dzen conf = dzenWithFlags flags conf
     bg      = "'#3f3c6d'"
     flags   = "-e 'onstart=lower' -dock -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
 
-
--- | Run xmonad with a xmobar status bar set to some nice defaults.
+-- | Run xmonad with a property-based xmobar status bar set to some nice
+-- defaults.
 --
 -- > main = xmonad =<< xmobar myConfig
 -- >
 -- > myConfig = def { ... }
+--
+xmobarProp :: LayoutClass l Window
+           => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+xmobarProp conf = statusBarProp "xmobar" xmobarPP toggleStrutsKey conf
+
+-- | This function works like 'xmobarProp', but uses pipes instead of property
+-- logs.
 --
 -- This works pretty much the same as 'dzen' function above.
 --
@@ -214,9 +227,35 @@ xmobar :: LayoutClass l Window
        => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
 xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
 
--- | Modifies the given base configuration to launch the given status bar,
--- send status information to that bar, and allocate space on the screen edges
--- for the bar.
+-- | Modifies the given base configuration to launch the given status bar, send
+-- status information to that bar (via property logs), and allocate space on the
+-- screen edges for the bar.
+statusBarProp :: LayoutClass l Window
+              => String    -- ^ the command line to launch the status bar
+              -> PP        -- ^ the pretty printing options
+              -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ the desired key binding to toggle bar visibility
+              -> XConfig l -- ^ the base config
+              -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBarProp = statusBarPropTo "_XMONAD_LOG"
+
+-- | Like 'statusBarProp', but one is able to specify the property to be written
+-- to.  This property is of type @UTF8_STRING@. The string must have been
+-- processed by 'encodeString' ('dynamicLogString' does this).
+statusBarPropTo :: LayoutClass l Window
+                => String    -- ^ Property to write the string to
+                -> String    -- ^ the command line to launch the status bar
+                -> PP        -- ^ the pretty printing options
+                -> (XConfig Layout -> (KeyMask, KeySym))
+                             -- ^ the desired key binding to toggle bar visibility
+                -> XConfig l -- ^ the base config
+                -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBarPropTo prop cmd pp =
+    makeStatusBar
+        (xmonadPropLog' prop =<< dynamicLogString pp)
+        (spawnOnce cmd)
+
+-- | Like 'statusBarProp', but uses pipes instead of property logs.
 statusBar :: LayoutClass l Window
           => String    -- ^ the command line to launch the status bar
           -> PP        -- ^ the pretty printing options
@@ -224,10 +263,12 @@ statusBar :: LayoutClass l Window
                        -- ^ the desired key binding to toggle bar visibility
           -> XConfig l -- ^ the base config
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
-statusBar cmd pp = statusBar' cmd (return pp)
+statusBar cmd pp k conf = do
+    h <- spawnPipe cmd
+    makeStatusBar (dynamicLogWithPP pp{ ppOutput = hPutStrLn h }) mempty k conf
 
 -- | Like 'statusBar' with the pretty printing options embedded in the
--- X monad. The X PP value is re-executed every time the 'logHook' runs.
+-- 'X' monad. The X PP value is re-executed every time the 'logHook' runs.
 -- Useful if printing options need to be modified dynamically.
 statusBar' :: LayoutClass l Window
            => String       -- ^ the command line to launch the status bar
@@ -238,15 +279,29 @@ statusBar' :: LayoutClass l Window
            -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar' cmd xpp k conf = do
     h <- spawnPipe cmd
-    return $ docks $ conf
-        { layoutHook = avoidStruts (layoutHook conf)
-        , logHook = do
-                        logHook conf
-                        pp <- xpp
-                        dynamicLogWithPP pp { ppOutput = hPutStrLn h }
-        , keys       = liftA2 M.union keys' (keys conf)
-        }
- where
+    makeStatusBar
+        (xpp >>= \pp -> dynamicLogWithPP pp{ ppOutput = hPutStrLn h })
+        mempty
+        k
+        conf
+
+-- | Helper function to make status bars.  This should not be used on its own;
+-- use 'statusBarProp' or 'statusBar' (or their respective variants) instead.
+makeStatusBar :: LayoutClass l Window
+              => X ()      -- ^ 'logHook' to execute
+              -> X ()      -- ^ 'startupHook' to execute
+              -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ the desired key binding to toggle bar visibility
+              -> XConfig l -- ^ the base config
+              -> IO (XConfig (ModifiedLayout AvoidStruts l))
+makeStatusBar lh sh k conf = pure $ docks $ conf
+    { layoutHook  = avoidStruts (layoutHook conf)
+    , logHook     = logHook conf *> lh
+    , keys        = (<>) <$> keys' <*> keys conf
+    , startupHook = startupHook conf *> sh
+    }
+  where
+    keys' :: XConfig Layout -> Map (KeyMask, KeySym) (X ())
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
 -- | Write a string to a property on the root window.  This property is of
