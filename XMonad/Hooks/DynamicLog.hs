@@ -23,19 +23,19 @@ module XMonad.Hooks.DynamicLog (
     -- $usage
 
     -- * Drop-in loggers
-    dzen,
-    dzenWithFlags,
     xmobarProp,
     xmobar,
     statusBarProp,
     statusBarPropTo,
     statusBar,
     statusBar',
+    dzen,
+    dzenWithFlags,
     dynamicLog,
     dynamicLogXinerama,
 
-    xmonadPropLog',
     xmonadPropLog,
+    xmonadPropLog',
 
     -- * Build your own formatter
     dynamicLogWithPP,
@@ -93,62 +93,160 @@ import XMonad.Hooks.ManageDocks
 -- >    import XMonad
 -- >    import XMonad.Hooks.DynamicLog
 --
--- If you just want a quick-and-dirty status bar with zero effort, try
--- the 'xmobar' or 'dzen' functions:
+-- The recommended way to use this module with xmobar, as well as any other
+-- status bar that supports property logging (you can read more about X11
+-- properties
+-- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
+-- or
+-- [here](https://tronche.com/gui/x/xlib/window-information/properties-and-atoms.html),
+-- although you don't have to understand them in order to use the functions
+-- below), is to use one of the following two functions:
 --
--- > main = xmonad =<< xmobar myConfig
+--   * 'xmobarProp' if you want to use the predefined pretty-printing function
+--     and toggle struts key (@mod-b@).
+--
+--   * 'statusBarProp' if you want to define these things yourself.
+--
+-- These functions are preferred over the other options listed below, as they
+-- take care of all the necessary plumbing—no shell scripting required!
+--
+-- For example, to use the 'xmobarProp' function you could do
+--
+-- > main = xmonad =<< xmobarProp myConfig
 -- >
 -- > myConfig = def { ... }
 --
--- There is also 'statusBar' if you'd like to use another status bar, or would
--- like to use different formatting options.  The 'xmobar', 'dzen', and
--- 'statusBar' functions are preferred over the other options listed below, as
--- they take care of all the necessary plumbing -- no shell scripting required!
+-- With 'statusBarProp', this would look something like the following
 --
--- Alternatively, you can choose among several default status bar formats
--- ('dynamicLog' or 'dynamicLogXinerama') by simply setting your logHook to the
--- appropriate function, for instance:
+-- > main = xmonad =<< statusBarProp "xmobar" myXmobarPP myToggleStrutsKey myConfig
+-- >
+-- > myXmobarPP = def { ... }
+-- > toggleStrutsKey XConfig{ modMask = modm } = (modm, xK_b)
+-- > myConfig = def { ... }
+--
+-- You then have to tell your status bar to read from the @_XMONAD_LOG@ property
+-- of the root window.  In the case of xmobar, this is simply achieved by adding
+-- the @XMonadLog@ plugin to your @.xmobarrc@:
+--
+-- > Config { ...
+-- >        , commands = [ Run XMonadLog, ... ]
+-- >        , template = "%XMonadLog% }{ ..."
+-- >        }
+--
+-- If you don't have an @.xmobarrc@, create it; the @XMonadLog@ plugin is not
+-- part of the default xmobar configuration and you status bar will not show
+-- otherwise!
+--
+-- Because 'statusBarProp' lets you defined your own executable, you can also
+-- give it a different status bar entirely; you only need to make sure that the
+-- status bar supports reading a property string from the root window.
+--
+-- If you don't want to read from the default property, you can specify your own
+-- with the 'statusBarPropTo' function.
+--
+-- If your status bar does not support property-based logging, you may try
+-- 'statusBar' and 'statusBar'', as well as the `xmobar` function, instead.
+-- They can be used in the same way as the 'statusBarProp' and 'xmobarProp'
+-- functions above (for xmobar, you will now have to add the @StdinReader@
+-- plugin to you @.xmobarrc@).  Instead of writing to a property, these
+-- functions open a pipe and make the given status bar read from that pipe.
+-- Please be aware that this kind of setup is very bug-prone and hence is
+-- discouraged.
+--
+-- If you do not want to use any of the "batteries included" functions above,
+-- you can also add all of the necessary plumbing yourself (the definition of
+-- 'statusBarProp' may still come in handy here).
+--
+-- 'xmonadPropLog' allows you to write a string to the @_XMONAD_LOG@ property of
+-- the root window.  Together with 'dynamicLogString', you can now simply set
+-- your logHook to the appropriate function, for instance
 --
 -- > main = xmonad $ def {
 -- >    ...
--- >    logHook = dynamicLog
+-- >    , logHook = xmonadPropLog =<< dynamicLogString myPP
 -- >    ...
--- >  }
+-- >    }
 --
--- For more flexibility, you can also use 'dynamicLogWithPP' and supply
--- your own pretty-printing format (by either defining one from scratch,
--- or customizing one of the provided examples).
--- For example:
+-- If you want to define your own property name, use 'xmonadPropLog'' instead of
+-- 'xmonadPropLog'.
+--
+-- If you just want to use the default pretty-printing format, you can replace
+-- @myPP@ with @def@ in the above logHook.
+--
+-- Note that setting the @logHook@ only sets up xmonad's output; you are
+-- responsible for starting your own status bar program and making sure it reads
+-- from the property that xmonad writes to.  To start your bar, simply put it
+-- into your 'startupHook'.  You will also have also have to add 'docks' and
+-- 'avoidStruts' to your config.  Putting all of this together would look
+-- something like
+--
+-- > import XMonad.Util.SpawnOnce (spawnOnce)
+-- > import XMonad.Hooks.ManageDocks (avoidStruts, docks)
+-- >
+-- > main = do
+-- >     xmonad $ docks $ def {
+-- >       ...
+-- >       , logHook     = xmonadPropLog =<< dynamicLogString myPP
+-- >       , startupHook = spawnOnce "xmobar"
+-- >       , layoutHook  = avoidStruts myLayout
+-- >       ...
+-- >       }
+-- > myPP = def { ... }
+-- > myLayout = ...
+--
+-- If you want a keybinding to toggle your bar, you will also need to add this
+-- to the rest of your keybindings.
+--
+-- The above has the problem that xmobar will not get restarted whenever you
+-- restart xmonad ('XMonad.Util.SpawnOnce.spawnOnce' will simply prevent your
+-- chosen status bar from spawning again).  On the other hand, 'statusBarProp'
+-- handles this case correctly, so think carefully if you really need this extra
+-- flexibility.
+--
+-- Even if you don't use a statusbar, you can still use 'dynamicLogString' to
+-- show on-screen notifications in response to some events. For example, to show
+-- the current layout when it changes, you could make a keybinding to cycle the
+-- layout and display the current status:
+--
+-- > ((mod1Mask, xK_a), sendMessage NextLayout >> (dynamicLogString myPP >>= \d->spawn $"xmessage "++d))
+--
+-- If you use a status bar that does not support reading from a property log
+-- (like dzen), and you don't want to use the 'statusBar' or 'statusBar''
+-- functions, you can, again, also manually add all of the required components.
+--
+-- This works much like the property based solution above, just that you will
+-- want to use 'dynamicLog' or 'dynamicLogXinerama' in place of 'xmonadPropLog'.
+--
+-- > main = xmonad $ def {
+-- >    ...
+-- >    , logHook = dynamicLog
+-- >    ...
+-- >    }
+--
+-- For more flexibility, you can also use 'dynamicLogWithPP' and supply your own
+-- pretty-printing format (by either defining one from scratch, or customizing
+-- one of the provided examples).  For example:
 --
 -- >    -- use sjanssen's pretty-printer format, but with the sections
 -- >    -- in reverse
 -- >    logHook = dynamicLogWithPP $ sjanssenPP { ppOrder = reverse }
 --
--- Note that setting the @logHook@ only sets up xmonad's output; you
--- are responsible for starting your own status bar program (e.g. dzen
--- or xmobar) and making sure xmonad's output is piped into it
--- appropriately, either by putting it in your @.xsession@ or similar
--- file, or by using @spawnPipe@ in your @main@ function, for example:
+-- Again, you will have to do all the necessary plumbing yourself.  In addition,
+-- you are also responsible for creating a pipe for you status bar to read from:
 --
--- > import XMonad.Util.Run   -- for spawnPipe and hPutStrLn
+-- > import XMonad.Util.Run (hPutStrLn, spawnPipe)
 -- >
 -- > main = do
--- >     h <- spawnPipe "xmobar -options -foo -bar"
+-- >     h <- spawnPipe "dzen2 -options -foo -bar"
 -- >     xmonad $ def {
 -- >       ...
--- >       logHook = dynamicLogWithPP $ def { ppOutput = hPutStrLn h }
+-- >       , logHook = dynamicLogWithPP $ def { ppOutput = hPutStrLn h }
+-- >       ...
+-- >       }
 --
--- If you use @spawnPipe@, be sure to redefine the 'ppOutput' field of
--- your pretty-printer as in the example above; by default the status
--- will be printed to stdout rather than the pipe you create.
---
--- Even if you don't use a statusbar, you can still use
--- 'dynamicLogString' to show on-screen notifications in response to
--- some events. For example, to show the current layout when it
--- changes, you could make a keybinding to cycle the layout and
--- display the current status:
---
--- >    , ((mod1Mask, xK_a     ), sendMessage NextLayout >> (dynamicLogString myPP >>= \d->spawn $"xmessage "++d))
+-- In the above, note that if you use @spawnPipe@ you need to redefine the
+-- 'ppOutput' field of your pretty-printer, as was done in the example above; by
+-- default the status will be printed to stdout rather than the pipe you create.
 --
 
 -- $todo
@@ -168,21 +266,17 @@ import XMonad.Hooks.ManageDocks
 -- >
 -- > flags = "-e onstart lower -w 800 -h 24 -ta l -fg #a8a3f7 -bg #3f3c6d"
 --
--- This function can be used to customize the arguments passed to dzen2.
--- e.g changing the default width and height of dzen2.
---
--- If you wish to customize the status bar format at all, you'll have to
--- use the 'statusBar' function instead.
---
--- The binding uses the XMonad.Hooks.ManageDocks module to automatically
--- handle screen placement for dzen, and enables 'mod-b' for toggling
--- the menu bar.
+-- This function works much in the same way as the 'dzen' function, only that it
+-- can also be used to customize the arguments passed to dzen2, e.g changing the
+-- default width and height of dzen2.
 --
 -- You should use this function only when the default 'dzen' function does not
 -- serve your purpose.
 --
 dzenWithFlags :: LayoutClass l Window
-    => String -> XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+              => String     -- ^ Flags to give to @dzen@
+              -> XConfig l  -- ^ The base config
+              -> IO (XConfig (ModifiedLayout AvoidStruts l))
 dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
 
 -- | Run xmonad with a dzen status bar set to some nice defaults.
@@ -191,16 +285,11 @@ dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey 
 -- >
 -- > myConfig = def { ... }
 --
--- The intent is that the above config file should provide a nice
--- status bar with minimal effort.
---
--- The binding uses the XMonad.Hooks.ManageDocks module to automatically
--- handle screen placement for dzen, and enables 'mod-b' for toggling
--- the menu bar. Please refer to 'dzenWithFlags' function for further
--- documentation.
+-- This works pretty much the same as the 'xmobar' function.
 --
 dzen :: LayoutClass l Window
-     => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+     => XConfig l  -- ^ The base config
+     -> IO (XConfig (ModifiedLayout AvoidStruts l))
 dzen conf = dzenWithFlags flags conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
@@ -210,32 +299,41 @@ dzen conf = dzenWithFlags flags conf
 -- | Run xmonad with a property-based xmobar status bar set to some nice
 -- defaults.
 --
--- > main = xmonad =<< xmobar myConfig
+-- > main = xmonad =<< xmobarProp myConfig
 -- >
 -- > myConfig = def { ... }
 --
+-- The intent is that the above config file should provide a nice
+-- status bar with minimal effort.
+--
+-- If you wish to customize the status bar format at all, you'll have to
+-- use the 'statusBarProp' function instead.
+--
+-- The binding uses the "XMonad.Hooks.ManageDocks" module to automatically
+-- handle screen placement for xmobar, and enables 'mod-b' for toggling
+-- the menu bar.
+--
 xmobarProp :: LayoutClass l Window
-           => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+           => XConfig l  -- ^ The base config
+           -> IO (XConfig (ModifiedLayout AvoidStruts l))
 xmobarProp conf = statusBarProp "xmobar" xmobarPP toggleStrutsKey conf
 
--- | This function works like 'xmobarProp', but uses pipes instead of property
--- logs.
---
--- This works pretty much the same as 'dzen' function above.
---
+-- | This function works like 'xmobarProp', but uses pipes instead of
+-- property-based logging.
 xmobar :: LayoutClass l Window
-       => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+       => XConfig l  -- ^ The base config
+       -> IO (XConfig (ModifiedLayout AvoidStruts l))
 xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
 
--- | Modifies the given base configuration to launch the given status bar, send
--- status information to that bar (via property logs), and allocate space on the
--- screen edges for the bar.
+-- | Modifies the given base configuration to launch the given status bar, write
+-- status information to a property for the bar to read, and allocate space on
+-- the screen edges for the bar.
 statusBarProp :: LayoutClass l Window
-              => String    -- ^ the command line to launch the status bar
-              -> PP        -- ^ the pretty printing options
+              => String    -- ^ The command line to launch the status bar
+              -> PP        -- ^ The pretty printing options
               -> (XConfig Layout -> (KeyMask, KeySym))
-                           -- ^ the desired key binding to toggle bar visibility
-              -> XConfig l -- ^ the base config
+                           -- ^ The desired key binding to toggle bar visibility
+              -> XConfig l -- ^ The base config
               -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBarProp = statusBarPropTo "_XMONAD_LOG"
 
@@ -244,38 +342,40 @@ statusBarProp = statusBarPropTo "_XMONAD_LOG"
 -- processed by 'encodeString' ('dynamicLogString' does this).
 statusBarPropTo :: LayoutClass l Window
                 => String    -- ^ Property to write the string to
-                -> String    -- ^ the command line to launch the status bar
-                -> PP        -- ^ the pretty printing options
+                -> String    -- ^ The command line to launch the status bar
+                -> PP        -- ^ The pretty printing options
                 -> (XConfig Layout -> (KeyMask, KeySym))
-                             -- ^ the desired key binding to toggle bar visibility
-                -> XConfig l -- ^ the base config
+                             -- ^ The desired key binding to toggle bar visibility
+                -> XConfig l -- ^ The base config
                 -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBarPropTo prop cmd pp =
     makeStatusBar
         (xmonadPropLog' prop =<< dynamicLogString pp)
         (spawnOnce cmd)
 
--- | Like 'statusBarProp', but uses pipes instead of property logs.
+-- | Like 'statusBarProp', but uses pipes instead of property-based logging.
+-- Only use this function if your status bar does not support reading from a
+-- property of the root window.
 statusBar :: LayoutClass l Window
-          => String    -- ^ the command line to launch the status bar
-          -> PP        -- ^ the pretty printing options
+          => String    -- ^ The command line to launch the status bar
+          -> PP        -- ^ The pretty printing options
           -> (XConfig Layout -> (KeyMask, KeySym))
-                       -- ^ the desired key binding to toggle bar visibility
-          -> XConfig l -- ^ the base config
+                       -- ^ The desired key binding to toggle bar visibility
+          -> XConfig l -- ^ The base config
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar cmd pp k conf = do
     h <- spawnPipe cmd
     makeStatusBar (dynamicLogWithPP pp{ ppOutput = hPutStrLn h }) mempty k conf
 
 -- | Like 'statusBar' with the pretty printing options embedded in the
--- 'X' monad. The X PP value is re-executed every time the 'logHook' runs.
+-- 'X' monad. The @X PP@ value is re-executed every time the logHook runs.
 -- Useful if printing options need to be modified dynamically.
 statusBar' :: LayoutClass l Window
-           => String       -- ^ the command line to launch the status bar
-           -> X PP         -- ^ the pretty printing options
+           => String       -- ^ The command line to launch the status bar
+           -> X PP         -- ^ The pretty printing options
            -> (XConfig Layout -> (KeyMask, KeySym))
-                           -- ^ the desired key binding to toggle bar visibility
-           -> XConfig l    -- ^ the base config
+                           -- ^ The desired key binding to toggle bar visibility
+           -> XConfig l    -- ^ The base config
            -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar' cmd xpp k conf = do
     h <- spawnPipe cmd
@@ -291,8 +391,8 @@ makeStatusBar :: LayoutClass l Window
               => X ()      -- ^ 'logHook' to execute
               -> X ()      -- ^ 'startupHook' to execute
               -> (XConfig Layout -> (KeyMask, KeySym))
-                           -- ^ the desired key binding to toggle bar visibility
-              -> XConfig l -- ^ the base config
+                           -- ^ The desired key binding to toggle bar visibility
+              -> XConfig l -- ^ The base config
               -> IO (XConfig (ModifiedLayout AvoidStruts l))
 makeStatusBar lh sh k conf = pure $ docks $ conf
     { layoutHook  = avoidStruts (layoutHook conf)
@@ -304,10 +404,12 @@ makeStatusBar lh sh k conf = pure $ docks $ conf
     keys' :: XConfig Layout -> Map (KeyMask, KeySym) (X ())
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
--- | Write a string to a property on the root window.  This property is of
--- type UTF8_STRING. The string must have been processed by encodeString
--- (dynamicLogString does this).
-xmonadPropLog' :: String -> String -> X ()
+-- | Write a string to a property on the root window.  This property is of type
+-- @UTF8_STRING@. The string must have been processed by 'encodeString'
+-- ('dynamicLogString' does this).
+xmonadPropLog' :: String  -- ^ Property name
+               -> String  -- ^ Message to be written to the property
+               -> X ()
 xmonadPropLog' prop msg = do
     d <- asks display
     r <- asks theRoot
@@ -318,7 +420,7 @@ xmonadPropLog' prop msg = do
     encodeCChar :: String -> [CChar]
     encodeCChar = map (fromIntegral . ord)
 
--- | Write a string to the _XMONAD_LOG property on the root window.
+-- | Write a string to the @_XMONAD_LOG@ property on the root window.
 xmonadPropLog :: String -> X ()
 xmonadPropLog = xmonadPropLog' "_XMONAD_LOG"
 
