@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TopicSpace
@@ -56,12 +55,16 @@ import qualified XMonad.StackSet as W
 import XMonad.Prompt
 import XMonad.Prompt.Workspace
 
-import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.DynamicLog (PP(..))
 import qualified XMonad.Hooks.DynamicLog as DL
+import XMonad.Hooks.DynamicLog (PP(ppHidden, ppVisible))
+import XMonad.Hooks.UrgencyHook (readUrgents)
+import XMonad.Hooks.WorkspaceHistory
+    ( workspaceHistory
+    , workspaceHistoryByScreen
+    , workspaceHistoryModify
+    )
 
 import XMonad.Util.Run (spawnPipe)
-import qualified XMonad.Util.ExtensibleState as XS
 
 -- $overview
 -- This module allows to organize your workspaces on a precise topic basis.  So
@@ -261,29 +264,23 @@ instance Default TopicConfig where
                                , maxTopicHistory = 10
                                }
 
-newtype PrevTopics = PrevTopics { getPrevTopics :: [String] } deriving (Read,Show,Typeable)
-instance ExtensionClass PrevTopics where
-  initialValue  = PrevTopics []
-  extensionType = PersistentExtension
-
 -- | Return the (possibly empty) list of last focused topics.
-getLastFocusedTopics :: X [String]
-getLastFocusedTopics = XS.gets getPrevTopics
+getLastFocusedTopics :: X [WorkspaceId]
+getLastFocusedTopics = workspaceHistory
 
 -- | Given a 'TopicConfig', a topic, and a predicate to select topics that one
 -- wants to keep, this function will cons the topic in front of the list of
 -- last focused topics and filter it according to the predicate.  Note that we
 -- prune the list in case that its length exceeds 'maxTopicHistory'.
 setLastFocusedTopic :: TopicConfig -> Topic -> (Topic -> Bool) -> X ()
-setLastFocusedTopic tc w predicate =
-  XS.modify $ PrevTopics
-            . take (maxTopicHistory tc)
-            . nub . filter predicate . (w :) . getPrevTopics
+setLastFocusedTopic tc w predicate = do
+  sid <- gets $ W.screen . W.current . windowset
+  workspaceHistoryModify $
+    take (maxTopicHistory tc) . nub . filter (predicate . snd) . ((sid, w) :)
 
 -- | Reverse the list of "last focused topics"
 reverseLastFocusedTopics :: X ()
-reverseLastFocusedTopics =
-  XS.modify $ PrevTopics . reverse . getPrevTopics
+reverseLastFocusedTopics = workspaceHistoryModify reverse
 
 -- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
 -- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
