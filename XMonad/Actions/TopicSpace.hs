@@ -18,22 +18,40 @@ module XMonad.Actions.TopicSpace
 
   -- * Usage
   -- $usage
-   Topic
+
+  -- * Types for Building Topics
+    Topic
   , Dir
   , TopicConfig(..)
+
+    -- * Default Topic Config
   , def
-  , getLastFocusedTopics
-  , setLastFocusedTopic
-  , reverseLastFocusedTopics
-  , pprWindowSet
-  , topicActionWithPrompt
-  , topicAction
-  , currentTopicAction
+
+    -- * Switching and Shifting Topics
   , switchTopic
   , switchTopicWith
   , switchNthLastFocused
+  , switchNthLastFocusedByScreen
   , switchNthLastFocusedExclude
   , shiftNthLastFocused
+
+    -- * Topic Actions
+  , topicActionWithPrompt
+  , topicAction
+  , currentTopicAction
+
+    -- * Getting the Topic History
+  , getLastFocusedTopics
+  , getLastFocusedTopicsByScreen
+
+    -- * Modifying the Topic History
+  , setLastFocusedTopic
+  , reverseLastFocusedTopics
+
+    -- * Pretty Printing
+  , pprWindowSet
+
+    -- * Utility
   , currentTopicDir
   , checkTopicConfig
   , (>*>)
@@ -42,20 +60,19 @@ where
 
 import XMonad
 
-import Data.List
-import Data.Maybe (fromMaybe, isNothing, listToMaybe, fromJust)
-import Data.Ord
-import qualified Data.Map as M
-import Control.Applicative (liftA2)
-import Control.Monad (when,unless,replicateM_)
-import System.IO
-
-import qualified XMonad.StackSet as W
-
-import XMonad.Prompt
-import XMonad.Prompt.Workspace
-
+import qualified Data.Map                as M
 import qualified XMonad.Hooks.DynamicLog as DL
+import qualified XMonad.StackSet         as W
+
+import Control.Applicative (liftA2)
+import Control.Monad (replicateM_, unless, when)
+import Data.List ((\\), elemIndex, nub, sort, sortOn)
+import Data.Maybe (fromJust, fromMaybe, isNothing, listToMaybe)
+import System.IO (hClose, hPutStr)
+
+import XMonad.Prompt (XPConfig)
+import XMonad.Prompt.Workspace (workspacePrompt)
+
 import XMonad.Hooks.DynamicLog (PP(ppHidden, ppVisible))
 import XMonad.Hooks.UrgencyHook (readUrgents)
 import XMonad.Hooks.WorkspaceHistory
@@ -237,23 +254,23 @@ infix >*>
 -- | 'Topic' is just an alias for 'WorkspaceId'
 type Topic = WorkspaceId
 
--- | 'Dir' is just an alias for 'FilePath' but should point to a directory.
+-- | 'Dir' is just an alias for 'FilePath', but should point to a directory.
 type Dir = FilePath
 
 -- | Here is the topic space configuration area.
 data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
-                                 -- ^ This mapping associate a directory to each topic.
+                                 -- ^ This mapping associates a directory to each topic.
                                , topicActions       :: M.Map Topic (X ())
-                                 -- ^ This mapping associate an action to trigger when
+                                 -- ^ This mapping associates an action to trigger when
                                  -- switching to a given topic which workspace is empty.
                                , defaultTopicAction :: Topic -> X ()
                                  -- ^ This is the default topic action.
                                , defaultTopic       :: Topic
                                  -- ^ This is the default (= fallback) topic.
                                , maxTopicHistory    :: Int
-                                 -- ^ This setups the maximum depth of topic history, usually
-                                 -- 10 is a good default since we can bind all of them using
-                                 -- numeric keypad.
+                                 -- ^ This specifies the maximum depth of the topic history;
+                                 -- usually 10 is a good default since we can bind all of
+                                 -- them using numeric keypad.
                                }
 
 instance Default TopicConfig where
@@ -265,8 +282,12 @@ instance Default TopicConfig where
                                }
 
 -- | Return the (possibly empty) list of last focused topics.
-getLastFocusedTopics :: X [WorkspaceId]
+getLastFocusedTopics :: X [Topic]
 getLastFocusedTopics = workspaceHistory
+
+-- | Like 'getLastFocusedTopics', but group the topics by their screen-id's.
+getLastFocusedTopicsByScreen :: X [(ScreenId, [Topic])]
+getLastFocusedTopicsByScreen = workspaceHistoryByScreen
 
 -- | Given a 'TopicConfig', a topic, and a predicate to select topics that one
 -- wants to keep, this function will cons the topic in front of the list of
@@ -340,6 +361,24 @@ switchNthLastFocusedExclude excludes tc depth = do
   lastWs <- filter (`notElem` excludes) <$> getLastFocusedTopics
   switchTopic tc $ (lastWs ++ repeat (defaultTopic tc)) !! depth
 
+-- | Like 'switchNthLastFocused', but only consider topics that used to
+-- be on the current screen.
+--
+-- For example, the following function allows one to toggle between the
+-- currently focused and the last used topic, while treating different
+-- screens completely independently from one another.
+--
+-- > toggleTopicScreen = switchNthLastFocusedByScreen myTopicConfig 1
+switchNthLastFocusedByScreen :: TopicConfig -> Int -> X ()
+switchNthLastFocusedByScreen tc depth = do
+  sid <- gets $ W.screen . W.current . windowset
+  sws <- fromMaybe []
+       . listToMaybe
+       . map snd
+       . filter ((== sid) . fst)
+     <$> getLastFocusedTopicsByScreen
+  switchTopic tc $ (sws ++ repeat (defaultTopic tc)) !! depth
+
 -- | Shift the focused window to the Nth last focused topic, or fall back to doing nothing.
 shiftNthLastFocused :: Int -> X ()
 shiftNthLastFocused n = do
@@ -348,7 +387,7 @@ shiftNthLastFocused n = do
 
 -- | Return the directory associated with the current topic, or return the empty
 -- string if the topic could not be found.
-currentTopicDir :: TopicConfig -> X String
+currentTopicDir :: TopicConfig -> X FilePath
 currentTopicDir tg = do
   topic <- gets (W.tag . W.workspace . W.current . windowset)
   return . fromMaybe "" . M.lookup topic $ topicDirs tg
