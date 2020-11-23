@@ -190,7 +190,6 @@ library
                         XMonad.Hooks.FadeWindows
                         XMonad.Hooks.FloatNext
                         XMonad.Hooks.Focus
-                        XMonad.Hooks.ICCCMFocus
                         XMonad.Hooks.InsertPosition
                         XMonad.Hooks.ManageDebug
                         XMonad.Hooks.ManageDocks
