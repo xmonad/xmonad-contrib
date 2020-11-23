@@ -200,7 +200,6 @@ library
                         XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RefocusLast
                         XMonad.Hooks.Rescreen
-                        XMonad.Hooks.RestoreMinimized
                         XMonad.Hooks.ScreenCorners
                         XMonad.Hooks.Script
                         XMonad.Hooks.ServerMode
