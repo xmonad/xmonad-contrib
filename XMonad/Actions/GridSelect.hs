@@ -28,7 +28,6 @@ module XMonad.Actions.GridSelect (
     -- * Configuration
     GSConfig(..),
     def,
-    defaultGSConfig,
     TwoDPosition,
     buildDefaultGSConfig,
 
@@ -107,13 +106,13 @@ import Data.Word (Word8)
 --
 -- Then add a keybinding, e.g.
 --
--- >    , ((modm, xK_g), goToSelected defaultGSConfig)
+-- >    , ((modm, xK_g), goToSelected def)
 --
 -- This module also supports displaying arbitrary information in a grid and letting
 -- the user select from it. E.g. to spawn an application from a given list, you
 -- can use the following:
 --
--- >   , ((modm, xK_s), spawnSelected defaultGSConfig ["xterm","gmplayer","gvim"])
+-- >   , ((modm, xK_s), spawnSelected def ["xterm","gmplayer","gvim"])
 
 -- $commonGSConfig
 --
@@ -123,7 +122,7 @@ import Data.Word (Word8)
 -- > {-# LANGUAGE NoMonomorphismRestriction #-}
 -- > import XMonad
 -- > ...
--- > gsconfig1 = defaultGSConfig { gs_cellheight = 30, gs_cellwidth = 100 }
+-- > gsconfig1 = def { gs_cellheight = 30, gs_cellwidth = 100 }
 --
 -- An example where 'buildDefaultGSConfig' is used instead of 'defaultGSConfig'
 -- in order to specify a custom colorizer is @gsconfig2@ (found in
@@ -229,10 +228,6 @@ instance HasColorizer a where
 
 instance HasColorizer a => Default (GSConfig a) where
     def = buildDefaultGSConfig defaultColorizer
-
-{-# DEPRECATED defaultGSConfig "Use def (from Data.Default, and re-exported from XMonad.Actions.GridSelect) instead." #-}
-defaultGSConfig :: HasColorizer a => GSConfig a
-defaultGSConfig = def
 
 type TwoDPosition = (Integer, Integer)
 
@@ -770,7 +765,7 @@ gridselectWorkspace' conf func = withWindowSet $ \ws -> do
 --
 -- > import XMonad.Actions.DynamicWorkspaces (addWorkspace)
 -- >
--- > gridselectWorkspace' defaultGSConfig
+-- > gridselectWorkspace' def
 -- >                          { gs_navigate   = navNSearch
 -- >                          , gs_rearranger = searchStringRearrangerGenerator id
 -- >                          }

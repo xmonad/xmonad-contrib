@@ -41,8 +41,8 @@ import qualified Data.Map as Map
 -- > 
 -- > -- LogHook
 -- > logHook' = do
--- >     mh <- getNamedPipeHandle "dzenPipe" 
--- >         dynamicLogWithPP $ defaultPP {
+-- >     mh <- getNamedPipeHandle "dzenPipe"
+-- >         dynamicLogWithPP $ def {
 -- >             ppOutput = maybe (\s -> return ()) (hPutStrLn) mh}
 -- >
 -- > -- Main

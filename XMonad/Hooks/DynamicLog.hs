@@ -37,7 +37,7 @@ module XMonad.Hooks.DynamicLog (
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
-    PP(..), defaultPP, def,
+    PP(..), def,
 
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
@@ -566,10 +566,6 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              }
 
 -- | The default pretty printing options, as seen in 'dynamicLog'.
-{-# DEPRECATED defaultPP "Use def (from Data.Default, and re-exported by XMonad.Hooks.DynamicLog) instead." #-}
-defaultPP :: PP
-defaultPP = def
-
 instance Default PP where
     def   = PP { ppCurrent         = wrap "[" "]"
                , ppVisible         = wrap "<" ">"

@@ -16,7 +16,7 @@ module XMonad.Layout.TabBarDecoration
     ( -- * Usage
       -- $usage
       simpleTabBar, tabBar
-    , def, defaultTheme, shrinkText
+    , def, shrinkText
     , TabBarDecoration (..), XPPosition (..)
     , module XMonad.Layout.ResizeScreen
     ) where

@@ -82,7 +82,7 @@ module XMonad.Layout.DecorationMadness
     , floatDwmStyle
     , floatSimpleTabbed
     , floatTabbed
-    , def, defaultTheme, shrinkText
+    , def, shrinkText
     ) where
 
 import XMonad
