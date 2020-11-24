@@ -13,7 +13,7 @@
 -- 'sinkAll' function for backwards compatibility.
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.SinkAll (
+module XMonad.Actions.SinkAll {-# DEPRECATED "Use XMonad.Actions.WithAll instead" #-} (
     -- * Usage
     -- $usage
 
