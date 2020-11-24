@@ -16,7 +16,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.Named
+module XMonad.Layout.Named {-# DEPRECATED "Use XMonad.Layout.Renamed instead" #-}
     ( -- * Usage
       -- $usage
       named,

@@ -41,7 +41,6 @@ import XMonad.Layout.Groups.Examples
 import XMonad.Layout.Groups.Helpers
 
 import XMonad.Layout.Tabbed
-import XMonad.Layout.Named
 import XMonad.Layout.Renamed
 import XMonad.Layout.MessageControl
 import XMonad.Layout.Simplest
@@ -90,8 +89,8 @@ import XMonad.Layout.Simplest
 
 -- | A layout inspired by wmii
 wmii s t = G.group innerLayout zoomRowG
-    where column = named "Column" $ Tall 0 (3/100) (1/2)
-          tabs = named "Tabs" Simplest
+    where column = renamed [Replace "Column"] $ Tall 0 (3/100) (1/2)
+          tabs = renamed [Replace "Tabs"] Simplest
           innerLayout = renamed [CutWordsLeft 3]
                         $ addTabs s t
                         $ ignore NextLayout
