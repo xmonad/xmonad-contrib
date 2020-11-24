@@ -857,7 +857,7 @@ For more information on using those modules for customizing your
         Some convenient common instances of the Transformer class, for use with "XMonad.Layout.MultiToggle".
 
 * "XMonad.Layout.Named":
-    A module for assigning a name to a given layout.
+    (Deprecated) A module for assigning a name to a given layout.
 
 * "XMonad.Layout.NoBorders":
     Make a given layout display without borders.  This is useful for
