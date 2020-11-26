@@ -68,12 +68,12 @@ myXPConfig = def
 --
 -- Use the `xprop' tool to get the info you need for these matches.
 -- For className, use the second value that xprop gives you.
-myManageHook = composeAll
-  [ className =? "Pidgin" --> doFloat
-  , className =? "XCalc"  --> doFloat
-  , className =? "mpv"    --> doFloat
-  ] <+> composeOne
+myManageHook = composeOne
   -- Handle floating windows:
   [ transience            -- move transient windows to their parent
   , isDialog              -?> doCenterFloat
+  ] <+> composeAll
+  [ className =? "Pidgin" --> doFloat
+  , className =? "XCalc"  --> doFloat
+  , className =? "mpv"    --> doFloat
   ]
