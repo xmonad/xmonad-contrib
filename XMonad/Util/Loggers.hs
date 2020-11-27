@@ -115,9 +115,9 @@ aumixVolume = logCmd "aumix -vq"
 -- | Get the battery status (percent charge and charging\/discharging
 --   status). This is an ugly hack and may not work for some people.
 --   At some point it would be nice to make this more general\/have
---   fewer dependencies (assumes @\/usr\/bin\/acpi@ and @sed@ are installed.)
+--   fewer dependencies (assumes @acpi@ and @sed@ are installed.)
 battery :: Logger
-battery = logCmd "/usr/bin/acpi | sed -r 's/.*?: (.*%).*/\\1/; s/[dD]ischarging, ([0-9]+%)/\\1-/; s/[cC]harging, ([0-9]+%)/\\1+/; s/[cC]harged, //'"
+battery = logCmd "acpi | sed -r 's/.*?: (.*%).*/\\1/; s/[dD]ischarging, ([0-9]+%)/\\1-/; s/[cC]harging, ([0-9]+%)/\\1+/; s/[cC]harged, //'"
 
 -- | Get the current date and time, and format them via the
 --   given format string.  The format used is the same as that used
@@ -130,11 +130,11 @@ date fmt = io $ do cal <- (getClockTime >>= toCalendarTime)
                    return . Just $ formatCalendarTime defaultTimeLocale fmt cal
 
 -- | Get the load average.  This assumes that you have a
---   utility called @\/usr\/bin\/uptime@ and that you have @sed@
+--   utility called @uptime@ and that you have @sed@
 --   installed; these are fairly common on GNU\/Linux systems but it
 --   would be nice to make this more general.
 loadAvg :: Logger
-loadAvg = logCmd "/usr/bin/uptime | sed 's/.*: //; s/,//g'"
+loadAvg = logCmd "uptime | sed 's/.*: //; s/,//g'"
 
 -- | Create a 'Logger' from an arbitrary shell command.
 logCmd :: String -> Logger
