@@ -54,7 +54,7 @@ import XMonad.Hooks.DynamicLog
 -- to specific workspace names.  In the default configuration, only
 -- the keybindings for changing workspace do this:
 --
--- > keyBindings conf = let m = modMask conf in fromList $
+-- > keyBindings conf = let modm = modMask conf in fromList $
 -- >     {- lots of other keybindings -}
 -- >     [((m .|. modm, k), windows $ f i)
 -- >         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
@@ -62,7 +62,7 @@ import XMonad.Hooks.DynamicLog
 --
 -- This should change to
 --
--- > keyBindings conf = let m = modMask conf in fromList $
+-- > keyBindings conf = let modm = modMask conf in fromList $
 -- >     {- lots of other keybindings -}
 -- >     [((m .|. modm, k), windows $ onCurrentScreen f i)
 -- >         | (i, k) <- zip (workspaces' conf) [xK_1 .. xK_9]
