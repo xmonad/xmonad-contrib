@@ -83,6 +83,11 @@ You can of course use an anonymous action, like so:
 If the prefix key is followed by a binding which is unknown to XMonad,
 the prefix along with that binding is sent to the active window.
 
+There is one caveat: when you use an application which has a nested
+C-u binding, for example C-c C-u in Emacs org-mode, you have to hit
+C-g (or any other non-recognized key really) to get out of the "xmonad
+grab" and let the C-c C-u be sent to the application.
+
 -}
 
 {- $installation
