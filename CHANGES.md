@@ -248,6 +248,9 @@
 
   * `XMonad.Util.EZConfig`
     - Added support for XF86Bluetooth.
+    
+  * `XMonad.Util.Loggers`
+    - Make `battery` and `loadAvg` distro-independent.
 
   * `XMonad.Hooks.DynamicLog`
     - Added `xmobarBorder` function to create borders around strings.
