@@ -46,6 +46,12 @@
 
 ### New Modules
 
+  * `XMonad.Util.ActionCycle`
+
+    A module providing a simple way to implement "cycling" `X` actions,
+    useful for things like alternating toggle-style keybindings.
+
+
   * `XMonad.Actions.RotateSome`
 
     Functions for rotating some elements around the stack while keeping others
