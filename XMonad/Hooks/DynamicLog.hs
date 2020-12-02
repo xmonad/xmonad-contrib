@@ -24,8 +24,10 @@ module XMonad.Hooks.DynamicLog (
 
     -- * Drop-in loggers
     dzen,
+    dzenWithFlags,
     xmobar,
     statusBar,
+    statusBar',
     dynamicLog,
     dynamicLogXinerama,
 
@@ -35,15 +37,15 @@ module XMonad.Hooks.DynamicLog (
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
-    PP(..), defaultPP, def,
+    PP(..), def,
 
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
     -- * Formatting utilities
-    wrap, pad, trim, shorten,
-    xmobarColor, xmobarStrip,
-    xmobarStripTags,
+    wrap, pad, trim, shorten, shortenLeft,
+    xmobarColor, xmobarAction, xmobarBorder,
+    xmobarRaw, xmobarStrip, xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip,
 
     -- * Internal formatting functions
@@ -58,10 +60,11 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 
 import Codec.Binary.UTF8.String (encodeString)
-import Control.Monad (liftM2, msum)
+import Control.Applicative (liftA2)
+import Control.Monad (msum)
 import Data.Char ( isSpace, ord )
 import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
-import Data.Maybe ( isJust, catMaybes, mapMaybe )
+import Data.Maybe ( isJust, catMaybes, mapMaybe, fromMaybe )
 import Data.Ord ( comparing )
 import qualified Data.Map as M
 import qualified XMonad.StackSet as S
@@ -150,6 +153,32 @@ import XMonad.Hooks.ManageDocks
 
 ------------------------------------------------------------------------
 
+-- | Run xmonad with a dzen status bar with specified dzen
+--   command line arguments.
+--
+-- > main = xmonad =<< dzenWithFlags flags myConfig
+-- >
+-- > myConfig = def { ... }
+-- >
+-- > flags = "-e onstart lower -w 800 -h 24 -ta l -fg #a8a3f7 -bg #3f3c6d"
+--
+-- This function can be used to customize the arguments passed to dzen2.
+-- e.g changing the default width and height of dzen2.
+--
+-- If you wish to customize the status bar format at all, you'll have to
+-- use the 'statusBar' function instead.
+--
+-- The binding uses the XMonad.Hooks.ManageDocks module to automatically
+-- handle screen placement for dzen, and enables 'mod-b' for toggling
+-- the menu bar.
+--
+-- You should use this function only when the default 'dzen' function does not
+-- serve your purpose.
+--
+dzenWithFlags :: LayoutClass l Window
+    => String -> XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
+dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
 -- > main = xmonad =<< dzen myConfig
@@ -159,16 +188,14 @@ import XMonad.Hooks.ManageDocks
 -- The intent is that the above config file should provide a nice
 -- status bar with minimal effort.
 --
--- If you wish to customize the status bar format at all, you'll have to
--- use the 'statusBar' function instead.
---
 -- The binding uses the XMonad.Hooks.ManageDocks module to automatically
 -- handle screen placement for dzen, and enables 'mod-b' for toggling
--- the menu bar.
+-- the menu bar. Please refer to 'dzenWithFlags' function for further
+-- documentation.
 --
 dzen :: LayoutClass l Window
      => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+dzen conf = dzenWithFlags flags conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
@@ -197,14 +224,27 @@ statusBar :: LayoutClass l Window
                        -- ^ the desired key binding to toggle bar visibility
           -> XConfig l -- ^ the base config
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
-statusBar cmd pp k conf = do
+statusBar cmd pp = statusBar' cmd (return pp)
+
+-- | Like 'statusBar' with the pretty printing options embedded in the
+-- X monad. The X PP value is re-executed every time the 'logHook' runs.
+-- Useful if printing options need to be modified dynamically.
+statusBar' :: LayoutClass l Window
+           => String       -- ^ the command line to launch the status bar
+           -> X PP         -- ^ the pretty printing options
+           -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ the desired key binding to toggle bar visibility
+           -> XConfig l    -- ^ the base config
+           -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBar' cmd xpp k conf = do
     h <- spawnPipe cmd
     return $ docks $ conf
         { layoutHook = avoidStruts (layoutHook conf)
         , logHook = do
                         logHook conf
+                        pp <- xpp
                         dynamicLogWithPP pp { ppOutput = hPutStrLn h }
-        , keys       = liftM2 M.union keys' (keys conf)
+        , keys       = liftA2 M.union keys' (keys conf)
         }
  where
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
@@ -295,7 +335,8 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
          fmt w = printer pp (S.tag w)
           where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
                         | S.tag w == this                                               = ppCurrent
-                        | S.tag w `elem` visibles                                       = ppVisible
+                        | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
+                        | S.tag w `elem` visibles                                       = liftA2 fromMaybe ppVisible ppVisibleNoWindows
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
@@ -350,6 +391,14 @@ shorten n xs | length xs < n = xs
  where
     end = "..."
 
+-- | Like 'shorten', but truncate from the left instead of right.
+shortenLeft :: Int -> String -> String
+shortenLeft n xs | l < n     = xs
+                 | otherwise = end ++ (drop (l - n + length end) xs)
+ where
+    end = "..."
+    l = length xs
+
 -- | Output a list of strings, ignoring empty ones and separating the
 --   rest with the given separator.
 sepBy :: String   -- ^ separator
@@ -391,6 +440,43 @@ xmobarColor :: String  -- ^ foreground color: a color name, or #rrggbb format
             -> String
 xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
+
+-- | Encapsulate text with an action. The text will be displayed, and the
+-- action executed when the displayed text is clicked. Illegal input is not
+-- filtered, allowing xmobar to display any parse errors. Uses xmobar's new
+-- syntax wherein the command is surrounded by backticks.
+xmobarAction :: String
+                -- ^ Command. Use of backticks (`) will cause a parse error.
+             -> String
+                -- ^ Buttons 1-5, such as "145". Other characters will cause a
+                -- parse error.
+             -> String
+                -- ^ Displayed/wrapped text.
+             -> String
+xmobarAction command button = wrap l r
+    where
+        l = "<action=`" ++ command ++ "` button=" ++ button ++ ">"
+        r = "</action>"
+
+-- | Use xmobar box to add a border to an arbitrary string.
+xmobarBorder :: String -- ^ Border type. Possible values: VBoth, HBoth, Full,
+                       -- Top, Bottom, Left or Right
+             -> String -- ^ color: a color name, or #rrggbb format
+             -> Int    -- ^ width in pixels
+             -> String -- ^ output string
+             -> String
+xmobarBorder border color width = wrap prefix "</box>"
+  where
+    prefix = "<box type=" ++ border ++ " width=" ++ show width ++ " color="
+      ++ color ++ ">"
+
+-- | Encapsulate arbitrary text for display only, i.e. untrusted content if
+-- wrapped (perhaps from window titles) will be displayed only, with all tags
+-- ignored. Introduced in xmobar 0.21; see their documentation. Be careful not
+-- to shorten the result.
+xmobarRaw :: String -> String
+xmobarRaw "" = ""
+xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
 
 -- ??? add an xmobarEscape function?
 
@@ -435,6 +521,8 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- contain windows
              , ppHiddenNoWindows :: WorkspaceId -> String
                -- ^ how to print tags of empty hidden workspaces
+             , ppVisibleNoWindows :: Maybe (WorkspaceId -> String)
+               -- ^ how to print tags of empty visible workspaces
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
              , ppSep :: String
@@ -478,15 +566,12 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              }
 
 -- | The default pretty printing options, as seen in 'dynamicLog'.
-{-# DEPRECATED defaultPP "Use def (from Data.Default, and re-exported by XMonad.Hooks.DynamicLog) instead." #-}
-defaultPP :: PP
-defaultPP = def
-
 instance Default PP where
     def   = PP { ppCurrent         = wrap "[" "]"
                , ppVisible         = wrap "<" ">"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
+               , ppVisibleNoWindows= Nothing
                , ppUrgent          = id
                , ppSep             = " : "
                , ppWsSep           = " "

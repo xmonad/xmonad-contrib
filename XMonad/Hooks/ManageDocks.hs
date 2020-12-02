@@ -15,7 +15,7 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    docks, manageDocks, checkDock, AvoidStruts, avoidStruts, avoidStrutsOn,
+    docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn,
     docksEventHook, docksStartupHook,
     ToggleStruts(..),
     SetStruts(..),
@@ -104,11 +104,11 @@ instance ExtensionClass StrutCache where
   initialValue = StrutCache M.empty
 
 updateStrutCache :: Window -> [Strut] -> X Bool
-updateStrutCache w strut = do
+updateStrutCache w strut =
   XS.modified $ StrutCache . M.insert w strut . fromStrutCache
 
 deleteFromStructCache :: Window -> X Bool
-deleteFromStructCache w = do
+deleteFromStructCache w =
   XS.modified $ StrutCache . M.delete w . fromStrutCache
 
 -- | Detects if the given window is of type DOCK and if so, reveals
@@ -116,7 +116,7 @@ deleteFromStructCache w = do
 manageDocks :: ManageHook
 manageDocks = checkDock --> (doIgnore <+> setDocksMask)
     where setDocksMask = do
-            ask >>= \win -> liftX $ withDisplay $ \dpy -> do
+            ask >>= \win -> liftX $ withDisplay $ \dpy ->
                 io $ selectInput dpy win (propertyChangeMask .|. structureNotifyMask)
             mempty
 
@@ -167,7 +167,7 @@ getStrut w = do
     msp <- getProp32s "_NET_WM_STRUT_PARTIAL" w
     case msp of
         Just sp -> return $ parseStrutPartial sp
-        Nothing -> fmap (maybe [] parseStrut) $ getProp32s "_NET_WM_STRUT" w
+        Nothing -> maybe [] parseStrut <$> getProp32s "_NET_WM_STRUT" w
  where
     parseStrut xs@[_, _, _, _] = parseStrutPartial . take 12 $ xs ++ cycle [minBound, maxBound]
     parseStrut _ = []
@@ -182,7 +182,7 @@ getStrut w = do
 calcGap :: S.Set Direction2D -> X (Rectangle -> Rectangle)
 calcGap ss = withDisplay $ \dpy -> do
     rootw <- asks theRoot
-    struts <- (filter careAbout . concat) `fmap` XS.gets (M.elems . fromStrutCache)
+    struts <- (filter careAbout . concat) <$> XS.gets (M.elems . fromStrutCache)
 
     -- we grab the window attributes of the root window rather than checking
     -- the width of the screen because xlib caches this info and it tends to

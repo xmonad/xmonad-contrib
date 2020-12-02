@@ -35,7 +35,7 @@ will then run normally if the user confirms.
 This should be used something like this:
 
 > ...
-> , ((modm , xK_l), confirmPrompt defaultXPConfig "exit" $ io (exitWith ExitSuccess))
+> , ((modm , xK_l), confirmPrompt def "exit" $ io (exitWith ExitSuccess))
 > ...
 -}
 
@@ -48,4 +48,4 @@ instance XPrompt EnterPrompt where
      and simply ask to confirm (ENTER) or cancel (ESCAPE). The actual key
      handling is done by mkXPrompt.-}
 confirmPrompt :: XPConfig -> String -> X() -> X()
-confirmPrompt config app func = mkXPrompt (EnterPrompt app) config (mkComplFunFromList []) $ const func
+confirmPrompt config app func = mkXPrompt (EnterPrompt app) config (mkComplFunFromList config []) $ const func

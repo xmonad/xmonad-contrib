@@ -38,7 +38,6 @@ import XMonad.Layout.LayoutModifier
 import XMonad
 import qualified XMonad.StackSet as W
 import Control.Monad((<=<),guard)
-import Control.Applicative((<$>))
 import Data.Maybe(fromJust)
 
 -- $usage

@@ -23,7 +23,6 @@ module XMonad.Layout.IfMax
     , ifMax
     ) where
 
-import Control.Applicative((<$>))
 import Control.Arrow
 import qualified Data.List as L
 import qualified Data.Map  as M

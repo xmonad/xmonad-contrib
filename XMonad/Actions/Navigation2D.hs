@@ -39,10 +39,12 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                    , withNavigation2DConfig
                                    , Navigation2DConfig(..)
                                    , def
-                                   , defaultNavigation2DConfig
                                    , Navigation2D
                                    , lineNavigation
                                    , centerNavigation
+                                   , sideNavigation
+                                   , sideNavigationWithBias
+                                   , hybridOf
                                    , hybridNavigation
                                    , fullScreenRect
                                    , singleWindowRect
@@ -59,6 +61,7 @@ import Control.Applicative
 import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Ord (comparing)
 import XMonad hiding (Screen)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
@@ -70,16 +73,17 @@ import XMonad.Util.Types
 -- Navigation2D provides directional navigation (go left, right, up, down) for
 -- windows and screens.  It treats floating and tiled windows as two separate
 -- layers and provides mechanisms to navigate within each layer and to switch
--- between layers.  Navigation2D provides two different navigation strategies
--- (see <#Technical_Discussion> for details): /Line navigation/ feels rather
--- natural but may make it impossible to navigate to a given window from the
--- current window, particularly in the floating layer.  /Center navigation/
--- feels less natural in certain situations but ensures that all windows can be
--- reached without the need to involve the mouse. A third option is to use
--- /Hybrid navigation/, which automatically chooses between the two whenever
--- navigation is attempted.  Navigation2D allows different navigation strategies
--- to be used in the two layers and allows customization of the navigation strategy
--- for the tiled layer based on the layout currently in effect.
+-- between layers.  Navigation2D provides three different navigation strategies
+-- (see <#Technical_Discussion> for details): /Line navigation/ and
+-- /Side navigation/ feel rather natural but may make it impossible to navigate
+-- to a given window from the current window, particularly in the floating
+-- layer. /Center navigation/ feels less natural in certain situations but
+-- ensures that all windows can be reached without the need to involve the
+-- mouse. Another option is to use a /Hybrid/ of the three strategies,
+-- automatically choosing whichever first provides a suitable target window.
+-- Navigation2D allows different navigation strategies to be used in the two
+-- layers and allows customization of the navigation strategy for the tiled
+-- layer based on the layout currently in effect.
 --
 -- You can use this module with (a subset of) the following in your @~\/.xmonad\/xmonad.hs@:
 --
@@ -318,12 +322,46 @@ lineNavigation = N 1 doLineNavigation
 centerNavigation :: Navigation2D
 centerNavigation = N 2 doCenterNavigation
 
--- | Hybrid navigation. This attempts Line navigation, then falls back on Center
--- navigation if it does not find any suitable target windows. This is useful since
--- Line navigation tends to fail on gaps, but provides more intuitive motions
--- when it succeeds—provided there are no floating windows.
+-- | Side navigation. Consider navigating to the right this time. The strategy
+-- is to take the line segment forming the right boundary of the current window,
+-- and push it to the right until it intersects with at least one other window.
+-- Of those windows, one with a point that is the closest to the centre of the
+-- line (+1) is selected. This is probably the most intuitive strategy for the
+-- tiled layer when using XMonad.Layout.Spacing.
+sideNavigation :: Navigation2D
+sideNavigation = N 1 (doSideNavigationWithBias 1)
+
+-- | Side navigation with bias. Consider a case where the screen is divided
+-- up into three vertical panes; the side panes occupied by one window each and
+-- the central pane split across the middle by two windows. By the criteria
+-- of side navigation, the two central windows are equally good choices when
+-- navigating inwards from one of the side panes. Hence in order to be
+-- equitable, symmetric and pleasant to use, different windows are chosen when
+-- navigating from different sides. In particular, the lower is chosen when
+-- going left and the higher when going right, causing L, L, R, R, L, L, etc to
+-- cycle through the four windows clockwise. This is implemented by using a bias
+-- of 1. /Bias/ is how many pixels off centre the vertical split can be before
+-- this behaviour is lost and the same window chosen every time. A negative bias
+-- swaps the preferred window for each direction. A bias of zero disables the
+-- behaviour.
+sideNavigationWithBias :: Int -> Navigation2D
+sideNavigationWithBias b = N 1 (doSideNavigationWithBias b)
+
+-- | Hybrid of two modes of navigation, preferring the motions of the first.
+-- Use this if you want to fall back on a second strategy whenever the first
+-- does not find a candidate window. E.g.
+-- @hybridOf lineNavigation centerNavigation@ is a good strategy for the
+-- floating layer, and @hybridOf sideNavigation centerNavigation@ will enable
+-- you to take advantage of some of the latter strategy's more interesting
+-- motions in the tiled layer.
+hybridOf :: Navigation2D -> Navigation2D -> Navigation2D
+hybridOf (N g1 s1) (N g2 s2) = N (max g1 g2) $ applyToBoth s1 s2
+  where
+    applyToBoth f g a b c = f a b c <|> g a b c
+
+{-# DEPRECATED hybridNavigation "Use hybridOf with lineNavigation and centerNavigation as arguments." #-}
 hybridNavigation :: Navigation2D
-hybridNavigation = N 2 doHybridNavigation
+hybridNavigation = hybridOf lineNavigation centerNavigation
 
 -- | Stores the configuration of directional navigation. The 'Default' instance
 -- uses line navigation for the tiled layer and for navigation between screens,
@@ -411,10 +449,6 @@ withNavigation2DConfig :: Navigation2DConfig -> XConfig a -> XConfig a
 withNavigation2DConfig conf2d xconf = xconf { startupHook  = startupHook xconf
                                                           >> XS.put conf2d
                                             }
-
-{-# DEPRECATED defaultNavigation2DConfig "Use def (from Data.Default, and re-exported from XMonad.Actions.Navigation2D) instead." #-}
-defaultNavigation2DConfig :: Navigation2DConfig
-defaultNavigation2DConfig = def
 
 instance Default Navigation2DConfig where
     def                   = Navigation2DConfig { defaultTiledNavigation = lineNavigation
@@ -767,12 +801,54 @@ doCenterNavigation dir (cur, rect) winrects
                                              -- or it has the same distance but comes later
                                              -- in the window stack
 
--- | Implements Hybrid navigation. This attempts Line navigation first,
--- then falls back on Center navigation if it finds no suitable target window.
-doHybridNavigation :: Eq a => Direction2D -> Rect a -> [Rect a] -> Maybe a
-doHybridNavigation = applyToBoth (<|>) doLineNavigation doCenterNavigation
-    where
-        applyToBoth f g h a b c = f (g a b c) (h a b c)
+-- x -y w h format is a pain. Let's use side coordinates. We assume x1 <= x2 and
+-- y1 <= y2, and make the assumption valid by initialising SideRects with the
+-- property and carefully preserving it over any individual transformation.
+data SideRect = SideRect { x1 :: Int, x2 :: Int, y1 :: Int, y2 :: Int }
+  deriving Show
+
+-- Conversion from Rectangle format to SideRect.
+toSR :: Rectangle -> SideRect
+toSR (Rectangle x y w h) = SideRect (fi x) (fi x + fi w) (-fi y - fi h) (-fi y)
+
+-- Implements side navigation with bias.
+doSideNavigationWithBias ::
+  Eq a => Int -> Direction2D -> Rect a -> [Rect a] -> Maybe a
+doSideNavigationWithBias bias dir (cur, rect)
+  = fmap fst . listToMaybe
+  . L.sortBy (comparing dist) . foldr acClosest []
+  . filter (`toRightOf` (cur, transform rect))
+  . map (fmap transform)
+  where
+    -- Getting the center of the current window so we can make it the new origin.
+    cOf r = ((x1 r + x2 r) `div` 2, (y1 r + y2 r) `div` 2)
+    (x0, y0) = cOf . toSR $ rect
+
+    -- Translate the given SideRect by (-x0, -y0).
+    translate r = SideRect (x1 r - x0) (x2 r - x0) (y1 r - y0) (y2 r - y0)
+
+    -- Rotate the given SideRect 90 degrees counter-clockwise about the origin.
+    rHalfPiCC r = SideRect (-y2 r) (-y1 r) (x1 r) (x2 r)
+
+    -- Apply the above function until d becomes synonymous with R (wolog).
+    rotateToR d = let (_, _:l) = break (d ==) [U, L, D, R]
+                  in  foldr (const $ (.) rHalfPiCC) id l
+
+    transform = rotateToR dir . translate . toSR
+
+    -- (_, r) `toRightOf` (_, c) iff r has points to the right of c that aren't
+    -- below or above c, i.e. iff:
+    -- [x1 r, x2 r] x [y1 r, y2 r] intersects (x2 c, infinity) x (y1 c, y2 c)
+    toRightOf (_, r) (_, c) = (x2 r > x2 c) && (y2 r > y1 c) && (y1 r < y2 c)
+
+    -- Greedily accumulate the windows tied for the leftmost left side.
+    acClosest (w, r) l@((_, r'):_) | x1 r == x1 r' = (w, r) : l
+                                   | x1 r >  x1 r' =          l
+    acClosest (w, r) _                             = (w, r) : []
+
+    -- Given a (_, SideRect), calculate how far it is from the y=bias line.
+    dist (_, r) | (y1 r <= bias) && (bias <= y2 r) = 0
+                | otherwise = min (abs $ y1 r - bias) (abs $ y2 r - bias)
 
 -- | Swaps the current window with the window given as argument
 swap :: Window -> WindowSet -> WindowSet

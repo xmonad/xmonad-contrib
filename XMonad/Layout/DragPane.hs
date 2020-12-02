@@ -81,14 +81,14 @@ handleMess d@(DragPane mb@(I (Just (win,_,ident))) ty delta split) x
     -- layout specific messages
     | Just Shrink <- fromMessage x = return $ Just (DragPane mb ty delta (split - delta))
     | Just Expand <- fromMessage x = return $ Just (DragPane mb ty delta (split + delta))
-    | Just (SetFrac ident' frac) <- fromMessage x, ident' == ident = do
+    | Just (SetFrac ident' frac) <- fromMessage x, ident' == ident =
                                      return $ Just (DragPane mb ty delta frac)
 handleMess _ _ = return Nothing
 
 handleEvent :: DragPane a -> Event -> X ()
 handleEvent (DragPane (I (Just (win,r,ident))) ty _ _)
             (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
-    | t == buttonPress && thisw == win || thisbw == win  = do
+    | t == buttonPress && thisw == win || thisbw == win  =
   mouseDrag (\ex ey -> do
              let frac = case ty of
                         Vertical   -> (fromIntegral ex - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width  r)

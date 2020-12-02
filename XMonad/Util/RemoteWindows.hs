@@ -54,7 +54,7 @@ import System.Posix.Env
 -- >    { manageHook = manageRemote =<< io getHostName }
 
 guessHostName :: IO String
-guessHostName = pickOneMaybe `liftM` (getEnv `mapM` vars)
+guessHostName = pickOneMaybe <$> (getEnv `mapM` vars)
   where
     pickOneMaybe = last . (mzero:) . take 1 . catMaybes
     vars = ["XAUTHLOCALHOSTNAME","HOST","HOSTNAME"]
@@ -63,9 +63,8 @@ setRemoteProp :: Window -> String -> X ()
 setRemoteProp w host = do
     d <- asks display
     p <- getAtom "XMONAD_REMOTE"
-    t <- getAtom "CARDINAL"
     v <- hasProperty (Machine host) w
-    io $ changeProperty32 d w p t propModeReplace
+    io $ changeProperty32 d w p cARDINAL propModeReplace
                           [fromIntegral . fromEnum $ not v]
 
 -- | Given a window, tell if it is a local or a remote process. Normally,

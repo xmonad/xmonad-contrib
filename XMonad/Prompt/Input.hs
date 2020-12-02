@@ -49,12 +49,12 @@ import XMonad.Prompt
 -- @fireEmployee@ action, like so:
 --
 -- > firingPrompt :: X ()
--- > firingPrompt = inputPrompt defaultXPConfig "Fire" ?+ fireEmployee
+-- > firingPrompt = inputPrompt def "Fire" ?+ fireEmployee
 --
 -- If @employees@ contains a list of all his employees, he could also
 -- create an autocompleting version, like this:
 --
--- > firingPrompt' = inputPromptWithCompl defaultXPConfig "Fire"
+-- > firingPrompt' = inputPromptWithCompl def "Fire"
 -- >                     (mkComplFunFromList employees) ?+ fireEmployee
 --
 -- Now all he has to do is add a keybinding to @firingPrompt@ (or

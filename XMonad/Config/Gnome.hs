@@ -47,7 +47,7 @@ gnomeConfig = desktopConfig
 
 gnomeKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_p), gnomeRun)
-    , ((modm .|. shiftMask, xK_q), spawn "gnome-session-save --kill") ]
+    , ((modm .|. shiftMask, xK_q), spawn "gnome-session-quit --logout") ]
 
 -- | Launch the "Run Application" dialog.  gnome-panel must be running for this
 -- to work.
@@ -72,7 +72,7 @@ gnomeRun = withDisplay $ \dpy -> do
 -- > gconftool-2 -s /desktop/gnome/session/required_components/windowmanager xmonad --type string
 gnomeRegister :: MonadIO m => m ()
 gnomeRegister = io $ do
-    x <- lookup "DESKTOP_AUTOSTART_ID" `fmap` getEnvironment
+    x <- lookup "DESKTOP_AUTOSTART_ID" <$> getEnvironment
     whenJust x $ \sessionId -> safeSpawn "dbus-send"
             ["--session"
             ,"--print-reply=literal"

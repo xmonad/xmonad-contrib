@@ -27,6 +27,7 @@ import System.Directory
 import System.Environment
 import Control.Exception as E
 
+import Control.Applicative (liftA2)
 import Control.Monad
 import Data.Maybe
 import Data.List(elemIndex)
@@ -56,20 +57,20 @@ instance XPrompt Ssh where
     showXPrompt       Ssh = "SSH to: "
     commandToComplete _ c = maybe c (\(_u,h) -> h) (parseHost c)
     nextCompletion _t c l = maybe next (\(u,_h) -> u ++ "@" ++ next) hostPared
-                            where 
+                            where
                               hostPared = parseHost c
                               next = getNextCompletion (maybe c (\(_u,h) -> h) hostPared) l
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
   sc <- io sshComplList
-  mkXPrompt Ssh c (mkComplFunFromList sc) ssh
+  mkXPrompt Ssh c (mkComplFunFromList c sc) ssh
 
 ssh :: String -> X ()
 ssh = runInTerm "" . ("ssh " ++ )
 
 sshComplList :: IO [String]
-sshComplList = uniqSort `fmap` liftM2 (++) sshComplListLocal sshComplListGlobal
+sshComplList = uniqSort <$> liftA2 (++) sshComplListLocal sshComplListGlobal
 
 sshComplListLocal :: IO [String]
 sshComplListLocal = do

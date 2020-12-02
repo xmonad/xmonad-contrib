@@ -259,7 +259,7 @@ relBox x y w h = SubBox (Rel x) (Rel y) (Rel w) (Rel h)
 
 --------------------------------------------------------------------------------
 instance ( LayoutClass l1 a, LayoutClass l2 a
-         , Read a, Show a, Show p, Eq a, Typeable a, Predicate p a
+         , Read a, Show a, Show p, Typeable p, Eq a, Typeable a, Predicate p a
          ) => LayoutClass (LayoutB l1 l2 p) a where
 
     -- | Update window locations.
@@ -370,7 +370,7 @@ sendFocus l@(LayoutB subFocus _ _ _ _ _ _) m = do
 -- | Check to see if the given window is currently focused.
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
-isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
+isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
                       return $ maybe False (\s -> show w == show (W.focus s)) ms
 
 --------------------------------------------------------------------------------

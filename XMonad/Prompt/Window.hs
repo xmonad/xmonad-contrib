@@ -22,6 +22,7 @@ module XMonad.Prompt.Window
     windowPrompt,
     windowMultiPrompt,
     allWindows,
+    allApplications,
     wsWindows,
     XWindowMap,
 
@@ -71,13 +72,14 @@ import XMonad.Util.NamedWindows
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- Describe actions that can applied  on the selected window
-data WindowPrompt = Goto | Bring | BringCopy | BringToMaster
+data WindowPrompt = Goto | Bring | BringCopy | BringToMaster | WithWindow String (Window ->  X())
 instance XPrompt WindowPrompt where
     showXPrompt Goto      = "Go to window: "
     showXPrompt Bring     = "Bring window: "
     showXPrompt BringToMaster
                           = "Bring window to master: "
     showXPrompt BringCopy = "Bring a copy: "
+    showXPrompt (WithWindow xs _) = xs
     commandToComplete _ c = c
     nextCompletion      _ = getNextCompletion
 
@@ -95,13 +97,15 @@ instance XPrompt WindowModePrompt where
     modeAction (WindowModePrompt action winmap _) buf auto = do
         let name = if null auto then buf else auto
             a = case action of
-                  Goto          -> gotoAction  winmap
-                  Bring         -> bringAction winmap
-                  BringCopy     -> bringCopyAction winmap
-                  BringToMaster -> bringToMaster winmap
+                  Goto           -> gotoAction
+                  Bring          -> bringAction
+                  BringCopy      -> bringCopyAction
+                  BringToMaster  -> bringToMaster
+                  WithWindow _ f -> withWindow f
         a name
       where
-        winAction a m    = flip whenJust (windows . a) . flip M.lookup m
+        withWindow f     = flip whenJust f . flip M.lookup winmap
+        winAction a      = withWindow (windows . a)
         gotoAction       = winAction W.focusWindow
         bringAction      = winAction bringWindow
         bringCopyAction  = winAction bringCopyWindow
@@ -120,12 +124,16 @@ windowPromptBringCopy c = windowPrompt c BringCopy windowMap
 allWindows :: XWindowMap
 allWindows = windowMap
 
+-- | A helper to get the map of all applications
+allApplications :: XWindowMap
+allApplications = windowAppMap
+
 -- | A helper to get the map of windows of the current workspace.
 wsWindows :: XWindowMap
 wsWindows = withWindowSet (return . W.index) >>= winmap
     where
       winmap = fmap M.fromList . mapM pair
-      pair w = do name <- fmap show $ getName w
+      pair w = do name <- show <$> getName w
                   return (name, w)
 
 -- | A Map where keys are pretty printable window names and values are

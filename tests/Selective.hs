@@ -8,7 +8,6 @@ module Selective where
 
 import XMonad.Layout.LimitWindows
 import XMonad.StackSet hiding (focusUp, focusDown, filter)
-import Control.Applicative ((<$>))
 import Test.QuickCheck
 import Control.Arrow (second)
 

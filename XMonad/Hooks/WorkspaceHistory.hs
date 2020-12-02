@@ -25,6 +25,7 @@ module XMonad.Hooks.WorkspaceHistory (
   , workspaceHistoryWithScreen
     -- * Handling edits
   , workspaceHistoryTransaction
+  , workspaceHistoryModify
   ) where
 
 import           Control.Applicative
@@ -101,3 +102,7 @@ updateLastActiveOnEachScreen StackSet {current = cur, visible = vis} wh =
       let newEntry = (sid, wid)
           alreadyCurrent = maybe False (== newEntry) $ firstOnScreen sid curr
       in if alreadyCurrent then curr else newEntry:delete newEntry curr
+
+-- | Modify a the workspace history with a given pure function.
+workspaceHistoryModify :: ([(ScreenId, WorkspaceId)] -> [(ScreenId, WorkspaceId)]) -> X ()
+workspaceHistoryModify action = XS.modify $ WorkspaceHistory . action . history

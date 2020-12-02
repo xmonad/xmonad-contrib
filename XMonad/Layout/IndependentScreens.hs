@@ -29,7 +29,7 @@ module XMonad.Layout.IndependentScreens (
 ) where
 
 -- for the screen stuff
-import Control.Applicative((<*), liftA2)
+import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
 import Control.Monad
 import Data.List (nub, genericLength)
@@ -54,7 +54,7 @@ import XMonad.Hooks.DynamicLog
 -- to specific workspace names.  In the default configuration, only
 -- the keybindings for changing workspace do this:
 --
--- > keyBindings conf = let m = modMask conf in fromList $
+-- > keyBindings conf = let modm = modMask conf in fromList $
 -- >     {- lots of other keybindings -}
 -- >     [((m .|. modm, k), windows $ f i)
 -- >         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
@@ -62,7 +62,7 @@ import XMonad.Hooks.DynamicLog
 --
 -- This should change to
 --
--- > keyBindings conf = let m = modMask conf in fromList $
+-- > keyBindings conf = let modm = modMask conf in fromList $
 -- >     {- lots of other keybindings -}
 -- >     [((m .|. modm, k), windows $ onCurrentScreen f i)
 -- >         | (i, k) <- zip (workspaces' conf) [xK_1 .. xK_9]
@@ -121,7 +121,7 @@ onCurrentScreen f vws = screen . current >>= f . flip marshall vws
 -- >     }
 --
 countScreens :: (MonadIO m, Integral i) => m i
-countScreens = liftM genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getScreenInfo closeDisplay
+countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getScreenInfo closeDisplay
 
 -- | This turns a naive pretty-printer into one that is aware of the
 -- independent screens. That is, you can write your pretty printer to behave

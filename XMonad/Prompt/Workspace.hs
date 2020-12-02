@@ -46,4 +46,4 @@ workspacePrompt :: XPConfig -> (String -> X ()) -> X ()
 workspacePrompt c job = do ws <- gets (workspaces . windowset)
                            sort <- getSortByIndex
                            let ts = map tag $ sort ws
-                           mkXPrompt (Wor "") c (mkComplFunFromList' ts) job
+                           mkXPrompt (Wor "") c (mkComplFunFromList' c ts) job

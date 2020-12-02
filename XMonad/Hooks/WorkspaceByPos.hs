@@ -25,7 +25,6 @@ import qualified XMonad.StackSet as W
 import XMonad.Util.XUtils (fi)
 
 import Data.Maybe
-import Control.Applicative((<$>))
 import Control.Monad.Error ((<=<),guard,lift,runErrorT,throwError)
 
 -- $usage

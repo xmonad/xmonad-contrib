@@ -599,7 +599,7 @@ drawNode ix iy TSNode{..} col = do
     colormap <- gets tss_colormap
     visual   <- gets tss_visual
     liftIO $ drawWinBox window display visual colormap gc font col tsn_name ts_extra tsn_extra
-        (ix * ts_indent) (iy * ts_node_height)
+        (ix * ts_indent + ts_originX) (iy * ts_node_height + ts_originY)
         ts_node_width ts_node_height
 
     -- TODO: draw extra text (transparent background? or ts_background)

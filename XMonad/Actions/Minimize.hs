@@ -29,6 +29,8 @@ module XMonad.Actions.Minimize
   , maximizeWindowAndFocus
   , withLastMinimized
   , withLastMinimized'
+  , withFirstMinimized
+  , withFirstMinimized'
   , withMinimized
   ) where
 
@@ -41,7 +43,6 @@ import XMonad.Util.Minimize
 import XMonad.Util.WindowProperties (getProp32)
 
 import Foreign.C.Types (CLong)
-import Control.Applicative((<$>))
 import Control.Monad (join)
 import Data.Maybe (fromMaybe, listToMaybe)
 import qualified Data.List as L
@@ -85,7 +86,7 @@ modified f = XS.modified $
        in Minimized { rectMap = newRectMap
                     , minimizedStack = (newWindows L.\\ oldStack)
                                        ++
-                                       (newWindows `L.intersect` oldStack)
+                                       (oldStack `L.intersect` newWindows)
                     }
 
 
@@ -114,6 +115,16 @@ maximizeWindow = maximizeWindowAndChangeWSet $ const id
 -- | Maximize a window and then focus it
 maximizeWindowAndFocus :: Window -> X ()
 maximizeWindowAndFocus = maximizeWindowAndChangeWSet W.focusWindow
+
+-- | Perform an action with first minimized window on current workspace
+--   or do nothing if there is no minimized windows on current workspace
+withFirstMinimized :: (Window -> X ()) -> X ()
+withFirstMinimized action = withFirstMinimized' (flip whenJust action)
+
+-- | Like withFirstMinimized but the provided action is always invoked with a
+--   'Maybe Window', that will be nothing if there is no first minimized window.
+withFirstMinimized' :: (Maybe Window -> X ()) -> X ()
+withFirstMinimized' action = withMinimized (action . listToMaybe . reverse)
 
 -- | Perform an action with last minimized window on current workspace
 --   or do nothing if there is no minimized windows on current workspace

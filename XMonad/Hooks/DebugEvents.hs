@@ -34,6 +34,7 @@ import           Control.Exception.Extensible         as E
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Data.Char                                   (isDigit)
+import           Data.Maybe                                  (fromJust)
 import           Data.List                                   (genericIndex
                                                              ,genericLength
                                                              ,unfoldr
@@ -189,7 +190,7 @@ debugEventsHook' (ClientMessageEvent    {ev_window       = w
                   ta <- getAtom ta'
                   return (ta,b,l)
   let wl = bytes b
-  vs <- io $ take (l * wl) `fmap` splitCInt vs'
+  vs <- io $ take (l * wl) <$> splitCInt vs'
   s <- dumpProperty' w a n ta b vs 0 (10 + length n)
   say "  message" $ n ++ s
 
@@ -198,7 +199,7 @@ debugEventsHook' _                      = return ()
 -- | Emit information about an atom.
 atomName   :: Atom -> X String
 atomName a =  withDisplay $ \d ->
-  io $ fromMaybe ("(unknown atom " ++ show a ++ ")") `fmap` getAtomName d a
+  io $ fromMaybe ("(unknown atom " ++ show a ++ ")") <$> getAtomName d a
 
 -- | Emit an atom with respect to the current event.
 atomEvent     :: String -> Atom -> X ()
@@ -312,9 +313,9 @@ dumpProperty a n w i  =  do
               vsp
     case rc of
       0 -> do
-        fmt <- fromIntegral `fmap` peek fmtp
+        fmt <- fromIntegral <$> peek fmtp
         vs' <-                     peek vsp
-        sz  <- fromIntegral `fmap` peek szp
+        sz  <- fromIntegral <$> peek szp
         case () of
           () | fmt == none     -> xFree vs' >> return (Left   "(property deleted)"   )
              | sz < 0          -> xFree vs' >> return (Left $ "(illegal bit size " ++
@@ -324,9 +325,9 @@ dumpProperty a n w i  =  do
                                                               show sz              ++
                                                               ")"                    )
              | otherwise       -> do
-                 len <- fromIntegral `fmap` peek lenp
+                 len <- fromIntegral <$> peek lenp
                  -- that's as in "ack! it's fugged!"
-                 ack <- fromIntegral `fmap` peek ackp
+                 ack <- fromIntegral <$> peek ackp
                  vs <- peekArray (len * bytes sz) vs'
                  _ <- xFree vs'
                  return $ Right (fmt,sz,ack,vs)
@@ -526,7 +527,7 @@ dumpProp a _ | a == wM_NAME                           =  dumpString
              | a == sECONDARY                         =  dumpSelection
                -- this is gross
              | a == wM_TRANSIENT_FOR                  =  do
-                 root <- fromIntegral `fmap` inX (asks theRoot)
+                 root <- fromIntegral <$> inX (asks theRoot)
                  w <- asks window
                  WMHints {wmh_window_group = group} <-
                    inX $ asks display >>= io . flip getWMHints w
@@ -696,30 +697,31 @@ dumpList'' m ((l,p,t):ps) sep = do
 dumpString :: Decoder Bool
 dumpString =  do
   fmt <- asks pType
-  [cOMPOUND_TEXT,uTF8_STRING] <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
-  case () of
-    () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
-       | fmt == sTRING        -> guardSize  8 $ do
-                                   vs <- gets value
-                                   modify (\r -> r {value = []})
-                                   let ss = flip unfoldr (map twiddle vs) $
-                                            \s -> if null s
-                                                  then Nothing
-                                                  else let (w,s'') = break (== '\NUL') s
-                                                           s'      = if null s''
-                                                                     then s''
-                                                                     else tail s''
-                                                        in Just (w,s')
-                                   case ss of
-                                     [s] -> append $ show s
-                                     ss' -> let go (s:ss'') c = append c        >>
-                                                                append (show s) >>
-                                                                go ss'' ","
-                                                go []       _ = append "]"
-                                             in append "[" >> go ss' ""
-       | fmt == uTF8_STRING   -> dumpUTF -- duplicate type test instead of code :)
-       | otherwise            -> (inX $ atomName fmt) >>=
-                                 failure . ("unrecognized string type " ++)
+  x <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
+  case x of
+    [cOMPOUND_TEXT,uTF8_STRING] -> case () of
+      () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
+         | fmt == sTRING        -> guardSize  8 $ do
+                                     vs <- gets value
+                                     modify (\r -> r {value = []})
+                                     let ss = flip unfoldr (map twiddle vs) $
+                                              \s -> if null s
+                                                    then Nothing
+                                                    else let (w,s'') = break (== '\NUL') s
+                                                             s'      = if null s''
+                                                                       then s''
+                                                                       else tail s''
+                                                          in Just (w,s')
+                                     case ss of
+                                       [s] -> append $ show s
+                                       ss' -> let go (s:ss'') c = append c        >>
+                                                                  append (show s) >>
+                                                                  go ss'' ","
+                                                  go []       _ = append "]"
+                                               in append "[" >> go ss' ""
+         | fmt == uTF8_STRING   -> dumpUTF -- duplicate type test instead of code :)
+         | otherwise            -> (inX $ atomName fmt) >>=
+                                   failure . ("unrecognized string type " ++)
 
 -- show who owns a selection
 dumpSelection :: Decoder Bool
@@ -738,7 +740,7 @@ dumpSelection =  do
 -- for now, not querying Xkb
 dumpXKlInds :: Decoder Bool
 dumpXKlInds =  guardType iNTEGER $ do
-                 n <- fmap fromIntegral `fmap` getInt' 32
+                 n <- fmap fromIntegral <$> getInt' 32
                  case n of
                    Nothing -> propShortErr
                    Just is -> append $ "indicators " ++ unwords (dumpInds is 1 1 [])
@@ -847,7 +849,7 @@ dumpPixmap =  guardType pIXMAP $ do
                   Just p  -> do
                     append $ "pixmap " ++ showHex p ""
                     g' <- inX $ withDisplay $ \d -> io $
-                            Just `fmap` getGeometry d (fromIntegral p)
+                            (Just <$> getGeometry d (fromIntegral p))
                             `E.catch`
                             \e -> case fromException e of
                                     Just x -> throw e `const` (x `asTypeOf` ExitSuccess)
@@ -917,7 +919,7 @@ dumpExcept xs item = do
     let w = (length (value sp) - length vs) * 8
     -- now we get to reparse again so we get our copy of it
     put sp
-    Just v <- getInt' w
+    v <- fmap fromJust (getInt' w)
     -- and after all that, we can process the exception list
     dumpExcept' xs that v
 
@@ -943,7 +945,7 @@ dumpPid =  guardType cARDINAL $ do
                       case o of
                         Nothing -> append $ "pid " ++ pid
                         Just p' -> do
-                                  prc <- io $ lines `fmap` hGetContents p'
+                                  prc <- io $ lines <$> hGetContents p'
                                   -- deliberately forcing it
                                   append $ if length prc < 2
                                            then "pid " ++ pid
@@ -1005,7 +1007,7 @@ dumpMDBlocks _ =  propSimple "(drop site info)" -- @@@ maybe later if needed
 
 dumpMotifEndian :: Decoder Bool
 dumpMotifEndian =  guardType cARDINAL $ guardSize 8 $ do
-  c <- map twiddle `fmap` eat 1
+  c <- map twiddle <$> eat 1
   case c of
     ['l'] -> append "little"
     ['B'] -> append "big"
@@ -1164,7 +1166,7 @@ getInt' 64 =  guardR width 32 (\a e -> propSizeErr a e >> return Nothing) $
                 return $ Just $ lo + hi * (fromIntegral (maxBound :: Word32) + 1)
 getInt' w  =  guardR width w  (\a e -> propSizeErr a e >> return Nothing) $
               guardSize' (bytes w) (propShortErr >> return Nothing)       $
-              Just `fmap` inhale w
+              Just <$> inhale w
 
 -- parse an integral value and feed it to a show-er of some kind
 getInt     :: Int -> (Integer -> String) -> Decoder Bool
@@ -1176,25 +1178,28 @@ getInt w f =  getInt' w >>= maybe (return False) (append . f)
 -- @@@@@@@@@ evil beyond evil.  there *has* to be a better way
 inhale    :: Int -> Decoder Integer
 inhale  8 =  do
-               [b] <- eat 1
-               return $ fromIntegral b
+               x <- eat 1
+               case x of
+                 [b] -> return $ fromIntegral b
 inhale 16 =  do
-               [b0,b1] <- eat 2
-               io $ allocaArray 2 $ \p -> do
-                 pokeArray p [b0,b1]
-                 [v] <- peekArray 1 (castPtr p :: Ptr Word16)
-                 return $ fromIntegral v
+               x <- eat 2
+               case x of
+                 [b0,b1] -> io $ allocaArray 2 $ \p -> do
+                              pokeArray p [b0,b1]
+                              [v] <- peekArray 1 (castPtr p :: Ptr Word16)
+                              return $ fromIntegral v
 inhale 32 =  do
-               [b0,b1,b2,b3] <- eat 4
-               io $ allocaArray 4 $ \p -> do
-                 pokeArray p [b0,b1,b2,b3]
-                 [v] <- peekArray 1 (castPtr p :: Ptr Word32)
-                 return $ fromIntegral v
+               x <- eat 4
+               case x of
+                 [b0,b1,b2,b3] -> io $ allocaArray 4 $ \p -> do
+                                    pokeArray p [b0,b1,b2,b3]
+                                    [v] <- peekArray 1 (castPtr p :: Ptr Word32)
+                                    return $ fromIntegral v
 inhale  b =  error $ "inhale " ++ show b
 
 eat   :: Int -> Decoder Raw
 eat n =  do
-  (bs,rest) <- splitAt n `fmap` gets value
+  (bs,rest) <- splitAt n <$> gets value
   modify (\r -> r {value = rest})
   return bs
 

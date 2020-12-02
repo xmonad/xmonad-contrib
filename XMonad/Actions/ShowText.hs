@@ -17,7 +17,6 @@ module XMonad.Actions.ShowText
     ( -- * Usage
       -- $usage
       def
-    , defaultSTConfig
     , handleTimerEvent
     , flashText
     , ShowTextConfig(..)
@@ -79,10 +78,6 @@ instance Default ShowTextConfig where
         , st_bg   = "black"
         , st_fg   = "white"
     }
-
-{-# DEPRECATED defaultSTConfig "Use def (from Data.Default, and re-exported by XMonad.Actions.ShowText) instead." #-}
-defaultSTConfig :: ShowTextConfig
-defaultSTConfig = def
 
 -- | Handles timer events that notify when a window should be removed
 handleTimerEvent :: Event -> X All

@@ -17,6 +17,7 @@
 module XMonad.Layout.Minimize (
         -- * Usage
         -- $usage
+        Minimize,
         minimize,
     ) where
 

@@ -51,5 +51,5 @@ xmonadPrompt c = do
 -- | An xmonad prompt with a custom command list
 xmonadPromptC :: [(String, X ())] -> XPConfig -> X ()
 xmonadPromptC commands c =
-    mkXPrompt XMonad c (mkComplFunFromList' (map fst commands)) $
+    mkXPrompt XMonad c (mkComplFunFromList' c (map fst commands)) $
         fromMaybe (return ()) . (`lookup` commands)

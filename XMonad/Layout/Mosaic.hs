@@ -38,7 +38,8 @@ import Control.Monad(mplus)
 import Data.Foldable(Foldable,foldMap, sum)
 import Data.Function(on)
 import Data.List(sortBy)
-import Data.Monoid(Monoid,mempty, mappend)
+import Data.Monoid(Monoid,mempty, mappend, (<>))
+import Data.Semigroup
 
 
 -- $usage
@@ -117,7 +118,7 @@ instance LayoutClass Mosaic a where
         nextIx (ov,ix,mix)
                 | mix <= 0 || ov = fromIntegral $ nls `div` 2
                 | otherwise = max 0 $ (*fi (pred nls)) $ min 1 $ ix / fi mix
-        rect = rects !! maybe (nls `div` 2) round (nextIx `fmap` state)
+        rect = rects !! maybe (nls `div` 2) round (nextIx <$> state)
         state' = fmap (\x@(ov,_,_) -> (ov,nextIx x,pred nls)) state
                     `mplus` Just (True,fromIntegral nls / 2,pred nls)
         ss' = maybe ss (const ss `either` const ssExt) $ zipRemain ss ssExt
@@ -201,6 +202,9 @@ instance Monoid (Tree a) where
     mappend Empty x = x
     mappend x Empty = x
     mappend x y = Branch x y
+
+instance Semigroup (Tree a) where
+    (<>) = mappend
 
 makeTree ::  (Num a1, Ord a1) => (a -> a1) -> [a] -> Tree a
 makeTree _ [] = Empty
