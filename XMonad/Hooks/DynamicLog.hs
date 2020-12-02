@@ -199,7 +199,7 @@ dzen conf = dzenWithFlags flags conf
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
-    flags   = "-e 'onstart=lower' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
+    flags   = "-e 'onstart=lower' -dock -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
 
 
 -- | Run xmonad with a xmobar status bar set to some nice defaults.

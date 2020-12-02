@@ -294,6 +294,10 @@
 
     - Added `workspaceHistoryModify` to modify the workspace history with a pure
       function.
+      
+  * `XMonad.Hooks.DynamicLog`
+
+    - Add the -dock argument to the dzen spawn arguments      
 
 ## 0.16
 
