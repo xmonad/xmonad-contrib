@@ -46,7 +46,7 @@ module XMonad.Hooks.DynamicLog (
     wrap, pad, trim, shorten, shortenLeft,
     xmobarColor, xmobarAction, xmobarBorder,
     xmobarRaw, xmobarStrip, xmobarStripTags,
-    dzenColor, dzenEscape, dzenStrip,
+    dzenColor, dzenEscape, dzenStrip, filterOutWsPP,
 
     -- * Internal formatting functions
     pprWindowSet,
@@ -507,6 +507,23 @@ xmobarStripTags tags = strip [] where
     dropTilClose = drop 1 . dropWhile (/= '>')
     openTag str = "<" ++ str ++ "="
     closeTag str = "</" ++ str ++ ">"
+
+-- | Transforms a pretty-printer into one not displaying the given workspaces.
+--
+-- For example, filtering out the @NSP@ workspace before giving the 'PP' to
+-- 'dynamicLogWithPP':
+--
+-- > logHook = dynamicLogWithPP . filterOutWsPP [scratchpadWorkspaceTag] $ def
+--
+-- Here is another example, when using "XMonad.Layout.IndependentScreens".  If
+-- you have handles @hLeft@ and @hRight@ for bars on the left and right screens,
+-- respectively, and @pp@ is a pretty-printer function that takes a handle, you
+-- could write
+--
+-- > logHook = let log screen handle = dynamicLogWithPP . filterOutWsPP [scratchpadWorkspaceTag] . marshallPP screen . pp $ handle
+-- >           in log 0 hLeft >> log 1 hRight
+filterOutWsPP :: [WorkspaceId] -> PP -> PP
+filterOutWsPP ws pp = pp { ppSort = (. filterOutWs ws) <$> ppSort pp }
 
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.
