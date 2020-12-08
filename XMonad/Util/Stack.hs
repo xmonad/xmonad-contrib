@@ -182,7 +182,7 @@ focusMasterZ (Just s) = Just s
 
 -- | Refocus a @Stack a@ on an element satisfying the predicate, or fail to
 --   @Nothing@.
-findS :: Eq a => (a -> Bool) -> W.Stack a -> Maybe (W.Stack a)
+findS :: (a -> Bool) -> W.Stack a -> Maybe (W.Stack a)
 findS p st = st <$ (guard . p . W.focus) st <|> findUp st <|> findDown st
   where findDown = reverseZ . findUp . reverseS
         findUp s | u:ups <- W.up s = (if p u then Just else findUp)
@@ -190,11 +190,10 @@ findS p st = st <$ (guard . p . W.focus) st <|> findUp st <|> findDown st
                  | otherwise       = Nothing
 
 -- | Refocus a @Zipper a@ on an element satisfying the predicate, or fail to
---   @Nothing@. Never returns @Just Nothing@, so the second layer of @Maybe@ is
---   actually redundant.
-findZ :: Eq a => (a -> Bool) -> Zipper a -> Maybe (Zipper a)
+--   @Nothing@.
+findZ :: (a -> Bool) -> Zipper a -> Zipper a
 findZ _ Nothing   = Nothing
-findZ p (Just st) = Just <$> findS p st
+findZ p (Just st) = findS p st
 
 -- ** Extraction
 
