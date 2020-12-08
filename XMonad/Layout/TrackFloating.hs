@@ -32,16 +32,16 @@ module XMonad.Layout.TrackFloating
      UseTransientFor,
     ) where
 
-import Control.Applicative (liftA2)
+import Control.Applicative ((<|>))
 import Control.Monad
 import Data.Function
-import Data.List
 import Data.Maybe
 import qualified Data.Map as M
 import qualified Data.Set as S
 
 import XMonad
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.Stack (findZ)
 import qualified XMonad.StackSet as W
 
 import qualified Data.Traversable as T
@@ -59,28 +59,20 @@ instance LayoutModifier TrackFloating Window where
         winset <- gets windowset
         let xCur = fmap W.focus xStack
             xStack = W.stack $ W.workspace $ W.current winset
-            isF = fmap (\x -> x `M.member` W.floating winset ||
+            isF = fromMaybe False $
+                  fmap (\x -> x `M.member` W.floating winset ||
                             (let (\\\) = (S.\\) `on` (S.fromList . W.integrate')
                              in x `S.member` (xStack \\\ ms)))
                         xCur
-            newStack
-              -- focus is floating, so use the remembered focus point
-              | Just isF' <- isF,
-                isF',
-                Just w <- mw,
-                Just s <- ms,
-                Just ns <- find ((==) w . W.focus)
-                    $ zipWith const (iterate W.focusDown' s) (W.integrate s)
-                = Just ns
-              | otherwise
-                = ms
-            newState = case isF of
-              Just True -> mw
-              Just False | Just f <- xCur -> Just f
-              _ -> Nothing
+            -- use the remembered focus point if isF (focus floating or
+            -- outside the stack given to layout)
+            newStack | isF = (mw >>= \w -> findZ (w==) ms) <|> ms
+                     | otherwise = ms
+            newState | isF = mw
+                     | otherwise = xCur
         ran <- runLayout ws{ W.stack = newStack } r
         return (ran,
-                let n = TrackFloating (fromMaybe False isF) newState
+                let n = TrackFloating isF newState
                 in guard (n /= os) >> Just n)
 
 
@@ -101,7 +93,7 @@ instance LayoutModifier UseTransientFor Window where
 
         s0 <- get
         whenJust parent $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
-        result <- runLayout ws{ W.stack = fromMaybe ms (liftA2 focusWin ms parent) } r
+        result <- runLayout ws{ W.stack = (parent >>= \p -> findZ (p==) ms) <|> ms } r
 
         m' <- gets (W.peek . windowset)
 
@@ -110,16 +102,6 @@ instance LayoutModifier UseTransientFor Window where
             whenJust m $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
 
         return result
-
-
-
-focusWin :: Eq a => W.Stack a -> a -> Maybe (W.Stack a)
-focusWin st@(W.Stack f u d) w
-        | w `elem` u || w `elem` d = Just . head . filter ((==w) . W.focus)
-            $ iterate (if w `elem` u then W.focusUp'
-                                        else W.focusDown') st
-        | w == f = Just st
-        | otherwise = Nothing
 
 
 
