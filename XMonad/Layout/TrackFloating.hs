@@ -47,14 +47,12 @@ import qualified XMonad.StackSet as W
 import qualified Data.Traversable as T
 
 
-data TrackFloating a = TrackFloating
-    { _wasFloating :: Bool,
-      _tiledFocus :: Maybe Window }
-    deriving (Read,Show,Eq)
+data TrackFloating a = TrackFloating (Maybe Window)
+    deriving (Read,Show)
 
 
 instance LayoutModifier TrackFloating Window where
-    modifyLayoutWithUpdate os@(TrackFloating _wasF mw) ws@(W.Workspace{ W.stack = ms }) r
+    modifyLayoutWithUpdate (TrackFloating mw) ws@(W.Workspace{ W.stack = ms }) r
       = do
         winset <- gets windowset
         let xCur = fmap W.focus xStack
@@ -71,9 +69,7 @@ instance LayoutModifier TrackFloating Window where
             newState | isF = mw
                      | otherwise = xCur
         ran <- runLayout ws{ W.stack = newStack } r
-        return (ran,
-                let n = TrackFloating isF newState
-                in guard (n /= os) >> Just n)
+        return (ran, guard (newState /= mw) >> Just (TrackFloating newState))
 
 
 
@@ -142,7 +138,7 @@ window regardless of which tiled window was focused before.
 
 -}
 trackFloating ::  l a -> ModifiedLayout TrackFloating l a
-trackFloating layout = ModifiedLayout (TrackFloating False Nothing) layout
+trackFloating layout = ModifiedLayout (TrackFloating Nothing) layout
 
 {- $layoutModifier
 It also corrects focus issues for full-like layouts inside other layout
