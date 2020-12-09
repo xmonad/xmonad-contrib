@@ -11,8 +11,9 @@ Stability   :  unstable
 Portability :  unportable
 
 Layout modifier that tracks focus in the tiled layer while the floating layer
-is in use. This is particularly helpful for tiled layouts where the focus
-determines what is visible.
+or another sublayout is in use. This is particularly helpful for tiled layouts
+where the focus determines what is visible. It can also be used to improve the
+behaviour of a child layout that has not been given the focused window.
 
 The relevant bugs are Issue 4 and 306:
 <http://code.google.com/p/xmonad/issues/detail?id=4>,
@@ -34,10 +35,6 @@ module XMonad.Layout.TrackFloating
 
 import Control.Applicative ((<|>))
 import Control.Monad
-import Data.Function
-import Data.Maybe
-import qualified Data.Map as M
-import qualified Data.Set as S
 
 import XMonad
 import XMonad.Layout.LayoutModifier
@@ -54,16 +51,11 @@ data TrackFloating a = TrackFloating (Maybe Window)
 instance LayoutModifier TrackFloating Window where
     modifyLayoutWithUpdate (TrackFloating mw) ws@(W.Workspace{ W.stack = ms }) r
       = do
-        winset <- gets windowset
-        let xCur = fmap W.focus xStack
-            xStack = W.stack $ W.workspace $ W.current winset
-            isF = fromMaybe False $
-                  fmap (\x -> x `M.member` W.floating winset ||
-                            (let (\\\) = (S.\\) `on` (S.fromList . W.integrate')
-                             in x `S.member` (xStack \\\ ms)))
-                        xCur
-            -- use the remembered focus point if isF (focus floating or
-            -- outside the stack given to layout)
+        xCur <- gets (W.peek . windowset)
+        let isF = xCur /= (W.focus <$> ms)
+            -- use the remembered focus point when true focus differs from
+            -- what this (sub)layout is given, which happens e.g. when true
+            -- focus is in floating layer or when another sublayout has focus
             newStack | isF = (mw >>= \w -> findZ (w==) ms) <|> ms
                      | otherwise = ms
             newState | isF = mw
