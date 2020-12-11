@@ -120,13 +120,13 @@ getDecodedStringProp w a =  do
 tryUTF8                          :: TextProperty -> X [String]
 tryUTF8 (TextProperty s enc _ _) =  do
   uTF8_STRING <- getAtom "UTF8_STRING"
-  when (enc == uTF8_STRING) $ error "String is not UTF8_STRING"
+  when (enc /= uTF8_STRING) $ error "String is not UTF8_STRING"
   (map decodeString . splitNul) <$> io (peekCString s)
 
 tryCompound                            :: TextProperty -> X [String]
 tryCompound t@(TextProperty _ enc _ _) =  do
   cOMPOUND_TEXT <- getAtom "COMPOUND_TEXT"
-  when (enc == cOMPOUND_TEXT) $ error "String is not COMPOUND_TEXT"
+  when (enc /= cOMPOUND_TEXT) $ error "String is not COMPOUND_TEXT"
   withDisplay $ \d -> io $ wcTextPropertyToTextList d t
 
 splitNul    :: String -> [String]
