@@ -11,6 +11,7 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Util.WorkspaceCompare ( WorkspaceCompare, WorkspaceSort
+                                    , filterOutWs
                                     , getWsIndex
                                     , getWsCompare
                                     , getWsCompareByTag
@@ -32,6 +33,11 @@ import Data.Function (on)
 
 type WorkspaceCompare = WorkspaceId -> WorkspaceId -> Ordering
 type WorkspaceSort = [WindowSpace] -> [WindowSpace]
+
+-- | Transforms a workspace list by filtering out the workspaces that
+-- correspond to the given 'tag's.  Intended for use with logHooks.
+filterOutWs :: [WorkspaceId] -> WorkspaceSort
+filterOutWs ws = filter (\S.Workspace{ S.tag = tag } -> tag `notElem` ws)
 
 -- | Lookup the index of a workspace id in the user's config, return Nothing
 -- if that workspace does not exist in the config.

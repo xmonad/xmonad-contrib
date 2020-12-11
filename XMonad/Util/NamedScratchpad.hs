@@ -17,6 +17,7 @@ module XMonad.Util.NamedScratchpad (
   -- * Usage
   -- $usage
   NamedScratchpad(..),
+  scratchpadWorkspaceTag,
   nonFloating,
   defaultFloating,
   customFloating,
@@ -88,6 +89,12 @@ import qualified XMonad.StackSet as W
 --
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings"
+--
+-- For some applications (like displaying your workspaces in a status bar) it is
+-- convenient to filter out the @NSP@ workspace when looking at all workspaces.
+-- For this, you can use functions 'XMonad.Hooks.DynamicLog.filterOutWsPP' and
+-- 'XMonad.Util.WorkspaceCompare.filterOutWs'.  See the documentation of these
+-- functions for examples.
 --
 
 -- | Single named scratchpad configuration
@@ -176,8 +183,7 @@ someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
 
         Nothing -> return ()
 
-
--- tag of the scratchpad workspace
+-- | Tag of the scratchpad workspace
 scratchpadWorkspaceTag :: String
 scratchpadWorkspaceTag = "NSP"
 
@@ -190,6 +196,7 @@ namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
 -- doesn't contain it. Intended for use with logHooks.
 namedScratchpadFilterOutWorkspace :: [WindowSpace] -> [WindowSpace]
 namedScratchpadFilterOutWorkspace = filter (\(W.Workspace tag _ _) -> tag /= scratchpadWorkspaceTag)
+{-# DEPRECATED namedScratchpadFilterOutWorkspace "Use XMonad.Util.WorkspaceCompare.filterOutWs [scratchpadWorkspaceTag] instead" #-}
 
 -- | Transforms a pretty-printer into one not displaying the NSP workspace.
 --
@@ -206,5 +213,6 @@ namedScratchpadFilterOutWorkspacePP :: PP -> PP
 namedScratchpadFilterOutWorkspacePP pp = pp {
   ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
   }
+{-# DEPRECATED namedScratchpadFilterOutWorkspacePP "Use XMonad.Hooks.DynamicLog.filterOutWsPP [scratchpadWorkspaceTag] instead" #-}
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:

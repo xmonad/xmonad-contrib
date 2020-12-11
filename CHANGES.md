@@ -176,17 +176,25 @@
     - Added `shortenLeft` function, like existing `shorten` but shortens by
       truncating from left instead of right. Useful for showing directories.
 
+    - Added `filterOutWsPP` for filtering out certain workspaces from being
+      displayed.
+
   * `XMonad.Layout.BoringWindows`
 
      Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
 
   * `XMonad.Util.NamedScratchpad`
 
-     Added two new exported functions to the module:
-     - `customRunNamedScratchpadAction`
-         (provides the option to customize the `X ()` action the scratchpad is launched by)
-     - `spawnHereNamedScratchpadAction`
-         (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
+     - Added two new exported functions to the module:
+         - `customRunNamedScratchpadAction`
+             (provides the option to customize the `X ()` action the scratchpad is launched by)
+         - `spawnHereNamedScratchpadAction`
+             (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
+     - Deprecated `namedScratchpadFilterOutWorkspace` and
+       `namedScratchpadFilterOutWorkspacePP`.  Use
+       `XMonad.Util.WorkspaceCompare.filterOutWs` respectively
+       `XMonad.Hooks.DynamicLog.filterOutWsPP` instead.
+     - Exported the `scratchpadWorkspaceTag`.
 
   * `XMonad.Util.Run`
 
@@ -301,6 +309,10 @@
 
   * `XMonad.Util.DebugWindow`
     Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
+
+  * `XMonad.Hooks.WorkspaceCompare`
+
+    - Added `filterOutWs` for workspace filtering.
 
 ## 0.16
 
