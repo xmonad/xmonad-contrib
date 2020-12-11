@@ -254,7 +254,7 @@
 
   * `XMonad.Util.EZConfig`
     - Added support for XF86Bluetooth.
-    
+
   * `XMonad.Util.Loggers`
     - Make `battery` and `loadAvg` distro-independent.
 
@@ -294,10 +294,13 @@
 
     - Added `workspaceHistoryModify` to modify the workspace history with a pure
       function.
-      
+
   * `XMonad.Hooks.DynamicLog`
 
-    - Add the -dock argument to the dzen spawn arguments      
+    - Add the -dock argument to the dzen spawn arguments
+
+  * `XMonad.Util.DebugWindow`
+    Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
 
 ## 0.16
 
