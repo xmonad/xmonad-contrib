@@ -17,6 +17,7 @@ module XMonad.Util.NamedScratchpad (
   -- * Usage
   -- $usage
   NamedScratchpad(..),
+  scratchpadWorkspaceTag,
   nonFloating,
   defaultFloating,
   customFloating,
@@ -176,8 +177,7 @@ someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
 
         Nothing -> return ()
 
-
--- tag of the scratchpad workspace
+-- | Tag of the scratchpad workspace
 scratchpadWorkspaceTag :: String
 scratchpadWorkspaceTag = "NSP"
 
