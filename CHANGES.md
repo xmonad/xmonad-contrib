@@ -301,6 +301,9 @@
 
   * `XMonad.Util.DebugWindow`
     Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
+    
+  * `XMonad.Config.Xfce`
+    Set `terminal` to `xfce4-terminal`.
 
 ## 0.16
 
