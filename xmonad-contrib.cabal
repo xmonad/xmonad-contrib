@@ -25,15 +25,9 @@ extra-source-files: README.md CHANGES.md scripts/generate-configs scripts/run-xm
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c
-                    tests/genMain.hs
-                    tests/ManageDocks.hs
-                    tests/RotateSome.hs
-                    tests/Selective.hs
-                    tests/SwapWorkspaces.hs
-                    tests/XPrompt.hs
                     XMonad/Config/dmwit.xmobarrc
                     XMonad/Config/Example.hs
-cabal-version:      >= 1.6
+cabal-version:      >= 1.8
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
@@ -369,3 +363,29 @@ library
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
+
+test-suite properties
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  other-modules:  ManageDocks
+                  RotateSome
+                  Selective
+                  SwapWorkspaces
+                  XPrompt
+                  Instances
+                  Utils
+  hs-source-dirs: tests
+  build-depends: base
+               , QuickCheck >= 2
+               , containers
+               , extensible-exceptions
+               , xmonad-contrib
+               , directory
+               , X11>=1.6.1 && < 1.10
+               , mtl
+               , process
+               , unix
+               , utf8-string
+               , xmonad >= 0.15 && < 0.16
+  ghc-options: -i.
+  cpp-options: -DTESTING

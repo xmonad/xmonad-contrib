@@ -1,22 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module RotateSome where
 
-import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, listOf, quickCheck)
-import Utils (applyN)
-import XMonad.StackSet (Stack (Stack), down, focus, integrate, up)
+import Utils
+import Test.QuickCheck (Arbitrary, arbitrary, choose)
+import XMonad.StackSet (Stack, integrate, up)
 import XMonad.Actions.RotateSome (rotateSome)
-
-instance Arbitrary (Stack Int) where
-  arbitrary = do
-    foc   <- arbNat
-    ups   <- listOf arbNat
-    downs <- listOf arbNat
-    pure (Stack foc ups downs)
-
-arbNat :: Gen Int
-arbNat = fmap abs arbitrary
 
 newtype Divisor = Divisor Int deriving Show
 instance Arbitrary Divisor where
@@ -56,20 +46,3 @@ prop_rotate_some_rotate (Divisor d) (stk :: Stack Int) =
 -- Focus position is preserved.
 prop_rotate_some_focus (Divisor d) (stk :: Stack Int) =
   length (up stk) == length (up $ rotateSome (`isMultOf` d) stk)
-
-main :: IO ()
-main = do
-  putStrLn "Testing rotateSome length"
-  quickCheck prop_rotate_some_length
-
-  putStrLn "Testing rotateSome cycle"
-  quickCheck prop_rotate_some_cycle
-
-  putStrLn "Testing rotateSome anchors"
-  quickCheck prop_rotate_some_anchors
-
-  putStrLn "Testing rotateSome rotate"
-  quickCheck prop_rotate_some_rotate
-
-  putStrLn "Testing rotateSome focus"
-  quickCheck prop_rotate_some_focus
