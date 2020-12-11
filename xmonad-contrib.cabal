@@ -25,14 +25,6 @@ extra-source-files: README.md CHANGES.md scripts/generate-configs scripts/run-xm
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c
-                    tests/Main.hs
-                    tests/Utils.hs
-                    tests/Instances.hs
-                    tests/ManageDocks.hs
-                    tests/RotateSome.hs
-                    tests/Selective.hs
-                    tests/SwapWorkspaces.hs
-                    tests/XPrompt.hs
                     XMonad/Config/dmwit.xmobarrc
                     XMonad/Config/Example.hs
 cabal-version:      >= 1.8
