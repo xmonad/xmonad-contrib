@@ -52,9 +52,9 @@ import XMonad.Util.Invisible(Invisible(..))
 import XMonad.Util.Types(Direction2D(..))
 import XMonad hiding (def)
 import Control.Arrow(Arrow(second, (&&&)))
-import Control.Monad(MonadPlus(mplus), foldM, guard, when, join)
+import Control.Monad((<=<), MonadPlus(mplus), foldM, guard, when, join)
 import Data.Function(on)
-import Data.List(nubBy, (\\), find)
+import Data.List(nubBy)
 import Data.Maybe(isNothing, fromMaybe, listToMaybe, mapMaybe)
 
 import qualified XMonad as X
@@ -62,6 +62,7 @@ import qualified XMonad.Layout.BoringWindows as B
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import Data.Map(Map)
+import qualified Data.Set as S
 
 -- $screenshots
 --
@@ -238,6 +239,9 @@ data Sublayout l a = Sublayout
 -- This representation probably simplifies the internals of the modifier.
 type Groups a = Map a (W.Stack a)
 
+-- | Stack of stacks, a simple representation of groups for purposes of focus.
+type GroupStack a = W.Stack (W.Stack a)
+
 -- | GroupMsg take window parameters to determine which group the action should
 -- be applied to
 data GroupMsg a
@@ -302,7 +306,7 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             let gs' = updateGroup st $ toGroups osls
                 st' = W.filter (`elem` M.keys gs') =<< st
             updateWs gs'
-            oldStack <- gets $ W.stack . W.workspace . W.current . windowset
+            oldStack <- currentStack
             setStack st'
             runLayout (W.Workspace i la st') r <* setStack oldStack
             -- FIXME: merge back reordering, deletions?
@@ -413,26 +417,8 @@ currentStack = gets (W.stack . W.workspace . W.current . windowset)
 
 -- | update Group to follow changes in the workspace
 updateGroup :: Ord a => Maybe (W.Stack a) -> Groups a -> Groups a
-updateGroup mst gs =
-        let flatten = concatMap W.integrate . M.elems
-            news = W.integrate' mst \\ flatten gs
-            deads = flatten gs \\ W.integrate' mst
-
-            uniNew = M.union (M.fromList $ map (\n -> (n,single n)) news)
-            single x = W.Stack x [] []
-
-            -- pass through a list to update/remove keys
-            remDead = M.fromList . map (\w -> (W.focus w,w))
-                        . mapMaybe (W.filter (`notElem` deads)) . M.elems
-
-            -- update the current tab group's order and focus
-            followFocus hs = fromMaybe hs $ do
-                f' <- W.focus <$> mst
-                xs <- find (elem f' . W.integrate) $ M.elems hs
-                xs' <- W.filter (`elem` W.integrate xs) =<< mst
-                return $ M.insert f' xs' $ M.delete (W.focus xs) hs
-
-        in remDead $ uniNew $ followFocus gs
+updateGroup Nothing _ = mempty
+updateGroup (Just st) gs = fromGroupStack (toGroupStack gs st)
 
 -- | rearrange the windowset to put the groups of tabs next to eachother, so
 -- that the stack of tabs stays put.
@@ -442,11 +428,41 @@ updateWs = windowsMaybe . updateWs'
 updateWs' :: Groups Window -> WindowSet -> Maybe WindowSet
 updateWs' gs ws = do
     w <- W.stack . W.workspace . W.current $ ws
-    let gs' = updateGroup (Just w) gs
-        nes = concatMap W.integrate $ mapMaybe (flip M.lookup gs') $ W.integrate w
-    w' <- focusWindow' (W.focus w) =<< W.differentiate nes
-    guard $ w' /= w
-    return $ W.modify' (const w') ws
+    let w' = flattenGroupStack . toGroupStack gs $ w
+    guard $ w /= w'
+    pure $ W.modify' (const w') ws
+
+-- | Flatten a stack of stacks.
+flattenGroupStack :: GroupStack a -> W.Stack a
+flattenGroupStack (W.Stack (W.Stack f lf rf) ls rs) =
+    let l = lf ++ concatMap (reverse . W.integrate) ls
+        r = rf ++ concatMap W.integrate rs
+    in W.Stack f l r
+
+-- | Extract Groups from a stack of stacks.
+fromGroupStack :: (Ord a) => GroupStack a -> Groups a
+fromGroupStack = M.fromList . map (W.focus &&& id) . W.integrate
+
+-- | Arrange a stack of windows into a stack of stacks, according to (possibly
+-- outdated) Groups.
+toGroupStack :: (Ord a) => Groups a -> W.Stack a -> GroupStack a
+toGroupStack gs st@(W.Stack f ls rs) =
+    W.Stack (let Just f' = lu f in f') (mapMaybe lu ls) (mapMaybe lu rs)
+  where
+    wset = S.fromList (W.integrate st)
+    dead = W.filter (`S.member` wset) -- drop dead windows or entire groups
+    refocus s | f `elem` W.integrate s -- sync focus/order of current group
+                                       = W.filter (`elem` W.integrate s) st
+              | otherwise = pure s
+    gs' = mapGroups (refocus <=< dead) gs
+    gset = S.fromList . concatMap W.integrate . M.elems $ gs'
+    -- after refocus, f is either the focused window of some group, or not in
+    -- gs' at all, so `lu f` is never Nothing
+    lu w | w `S.member` gset = w `M.lookup` gs'
+         | otherwise = Just (W.Stack w [] []) -- singleton groups for new wins
+
+mapGroups :: (Ord a) => (W.Stack a -> Maybe (W.Stack a)) -> Groups a -> Groups a
+mapGroups f = M.fromList . map (W.focus &&& id) . mapMaybe f . M.elems
 
 -- | focusWindow'. focus an element of a stack, is Nothing if that element is
 -- absent. See also 'W.focusWindow'
