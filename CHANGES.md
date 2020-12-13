@@ -176,6 +176,9 @@
     - Added `shortenLeft` function, like existing `shorten` but shortens by
       truncating from left instead of right. Useful for showing directories.
 
+    - Added `shorten'` and `shortenLeft'` functions with customizable overflow
+      markers.
+
     - Added `filterOutWsPP` for filtering out certain workspaces from being
       displayed.
 
@@ -309,7 +312,7 @@
 
   * `XMonad.Util.DebugWindow`
     Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
-    
+
   * `XMonad.Config.Xfce`
     Set `terminal` to `xfce4-terminal`.
 
