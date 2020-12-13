@@ -15,6 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         resolver: [lts-16, lts-15, lts-14, lts-12]
+        yaml: ['stack.yaml', 'stack-master.yaml']
 
     steps:
       - name: Clone project
@@ -24,7 +25,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.stack
-          key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles('stack.yaml') }}
+          key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.resolver }}-
 
@@ -35,4 +36,4 @@ jobs:
             curl -sSL https://get.haskellstack.org/ | sh -s - -f
             sudo apt install -y libasound2 libasound2-dev libxrandr-dev libtinfo-dev
             sudo apt install -y libx11-dev libgmp-dev libxss-dev libxft-dev 
-            stack test --fast --no-terminal --resolver=${{ matrix.resolver }}
+            stack --stack-yaml=${{ matrix.yaml }} test --fast --no-terminal --resolver=${{ matrix.resolver }}
