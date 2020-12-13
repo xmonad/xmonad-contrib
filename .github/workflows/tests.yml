@@ -27,6 +27,7 @@ jobs:
           path: ~/.stack
           key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}
           restore-keys: |
+            ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}
             ${{ runner.os }}-${{ matrix.resolver }}-
 
       - name: Build and run tests
