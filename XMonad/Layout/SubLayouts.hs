@@ -468,9 +468,8 @@ mapGroups f = M.fromList . map (W.focus &&& id) . mapMaybe f . M.elems
 -- absent. See also 'W.focusWindow'
 focusWindow' :: (Eq a) => a -> W.Stack a -> Maybe (W.Stack a)
 focusWindow' w st = do
-    guard $ not $ null $ filter (w==) $ W.integrate st
-    if W.focus st == w then Just st
-        else focusWindow' w $ W.focusDown' st
+    guard $ w `elem` W.integrate st
+    return $ until ((w ==) . W.focus) W.focusDown' st
 
 -- update only when Just
 windowsMaybe :: (WindowSet -> Maybe WindowSet) -> X ()
