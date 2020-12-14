@@ -127,6 +127,8 @@
 
 ### Bug Fixes and Minor Changes
 
+  * Add `-j +RTS -A32m -RTS` to `ghc-options`
+
   * `XMonad.Actions.DynamicProjects`
 
     The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
