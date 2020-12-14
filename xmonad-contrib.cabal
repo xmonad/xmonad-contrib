@@ -70,7 +70,7 @@ library
         cpp-options: -DXFT
 
     if true
-        ghc-options:    -fwarn-tabs -Wall
+        ghc-options:    -fwarn-tabs -Wall -j +RTS -A32m -RTS
 
     if flag(testing)
         ghc-options:    -fwarn-tabs -Werror
@@ -387,5 +387,5 @@ test-suite properties
                , unix
                , utf8-string
                , xmonad >= 0.15 && < 0.16
-  ghc-options: -i.
+  ghc-options: -i. -j +RTS -A32m -RTS
   cpp-options: -DTESTING
