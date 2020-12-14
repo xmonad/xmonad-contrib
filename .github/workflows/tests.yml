@@ -27,7 +27,7 @@ jobs:
           path: ~/.stack
           key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}-${{ hashFiles('xmonad-contrib.cabal') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}
+            ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}-
             ${{ runner.os }}-${{ matrix.resolver }}-
 
       - name: Build and run tests
