@@ -63,7 +63,11 @@ library
                    xmonad >= 0.15 && < 0.16,
                    utf8-string
 
-    ghc-options:   -fwarn-tabs -Wall -Wno-unused-do-bind
+    ghc-options:   -fwarn-tabs -Wall -Wno-unused-do-bind -Wno-unused-imports
+
+    -- Keep this in sync with the oldest version in 'tested-with'
+    if impl(ghc <= 8.4.4)
+       ghc-options: -Werror=unused-imports
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
