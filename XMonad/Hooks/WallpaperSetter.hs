@@ -39,10 +39,7 @@ import Data.Char (isAlphaNum)
 import Data.Ord (comparing)
 
 import Control.Monad
-import Control.Applicative
 import Data.Maybe
-import Data.Monoid hiding ((<>))
-import Data.Semigroup
 
 -- $usage
 -- This module requires imagemagick and feh to be installed, as these are utilized

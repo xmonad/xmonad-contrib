@@ -22,7 +22,6 @@ module XMonad.Util.Invisible (
                             , fromIMaybe
                             ) where
 
-import Control.Applicative
 import Control.Monad.Fail
 
 -- $usage

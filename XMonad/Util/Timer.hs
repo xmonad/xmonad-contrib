@@ -20,7 +20,6 @@ module XMonad.Util.Timer
     ) where
 
 import XMonad
-import Control.Applicative
 import Control.Concurrent
 import Data.Unique
 

@@ -65,7 +65,6 @@ module XMonad.Hooks.Focus
 import Data.Maybe
 import Data.Monoid
 import qualified Data.Semigroup as S
-import Control.Applicative
 import Control.Monad
 import Control.Monad.Reader
 import Control.Arrow hiding ((<+>))
@@ -74,7 +73,7 @@ import XMonad
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Hooks.ManageHelpers (currentWs)
-import XMonad.Hooks.EwmhDesktops (activated, NetActivated(..))
+import XMonad.Hooks.EwmhDesktops (activated)
 
 
 -- $main

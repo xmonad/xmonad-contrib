@@ -53,7 +53,6 @@ import XMonad.Util.NamedWindows (getName)
 import Control.Exception as E
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
-import Data.Traversable (traverse)
 import System.Directory (getDirectoryContents)
 import System.IO
 import System.Locale

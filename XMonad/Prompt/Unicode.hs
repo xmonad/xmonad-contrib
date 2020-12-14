@@ -29,9 +29,7 @@ import Data.Char
 import Data.Maybe
 import Data.Ord
 import Numeric
-import System.Environment
 import System.IO
-import System.IO.Unsafe
 import System.IO.Error
 import Control.Arrow
 import Data.List

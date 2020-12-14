@@ -35,10 +35,8 @@ module XMonad.Util.Font
 
 import XMonad
 import Foreign
-import Control.Applicative
 import Control.Exception as E
 import Data.Maybe
-import Data.Bits (shiftR)
 import Text.Printf (printf)
 
 #ifdef XFT

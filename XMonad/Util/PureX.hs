@@ -58,7 +58,7 @@ import Control.Monad.State
 import Control.Monad.Reader
 
 -- base
-import Data.Semigroup (Semigroup(..), Any(..))
+import Data.Semigroup (Any(..))
 import Control.Applicative (liftA2)
 
 -- }}}

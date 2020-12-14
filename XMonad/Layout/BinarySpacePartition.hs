@@ -47,7 +47,6 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.List ((\\), elemIndex, foldl')
 import Data.Maybe (fromMaybe, isNothing, isJust, mapMaybe, catMaybes)
-import Control.Applicative
 import Control.Monad
 import Data.Ratio ((%))
 

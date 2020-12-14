@@ -35,11 +35,9 @@ import XMonad(Typeable,
 import qualified XMonad.StackSet as W
 import Control.Arrow(second, first)
 import Control.Monad(mplus)
-import Data.Foldable(Foldable,foldMap, sum)
+import Data.Foldable(sum)
 import Data.Function(on)
 import Data.List(sortBy)
-import Data.Monoid(Monoid,mempty, mappend, (<>))
-import Data.Semigroup
 
 
 -- $usage

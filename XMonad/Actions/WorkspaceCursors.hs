@@ -50,10 +50,8 @@ import XMonad(Typeable, Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
 import Control.Applicative (liftA2)
 import Control.Monad((<=<), guard, when)
-import Data.Foldable(Foldable(foldMap), toList)
+import Data.Foldable(toList)
 import Data.Maybe(fromJust, listToMaybe)
-import Data.Monoid(Monoid(mappend, mconcat))
-import Data.Traversable(sequenceA)
 
 -- $usage
 --
