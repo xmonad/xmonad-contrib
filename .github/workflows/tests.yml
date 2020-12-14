@@ -25,8 +25,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.stack
-          key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}
+          key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}-${{ hashFiles(xmonad-contrib.cabal) }}
           restore-keys: |
+            ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}-${{ hashFiles(xmonad-contrib.cabal) }}
             ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}
             ${{ runner.os }}-${{ matrix.resolver }}-
 
