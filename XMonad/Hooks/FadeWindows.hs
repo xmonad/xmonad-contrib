@@ -205,7 +205,7 @@ fadeWindowsLogHook h =  withWindowSet $ \s -> do
   forM_ visibleWins $ \w -> do
     o <- userCodeDef (Opacity 1) (runQuery h w)
     setOpacity w $ case o of
-                     OEmpty    -> 0.93
+                     OEmpty    -> 1
                      Opacity r -> r
 
 -- | A 'handleEventHook' to handle fading and unfading of newly mapped
