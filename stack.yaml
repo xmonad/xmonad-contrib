@@ -1,7 +1,7 @@
 resolver: lts-15.3
 
+packages:
+- ./
+
 extra-deps:
 - xmonad-0.15
-
-packages:
-  - ./
