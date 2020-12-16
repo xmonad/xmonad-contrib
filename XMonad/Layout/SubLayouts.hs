@@ -56,7 +56,6 @@ import Control.Monad(MonadPlus(mplus), foldM, guard, when, join)
 import Data.Function(on)
 import Data.List(nubBy, (\\), find)
 import Data.Maybe(isNothing, fromMaybe, listToMaybe, mapMaybe)
-import Data.Traversable(sequenceA)
 
 import qualified XMonad as X
 import qualified XMonad.Layout.BoringWindows as B

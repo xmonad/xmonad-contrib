@@ -31,7 +31,6 @@ module XMonad.Layout.IndependentScreens (
 -- for the screen stuff
 import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
-import Control.Monad
 import Data.List (nub, genericLength)
 import Graphics.X11.Xinerama
 import XMonad

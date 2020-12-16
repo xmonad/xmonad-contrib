@@ -48,7 +48,6 @@ import           Numeric                                     (showHex)
 import           System.Exit
 import           System.IO
 import           System.Process
-import           Control.Applicative
 
 -- | Event hook to dump all received events.  You should probably not use this
 --   unconditionally; it will produce massive amounts of output.

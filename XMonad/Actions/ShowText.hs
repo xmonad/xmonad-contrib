@@ -24,7 +24,7 @@ module XMonad.Actions.ShowText
 
 import Control.Monad (when)
 import Data.Map (Map,empty,insert,lookup)
-import Data.Monoid (mempty, All)
+import Data.Monoid (All)
 import Prelude hiding (lookup)
 import XMonad
 import XMonad.StackSet (current,screen)

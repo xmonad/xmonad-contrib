@@ -61,8 +61,7 @@ import           Control.Monad.Reader                    (ask
                                                          ,asks)
 import           Control.Monad.State                     (gets)
 import qualified Data.Map                    as M
-import           Data.Monoid                      hiding ((<>))
-import           Data.Semigroup
+import           Data.Monoid
 
 import           Graphics.X11.Xlib.Extras                (Event(..))
 

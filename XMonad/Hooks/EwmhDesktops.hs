@@ -37,7 +37,6 @@ import Data.List
 import Data.Maybe
 import Data.Monoid
 import qualified Data.Map.Strict as M
-import System.IO.Unsafe
 
 import XMonad
 import Control.Monad

@@ -40,8 +40,7 @@ import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 import XMonad.Util.XUtils (fi)
 import qualified XMonad.Util.ExtensibleState as XS
-import Data.Monoid (All(..), mempty)
-import Data.Functor((<$>))
+import Data.Monoid (All(..))
 
 import qualified Data.Set as S
 import qualified Data.Map as M

@@ -49,19 +49,12 @@ module XMonad.Layout.TallMastersCombo (
 import XMonad hiding (focus, (|||))
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
-import Data.Maybe (fromJust,isJust,fromMaybe)
+import Data.Maybe (isJust)
 import Data.List (delete,find)
-import Control.Monad (join, foldM)
-import XMonad.Layout (Choose, ChangeLayout(..))
-import qualified XMonad.Layout as LL
-import Data.Typeable
-import XMonad.Layout.Simplest (Simplest(..))
-import XMonad.Layout hiding ((|||))
-import XMonad.Layout.Decoration
-import XMonad.Layout.LayoutModifier
-import XMonad.Layout.Tabbed (tabbed, fontName, shrinkText)
-import Data.Maybe (fromJust,isJust)
 import Control.Monad (foldM)
+import qualified XMonad.Layout as LL
+import XMonad.Layout.Simplest (Simplest(..))
+import XMonad.Layout.Decoration
 
 ---------------------------------------------------------------------------------
 -- $usage

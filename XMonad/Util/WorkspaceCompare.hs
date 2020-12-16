@@ -27,7 +27,6 @@ import XMonad
 import qualified XMonad.StackSet as S
 import Data.List
 import Data.Maybe
-import Data.Monoid (mconcat)
 import XMonad.Actions.PhysicalScreens (ScreenComparator(ScreenComparator), getScreenIdAndRectangle, screenComparatorById)
 import Data.Function (on)
 

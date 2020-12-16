@@ -28,7 +28,6 @@ import System.Environment
 import Control.Exception as E
 
 import Control.Applicative (liftA2)
-import Control.Monad
 import Data.Maybe
 import Data.List(elemIndex)
 

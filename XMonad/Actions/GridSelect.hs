@@ -82,7 +82,6 @@ import Data.Maybe
 import Data.Bits
 import Data.Char
 import Data.Ord (comparing)
-import Control.Applicative
 import Control.Monad.State
 import Control.Arrow
 import Data.List as L
