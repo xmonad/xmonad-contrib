@@ -182,6 +182,13 @@
     - Added `filterOutWsPP` for filtering out certain workspaces from being
       displayed.
 
+    - Added `xmobarProp`, `statusBarProp`, and `statusBarPropTo` for
+      property-based alternatives to `xmobar` and `statusBar` respectively.
+
+    - Reworked the module documentation to suggest property-based logging
+      instead of pipe-based logging, due to the various issues associated with
+      the latter.
+
   * `XMonad.Layout.BoringWindows`
 
      Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
