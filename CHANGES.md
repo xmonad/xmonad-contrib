@@ -129,8 +129,10 @@
 
   * `XMonad.Actions.DynamicProjects`
 
-    The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
+    - The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
     of `XPConfig` when performing directory completion.
+
+    - `modifyProject` is now exported.
 
   * `XMonad.Layout.WorkspaceDir`
 
