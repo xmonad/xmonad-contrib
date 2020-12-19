@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, PatternGuards #-}
+{-# LANGUAGE FlexibleContexts, PatternGuards, TypeApplications #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -37,6 +37,10 @@ module XMonad.Hooks.DynamicLog (
     xmonadPropLog,
     xmonadPropLog',
 
+    -- * Specialized spawning and cleaning
+    spawnStatusBarAndRemember,
+    cleanupStatusBars,
+
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
@@ -64,12 +68,15 @@ module XMonad.Hooks.DynamicLog (
 
 import Codec.Binary.UTF8.String (encodeString)
 import Control.Applicative (liftA2)
-import Control.Monad (msum)
+import Control.Exception (try, SomeException)
+import Control.Monad (msum, void)
 import Data.Char (isSpace, ord)
 import Data.List (intersperse, isPrefixOf, sortBy, stripPrefix)
 import Data.Map (Map)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import Data.Ord (comparing)
+import System.Posix.Types (ProcessID)
+import System.Posix.Signals (sigTERM, signalProcessGroup)
 
 import qualified Data.Map        as M
 import qualified XMonad.StackSet as S
@@ -80,8 +87,8 @@ import XMonad
 
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
-import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.WorkspaceCompare
+import qualified XMonad.Util.ExtensibleState as XS
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.UrgencyHook
@@ -200,7 +207,11 @@ import XMonad.Hooks.ManageDocks
 --
 -- The above has the problem that xmobar will not get restarted whenever you
 -- restart xmonad ('XMonad.Util.SpawnOnce.spawnOnce' will simply prevent your
--- chosen status bar from spawning again).
+-- chosen status bar from spawning again). Using 'statusBarProp', however, takes
+-- care of the necessary plumbing /and/ keeps track of the started status bars, so
+-- they can be correctly restarted with xmonad. This is achieved using
+-- 'spawnStatusBarAndRemember' to start them and 'cleanupStatusBars' to kill
+-- previously started ones.
 --
 -- Even if you don't use a statusbar, you can still use 'dynamicLogString' to
 -- show on-screen notifications in response to some events. For example, to show
@@ -349,7 +360,52 @@ statusBarPropTo :: LayoutClass l Window
 statusBarPropTo prop cmd pp =
     makeStatusBar
         (xmonadPropLog' prop =<< dynamicLogString pp)
-        (spawnOnce cmd)
+        (spawnStatusBarAndRemember cmd)
+
+-- | Spawns a status bar and saves its PID. This is useful when the status bars
+-- should be restarted with xmonad. Use this in combination with 'cleanupStatusBars'.
+--
+-- Note: in some systems, multiple processes might start, even though one command is
+-- provided. This means the first PID, of the group leader, is saved.
+--
+spawnStatusBarAndRemember :: String -- ^ The command used to spawn the status bar
+                          -> X()
+spawnStatusBarAndRemember cmd = do
+  newPid <- spawnPID cmd
+  XS.modify (StatusBarPIDs . (newPid :) . getPIDs)
+
+-- This newtype wrapper, together with the ExtensionClass instance makes use of
+-- the extensible state to save the PIDs bewteen xmonad restarts.
+newtype StatusBarPIDs = StatusBarPIDs { getPIDs :: [ProcessID] }
+  deriving (Show, Read)
+
+instance ExtensionClass StatusBarPIDs where
+  initialValue = StatusBarPIDs []
+  extensionType = PersistentExtension
+
+
+-- | Kills the status bars started with 'spawnStatusBarAndRemember', and resets
+-- the state. This could go for example at the beginning of the startupHook.
+--
+-- Concretely, this function sends a 'sigTERM' to the saved PIDs using
+-- 'signalProcessGroup' to effectively terminate all processes, regardless
+-- of how many were started by using  'spawnStatusBarAndRemember'.
+--
+-- There is one caveat to keep in mind: to keep the implementation simple;
+-- no checks are executed before terminating the processes. This means: if the
+-- started process dies for some reason, and enough time passes for the PIDs
+-- to wrap around, this function might terminate another process that happens
+-- to have the same PID. However, this isn't a typical usage scenario.
+--
+cleanupStatusBars :: X ()
+cleanupStatusBars =
+    getPIDs <$> XS.get
+    >>= (io . mapM_ killPid)
+    >> XS.put (StatusBarPIDs [])
+   where
+    killPid :: ProcessID -> IO ()
+    killPid pidToKill = void $ try @SomeException (signalProcessGroup sigTERM pidToKill)
+
 
 -- | Like 'statusBarProp', but uses pipes instead of property-based logging.
 -- Only use this function if your status bar does not support reading from a
