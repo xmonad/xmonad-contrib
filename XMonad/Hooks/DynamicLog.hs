@@ -125,8 +125,8 @@ import XMonad.Hooks.ManageDocks
 -- > myConfig = def { ... }
 --
 -- You then have to tell your status bar to read from the @_XMONAD_LOG@ property
--- of the root window.  In the case of xmobar, this is simply achieved by adding
--- the @XMonadLog@ plugin to your @.xmobarrc@:
+-- of the root window.  In the case of xmobar, this is simply achieved by using
+-- the @XMonadLog@ plugin instead of @StdinReader@ in your @.xmobarrc@:
 --
 -- > Config { ...
 -- >        , commands = [ Run XMonadLog, ... ]
@@ -137,21 +137,22 @@ import XMonad.Hooks.ManageDocks
 -- part of the default xmobar configuration and you status bar will not show
 -- otherwise!
 --
--- Because 'statusBarProp' lets you defined your own executable, you can also
+-- Because 'statusBarProp' lets you define your own executable, you can also
 -- give it a different status bar entirely; you only need to make sure that the
--- status bar supports reading a property string from the root window.
+-- status bar supports reading a property string from the root window, or use
+-- some kind of wrapper that reads the property and pipes it into the bar.
 --
 -- If you don't want to read from the default property, you can specify your own
 -- with the 'statusBarPropTo' function.
 --
--- If your status bar does not support property-based logging, you may try
+-- If your status bar does not support property-based logging, you may also try
 -- 'statusBar' and 'statusBar'', as well as the `xmobar` function, instead.
 -- They can be used in the same way as the 'statusBarProp' and 'xmobarProp'
--- functions above (for xmobar, you will now have to add the @StdinReader@
--- plugin to you @.xmobarrc@).  Instead of writing to a property, these
+-- functions above (for xmobar, you will now use the @StdinReader@
+-- plugin in your @.xmobarrc@).  Instead of writing to a property, these
 -- functions open a pipe and make the given status bar read from that pipe.
 -- Please be aware that this kind of setup is very bug-prone and hence is
--- discouraged.
+-- discouraged: if anything goes wrong with the bar, xmonad will freeze.
 --
 -- If you do not want to use any of the "batteries included" functions above,
 -- you can also add all of the necessary plumbing yourself (the definition of
@@ -199,9 +200,7 @@ import XMonad.Hooks.ManageDocks
 --
 -- The above has the problem that xmobar will not get restarted whenever you
 -- restart xmonad ('XMonad.Util.SpawnOnce.spawnOnce' will simply prevent your
--- chosen status bar from spawning again).  On the other hand, 'statusBarProp'
--- handles this case correctly, so think carefully if you really need this extra
--- flexibility.
+-- chosen status bar from spawning again).
 --
 -- Even if you don't use a statusbar, you can still use 'dynamicLogString' to
 -- show on-screen notifications in response to some events. For example, to show
@@ -252,8 +251,6 @@ import XMonad.Hooks.ManageDocks
 -- $todo
 --
 --   * incorporate dynamicLogXinerama into the PP framework somehow
---
---   * add an xmobarEscape function
 
 ------------------------------------------------------------------------
 
@@ -304,7 +301,9 @@ dzen conf = dzenWithFlags flags conf
 -- > myConfig = def { ... }
 --
 -- The intent is that the above config file should provide a nice
--- status bar with minimal effort.
+-- status bar with minimal effort. Note that you still need to configure
+-- xmobar to use the @XMonadLog@ plugin instead of the default @StdinReader@,
+-- see above.
 --
 -- If you wish to customize the status bar format at all, you'll have to
 -- use the 'statusBarProp' function instead.
@@ -326,8 +325,8 @@ xmobar :: LayoutClass l Window
 xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
 
 -- | Modifies the given base configuration to launch the given status bar, write
--- status information to a property for the bar to read, and allocate space on
--- the screen edges for the bar.
+-- status information to the @_XMONAD_LOG@ property for the bar to read, and
+-- allocate space on the screen edges for the bar.
 statusBarProp :: LayoutClass l Window
               => String    -- ^ The command line to launch the status bar
               -> PP        -- ^ The pretty printing options
@@ -338,8 +337,7 @@ statusBarProp :: LayoutClass l Window
 statusBarProp = statusBarPropTo "_XMONAD_LOG"
 
 -- | Like 'statusBarProp', but one is able to specify the property to be written
--- to.  This property is of type @UTF8_STRING@. The string must have been
--- processed by 'encodeString' ('dynamicLogString' does this).
+-- to.
 statusBarPropTo :: LayoutClass l Window
                 => String    -- ^ Property to write the string to
                 -> String    -- ^ The command line to launch the status bar
@@ -638,8 +636,6 @@ xmobarBorder border color width = wrap prefix "</box>"
 xmobarRaw :: String -> String
 xmobarRaw "" = ""
 xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
-
--- ??? add an xmobarEscape function?
 
 -- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
 -- the matching tags like </fc>.
