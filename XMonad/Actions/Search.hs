@@ -363,18 +363,16 @@ namedEngine name (SearchEngine _ site) = searchEngineF name site
    Prompt's result, passes it to a given searchEngine and opens it in a given
    browser. -}
 promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
-promptSearchBrowser config browser (SearchEngine name site) =
-    mkXPrompt (Search name) config (historyCompletionP ("Search [" `isPrefixOf`)) $ search browser site
+promptSearchBrowser config browser (SearchEngine name site) = do
+    hc <- historyCompletionP ("Search [" `isPrefixOf`)
+    mkXPrompt (Search name) config hc $ search browser site
 
 {- | Like 'promptSearchBrowser', but only suggest previous searches for the
    given 'SearchEngine' in the prompt. -}
 promptSearchBrowser' :: XPConfig -> Browser -> SearchEngine -> X ()
-promptSearchBrowser' config browser (SearchEngine name site) =
-    mkXPrompt
-        (Search name)
-        config
-        (historyCompletionP (searchName `isPrefixOf`))
-        $ search browser site
+promptSearchBrowser' config browser (SearchEngine name site) = do
+    hc <- historyCompletionP (searchName `isPrefixOf`)
+    mkXPrompt (Search name) config hc $ search browser site
   where
     searchName = showXPrompt (Search name)
 
