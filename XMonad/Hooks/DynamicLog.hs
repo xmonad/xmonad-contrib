@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts, PatternGuards, TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -68,15 +69,16 @@ module XMonad.Hooks.DynamicLog (
 
 import Codec.Binary.UTF8.String (encodeString)
 import Control.Applicative (liftA2)
-import Control.Exception (try, SomeException)
+import Control.Exception (SomeException, try)
 import Control.Monad (msum, void)
+import Data.Bool (bool)
 import Data.Char (isSpace, ord)
 import Data.List (intersperse, isPrefixOf, sortBy, stripPrefix)
 import Data.Map (Map)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import Data.Ord (comparing)
-import System.Posix.Types (ProcessID)
 import System.Posix.Signals (sigTERM, signalProcessGroup)
+import System.Posix.Types (ProcessID)
 
 import qualified Data.Map        as M
 import qualified XMonad.StackSet as S
@@ -521,8 +523,14 @@ dynamicLogString pp = do
     -- workspace list
     let ws = pprWindowSet sort' urgents pp winset
 
-    -- window title
-    wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
+    -- window titles
+    let stack  = S.index winset
+        focWin = S.peek  winset
+        ppWin :: Window -> String -> String  -- pretty print a window title
+            = bool (ppTitleUnfocused pp) (ppTitle pp) . (focWin ==) . Just
+    winNames <- traverse (fmap show . getName) stack
+    let ppNames = unwords . filter (not . null) $
+            zipWith (\w n -> ppWin w $ ppTitleSanitize pp n) stack winNames
 
     -- run extra loggers, ignoring any that generate errors.
     extras <- mapM (flip catchX (return Nothing)) $ ppExtras pp
@@ -530,7 +538,7 @@ dynamicLogString pp = do
     return $ encodeString . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
-                        , ppTitle  pp $ ppTitleSanitize pp wt
+                        , ppNames
                         ]
                         ++ catMaybes extras
 
@@ -761,16 +769,19 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              , ppWsSep :: String
                -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
-               -- ^ window title format
+               -- ^ window title format for the focused window
+             , ppTitleUnfocused :: String -> String
+               -- ^ window title format for unfocused windows
              , ppTitleSanitize :: String -> String
-              -- ^  escape / sanitizes input to 'ppTitle'
+              -- ^ escape / sanitizes input to 'ppTitle' and
+              --   'ppTitleUnfocused'
              , ppLayout :: String -> String
                -- ^ layout name format
              , ppOrder :: [String] -> [String]
                -- ^ how to order the different log sections. By
                --   default, this function receives a list with three
                --   formatted strings, representing the workspaces,
-               --   the layout, and the current window title,
+               --   the layout, and the current window titles,
                --   respectively. If you have specified any extra
                --   loggers in 'ppExtras', their output will also be
                --   appended to the list.  To get them in the reverse
@@ -806,6 +817,7 @@ instance Default PP where
                , ppSep             = " : "
                , ppWsSep           = " "
                , ppTitle           = shorten 80
+               , ppTitleUnfocused  = const ""
                , ppTitleSanitize   = xmobarStrip . dzenEscape
                , ppLayout          = id
                , ppOrder           = id
