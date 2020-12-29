@@ -415,6 +415,9 @@ own configuration, possibly with some modifications.
 * "XMonad.Config.Xfce":
     This module provides a config suitable for use with the Xfce desktop environment.
 
+* "XMonad.Config.LXQt":
+    This module provides a config suitable for use with the LXQt desktop environment.
+
 -}
 
 {- $hooks
