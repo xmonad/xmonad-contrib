@@ -125,6 +125,11 @@
 
     Extends ManageHook EDSL to work on focused windows and current workspace.
 
+  * `XMonad.Config.LXQt`
+
+    This module provides a config suitable for use with the LXQt desktop
+    environment.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.DynamicProjects`
