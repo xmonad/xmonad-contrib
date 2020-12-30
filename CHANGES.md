@@ -196,6 +196,9 @@
       instead of pipe-based logging, due to the various issues associated with
       the latter.
 
+    - Added `spawnStatusBarAndRemember` and `cleanupStatusBars` to provide 
+      a way to safely restart status bars without relying on pipes.
+
   * `XMonad.Layout.BoringWindows`
 
      Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
