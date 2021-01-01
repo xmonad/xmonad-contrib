@@ -246,23 +246,31 @@ instance SetsAmbiguous Ambiguity where
                                 $ W.screenDetail scr
                             ]
 
+            -- Find the screen containing the workspace being layouted.
+            -- (This is a list only to avoid the need to specialcase when it
+            -- can't be found or when several contain @lr@. When that happens,
+            -- the result will probably be incorrect.)
+            thisScreen = [ scr | scr <- W.screens wset
+                               , screenRect (W.screenDetail scr) `R.supersetOf` lr ]
+
             -- This originally considered all floating windows across all
-            -- workspaces. It seems more efficient to have each layout manage
-            -- its own floating windows - and equally valid though untested
-            -- against a multihead setup. In some cases the previous code would
-            -- redundantly add then remove borders from already-borderless
-            -- windows.
+            -- workspaces. It seems more efficient to have each screen manage
+            -- its own floating windows - and necessary to support the
+            -- additional OnlyLayoutFloat* variants correctly in multihead
+            -- setups. In some cases the previous code would redundantly add
+            -- then remove borders from already-borderless windows.
             floating = do
+                scr <- thisScreen
                 let wz :: Integer -> (Window,Rectangle)
                        -> (Integer,Window,Rectangle)
                     wz i (w,wr) = (i,w,wr)
                     -- For the following: in stacking order lowest -> highest.
                     ts = reverse . zipWith wz [-1,-2..] $ wrs
                     fs = zipWith wz [0..] $ do
-                        w       <- reverse . W.index $ wset
+                        w       <- reverse . W.integrate' . W.stack . W.workspace $ scr
                         Just wr <- [M.lookup w (W.floating wset)]
                         return (w,scaleRationalRect sr wr)
-                    sr = screenRect . W.screenDetail . W.current $ wset
+                    sr = screenRect . W.screenDetail $ scr
                 (i1,w1,wr1) <- fs
                 guard $ case amb of
                     OnlyLayoutFloatBelow ->
