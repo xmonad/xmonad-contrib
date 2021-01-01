@@ -46,11 +46,15 @@
 
 ### New Modules
 
+  * `XMonad.Hooks.WindowedFullscreenFix`
+
+    Provides a handleEventHook that fixes the rendering behaviour
+    of some (mostly chromium based) applications when in windowed fullscreen.
+
   * `XMonad.Util.ActionCycle`
 
     A module providing a simple way to implement "cycling" `X` actions,
     useful for things like alternating toggle-style keybindings.
-
 
   * `XMonad.Actions.RotateSome`
 

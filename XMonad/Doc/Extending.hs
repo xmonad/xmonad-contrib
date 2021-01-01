@@ -575,6 +575,10 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.WorkspaceHistory":
     Keeps track of workspace viewing order.
 
+* "XMonad.Hooks.WindowedFullscreenFix":
+    Provides a handleEventHook that fixes the rendering behaviour
+    of some (mostly chromium based) applications when in windowed fullscreen.
+
 * "XMonad.Hooks.WindowSwallowing"
     A handleEventHook that implements window swallowing:
     Hide parent windows like terminals when opening other programs (like image viewers) from within them,
