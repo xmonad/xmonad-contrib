@@ -9,7 +9,7 @@
 -- Portability :  unportable
 --
 -- This module is a collection of random fixes, workarounds and other functions
--- that rely on somewhat hacky implementations which may have unwanted sideeffects.
+-- that rely on somewhat hacky implementations which may have unwanted side effects.
 --
 -- Import this module as qualified like so:
 --
@@ -41,14 +41,21 @@ import Control.Monad (when)
 -- can cause issues, where the window does not correctly see the size of the window
 -- when displaying the fullscreen content, thus cutting off the window content.
 --
--- This module works around that issue by forcing the window to recalculate their
+-- This function works around that issue by forcing the window to recalculate their
 -- dimensions after initiating fullscreen, thus making chrome-based applications
 -- behave properly when in windowed fullscreen.
+--
+-- The following gif shows the behaviour of chrome (left) without this fix
+-- compared to firefox, which already behaves as expected by default:
+-- <<https://user-images.githubusercontent.com/5300871/99186015-b9512500-274d-11eb-9cfc-6ba3bae6db51.gif>>
+--
+-- Using this function, chrome will now behave as expected as well:
+-- <<https://user-images.githubusercontent.com/5300871/99186115-4dbb8780-274e-11eb-9ed2-b7815ba9e597.gif>>
 --
 -- Usage:
 -- add to handleEventHook as follows:
 --
--- > handleEventHook = handleEventHook def <+> windowedFullscreenFixEventHook
+-- > handleEventHook = handleEventHook def <+> Hacks.windowedFullscreenFixEventHook
 --
 
 -- | Fixes fullscreen behaviour of chromium based apps by quickly applying and undoing a resize.
