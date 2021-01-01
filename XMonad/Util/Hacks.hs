@@ -35,7 +35,7 @@ import Control.Monad (when)
 -- Windowed fullscreen describes the behaviour in which XMonad,
 -- by default, does not automatically put windows that request being fullscreened
 -- into actual fullscreen, but keeps them constrained
--- to their noral window dimensions, still rendering them in fullscreen.
+-- to their normal window dimensions, still rendering them in fullscreen.
 --
 -- With chromium based applications like Chrome, Discord and others this
 -- can cause issues, where the window does not correctly see the size of the window
@@ -62,6 +62,6 @@ windowedFullscreenFixEventHook (ClientMessageEvent _ _ _ dpy win typ (_:dats)) =
     withWindowAttributes dpy win $ \attrs ->
       liftIO $ do
         resizeWindow dpy win (fromIntegral $ wa_width attrs - 1) (fromIntegral $ wa_height attrs)
-        resizeWindow dpy win (fromIntegral $ wa_width attrs + 1) (fromIntegral $ wa_height attrs)
+        resizeWindow dpy win (fromIntegral $ wa_width attrs) (fromIntegral $ wa_height attrs)
   return $ All True
 windowedFullscreenFixEventHook _ = return $ All True
