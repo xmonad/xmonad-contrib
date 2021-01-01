@@ -575,10 +575,6 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.WorkspaceHistory":
     Keeps track of workspace viewing order.
 
-* "XMonad.Hooks.WindowedFullscreenFix":
-    Provides a handleEventHook that fixes the rendering behaviour
-    of some (mostly chromium based) applications when in windowed fullscreen.
-
 * "XMonad.Hooks.WindowSwallowing"
     A handleEventHook that implements window swallowing:
     Hide parent windows like terminals when opening other programs (like image viewers) from within them,
@@ -1159,6 +1155,9 @@ A non complete list with a brief description:
 * "XMonad.Util.Font":
     A module for abstracting a font facility over
     Core fonts and Xft.
+
+* "XMonad.Util.Hacks":
+    A collection of small fixes and utilities with possibly hacky implementations.
 
 * "XMonad.Util.Image":
     Utilities for manipulating [[Bool]] as images.

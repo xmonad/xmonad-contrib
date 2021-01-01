@@ -192,7 +192,6 @@ library
                         XMonad.Hooks.WallpaperSetter
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.WorkspaceHistory
-                        XMonad.Hooks.WindowedFullscreenFix
                         XMonad.Hooks.WindowSwallowing
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
@@ -330,6 +329,7 @@ library
                         XMonad.Util.ExclusiveScratchpads
                         XMonad.Util.ExtensibleState
                         XMonad.Util.Font
+                        XMonad.Util.Hacks
                         XMonad.Util.Image
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers

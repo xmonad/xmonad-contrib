@@ -46,10 +46,11 @@
 
 ### New Modules
 
-  * `XMonad.Hooks.WindowedFullscreenFix`
+  * `XMonad.Util.Hacks`
 
-    Provides a handleEventHook that fixes the rendering behaviour
-    of some (mostly chromium based) applications when in windowed fullscreen.
+    Serves as a collection of hacks and fixes that should be easily acessible to users.
+    The first element of this module is windowedFullscreenFix, which fixes fullscreen behaviour
+    of chromium based applications when using windowed fullscreen.
 
   * `XMonad.Util.ActionCycle`
 
