@@ -301,9 +301,6 @@ data Ambiguity
         -- ^ This constructor is used to combine the borderless windows
         -- provided by the SetsAmbiguous instances from two other 'Ambiguity'
         -- data types.
-    | OnlyScreenFloat
-        -- ^ Only remove borders on floating windows that cover the whole
-        -- screen.
     | OnlyLayoutFloatBelow
         -- ^ Like 'OnlyLayoutFloat', but only removes borders if no window
         -- stacked below remains visible. Considers all floating windows on the
@@ -314,9 +311,12 @@ data Ambiguity
     | OnlyLayoutFloat
         -- ^ Only remove borders on floating windows that exactly cover the
         -- parent layout rectangle.
+    | OnlyScreenFloat
+        -- ^ Only remove borders on floating windows that cover the whole
+        -- screen.
     | Never
-        -- ^ Never remove borders when ambiguous: this is the same as
-        -- smartBorders.
+        -- ^ Like 'OnlyScreenFloat', and also remove borders of tiled windows
+        -- when not ambiguous: this is the same as 'smartBorders'.
     | EmptyScreen
         -- ^ Focus in an empty screen does not count as ambiguous.
     | OtherIndicated
