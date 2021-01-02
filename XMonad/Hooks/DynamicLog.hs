@@ -360,7 +360,7 @@ statusBarPropTo :: LayoutClass l Window
 statusBarPropTo prop cmd pp =
     makeStatusBar
         (xmonadPropLog' prop =<< dynamicLogString pp)
-        (spawnStatusBarAndRemember cmd)
+        (cleanupStatusBars *> spawnStatusBarAndRemember cmd)
 
 -- | Spawns a status bar and saves its PID. This is useful when the status bars
 -- should be restarted with xmonad. Use this in combination with 'cleanupStatusBars'.
