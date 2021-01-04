@@ -698,9 +698,8 @@ handleCompletion cs = do
 
     let updateWins  l = redrawWindows l
         updateState l = case alwaysHlight of
-            False                                           -> simpleComplete l st
-            True | Just (command st) /= highlightedCompl st -> alwaysHighlightCurrent st
-                 | otherwise                                -> alwaysHighlightNext l st
+            False -> simpleComplete l st
+            True  -> hlComplete l st
 
     case cs of
       []  -> updateWindows
@@ -720,33 +719,31 @@ handleCompletion cs = do
                            , highlightedCompl = Just newCommand
                            }
 
-        -- If alwaysHighlight is on, and this is the first use of the
-        -- completion key, update the buffer so that it contains the
-        -- current completion item.
-        alwaysHighlightCurrent :: XPState -> XP ()
-        alwaysHighlightCurrent st = do
-          let newCommand = fromMaybe (command st) $ highlightedItem st cs
-          modify $ \s -> setCommand newCommand $
-                         setHighlightedCompl (Just newCommand) $
-                         s { offset = length newCommand
-                           }
-
         -- If alwaysHighlight is on, and the user wants the next
         -- completion, move to the next completion item and update the
         -- buffer to reflect that.
         --
         --TODO: Scroll or paginate results
-        alwaysHighlightNext :: [String] -> XPState -> XP ()
-        alwaysHighlightNext l st = do
-          let complIndex' = nextComplIndex st (length l)
-              highlightedCompl' = highlightedItem st { complIndex = complIndex'} cs
-              newCommand = fromMaybe (command st) $ highlightedCompl'
-          modify $ \s -> setHighlightedCompl highlightedCompl' $
-                         setCommand newCommand $
-                         s { complIndex = complIndex'
-                           , offset = length newCommand
-                           }
-
+        hlComplete :: [String] -> XPState -> XP ()
+        hlComplete l st =
+          let newCommand = fromMaybe (command st) $ highlightedItem st l in
+          if newCommand == (getLastWord . command $ st)
+            then do
+              -- The word currently under the cursor is the same
+              -- as the current suggestion, so we should advance
+              -- to the next completion and try again.
+              let complIndex' = nextComplIndex st (length l)
+                  highlightedCompl' = highlightedItem st { complIndex = complIndex'} cs
+              hlComplete l $ st { complIndex = complIndex',
+                                  highlightedCompl = highlightedCompl'
+                                }
+            else do
+              -- The word under the cursor differs from the
+              -- current suggestion, so replace it
+              put st
+              killWord Prev
+              insertString' newCommand
+              endOfLine
 -- | Initiate a prompt sub-map event loop. Submaps are intended to provide
 -- alternate keybindings. Accepts a default action and a mapping from key
 -- combinations to actions. If no entry matches, the default action is run.
@@ -1189,10 +1186,15 @@ resetComplIndex st = if (alwaysHighlight $ config st) then st { complIndex = (0,
 
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
-insertString str =
+insertString str = do
+  insertString' str
+  modify resetComplIndex
+
+insertString' :: String -> XP ()
+insertString' str =
   modify $ \s -> let
     cmd = (c (command s) (offset s))
-    st = resetComplIndex $ s { offset = o (offset s)}
+    st = s { offset = o (offset s)}
     in setCommand cmd st
   where o oo = oo + length str
         c oc oo | oo >= length oc = oc ++ str
