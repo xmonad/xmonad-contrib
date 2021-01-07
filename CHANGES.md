@@ -46,11 +46,16 @@
 
 ### New Modules
 
+  * `XMonad.Util.Hacks`
+
+    Serves as a collection of hacks and fixes that should be easily acessible to users.
+    The first element of this module is windowedFullscreenFix, which fixes fullscreen behaviour
+    of chromium based applications when using windowed fullscreen.
+
   * `XMonad.Util.ActionCycle`
 
     A module providing a simple way to implement "cycling" `X` actions,
     useful for things like alternating toggle-style keybindings.
-
 
   * `XMonad.Actions.RotateSome`
 

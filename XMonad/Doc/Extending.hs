@@ -1156,6 +1156,9 @@ A non complete list with a brief description:
     A module for abstracting a font facility over
     Core fonts and Xft.
 
+* "XMonad.Util.Hacks":
+    A collection of small fixes and utilities with possibly hacky implementations.
+
 * "XMonad.Util.Image":
     Utilities for manipulating [[Bool]] as images.
 

@@ -329,6 +329,7 @@ library
                         XMonad.Util.ExclusiveScratchpads
                         XMonad.Util.ExtensibleState
                         XMonad.Util.Font
+                        XMonad.Util.Hacks
                         XMonad.Util.Image
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers
