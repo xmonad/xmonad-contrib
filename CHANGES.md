@@ -201,8 +201,11 @@
       instead of pipe-based logging, due to the various issues associated with
       the latter.
 
-    - Added `spawnStatusBarAndRemember` and `cleanupStatusBars` to provide 
+    - Added `spawnStatusBarAndRemember` and `cleanupStatusBars` to provide
       a way to safely restart status bars without relying on pipes.
+
+    - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
+      the current workspace in the status bar.
 
   * `XMonad.Layout.BoringWindows`
 
