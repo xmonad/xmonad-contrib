@@ -44,7 +44,7 @@ import XMonad
 -- @~\/.xmonad\/hooks startup@ will also.
 
 -- | Execute a named script hook
-execScriptHook :: MonadIO m => String -> m ()
+execScriptHook :: String -> X ()
 execScriptHook hook = do
   xmonadDir <- getXMonadDir
   let script = xmonadDir ++ "/hooks "

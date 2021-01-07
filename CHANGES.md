@@ -44,6 +44,17 @@
     All of these were now removed. You can use the re-exported `def` from
     `Data.Default` instead.
 
+  * `XMonad.Hooks.Script`
+
+    `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
+    in how the xmonad core handles XDG directories.
+
+  * `XMonad.Prompt`
+
+    `historyCompletion` and `historyCompletionP` now both have an `X`
+    constraint (was: `IO`), due to changes in how the xmonad core handles XDG
+    directories.
+
 ### New Modules
 
   * `XMonad.Util.Hacks`
