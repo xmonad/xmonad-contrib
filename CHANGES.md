@@ -356,10 +356,13 @@
 
     - Added `filterOutWs` for workspace filtering.
 
-  * `XMonad.Prompt
+  * `XMonad.Prompt`
 
     - Accommodate completion of multiple words even when `alwaysHighlight` is
       enabled.
+
+    - Made the history respect words that were "completed" by `alwaysHighlight`
+      upon confirmation of the selection by the user.
 
 ## 0.16
 
