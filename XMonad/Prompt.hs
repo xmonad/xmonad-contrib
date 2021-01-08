@@ -402,6 +402,15 @@ highlightedItem st' completions = case complWinDim st' of
       [] -> Nothing
       _ -> Just $ complMatrix !! col_index !! row_index
 
+-- | Return the selected completion, i.e. the 'String' we actually act
+-- upon after the user confirmed their selection (by pressing @Enter@).
+selectedCompletion :: XPState -> String
+selectedCompletion st
+    -- If 'alwaysHighlight' is used, look at the currently selected item (if any)
+  | alwaysHighlight (config st) = fromMaybe (command st) $ highlightedCompl st
+    -- Otherwise, look at what the user actually wrote so far
+  | otherwise                   = command st
+
 -- this would be much easier with functional references
 command :: XPState -> String
 command = W.focus . commandHistory
@@ -483,16 +492,7 @@ mkXPromptWithReturn :: XPrompt p => p -> XPConfig -> ComplFunction -> (String ->
 mkXPromptWithReturn t conf compl action = do
   st' <- mkXPromptImplementation (showXPrompt t) conf (XPSingleMode compl (XPT t))
   if successful st'
-    then do
-      let selectedCompletion =
-            case alwaysHighlight (config st') of
-              -- When alwaysHighlight is True, autocompletion is
-              -- handled with indexes.
-              False -> command st'
-              -- When it is false, it is handled depending on the
-              -- prompt buffer's value.
-              True -> fromMaybe (command st') $ highlightedCompl st'
-      Just <$> action selectedCompletion
+    then Just <$> action (selectedCompletion st')
     else return Nothing
 
 -- | Creates a prompt given:
@@ -570,7 +570,7 @@ mkXPromptImplementation historyKey conf om = do
       -- We need to apply historyFilter before as well, since
       -- otherwise the filter would not be applied if there is no
       -- history
-      (prune $ historyFilter conf [command st'])
+      (prune $ historyFilter conf [selectedCompletion st'])
       hist
   return st'
 
