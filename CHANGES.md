@@ -215,6 +215,12 @@
 
     - Add the -dock argument to the dzen spawn arguments
 
+    - Added `StatusBarConfig` and `makeStatusBar` and `makeStatusBar'` as
+      an abstraction for status bars; together with `statusBarPropConfig`,
+      `statusBarPropToConfig`, `statusBarHandleConfig` and `statusBarHandleConfig'`
+      to provide the configs for the already existing functionality. This provides
+      multiple status bars support.
+
   * `XMonad.Layout.BoringWindows`
 
     - Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
