@@ -51,7 +51,6 @@ library
                    bytestring >= 0.10 && < 0.11,
                    containers >= 0.5 && < 0.7,
                    directory,
-                   extensible-exceptions,
                    filepath,
                    old-locale,
                    old-time,
@@ -377,7 +376,6 @@ test-suite properties
   build-depends: base
                , QuickCheck >= 2
                , containers
-               , extensible-exceptions
                , xmonad-contrib
                , directory
                , X11>=1.6.1 && < 1.10

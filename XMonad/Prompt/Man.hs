@@ -33,7 +33,7 @@ import System.Directory
 import System.Process
 import System.IO
 
-import qualified Control.Exception.Extensible as E
+import qualified Control.Exception as E
 import Control.Monad
 import Data.List
 import Data.Maybe

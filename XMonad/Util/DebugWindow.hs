@@ -20,7 +20,7 @@ import           Prelude
 import           XMonad
 
 import           Codec.Binary.UTF8.String        (decodeString)
-import           Control.Exception.Extensible                          as E
+import           Control.Exception                                     as E
 import           Control.Monad                   (when)
 import           Data.List                       (unfoldr
                                                  ,intercalate

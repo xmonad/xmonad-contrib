@@ -31,7 +31,7 @@ import XMonad.Core
 import XMonad.Prompt
 
 import System.IO
-import Control.Exception.Extensible (bracket)
+import Control.Exception (bracket)
 
 -- $usage
 --
