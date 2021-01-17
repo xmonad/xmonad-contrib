@@ -30,7 +30,7 @@ import           XMonad.Util.DebugWindow                     (debugWindow)
 
 -- import           Graphics.X11.Xlib.Extras.GetAtomName        (getAtomName)
 
-import           Control.Exception.Extensible         as E
+import           Control.Exception                    as E
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Data.Char                                   (isDigit)

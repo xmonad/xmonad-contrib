@@ -100,7 +100,7 @@ import           XMonad.Util.XSelection       (getSelection)
 import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
 import           Control.Arrow                (first, second, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
-import           Control.Exception.Extensible as E hiding (handle)
+import           Control.Exception            as E hiding (handle)
 import           Control.Monad.State
 import           Data.Bits
 import           Data.Char                    (isSpace)

@@ -23,7 +23,7 @@ module XMonad.Util.NamedWindows (
                                    unName
                                   ) where
 
-import Control.Exception.Extensible as E
+import Control.Exception as E
 import Data.Maybe ( fromMaybe, listToMaybe )
 
 import qualified XMonad.StackSet as W ( peek )
