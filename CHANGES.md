@@ -304,6 +304,12 @@
 
   * `XMonad.Util.Loggers`
     - Make `battery` and `loadAvg` distro-independent.
+    - Added `logTitleOnScreen`, `logCurrentOnScreen` and `logLayoutOnScreen`
+      as screen-specific variants of `logTitle`, `logCurrent` and `logLayout`.
+    - Added `logWhenActive` to have loggers active only when a certain
+      screen is active.
+    - Added `logConst` to log a constant `String`, and `logDefault` (infix: `.|`)
+      to combine loggers.
 
   * `XMonad.Hooks.DynamicLog`
     - Added `xmobarBorder` function to create borders around strings.
