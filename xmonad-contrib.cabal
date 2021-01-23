@@ -372,17 +372,37 @@ test-suite properties
                   XPrompt
                   Instances
                   Utils
-  hs-source-dirs: tests
+                  XMonad.Actions.CycleWS
+                  XMonad.Actions.FocusNth
+                  XMonad.Actions.PhysicalScreens
+                  XMonad.Actions.RotateSome
+                  XMonad.Actions.SwapWorkspaces
+                  XMonad.Actions.TagWindows
+                  XMonad.Hooks.ManageDocks
+                  XMonad.Hooks.WorkspaceHistory
+                  XMonad.Layout.LayoutModifier
+                  XMonad.Layout.LimitWindows
+                  XMonad.Prompt
+                  XMonad.Prompt.Shell
+                  XMonad.Util.ExtensibleState
+                  XMonad.Util.Font
+                  XMonad.Util.Image
+                  XMonad.Util.PureX
+                  XMonad.Util.Run
+                  XMonad.Util.Types
+                  XMonad.Util.WindowProperties
+                  XMonad.Util.WorkspaceCompare
+                  XMonad.Util.XSelection
+                  XMonad.Util.XUtils
+  hs-source-dirs: tests, .
   build-depends: base
                , QuickCheck >= 2
-               , containers
-               , xmonad-contrib
-               , directory
                , X11>=1.6.1 && < 1.10
+               , containers
+               , directory
                , mtl
                , process
                , unix
                , utf8-string
                , xmonad >= 0.15 && < 0.16
-  ghc-options: -i.
   cpp-options: -DTESTING
