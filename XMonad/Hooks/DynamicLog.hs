@@ -73,10 +73,9 @@ import Control.Exception (SomeException, try)
 import Control.Monad (msum, void)
 import Data.Bool (bool)
 import Data.Char (isSpace, ord)
-import Data.List (intersperse, isPrefixOf, sortBy, stripPrefix)
+import Data.List (intercalate, isPrefixOf, sortOn, stripPrefix)
 import Data.Map (Map)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
-import Data.Ord (comparing)
 import System.Posix.Signals (sigTERM, signalProcessGroup)
 import System.Posix.Types (ProcessID)
 
@@ -287,7 +286,7 @@ dzenWithFlags :: LayoutClass l Window
               => String     -- ^ Flags to give to @dzen@
               -> XConfig l  -- ^ The base config
               -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+dzenWithFlags flags = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey
 
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
@@ -300,7 +299,7 @@ dzenWithFlags flags conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey 
 dzen :: LayoutClass l Window
      => XConfig l  -- ^ The base config
      -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzen conf = dzenWithFlags flags conf
+dzen = dzenWithFlags flags
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
@@ -328,14 +327,14 @@ dzen conf = dzenWithFlags flags conf
 xmobarProp :: LayoutClass l Window
            => XConfig l  -- ^ The base config
            -> IO (XConfig (ModifiedLayout AvoidStruts l))
-xmobarProp conf = statusBarProp "xmobar" xmobarPP toggleStrutsKey conf
+xmobarProp = statusBarProp "xmobar" xmobarPP toggleStrutsKey
 
 -- | This function works like 'xmobarProp', but uses pipes instead of
 -- property-based logging.
 xmobar :: LayoutClass l Window
        => XConfig l  -- ^ The base config
        -> IO (XConfig (ModifiedLayout AvoidStruts l))
-xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
+xmobar = statusBar "xmobar" xmobarPP toggleStrutsKey
 
 -- | Modifies the given base configuration to launch the given status bar, write
 -- status information to the @_XMONAD_LOG@ property for the bar to read, and
@@ -533,7 +532,7 @@ dynamicLogString pp = do
             zipWith (\w n -> ppWin w $ ppTitleSanitize pp n) stack winNames
 
     -- run extra loggers, ignoring any that generate errors.
-    extras <- mapM (flip catchX (return Nothing)) $ ppExtras pp
+    extras <- mapM (`catchX` return Nothing) $ ppExtras pp
 
     return $ encodeString . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
@@ -552,7 +551,7 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w = printer pp (S.tag w)
-          where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
+          where printer | any (\x -> (== Just (S.tag w)) (S.findTag x s)) urgents  = ppUrgent
                         | S.tag w == this                                               = ppCurrent
                         | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
                         | S.tag w `elem` visibles                                       = liftA2 fromMaybe ppVisible ppVisibleNoWindows
@@ -582,9 +581,9 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 pprWindowSetXinerama :: WindowSet -> String
 pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
   where onscreen  = map (S.tag . S.workspace)
-                        . sortBy (comparing S.screen) $ S.current ws : S.visible ws
+                        . sortOn S.screen $ S.current ws : S.visible ws
         offscreen = map S.tag . filter (isJust . S.stack)
-                        . sortBy (comparing S.tag) $ S.hidden ws
+                        . sortOn S.tag $ S.hidden ws
 
 -- | Wrap a string in delimiters, unless it is empty.
 wrap :: String  -- ^ left delimiter
@@ -619,7 +618,7 @@ shortenLeft = shortenLeft' "..."
 -- | Like 'shorten'', but truncate from the left instead of right.
 shortenLeft' :: String -> Int -> String -> String
 shortenLeft' end n xs | l < n     = xs
-                      | otherwise = end ++ (drop (l - n + length end) xs)
+                      | otherwise = end ++ drop (l - n + length end) xs
  where l = length xs
 
 -- | Output a list of strings, ignoring empty ones and separating the
@@ -627,7 +626,7 @@ shortenLeft' end n xs | l < n     = xs
 sepBy :: String   -- ^ separator
       -> [String] -- ^ fields to output
       -> String
-sepBy sep = concat . intersperse sep . filter (not . null)
+sepBy sep = intercalate sep . filter (not . null)
 
 -- | Use dzen escape codes to output a string with given foreground
 --   and background colors.
@@ -704,7 +703,7 @@ xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
 -- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
 -- the matching tags like </fc>.
 xmobarStrip :: String -> String
-xmobarStrip = converge (xmobarStripTags ["fc","icon","action"]) where
+xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
 converge :: (Eq a) => (a -> a) -> a -> a
 converge f a = let xs = iterate f a
