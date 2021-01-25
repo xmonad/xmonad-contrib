@@ -368,6 +368,16 @@
     - Made the history respect words that were "completed" by `alwaysHighlight`
       upon confirmation of the selection by the user.
 
+    - Fixed a crash when focusing a new window while the prompt was up
+      by allowing pointer events to pass through the custom prompt event
+      loop.
+
+  * `XMonad.Actions.TreeSelect`
+
+    - Fixed a crash when focusing a new window while the tree select
+      window was up by allowing pointer events to pass through the
+      custom tree select event loop.
+
 ## 0.16
 
 ### Breaking Changes
