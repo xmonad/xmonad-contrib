@@ -32,7 +32,7 @@ main = hspec $ do
         prop "prop_rotate_some_anchors" $ RotateSome.prop_rotate_some_anchors
         prop "prop_rotate_some_rotate"  $ RotateSome.prop_rotate_some_rotate
         prop "prop_rotate_some_focus"   $ RotateSome.prop_rotate_some_focus
-    context "SwapWorkspaces" $ modifyMaxDiscardRatio (const 100) $ do
+    context "SwapWorkspaces" $ do
         prop "prop_double_swap"       $ SwapWorkspaces.prop_double_swap
         prop "prop_invalid_swap"      $ SwapWorkspaces.prop_invalid_swap
         prop "prop_swap_only_two"     $ SwapWorkspaces.prop_swap_only_two
