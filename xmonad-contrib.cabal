@@ -362,7 +362,7 @@ library
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
 
-test-suite properties
+test-suite tests
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   other-modules:  ManageDocks
@@ -400,6 +400,7 @@ test-suite properties
                , X11>=1.6.1 && < 1.10
                , containers
                , directory
+               , hspec >= 2.4.0 && < 3
                , mtl
                , process
                , unix
