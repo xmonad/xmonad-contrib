@@ -14,7 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        resolver: [lts-16, lts-15, lts-14, lts-12]
+        resolver:
+          - nightly
+          - lts-17
+          - lts-16
+          - lts-15
+          - lts-14
+          - lts-12
         yaml: ['stack.yaml', 'stack-master.yaml']
 
     steps:
