@@ -366,6 +366,7 @@ test-suite tests
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   other-modules:  ManageDocks
+                  NoBorders
                   RotateSome
                   Selective
                   SwapWorkspaces
@@ -382,6 +383,7 @@ test-suite tests
                   XMonad.Hooks.WorkspaceHistory
                   XMonad.Layout.LayoutModifier
                   XMonad.Layout.LimitWindows
+                  XMonad.Layout.NoBorders
                   XMonad.Prompt
                   XMonad.Prompt.Shell
                   XMonad.Util.ExtensibleState

@@ -4,6 +4,7 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 
 import qualified ManageDocks
+import qualified NoBorders
 import qualified RotateSome
 import qualified Selective
 import qualified SwapWorkspaces
@@ -41,3 +42,4 @@ main = hspec $ do
         prop "prop_split"            $ XPrompt.prop_split
         prop "prop_spliInSubListsAt" $ XPrompt.prop_spliInSubListsAt
         prop "prop_skipGetLastWord"  $ XPrompt.prop_skipGetLastWord
+    context "NoBorders" $ NoBorders.spec
