@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving, TypeSynonymInstances, FlexibleInstances, OverlappingInstances #-}
+{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving, TypeSynonymInstances, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.GridSelect
@@ -220,7 +220,7 @@ instance HasColorizer Window where
 instance HasColorizer String where
     defaultColorizer = stringColorizer
 
-instance HasColorizer a where
+instance {-# OVERLAPPABLE #-} HasColorizer a where
     defaultColorizer _ isFg =
         let getColor = if isFg then focusedBorderColor else normalBorderColor
         in asks $ flip (,) "black" . getColor . config
