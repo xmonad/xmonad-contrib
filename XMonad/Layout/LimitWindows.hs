@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+#ifdef TESTING
+{-# OPTIONS_GHC -Wno-duplicate-exports #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LimitWindows
