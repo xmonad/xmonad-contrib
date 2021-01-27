@@ -378,6 +378,11 @@
       window was up by allowing pointer events to pass through the
       custom tree select event loop.
 
+  * `XMonad.Layout.NoBorders`
+
+    - Fixed handling of floating window borders in multihead setups that was
+      broken since 0.14.
+
 ## 0.16
 
 ### Breaking Changes
