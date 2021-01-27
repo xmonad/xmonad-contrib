@@ -62,7 +62,6 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 
 import System.Exit
-import Data.Monoid
 import Control.Monad(when)
 
 -- $usage

@@ -35,10 +35,8 @@ module XMonad.Util.Font
 
 import XMonad
 import Foreign
-import Control.Applicative
 import Control.Exception as E
 import Data.Maybe
-import Data.Bits (shiftR)
 import Text.Printf (printf)
 
 #ifdef XFT
@@ -118,7 +116,7 @@ initXMF s =
         return (Xft xftdraw)
   else
 #endif
-      fmap Utf8 $ initUtf8Font s
+      Utf8 <$> initUtf8Font s
 #ifdef XFT
   where xftPrefix = "xft:"
 #endif
@@ -153,8 +151,8 @@ textExtentsXMF (Core fs) s = do
   return (a,d)
 #ifdef XFT
 textExtentsXMF (Xft xftfont) _ = io $ do
-  ascent  <- fi `fmap` xftfont_ascent  xftfont
-  descent <- fi `fmap` xftfont_descent xftfont
+  ascent  <- fi <$> xftfont_ascent  xftfont
+  descent <- fi <$> xftfont_descent xftfont
   return (ascent, descent)
 #endif
 

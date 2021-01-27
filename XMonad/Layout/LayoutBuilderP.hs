@@ -78,7 +78,7 @@ layoutAll box sub =
   let a = alwaysTrue (Proxy :: Proxy a)
   in  LayoutP Nothing Nothing a box Nothing sub Nothing
 
-instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq w, Typeable w, Show p) =>
+instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq w, Typeable w, Show p, Typeable p) =>
     LayoutClass (LayoutP p l1 l2) w where
 
         -- | Update window locations.
@@ -147,7 +147,7 @@ sendFocus l@(LayoutP subf _ _ _ _ _ _) m = do foc <- isFocus subf
 
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
-isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) `fmap` gets windowset
+isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
                       return $ maybe False (\s -> show w == (show $ W.focus s)) ms
 
 

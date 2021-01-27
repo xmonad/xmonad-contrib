@@ -31,7 +31,6 @@ module XMonad.Layout.Groups.Wmii ( -- * Usage
                                    -- * Useful re-exports
                                  , shrinkText
                                  , def
-                                 , defaultTheme
                                  , module XMonad.Layout.Groups.Helpers ) where
 
 import XMonad hiding ((|||))

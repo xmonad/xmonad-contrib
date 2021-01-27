@@ -22,10 +22,13 @@ module XMonad.Prompt.Shell
     , unsafePrompt
 
     -- * Utility functions
+    , compgenDirectories
+    , compgenFiles
     , getCommands
     , getBrowser
     , getEditor
     , getShellCompl
+    , getShellCompl'
     , split
     ) where
 
@@ -95,10 +98,12 @@ unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c] $ searchPredic
     where run a = unsafeSpawn $ c ++ " " ++ a
 
 getShellCompl :: [String] -> Predicate -> String -> IO [String]
-getShellCompl cmds p s | s == "" || last s == ' ' = return []
-                       | otherwise                = do
-    f     <- fmap lines $ runProcessWithInput "bash" [] ("compgen -A file -- "
-                                                        ++ s ++ "\n")
+getShellCompl = getShellCompl' (ComplCaseSensitive True)
+
+getShellCompl' :: ComplCaseSensitivity -> [String] -> Predicate -> String -> IO [String]
+getShellCompl' csn cmds p s | s == "" || last s == ' ' = return []
+                            | otherwise                = do
+    f     <- fmap lines (compgenFiles csn s)
     files <- case f of
                [x] -> do fs <- getFileStatus (encodeString x)
                          if isDirectory fs then return [x ++ "/"]
@@ -111,6 +116,23 @@ getShellCompl cmds p s | s == "" || last s == ' ' = return []
         | y `startsWith` s && not (x `startsWith` s) = GT
         | otherwise = x `compare` y
     startsWith str ps = isPrefixOf (map toLower ps) (map toLower str)
+
+compgenFiles :: ComplCaseSensitivity -> String -> IO String
+compgenFiles csn = compgen csn "file"
+
+compgenDirectories :: ComplCaseSensitivity -> String -> IO String
+compgenDirectories csn = compgen csn "directory"
+
+compgen :: ComplCaseSensitivity -> String -> String -> IO String
+compgen csn actionOpt s = runProcessWithInput "bash" [] $
+    complCaseSensitivityCmd csn ++ " ; " ++ compgenCmd actionOpt s
+
+complCaseSensitivityCmd :: ComplCaseSensitivity -> String
+complCaseSensitivityCmd (ComplCaseSensitive b) =
+    "bind 'set completion-ignore-case " ++ (if b then "off" else "on") ++ "'"
+
+compgenCmd :: String -> String -> String
+compgenCmd actionOpt s = "compgen -A " ++ actionOpt ++ " -- " ++ s ++ "\n"
 
 commandCompletionFunction :: [String] -> Predicate -> String -> [String]
 commandCompletionFunction cmds p str | '/' `elem` str = []
@@ -126,11 +148,9 @@ getCommands = do
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []
 split e l =
-    f : split e (rest ls)
+    f : split e (drop 1 ls)
         where
           (f,ls) = span (/=e) l
-          rest s | s == []   = []
-                 | otherwise = tail s
 
 escape :: String -> String
 escape []       = ""

@@ -20,7 +20,7 @@ module XMonad.Hooks.XPropManage (
 
 import Control.Exception as E
 import Data.Char (chr)
-import Data.Monoid (mconcat, Endo(..))
+import Data.Monoid (Endo(..))
 
 import Control.Monad.Trans (lift)
 

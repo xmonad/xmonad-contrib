@@ -415,6 +415,9 @@ own configuration, possibly with some modifications.
 * "XMonad.Config.Xfce":
     This module provides a config suitable for use with the Xfce desktop environment.
 
+* "XMonad.Config.LXQt":
+    This module provides a config suitable for use with the LXQt desktop environment.
+
 -}
 
 {- $hooks
@@ -571,6 +574,11 @@ Here is a list of the modules found in @XMonad.Hooks@:
 
 * "XMonad.Hooks.WorkspaceHistory":
     Keeps track of workspace viewing order.
+
+* "XMonad.Hooks.WindowSwallowing"
+    A handleEventHook that implements window swallowing:
+    Hide parent windows like terminals when opening other programs (like image viewers) from within them,
+    restoring them once the child application closes.
 
 * "XMonad.Hooks.XPropManage":
     A ManageHook matching on XProperties.
@@ -899,6 +907,10 @@ For more information on using those modules for customizing your
     More useful tiled layout that allows you to change a width\/height of window.
     See also "XMonad.Layout.MouseResizableTile".
 
+* "XMonad.Layout.ResizableThreeColumns":
+    The same layout as ThreeColumns but, similar to ResizableTile, allows you
+    to change the width\/height of the slave windows.
+
 * "XMonad.Layout.ResizeScreen":
     A layout transformer to have a layout respect a given screen
     geometry. Mostly used with "Decoration" (the Horizontal and the
@@ -1043,6 +1055,9 @@ These are the available prompts:
     intended mostly as an example of using "XMonad.Prompt.Input" to
     build an action requiring user input.
 
+* "XMonad.Prompt.FuzzyMatch":
+    A module for fuzzy completion matching in prompts akin to emacs ido mode
+
 * "XMonad.Prompt.Input":
     A generic framework for prompting the user for input and passing it
     along to some other action.
@@ -1076,6 +1091,9 @@ These are the available prompts:
 * "XMonad.Prompt.Theme":
     A prompt for changing the theme of the current workspace
 
+* "XMonad.Prompt.Unicode":
+    A prompt for inputting Unicode characters
+
 * "XMonad.Prompt.Window":
     xprompt operations to bring windows to you, and bring you to windows.
 
@@ -1101,6 +1119,15 @@ There are also utilities for helping in configuring xmonad or using
 external utilities.
 
 A non complete list with a brief description:
+
+* "XMonad.Util.ActionCycle":
+    Provides a way to implement cycling actions. This can be used to implement
+    things like alternating, toggle-style keybindings.
+
+* "XMonad.Util.ClickableWorkspaces":
+    Provides clickablePP, which when applied to the PP pretty-printer used by
+    'XMonad.Hooks.DynamicLog.dynamicLogWithPP', will make the workspace tags
+    clickable in XMobar (for switching focus).
 
 * "XMonad.Util.Cursor": configure the default cursor/pointer glyph.
 
@@ -1128,6 +1155,9 @@ A non complete list with a brief description:
 * "XMonad.Util.Font":
     A module for abstracting a font facility over
     Core fonts and Xft.
+
+* "XMonad.Util.Hacks":
+    A collection of small fixes and utilities with possibly hacky implementations.
 
 * "XMonad.Util.Image":
     Utilities for manipulating [[Bool]] as images.

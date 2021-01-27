@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.15
+version:            0.16
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
@@ -25,18 +25,13 @@ extra-source-files: README.md CHANGES.md scripts/generate-configs scripts/run-xm
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c
-                    tests/genMain.hs
-                    tests/ManageDocks.hs
-                    tests/Selective.hs
-                    tests/SwapWorkspaces.hs
-                    tests/XPrompt.hs
                     XMonad/Config/dmwit.xmobarrc
                     XMonad/Config/Example.hs
-cabal-version:      >= 1.6
+cabal-version:      >= 1.8
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with: GHC==7.8.4, GHC==7.10.3, GHC==8.0.1, GHC==8.2.2, GHC==8.4.3, GHC==8.6.1
+tested-with:        GHC == 8.4.4 || == 8.6.5 || == 8.8.4 || == 8.10.3
 
 source-repository head
   type:     git
@@ -52,11 +47,10 @@ flag testing
   default: False
 
 library
-    build-depends: base >= 4.5 && < 5,
+    build-depends: base >= 4.9 && < 5,
                    bytestring >= 0.10 && < 0.11,
                    containers >= 0.5 && < 0.7,
                    directory,
-                   extensible-exceptions,
                    filepath,
                    old-locale,
                    old-time,
@@ -66,21 +60,20 @@ library
                    unix,
                    X11>=1.6.1 && < 1.10,
                    xmonad >= 0.15 && < 0.16,
-                   utf8-string,
-                   semigroups
+                   utf8-string
+
+    ghc-options:   -fwarn-tabs -Wall -Wno-unused-do-bind -Wno-unused-imports
+
+    -- Keep this in sync with the oldest version in 'tested-with'
+    if impl(ghc <= 8.4.4)
+       ghc-options: -Werror=unused-imports
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
         cpp-options: -DXFT
 
-    if true
-        ghc-options:    -fwarn-tabs -Wall
-
     if flag(testing)
         ghc-options:    -fwarn-tabs -Werror
-
-    if impl(ghc >= 6.12.1)
-        ghc-options:    -fno-warn-unused-do-bind
 
     exposed-modules:    XMonad.Actions.AfterDrag
                         XMonad.Actions.BluetileCommands
@@ -102,6 +95,7 @@ library
                         XMonad.Actions.FindEmptyWorkspace
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
+                        XMonad.Actions.TiledWindowDragging
                         XMonad.Actions.FloatKeys
                         XMonad.Actions.FloatSnap
                         XMonad.Actions.FocusNth
@@ -117,14 +111,18 @@ library
                         XMonad.Actions.Navigation2D
                         XMonad.Actions.NoBorders
                         XMonad.Actions.OnScreen
+                        XMonad.Actions.PerWindowKeys
                         XMonad.Actions.PerWorkspaceKeys
                         XMonad.Actions.PhysicalScreens
                         XMonad.Actions.Plane
+                        XMonad.Actions.Prefix
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
+                        XMonad.Actions.RotateSome
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.Search
                         XMonad.Actions.ShowText
+                        XMonad.Actions.Sift
                         XMonad.Actions.SimpleDate
                         XMonad.Actions.SinkAll
                         XMonad.Actions.SpawnOn
@@ -174,6 +172,7 @@ library
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FadeWindows
                         XMonad.Hooks.FloatNext
+                        XMonad.Hooks.Focus
                         XMonad.Hooks.ICCCMFocus
                         XMonad.Hooks.InsertPosition
                         XMonad.Hooks.ManageDebug
@@ -193,6 +192,7 @@ library
                         XMonad.Hooks.WallpaperSetter
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.WorkspaceHistory
+                        XMonad.Hooks.WindowSwallowing
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
@@ -266,6 +266,7 @@ library
                         XMonad.Layout.Reflect
                         XMonad.Layout.Renamed
                         XMonad.Layout.ResizableTile
+                        XMonad.Layout.ResizableThreeColumns
                         XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
                         XMonad.Layout.ShowWName
@@ -283,11 +284,13 @@ library
                         XMonad.Layout.SubLayouts
                         XMonad.Layout.TabBarDecoration
                         XMonad.Layout.Tabbed
+                        XMonad.Layout.TallMastersCombo
                         XMonad.Layout.ThreeColumns
                         XMonad.Layout.ToggleLayouts
                         XMonad.Layout.TrackFloating
                         XMonad.Layout.TwoPane
                         XMonad.Layout.TwoPanePersistent
+                        XMonad.Layout.VoidBorders
                         XMonad.Layout.WindowArranger
                         XMonad.Layout.WindowNavigation
                         XMonad.Layout.WindowSwitcherDecoration
@@ -313,15 +316,20 @@ library
                         XMonad.Prompt.Window
                         XMonad.Prompt.Workspace
                         XMonad.Prompt.XMonad
+                        XMonad.Prompt.Zsh
+                        XMonad.Util.ActionCycle
+                        XMonad.Util.ClickableWorkspaces
                         XMonad.Util.Cursor
                         XMonad.Util.CustomKeys
                         XMonad.Util.DebugWindow
                         XMonad.Util.Dmenu
+                        XMonad.Util.DynamicScratchpads
                         XMonad.Util.Dzen
                         XMonad.Util.EZConfig
                         XMonad.Util.ExclusiveScratchpads
                         XMonad.Util.ExtensibleState
                         XMonad.Util.Font
+                        XMonad.Util.Hacks
                         XMonad.Util.Image
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers
@@ -354,3 +362,28 @@ library
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
+
+test-suite properties
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  other-modules:  ManageDocks
+                  RotateSome
+                  Selective
+                  SwapWorkspaces
+                  XPrompt
+                  Instances
+                  Utils
+  hs-source-dirs: tests
+  build-depends: base
+               , QuickCheck >= 2
+               , containers
+               , xmonad-contrib
+               , directory
+               , X11>=1.6.1 && < 1.10
+               , mtl
+               , process
+               , unix
+               , utf8-string
+               , xmonad >= 0.15 && < 0.16
+  ghc-options: -i.
+  cpp-options: -DTESTING

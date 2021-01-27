@@ -37,7 +37,6 @@ module XMonad.Layout.Groups.Examples ( -- * Usage
                                      , fullTabs
                                      , TiledTabsConfig(..)
                                      , def
-                                     , defaultTiledTabsConfig
                                      , increaseNMasterGroups
                                      , decreaseNMasterGroups
                                      , shrinkMasterGroups
@@ -48,7 +47,6 @@ module XMonad.Layout.Groups.Examples ( -- * Usage
                                        -- * Useful re-exports and utils
                                      , module XMonad.Layout.Groups.Helpers
                                      , shrinkText
-                                     , defaultTheme
                                      , GroupEQ(..)
                                      , zoomRowG
                                      ) where
@@ -204,10 +202,6 @@ data TiledTabsConfig s = TTC { vNMaster :: Int
 
 instance s ~ DefaultShrinker => Default (TiledTabsConfig s) where
     def = TTC 1 0.5 (3/100) 1 0.5 (3/100) shrinkText def
-
-{-# DEPRECATED defaultTiledTabsConfig "Use def (from Data.Default, and re-exported by XMonad.Layout.Groups) instead." #-}
-defaultTiledTabsConfig :: TiledTabsConfig DefaultShrinker
-defaultTiledTabsConfig = def
 
 fullTabs c = _tab c $ G.group _tabs $ Full ||| _vert c ||| _horiz c
 

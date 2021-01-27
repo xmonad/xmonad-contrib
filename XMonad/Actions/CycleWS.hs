@@ -262,7 +262,7 @@ wsTypeToPred HiddenEmptyWS  = do ne <- wsTypeToPred EmptyWS
                                  hi <- wsTypeToPred HiddenWS
                                  return (\w -> hi w && ne w)
 wsTypeToPred AnyWS      = return (const True)
-wsTypeToPred (WSTagGroup sep) = do cur <- (groupName.workspace.current) `fmap` gets windowset
+wsTypeToPred (WSTagGroup sep) = do cur <- (groupName.workspace.current) <$> gets windowset
                                    return $ (cur ==).groupName
                                    where groupName = takeWhile (/=sep).tag
 wsTypeToPred (WSIs p)   = p

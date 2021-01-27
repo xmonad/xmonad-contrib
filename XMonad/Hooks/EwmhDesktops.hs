@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable     #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.EwmhDesktops
@@ -19,18 +21,22 @@ module XMonad.Hooks.EwmhDesktops (
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
+    NetActivated (..),
+    activated,
+    activateLogHook,
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
-    fullscreenEventHook
+    ewmhFullscreen,
+    fullscreenEventHook,
+    fullscreenStartup
     ) where
 
 import Codec.Binary.UTF8.String (encode)
-import Control.Applicative((<$>))
+import Data.Bits
 import Data.List
 import Data.Maybe
 import Data.Monoid
 import qualified Data.Map.Strict as M
-import System.IO.Unsafe
 
 import XMonad
 import Control.Monad
@@ -41,6 +47,7 @@ import qualified XMonad.Util.ExtensibleState as E
 import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -48,19 +55,47 @@ import XMonad.Util.WindowProperties (getProp32)
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad $ ewmh def{ handleEventHook =
--- >            handleEventHook def <+> fullscreenEventHook }
+-- > main = xmonad $ ewmhFullscreen $ ewmh def
+--
+-- or, if fullscreen handling is not desired, just
+--
+-- > main = xmonad $ ewmh def
 --
 -- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
-
+--
+-- __/NOTE:/__ 'ewmh' function will call 'logHook' for handling activated
+-- window.
+--
+-- And now by default window activation will do nothing: neither switch
+-- workspace, nor focus. You can use regular 'ManageHook' combinators for
+-- changing window activation behavior and then add resulting 'ManageHook'
+-- using 'activateLogHook' to your 'logHook'. Also, you may be interested in
+-- "XMonad.Hooks.Focus", which provides additional predicates for using in
+-- 'ManageHook'.
+--
+-- To get back old 'ewmh' window activation behavior (switch workspace and
+-- focus to activated window) you may use:
+--
+-- > import XMonad
+-- >
+-- > import XMonad.Hooks.EwmhDesktops
+-- > import qualified XMonad.StackSet as W
+-- >
+-- > main :: IO ()
+-- > main = do
+-- >         let acMh :: ManageHook
+-- >             acMh = reader W.focusWindow >>= doF
+-- >             xcf = ewmh $ def
+-- >                    { modMask = mod4Mask
+-- >                    , logHook = activateLogHook acMh <+> logHook def
+-- >                    }
+-- >         xmonad xcf
 
 -- | Add EWMH functionality to the given config.  See above for an example.
 ewmh :: XConfig a -> XConfig a
-ewmh c = c { startupHook     = startupHook c +++ ewmhDesktopsStartup
-           , handleEventHook = handleEventHook c +++ ewmhDesktopsEventHook
-           , logHook         = logHook c +++ ewmhDesktopsLogHook }
- -- @@@ will fix this correctly later with the rewrite
- where x +++ y = mappend y x
+ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
+           , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
+           , logHook         = ewmhDesktopsLogHook <+> logHook c }
 
 -- |
 -- Initializes EwmhDesktops and advertises EWMH support to the X
@@ -89,7 +124,7 @@ newtype ClientList = ClientList [Window]
                    deriving (Eq)
 
 instance ExtensionClass ClientList where
-    initialValue = ClientList []
+    initialValue = ClientList [none]
 
 -- |
 -- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
@@ -97,7 +132,7 @@ newtype CurrentDesktop = CurrentDesktop Int
                        deriving (Eq)
 
 instance ExtensionClass CurrentDesktop where
-    initialValue = CurrentDesktop 0
+    initialValue = CurrentDesktop (-1)
 
 -- |
 -- Cached window-desktop assignments (e.g. @_NET_CLIENT_LIST_STACKING@).
@@ -105,7 +140,7 @@ newtype WindowDesktops = WindowDesktops (M.Map Window Int)
                        deriving (Eq)
 
 instance ExtensionClass WindowDesktops where
-    initialValue = WindowDesktops M.empty
+    initialValue = WindowDesktops (M.singleton none (-1))
 
 -- |
 -- The value of @_NET_ACTIVE_WINDOW@, cached to avoid unnecessary property
@@ -114,7 +149,7 @@ newtype ActiveWindow = ActiveWindow Window
                      deriving (Eq)
 
 instance ExtensionClass ActiveWindow where
-    initialValue = ActiveWindow none
+    initialValue = ActiveWindow (complement none)
 
 -- | Compare the given value against the value in the extensible state. Run the
 -- action if it has changed.
@@ -146,14 +181,14 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     -- Remap the current workspace to handle any renames that f might be doing.
     let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
         current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
-    whenChanged (CurrentDesktop $ fromMaybe 0 current) $ do
+    whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
 
     -- Set window-desktop mapping
     let windowDesktops =
           let f wsId workspace = M.fromList [ (winId, wsId) | winId <- W.integrate' $ W.stack workspace ]
           in M.unions $ zipWith f [0..] ws
-    whenChanged (WindowDesktops windowDesktops) $ do
+    whenChanged (WindowDesktops windowDesktops) $
         mapM_ (uncurry setWindowDesktop) (M.toList windowDesktops)
 
     -- Set active window
@@ -177,6 +212,40 @@ ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
 -- user-specified function to transform the workspace list (post-sorting)
 ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
 ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
+
+-- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
+-- this value in global state, because i use 'logHook' for handling activated
+-- windows and i need a way to tell 'logHook' what window is activated.
+newtype NetActivated    = NetActivated {netActivated :: Maybe Window}
+  deriving (Show, Typeable)
+instance ExtensionClass NetActivated where
+    initialValue        = NetActivated Nothing
+
+-- | Was new window @_NET_ACTIVE_WINDOW@ activated?
+activated :: Query Bool
+activated           = fmap (isJust . netActivated) (liftX XS.get)
+
+-- | Run supplied 'ManageHook' for activated windows /only/. If you want to
+-- run this 'ManageHook' for new windows too, add it to 'manageHook'.
+--
+-- __/NOTE:/__ 'activateLogHook' will work only _once_. I.e. if several
+-- 'activateLogHook'-s was used, only first one will actually run (because it
+-- resets 'NetActivated' at the end and others won't know, that window is
+-- activated).
+activateLogHook :: ManageHook -> X ()
+activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
+  where
+    go :: Window -> X ()
+    go w            = do
+        f <- runQuery mh w
+        -- I should reset 'NetActivated' here, because:
+        --  * 'windows' calls 'logHook' and i shouldn't go here the second
+        --  time for one window.
+        --  * if i reset 'NetActivated' before running 'logHook' once,
+        --  then 'activated' predicate won't match.
+        -- Thus, here is the /only/ correct place.
+        XS.put NetActivated{netActivated = Nothing}
+        windows (appEndo f)
 
 handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
 handle f (ClientMessageEvent {
@@ -203,16 +272,35 @@ handle f (ClientMessageEvent {
                        windows $ W.shiftWin (W.tag (ws !! fi n)) w
                  else  trace $ "Bad _NET_DESKTOP with data[0]="++show n
         else if mt == a_aw then do
-               windows $ W.focusWindow w
-        else if mt == a_cw then do
+               lh <- asks (logHook . config)
+               XS.put (NetActivated (Just w))
+               lh
+        else if mt == a_cw then
                killWindow w
-        else if mt `elem` a_ignore then do
+        else if mt `elem` a_ignore then
            return ()
-        else do
+        else
           -- The Message is unknown to us, but that is ok, not all are meant
           -- to be handled by the window manager
           return ()
 handle _ _ = return ()
+
+-- | Add EWMH fullscreen functionality to the given config.
+--
+-- This must be applied after 'ewmh', like so:
+--
+-- > main = xmonad $ ewmhFullscreen $ ewmh def
+--
+-- NOT:
+--
+-- > main = xmonad $ ewmh $ ewmhFullscreen def
+ewmhFullscreen :: XConfig a -> XConfig a
+ewmhFullscreen c = c { startupHook     = startupHook c <+> fullscreenStartup
+                     , handleEventHook = handleEventHook c <+> fullscreenEventHook }
+
+-- | Advertises EWMH fullscreen support to the X server.
+fullscreenStartup :: X ()
+fullscreenStartup = setFullscreenSupported
 
 -- |
 -- An event hook to handle applications that wish to fullscreen using the
@@ -224,7 +312,7 @@ fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
+  wstate <- fromMaybe [] <$> getProp32 wmstate win
 
   let isFull = fromIntegral fullsc `elem` wstate
 
@@ -232,8 +320,7 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       remove = 0
       add = 1
       toggle = 2
-      ptype = 4 -- The atom property type for changeProperty
-      chWstate f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+      chWstate f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
 
   when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
@@ -250,16 +337,14 @@ fullscreenEventHook _ = return $ All True
 setNumberOfDesktops :: (Integral a) => a -> X ()
 setNumberOfDesktops n = withDisplay $ \dpy -> do
     a <- getAtom "_NET_NUMBER_OF_DESKTOPS"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral n]
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace [fromIntegral n]
 
 setCurrentDesktop :: (Integral a) => a -> X ()
 setCurrentDesktop i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_CURRENT_DESKTOP"
-    c <- getAtom "CARDINAL"
     r <- asks theRoot
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral i]
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace [fromIntegral i]
 
 setDesktopNames :: [String] -> X ()
 setDesktopNames names = withDisplay $ \dpy -> do
@@ -274,23 +359,20 @@ setClientList :: [Window] -> X ()
 setClientList wins = withDisplay $ \dpy -> do
     -- (What order do we really need? Something about age and stacking)
     r <- asks theRoot
-    c <- getAtom "WINDOW"
     a <- getAtom "_NET_CLIENT_LIST"
-    io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral wins)
+    io $ changeProperty32 dpy r a wINDOW propModeReplace (fmap fromIntegral wins)
     a' <- getAtom "_NET_CLIENT_LIST_STACKING"
-    io $ changeProperty32 dpy r a' c propModeReplace (fmap fromIntegral wins)
+    io $ changeProperty32 dpy r a' wINDOW propModeReplace (fmap fromIntegral wins)
 
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_DESKTOP"
-    c <- getAtom "CARDINAL"
-    io $ changeProperty32 dpy win a c propModeReplace [fromIntegral i]
+    io $ changeProperty32 dpy win a cARDINAL propModeReplace [fromIntegral i]
 
 setSupported :: X ()
 setSupported = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_SUPPORTED"
-    c <- getAtom "ATOM"
     supp <- mapM getAtom ["_NET_WM_STATE_HIDDEN"
                          ,"_NET_NUMBER_OF_DESKTOPS"
                          ,"_NET_CLIENT_LIST"
@@ -301,13 +383,26 @@ setSupported = withDisplay $ \dpy -> do
                          ,"_NET_WM_DESKTOP"
                          ,"_NET_WM_STRUT"
                          ]
-    io $ changeProperty32 dpy r a c propModeReplace (fmap fromIntegral supp)
+    io $ changeProperty32 dpy r a aTOM propModeReplace (fmap fromIntegral supp)
 
     setWMName "xmonad"
+
+-- TODO: use in SetWMName, UrgencyHook
+addSupported :: [String] -> X ()
+addSupported props = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_SUPPORTED"
+    fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
+    newSupportedList <- mapM (fmap fromIntegral . getAtom) props
+    io $ do
+        supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r
+        changeProperty32 dpy r a aTOM propModeReplace (nub $ newSupportedList ++ supportedList)
+
+setFullscreenSupported :: X ()
+setFullscreenSupported = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
 
 setActiveWindow :: Window -> X ()
 setActiveWindow w = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
-    c <- getAtom "WINDOW"
-    io $ changeProperty32 dpy r a c propModeReplace [fromIntegral w]
+    io $ changeProperty32 dpy r a wINDOW propModeReplace [fromIntegral w]

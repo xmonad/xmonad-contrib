@@ -61,8 +61,7 @@ import           Control.Monad.Reader                    (ask
                                                          ,asks)
 import           Control.Monad.State                     (gets)
 import qualified Data.Map                    as M
-import           Data.Monoid                      hiding ((<>))
-import           Data.Semigroup
+import           Data.Monoid
 
 import           Graphics.X11.Xlib.Extras                (Event(..))
 
@@ -76,17 +75,26 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 -- >     , handleEventHook = fadeWindowsEventHook
 -- >     {- ... -}
 -- >
--- > myFadeHook = composeAll [isUnfocused --> transparency 0.2
--- >                         ,                opaque
+-- > myFadeHook = composeAll [                 opaque
+-- >                         , isUnfocused --> transparency 0.2
 -- >                         ]
 --
 -- The above is like FadeInactive with a fade value of 0.2.
 --
--- FadeHooks do not accumulate; instead, they compose from right to
--- left like 'ManageHook's, so the above example @myFadeHook@ will
--- render unfocused windows at 4/5 opacity and the focused window
--- as opaque.  The 'opaque' hook above is optional, by the way, as any
--- unmatched window will be opaque by default.
+-- 'FadeHook's do not accumulate; instead, they compose from right to
+-- left like 'ManageHook's, so in the above example @myFadeHook@ will
+-- render unfocused windows at 4/5 opacity and the focused window as
+-- opaque.  This means that, in particular, the order in the above
+-- example is important.
+--
+-- The 'opaque' hook above is optional, by the way, as any unmatched
+-- window will be opaque by default.  If you want to make all windows a
+-- bit transparent by default, you can replace 'opaque' with something
+-- like
+--
+-- > transparency 0.93
+--
+-- at the top of @myFadeHook@.
 --
 -- This module is best used with "XMonad.Hooks.MoreManageHelpers", which
 -- exports a number of Queries that can be used in either @ManageHook@
@@ -205,7 +213,7 @@ fadeWindowsLogHook h =  withWindowSet $ \s -> do
   forM_ visibleWins $ \w -> do
     o <- userCodeDef (Opacity 1) (runQuery h w)
     setOpacity w $ case o of
-                     OEmpty    -> 0.93
+                     OEmpty    -> 1
                      Opacity r -> r
 
 -- | A 'handleEventHook' to handle fading and unfading of newly mapped

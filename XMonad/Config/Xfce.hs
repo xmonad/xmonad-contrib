@@ -36,7 +36,7 @@ import qualified Data.Map as M
 -- For examples of how to further customize @xfceConfig@ see "XMonad.Config.Desktop".
 
 xfceConfig = desktopConfig
-    { terminal = "Terminal"
+    { terminal = "xfce4-terminal"
     , keys     = xfceKeys <+> keys desktopConfig }
 
 xfceKeys (XConfig {modMask = modm}) = M.fromList $

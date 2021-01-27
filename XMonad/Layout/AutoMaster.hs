@@ -73,7 +73,7 @@ autoLayout k bias wksp rect = do
     let n = length ws
     if null ws then
         runLayout wksp rect
-        else do
+        else
           if (n<=k) then
               return ((divideRow rect ws),Nothing)
               else do

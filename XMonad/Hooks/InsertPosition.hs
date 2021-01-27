@@ -22,7 +22,6 @@ module XMonad.Hooks.InsertPosition (
 
 import XMonad(ManageHook, MonadReader(ask))
 import qualified XMonad.StackSet as W
-import Control.Applicative((<$>))
 import Data.Maybe(fromMaybe)
 import Data.List(find)
 import Data.Monoid(Endo(Endo))

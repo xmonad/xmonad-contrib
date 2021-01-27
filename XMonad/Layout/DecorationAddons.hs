@@ -30,7 +30,6 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Util.Font
 import XMonad.Util.PositionStore
 
-import Control.Applicative((<$>))
 import Data.Maybe
 import qualified Data.Set as S
 

@@ -27,6 +27,7 @@ module XMonad.Layout.WorkspaceDir (
                                    workspaceDir,
                                    changeDir,
                                    WorkspaceDir,
+                                   Chdir(Chdir),
                                   ) where
 
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
@@ -57,6 +58,11 @@ import XMonad.StackSet ( tag, currentTag )
 -- "XMonad.Prompt" and add something like this to your key bindings:
 --
 -- >  , ((modm .|. shiftMask, xK_x     ), changeDir def)
+--
+-- If you prefer a prompt with case-insensitive completion:
+--
+-- >  , ((modm .|. shiftMask, xK_x     ),
+--       changeDir def {complCaseSensitivity = ComplCaseSensitive False})
 --
 -- For detailed instruction on editing the key binding see:
 --

@@ -1,6 +1,6 @@
 # xmonad-contrib: Third Party Extensions to the xmonad Window Manager
 
-[![Build Status](https://travis-ci.org/xmonad/xmonad-contrib.svg?branch=master)](https://travis-ci.org/xmonad/xmonad-contrib)
+![Tests](https://github.com/xmonad/xmonad-contrib/workflows/Tests/badge.svg)
 [![Open Source Helpers](https://www.codetriage.com/xmonad/xmonad-contrib/badges/users.svg)](https://www.codetriage.com/xmonad/xmonad-contrib)
 
 You need the ghc compiler and xmonad window manager installed in

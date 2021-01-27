@@ -27,7 +27,6 @@ module XMonad.Hooks.DynamicProperty where
 
 import XMonad
 import Data.Monoid
-import Control.Applicative
 import Control.Monad (when)
 
 -- |

@@ -31,7 +31,7 @@ import XMonad.Core
 import XMonad.Prompt
 
 import System.IO
-import Control.Exception.Extensible (bracket)
+import Control.Exception (bracket)
 
 -- $usage
 --
@@ -60,7 +60,7 @@ import Control.Exception.Extensible (bracket)
 -- before saving into the file. Previous example with date can be rewritten as:
 --
 -- > ,  ((modm .|. controlMask, xK_n), do
--- >            date <- io $ liftM (formatTime defaultTimeLocale "[%Y-%m-%d %H:%M] ") getZonedTime
+-- >            date <- io $ fmap (formatTime defaultTimeLocale "[%Y-%m-%d %H:%M] ") getZonedTime
 -- >            appendFilePrompt' def (date ++) $ "/home/me/NOTES"
 -- >        )
 --

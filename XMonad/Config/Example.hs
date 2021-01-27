@@ -30,7 +30,8 @@ main = do
     { modMask    = mod4Mask -- Use the "Win" key for the mod key
     , manageHook = myManageHook <+> manageHook desktopConfig
     , layoutHook = desktopLayoutModifiers $ myLayouts
-    , logHook    = dynamicLogString def >>= xmonadPropLog
+    , logHook    = (dynamicLogString def >>= xmonadPropLog)
+                    <+> logHook desktopConfig
     }
 
     `additionalKeysP` -- Add some extra key bindings:
@@ -68,11 +69,11 @@ myXPConfig = def
 -- Use the `xprop' tool to get the info you need for these matches.
 -- For className, use the second value that xprop gives you.
 myManageHook = composeOne
-  [ className =? "Pidgin" -?> doFloat
-  , className =? "XCalc"  -?> doFloat
-  , className =? "mpv"    -?> doFloat
+  -- Handle floating windows:
+  [ transience            -- move transient windows to their parent
   , isDialog              -?> doCenterFloat
-
-    -- Move transient windows to their parent:
-  , transience
+  ] <+> composeAll
+  [ className =? "Pidgin" --> doFloat
+  , className =? "XCalc"  --> doFloat
+  , className =? "mpv"    --> doFloat
   ]

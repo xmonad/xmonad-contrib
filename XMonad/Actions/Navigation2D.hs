@@ -39,7 +39,6 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                    , withNavigation2DConfig
                                    , Navigation2DConfig(..)
                                    , def
-                                   , defaultNavigation2DConfig
                                    , Navigation2D
                                    , lineNavigation
                                    , centerNavigation
@@ -450,10 +449,6 @@ withNavigation2DConfig :: Navigation2DConfig -> XConfig a -> XConfig a
 withNavigation2DConfig conf2d xconf = xconf { startupHook  = startupHook xconf
                                                           >> XS.put conf2d
                                             }
-
-{-# DEPRECATED defaultNavigation2DConfig "Use def (from Data.Default, and re-exported from XMonad.Actions.Navigation2D) instead." #-}
-defaultNavigation2DConfig :: Navigation2DConfig
-defaultNavigation2DConfig = def
 
 instance Default Navigation2DConfig where
     def                   = Navigation2DConfig { defaultTiledNavigation = lineNavigation

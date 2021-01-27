@@ -34,7 +34,6 @@ module XMonad.Prompt
     , mkXPromptWithModes
     , def
     , amberXPConfig
-    , defaultXPConfig
     , greenXPConfig
     , XPMode
     , XPType (..)
@@ -60,6 +59,7 @@ module XMonad.Prompt
     , moveHistory, setSuccess, setDone, setModeDone
     , Direction1D(..)
     , ComplFunction
+    , ComplCaseSensitivity(..)
     -- * X Utilities
     -- $xutils
     , mkUnmanagedWindow
@@ -98,10 +98,9 @@ import           XMonad.Util.Types
 import           XMonad.Util.XSelection       (getSelection)
 
 import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
-import           Control.Applicative          ((<$>))
 import           Control.Arrow                (first, second, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
-import           Control.Exception.Extensible as E hiding (handle)
+import           Control.Exception            as E hiding (handle)
 import           Control.Monad.State
 import           Data.Bits
 import           Data.Char                    (isSpace)
@@ -185,6 +184,8 @@ data XPConfig =
         , autoComplete          :: Maybe Int    -- ^ Just x: if only one completion remains, auto-select it,
                                                 --   and delay by x microseconds
         , showCompletionOnTab   :: Bool         -- ^ Only show list of completions when Tab was pressed
+        , complCaseSensitivity  :: ComplCaseSensitivity
+                                                -- ^ Perform completion in a case-sensitive manner
         , searchPredicate       :: String -> String -> Bool
                                                 -- ^ Given the typed string and a possible
                                                 --   completion, is the completion valid?
@@ -200,6 +201,8 @@ data XPType = forall p . XPrompt p => XPT p
 type ComplFunction = String -> IO [String]
 type XPMode = XPType
 data XPOperationMode = XPSingleMode ComplFunction XPType | XPMultipleModes (W.Stack XPType)
+
+newtype ComplCaseSensitivity = ComplCaseSensitive Bool
 
 instance Show XPType where
     show (XPT p) = showXPrompt p
@@ -290,7 +293,7 @@ data XPColor =
             , border        :: String   -- ^ Border color
             }
 
-amberXPConfig, defaultXPConfig, greenXPConfig :: XPConfig
+amberXPConfig, greenXPConfig :: XPConfig
 
 instance Default XPColor where
     def =
@@ -321,13 +324,12 @@ instance Default XPConfig where
         , defaultText           = []
         , autoComplete          = Nothing
         , showCompletionOnTab   = False
+        , complCaseSensitivity  = ComplCaseSensitive True
         , searchPredicate       = isPrefixOf
         , alwaysHighlight       = False
         , defaultPrompter       = id
         , sorter                = const id
         }
-{-# DEPRECATED defaultXPConfig "Use def (from Data.Default, and re-exported from XMonad.Prompt) instead." #-}
-defaultXPConfig = def
 greenXPConfig = def { bgColor           = "black"
                     , fgColor           = "green"
                     , promptBorderWidth = 0
@@ -399,6 +401,15 @@ highlightedItem st' completions = case complWinDim st' of
     in case completions of
       [] -> Nothing
       _ -> Just $ complMatrix !! col_index !! row_index
+
+-- | Return the selected completion, i.e. the 'String' we actually act
+-- upon after the user confirmed their selection (by pressing @Enter@).
+selectedCompletion :: XPState -> String
+selectedCompletion st
+    -- If 'alwaysHighlight' is used, look at the currently selected item (if any)
+  | alwaysHighlight (config st) = fromMaybe (command st) $ highlightedCompl st
+    -- Otherwise, look at what the user actually wrote so far
+  | otherwise                   = command st
 
 -- this would be much easier with functional references
 command :: XPState -> String
@@ -481,16 +492,7 @@ mkXPromptWithReturn :: XPrompt p => p -> XPConfig -> ComplFunction -> (String ->
 mkXPromptWithReturn t conf compl action = do
   st' <- mkXPromptImplementation (showXPrompt t) conf (XPSingleMode compl (XPT t))
   if successful st'
-    then do
-      let selectedCompletion =
-            case alwaysHighlight (config st') of
-              -- When alwaysHighlight is True, autocompletion is
-              -- handled with indexes.
-              False -> command st'
-              -- When it is false, it is handled depending on the
-              -- prompt buffer's value.
-              True -> fromMaybe (command st') $ highlightedCompl st'
-      Just <$> action selectedCompletion
+    then Just <$> action (selectedCompletion st')
     else return Nothing
 
 -- | Creates a prompt given:
@@ -526,7 +528,7 @@ mkXPromptWithModes modes conf = do
       om = XPMultipleModes modeStack
   st' <- mkXPromptImplementation (showXPrompt defaultMode) conf { alwaysHighlight = True } om
   if successful st'
-    then do
+    then
       case operationMode st' of
         XPMultipleModes ms -> let
           action = modeAction $ W.focus ms
@@ -541,7 +543,8 @@ mkXPromptImplementation historyKey conf om = do
   XConf { display = d, theRoot = rw } <- ask
   s <- gets $ screenRect . W.screenDetail . W.current . windowset
   numlock <- gets X.numberlockMask
-  hist <- io readHistory
+  cachedir <- getXMonadCacheDir
+  hist <- io $ readHistory cachedir
   fs <- initXMF (font conf)
   st' <- io $
     bracket
@@ -560,14 +563,14 @@ mkXPromptImplementation historyKey conf om = do
   releaseXMF fs
   when (successful st') $ do
     let prune = take (historySize conf)
-    io $ writeHistory $
+    io $ writeHistory cachedir $
       M.insertWith
       (\xs ys -> prune . historyFilter conf $ xs ++ ys)
       historyKey
       -- We need to apply historyFilter before as well, since
       -- otherwise the filter would not be applied if there is no
       -- history
-      (prune $ historyFilter conf [command st'])
+      (prune $ historyFilter conf [selectedCompletion st'])
       hist
   return st'
 
@@ -596,7 +599,7 @@ runXP st = do
     (grabKeyboard d w True grabModeAsync grabModeAsync currentTime)
     (\_ -> ungrabKeyboard d currentTime)
     (\status ->
-      (flip execStateT st $ do
+      (flip execStateT st $
         when (status == grabSuccess) $ do
           updateWindows
           eventLoop handleMain evDefaultStop)
@@ -616,7 +619,8 @@ eventLoop handle stopAction = do
         []  -> do
                 d <- gets dpy
                 io $ allocaXEvent $ \e -> do
-                    maskEvent d (exposureMask .|. keyPressMask) e
+                    -- Also capture @buttonPressMask@, see Note [Allow ButtonEvents]
+                    maskEvent d (exposureMask .|. keyPressMask .|. buttonPressMask) e
                     ev <- getEvent e
                     (ks,s) <- if ev_event_type ev == keyPress
                               then lookupString $ asKeyEvent e
@@ -632,13 +636,38 @@ eventLoop handle stopAction = do
 evDefaultStop :: XP Bool
 evDefaultStop = (||) <$> (gets modeDone) <*> (gets done)
 
--- | Common patterns shared by all event handlers. Expose events can be
--- triggered by switching virtual consoles.
+-- | Common patterns shared by all event handlers.
 handleOther :: KeyStroke -> Event -> XP ()
 handleOther _ (ExposeEvent {ev_window = w}) = do
+    -- Expose events can be triggered by switching virtual consoles.
     st <- get
     when (win st == w) updateWindows
+handleOther _ (ButtonEvent {ev_event_type = t}) = do
+    -- See Note [Allow ButtonEvents]
+    when (t == buttonPress) $ do
+        d <- gets dpy
+        io $ allowEvents d replayPointer currentTime
 handleOther _ _ = return ()
+
+{- Note [Allow ButtonEvents]
+
+Some settings (like @clickJustFocuses = False@) set up the passive
+pointer grabs that xmonad makes to intercept clicks to unfocused windows
+with @pointer_mode = grabModeSync@ and @keyboard_mode = grabModeSync@.
+This means that any click in an unfocused window leads to a
+pointer/keyboard grab that freezes both devices until 'allowEvents' is
+called. But "XMonad.Prompt" has its own X event loop, so 'allowEvents'
+is never called and everything remains frozen indefinitely.
+
+This does not happen when the grabs are made with @grabModeAsync@, as
+pointer events processing is not frozen and the grab only lasts as long
+as the mouse button is pressed.
+
+Hence, in this situation we call 'allowEvents' in the prompts event loop
+whenever a button event is received, releasing the pointer grab. In this
+case, 'replayPointer' takes care of the fact that these events are not
+merely discarded, but passed to the respective application window.
+-}
 
 -- | Prompt event handler for the main loop. Dispatches to input, completion
 -- and mode switching handlers.
@@ -696,9 +725,8 @@ handleCompletion cs = do
 
     let updateWins  l = redrawWindows l
         updateState l = case alwaysHlight of
-            False                                           -> simpleComplete l st
-            True | Just (command st) /= highlightedCompl st -> alwaysHighlightCurrent st
-                 | otherwise                                -> alwaysHighlightNext l st
+            False -> simpleComplete l st
+            True  -> hlComplete l st
 
     case cs of
       []  -> updateWindows
@@ -718,33 +746,31 @@ handleCompletion cs = do
                            , highlightedCompl = Just newCommand
                            }
 
-        -- If alwaysHighlight is on, and this is the first use of the
-        -- completion key, update the buffer so that it contains the
-        -- current completion item.
-        alwaysHighlightCurrent :: XPState -> XP ()
-        alwaysHighlightCurrent st = do
-          let newCommand = fromMaybe (command st) $ highlightedItem st cs
-          modify $ \s -> setCommand newCommand $
-                         setHighlightedCompl (Just newCommand) $
-                         s { offset = length newCommand
-                           }
-
         -- If alwaysHighlight is on, and the user wants the next
         -- completion, move to the next completion item and update the
         -- buffer to reflect that.
         --
         --TODO: Scroll or paginate results
-        alwaysHighlightNext :: [String] -> XPState -> XP ()
-        alwaysHighlightNext l st = do
-          let complIndex' = nextComplIndex st (length l)
-              highlightedCompl' = highlightedItem st { complIndex = complIndex'} cs
-              newCommand = fromMaybe (command st) $ highlightedCompl'
-          modify $ \s -> setHighlightedCompl highlightedCompl' $
-                         setCommand newCommand $
-                         s { complIndex = complIndex'
-                           , offset = length newCommand
-                           }
-
+        hlComplete :: [String] -> XPState -> XP ()
+        hlComplete l st =
+          let newCommand = fromMaybe (command st) $ highlightedItem st l in
+          if newCommand == (getLastWord . command $ st)
+            then do
+              -- The word currently under the cursor is the same
+              -- as the current suggestion, so we should advance
+              -- to the next completion and try again.
+              let complIndex' = nextComplIndex st (length l)
+                  highlightedCompl' = highlightedItem st { complIndex = complIndex'} cs
+              hlComplete l $ st { complIndex = complIndex',
+                                  highlightedCompl = highlightedCompl'
+                                }
+            else do
+              -- The word under the cursor differs from the
+              -- current suggestion, so replace it
+              put st
+              killWord Prev
+              insertString' newCommand
+              endOfLine
 -- | Initiate a prompt sub-map event loop. Submaps are intended to provide
 -- alternate keybindings. Accepts a default action and a mapping from key
 -- combinations to actions. If no entry matches, the default action is run.
@@ -773,7 +799,7 @@ handleInputSubmap :: XP ()
                   -> KeyMask
                   -> KeyStroke
                   -> XP ()
-handleInputSubmap defaultAction keymap keymask (keysym,keystr) = do
+handleInputSubmap defaultAction keymap keymask (keysym,keystr) =
     case M.lookup (keymask,keysym) keymap of
         Just action -> action >> updateWindows
         Nothing     -> unless (null keystr) $ defaultAction >> updateWindows
@@ -830,7 +856,7 @@ handleInputBuffer :: (String -> String -> (Bool,Bool))
                   -> KeyStroke
                   -> Event
                   -> XP ()
-handleInputBuffer f keymask (keysym,keystr) event = do
+handleInputBuffer f keymask (keysym,keystr) event =
     unless (null keystr || keymask .&. controlMask /= 0) $ do
         (evB,inB) <- gets (eventBuffer &&& inputBuffer)
         let keystr' = utf8Decode keystr
@@ -1187,10 +1213,15 @@ resetComplIndex st = if (alwaysHighlight $ config st) then st { complIndex = (0,
 
 -- | Insert a character at the cursor position
 insertString :: String -> XP ()
-insertString str =
+insertString str = do
+  insertString' str
+  modify resetComplIndex
+
+insertString' :: String -> XP ()
+insertString' str =
   modify $ \s -> let
     cmd = (c (command s) (offset s))
-    st = resetComplIndex $ s { offset = o (offset s)}
+    st = s { offset = o (offset s)}
     in setCommand cmd st
   where o oo = oo + length str
         c oc oo | oo >= length oc = oc ++ str
@@ -1205,7 +1236,7 @@ pasteString = pasteString' id
 -- | A variant of 'pasteString' which allows modifying the X selection before
 -- pasting.
 pasteString' :: (String -> String) -> XP ()
-pasteString' f = join $ io $ liftM (insertString . f) getSelection
+pasteString' f = insertString . f =<< getSelection
 
 -- | Remove a character at the cursor position
 deleteString :: Direction1D -> XP ()
@@ -1556,21 +1587,21 @@ type History = M.Map String [String]
 emptyHistory :: History
 emptyHistory = M.empty
 
-getHistoryFile :: IO FilePath
-getHistoryFile = fmap (++ "/prompt-history") getXMonadCacheDir
+getHistoryFile :: FilePath -> FilePath
+getHistoryFile cachedir = cachedir ++ "/prompt-history"
 
-readHistory :: IO History
-readHistory = readHist `E.catch` \(SomeException _) -> return emptyHistory
+readHistory :: FilePath -> IO History
+readHistory cachedir = readHist `E.catch` \(SomeException _) -> return emptyHistory
  where
     readHist = do
-        path <- getHistoryFile
+        let path = getHistoryFile cachedir
         xs <- bracket (openFile path ReadMode) hClose hGetLine
         readIO xs
 
-writeHistory :: History -> IO ()
-writeHistory hist = do
-  path <- getHistoryFile
-  let filtered = M.filter (not . null) hist
+writeHistory :: FilePath -> History -> IO ()
+writeHistory cachedir hist = do
+  let path = getHistoryFile cachedir
+      filtered = M.filter (not . null) hist
   writeFile path (show filtered) `E.catch` \(SomeException e) ->
                           hPutStrLn stderr ("error writing history: "++show e)
   setFileMode path mode
@@ -1606,19 +1637,18 @@ mkUnmanagedWindow d s rw x y w h = do
 
 -- | This function takes a list of possible completions and returns a
 -- completions function to be used with 'mkXPrompt'
-mkComplFunFromList :: [String] -> String -> IO [String]
-mkComplFunFromList _ [] = return []
-mkComplFunFromList l s =
-  return $ filter (\x -> take (length s) x == s) l
+mkComplFunFromList :: XPConfig -> [String] -> String -> IO [String]
+mkComplFunFromList _ _ [] = return []
+mkComplFunFromList c l s =
+  pure $ filter (searchPredicate c s) l
 
 -- | This function takes a list of possible completions and returns a
 -- completions function to be used with 'mkXPrompt'. If the string is
 -- null it will return all completions.
-mkComplFunFromList' :: [String] -> String -> IO [String]
-mkComplFunFromList' l [] = return l
-mkComplFunFromList' l s =
-  return $ filter (\x -> take (length s) x == s) l
-
+mkComplFunFromList' :: XPConfig -> [String] -> String -> IO [String]
+mkComplFunFromList' _ l [] = return l
+mkComplFunFromList' c l s =
+  pure $ filter (searchPredicate c s) l
 
 -- | Given the prompt type, the command line and the completion list,
 -- return the next completion in the list for the last word of the
@@ -1664,14 +1694,17 @@ breakAtSpace s
 -- | 'historyCompletion' provides a canned completion function much like
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in the XMonad cache directory.
-historyCompletion :: ComplFunction
+historyCompletion :: X ComplFunction
 historyCompletion = historyCompletionP (const True)
 
 -- | Like 'historyCompletion' but only uses history data from Prompts whose
 -- name satisfies the given predicate.
-historyCompletionP :: (String -> Bool) -> ComplFunction
-historyCompletionP p x = fmap (toComplList . M.filterWithKey (const . p)) readHistory
-    where toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
+historyCompletionP :: (String -> Bool) -> X ComplFunction
+historyCompletionP p = do
+    cd <- getXMonadCacheDir
+    pure $ \x ->
+        let toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
+         in toComplList . M.filterWithKey (const . p) <$> readHistory cd
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.

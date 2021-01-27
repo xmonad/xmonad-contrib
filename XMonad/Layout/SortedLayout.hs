@@ -25,7 +25,6 @@ module XMonad.Layout.SortedLayout
   ) where
 
 import           Control.Monad
-import           Data.Functor                 ((<$>))
 import           Data.List
 
 import           XMonad
