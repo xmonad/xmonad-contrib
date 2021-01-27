@@ -10,15 +10,17 @@ import XMonad.Actions.SwapWorkspaces
 
 
 -- Ensures that no "loss of information" can happen from a swap.
-prop_double_swap (ss :: T) (NonNegative t1) (NonNegative t2) =
-  t1 `tagMember` ss && t2 `tagMember` ss ==>
-  ss == swap (swap ss)
-  where swap = swapWorkspaces t1 t2
+prop_double_swap (ss :: T) = do
+  t1 <- arbitraryTag ss
+  t2 <- arbitraryTag ss
+  let swap = swapWorkspaces t1 t2
+  return $ ss == swap (swap ss)
 
 -- Degrade nicely when given invalid data.
-prop_invalid_swap (ss :: T) (NonNegative t1) (NonNegative t2) =
-  not (t1 `tagMember` ss || t2 `tagMember` ss) ==>
-  ss == swapWorkspaces t1 t2 ss
+prop_invalid_swap (ss :: T) = do
+  t1 <- arbitrary `suchThat` (not . (`tagMember` ss))
+  t2 <- arbitrary `suchThat` (not . (`tagMember` ss))
+  return $ ss == swapWorkspaces t1 t2 ss
 
 -- This doesn't pass yet. Probably should.
 -- prop_half_invalid_swap (ss :: T) (NonNegative t1) (NonNegative t2) =
@@ -32,14 +34,15 @@ zipWorkspacesWith f s t = f (workspace $ current s) (workspace $ current t) :
                           zipWith f (hidden s)  (hidden t)
 
 -- Swap only modifies the workspaces tagged t1 and t2 -- leaves all others alone.
-prop_swap_only_two (ss :: T) (NonNegative t1) (NonNegative t2) =
-  t1 `tagMember` ss && t2 `tagMember` ss ==>
-  and $ zipWorkspacesWith mostlyEqual ss (swapWorkspaces t1 t2 ss)
-  where mostlyEqual w1 w2 = map tag [w1, w2] `elem` [[t1, t2], [t2, t1]] || w1 == w2
+prop_swap_only_two (ss :: T) = do
+  t1 <- arbitraryTag ss
+  t2 <- arbitraryTag ss
+  let mostlyEqual w1 w2 = map tag [w1, w2] `elem` [[t1, t2], [t2, t1]] || w1 == w2
+  return $ and $ zipWorkspacesWith mostlyEqual ss (swapWorkspaces t1 t2 ss)
 
 -- swapWithCurrent stays on current
-prop_swap_with_current (ss :: T) (NonNegative t) =
-  t `tagMember` ss ==>
-  layout before == layout after && stack before == stack after
-  where before = workspace $ current ss
-        after  = workspace $ current $ swapWithCurrent t ss
+prop_swap_with_current (ss :: T) = do
+  t <- arbitraryTag ss
+  let before = workspace $ current ss
+  let after  = workspace $ current $ swapWithCurrent t ss
+  return $ layout before == layout after && stack before == stack after
