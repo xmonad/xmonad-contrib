@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TreeSelect
@@ -522,18 +523,21 @@ moveWith f = do
 -- | wait for keys and run navigation
 navigate :: TreeSelect a (Maybe a)
 navigate = gets tss_display >>= \d -> join . liftIO . allocaXEvent $ \e -> do
-    maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
+    maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask .|. buttonPressMask) e
 
     ev <- getEvent e
 
-    if ev_event_type ev == keyPress
-      then do
-        (ks, _) <- lookupString $ asKeyEvent e
-        return $ do
-            mask <- liftX $ cleanMask (ev_state ev)
-            f <- asks ts_navigate
-            fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
-      else return navigate
+    if | ev_event_type ev == keyPress -> do
+           (ks, _) <- lookupString $ asKeyEvent e
+           return $ do
+               mask <- liftX $ cleanMask (ev_state ev)
+               f <- asks ts_navigate
+               fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
+       | ev_event_type ev == buttonPress -> do
+           -- See XMonad.Prompt Note [Allow ButtonEvents]
+           allowEvents d replayPointer currentTime
+           return navigate
+       | otherwise -> return navigate
 
 -- | Request a full redraw
 redraw :: TreeSelect a ()

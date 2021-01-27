@@ -619,7 +619,8 @@ eventLoop handle stopAction = do
         []  -> do
                 d <- gets dpy
                 io $ allocaXEvent $ \e -> do
-                    maskEvent d (exposureMask .|. keyPressMask) e
+                    -- Also capture @buttonPressMask@, see Note [Allow ButtonEvents]
+                    maskEvent d (exposureMask .|. keyPressMask .|. buttonPressMask) e
                     ev <- getEvent e
                     (ks,s) <- if ev_event_type ev == keyPress
                               then lookupString $ asKeyEvent e
@@ -635,13 +636,38 @@ eventLoop handle stopAction = do
 evDefaultStop :: XP Bool
 evDefaultStop = (||) <$> (gets modeDone) <*> (gets done)
 
--- | Common patterns shared by all event handlers. Expose events can be
--- triggered by switching virtual consoles.
+-- | Common patterns shared by all event handlers.
 handleOther :: KeyStroke -> Event -> XP ()
 handleOther _ (ExposeEvent {ev_window = w}) = do
+    -- Expose events can be triggered by switching virtual consoles.
     st <- get
     when (win st == w) updateWindows
+handleOther _ (ButtonEvent {ev_event_type = t}) = do
+    -- See Note [Allow ButtonEvents]
+    when (t == buttonPress) $ do
+        d <- gets dpy
+        io $ allowEvents d replayPointer currentTime
 handleOther _ _ = return ()
+
+{- Note [Allow ButtonEvents]
+
+Some settings (like @clickJustFocuses = False@) set up the passive
+pointer grabs that xmonad makes to intercept clicks to unfocused windows
+with @pointer_mode = grabModeSync@ and @keyboard_mode = grabModeSync@.
+This means that any click in an unfocused window leads to a
+pointer/keyboard grab that freezes both devices until 'allowEvents' is
+called. But "XMonad.Prompt" has its own X event loop, so 'allowEvents'
+is never called and everything remains frozen indefinitely.
+
+This does not happen when the grabs are made with @grabModeAsync@, as
+pointer events processing is not frozen and the grab only lasts as long
+as the mouse button is pressed.
+
+Hence, in this situation we call 'allowEvents' in the prompts event loop
+whenever a button event is received, releasing the pointer grab. In this
+case, 'replayPointer' takes care of the fact that these events are not
+merely discarded, but passed to the respective application window.
+-}
 
 -- | Prompt event handler for the main loop. Dispatches to input, completion
 -- and mode switching handlers.
