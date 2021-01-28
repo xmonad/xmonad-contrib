@@ -533,7 +533,7 @@ instance UrgencyHook StdoutUrgencyHook where
 --
 -- Useful for scratchpad workspaces perhaps:
 --
--- > main = xmonad (withUrgencyHook (filterUrgencyHook ["NSP", "SP"]) defaultConfig)
+-- > main = xmonad (withUrgencyHook (filterUrgencyHook ["NSP", "SP"]) def)
 filterUrgencyHook :: [WorkspaceId] -> Window -> X ()
 filterUrgencyHook skips w = do
     ws <- gets windowset

@@ -3,7 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SpawnNamedPipe
--- Copyright   :  (c) Christian Wills 2014 
+-- Copyright   :  (c) Christian Wills 2014
 -- License     :  BSD3-style (see LICENSE)
 --
 -- Maintainer  :  cwills.dev@gmail.com
@@ -35,10 +35,10 @@ import qualified Data.Map as Map
 --
 -- > import XMonad.Util.SpawnNamedPipe
 -- > import Data.Maybe
--- > 
+-- >
 -- > -- StartupHook
--- > startupHook' = spawnNamedPipe "dzen2" "dzenPipe" 
--- > 
+-- > startupHook' = spawnNamedPipe "dzen2" "dzenPipe"
+-- >
 -- > -- LogHook
 -- > logHook' = do
 -- >     mh <- getNamedPipeHandle "dzenPipe"
@@ -46,31 +46,30 @@ import qualified Data.Map as Map
 -- >             ppOutput = maybe (\s -> return ()) (hPutStrLn) mh}
 -- >
 -- > -- Main
--- > main = xmonad $ defaultConfig {
--- >                      startupHook = startupHook'
--- >                    , logHook = logHook'}
+-- > main = xmonad $ def { startupHook = startupHook'
+-- >                     , logHook = logHook'}
 --
 
 data NamedPipes = NamedPipes { pipeMap :: Map.Map String Handle }
     deriving (Show, Typeable)
 
 instance ExtensionClass NamedPipes where
-    initialValue = NamedPipes Map.empty 
+    initialValue = NamedPipes Map.empty
 
 -- | When 'spawnNamedPipe' is executed with a command "String" and a name
 -- "String" respectively.  The command string is spawned with 'spawnPipe' (as
 -- long as the name chosen hasn't been used already) and the "Handle" returned
--- is saved in Xmonad's state associated with the name "String". 
+-- is saved in Xmonad's state associated with the name "String".
 spawnNamedPipe :: String -> String -> X ()
 spawnNamedPipe cmd name = do
-  b <- XS.gets (Map.member name . pipeMap) 
+  b <- XS.gets (Map.member name . pipeMap)
   unless b $ do
-    h <- spawnPipe cmd 
-    XS.modify (NamedPipes . Map.insert name h . pipeMap)   
+    h <- spawnPipe cmd
+    XS.modify (NamedPipes . Map.insert name h . pipeMap)
 
 -- | Attempts to retrieve a "Handle" to a pipe previously stored in Xmonad's
 -- state associated with the given string via a call to 'spawnNamedPipe'. If the
 -- given string doesn't exist in the map stored in Xmonad's state Nothing is
--- returned.   
+-- returned.
 getNamedPipe :: String -> X (Maybe Handle)
 getNamedPipe name = XS.gets (Map.lookup name . pipeMap)
