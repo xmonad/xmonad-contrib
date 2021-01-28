@@ -72,7 +72,7 @@ import           Control.Arrow                  (second)
 --
 -- > main = xmonad
 -- >      $ fullscreenSupport
--- >      $ defaultConfig { ... }
+-- >      $ def { ... }
 fullscreenSupport :: LayoutClass l Window =>
   XConfig l -> XConfig (ModifiedLayout FullscreenFull l)
 fullscreenSupport c = c {

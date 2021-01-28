@@ -53,7 +53,7 @@ import Data.Maybe
 --
 -- > myWorkspaces = ["1:main","2:misc","3","4"]
 -- > ...
--- > main = xmonad $ defaultConfig {
+-- > main = xmonad $ def {
 -- >   logHook = wallpaperSetter defWallpaperConf {
 -- >                                wallpapers = defWPNames myWorkspaces
 -- >                                          <> WallpaperList [("1:main",WallpaperDir "1")]
