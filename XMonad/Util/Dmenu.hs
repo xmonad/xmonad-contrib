@@ -24,7 +24,6 @@ import XMonad
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 import XMonad.Util.Run
-import Control.Monad (liftM)
 
 -- $usage
 -- You can use this module with the following in your Config.hs file:
@@ -43,7 +42,7 @@ import Control.Monad (liftM)
 dmenuXinerama :: [String] -> X String
 dmenuXinerama opts = do
     curscreen <-
-      (fromIntegral . W.screen . W.current) `fmap` gets windowset :: X Int
+      (fromIntegral . W.screen . W.current) <$> gets windowset :: X Int
     _ <-
       runProcessWithInput "dmenu" ["-xs", show (curscreen+1)] (unlines opts)
     menuArgs "dmenu" ["-xs", show (curscreen+1)] opts
@@ -58,7 +57,7 @@ menu menuCmd opts = menuArgs menuCmd [] opts
 
 -- | Like 'menu' but also takes a list of command line arguments.
 menuArgs :: MonadIO m => String -> [String] -> [String] -> m String
-menuArgs menuCmd args opts = liftM (filter (/='\n')) $
+menuArgs menuCmd args opts = (filter (/='\n')) <$>
   runProcessWithInput menuCmd args (unlines opts)
 
 -- | Like 'dmenuMap' but also takes the command to run.

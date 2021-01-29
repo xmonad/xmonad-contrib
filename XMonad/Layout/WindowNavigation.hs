@@ -21,8 +21,8 @@ module XMonad.Layout.WindowNavigation (
                                    Navigate(..), Direction2D(..),
                                    MoveWindowToWindow(..),
                                    navigateColor, navigateBrightness,
-                                   noNavigateBorders, defaultWNConfig, def,
-                                   WNConfig, WindowNavigation,
+                                   noNavigateBorders, def, WNConfig,
+                                   WindowNavigation,
                                   ) where
 
 import Data.List ( nub, sortBy, (\\) )
@@ -92,10 +92,6 @@ navigateBrightness :: Double -> WNConfig
 navigateBrightness f = def { brightness = Just $ max 0 $ min 1 f }
 
 instance Default WNConfig where def = WNC (Just 0.4) "#0000FF" "#00FFFF" "#FF0000" "#FF00FF"
-
-{-# DEPRECATED defaultWNConfig "Use def (from Data.Default, and re-exported by XMonad.Layout.WindowNavigation) instead." #-}
-defaultWNConfig :: WNConfig
-defaultWNConfig = def
 
 data NavigationState a = NS Point [(a,Rectangle)]
 

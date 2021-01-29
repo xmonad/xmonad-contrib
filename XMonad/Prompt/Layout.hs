@@ -46,4 +46,4 @@ import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 
 layoutPrompt :: XPConfig -> X ()
 layoutPrompt c = do ls <- gets (map (description . layout) . workspaces . windowset)
-                    mkXPrompt (Wor "") c (mkComplFunFromList' $ sort $ nub ls) (sendMessage . JumpToLayout)
+                    mkXPrompt (Wor "") c (mkComplFunFromList' c $ sort $ nub ls) (sendMessage . JumpToLayout)

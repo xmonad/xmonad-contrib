@@ -18,7 +18,6 @@ module XMonad.Layout.ShowWName
       showWName
     , showWName'
     , def
-    , defaultSWNConfig
     , SWNConfig(..)
     , ShowWName
     ) where
@@ -69,10 +68,6 @@ instance Default SWNConfig where
          , swn_fade    = 1
          }
 
-{-# DEPRECATED defaultSWNConfig "Use def (from Data.Default, and re-exported from XMonad.Layout.ShowWName) instead." #-}
-defaultSWNConfig :: SWNConfig
-defaultSWNConfig = def
-
 instance LayoutModifier ShowWName a where
     redoLayout      sn r _ wrs = doShow sn r wrs
 
@@ -95,7 +90,7 @@ flashName c (Rectangle sx sy wh ht) wrs = do
   d <- asks display
   n <- withWindowSet (return . S.currentTag)
   f <- initXMF (swn_font c)
-  width <- fmap (\w -> w + w `div` length n) $ textWidthXMF d f n
+  width <- (\w -> w + w `div` length n) <$> textWidthXMF d f n
   (as,ds) <- textExtentsXMF f n
   let hight = as + ds
       y     = fi sy + (fi ht - hight + 2) `div` 2

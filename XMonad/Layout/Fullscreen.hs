@@ -30,17 +30,20 @@ module XMonad.Layout.Fullscreen
     ,FullscreenFloat, FullscreenFocus, FullscreenFull
     ) where
 
-import XMonad
-import XMonad.Layout.LayoutModifier
-import XMonad.Util.WindowProperties
-import XMonad.Hooks.ManageHelpers (isFullscreen)
-import qualified XMonad.StackSet as W
-import Data.List
-import Data.Maybe
-import Data.Monoid
-import qualified Data.Map as M
-import Control.Monad
-import Control.Arrow (second)
+import           XMonad
+import           XMonad.Layout.LayoutModifier
+import           XMonad.Hooks.EwmhDesktops      (fullscreenStartup)
+import           XMonad.Hooks.ManageHelpers     (isFullscreen)
+import           XMonad.Util.WindowProperties
+import qualified XMonad.Util.Rectangle          as R
+import qualified XMonad.StackSet                as W
+
+import           Data.List
+import           Data.Maybe
+import           Data.Monoid
+import qualified Data.Map                       as M
+import           Control.Monad
+import           Control.Arrow                  (second)
 
 -- $usage
 -- Provides a ManageHook and an EventHook that sends layout messages
@@ -69,13 +72,14 @@ import Control.Arrow (second)
 --
 -- > main = xmonad
 -- >      $ fullscreenSupport
--- >      $ defaultConfig { ... }
+-- >      $ def { ... }
 fullscreenSupport :: LayoutClass l Window =>
   XConfig l -> XConfig (ModifiedLayout FullscreenFull l)
 fullscreenSupport c = c {
     layoutHook = fullscreenFull $ layoutHook c,
     handleEventHook = handleEventHook c <+> fullscreenEventHook,
-    manageHook = manageHook c <+> fullscreenManageHook
+    manageHook = manageHook c <+> fullscreenManageHook,
+    startupHook = startupHook c <+> fullscreenStartup
   }
 
 -- | Messages that control the fullscreen state of the window.
@@ -107,9 +111,12 @@ instance LayoutModifier FullscreenFull Window where
     _ -> Nothing
 
   pureModifier (FullscreenFull frect fulls) rect _ list =
-    (map (flip (,) rect') visfulls ++ rest, Nothing)
-    where visfulls = intersect fulls $ map fst list
-          rest = filter (flip notElem visfulls . fst) list
+    (visfulls' ++ rest', Nothing)
+    where (visfulls,rest) = partition (flip elem fulls . fst) list
+          visfulls' = map (second $ const rect') visfulls
+          rest' = if null visfulls'
+                  then rest
+                  else filter (not . R.supersetOf rect' . snd) rest
           rect' = scaleRationalRect rect frect
 
 instance LayoutModifier FullscreenFocus Window where
@@ -122,14 +129,14 @@ instance LayoutModifier FullscreenFocus Window where
   pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list
      | f `elem` fulls = ((f, rect') : rest, Nothing)
      | otherwise = (list, Nothing)
-     where rest = filter ((/= f) . fst) list
+     where rest = filter (not . orP (== f) (R.supersetOf rect')) list
            rect' = scaleRationalRect rect frect
   pureModifier _ _ Nothing list = (list, Nothing)
 
 instance LayoutModifier FullscreenFloat Window where
   handleMess (FullscreenFloat frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> do
-      mrect <- (M.lookup win . W.floating) `fmap` gets windowset
+      mrect <- (M.lookup win . W.floating) <$> gets windowset
       return $ case mrect of
         Just rect -> Just $ FullscreenFloat frect $ M.insert win (rect,True) fulls
         Nothing -> Nothing
@@ -191,15 +198,14 @@ fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  wstate <- fromMaybe [] `fmap` getProp32 wmstate win
+  wstate <- fromMaybe [] <$> getProp32 wmstate win
   let fi :: (Integral i, Num n) => i -> n
       fi = fromIntegral
       isFull = fi fullsc `elem` wstate
       remove = 0
       add = 1
       toggle = 2
-      ptype = 4
-      chWState f = io $ changeProperty32 dpy win wmstate ptype propModeReplace (f wstate)
+      chWState f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
   when (typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWState (fi fullsc:)
@@ -215,7 +221,7 @@ fullscreenEventHook (DestroyWindowEvent {ev_window = w}) = do
   -- When a window is destroyed, the layouts should remove that window
   -- from their states.
   broadcastMessage $ RemoveFullscreen w
-  cw <- (W.workspace . W.current) `fmap` gets windowset
+  cw <- (W.workspace . W.current) <$> gets windowset
   sendMessageWithNoRefresh FullscreenChanged cw
   return $ All True
 
@@ -236,7 +242,10 @@ fullscreenManageHook' isFull = isFull --> do
   w <- ask
   liftX $ do
     broadcastMessage $ AddFullscreen w
-    cw <- (W.workspace . W.current) `fmap` gets windowset
+    cw <- (W.workspace . W.current) <$> gets windowset
     sendMessageWithNoRefresh FullscreenChanged cw
   idHook
 
+-- | Applies a pair of predicates to a pair of operands, combining them with ||.
+orP :: (a -> Bool) -> (b -> Bool) -> (a, b) -> Bool
+orP f g (x, y) = f x || g y

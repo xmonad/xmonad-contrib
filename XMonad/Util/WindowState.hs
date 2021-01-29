@@ -27,7 +27,6 @@ import XMonad hiding (get, put, modify)
 import Control.Monad.Reader(ReaderT(..))
 import Control.Monad.State.Class
 import Data.Typeable (typeOf)
-import Control.Applicative((<$>), Applicative)
 -- $usage
 --
 -- This module allow to store state data with some 'Window'.

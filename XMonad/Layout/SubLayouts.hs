@@ -51,13 +51,11 @@ import XMonad.Layout.WindowNavigation(Navigate(Apply))
 import XMonad.Util.Invisible(Invisible(..))
 import XMonad.Util.Types(Direction2D(..))
 import XMonad hiding (def)
-import Control.Applicative((<$>),(<*))
 import Control.Arrow(Arrow(second, (&&&)))
 import Control.Monad(MonadPlus(mplus), foldM, guard, when, join)
 import Data.Function(on)
 import Data.List(nubBy, (\\), find)
 import Data.Maybe(isNothing, fromMaybe, listToMaybe, mapMaybe)
-import Data.Traversable(sequenceA)
 
 import qualified XMonad as X
 import qualified XMonad.Layout.BoringWindows as B
@@ -391,7 +389,7 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             in fgs $ nxsAdd $ M.insert x zs $ M.delete yf gs
 
 
-        | otherwise = fmap join $ sequenceA $ catchLayoutMess <$> fromMessage m
+        | otherwise = join <$> sequenceA (catchLayoutMess <$> fromMessage m)
      where gs = toGroups sls
            fgs gs' = do
                 st <- currentStack
@@ -429,7 +427,7 @@ updateGroup mst gs =
 
             -- update the current tab group's order and focus
             followFocus hs = fromMaybe hs $ do
-                f' <- W.focus `fmap` mst
+                f' <- W.focus <$> mst
                 xs <- find (elem f' . W.integrate) $ M.elems hs
                 xs' <- W.filter (`elem` W.integrate xs) =<< mst
                 return $ M.insert f' xs' $ M.delete (W.focus xs) hs

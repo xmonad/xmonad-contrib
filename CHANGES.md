@@ -1,26 +1,571 @@
 # Change Log / Release Notes
 
-## 0.14 (Not Yet)
+## unknown
 
 ### Breaking Changes
+
+  * `XMonad.Prompt`
+
+    Now `mkComplFunFromList` and `mkComplFunFromList'` take an
+    additional `XPConfig` argument, so that they can take into
+    account the given `searchPredicate`.
+
+    A `complCaseSensitivity` field has been added to `XPConfig`, indicating
+    whether case-sensitivity is desired when performing completion.
+
+  * `XMonad.Hooks.EwmhDesktops`
+
+    It is no longer recommended to use `fullscreenEventHook` directly.
+    Instead, use `ewmhFullscreen` which additionally advertises fullscreen
+    support in `_NET_SUPPORTED` and fixes fullscreening of applications that
+    explicitly check it, e.g. mupdf-gl, sxiv, …
+
+    `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
+    and no configuration changes are required in this case.
+
+
+  * `XMonad.Hooks.EwmhDesktops`
+
+    `ewmh` function will use `logHook` for handling activated window. And now
+    by default window activation will do nothing.
+
+    You can use regular `ManageHook` combinators for changing window
+    activation behavior and then add resulting `ManageHook` using
+    `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
+    additional combinators.
+
+  * `XMonad.Prompt.Directory`
+
+    The `Dir` constructor now takes an additional `ComplCaseSensitivity`
+    argument to indicate whether directory completion is case sensitive.
+
+  * All modules still exporting a `defaultFoo` constructor
+
+    All of these were now removed. You can use the re-exported `def` from
+    `Data.Default` instead.
+
+  * `XMonad.Hooks.Script`
+
+    `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
+    in how the xmonad core handles XDG directories.
+
+  * `XMonad.Prompt`
+
+    `historyCompletion` and `historyCompletionP` now both have an `X`
+    constraint (was: `IO`), due to changes in how the xmonad core handles XDG
+    directories.
+
+### New Modules
+
+  * `XMonad.Util.Hacks`
+
+    Serves as a collection of hacks and fixes that should be easily acessible to users.
+    The first element of this module is windowedFullscreenFix, which fixes fullscreen behaviour
+    of chromium based applications when using windowed fullscreen.
+
+  * `XMonad.Util.ActionCycle`
+
+    A module providing a simple way to implement "cycling" `X` actions,
+    useful for things like alternating toggle-style keybindings.
+
+  * `XMonad.Actions.RotateSome`
+
+    Functions for rotating some elements around the stack while keeping others
+    anchored in place. Useful in combination with layouts that dictate window
+    visibility based on stack position, such as "XMonad.Layout.LimitWindows".
+
+    Export 'surfaceNext' and 'surfacePrev' actions, which treat the focused window
+    and any hidden windows as a ring that can be rotated through the focused position.
+
+    Export 'rotateSome', a pure function that rotates some elements around a stack
+    while keeping others anchored in place.
+
+  * `XMonad.Actions.Sift`
+
+    Provide 'siftUp' and 'siftDown' actions, which behave like 'swapUp' and 'swapDown'
+    but handle the wrapping case by exchanging the windows at either end of the stack
+    instead of rotating the stack.
+
+  * `XMonad.Hooks.WindowSwallowing`
+
+    A handleEventHook that implements window swallowing:
+    Hide parent windows like terminals when opening other programs (like image viewers) from within them,
+    restoring them once the child application closes.
+
+  * `XMonad.Actions.TiledWindowDragging`
+
+    An action that allows you to change the position of windows by dragging them around.
+
+  * `XMonad.Layout.ResizableThreeColumns`
+
+    A layout based on 'XMonad.Layout.ThreeColumns' but with each slave window's
+    height resizable.
+
+  * `XMonad.Layout.TallMastersCombo`
+
+    A layout combinator that support Shrink, Expand, and IncMasterN just as
+    the 'Tall' layout, and also support operations of two master windows:
+    a main master, which is the original master window;
+    a sub master, the first window of the second pane.
+    This combinator can be nested, and has a good support for using
+    'XMonad.Layout.Tabbed' as a sublayout.
+
+  * `XMonad.Actions.PerWindowKeys`
+
+    Create actions that run on a `Query Bool`, usually associated with
+    conditions on a window, basis. Useful for creating bindings that are
+    excluded or exclusive for some windows.
+
+  * `XMonad.Util.DynamicScratchpads`
+
+    Declare any window as a scratchpad on the fly. Once declared, the
+    scratchpad behaves like `XMonad.Util.NamedScratchpad`.
+
+  * `XMonad.Prompt.Zsh`
+
+    A version of `XMonad.Prompt.Shell` that lets you use completions supplied by
+    zsh.
+
+  * `XMonad.Util.ClickableWorkspaces`
+
+    Provides clickablePP, which when applied to the PP pretty-printer used by
+    `XMonad.Hooks.DynamicLog.dynamicLogWithPP`, will make the workspace tags
+    clickable in XMobar (for switching focus).
+
+  * `XMonad.Layout.VoidBorders`
+
+    Provides a modifier that semi-permanently (requires manual intervention)
+    disables borders for windows from the layout it modifies.
+
+  * `XMonad.Hooks.Focus`
+
+    Extends ManageHook EDSL to work on focused windows and current workspace.
+
+  * `XMonad.Config.LXQt`
+
+    This module provides a config suitable for use with the LXQt desktop
+    environment.
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Actions.DynamicProjects`
+
+    - The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
+    of `XPConfig` when performing directory completion.
+
+    - `modifyProject` is now exported.
+
+  * `XMonad.Layout.WorkspaceDir`
+
+    - The `changeDir` function respects the `complCaseSensitivity` field of `XPConfig`
+      when performing directory completion.
+
+    - `Chdir` message is exported, so it's now possible to change the
+      directory programmaticaly, not just via a user prompt.
+
+  * `XMonad.Prompt.Directory`
+
+    - Added `directoryMultipleModes'`, like `directoryMultipleModes` with an additional
+     `ComplCaseSensitivity` argument.
+
+    - Directory completions are now sorted.
+
+  * `XMonad.Prompt.FuzzyMatch`
+
+    `fuzzySort` will now accept cases where the input is not a subsequence of
+    every completion.
+
+  * `XMonad.Prompt.Shell`
+
+    Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
+    argument.
+
+    Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
+    matches returned by the compgen shell builtin.
+
+  * `XMonad.Prompt.Unicode`
+
+    Reworked internally to be call `spawnPipe` (asynchronous) instead of
+    `runProcessWithInput` (synchronous), which fixes `typeUnicodePrompt`.
+
+    Now respects `searchPredicate` and `sorter` from user-supplied `XPConfig`.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added `statusBar'` function, like existing `statusBar` but accepts a pretty
+      printing options argument embedded in the X monad, to allow for dynamically
+      modified options such as `workspaceNamesPP`.
+
+    - Added `shortenLeft` function, like existing `shorten` but shortens by
+      truncating from left instead of right. Useful for showing directories.
+
+    - Added `shorten'` and `shortenLeft'` functions with customizable overflow
+      markers.
+
+    - Added `filterOutWsPP` for filtering out certain workspaces from being
+      displayed.
+
+    - Added `xmobarProp`, `statusBarProp`, and `statusBarPropTo` for
+      property-based alternatives to `xmobar` and `statusBar` respectively.
+
+    - Reworked the module documentation to suggest property-based logging
+      instead of pipe-based logging, due to the various issues associated with
+      the latter.
+
+    - Added `spawnStatusBarAndRemember` and `cleanupStatusBars` to provide
+      a way to safely restart status bars without relying on pipes.
+
+    - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
+      the current workspace in the status bar.
+
+  * `XMonad.Layout.BoringWindows`
+
+     Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
+
+  * `XMonad.Util.NamedScratchpad`
+
+     - Added two new exported functions to the module:
+         - `customRunNamedScratchpadAction`
+             (provides the option to customize the `X ()` action the scratchpad is launched by)
+         - `spawnHereNamedScratchpadAction`
+             (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
+     - Deprecated `namedScratchpadFilterOutWorkspace` and
+       `namedScratchpadFilterOutWorkspacePP`.  Use
+       `XMonad.Util.WorkspaceCompare.filterOutWs` respectively
+       `XMonad.Hooks.DynamicLog.filterOutWsPP` instead.
+     - Exported the `scratchpadWorkspaceTag`.
+
+  * `XMonad.Util.Run`
+
+     Added two new functions to the module:
+     `spawnPipeWithLocaleEncoding` and
+     `spawnPipeWithUtf8Encoding`. `spawnPipe` is now alias for
+     `spawnPipeWithLocaleEncoding`.
+
+     Added the function `spawnPipeWithNoEncoding` for cases where
+     binary handle is required.
+
+  * `XMonad.Prompt.Window`
+
+    Added 'allApplications' function which maps application executable
+    names to it's underlying window.
+
+  * `XMonad.Prompt.WindowBringer`
+
+    Added 'windowApMap' function which maps application executable
+    names to it's underlying window.
+
+  * `XMonad.Actions.Search`
+
+    - The `hoogle` function now uses the new URL `hoogle.haskell.org`.
+    - Added `promptSearchBrowser'` function to only suggest previous searches of
+      the selected search engine (instead of all search engines).
+
+  * `XMonad.Layout.BoringWindows`
+
+    Added 'markBoringEverywhere' function, to mark the currently
+    focused window boring on all layouts, when using 'XMonad.Actions.CopyWindow'.
+
+  * `XMonad.Layout.MouseResizableTile`
+
+    When we calculate dragger widths, we first try to get the border width of
+    the focused window, before failing over to using the initial `borderWidth`.
+
+  * `XMonad.Actions.CycleRecentWS`
+
+    - Added `cycleRecentNonEmptyWS` function which behaves like `cycleRecentWS`
+      but is constrainded to non-empty workspaces.
+
+    - Added `toggleRecentWS` and `toggleRecentNonEmptyWS` functions which toggle
+      between the current and most recent workspace, and continue to toggle back
+      and forth on repeated presses, rather than cycling through other workspaces.
+
+    - Added `recentWS` function which allows the recency list to be filtered with
+      a user-provided predicate.
+
+  * `XMonad.Prompt.Window`
+
+    - Added a `WithWindow` constructor to `WindowPrompt` to allow executing
+      actions of type `Window -> X ()` on the chosen window.
+
+  * `XMonad.Layout.Hidden`
+
+    - Export `HiddenWindows` type constructor.
+    - Export `popHiddenWindow` function restoring a specific window.
+
+  * `XMonad.Hooks.ManageDocks`
+
+    - Export `AvoidStruts` constructor
+
+    - Restored compatibility with pre-0.13 configs by making the startup hook
+      unnecessary for correct functioning.
+
+  * `XMonad.Hooks.ManageHelpers`
+    - Export `doSink`
+
+  * `XMonad.Util.EZConfig`
+    - Added support for XF86Bluetooth.
+
+  * `XMonad.Util.Loggers`
+    - Make `battery` and `loadAvg` distro-independent.
+
+  * `XMonad.Hooks.DynamicLog`
+    - Added `xmobarBorder` function to create borders around strings.
+
+  * `XMonad.Layout.Minimize`
+
+    - Export `Minimize` type constructor.
+
+  * `XMonad.Actions.WorkspaceNames`
+
+    - Added `workspaceNamesListTransform` which makes workspace names visible
+      to external pagers.
+
+  * Several `LayoutClass` instances now have an additional `Typeable`
+    constraint which may break some advanced configs. The upside is that we
+    can now add `Typeable` to `LayoutClass` in `XMonad.Core` and make it
+    possible to introspect the current layout and its modifiers.
+
+  * `XMonad.Actions.TopicSpace`
+
+    - `switchTopic` now correctly updates the last used topics.
+    - `setLastFocusedTopic` will now check whether we have exceeded the
+      `maxTopicHistory` and prune the topic history as necessary, as well as
+      cons the given topic onto the list __before__ filtering it.
+    - Added `switchNthLastFocusedExclude`, which works like
+      `switchNthLastFocused` but is able to exclude certain topics.
+    - Added `switchTopicWith`, which works like `switchTopic`, but one is able
+      to give `setLastFocusedTopic` a custom filtering function as well.
+    - Instead of a hand-rolled history, use the oneu from
+      `XMonad.Hooks.WorkspaceHistory`.
+    - Added the screen-aware functions `getLastFocusedTopicsByScreen` and
+      `switchNthLastFocusedByScreen`.
+
+  * `XMonad.Hooks.WorkspaceHistory`
+
+    - Added `workspaceHistoryModify` to modify the workspace history with a pure
+      function.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Add the -dock argument to the dzen spawn arguments
+
+  * `XMonad.Util.DebugWindow`
+    Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
+
+  * `XMonad.Config.Xfce`
+    Set `terminal` to `xfce4-terminal`.
+
+  * `XMonad.Hooks.WorkspaceCompare`
+
+    - Added `filterOutWs` for workspace filtering.
+
+  * `XMonad.Prompt`
+
+    - Accommodate completion of multiple words even when `alwaysHighlight` is
+      enabled.
+
+    - Made the history respect words that were "completed" by `alwaysHighlight`
+      upon confirmation of the selection by the user.
+
+    - Fixed a crash when focusing a new window while the prompt was up
+      by allowing pointer events to pass through the custom prompt event
+      loop.
+
+  * `XMonad.Actions.TreeSelect`
+
+    - Fixed a crash when focusing a new window while the tree select
+      window was up by allowing pointer events to pass through the
+      custom tree select event loop.
+
+  * `XMonad.Layout.NoBorders`
+
+    - Fixed handling of floating window borders in multihead setups that was
+      broken since 0.14.
+
+## 0.16
+
+### Breaking Changes
+
+  * `XMonad.Layout.Decoration`
+    - Added `Theme` record fields for controlling decoration border width for active/inactive/urgent windows.
+  * `XMonad.Prompt`
+
+    - Prompt ships a vim-like keymap, see `vimLikeXPKeymap` and
+      `vimLikeXPKeymap'`. A reworked event loop supports new vim-like prompt
+      actions.
+    - Prompt supports dynamic colors. Colors are now specified by the `XPColor`
+      type in `XPState` while `XPConfig` colors remain unchanged for backwards
+      compatibility.
+    - Fixes `showCompletionOnTab`.
+    - The behavior of `moveWord` and `moveWord'` has changed; brought in line
+      with the documentation and now internally consistent. The old keymaps
+      retain the original behavior; see the documentation to do the same your
+      XMonad configuration.
+  * `XMonad.Util.Invisble`
+    - Requires `MonadFail` for `Read` instance
+
+### New Modules
+
+  * `XMonad.Layout.TwoPanePersistent`
+
+    A layout that is like TwoPane but keeps track of the slave window that is
+    currently beside the master. In TwoPane, the default behavior when the master
+    is focused is to display the next window in the stack on the slave pane. This
+    is a problem when a different slave window is selected without changing the stack
+    order.
+
+  * `XMonad.Util.ExclusiveScratchpads`
+
+    Named scratchpads that can be mutually exclusive: This new module extends the
+    idea of named scratchpads such that you can define "families of scratchpads"
+    that are exclusive on the same screen. It also allows to remove this
+    constraint of being mutually exclusive with another scratchpad.
+
+  * `XMonad.Actions.Prefix`
+
+    A module that allows the user to use an Emacs-style prefix
+    argument (raw or numeric).
+
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Layout.Tabbed`
+
+    tabbedLeft and tabbedRight will set their tabs' height and width according to decoHeight/decoWidth
+
+  * `XMonad.Prompt`
+
+    Added `sorter` to `XPConfig` used to sort the possible completions by how
+    well they match the search string (example: `XMonad.Prompt.FuzzyMatch`).
+
+    Fixes a potential bug where an error during prompt execution would
+    leave the window open and keep the keyboard grabbed. See issue
+    [#180](https://github.com/xmonad/xmonad-contrib/issues/180).
+
+    Fixes [issue #217](https://github.com/xmonad/xmonad-contrib/issues/217), where
+    using tab to wrap around the completion rows would fail when maxComplRows is
+    restricting the number of rows of output.
+
+  * `XMonad.Prompt.Pass`
+
+    Added 'passOTPPrompt' to support getting OTP type password. This require
+    pass-otp (https://github.com/tadfisher/pass-otp) has been setup in the running
+    machine.
+
+    Added 'passGenerateAndCopyPrompt', which both generates a new password and
+    copies it to the clipboard.  These two actions are commonly desirable to
+    take together, e.g. when establishing a new account.
+
+    Made password prompts traverse symlinks when gathering password names for
+    autocomplete.
+
+  * `XMonad.Actions.DynamicProjects`
+
+    Make the input directory read from the prompt in `DynamicProjects`
+    absolute wrt the current directory.
+
+    Before this, the directory set by the prompt was treated like a relative
+    directory. This means that when you switch from a project with directory
+    `foo` into a project with directory `bar`, xmonad actually tries to `cd`
+    into `foo/bar`, instead of `~/bar` as expected.
+
+  * `XMonad.Actions.DynamicWorkspaceOrder`
+
+    Add a version of `withNthWorkspace` that takes a `[WorkspaceId] ->
+    [WorkspaceId]` transformation to apply over the list of workspace tags
+    resulting from the dynamic order.
+
+  * `XMonad.Actions.GroupNavigation`
+
+    Add a utility function `isOnAnyVisibleWS :: Query Bool` to allow easy
+    cycling between all windows on all visible workspaces.
+
+
+  * `XMonad.Hooks.WallpaperSetter`
+
+    Preserve the aspect ratio of wallpapers that xmonad sets. When previous
+    versions would distort images to fit the screen size, it will now find a
+    best fit by cropping instead.
+
+  * `XMonad.Util.Themes`
+
+    Add adwaitaTheme and adwaitaDarkTheme to match their respective
+    GTK themes.
+
+  * 'XMonad.Layout.BinarySpacePartition'
+
+    Add a new `SplitShiftDirectional` message that allows moving windows by
+    splitting its neighbours.
+
+  * `XMonad.Prompt.FuzzyMatch`
+
+    Make fuzzy sort show shorter strings first.
+
+## 0.15
+
+### Breaking Changes
+
+  * `XMonad.Layout.Groups` & `XMonad.Layout.Groups.Helpers`
+    The layout will no longer perform refreshes inside of its message handling.
+    If you have been relying on it to in your xmonad.hs, you will need to start
+    sending its messages in a manner that properly handles refreshing, e.g. with
+    `sendMessage`.
+
+### New Modules
+
+  * `XMonad.Util.Purex`
+
+    Unlike the opaque `IO` actions that `X` actions can wrap, regular reads from
+    the `XConf` and modifications to the `XState` are fundamentally pure --
+    contrary to the current treatment of such actions in most xmonad code. Pure
+    modifications to the `WindowSet` can be readily composed, but due to the
+    need for those modifications to be properly handled by `windows`, other pure
+    changes to the `XState` cannot be interleaved with those changes to the
+    `WindowSet` without superfluous refreshes, hence breaking composability.
+
+    This module aims to rectify that situation by drawing attention to it and
+    providing `PureX`: a pure type with the same monadic interface to state as
+    `X`. The `XLike` typeclass enables writing actions generic over the two
+    monads; if pure, existing `X` actions can be generalised with only a change
+    to the type signature. Various other utilities are provided, in particular
+    the `defile` function which is needed by end-users.
+
+### Bug Fixes and Minor Changes
+
+  * Add support for GHC 8.6.1.
+
+  * `XMonad.Actions.MessageHandling`
+    Refresh-performing functions updated to better reflect the new `sendMessage`.
+
+## 0.14
+
+### Breaking Changes
+
+  * `XMonad.Layout.Spacing`
+
+    Rewrite `XMonad.Layout.Spacing`. Borders are no longer uniform but composed
+    of four sides each with its own border width. The screen and window borders
+    are now separate and can be independently toggled on/off. The screen border
+    examines the window/rectangle list resulting from 'runLayout' rather than
+    the stack, which makes it compatible with layouts such as the builtin
+    `Full`. The child layout will always be called with the screen border. If
+    only a single window is displayed (and `smartBorder` enabled), it will be
+    expanded into the original layout rectangle. Windows that are displayed but
+    not part of the stack, such as those created by 'XMonad.Layout.Decoration',
+    will be shifted out of the way, but not scaled (not possible for windows
+    created by XMonad). This isn't perfect, so you might want to disable
+    `Spacing` on such layouts.
+
+  * `XMonad.Util.SpawnOnce`
+
+    - Added `spawnOnOnce`, `spawnNOnOnce` and `spawnAndDoOnce`. These are useful in startup hooks
+      to shift spawned windows to a specific workspace.
 
   * Adding handling of modifySpacing message in smartSpacing and smartSpacingWithEdge layout modifier
 
   * `XMonad.Actions.GridSelect`
 
     - Added field `gs_bordercolor` to `GSConfig` to specify border color.
-
-  * `ewmh` function from `X.H.EwmhDesktops` will use `manageHook` for handling
-    activated window. That means, actions, which you don't want to happen on
-    activated windows, should be guarded by
-
-        not <$> activated
-
-    predicate. By default, with empty `ManageHook`, window activation will do
-    nothing.
-
-    Also, you can use regular 'ManageHook' combinators for changing window
-    activation behavior.
 
   * `XMonad.Layout.Minimize`
 
@@ -37,7 +582,7 @@
     - `unicodePrompt :: String -> XPConfig -> X ()` now additionally takes a
       filepath to the `UnicodeData.txt` file containing unicode data.
 
-  * `XMonad.Actions.PhysicalScreen`
+  * `XMonad.Actions.PhysicalScreens`
 
     `getScreen`, `viewScreen`, `sendToScreen`, `onNextNeighbour`, `onPrevNeighbour` now need a extra parameter
     of type `ScreenComparator`. This allow the user to specify how he want his screen to be ordered default
@@ -55,22 +600,88 @@
   * `XMonad.Util.WorkspaceCompare`
 
     `getXineramaPhysicalWsCompare` now need a extra argument of type `ScreenComparator` defined in
-    `XMonad.Actions.PhysicalScreen` (see changelog of this module for more information)
+    `XMonad.Actions.PhysicalScreens` (see changelog of this module for more information)
+
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Simplify ewmhDesktopsLogHookCustom, and remove the gnome-panel specific
+      remapping of all visible windows to the active workspace (#216).
+    - Handle workspace renames that might be occuring in the custom function
+      that is provided to ewmhDesktopsLogHookCustom.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Support xmobar's \<action> and \<raw> tags; see `xmobarAction` and
+      `xmobarRaw`.
+
+  * `XMonad.Layout.NoBorders`
+
+    The layout now maintains a list of windows that never have borders, and a
+    list of windows that always have borders. Use `BorderMessage` to manage
+    these lists and the accompanying event hook (`borderEventHook`) to remove
+    destroyed windows from them. Also provides the `hasBorder` manage hook.
+
+    Two new conditions have been added to `Ambiguity`: `OnlyLayoutFloat` and
+    `OnlyLayoutFloatBelow`; `OnlyFloat` was renamed to `OnlyScreenFloat`.  See
+    the documentation for more information.
+
+    The type signature of `hiddens` was changed to accept a new `Rectangle`
+    parameter representing the bounds of the parent layout, placed after the
+    `WindowSet` parameter. Anyone defining a new instance of `SetsAmbiguous`
+    will need to update their configuration. For example, replace "`hiddens amb
+    wset mst wrs =`" either with "`hiddens amb wset _ mst wrs =`" or to make
+    use of the new parameter with "`hiddens amb wset lr mst wrs =`".
+
+  * `XMonad.Actions.MessageFeedback`
+
+    - Follow the naming conventions of `XMonad.Operations`. Functions returning
+      `X ()` are named regularly (previously these ended in underscore) while
+      those returning `X Bool` are suffixed with an uppercase 'B'.
+    - Provide all `X Bool` and `SomeMessage` variations for `sendMessage` and
+      `sendMessageWithNoRefresh`, not just `sendMessageWithNoRefreshToCurrent`
+      (renamed from `send`).
+    - The new `tryInOrderB` and `tryMessageB` functions accept a parameter of
+      type `SomeMessage -> X Bool`, which means you are no longer constrained
+      to the behavior of the `sendMessageWithNoRefreshToCurrent` dispatcher.
+    - The `send*Messages*` family of funtions allows for sequencing arbitrary
+      sets of messages with minimal refresh. It makes little sense for these
+      functions to support custom message dispatchers.
+    - Remain backwards compatible. Maintain deprecated aliases of all renamed
+      functions:
+      - `send`          -> `sendMessageWithNoRefreshToCurrentB`
+      - `sendSM`        -> `sendSomeMessageWithNoRefreshToCurrentB`
+      - `sendSM_`       -> `sendSomeMessageWithNoRefreshToCurrent`
+      - `tryInOrder`    -> `tryInOrderWithNoRefreshToCurrentB`
+      - `tryInOrder_`   -> `tryInOrderWithNoRefreshToCurrent`
+      - `tryMessage`    -> `tryMessageWithNoRefreshToCurrentB`
+      - `tryMessage_`   -> `tryMessageWithNoRefreshToCurrent`
 
 ### New Modules
 
-  * `XMonad.Hooks.Focus`
+  * `XMonad.Layout.MultiToggle.TabBarDecoration`
 
-    A new module extending ManageHook EDSL to work on focused windows and
-    current workspace.
+    Provides a simple transformer for use with `XMonad.Layout.MultiToggle` to
+    dynamically toggle `XMonad.Layout.TabBarDecoration`.
 
-    This module will enable window activation (`_NET_ACTIVE_WINDOW`) and apply
-    `manageHook` to activated window too. Thus, it may lead to unexpected
-    results, when `manageHook` previously working only for new windows, start
-    working for activated windows too. It may be solved, by adding
-    `not <$> activated` before those part of `manageHook`, which should not be
-    called for activated windows.  But this lifts `manageHook` into
-    `FocusHook` and it needs to be converted back later using `manageFocus`.
+  * `XMonad.Hooks.RefocusLast`
+
+    Provides hooks and actions that keep track of recently focused windows on a
+    per workspace basis and automatically refocus the last window on loss of the
+    current (if appropriate as determined by user specified criteria).
+
+  * `XMonad.Layout.StateFull`
+
+    Provides `StateFull`: a stateful form of `Full` that does not misbehave when
+    floats are focused, and the `FocusTracking` layout transformer by means of
+    which `StateFull` is implemented. `FocusTracking` simply holds onto the last
+    true focus it was given and continues to use it as the focus for the
+    transformed layout until it sees another. It can be used to improve the
+    behaviour of a child layout that has not been given the focused window.
+
+  * `XMonad.Actions.SwapPromote`
+
+    Module for tracking master window history per workspace, and associated
+    functions for manipulating the stack using such history.
 
   * `XMonad.Actions.CycleWorkspaceByScreen`
 
@@ -81,6 +692,13 @@
     Also provides the `repeatableAction` helper function which can be used to
     build actions that can be repeated while a modifier key is held down.
 
+  * `XMonad.Prompt.FuzzyMatch`
+
+    Provides a predicate `fuzzyMatch` that is much more lenient in matching
+    completions in `XMonad.Prompt` than the default prefix match.  Also provides
+    a function `fuzzySort` that allows sorting the fuzzy matches by "how well"
+    they match.
+
   * `XMonad.Utils.SessionStart`
 
     A new module that allows to query if this is the first time xmonad is
@@ -89,12 +707,65 @@
     Currently needs manual setting of the session start flag. This could be
     automated when this moves to the core repository.
 
+  * `XMonad.Layout.MultiDishes`
+
+    A new layout based on Dishes, however it accepts additional configuration
+    to allow multiple windows within a single stack.
+
+  * `XMonad.Util.Rectangle`
+
+    A new module for handling pixel rectangles.
+
+  * `XMonad.Layout.BinaryColumn`
+
+    A new module which provides a simple grid layout, halving the window
+    sizes of each window after master.
+
+    This is similar to Column, but splits the window in a way
+    that maintains window sizes upon adding & removing windows as well as the
+    option to specify a minimum window size.
+
 ### Bug Fixes and Minor Changes
+
+  * `XMonad.Layout.Grid`
+
+    Fix as per issue #223; Grid will no longer calculate more columns than there
+    are windows.
+
+  * `XMonad.Hooks.FadeWindows`
+
+    Added support for GHC version 8.4.x by adding a Semigroup instance for
+    Monoids
+
+  * `XMonad.Hooks.WallpaperSetter`
+
+    Added support for GHC version 8.4.x by adding a Semigroup instance for
+    Monoids
+
+  * `XMonad.Hooks.Mosaic`
+
+    Added support for GHC version 8.4.x by adding a Semigroup instance for
+    Monoids
+
+  * `XMonad.Actions.Navigation2D`
+
+    Added `sideNavigation` and a parameterised variant, providing a navigation
+    strategy with fewer quirks for tiled layouts using X.L.Spacing.
+
+  * `XMonad.Layout.Fullscreen`
+
+    The fullscreen layouts will now not render any window that is totally
+    obscured by fullscreen windows.
 
   * `XMonad.Layout.Gaps`
 
     Extended the sendMessage interface with `ModifyGaps` to allow arbitrary
     modifications to the `GapSpec`.
+
+  * `XMonad.Layout.Groups`
+
+    Added a new `ModifyX` message type that allows the modifying
+    function to return values in the `X` monad.
 
   * `XMonad.Actions.Navigation2D`
 
@@ -148,7 +819,8 @@
 
   * `XMonad.Hooks.ManageHelpers`
 
-    Make type of ManageHook combinators more general.
+    - Make type of ManageHook combinators more general.
+    - New manage hook `doSink` for sinking windows (as upposed to the `doFloat` manage hook)
 
   * `XMonad.Prompt`
 
@@ -183,6 +855,8 @@
 
     - New function `passTypePrompt` which uses `xdotool` to type in a password
       from the store, bypassing the clipboard.
+    - New function `passEditPrompt` for editing a password from the
+      store.
     - Now handles password labels with spaces and special characters inside
       them.
 
@@ -195,6 +869,40 @@
     - `mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()`
       acts as a generic function to pass the selected Unicode character to any
       program.
+
+  * `XMonad.Prompt.AppendFile`
+
+    - New function `appendFilePrompt'` which allows for transformation of the
+      string passed by a user before writing to a file.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added a new function `dzenWithFlags` which allows specifying the arguments
+    passed to `dzen2` invocation. The behaviour of current `dzen` function is
+    unchanged.
+
+  * `XMonad.Util.Dzen`
+
+    - Now provides functions `fgColor` and `bgColor` to specify foreground and
+    background color, `align` and `slaveAlign` to set text alignment, and
+    `lineCount` to enable a second (slave) window that displays lines beyond
+    the initial (title) one.
+
+  * `XMonad.Hooks.DynamicLog`
+
+    - Added optional `ppVisibleNoWindows` to differentiate between empty
+      and non-empty visible workspaces in pretty printing.
+
+  * `XMonad.Actions.DynamicWorkspaceOrder`
+
+    - Added `updateName` and `removeName` to better control ordering when
+      workspace names are changed or workspaces are removed.
+
+  * `XMonad.Config.Azerty`
+
+    * Added `belgianConfig` and `belgianKeys` to support Belgian AZERTY
+      keyboards, which are slightly different from the French ones in the top
+      row.
 
 ## 0.13 (February 10, 2017)
 
@@ -209,6 +917,12 @@
 
   * `XMonad.Prompt` now stores its history file in the XMonad cache
     directory in a file named `prompt-history`.
+
+  * `XMonad.Hooks.ManageDocks` now requires an additional startup hook to be
+    added to configuration in addition to the other 3 hooks, otherwise docks
+    started before xmonad are covered by windows. It's recommended to use the
+    newly introduced `docks` function to add all necessary hooks to xmonad
+    config.
 
 ### New Modules
 
@@ -243,7 +957,7 @@
 
 ### Bug Fixes and Minor Changes
 
-  * `XMonad.Hooks.ManageDocks`,
+  * `XMonad.Hooks.ManageDocks`
 
     - Fix a very annoying bug where taskbars/docs would be
       covered by windows.

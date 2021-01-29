@@ -25,6 +25,11 @@ module XMonad.Util.Dzen (
     x,
     y,
     addArgs,
+    fgColor,
+    bgColor,
+    align,
+    slaveAlign,
+    lineCount,
 
     -- * Legacy interface
     dzen,
@@ -41,6 +46,7 @@ import Control.Monad
 import XMonad
 import XMonad.StackSet
 import XMonad.Util.Run (runProcessWithInputAndWait, seconds)
+import XMonad.Util.Font (Align (..))
 
 type DzenConfig = (Int, [String]) -> X (Int, [String])
 
@@ -116,6 +122,45 @@ x n = addArgs ["-x", show n]
 y :: Int -> DzenConfig
 y n = addArgs ["-y", show n]
 
+-- | Set the foreground color.
+--
+-- Please be advised that @fgColor@ and @bgColor@ also exist in "XMonad.Prompt".
+-- If you use both modules, you might have to tell the compiler which one you mean:
+--
+-- > import XMonad.Prompt as P
+-- > import XMonad.Util.Dzen as D
+-- >
+-- > dzenConfig (D.fgColor "#f0f0f0") "foobar"
+fgColor :: String -> DzenConfig
+fgColor c = addArgs ["-fg", c]
+
+-- | Set the background color.
+bgColor :: String -> DzenConfig
+bgColor c = addArgs ["-bg", c]
+
+-- | Set the alignment of the title (main) window content.
+-- Note that @AlignRightOffset@ is treated as equal to @AlignRight@.
+--
+-- > import XMonad.Util.Font (Align(..))
+-- >
+-- > dzenConfig (align AlignLeft) "foobar"
+align :: Align -> DzenConfig
+align = align' "-ta"
+
+-- | Set the alignment of the slave window content.
+-- Using this option only makes sense if you also use the @lineCount@ parameter.
+slaveAlign :: Align -> DzenConfig
+slaveAlign = align' "-sa"
+
+-- Set an alignment parameter
+align' :: String -> Align -> DzenConfig
+align' opt a = addArgs [opt, s] where
+  s = case a of
+        AlignCenter        -> "c"
+        AlignLeft          -> "l"
+        AlignRight         -> "r"
+        AlignRightOffset _ -> "r"
+
 -- | Specify the font.  Check out xfontsel to get the format of the String
 -- right; if your dzen supports xft, then you can supply that here, too.
 font :: String -> DzenConfig
@@ -159,6 +204,14 @@ detailFromScreenId sc ws = fmap screenRect maybeSD where
     v       = visible ws
     mapping = map (\s -> (screen s, screenDetail s)) (c:v)
     maybeSD = lookup sc mapping
+
+-- | Enable slave window and specify the number of lines.
+--
+-- Dzen can optionally draw a second window underneath the title window.
+-- By default, this window is only displayed if the mouse enters the title window.
+-- This option is only useful if the string you want to display contains more than one line.
+lineCount :: Int -> DzenConfig
+lineCount n = addArgs ["-l", show n]
 
 -- | @dzen str timeout@ pipes @str@ to dzen2 for @timeout@ microseconds.
 -- Example usage:

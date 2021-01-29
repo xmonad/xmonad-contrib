@@ -19,7 +19,10 @@ module XMonad.Util.Themes
     , ppThemeInfo
     , xmonadTheme
     , smallClean
+    , adwaitaTheme
+    , adwaitaDarkTheme
     , robertTheme
+    , darkTheme
     , deiflTheme
     , oxymor00nTheme
     , donaldTheme
@@ -90,6 +93,9 @@ ppThemeInfo t = themeName t <> themeDescription t <> "by" <> themeAuthor t
 listOfThemes :: [ThemeInfo]
 listOfThemes = [ xmonadTheme
                , smallClean
+               , adwaitaTheme
+               , adwaitaDarkTheme
+               , darkTheme
                , deiflTheme
                , oxymor00nTheme
                , robertTheme
@@ -130,6 +136,48 @@ smallClean =
                                       }
              }
 
+-- | Matching decorations for Adwaita GTK theme
+adwaitaTheme :: ThemeInfo
+adwaitaTheme =
+    newTheme { themeName        = "adwaitaTheme"
+             , themeAuthor      = "Alex Griffin"
+             , themeDescription = "Matching decorations for Adwaita GTK theme"
+             , theme            = def { activeColor         = "#dfdcd8"
+                                      , inactiveColor       = "#f6f5f4"
+                                      , urgentColor         = "#3584e4"
+                                      , activeBorderColor   = "#bfb8b1"
+                                      , inactiveBorderColor = "#cdc7c2"
+                                      , urgentBorderColor   = "#1658a7"
+                                      , activeTextColor     = "#2e3436"
+                                      , inactiveTextColor   = "#929595"
+                                      , urgentTextColor     = "#ffffff"
+                                      , fontName            = "xft:Cantarell:bold:size=11"
+                                      , decoWidth           = 400
+                                      , decoHeight          = 35
+                                      }
+             }
+
+-- | Matching decorations for Adwaita-dark GTK theme
+adwaitaDarkTheme :: ThemeInfo
+adwaitaDarkTheme =
+    newTheme { themeName        = "adwaitaDarkTheme"
+             , themeAuthor      = "Alex Griffin"
+             , themeDescription = "Matching decorations for Adwaita-dark GTK theme"
+             , theme            = def { activeColor         = "#2d2d2d"
+                                      , inactiveColor       = "#353535"
+                                      , urgentColor         = "#15539e"
+                                      , activeBorderColor   = "#070707"
+                                      , inactiveBorderColor = "#1c1c1c"
+                                      , urgentBorderColor   = "#030c17"
+                                      , activeTextColor     = "#eeeeec"
+                                      , inactiveTextColor   = "#929291"
+                                      , urgentTextColor     = "#ffffff"
+                                      , fontName            = "xft:Cantarell:bold:size=11"
+                                      , decoWidth           = 400
+                                      , decoHeight          = 35
+                                      }
+             }
+
 -- | Don's preferred colors - from DynamicLog...;)
 donaldTheme  :: ThemeInfo
 donaldTheme =
@@ -160,6 +208,22 @@ robertTheme =
                                       , inactiveTextColor   = "#d5d3a7"
                                       , fontName            = "-*-profont-*-*-*-*-11-*-*-*-*-*-iso8859"
                                       , decoHeight          = 16
+                                      }
+             }
+
+-- | Dark Theme, by Lucian Poston.
+darkTheme :: ThemeInfo
+darkTheme =
+    newTheme { themeName        = "darkTheme"
+             , themeAuthor      = "Lucian Poston"
+             , themeDescription = "Dark Theme"
+             , theme            = def { inactiveBorderColor = "#202030"
+                                      , activeBorderColor   = "#a0a0d0"
+                                      , inactiveColor       = "#000000"
+                                      , activeColor         = "#000000"
+                                      , inactiveTextColor   = "#607070"
+                                      , activeTextColor     = "#a0d0d0"
+                                      , decoHeight          = 15
                                       }
              }
 

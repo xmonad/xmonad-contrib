@@ -39,9 +39,7 @@ import Data.Char (isAlphaNum)
 import Data.Ord (comparing)
 
 import Control.Monad
-import Control.Applicative
 import Data.Maybe
-import Data.Monoid
 
 -- $usage
 -- This module requires imagemagick and feh to be installed, as these are utilized
@@ -55,7 +53,7 @@ import Data.Monoid
 --
 -- > myWorkspaces = ["1:main","2:misc","3","4"]
 -- > ...
--- > main = xmonad $ defaultConfig {
+-- > main = xmonad $ def {
 -- >   logHook = wallpaperSetter defWallpaperConf {
 -- >                                wallpapers = defWPNames myWorkspaces
 -- >                                          <> WallpaperList [("1:main",WallpaperDir "1")]
@@ -85,6 +83,9 @@ instance Monoid WallpaperList where
   mempty = WallpaperList []
   mappend (WallpaperList w1) (WallpaperList w2) =
     WallpaperList $ M.toList $ (M.fromList w2) `M.union` (M.fromList w1)
+
+instance Semigroup WallpaperList where
+  (<>) = mappend
 
 -- | Complete wallpaper configuration passed to the hook
 data WallpaperConf = WallpaperConf {
@@ -217,7 +218,7 @@ layerCommand (rect, path) = do
   res <- getPicRes path
   return $ case needsRotation rect <$> res of
     Nothing -> ""
-    Just rotate ->
+    Just rotate -> let size = show (rect_width rect) ++ "x" ++ show (rect_height rect) in
                      " \\( '"++path++"' "++(if rotate then "-rotate 90 " else "")
-                      ++ " -scale "++(show$rect_width rect)++"x"++(show$rect_height rect)++"! \\)"
+                      ++ " -scale "++size++"^ -gravity center -extent "++size++" +gravity \\)"
                       ++ " -geometry +"++(show$rect_x rect)++"+"++(show$rect_y rect)++" -composite "

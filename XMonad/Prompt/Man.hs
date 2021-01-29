@@ -33,7 +33,7 @@ import System.Directory
 import System.Process
 import System.IO
 
-import qualified Control.Exception.Extensible as E
+import qualified Control.Exception as E
 import Control.Monad
 import Data.List
 import Data.Maybe
@@ -60,7 +60,7 @@ instance XPrompt Man where
 manPrompt :: XPConfig -> X ()
 manPrompt c = do
   mans <- io getMans
-  mkXPrompt Man c (manCompl mans) $ runInTerm "" . (++) "man "
+  mkXPrompt Man c (manCompl c mans) $ runInTerm "" . (++) "man "
 
 getMans :: IO [String]
 getMans = do
@@ -75,17 +75,17 @@ getMans = do
   mans <- forM (nub dirs) $ \d -> do
             exists <- doesDirectoryExist d
             if exists
-              then map (stripExt . stripSuffixes [".gz", ".bz2"]) `fmap`
+              then map (stripExt . stripSuffixes [".gz", ".bz2"]) <$>
                    getDirectoryContents d
               else return []
   return $ uniqSort $ concat mans
 
-manCompl :: [String] -> String -> IO [String]
-manCompl mans s | s == "" || last s == ' ' = return []
-                | otherwise                = do
+manCompl :: XPConfig -> [String] -> String -> IO [String]
+manCompl c mans s | s == "" || last s == ' ' = return []
+                  | otherwise                = do
   -- XXX readline instead of bash's compgen?
-  f <- lines `fmap` getCommandOutput ("bash -c 'compgen -A file " ++ s ++ "'")
-  mkComplFunFromList (f ++ mans) s
+  f <- lines <$> getCommandOutput ("bash -c 'compgen -A file " ++ s ++ "'")
+  mkComplFunFromList c (f ++ mans) s
 
 -- | Run a command using shell and return its output.
 --

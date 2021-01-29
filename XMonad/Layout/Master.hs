@@ -26,7 +26,6 @@ module XMonad.Layout.Master (
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.LayoutModifier
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -90,7 +89,7 @@ data FixMaster a = FixMaster (AddMaster a) deriving (Show, Read)
 instance LayoutModifier FixMaster Window where
     modifyLayout (FixMaster (AddMaster k d f)) = applyMaster True k d f
     modifierDescription (FixMaster a) = "Fix" ++ modifierDescription a
-    pureMess (FixMaster a) m = liftM FixMaster (pureMess a m)
+    pureMess (FixMaster a) m = fmap FixMaster (pureMess a m)
 
 fixMastered :: (LayoutClass l a) =>
        Rational -- ^ @delta@, the ratio of the screen to resize by
@@ -113,7 +112,7 @@ applyMaster f k _ frac wksp rect = do
     let st= S.stack wksp
     let ws = S.integrate' $ st
     let n = length ws + fromEnum f
-    if n > 1 then do
+    if n > 1 then
         if(n<=k) then
              return ((divideCol rect ws), Nothing)
              else do

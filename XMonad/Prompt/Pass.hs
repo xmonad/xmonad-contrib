@@ -8,23 +8,33 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This module provides 4 <XMonad.Prompt> to ease password manipulation (generate, read, remove):
+-- This module provides 5 <XMonad.Prompt>s to ease password
+-- manipulation (generate, read, edit, remove):
 --
--- - two to lookup passwords in the password-store; one of which copies to the
---   clipboard, and the other uses @xdotool@ to type the password directly.
+-- - two to lookup passwords in the password-store; one of which
+--   copies to the clipboard, and the other uses @xdotool@ to type the
+--   password directly.
 --
--- - one to generate a password for a given password label that the user inputs.
+-- - one to generate a password for a given password label that the
+--   user inputs.
 --
--- - one to delete a stored password for a given password label that the user inputs.
+-- - one to edit a password for a given password label that the user
+--   inputs.
 --
--- All those prompts benefit from the completion system provided by the module <XMonad.Prompt>.
+-- - one to delete a stored password for a given password label that
+--   the user inputs.
 --
--- The password store is setup through an environment variable PASSWORD_STORE_DIR,
--- or @$HOME\/.password-store@ if it is unset.
+-- All those prompts benefit from the completion system provided by
+-- the module <XMonad.Prompt>.
+--
+-- The password store is setup through an environment variable
+-- PASSWORD_STORE_DIR, or @$HOME\/.password-store@ if it is unset.
+-- The editor is determined from the environment variable EDITOR.
 --
 -- Source:
 --
--- - The password store implementation is <http://git.zx2c4.com/password-store the password-store cli>.
+-- - The <https://www.passwordstore.org/ password store>
+--   implementation is <http://git.zx2c4.com/password-store here>.
 --
 -- - Inspired by <http://babushk.in/posts/combining-xmonad-and-pass.html>
 --
@@ -34,8 +44,11 @@ module XMonad.Prompt.Pass (
                             -- * Usage
                             -- $usage
                               passPrompt
+                            , passOTPPrompt
                             , passGeneratePrompt
+                            , passGenerateAndCopyPrompt
                             , passRemovePrompt
+                            , passEditPrompt
                             , passTypePrompt
                             ) where
 
@@ -58,10 +71,12 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- > import XMonad.Prompt.Pass
 --
--- Then add a keybinding for 'passPrompt', 'passGeneratePrompt' or 'passRemovePrompt':
+-- Then add a keybinding for 'passPrompt', 'passGeneratePrompt',
+-- 'passRemovePrompt', 'passEditPrompt' or 'passTypePrompt':
 --
 -- >   , ((modMask , xK_p)                              , passPrompt xpconfig)
 -- >   , ((modMask .|. controlMask, xK_p)               , passGeneratePrompt xpconfig)
+-- >   , ((modMask .|. shiftMask, xK_p)                 , passEditPrompt xpconfig)
 -- >   , ((modMask .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt xpconfig)
 --
 -- For detailed instructions on:
@@ -112,12 +127,24 @@ mkPassPrompt promptLabel passwordFunction xpconfig = do
 passPrompt :: XPConfig -> X ()
 passPrompt = mkPassPrompt "Select password" selectPassword
 
+-- | A prompt to retrieve a OTP from a given entry.
+--
+passOTPPrompt :: XPConfig -> X ()
+passOTPPrompt = mkPassPrompt "Select OTP" selectOTP
+
 -- | A prompt to generate a password for a given entry.
 -- This can be used to override an already stored entry.
 -- (Beware that no confirmation is asked)
 --
 passGeneratePrompt :: XPConfig -> X ()
 passGeneratePrompt = mkPassPrompt "Generate password" generatePassword
+
+-- | A prompt to generate a password for a given entry and immediately copy it
+-- to the clipboard.  This can be used to override an already stored entry.
+-- (Beware that no confirmation is asked)
+--
+passGenerateAndCopyPrompt :: XPConfig -> X ()
+passGenerateAndCopyPrompt = mkPassPrompt "Generate and copy password" generateAndCopyPassword
 
 -- | A prompt to remove a password for a given entry.
 -- (Beware that no confirmation is asked)
@@ -131,10 +158,21 @@ passRemovePrompt = mkPassPrompt "Remove password" removePassword
 passTypePrompt :: XPConfig -> X ()
 passTypePrompt = mkPassPrompt "Type password" typePassword
 
+-- | A prompt to edit a given entry.
+-- This doesn't touch the clipboard.
+--
+passEditPrompt :: XPConfig -> X ()
+passEditPrompt = mkPassPrompt "Edit password" editPassword
+
 -- | Select a password.
 --
 selectPassword :: String -> X ()
 selectPassword passLabel = spawn $ "pass --clip \"" ++ escapeQuote passLabel ++ "\""
+
+-- | Select a OTP.
+--
+selectOTP :: String -> X ()
+selectOTP passLabel = spawn $ "pass otp --clip \"" ++ escapeQuote passLabel ++ "\""
 
 -- | Generate a 30 characters password for a given entry.
 -- If the entry already exists, it is updated with a new password.
@@ -142,10 +180,22 @@ selectPassword passLabel = spawn $ "pass --clip \"" ++ escapeQuote passLabel ++ 
 generatePassword :: String -> X ()
 generatePassword passLabel = spawn $ "pass generate --force \"" ++ escapeQuote passLabel ++ "\" 30"
 
+-- | Generate a 30 characters password for a given entry.
+-- If the entry already exists, it is updated with a new password.
+-- After generating the password, it is copied to the clipboard.
+--
+generateAndCopyPassword :: String -> X ()
+generateAndCopyPassword passLabel = spawn $ "pass generate --force -c \"" ++ escapeQuote passLabel ++ "\" 30"
+
 -- | Remove a password stored for a given entry.
 --
 removePassword :: String -> X ()
 removePassword passLabel = spawn $ "pass rm --force \"" ++ escapeQuote passLabel ++ "\""
+
+-- | Edit a password stored for a given entry.
+--
+editPassword :: String -> X ()
+editPassword passLabel = spawn $ "pass edit \"" ++ escapeQuote passLabel ++ "\""
 
 -- | Type a password stored for a given entry using xdotool.
 --
@@ -163,6 +213,7 @@ escapeQuote = concatMap escape
 getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
   files <- runProcessWithInput "find" [
+    "-L", -- Traverse symlinks
     passwordStoreDir,
     "-type", "f",
     "-name", "*.gpg",

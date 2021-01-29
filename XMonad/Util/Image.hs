@@ -37,7 +37,7 @@ data Placement = OffsetLeft Int Int   -- ^ An exact amount of pixels from the up
 -- In the module we suppose that those matrices are represented as [[Bool]],
 -- so the lengths of the inner lists must be the same.
 --
--- See "Xmonad.Layout.Decoration" for usage examples
+-- See "XMonad.Layout.Decoration" for usage examples
 
 -- | Gets the ('width', 'height') of an image
 imageDims :: [[Bool]] -> (Int, Int)

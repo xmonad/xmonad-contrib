@@ -18,6 +18,7 @@ module XMonad.Util.NamedScratchpad (
   -- $usage
   NamedScratchpad(..),
   DynNamedScratchpad(..),
+  scratchpadWorkspaceTag,
   nonFloating,
   defaultFloating,
   customFloating,
@@ -25,6 +26,8 @@ module XMonad.Util.NamedScratchpad (
   DynNamedScratchpads,
   namedScratchpadAction,
   dynNamedScratchpadAction,
+  spawnHereNamedScratchpadAction,
+  customRunNamedScratchpadAction,
   allNamedScratchpadAction,
   dynAllNamedScratchpadAction,
   namedScratchpadManageHook,
@@ -33,14 +36,17 @@ module XMonad.Util.NamedScratchpad (
   namedScratchpadFilterOutWorkspacePP
   ) where
 
-import           XMonad
-import           XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
-import           XMonad.Hooks.DynamicLog          (PP, ppSort)
-import           XMonad.Hooks.ManageHelpers       (doRectFloat)
+import XMonad
+import XMonad.Hooks.ManageHelpers (doRectFloat)
+import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
+import XMonad.Hooks.DynamicLog (PP, ppSort)
+import XMonad.Actions.SpawnOn (spawnHere)
 
-import           Control.Monad                    (filterM)
-import           Data.Maybe                       (listToMaybe)
 import           Data.Monoid                      (All)
+import qualified Data.List.NonEmpty as NE
+
+import Control.Monad (filterM, unless)
+import Data.Maybe (listToMaybe)
 
 import qualified XMonad.StackSet                  as W
 
@@ -90,6 +96,12 @@ import qualified XMonad.StackSet                  as W
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings"
 --
+-- For some applications (like displaying your workspaces in a status bar) it is
+-- convenient to filter out the @NSP@ workspace when looking at all workspaces.
+-- For this, you can use functions 'XMonad.Hooks.DynamicLog.filterOutWsPP' and
+-- 'XMonad.Util.WorkspaceCompare.filterOutWs'.  See the documentation of these
+-- functions for examples.
+--
 
 -- | Single named scratchpad configuration
 data NamedScratchpad = NS { name  :: String      -- ^ Scratchpad name
@@ -122,17 +134,34 @@ type DynNamedScratchpads = [DynNamedScratchpad]
 
 -- | Finds named scratchpad configuration by name
 findByName :: NamedScratchpads -> String -> Maybe NamedScratchpad
-findByName c s = listToMaybe $ filter ((s==) . name) c
+findByName c s = listToMaybe $ filter ((s ==) . name) c
 
 -- | Runs application which should appear in specified scratchpad
 runApplication :: NamedScratchpad -> X ()
 runApplication = spawn . cmd
 
+-- | Runs application which should appear in a specified scratchpad on the workspace it was launched on
+runApplicationHere :: NamedScratchpad -> X ()
+runApplicationHere = spawnHere . cmd
+
 -- | Action to pop up specified named scratchpad
 namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> String           -- ^ Scratchpad name
                       -> X ()
-namedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ head ws)
+namedScratchpadAction = customRunNamedScratchpadAction runApplication
+
+-- | Action to pop up specified named scratchpad, initially starting it on the current workspace.
+spawnHereNamedScratchpadAction :: NamedScratchpads           -- ^ Named scratchpads configuration
+                               -> String                     -- ^ Scratchpad name
+                               -> X ()
+spawnHereNamedScratchpadAction = customRunNamedScratchpadAction runApplicationHere
+
+-- | Action to pop up specified named scratchpad, given a custom way to initially start the application.
+customRunNamedScratchpadAction :: (NamedScratchpad -> X ())  -- ^ Function initially running the application, given the configured @scratchpad@ cmd
+                               -> NamedScratchpads           -- ^ Named scratchpads configuration
+                               -> String                     -- ^ Scratchpad name
+                               -> X ()
+customRunNamedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ NE.head ws)
 
 -- | Action to pop up specified named dynamic scratchpad
 dynNamedScratchpadAction :: DynNamedScratchpads
@@ -143,36 +172,42 @@ dynNamedScratchpadAction = namedScratchpadAction . fmap scratchpad
 allNamedScratchpadAction :: NamedScratchpads
                          -> String
                          -> X ()
-allNamedScratchpadAction = someNamedScratchpadAction mapM_
+allNamedScratchpadAction = someNamedScratchpadAction mapM_ runApplication
 
 dynAllNamedScratchpadAction :: DynNamedScratchpads
                             -> String
                             -> X ()
 dynAllNamedScratchpadAction = allNamedScratchpadAction . fmap scratchpad
 
-someNamedScratchpadAction :: ((Window -> X ()) -> [Window] -> X ())
+-- | execute some action on a named scratchpad
+someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
+                          -> (NamedScratchpad -> X ())
                           -> NamedScratchpads
                           -> String
                           -> X ()
-someNamedScratchpadAction f confs n
-    | Just conf <- findByName confs n = withWindowSet $ \s -> do
-                     filterCurrent <- filterM (runQuery (query conf))
-                                        ((maybe [] W.integrate . W.stack . W.workspace . W.current) s)
-                     filterAll <- filterM (runQuery (query conf)) (W.allWindows s)
-                     case filterCurrent of
-                       [] -> do
-                         case filterAll of
-                           [] -> runApplication conf
-                           _  -> f (windows . W.shiftWin (W.currentTag s)) filterAll
-                       _ -> do
-                         if null (filter ((== scratchpadWorkspaceTag) . W.tag) (W.workspaces s))
-                             then addHiddenWorkspace scratchpadWorkspaceTag
-                             else return ()
-                         f (windows . W.shiftWin scratchpadWorkspaceTag) filterAll
-    | otherwise = return ()
+someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
+    case findByName scratchpadConfig scratchpadName of
+        Just conf -> withWindowSet $ \winSet -> do
+            let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
+                allWindows        = W.allWindows winSet
+            matchingOnCurrent <- filterM (runQuery (query conf)) focusedWspWindows
+            matchingOnAll     <- filterM (runQuery (query conf)) allWindows
 
+            case NE.nonEmpty matchingOnCurrent of
+                -- no matching window on the current workspace -> scratchpad not running or in background
+                Nothing -> case NE.nonEmpty matchingOnAll of
+                    Nothing   -> runApp conf
+                    Just wins -> f (windows . W.shiftWin (W.currentTag winSet)) wins
 
--- tag of the scratchpad workspace
+                -- matching window running on current workspace -> window should be shifted to scratchpad workspace
+                Just wins -> do
+                    unless (any (\wsp -> scratchpadWorkspaceTag == W.tag wsp) (W.workspaces winSet))
+                        (addHiddenWorkspace scratchpadWorkspaceTag)
+                    f (windows . W.shiftWin scratchpadWorkspaceTag) wins
+
+        Nothing -> return ()
+
+-- | Tag of the scratchpad workspace
 scratchpadWorkspaceTag :: String
 scratchpadWorkspaceTag = "NSP"
 
@@ -192,6 +227,7 @@ dynNamedScratchpadManageHook = composeAll . fmap (\(DNS f np) -> f (query np -->
 -- doesn't contain it. Intended for use with logHooks.
 namedScratchpadFilterOutWorkspace :: [WindowSpace] -> [WindowSpace]
 namedScratchpadFilterOutWorkspace = filter (\(W.Workspace tag _ _) -> tag /= scratchpadWorkspaceTag)
+{-# DEPRECATED namedScratchpadFilterOutWorkspace "Use XMonad.Util.WorkspaceCompare.filterOutWs [scratchpadWorkspaceTag] instead" #-}
 
 -- | Transforms a pretty-printer into one not displaying the NSP workspace.
 --
@@ -208,5 +244,6 @@ namedScratchpadFilterOutWorkspacePP :: PP -> PP
 namedScratchpadFilterOutWorkspacePP pp = pp {
   ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
   }
+{-# DEPRECATED namedScratchpadFilterOutWorkspacePP "Use XMonad.Hooks.DynamicLog.filterOutWsPP [scratchpadWorkspaceTag] instead" #-}
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:

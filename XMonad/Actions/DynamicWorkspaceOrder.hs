@@ -23,11 +23,14 @@ module XMonad.Actions.DynamicWorkspaceOrder
       getWsCompareByOrder
     , getSortByOrder
     , swapWith
+    , updateName
+    , removeName
 
     , moveTo
     , moveToGreedy
     , shiftTo
 
+    , withNthWorkspace'
     , withNthWorkspace
 
     ) where
@@ -152,6 +155,21 @@ swapOrder w1 w2 = do
   XS.modify (withWSO (M.insert w1 i2 . M.insert w2 i1))
   windows id  -- force a status bar update
 
+-- | Update the name of a workspace in the stored order.
+updateName :: WorkspaceId -> WorkspaceId -> X ()
+updateName oldId newId = XS.modify . withWSO $ changeKey oldId newId
+
+-- | Remove a workspace from the stored order.
+removeName :: WorkspaceId -> X ()
+removeName = XS.modify . withWSO . M.delete
+
+-- | Update a key in a Map.
+changeKey :: Ord k => k -> k -> M.Map k a -> M.Map k a
+changeKey oldKey newKey oldMap =
+  case M.updateLookupWithKey (\_ _ -> Nothing) oldKey oldMap of
+    (Nothing, _) -> oldMap
+    (Just val, newMap) -> M.insert newKey val newMap
+
 -- | View the next workspace of the given type in the given direction,
 -- where \"next\" is determined using the dynamic workspace order.
 moveTo :: Direction1D -> WSType -> X ()
@@ -166,13 +184,19 @@ moveToGreedy dir t = doTo dir t getSortByOrder (windows . W.greedyView)
 shiftTo :: Direction1D -> WSType -> X ()
 shiftTo dir t = doTo dir t getSortByOrder (windows . W.shift)
 
+-- | Do something with the nth workspace in the dynamic order after
+--   transforming it.  The callback is given the workspace's tag as well
+--   as the 'WindowSet' of the workspace itself.
+withNthWorkspace' :: ([WorkspaceId] -> [WorkspaceId]) -> (String -> WindowSet -> WindowSet) -> Int -> X ()
+withNthWorkspace' tr job wnum = do
+  sort <- getSortByOrder
+  ws <- gets (tr . map W.tag . sort . W.workspaces . windowset)
+  case drop wnum ws of
+    (w:_) -> windows $ job w
+    []    -> return ()
+
 -- | Do something with the nth workspace in the dynamic order.  The
 --   callback is given the workspace's tag as well as the 'WindowSet'
 --   of the workspace itself.
 withNthWorkspace :: (String -> WindowSet -> WindowSet) -> Int -> X ()
-withNthWorkspace job wnum = do
-  sort <- getSortByOrder
-  ws <- gets (map W.tag . sort . W.workspaces . windowset)
-  case drop wnum ws of
-    (w:_) -> windows $ job w
-    []    -> return ()
+withNthWorkspace = withNthWorkspace' id

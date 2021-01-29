@@ -63,7 +63,7 @@ Example usage in your @~\/.xmonad\/xmonad.hs@ file:
 > --
 > [((modm .|. mask, key), f sc)
 >     | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
->     , (f, mask) <- [(viewScreen, 0), (sendToScreen def, shiftMask)]]
+>     , (f, mask) <- [(viewScreen def, 0), (sendToScreen def, shiftMask)]]
 
 For detailed instructions on editing your key bindings, see
 "XMonad.Doc.Extending#Editing_key_bindings".

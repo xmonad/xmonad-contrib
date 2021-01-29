@@ -4,7 +4,6 @@
 module XMonad.Config.Dmwit where
 
 -- system imports
-import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans
 import Data.Char

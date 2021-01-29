@@ -23,7 +23,6 @@ module XMonad.Util.SessionStart
 where
 
 import Control.Monad (when)
-import Control.Applicative ((<$>))
 
 import XMonad
 import qualified XMonad.Util.ExtensibleState as XS

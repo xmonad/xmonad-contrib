@@ -23,6 +23,7 @@ module XMonad.Layout.Magnifier
       magnifier,
       magnifier',
       magnifierOff,
+      maxMagnifierOff,
       magnifiercz,
       magnifiercz',
       maximizeVertical,
@@ -97,6 +98,10 @@ magnifier' = ModifiedLayout (Mag 1 (1.5,1.5) On NoMaster)
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
 magnifierOff = ModifiedLayout (Mag 1 (1.5,1.5) Off All)
+
+-- | A magnifier that greatly magnifies with defaults to Off
+maxMagnifierOff :: l a -> ModifiedLayout Magnifier l a
+maxMagnifierOff = ModifiedLayout (Mag 1 (1000,1000) Off All)
 
 -- | Increase the size of the window that has focus by a custom zoom,
 -- unless if it is one of the the master windows.

@@ -214,7 +214,7 @@ infixr 5 |||
 -- layouts, and use those.
 --
 -- For the ability to select a layout from a prompt, see
--- "Xmonad.Prompt.Layout".
+-- "XMonad.Prompt.Layout".
 
 -- | A reimplementation of the combinator of the same name from the
 --   xmonad core, providing layout choice, and the ability to support
@@ -234,32 +234,32 @@ instance Message JumpToLayout
 
 instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a where
     runLayout (Workspace i (NewSelect True l1 l2) ms) r = do (wrs, ml1') <- runLayout (Workspace i l1 ms) r
-                                                             return (wrs, (\l1' -> NewSelect True l1' l2) `fmap` ml1')
+                                                             return (wrs, (\l1' -> NewSelect True l1' l2) <$> ml1')
 
     runLayout (Workspace i (NewSelect False l1 l2) ms) r = do (wrs, ml2') <- runLayout (Workspace i l2 ms) r
-                                                              return (wrs, (\l2' -> NewSelect False l1 l2') `fmap` ml2')
+                                                              return (wrs, (\l2' -> NewSelect False l1 l2') <$> ml2')
     description (NewSelect True l1 _) = description l1
     description (NewSelect False _ l2) = description l2
     handleMessage l@(NewSelect False _ _) m
-        | Just Wrap <- fromMessage m = fmap Just $ swap l >>= passOn m
+        | Just Wrap <- fromMessage m = Just <$> (swap l >>= passOn m)
     handleMessage l@(NewSelect amfirst _ _) m
         | Just NextLayoutNoWrap <- fromMessage m =
                   if amfirst then when' isNothing (passOnM m l) $
-                                  fmap Just $ swap l >>= passOn (SomeMessage Wrap)
+                                  Just <$> (swap l >>= passOn (SomeMessage Wrap))
                              else passOnM m l
     handleMessage l m
         | Just NextLayout <- fromMessage m = when' isNothing (passOnM (SomeMessage NextLayoutNoWrap) l) $
-                                             fmap Just $ swap l >>= passOn (SomeMessage Wrap)
+                                             Just <$> (swap l >>= passOn (SomeMessage Wrap))
     handleMessage l@(NewSelect True _ l2) m
-        | Just (JumpToLayout d) <- fromMessage m, d == description l2 = Just `fmap` swap l
+        | Just (JumpToLayout d) <- fromMessage m, d == description l2 = Just <$> swap l
     handleMessage l@(NewSelect False l1 _) m
-        | Just (JumpToLayout d) <- fromMessage m, d == description l1 = Just `fmap` swap l
+        | Just (JumpToLayout d) <- fromMessage m, d == description l1 = Just <$> swap l
     handleMessage l m
         | Just (JumpToLayout _) <- fromMessage m = when' isNothing (passOnM m l) $
                                                    do ml' <- passOnM m $ sw l
                                                       case ml' of
                                                         Nothing -> return Nothing
-                                                        Just l' -> Just `fmap` swap (sw l')
+                                                        Just l' -> Just <$> swap (sw l')
     handleMessage (NewSelect b l1 l2) m
         | Just ReleaseResources  <- fromMessage m =
         do ml1' <- handleMessage l1 m
@@ -270,21 +270,21 @@ instance (LayoutClass l1 a, LayoutClass l2 a) => LayoutClass (NewSelect l1 l2) a
     handleMessage l m = passOnM m l
 
 swap :: (LayoutClass l1 a, LayoutClass l2 a) => NewSelect l1 l2 a -> X (NewSelect l1 l2 a)
-swap l = sw `fmap` passOn (SomeMessage Hide) l
+swap l = sw <$> passOn (SomeMessage Hide) l
 
 sw :: NewSelect l1 l2 a -> NewSelect l1 l2 a
 sw (NewSelect b lt lf) = NewSelect (not b) lt lf
 
 passOn :: (LayoutClass l1 a, LayoutClass l2 a) =>
           SomeMessage -> NewSelect l1 l2 a -> X (NewSelect l1 l2 a)
-passOn m l = maybe l id `fmap` passOnM m l
+passOn m l = maybe l id <$> passOnM m l
 
 passOnM :: (LayoutClass l1 a, LayoutClass l2 a) =>
            SomeMessage -> NewSelect l1 l2 a -> X (Maybe (NewSelect l1 l2 a))
 passOnM m (NewSelect True lt lf) = do mlt' <- handleMessage lt m
-                                      return $ (\lt' -> NewSelect True lt' lf) `fmap` mlt'
+                                      return $ (\lt' -> NewSelect True lt' lf) <$> mlt'
 passOnM m (NewSelect False lt lf) = do mlf' <- handleMessage lf m
-                                       return $ (\lf' -> NewSelect False lt lf') `fmap` mlf'
+                                       return $ (\lf' -> NewSelect False lt lf') <$> mlf'
 
 when' :: Monad m => (a -> Bool) -> m a -> m a -> m a
 when' f a b = do a1 <- a; if f a1 then b else return a1

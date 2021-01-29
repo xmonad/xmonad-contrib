@@ -1,0 +1,11 @@
+# This stack.yaml is used to build xmonad-contrib with master version
+# of xmonad
+
+resolver: lts-15.3
+
+packages:
+- ./
+
+extra-deps:
+- github: xmonad/xmonad
+  commit: master

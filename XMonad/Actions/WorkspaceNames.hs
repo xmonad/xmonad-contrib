@@ -37,7 +37,10 @@ module XMonad.Actions.WorkspaceNames (
     swapWithCurrent,
 
     -- * Workspace prompt
-    workspaceNamePrompt
+    workspaceNamePrompt,
+
+    -- * EwmhDesktops integration
+    workspaceNamesListTransform
     ) where
 
 import XMonad
@@ -101,17 +104,16 @@ getWorkspaceNames' = do
 -- workspaces with a name, and to @\"t\"@ otherwise.
 getWorkspaceNames :: X (WorkspaceId -> String)
 getWorkspaceNames = do
-    lookup <- getWorkspaceNames'
-    return $ \wks -> wks ++ maybe "" (':' :) (lookup wks)
+    lookup' <- getWorkspaceNames'
+    return $ \wks -> wks ++ maybe "" (':' :) (lookup' wks)
 
 -- | Gets the name of a workspace, if set, otherwise returns nothing.
 getWorkspaceName :: WorkspaceId -> X (Maybe String)
-getWorkspaceName w = ($ w) `fmap` getWorkspaceNames'
+getWorkspaceName w = ($ w) <$> getWorkspaceNames'
 
 -- | Gets the name of the current workspace. See 'getWorkspaceName'
 getCurrentWorkspaceName :: X (Maybe String)
-getCurrentWorkspaceName = do
-    getWorkspaceName =<< gets (W.currentTag . windowset)
+getCurrentWorkspaceName = getWorkspaceName =<< gets (W.currentTag . windowset)
 
 -- | Sets the name of a workspace. Empty string makes the workspace unnamed
 -- again.
@@ -129,7 +131,7 @@ setCurrentWorkspaceName name = do
 
 -- | Prompt for a new name for the current workspace and set it.
 renameWorkspace :: XPConfig -> X ()
-renameWorkspace conf = do
+renameWorkspace conf =
     mkXPrompt pr conf (const (return [])) setCurrentWorkspaceName
     where pr = Wor "Workspace name: "
 
@@ -185,3 +187,14 @@ workspaceNamePrompt conf job = do
                                 Just i -> i
         contains completions input =
           return $ filter (Data.List.isInfixOf input) completions
+
+-- | Workspace list transformation for
+-- 'XMonad.Hooks.EwmhDesktops.ewmhDesktopsLogHookCustom' that exposes
+-- workspace names to pagers and other EWMH-aware clients.
+--
+-- Usage:
+-- > logHook = (workspaceNamesListTransform >>= ewmhDesktopsLogHookCustom) <+> …
+workspaceNamesListTransform :: X ([WindowSpace] -> [WindowSpace])
+workspaceNamesListTransform = do
+    names <- getWorkspaceNames
+    return $ map $ \ws -> ws{ W.tag = names $ W.tag ws }

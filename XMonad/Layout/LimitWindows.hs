@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+#ifdef TESTING
+{-# OPTIONS_GHC -Wno-duplicate-exports #-}
+#endif
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LimitWindows
@@ -38,7 +41,6 @@ import XMonad.Layout.LayoutModifier
 import XMonad
 import qualified XMonad.StackSet as W
 import Control.Monad((<=<),guard)
-import Control.Applicative((<$>))
 import Data.Maybe(fromJust)
 
 -- $usage

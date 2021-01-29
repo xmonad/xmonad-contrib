@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts, PatternGuards #-}
+{-# LANGUAGE FlexibleContexts, PatternGuards, TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,28 +24,37 @@ module XMonad.Hooks.DynamicLog (
     -- $usage
 
     -- * Drop-in loggers
-    dzen,
+    xmobarProp,
     xmobar,
+    statusBarProp,
+    statusBarPropTo,
     statusBar,
+    statusBar',
+    dzen,
+    dzenWithFlags,
     dynamicLog,
     dynamicLogXinerama,
 
-    xmonadPropLog',
     xmonadPropLog,
+    xmonadPropLog',
+
+    -- * Specialized spawning and cleaning
+    spawnStatusBarAndRemember,
+    cleanupStatusBars,
 
     -- * Build your own formatter
     dynamicLogWithPP,
     dynamicLogString,
-    PP(..), defaultPP, def,
+    PP(..), def,
 
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
     -- * Formatting utilities
-    wrap, pad, trim, shorten,
-    xmobarColor, xmobarStrip,
-    xmobarStripTags,
-    dzenColor, dzenEscape, dzenStrip,
+    wrap, pad, trim, shorten, shorten', shortenLeft, shortenLeft',
+    xmobarColor, xmobarAction, xmobarBorder,
+    xmobarRaw, xmobarStrip, xmobarStripTags,
+    dzenColor, dzenEscape, dzenStrip, filterOutWsPP,
 
     -- * Internal formatting functions
     pprWindowSet,
@@ -58,21 +68,28 @@ module XMonad.Hooks.DynamicLog (
 -- Useful imports
 
 import Codec.Binary.UTF8.String (encodeString)
-import Control.Monad (liftM2, msum)
-import Data.Char ( isSpace, ord )
-import Data.List (intersperse, stripPrefix, isPrefixOf, sortBy)
-import Data.Maybe ( isJust, catMaybes, mapMaybe )
-import Data.Ord ( comparing )
-import qualified Data.Map as M
+import Control.Applicative (liftA2)
+import Control.Exception (SomeException, try)
+import Control.Monad (msum, void)
+import Data.Bool (bool)
+import Data.Char (isSpace, ord)
+import Data.List (intercalate, isPrefixOf, sortOn, stripPrefix)
+import Data.Map (Map)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
+import System.Posix.Signals (sigTERM, signalProcessGroup)
+import System.Posix.Types (ProcessID)
+
+import qualified Data.Map        as M
 import qualified XMonad.StackSet as S
 
 import Foreign.C (CChar)
 
 import XMonad
 
-import XMonad.Util.WorkspaceCompare
 import XMonad.Util.NamedWindows
 import XMonad.Util.Run
+import XMonad.Util.WorkspaceCompare
+import qualified XMonad.Util.ExtensibleState as XS
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.UrgencyHook
@@ -84,71 +101,192 @@ import XMonad.Hooks.ManageDocks
 -- >    import XMonad
 -- >    import XMonad.Hooks.DynamicLog
 --
--- If you just want a quick-and-dirty status bar with zero effort, try
--- the 'xmobar' or 'dzen' functions:
+-- The recommended way to use this module with xmobar, as well as any other
+-- status bar that supports property logging (you can read more about X11
+-- properties
+-- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
+-- or
+-- [here](https://tronche.com/gui/x/xlib/window-information/properties-and-atoms.html),
+-- although you don't have to understand them in order to use the functions
+-- below), is to use one of the following two functions:
 --
--- > main = xmonad =<< xmobar myConfig
+--   * 'xmobarProp' if you want to use the predefined pretty-printing function
+--     and toggle struts key (@mod-b@).
+--
+--   * 'statusBarProp' if you want to define these things yourself.
+--
+-- These functions are preferred over the other options listed below, as they
+-- take care of all the necessary plumbing—no shell scripting required!
+--
+-- For example, to use the 'xmobarProp' function you could do
+--
+-- > main = xmonad =<< xmobarProp myConfig
 -- >
 -- > myConfig = def { ... }
 --
--- There is also 'statusBar' if you'd like to use another status bar, or would
--- like to use different formatting options.  The 'xmobar', 'dzen', and
--- 'statusBar' functions are preferred over the other options listed below, as
--- they take care of all the necessary plumbing -- no shell scripting required!
+-- With 'statusBarProp', this would look something like the following
 --
--- Alternatively, you can choose among several default status bar formats
--- ('dynamicLog' or 'dynamicLogXinerama') by simply setting your logHook to the
--- appropriate function, for instance:
+-- > main = xmonad =<< statusBarProp "xmobar" myXmobarPP myToggleStrutsKey myConfig
+-- >
+-- > myXmobarPP = def { ... }
+-- > toggleStrutsKey XConfig{ modMask = modm } = (modm, xK_b)
+-- > myConfig = def { ... }
+--
+-- You then have to tell your status bar to read from the @_XMONAD_LOG@ property
+-- of the root window.  In the case of xmobar, this is simply achieved by using
+-- the @XMonadLog@ plugin instead of @StdinReader@ in your @.xmobarrc@:
+--
+-- > Config { ...
+-- >        , commands = [ Run XMonadLog, ... ]
+-- >        , template = "%XMonadLog% }{ ..."
+-- >        }
+--
+-- If you don't have an @.xmobarrc@, create it; the @XMonadLog@ plugin is not
+-- part of the default xmobar configuration and you status bar will not show
+-- otherwise!
+--
+-- Because 'statusBarProp' lets you define your own executable, you can also
+-- give it a different status bar entirely; you only need to make sure that the
+-- status bar supports reading a property string from the root window, or use
+-- some kind of wrapper that reads the property and pipes it into the bar.
+--
+-- If you don't want to read from the default property, you can specify your own
+-- with the 'statusBarPropTo' function.
+--
+-- If your status bar does not support property-based logging, you may also try
+-- 'statusBar' and 'statusBar'', as well as the `xmobar` function, instead.
+-- They can be used in the same way as the 'statusBarProp' and 'xmobarProp'
+-- functions above (for xmobar, you will now use the @StdinReader@
+-- plugin in your @.xmobarrc@).  Instead of writing to a property, these
+-- functions open a pipe and make the given status bar read from that pipe.
+-- Please be aware that this kind of setup is very bug-prone and hence is
+-- discouraged: if anything goes wrong with the bar, xmonad will freeze.
+--
+-- If you do not want to use any of the "batteries included" functions above,
+-- you can also add all of the necessary plumbing yourself (the definition of
+-- 'statusBarProp' may still come in handy here).
+--
+-- 'xmonadPropLog' allows you to write a string to the @_XMONAD_LOG@ property of
+-- the root window.  Together with 'dynamicLogString', you can now simply set
+-- your logHook to the appropriate function, for instance
 --
 -- > main = xmonad $ def {
 -- >    ...
--- >    logHook = dynamicLog
+-- >    , logHook = xmonadPropLog =<< dynamicLogString myPP
 -- >    ...
--- >  }
+-- >    }
 --
--- For more flexibility, you can also use 'dynamicLogWithPP' and supply
--- your own pretty-printing format (by either defining one from scratch,
--- or customizing one of the provided examples).
--- For example:
+-- If you want to define your own property name, use 'xmonadPropLog'' instead of
+-- 'xmonadPropLog'.
+--
+-- If you just want to use the default pretty-printing format, you can replace
+-- @myPP@ with @def@ in the above logHook.
+--
+-- Note that setting the @logHook@ only sets up xmonad's output; you are
+-- responsible for starting your own status bar program and making sure it reads
+-- from the property that xmonad writes to.  To start your bar, simply put it
+-- into your 'startupHook'.  You will also have also have to add 'docks' and
+-- 'avoidStruts' to your config.  Putting all of this together would look
+-- something like
+--
+-- > import XMonad.Util.SpawnOnce (spawnOnce)
+-- > import XMonad.Hooks.ManageDocks (avoidStruts, docks)
+-- >
+-- > main = do
+-- >     xmonad $ docks $ def {
+-- >       ...
+-- >       , logHook     = xmonadPropLog =<< dynamicLogString myPP
+-- >       , startupHook = spawnOnce "xmobar"
+-- >       , layoutHook  = avoidStruts myLayout
+-- >       ...
+-- >       }
+-- > myPP = def { ... }
+-- > myLayout = ...
+--
+-- If you want a keybinding to toggle your bar, you will also need to add this
+-- to the rest of your keybindings.
+--
+-- The above has the problem that xmobar will not get restarted whenever you
+-- restart xmonad ('XMonad.Util.SpawnOnce.spawnOnce' will simply prevent your
+-- chosen status bar from spawning again). Using 'statusBarProp', however, takes
+-- care of the necessary plumbing /and/ keeps track of the started status bars, so
+-- they can be correctly restarted with xmonad. This is achieved using
+-- 'spawnStatusBarAndRemember' to start them and 'cleanupStatusBars' to kill
+-- previously started ones.
+--
+-- Even if you don't use a statusbar, you can still use 'dynamicLogString' to
+-- show on-screen notifications in response to some events. For example, to show
+-- the current layout when it changes, you could make a keybinding to cycle the
+-- layout and display the current status:
+--
+-- > ((mod1Mask, xK_a), sendMessage NextLayout >> (dynamicLogString myPP >>= \d->spawn $"xmessage "++d))
+--
+-- If you use a status bar that does not support reading from a property log
+-- (like dzen), and you don't want to use the 'statusBar' or 'statusBar''
+-- functions, you can, again, also manually add all of the required components.
+--
+-- This works much like the property based solution above, just that you will
+-- want to use 'dynamicLog' or 'dynamicLogXinerama' in place of 'xmonadPropLog'.
+--
+-- > main = xmonad $ def {
+-- >    ...
+-- >    , logHook = dynamicLog
+-- >    ...
+-- >    }
+--
+-- For more flexibility, you can also use 'dynamicLogWithPP' and supply your own
+-- pretty-printing format (by either defining one from scratch, or customizing
+-- one of the provided examples).  For example:
 --
 -- >    -- use sjanssen's pretty-printer format, but with the sections
 -- >    -- in reverse
 -- >    logHook = dynamicLogWithPP $ sjanssenPP { ppOrder = reverse }
 --
--- Note that setting the @logHook@ only sets up xmonad's output; you
--- are responsible for starting your own status bar program (e.g. dzen
--- or xmobar) and making sure xmonad's output is piped into it
--- appropriately, either by putting it in your @.xsession@ or similar
--- file, or by using @spawnPipe@ in your @main@ function, for example:
+-- Again, you will have to do all the necessary plumbing yourself.  In addition,
+-- you are also responsible for creating a pipe for you status bar to read from:
 --
--- > import XMonad.Util.Run   -- for spawnPipe and hPutStrLn
+-- > import XMonad.Util.Run (hPutStrLn, spawnPipe)
 -- >
 -- > main = do
--- >     h <- spawnPipe "xmobar -options -foo -bar"
+-- >     h <- spawnPipe "dzen2 -options -foo -bar"
 -- >     xmonad $ def {
 -- >       ...
--- >       logHook = dynamicLogWithPP $ def { ppOutput = hPutStrLn h }
+-- >       , logHook = dynamicLogWithPP $ def { ppOutput = hPutStrLn h }
+-- >       ...
+-- >       }
 --
--- If you use @spawnPipe@, be sure to redefine the 'ppOutput' field of
--- your pretty-printer as in the example above; by default the status
--- will be printed to stdout rather than the pipe you create.
---
--- Even if you don't use a statusbar, you can still use
--- 'dynamicLogString' to show on-screen notifications in response to
--- some events. For example, to show the current layout when it
--- changes, you could make a keybinding to cycle the layout and
--- display the current status:
---
--- >    , ((mod1Mask, xK_a     ), sendMessage NextLayout >> (dynamicLogString myPP >>= \d->spawn $"xmessage "++d))
+-- In the above, note that if you use @spawnPipe@ you need to redefine the
+-- 'ppOutput' field of your pretty-printer, as was done in the example above; by
+-- default the status will be printed to stdout rather than the pipe you create.
 --
 
 -- $todo
 --
 --   * incorporate dynamicLogXinerama into the PP framework somehow
---
---   * add an xmobarEscape function
 
 ------------------------------------------------------------------------
+
+-- | Run xmonad with a dzen status bar with specified dzen
+--   command line arguments.
+--
+-- > main = xmonad =<< dzenWithFlags flags myConfig
+-- >
+-- > myConfig = def { ... }
+-- >
+-- > flags = "-e onstart lower -w 800 -h 24 -ta l -fg #a8a3f7 -bg #3f3c6d"
+--
+-- This function works much in the same way as the 'dzen' function, only that it
+-- can also be used to customize the arguments passed to dzen2, e.g changing the
+-- default width and height of dzen2.
+--
+-- You should use this function only when the default 'dzen' function does not
+-- serve your purpose.
+--
+dzenWithFlags :: LayoutClass l Window
+              => String     -- ^ Flags to give to @dzen@
+              -> XConfig l  -- ^ The base config
+              -> IO (XConfig (ModifiedLayout AvoidStruts l))
+dzenWithFlags flags = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey
 
 -- | Run xmonad with a dzen status bar set to some nice defaults.
 --
@@ -156,63 +294,177 @@ import XMonad.Hooks.ManageDocks
 -- >
 -- > myConfig = def { ... }
 --
--- The intent is that the above config file should provide a nice
--- status bar with minimal effort.
---
--- If you wish to customize the status bar format at all, you'll have to
--- use the 'statusBar' function instead.
---
--- The binding uses the XMonad.Hooks.ManageDocks module to automatically
--- handle screen placement for dzen, and enables 'mod-b' for toggling
--- the menu bar.
+-- This works pretty much the same as the 'xmobar' function.
 --
 dzen :: LayoutClass l Window
-     => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
-dzen conf = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey conf
+     => XConfig l  -- ^ The base config
+     -> IO (XConfig (ModifiedLayout AvoidStruts l))
+dzen = dzenWithFlags flags
  where
     fg      = "'#a8a3f7'" -- n.b quoting
     bg      = "'#3f3c6d'"
-    flags   = "-e 'onstart=lower' -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
+    flags   = "-e 'onstart=lower' -dock -w 400 -ta l -fg " ++ fg ++ " -bg " ++ bg
 
-
--- | Run xmonad with a xmobar status bar set to some nice defaults.
+-- | Run xmonad with a property-based xmobar status bar set to some nice
+-- defaults.
 --
--- > main = xmonad =<< xmobar myConfig
+-- > main = xmonad =<< xmobarProp myConfig
 -- >
 -- > myConfig = def { ... }
 --
--- This works pretty much the same as 'dzen' function above.
+-- The intent is that the above config file should provide a nice
+-- status bar with minimal effort. Note that you still need to configure
+-- xmobar to use the @XMonadLog@ plugin instead of the default @StdinReader@,
+-- see above.
 --
-xmobar :: LayoutClass l Window
-       => XConfig l -> IO (XConfig (ModifiedLayout AvoidStruts l))
-xmobar conf = statusBar "xmobar" xmobarPP toggleStrutsKey conf
+-- If you wish to customize the status bar format at all, you'll have to
+-- use the 'statusBarProp' function instead.
+--
+-- The binding uses the "XMonad.Hooks.ManageDocks" module to automatically
+-- handle screen placement for xmobar, and enables 'mod-b' for toggling
+-- the menu bar.
+--
+xmobarProp :: LayoutClass l Window
+           => XConfig l  -- ^ The base config
+           -> IO (XConfig (ModifiedLayout AvoidStruts l))
+xmobarProp = statusBarProp "xmobar" xmobarPP toggleStrutsKey
 
--- | Modifies the given base configuration to launch the given status bar,
--- send status information to that bar, and allocate space on the screen edges
--- for the bar.
+-- | This function works like 'xmobarProp', but uses pipes instead of
+-- property-based logging.
+xmobar :: LayoutClass l Window
+       => XConfig l  -- ^ The base config
+       -> IO (XConfig (ModifiedLayout AvoidStruts l))
+xmobar = statusBar "xmobar" xmobarPP toggleStrutsKey
+
+-- | Modifies the given base configuration to launch the given status bar, write
+-- status information to the @_XMONAD_LOG@ property for the bar to read, and
+-- allocate space on the screen edges for the bar.
+statusBarProp :: LayoutClass l Window
+              => String    -- ^ The command line to launch the status bar
+              -> PP        -- ^ The pretty printing options
+              -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ The desired key binding to toggle bar visibility
+              -> XConfig l -- ^ The base config
+              -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBarProp = statusBarPropTo "_XMONAD_LOG"
+
+-- | Like 'statusBarProp', but one is able to specify the property to be written
+-- to.
+statusBarPropTo :: LayoutClass l Window
+                => String    -- ^ Property to write the string to
+                -> String    -- ^ The command line to launch the status bar
+                -> PP        -- ^ The pretty printing options
+                -> (XConfig Layout -> (KeyMask, KeySym))
+                             -- ^ The desired key binding to toggle bar visibility
+                -> XConfig l -- ^ The base config
+                -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBarPropTo prop cmd pp =
+    makeStatusBar
+        (xmonadPropLog' prop =<< dynamicLogString pp)
+        (cleanupStatusBars *> spawnStatusBarAndRemember cmd)
+
+-- | Spawns a status bar and saves its PID. This is useful when the status bars
+-- should be restarted with xmonad. Use this in combination with 'cleanupStatusBars'.
+--
+-- Note: in some systems, multiple processes might start, even though one command is
+-- provided. This means the first PID, of the group leader, is saved.
+--
+spawnStatusBarAndRemember :: String -- ^ The command used to spawn the status bar
+                          -> X()
+spawnStatusBarAndRemember cmd = do
+  newPid <- spawnPID cmd
+  XS.modify (StatusBarPIDs . (newPid :) . getPIDs)
+
+-- This newtype wrapper, together with the ExtensionClass instance makes use of
+-- the extensible state to save the PIDs bewteen xmonad restarts.
+newtype StatusBarPIDs = StatusBarPIDs { getPIDs :: [ProcessID] }
+  deriving (Show, Read)
+
+instance ExtensionClass StatusBarPIDs where
+  initialValue = StatusBarPIDs []
+  extensionType = PersistentExtension
+
+
+-- | Kills the status bars started with 'spawnStatusBarAndRemember', and resets
+-- the state. This could go for example at the beginning of the startupHook.
+--
+-- Concretely, this function sends a 'sigTERM' to the saved PIDs using
+-- 'signalProcessGroup' to effectively terminate all processes, regardless
+-- of how many were started by using  'spawnStatusBarAndRemember'.
+--
+-- There is one caveat to keep in mind: to keep the implementation simple;
+-- no checks are executed before terminating the processes. This means: if the
+-- started process dies for some reason, and enough time passes for the PIDs
+-- to wrap around, this function might terminate another process that happens
+-- to have the same PID. However, this isn't a typical usage scenario.
+--
+cleanupStatusBars :: X ()
+cleanupStatusBars =
+    getPIDs <$> XS.get
+    >>= (io . mapM_ killPid)
+    >> XS.put (StatusBarPIDs [])
+   where
+    killPid :: ProcessID -> IO ()
+    killPid pidToKill = void $ try @SomeException (signalProcessGroup sigTERM pidToKill)
+
+
+-- | Like 'statusBarProp', but uses pipes instead of property-based logging.
+-- Only use this function if your status bar does not support reading from a
+-- property of the root window.
 statusBar :: LayoutClass l Window
-          => String    -- ^ the command line to launch the status bar
-          -> PP        -- ^ the pretty printing options
+          => String    -- ^ The command line to launch the status bar
+          -> PP        -- ^ The pretty printing options
           -> (XConfig Layout -> (KeyMask, KeySym))
-                       -- ^ the desired key binding to toggle bar visibility
-          -> XConfig l -- ^ the base config
+                       -- ^ The desired key binding to toggle bar visibility
+          -> XConfig l -- ^ The base config
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar cmd pp k conf = do
     h <- spawnPipe cmd
-    return $ docks $ conf
-        { layoutHook = avoidStruts (layoutHook conf)
-        , logHook = do
-                        logHook conf
-                        dynamicLogWithPP pp { ppOutput = hPutStrLn h }
-        , keys       = liftM2 M.union keys' (keys conf)
-        }
- where
+    makeStatusBar (dynamicLogWithPP pp{ ppOutput = hPutStrLn h }) mempty k conf
+
+-- | Like 'statusBar' with the pretty printing options embedded in the
+-- 'X' monad. The @X PP@ value is re-executed every time the logHook runs.
+-- Useful if printing options need to be modified dynamically.
+statusBar' :: LayoutClass l Window
+           => String       -- ^ The command line to launch the status bar
+           -> X PP         -- ^ The pretty printing options
+           -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ The desired key binding to toggle bar visibility
+           -> XConfig l    -- ^ The base config
+           -> IO (XConfig (ModifiedLayout AvoidStruts l))
+statusBar' cmd xpp k conf = do
+    h <- spawnPipe cmd
+    makeStatusBar
+        (xpp >>= \pp -> dynamicLogWithPP pp{ ppOutput = hPutStrLn h })
+        mempty
+        k
+        conf
+
+-- | Helper function to make status bars.  This should not be used on its own;
+-- use 'statusBarProp' or 'statusBar' (or their respective variants) instead.
+makeStatusBar :: LayoutClass l Window
+              => X ()      -- ^ 'logHook' to execute
+              -> X ()      -- ^ 'startupHook' to execute
+              -> (XConfig Layout -> (KeyMask, KeySym))
+                           -- ^ The desired key binding to toggle bar visibility
+              -> XConfig l -- ^ The base config
+              -> IO (XConfig (ModifiedLayout AvoidStruts l))
+makeStatusBar lh sh k conf = pure $ docks $ conf
+    { layoutHook  = avoidStruts (layoutHook conf)
+    , logHook     = logHook conf *> lh
+    , keys        = (<>) <$> keys' <*> keys conf
+    , startupHook = startupHook conf *> sh
+    }
+  where
+    keys' :: XConfig Layout -> Map (KeyMask, KeySym) (X ())
     keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
--- | Write a string to a property on the root window.  This property is of
--- type UTF8_STRING. The string must have been processed by encodeString
--- (dynamicLogString does this).
-xmonadPropLog' :: String -> String -> X ()
+-- | Write a string to a property on the root window.  This property is of type
+-- @UTF8_STRING@. The string must have been processed by 'encodeString'
+-- ('dynamicLogString' does this).
+xmonadPropLog' :: String  -- ^ Property name
+               -> String  -- ^ Message to be written to the property
+               -> X ()
 xmonadPropLog' prop msg = do
     d <- asks display
     r <- asks theRoot
@@ -223,7 +475,7 @@ xmonadPropLog' prop msg = do
     encodeCChar :: String -> [CChar]
     encodeCChar = map (fromIntegral . ord)
 
--- | Write a string to the _XMONAD_LOG property on the root window.
+-- | Write a string to the @_XMONAD_LOG@ property on the root window.
 xmonadPropLog :: String -> X ()
 xmonadPropLog = xmonadPropLog' "_XMONAD_LOG"
 
@@ -270,16 +522,22 @@ dynamicLogString pp = do
     -- workspace list
     let ws = pprWindowSet sort' urgents pp winset
 
-    -- window title
-    wt <- maybe (return "") (fmap show . getName) . S.peek $ winset
+    -- window titles
+    let stack  = S.index winset
+        focWin = S.peek  winset
+        ppWin :: Window -> String -> String  -- pretty print a window title
+            = bool (ppTitleUnfocused pp) (ppTitle pp) . (focWin ==) . Just
+    winNames <- traverse (fmap show . getName) stack
+    let ppNames = unwords . filter (not . null) $
+            zipWith (\w n -> ppWin w $ ppTitleSanitize pp n) stack winNames
 
     -- run extra loggers, ignoring any that generate errors.
-    extras <- mapM (flip catchX (return Nothing)) $ ppExtras pp
+    extras <- mapM (`catchX` return Nothing) $ ppExtras pp
 
     return $ encodeString . sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
-                        , ppTitle  pp $ ppTitleSanitize pp wt
+                        , ppNames
                         ]
                         ++ catMaybes extras
 
@@ -293,9 +551,10 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
          visibles = map (S.tag . S.workspace) (S.visible s)
 
          fmt w = printer pp (S.tag w)
-          where printer | any (\x -> maybe False (== S.tag w) (S.findTag x s)) urgents  = ppUrgent
+          where printer | any (\x -> (== Just (S.tag w)) (S.findTag x s)) urgents  = ppUrgent
                         | S.tag w == this                                               = ppCurrent
-                        | S.tag w `elem` visibles                                       = ppVisible
+                        | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
+                        | S.tag w `elem` visibles                                       = liftA2 fromMaybe ppVisible ppVisibleNoWindows
                         | isJust (S.stack w)                                            = ppHidden
                         | otherwise                                                     = ppHiddenNoWindows
 
@@ -322,9 +581,9 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 pprWindowSetXinerama :: WindowSet -> String
 pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
   where onscreen  = map (S.tag . S.workspace)
-                        . sortBy (comparing S.screen) $ S.current ws : S.visible ws
+                        . sortOn S.screen $ S.current ws : S.visible ws
         offscreen = map S.tag . filter (isJust . S.stack)
-                        . sortBy (comparing S.tag) $ S.hidden ws
+                        . sortOn S.tag $ S.hidden ws
 
 -- | Wrap a string in delimiters, unless it is empty.
 wrap :: String  -- ^ left delimiter
@@ -345,17 +604,29 @@ trim = f . f
 
 -- | Limit a string to a certain length, adding "..." if truncated.
 shorten :: Int -> String -> String
-shorten n xs | length xs < n = xs
-             | otherwise     = take (n - length end) xs ++ end
- where
-    end = "..."
+shorten = shorten' "..."
+
+-- | Limit a string to a certain length, adding @end@ if truncated.
+shorten' :: String -> Int -> String -> String
+shorten' end n xs | length xs < n = xs
+                  | otherwise     = take (n - length end) xs ++ end
+
+-- | Like 'shorten', but truncate from the left instead of right.
+shortenLeft :: Int -> String -> String
+shortenLeft = shortenLeft' "..."
+
+-- | Like 'shorten'', but truncate from the left instead of right.
+shortenLeft' :: String -> Int -> String -> String
+shortenLeft' end n xs | l < n     = xs
+                      | otherwise = end ++ drop (l - n + length end) xs
+ where l = length xs
 
 -- | Output a list of strings, ignoring empty ones and separating the
 --   rest with the given separator.
 sepBy :: String   -- ^ separator
       -> [String] -- ^ fields to output
       -> String
-sepBy sep = concat . intersperse sep . filter (not . null)
+sepBy sep = intercalate sep . filter (not . null)
 
 -- | Use dzen escape codes to output a string with given foreground
 --   and background colors.
@@ -392,12 +663,47 @@ xmobarColor :: String  -- ^ foreground color: a color name, or #rrggbb format
 xmobarColor fg bg = wrap t "</fc>"
  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
 
--- ??? add an xmobarEscape function?
+-- | Encapsulate text with an action. The text will be displayed, and the
+-- action executed when the displayed text is clicked. Illegal input is not
+-- filtered, allowing xmobar to display any parse errors. Uses xmobar's new
+-- syntax wherein the command is surrounded by backticks.
+xmobarAction :: String
+                -- ^ Command. Use of backticks (`) will cause a parse error.
+             -> String
+                -- ^ Buttons 1-5, such as "145". Other characters will cause a
+                -- parse error.
+             -> String
+                -- ^ Displayed/wrapped text.
+             -> String
+xmobarAction command button = wrap l r
+    where
+        l = "<action=`" ++ command ++ "` button=" ++ button ++ ">"
+        r = "</action>"
+
+-- | Use xmobar box to add a border to an arbitrary string.
+xmobarBorder :: String -- ^ Border type. Possible values: VBoth, HBoth, Full,
+                       -- Top, Bottom, Left or Right
+             -> String -- ^ color: a color name, or #rrggbb format
+             -> Int    -- ^ width in pixels
+             -> String -- ^ output string
+             -> String
+xmobarBorder border color width = wrap prefix "</box>"
+  where
+    prefix = "<box type=" ++ border ++ " width=" ++ show width ++ " color="
+      ++ color ++ ">"
+
+-- | Encapsulate arbitrary text for display only, i.e. untrusted content if
+-- wrapped (perhaps from window titles) will be displayed only, with all tags
+-- ignored. Introduced in xmobar 0.21; see their documentation. Be careful not
+-- to shorten the result.
+xmobarRaw :: String -> String
+xmobarRaw "" = ""
+xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
 
 -- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
 -- the matching tags like </fc>.
 xmobarStrip :: String -> String
-xmobarStrip = converge (xmobarStripTags ["fc","icon","action"]) where
+xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
 converge :: (Eq a) => (a -> a) -> a -> a
 converge f a = let xs = iterate f a
@@ -422,6 +728,23 @@ xmobarStripTags tags = strip [] where
     openTag str = "<" ++ str ++ "="
     closeTag str = "</" ++ str ++ ">"
 
+-- | Transforms a pretty-printer into one not displaying the given workspaces.
+--
+-- For example, filtering out the @NSP@ workspace before giving the 'PP' to
+-- 'dynamicLogWithPP':
+--
+-- > logHook = dynamicLogWithPP . filterOutWsPP [scratchpadWorkspaceTag] $ def
+--
+-- Here is another example, when using "XMonad.Layout.IndependentScreens".  If
+-- you have handles @hLeft@ and @hRight@ for bars on the left and right screens,
+-- respectively, and @pp@ is a pretty-printer function that takes a handle, you
+-- could write
+--
+-- > logHook = let log screen handle = dynamicLogWithPP . filterOutWsPP [scratchpadWorkspaceTag] . marshallPP screen . pp $ handle
+-- >           in log 0 hLeft >> log 1 hRight
+filterOutWsPP :: [WorkspaceId] -> PP -> PP
+filterOutWsPP ws pp = pp { ppSort = (. filterOutWs ws) <$> ppSort pp }
+
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.
 data PP = PP { ppCurrent :: WorkspaceId -> String
@@ -435,6 +758,8 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- contain windows
              , ppHiddenNoWindows :: WorkspaceId -> String
                -- ^ how to print tags of empty hidden workspaces
+             , ppVisibleNoWindows :: Maybe (WorkspaceId -> String)
+               -- ^ how to print tags of empty visible workspaces
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
              , ppSep :: String
@@ -443,16 +768,19 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              , ppWsSep :: String
                -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
-               -- ^ window title format
+               -- ^ window title format for the focused window
+             , ppTitleUnfocused :: String -> String
+               -- ^ window title format for unfocused windows
              , ppTitleSanitize :: String -> String
-              -- ^  escape / sanitizes input to 'ppTitle'
+              -- ^ escape / sanitizes input to 'ppTitle' and
+              --   'ppTitleUnfocused'
              , ppLayout :: String -> String
                -- ^ layout name format
              , ppOrder :: [String] -> [String]
                -- ^ how to order the different log sections. By
                --   default, this function receives a list with three
                --   formatted strings, representing the workspaces,
-               --   the layout, and the current window title,
+               --   the layout, and the current window titles,
                --   respectively. If you have specified any extra
                --   loggers in 'ppExtras', their output will also be
                --   appended to the list.  To get them in the reverse
@@ -478,19 +806,17 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              }
 
 -- | The default pretty printing options, as seen in 'dynamicLog'.
-{-# DEPRECATED defaultPP "Use def (from Data.Default, and re-exported by XMonad.Hooks.DynamicLog) instead." #-}
-defaultPP :: PP
-defaultPP = def
-
 instance Default PP where
     def   = PP { ppCurrent         = wrap "[" "]"
                , ppVisible         = wrap "<" ">"
                , ppHidden          = id
                , ppHiddenNoWindows = const ""
+               , ppVisibleNoWindows= Nothing
                , ppUrgent          = id
                , ppSep             = " : "
                , ppWsSep           = " "
                , ppTitle           = shorten 80
+               , ppTitleUnfocused  = const ""
                , ppTitleSanitize   = xmobarStrip . dzenEscape
                , ppLayout          = id
                , ppOrder           = id

@@ -26,6 +26,7 @@ module XMonad.Prompt.DirExec
 
 import Control.Exception as E
 import System.Directory
+import Control.Applicative (liftA2)
 import Control.Monad
 import Data.List
 import XMonad
@@ -100,7 +101,7 @@ getDirectoryExecutables :: FilePath -> IO [String]
 getDirectoryExecutables path =
     (getDirectoryContents path >>=
         filterM (\x -> let x' = path ++ x in
-            liftM2 (&&)
+            liftA2 (&&)
                 (doesFileExist x')
-                (liftM executable (getPermissions x'))))
+                (fmap executable (getPermissions x'))))
     `E.catch` econst []

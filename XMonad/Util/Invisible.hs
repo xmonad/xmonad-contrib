@@ -22,7 +22,7 @@ module XMonad.Util.Invisible (
                             , fromIMaybe
                             ) where
 
-import Control.Applicative
+import Control.Monad.Fail
 
 -- $usage
 -- A wrapper data type to store layout state that shouldn't be persisted across
@@ -30,10 +30,10 @@ import Control.Applicative
 -- Invisible derives trivial definitions for Read and Show, so the wrapped data
 -- type need not do so.
 
-newtype Invisible m a = I (m a) deriving (Monad, Applicative, Functor)
+newtype Invisible m a = I (m a) deriving (Monad, MonadFail, Applicative, Functor)
 
-instance (Functor m, Monad m) => Read (Invisible m a) where
-    readsPrec _ s = [(fail "Read Invisible", s)]
+instance (Functor m, Monad m, MonadFail m) => Read (Invisible m a) where
+    readsPrec _ s = [(Control.Monad.Fail.fail "Read Invisible", s)]
 
 instance Monad m => Show (Invisible m a) where
     show _ = ""

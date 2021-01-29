@@ -65,7 +65,7 @@ instance LayoutClass PositionStoreFloat Window where
                             Just changedRect -> (w, changedRect)
             let wrs' = focused : wrs
             let paintOrder' = nub (w : paintOrder)
-            when (isJust maybeChange) $ do
+            when (isJust maybeChange) $
                 updatePositionStore focused sr
             return (reorder wrs' paintOrder', Just $ PSF (Nothing, paintOrder'))
         where

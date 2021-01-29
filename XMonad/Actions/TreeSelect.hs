@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TreeSelect
@@ -39,6 +40,7 @@ module XMonad.Actions.TreeSelect
 
     , TSConfig(..)
     , tsDefaultConfig
+    , def
 
       -- * Navigation
       -- $navigation
@@ -60,7 +62,6 @@ module XMonad.Actions.TreeSelect
     , treeselectAt
     ) where
 
-import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (find)
@@ -113,10 +114,10 @@ import Graphics.X11.Xrender
 --
 -- Optionally, if you add 'workspaceHistoryHook' to your 'logHook' you can use the \'o\' and \'i\' keys to select from previously-visited workspaces
 --
--- > xmonad $ defaultConfig { ...
--- >                        , workspaces = toWorkspaces myWorkspaces
--- >                        , logHook = workspaceHistoryHook
--- >                        }
+-- > xmonad $ def { ...
+-- >              , workspaces = toWorkspaces myWorkspaces
+-- >              , logHook = workspaceHistoryHook
+-- >              }
 --
 -- After that you still need to bind buttons to 'treeselectWorkspace' to start selecting a workspaces and moving windows
 --
@@ -131,22 +132,22 @@ import Graphics.X11.Xrender
 -- $config
 -- The selection menu is very configurable, you can change the font, all colors and the sizes of the boxes.
 --
--- The default config defined as 'tsDefaultConfig'
+-- The default config defined as 'def'
 --
--- > tsDefaultConfig = TSConfig { ts_hidechildren = True
--- >                            , ts_background   = 0xc0c0c0c0
--- >                            , ts_font         = "xft:Sans-16"
--- >                            , ts_node         = (0xff000000, 0xff50d0db)
--- >                            , ts_nodealt      = (0xff000000, 0xff10b8d6)
--- >                            , ts_highlight    = (0xffffffff, 0xffff0000)
--- >                            , ts_extra        = 0xff000000
--- >                            , ts_node_width   = 200
--- >                            , ts_node_height  = 30
--- >                            , ts_originX      = 0
--- >                            , ts_originY      = 0
--- >                            , ts_indent       = 80
--- >                            , ts_navigate     = defaultNavigation
--- >                            }
+-- > def = TSConfig { ts_hidechildren = True
+-- >                , ts_background   = 0xc0c0c0c0
+-- >                , ts_font         = "xft:Sans-16"
+-- >                , ts_node         = (0xff000000, 0xff50d0db)
+-- >                , ts_nodealt      = (0xff000000, 0xff10b8d6)
+-- >                , ts_highlight    = (0xffffffff, 0xffff0000)
+-- >                , ts_extra        = 0xff000000
+-- >                , ts_node_width   = 200
+-- >                , ts_node_height  = 30
+-- >                , ts_originX      = 0
+-- >                , ts_originY      = 0
+-- >                , ts_indent       = 80
+-- >                , ts_navigate     = defaultNavigation
+-- >                }
 
 -- $pixel
 --
@@ -258,6 +259,7 @@ defaultNavigation = M.fromList
 -- Using nice alternating blue nodes
 tsDefaultConfig :: TSConfig a
 tsDefaultConfig = def
+{-# DEPRECATED tsDefaultConfig "Use def (from Data.Default, and re-exported by XMonad.Actions.TreeSelect) instead." #-}
 
 -- | Tree Node With a name and extra text
 data TSNode a = TSNode { tsn_name  :: String
@@ -523,18 +525,21 @@ moveWith f = do
 -- | wait for keys and run navigation
 navigate :: TreeSelect a (Maybe a)
 navigate = gets tss_display >>= \d -> join . liftIO . allocaXEvent $ \e -> do
-    maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
+    maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask .|. buttonPressMask) e
 
     ev <- getEvent e
 
-    if ev_event_type ev == keyPress
-      then do
-        (ks, _) <- lookupString $ asKeyEvent e
-        return $ do
-            mask <- liftX $ cleanMask (ev_state ev)
-            f <- asks ts_navigate
-            fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
-      else return navigate
+    if | ev_event_type ev == keyPress -> do
+           (ks, _) <- lookupString $ asKeyEvent e
+           return $ do
+               mask <- liftX $ cleanMask (ev_state ev)
+               f <- asks ts_navigate
+               fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
+       | ev_event_type ev == buttonPress -> do
+           -- See XMonad.Prompt Note [Allow ButtonEvents]
+           allowEvents d replayPointer currentTime
+           return navigate
+       | otherwise -> return navigate
 
 -- | Request a full redraw
 redraw :: TreeSelect a ()
@@ -599,7 +604,7 @@ drawNode ix iy TSNode{..} col = do
     colormap <- gets tss_colormap
     visual   <- gets tss_visual
     liftIO $ drawWinBox window display visual colormap gc font col tsn_name ts_extra tsn_extra
-        (ix * ts_indent) (iy * ts_node_height)
+        (ix * ts_indent + ts_originX) (iy * ts_node_height + ts_originY)
         ts_node_width ts_node_height
 
     -- TODO: draw extra text (transparent background? or ts_background)

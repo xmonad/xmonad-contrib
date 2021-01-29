@@ -29,9 +29,7 @@ import Data.Char
 import Data.Maybe
 import Data.Ord
 import Numeric
-import System.Environment
 import System.IO
-import System.IO.Unsafe
 import System.IO.Error
 import Control.Arrow
 import Data.List
@@ -96,24 +94,33 @@ parseUnicodeData = mapMaybe parseLine . BS.lines
           [(c,"")] <- return . readHex $ BS.unpack field1
           return (chr c, field2)
 
-searchUnicode :: [(Char, BS.ByteString)] -> String -> [(Char, String)]
-searchUnicode entries s = map (second BS.unpack) $ filter go entries
-  where w = map BS.pack . filter (all isAscii) . filter ((> 1) . length) . words $ map toUpper s
-        go (c,d) = all (`BS.isInfixOf` d) w
+type Predicate = String -> String -> Bool
+
+searchUnicode :: [(Char, BS.ByteString)] -> Predicate -> String -> [(Char, String)]
+searchUnicode entries p s = map (second BS.unpack) $ filter go entries
+  where w = filter (all isAscii) . filter ((> 1) . length) . words $ map toUpper s
+        go (c,d) = all (`p` (BS.unpack d)) w
 
 mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()
 mkUnicodePrompt prog args unicodeDataFilename config =
   whenX (populateEntries unicodeDataFilename) $ do
     entries <- fmap getUnicodeData (XS.get :: X UnicodeData)
-    mkXPrompt Unicode config (unicodeCompl entries) paste
+    mkXPrompt
+      Unicode
+      (config {sorter = sorter config . map toUpper})
+      (unicodeCompl entries $ searchPredicate config)
+      paste
   where
-    unicodeCompl _ [] = return []
-    unicodeCompl entries s = do
-      let m = searchUnicode entries s
+    unicodeCompl :: [(Char, BS.ByteString)] -> Predicate -> String -> IO [String]
+    unicodeCompl _ _ "" = return []
+    unicodeCompl entries p s = do
+      let m = searchUnicode entries p s
       return . map (\(c,d) -> printf "%s %s" [c] d) $ take 20 m
     paste [] = return ()
-    paste (c:_) = do
-      runProcessWithInput prog args [c]
+    paste (c:_) = liftIO $ do
+      handle <- spawnPipe $ unwords $ prog : args
+      hPutChar handle c
+      hClose handle
       return ()
 
 -- | Prompt the user for a Unicode character to be inserted into the paste buffer of the X server.
