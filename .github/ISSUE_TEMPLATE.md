@@ -1,7 +1,11 @@
 ### Problem Description
 
-Describe the problem you are having, what you expect to happen
-instead, and how to reproduce the problem.
+Describe the problem you are having and what you expect to happen
+instead.
+
+### Steps to Reproduce
+
+Give detailed step-by-step instructions on how to reproduce the problem.
 
 ### Configuration File
 
