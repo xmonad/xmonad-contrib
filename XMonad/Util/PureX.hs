@@ -44,6 +44,7 @@ module XMonad.Util.PureX (
   withWindowSet', withFocii,
   modify'', modifyWindowSet',
   getStack, putStack, peek,
+  focusWindow, focusNth,
   view, greedyView, invisiView,
   shift, curScreen, curWorkspace,
   curTag, curScreenId,
@@ -52,6 +53,7 @@ module XMonad.Util.PureX (
 -- xmonad
 import XMonad
 import qualified XMonad.StackSet as W
+import qualified XMonad.Actions.FocusNth
 
 -- mtl
 import Control.Monad.State
@@ -271,6 +273,22 @@ shift tag = withFocii $ \ctag fw ->
     modifyWindowSet' (W.shiftWin tag fw)
     mfw' <- peek
     return (Any $ Just fw /= mfw')
+
+-- | Internal. Refresh-tracking logic of focus operations.
+focusWith :: XLike m => (WindowSet -> WindowSet) -> m Any
+focusWith focuser = do
+    old <- peek
+    modifyWindowSet' focuser
+    new <- peek
+    return (Any $ old /= new)
+
+-- | A refresh-tracking version of @W.focusWindow@.
+focusWindow :: XLike m => Window -> m Any
+focusWindow w = focusWith (W.focusWindow w)
+
+-- | A refresh-tracking version of @XMonad.Actions.FocusNth.focusNth@.
+focusNth :: XLike m => Int -> m Any
+focusNth i = focusWith (W.modify' (XMonad.Actions.FocusNth.focusNth' i))
 
 -- }}}
 

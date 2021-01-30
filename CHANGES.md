@@ -321,6 +321,11 @@
     - Added `workspaceNamesListTransform` which makes workspace names visible
       to external pagers.
 
+  * `XMonad.Util.PureX`
+
+    - Added `focusWindow` and `focusNth` which don't refresh (and thus
+      possibly flicker) when they happen to be a no-op.
+
   * Several `LayoutClass` instances now have an additional `Typeable`
     constraint which may break some advanced configs. The upside is that we
     can now add `Typeable` to `LayoutClass` in `XMonad.Core` and make it
