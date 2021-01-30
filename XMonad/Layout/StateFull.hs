@@ -35,7 +35,6 @@ import XMonad.Util.Stack (findZ)
 
 import Data.Maybe (fromMaybe)
 import Control.Applicative ((<|>))
-import Control.Monad (join)
 
 -- $Usage
 --
@@ -82,7 +81,7 @@ instance LayoutClass l Window => LayoutClass (FocusTracking l) Window where
     mRealFoc <- gets (W.peek . windowset)
     let mGivenFoc = W.focus <$> mSt
         passedMSt = if mRealFoc == mGivenFoc then mSt
-                    else join (mOldFoc >>= \oF -> findZ (==oF) mSt) <|> mSt
+                    else (mOldFoc >>= \oF -> findZ (==oF) mSt) <|> mSt
 
     (wrs, mChildL') <- runLayout (W.Workspace i childL passedMSt) sr
     let newFT = if mRealFoc /= mGivenFoc then FocusTracking mOldFoc <$> mChildL'

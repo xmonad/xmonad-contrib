@@ -11,8 +11,9 @@ Stability   :  unstable
 Portability :  unportable
 
 Layout modifier that tracks focus in the tiled layer while the floating layer
-is in use. This is particularly helpful for tiled layouts where the focus
-determines what is visible.
+or another sublayout is in use. This is particularly helpful for tiled layouts
+where the focus determines what is visible. It can also be used to improve the
+behaviour of a child layout that has not been given the focused window.
 
 The relevant bugs are Issue 4 and 306:
 <http://code.google.com/p/xmonad/issues/detail?id=4>,
@@ -32,56 +33,35 @@ module XMonad.Layout.TrackFloating
      UseTransientFor,
     ) where
 
-import Control.Applicative (liftA2)
+import Control.Applicative ((<|>))
 import Control.Monad
-import Data.Function
-import Data.List
-import Data.Maybe
-import qualified Data.Map as M
-import qualified Data.Set as S
 
 import XMonad
 import XMonad.Layout.LayoutModifier
+import XMonad.Util.Stack (findZ)
 import qualified XMonad.StackSet as W
 
 import qualified Data.Traversable as T
 
 
-data TrackFloating a = TrackFloating
-    { _wasFloating :: Bool,
-      _tiledFocus :: Maybe Window }
-    deriving (Read,Show,Eq)
+data TrackFloating a = TrackFloating (Maybe Window)
+    deriving (Read,Show)
 
 
 instance LayoutModifier TrackFloating Window where
-    modifyLayoutWithUpdate os@(TrackFloating _wasF mw) ws@(W.Workspace{ W.stack = ms }) r
+    modifyLayoutWithUpdate (TrackFloating mw) ws@(W.Workspace{ W.stack = ms }) r
       = do
-        winset <- gets windowset
-        let xCur = fmap W.focus xStack
-            xStack = W.stack $ W.workspace $ W.current winset
-            isF = fmap (\x -> x `M.member` W.floating winset ||
-                            (let (\\\) = (S.\\) `on` (S.fromList . W.integrate')
-                             in x `S.member` (xStack \\\ ms)))
-                        xCur
-            newStack
-              -- focus is floating, so use the remembered focus point
-              | Just isF' <- isF,
-                isF',
-                Just w <- mw,
-                Just s <- ms,
-                Just ns <- find ((==) w . W.focus)
-                    $ zipWith const (iterate W.focusDown' s) (W.integrate s)
-                = Just ns
-              | otherwise
-                = ms
-            newState = case isF of
-              Just True -> mw
-              Just False | Just f <- xCur -> Just f
-              _ -> Nothing
+        xCur <- gets (W.peek . windowset)
+        let isF = xCur /= (W.focus <$> ms)
+            -- use the remembered focus point when true focus differs from
+            -- what this (sub)layout is given, which happens e.g. when true
+            -- focus is in floating layer or when another sublayout has focus
+            newStack | isF = (mw >>= \w -> findZ (w==) ms) <|> ms
+                     | otherwise = ms
+            newState | isF = mw
+                     | otherwise = xCur
         ran <- runLayout ws{ W.stack = newStack } r
-        return (ran,
-                let n = TrackFloating (fromMaybe False isF) newState
-                in guard (n /= os) >> Just n)
+        return (ran, guard (newState /= mw) >> Just (TrackFloating newState))
 
 
 
@@ -101,7 +81,7 @@ instance LayoutModifier UseTransientFor Window where
 
         s0 <- get
         whenJust parent $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
-        result <- runLayout ws{ W.stack = fromMaybe ms (liftA2 focusWin ms parent) } r
+        result <- runLayout ws{ W.stack = (parent >>= \p -> findZ (p==) ms) <|> ms } r
 
         m' <- gets (W.peek . windowset)
 
@@ -110,16 +90,6 @@ instance LayoutModifier UseTransientFor Window where
             whenJust m $ \p -> put s0{ windowset = W.focusWindow p (windowset s0) }
 
         return result
-
-
-
-focusWin :: Eq a => W.Stack a -> a -> Maybe (W.Stack a)
-focusWin st@(W.Stack f u d) w
-        | w `elem` u || w `elem` d = Just . head . filter ((==w) . W.focus)
-            $ iterate (if w `elem` u then W.focusUp'
-                                        else W.focusDown') st
-        | w == f = Just st
-        | otherwise = Nothing
 
 
 
@@ -160,7 +130,7 @@ window regardless of which tiled window was focused before.
 
 -}
 trackFloating ::  l a -> ModifiedLayout TrackFloating l a
-trackFloating layout = ModifiedLayout (TrackFloating False Nothing) layout
+trackFloating layout = ModifiedLayout (TrackFloating Nothing) layout
 
 {- $layoutModifier
 It also corrects focus issues for full-like layouts inside other layout
