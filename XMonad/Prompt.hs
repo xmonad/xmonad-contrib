@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -100,7 +101,7 @@ import           XMonad.Util.Types
 import           XMonad.Util.XSelection       (getSelection)
 
 import           Codec.Binary.UTF8.String     (decodeString,isUTF8Encoded)
-import           Control.Arrow                (first, second, (&&&), (***))
+import           Control.Arrow                (first, (&&&), (***))
 import           Control.Concurrent           (threadDelay)
 import           Control.Exception            as E hiding (handle)
 import           Control.Monad.State
@@ -425,9 +426,6 @@ command = W.focus . commandHistory
 setCommand :: String -> XPState -> XPState
 setCommand xs s = s { commandHistory = (commandHistory s) { W.focus = xs }}
 
-setHighlightedCompl :: Maybe String -> XPState -> XPState
-setHighlightedCompl hc st = st { highlightedCompl = hc}
-
 -- | Sets the input string to the given value.
 setInput :: String -> XP ()
 setInput = modify . setCommand
@@ -729,9 +727,9 @@ handleCompletion cs = do
     st <- get
 
     let updateWins  l = redrawWindows l
-        updateState l = case alwaysHlight of
-            False -> simpleComplete l st
-            True  -> hlComplete l st
+        updateState l = if alwaysHlight
+            then hlComplete (getLastWord $ command st) l st
+            else simpleComplete                        l st
 
     case cs of
       []  -> updateWindows
@@ -756,26 +754,37 @@ handleCompletion cs = do
         -- buffer to reflect that.
         --
         --TODO: Scroll or paginate results
-        hlComplete :: [String] -> XPState -> XP ()
-        hlComplete l st =
-          let newCommand = fromMaybe (command st) $ highlightedItem st l in
-          if newCommand == (getLastWord . command $ st)
-            then do
-              -- The word currently under the cursor is the same
-              -- as the current suggestion, so we should advance
-              -- to the next completion and try again.
-              let complIndex' = nextComplIndex st (length l)
-                  highlightedCompl' = highlightedItem st { complIndex = complIndex'} cs
-              hlComplete l $ st { complIndex = complIndex',
-                                  highlightedCompl = highlightedCompl'
-                                }
-            else do
-              -- The word under the cursor differs from the
-              -- current suggestion, so replace it
+        hlComplete :: String -> [String] -> XPState -> XP ()
+        hlComplete prevCompl l st =
+          if | -- The current suggestion matches the command and is a
+               -- proper suffix of the last suggestion, so replace it.
+               isSuffixOfCmd && isProperSuffixOfLast -> replaceCompletion
+
+               -- The current suggestion matches the command, so advance
+               -- to the next completion and try again.
+             | isSuffixOfCmd ->
+                 hlComplete hlCompl l $ st{ complIndex = complIndex'
+                                          , highlightedCompl = nextHlCompl
+                                          }
+
+               -- If nothing matches at all, delete the suggestion and
+               -- highlight the next one.
+             | otherwise -> replaceCompletion
+         where
+          hlCompl     :: String       = fromMaybe (command st) $ highlightedItem st l
+          complIndex' :: (Int, Int)   = nextComplIndex st (length l)
+          nextHlCompl :: Maybe String = highlightedItem st{ complIndex = complIndex' } cs
+
+          isSuffixOfCmd        :: Bool = hlCompl `isSuffixOf` command st
+          isProperSuffixOfLast :: Bool =      hlCompl   `isSuffixOf` prevCompl
+                                      && not (prevCompl `isSuffixOf` hlCompl)
+
+          replaceCompletion :: XP () = do
               put st
-              killWord Prev
-              insertString' newCommand
+              replicateM_ (length $ words prevCompl) $ killWord Prev
+              insertString' hlCompl
               endOfLine
+
 -- | Initiate a prompt sub-map event loop. Submaps are intended to provide
 -- alternate keybindings. Accepts a default action and a mapping from key
 -- combinations to actions. If no entry matches, the default action is run.
