@@ -107,7 +107,7 @@ import           Data.Char                    (isSpace)
 import           Data.IORef
 import           Data.List
 import qualified Data.Map                     as M
-import           Data.Maybe                   (fromMaybe)
+import           Data.Maybe                   (fromMaybe, listToMaybe)
 import           Data.Set                     (fromList, toList)
 import           System.IO
 import           System.IO.Unsafe             (unsafePerformIO)
@@ -397,10 +397,14 @@ highlightedItem st' completions = case complWinDim st' of
     let
       (_,_,_,_,xx,yy) = winDim
       complMatrix = splitInSubListsAt (length yy) (take (length xx * length yy) completions)
-      (col_index,row_index) = (complIndex st')
+      (col_index,row_index) = complIndex st'
     in case completions of
       [] -> Nothing
-      _ -> Just $ complMatrix !! col_index !! row_index
+      _  -> complMatrix !? col_index >>= (!? row_index)
+ where
+  -- | Safe version of '(!!)'.
+  (!?) :: [a] -> Int -> Maybe a
+  (!?) xs n = listToMaybe $ drop n xs
 
 -- | Return the selected completion, i.e. the 'String' we actually act
 -- upon after the user confirmed their selection (by pressing @Enter@).
