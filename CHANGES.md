@@ -301,6 +301,8 @@
 
     - Export `doSink`
 
+    - Added `doLower` and `doRaise`
+
   * `XMonad.Util.EZConfig`
 
     - Added support for XF86Bluetooth.
