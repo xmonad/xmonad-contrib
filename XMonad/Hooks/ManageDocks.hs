@@ -52,7 +52,7 @@ import qualified Data.Map as M
 --
 -- Wrap your xmonad config with a call to 'docks', like so:
 --
--- > main = xmonad $ docks def
+-- > main = xmonad $ … . docks . … $ def{…}
 --
 -- Then add 'avoidStruts' or 'avoidStrutsOn' layout modifier to your layout
 -- to prevent windows from overlapping these windows.

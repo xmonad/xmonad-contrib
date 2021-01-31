@@ -51,11 +51,11 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
 -- >
--- > main = xmonad $ ewmhFullscreen $ ewmh def
+-- > main = xmonad $ … . ewmhFullscreen . ewmh . … $ def{…}
 --
 -- or, if fullscreen handling is not desired, just
 --
--- > main = xmonad $ ewmh def
+-- > main = xmonad $ … . ewmh . … $ def{…}
 --
 -- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
 --
