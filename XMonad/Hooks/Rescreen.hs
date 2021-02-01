@@ -11,12 +11,16 @@ module XMonad.Hooks.Rescreen (
     -- $usage
     rescreenHook,
     rescreenEventHook,
+    randrHook,
+    randrEventHook,
+    randrStartupHook,
     ) where
 
 import Control.Monad.Fix (fix)
 import Control.Monad (when)
 import Data.Monoid (All(..))
 
+import Graphics.X11.Xrandr
 import XMonad
 
 -- $usage
@@ -36,6 +40,9 @@ import XMonad
 -- and adding 'rescreenHook' to your 'xmonad' config:
 --
 -- > main = xmonad $ … . rescreenHook myRescreenHook . … $ def{…}
+--
+-- There is also 'randrHook' which listens for @RRScreenChangeNotify@ events
+-- and is useful for reacting to outputs being connected/disconnected.
 
 -- | Attach a custom hook when the screen configuration changes (due to
 -- xrandr). Replaces the built-in rescreen handling of xmonad core with:
@@ -63,6 +70,40 @@ rescreenEventHook hook ConfigureEvent{ev_event_type = t, ev_window = w} = do
             return (All False)
         else mempty
 rescreenEventHook _ _ = mempty
+
+-- | Attach a hook to an @RRScreenChangeNotify@ event which is generated not
+-- only when the configuration is changed via xrandr but also when outputs are
+-- connected or disconnected.
+--
+-- This may be used to automatically trigger xrandr (or perhaps autorandr)
+-- when outputs are (dis)connected. Beware: the hook will also run after
+-- xrandr makes changes, so care must be taken to not invoke it again.
+--
+-- TODO: merge with rescreenHook, do clearTypedWindowEvents for both event
+-- types and if there are any ConfigureEvents, do not invoke the randr hook
+randrHook :: X () -> XConfig a -> XConfig a
+randrHook hook xConfig =
+    xConfig{ handleEventHook = handleEventHook xConfig <> randrEventHook hook
+           , startupHook = startupHook xConfig <> randrStartupHook }
+
+-- | Event hook with custom @RRScreenChangeNotify@ hook. See 'randrHook'
+-- for details.
+randrEventHook :: X () -> Event -> X All
+randrEventHook hook RRScreenChangeNotifyEvent{ev_event_type = t, ev_window = w} = do
+    whenX (isRoot w) $ do
+        -- Xorg emits several RRScreenChangeNotifyEvents after every change,
+        -- clear them to prevent triggering the hook multiple times
+        clearTypedWindowEvents w t
+        hook
+    mempty
+randrEventHook _ _ = mempty
+
+-- | Startup hook to listen for @RRScreenChangeNotify@ events.
+randrStartupHook :: X ()
+randrStartupHook = do
+    dpy <- asks display
+    root <- asks theRoot
+    io $ xrrSelectInput dpy root rrScreenChangeNotifyMask
 
 -- | Remove all X events of a given window and type from the event queue.
 clearTypedWindowEvents :: Window -> EventType -> X ()
