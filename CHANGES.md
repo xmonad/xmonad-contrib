@@ -250,6 +250,13 @@
     This lets them create custom hooks, ensure they hook into xmonad core only
     once, and possibly more.
 
+  * `XMonad.Hooks.Rescreen`
+
+    Custom hooks for screen (xrandr) configuration changes. These can be used
+    to restart/reposition status bars or systrays automatically after xrandr,
+    as well as to actually invoke xrandr or autorandr when an output is
+    (dis)connected.
+
 ### Bug Fixes and Minor Changes
 
   * Add support for GHC 9.0.1.
