@@ -1,3 +1,6 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RecordWildCards #-}
 -- |
 -- Module      :  XMonad.Hooks.Rescreen
 -- Copyright   :  (c) 2021 Tomáš Janoušek <tomi@nomi.cz>
@@ -9,15 +12,13 @@
 module XMonad.Hooks.Rescreen (
     -- * Usage
     -- $usage
+    RescreenConfig(..),
     rescreenHook,
+    rescreenStartupHook,
     rescreenEventHook,
-    randrHook,
-    randrEventHook,
-    randrStartupHook,
     ) where
 
-import Control.Monad.Fix (fix)
-import Control.Monad (when)
+import Control.Monad (void)
 import Data.Monoid (All(..))
 
 import Graphics.X11.Xrandr
@@ -25,90 +26,118 @@ import XMonad
 
 -- $usage
 -- This module provides a replacement for the screen configuration change
--- handling in core that enables attaching a custom hook that can
--- restart/reposition status bars or systray.
+-- handling in core that enables attaching custom hooks to screen (xrandr)
+-- configuration change events. These can be used to restart/reposition status
+-- bars or systrays automatically after xrandr, as well as to actually invoke
+-- xrandr or autorandr when an output is (dis)connected.
 --
 -- You can use it by including the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- > import XMonad.Hooks.RescreenHook
 --
--- defining your custom rescreen hook:
+-- defining your custom hooks:
 --
--- > myRescreenHook :: X ()
--- > myRescreenHook = …
+-- > myAfterRescreenHook :: X ()
+-- > myAfterRescreenHook = …
+--
+-- > myRandrChangeHook :: X ()
+-- > myRandrChangeHook = …
+--
+-- > rescreenCfg = def{
+-- >     afterRescreenHook = myAfterRescreenHook,
+-- >     randrChangeHook = myRandrChangeHook
+-- > }
 --
 -- and adding 'rescreenHook' to your 'xmonad' config:
 --
--- > main = xmonad $ … . rescreenHook myRescreenHook . … $ def{…}
---
--- There is also 'randrHook' which listens for @RRScreenChangeNotify@ events
--- and is useful for reacting to outputs being connected/disconnected.
+-- > main = xmonad $ … . rescreenHook rescreenCfg . … $ def{…}
 
--- | Attach a custom hook when the screen configuration changes (due to
--- xrandr). Replaces the built-in rescreen handling of xmonad core with:
---
--- 1. suppress duplicate change events
--- 2. 'rescreen'
--- 3. invoke specified hook
---
--- Useful for restarting/repositioning status bars and systray.
-rescreenHook :: X () -> XConfig a -> XConfig a
-rescreenHook hook xConfig =
-    xConfig{ handleEventHook = handleEventHook xConfig <> rescreenEventHook hook }
+-- | Hook configuration for 'rescreenEventHook'.
+data RescreenConfig = RescreenConfig
+    { afterRescreenHook :: X () -- ^ hook to invoke after 'rescreen'
+    , randrChangeHook :: X () -- ^ hook for other randr changes, e.g. (dis)connects
+    }
 
--- | Event hook with custom rescreen hook. See 'rescreenHook' for more.
-rescreenEventHook :: X () -> Event -> X All
-rescreenEventHook hook ConfigureEvent{ev_event_type = t, ev_window = w} = do
-    isRescreen <- isRoot w
-    if isRescreen
-        then do
-            -- Xorg emits several ConfigureEvents after every change,
-            -- clear them to prevent triggering the hook multiple times
-            clearTypedWindowEvents w t
-            rescreen
-            hook
-            return (All False)
-        else mempty
-rescreenEventHook _ _ = mempty
+instance Default RescreenConfig where
+    def = RescreenConfig
+        { afterRescreenHook = mempty
+        , randrChangeHook = mempty
+        }
 
--- | Attach a hook to an @RRScreenChangeNotify@ event which is generated not
--- only when the configuration is changed via xrandr but also when outputs are
--- connected or disconnected.
+-- | Attach custom hooks to screen (xrandr) configuration change events.
+-- Replaces the built-in rescreen handling of xmonad core with:
 --
--- This may be used to automatically trigger xrandr (or perhaps autorandr)
--- when outputs are (dis)connected. Beware: the hook will also run after
--- xrandr makes changes, so care must be taken to not invoke it again.
+-- 1. listen to 'RRScreenChangeNotifyEvent' in addition to 'ConfigureEvent' on
+--    the root window
+-- 2. whenever such event is received:
+-- 3. clear any other similar events (Xorg server emits them in bunches)
+-- 4. if any event was 'ConfigureEvent', 'rescreen' and invoke 'afterRescreenHook'
+-- 5. if there was no 'ConfigureEvent', invoke 'randrChangeHook' only
 --
--- TODO: merge with rescreenHook, do clearTypedWindowEvents for both event
--- types and if there are any ConfigureEvents, do not invoke the randr hook
-randrHook :: X () -> XConfig a -> XConfig a
-randrHook hook xConfig =
-    xConfig{ handleEventHook = handleEventHook xConfig <> randrEventHook hook
-           , startupHook = startupHook xConfig <> randrStartupHook }
-
--- | Event hook with custom @RRScreenChangeNotify@ hook. See 'randrHook'
--- for details.
-randrEventHook :: X () -> Event -> X All
-randrEventHook hook RRScreenChangeNotifyEvent{ev_event_type = t, ev_window = w} = do
-    whenX (isRoot w) $ do
-        -- Xorg emits several RRScreenChangeNotifyEvents after every change,
-        -- clear them to prevent triggering the hook multiple times
-        clearTypedWindowEvents w t
-        hook
-    mempty
-randrEventHook _ _ = mempty
+-- 'afterRescreenHook' is useful for restarting/repositioning status bars and
+-- systray.
+--
+-- 'randrChangeHook' may be used to automatically trigger xrandr (or perhaps
+-- autorandr) when outputs are (dis)connected.
+rescreenHook :: RescreenConfig -> XConfig a -> XConfig a
+rescreenHook cfg xConfig =
+    xConfig{ startupHook = startupHook xConfig <> rescreenStartupHook
+           , handleEventHook = handleEventHook xConfig <> rescreenEventHook cfg
+           }
 
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
-randrStartupHook :: X ()
-randrStartupHook = do
+rescreenStartupHook :: X ()
+rescreenStartupHook = do
     dpy <- asks display
     root <- asks theRoot
     io $ xrrSelectInput dpy root rrScreenChangeNotifyMask
 
--- | Remove all X events of a given window and type from the event queue.
-clearTypedWindowEvents :: Window -> EventType -> X ()
-clearTypedWindowEvents w t = withDisplay $ \d -> io $ do
-    sync d False
-    allocaXEvent $ \e -> fix $ \again -> do
-        more <- checkTypedWindowEvent d w t e
-        when more again
+-- | Event hook with custom rescreen/randr hooks. See 'rescreenHook' for more.
+rescreenEventHook :: RescreenConfig -> Event -> X All
+rescreenEventHook cfg e = do
+    shouldHandle <- case e of
+        ConfigureEvent{ ev_window = w } -> isRoot w
+        RRScreenChangeNotifyEvent{ ev_window = w } -> isRoot w
+        _ -> pure False
+    if shouldHandle
+        then All False <$ handleEvent cfg e
+        else mempty
+
+handleEvent :: RescreenConfig -> Event -> X ()
+handleEvent RescreenConfig{..} e = do
+    -- Xorg emits several events after every change, clear them to prevent
+    -- triggering the hook multiple times.
+    moreConfigureEvents <- clearTypedWindowEvents (ev_window e) configureNotify
+    _ <- clearTypedWindowRREvents (ev_window e) rrScreenChangeNotify
+    -- If there were any ConfigureEvents, this is an actual screen
+    -- configuration change, so rescreen and fire rescreenHook. Otherwise,
+    -- this is just a connect/disconnect, fire randrChangeHook.
+    if ev_event_type e == configureNotify || moreConfigureEvents
+        then rescreen >> afterRescreenHook
+        else randrChangeHook
+
+-- | Remove all X events of a given window and type from the event queue,
+-- return whether there were any.
+clearTypedWindowEvents :: Window -> EventType -> X Bool
+clearTypedWindowEvents w t = withDisplay $ \d -> io $ allocaXEvent (go d)
+  where
+    go d e' = do
+        sync d False
+        gotEvent <- checkTypedWindowEvent d w t e'
+        e <- if gotEvent then Just <$> getEvent e' else pure Nothing
+        gotEvent <$ if
+            | not gotEvent -> mempty
+            | (ev_window <$> e) == Just w -> void $ go d e'
+            -- checkTypedWindowEvent checks ev_event instead of ev_window, so
+            -- we may need to put some events back
+            | otherwise -> allocaXEvent (go d) >> io (putBackEvent d e')
+
+clearTypedWindowRREvents :: Window -> EventType -> X Bool
+clearTypedWindowRREvents w t =
+    rrEventBase >>= \case
+        Just base -> clearTypedWindowEvents w (base + t)
+        Nothing -> pure False
+
+rrEventBase :: X (Maybe EventType)
+rrEventBase = withDisplay $ \d ->
+    fmap (fromIntegral . fst) <$> io (xrrQueryExtension d)
