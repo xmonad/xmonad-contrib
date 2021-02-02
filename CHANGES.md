@@ -148,6 +148,12 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.IndependentScreens`
+
+    Add a few useful utility functions related to simplify using `XMonad.Layout.IndependentScreens`,
+    fix wrong type-signature of `onCurrentScreen` and add handleEventHook which makes `_NET_ACTIVE_WINDOW`
+    events respect IndependentScreens.
+
   * `XMonad.Actions.DynamicProjects`
 
     - The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field

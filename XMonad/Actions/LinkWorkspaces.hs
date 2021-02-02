@@ -28,7 +28,7 @@ module XMonad.Actions.LinkWorkspaces (
 
 import XMonad
 import qualified XMonad.StackSet as W
-import XMonad.Layout.IndependentScreens(countScreens)
+import XMonad.Layout.IndependentScreens (countScreens)
 import qualified XMonad.Util.ExtensibleState as XS (get, put)
 import XMonad.Actions.OnScreen(Focus(FocusCurrent), onScreen')
 import qualified Data.Map as M

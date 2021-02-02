@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.IndependentScreens
@@ -25,17 +26,20 @@ module XMonad.Layout.IndependentScreens (
     -- * Converting between virtual and physical workspaces
     -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
-    marshallWindowSpace, unmarshallWindowSpace, marshallSort
-) where
+    marshallWindowSpace, unmarshallWindowSpace, marshallSort,
+    workspaceOnScreen, focusWindow', focusScreen, nthWorkspace, withWspOnScreen, activateWindowEventHook
+   ) where
 
 -- for the screen stuff
 import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
-import Data.List (nub, genericLength)
+import Data.List (find, nub, genericLength)
 import Graphics.X11.Xinerama
 import XMonad
-import XMonad.StackSet hiding (filter, workspaces)
+import qualified XMonad.StackSet as W
 import XMonad.Hooks.DynamicLog
+import Data.Monoid (All(All))
+import Control.Monad (when)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -98,6 +102,7 @@ unmarshall  = ((S . read) *** drop 1) . break (=='_')
 unmarshallS = fst . unmarshall
 unmarshallW = snd . unmarshall
 
+-- | Get a list of all the virtual workspace names.
 workspaces' :: XConfig l -> [VirtualWorkspace]
 workspaces' = nub . map (snd . unmarshall) . workspaces
 
@@ -106,8 +111,63 @@ withScreens :: ScreenId            -- ^ The number of screens to make workspaces
             -> [PhysicalWorkspace] -- ^ A list of all internal physical workspace names
 withScreens n vws = [marshall sc pws | pws <- vws, sc <- [0..n-1]]
 
-onCurrentScreen :: (VirtualWorkspace -> WindowSet -> a) -> (PhysicalWorkspace -> WindowSet -> a)
-onCurrentScreen f vws = screen . current >>= f . flip marshall vws
+-- | Transform a function over physical workspaces into a function over virtual workspaces.
+-- This is useful as it allows you to write code without caring about the current screen, i.e. to say "switch to workspace 3"
+-- rather than saying "switch to workspace 3 on monitor 3".
+onCurrentScreen :: (PhysicalWorkspace -> WindowSet -> a) -> (VirtualWorkspace -> WindowSet -> a)
+onCurrentScreen f vws ws =
+  let currentScreenId = W.screen $ W.current ws
+   in f (marshall currentScreenId vws) ws
+
+-- | Get the workspace currently active on a given screen
+workspaceOnScreen :: ScreenId -> WindowSet -> Maybe PhysicalWorkspace
+workspaceOnScreen screenId ws = W.tag . W.workspace <$> screenOnMonitor screenId ws
+
+
+-- | generate WindowSet transformation by providing a given function with the workspace active on a given screen.
+-- This may for example be used to shift a window to another screen as follows:
+--
+-- > windows $ withWspOnScreen 1 W.shift
+--
+withWspOnScreen :: ScreenId                               -- ^ The screen to run on
+         -> (PhysicalWorkspace -> WindowSet -> WindowSet) -- ^ The transformation that will be passed the workspace currently active on there
+         -> WindowSet -> WindowSet
+withWspOnScreen screenId operation ws = case workspaceOnScreen screenId ws of
+    Just wsp -> operation wsp ws
+    Nothing -> ws
+
+-- | Get the workspace that is active on a given screen.
+screenOnMonitor :: ScreenId -> WindowSet -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+screenOnMonitor screenId ws = find ((screenId ==) . W.screen) (W.current ws : W.visible ws)
+
+-- | Focus a window, switching workspace on the correct Xinerama screen if neccessary.
+focusWindow' :: Window -> WindowSet -> WindowSet
+focusWindow' window ws
+  | Just window == W.peek ws = ws
+  | otherwise = case W.findTag window ws of
+      Just tag -> W.focusWindow window $ focusScreen (unmarshallS tag) ws
+      Nothing -> ws
+
+-- | Focus a given screen.
+focusScreen :: ScreenId -> WindowSet -> WindowSet
+focusScreen screenId = withWspOnScreen screenId W.view
+
+-- | Get the nth virtual workspace
+nthWorkspace :: Int -> X (Maybe VirtualWorkspace)
+nthWorkspace n = (!!? n) . workspaces' <$> asks config
+
+
+-- | HandleEventHook which makes the activate window event respect IndependentScreens.
+-- Without this, a window requesting activation may cause a workspace switch
+-- that shows a workspace from a different screen on the current one.
+activateWindowEventHook :: Event -> X All
+activateWindowEventHook ClientMessageEvent { ev_message_type = messageType, ev_window = window } = do
+  activateWindowAtom <- getAtom "_NET_ACTIVE_WINDOW"
+  when (messageType == activateWindowAtom) $
+    windows (focusWindow' window)
+  return $ All True
+activateWindowEventHook _ = return $ All True
+
 
 -- | In case you don't know statically how many screens there will be, you can call this in main before starting xmonad.  For example, part of my config reads
 --
@@ -167,28 +227,33 @@ whenCurrentOn :: ScreenId -> PP -> PP
 whenCurrentOn s pp = pp
     { ppSort = do
         sort <- ppSort pp
-        return $ \xs -> case xs of
-            x:_ | unmarshallS (tag x) == s -> sort xs
-            _ -> []
-    , ppOrder = \i@(wss:_) -> case wss of
-        "" -> ["\0"] -- we got passed no workspaces; this is the signal from ppSort that this is a boring case
-        _  -> ppOrder pp i
-    , ppOutput = \out -> case out of
-        "\0" -> return () -- we got passed the signal from ppOrder that this is a boring case
-        _ -> ppOutput pp out
+        pure $ \xs -> case xs of
+                        x:_ | unmarshallS (W.tag x) == s -> sort xs
+                        _                                -> []
+    , ppOrder  = \case ("":_) -> ["\0"] -- we got passed no workspaces; this is the signal from ppSort that this is a boring case
+                       list   -> ppOrder pp list
+
+    , ppOutput = \case "\0"   -> pure () -- we got passed the signal from ppOrder that this is a boring case
+                       output -> ppOutput pp output
     }
 
 -- | If @vSort@ is a function that sorts 'WindowSpace's with virtual names, then @marshallSort s vSort@ is a function which sorts 'WindowSpace's with physical names in an analogous way -- but keeps only the spaces on screen @s@.
 marshallSort :: ScreenId -> ([WindowSpace] -> [WindowSpace]) -> ([WindowSpace] -> [WindowSpace])
 marshallSort s vSort = pScreens . vSort . vScreens where
-    onScreen ws = unmarshallS (tag ws) == s
-    vScreens    = map unmarshallWindowSpace . filter onScreen
-    pScreens    = map (marshallWindowSpace s)
+    isOnScreen ws = unmarshallS (W.tag ws) == s
+    vScreens      = map unmarshallWindowSpace . filter isOnScreen
+    pScreens      = map (marshallWindowSpace s)
 
 -- | Convert the tag of the 'WindowSpace' from a 'VirtualWorkspace' to a 'PhysicalWorkspace'.
 marshallWindowSpace   :: ScreenId -> WindowSpace -> WindowSpace
 -- | Convert the tag of the 'WindowSpace' from a 'PhysicalWorkspace' to a 'VirtualWorkspace'.
 unmarshallWindowSpace :: WindowSpace -> WindowSpace
 
-marshallWindowSpace s ws = ws { tag = marshall s  (tag ws) }
-unmarshallWindowSpace ws = ws { tag = unmarshallW (tag ws) }
+marshallWindowSpace s ws = ws { W.tag = marshall s  (W.tag ws) }
+unmarshallWindowSpace ws = ws { W.tag = unmarshallW (W.tag ws) }
+
+-- | Safe version of (!!)
+(!!?) :: [a] -> Int -> Maybe a
+(!!?) list n
+  | n < length list = Just $ list !! n
+  | otherwise = Nothing
