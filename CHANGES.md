@@ -6,54 +6,44 @@
 
   * `XMonad.Prompt`
 
-    Now `mkComplFunFromList` and `mkComplFunFromList'` take an
-    additional `XPConfig` argument, so that they can take into
-    account the given `searchPredicate`.
+    - Now `mkComplFunFromList` and `mkComplFunFromList'` take an
+      additional `XPConfig` argument, so that they can take into
+      account the given `searchPredicate`.
 
-    A `complCaseSensitivity` field has been added to `XPConfig`, indicating
-    whether case-sensitivity is desired when performing completion.
+    - A `complCaseSensitivity` field has been added to `XPConfig`, indicating
+      whether case-sensitivity is desired when performing completion.
 
-  * `XMonad.Hooks.EwmhDesktops`
-
-    It is no longer recommended to use `fullscreenEventHook` directly.
-    Instead, use `ewmhFullscreen` which additionally advertises fullscreen
-    support in `_NET_SUPPORTED` and fixes fullscreening of applications that
-    explicitly check it, e.g. mupdf-gl, sxiv, …
-
-    `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
-    and no configuration changes are required in this case.
-
+    - `historyCompletion` and `historyCompletionP` now both have an `X`
+      constraint (was: `IO`), due to changes in how the xmonad core handles XDG
+      directories.
 
   * `XMonad.Hooks.EwmhDesktops`
 
-    `ewmh` function will use `logHook` for handling activated window. And now
-    by default window activation will do nothing.
+    - It is no longer recommended to use `fullscreenEventHook` directly.
+      Instead, use `ewmhFullscreen` which additionally advertises fullscreen
+      support in `_NET_SUPPORTED` and fixes fullscreening of applications that
+      explicitly check it, e.g. mupdf-gl, sxiv, …
 
-    You can use regular `ManageHook` combinators for changing window
-    activation behavior and then add resulting `ManageHook` using
-    `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
-    additional combinators.
+      `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
+      and no configuration changes are required in this case.
 
-  * `XMonad.Prompt.Directory`
+    - `ewmh` function will use `logHook` for handling activated window. And now
+      by default window activation will do nothing.
 
-    The `Dir` constructor now takes an additional `ComplCaseSensitivity`
-    argument to indicate whether directory completion is case sensitive.
+      You can use regular `ManageHook` combinators for changing window
+      activation behavior and then add resulting `ManageHook` using
+      `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
+      additional combinators.
 
   * All modules still exporting a `defaultFoo` constructor
 
-    All of these were now removed. You can use the re-exported `def` from
-    `Data.Default` instead.
+    - All of these were now removed. You can use the re-exported `def` from
+      `Data.Default` instead.
 
   * `XMonad.Hooks.Script`
 
-    `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
-    in how the xmonad core handles XDG directories.
-
-  * `XMonad.Prompt`
-
-    `historyCompletion` and `historyCompletionP` now both have an `X`
-    constraint (was: `IO`), due to changes in how the xmonad core handles XDG
-    directories.
+    - `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
+      in how the xmonad core handles XDG directories.
 
 ### New Modules
 
@@ -72,17 +62,17 @@
 
     Functions for rotating some elements around the stack while keeping others
     anchored in place. Useful in combination with layouts that dictate window
-    visibility based on stack position, such as "XMonad.Layout.LimitWindows".
+    visibility based on stack position, such as `XMonad.Layout.LimitWindows`.
 
-    Export 'surfaceNext' and 'surfacePrev' actions, which treat the focused window
+    Export `surfaceNext` and `surfacePrev` actions, which treat the focused window
     and any hidden windows as a ring that can be rotated through the focused position.
 
-    Export 'rotateSome', a pure function that rotates some elements around a stack
+    Export `rotateSome`, a pure function that rotates some elements around a stack
     while keeping others anchored in place.
 
   * `XMonad.Actions.Sift`
 
-    Provide 'siftUp' and 'siftDown' actions, which behave like 'swapUp' and 'swapDown'
+    Provide `siftUp` and `siftDown` actions, which behave like `swapUp` and `swapDown`
     but handle the wrapping case by exchanging the windows at either end of the stack
     instead of rotating the stack.
 
@@ -98,17 +88,17 @@
 
   * `XMonad.Layout.ResizableThreeColumns`
 
-    A layout based on 'XMonad.Layout.ThreeColumns' but with each slave window's
+    A layout based on `XMonad.Layout.ThreeColumns` but with each slave window's
     height resizable.
 
   * `XMonad.Layout.TallMastersCombo`
 
     A layout combinator that support Shrink, Expand, and IncMasterN just as
-    the 'Tall' layout, and also support operations of two master windows:
+    the `Tall` layout, and also support operations of two master windows:
     a main master, which is the original master window;
     a sub master, the first window of the second pane.
     This combinator can be nested, and has a good support for using
-    'XMonad.Layout.Tabbed' as a sublayout.
+    `XMonad.Layout.Tabbed` as a sublayout.
 
   * `XMonad.Actions.PerWindowKeys`
 
@@ -128,7 +118,7 @@
 
   * `XMonad.Util.ClickableWorkspaces`
 
-    Provides clickablePP, which when applied to the PP pretty-printer used by
+    Provides `clickablePP`, which when applied to the `PP` pretty-printer used by
     `XMonad.Hooks.DynamicLog.dynamicLogWithPP`, will make the workspace tags
     clickable in XMobar (for switching focus).
 
@@ -151,7 +141,7 @@
   * `XMonad.Actions.DynamicProjects`
 
     - The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
-    of `XPConfig` when performing directory completion.
+      of `XPConfig` when performing directory completion.
 
     - `modifyProject` is now exported.
 
@@ -170,25 +160,28 @@
 
     - Directory completions are now sorted.
 
+    - The `Dir` constructor now takes an additional `ComplCaseSensitivity`
+      argument to indicate whether directory completion is case sensitive.
+
   * `XMonad.Prompt.FuzzyMatch`
 
-    `fuzzySort` will now accept cases where the input is not a subsequence of
-    every completion.
+    - `fuzzySort` will now accept cases where the input is not a subsequence of
+      every completion.
 
   * `XMonad.Prompt.Shell`
 
-    Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
-    argument.
+    - Added `getShellCompl'`, like `getShellCompl` with an additional `ComplCaseSensitivity`
+      argument.
 
-    Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
-    matches returned by the compgen shell builtin.
+    - Added `compgenDirectories` and `compgenFiles` to get the directory/filename completion
+      matches returned by the compgen shell builtin.
 
   * `XMonad.Prompt.Unicode`
 
-    Reworked internally to be call `spawnPipe` (asynchronous) instead of
-    `runProcessWithInput` (synchronous), which fixes `typeUnicodePrompt`.
+    - Reworked internally to call `spawnPipe` (asynchronous) instead of
+      `runProcessWithInput` (synchronous), which fixes `typeUnicodePrompt`.
 
-    Now respects `searchPredicate` and `sorter` from user-supplied `XPConfig`.
+    - Now respects `searchPredicate` and `sorter` from user-supplied `XPConfig`.
 
   * `XMonad.Hooks.DynamicLog`
 
@@ -218,9 +211,16 @@
     - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
       the current workspace in the status bar.
 
+    - Added `xmobarBorder` function to create borders around strings.
+
+    - Add the -dock argument to the dzen spawn arguments
+
   * `XMonad.Layout.BoringWindows`
 
-     Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
+    - Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
+
+    - Added `markBoringEverywhere` function, to mark the currently
+      focused window boring on all layouts, when using `XMonad.Actions.CopyWindow`.
 
   * `XMonad.Util.NamedScratchpad`
 
@@ -229,47 +229,48 @@
              (provides the option to customize the `X ()` action the scratchpad is launched by)
          - `spawnHereNamedScratchpadAction`
              (uses `XMonad.Actions.SpawnOn.spawnHere` to initially start the scratchpad on the workspace it was launched on)
+
      - Deprecated `namedScratchpadFilterOutWorkspace` and
        `namedScratchpadFilterOutWorkspacePP`.  Use
        `XMonad.Util.WorkspaceCompare.filterOutWs` respectively
        `XMonad.Hooks.DynamicLog.filterOutWsPP` instead.
+
      - Exported the `scratchpadWorkspaceTag`.
 
   * `XMonad.Util.Run`
 
-     Added two new functions to the module:
-     `spawnPipeWithLocaleEncoding` and
-     `spawnPipeWithUtf8Encoding`. `spawnPipe` is now alias for
-     `spawnPipeWithLocaleEncoding`.
+     - Added two new functions to the module:
+       `spawnPipeWithLocaleEncoding` and
+       `spawnPipeWithUtf8Encoding`. `spawnPipe` is now alias for
+       `spawnPipeWithLocaleEncoding`.
 
-     Added the function `spawnPipeWithNoEncoding` for cases where
-     binary handle is required.
+     - Added the function `spawnPipeWithNoEncoding` for cases where a
+       binary handle is required.
 
   * `XMonad.Prompt.Window`
 
-    Added 'allApplications' function which maps application executable
-    names to it's underlying window.
+    - Added `allApplications` function which maps application executable
+      names to its underlying window.
+
+    - Added a `WithWindow` constructor to `WindowPrompt` to allow executing
+      actions of type `Window -> X ()` on the chosen window.
 
   * `XMonad.Prompt.WindowBringer`
 
-    Added 'windowApMap' function which maps application executable
-    names to it's underlying window.
+    - Added `windowApMap` function which maps application executable
+      names to its underlying window.
 
   * `XMonad.Actions.Search`
 
     - The `hoogle` function now uses the new URL `hoogle.haskell.org`.
+
     - Added `promptSearchBrowser'` function to only suggest previous searches of
       the selected search engine (instead of all search engines).
 
-  * `XMonad.Layout.BoringWindows`
-
-    Added 'markBoringEverywhere' function, to mark the currently
-    focused window boring on all layouts, when using 'XMonad.Actions.CopyWindow'.
-
   * `XMonad.Layout.MouseResizableTile`
 
-    When we calculate dragger widths, we first try to get the border width of
-    the focused window, before failing over to using the initial `borderWidth`.
+    - When we calculate dragger widths, we first try to get the border width of
+      the focused window, before failing over to using the initial `borderWidth`.
 
   * `XMonad.Actions.CycleRecentWS`
 
@@ -283,14 +284,10 @@
     - Added `recentWS` function which allows the recency list to be filtered with
       a user-provided predicate.
 
-  * `XMonad.Prompt.Window`
-
-    - Added a `WithWindow` constructor to `WindowPrompt` to allow executing
-      actions of type `Window -> X ()` on the chosen window.
-
   * `XMonad.Layout.Hidden`
 
     - Export `HiddenWindows` type constructor.
+
     - Export `popHiddenWindow` function restoring a specific window.
 
   * `XMonad.Hooks.ManageDocks`
@@ -301,22 +298,25 @@
       unnecessary for correct functioning.
 
   * `XMonad.Hooks.ManageHelpers`
+
     - Export `doSink`
 
   * `XMonad.Util.EZConfig`
+
     - Added support for XF86Bluetooth.
 
   * `XMonad.Util.Loggers`
+
     - Make `battery` and `loadAvg` distro-independent.
+
     - Added `logTitleOnScreen`, `logCurrentOnScreen` and `logLayoutOnScreen`
       as screen-specific variants of `logTitle`, `logCurrent` and `logLayout`.
+
     - Added `logWhenActive` to have loggers active only when a certain
       screen is active.
+
     - Added `logConst` to log a constant `String`, and `logDefault` (infix: `.|`)
       to combine loggers.
-
-  * `XMonad.Hooks.DynamicLog`
-    - Added `xmobarBorder` function to create borders around strings.
 
   * `XMonad.Layout.Minimize`
 
@@ -340,15 +340,20 @@
   * `XMonad.Actions.TopicSpace`
 
     - `switchTopic` now correctly updates the last used topics.
+
     - `setLastFocusedTopic` will now check whether we have exceeded the
       `maxTopicHistory` and prune the topic history as necessary, as well as
       cons the given topic onto the list __before__ filtering it.
+
     - Added `switchNthLastFocusedExclude`, which works like
       `switchNthLastFocused` but is able to exclude certain topics.
+
     - Added `switchTopicWith`, which works like `switchTopic`, but one is able
       to give `setLastFocusedTopic` a custom filtering function as well.
-    - Instead of a hand-rolled history, use the oneu from
+
+    - Instead of a hand-rolled history, use the one from
       `XMonad.Hooks.WorkspaceHistory`.
+
     - Added the screen-aware functions `getLastFocusedTopicsByScreen` and
       `switchNthLastFocusedByScreen`.
 
@@ -357,15 +362,13 @@
     - Added `workspaceHistoryModify` to modify the workspace history with a pure
       function.
 
-  * `XMonad.Hooks.DynamicLog`
-
-    - Add the -dock argument to the dzen spawn arguments
-
   * `XMonad.Util.DebugWindow`
-    Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
+
+    - Fixed a bottom in `debugWindow` when used on windows with UTF8 encoded titles.
 
   * `XMonad.Config.Xfce`
-    Set `terminal` to `xfce4-terminal`.
+
+    - Set `terminal` to `xfce4-terminal`.
 
   * `XMonad.Hooks.WorkspaceCompare`
 
