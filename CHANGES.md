@@ -464,8 +464,8 @@
 
   * `XMonad.Actions.WorkspaceNames`
 
-    - Added `workspaceNamesListTransform` which makes workspace names visible
-      to external pagers.
+    - Added `workspaceNamesRenameWS` which makes workspace names visible
+      to external pagers and tools like `wmctrl` or `arbtt`.
 
   * `XMonad.Util.PureX`
 
