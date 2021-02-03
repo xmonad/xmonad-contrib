@@ -705,7 +705,7 @@
   * `XMonad.Actions.EasyMotion`
 
     A new module that allows selection of visible screens using a key chord.
-    Inspired by https://github.com/easymotion/vim-easymotion. See the animation
+    Inspired by [vim-easymotion](https://github.com/easymotion/vim-easymotion). See the animation
     in the vim-easymotion repo to get some idea of the functionality of this
     EasyMotion module.
 
