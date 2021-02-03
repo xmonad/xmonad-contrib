@@ -31,6 +31,7 @@ module XMonad.Layout.IndependentScreens (
 -- for the screen stuff
 import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
+import Data.Functor ((<&>))
 import Data.List (nub, genericLength)
 import Graphics.X11.Xinerama
 import XMonad
@@ -139,6 +140,7 @@ marshallPP s pp = pp {
     ppVisible           = ppVisible         pp . snd . unmarshall,
     ppHidden            = ppHidden          pp . snd . unmarshall,
     ppHiddenNoWindows   = ppHiddenNoWindows pp . snd . unmarshall,
+    ppVisibleNoWindows  = ppVisibleNoWindows pp <&> (. snd . unmarshall),
     ppUrgent            = ppUrgent          pp . snd . unmarshall,
     ppSort              = fmap (marshallSort s) (ppSort pp)
     }

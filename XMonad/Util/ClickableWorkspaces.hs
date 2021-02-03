@@ -27,6 +27,8 @@ module XMonad.Util.ClickableWorkspaces (
   clickableMarshallWorkspaceNamesPP
   ) where
 
+import Data.Functor ((<&>))
+
 import XMonad
 import XMonad.Actions.WorkspaceNames
 import XMonad.Hooks.DynamicLog (xmobarAction, xmobarRaw, PP(..))
@@ -72,6 +74,7 @@ clickableRenamedPP ren pp = do
        , ppVisible         = ppVisible pp . clickable
        , ppHidden          = ppHidden pp . clickable
        , ppHiddenNoWindows = ppHiddenNoWindows pp . clickable
+       , ppVisibleNoWindows= ppVisibleNoWindows pp <&> (. clickable)
        , ppUrgent          = ppUrgent pp . clickable
        }
 

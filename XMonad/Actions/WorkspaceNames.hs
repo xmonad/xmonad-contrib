@@ -54,6 +54,7 @@ import XMonad.Prompt (mkXPrompt, XPConfig)
 import XMonad.Prompt.Workspace (Wor(Wor))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
+import Data.Functor ((<&>))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.List (isInfixOf)
@@ -146,6 +147,7 @@ workspaceNamesPP pp = do
             ppVisible         = ppVisible         pp . names,
             ppHidden          = ppHidden          pp . names,
             ppHiddenNoWindows = ppHiddenNoWindows pp . names,
+            ppVisibleNoWindows= ppVisibleNoWindows pp <&> (. names),
             ppUrgent          = ppUrgent          pp . names
         }
 
