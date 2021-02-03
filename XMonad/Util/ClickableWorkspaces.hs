@@ -28,19 +28,19 @@ import XMonad.Hooks.DynamicLog (xmobarAction, xmobarRaw, PP(..))
 -- $usage
 -- However you have set up your PP, apply @clickablePP@ to it, and bind the result
 -- to "XMonad.Hooks.DynamicLog"\'s dynamicLogWithPP like so:
--- 
+--
 -- > logHook = clickablePP xmobarPP { ... } >>= dynamicLogWithPP
 --
 -- * Requirements:
---   * wmctrl on system (in path)
---   * "XMonad.Hooks.EwmhDesktops" for wmctrl support (see Hackage docs for setup)
---   * use of UnsafeStdinReader in xmobarrc (rather than StdinReader)
+--   * @xdotool@ on system (in path)
+--   * "XMonad.Hooks.EwmhDesktops" for @xdotool@ support (see Hackage docs for setup)
+--   * use of UnsafeStdinReader/UnsafeXMonadLog in xmobarrc (rather than StdinReader/XMonadLog)
 
 
 clickableWrap :: Int -> String -> String
-clickableWrap i ws = xmobarAction ("wmctrl -s " ++ show i) "1" $ xmobarRaw ws
+clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" $ xmobarRaw ws
 
--- Use index of workspace in users config to target workspace with wmctrl switch.
+-- | Use index of workspace in users config to target workspace with @xdotool@ switch.
 getClickable :: X (WorkspaceId -> String)
 getClickable = do
   wsIndex <- getWsIndex
