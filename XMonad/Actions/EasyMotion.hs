@@ -177,7 +177,7 @@ instance Default EasyMotionConfig where
            , maxChordLen = 0
            }
 
--- | Use to create overlay windows the same size as the window they select
+-- | Create overlay windows of the same size as the window they select
 fullSize :: Position -> Rectangle -> Rectangle
 fullSize _ = id
 
@@ -329,4 +329,3 @@ displayOverlay :: XMonadFont -> String -> String -> String -> Int -> Overlay -> 
 displayOverlay f bgC brC textC brW Overlay { overlay = w, rect = r, chord = c } = do
   showWindow w
   paintAndWrite w f (fi (rect_width r)) (fi (rect_height r)) (fi brW) bgC brC textC bgC [AlignCenter] [L.foldl' (++) "" $ map keysymToString c]
-
