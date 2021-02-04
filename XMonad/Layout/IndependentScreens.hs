@@ -100,7 +100,7 @@ unmarshallS = fst . unmarshall
 unmarshallW = snd . unmarshall
 
 workspaces' :: XConfig l -> [VirtualWorkspace]
-workspaces' = nub . map (snd . unmarshall) . workspaces
+workspaces' = nub . map unmarshallW . workspaces
 
 withScreens :: ScreenId            -- ^ The number of screens to make workspaces for
             -> [VirtualWorkspace]  -- ^ The desired virtual workspace names
@@ -136,12 +136,12 @@ countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getS
 -- >           in log 0 hLeft >> log 1 hRight
 marshallPP :: ScreenId -> PP -> PP
 marshallPP s pp = pp {
-    ppCurrent           = ppCurrent         pp . snd . unmarshall,
-    ppVisible           = ppVisible         pp . snd . unmarshall,
-    ppHidden            = ppHidden          pp . snd . unmarshall,
-    ppHiddenNoWindows   = ppHiddenNoWindows pp . snd . unmarshall,
-    ppVisibleNoWindows  = ppVisibleNoWindows pp <&> (. snd . unmarshall),
-    ppUrgent            = ppUrgent          pp . snd . unmarshall,
+    ppCurrent           = ppCurrent         pp . unmarshallW,
+    ppVisible           = ppVisible         pp . unmarshallW,
+    ppHidden            = ppHidden          pp . unmarshallW,
+    ppHiddenNoWindows   = ppHiddenNoWindows pp . unmarshallW,
+    ppVisibleNoWindows  = ppVisibleNoWindows pp <&> (. unmarshallW),
+    ppUrgent            = ppUrgent          pp . unmarshallW,
     ppSort              = fmap (marshallSort s) (ppSort pp)
     }
 
