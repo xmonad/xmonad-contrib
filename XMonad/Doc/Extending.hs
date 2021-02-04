@@ -500,9 +500,6 @@ Here is a list of the modules found in @XMonad.Hooks@:
     Hook and keybindings for automatically sending the next
     spawned window(s) to the floating layer.
 
-* "XMonad.Hooks.ICCCMFocus":
-    Deprecated.
-
 * "XMonad.Hooks.InsertPosition":
     Configure where new windows should be added and which window should be
     focused.
@@ -535,11 +532,6 @@ Here is a list of the modules found in @XMonad.Hooks@:
     currently active layout. So the floating shape of the window can later be restored
     even if it was opened in a tiled layout initially. The EventHook makes sure
     that windows are deleted from the PositionStore when they are closed.
-
-* "XMonad.Hooks.RestoreMinimized":
-    (Deprecated: Use XMonad.Hooks.Minimize) Lets you restore minimized
-    windows (see "XMonad.Layout.Minimize") by selecting them on a
-    taskbar (listens for _NET_ACTIVE_WINDOW and WM_CHANGE_STATE).
 
 * "XMonad.Hooks.ScreenCorners":
     Run X () actions by touching the edge of your screen with your mouse.
@@ -857,7 +849,7 @@ For more information on using those modules for customizing your
         Some convenient common instances of the Transformer class, for use with "XMonad.Layout.MultiToggle".
 
 * "XMonad.Layout.Named":
-    A module for assigning a name to a given layout.
+    (Deprecated) A module for assigning a name to a given layout.
 
 * "XMonad.Layout.NoBorders":
     Make a given layout display without borders.  This is useful for

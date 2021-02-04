@@ -172,7 +172,6 @@ library
                         XMonad.Hooks.FadeWindows
                         XMonad.Hooks.FloatNext
                         XMonad.Hooks.Focus
-                        XMonad.Hooks.ICCCMFocus
                         XMonad.Hooks.InsertPosition
                         XMonad.Hooks.ManageDebug
                         XMonad.Hooks.ManageDocks
@@ -181,7 +180,6 @@ library
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RefocusLast
-                        XMonad.Hooks.RestoreMinimized
                         XMonad.Hooks.ScreenCorners
                         XMonad.Hooks.Script
                         XMonad.Hooks.ServerMode
@@ -234,7 +232,6 @@ library
                         XMonad.Layout.ImageButtonDecoration
                         XMonad.Layout.IndependentScreens
                         XMonad.Layout.LayoutBuilder
-                        XMonad.Layout.LayoutBuilderP
                         XMonad.Layout.LayoutCombinators
                         XMonad.Layout.LayoutHints
                         XMonad.Layout.LayoutModifier
