@@ -386,6 +386,9 @@
       by allowing pointer events to pass through the custom prompt event
       loop.
 
+    - The prompt now cycles through its suggestions if one hits the ends
+      of the suggestion list and presses `TAB` again.
+
   * `XMonad.Actions.TreeSelect`
 
     - Fixed a crash when focusing a new window while the tree select
