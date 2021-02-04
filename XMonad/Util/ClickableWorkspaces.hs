@@ -46,11 +46,20 @@ import XMonad.Util.WorkspaceCompare (getWsIndex)
 --   * "XMonad.Hooks.EwmhDesktops" for @xdotool@ support (see Hackage docs for setup)
 --   * use of UnsafeStdinReader/UnsafeXMonadLog in xmobarrc (rather than StdinReader/XMonadLog)
 
-
+-- | Wrap string with an xmobar action that uses @xdotool@ to switch to
+-- workspace @i@.
 clickableWrap :: Int -> String -> String
 clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" $ xmobarRaw ws
 
--- | Use index of workspace in users config to target workspace with @xdotool@ switch.
+-- | Return a function that wraps workspace names in an xmobar action that
+-- switches to that workspace. That workspace name must be exactly as
+-- configured in 'XMonad.Core.workspaces', so this takes an additional
+-- parameter that allows renaming/marshalling of the name for display, which
+-- is applied after the workspace's index is looked up.
+--
+-- This additionally assumes that 'XMonad.Hooks.EwmhDesktops.ewmhDesktopsEventHook'
+-- isn't configured to change the workspace order. We might need to add an
+-- additional parameter if anyone needs that.
 getClickable :: (WorkspaceId -> String) -> X (WorkspaceId -> String)
 getClickable ren = do
   wsIndex <- getWsIndex
