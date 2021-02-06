@@ -177,9 +177,9 @@ proportional f th r = Rectangle { rect_width  = newW
                                 , rect_height = newH
                                 , rect_x      = rect_x r + fi (rect_width r - newW) `div` 2
                                 , rect_y      = rect_y r + fi (rect_height r - newH) `div` 2 }
-                                  where
-                                    newH = max (fi th) (round $ f * fi (rect_height r))
-                                    newW = newH
+  where
+    newH = max (fi th) (round $ f * fi (rect_height r))
+    newW = newH
 
 -- | Create fixed-size overlay windows
 fixedSize :: (Integral a, Integral b) => a -> b -> Position -> Rectangle -> Rectangle
@@ -187,9 +187,9 @@ fixedSize w h th r = Rectangle { rect_width  = rw
                                , rect_height = rh
                                , rect_x      = rect_x r + fi (rect_width r - rw) `div` 2
                                , rect_y      = rect_y r + fi (rect_height r - rh) `div` 2 }
-                                 where
-                                   rw = max (fi w) (fi th)
-                                   rh = max (fi h) (fi th)
+  where
+    rw = max (fi w) (fi th)
+    rh = max (fi h) (fi th)
 
 -- | Create overlay windows the minimum size to contain their key chord
 textSize :: Position -> Rectangle -> Rectangle
@@ -207,7 +207,7 @@ bar f th r = Rectangle { rect_width  = rect_width r
                        , rect_y      = rect_y r + round (f' * (fi (rect_height r) - fi th)) }
                          -- clamp f in [0,1] as other values will appear to lock up xmonad
                          -- as the overlay will be displayed off-screen
-                         where f' = min 0.0 $ max f 1.0
+  where f' = min 0.0 $ max f 1.0
 
 -- | Handles overlay display and window selection. Called after config has been sanitised.
 handleSelectWindow :: EasyMotionConfig -> X (Maybe Window)
