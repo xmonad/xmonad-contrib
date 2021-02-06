@@ -90,8 +90,8 @@ import           Data.List                (sortOn)
 -- >    "xft: Arial-100"
 -- >    "xft: Cambria-80"
 --
--- Customise the overlay by supplying a function to do so. The signature is 'Position' ->
--- 'Rectangle' -> 'X' 'Rectangle'. The parameters are the height in pixels of the selection chord
+-- Customise the overlay by supplying a function to do so. The signature is @'Position' ->
+-- 'Rectangle' -> 'X' 'Rectangle'@. The parameters are the height in pixels of the selection chord
 -- and the rectangle of the window to be overlaid. Some are provided:
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..), proportional, bar, fullSize)
