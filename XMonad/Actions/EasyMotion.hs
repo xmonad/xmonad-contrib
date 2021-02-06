@@ -17,8 +17,6 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE CPP #-}
-
 module XMonad.Actions.EasyMotion (
                                    -- * Usage
                                    -- $usage
@@ -41,15 +39,7 @@ import           Data.Maybe               (isJust)
 import           Data.Set                 (fromList, toList)
 import           Graphics.X11.Xlib.Extras (getWindowAttributes, getEvent)
 import qualified Data.List as L           (filter, foldl', partition, find)
-#if __GLASGOW_HASKELL__ <= 708
-import           Data.List                (sortBy)
-import           Data.Ord                 (comparing)
-sortOn :: Ord b => (a -> b) -> [a] -> [a]
-sortOn f = map snd . sortBy (comparing fst)
-                   . map (\x -> let y = f x in y `seq` (y, x))
-#else
 import           Data.List                (sortOn)
-#endif
 
 -- $usage
 --
@@ -181,7 +171,7 @@ instance Default EasyMotionConfig where
 fullSize :: Position -> Rectangle -> Rectangle
 fullSize _ = id
 
--- | Use to create overlay windows a proportion of the size of the window they select
+-- | Create overlay windows a proportion of the size of the window they select
 proportional :: RealFrac f => f -> Position -> Rectangle -> Rectangle
 proportional f th r = Rectangle { rect_width  = newW
                                 , rect_height = newH
@@ -191,7 +181,7 @@ proportional f th r = Rectangle { rect_width  = newW
                                     newH = max (fi th) (round $ f * fi (rect_height r))
                                     newW = newH
 
--- | Use to create fixed-size overlay windows
+-- | Create fixed-size overlay windows
 fixedSize :: (Integral a, Integral b) => a -> b -> Position -> Rectangle -> Rectangle
 fixedSize w h th r = Rectangle { rect_width  = rw
                                , rect_height = rh
@@ -201,15 +191,15 @@ fixedSize w h th r = Rectangle { rect_width  = rw
                                    rw = max (fi w) (fi th)
                                    rh = max (fi h) (fi th)
 
--- | Use to create overlay windows the minimum size to contain their key chord
+-- | Create overlay windows the minimum size to contain their key chord
 textSize :: Position -> Rectangle -> Rectangle
 textSize th r = Rectangle { rect_width  = fi th
                           , rect_height = fi th
                           , rect_x      = rect_x r + (fi (rect_width r) - fi th) `div` 2
                           , rect_y      = rect_y r + (fi (rect_height r) - fi th) `div` 2 }
 
--- | Use to create overlay windows the full width of the window they select, the minimum height to
---   contain their chord, and a proportion of the distance from the top of the window they select
+-- | Create overlay windows the full width of the window they select, the minimum height to contain
+--   their chord, and a proportion of the distance from the top of the window they select
 bar :: RealFrac f => f -> Position -> Rectangle -> Rectangle
 bar f th r = Rectangle { rect_width  = rect_width r
                        , rect_height = fi th
