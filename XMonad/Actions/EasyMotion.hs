@@ -268,7 +268,7 @@ selectWindow conf =
       uniqueKeyCount = length . toList . fromList $ keyList
       duplicatedKeys = uniqueKeyCount - keyListLen
       -- make sure the key lists don't contain: 'cancelKey, backspace
-      sanitiseKeys = toList . fromList . L.filter (not . flip elem [cancelKey conf, xK_BackSpace])
+      sanitiseKeys = toList . fromList . L.filter (`notElem` [cancelKey conf, xK_BackSpace])
 
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
 appendChords :: Int -> [KeySym] -> [Overlay] -> [Overlay]
