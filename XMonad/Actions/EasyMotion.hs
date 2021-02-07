@@ -39,7 +39,7 @@ import           Control.Arrow            ((&&&))
 import           Data.Maybe               (isJust)
 import           Data.Set                 (fromList, toList)
 import           Graphics.X11.Xlib.Extras (getWindowAttributes, getEvent)
-import qualified Data.List as L           (filter, foldl', partition, find)
+import qualified Data.List as L           (filter, foldl', partition, find, nub)
 import           Data.List                (sortOn)
 
 -- $usage
@@ -142,7 +142,8 @@ data Overlay =
 --   windows on every screen. In the second form, keys will map to screens based on screen
 --   position. If the number of windows for which chords are required exceeds maxChordLen, chords
 --   will simply not be generated for these windows. Thus single-key selection may be preferred
---   over the ability to select any window.
+--   over the ability to select any window. @cancelKey@, @xK_BackSpace@ and any duplicates will be
+--   removed from @sKeys@ if included.
 data EasyMotionConfig =
   EMConf { txtCol      :: String                             -- ^ Color of the text displayed
          , bgCol       :: String                             -- ^ Color of the window overlaid
@@ -163,13 +164,13 @@ instance Default EasyMotionConfig where
            , borderCol   = "#ffffff"
            , sKeys       = [[xK_s, xK_d, xK_f, xK_j, xK_k, xK_l]]
            , cancelKey   = xK_q
+           , borderPx    = 1
+           , maxChordLen = 0
 #ifdef XFT
            , font        = "xft:Sans-100"
 #else
            , font        = "-misc-fixed-*-*-*-*-200-*-*-*-*-*-*-*"
 #endif
-           , borderPx    = 1
-           , maxChordLen = 0
            }
 
 -- | Create overlay windows of the same size as the window they select
@@ -216,6 +217,7 @@ bar f th r = Rectangle { rect_width  = rect_width r
 
 -- | Handles overlay display and window selection. Called after config has been sanitised.
 handleSelectWindow :: EasyMotionConfig -> X (Maybe Window)
+handleSelectWindow EMConf { sKeys = [] } = return Nothing
 handleSelectWindow c = do
   f <- initXMF $ font c
   th <- textExtentsXMF f (concatMap keysymToString (concat $ sKeys c)) >>= \(asc, dsc) -> return $ asc + dsc + 2
@@ -256,19 +258,11 @@ handleSelectWindow c = do
 
 -- | Display overlay windows and chords for window selection
 selectWindow :: EasyMotionConfig -> X (Maybe Window)
-selectWindow EMConf { sKeys = [] } = return Nothing
 selectWindow conf =
-  -- Make sure there are no duplicates in our key lists
-  case duplicatedKeys of
-    0 -> handleSelectWindow conf { sKeys = map sanitiseKeys (sKeys conf) }
-    _ -> return Nothing
+  handleSelectWindow conf { sKeys = map sanitiseKeys (sKeys conf) }
     where
-      keyList = concat (sKeys conf)
-      keyListLen = length keyList
-      uniqueKeyCount = length . toList . fromList $ keyList
-      duplicatedKeys = uniqueKeyCount - keyListLen
-      -- make sure the key lists don't contain: 'cancelKey, backspace
-      sanitiseKeys = toList . fromList . L.filter (`notElem` [cancelKey conf, xK_BackSpace])
+      -- make sure the key lists don't contain: 'cancelKey, backspace, or duplicates
+      sanitiseKeys = toList . fromList . L.nub . L.filter (`notElem` [cancelKey conf, xK_BackSpace])
 
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
 appendChords :: Int -> [KeySym] -> [Overlay] -> [Overlay]
