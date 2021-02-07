@@ -290,9 +290,9 @@ event d = allocaXEvent $ \e -> do
 
 -- | A three-state result for handling user-initiated selection cancellation, successful selection,
 --   or backspace.
-data HandleResult a = Exit | Selected a | Backspace
+data HandleResult = Exit | Selected Overlay | Backspace
 -- | Handle key press events for window selection.
-handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X (HandleResult Overlay)
+handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X (HandleResult)
 handleKeyboard _ _ _ [] _ = return Exit
 handleKeyboard dpy drawFn cancel fgOverlays bgOverlays = do
   let redraw = mapM (mapM_ drawFn) [fgOverlays, bgOverlays]
