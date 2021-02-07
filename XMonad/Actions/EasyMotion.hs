@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.EasyMotion
@@ -128,7 +129,7 @@ import           Data.List                (sortOn)
 
 -- | Associates a user window, an overlay window created by this module, a rectangle circumscribing
 --   these windows, and the chord that will be used to select them
-data Overlay = 
+data Overlay =
   Overlay { win     :: Window           -- ^ The window managed by xmonad
           , attrs   :: WindowAttributes -- ^ Window attributes for 'win
           , overlay :: Window           -- ^ Our window used to display the overlay
@@ -162,7 +163,11 @@ instance Default EasyMotionConfig where
            , borderCol   = "#ffffff"
            , sKeys       = [[xK_s, xK_d, xK_f, xK_j, xK_k, xK_l]]
            , cancelKey   = xK_q
-           , font        = "xft: Sans-100"
+#ifdef XFT
+           , font        = "xft:Sans-100"
+#else
+           , font        = "-misc-fixed-*-*-*-*-200-*-*-*-*-*-*-*"
+#endif
            , borderPx    = 1
            , maxChordLen = 0
            }
