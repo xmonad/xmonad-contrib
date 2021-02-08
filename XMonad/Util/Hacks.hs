@@ -23,12 +23,16 @@ module XMonad.Util.Hacks
   ( -- * Windowed fullscreen
     -- $windowedFullscreenFix
     windowedFullscreenFixEventHook
+    -- * Java Hack
+    -- $java
+  , javaHack
   ) where
 
 
 import XMonad
 import Data.Monoid (All(All))
 import Control.Monad (when)
+import System.Posix.Env (putEnv)
 
 
 -- $windowedFullscreenFix
@@ -65,10 +69,26 @@ windowedFullscreenFixEventHook :: Event -> X All
 windowedFullscreenFixEventHook (ClientMessageEvent _ _ _ dpy win typ (_:dats)) = do
   wmstate <- getAtom "_NET_WM_STATE"
   fullscreen <- getAtom "_NET_WM_STATE_FULLSCREEN"
-  when (typ == wmstate && fromIntegral fullscreen `elem` dats) $ do
+  when (typ == wmstate && fromIntegral fullscreen `elem` dats) $
     withWindowAttributes dpy win $ \attrs ->
       liftIO $ do
         resizeWindow dpy win (fromIntegral $ wa_width attrs - 1) (fromIntegral $ wa_height attrs)
         resizeWindow dpy win (fromIntegral $ wa_width attrs) (fromIntegral $ wa_height attrs)
   return $ All True
 windowedFullscreenFixEventHook _ = return $ All True
+
+
+-- $java
+-- | Some java Applications might not work with xmonad. A common workaround would be to set the environment
+-- variable @_JAVA_AWT_WM_NONREPARENTING@ to 1. The function 'javaHack' does exactly that.
+-- Example usage:
+--
+-- > main = xmonad $ Hacks.javaHack (def {...})
+--
+
+-- | Fixes Java applications that don't work well with xmonad, by setting @_JAVA_AWT_WM_NONREPARENTING=1@
+javaHack :: XConfig l -> XConfig l
+javaHack conf = conf
+  { startupHook = startupHook conf
+                    *> io (putEnv "_JAVA_AWT_WM_NONREPARENTING=1")
+  }

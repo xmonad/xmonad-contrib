@@ -52,6 +52,8 @@
     Serves as a collection of hacks and fixes that should be easily acessible to users.
     The first element of this module is windowedFullscreenFix, which fixes fullscreen behaviour
     of chromium based applications when using windowed fullscreen.
+    A second entry is `javaHack`, which helps when dealing with Java applications that might
+    not work well with xmonad.
 
   * `XMonad.Util.ActionCycle`
 
