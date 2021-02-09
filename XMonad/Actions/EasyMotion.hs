@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.EasyMotion
@@ -291,25 +292,27 @@ data HandleResult = Exit | Selected Overlay | Backspace
 handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X (HandleResult)
 handleKeyboard _ _ _ [] _ = return Exit
 handleKeyboard dpy drawFn cancel fgOverlays bgOverlays = do
-  let redraw = mapM (mapM_ drawFn) [fgOverlays, bgOverlays]
-  let retryBackspace x =
-        case x of
-          Backspace -> redraw >> handleKeyboard dpy drawFn cancel fgOverlays bgOverlays
-          _ -> return x
   redraw
   (t, s) <- io $ event dpy
-  case () of
-    () | t == keyPress && s == cancel -> return Exit
-    () | t == keyPress && s == xK_BackSpace -> return Backspace
-    () | t == keyPress && isJust (L.find ((== s) . head .chord) fgOverlays) ->
+  if | t == keyPress && s == cancel -> return Exit
+     | t == keyPress && s == xK_BackSpace -> return Backspace
+     | t == keyPress && isNextOverlayKey s -> handleNextOverlayKey s
+     | otherwise -> handleKeyboard dpy drawFn cancel fgOverlays bgOverlays
+  where
+    redraw = mapM (mapM_ drawFn) [fgOverlays, bgOverlays]
+    retryBackspace x =
+      case x of
+        Backspace -> redraw >> handleKeyboard dpy drawFn cancel fgOverlays bgOverlays
+        _ -> return x
+    isNextOverlayKey keySym = isJust (L.find ((== keySym) . head .chord) fgOverlays)
+    handleNextOverlayKey keySym =
       case fg of
         [x] -> return $ Selected x
         _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
       where
-        (fg, bg) = L.partition ((== s) . head . chord) fgOverlays
+        (fg, bg) = L.partition ((== keySym) . head . chord) fgOverlays
         trim = map (\o -> o { chord = tail $ chord o })
         clear = map (\o -> o { chord = [] })
-    () -> handleKeyboard dpy drawFn cancel fgOverlays bgOverlays
 
 -- | Create a rectangle from window attributes
 makeRect :: WindowAttributes -> Rectangle
