@@ -56,6 +56,8 @@ import           Data.List                (sortOn)
 --
 -- >    , ((modm, xK_f), (selectWindow def) >>= (flip whenJust killWindow))
 --
+-- See 'EasyMotionConfig' for all configuration options. A short summary follows.
+--
 -- Default chord keys are s,d,f,j,k,l. To customise these and display options assign
 -- different values to def:
 --
@@ -131,9 +133,9 @@ import           Data.List                (sortOn)
 --   these windows, and the chord that will be used to select them
 data Overlay =
   Overlay { win     :: Window           -- ^ The window managed by xmonad
-          , attrs   :: WindowAttributes -- ^ Window attributes for 'win
+          , attrs   :: WindowAttributes -- ^ Window attributes for @win@
           , overlay :: Window           -- ^ Our window used to display the overlay
-          , rect    :: Rectangle        -- ^ The rectangle of 'overlay
+          , rect    :: Rectangle        -- ^ The rectangle of @overlay@
           , chord   :: [KeySym]         -- ^ The chord we'll display in the overlay
           }
 
