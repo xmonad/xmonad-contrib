@@ -154,15 +154,16 @@ import XMonad.Hooks.ManageDocks
 -- >        }
 --
 -- If you don't have an @.xmobarrc@, create it; the @XMonadLog@ plugin is not
--- part of the default xmobar configuration and you status bar will not show
+-- part of the default xmobar configuration and your status bar will not show
 -- otherwise!
 --
 -- Because 'statusBarProp' lets you define your own executable, you can also
 -- give it a different status bar entirely; you only need to make sure that the
 -- status bar supports reading a property string from the root window, or use
--- some kind of wrapper that reads the property and pipes it into the bar.
+-- a wrapper that reads the property and pipes it into the bar (e.g.
+-- @xmonadpropread | dzen2@, see @scripts/xmonadpropread.hs@).
 --
--- If you don't want to read from the default property, you can specify your own
+-- If you don't want to use the default property, you can specify your own
 -- with the 'statusBarPropTo' function.
 --
 -- If your status bar does not support property-based logging, you may also try
