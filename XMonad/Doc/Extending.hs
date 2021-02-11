@@ -424,7 +424,7 @@ own configuration, possibly with some modifications.
 
 In the @XMonad.Hooks@ namespace you can find modules exporting
 hooks. Hooks are actions that xmonad performs when certain events
-occur. The two most important hooks are:
+occur. The three most important hooks are:
 
 * 'XMonad.Core.manageHook': this hook is called when a new window
   xmonad must take care of is created. This is a very powerful hook,
