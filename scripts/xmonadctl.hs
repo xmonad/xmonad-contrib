@@ -53,5 +53,19 @@ sendCommand addr s = do
                   sync d False
 
 showHelp :: IO ()
-showHelp = do pn <- getProgName
-              putStrLn ("Send commands to a running instance of xmonad. xmonad.hs must be configured with XMonad.Hooks.ServerMode to work.\n-a atomname can be used at any point in the command line arguments to change which atom it is sending on.\nIf sent with no arguments or only -a atom arguments, it will read commands from stdin.\nEx:\n" ++ pn ++ " cmd1 cmd2\n" ++ pn ++ " -a XMONAD_COMMAND cmd1 cmd2 cmd3 -a XMONAD_PRINT hello world\n" ++ pn ++ " -a XMONAD_PRINT # will read data from stdin.\nThe atom defaults to XMONAD_COMMAND.")
+showHelp = do
+    pn <- getProgName
+    mapM_ putStrLn
+        [ "Send commands to a running instance of xmonad."
+        , "(xmonad.hs must be configured with XMonad.Hooks.ServerMode to work.)"
+        , ""
+        , "-a atomname can be used at any point in the command line arguments to"
+        , "change which atom it is sending on. The atom defaults to XMONAD_COMMAND."
+        , ""
+        , "If sent with no arguments or only -a atom arguments, it will read commands from stdin."
+        , ""
+        , "Ex:"
+        , pn ++ " cmd1 cmd2"
+        , pn ++ " -a XMONAD_COMMAND cmd1 cmd2 cmd3 -a XMONAD_PRINT hello world"
+        , pn ++ " -a XMONAD_PRINT # will read data from stdin."
+        ]
