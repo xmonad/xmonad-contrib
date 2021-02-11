@@ -37,13 +37,17 @@ main = do
     root  <- rootWindow d (defaultScreen d)
     selectInput d root propertyChangeMask
 
+    let printProp = do
+            mwp <- getWindowProperty8 d xlog root
+            maybe (return ()) (putStrLn . decodeCChar) mwp
+
+    printProp
+
     allocaXEvent $ \ep -> forever $ do
         nextEvent d ep
         e <- getEvent ep
         case e of
-            PropertyEvent { ev_atom = a } | a ==  xlog -> do
-                mwp <- getWindowProperty8 d xlog root
-                maybe (return ()) (putStrLn . decodeCChar) mwp
+            PropertyEvent { ev_atom = a } | a ==  xlog -> printProp
             _ -> return ()
 
 decodeCChar :: [CChar] -> String
