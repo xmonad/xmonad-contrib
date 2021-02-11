@@ -48,7 +48,7 @@ sendCommand addr s = do
   m <- internAtom d s False
   allocaXEvent $ \e -> do
                   setEventType e clientMessage
-                  setClientMessageEvent e rw a 32 m currentTime
+                  setClientMessageEvent e rw a 32 m 0
                   sendEvent d rw False structureNotifyMask e
                   sync d False
 
