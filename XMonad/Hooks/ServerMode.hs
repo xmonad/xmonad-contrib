@@ -93,7 +93,7 @@ serverModeEventHookF key func (ClientMessageEvent {ev_message_type = mt, ev_data
         d <- asks display
         atm <- io $ internAtom d key False
         when (mt == atm && dt /= []) $ do
-         let atom = fromIntegral $ toInteger $ foldr1 (\a b -> a + (b*2^(32::Int))) dt
+         let atom = fromIntegral (head dt)
          cmd <- io $ getAtomName d atom
          case cmd of
               Just command -> func command
