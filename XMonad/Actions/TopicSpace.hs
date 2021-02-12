@@ -60,7 +60,7 @@ where
 
 import XMonad
 
-import qualified Data.Map                as M
+import qualified Data.Map.Strict         as M
 import qualified XMonad.Hooks.DynamicLog as DL
 import qualified XMonad.StackSet         as W
 
