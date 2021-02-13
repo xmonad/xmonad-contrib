@@ -130,14 +130,19 @@ import           Data.List                (sortOn)
 --    Fix:
 --      - Show the shortest possible chords
 
--- | Associates a user window, an overlay window created by this module, a rectangle circumscribing
---   these windows, and the chord that will be used to select them
+-- | Associates a user window, an overlay window created by this module and a rectangle
+--   circumscribing these windows
+data OverlayWindow =
+  OverlayWindow { win     :: Window           -- ^ The window managed by xmonad
+                , attrs   :: WindowAttributes -- ^ Window attributes for @win@
+                , overlay :: Window           -- ^ Our window used to display the overlay
+                , rect    :: Rectangle        -- ^ The rectangle of @overlay@
+                }
+
+-- | An overlay window and the chord used to select it
 data Overlay =
-  Overlay { win     :: Window           -- ^ The window managed by xmonad
-          , attrs   :: WindowAttributes -- ^ Window attributes for @win@
-          , overlay :: Window           -- ^ Our window used to display the overlay
-          , rect    :: Rectangle        -- ^ The rectangle of @overlay@
-          , chord   :: [KeySym]         -- ^ The chord we'll display in the overlay
+  Overlay { overlayWin :: OverlayWindow    -- ^ The window managed by xmonad
+          , chord      :: [KeySym]         -- ^ The chord we'll display in the overlay
           }
 
 -- | Configuration options for EasyMotion. sKeys can come in two forms, [[all keys here]] or [[keys
@@ -228,8 +233,8 @@ handleSelectWindow c = do
   XState { mapped = mappedWins, windowset = ws } <- get
   let currentW = W.stack . W.workspace . W.current $ ws
       -- Bucket windows by screen, unless the user has provided only a single list of keys
-      winBuckets :: X [[Overlay]]
-      winBuckets = sequence $ fmap (sequence . fmap buildOverlay) $
+      winBuckets :: X [[OverlayWindow]]
+      winBuckets = sequence $ fmap (sequence . fmap buildOverlayWin) $
         case sKeys c of
           [_] -> [toList mappedWins]
           _ -> map (L.filter (`elem` (toList mappedWins)) . W.integrate' . W.stack . W.workspace) sortedScreens
@@ -239,25 +244,28 @@ handleSelectWindow c = do
       sortedOverlays :: X [[Overlay]]
       sortedOverlays = fmap (zipWith (appendChords (maxChordLen c)) (sKeys c) . fmap (sortOn ((wa_x &&& wa_y) . attrs))) winBuckets
       displayF = displayOverlay f (bgCol c) (borderCol c) (txtCol c) (borderPx c)
-      buildOverlay :: Window -> X Overlay
-      buildOverlay w = do
+      buildOverlayWin :: Window -> X OverlayWindow
+      buildOverlayWin w = do
         wAttrs <- io $ getWindowAttributes dpy w
         let r = overlayF c th $ makeRect wAttrs
         o <- createNewWindow r Nothing "" True
-        return Overlay { rect=r, overlay=o, win=w, attrs=wAttrs, chord=[] }
+        return OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
   overlays <- fmap concat sortedOverlays
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
   if (status == grabSuccess)
     then do
       resultWin <- handleKeyboard dpy displayF (cancelKey c) overlays []
       io $ ungrabKeyboard dpy currentTime
-      mapM_ (deleteWindow . overlay) overlays
+      mapM_ (deleteWindow . overlay . overlayWin) overlays
       io $ sync dpy False
       releaseXMF f
       case resultWin of
-        Selected o -> return . Just $ win o
+        Selected o -> return . Just . win . overlayWin $ o
         _ -> whenJust currentW (windows . W.focusWindow . W.focus) >> return Nothing -- return focus correctly
     else releaseXMF f >> return Nothing
+  where
+    makeRect :: WindowAttributes -> Rectangle
+    makeRect wa = Rectangle (fi (wa_x wa)) (fi (wa_y wa)) (fi (wa_width wa)) (fi (wa_height wa))
 
 -- | Display overlay windows and chords for window selection
 selectWindow :: EasyMotionConfig -> X (Maybe Window)
@@ -268,13 +276,13 @@ selectWindow conf =
       sanitiseKeys = toList . fromList . L.nub . L.filter (`notElem` [cancelKey conf, xK_BackSpace])
 
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
-appendChords :: Int -> [KeySym] -> [Overlay] -> [Overlay]
+appendChords :: Int -> [KeySym] -> [OverlayWindow] -> [Overlay]
 appendChords _ [] _ = []
-appendChords maxLen ks overlays =
-  zipWith (\o c -> o { chord=c }) overlays chords
+appendChords maxLen ks overlayWins =
+  zipWith (\ow c -> Overlay { overlayWin=ow, chord=c }) overlayWins chords
     where
       chords = replicateM chordLen ks
-      tempLen = -((-(length overlays)) `div` length ks)
+      tempLen = -((-(length overlayWins)) `div` length ks)
       chordLen = if maxLen <= 0 then tempLen else min tempLen maxLen
 
 -- | Get a key event, translate it to an event type and keysym
@@ -314,12 +322,9 @@ handleKeyboard dpy drawFn cancel fgOverlays bgOverlays = do
         trim = map (\o -> o { chord = tail $ chord o })
         clear = map (\o -> o { chord = [] })
 
--- | Create a rectangle from window attributes
-makeRect :: WindowAttributes -> Rectangle
-makeRect wa = Rectangle (fi (wa_x wa)) (fi (wa_y wa)) (fi (wa_width wa)) (fi (wa_height wa))
-
 -- | Display an overlay with the provided formatting
+-- TODO: just take config and overlay as argument or something?
 displayOverlay :: XMonadFont -> String -> String -> String -> Int -> Overlay -> X ()
-displayOverlay f bgC brC textC brW Overlay { overlay = w, rect = r, chord = c } = do
+displayOverlay f bgC brC textC brW Overlay { overlayWin = OverlayWindow { rect = r, win = w }, chord = c } = do
   showWindow w
   paintAndWrite w f (fi (rect_width r)) (fi (rect_height r)) (fi brW) bgC brC textC bgC [AlignCenter] [L.foldl' (++) "" $ map keysymToString c]
