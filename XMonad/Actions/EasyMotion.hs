@@ -279,6 +279,7 @@ selectWindow conf =
 appendChords :: Int -> [KeySym] -> [OverlayWindow] -> [Overlay]
 appendChords _ [] _ = []
 appendChords maxLen ks overlayWins =
+  -- TODO: Is there a default constructor that lets us write `zipWith Overlay overlayWins chords`?
   zipWith (\ow c -> Overlay { overlayWin=ow, chord=c }) overlayWins chords
     where
       chords = replicateM chordLen ks
@@ -325,6 +326,6 @@ handleKeyboard dpy drawFn cancel fgOverlays bgOverlays = do
 -- | Display an overlay with the provided formatting
 -- TODO: just take config and overlay as argument or something?
 displayOverlay :: XMonadFont -> String -> String -> String -> Int -> Overlay -> X ()
-displayOverlay f bgC brC textC brW Overlay { overlayWin = OverlayWindow { rect = r, win = w }, chord = c } = do
-  showWindow w
-  paintAndWrite w f (fi (rect_width r)) (fi (rect_height r)) (fi brW) bgC brC textC bgC [AlignCenter] [L.foldl' (++) "" $ map keysymToString c]
+displayOverlay f bgC brC textC brW Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = c } = do
+  showWindow o
+  paintAndWrite o f (fi (rect_width r)) (fi (rect_height r)) (fi brW) bgC brC textC bgC [AlignCenter] [concatMap keysymToString c]
