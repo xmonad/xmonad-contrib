@@ -17,9 +17,9 @@
 module XMonad.Hooks.DynamicIcons (
     -- * Usage
     -- $usage
-    
+
     -- * Creating Dynamic Icons
-    dynamicLogIconsWithPP, dynamicLogIconsConvert, 
+    dynamicLogIconsWithPP, dynamicLogIconsConvert,
 
     -- * Data Types
     appIcon, IconSet,
