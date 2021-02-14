@@ -78,6 +78,10 @@
     but handle the wrapping case by exchanging the windows at either end of the stack
     instead of rotating the stack.
 
+  * `XMonad.Hooks.DynamicIcons`
+
+    Added Dynamic Strings as `dynamicLogIconWithPP` based on a Workspaces Windows
+
   * `XMonad.Hooks.WindowSwallowing`
 
     A handleEventHook that implements window swallowing:
