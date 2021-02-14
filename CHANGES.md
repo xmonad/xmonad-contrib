@@ -70,6 +70,13 @@
       Again, no change when used together with `dynamicLogString`, but other
       uses of these in user configs might need to be adapted.
 
+  * `XMonad.Actions.TopicSpace`
+
+    - Deprecated the `maxTopicHistory` field, as well as the
+      `getLastFocusedTopics` and `setLastFocusedTopic` functions.  It is
+      now recommended to directly use `XMonad.Hooks.WorkspaceHistory`
+      instead.
+
 ### New Modules
 
   * `XMonad.Util.Hacks`
@@ -413,6 +420,9 @@
 
     - Added `workspaceHistoryModify` to modify the workspace history with a pure
       function.
+
+    - Added `workspaceHistoryHookExclude` for excluding certain
+      workspaces to ever enter the history.
 
   * `XMonad.Util.DebugWindow`
 
