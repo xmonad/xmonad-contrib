@@ -267,7 +267,7 @@ focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMayb
 --
 -- > , ((modm .|. shiftMask, xK_BackSpace), clearUrgents)
 clearUrgents :: X ()
-clearUrgents = adjustUrgents (const []) >> adjustReminders (const [])
+clearUrgents = withUrgents clearUrgents'
 
 -- | X action that returns a list of currently urgent windows. You might use
 -- it, or 'withUrgents', in your custom logHook, to display the workspaces that
@@ -411,12 +411,15 @@ shouldSuppress :: SuppressWhen -> Window -> X Bool
 shouldSuppress sw w = elem w <$> suppressibleWindows sw
 
 cleanupUrgents :: SuppressWhen -> X ()
-cleanupUrgents sw = do
-    sw' <- suppressibleWindows sw
+cleanupUrgents sw = clearUrgents' =<< suppressibleWindows sw
+
+-- | Clear urgency status of selected windows.
+clearUrgents' :: [Window] -> X ()
+clearUrgents' ws = do
     a_da <- getAtom "_NET_WM_STATE_DEMANDS_ATTENTION"
     dpy <- withDisplay (\dpy -> return dpy)
-    mapM_ (\w -> removeNetWMState dpy w a_da) sw'
-    adjustUrgents (\\ sw') >> adjustReminders (filter $ ((`notElem` sw') . window))
+    mapM_ (\w -> removeNetWMState dpy w a_da) ws
+    adjustUrgents (\\ ws) >> adjustReminders (filter $ ((`notElem` ws) . window))
 
 suppressibleWindows :: SuppressWhen -> X [Window]
 suppressibleWindows Visible  = gets $ S.toList . mapped
@@ -530,6 +533,6 @@ filterUrgencyHook :: [WorkspaceId] -> Window -> X ()
 filterUrgencyHook skips w = do
     ws <- gets windowset
     case W.findTag w ws of
-        Just tag -> when (tag `elem` skips)
-                        $ adjustUrgents (delete w)
+        Just tag | tag `elem` skips -> do
+            clearUrgents' [w]
         _ -> return ()
