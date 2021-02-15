@@ -58,7 +58,7 @@ module XMonad.Hooks.UrgencyHook (
                                  NoUrgencyHook(..),
                                  BorderUrgencyHook(..),
                                  FocusHook(..),
-                                 filterUrgencyHook,
+                                 filterUrgencyHook, filterUrgencyHook',
                                  minutes, seconds,
                                  -- * Stuff for developers:
                                  readUrgents, withUrgents, clearUrgents',
@@ -72,6 +72,7 @@ module XMonad.Hooks.UrgencyHook (
 import XMonad
 import qualified XMonad.StackSet as W
 
+import XMonad.Hooks.ManageHelpers (windowTag)
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.NamedWindows (getName)
@@ -537,9 +538,9 @@ instance UrgencyHook StdoutUrgencyHook where
 --
 -- > main = xmonad (withUrgencyHook (filterUrgencyHook ["NSP", "SP"]) def)
 filterUrgencyHook :: [WorkspaceId] -> Window -> X ()
-filterUrgencyHook skips w = do
-    ws <- gets windowset
-    case W.findTag w ws of
-        Just tag | tag `elem` skips -> do
-            clearUrgents' [w]
-        _ -> return ()
+filterUrgencyHook skips = filterUrgencyHook' $ maybe False (`elem` skips) <$> windowTag
+
+-- | 'filterUrgencyHook' that takes a generic 'Query' to select which windows
+-- should never be marked urgent.
+filterUrgencyHook' :: Query Bool -> Window -> X ()
+filterUrgencyHook' q w = whenX (runQuery q w) (clearUrgents' [w])
