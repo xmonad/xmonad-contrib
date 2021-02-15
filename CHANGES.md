@@ -407,6 +407,10 @@
     - Fixed handling of floating window borders in multihead setups that was
       broken since 0.14.
 
+  * `XMonad.Layout.TrackFloating`
+
+    - Fixed a bug that prevented changing focus on inactive workspaces.
+
 ## 0.16
 
 ### Breaking Changes
