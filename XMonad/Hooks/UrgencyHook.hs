@@ -61,7 +61,7 @@ module XMonad.Hooks.UrgencyHook (
                                  filterUrgencyHook,
                                  minutes, seconds,
                                  -- * Stuff for developers:
-                                 readUrgents, withUrgents,
+                                 readUrgents, withUrgents, clearUrgents',
                                  StdoutUrgencyHook(..),
                                  SpawnUrgencyHook(..),
                                  UrgencyHook(urgencyHook),
