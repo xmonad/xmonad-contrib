@@ -30,9 +30,6 @@ module XMonad.Hooks.UrgencyHook (
                                  -- ** Useful keybinding
                                  -- $keybinding
 
-                                 -- ** Note
-                                 -- $note
-
                                  -- * Troubleshooting
                                  -- $troubleshooting
 
@@ -129,11 +126,6 @@ import Foreign.C.Types (CLong)
 --
 -- You can set up a keybinding to jump to the window that was recently marked
 -- urgent. See an example at 'focusUrgent'.
-
--- $note
--- Note: UrgencyHook installs itself as a LayoutModifier, so if you modify your
--- urgency hook and restart xmonad, you may need to rejigger your layout by
--- hitting mod-shift-space.
 
 -- $troubleshooting
 --
