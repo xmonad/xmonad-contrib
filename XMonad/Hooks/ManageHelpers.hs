@@ -29,6 +29,7 @@ module XMonad.Hooks.ManageHelpers (
     composeOne,
     (-?>), (/=?), (<==?), (</=?), (-->>), (-?>>),
     currentWs,
+    windowTag,
     isInProperty,
     isKDETrayWindow,
     isFullscreen,
@@ -126,6 +127,10 @@ p -?>> f = do
 -- | Return the current workspace
 currentWs :: Query WorkspaceId
 currentWs = liftX (withWindowSet $ return . W.currentTag)
+
+-- | Return the workspace tag of a window, if already managed
+windowTag :: Query (Maybe WorkspaceId)
+windowTag = ask >>= \w -> liftX $ withWindowSet $ return . W.findTag w
 
 -- | A predicate to check whether a window is a KDE system tray icon.
 isKDETrayWindow :: Query Bool
