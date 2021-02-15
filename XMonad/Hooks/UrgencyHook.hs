@@ -208,7 +208,8 @@ withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
                     h -> UrgencyConfig -> XConfig l -> XConfig l
 withUrgencyHookC hook urgConf conf = conf {
         handleEventHook = \e -> handleEvent (WithUrgencyHook hook urgConf) e >> handleEventHook conf e,
-        logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf
+        logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf,
+        startupHook = cleanupStaleUrgents >> startupHook conf
     }
 
 data Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show,Typeable)
@@ -278,6 +279,12 @@ readUrgents = XS.gets fromUrgents
 -- | An HOF version of 'readUrgents', for those who prefer that sort of thing.
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
+
+-- | Cleanup urgency and reminders for windows that no longer exist.
+cleanupStaleUrgents :: X ()
+cleanupStaleUrgents = withWindowSet $ \ws -> do
+    adjustUrgents (filter (`W.member` ws))
+    adjustReminders (filter $ ((`W.member` ws) . window))
 
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents = XS.modify . onUrgents
