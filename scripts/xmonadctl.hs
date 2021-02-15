@@ -1,3 +1,5 @@
+#!/usr/bin/env runhaskell
+
 -- Copyright: (c) Peter Olson 2013 and Andrea Rossato and David Roundy 2007
 -- License: BSD-style (see xmonad/LICENSE)
 --

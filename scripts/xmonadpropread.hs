@@ -1,3 +1,5 @@
+#!/usr/bin/env runhaskell
+
 -- Copyright Spencer Janssen <spencerjanssen@gmail.com>
 -- BSD3 (see LICENSE)
 --
