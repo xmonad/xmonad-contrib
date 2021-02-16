@@ -47,6 +47,11 @@
 
 ### New Modules
 
+  * `XMonad.Util.WorkspaceSets'
+   
+    Adds the ability to have dynamic WorkspaceSets that can be changed at will.
+    It includes the ability to have contextual keybinds
+
   * `XMonad.Util.Hacks`
 
     Serves as a collection of hacks and fixes that should be easily acessible to users.
@@ -77,10 +82,6 @@
     Provide `siftUp` and `siftDown` actions, which behave like `swapUp` and `swapDown`
     but handle the wrapping case by exchanging the windows at either end of the stack
     instead of rotating the stack.
-
-  * `XMonad.Hooks.DynamicIcons`
-
-    Added Dynamic Strings as `dynamicLogIconWithPP` based on a Workspaces Windows
 
   * `XMonad.Hooks.WindowSwallowing`
 

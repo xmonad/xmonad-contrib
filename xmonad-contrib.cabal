@@ -60,7 +60,9 @@ library
                    unix,
                    X11>=1.6.1 && < 1.10,
                    xmonad >= 0.15 && < 0.16,
-                   utf8-string
+                   utf8-string,
+                   microlens,
+                   microlens-th
 
     ghc-options:   -fwarn-tabs -Wall -Wno-unused-do-bind -Wno-unused-imports
 
@@ -165,7 +167,6 @@ library
                         XMonad.Hooks.DebugStack
                         XMonad.Hooks.DynamicBars
                         XMonad.Hooks.DynamicHooks
-                        XMonad.Hooks.DynamicIcons
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.DynamicProperty
                         XMonad.Hooks.EwmhDesktops
@@ -360,6 +361,7 @@ library
                         XMonad.Util.WindowProperties
                         XMonad.Util.WindowState
                         XMonad.Util.WorkspaceCompare
+                        XMonad.Util.WorkspaceSet
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
 
