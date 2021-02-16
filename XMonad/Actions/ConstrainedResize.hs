@@ -44,7 +44,6 @@ import XMonad
 -- | Resize (floating) window with optional aspect ratio constraints.
 mouseResizeWindow :: Window -> Bool -> X ()
 mouseResizeWindow w c = whenX (isClient w) $ withDisplay $ \d -> do
-    io $ raiseWindow d w
     wa <- io $ getWindowAttributes d w
     sh <- io $ getWMNormalHints d w
     io $ warpPointer d none w 0 0 0 0 (fromIntegral (wa_width wa)) (fromIntegral (wa_height wa))
@@ -53,5 +52,6 @@ mouseResizeWindow w c = whenX (isClient w) $ withDisplay $ \d -> do
                      y = ey - fromIntegral (wa_y wa)
                      sz = if c then (max x y, max x y) else (x,y)
                  io $ resizeWindow d w `uncurry`
-                    applySizeHintsContents sh sz)
+                    applySizeHintsContents sh sz
+                 float w)
               (float w)
