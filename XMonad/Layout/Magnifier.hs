@@ -9,10 +9,10 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Screenshot  :  <http://caladan.rave.org/magnifier.png>
---
 -- This is a layout modifier that will make a layout increase the size
 -- of the window that has focus.
+--
+-- [Example screenshot using @magnifiercz' 1.3@ with one of the two stack windows focused.](https://user-images.githubusercontent.com/50166980/108524842-c5f69380-72cf-11eb-9fd6-b0bf67b13ed6.png)
 --
 -----------------------------------------------------------------------------
 
