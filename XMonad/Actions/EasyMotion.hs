@@ -147,8 +147,8 @@ data Overlay =
           , chord      :: [KeySym]         -- ^ The chord we'll display in the overlay
           }
 
--- | TODO
-data ChordKeys = AllKeys       [KeySym]
+-- | TODO: comments
+data ChordKeys = AnyKeys       [KeySym]
                | PerScreenKeys (M.Map ScreenId [KeySym])
 
 -- | Configuration options for EasyMotion. sKeys can come in two forms, [[all keys here]] or [[keys
@@ -176,7 +176,7 @@ instance Default EasyMotionConfig where
            , bgCol       = "#000000"
            , overlayF    = proportional (0.3::Double)
            , borderCol   = "#ffffff"
-           , sKeys       = AllKeys [xK_s, xK_d, xK_f, xK_j, xK_k, xK_l]
+           , sKeys       = AnyKeys [xK_s, xK_d, xK_f, xK_j, xK_k, xK_l]
            , cancelKey   = xK_q
            , borderPx    = 1
            , maxChordLen = 0
@@ -231,67 +231,56 @@ bar f th r = Rectangle { rect_width  = rect_width r
 
 -- | Handles overlay display and window selection. Called after config has been sanitised.
 handleSelectWindow :: EasyMotionConfig -> X (Maybe Window)
-handleSelectWindow EMConf { sKeys = AllKeys [] } = return Nothing
+handleSelectWindow EMConf { sKeys = AnyKeys [] } = return Nothing
 handleSelectWindow c = do
   f <- initXMF $ font c
-  th <- textExtentsXMF f (concatMap keysymToString (allKeys (sKeys c) (cancelKey c))) >>= \(asc, dsc) -> return $ asc + dsc + 2
+  th <- (\(asc, dsc) -> asc + dsc + 2) <$> (textExtentsXMF f (concatMap keysymToString (allKeys . sKeys $ c)))
   XConf { theRoot = rw, display = dpy } <- ask
   XState { mapped = mappedWins, windowset = ws } <- get
   -- build overlays depending on key configuration
   overlays <- case sKeys c of
-                AllKeys ks -> buildOverlays ks <$> sortedOverlayWindows
+                AnyKeys ks -> buildOverlays ks <$> sortedOverlayWindows
                   where
                     visibleWindows :: [Window]
                     visibleWindows = toList mappedWins
-                    buildOverlayWindows :: [Window] -> X [OverlayWindow]
-                    buildOverlayWindows ws = sequence $ (buildOverlayWin dpy th) <$> ws
-                    sortOverlayWindows :: [OverlayWindow] -> [OverlayWindow]
-                    sortOverlayWindows = (sortOn ((wa_x &&& wa_y) . attrs))
                     sortedOverlayWindows :: X [OverlayWindow]
-                    sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows visibleWindows
-                    buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
-                    buildOverlays ks = appendChords (maxChordLen c) ks
+                    sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
                 PerScreenKeys m -> fmap concat $ sequence $ M.foldr (:) [] $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
                   where
-                    -- TODO: when there are a number of full-screen windows on a workspace but only
-                    -- one is visible, PerScreenKeys appears not to select the focused one. I don't
-                    -- think this is a problem with AllKeys (but we should check)
                     screenById :: WindowSet -> ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
                     screenById ws sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
-                    windowsOnScreen :: WindowSet -> ScreenId -> [Window]
-                    windowsOnScreen ws sid = W.integrate' $ (screenById ws sid) >>= W.stack . W.workspace
-                    buildOverlayWindows :: [Window] -> X [OverlayWindow]
-                    buildOverlayWindows ws = sequence $ (buildOverlayWin dpy th) <$> ws
-                    sortOverlayWindows :: [OverlayWindow] -> [OverlayWindow]
-                    sortOverlayWindows = (sortOn ((wa_x &&& wa_y) . attrs))
+                    visibleWindowsOnScreen :: WindowSet -> ScreenId -> [Window]
+                    visibleWindowsOnScreen ws sid = L.filter (`elem` (toList mappedWins)) $ W.integrate' $ (screenById ws sid) >>= W.stack . W.workspace
                     sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
-                    sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows $ windowsOnScreen ws sid)
-                    buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
-                    buildOverlays ks = appendChords (maxChordLen c) ks
+                    sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows dpy th $ visibleWindowsOnScreen ws sid)
     :: X [Overlay]
-  let currentW = W.stack . W.workspace . W.current $ ws
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
   if (status == grabSuccess)
     then do
-      resultWin <- handleKeyboard dpy (displayF f) (cancelKey c) overlays []
+      resultWin <- handleKeyboard dpy (displayOverlay f c) (cancelKey c) overlays []
       io $ ungrabKeyboard dpy currentTime
       mapM_ (deleteWindow . overlay . overlayWin) overlays
       io $ sync dpy False
       releaseXMF f
       case resultWin of
+        -- focus the selected window
         Selected o -> return . Just . win . overlayWin $ o
-        _ -> whenJust currentW (windows . W.focusWindow . W.focus) >> return Nothing -- return focus correctly
+        -- return focus correctly
+        _ -> whenJust (W.peek ws :: Maybe Window) (windows . W.focusWindow) >> return Nothing
     else releaseXMF f >> return Nothing
   where
-    allKeys :: ChordKeys -> KeySym -> [KeySym]
-    allKeys ks cancelKey =
-      case sk of
-        AllKeys sk -> sk
-        PerScreenKeys sk -> concat $ M.foldr (:) [] sk
-        where
-          sk = sanitiseKeys ks [cancelKey]
+    allKeys :: ChordKeys -> [KeySym]
+    allKeys (AnyKeys ks) = ks
+    allKeys (PerScreenKeys m) = concat $ M.foldr (:) [] m
 
-    displayF f = displayOverlay f (bgCol c) (borderCol c) (txtCol c) (borderPx c)
+    buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
+    buildOverlays ks = appendChords (maxChordLen c) ks
+
+    buildOverlayWindows :: Display -> Position -> [Window] -> X [OverlayWindow]
+    buildOverlayWindows dpy th ws = sequence $ (buildOverlayWin dpy th) <$> ws
+
+    sortOverlayWindows :: [OverlayWindow] -> [OverlayWindow]
+    sortOverlayWindows = (sortOn ((wa_x &&& wa_y) . attrs))
 
     makeRect :: WindowAttributes -> Rectangle
     makeRect wa = Rectangle (fi (wa_x wa)) (fi (wa_y wa)) (fi (wa_width wa)) (fi (wa_height wa))
@@ -303,28 +292,35 @@ handleSelectWindow c = do
       o <- createNewWindow r Nothing "" True
       return OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
 
+    -- | Display an overlay with the provided formatting
+    -- TODO: just take config and overlay as argument or something?
+    displayOverlay :: XMonadFont -> EasyMotionConfig -> Overlay -> X ()
+    displayOverlay f c Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = ch } = do
+      showWindow o
+      paintAndWrite o f (fi (rect_width r)) (fi (rect_height r)) (fi (borderPx c)) (bgCol c) (borderCol c) (txtCol c) (bgCol c) [AlignCenter] [concatMap keysymToString ch]
+
 -- | Display overlay windows and chords for window selection
 selectWindow :: EasyMotionConfig -> X (Maybe Window)
 selectWindow conf =
-  handleSelectWindow conf { sKeys = sanitiseKeys (sKeys conf) [cancelKey conf] }
-
--- make sure the key lists don't contain: @disallowedKeys@, backspace, or duplicates
-sanitiseKeys :: ChordKeys -> [KeySym] -> ChordKeys
-sanitiseKeys sKeys disallowedKeys =
-  case sKeys of
-    AllKeys ks -> AllKeys . sanitise $ ks
-    -- TODO: actually, sanitise needs to ensure the user hasn't provided
-    -- any of the same keys for two different screens. I.e. they can't
-    -- have provided this config:
-    -- M.fromList [(0, [xK_a]), (1, [xK_a])]
-    -- Well, perhaps we don't actually need to ensure this- they'll figure
-    -- it out sooner or later. And removing the duplicates could be more
-    -- confusing than allowing them. This should be documented either way
-
-    -- PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
-    PerScreenKeys m -> PerScreenKeys m
+  handleSelectWindow conf { sKeys = sanitiseKeys (sKeys conf) }
     where
-      sanitise = L.nub . L.filter (`notElem` (xK_BackSpace:disallowedKeys))
+      -- make sure the key lists don't contain: backspace, or duplicates
+      sanitise :: [KeySym] -> [KeySym]
+      sanitise = L.nub . L.filter (`notElem` [xK_BackSpace, cancelKey conf])
+      sanitiseKeys :: ChordKeys -> ChordKeys
+      sanitiseKeys keys =
+        case keys of
+          AnyKeys ks -> AnyKeys . sanitise $ ks
+          -- TODO: actually, sanitise needs to ensure the user hasn't provided
+          -- any of the same keys for two different screens. I.e. they can't
+          -- have provided this config:
+          -- M.fromList [(0, [xK_a]), (1, [xK_a])]
+          -- Well, perhaps we don't actually need to ensure this- they'll figure
+          -- it out sooner or later. And removing the duplicates could be more
+          -- confusing than allowing them. This should be documented either way
+
+          PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
+
 
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
 appendChords :: Int -> [KeySym] -> [OverlayWindow] -> [Overlay]
@@ -334,7 +330,7 @@ appendChords maxUserSelectedLen ks overlayWins =
   zipWith (\ow c -> Overlay { overlayWin=ow, chord=c }) overlayWins chords
     where
       chords = replicateM chordLen ks
-      -- the minimum necessary chord length to cover all windows
+      -- the minimum necessary chord length to assign a unique chord to each visible window
       minCoverLen = -((-(length overlayWins)) `div` length ks)
       -- if the user has specified a max chord length we use this even if it will not cover all
       -- windows, as they may prefer to focus windows with fewer keys over the ability to focus any
@@ -378,9 +374,3 @@ handleKeyboard dpy drawFn cancel visible hidden = do
         trim = map (\o -> o { chord = tail $ chord o })
         clear = map (\o -> o { chord = [] })
 
--- | Display an overlay with the provided formatting
--- TODO: just take config and overlay as argument or something?
-displayOverlay :: XMonadFont -> String -> String -> String -> Int -> Overlay -> X ()
-displayOverlay f bgC brC textC brW Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = c } = do
-  showWindow o
-  paintAndWrite o f (fi (rect_width r)) (fi (rect_height r)) (fi brW) bgC brC textC bgC [AlignCenter] [concatMap keysymToString c]
