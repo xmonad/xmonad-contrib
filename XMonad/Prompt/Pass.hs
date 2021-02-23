@@ -8,28 +8,32 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This module provides 5 <XMonad.Prompt>s to ease password
--- manipulation (generate, read, edit, remove):
+-- A thin wrapper around the standard @pass(1)@ UNIX utility.
 --
--- - two to lookup passwords in the password-store; one of which
---   copies to the clipboard, and the other uses @xdotool@ to type the
---   password directly.
+-- This module provides several prompts to ease password manipulation
+-- (generate, read, edit, remove); all of them benefit from the
+-- completion system provided by "XMonad.Prompt".  Specifically, we
+-- provide
 --
--- - one to generate a password for a given password label that the
---   user inputs.
+-- - two functions to lookup passwords in the password-store:
 --
--- - one to edit a password for a given password label that the user
---   inputs.
+--     - 'passPrompt' copies the password directly to the clipboard.
 --
--- - one to delete a stored password for a given password label that
+--     - 'passTypePrompt' uses @xdotool@ to type the password
+--       directly.
+--
+-- - 'passGeneratePrompt' generates a password for a given password
+--   label that the user inputs.
+--
+-- - 'passEditPrompt' edits a password for a given password label that
 --   the user inputs.
 --
--- All those prompts benefit from the completion system provided by
--- the module <XMonad.Prompt>.
+-- - 'passRemovePrompt' deletes a stored password for a given password
+--   label that the user inputs.
 --
 -- The password store is setup through an environment variable
--- PASSWORD_STORE_DIR, or @$HOME\/.password-store@ if it is unset.
--- The editor is determined from the environment variable EDITOR.
+-- @$PASSWORD_STORE_DIR@, or @$HOME\/.password-store@ if it is unset.
+-- The editor is determined from the environment variable @$EDITOR@.
 --
 -- Source:
 --
@@ -40,18 +44,27 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Prompt.Pass (
-                            -- * Usage
-                            -- $usage
-                              passPrompt
-                            , passOTPPrompt
-                            , passGeneratePrompt
-                            , passGenerateAndCopyPrompt
-                            , passRemovePrompt
-                            , passEditPrompt
-                            , passTypePrompt
-                            ) where
+module XMonad.Prompt.Pass
+    ( -- * Usage
+      -- $usage
 
+      -- * Retrieving passwords
+      passPrompt
+    , passTypePrompt
+
+      -- * Editing passwords
+    , passEditPrompt
+    , passRemovePrompt
+    , passGeneratePrompt
+    , passGenerateAndCopyPrompt
+
+      -- * Misc
+    , passOTPPrompt
+    ) where
+
+import System.Directory (getHomeDirectory)
+import System.FilePath (combine, dropExtension, takeExtension)
+import System.Posix.Env (getEnv)
 import XMonad.Core
 import XMonad.Prompt ( XPrompt
                      , showXPrompt
@@ -61,9 +74,6 @@ import XMonad.Prompt ( XPrompt
                      , XPConfig
                      , mkXPrompt
                      , searchPredicate)
-import System.Directory (getHomeDirectory)
-import System.FilePath (takeExtension, dropExtension, combine)
-import System.Posix.Env (getEnv)
 import XMonad.Util.Run (runProcessWithInput)
 
 -- $usage
@@ -74,16 +84,17 @@ import XMonad.Util.Run (runProcessWithInput)
 -- Then add a keybinding for 'passPrompt', 'passGeneratePrompt',
 -- 'passRemovePrompt', 'passEditPrompt' or 'passTypePrompt':
 --
--- >   , ((modMask , xK_p)                              , passPrompt xpconfig)
--- >   , ((modMask .|. controlMask, xK_p)               , passGeneratePrompt xpconfig)
--- >   , ((modMask .|. shiftMask, xK_p)                 , passEditPrompt xpconfig)
--- >   , ((modMask .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt xpconfig)
+-- >   , ((modMask , xK_p)                              , passPrompt def)
+-- >   , ((modMask .|. controlMask, xK_p)               , passGeneratePrompt def)
+-- >   , ((modMask .|. shiftMask, xK_p)                 , passEditPrompt def)
+-- >   , ((modMask .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt def)
 --
 -- For detailed instructions on:
 --
 -- - editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings".
 --
 -- - how to setup the password store, see <http://git.zx2c4.com/password-store/about/>
+--   or @man 1 pass@.
 --
 
 type Predicate = String -> String -> Bool
@@ -100,13 +111,13 @@ instance XPrompt Pass where
   commandToComplete _ c           = c
   nextCompletion      _           = getNextCompletion
 
--- | Default password store folder in $HOME/.password-store
+-- | Default password store folder in @$HOME/.password-store@.
 --
 passwordStoreFolderDefault :: String -> String
 passwordStoreFolderDefault home = combine home ".password-store"
 
 -- | Compute the password store's location.
--- Use the PASSWORD_STORE_DIR environment variable to set the password store.
+-- Use the @$PASSWORD_STORE_DIR@ environment variable to set the password store.
 -- If empty, return the password store located in user's home.
 --
 passwordStoreFolder :: IO String
@@ -115,7 +126,7 @@ passwordStoreFolder =
   where computePasswordStoreDir Nothing         = fmap passwordStoreFolderDefault getHomeDirectory
         computePasswordStoreDir (Just storeDir) = return storeDir
 
--- | A pass prompt factory
+-- | A pass prompt factory.
 --
 mkPassPrompt :: PromptLabel -> (String -> X ()) -> XPConfig -> X ()
 mkPassPrompt promptLabel passwordFunction xpconfig = do
@@ -127,7 +138,9 @@ mkPassPrompt promptLabel passwordFunction xpconfig = do
 passPrompt :: XPConfig -> X ()
 passPrompt = mkPassPrompt "Select password" selectPassword
 
--- | A prompt to retrieve a OTP from a given entry.
+-- | A prompt to retrieve a OTP from a given entry.  Note that you will
+-- need to use the <https://github.com/tadfisher/pass-otp pass-otp>
+-- extension for this to work.
 --
 passOTPPrompt :: XPConfig -> X ()
 passOTPPrompt = mkPassPrompt "Select OTP" selectOTP
@@ -169,7 +182,7 @@ passEditPrompt = mkPassPrompt "Edit password" editPassword
 selectPassword :: String -> X ()
 selectPassword passLabel = spawn $ "pass --clip \"" ++ escapeQuote passLabel ++ "\""
 
--- | Select a OTP.
+-- | Select an OTP.
 --
 selectOTP :: String -> X ()
 selectOTP passLabel = spawn $ "pass otp --clip \"" ++ escapeQuote passLabel ++ "\""
@@ -206,10 +219,11 @@ typePassword passLabel = spawn $ "pass \"" ++ escapeQuote passLabel
 escapeQuote :: String -> String
 escapeQuote = concatMap escape
   where escape :: Char -> String
-        escape '"' = ['\\', '\"']
-        escape x = return x
+        escape '"' = "\\\""
+        escape x   = [x]
 
 -- | Retrieve the list of passwords from the password store 'passwordStoreDir
+--
 getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
   files <- runProcessWithInput "find" [
