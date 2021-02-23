@@ -40,9 +40,9 @@ import           Control.Monad            (replicateM)
 import           Control.Arrow            ((&&&))
 import           Data.Maybe               (isJust)
 import qualified Data.Map.Strict as M     (Map, map, foldr, mapWithKey)
-import           Data.Set                 (fromList, toList)
+import           Data.Set                 (toList)
 import           Graphics.X11.Xlib.Extras (getWindowAttributes, getEvent)
-import qualified Data.List as L           (filter, foldl', partition, find, nub)
+import qualified Data.List as L           (filter, partition, find, nub)
 import           Data.List                (sortOn)
 
 -- $usage
@@ -247,17 +247,17 @@ handleSelectWindow c = do
                     sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
                 PerScreenKeys m -> fmap concat $ sequence $ M.foldr (:) [] $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
                   where
-                    screenById :: WindowSet -> ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
-                    screenById ws sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
-                    visibleWindowsOnScreen :: WindowSet -> ScreenId -> [Window]
-                    visibleWindowsOnScreen ws sid = L.filter (`elem` (toList mappedWins)) $ W.integrate' $ (screenById ws sid) >>= W.stack . W.workspace
+                    screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+                    screenById sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
+                    visibleWindowsOnScreen :: ScreenId -> [Window]
+                    visibleWindowsOnScreen sid = L.filter (`elem` (toList mappedWins)) $ W.integrate' $ (screenById sid) >>= W.stack . W.workspace
                     sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
-                    sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows dpy th $ visibleWindowsOnScreen ws sid)
+                    sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows dpy th $ visibleWindowsOnScreen sid)
     :: X [Overlay]
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
   if (status == grabSuccess)
     then do
-      resultWin <- handleKeyboard dpy (displayOverlay f c) (cancelKey c) overlays []
+      resultWin <- handleKeyboard dpy (displayOverlay f) (cancelKey c) overlays []
       io $ ungrabKeyboard dpy currentTime
       mapM_ (deleteWindow . overlay . overlayWin) overlays
       io $ sync dpy False
@@ -294,8 +294,8 @@ handleSelectWindow c = do
 
     -- | Display an overlay with the provided formatting
     -- TODO: just take config and overlay as argument or something?
-    displayOverlay :: XMonadFont -> EasyMotionConfig -> Overlay -> X ()
-    displayOverlay f c Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = ch } = do
+    displayOverlay :: XMonadFont -> Overlay -> X ()
+    displayOverlay f Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = ch } = do
       showWindow o
       paintAndWrite o f (fi (rect_width r)) (fi (rect_height r)) (fi (borderPx c)) (bgCol c) (borderCol c) (txtCol c) (bgCol c) [AlignCenter] [concatMap keysymToString ch]
 
@@ -308,8 +308,8 @@ selectWindow conf =
       sanitise :: [KeySym] -> [KeySym]
       sanitise = L.nub . L.filter (`notElem` [xK_BackSpace, cancelKey conf])
       sanitiseKeys :: ChordKeys -> ChordKeys
-      sanitiseKeys keys =
-        case keys of
+      sanitiseKeys cKeys =
+        case cKeys of
           AnyKeys ks -> AnyKeys . sanitise $ ks
           -- TODO: actually, sanitise needs to ensure the user hasn't provided
           -- any of the same keys for two different screens. I.e. they can't
@@ -318,7 +318,6 @@ selectWindow conf =
           -- Well, perhaps we don't actually need to ensure this- they'll figure
           -- it out sooner or later. And removing the duplicates could be more
           -- confusing than allowing them. This should be documented either way
-
           PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
 
 
@@ -337,40 +336,39 @@ appendChords maxUserSelectedLen ks overlayWins =
       -- window
       chordLen = if maxUserSelectedLen <= 0 then minCoverLen else min minCoverLen maxUserSelectedLen
 
--- | Get a key event, translate it to an event type and keysym
-event :: Display -> IO (EventType, KeySym)
-event d = allocaXEvent $ \e -> do
-  maskEvent d (keyPressMask .|. keyReleaseMask) e
-  KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent e
-  s <- keycodeToKeysym d c 0
-  return (t, s)
-
 -- | A three-state result for handling user-initiated selection cancellation, successful selection,
 --   or backspace.
 data HandleResult = Exit | Selected Overlay | Backspace
 -- | Handle key press events for window selection.
 handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X (HandleResult)
 handleKeyboard _ _ _ [] _ = return Exit
-handleKeyboard dpy drawFn cancel visible hidden = do
+handleKeyboard dpy drawFn cancel selected deselected = do
   redraw
-  (t, s) <- io $ event dpy
-  if | t == keyPress && s == cancel -> return Exit
-     | t == keyPress && s == xK_BackSpace -> return Backspace
-     | t == keyPress && isNextOverlayKey s -> handleNextOverlayKey s
-     | otherwise -> handleKeyboard dpy drawFn cancel visible hidden
+  ev <- io $ allocaXEvent $ \e -> do
+    maskEvent dpy (keyPressMask .|. keyReleaseMask .|. buttonPressMask) e
+    getEvent e
+  if | ev_event_type ev == keyPress -> do
+         s <- io $ keycodeToKeysym dpy (ev_keycode ev) 0
+         if | s == cancel -> return Exit
+            | s == xK_BackSpace -> return Backspace
+            | isNextOverlayKey s -> handleNextOverlayKey s
+            | otherwise -> handleKeyboard dpy drawFn cancel selected deselected
+     | ev_event_type ev == buttonPress -> do
+         io $ allowEvents dpy replayPointer currentTime
+         handleKeyboard dpy drawFn cancel selected deselected
+     | otherwise -> handleKeyboard dpy drawFn cancel selected deselected
   where
-    redraw = mapM (mapM_ drawFn) [visible, hidden]
+    redraw = mapM (mapM_ drawFn) [selected, deselected]
     retryBackspace x =
       case x of
-        Backspace -> redraw >> handleKeyboard dpy drawFn cancel visible hidden
+        Backspace -> redraw >> handleKeyboard dpy drawFn cancel selected deselected
         _ -> return x
-    isNextOverlayKey keySym = isJust (L.find ((== keySym) . head .chord) visible)
+    isNextOverlayKey keySym = isJust (L.find ((== keySym) . head .chord) selected)
     handleNextOverlayKey keySym =
       case fg of
         [x] -> return $ Selected x
         _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
       where
-        (fg, bg) = L.partition ((== keySym) . head . chord) visible
+        (fg, bg) = L.partition ((== keySym) . head . chord) selected
         trim = map (\o -> o { chord = tail $ chord o })
         clear = map (\o -> o { chord = [] })
-
