@@ -51,6 +51,10 @@ import           Data.List                (sortOn)
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow)
 --
+-- To customise
+--
+-- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
+--
 -- Then add a keybinding and an action to the selectWindow function. In this case M-f to focus:
 --
 -- >    , ((modm, xK_f), (selectWindow def) >>= (flip whenJust (windows . W.focusWindow)))
@@ -64,7 +68,6 @@ import           Data.List                (sortOn)
 -- Default chord keys are s,d,f,j,k,l. To customise these and display options assign
 -- different values to def:
 --
--- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
 -- >    , ((modm, xK_f), (selectWindow def {sKeys = AnyKeys [xK_f, xK_d]}) >>= (flip whenJust (windows . W.focusWindow)))
 --
 -- You must supply at least two different keys in the sKeys list. Keys provided earlier in the list
@@ -75,19 +78,14 @@ import           Data.List                (sortOn)
 -- to screen 0 and hjkl to screen 1. Keys provided earlier in the list will be used preferentially.
 -- Providing the same key for multiple screens is possible but will break down in some scenarios.
 --
--- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
 -- >    import qualified Data.Map.Strict as StrictMap (fromList)
 -- >    emConf :: EasyMotionConfig
--- >    emConf = def {
--- >                   sKeys = PerScreenKeys $ StrictMap.fromList [(0, [xK_f, xK_d, xK_s, xK_a]), (1, [xK_h, xK_j, xK_k, xK_l])]
--- >                 , maxChordLen = 1
--- >                 }
--- >    -- later, in key bindings
+-- >    emConf = def { sKeys = PerScreenKeys $ StrictMap.fromList [(0, [xK_f, xK_d, xK_s, xK_a]), (1, [xK_h, xK_j, xK_k, xK_l])] }
+-- >    -- key bindings
 -- >    , ((modm, xK_f), (selectWindow emConf) >>= (flip whenJust (windows . W.focusWindow)))
 --
 -- To customise font:
 --
--- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
 -- >    , ((modm, xK_f), (selectWindow def {font = "xft: Sans-40"}) >>= (flip whenJust (windows . W.focusWindow)))
 --
 -- The font field provided is supplied directly to the initXMF function. The default is
@@ -327,7 +325,6 @@ selectWindow conf =
         case cKeys of
           AnyKeys ks -> AnyKeys . sanitise $ ks
           PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
-
 
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
 appendChords :: Int -> [KeySym] -> [OverlayWindow] -> [Overlay]
