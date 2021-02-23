@@ -65,14 +65,25 @@ import           Data.List                (sortOn)
 -- different values to def:
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
--- >    , ((modm, xK_f), (selectWindow def {sKeys = [[xK_f, xK_d]]}) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), (selectWindow def {sKeys = AnyKeys [xK_f, xK_d]}) >>= (flip whenJust (windows . W.focusWindow)))
 --
--- You must supply at least two different keys in the sKeys list.
+-- You must supply at least two different keys in the sKeys list. Keys provided earlier in the list
+-- will be used preferentially- therefore, keys you would like to use more frequently should be
+-- earlier in the list.
 --
--- To map different sets of keys to different screens:
+-- To map different sets of keys to different screens. The following configuration maps keys fdsa
+-- to screen 0 and hjkl to screen 1. Keys provided earlier in the list will be used preferentially.
+-- Providing the same key for multiple screens is possible but will break down in some scenarios.
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
--- >    , ((modm, xK_f), (selectWindow def {sKeys = [[xK_f, xK_d], [xK_j, xK_k]}) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    import qualified Data.Map.Strict as StrictMap (fromList)
+-- >    emConf :: EasyMotionConfig
+-- >    emConf = def {
+-- >                   sKeys = PerScreenKeys $ StrictMap.fromList [(0, [xK_f, xK_d, xK_s, xK_a]), (1, [xK_h, xK_j, xK_k, xK_l])]
+-- >                 , maxChordLen = 1
+-- >                 }
+-- >    -- later, in key bindings
+-- >    , ((modm, xK_f), (selectWindow emConf) >>= (flip whenJust (windows . W.focusWindow)))
 --
 -- To customise font:
 --
@@ -147,17 +158,22 @@ data Overlay =
           , chord      :: [KeySym]         -- ^ The chord we'll display in the overlay
           }
 
--- | TODO: comments
+
+-- | Maps keys to windows. AnyKeys maps keys to windows regardless which screen they're on.
+--   PerScreenKeys maps keys to screens to windows. See $usage for more examples.
 data ChordKeys = AnyKeys       [KeySym]
                | PerScreenKeys (M.Map ScreenId [KeySym])
 
--- | Configuration options for EasyMotion. sKeys can come in two forms, [[all keys here]] or [[keys
---   for screen 1 here],[keys for screen 2 here],...]. In the first form, all keys will be used for
---   windows on every screen. In the second form, keys will map to screens based on screen
---   position. If the number of windows for which chords are required exceeds maxChordLen, chords
+-- | Configuration options for EasyMotion.
+--
+--   All colors are hex strings, e.g. "#000000"
+--
+--   If the number of windows for which chords are required exceeds maxChordLen, chords
 --   will simply not be generated for these windows. In this way, single-key selection may be
---   preferred over the ability to select any window. @cancelKey@, @xK_BackSpace@ and any
---   duplicates will be removed from @sKeys@ if included.
+--   preferred over the ability to select any window.
+--
+--   @cancelKey@, @xK_BackSpace@ and any duplicates will be removed from @sKeys@ if included.
+--   See usage for examples of @sKeys@.
 data EasyMotionConfig =
   EMConf { txtCol      :: String                             -- ^ Color of the text displayed
          , bgCol       :: String                             -- ^ Color of the window overlaid
@@ -293,7 +309,6 @@ handleSelectWindow c = do
       return OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
 
     -- | Display an overlay with the provided formatting
-    -- TODO: just take config and overlay as argument or something?
     displayOverlay :: XMonadFont -> Overlay -> X ()
     displayOverlay f Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = ch } = do
       showWindow o
@@ -311,13 +326,6 @@ selectWindow conf =
       sanitiseKeys cKeys =
         case cKeys of
           AnyKeys ks -> AnyKeys . sanitise $ ks
-          -- TODO: actually, sanitise needs to ensure the user hasn't provided
-          -- any of the same keys for two different screens. I.e. they can't
-          -- have provided this config:
-          -- M.fromList [(0, [xK_a]), (1, [xK_a])]
-          -- Well, perhaps we don't actually need to ensure this- they'll figure
-          -- it out sooner or later. And removing the duplicates could be more
-          -- confusing than allowing them. This should be documented either way
           PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
 
 
@@ -325,7 +333,6 @@ selectWindow conf =
 appendChords :: Int -> [KeySym] -> [OverlayWindow] -> [Overlay]
 appendChords _ [] _ = []
 appendChords maxUserSelectedLen ks overlayWins =
-  -- TODO: Is there a default constructor that lets us write `zipWith Overlay overlayWins chords`?
   zipWith (\ow c -> Overlay { overlayWin=ow, chord=c }) overlayWins chords
     where
       chords = replicateM chordLen ks
