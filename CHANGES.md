@@ -311,6 +311,10 @@
 
     - Added `doLower` and `doRaise`
 
+    - Added `findTagLeader`, `ledFrom`, and `shiftToLeader` functions which allow
+      a hook to be created that shifts a window to the workspace of its leader
+      window (according to the WM_CLIENT_LEADER property).
+
   * `XMonad.Util.EZConfig`
 
     - Added support for XF86Bluetooth.
