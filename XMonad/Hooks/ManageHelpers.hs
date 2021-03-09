@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageHelpers
@@ -35,14 +36,13 @@ module XMonad.Hooks.ManageHelpers (
     isDialog,
     pid,
     transientTo,
-    findTagLeader,
-    ledFrom,
+    sameLeader,
     maybeToDefinite,
     MaybeManageHook,
     transience,
     transience',
-    shiftToLeader,
-    shiftToLeader',
+    shiftByLeader,
+    shiftByLeader',
     doRectFloat,
     doFullFloat,
     doCenterFloat,
@@ -60,6 +60,8 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties (getProp32s)
 
+import Control.Monad (filterM)
+import Data.List ((\\))
 import Data.Maybe
 import Data.Monoid
 
@@ -173,47 +175,6 @@ transientTo = do
     d <- (liftX . asks) display
     liftIO $ getTransientForHint d w
 
--- | 'if'' lifted to a monad
-ifM :: Monad m => m Bool -> m a -> m a -> m a
-ifM b t f = do b <- b; if b then t else f
-
--- | 'find' lifted to a monad
-findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
-findM p = foldr (\x -> ifM (p x) (pure $ Just x)) (pure Nothing)
-
--- | 'any' lifted to a monad
-anyM :: Monad m => (a -> m Bool) -> [a] -> m Bool
-anyM p = foldr ((<||>) . p) (pure False)
-
--- | This function returns the WM_CLIENT_LEADER property for a particular window, 'Just'
--- the ID if the window sets this property and 'Nothing' otherwise.
-getCL :: Window -> X (Maybe XID)
-getCL = (pure . cp =<<) . getProp32s "WM_CLIENT_LEADER"
-    where
-    cp (Just [x]) = Just (fromIntegral x)
-    cp _ = Nothing
-
--- | For a given window, the findTagLeader function attempts to find the 'WorkspaceId' 
--- of the first window, aside from itself, that sets the same WM_CLIENT_LEADER property. 
--- It returns 'Just' the workspace tag if the window sets this property and a matching 
--- window can be found within the given 'StackSet', and 'Nothing' otherwise.
-findTagLeader ::  Window -> W.StackSet i l Window s sd -> X (Maybe i)
-findTagLeader a = fmap getTag . (findM $ has . W.stack) . W.workspaces
-    where
-    has Nothing = pure False
-    has (Just (W.Stack t l r)) = isLeader t  <||> anyM isLeader l <||> anyM isLeader r 
-    isLeader w = do 
-        k <- getCL w
-        j <- getCL a
-        return $ k /= Nothing && w /= a && j == k
-    getTag Nothing = Nothing
-    getTag (Just (W.Workspace i l a)) = Just i
-
--- | A predicate to check whether a window has a leader. It holds the result which might 
--- be the workspace tag of the window that leads it or 'Nothing' if one cannot be found.
-ledFrom :: Query (Maybe WorkspaceId)
-ledFrom = ask >>= liftX . withWindowSet . findTagLeader
-
 -- | A convenience 'MaybeManageHook' that will check to see if a window
 -- is transient, and then move it to its parent.
 transience :: MaybeManageHook
@@ -223,14 +184,33 @@ transience = transientTo </=? Nothing -?>> maybe idHook doShiftTo
 transience' :: ManageHook
 transience' = maybeToDefinite transience
 
--- | A convenience 'MaybeManageHook' that will check to see if a window has a leader,
--- and then move it to the workspace of the leader.
-shiftToLeader :: MaybeManageHook
-shiftToLeader = ledFrom </=? Nothing -?>> maybe idHook doShift
+-- | This function returns the WM_CLIENT_LEADER property for a particular window, 'Just'
+-- the ID if the window sets this property and 'Nothing' otherwise.
+clientLeader :: Window -> X (Maybe Window)
+clientLeader = fmap cp . getProp32s "WM_CLIENT_LEADER"
+  where
+    cp (Just [x]) = Just (fromIntegral x)
+    cp _ = Nothing
 
--- | 'shiftToLeader' set to a 'ManageHook'
-shiftToLeader' :: ManageHook
-shiftToLeader' = maybeToDefinite shiftToLeader
+-- | For a given window, 'sameLeader' returns all windows that have the same
+-- leader (@WM_CLIENT_LEADER@ property). We cannot directly use the window
+-- specified by the property as it can be an unmapped or unmanaged dummy
+-- window (e.g. Firefox does this).
+sameLeader :: Query [Window]
+sameLeader = ask >>= liftX . withWindowSet . findSameLeader
+  where
+    findSameLeader w s = clientLeader w >>= \case
+        Nothing -> pure []
+        l       -> filterM (fmap (l ==) . clientLeader) (W.allWindows s \\ [w])
+
+-- | 'MaybeManageHook' that moves the window to the same workspace as the
+-- first other window that has the same leader (@WM_CLIENT_LEADER@).
+shiftByLeader :: MaybeManageHook
+shiftByLeader = sameLeader </=? [] -?>> maybe idHook doShiftTo . listToMaybe
+
+-- | 'shiftByLeader' set to a 'ManageHook'
+shiftByLeader' :: ManageHook
+shiftByLeader' = maybeToDefinite shiftByLeader
 
 -- | converts 'MaybeManageHook's to 'ManageHook's
 maybeToDefinite :: (Monoid a, Functor m) => m (Maybe a) -> m a
