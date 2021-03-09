@@ -130,6 +130,10 @@
 
 ### New Modules
 
+  * `XMonad.Layout.FixedAspectRatio`
+
+    Layout modifier for user provided per-window aspect ratios.
+
   * `XMonad.Hooks.TaffybarPagerHints`
 
     Add a module that exports information about XMonads internal state that is

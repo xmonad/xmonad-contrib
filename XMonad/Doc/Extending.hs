@@ -729,6 +729,9 @@ For more information on using those modules for customizing your
 * "XMonad.Layout.DwmStyle":
     A layout modifier for decorating windows in a dwm like style.
 
+* "XMonad.Layout.FixedAspectRatio"
+    A layout modifier for user provided per-window aspect ratios.
+
 * "XMonad.Layout.FixedColumn":
     A layout much like Tall, but using a multiple of a window's minimum
     resize amount instead of a percentage of screen to decide where to
