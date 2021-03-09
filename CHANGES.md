@@ -90,6 +90,10 @@
 
 ### New Modules
 
+  * `XMonad.Layout.FixedAspectRatio`
+
+    Layout modifier for user provided per-window aspect ratios.
+
   * `XMonad.Hooks.StatusBar.PP`
 
     Originally contained inside `XMonad.Hooks.DynamicLog`, this module provides the
