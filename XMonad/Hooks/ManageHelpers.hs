@@ -217,10 +217,7 @@ ledFrom = ask >>= liftX . withWindowSet . findTagLeader
 -- | A convenience 'MaybeManageHook' that will check to see if a window
 -- is transient, and then move it to its parent.
 transience :: MaybeManageHook
-transience = transientTo </=? Nothing -?>> move
-    where
-    move mw = maybe idHook (doF . move') mw
-    move' w s = maybe s (`W.shift` s) (W.findTag w s)
+transience = transientTo </=? Nothing -?>> maybe idHook doShiftTo
 
 -- | 'transience' set to a 'ManageHook'
 transience' :: ManageHook
@@ -238,6 +235,11 @@ shiftToLeader' = maybeToDefinite shiftToLeader
 -- | converts 'MaybeManageHook's to 'ManageHook's
 maybeToDefinite :: (Monoid a, Functor m) => m (Maybe a) -> m a
 maybeToDefinite = fmap (fromMaybe mempty)
+
+-- | Move the window to the same workspace as another window.
+doShiftTo :: Window -> ManageHook
+doShiftTo target = doF . shiftTo =<< ask
+  where shiftTo w s = maybe s (\t -> W.shiftWin t w s) (W.findTag target s)
 
 -- | Floats the new window in the given rectangle.
 doRectFloat :: W.RationalRect  -- ^ The rectangle to float the window in. 0 to 1; x, y, w, h.
