@@ -311,9 +311,9 @@
 
     - Added `doLower` and `doRaise`
 
-    - Added `findTagLeader`, `ledFrom`, and `shiftToLeader` functions which allow
-      a hook to be created that shifts a window to the workspace of its leader
-      window (according to the WM_CLIENT_LEADER property).
+    - Added `shiftToSame` and `clientLeader` which allow a hook to be created
+      that shifts a window to the workspace of other windows of the application
+      (using either the `WM_CLIENT_LEADER` or `_NET_WM_PID` property).
 
   * `XMonad.Util.EZConfig`
 
