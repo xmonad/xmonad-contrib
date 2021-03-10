@@ -36,13 +36,14 @@ module XMonad.Hooks.ManageHelpers (
     isDialog,
     pid,
     transientTo,
-    sameLeader,
     maybeToDefinite,
     MaybeManageHook,
     transience,
     transience',
-    shiftByLeader,
-    shiftByLeader',
+    clientLeader,
+    sameBy,
+    shiftToSame,
+    shiftToSame',
     doRectFloat,
     doFullFloat,
     doCenterFloat,
@@ -159,12 +160,14 @@ isFullscreen = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_FULLSCREEN"
 isDialog :: Query Bool
 isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 
+-- | This function returns 'Just' the @_NET_WM_PID@ property for a
+-- particular window if set, 'Nothing' otherwise.
+--
+-- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm45623487788432>.
 pid :: Query (Maybe ProcessID)
-pid = ask >>= \w -> liftX $ do
-    p <- getProp32s "_NET_WM_PID" w
-    return $ case p of
-        Just [x] -> Just (fromIntegral x)
-        _        -> Nothing
+pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w >>= pure . \case
+    Just [x] -> Just (fromIntegral x)
+    _        -> Nothing
 
 -- | A predicate to check whether a window is Transient.
 -- It holds the result which might be the window it is transient to
@@ -184,33 +187,35 @@ transience = transientTo </=? Nothing -?>> maybe idHook doShiftTo
 transience' :: ManageHook
 transience' = maybeToDefinite transience
 
--- | This function returns the WM_CLIENT_LEADER property for a particular window, 'Just'
--- the ID if the window sets this property and 'Nothing' otherwise.
-clientLeader :: Window -> X (Maybe Window)
-clientLeader = fmap cp . getProp32s "WM_CLIENT_LEADER"
-  where
-    cp (Just [x]) = Just (fromIntegral x)
-    cp _ = Nothing
+-- | This function returns 'Just' the @WM_CLIENT_LEADER@ property for a
+-- particular window if set, 'Nothing' otherwise.
+--
+-- See <https://tronche.com/gui/x/icccm/sec-5.html>.
+clientLeader :: Query (Maybe Window)
+clientLeader = ask >>= \w -> liftX $ getProp32s "WM_CLIENT_LEADER" w >>= pure . \case
+    Just [x] -> Just (fromIntegral x)
+    _        -> Nothing
 
 -- | For a given window, 'sameLeader' returns all windows that have the same
 -- leader (@WM_CLIENT_LEADER@ property). We cannot directly use the window
 -- specified by the property as it can be an unmapped or unmanaged dummy
 -- window (e.g. Firefox does this).
-sameLeader :: Query [Window]
-sameLeader = ask >>= liftX . withWindowSet . findSameLeader
-  where
-    findSameLeader w s = clientLeader w >>= \case
-        Nothing -> pure []
-        l       -> filterM (fmap (l ==) . clientLeader) (W.allWindows s \\ [w])
+
+sameBy :: Eq prop => Query (Maybe prop) -> Query [Window]
+sameBy prop = prop >>= \case
+    Nothing -> pure []
+    propVal -> ask >>= \w -> liftX . withWindowSet $ \s ->
+        filterM (fmap (propVal ==) . runQuery prop) (W.allWindows s \\ [w])
 
 -- | 'MaybeManageHook' that moves the window to the same workspace as the
--- first other window that has the same leader (@WM_CLIENT_LEADER@).
-shiftByLeader :: MaybeManageHook
-shiftByLeader = sameLeader </=? [] -?>> maybe idHook doShiftTo . listToMaybe
+-- first other window that has the same value of a given 'Query'. Useful
+-- Queries for this include 'clientLeader' and 'pid'.
+shiftToSame :: Eq prop => Query (Maybe prop) -> MaybeManageHook
+shiftToSame prop = sameBy prop </=? [] -?>> maybe idHook doShiftTo . listToMaybe
 
--- | 'shiftByLeader' set to a 'ManageHook'
-shiftByLeader' :: ManageHook
-shiftByLeader' = maybeToDefinite shiftByLeader
+-- | 'shiftToSame' set to a 'ManageHook'
+shiftToSame' :: Eq prop => Query (Maybe prop) -> ManageHook
+shiftToSame' = maybeToDefinite . shiftToSame
 
 -- | converts 'MaybeManageHook's to 'ManageHook's
 maybeToDefinite :: (Monoid a, Functor m) => m (Maybe a) -> m a
