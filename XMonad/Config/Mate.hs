@@ -21,6 +21,8 @@ module XMonad.Config.Mate (
     mateConfig,
     mateRun,
     mateRegister,
+    mateLogout,
+    mateShutdown,
     desktopLayoutModifiers
     ) where
 
@@ -49,7 +51,7 @@ mateConfig = desktopConfig
 
 mateKeys (XConfig {modMask = modm}) = M.fromList $
     [ ((modm, xK_p), mateRun)
-    , ((modm .|. shiftMask, xK_q), spawn "mate-session-save --logout-dialog") ]
+    , ((modm .|. shiftMask, xK_q), mateLogout) ]
 
 -- | Launch the "Run Application" dialog.  mate-panel must be running for this
 -- to work.
@@ -86,3 +88,9 @@ mateRegister = io $ do
             ,"org.mate.SessionManager.RegisterClient"
             ,"string:xmonad"
             ,"string:"++sessionId]
+
+mateLogout :: MonadIO m => m ()
+mateLogout = spawn "mate-session-save --logout-dialog"
+
+mateShutdown :: MonadIO m => m ()
+mateShutdown = spawn "mate-session-save --shutdown-dialog"
