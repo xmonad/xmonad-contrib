@@ -140,6 +140,12 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Config.Mate`
+  
+    - Split out the logout dialog and add a shutdown dialog. The default behavior
+      remains the same but there are now `mateLogout` and `mateShutdown` actions
+      available.
+
   * `XMonad.Actions.DynamicProjects`
 
     - The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
