@@ -89,8 +89,11 @@ mateRegister = io $ do
             ,"string:xmonad"
             ,"string:"++sessionId]
 
+-- | Display MATE logout dialog. This is the default mod-q action.
 mateLogout :: MonadIO m => m ()
 mateLogout = spawn "mate-session-save --logout-dialog"
 
+-- | Display MATE shutdown dialog. You can override mod-q to invoke this, or bind it
+-- to another key if you prefer.
 mateShutdown :: MonadIO m => m ()
 mateShutdown = spawn "mate-session-save --shutdown-dialog"
