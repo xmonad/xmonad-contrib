@@ -321,6 +321,8 @@
       that shifts a window to the workspace of other windows of the application
       (using either the `WM_CLIENT_LEADER` or `_NET_WM_PID` property).
 
+    - Added `windowTag`
+
   * `XMonad.Util.EZConfig`
 
     - Added support for XF86Bluetooth.
@@ -416,6 +418,15 @@
 
     - Fixed handling of floating window borders in multihead setups that was
       broken since 0.14.
+
+  * `XMonad.Hooks.UrgencyHook`
+
+    - It's now possible to clear urgency of selected windows only using the
+      newly exported `clearUrgents'` function. Also, this and `clearUrgents`
+      now clear the `_NET_WM_STATE_DEMANDS_ATTENTION` bit as well.
+
+    - Added a variant of `filterUrgencyHook` that takes a generic `Query Bool`
+      to select which windows should never be marked urgent.
 
 ## 0.16
 

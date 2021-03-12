@@ -30,9 +30,6 @@ module XMonad.Hooks.UrgencyHook (
                                  -- ** Useful keybinding
                                  -- $keybinding
 
-                                 -- ** Note
-                                 -- $note
-
                                  -- * Troubleshooting
                                  -- $troubleshooting
 
@@ -61,10 +58,10 @@ module XMonad.Hooks.UrgencyHook (
                                  NoUrgencyHook(..),
                                  BorderUrgencyHook(..),
                                  FocusHook(..),
-                                 filterUrgencyHook,
+                                 filterUrgencyHook, filterUrgencyHook',
                                  minutes, seconds,
                                  -- * Stuff for developers:
-                                 readUrgents, withUrgents,
+                                 readUrgents, withUrgents, clearUrgents',
                                  StdoutUrgencyHook(..),
                                  SpawnUrgencyHook(..),
                                  UrgencyHook(urgencyHook),
@@ -75,6 +72,7 @@ module XMonad.Hooks.UrgencyHook (
 import XMonad
 import qualified XMonad.StackSet as W
 
+import XMonad.Hooks.ManageHelpers (windowTag)
 import XMonad.Util.Dzen (dzenWithArgs, seconds)
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.NamedWindows (getName)
@@ -129,11 +127,6 @@ import Foreign.C.Types (CLong)
 --
 -- You can set up a keybinding to jump to the window that was recently marked
 -- urgent. See an example at 'focusUrgent'.
-
--- $note
--- Note: UrgencyHook installs itself as a LayoutModifier, so if you modify your
--- urgency hook and restart xmonad, you may need to rejigger your layout by
--- hitting mod-shift-space.
 
 -- $troubleshooting
 --
@@ -216,7 +209,8 @@ withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
                     h -> UrgencyConfig -> XConfig l -> XConfig l
 withUrgencyHookC hook urgConf conf = conf {
         handleEventHook = \e -> handleEvent (WithUrgencyHook hook urgConf) e >> handleEventHook conf e,
-        logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf
+        logHook = cleanupUrgents (suppressWhen urgConf) >> logHook conf,
+        startupHook = cleanupStaleUrgents >> startupHook conf
     }
 
 data Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show,Typeable)
@@ -275,7 +269,7 @@ focusUrgent = withUrgents $ flip whenJust (windows . W.focusWindow) . listToMayb
 --
 -- > , ((modm .|. shiftMask, xK_BackSpace), clearUrgents)
 clearUrgents :: X ()
-clearUrgents = adjustUrgents (const []) >> adjustReminders (const [])
+clearUrgents = withUrgents clearUrgents'
 
 -- | X action that returns a list of currently urgent windows. You might use
 -- it, or 'withUrgents', in your custom logHook, to display the workspaces that
@@ -286,6 +280,12 @@ readUrgents = XS.gets fromUrgents
 -- | An HOF version of 'readUrgents', for those who prefer that sort of thing.
 withUrgents :: ([Window] -> X a) -> X a
 withUrgents f = readUrgents >>= f
+
+-- | Cleanup urgency and reminders for windows that no longer exist.
+cleanupStaleUrgents :: X ()
+cleanupStaleUrgents = withWindowSet $ \ws -> do
+    adjustUrgents (filter (`W.member` ws))
+    adjustReminders (filter $ ((`W.member` ws) . window))
 
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents = XS.modify . onUrgents
@@ -419,12 +419,15 @@ shouldSuppress :: SuppressWhen -> Window -> X Bool
 shouldSuppress sw w = elem w <$> suppressibleWindows sw
 
 cleanupUrgents :: SuppressWhen -> X ()
-cleanupUrgents sw = do
-    sw' <- suppressibleWindows sw
+cleanupUrgents sw = clearUrgents' =<< suppressibleWindows sw
+
+-- | Clear urgency status of selected windows.
+clearUrgents' :: [Window] -> X ()
+clearUrgents' ws = do
     a_da <- getAtom "_NET_WM_STATE_DEMANDS_ATTENTION"
     dpy <- withDisplay (\dpy -> return dpy)
-    mapM_ (\w -> removeNetWMState dpy w a_da) sw'
-    adjustUrgents (\\ sw') >> adjustReminders (filter $ ((`notElem` sw') . window))
+    mapM_ (\w -> removeNetWMState dpy w a_da) ws
+    adjustUrgents (\\ ws) >> adjustReminders (filter $ ((`notElem` ws) . window))
 
 suppressibleWindows :: SuppressWhen -> X [Window]
 suppressibleWindows Visible  = gets $ S.toList . mapped
@@ -535,9 +538,9 @@ instance UrgencyHook StdoutUrgencyHook where
 --
 -- > main = xmonad (withUrgencyHook (filterUrgencyHook ["NSP", "SP"]) def)
 filterUrgencyHook :: [WorkspaceId] -> Window -> X ()
-filterUrgencyHook skips w = do
-    ws <- gets windowset
-    case W.findTag w ws of
-        Just tag -> when (tag `elem` skips)
-                        $ adjustUrgents (delete w)
-        _ -> return ()
+filterUrgencyHook skips = filterUrgencyHook' $ maybe False (`elem` skips) <$> windowTag
+
+-- | 'filterUrgencyHook' that takes a generic 'Query' to select which windows
+-- should never be marked urgent.
+filterUrgencyHook' :: Query Bool -> Window -> X ()
+filterUrgencyHook' q w = whenX (runQuery q w) (clearUrgents' [w])
