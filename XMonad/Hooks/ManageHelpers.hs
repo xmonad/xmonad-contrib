@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageHelpers
@@ -39,6 +40,10 @@ module XMonad.Hooks.ManageHelpers (
     MaybeManageHook,
     transience,
     transience',
+    clientLeader,
+    sameBy,
+    shiftToSame,
+    shiftToSame',
     doRectFloat,
     doFullFloat,
     doCenterFloat,
@@ -56,6 +61,8 @@ import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties (getProp32s)
 
+import Control.Monad (filterM)
+import Data.List ((\\))
 import Data.Maybe
 import Data.Monoid
 
@@ -153,12 +160,14 @@ isFullscreen = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_FULLSCREEN"
 isDialog :: Query Bool
 isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 
+-- | This function returns 'Just' the @_NET_WM_PID@ property for a
+-- particular window if set, 'Nothing' otherwise.
+--
+-- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm45623487788432>.
 pid :: Query (Maybe ProcessID)
-pid = ask >>= \w -> liftX $ do
-    p <- getProp32s "_NET_WM_PID" w
-    return $ case p of
-        Just [x] -> Just (fromIntegral x)
-        _        -> Nothing
+pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w >>= pure . \case
+    Just [x] -> Just (fromIntegral x)
+    _        -> Nothing
 
 -- | A predicate to check whether a window is Transient.
 -- It holds the result which might be the window it is transient to
@@ -172,19 +181,50 @@ transientTo = do
 -- | A convenience 'MaybeManageHook' that will check to see if a window
 -- is transient, and then move it to its parent.
 transience :: MaybeManageHook
-transience = transientTo </=? Nothing -?>> move
-    where
-    move mw = maybe idHook (doF . move') mw
-    move' w s = maybe s (`W.shift` s) (W.findTag w s)
+transience = transientTo </=? Nothing -?>> maybe idHook doShiftTo
 
 -- | 'transience' set to a 'ManageHook'
 transience' :: ManageHook
 transience' = maybeToDefinite transience
 
+-- | This function returns 'Just' the @WM_CLIENT_LEADER@ property for a
+-- particular window if set, 'Nothing' otherwise. Note that, generally,
+-- the window ID returned from this property (by firefox, for example) 
+-- corresponds to an unmapped or unmanaged dummy window. For this to be 
+-- useful in most cases, it should be used together with 'sameBy'.
+--
+-- See <https://tronche.com/gui/x/icccm/sec-5.html>.
+clientLeader :: Query (Maybe Window)
+clientLeader = ask >>= \w -> liftX $ getProp32s "WM_CLIENT_LEADER" w >>= pure . \case
+    Just [x] -> Just (fromIntegral x)
+    _        -> Nothing
+
+-- | For a given window, 'sameBy' returns all windows that have a matching
+-- property (e.g. those obtained from Queries of 'clientLeader' and 'pid'). 
+sameBy :: Eq prop => Query (Maybe prop) -> Query [Window]
+sameBy prop = prop >>= \case
+    Nothing -> pure []
+    propVal -> ask >>= \w -> liftX . withWindowSet $ \s ->
+        filterM (fmap (propVal ==) . runQuery prop) (W.allWindows s \\ [w])
+
+-- | 'MaybeManageHook' that moves the window to the same workspace as the
+-- first other window that has the same value of a given 'Query'. Useful
+-- Queries for this include 'clientLeader' and 'pid'.
+shiftToSame :: Eq prop => Query (Maybe prop) -> MaybeManageHook
+shiftToSame prop = sameBy prop </=? [] -?>> maybe idHook doShiftTo . listToMaybe
+
+-- | 'shiftToSame' set to a 'ManageHook'
+shiftToSame' :: Eq prop => Query (Maybe prop) -> ManageHook
+shiftToSame' = maybeToDefinite . shiftToSame
+
 -- | converts 'MaybeManageHook's to 'ManageHook's
 maybeToDefinite :: (Monoid a, Functor m) => m (Maybe a) -> m a
 maybeToDefinite = fmap (fromMaybe mempty)
 
+-- | Move the window to the same workspace as another window.
+doShiftTo :: Window -> ManageHook
+doShiftTo target = doF . shiftTo =<< ask
+  where shiftTo w s = maybe s (\t -> W.shiftWin t w s) (W.findTag target s)
 
 -- | Floats the new window in the given rectangle.
 doRectFloat :: W.RationalRect  -- ^ The rectangle to float the window in. 0 to 1; x, y, w, h.
