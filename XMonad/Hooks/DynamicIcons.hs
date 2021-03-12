@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
@@ -22,6 +23,7 @@ module XMonad.Hooks.DynamicIcons (
     -- * Data Types
     appIcon, IconSet,
     IconConfig(..), Icon(..),
+    iconsFmtAppend, iconsFmtReplace, wrapUnwords,
 
     ) where
 import XMonad
@@ -104,36 +106,79 @@ dynamicLogIconsWithPP iconset pp = dynamicLogWithPP =<< dynamicLogIconsConvert (
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
     { iconConfigIcons :: IconSet -- ^ The 'IconSet' to use
-    , iconConfigStack :: [String] -> String -- ^ The function to manage stacking of 'Icon's
+    , iconConfigFmt :: WorkspaceId -> [String] -> String
+      -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
     , iconConfigPP    :: PP -- ^ The 'PP' to alter
     }
 
 instance Default IconConfig where
     def = IconConfig
         { iconConfigIcons = mempty
-        , iconConfigStack = wrap "[" "]" . unwords
+        , iconConfigFmt = iconsFmtReplace (wrapUnwords "{" "}")
         , iconConfigPP = def
         }
+
+-- | 'iconConfigFmt' that replaces the workspace name with icons, if any.
+--
+-- First parameter specifies how to concatenate multiple icons. Useful values
+-- include: 'concat', 'unwords', 'wrapUnwords'.
+--
+-- >>> iconsFmtReplace concat "1" []
+-- "1"
+--
+-- >>> iconsFmtReplace concat "1" ["A", "B"]
+-- "AB"
+--
+-- >>> iconsFmtReplace (wrapUnwords "{" "}") "1" ["A", "B"]
+-- "{A B}"
+iconsFmtReplace :: ([String] -> String) -> WorkspaceId -> [String] -> String
+iconsFmtReplace cat ws is | null is   = ws
+                          | otherwise = cat is
+
+-- | 'iconConfigFmt' that appends icons to the workspace name.
+--
+-- First parameter specifies how to concatenate multiple icons. Useful values
+-- include: 'concat', 'unwords', 'wrapUnwords'.
+--
+-- >>> iconsFmtAppend concat "1" []
+-- "1"
+--
+-- >>> iconsFmtAppend concat "1" ["A", "B"]
+-- "1:AB"
+iconsFmtAppend :: ([String] -> String) -> WorkspaceId -> [String] -> String
+iconsFmtAppend cat ws is | null is   = ws
+                         | otherwise = ws ++ ':' : cat is
+
+-- | Join words with spaces, and wrap the result in delimiters unless there
+-- was exactly one element.
+--
+-- >>> wrapUnwords "{" "}" ["A", "B"]
+-- "{A B}"
+--
+-- >>> wrapUnwords "{" "}" ["A"]
+-- "A"
+--
+-- >>> wrapUnwords "{" "}" []
+-- ""
+wrapUnwords :: String -> String -> [String] -> String
+wrapUnwords _ _ [x] = x
+wrapUnwords l r xs  = wrap l r (unwords xs)
 
 -- | This is the same as 'dynamicLogIconsWithPP' but it takes a 'IconConfig'.
 -- This allows you to manually customise the 'Icon's the stacking function and also your `PP`
 dynamicLogIconsConvert :: IconConfig -> X PP
-dynamicLogIconsConvert iconConfig = do
+dynamicLogIconsConvert IconConfig{..} = do
     ws <- gets (S.workspaces . windowset)
-    icons <- M.fromList . catMaybes <$> mapM (getIcons (iconConfigIcons iconConfig)) ws
-    pure $ (iconConfigPP iconConfig)
+    icons <- M.fromList . catMaybes <$> mapM (getIcons iconConfigIcons) ws
+    pure $ iconConfigPP
         { ppCurrent = ppSection ppCurrent iconCurrent icons
         , ppVisible = ppSection ppVisible iconVisible icons
         , ppHidden = ppSection ppHidden iconHidden icons
         , ppHiddenNoWindows =  ppSection ppHiddenNoWindows iconHiddenNoWindows icons
         }
   where
-    ppSection pF f icons = pF (iconConfigPP iconConfig) . concatIcons f . iconLookup icons
-    iconLookup icons x = M.findWithDefault [baseIconSet x] x icons
-    concatIcons f y
-        | length y > 1 = iconConfigStack iconConfig $ map f y
-        | otherwise = concatMap f y
-
+    ppSection ppField icField icons wks =
+        ppField iconConfigPP $ iconConfigFmt wks $ map icField $ M.findWithDefault [] wks icons
 
 getIcons :: IconSet -> WindowSpace -> X (Maybe (WorkspaceId, [Icon]))
 getIcons is w = do
