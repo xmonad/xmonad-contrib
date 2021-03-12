@@ -51,7 +51,7 @@ data TrackFloating a = TrackFloating (Maybe Window)
 instance LayoutModifier TrackFloating Window where
     modifyLayoutWithUpdate (TrackFloating mw) ws@(W.Workspace{ W.stack = ms }) r
       = do
-        xCur <- gets (W.peek . windowset)
+        xCur <- gets (W.peek . W.view (W.tag ws) . windowset)
         let isF = xCur /= (W.focus <$> ms)
             -- use the remembered focus point when true focus differs from
             -- what this (sub)layout is given, which happens e.g. when true
@@ -75,7 +75,7 @@ data UseTransientFor a = UseTransientFor deriving (Read,Show,Eq)
 
 instance LayoutModifier UseTransientFor Window where
     modifyLayout _ ws@(W.Workspace{ W.stack = ms }) r = do
-        m <- gets (W.peek . windowset)
+        m <- gets (W.peek . W.view (W.tag ws) . windowset)
         d <- asks display
         parent <- join <$> T.traverse (io . getTransientForHint d) m
 

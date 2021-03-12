@@ -433,6 +433,10 @@
     - To make it easier to use, the `xmonadctl` client is now included in
       `scripts/`.
 
+  * `XMonad.Layout.TrackFloating`
+
+    - Fixed a bug that prevented changing focus on inactive workspaces.
+
 ## 0.16
 
 ### Breaking Changes
