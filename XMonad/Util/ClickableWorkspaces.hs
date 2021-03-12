@@ -74,7 +74,6 @@ clickablePP = clickableRenamedPP id
 -- | Alternative to 'clickablePP' that allows changing the visible workspace
 -- name. Useful for integration with modules that change workspace names, such
 -- as "XMonad.Layout.IndependentScreens" and "XMonad.Actions.WorkspaceNames".
--- See "XMonad.Util.ClickableWorkspaces.Integrations".
 clickableRenamedPP :: (WorkspaceId -> String) -> PP -> X PP
 clickableRenamedPP ren pp = do
   clickable <- getClickable ren
