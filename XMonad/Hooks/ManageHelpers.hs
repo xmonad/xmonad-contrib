@@ -188,7 +188,10 @@ transience' :: ManageHook
 transience' = maybeToDefinite transience
 
 -- | This function returns 'Just' the @WM_CLIENT_LEADER@ property for a
--- particular window if set, 'Nothing' otherwise.
+-- particular window if set, 'Nothing' otherwise. Note that, generally,
+-- the window ID returned from this property (by firefox, for example) 
+-- corresponds to an unmapped or unmanaged dummy window. For this to be 
+-- useful in most cases, it should be used together with 'sameBy'.
 --
 -- See <https://tronche.com/gui/x/icccm/sec-5.html>.
 clientLeader :: Query (Maybe Window)
@@ -196,11 +199,8 @@ clientLeader = ask >>= \w -> liftX $ getProp32s "WM_CLIENT_LEADER" w >>= pure . 
     Just [x] -> Just (fromIntegral x)
     _        -> Nothing
 
--- | For a given window, 'sameLeader' returns all windows that have the same
--- leader (@WM_CLIENT_LEADER@ property). We cannot directly use the window
--- specified by the property as it can be an unmapped or unmanaged dummy
--- window (e.g. Firefox does this).
-
+-- | For a given window, 'sameBy' returns all windows that have a matching
+-- property (e.g. those obtained from Queries of 'clientLeader' and 'pid'). 
 sameBy :: Eq prop => Query (Maybe prop) -> Query [Window]
 sameBy prop = prop >>= \case
     Nothing -> pure []
