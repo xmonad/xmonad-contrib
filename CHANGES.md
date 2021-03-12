@@ -428,6 +428,11 @@
     - Added a variant of `filterUrgencyHook` that takes a generic `Query Bool`
       to select which windows should never be marked urgent.
 
+  * `XMonad.Hooks.ServerMode`
+
+    - To make it easier to use, the `xmonadctl` client is now included in
+      `scripts/`.
+
 ## 0.16
 
 ### Breaking Changes
