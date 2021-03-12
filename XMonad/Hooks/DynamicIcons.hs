@@ -18,7 +18,7 @@ module XMonad.Hooks.DynamicIcons (
     -- $usage
 
     -- * Creating Dynamic Icons
-    dynamicLogIconsWithPP, dynamicLogIconsConvert,
+    dynamicLogIconsWithPP, dynamicIconsPP,
 
     -- * Data Types
     appIcon, IconSet,
@@ -33,6 +33,7 @@ import qualified Data.Map as M
 
 import XMonad.Hooks.DynamicLog
 import Data.Maybe (catMaybes)
+import Control.Monad ((<=<))
 
 -- $usage
 --  Dynamically changes a 'Workspace's 'WorkspaceId' based on the 'Window's inside the Workspace.
@@ -101,21 +102,19 @@ appIcon x = pure [baseIconSet x]
 dynamicLogIconsWithPP :: IconSet -- ^ The 'IconSet' to use
                       -> PP -- ^ The 'PP' to alter
                       -> X () -- ^ The resulting 'X' action
-dynamicLogIconsWithPP iconset pp = dynamicLogWithPP =<< dynamicLogIconsConvert (def{ iconConfigIcons = iconset, iconConfigPP = pp })
+dynamicLogIconsWithPP iconset = dynamicLogWithPP <=< dynamicIconsPP def{ iconConfigIcons = iconset }
 
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
     { iconConfigIcons :: IconSet -- ^ The 'IconSet' to use
     , iconConfigFmt :: WorkspaceId -> [String] -> String
       -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
-    , iconConfigPP    :: PP -- ^ The 'PP' to alter
     }
 
 instance Default IconConfig where
     def = IconConfig
         { iconConfigIcons = mempty
         , iconConfigFmt = iconsFmtReplace (wrapUnwords "{" "}")
-        , iconConfigPP = def
         }
 
 -- | 'iconConfigFmt' that replaces the workspace name with icons, if any.
@@ -164,13 +163,13 @@ wrapUnwords :: String -> String -> [String] -> String
 wrapUnwords _ _ [x] = x
 wrapUnwords l r xs  = wrap l r (unwords xs)
 
--- | This is the same as 'dynamicLogIconsWithPP' but it takes a 'IconConfig'.
--- This allows you to manually customise the 'Icon's the stacking function and also your `PP`
-dynamicLogIconsConvert :: IconConfig -> X PP
-dynamicLogIconsConvert IconConfig{..} = do
+-- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to augment
+-- workspace names with icons based on the contents (windows) of the workspace.
+dynamicIconsPP :: IconConfig -> PP -> X PP
+dynamicIconsPP IconConfig{..} pp = do
     ws <- gets (S.workspaces . windowset)
     icons <- M.fromList . catMaybes <$> mapM (getIcons iconConfigIcons) ws
-    pure $ iconConfigPP
+    pure $ pp
         { ppCurrent = ppSection ppCurrent iconCurrent icons
         , ppVisible = ppSection ppVisible iconVisible icons
         , ppHidden = ppSection ppHidden iconHidden icons
@@ -178,7 +177,7 @@ dynamicLogIconsConvert IconConfig{..} = do
         }
   where
     ppSection ppField icField icons wks =
-        ppField iconConfigPP $ iconConfigFmt wks $ map icField $ M.findWithDefault [] wks icons
+        ppField pp $ iconConfigFmt wks $ map icField $ M.findWithDefault [] wks icons
 
 getIcons :: IconSet -> WindowSpace -> X (Maybe (WorkspaceId, [Icon]))
 getIcons is w = do
