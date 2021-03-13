@@ -32,7 +32,7 @@ import qualified XMonad.StackSet as S
 import qualified Data.Map as M
 
 import XMonad.Hooks.DynamicLog
-import Data.Maybe (catMaybes)
+import Data.Traversable (for)
 import Control.Monad ((<=<))
 
 -- $usage
@@ -167,8 +167,7 @@ wrapUnwords l r xs  = wrap l r (unwords xs)
 -- workspace names with icons based on the contents (windows) of the workspace.
 dynamicIconsPP :: IconConfig -> PP -> X PP
 dynamicIconsPP IconConfig{..} pp = do
-    ws <- gets (S.workspaces . windowset)
-    icons <- M.fromList . catMaybes <$> mapM (getIcons iconConfigIcons) ws
+    icons <- getWorkspaceIcons iconConfigIcons
     pure $ pp
         { ppCurrent = ppSection ppCurrent iconCurrent icons
         , ppVisible = ppSection ppVisible iconVisible icons
@@ -179,7 +178,8 @@ dynamicIconsPP IconConfig{..} pp = do
     ppSection ppField icField icons wks =
         ppField pp $ iconConfigFmt wks $ map icField $ M.findWithDefault [] wks icons
 
-getIcons :: IconSet -> WindowSpace -> X (Maybe (WorkspaceId, [Icon]))
-getIcons is w = do
-    validIcons <- sequence $ foldMap (runQuery is) . S.integrate <$> S.stack w
-    pure $ (S.tag w,) <$> (validIcons >>= \x -> if null x then Nothing else Just x)
+getWorkspaceIcons :: IconSet -> X (M.Map WorkspaceId [Icon])
+getWorkspaceIcons iconSet = do
+    ws <- gets (S.workspaces . windowset)
+    is <- for ws $ foldMap (runQuery iconSet) . S.integrate' . S.stack
+    pure $ M.fromList (zip (map S.tag ws) is)
