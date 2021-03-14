@@ -812,7 +812,7 @@
     obscured by fullscreen windows.
 
     Add fullscreenSupport' which uses smartBorders to remove window borders
-    when the window is fullscreen
+    when the window is fullscreen.
 
   * `XMonad.Layout.Gaps`
 
