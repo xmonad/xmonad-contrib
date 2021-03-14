@@ -84,8 +84,7 @@ fullscreenSupport c = c {
     startupHook = startupHook c <+> fullscreenStartup
   }
 
--- | Modifies your config your config to apply basic fullscreen support -- fullscreen
--- windows when they request it, with smartBorders support so the border doesn't show when the window is fullscreen
+-- | fullscreenSupport with smartBorders support so the border doesn't show when the window is fullscreen
 --
 -- > main = xmonad
 -- >      $ fullscreenSupport'
