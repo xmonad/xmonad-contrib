@@ -16,7 +16,7 @@ module XMonad.Layout.Fullscreen
     ( -- * Usage:
       -- $usage
      fullscreenSupport
-    ,fullscreenSupport'
+    ,fullscreenSupportBorder
     ,fullscreenFull
     ,fullscreenFocus
     ,fullscreenFullRect
