@@ -16,6 +16,7 @@ module XMonad.Layout.Fullscreen
     ( -- * Usage:
       -- $usage
      fullscreenSupport
+    ,fullscreenSupport'
     ,fullscreenFull
     ,fullscreenFocus
     ,fullscreenFullRect
@@ -32,6 +33,7 @@ module XMonad.Layout.Fullscreen
 
 import           XMonad
 import           XMonad.Layout.LayoutModifier
+import           XMonad.Layout.NoBorders        (SmartBorder(), smartBorders)
 import           XMonad.Hooks.EwmhDesktops      (fullscreenStartup)
 import           XMonad.Hooks.ManageHelpers     (isFullscreen)
 import           XMonad.Util.WindowProperties
@@ -81,6 +83,18 @@ fullscreenSupport c = c {
     manageHook = manageHook c <+> fullscreenManageHook,
     startupHook = startupHook c <+> fullscreenStartup
   }
+
+-- | Modifies your config your config to apply basic fullscreen support -- fullscreen
+-- windows when they request it, with smartBorders support so the border doesn't show when the window is fullscreen
+--
+-- > main = xmonad
+-- >      $ fullscreenSupport'
+-- >      $ def { ... }
+fullscreenSupport' :: LayoutClass l Window =>
+    XConfig l -> XConfig (ModifiedLayout FullscreenFull
+    (ModifiedLayout SmartBorder (ModifiedLayout FullscreenFull l)))
+fullscreenSupport' c = fullscreenSupport c { layoutHook = smartBorders $ fullscreenFull $ layoutHook c }
+
 
 -- | Messages that control the fullscreen state of the window.
 -- AddFullscreen and RemoveFullscreen are sent to all layouts
