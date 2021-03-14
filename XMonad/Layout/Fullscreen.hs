@@ -94,7 +94,6 @@ fullscreenSupport' :: LayoutClass l Window =>
     (ModifiedLayout SmartBorder (ModifiedLayout FullscreenFull l)))
 fullscreenSupport' c = fullscreenSupport c { layoutHook = smartBorders $ fullscreenFull $ layoutHook c }
 
-
 -- | Messages that control the fullscreen state of the window.
 -- AddFullscreen and RemoveFullscreen are sent to all layouts
 -- when a window wants or no longer wants to be fullscreen.
