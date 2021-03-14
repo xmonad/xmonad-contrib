@@ -87,12 +87,12 @@ fullscreenSupport c = c {
 -- | fullscreenSupport with smartBorders support so the border doesn't show when the window is fullscreen
 --
 -- > main = xmonad
--- >      $ fullscreenSupport'
+-- >      $ fullscreenSupportBorder
 -- >      $ def { ... }
-fullscreenSupport' :: LayoutClass l Window =>
+fullscreenSupportBorder :: LayoutClass l Window =>
     XConfig l -> XConfig (ModifiedLayout FullscreenFull
     (ModifiedLayout SmartBorder (ModifiedLayout FullscreenFull l)))
-fullscreenSupport' c = fullscreenSupport c { layoutHook = smartBorders $ fullscreenFull $ layoutHook c }
+fullscreenSupportBorder c = fullscreenSupport c { layoutHook = smartBorders $ fullscreenFull $ layoutHook c }
 
 -- | Messages that control the fullscreen state of the window.
 -- AddFullscreen and RemoveFullscreen are sent to all layouts
