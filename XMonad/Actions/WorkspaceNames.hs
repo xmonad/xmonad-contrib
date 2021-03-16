@@ -54,6 +54,7 @@ import XMonad.Prompt (mkXPrompt, XPConfig)
 import XMonad.Prompt.Workspace (Wor(Wor))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
+import Control.Monad ((>=>))
 import Data.Functor ((<&>))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
@@ -101,12 +102,12 @@ getWorkspaceNames' = do
     WorkspaceNames m <- XS.get
     return (`M.lookup` m)
 
--- | Returns a function that maps workspace tag @\"t\"@ to @\"t:name\"@ for
--- workspaces with a name, and to @\"t\"@ otherwise.
-getWorkspaceNames :: X (WorkspaceId -> String)
-getWorkspaceNames = do
-    lookup' <- getWorkspaceNames'
-    return $ \wks -> wks ++ maybe "" (':' :) (lookup' wks)
+-- | Returns a function for 'ppRename' that appends @sep@ and the workspace
+-- name, if set.
+getWorkspaceNames :: String -> X (String -> WindowSpace -> String)
+getWorkspaceNames sep = ren <$> getWorkspaceNames'
+  where
+    ren name s w = s ++ maybe "" (sep ++) (name (W.tag w))
 
 -- | Gets the name of a workspace, if set, otherwise returns nothing.
 getWorkspaceName :: WorkspaceId -> X (Maybe String)
@@ -139,17 +140,7 @@ renameWorkspace conf =
 -- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to show
 -- workspace names as well.
 workspaceNamesPP :: PP -> X PP
-workspaceNamesPP pp = do
-    names <- getWorkspaceNames
-    return $
-        pp {
-            ppCurrent         = ppCurrent         pp . names,
-            ppVisible         = ppVisible         pp . names,
-            ppHidden          = ppHidden          pp . names,
-            ppHiddenNoWindows = ppHiddenNoWindows pp . names,
-            ppVisibleNoWindows= ppVisibleNoWindows pp <&> (. names),
-            ppUrgent          = ppUrgent          pp . names
-        }
+workspaceNamesPP pp = getWorkspaceNames ":" <&> \ren -> pp{ ppRename = ppRename pp >=> ren }
 
 -- | See 'XMonad.Actions.SwapWorkspaces.swapTo'. This is the same with names.
 swapTo :: Direction1D -> X ()
@@ -176,17 +167,15 @@ swapNames w1 w2 = do
     XS.put $ WorkspaceNames $ set w1 (getname w2) $ set w2 (getname w1) $ m
 
 -- | Same behavior than 'XMonad.Prompt.Workspace.workspacePrompt' excepted it acts on the workspace name provided by this module.
-workspaceNamePrompt :: XPConfig -> (String -> X ()) -> X ()
+workspaceNamePrompt :: XPConfig -> (WorkspaceId -> X ()) -> X ()
 workspaceNamePrompt conf job = do
-    myWorkspaces <- gets $ map W.tag . W.workspaces . windowset
-    myWorkspacesName <- getWorkspaceNames >>= \f -> return $ map f myWorkspaces
-    let pairs = zip myWorkspacesName myWorkspaces
+    myWorkspaces <- gets $ W.workspaces . windowset
+    myWorkspacesName <- getWorkspaceNames ":" <&> \n -> [n (W.tag w) w | w <- myWorkspaces]
+    let pairs = zip myWorkspacesName (map W.tag myWorkspaces)
     mkXPrompt (Wor "Select workspace: ") conf
               (contains myWorkspacesName)
               (job . toWsId pairs)
-  where toWsId pairs name = case lookup name pairs of
-                                Nothing -> ""
-                                Just i -> i
+  where toWsId pairs name = fromMaybe "" (lookup name pairs)
         contains completions input =
           return $ filter (Data.List.isInfixOf input) completions
 
@@ -197,6 +186,5 @@ workspaceNamePrompt conf job = do
 -- Usage:
 -- > logHook = (workspaceNamesListTransform >>= ewmhDesktopsLogHookCustom) <+> …
 workspaceNamesListTransform :: X ([WindowSpace] -> [WindowSpace])
-workspaceNamesListTransform = do
-    names <- getWorkspaceNames
-    return $ map $ \ws -> ws{ W.tag = names $ W.tag ws }
+workspaceNamesListTransform =
+    getWorkspaceNames ":" <&> \names -> map $ \ws -> ws{ W.tag = names (W.tag ws) ws }

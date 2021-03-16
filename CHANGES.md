@@ -45,6 +45,11 @@
     - `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
       in how the xmonad core handles XDG directories.
 
+  * `XMonad.Actions.WorkspaceNames`
+
+    - The type of `getWorkspaceNames` was changed to fit into the new `ppRename`
+      field of `PP`.
+
 ### New Modules
 
   * `XMonad.Util.Hacks`

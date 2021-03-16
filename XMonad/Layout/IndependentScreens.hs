@@ -31,7 +31,6 @@ module XMonad.Layout.IndependentScreens (
 -- for the screen stuff
 import Control.Applicative(liftA2)
 import Control.Arrow hiding ((|||))
-import Data.Functor ((<&>))
 import Data.List (nub, genericLength)
 import Graphics.X11.Xinerama
 import XMonad
@@ -135,15 +134,8 @@ countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getS
 -- > logHook = let log screen handle = dynamicLogWithPP . marshallPP screen . pp $ handle
 -- >           in log 0 hLeft >> log 1 hRight
 marshallPP :: ScreenId -> PP -> PP
-marshallPP s pp = pp {
-    ppCurrent           = ppCurrent         pp . unmarshallW,
-    ppVisible           = ppVisible         pp . unmarshallW,
-    ppHidden            = ppHidden          pp . unmarshallW,
-    ppHiddenNoWindows   = ppHiddenNoWindows pp . unmarshallW,
-    ppVisibleNoWindows  = ppVisibleNoWindows pp <&> (. unmarshallW),
-    ppUrgent            = ppUrgent          pp . unmarshallW,
-    ppSort              = fmap (marshallSort s) (ppSort pp)
-    }
+marshallPP s pp = pp { ppRename = ppRename pp . unmarshallW
+                     , ppSort = fmap (marshallSort s) (ppSort pp) }
 
 -- | Take a pretty-printer and turn it into one that only runs when the current
 -- workspace is one associated with the given screen. The way this works is a
