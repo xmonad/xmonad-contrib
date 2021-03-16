@@ -583,16 +583,18 @@ dynamicLogString pp = do
 pprWindowSet :: WorkspaceSort -> [Window] -> PP -> WindowSet -> String
 pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
             map S.workspace (S.current s : S.visible s) ++ S.hidden s
-   where this     = S.currentTag s
-         visibles = map (S.tag . S.workspace) (S.visible s)
+  where
+    this     = S.currentTag s
+    visibles = map (S.tag . S.workspace) (S.visible s)
 
-         fmt w = printer pp (S.tag w)
-          where printer | any (\x -> (== Just (S.tag w)) (S.findTag x s)) urgents  = ppUrgent
-                        | S.tag w == this                                               = ppCurrent
-                        | S.tag w `elem` visibles && isJust (S.stack w)                 = ppVisible
-                        | S.tag w `elem` visibles                                       = liftA2 fromMaybe ppVisible ppVisibleNoWindows
-                        | isJust (S.stack w)                                            = ppHidden
-                        | otherwise                                                     = ppHiddenNoWindows
+    fmt w = printer pp (S.tag w)
+      where
+        printer | any (\x -> (== Just (S.tag w)) (S.findTag x s)) urgents = ppUrgent
+                | S.tag w == this                                         = ppCurrent
+                | S.tag w `elem` visibles && isJust (S.stack w)           = ppVisible
+                | S.tag w `elem` visibles                                 = liftA2 fromMaybe ppVisible ppVisibleNoWindows
+                | isJust (S.stack w)                                      = ppHidden
+                | otherwise                                               = ppHiddenNoWindows
 
 -- |
 -- Workspace logger with a format designed for Xinerama:
