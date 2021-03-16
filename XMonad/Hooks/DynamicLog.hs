@@ -587,7 +587,7 @@ pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
     this     = S.currentTag s
     visibles = map (S.tag . S.workspace) (S.visible s)
 
-    fmt w = printer pp (S.tag w)
+    fmt w = printer pp (ppRename pp (S.tag w) w)
       where
         printer | any (\x -> (== Just (S.tag w)) (S.findTag x s)) urgents = ppUrgent
                 | S.tag w == this                                         = ppCurrent
@@ -938,6 +938,9 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ how to print tags of empty visible workspaces
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
+             , ppRename :: String -> WindowSpace -> String
+               -- ^ rename/augment the workspace tag
+               --   (note that @WindowSpace -> …@ acts as a Reader monad)
              , ppSep :: String
                -- ^ separator to use between different log sections
                -- (window name, layout, workspaces)
@@ -989,6 +992,7 @@ instance Default PP where
                , ppHiddenNoWindows = const ""
                , ppVisibleNoWindows= Nothing
                , ppUrgent          = id
+               , ppRename          = pure
                , ppSep             = " : "
                , ppWsSep           = " "
                , ppTitle           = shorten 80

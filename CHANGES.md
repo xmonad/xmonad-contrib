@@ -229,6 +229,10 @@
       to provide the configs for the already existing functionality. This provides
       multiple status bars support.
 
+    - Added `ppRename` to `PP`, which makes it possible for extensions like
+      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
+      intuitively.
+
   * `XMonad.Layout.BoringWindows`
 
     - Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
