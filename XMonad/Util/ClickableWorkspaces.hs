@@ -25,7 +25,7 @@ import Control.Monad ((>=>))
 import Data.Functor ((<&>))
 
 import XMonad
-import XMonad.Hooks.DynamicLog (xmobarAction, xmobarRaw, PP(..))
+import XMonad.Hooks.DynamicLog (xmobarAction, PP(..))
 import XMonad.Util.WorkspaceCompare (getWsIndex)
 import qualified XMonad.StackSet as W
 
@@ -39,11 +39,16 @@ import qualified XMonad.StackSet as W
 --   * @xdotool@ on system (in path)
 --   * "XMonad.Hooks.EwmhDesktops" for @xdotool@ support (see Hackage docs for setup)
 --   * use of UnsafeStdinReader/UnsafeXMonadLog in xmobarrc (rather than StdinReader/XMonadLog)
+--
+-- Note that UnsafeStdinReader is potentially dangerous if your workspace
+-- names are dynamically generated from untrusted input (like window titles).
+-- You may need to add @xmobarRaw@ to 'ppRename' before applying
+-- 'clickablePP' in such case.
 
 -- | Wrap string with an xmobar action that uses @xdotool@ to switch to
 -- workspace @i@.
 clickableWrap :: Int -> String -> String
-clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" $ xmobarRaw ws
+clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" ws
 
 -- | Return a function that wraps workspace names in an xmobar action that
 -- switches to that workspace.
