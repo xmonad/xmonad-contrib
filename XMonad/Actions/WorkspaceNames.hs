@@ -181,6 +181,8 @@ workspaceNamePrompt conf job = do
 --
 -- Usage:
 -- > ewmh' def{ workspaceRename = workspaceNamesRenameWS }
+--
+-- TODO: drop this, change EwmhConfig to use getWorkspaceNames directly
 workspaceNamesRenameWS :: X (WindowSpace -> WindowSpace)
 workspaceNamesRenameWS =
     getWorkspaceNames ":" <&> \names ws -> ws{ W.tag = names (W.tag ws) ws }
