@@ -142,8 +142,8 @@
 
   * `XMonad.Layout.Fullscreen`
 
-    Add fullscreenSupportBorder which uses smartBorders to remove window borders
-    when the window is fullscreen.
+    - Add fullscreenSupportBorder which uses smartBorders to remove
+      window borders when the window is fullscreen.
 
   * `XMonad.Config.Mate`
 
@@ -818,9 +818,6 @@
 
     The fullscreen layouts will now not render any window that is totally
     obscured by fullscreen windows.
-
-    Add fullscreenSupportBorder which uses smartBorders to remove window borders
-    when the window is fullscreen.
 
   * `XMonad.Layout.Gaps`
 
