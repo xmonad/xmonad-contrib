@@ -33,7 +33,7 @@ module XMonad.Layout.Fullscreen
 
 import           XMonad
 import           XMonad.Layout.LayoutModifier
-import           XMonad.Layout.NoBorders        (SmartBorder(), smartBorders)
+import           XMonad.Layout.NoBorders        (SmartBorder, smartBorders)
 import           XMonad.Hooks.EwmhDesktops      (fullscreenStartup)
 import           XMonad.Hooks.ManageHelpers     (isFullscreen)
 import           XMonad.Util.WindowProperties
