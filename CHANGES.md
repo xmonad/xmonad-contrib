@@ -140,6 +140,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.Fullscreen`
+
+    Add fullscreenSupportBorder which uses smartBorders to remove window borders
+    when the window is fullscreen.
+
   * `XMonad.Config.Mate`
 
     - Split out the logout dialog and add a shutdown dialog. The default behavior
@@ -813,6 +818,9 @@
 
     The fullscreen layouts will now not render any window that is totally
     obscured by fullscreen windows.
+
+    Add fullscreenSupportBorder which uses smartBorders to remove window borders
+    when the window is fullscreen.
 
   * `XMonad.Layout.Gaps`
 
