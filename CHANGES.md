@@ -151,6 +151,8 @@
       remains the same but there are now `mateLogout` and `mateShutdown` actions
       available.
 
+    - Add mod-d keybinding to open the Mate main menu.
+
   * `XMonad.Actions.DynamicProjects`
 
     - The `changeProjectDirPrompt` function respects the `complCaseSensitivity` field
