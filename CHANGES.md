@@ -144,6 +144,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.TreeSelect`
+
+    - Fix the blue and green colors being swapped.
+
   * `XMonad.Layout.Fullscreen`
 
     - Add fullscreenSupportBorder which uses smartBorders to remove
