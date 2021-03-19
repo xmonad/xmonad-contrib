@@ -165,6 +165,7 @@ library
                         XMonad.Hooks.DebugStack
                         XMonad.Hooks.DynamicBars
                         XMonad.Hooks.DynamicHooks
+                        XMonad.Hooks.DynamicIcons
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.DynamicProperty
                         XMonad.Hooks.EwmhDesktops
