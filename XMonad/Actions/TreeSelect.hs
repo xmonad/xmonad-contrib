@@ -161,8 +161,8 @@ import Graphics.X11.Xrender
 -- white       = 0xffffffff
 -- black       = 0xff000000
 -- red         = 0xffff0000
--- blue        = 0xff00ff00
 -- green       = 0xff0000ff
+-- blue        = 0xff00ff00
 -- transparent = 0x00000000
 -- @
 
