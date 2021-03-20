@@ -45,6 +45,11 @@
     - `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
       in how the xmonad core handles XDG directories.
 
+  * `XMonad.Actions.WorkspaceNames`
+
+    - The type of `getWorkspaceNames` was changed to fit into the new `ppRename`
+      field of `PP`.
+
 ### New Modules
 
   * `XMonad.Util.Hacks`
@@ -239,6 +244,10 @@
       `statusBarPropToConfig`, `statusBarHandleConfig` and `statusBarHandleConfig'`
       to provide the configs for the already existing functionality. This provides
       multiple status bars support.
+
+    - Added `ppRename` to `PP`, which makes it possible for extensions like
+      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
+      intuitively.
 
   * `XMonad.Layout.BoringWindows`
 
