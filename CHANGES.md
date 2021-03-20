@@ -50,6 +50,26 @@
     - The type of `getWorkspaceNames` was changed to fit into the new `ppRename`
       field of `PP`.
 
+  * `XMonad.Hooks.DynamicLog` and `XMonad.Util.Run`
+
+    - `spawnPipe` no longer uses binary mode handles but defaults to the
+      current locale encoding instead.
+
+      `dynamicLogString`, the output of which usually goes directly into such
+      a handle, no longer encodes its output in UTF-8, but returns a normal
+      `String` of Unicode codepoints instead.
+
+      When these two are used together, everything should continue to work as
+      it always has, but in isolation behaviour might change.
+
+      (To get the old `spawnPipe` behaviour, `spawnPipeWithNoEncoding` can now
+      be used, and `spawnPipeWithUtf8Encoding` was added as well to force
+      UTF-8 regardless of locale. These shouldn't normally be necessary, though.)
+
+    - `xmonadPropLog` and `xmonadPropLog'` now encode the String in UTF-8.
+      Again, no change when used together with `dynamicLogString`, but other
+      uses of these in user configs might need to be adapted.
+
 ### New Modules
 
   * `XMonad.Util.Hacks`
@@ -270,16 +290,6 @@
        `XMonad.Hooks.DynamicLog.filterOutWsPP` instead.
 
      - Exported the `scratchpadWorkspaceTag`.
-
-  * `XMonad.Util.Run`
-
-     - Added two new functions to the module:
-       `spawnPipeWithLocaleEncoding` and
-       `spawnPipeWithUtf8Encoding`. `spawnPipe` is now alias for
-       `spawnPipeWithLocaleEncoding`.
-
-     - Added the function `spawnPipeWithNoEncoding` for cases where a
-       binary handle is required.
 
   * `XMonad.Prompt.Window`
 

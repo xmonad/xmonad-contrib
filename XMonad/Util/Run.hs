@@ -41,9 +41,6 @@ import System.IO
 import System.Process (runInteractiveProcess)
 import XMonad
 import Control.Monad
-import qualified GHC.IO.FD as FD
-import qualified GHC.IO.Handle.FD as FD
-import qualified System.Posix.Internals as Posix
 
 -- $usage
 -- For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh"
@@ -149,67 +146,36 @@ runInTerm = unsafeRunInTerm
 safeRunInTerm :: String -> String -> X ()
 safeRunInTerm options command = asks (terminal . config) >>= \t -> safeSpawn t [options, " -e " ++ command]
 
--- | Same as 'spawnPipeWithLocaleEncoding'
+-- | Launch an external application through the system shell and
+-- return a 'Handle' to its standard input. Note that the 'Handle'
+-- is a text 'Handle' using the current locale encoding.
 spawnPipe :: MonadIO m => String -> m Handle
 spawnPipe = spawnPipeWithLocaleEncoding
 
--- | Launch an external application through the system shell and
--- return a @Handle@ to its standard input. Note that the @Handle@
--- is a binary Handle. You should probably use 'spawnPipeWithUtf8Encoding'.
+-- | Same as 'spawnPipe'.
+spawnPipeWithLocaleEncoding :: MonadIO m => String -> m Handle
+spawnPipeWithLocaleEncoding = spawnPipe' localeEncoding
+
+-- | Same as 'spawnPipe', but forces the UTF-8 encoding regardless of locale.
+spawnPipeWithUtf8Encoding :: MonadIO m => String -> m Handle
+spawnPipeWithUtf8Encoding = spawnPipe' utf8
+
+-- | Same as 'spawnPipe', but forces the 'char8' encoding, so unicode strings
+-- need 'Codec.Binary.UTF8.String.encodeString'. Should never be needed, but
+-- some X functions return already encoded Strings, so it may possibly be
+-- useful for someone.
 spawnPipeWithNoEncoding :: MonadIO m => String -> m Handle
-spawnPipeWithNoEncoding x = io $ do
+spawnPipeWithNoEncoding = spawnPipe' char8
+
+spawnPipe' :: MonadIO m => TextEncoding -> String -> m Handle
+spawnPipe' encoding x = io $ do
     (rd, wr) <- createPipe
     setFdOption wr CloseOnExec True
     h <- fdToHandle wr
+    hSetEncoding h encoding
     hSetBuffering h LineBuffering
     _ <- xfork $ do
           _ <- dupTo rd stdInput
           executeFile "/bin/sh" False ["-c", encodeString x] Nothing
     closeFd rd
     return h
-
--- | Same as 'spawnPipe', but uses the current 'localeEncoding'.
-spawnPipeWithLocaleEncoding :: MonadIO m => String -> m Handle
-spawnPipeWithLocaleEncoding x = io $ do
-    (rd, wr) <- createPipe
-    setFdOption wr CloseOnExec True
-    h <- fdToTextHandle (fromIntegral wr) localeEncoding
-    hSetBuffering h LineBuffering
-    _ <- xfork $ do
-          _ <- dupTo rd stdInput
-          executeFile "/bin/sh" False ["-c", encodeString x] Nothing
-    closeFd rd
-    return h
-
--- | Same as 'spawnPipe', but uses the 'utf8' encoding.
-spawnPipeWithUtf8Encoding :: MonadIO m => String -> m Handle
-spawnPipeWithUtf8Encoding x = io $ do
-    (rd, wr) <- createPipe
-    setFdOption wr CloseOnExec True
-    h <- fdToTextHandle (fromIntegral wr) utf8
-    hSetBuffering h LineBuffering
-    _ <- xfork $ do
-          _ <- dupTo rd stdInput
-          executeFile "/bin/sh" False ["-c", encodeString x] Nothing
-    closeFd rd
-    return h
-
--- | Same as 'fdToHandle', but this makes a text Handle instead of
--- Binary. The handle is set with the 'TextEncoding' you pass.
---
--- Implementation taken and modified from <https://www.stackage.org/haddock/lts-15.9/base-4.13.0.0/src/GHC-IO-Handle-FD.html#fdToHandle>
-fdToTextHandle :: Posix.FD -> TextEncoding -> IO Handle
-fdToTextHandle fdint encoding = do
-   iomode <- Posix.fdGetMode fdint
-   (fd,fd_type) <- FD.mkFD fdint iomode Nothing
-            False{-is_socket-} 
-              -- NB. the is_socket flag is False, meaning that:
-              --  on Windows we're guessing this is not a socket (XXX)
-            False{-is_nonblock-}
-              -- file descriptors that we get from external sources are
-              -- not put into non-blocking mode, because that would affect
-              -- other users of the file descriptor
-   let fd_str = "<file descriptor: " ++ show fd ++ ">"
-   FD.mkHandleFromFD fd fd_type fd_str iomode False{-non-block-} 
-                     (Just encoding)
-

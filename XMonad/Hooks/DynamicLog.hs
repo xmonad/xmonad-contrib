@@ -80,12 +80,12 @@ module XMonad.Hooks.DynamicLog (
 
 -- Useful imports
 
-import Codec.Binary.UTF8.String (encodeString)
+import qualified Codec.Binary.UTF8.String as UTF8 (encode)
 import Control.Applicative (liftA2)
 import Control.Exception (SomeException, try)
 import Control.Monad (msum, void)
 import Data.Bool (bool)
-import Data.Char (isSpace, ord)
+import Data.Char (isSpace)
 import Data.List (intercalate, isPrefixOf, sortOn, stripPrefix)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import System.Posix.Signals (sigTERM, signalProcessGroup)
@@ -492,8 +492,7 @@ makeSB sb k conf = do
   makeStatusBar' sb' k conf
 
 -- | Write a string to a property on the root window.  This property is of type
--- @UTF8_STRING@. The string must have been processed by 'encodeString'
--- ('dynamicLogString' does this).
+-- @UTF8_STRING@.
 xmonadPropLog' :: String  -- ^ Property name
                -> String  -- ^ Message to be written to the property
                -> X ()
@@ -505,7 +504,7 @@ xmonadPropLog' prop msg = do
     io $ changeProperty8 d r xlog ustring propModeReplace (encodeCChar msg)
  where
     encodeCChar :: String -> [CChar]
-    encodeCChar = map (fromIntegral . ord)
+    encodeCChar = map fromIntegral . UTF8.encode
 
 -- | Write a string to the @_XMONAD_LOG@ property on the root window.
 xmonadPropLog :: String -> X ()
@@ -570,7 +569,7 @@ dynamicLogString pp = do
     -- run extra loggers, ignoring any that generate errors.
     extras <- mapM (`catchX` return Nothing) $ ppExtras pp
 
-    return $ encodeString . sepBy (ppSep pp) . ppOrder pp $
+    return $ sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppNames
