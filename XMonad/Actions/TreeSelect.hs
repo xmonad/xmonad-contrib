@@ -654,6 +654,8 @@ drawStringXMF display window visual colormap gc font col x y text = case font of
 -- | Convert 'Pixel' to 'XRenderColor'
 --
 -- Note that it uses short to represent its components
+--
+-- This fixes a bug with font rendering, caused by the haskell bindings for xorg-xft.
 fromARGB :: Pixel -> XRenderColor
 fromARGB x = XRenderColor (fromIntegral $ 0xff00 .&. shiftR x 8)  -- red
                           (fromIntegral $ 0xff00 .&. shiftL x 8)  -- green
