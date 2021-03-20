@@ -172,10 +172,12 @@ data XPConfig =
         , borderColor           :: String       -- ^ Border color
         , promptBorderWidth     :: !Dimension   -- ^ Border width
         , position              :: XPPosition   -- ^ Position: 'Top', 'Bottom', or 'CenteredAt'
-        , alwaysHighlight       :: !Bool        -- ^ Always highlight an item, overriden to True with multiple modes. This implies having *one* column of autocompletions only.
+        , alwaysHighlight       :: !Bool        -- ^ Always highlight an item, overriden to True with multiple modes
         , height                :: !Dimension   -- ^ Window height
         , maxComplRows          :: Maybe Dimension
                                                 -- ^ Just x: maximum number of rows to show in completion window
+        , maxComplColumns       :: Maybe Dimension
+                                                -- ^ Just x: maximum number of columns to show in completion window
         , historySize           :: !Int         -- ^ The number of history entries to be saved
         , historyFilter         :: [String] -> [String]
                                                 -- ^ a filter to determine which
@@ -323,6 +325,7 @@ instance Default XPConfig where
         , position              = Bottom
         , height                = 18
         , maxComplRows          = Nothing
+        , maxComplColumns       = Nothing
         , historySize           = 256
         , historyFilter         = id
         , defaultText           = []
@@ -1497,8 +1500,10 @@ getComplWinDim compl = do
       bw = promptBorderWidth c
 
   tws <- mapM (textWidthXMF (dpy st) fs) compl
-  let max_compl_len =  fromIntegral ((fi ht `div` 2) + maximum tws)
-      columns = max 1 $ wh `div` fi max_compl_len
+  let max_compl_len = (fi ht `div` 2) + maximum tws
+      limit_max_columns = maybe id min (maxComplColumns c)
+      columns = max 1 $ limit_max_columns $ wh `div` fi max_compl_len
+      column_width = wh `div` columns
       rem_height =  rect_height scr - ht
       (rows,r) = length compl `divMod` fi columns
       needed_rows = max 1 (rows + if r == 0 then 0 else 1)
@@ -1516,7 +1521,7 @@ getComplWinDim compl = do
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
-      xx = take (fi columns) [xp,(xp + max_compl_len)..]
+      xx = take (fi columns) [xp,(xp + fi column_width)..]
 
   return (rect_x scr + x, rect_y scr + fi y, wh, actual_height, xx, yy)
 

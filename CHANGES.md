@@ -422,6 +422,9 @@
     - The prompt now cycles through its suggestions if one hits the ends
       of the suggestion list and presses `TAB` again.
 
+    - Added `maxComplColumns` field to `XPConfig`, to limit the number of
+      columns in the completion window.
+
   * `XMonad.Actions.TreeSelect`
 
     - Fixed a crash when focusing a new window while the tree select
