@@ -19,7 +19,8 @@ module XMonad.Actions.AfterDrag (
                 ifClick') where
 
 import XMonad
-import System.Time
+
+import Data.Time (NominalDiffTime, diffUTCTime, getCurrentTime)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -53,7 +54,7 @@ afterDrag task = do drag <- gets dragging
 --   A drag is considered a click if it is completed within 300 ms.
 ifClick
   :: X ()   -- ^ The action to take if the dragging turned out to be a click.
-  -> X () 
+  -> X ()
 ifClick action = ifClick' 300 action (return ())
 
 -- | Take an action if the current dragging is completed within a certain time (in milliseconds.)
@@ -61,11 +62,11 @@ ifClick'
   :: Int    -- ^ Maximum time of dragging for it to be considered a click (in milliseconds.)
   -> X ()   -- ^ The action to take if the dragging turned out to be a click.
   -> X ()   -- ^ The action to take if the dragging turned out to not be a click.
-  -> X () 
+  -> X ()
 ifClick' ms click drag = do
-  start <- io $ getClockTime
-  afterDrag $ do 
-    stop <- io $ getClockTime
-    if diffClockTimes stop start <= noTimeDiff { tdPicosec = fromIntegral ms * 10^(9 :: Integer) }
+  start <- io getCurrentTime
+  afterDrag $ do
+    stop <- io getCurrentTime
+    if diffUTCTime stop start <= (fromIntegral ms / 10^(3 :: Integer) :: NominalDiffTime)
       then click
       else drag
