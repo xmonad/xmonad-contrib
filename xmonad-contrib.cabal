@@ -186,6 +186,8 @@ library
                         XMonad.Hooks.Script
                         XMonad.Hooks.ServerMode
                         XMonad.Hooks.SetWMName
+                        XMonad.Hooks.StatusBar
+                        XMonad.Hooks.StatusBar.PP
                         XMonad.Hooks.ToggleHook
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.WallpaperSetter

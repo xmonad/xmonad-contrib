@@ -72,6 +72,17 @@
 
 ### New Modules
 
+  * `XMonad.Hooks.StatusBar.PP`
+
+    Originally contained inside `XMonad.Hooks.DynamicLog`, this module provides the
+    pretty-printing abstraction and utilities, used primarly with `logHook`.
+
+  * `XMonad.Hooks.StatusBar`
+
+    This module provides a new interface that replaces "XMonad.Hooks.DynamicLog",
+    by providing composoble status bars. Supports property-based as well
+    as pipe-based status bars.
+
   * `XMonad.Util.Hacks`
 
     Serves as a collection of hacks and fixes that should be easily acessible to users.
@@ -229,10 +240,6 @@
 
   * `XMonad.Hooks.DynamicLog`
 
-    - Added `statusBar'` function, like existing `statusBar` but accepts a pretty
-      printing options argument embedded in the X monad, to allow for dynamically
-      modified options such as `workspaceNamesPP`.
-
     - Added `shortenLeft` function, like existing `shorten` but shortens by
       truncating from left instead of right. Useful for showing directories.
 
@@ -242,15 +249,11 @@
     - Added `filterOutWsPP` for filtering out certain workspaces from being
       displayed.
 
-    - Added `xmobarProp`, `statusBarProp`, and `statusBarPropTo` for
-      property-based alternatives to `xmobar` and `statusBar` respectively.
+    - Added `xmobarProp`, for property-based alternative to `xmobar`.
 
     - Reworked the module documentation to suggest property-based logging
       instead of pipe-based logging, due to the various issues associated with
       the latter.
-
-    - Added `spawnStatusBarAndRemember` and `cleanupStatusBars` to provide
-      a way to safely restart status bars without relying on pipes.
 
     - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
       the current workspace in the status bar.
@@ -258,16 +261,6 @@
     - Added `xmobarBorder` function to create borders around strings.
 
     - Add the -dock argument to the dzen spawn arguments
-
-    - Added `StatusBarConfig` and `makeStatusBar` and `makeStatusBar'` as
-      an abstraction for status bars; together with `statusBarPropConfig`,
-      `statusBarPropToConfig`, `statusBarHandleConfig` and `statusBarHandleConfig'`
-      to provide the configs for the already existing functionality. This provides
-      multiple status bars support.
-
-    - Added `ppRename` to `PP`, which makes it possible for extensions like
-      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
-      intuitively.
 
   * `XMonad.Layout.BoringWindows`
 

@@ -484,6 +484,10 @@ Here is a list of the modules found in @XMonad.Hooks@:
   putting in a status bar of some sort. See
   "XMonad.Doc.Extending#The_log_hook_and_external_status_bars".
 
+* "XMonad.Hooks.StatusBar.PP": originally in "XMonad.Hooks.DynamicLog",
+   this module provides the pretty-printing abstraction 'PP' and a set of
+   functions to interact with it.
+
 * "XMonad.Hooks.EwmhDesktops":
     Makes xmonad use the EWMH hints to tell panel applications about its
     workspaces and the windows therein. It also allows the user to interact
@@ -558,6 +562,10 @@ Here is a list of the modules found in @XMonad.Hooks@:
     Sets the WM name to a given string, so that it could be detected using
     _NET_SUPPORTING_WM_CHECK protocol.  May be useful for making Java GUI
     programs work.
+
+* "XMonad.Hooks.StatusBar":
+   This module provides a new interface that replaces "XMonad.Hooks.DynamicLog",
+   by providing composoble and dynamic status bars.
 
 * "XMonad.Hooks.ToggleHook":
     Hook and keybindings for toggling hook behavior.
@@ -1735,7 +1743,8 @@ specifically for logging some of the most interesting information
 about the internal state of xmonad: "XMonad.Hooks.DynamicLog".  This
 module can be used with an external status bar to print the produced
 logs in a convenient way; the most commonly used status bars are dzen
-and xmobar.
+and xmobar. The module "XMonad.Hooks.StatusBar" offers another interface
+to interact with status bars, that might be more convenient to use.
 
 By default the 'XMonad.Core.logHook' doesn't produce anything. To
 enable it you need first to import "XMonad.Hooks.DynamicLog":
