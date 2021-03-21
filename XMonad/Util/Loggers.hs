@@ -57,11 +57,10 @@ import XMonad.Util.NamedWindows (getName)
 import Control.Exception as E
 import Data.List (find, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
+import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
 import System.Directory (getDirectoryContents)
-import System.IO
-import System.Locale
+import System.IO (hGetLine)
 import System.Process (runInteractiveCommand)
-import System.Time
 
 econst :: Monad m => a -> IOException -> m a
 econst = const . return
@@ -129,8 +128,7 @@ battery = logCmd "acpi | sed -r 's/.*?: (.*%).*/\\1/; s/[dD]ischarging, ([0-9]+%
 --   For more information see something like
 --   <http://www.cplusplus.com/reference/clibrary/ctime/strftime.html>.
 date :: String -> Logger
-date fmt = io $ do cal <- getClockTime >>= toCalendarTime
-                   return . Just $ formatCalendarTime defaultTimeLocale fmt cal
+date fmt = io $ Just . formatTime defaultTimeLocale fmt <$> getCurrentTime
 
 -- | Get the load average.  This assumes that you have a
 --   utility called @uptime@ and that you have @sed@
@@ -248,7 +246,7 @@ withScreen f n = do
   ss <- withWindowSet $ return . W.screens
   case find ((== n) . W.screen) ss of
     Just s  -> f s
-    Nothing -> pure $ Nothing
+    Nothing -> pure Nothing
 
 -- $format
 -- Combine logger formatting functions to make your
