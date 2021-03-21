@@ -43,7 +43,6 @@ import XMonad
 --   right and @dy@ pixels down.
 keysMoveWindow :: D -> Window -> X ()
 keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
-    io $ raiseWindow d w
     wa <- io $ getWindowAttributes d w
     io $ moveWindow d w (fromIntegral (fromIntegral (wa_x wa) + dx))
                         (fromIntegral (fromIntegral (wa_y wa) + dy))
@@ -61,7 +60,6 @@ keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
 -- > keysMoveWindowTo (1024,0) (1, 0)      -- put window in the top right corner
 keysMoveWindowTo :: P -> G -> Window -> X ()
 keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d -> do
-    io $ raiseWindow d w
     wa <- io $ getWindowAttributes d w
     io $ moveWindow d w (x - round (gx * fromIntegral (wa_width wa)))
                         (y - round (gy * fromIntegral (wa_height wa)))
@@ -111,7 +109,6 @@ keysResizeWindow' sh (x,y) (w,h) (dx,dy) (gx, gy) = ((nx, ny), (nw, nh))
 
 keysMoveResize :: (SizeHints -> P -> D -> a -> b -> (P,D)) -> a -> b -> Window -> X ()
 keysMoveResize f move resize w = whenX (isClient w) $ withDisplay $ \d -> do
-    io $ raiseWindow d w
     wa <- io $ getWindowAttributes d w
     sh <- io $ getWMNormalHints d w
     let wa_dim = (fromIntegral $ wa_width wa, fromIntegral $ wa_height wa)

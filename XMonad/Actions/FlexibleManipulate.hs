@@ -79,7 +79,6 @@ position = const 0.5
 --   manipulation action.
 mouseWindow :: (Double -> Double) -> Window -> X ()
 mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
-    io $ raiseWindow d w
     [wpos, wsize] <- io $ getWindowAttributes d w >>= return . winAttrs
     sh <- io $ getWMNormalHints d w
     pointer <- io $ queryPointer d w >>= return . pointerPos
@@ -89,14 +88,14 @@ mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
         mul = mapP (\x -> 2 P.- 2 P.* P.abs(x P.- 0.5)) fc --Fudge factors: interpolation between 1 when on edge, 2 in middle
         atl = ((1, 1) - fc) * mul
         abr = fc * mul
-    mouseDrag (\ex ey -> io $ do
+    mouseDrag (\ex ey -> do
         let offset = (fromIntegral ex, fromIntegral ey) - pointer
             npos = wpos + offset * atl
             nbr = (wpos + wsize) + offset * abr
             ntl = minP (nbr - (32, 32)) npos    --minimum size
             nwidth = applySizeHintsContents sh $ mapP (round :: Double -> Integer) (nbr - ntl)
-        moveResizeWindow d w (round $ fst ntl) (round $ snd ntl) `uncurry` nwidth
-        return ())
+        io $ moveResizeWindow d w (round $ fst ntl) (round $ snd ntl) `uncurry` nwidth
+        float w)
         (float w)
 
     float w
