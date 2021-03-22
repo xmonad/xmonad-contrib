@@ -68,13 +68,14 @@ pasteString = mapM_ (\x -> if isUpper x || x `elem` "~!@#$%^&*()_+{}|:\"<>?" the
 
    > pasteChar shiftMask 'F'
 
-   Note that this function makes use of 'stringToKeysym', and so will probably
-   have trouble with any 'Char' outside ASCII.
+   Note that this function will probably have trouble with any 'Char'
+   outside ASCII.
 -}
 pasteChar :: KeyMask -> Char -> X ()
-pasteChar m c = sendKey m $ maybe (stringToKeysym [c]) fst
+pasteChar m c = sendKey m $ maybe (unicodeToKeysym c) fst
                 $ listToMaybe $ readP_to_S parseKey [c]
 
+-- | Send a key with a modifier to the currently focused window.
 sendKey :: KeyMask -> KeySym -> X ()
 sendKey = (withFocused .) . sendKeyWindow
 
@@ -89,3 +90,14 @@ sendKeyWindow mods key w = withDisplay $ \d -> do
                   sendEvent d w True keyPressMask ev
                   setEventType ev keyRelease
                   sendEvent d w True keyReleaseMask ev
+
+-- | Convert a unicode character to a 'KeySym'. Ideally, this should
+-- work for any unicode character, but see here for details:
+-- http://www.cl.cam.ac.uk/~mgk25/ucs/keysyms.txt
+unicodeToKeysym :: Char -> KeySym
+unicodeToKeysym c
+  | (ucp >= 32)  && (ucp <= 126) = fromIntegral ucp
+  | (ucp >= 160) && (ucp <= 255) = fromIntegral ucp
+  | (ucp >= 256)                 = fromIntegral $ ucp + 0x1000000
+  | otherwise                    = 0 -- this is supposed to be an error, but it's not ideal
+  where ucp = fromEnum c -- codepoint
