@@ -10,7 +10,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Dynamically change workspace text based on the contents of the workspace
+-- Dynamically augment workspace names logged to a status bar via DynamicLog
+-- based on the contents (windows) of the workspace.
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.DynamicIcons (
@@ -37,33 +38,46 @@ import Data.Traversable (for)
 import Control.Monad ((<=<), (>=>))
 
 -- $usage
---  Dynamically changes a 'Workspace's 'WorkspaceId' based on the 'Window's inside the Workspace.
--- 'IconSet's describe which icons are shown depending on which windows fit a 'Query'.
+-- Dynamically augment Workspace's 'WorkspaceId' as shown on a status bar
+-- based on the 'Window's inside the Workspace.
 --
--- To create an 'IconSet' make a 'Query' that returns a ['Icon'].
+-- Icons are specified by a @Query [String]@, which is something like a
+-- 'ManageHook' (and uses the same syntax) that returns a list of 'String's
+-- (icons). This 'Query' is evaluated for each window and the results are
+-- joined together. 'appIcon' is a useful shortcut here.
 --
--- 'appIcon' can be used to simplify this process
--- For example,
+-- For example:
 --
--- > icons :: IconSet
--- > icons = composeAll
--- >           [ className =? "discord" --> appIcon "\xfb6e"
--- >           , className =? "Discord" --> appIcon "\xf268"
--- >           , className =? "Firefox" --> appIcon "\63288"
--- >           , className =? "Spotify" <||> className =? "spotify" --> appIcon "阮"
--- >           ]
+-- > myIcons :: Query [String]
+-- > myIcons = composeAll
+-- >   [ className =? "discord" --> appIcon "\xfb6e"
+-- >   , className =? "Discord" --> appIcon "\xf268"
+-- >   , className =? "Firefox" --> appIcon "\63288"
+-- >   , className =? "Spotify" <||> className =? "spotify" --> appIcon "阮"
+-- >   ]
 --
--- then you can add the hook to your config
+-- then you can add the hook to your config:
 --
--- > xmonad $ def
--- >      { logHook = dynamicLogIconsWithPP icons xmobarPP <> myManageHook
--- >      }
+-- > main = xmonad $ … $ def
+-- >   { logHook = dynamicLogIconsWithPP icons xmobarPP
+-- >   , … }
 --
---  Here is an example of this
+-- Here is an example of this
 --
---  <<https://imgur.com/download/eauPNPz/Dynamic%20Icons%20in%20XMonad>>
---  
---  NOTE: You can use any string you want here. The example shown here, uses NerdFont Icons to represent open applications
+-- <<https://user-images.githubusercontent.com/300342/111010930-36a54300-8398-11eb-8aec-b3059b04fa31.png>>
+--
+-- Note: You can use any string you want here.
+-- The example shown here uses NerdFont Icons to represent open applications.
+--
+-- If you want to customize formatting and/or combine this with other
+-- 'PP' extensions like "XMonad.Util.ClickableWorkspaces", here's a more
+-- advanced example how to do that:
+--
+-- > myIconConfig = def{ iconConfigIcons = myIcons, iconConfigFmt = iconsFmtAppend concat }
+-- > main = xmonad $ … $ def
+-- >   { logHook = xmonadPropLog =<< dynamicLogString =<< clickablePP =<<
+-- >               dynamicIconsPP myIconConfig xmobarPP
+-- >   , … }
 
 
 -- | Shortcut for configuring single icons.
@@ -114,6 +128,8 @@ instance Default IconConfig where
 -- First parameter specifies how to concatenate multiple icons. Useful values
 -- include: 'concat', 'unwords', 'wrapUnwords'.
 --
+-- ==== __Examples__
+--
 -- >>> iconsFmtReplace concat "1" []
 -- "1"
 --
@@ -131,6 +147,8 @@ iconsFmtReplace cat ws is | null is   = ws
 -- First parameter specifies how to concatenate multiple icons. Useful values
 -- include: 'concat', 'unwords', 'wrapUnwords'.
 --
+-- ==== __Examples__
+--
 -- >>> iconsFmtAppend concat "1" []
 -- "1"
 --
@@ -142,6 +160,8 @@ iconsFmtAppend cat ws is | null is   = ws
 
 -- | Join words with spaces, and wrap the result in delimiters unless there
 -- was exactly one element.
+--
+-- ==== __Examples__
 --
 -- >>> wrapUnwords "{" "}" ["A", "B"]
 -- "{A B}"
