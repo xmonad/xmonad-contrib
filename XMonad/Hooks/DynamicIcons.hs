@@ -18,11 +18,11 @@ module XMonad.Hooks.DynamicIcons (
     -- $usage
 
     -- * Creating Dynamic Icons
-    dynamicLogIconsWithPP, dynamicIconsPP,
+    dynamicLogIconsWithPP, appIcon,
 
-    -- * Data Types
-    appIcon, IconSet,
-    IconConfig(..), Icon(..),
+    -- * Customization
+    dynamicIconsPP, getWorkspaceIcons,
+    IconConfig(..),
     iconsFmtAppend, iconsFmtReplace, wrapUnwords,
 
     ) where
@@ -32,8 +32,9 @@ import qualified XMonad.StackSet as S
 import qualified Data.Map as M
 
 import XMonad.Hooks.DynamicLog
+import Data.Functor ((<&>))
 import Data.Traversable (for)
-import Control.Monad ((<=<))
+import Control.Monad ((<=<), (>=>))
 
 -- $usage
 --  Dynamically changes a 'Workspace's 'WorkspaceId' based on the 'Window's inside the Workspace.
@@ -65,48 +66,20 @@ import Control.Monad ((<=<))
 --  NOTE: You can use any string you want here. The example shown here, uses NerdFont Icons to represent open applications
 
 
--- | Custom datatype for custom icons based on the state of the 'Workspace'
--- For example,
---
--- > Icon "<bold>discord</bold>" "<bold>discord</bold>" "discord" ""
---
--- Then you can add it to your IconSet.
---
--- > icons :: IconSet
--- > icons = mconcat
--- >    [ className =? "discord" --> pure [Icon "<bold>discord</bold>" "<bold>discord</bold>" "discord" ""]
--- >    ]
-data Icon = Icon
-    { iconCurrent         :: !String -- ^ If the 'Workspace' is the current workspace
-    , iconVisible         :: !String -- ^ If the 'Workspace' is visible (Xinerama only)
-    , iconHidden          :: !String -- ^ If the 'Workspace' isnt visible but still has windows
-    , iconHiddenNoWindows :: !String -- ^ If the 'Workspace' isnt visible and has no windows
-    }
-
--- | The set of Icons to use
-type IconSet = Query [Icon]
-
-baseIconSet :: String -> Icon
-baseIconSet x =
-    Icon { iconCurrent = x
-         , iconVisible = x
-         , iconHidden = x
-         , iconHiddenNoWindows = x
-         }
-
--- | Create an 'IconSet' from a 'String'
-appIcon :: String -> IconSet
-appIcon x = pure [baseIconSet x]
+-- | Shortcut for configuring single icons.
+appIcon :: String -> Query [String]
+appIcon = pure . pure
 
 -- | Adjusts the 'PP' and then runs 'dynamicLogWithPP'
-dynamicLogIconsWithPP :: IconSet -- ^ The 'IconSet' to use
+dynamicLogIconsWithPP :: Query [String] -- ^ The 'IconSet' to use
                       -> PP -- ^ The 'PP' to alter
                       -> X () -- ^ The resulting 'X' action
-dynamicLogIconsWithPP iconset = dynamicLogWithPP <=< dynamicIconsPP def{ iconConfigIcons = iconset }
+dynamicLogIconsWithPP q = dynamicLogWithPP <=< dynamicIconsPP def{ iconConfigIcons = q }
 
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
-    { iconConfigIcons :: IconSet -- ^ The 'IconSet' to use
+    { iconConfigIcons :: Query [String]
+      -- ^ What icons to use for each window.
     , iconConfigFmt :: WorkspaceId -> [String] -> String
       -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
     }
@@ -166,20 +139,17 @@ wrapUnwords l r xs  = wrap l r (unwords xs)
 -- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to augment
 -- workspace names with icons based on the contents (windows) of the workspace.
 dynamicIconsPP :: IconConfig -> PP -> X PP
-dynamicIconsPP IconConfig{..} pp = do
-    icons <- getWorkspaceIcons iconConfigIcons
-    pure $ pp
-        { ppCurrent = ppSection ppCurrent iconCurrent icons
-        , ppVisible = ppSection ppVisible iconVisible icons
-        , ppHidden = ppSection ppHidden iconHidden icons
-        , ppHiddenNoWindows =  ppSection ppHiddenNoWindows iconHiddenNoWindows icons
-        }
-  where
-    ppSection ppField icField icons wks =
-        ppField pp $ iconConfigFmt wks $ map icField $ M.findWithDefault [] wks icons
+dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename pp >=> ren }
 
-getWorkspaceIcons :: IconSet -> X (M.Map WorkspaceId [Icon])
-getWorkspaceIcons iconSet = do
+-- | Returns a function for 'ppRename' that augments workspaces with icons
+-- according to the provided 'IconConfig'.
+getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
+getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconConfigIcons
+  where
+    fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
+
+getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
+getWorkspaceIcons' q = do
     ws <- gets (S.workspaces . windowset)
-    is <- for ws $ foldMap (runQuery iconSet) . S.integrate' . S.stack
+    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
