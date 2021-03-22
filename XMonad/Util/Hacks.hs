@@ -19,13 +19,14 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.Hacks
-  ( -- * Windowed fullscreen
-    -- $windowedFullscreenFix
-    windowedFullscreenFixEventHook
-    -- * Java Hack
-    -- $java
-  , javaHack
+module XMonad.Util.Hacks (
+  -- * Windowed fullscreen
+  -- $windowedFullscreenFix
+  windowedFullscreenFixEventHook,
+
+  -- * Java Hack
+  -- $java
+  javaHack,
   ) where
 
 
@@ -79,7 +80,7 @@ windowedFullscreenFixEventHook _ = return $ All True
 
 
 -- $java
--- | Some java Applications might not work with xmonad. A common workaround would be to set the environment
+-- Some java Applications might not work with xmonad. A common workaround would be to set the environment
 -- variable @_JAVA_AWT_WM_NONREPARENTING@ to 1. The function 'javaHack' does exactly that.
 -- Example usage:
 --
