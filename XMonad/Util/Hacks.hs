@@ -9,7 +9,8 @@
 -- Portability :  unportable
 --
 -- This module is a collection of random fixes, workarounds and other functions
--- that rely on somewhat hacky implementations which may have unwanted side effects.
+-- that rely on somewhat hacky implementations which may have unwanted side effects
+-- and/or are small enough to not warrant a separate module.
 --
 -- Import this module as qualified like so:
 --

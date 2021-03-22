@@ -74,11 +74,16 @@
 
   * `XMonad.Util.Hacks`
 
-    Serves as a collection of hacks and fixes that should be easily acessible to users.
-    The first element of this module is windowedFullscreenFix, which fixes fullscreen behaviour
-    of chromium based applications when using windowed fullscreen.
-    A second entry is `javaHack`, which helps when dealing with Java applications that might
-    not work well with xmonad.
+    A collection of hacks and fixes that should be easily acessible to users:
+
+    - `windowedFullscreenFix` fixes fullscreen behaviour of chromium based
+      applications when using windowed fullscreen.
+
+    - `javaHack` helps when dealing with Java applications that might not work
+      well with xmonad.
+
+    - `trayerAboveXmobarEventHook` reliably stacks trayer on top of xmobar and
+      below other windows
 
   * `XMonad.Util.ActionCycle`
 
