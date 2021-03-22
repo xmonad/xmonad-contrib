@@ -76,6 +76,25 @@ dynamicLogIconsWithPP :: Query [String] -- ^ The 'IconSet' to use
                       -> X () -- ^ The resulting 'X' action
 dynamicLogIconsWithPP q = dynamicLogWithPP <=< dynamicIconsPP def{ iconConfigIcons = q }
 
+-- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to augment
+-- workspace names with icons based on the contents (windows) of the workspace.
+dynamicIconsPP :: IconConfig -> PP -> X PP
+dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename pp >=> ren }
+
+-- | Returns a function for 'ppRename' that augments workspaces with icons
+-- according to the provided 'IconConfig'.
+getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
+getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconConfigIcons
+  where
+    fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
+
+getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
+getWorkspaceIcons' q = do
+    ws <- gets (S.workspaces . windowset)
+    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
+    pure $ M.fromList (zip (map S.tag ws) is)
+
+
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
     { iconConfigIcons :: Query [String]
@@ -135,21 +154,3 @@ iconsFmtAppend cat ws is | null is   = ws
 wrapUnwords :: String -> String -> [String] -> String
 wrapUnwords _ _ [x] = x
 wrapUnwords l r xs  = wrap l r (unwords xs)
-
--- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to augment
--- workspace names with icons based on the contents (windows) of the workspace.
-dynamicIconsPP :: IconConfig -> PP -> X PP
-dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename pp >=> ren }
-
--- | Returns a function for 'ppRename' that augments workspaces with icons
--- according to the provided 'IconConfig'.
-getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
-getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconConfigIcons
-  where
-    fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
-
-getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
-getWorkspaceIcons' q = do
-    ws <- gets (S.workspaces . windowset)
-    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
-    pure $ M.fromList (zip (map S.tag ws) is)
