@@ -169,6 +169,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.TreeSelect`
+
+    - Fix swapped green/blue in foreground when using Xft.
+
   * `XMonad.Layout.Fullscreen`
 
     - Add fullscreenSupportBorder which uses smartBorders to remove

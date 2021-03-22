@@ -161,8 +161,8 @@ import Graphics.X11.Xrender
 -- white       = 0xffffffff
 -- black       = 0xff000000
 -- red         = 0xffff0000
--- blue        = 0xff00ff00
--- green       = 0xff0000ff
+-- green       = 0xff00ff00
+-- blue        = 0xff0000ff
 -- transparent = 0x00000000
 -- @
 
@@ -656,7 +656,7 @@ drawStringXMF display window visual colormap gc font col x y text = case font of
 -- Note that it uses short to represent its components
 fromARGB :: Pixel -> XRenderColor
 fromARGB x = XRenderColor (fromIntegral $ 0xff00 .&. shiftR x 8)  -- red
-                          (fromIntegral $ 0xff00 .&. x)           -- green
-                          (fromIntegral $ 0xff00 .&. shiftL x 8)  -- blue
+                          (fromIntegral $ 0xff00 .&. shiftL x 8)  -- blue   (swapped with green as a workaround for the
+                          (fromIntegral $ 0xff00 .&. x)           -- green   faulty Storable instance in X11-xft <= 0.3.1)
                           (fromIntegral $ 0xff00 .&. shiftR x 16) -- alpha
 #endif
