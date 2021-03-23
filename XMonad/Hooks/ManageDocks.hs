@@ -130,17 +130,22 @@ maybeInitStrutCache = maybe (queryDocks >>= foldlM (flip updateStrut) M.empty) p
 
 updateStrut :: Window -> WindowStruts -> X WindowStruts
 updateStrut w cache = do
+    when (w `M.notMember` cache) $ requestDockEvents w
     strut <- getStrut w
     pure $ M.insert w strut cache
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
 manageDocks :: ManageHook
-manageDocks = checkDock --> (doIgnore <+> setDocksMask)
-    where setDocksMask = do
-            ask >>= \win -> liftX $ withDisplay $ \dpy ->
-                io $ selectInput dpy win (propertyChangeMask .|. structureNotifyMask)
-            mempty
+manageDocks = checkDock --> (doIgnore <+> doRequestDockEvents)
+  where
+    doRequestDockEvents = ask >>= liftX . requestDockEvents >> mempty
+
+-- | Request events for a dock window.
+-- (Only if not already a client to avoid overriding 'clientMask')
+requestDockEvents :: Window -> X ()
+requestDockEvents w = whenX (not <$> isClient w) $ withDisplay $ \dpy ->
+    io $ selectInput dpy w (propertyChangeMask .|. structureNotifyMask)
 
 -- | Checks if a window is a DOCK or DESKTOP window
 checkDock :: Query Bool

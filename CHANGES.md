@@ -343,7 +343,16 @@
     - Export `AvoidStruts` constructor
 
     - Restored compatibility with pre-0.13 configs by making the startup hook
-      unnecessary for correct functioning.
+      unnecessary for correct functioning (strut cache is initialized on-demand).
+
+    - Fixed ignoring of strut updates from override-redirect windows, which is
+      default for xmobar.
+
+      Previously, if one wanted xmobar to reposition itself after xrandr
+      changes and have xmonad handle that repositioning, one would need to
+      configure xmobar with `overrideRedirect = False`, which would disable
+      lowering on start and thus cause other problems. This is no longer
+      necessary.
 
   * `XMonad.Hooks.ManageHelpers`
 
