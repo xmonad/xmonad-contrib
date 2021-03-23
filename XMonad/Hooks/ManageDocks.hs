@@ -128,8 +128,8 @@ updateStrutCache w strut = do
     ch2 <- XS.modified $ StrutCache . fmap (M.insert w strut) . fromStrutCache
     return $ ch1 || ch2
 
-deleteFromStructCache :: Window -> X Bool
-deleteFromStructCache w = do
+deleteFromStrutCache :: Window -> X Bool
+deleteFromStrutCache w = do
     ch1 <- fst <$> getStrutCache
     ch2 <- XS.modified $ StrutCache . fmap (M.delete w) . fromStrutCache
     return $ ch1 || ch2
@@ -170,7 +170,7 @@ docksEventHook (PropertyEvent { ev_window = w
         whenX (updateStrutCache w strut) refreshDocks
     return (All True)
 docksEventHook (DestroyWindowEvent {ev_window = w}) = do
-    whenX (deleteFromStructCache w) refreshDocks
+    whenX (deleteFromStrutCache w) refreshDocks
     return (All True)
 docksEventHook _ = return (All True)
 
