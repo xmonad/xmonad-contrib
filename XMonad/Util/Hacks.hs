@@ -9,7 +9,8 @@
 -- Portability :  unportable
 --
 -- This module is a collection of random fixes, workarounds and other functions
--- that rely on somewhat hacky implementations which may have unwanted side effects.
+-- that rely on somewhat hacky implementations which may have unwanted side effects
+-- and/or are small enough to not warrant a separate module.
 --
 -- Import this module as qualified like so:
 --
@@ -19,19 +20,25 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.Hacks
-  ( -- * Windowed fullscreen
-    -- $windowedFullscreenFix
-    windowedFullscreenFixEventHook
-    -- * Java Hack
-    -- $java
-  , javaHack
+module XMonad.Util.Hacks (
+  -- * Windowed fullscreen
+  -- $windowedFullscreenFix
+  windowedFullscreenFixEventHook,
+
+  -- * Java Hack
+  -- $java
+  javaHack,
+
+  -- * Stacking trays (trayer) above panels (xmobar)
+  -- $raiseTrayer
+  trayerAboveXmobarEventHook,
+  trayAbovePanelEventHook,
   ) where
 
 
 import XMonad
 import Data.Monoid (All(All))
-import Control.Monad (when)
+import Control.Monad (when, filterM)
 import System.Posix.Env (putEnv)
 
 
@@ -79,7 +86,7 @@ windowedFullscreenFixEventHook _ = return $ All True
 
 
 -- $java
--- | Some java Applications might not work with xmonad. A common workaround would be to set the environment
+-- Some java Applications might not work with xmonad. A common workaround would be to set the environment
 -- variable @_JAVA_AWT_WM_NONREPARENTING@ to 1. The function 'javaHack' does exactly that.
 -- Example usage:
 --
@@ -92,3 +99,49 @@ javaHack conf = conf
   { startupHook = startupHook conf
                     *> io (putEnv "_JAVA_AWT_WM_NONREPARENTING=1")
   }
+
+
+-- $raiseTrayer
+-- Placing @trayer@ on top of @xmobar@ is somewhat tricky:
+--
+-- - they both should be lowered to the bottom of the stacking order to avoid
+--   overlapping fullscreen windows
+--
+-- - the tray needs to be stacked on top of the panel regardless of which
+--   happens to start first
+--
+-- 'trayerAboveXmobarEventHook' (and the more generic
+-- 'trayAbovePanelEventHook') is an event hook that ensures the latter:
+-- whenever the tray lowers itself to the bottom of the stack, it checks
+-- whether there are any panels above it and lowers these again.
+--
+-- To ensure the former, that is having both @trayer@ and @xmobar@ lower
+-- themselves, which is a necessary prerequisite for this event hook to
+-- trigger:
+--
+-- - set @lowerOnStart = True@ and @overrideRedirect = True@ in @~/.xmobarrc@
+-- - pass @-l@ to @trayer@
+--
+-- Usage:
+--
+-- > handleEventHook = … <> Hacks.trayerAboveXmobarEventHook
+
+-- | 'trayAbovePanelEventHook' for trayer/xmobar
+trayerAboveXmobarEventHook :: Event -> X All
+trayerAboveXmobarEventHook = trayAbovePanelEventHook (className =? "trayer") (appName =? "xmobar")
+
+-- | Whenever a tray window lowers itself to the bottom of the stack, look for
+-- any panels above it and lower these.
+trayAbovePanelEventHook
+  :: Query Bool -- ^ tray
+  -> Query Bool -- ^ panel
+  -> (Event -> X All) -- ^ event hook
+trayAbovePanelEventHook trayQ panelQ ConfigureEvent{ev_window = w, ev_above = a} | a == none = do
+  whenX (runQuery trayQ w) $ withDisplay $ \dpy -> do
+    rootw <- asks theRoot
+    (_, _, ws) <- io $ queryTree dpy rootw
+    let aboveTrayWs = dropWhile (w /=) ws
+    panelWs <- filterM (runQuery panelQ) aboveTrayWs
+    mapM_ (io . lowerWindow dpy) panelWs
+  mempty
+trayAbovePanelEventHook _ _ _ = mempty
