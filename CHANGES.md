@@ -104,6 +104,15 @@
       argument.  This fixes the interplay between this module and any
       layout that stores state.
 
+  * `XMonad.Layout.LayoutCombinators`
+
+    - Moved the alternative `(|||)` function and `JumpToLayout` to the
+      xmonad core.  They are re-exported by the module, but do not add any
+      new functionality.  `NewSelect` now exists as a deprecated type
+      alias to `Choose`.
+
+    - Removed the `Wrap` and `NextLayoutNoWrap` data constructors.
+
 ### New Modules
 
   * `XMonad.Hooks.StatusBar.PP`
