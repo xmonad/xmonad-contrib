@@ -19,6 +19,7 @@ module XMonad.Hooks.WorkspaceHistory (
       -- $usage
       -- * Hooking
     workspaceHistoryHook
+  , workspaceHistoryHookExclude
       -- * Querying
   , workspaceHistory
   , workspaceHistoryByScreen
@@ -32,8 +33,8 @@ import           Control.Applicative
 import           Prelude
 
 import XMonad
-import XMonad.StackSet hiding (filter, delete)
-import Data.List
+import XMonad.StackSet hiding (delete, filter, new)
+import Data.List (delete, find, foldl', groupBy, nub, sortBy)
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
@@ -50,9 +51,17 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >      , ...
 -- >      }
 --
+-- If you want to completely exclude certain workspaces from entering
+-- the history, you can use 'workspaceHistoryHookExclude' instead.  For
+-- example, to ignore the named scratchpad workspace:
+--
+-- > import XMonad.Util.NamedScratchpad (scratchpadWorkspaceTag)
+-- > ...
+-- > , logHook = ... >> workspaceHistoryHookExclude [scratchpadWorkspaceTag] >> ...
+--
 -- To make use of the collected data, a query function is provided.
 
-data WorkspaceHistory = WorkspaceHistory
+newtype WorkspaceHistory = WorkspaceHistory
   { history :: [(ScreenId, WorkspaceId)] -- ^ Workspace Screens in
                                          -- reverse-chronological order.
   } deriving (Typeable, Read, Show)
@@ -65,6 +74,12 @@ instance ExtensionClass WorkspaceHistory where
 -- been viewed.
 workspaceHistoryHook :: X ()
 workspaceHistoryHook = gets windowset >>= (XS.modify . updateLastActiveOnEachScreen)
+
+-- | Like 'workspaceHistoryHook', but with the ability to exclude
+-- certain workspaces.
+workspaceHistoryHookExclude :: [WorkspaceId] -> X ()
+workspaceHistoryHookExclude ws =
+  gets windowset >>= XS.modify . updateLastActiveOnEachScreenExclude ws
 
 workspaceHistoryWithScreen :: X [(ScreenId, WorkspaceId)]
 workspaceHistoryWithScreen = XS.gets history
@@ -86,22 +101,28 @@ workspaceHistoryTransaction :: X () -> X ()
 workspaceHistoryTransaction action = do
   startingHistory <- XS.gets history
   action
-  new <- (flip updateLastActiveOnEachScreen $ WorkspaceHistory startingHistory) <$> gets windowset
+  new <- flip updateLastActiveOnEachScreen (WorkspaceHistory startingHistory) <$> gets windowset
   XS.put new
 
 -- | Update the last visible workspace on each monitor if needed
 -- already there, or move it to the front if it is.
 updateLastActiveOnEachScreen :: WindowSet -> WorkspaceHistory -> WorkspaceHistory
-updateLastActiveOnEachScreen StackSet {current = cur, visible = vis} wh =
-  WorkspaceHistory { history = doUpdate cur $ foldl updateLastForScreen (history wh) $ vis ++ [cur] }
+updateLastActiveOnEachScreen = updateLastActiveOnEachScreenExclude []
+
+-- | Like 'updateLastActiveOnEachScreen', but with the ability to
+-- exclude certain workspaces.
+updateLastActiveOnEachScreenExclude :: [WorkspaceId] -> WindowSet -> WorkspaceHistory -> WorkspaceHistory
+updateLastActiveOnEachScreenExclude ws StackSet {current = cur, visible = vis} wh =
+  WorkspaceHistory { history = doUpdate cur $ foldl' updateLastForScreen (history wh) $ vis ++ [cur] }
   where
     firstOnScreen sid = find ((== sid) . fst)
     doUpdate Screen {workspace = Workspace { tag = wid }, screen = sid} curr =
-      let newEntry = (sid, wid) in newEntry:delete newEntry curr
+      let newEntry = (sid, wid)
+       in if wid `elem` ws then curr else newEntry : delete newEntry curr
     updateLastForScreen curr Screen {workspace = Workspace { tag = wid }, screen = sid} =
       let newEntry = (sid, wid)
-          alreadyCurrent = maybe False (== newEntry) $ firstOnScreen sid curr
-      in if alreadyCurrent then curr else newEntry:delete newEntry curr
+          alreadyCurrent = Just newEntry == firstOnScreen sid curr
+      in if alreadyCurrent || wid `elem` ws then curr else newEntry : delete newEntry curr
 
 -- | Modify a the workspace history with a given pure function.
 workspaceHistoryModify :: ([(ScreenId, WorkspaceId)] -> [(ScreenId, WorkspaceId)]) -> X ()
