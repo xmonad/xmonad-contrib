@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
@@ -22,6 +23,7 @@ module XMonad.Util.ExtensibleState (
                               , get
                               , gets
                               , modified
+                              , modifiedM
                               ) where
 
 import Data.Typeable (typeOf,cast)
@@ -121,8 +123,11 @@ remove :: (ExtensionClass a, XLike m) => a -> m ()
 remove wit = modifyStateExts $ M.delete (show . typeOf $ wit)
 
 modified :: (ExtensionClass a, Eq a, XLike m) => (a -> a) -> m Bool
-modified f = do
+modified = modifiedM . (pure .)
+
+modifiedM :: (ExtensionClass a, Eq a, XLike m) => (a -> m a) -> m Bool
+modifiedM f = do
     v <- get
-    case f v of
+    f v >>= \case
         v' | v' == v   -> return False
            | otherwise -> put v' >> return True
