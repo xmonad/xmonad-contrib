@@ -4,6 +4,16 @@
 
 ### Breaking Changes
 
+  * All modules that export bitmap fonts as their default
+
+    - If xmonad is compiled with XFT support (the default), use an XFT
+      font instead.  The previous default expected an X11 misc font
+      (PCF), which is not supported in pango 1.44 anymore and thus some
+      distributions have stopped shipping these.
+
+      This fixes the silent `user error (createFontSet)`; this would
+      break the respective modules.
+
   * `XMonad.Prompt`
 
     - Now `mkComplFunFromList` and `mkComplFunFromList'` take an

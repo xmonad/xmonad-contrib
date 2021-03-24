@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -312,7 +313,11 @@ instance Default XPColor where
 
 instance Default XPConfig where
   def =
+#ifdef XFT
+    XPC { font                  = "xft:monospace-12"
+#else
     XPC { font                  = "-misc-fixed-*-*-*-*-12-*-*-*-*-*-*-*"
+#endif
         , bgColor               = bgNormal def
         , fgColor               = fgNormal def
         , bgHLight              = bgHighlight def
