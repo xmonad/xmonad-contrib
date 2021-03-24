@@ -20,13 +20,21 @@
 module XMonad.Layout.Magnifier
     ( -- * Usage
       -- $usage
+
+      -- * Magnify Everything
       magnifier,
-      magnifier',
       magnifierOff,
-      maxMagnifierOff,
       magnifiercz,
-      magnifiercz',
+      magnifierczOff,
+      maxMagnifierOff,
       maximizeVertical,
+
+      -- * Don't Magnify the Master Window
+      magnifier',
+      magnifiercz',
+      magnifierczOff',
+
+      -- * Messages and Types
       MagnifyMsg (..),
       Magnifier,
     ) where
@@ -102,11 +110,20 @@ magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On No
 
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
-magnifierOff = ModifiedLayout (Mag 1 (1.5,1.5) Off All)
+magnifierOff = magnifierczOff 1.5
 
--- | A magnifier that greatly magnifies with defaults to Off
+-- | A magnifier that greatly magnifies the focused window; defaults to
+-- @Off@.
 maxMagnifierOff :: l a -> ModifiedLayout Magnifier l a
-maxMagnifierOff = ModifiedLayout (Mag 1 (1000,1000) Off All)
+maxMagnifierOff = magnifierczOff 1000
+
+-- | Like 'magnifiercz', but default to @Off@.
+magnifierczOff :: Rational -> l a -> ModifiedLayout Magnifier l a
+magnifierczOff cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off All)
+
+-- | Like 'magnifiercz'', but default to @Off@.
+magnifierczOff' :: Rational -> l a -> ModifiedLayout Magnifier l a
+magnifierczOff' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off NoMaster)
 
 -- | A magnifier that greatly magnifies just the vertical direction
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
