@@ -84,7 +84,7 @@ import XMonad.Util.XUtils
 
 -- | Increase the size of the window that has focus
 magnifier :: l a -> ModifiedLayout Magnifier l a
-magnifier = ModifiedLayout (Mag 1 (1.5,1.5) On All)
+magnifier = magnifiercz 1.5
 
 -- | Change the size of the window that has focus by a custom zoom
 magnifiercz :: Rational -> l a -> ModifiedLayout Magnifier l a
@@ -93,7 +93,12 @@ magnifiercz cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On All
 -- | Increase the size of the window that has focus, unless if it is one of the
 -- master windows.
 magnifier' :: l a -> ModifiedLayout Magnifier l a
-magnifier' = ModifiedLayout (Mag 1 (1.5,1.5) On NoMaster)
+magnifier' = magnifiercz' 1.5
+
+-- | Increase the size of the window that has focus by a custom zoom,
+-- unless if it is one of the the master windows.
+magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
+magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On NoMaster)
 
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
@@ -102,11 +107,6 @@ magnifierOff = ModifiedLayout (Mag 1 (1.5,1.5) Off All)
 -- | A magnifier that greatly magnifies with defaults to Off
 maxMagnifierOff :: l a -> ModifiedLayout Magnifier l a
 maxMagnifierOff = ModifiedLayout (Mag 1 (1000,1000) Off All)
-
--- | Increase the size of the window that has focus by a custom zoom,
--- unless if it is one of the the master windows.
-magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On NoMaster)
 
 -- | A magnifier that greatly magnifies just the vertical direction
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
@@ -123,7 +123,7 @@ data MagnifyMaster = All | NoMaster deriving  (Read, Show)
 instance LayoutModifier Magnifier Window where
     redoLayout  (Mag _ z On All     ) r (Just s) wrs = applyMagnifier z r s wrs
     redoLayout  (Mag n z On NoMaster) r (Just s) wrs = unlessMaster n (applyMagnifier z) r s wrs
-    redoLayout  _                   _ _        wrs = return (wrs, Nothing)
+    redoLayout  _                     _ _        wrs = return (wrs, Nothing)
 
     handleMess (Mag n z On  t) m
                     | Just MagnifyMore    <- fromMessage m = return . Just $ Mag n             (z `addto`   0.1 ) On  t
@@ -164,7 +164,7 @@ magnify (zoomx,zoomy) (Rectangle x y w h) = Rectangle x' y' w' h'
 
 fit :: Rectangle -> Rectangle -> Rectangle
 fit (Rectangle sx sy sw sh) (Rectangle x y w h) = Rectangle x' y' w' h'
-    where x' = max sx (x - (max 0 (x + fi w - sx - fi sw)))
-          y' = max sy (y - (max 0 (y + fi h - sy - fi sh)))
+    where x' = max sx (x - max 0 (x + fi w - sx - fi sw))
+          y' = max sy (y - max 0 (y + fi h - sy - fi sh))
           w' = min sw w
           h' = min sh h
