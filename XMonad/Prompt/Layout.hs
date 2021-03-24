@@ -23,7 +23,6 @@ import XMonad hiding ( workspaces )
 import XMonad.Prompt
 import XMonad.Prompt.Workspace ( Wor(..) )
 import XMonad.StackSet ( workspaces, layout )
-import XMonad.Layout.LayoutCombinators ( JumpToLayout(..) )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

@@ -45,7 +45,6 @@ import Control.Arrow (second)
 --
 -- > import XMonad.Layout.Master (mastered)
 -- > import XMonad.Layout.Tabbed (simpleTabbed)
--- > import XMonad.Layout.LayoutCombinators ((|||))
 -- >
 -- > myLayout = Tall ||| unEscape (mastered 0.01 0.5 $ Full ||| simpleTabbed)
 --
@@ -62,9 +61,6 @@ import Control.Arrow (second)
 -- >                       unEscape $ mastered 0.01 0.5
 -- >                         $ Full ||| simpleTabbed)
 --
--- /IMPORTANT NOTE:/ The standard '(|||)' operator from "XMonad.Layout"
--- does not behave correctly with 'ignore'. Make sure you use the one
--- from "XMonad.Layout.LayoutCombinators".
 
 -- | the Ignore layout modifier. Prevents its inner layout from receiving
 -- messages of a certain type.

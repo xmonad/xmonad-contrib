@@ -25,7 +25,7 @@ module XMonad.Config.Bluetile (
     bluetileConfig
     ) where
 
-import XMonad hiding ( (|||) )
+import XMonad
 
 import XMonad.Layout.BorderResize
 import XMonad.Layout.BoringWindows
@@ -33,7 +33,6 @@ import XMonad.Layout.ButtonDecoration
 import XMonad.Layout.Decoration
 import XMonad.Layout.DecorationAddons
 import XMonad.Layout.DraggingVisualizer
-import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Maximize
 import XMonad.Layout.Minimize
 import XMonad.Layout.MouseResizableTile

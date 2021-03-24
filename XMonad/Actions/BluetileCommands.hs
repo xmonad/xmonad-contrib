@@ -24,7 +24,6 @@ module XMonad.Actions.BluetileCommands (
 
 import XMonad
 import qualified XMonad.StackSet as W
-import XMonad.Layout.LayoutCombinators
 import System.Exit
 
 -- $usage

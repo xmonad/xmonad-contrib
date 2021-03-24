@@ -51,7 +51,7 @@ module XMonad.Layout.Groups.Examples ( -- * Usage
                                      , zoomRowG
                                      ) where
 
-import XMonad hiding ((|||))
+import XMonad
 
 import qualified XMonad.Layout.Groups as G
 import XMonad.Layout.Groups.Helpers
@@ -60,7 +60,6 @@ import XMonad.Layout.ZoomRow
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Named
 import XMonad.Layout.Renamed
-import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Decoration
 import XMonad.Layout.Simplest
 
@@ -236,4 +235,3 @@ expandMasterGroups = sendMessage $ G.ToEnclosing $ SomeMessage $ Expand
 -- | Rotate the available outer layout algorithms
 nextOuterLayout :: X ()
 nextOuterLayout = sendMessage $ G.ToEnclosing $ SomeMessage $ NextLayout
-
