@@ -511,6 +511,11 @@
 
     - Fixed a bug that prevented changing focus on inactive workspaces.
 
+  * `XMonad.Layout.Magnifier`
+
+    - Added `magnifierczOff` and `magnifierczOff'` for custom-size
+      magnifiers that start out with magnifying disabled.
+
 ## 0.16
 
 ### Breaking Changes
