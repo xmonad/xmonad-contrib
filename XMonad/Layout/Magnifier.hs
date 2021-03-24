@@ -42,9 +42,11 @@ module XMonad.Layout.Magnifier
       Magnifier,
     ) where
 
+import Numeric.Natural (Natural)
+
 import XMonad
-import XMonad.StackSet
 import XMonad.Layout.LayoutModifier
+import XMonad.StackSet
 import XMonad.Util.XUtils
 
 -- $usage
@@ -99,7 +101,7 @@ magnifier = magnifiercz 1.5
 
 -- | Change the size of the window that has focus by a custom zoom
 magnifiercz :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On All)
+magnifiercz cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On (All 1))
 
 -- | Increase the size of the window that has focus, unless if it is one of the
 -- master windows.
@@ -109,7 +111,7 @@ magnifier' = magnifiercz' 1.5
 -- | Increase the size of the window that has focus by a custom zoom,
 -- unless if it is one of the the master windows.
 magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On NoMaster)
+magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On (NoMaster 1))
 
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
@@ -122,42 +124,56 @@ maxMagnifierOff = magnifierczOff 1000
 
 -- | Like 'magnifiercz', but default to @Off@.
 magnifierczOff :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifierczOff cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off All)
+magnifierczOff cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off (All 1))
 
 -- | Like 'magnifiercz'', but default to @Off@.
 magnifierczOff' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifierczOff' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off NoMaster)
+magnifierczOff' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off (NoMaster 1))
 
 -- | A magnifier that greatly magnifies just the vertical direction
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
-maximizeVertical = ModifiedLayout (Mag 1 (1,1000) Off All)
+maximizeVertical = ModifiedLayout (Mag 1 (1,1000) Off (All 1))
 
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
 
 -- | The type for magnifying a given type; do note that the given type
 -- @a@ is a phantom type.
-data Magnifier a = Mag !Int !(Double, Double) !Toggle !MagnifyMaster
+data Magnifier a = Mag
+    { masterWins :: !Int
+      -- ^ How many windows there are in the master pane.
+    , zoomFactor :: !(Double, Double)
+      -- ^ Zoom-factor in the @x@ and @y@ direction; the window's width and
+      --   height will be multiplied by these amounts when magnifying.
+    , toggle     :: !Toggle
+      -- ^ Whether to magnify windows at all.
+    , magWhen :: !MagnifyThis
+      -- ^ Conditions when to magnify a given window
+    }
     deriving (Read, Show)
--- The constructors are documented here due to a bug in haddock with GHC
--- 8.4.x (TODO: Change this when we bump the GHC version lower bound).
--- Since they are an implementation detail and are thus subject to
--- change, this is not top-level documentation.
---
--- - Int:  How many windows there are in the master pane.
--- - (Double, Double): Zoom-factor in the @x@ and @y@ direction; the
---   window's width and height will be multiplied by these amounts when
---   magnifying.
--- - Toggle: Whether to magnify windows at all.
--- - MagnifyMaster: Magnify only the master, or all windows.
 
 data Toggle        = On  | Off      deriving  (Read, Show)
-data MagnifyMaster = All | NoMaster deriving  (Read, Show)
+
+-- | Which windows to magnify and when to start doing so.  Note that
+-- magnifying will start /at/ the cut-off, so @All 3@ will start
+-- magnifying when there are at least three windows present in the stack
+-- set.
+data MagnifyThis
+    = All      !Natural  -- ^ Every window
+    | NoMaster !Natural  -- ^ Only stack windows
+    deriving (Read, Show)
 
 instance LayoutModifier Magnifier Window where
-    redoLayout  (Mag _ z On All     ) r (Just s) wrs = applyMagnifier z r s wrs
-    redoLayout  (Mag n z On NoMaster) r (Just s) wrs = unlessMaster n (applyMagnifier z) r s wrs
-    redoLayout  _                     _ _        wrs = return (wrs, Nothing)
+    redoLayout _   _ Nothing  wrs = pure (wrs, Nothing)
+    redoLayout mag r (Just s) wrs = case mag of
+        Mag _ z On (All      k) -> magnifyAt k (applyMagnifier z r s wrs)
+        Mag n z On (NoMaster k) ->
+            magnifyAt k (unlessMaster n (applyMagnifier z) r s wrs)
+        _ -> pure (wrs, Nothing)
+      where
+        magnifyAt cutoff magnifyFun
+            | fromIntegral cutoff <= length (integrate s) = magnifyFun
+            | otherwise                                   = pure (wrs, Nothing)
 
     handleMess (Mag n z On  t) m
         | Just MagnifyMore    <- fromMessage m = return . Just $ Mag n             (z `addto`   0.1 ) On  t
@@ -172,9 +188,9 @@ instance LayoutModifier Magnifier Window where
         | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  Off t
     handleMess _ _ = return Nothing
 
-    modifierDescription (Mag _ _ On  All     ) = "Magnifier"
-    modifierDescription (Mag _ _ On  NoMaster) = "Magnifier NoMaster"
-    modifierDescription (Mag _ _ Off _       ) = "Magnifier (off)"
+    modifierDescription (Mag _ _ On  All{}     ) = "Magnifier"
+    modifierDescription (Mag _ _ On  NoMaster{}) = "Magnifier NoMaster"
+    modifierDescription (Mag _ _ Off _         ) = "Magnifier (off)"
 
 type NewLayout a = Rectangle -> Stack a -> [(Window, Rectangle)] -> X ([(Window, Rectangle)], Maybe (Magnifier a))
 
