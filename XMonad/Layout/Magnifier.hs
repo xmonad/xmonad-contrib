@@ -132,7 +132,21 @@ maximizeVertical = ModifiedLayout (Mag 1 (1,1000) Off All)
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
 
-data Magnifier a = Mag !Int (Double,Double) Toggle MagnifyMaster deriving (Read, Show)
+-- | The type for magnifying a given type; do note that the given type
+-- @a@ is a phantom type.
+data Magnifier a = Mag !Int !(Double, Double) !Toggle !MagnifyMaster
+    deriving (Read, Show)
+-- The constructors are documented here due to a bug in haddock with GHC
+-- 8.4.x (TODO: Change this when we bump the GHC version lower bound).
+-- Since they are an implementation detail and are thus subject to
+-- change, this is not top-level documentation.
+--
+-- - Int:  How many windows there are in the master pane.
+-- - (Double, Double): Zoom-factor in the @x@ and @y@ direction; the
+--   window's width and height will be multiplied by these amounts when
+--   magnifying.
+-- - Toggle: Whether to magnify windows at all.
+-- - MagnifyMaster: Magnify only the master, or all windows.
 
 data Toggle        = On  | Off      deriving  (Read, Show)
 data MagnifyMaster = All | NoMaster deriving  (Read, Show)
