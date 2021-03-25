@@ -12,8 +12,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This is a layout modifier that will make a layout increase the size
--- of the window that has focus.
+-- This is a layout modifier that will make a layout change the size of
+-- the window that has focus.
 --
 -- [Example screenshot using @magnifiercz' 1.3@ with one of the two stack windows focused.](https://user-images.githubusercontent.com/50166980/108524842-c5f69380-72cf-11eb-9fd6-b0bf67b13ed6.png)
 --
@@ -59,26 +59,30 @@ import XMonad.Util.XUtils
 --
 -- > import XMonad.Layout.Magnifier
 --
--- Then edit your @layoutHook@ by adding the 'magnifier' layout modifier
--- to some layout:
+-- Then edit your @layoutHook@ by e.g. adding the 'magnifier' layout
+-- modifier to some layout:
 --
 -- > myLayout = magnifier (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- By default magnifier increases the focused window's size by 1.5.
--- You can also use:
+-- By default 'magnifier' increases the focused window's size by @1.5@.
 --
--- > magnifiercz 1.2
+-- You can also use @'magnifiercz' 1.2@ to use a custom level of
+-- magnification.  You can even make the focused window smaller for a
+-- pop in effect.  There's also the possibility of starting out not
+-- magnifying anything at all ('magnifierOff'); see below for ways to
+-- toggle this on while in use.
 --
--- to use a custom level of magnification.  You can even make the focused
--- window smaller for a pop in effect.
+-- The most general combinator available is 'magnify'—all of the other
+-- functions in this module are essentially just creative applications
+-- of it.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
--- Magnifier supports some commands. To use them add something like
--- this to your key bindings:
+-- Magnifier supports some commands, see 'MagnifyMsg'.  To use them add
+-- something like this to your key bindings:
 --
 -- >    , ((modm .|. controlMask              , xK_plus ), sendMessage MagnifyMore)
 -- >    , ((modm .|. controlMask              , xK_minus), sendMessage MagnifyLess)
@@ -102,7 +106,7 @@ import XMonad.Util.XUtils
 
 -- | Add magnification capabilities to a certain layout.
 --
--- For example, to re-create @'magnifiercz'' 1.3@, you would do
+-- For example, to re-create 'magnifiercz' 1.3', you would do
 --
 -- >>> magnify 1.3 (NoMaster 1) On
 --
