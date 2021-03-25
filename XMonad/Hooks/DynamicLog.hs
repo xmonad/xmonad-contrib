@@ -204,7 +204,7 @@ statusBar cmd pp k conf= do
 -- Helper function which provides ToggleStruts keybinding
 --
 toggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
-toggleStrutsKey XConfig{modMask = modm} = (modm, xK_b )
+toggleStrutsKey = defToggleStrutsKey
 
 -- |
 -- Workspace logger with a format designed for Xinerama:

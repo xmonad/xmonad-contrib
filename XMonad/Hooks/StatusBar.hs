@@ -28,12 +28,13 @@ module XMonad.Hooks.StatusBar (
   StatusBarConfig(..),
   makeStatusBar,
   makeStatusBar',
+  defToggleStrutsKey,
 
   -- * Available Configs
   -- $availableconfigs
-  statusBarPipe,
   statusBarProp,
   statusBarPropTo,
+  statusBarPipe,
 
   -- * Multiple Status Bars
   -- $multiple
@@ -46,6 +47,9 @@ module XMonad.Hooks.StatusBar (
   -- * Managing Status Bar Processes
   spawnStatusBarAndRemember,
   cleanupStatusBars,
+
+  -- * Manual Plumbing
+  -- $plumbing
   ) where
 
 import Control.Exception (SomeException, try)
@@ -74,22 +78,25 @@ import XMonad.Hooks.StatusBar.PP
 -- >    import XMonad.Hooks.StatusBar
 -- >    import XMonad.Hooks.StatusBar.PP
 --
--- The recommended way to use this module with xmobar, as well as any other
+-- The easiest way to use this module with xmobar, as well as any other
 -- status bar that supports property logging (you can read more about X11
 -- properties
 -- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
 -- or
 -- [here](https://tronche.com/gui/x/xlib/window-information/properties-and-atoms.html),
 -- although you don't have to understand them in order to use the functions
--- below), is to use 'statusBarProp' with 'makeStatusBar', which takes care of
--- the necessary plumbing-no shell scripting required!
+-- below), is to use 'statusBarProp' with 'makeStatusBar'', which takes care of
+-- the necessary plumbing:
 --
 -- > main = do
--- >   mySB <- statusBarProp "xmobar" (pure myPP)
--- >   xmonad =<< makeStatusBar mySB myConf
+-- >   mySB <- statusBarProp "xmobar" (pure xmobarPP)
+-- >   xmonad =<< makeStatusBar' mySB defToggleStrutsKey def
 --
--- which plays nice with other combinators that you might have already
--- in your config:
+-- Most users will, however, want to customize the logging and integrate it
+-- into their existing custom xmonad configuration. The 'makeStatusBar'
+-- function is more appropriate in this case: it doesn't touch your
+-- keybindings, layout modifiers, or event hooks. You're expected to configure
+-- "XMonad.Hooks.ManageDocks" yourself. Here's what that might look like:
 --
 -- > main = do
 -- >   mySB <- statusBarProp "xmobar" (pure myPP)
@@ -123,7 +130,9 @@ import XMonad.Hooks.StatusBar.PP
 -- from that pipe.
 -- Please be aware that this kind of setup is very bug-prone and hence is
 -- discouraged: if anything goes wrong with the bar, xmonad will freeze.
---
+
+
+-- $plumbing
 -- If you do not want to use any of the "batteries included" functions above,
 -- you can also add all of the necessary plumbing yourself (the source of
 -- 'makeStatusBar' might come in handy here).
@@ -185,27 +194,7 @@ import XMonad.Hooks.StatusBar.PP
 --
 -- If you use a status bar that does not support reading from a property log
 -- (like dzen), and you don't want to use the 'statusBar' function, you can,
--- again, also manually add all of the required components.
---
--- This works much like the property based solution above, just that you will
--- want to use 'dynamicLog' or 'dynamicLogXinerama' in place of 'xmonadPropLog'.
---
--- > main = xmonad $ def {
--- >    ...
--- >    , logHook = dynamicLog
--- >    ...
--- >    }
---
--- For more flexibility, you can also use 'dynamicLogWithPP' and supply your own
--- pretty-printing format (by either defining one from scratch, or customizing
--- one of the provided examples).  For example:
---
--- >    -- use sjanssen's pretty-printer format, but with the sections
--- >    -- in reverse
--- >    logHook = dynamicLogWithPP $ sjanssenPP { ppOrder = reverse }
---
--- Again, you will have to do all the necessary plumbing yourself.  In addition,
--- you are also responsible for creating a pipe for you status bar to read from:
+-- again, also manually add all of the required components, like this:
 --
 -- > import XMonad.Util.Run (hPutStrLn, spawnPipe)
 -- >
@@ -218,19 +207,14 @@ import XMonad.Hooks.StatusBar.PP
 -- >       }
 --
 -- In the above, note that if you use @spawnPipe@ you need to redefine the
--- 'ppOutput' field of your pretty-printer, as was done in the example above; by
--- default the status will be printed to stdout rather than the pipe you create.
---
--- The status bars are managed through the 'StatusBarConfig', which provides
--- a convenient abstraction over what a status bar is and how to manage it.
--- This modules provides how to create these status bar configs, and how to
--- incorporate them in your xmonad config: using 'makeStatusBar'
--- or 'makeStatusBar''.
---
--- The difference between 'makeStatusBar' and 'makeStatusBar'' is that 'makeStatusBar'
--- tries to stay out of your way, whereas 'makeStatusBar'' configures an
--- extra keybinding to toggle the status bars, and also applies the
--- 'avoidStruts' layout modifier as well as the 'docks' combinator.
+-- 'ppOutput' field of your pretty-printer; by default the status will be
+-- printed to stdout rather than the pipe you create. This was meant to be
+-- used together with running xmonad piped to a status bar like so: @xmonad |
+-- dzen2@, and is what the old 'XMonad.Hooks.DynamicLog.dynamicLog' assumes,
+-- but it isn't recommended in modern setups. Applications launched from
+-- xmonad inherit its stdout and stderr, and will print their own garbage to
+-- the status bar.
+
 
 -- | This datataype abstracts a status bar to provide a common interface
 -- functions like 'statusBarPipe' or 'statusBarProp'. Once defined, a status
@@ -241,9 +225,7 @@ data StatusBarConfig = StatusBarConfig  { sbLogHook     :: X ()
                                         , sbStartupHook :: X ()
                                         -- ^ How to start the status bar.
                                         , sbCleanupHook :: X ()
-                                        -- ^ How to kill the status bar when xmonad is restarted.
-                                        -- This is useful when the status bar is not started
-                                        -- with a pipe.
+                                        -- ^ How to kill the status bar.
                                         }
 
 instance Semigroup StatusBarConfig where
@@ -292,6 +274,10 @@ makeStatusBar' sb k conf = do
                          }
   where keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
+-- | Default @mod-b@ key binding for 'makeStatusBar''
+defToggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
+defToggleStrutsKey XConfig{modMask = modm} = (modm, xK_b)
+
 -- | Creates a 'StatusBarConfig' that uses property logging to @_XMONAD_LOG@, which
 -- is set in 'xmonadDefProp'
 statusBarProp :: String -- ^ The command line to launch the status bar
@@ -333,7 +319,7 @@ statusBarPipe cmd xpp  = do
 -- >   xmonad =<< makeStatusBar (xmobarTop <> xmobarBottom <> xmobar1) myConfig
 --
 -- The above example also works if the different status bars support different
--- logging methods: you could mix property logging and logging via standard input.
+-- logging methods: you could mix property logging and logging via pipes.
 -- One thing to keep in mind: if multiple bars read from the same property, their content
 -- will be the same. If you want to use property-based logging with multiple bars,
 -- they should read from different properties.
