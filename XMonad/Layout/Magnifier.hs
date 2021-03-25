@@ -108,7 +108,7 @@ import XMonad.Util.XUtils
 --
 -- For example, to re-create 'magnifiercz' 1.3', you would do
 --
--- >>> magnify 1.3 (NoMaster 1) On
+-- >>> magnify 1.3 (NoMaster 1) True
 --
 magnify
     :: Rational     -- ^ Amount to magnify both directions

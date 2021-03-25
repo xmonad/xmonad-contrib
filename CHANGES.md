@@ -516,6 +516,10 @@
     - Added `magnifierczOff` and `magnifierczOff'` for custom-size
       magnifiers that start out with magnifying disabled.
 
+    - Added `magnify` as a more general combinator, including the
+      ability to postpone magnifying until there are a certain number of
+      windows on the workspace.
+
 ## 0.16
 
 ### Breaking Changes
