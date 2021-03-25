@@ -206,6 +206,19 @@ statusBar cmd pp k conf= do
 toggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
 toggleStrutsKey = defToggleStrutsKey
 
+-- | An example log hook, which prints status information to stdout in
+-- the default format:
+--
+-- > 1 2 [3] 4 7 : full : title
+--
+-- That is, the currently populated workspaces, the current
+-- workspace layout, and the title of the focused window.
+--
+-- To customize the output format, see 'dynamicLogWithPP'.
+--
+dynamicLog :: X ()
+dynamicLog = dynamicLogWithPP def
+
 -- |
 -- Workspace logger with a format designed for Xinerama:
 --

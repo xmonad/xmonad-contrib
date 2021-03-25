@@ -27,7 +27,6 @@ module XMonad.Hooks.StatusBar.PP (
 
     -- * Build your own formatter
     PP(..), def,
-    dynamicLog,
     dynamicLogString,
     dynamicLogWithPP,
 
@@ -136,7 +135,12 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- formatting.
              }
 
--- | The default pretty printing options, as seen in 'dynamicLog'.
+-- | The default pretty printing options:
+--
+-- > 1 2 [3] 4 7 : full : title
+--
+-- That is, the currently populated workspaces, the current
+-- workspace layout, and the title of the focused window.
 instance Default PP where
   def = PP { ppCurrent          = wrap "[" "]"
            , ppVisible          = wrap "<" ">"
@@ -156,18 +160,6 @@ instance Default PP where
            , ppSort             = getSortByIndex
            , ppExtras           = []
            }
--- | An example log hook, which prints status information to stdout in
--- the default format:
---
--- > 1 2 [3] 4 7 : full : title
---
--- That is, the currently populated workspaces, the current
--- workspace layout, and the title of the focused window.
---
--- To customize the output format, see 'dynamicLogWithPP'.
---
-dynamicLog :: X ()
-dynamicLog = dynamicLogWithPP def
 
 -- | Format the current status using the supplied pretty-printing format,
 --   and write it to stdout.
