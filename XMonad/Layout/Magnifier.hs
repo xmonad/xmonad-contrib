@@ -126,7 +126,7 @@ magnifier = magnifiercz 1.5
 
 -- | Change the size of the window that has focus by a custom zoom
 magnifiercz :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz cz = magnify cz (All 1) True
+magnifiercz cz = magnify cz (AllWins 1) True
 
 -- | Increase the size of the window that has focus, unless if it is one of the
 -- master windows.
@@ -149,7 +149,7 @@ maxMagnifierOff = magnifierczOff 1000
 
 -- | Like 'magnifiercz', but default to @Off@.
 magnifierczOff :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifierczOff cz = magnify cz (All 1) False
+magnifierczOff cz = magnify cz (AllWins 1) False
 
 -- | Like 'magnifiercz'', but default to @Off@.
 magnifierczOff' :: Rational -> l a -> ModifiedLayout Magnifier l a
@@ -157,7 +157,7 @@ magnifierczOff' cz = magnify cz (NoMaster 1) False
 
 -- | A magnifier that greatly magnifies just the vertical direction
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
-maximizeVertical = ModifiedLayout (Mag 1 (1, 1000) Off (All 1))
+maximizeVertical = ModifiedLayout (Mag 1 (1, 1000) Off (AllWins 1))
 
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
@@ -181,18 +181,18 @@ data Magnifier a = Mag
 data Toggle = On | Off deriving (Read, Show)
 
 -- | Which windows to magnify and when to start doing so.  Note that
--- magnifying will start /at/ the cut-off, so @All 3@ will start
+-- magnifying will start /at/ the cut-off, so @AllWins 3@ will start
 -- magnifying when there are at least three windows present in the stack
 -- set.
 data MagnifyThis
-    = All      !Natural  -- ^ Every window
+    = AllWins  !Natural  -- ^ Every window
     | NoMaster !Natural  -- ^ Only stack windows
     deriving (Read, Show)
 
 instance LayoutModifier Magnifier Window where
     redoLayout _   _ Nothing  wrs = pure (wrs, Nothing)
     redoLayout mag r (Just s) wrs = case mag of
-        Mag _ z On (All      k) -> magnifyAt k (applyMagnifier z r s wrs)
+        Mag _ z On (AllWins  k) -> magnifyAt k (applyMagnifier z r s wrs)
         Mag n z On (NoMaster k) ->
             magnifyAt k (unlessMaster n (applyMagnifier z) r s wrs)
         _ -> pure (wrs, Nothing)
@@ -214,7 +214,7 @@ instance LayoutModifier Magnifier Window where
         | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  Off t
     handleMess _ _ = return Nothing
 
-    modifierDescription (Mag _ _ On  All{}     ) = "Magnifier"
+    modifierDescription (Mag _ _ On  AllWins{} ) = "Magnifier"
     modifierDescription (Mag _ _ On  NoMaster{}) = "Magnifier NoMaster"
     modifierDescription (Mag _ _ Off _         ) = "Magnifier (off)"
 
