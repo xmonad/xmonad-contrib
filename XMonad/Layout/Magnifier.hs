@@ -24,6 +24,9 @@ module XMonad.Layout.Magnifier
     ( -- * Usage
       -- $usage
 
+      -- * General combinators
+      magnify,
+
       -- * Magnify Everything
       magnifier,
       magnifierOff,
@@ -39,9 +42,11 @@ module XMonad.Layout.Magnifier
 
       -- * Messages and Types
       MagnifyMsg (..),
+      MagnifyThis(..),
       Magnifier,
     ) where
 
+import Data.Bool (bool)
 import Numeric.Natural (Natural)
 
 import XMonad
@@ -95,13 +100,29 @@ import XMonad.Util.XUtils
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
+-- | Add magnification capabilities to a certain layout.
+--
+-- For example, to re-create @'magnifiercz'' 1.3@, you would do
+--
+-- >>> magnify 1.3 (NoMaster 1) On
+--
+magnify
+    :: Rational     -- ^ Amount to magnify both directions
+    -> MagnifyThis  -- ^ What to magnify
+    -> Bool         -- ^ Whether magnification should start out on
+                    --   (@True@) or off (@False@)
+    -> l a          -- ^ Input layout
+    -> ModifiedLayout Magnifier l a
+magnify cz mt start = ModifiedLayout $
+    Mag 1 (fromRational cz, fromRational cz) (bool Off On start) mt
+
 -- | Increase the size of the window that has focus
 magnifier :: l a -> ModifiedLayout Magnifier l a
 magnifier = magnifiercz 1.5
 
 -- | Change the size of the window that has focus by a custom zoom
 magnifiercz :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On (All 1))
+magnifiercz cz = magnify cz (All 1) True
 
 -- | Increase the size of the window that has focus, unless if it is one of the
 -- master windows.
@@ -111,7 +132,7 @@ magnifier' = magnifiercz' 1.5
 -- | Increase the size of the window that has focus by a custom zoom,
 -- unless if it is one of the the master windows.
 magnifiercz' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifiercz' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) On (NoMaster 1))
+magnifiercz' cz = magnify cz (NoMaster 1) True
 
 -- | Magnifier that defaults to Off
 magnifierOff :: l a -> ModifiedLayout Magnifier l a
@@ -124,15 +145,15 @@ maxMagnifierOff = magnifierczOff 1000
 
 -- | Like 'magnifiercz', but default to @Off@.
 magnifierczOff :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifierczOff cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off (All 1))
+magnifierczOff cz = magnify cz (All 1) False
 
 -- | Like 'magnifiercz'', but default to @Off@.
 magnifierczOff' :: Rational -> l a -> ModifiedLayout Magnifier l a
-magnifierczOff' cz = ModifiedLayout (Mag 1 (fromRational cz, fromRational cz) Off (NoMaster 1))
+magnifierczOff' cz = magnify cz (NoMaster 1) False
 
 -- | A magnifier that greatly magnifies just the vertical direction
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
-maximizeVertical = ModifiedLayout (Mag 1 (1,1000) Off (All 1))
+maximizeVertical = ModifiedLayout (Mag 1 (1, 1000) Off (All 1))
 
 data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
 instance Message MagnifyMsg
@@ -145,14 +166,15 @@ data Magnifier a = Mag
     , zoomFactor :: !(Double, Double)
       -- ^ Zoom-factor in the @x@ and @y@ direction; the window's width and
       --   height will be multiplied by these amounts when magnifying.
-    , toggle     :: !Toggle
+    , toggle :: !Toggle
       -- ^ Whether to magnify windows at all.
     , magWhen :: !MagnifyThis
       -- ^ Conditions when to magnify a given window
     }
     deriving (Read, Show)
 
-data Toggle        = On  | Off      deriving  (Read, Show)
+-- | Whether magnification is currently enabled.
+data Toggle = On | Off deriving (Read, Show)
 
 -- | Which windows to magnify and when to start doing so.  Note that
 -- magnifying will start /at/ the cut-off, so @All 3@ will start
@@ -201,12 +223,12 @@ unlessMaster n mainmod r s wrs = if null (drop (n-1) (up s)) then return (wrs, N
 applyMagnifier :: (Double,Double) -> Rectangle -> t -> [(Window, Rectangle)]
                -> X ([(Window, Rectangle)], Maybe a)
 applyMagnifier z r _ wrs = do focused <- withWindowSet (return . peek)
-                              let mag (w,wr) ws | focused == Just w = ws ++ [(w, fit r $ magnify z wr)]
+                              let mag (w,wr) ws | focused == Just w = ws ++ [(w, fit r $ magnify' z wr)]
                                                 | otherwise         = (w,wr) : ws
                               return (reverse $ foldr mag [] wrs, Nothing)
 
-magnify :: (Double, Double) -> Rectangle -> Rectangle
-magnify (zoomx,zoomy) (Rectangle x y w h) = Rectangle x' y' w' h'
+magnify' :: (Double, Double) -> Rectangle -> Rectangle
+magnify' (zoomx,zoomy) (Rectangle x y w h) = Rectangle x' y' w' h'
     where x' = x - fromIntegral (w' - w) `div` 2
           y' = y - fromIntegral (h' - h) `div` 2
           w' = round $ fromIntegral w * zoomx
