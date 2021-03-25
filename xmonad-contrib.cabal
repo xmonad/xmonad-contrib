@@ -93,7 +93,6 @@ library
                         XMonad.Actions.FindEmptyWorkspace
                         XMonad.Actions.FlexibleManipulate
                         XMonad.Actions.FlexibleResize
-                        XMonad.Actions.TiledWindowDragging
                         XMonad.Actions.FloatKeys
                         XMonad.Actions.FloatSnap
                         XMonad.Actions.FocusNth
@@ -116,8 +115,8 @@ library
                         XMonad.Actions.Prefix
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
-                        XMonad.Actions.RotateSome
                         XMonad.Actions.RotSlaves
+                        XMonad.Actions.RotateSome
                         XMonad.Actions.Search
                         XMonad.Actions.ShowText
                         XMonad.Actions.Sift
@@ -125,9 +124,10 @@ library
                         XMonad.Actions.SinkAll
                         XMonad.Actions.SpawnOn
                         XMonad.Actions.Submap
-                        XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.SwapPromote
+                        XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows
+                        XMonad.Actions.TiledWindowDragging
                         XMonad.Actions.TopicSpace
                         XMonad.Actions.TreeSelect
                         XMonad.Actions.UpdateFocus
@@ -191,9 +191,9 @@ library
                         XMonad.Hooks.ToggleHook
                         XMonad.Hooks.UrgencyHook
                         XMonad.Hooks.WallpaperSetter
+                        XMonad.Hooks.WindowSwallowing
                         XMonad.Hooks.WorkspaceByPos
                         XMonad.Hooks.WorkspaceHistory
-                        XMonad.Hooks.WindowSwallowing
                         XMonad.Hooks.XPropManage
                         XMonad.Layout.Accordion
                         XMonad.Layout.AutoMaster
@@ -213,7 +213,6 @@ library
                         XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
-                        XMonad.Layout.MultiDishes
                         XMonad.Layout.DragPane
                         XMonad.Layout.DraggingVisualizer
                         XMonad.Layout.Drawer
@@ -253,6 +252,7 @@ library
                         XMonad.Layout.MosaicAlt
                         XMonad.Layout.MouseResizableTile
                         XMonad.Layout.MultiColumns
+                        XMonad.Layout.MultiDishes
                         XMonad.Layout.MultiToggle
                         XMonad.Layout.MultiToggle.Instances
                         XMonad.Layout.MultiToggle.TabBarDecoration
@@ -266,8 +266,8 @@ library
                         XMonad.Layout.PositionStoreFloat
                         XMonad.Layout.Reflect
                         XMonad.Layout.Renamed
-                        XMonad.Layout.ResizableTile
                         XMonad.Layout.ResizableThreeColumns
+                        XMonad.Layout.ResizableTile
                         XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
                         XMonad.Layout.ShowWName
@@ -348,8 +348,8 @@ library
                         XMonad.Util.Replace
                         XMonad.Util.Run
                         XMonad.Util.Scratchpad
-                        XMonad.Util.SpawnNamedPipe
                         XMonad.Util.SessionStart
+                        XMonad.Util.SpawnNamedPipe
                         XMonad.Util.SpawnOnce
                         XMonad.Util.Stack
                         XMonad.Util.StringProp
