@@ -311,14 +311,35 @@ statusBarPipe cmd xpp  = do
     h <- spawnPipe cmd
     return $ def { sbLogHook = xpp >>= \pp -> dynamicLogWithPP pp { ppOutput = hPutStrLn h } }
 
+
 -- $multiple
--- A pattern that is often found in a lot of configs that want multiple status bars,
--- generally goes something like this:
+-- 'StatusBarConfig' is a 'Monoid', which means that multiple status bars can
+-- be combined together using '<>' or 'mconcat' and passed to 'makeStatusBar'.
+--
+-- Here's an example of what such declarative configuration of multiple status
+-- bars may look like:
 --
 -- > main = do
--- >   xmproc0 <- spawnPipe "xmobar -x 0 $HOME/.config/xmobar/xmobarrc_top"
--- >   xmproc1 <- spawnPipe "xmobar -x 0 $HOME/.config/xmobar/xmobarrc_bottom"
--- >   xmproc2 <- spawnPipe "xmobar -x 1 $HOME/.config/xmobar/xmobarrc1"
+-- >   xmobarTop    <- statusBarPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"    (pure ppTop)
+-- >   xmobarBottom <- statusBarPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
+-- >   xmobar1      <- statusBarPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
+-- >   xmonad =<< makeStatusBar (xmobarTop <> xmobarBottom <> xmobar1) myConfig
+--
+-- The above example also works if the different status bars support different
+-- logging methods: you could mix property logging and logging via standard input.
+-- One thing to keep in mind: if multiple bars read from the same property, their content
+-- will be the same. If you want to use property-based logging with multiple bars,
+-- they should read from different properties.
+--
+-- Long-time xmonad users will note that the above config is equivalent to
+-- the following less robust and more verbose configuration that they might
+-- find in their old configs:
+--
+-- > main = do
+-- >   -- do not use this, this is an example of a deprecated config
+-- >   xmproc0 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"
+-- >   xmproc1 <- spawnPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom"
+-- >   xmproc2 <- spawnPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc1"
 -- >   xmonad $ def {
 -- >     ...
 -- >     , logHook = dynamicLogWithPP ppTop { ppOutput = hPutStrLn xmproc0 }
@@ -327,30 +348,8 @@ statusBarPipe cmd xpp  = do
 -- >     ...
 -- >   }
 --
--- Which has a lot of boilerplate and is error-prone. By using the new interface, the
--- config becomes more declarative and there's much less room for errors. You use it
--- by creating the suitable status bar configs and combining them with '<>':
---
--- > main = do
--- >   xmobarTop    <- statusBarPipe "xmobar -x 0 $HOME/.config/xmobar/xmobarrc_top"    (pure ppTop)
--- >   xmobarBottom <- statusBarPipe "xmobar -x 0 $HOME/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
--- >   xmobar1      <- statusBarPipe "xmobar -x 1 $HOME/.config/xmobar/xmobarrc1"       (pure pp1)
--- >   xmonad =<< makeStatusBar (xmobarTop <> xmobarBottom <> xmobar1) myConfig
---
--- Or if you're feeling adventurous:
---
--- > myBars = map (uncurry statusBarPipe) [ ("xmobar -x 0 $HOME/.config/xmobar/xmobarrc_top",    pure ppTop)
--- >                                              , ("xmobar -x 0 $HOME/.config/xmobar/xmobarrc_bottom", pure ppBottom)
--- >                                              , ("xmobar -x 1 $HOME/.config/xmobar/xmobarrc1",       pure pp1) ]
--- > main = do
--- >   sbs <- sequence myBars
--- >   xmonad =<< makeStatusBar (mconcat sbs) myConfig
---
--- The above examples also work if the different status bars support different
--- logging methods: you could do mix property logging and logging via standard input.
--- One thing to keep in mind: if multiple bars read from the same property, their content
--- will be the same. If you want to use property-based logging with multiple bars,
--- they should read from different properties.
+-- By using the new interface, the config becomes more declarative and there's
+-- less room for errors.
 
 
 -- | The default property xmonad writes to. (@_XMONAD_LOG@).
