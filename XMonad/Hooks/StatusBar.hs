@@ -9,9 +9,16 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This module provides a new interface that replaces "XMonad.Hooks.DynamicLog",
--- by providing composoble and dynamic status bars. Supports property-based as well
--- as pipe-based status bars.
+-- xmonad calls the logHook with every internal state update, which is
+-- useful for (among other things) outputting status information to an
+-- external status bar program such as xmobar or dzen.
+--
+-- This module provides a composable interface for (re)starting these status
+-- bars and logging to them, either using pipes or X properties. There's also
+-- "XMonad.Hooks.StatusBar.PP" which provides an abstraction and some
+-- utilities for customization what is logged to a status bar. Together these
+-- are a modern replacement for "XMonad.Hooks.DynamicLog", which is now just a
+-- compatibility wrapper.
 --
 -----------------------------------------------------------------------------
 

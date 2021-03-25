@@ -10,6 +10,16 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
+-- __Note:__ This module is a __compatibility wrapper__ for the following:
+--
+-- * "XMonad.Hooks.StatusBar"
+-- * "XMonad.Hooks.StatusBar.PP"
+--
+-- DynamicLog API is frozen and users are encouraged to migrate to these
+-- modern replacements.
+--
+-- /Original description and documentation follows:/
+--
 -- xmonad calls the logHook with every internal state update, which is
 -- useful for (among other things) outputting status information to an
 -- external status bar program such as xmobar or dzen.  DynamicLog
@@ -65,8 +75,6 @@ import XMonad.Hooks.StatusBar.PP
 import XMonad.Hooks.StatusBar
 
 -- $usage
--- The API for this module is frozen, use "XMonad.Hooks.StatusBar" instead.
---
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
 -- >    import XMonad
