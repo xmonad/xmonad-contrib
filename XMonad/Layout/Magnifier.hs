@@ -1,4 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE PatternGuards              #-}
+{-# LANGUAGE TypeSynonymInstances       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Magnifier
@@ -157,16 +160,16 @@ instance LayoutModifier Magnifier Window where
     redoLayout  _                     _ _        wrs = return (wrs, Nothing)
 
     handleMess (Mag n z On  t) m
-                    | Just MagnifyMore    <- fromMessage m = return . Just $ Mag n             (z `addto`   0.1 ) On  t
-                    | Just MagnifyLess    <- fromMessage m = return . Just $ Mag n             (z `addto` (-0.1)) On  t
-                    | Just ToggleOff      <- fromMessage m = return . Just $ Mag n             z                  Off t
-                    | Just Toggle         <- fromMessage m = return . Just $ Mag n             z                  Off t
-                    | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  On  t
-                    where addto (x,y) i = (x+i,y+i)
+        | Just MagnifyMore    <- fromMessage m = return . Just $ Mag n             (z `addto`   0.1 ) On  t
+        | Just MagnifyLess    <- fromMessage m = return . Just $ Mag n             (z `addto` (-0.1)) On  t
+        | Just ToggleOff      <- fromMessage m = return . Just $ Mag n             z                  Off t
+        | Just Toggle         <- fromMessage m = return . Just $ Mag n             z                  Off t
+        | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  On  t
+      where addto (x, y) i = (x + i, y + i)
     handleMess (Mag n z Off t) m
-                    | Just ToggleOn       <- fromMessage m = return . Just $ Mag n             z                  On  t
-                    | Just Toggle         <- fromMessage m = return . Just $ Mag n             z                  On  t
-                    | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  Off t
+        | Just ToggleOn       <- fromMessage m = return . Just $ Mag n             z                  On  t
+        | Just Toggle         <- fromMessage m = return . Just $ Mag n             z                  On  t
+        | Just (IncMasterN d) <- fromMessage m = return . Just $ Mag (max 0 (n+d)) z                  Off t
     handleMess _ _ = return Nothing
 
     modifierDescription (Mag _ _ On  All     ) = "Magnifier"
