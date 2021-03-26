@@ -388,7 +388,7 @@ updateElementsWithColorizer colorizer elementmap = do
 stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
 stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
     | t == buttonRelease = do
-        s @  TwoDState { td_paneX = px, td_paneY = py,
+        s@TwoDState { td_paneX = px, td_paneY = py,
                          td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _ _) } <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
