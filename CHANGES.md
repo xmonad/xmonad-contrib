@@ -191,6 +191,8 @@
 
 ### Bug Fixes and Minor Changes
 
+  * Add support for GHC 9.0.1.
+
   * `XMonad.Actions.TreeSelect`
 
     - Fix swapped green/blue in foreground when using Xft.
