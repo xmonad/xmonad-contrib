@@ -29,11 +29,11 @@ module XMonad.Hooks.ManageDebug (debugManageHook
                                 ) where
 
 import           XMonad
+import           XMonad.Prelude (when)
 import           XMonad.Hooks.DebugStack
 import           XMonad.Util.DebugWindow
 import           XMonad.Util.EZConfig
 import qualified XMonad.Util.ExtensibleState                                                 as XS
-import           Control.Monad                            (when)
 
 -- persistent state for manageHook debugging to trigger logHook debugging
 data ManageStackDebug = MSD (Bool,Bool) deriving Typeable

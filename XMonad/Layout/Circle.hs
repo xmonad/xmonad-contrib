@@ -20,7 +20,7 @@ module XMonad.Layout.Circle (
                              Circle (..)
                             ) where -- actually it's an ellipse
 
-import Data.List
+import XMonad.Prelude
 import XMonad
 import XMonad.StackSet (integrate, peek)
 

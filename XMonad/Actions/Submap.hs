@@ -20,10 +20,9 @@ module XMonad.Actions.Submap (
                              submapDefaultWithKey
                             ) where
 import Data.Bits
-import Data.Maybe (fromMaybe)
+import XMonad.Prelude (fix, fromMaybe)
 import XMonad hiding (keys)
 import qualified Data.Map as M
-import Control.Monad.Fix (fix)
 
 {- $usage
 

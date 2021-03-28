@@ -29,7 +29,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Actions.GridSelect
 import XMonad.Layout.Maximize
 import XMonad.Actions.Minimize
-import XMonad.Util.XUtils (fi)
+import XMonad.Prelude (fi)
 
 -- $usage
 --

@@ -18,7 +18,7 @@ module XMonad.Prompt.Layout (
                              layoutPrompt
                             ) where
 
-import Data.List ( sort, nub )
+import XMonad.Prelude ( sort, nub )
 import XMonad hiding ( workspaces )
 import XMonad.Prompt
 import XMonad.Prompt.Workspace ( Wor(..) )

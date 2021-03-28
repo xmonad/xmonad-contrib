@@ -18,10 +18,9 @@ module XMonad.Actions.Launcher(
   , launcherPrompt
 ) where
 
-import           Data.List       (find, findIndex, isPrefixOf, tails)
 import qualified Data.Map        as M
-import           Data.Maybe      (isJust)
 import           XMonad          hiding (config)
+import           XMonad.Prelude
 import           XMonad.Prompt
 import           XMonad.Util.Run
 

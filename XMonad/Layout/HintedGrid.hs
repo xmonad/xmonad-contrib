@@ -24,10 +24,10 @@ module XMonad.Layout.HintedGrid (
 import Prelude hiding ((.))
 
 import XMonad
+import XMonad.Prelude (replicateM, sortBy)
 import XMonad.StackSet
 
-import Control.Monad.State
-import Data.List
+import Control.Monad.State (runState)
 import Data.Ord
 
 infixr 9 .

@@ -29,6 +29,7 @@ import XMonad(LayoutClass(runLayout), mkAdjust, Window,
               X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS,
               (<&&>), io, applySizeHints, whenX, isClient, withDisplay,
               getWindowAttributes, getWMNormalHints, WindowAttributes(..))
+import XMonad.Prelude (All (..), fromJust, join, on, sortBy)
 import qualified XMonad.StackSet as W
 
 import XMonad.Layout.Decoration(isInStack)
@@ -36,14 +37,9 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(modifyLayout, redoLayout, modifierDescription))
 import XMonad.Util.Types(Direction2D(..))
 import Control.Arrow(Arrow((***), first, second))
-import Control.Monad(join)
-import Data.Function(on)
-import Data.List(sortBy)
-import Data.Monoid(All(..))
 
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Maybe(fromJust)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

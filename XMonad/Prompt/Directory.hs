@@ -21,7 +21,7 @@ module XMonad.Prompt.Directory (
                              Dir
                               ) where
 
-import Data.List ( sort )
+import XMonad.Prelude ( sort )
 
 import XMonad
 import XMonad.Prompt

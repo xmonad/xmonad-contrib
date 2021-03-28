@@ -36,8 +36,8 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
 import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
               broadcastMessage, sendMessage, windows, withFocused, Window)
-import Data.List((\\), union)
-import Data.Maybe(fromMaybe, listToMaybe, maybeToList)
+import XMonad.Prelude (fromMaybe, listToMaybe, maybeToList, union, (\\))
+import XMonad.Util.Stack (reverseS)
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
 

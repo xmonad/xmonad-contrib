@@ -23,7 +23,7 @@ module XMonad.Layout.HintedTile (
 
 import XMonad hiding (Tall(..))
 import qualified XMonad.StackSet as W
-import Control.Monad
+import XMonad.Prelude
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

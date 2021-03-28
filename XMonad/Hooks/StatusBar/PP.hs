@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE PatternGuards       #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar.PP
@@ -46,15 +46,10 @@ module XMonad.Hooks.StatusBar.PP (
 
     ) where
 
-import Control.Applicative (liftA2)
-import Control.Monad (msum)
-import Data.Char (isSpace)
-import Data.List (intercalate, isPrefixOf, sortOn, stripPrefix)
-import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
-
 import qualified XMonad.StackSet as S
 
 import XMonad
+import XMonad.Prelude
 
 import XMonad.Util.NamedWindows
 import XMonad.Util.WorkspaceCompare

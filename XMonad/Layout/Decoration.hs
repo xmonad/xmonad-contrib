@@ -36,12 +36,10 @@ module XMonad.Layout.Decoration
     , DecorationState, OrigWin
     ) where
 
-import Control.Monad (when)
-import Data.Maybe
-import Data.List
 import Foreign.C.Types(CInt)
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.LayoutModifier

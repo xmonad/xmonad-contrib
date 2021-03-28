@@ -23,14 +23,12 @@ module XMonad.Actions.CycleWorkspaceByScreen (
   , repeatableAction
   ) where
 
-import           Control.Monad
 import           Data.IORef
-import           Data.List
-import           Data.Maybe
 
 import           Graphics.X11.Xlib.Extras
 
 import           XMonad
+import           XMonad.Prelude
 import           XMonad.Hooks.WorkspaceHistory
 import qualified XMonad.StackSet as W
 

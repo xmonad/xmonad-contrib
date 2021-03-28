@@ -31,7 +31,7 @@ import qualified Data.Map as M
 import XMonad.Core
 import XMonad.Util.PureX
 import qualified Control.Monad.State as State
-import Data.Maybe (fromMaybe)
+import XMonad.Prelude (fromMaybe)
 
 -- ---------------------------------------------------------------------
 -- $usage

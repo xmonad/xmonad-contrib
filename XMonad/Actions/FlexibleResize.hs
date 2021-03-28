@@ -20,7 +20,7 @@ module XMonad.Actions.FlexibleResize (
 ) where
 
 import XMonad
-import XMonad.Util.XUtils (fi)
+import XMonad.Prelude (fi)
 import Foreign.C.Types
 
 -- $usage

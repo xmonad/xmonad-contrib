@@ -41,15 +41,11 @@ module XMonad.Hooks.SetWMName (
     )
   where
 
-import Control.Monad (join)
-import Data.Char (ord)
-import Data.List (nub)
-import Data.Maybe (fromJust, listToMaybe, maybeToList)
 import Foreign.C.Types (CChar)
-
 import Foreign.Marshal.Alloc (alloca)
 
 import XMonad
+import XMonad.Prelude (fromJust, join, listToMaybe, maybeToList, nub, ord)
 
 -- | sets WM name
 setWMName :: String -> X ()
@@ -117,4 +113,3 @@ getSupportWindow = withDisplay $ \dpy -> do
 -- | Get WM name.
 getWMName :: X String
 getWMName = getSupportWindow >>= runQuery title
-

@@ -25,7 +25,7 @@ module XMonad.Actions.RotateSome (
   ) where
 
 import Control.Arrow ((***))
-import Data.List (partition, sortOn, (\\))
+import XMonad.Prelude (partition, sortOn, (\\))
 import qualified Data.Map as M
 import XMonad (Window, WindowSpace, Rectangle, X, runLayout, screenRect, windows, withWindowSet)
 import XMonad.StackSet (Screen (Screen), Stack (Stack), current, floating, modify', stack)

@@ -62,14 +62,11 @@ module XMonad.Hooks.Focus
     )
   where
 
-import Data.Maybe
-import Data.Monoid
-import qualified Data.Semigroup as S
-import Control.Monad
+import Control.Arrow ((&&&))
 import Control.Monad.Reader
-import Control.Arrow hiding ((<+>))
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Hooks.ManageHelpers (currentWs)
@@ -385,8 +382,8 @@ instance MonadReader Focus FocusQuery where
     local f (FocusQuery mx) = FocusQuery (local f mx)
 instance MonadIO FocusQuery where
     liftIO mx       = FocusQuery (liftIO mx)
-instance S.Semigroup a => S.Semigroup (FocusQuery a) where
-    (<>)            = liftM2 (S.<>)
+instance Semigroup a => Semigroup (FocusQuery a) where
+    (<>)            = liftM2 (<>)
 instance Monoid a => Monoid (FocusQuery a) where
     mempty          = return mempty
     mappend         = (<>)
@@ -577,4 +574,3 @@ activateOnCurrentWs = manageFocus (liftQuery activated <&&> newOnCur --> switchF
 activateOnCurrentKeepFocus :: ManageHook
 activateOnCurrentKeepFocus  = manageFocus (liftQuery activated <&&> newOnCur --> keepFocus)
                         <+> activateOnCurrent'
-

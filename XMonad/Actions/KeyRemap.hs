@@ -27,11 +27,10 @@ module XMonad.Actions.KeyRemap (
   ) where
 
 import XMonad
+import XMonad.Prelude
 import XMonad.Util.Paste
-import Data.List
 
 import qualified XMonad.Util.ExtensibleState as XS
-import Control.Monad
 
 
 data KeymapTable = KeymapTable [((KeyMask, KeySym), (KeyMask, KeySym))] deriving (Typeable, Show)

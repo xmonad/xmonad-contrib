@@ -28,8 +28,7 @@ module XMonad.Util.Replace
     ) where
 
 import XMonad
-import Data.Function
-import Control.Monad
+import XMonad.Prelude
 
 -- $usage
 -- You must run the 'replace' action before starting xmonad proper, this

@@ -19,11 +19,11 @@ module XMonad.Layout.SimplestFloat
     , SimplestFloat
     ) where
 
+import XMonad.Prelude (fi)
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.WindowArranger
 import XMonad.Layout.LayoutModifier
-import XMonad.Util.XUtils (fi)
 
 -- $usage
 -- You can use this module with the following in your

@@ -19,6 +19,7 @@ module XMonad.Hooks.DebugKeyEvents (-- * Usage
                                    ) where
 
 import           XMonad.Core
+import           XMonad.Prelude
 import           XMonad.Operations               (cleanMask)
 
 import           Graphics.X11.Xlib
@@ -26,8 +27,6 @@ import           Graphics.X11.Xlib.Extras
 
 import           Control.Monad.State             (gets)
 import           Data.Bits
-import           Data.List                       (intercalate)
-import           Data.Monoid
 import           Numeric                         (showHex)
 import           System.IO                       (hPutStrLn
                                                  ,stderr)

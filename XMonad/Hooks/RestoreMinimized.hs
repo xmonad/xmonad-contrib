@@ -22,7 +22,7 @@ module XMonad.Hooks.RestoreMinimized
     , restoreMinimizedEventHook
     ) where
 
-import Data.Monoid
+import XMonad.Prelude
 
 import XMonad
 

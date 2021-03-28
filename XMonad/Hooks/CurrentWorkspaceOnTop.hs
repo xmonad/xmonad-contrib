@@ -25,7 +25,7 @@ module XMonad.Hooks.CurrentWorkspaceOnTop (
 import XMonad
 import qualified XMonad.StackSet as S
 import qualified XMonad.Util.ExtensibleState as XS
-import Control.Monad(when)
+import XMonad.Prelude(when)
 import qualified Data.Map as M
 
 -- $usage

@@ -32,11 +32,10 @@ module XMonad.Util.XUtils
     , fi
     ) where
 
-import Data.Maybe
+import XMonad.Prelude
 import XMonad
 import XMonad.Util.Font
 import XMonad.Util.Image
-import Control.Monad
 
 -- $usage
 -- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" or

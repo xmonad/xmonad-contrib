@@ -20,16 +20,13 @@ module XMonad.Prompt.Ssh
     ) where
 
 import XMonad
+import XMonad.Prelude
 import XMonad.Util.Run
 import XMonad.Prompt
 
 import System.Directory
 import System.Environment
 import Control.Exception as E
-
-import Control.Applicative (liftA2)
-import Data.Maybe
-import Data.List(elemIndex)
 
 econst :: Monad m => a -> IOException -> m a
 econst = const . return

@@ -30,10 +30,8 @@ module XMonad.Actions.PhysicalScreens (
                                       ) where
 
 import XMonad
+import XMonad.Prelude (findIndex, on, sortBy)
 import qualified XMonad.StackSet as W
-
-import Data.List (sortBy,findIndex)
-import Data.Function (on)
 
 {- $usage
 

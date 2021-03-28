@@ -38,18 +38,13 @@ module XMonad.Actions.EasyMotion ( -- * Usage
                                  ) where
 
 import           XMonad
-import           XMonad.StackSet          as W
+import           XMonad.Prelude
+import qualified XMonad.StackSet          as W
 import           XMonad.Util.Font         (releaseXMF, initXMF, Align(AlignCenter), XMonadFont(..), textExtentsXMF)
-import           XMonad.Util.XUtils       (fi, createNewWindow, paintAndWrite, deleteWindow, showWindow)
-import           Control.Monad            (replicateM)
+import           XMonad.Util.XUtils       (createNewWindow, paintAndWrite, deleteWindow, showWindow)
+
 import           Control.Arrow            ((&&&))
-import           Data.Functor             (($>))
-import           Data.Maybe               (isJust, listToMaybe)
-import qualified Data.Map.Strict as M     (Map, map, mapWithKey, elems)
-import           Data.Set                 (toList)
-import           Graphics.X11.Xlib.Extras (getWindowAttributes, getEvent)
-import qualified Data.List as L           (filter, partition, find, nub)
-import           Data.List                (sortOn)
+import qualified Data.Map.Strict as M     (Map, elems, map, mapWithKey)
 
 -- $usage
 --
@@ -275,9 +270,9 @@ handleSelectWindow c = do
         $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
      where
       screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
-      screenById sid = L.find ((== sid) . screen) (W.screens ws)
+      screenById sid = find ((== sid) . W.screen) (W.screens ws)
       visibleWindowsOnScreen :: ScreenId -> [Window]
-      visibleWindowsOnScreen sid = L.filter (`elem` toList mappedWins) $ W.integrate' $ screenById sid >>= W.stack . W.workspace
+      visibleWindowsOnScreen sid = filter (`elem` toList mappedWins) $ W.integrate' $ screenById sid >>= W.stack . W.workspace
       sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
       sortedOverlayWindows sid = sortOverlayWindows <$> buildOverlayWindows dpy th (visibleWindowsOnScreen sid)
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
@@ -331,7 +326,7 @@ selectWindow conf =
  where
   -- make sure the key lists don't contain: backspace, our cancel key, or duplicates
   sanitise :: [KeySym] -> [KeySym]
-  sanitise = L.nub . L.filter (`notElem` [xK_BackSpace, cancelKey conf])
+  sanitise = nub . filter (`notElem` [xK_BackSpace, cancelKey conf])
   sanitiseKeys :: ChordKeys -> ChordKeys
   sanitiseKeys cKeys =
     case cKeys of
@@ -381,12 +376,12 @@ handleKeyboard dpy drawFn cancel selected deselected = do
     case x of
       Backspace -> redraw >> handleKeyboard dpy drawFn cancel selected deselected
       _ -> return x
-  isNextOverlayKey keySym = isJust (L.find ((== Just keySym) . listToMaybe .chord) selected)
+  isNextOverlayKey keySym = isJust (find ((== Just keySym) . listToMaybe .chord) selected)
   handleNextOverlayKey keySym =
     case fg of
       [x] -> return $ Selected x
       _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
    where
-    (fg, bg) = L.partition ((== Just keySym) . listToMaybe . chord) selected
+    (fg, bg) = partition ((== Just keySym) . listToMaybe . chord) selected
     trim = map (\o -> o { chord = tail $ chord o })
     clear = map (\o -> o { chord = [] })

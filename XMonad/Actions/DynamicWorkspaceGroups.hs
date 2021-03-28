@@ -36,11 +36,11 @@ module XMonad.Actions.DynamicWorkspaceGroups
     , WSGPrompt
     ) where
 
-import Data.List (find)
 import Control.Arrow ((&&&))
 import qualified Data.Map as M
 
 import XMonad
+import XMonad.Prelude (find)
 import qualified XMonad.StackSet as W
 
 import XMonad.Prompt

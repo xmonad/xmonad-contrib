@@ -20,7 +20,7 @@ module XMonad.Prompt.Theme
 
 import Control.Arrow ( (&&&) )
 import qualified Data.Map as M
-import Data.Maybe ( fromMaybe )
+import XMonad.Prelude ( fromMaybe )
 import XMonad
 import XMonad.Prompt
 import XMonad.Layout.Decoration

@@ -27,8 +27,7 @@ module XMonad.Actions.FloatSnap (
                 ifClick') where
 
 import XMonad
-import Data.List (sort)
-import Data.Maybe (listToMaybe,fromJust,isNothing)
+import XMonad.Prelude (fromJust, isNothing, listToMaybe, sort)
 import qualified XMonad.StackSet as W
 import qualified Data.Set as S
 

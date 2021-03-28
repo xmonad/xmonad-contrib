@@ -94,6 +94,7 @@ module XMonad.Prompt
     ) where
 
 import           XMonad                       hiding (cleanMask, config)
+import           XMonad.Prelude               hiding (toList)
 import qualified XMonad                       as X (numberlockMask)
 import qualified XMonad.StackSet              as W
 import           XMonad.Util.Font
@@ -107,11 +108,8 @@ import           Control.Exception            as E hiding (handle)
 import           Control.Monad.State
 import           Data.Bifunctor               (bimap)
 import           Data.Bits
-import           Data.Char                    (isSpace)
 import           Data.IORef
-import           Data.List
 import qualified Data.Map                     as M
-import           Data.Maybe                   (fromMaybe, listToMaybe)
 import           Data.Set                     (fromList, toList)
 import           System.IO
 import           System.IO.Unsafe             (unsafePerformIO)
@@ -413,15 +411,11 @@ highlightedItem st' completions = case complWinDim st' of
   Just winDim ->
     let
       (_,_,_,_,xx,yy) = winDim
-      complMatrix = splitInSubListsAt (length yy) (take (length xx * length yy) completions)
+      complMatrix = chunksOf (length yy) (take (length xx * length yy) completions)
       (col_index,row_index) = complIndex st'
     in case completions of
       [] -> Nothing
       _  -> complMatrix !? col_index >>= (!? row_index)
- where
-  -- | Safe version of '(!!)'.
-  (!?) :: [a] -> Int -> Maybe a
-  (!?) xs n = listToMaybe $ drop n xs
 
 -- | Return the selected completion, i.e. the 'String' we actually act
 -- upon after the user confirmed their selection (by pressing @Enter@).
@@ -1561,7 +1555,7 @@ drawComplWin w compl = do
   p <- io $ createPixmap d w wh ht
                          (defaultDepthOfScreen scr)
   io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
-  let ac = splitInSubListsAt (length yy) (take (length xx * length yy) compl)
+  let ac = chunksOf (length yy) (take (length xx * length yy) compl)
 
   printComplList d p gc (fgNormal cr) (bgNormal cr) xx yy ac
   --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
@@ -1704,9 +1698,8 @@ getNextCompletion c l = l !! idx
 
 -- | Given a maximum length, splits a list into sublists
 splitInSubListsAt :: Int -> [a] -> [[a]]
-splitInSubListsAt _ [] = []
-splitInSubListsAt i x = f : splitInSubListsAt i rest
-    where (f,rest) = splitAt i x
+splitInSubListsAt = chunksOf
+{-# DEPRECATED splitInSubListsAt "Use XMonad.Prelude.chunksOf instead." #-}
 
 -- | Gets the last word of a string or the whole string if formed by
 -- only one word

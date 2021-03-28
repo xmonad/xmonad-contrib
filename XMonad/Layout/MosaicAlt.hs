@@ -33,7 +33,7 @@ module XMonad.Layout.MosaicAlt (
 import XMonad
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
-import Data.List ( sortBy )
+import XMonad.Prelude ( sortBy )
 import Data.Ratio
 
 -- $usage

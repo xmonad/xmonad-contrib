@@ -31,7 +31,7 @@ module XMonad.Layout.WorkspaceDir (
                                   ) where
 
 import System.Directory ( setCurrentDirectory, getCurrentDirectory )
-import Control.Monad ( when )
+import XMonad.Prelude ( when )
 
 import XMonad hiding ( focus )
 import XMonad.Prompt ( XPConfig )

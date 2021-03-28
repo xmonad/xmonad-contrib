@@ -47,7 +47,7 @@ import qualified XMonad.Layout.Groups as G
 
 import XMonad.Actions.MessageFeedback (sendMessageB)
 
-import Control.Monad (unless)
+import XMonad.Prelude (unless)
 import qualified Data.Map as M
 
 -- $usage

@@ -35,14 +35,12 @@ module XMonad.Layout.Gaps (
                           weakModifyGaps, modifyGap, setGaps, setGap
                           ) where
 
+import XMonad.Prelude (delete, fi)
 import XMonad.Core
 import Graphics.X11 (Rectangle(..))
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types (Direction2D(..))
-import XMonad.Util.XUtils (fi)
-
-import Data.List (delete)
 
 -- $usage
 -- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@ file:

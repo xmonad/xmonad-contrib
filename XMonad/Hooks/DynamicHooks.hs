@@ -23,11 +23,8 @@ module XMonad.Hooks.DynamicHooks (
   ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.Util.ExtensibleState as XS
-
-import Data.List
-import Data.Maybe (listToMaybe)
-import Data.Monoid
 
 -- $usage
 -- Provides two new kinds of 'ManageHooks' that can be defined at runtime.

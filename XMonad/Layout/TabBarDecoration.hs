@@ -21,7 +21,7 @@ module XMonad.Layout.TabBarDecoration
     , module XMonad.Layout.ResizeScreen
     ) where
 
-import Data.List
+import XMonad.Prelude
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.Decoration

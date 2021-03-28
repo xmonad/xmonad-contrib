@@ -9,6 +9,7 @@ module XPrompt where
 
 import Test.QuickCheck
 
+import XMonad.Prelude (chunksOf)
 import XMonad.Prompt
 import qualified XMonad.Prompt.Shell as S
 
@@ -20,7 +21,7 @@ prop_split (str :: String) =
 -- of the string.
 prop_spliInSubListsAt (x :: Int) (str :: String) =
     x < length str ==> result == take x str
-    where result = case splitInSubListsAt x str of
+    where result = case chunksOf x str of
                      [] -> []
                      x -> head x
 

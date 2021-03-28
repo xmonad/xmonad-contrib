@@ -37,8 +37,7 @@ module XMonad.Util.Hacks (
 
 
 import XMonad
-import Data.Monoid (All(All))
-import Control.Monad (when, filterM)
+import XMonad.Prelude (All (All), filterM, when)
 import System.Posix.Env (putEnv)
 
 

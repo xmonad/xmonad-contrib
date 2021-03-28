@@ -29,11 +29,10 @@ module XMonad.Layout.IndependentScreens (
 ) where
 
 -- for the screen stuff
-import Control.Applicative(liftA2)
-import Control.Arrow hiding ((|||))
-import Data.List (nub, genericLength)
+import Control.Arrow ((***))
 import Graphics.X11.Xinerama
 import XMonad
+import XMonad.Prelude
 import XMonad.StackSet hiding (filter, workspaces)
 import XMonad.Hooks.DynamicLog
 

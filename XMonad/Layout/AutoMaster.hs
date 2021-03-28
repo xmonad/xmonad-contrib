@@ -20,7 +20,7 @@ module XMonad.Layout.AutoMaster (
                              -- $usage
                              autoMaster, AutoMaster
                             ) where
-import Control.Monad
+import XMonad.Prelude
 
 import XMonad
 import qualified XMonad.StackSet as W

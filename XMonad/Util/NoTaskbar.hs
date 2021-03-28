@@ -4,6 +4,7 @@ module XMonad.Util.NoTaskbar (-- * Usage
                              ,markNoTaskbar) where
 
 import XMonad.Core
+import XMonad.Prelude (fi)
 import XMonad.ManageHook
 import Graphics.X11.Xlib (Window)
 import Graphics.X11.Xlib.Atom (aTOM)
@@ -27,7 +28,3 @@ markNoTaskbar w = withDisplay $ \d -> do
                     ntb <- getAtom "_NET_WM_STATE_SKIP_TASKBAR"
                     npg <- getAtom "_NET_WM_STATE_SKIP_PAGER"
                     io $ changeProperty32 d w ws aTOM propModePrepend [fi ntb,fi npg]
-
--- sigh
-fi :: (Integral i, Num n) => i -> n
-fi = fromIntegral

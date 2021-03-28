@@ -22,10 +22,10 @@ module XMonad.Util.WindowProperties (
     getProp32, getProp32s)
 where
 
-import Control.Monad
 import Foreign.C.Types (CLong)
 import XMonad
 import XMonad.Actions.TagWindows (hasTag)
+import XMonad.Prelude (filterM)
 import qualified XMonad.StackSet as W
 
 -- $edsl

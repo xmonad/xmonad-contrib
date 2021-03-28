@@ -24,6 +24,7 @@ import           Prelude
 import           XMonad                               hiding (windowEvent
                                                              ,(-->)
                                                              )
+import           XMonad.Prelude                       hiding (fi, bool)
 
 import           XMonad.Hooks.DebugKeyEvents                 (debugKeyEvents)
 import           XMonad.Util.DebugWindow                     (debugWindow)
@@ -33,15 +34,7 @@ import           XMonad.Util.DebugWindow                     (debugWindow)
 import           Control.Exception                    as E
 import           Control.Monad.State
 import           Control.Monad.Reader
-import           Data.Char                                   (isDigit)
-import           Data.Maybe                                  (fromJust)
-import           Data.List                                   (genericIndex
-                                                             ,genericLength
-                                                             ,unfoldr
-                                                             )
 import           Codec.Binary.UTF8.String
-import           Data.Maybe                                  (fromMaybe)
-import           Data.Monoid
 import           Foreign
 import           Foreign.C.Types
 import           Numeric                                     (showHex)
@@ -286,7 +279,7 @@ newtype Decoder a = Decoder (ReaderT Decode (StateT DecodeState X) a)
 #endif
 
 -- | Retrive, parse, and dump a window property.  As all the high-level property
---   interfaces lose information necessary to decode properties correctly, we 
+--   interfaces lose information necessary to decode properties correctly, we
 --   work at the lowest level available.
 dumpProperty          :: Atom -> String -> Window -> Int -> X String
 dumpProperty a n w i  =  do
@@ -413,8 +406,8 @@ runDecode c s (Decoder p) =  runStateT (runReaderT p c) s
 bytes   :: Int -> Int
 bytes w =  w `div` 8
 
--- | The top level property decoder, for a wide variety of standard ICCCM and 
---   EWMH window properties.  We pass part of the 'ReaderT' as arguments for 
+-- | The top level property decoder, for a wide variety of standard ICCCM and
+--   EWMH window properties.  We pass part of the 'ReaderT' as arguments for
 --   pattern matching.
 dumpProp                                              :: Atom -> String -> Decoder Bool
 
@@ -900,7 +893,7 @@ dumpMwmInfo =  do
   guardType ta $ dumpList' [("flags" ,dumpBits mwmHints,cARDINAL)
                            ,("window",dumpWindow       ,wINDOW  )
                            ]
-             
+
 -- the most common case
 dumpEnum    :: [String] -> Decoder Bool
 dumpEnum ss =  dumpEnum' ss cARDINAL
@@ -1000,7 +993,7 @@ dumpMDPrereg =  do
         append "total size = "
         withIndent 13 dump32
         dumpMDBlocks $ fromIntegral dsc
-    
+
 dumpMDBlocks   :: Int -> Decoder Bool
 dumpMDBlocks _ =  propSimple "(drop site info)" -- @@@ maybe later if needed
 
@@ -1024,7 +1017,7 @@ dumpPercent =  guardType cARDINAL $ do
                  n <- getInt' 32
                  case n of
                    Nothing -> return False
-                   Just n' -> 
+                   Just n' ->
                        let pct = 100 * fromIntegral n' / fromIntegral (maxBound :: Word32)
                            pct :: Double
                         in append $ show (round pct :: Integer) ++ "%"

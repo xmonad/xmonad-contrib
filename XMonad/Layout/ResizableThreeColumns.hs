@@ -22,14 +22,12 @@ module XMonad.Layout.ResizableThreeColumns (
                              ) where
 
 import XMonad hiding (splitVertically)
+import XMonad.Prelude
 import XMonad.Layout.ResizableTile(MirrorResize(..))
 import qualified XMonad.StackSet as W
 
-import Data.List ((\\))
 import qualified Data.Map as M
 import Data.Ratio
-
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

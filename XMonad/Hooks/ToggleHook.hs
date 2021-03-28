@@ -39,9 +39,9 @@ module XMonad.Hooks.ToggleHook ( -- * Usage
 import Prelude hiding (all)
 
 import XMonad
+import XMonad.Prelude (guard, join)
 import qualified XMonad.Util.ExtensibleState as XS
 
-import Control.Monad (join,guard)
 import Control.Arrow (first, second)
 
 import Data.Map

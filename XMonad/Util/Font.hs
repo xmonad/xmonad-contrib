@@ -34,13 +34,12 @@ module XMonad.Util.Font
     ) where
 
 import XMonad
+import XMonad.Prelude
 import Foreign
 import Control.Exception as E
-import Data.Maybe
 import Text.Printf (printf)
 
 #ifdef XFT
-import Data.List
 import Graphics.X11.Xft
 import Graphics.X11.Xrender
 #endif
@@ -204,7 +203,3 @@ printStringXMF dpy drw fs@(Xft font) gc fc bc x y s = do
          \draw -> withXftColorName dpy visual colormap fc $
                    \color -> xftDrawString draw color font x y s
 #endif
-
--- | Short-hand for 'fromIntegral'
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral

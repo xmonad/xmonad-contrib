@@ -24,6 +24,7 @@ module XMonad.Hooks.DebugStack (debugStack
                                ) where
 
 import           XMonad.Core
+import           XMonad.Prelude
 import qualified XMonad.StackSet                                       as W
 
 import           XMonad.Util.DebugWindow
@@ -31,10 +32,7 @@ import           XMonad.Util.DebugWindow
 import           Graphics.X11.Types                  (Window)
 import           Graphics.X11.Xlib.Extras            (Event)
 
-import           Control.Monad                       (foldM)
 import           Data.Map                            (member)
-import           Data.Monoid                         (All(..))
-import           Data.List                           (intercalate)
 
 -- | Print the state of the current window stack for the current workspace to
 --   @stderr@, which for most installations goes to @~/.xsession-errors@.

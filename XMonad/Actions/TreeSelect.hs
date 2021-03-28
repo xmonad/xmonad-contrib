@@ -64,13 +64,12 @@ module XMonad.Actions.TreeSelect
 
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.List (find)
-import Data.Maybe
 import Data.Tree
 import Foreign
 import System.IO
 import System.Posix.Process (forkProcess, executeFile)
 import XMonad hiding (liftX)
+import XMonad.Prelude
 import XMonad.StackSet as W
 import XMonad.Util.Font
 import XMonad.Util.NamedWindows

@@ -29,7 +29,7 @@ module XMonad.Layout.LayoutModifier (
     LayoutModifier(..), ModifiedLayout(..)
     ) where
 
-import Control.Monad
+import XMonad.Prelude
 
 import XMonad
 import XMonad.StackSet ( Stack, Workspace (..) )

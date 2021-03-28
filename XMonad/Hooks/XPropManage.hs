@@ -19,12 +19,10 @@ module XMonad.Hooks.XPropManage (
                  ) where
 
 import Control.Exception as E
-import Data.Char (chr)
-import Data.Monoid (Endo(..))
-
 import Control.Monad.Trans (lift)
 
 import XMonad
+import XMonad.Prelude (Endo (..), chr)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

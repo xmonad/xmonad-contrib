@@ -38,14 +38,13 @@ module XMonad.Util.EZConfig (
 
 import XMonad
 import XMonad.Actions.Submap
+import XMonad.Prelude hiding (many)
 
 import XMonad.Util.NamedActions
 
-import qualified Data.Map as M
-import Data.List (foldl', sortBy, groupBy, nub)
-import Data.Ord (comparing)
-import Data.Maybe
 import Control.Arrow (first, (&&&))
+import qualified Data.Map as M
+import Data.Ord (comparing)
 
 import Text.ParserCombinators.ReadP
 
@@ -381,9 +380,6 @@ mkSubmaps' subm binds = map combine gathered
         combine ks = (head . fst . head $ ks,
                       subm . mkSubmaps' subm $ map (first tail) ks)
         fstKey = (==) `on` (head . fst)
-
-on :: (a -> a -> b) -> (c -> a) -> c -> c -> b
-op `on` f = \x y -> f x `op` f y
 
 -- | Given a configuration record and a list of (key sequence
 --   description, action) pairs, parse the key sequences into lists of

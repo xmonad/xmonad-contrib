@@ -20,9 +20,8 @@ module XMonad.Actions.UpdateFocus (
 ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
-import Control.Monad (when)
-import Data.Monoid
 
 -- $usage
 -- To make the focus update on mouse movement within an unfocused window, add the

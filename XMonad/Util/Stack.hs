@@ -80,10 +80,7 @@ module XMonad.Util.Stack ( -- * Usage
                          ) where
 
 import qualified XMonad.StackSet as W
-import Control.Applicative ((<|>))
-import Control.Monad (guard)
-import Data.List (sortBy)
-
+import XMonad.Prelude (guard, sortBy, (!?), (<|>))
 
 
 type Zipper a = Maybe (W.Stack a)
@@ -328,9 +325,8 @@ elemZ a as = foldlZ_ step False as
 
 -- | Safe version of '!!'
 getI :: Int -> [a] -> Maybe a
-getI _ [] = Nothing
-getI 0 (a:_) = Just a
-getI i (_:as) = getI (i-1) as
+getI i xs = xs !? i
+{-# DEPRECATED getI "Use XMonad.Prelude.(!?) instead." #-}
 
 -- | Map a function across both 'Left's and 'Right's.
 -- The 'Bool' argument is 'True' in a 'Right', 'False'

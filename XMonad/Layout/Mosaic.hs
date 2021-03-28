@@ -32,13 +32,9 @@ import XMonad(Typeable,
               LayoutClass(doLayout, handleMessage, pureMessage, description),
               Message, X, fromMessage, withWindowSet, Resize(..),
               splitHorizontallyBy, splitVerticallyBy, sendMessage, Rectangle)
+import XMonad.Prelude (mplus, on, sortBy, sum)
 import qualified XMonad.StackSet as W
 import Control.Arrow(second, first)
-import Control.Monad(mplus)
-import Data.Foldable(sum)
-import Data.Function(on)
-import Data.List(sortBy)
-
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

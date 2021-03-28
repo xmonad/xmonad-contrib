@@ -65,13 +65,12 @@ module XMonad.Actions.Search (   -- * Usage
                           ) where
 
 import           Codec.Binary.UTF8.String (encode)
-import           Data.Char                (isAlphaNum, isAscii)
-import           Data.List                (isPrefixOf)
 import           Text.Printf
 import           XMonad                   (X (), liftIO)
 import           XMonad.Prompt            (XPConfig (), XPrompt (showXPrompt, nextCompletion, commandToComplete),
                                            getNextCompletion,
                                            historyCompletionP, mkXPrompt)
+import           XMonad.Prelude           (isAlphaNum, isAscii, isPrefixOf)
 import           XMonad.Prompt.Shell      (getBrowser)
 import           XMonad.Util.Run          (safeSpawn)
 import           XMonad.Util.XSelection   (getSelection)

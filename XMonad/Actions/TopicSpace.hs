@@ -63,15 +63,12 @@ module XMonad.Actions.TopicSpace
 where
 
 import XMonad
+import XMonad.Prelude
 
 import qualified Data.Map.Strict         as M
 import qualified XMonad.Hooks.DynamicLog as DL
 import qualified XMonad.StackSet         as W
 
-import Control.Applicative (liftA2)
-import Control.Monad (replicateM_, unless, when)
-import Data.List ((\\), elemIndex, nub, sort, sortOn)
-import Data.Maybe (fromJust, fromMaybe, isNothing, listToMaybe)
 import System.IO (hClose, hPutStr)
 
 import XMonad.Prompt (XPConfig)

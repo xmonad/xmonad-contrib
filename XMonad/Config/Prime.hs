@@ -115,7 +115,7 @@ ifThenElse,
 import Prelude hiding ((>>), mod)
 import qualified Prelude as P ((>>=), (>>))
 
-import Data.Monoid (All)
+import XMonad.Prelude (All)
 
 import XMonad hiding (xmonad, XConfig(..))
 import XMonad (XConfig(XConfig))

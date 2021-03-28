@@ -57,11 +57,8 @@ module XMonad.Layout.LayoutBuilder (
   LayoutN,
 ) where
 
---------------------------------------------------------------------------------
-import Control.Applicative ((<|>))
-import Control.Monad (foldM)
-import Data.Maybe
 import XMonad
+import XMonad.Prelude (foldM, (<|>), isJust, fromMaybe, isNothing, listToMaybe)
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties
 

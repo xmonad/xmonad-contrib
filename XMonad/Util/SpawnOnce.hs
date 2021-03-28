@@ -21,7 +21,7 @@ import XMonad
 import XMonad.Actions.SpawnOn
 import Data.Set as Set
 import qualified XMonad.Util.ExtensibleState as XS
-import Control.Monad
+import XMonad.Prelude
 
 data SpawnOnce = SpawnOnce { unspawnOnce :: (Set String) }
     deriving (Read, Show, Typeable)

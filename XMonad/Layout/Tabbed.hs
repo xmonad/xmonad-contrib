@@ -33,7 +33,7 @@ module XMonad.Layout.Tabbed
     , TabbarShown, Direction2D(..)
     ) where
 
-import Data.List
+import XMonad.Prelude
 
 import XMonad
 import qualified XMonad.StackSet as S

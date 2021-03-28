@@ -20,7 +20,7 @@ module XMonad.Config.Monad where
 import XMonad hiding (terminal, keys)
 import qualified XMonad as X
 import Control.Monad.Writer
-import Data.Monoid
+import XMonad.Prelude
 import Data.Accessor
 import Data.Accessor.Basic hiding (set)
 

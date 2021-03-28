@@ -30,7 +30,7 @@ import XMonad.Layout.DecorationAddons
 import XMonad.Layout.ImageButtonDecoration
 import XMonad.Layout.DraggingVisualizer
 import qualified XMonad.StackSet as S
-import Control.Monad
+import XMonad.Prelude
 import Foreign.C.Types(CInt)
 
 -- $usage

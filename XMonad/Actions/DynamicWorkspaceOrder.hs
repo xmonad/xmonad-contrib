@@ -44,7 +44,7 @@ import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..), doTo)
 
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe (fromJust, fromMaybe)
+import XMonad.Prelude (fromJust, fromMaybe)
 import Data.Ord (comparing)
 
 -- $usage

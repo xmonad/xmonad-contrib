@@ -27,7 +27,7 @@ module XMonad.Layout.GridVariants ( -- * Usage
                                   , Orientation(..)
                                   ) where
 
-import Control.Monad
+import XMonad.Prelude
 import XMonad
 import qualified XMonad.StackSet as W
 

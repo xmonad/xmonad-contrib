@@ -30,10 +30,8 @@ module XMonad.Hooks.ScreenCorners
     , screenCornerLayoutHook
     ) where
 
-import Data.Monoid
-import Data.List (find)
+import XMonad.Prelude
 import XMonad
-import XMonad.Util.XUtils (fi)
 import XMonad.Layout.LayoutModifier
 
 import qualified Data.Map as M

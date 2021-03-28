@@ -49,6 +49,7 @@ module XMonad.Hooks.FadeWindows (-- * Usage
                                 ) where
 
 import           XMonad.Core
+import           XMonad.Prelude
 import           XMonad.ManageHook                       (liftX)
 import qualified XMonad.StackSet             as W
 
@@ -56,12 +57,10 @@ import           XMonad.Hooks.FadeInactive               (setOpacity
                                                          ,isUnfocused
                                                          )
 
-import           Control.Monad                           (forM_)
 import           Control.Monad.Reader                    (ask
                                                          ,asks)
 import           Control.Monad.State                     (gets)
 import qualified Data.Map                    as M
-import           Data.Monoid
 
 import           Graphics.X11.Xlib.Extras                (Event(..))
 

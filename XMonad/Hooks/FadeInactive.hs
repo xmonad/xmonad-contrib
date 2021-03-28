@@ -27,9 +27,8 @@ module XMonad.Hooks.FadeInactive (
     ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
-import Control.Applicative (liftA2)
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

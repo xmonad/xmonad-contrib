@@ -26,10 +26,8 @@ module XMonad.Prompt.DirExec
 
 import Control.Exception as E
 import System.Directory
-import Control.Applicative (liftA2)
-import Control.Monad
-import Data.List
 import XMonad
+import XMonad.Prelude
 import XMonad.Prompt
 
 econst :: Monad m => a -> IOException -> m a

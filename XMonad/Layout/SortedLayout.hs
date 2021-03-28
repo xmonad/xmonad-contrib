@@ -24,10 +24,8 @@ module XMonad.Layout.SortedLayout
   , Property(..)
   ) where
 
-import           Control.Monad
-import           Data.List
-
 import           XMonad
+import           XMonad.Prelude hiding (Const)
 import           XMonad.Layout.LayoutModifier
 import           XMonad.StackSet              as W
 import           XMonad.Util.WindowProperties

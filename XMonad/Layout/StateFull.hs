@@ -30,11 +30,9 @@ module XMonad.Layout.StateFull (
 ) where
 
 import XMonad hiding ((<&&>))
+import XMonad.Prelude (fromMaybe, (<|>))
 import qualified XMonad.StackSet as W
 import XMonad.Util.Stack (findZ)
-
-import Data.Maybe (fromMaybe)
-import Control.Applicative ((<|>))
 
 -- $Usage
 --

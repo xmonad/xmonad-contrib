@@ -29,14 +29,8 @@ module XMonad.Hooks.DynamicBars (
 
 import Prelude
 
-import Control.Monad
 import Control.Monad.Trans (lift)
 import Control.Monad.Writer (WriterT, execWriterT, tell)
-
-import Data.List
-import Data.Maybe
-import Data.Monoid
-import Data.Foldable (traverse_)
 
 import Graphics.X11.Xinerama
 import Graphics.X11.Xlib
@@ -46,6 +40,7 @@ import Graphics.X11.Xrandr
 import System.IO
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.DynamicLog
 import qualified XMonad.Util.ExtensibleState as XS

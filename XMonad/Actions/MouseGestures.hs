@@ -21,14 +21,13 @@ module XMonad.Actions.MouseGestures (
     mkCollect
 ) where
 
+import XMonad.Prelude
 import XMonad
 import XMonad.Util.Types (Direction2D(..))
 
 import Data.IORef
 import qualified Data.Map as M
 import Data.Map (Map)
-import Data.Maybe
-import Control.Monad
 
 -- $usage
 --

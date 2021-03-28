@@ -25,7 +25,7 @@ module XMonad.Layout.MultiColumns (
 import XMonad
 import qualified XMonad.StackSet as W
 
-import Control.Monad
+import XMonad.Prelude
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

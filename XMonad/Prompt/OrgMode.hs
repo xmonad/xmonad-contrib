@@ -37,16 +37,12 @@ module XMonad.Prompt.OrgMode (
     OrgMode,                -- abstract
 ) where
 
+import XMonad.Prelude
+
 import XMonad (X, io)
 import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPrompt)
 import XMonad.Util.XSelection (getSelection)
 
-import Control.Applicative (empty)
-import Control.Monad ((<=<))
-import Data.Char (isDigit)
-import Data.Functor ((<&>))
-import Data.List (foldl')
-import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
 import System.Directory (getHomeDirectory)
 import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
@@ -382,10 +378,3 @@ pInt = read <$> munch1 isDigit
 -- parsing when the left-most parser succeeds.
 lchoice :: [ReadP a] -> ReadP a
 lchoice = foldl' (<++) empty
-
-------------------------------------------------------------------------
--- Util
-
--- | Multivariant composition.
-(.:) :: (a -> b) -> (c -> d -> a) -> c -> d -> b
-(.:) = (.) . (.)
