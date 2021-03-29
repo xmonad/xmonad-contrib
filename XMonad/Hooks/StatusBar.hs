@@ -16,7 +16,7 @@
 -- This module provides a composable interface for (re)starting these status
 -- bars and logging to them, either using pipes or X properties. There's also
 -- "XMonad.Hooks.StatusBar.PP" which provides an abstraction and some
--- utilities for customization what is logged to a status bar. Together these
+-- utilities for customization what is logged to a status bar. Together, these
 -- are a modern replacement for "XMonad.Hooks.DynamicLog", which is now just a
 -- compatibility wrapper.
 --
@@ -79,31 +79,33 @@ import XMonad.Hooks.StatusBar.PP
 -- >    import XMonad.Hooks.StatusBar.PP
 --
 -- The easiest way to use this module with xmobar, as well as any other
--- status bar that supports property logging (you can read more about X11
--- properties
--- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
--- or
--- [here](https://tronche.com/gui/x/xlib/window-information/properties-and-atoms.html),
--- although you don't have to understand them in order to use the functions
--- below), is to use 'statusBarProp' with 'makeStatusBar'', which takes care of
--- the necessary plumbing:
+-- status bar that supports property logging, is to use 'statusBarProp'
+-- with 'makeStatusBar''; these take care of the necessary plumbing:
 --
 -- > main = do
 -- >   mySB <- statusBarProp "xmobar" (pure xmobarPP)
 -- >   xmonad =<< makeStatusBar' mySB defToggleStrutsKey def
 --
+-- You can read more about X11 properties
+-- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
+-- or
+-- [here](https://tronche.com/gui/x/xlib/window-information/properties-and-atoms.html),
+-- although you don't have to understand them in order to use the functions
+-- mentioned above.
+--
 -- Most users will, however, want to customize the logging and integrate it
 -- into their existing custom xmonad configuration. The 'makeStatusBar'
 -- function is more appropriate in this case: it doesn't touch your
--- keybindings, layout modifiers, or event hooks. You're expected to configure
--- "XMonad.Hooks.ManageDocks" yourself. Here's what that might look like:
+-- keybindings, layout modifiers, or event hooks; instead, you're expected
+-- to configure "XMonad.Hooks.ManageDocks" yourself. Here's what that might
+-- look like:
 --
 -- > main = do
 -- >   mySB <- statusBarProp "xmobar" (pure myPP)
 -- >   xmonad =<< (makeStatusBar mySB . ewmh . docks $ def {...})
 --
 -- You then have to tell your status bar to read from the @_XMONAD_LOG@ property
--- of the root window.  In the case of xmobar, this is simply achieved by using
+-- of the root window.  In the case of xmobar, this is achieved by simply using
 -- the @XMonadLog@ plugin instead of @StdinReader@ in your @.xmobarrc@:
 --
 -- > Config { ...
@@ -113,7 +115,7 @@ import XMonad.Hooks.StatusBar.PP
 --
 -- If you don't have an @.xmobarrc@, create it; the @XMonadLog@ plugin is not
 -- part of the default xmobar configuration and your status bar will not show
--- otherwise!
+-- workspace information otherwise!
 --
 -- With 'statusBarProp', you need to use property logging. Make sure the
 -- status bar you use supports reading a property string from the root window,
@@ -124,12 +126,12 @@ import XMonad.Hooks.StatusBar.PP
 --
 -- If your status bar does not support property-based logging, you may also try
 -- 'statusBarPipe'.
--- It can be used in the same way as 'statusBarProp' above (for xmobar, you will now
--- use the @StdinReader@ plugin in your @.xmobarrc@).  Instead of writing to
--- a property, this function opens a pipe and makes the given status bar read
--- from that pipe.
+-- It can be used in the same way as 'statusBarProp' above (for xmobar, you now
+-- have to use the @StdinReader@ plugin in your @.xmobarrc@).  Instead of
+-- writing to a property, this function opens a pipe and makes the given status
+-- bar read from that pipe.
 -- Please be aware that this kind of setup is very bug-prone and hence is
--- discouraged: if anything goes wrong with the bar, xmonad will freeze.
+-- discouraged: if anything goes wrong with the bar, xmonad will freeze!
 
 
 -- $plumbing
@@ -139,7 +141,7 @@ import XMonad.Hooks.StatusBar.PP
 --
 -- 'xmonadPropLog' allows you to write a string to the @_XMONAD_LOG@ property of
 -- the root window.  Together with 'dynamicLogString', you can now simply set
--- your 'logHook' to the appropriate function, for instance
+-- your 'logHook' to the appropriate function; for instance:
 --
 -- > main = xmonad $ def {
 -- >    ...
@@ -183,16 +185,16 @@ import XMonad.Hooks.StatusBar.PP
 -- care of the necessary plumbing /and/ keeps track of the started status bars, so
 -- they can be correctly restarted with xmonad. This is achieved using
 -- 'spawnStatusBarAndRemember' to start them and 'cleanupStatusBars' to kill
--- previously started ones.
+-- previously started bars.
 --
--- Even if you don't use a statusbar, you can still use 'dynamicLogString' to
+-- Even if you don't use a status bar, you can still use 'dynamicLogString' to
 -- show on-screen notifications in response to some events. For example, to show
 -- the current layout when it changes, you could make a keybinding to cycle the
 -- layout and display the current status:
 --
--- > ((mod1Mask, xK_a), sendMessage NextLayout >> (dynamicLogString myPP >>= \d->spawn $"xmessage "++d))
+-- > ((mod1Mask, xK_a), sendMessage NextLayout >> (dynamicLogString myPP >>= \d -> spawn $ "xmessage " ++ d))
 --
--- If you use a status bar that does not support reading from a property log
+-- If you use a status bar that does not support reading from a property
 -- (like dzen), and you don't want to use the 'statusBar' function, you can,
 -- again, also manually add all of the required components, like this:
 --
@@ -320,9 +322,9 @@ statusBarPipe cmd xpp  = do
 --
 -- The above example also works if the different status bars support different
 -- logging methods: you could mix property logging and logging via pipes.
--- One thing to keep in mind: if multiple bars read from the same property, their content
--- will be the same. If you want to use property-based logging with multiple bars,
--- they should read from different properties.
+-- One thing to keep in mind is that if multiple bars read from the same
+-- property, their content will be the same. If you want to use property-based
+-- logging with multiple bars, they should read from different properties.
 --
 -- Long-time xmonad users will note that the above config is equivalent to
 -- the following less robust and more verbose configuration that they might
