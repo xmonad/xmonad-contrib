@@ -1074,6 +1074,12 @@ These are the available prompts:
     * narrow completions by section number, if the one is specified
     (like @\/etc\/bash_completion@ does)
 
+* "XMonad.Prompt.OrgMode"
+    A prompt for interacting with org-mode.  It can be used to quickly
+    save TODOs, NOTEs, and the like with the additional capability to
+    schedule/deadline a task, or use the primary selection as the
+    contents of the note.
+
 * "XMonad.Prompt.Pass":
     This module provides 3 combinators for ease passwords manipulation (generate, read, remove):
     1) one to lookup passwords in the password-storage.
