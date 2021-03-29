@@ -29,6 +29,7 @@ import Data.List (partition, sortOn, (\\))
 import qualified Data.Map as M
 import XMonad (Window, WindowSpace, Rectangle, X, runLayout, screenRect, windows, withWindowSet)
 import XMonad.StackSet (Screen (Screen), Stack (Stack), current, floating, modify', stack)
+import XMonad.Util.Stack (reverseS)
 
 {- $usage
 You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -101,7 +102,7 @@ surfaceNext = do
 surfacePrev :: X ()
 surfacePrev = do
   ring <- surfaceRing
-  windows . modify' $ reverseStack . rotateSome (`elem` ring) . reverseStack
+  windows . modify' $ reverseS . rotateSome (`elem` ring) . reverseS
 
 -- |
 -- Return a list containing the current focus plus any unshown windows. Note
@@ -158,6 +159,3 @@ rotateSome p (Stack t ls rs) =
 
 rotate :: [a] -> [a]
 rotate = uncurry (flip (++)) . splitAt 1
-
-reverseStack :: Stack a -> Stack a
-reverseStack (Stack t ls rs) = Stack t rs ls
