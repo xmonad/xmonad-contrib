@@ -76,7 +76,8 @@ above you can write
 
 There is also some scheduling and deadline functionality present.  They
 are initiated by entering @+s@ or @+d@ into the prompt respectively,
-followed by a date.  Any of the following are valid dates:
+followed by a date and a time of day.  Any of the following are valid
+dates:
 
   - today
   - tomorrow
@@ -91,21 +92,29 @@ into the future, e.g. if today is Monday and you schedule something for
 Monday, you will actually schedule it for the /next/ Monday (the one in
 seven days).
 
+The time is specified in the @HH:MM@ format.  The minutes may be
+omitted, in which case @00@ will be substituted.
+
 A few examples are probably in order.  Suppose we have bound the key
 above, pressed it, and are now confronted with a prompt:
 
   - @hello +s today@ would create a TODO note with the header @hello@
     and would schedule that for today's date.
 
-  - @hello +d today@ works just like above, but creates a deadline.
+  - @hello +s today 12@ schedules the note for today at 12:00.
+
+  - @hello +s today 12:30@ schedules it for today at 12:30.
+
+  - @hello +d today 12:30@ works just like above, but creates a
+    deadline.
 
   - @hello +s thu@ would schedule the note for next thursday.
 
-  - @hello +s 11@ would schedule the note for the 11th of this month and
-    this year.
+  - @hello +s 11@ would schedule it for the 11th of this month and this
+    year.
 
-  - @hello +s 11 jan 2013@ would schedule it for the 11th of January
-    2013.
+  - @hello +s 11 jan 2013@ would schedule the note for the 11th of
+    January 2013.
 
 There's also the possibility to take what's currently in the primary
 selection and paste that as the content of the created note.  This is
@@ -189,6 +198,20 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
 ------------------------------------------------------------------------
 -- Time
 
+-- | A 'Time' is a 'Date' with the possibility of having a specified
+-- @HH:MM@ time.
+data Time = Time
+  { date :: Date
+  , tod  :: Maybe TimeOfDay
+  }
+
+-- | The time in HH:MM.
+data TimeOfDay = TimeOfDay Int Int
+
+instance Show TimeOfDay where
+  show :: TimeOfDay -> String
+  show (TimeOfDay h m) = show h <> ":" <> show m <> if m <= 9 then "0" else ""
+
 -- | Type for specifying exactly which day one wants.
 data Date
   = Today
@@ -200,20 +223,23 @@ data Date
   | Date (Int, Maybe Int, Maybe Integer)
     -- ^ Manual date entry in the format DD [MM] [YYYY]
 
-toOrgFmt :: Day -> String
-toOrgFmt d = mconcat ["<", isoTime, " ", take 3 $ show (dayOfWeek d), ">"]
+toOrgFmt :: Maybe TimeOfDay -> Day -> String
+toOrgFmt tod day =
+  mconcat ["<", isoDay, " ", take 3 $ show (dayOfWeek day), time, ">"]
  where
-  isoTime :: String = formatTime defaultTimeLocale (iso8601DateFormat Nothing) d
+  time   :: String = maybe "" ((' ' :) . show) tod
+  isoDay :: String = formatTime defaultTimeLocale (iso8601DateFormat Nothing) day
 
--- | Pretty print a 'Date' to reflect the actual date.
-ppDate :: Date -> IO String
-ppDate date = do
+-- | Pretty print a 'Date' and an optional time to reflect the actual
+-- date.
+ppDate :: Time -> IO String
+ppDate Time{ date, tod } = do
   curTime <- getCurrentTime
   let curDay      = utctDay curTime
       (y, m, _)   = toGregorian curDay
       diffToDay d = diffBetween d (dayOfWeek curDay)
 
-  pure . toOrgFmt $ case date of
+  pure . toOrgFmt tod $ case date of
     Today              -> curDay
     Tomorrow           -> utctDay $ addDays 1 curTime
     Next wday          -> utctDay $ addDays (diffToDay wday) curTime
@@ -268,18 +294,18 @@ instance Enum DayOfWeek where
 
 -- | An @org-mode@ style note.
 data Note
-  = Scheduled String Date
-  | Deadline  String Date
+  = Scheduled String Time
+  | Deadline  String Time
   | NormalMsg String
 
 -- | Pretty print a given 'Note'.
 ppNote :: String -> String -> Note -> IO String
 ppNote clp todo = \case
-  Scheduled str date -> mkLine str "SCHEDULED: " date
-  Deadline  str date -> mkLine str "DEADLINE: "  date
+  Scheduled str time -> mkLine str "SCHEDULED: " time
+  Deadline  str time -> mkLine str "DEADLINE: "  time
   NormalMsg str      -> pure . mconcat $ ["* ", todo, " ", str, clp]
  where
-  mkLine :: String -> String -> Date -> IO String
+  mkLine :: String -> String -> Time -> IO String
   mkLine inp sched
     = fmap (\d -> mconcat ["* ", todo, " ", inp, "\n  ", sched, d, clp])
     . ppDate
@@ -290,8 +316,8 @@ ppNote clp todo = \case
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
 pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
-  [ Scheduled <$> getLast "+s" <*> pDate
-  , Deadline  <$> getLast "+d" <*> pDate
+  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay)
+  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay)
   , NormalMsg <$> munch1 (const True)
   ]
  where
@@ -305,6 +331,14 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
         then pure $ consumed <> next
         else go   $ consumed <> next <> next'
 
+-- | Try to parse a 'Time'.
+pTimeOfDay :: ReadP (Maybe TimeOfDay)
+pTimeOfDay = lchoice
+  [ Just <$> (TimeOfDay <$> pInt <* string ":" <*> pInt  ) -- HH:MM
+  , Just <$> (TimeOfDay <$> pInt               <*> pure 0) -- HH
+  , pure Nothing
+  ]
+
 -- | Parse a 'Date'.
 pDate :: ReadP Date
 pDate = skipSpaces *> lchoice
@@ -312,13 +346,13 @@ pDate = skipSpaces *> lchoice
   , Tomorrow <$  string "tom"
   , Next     <$> pNext
   , Date     <$> pDate1 <++ pDate2 <++ pDate3
-  ]
+  ] <* munch (/= ' ') <* skipSpaces  -- cleanup
  where
   pNext :: ReadP DayOfWeek = lchoice
     [ Monday   <$ string "m" , Tuesday <$ string "tu", Wednesday <$ string "w"
     , Thursday <$ string "th", Friday  <$ string "f" , Saturday  <$ string "sa"
     , Sunday   <$ string "su"
-    ] <* munch (/= ' ')
+    ]
 
   -- XXX: This is really horrible, but I can't see a way to not have
   -- exponential blowup with ReadP otherwise.
@@ -331,14 +365,14 @@ pDate = skipSpaces *> lchoice
     -> (ReadP Integer -> ReadP (f Integer))
     -> ReadP (Int, f Int, f Integer)
   pDate' p p' =
-    (,,) <$> pInt <* skipSpaces
-         <*> p (lchoice
+    (,,) <$> pInt
+         <*> p (skipSpaces *> lchoice
                [ 1  <$ string "ja" , 2  <$ string "f"  , 3  <$ string "mar"
                , 4  <$ string "ap" , 5  <$ string "may", 6  <$ string "jun"
                , 7  <$ string "jul", 8  <$ string "au" , 9  <$ string "s"
                , 10 <$ string "o"  , 11 <$ string "n"  , 12 <$ string "d"
-               ]) <* skipSpaces
-         <*> p' pInt
+               ])
+         <*> p' (skipSpaces *> pInt)
 
 -- | Parse a number.
 pInt :: (Read a, Integral a) => ReadP a
