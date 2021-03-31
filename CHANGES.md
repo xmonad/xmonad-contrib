@@ -609,6 +609,22 @@
     - The decoration window now sets a `WM_CLASS` property.  This allows
       other applications, like compositors, to properly match on it.
 
+  * `XMonad.Layout.IndependentScreens`
+
+    - Fixed a bug where `marshallPP` always sorted workspace names
+      lexically.  This changes the default behaviour of `marshallPP`—the
+      given `ppSort` now operates in the _physical_ workspace names.
+      The documentation of `marshallSort` contains an example of how to
+      get the old behaviour, where `ppSort` operates in virtual names,
+      back.
+
+    - Added `workspacesOn` for filtering workspaces on the current screen.
+
+    - Added `withScreen` to specify names for a given single screen.
+
+    - Added new aliases `PhysicalWindowSpace` and `VirtualWindowSpace`
+      for a `WindowSpace` for easier to read function signatures.
+
 ## 0.16
 
 ### Breaking Changes
