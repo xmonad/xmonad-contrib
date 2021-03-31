@@ -28,7 +28,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Layout.Grid
-import XMonad.Layout.IndependentScreens
+import XMonad.Layout.IndependentScreens hiding (withScreen)
 import XMonad.Layout.Magnifier
 import XMonad.Layout.NoBorders
 import XMonad.Util.Dzen hiding (x, y)

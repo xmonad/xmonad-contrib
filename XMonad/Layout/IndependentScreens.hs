@@ -18,14 +18,23 @@ module XMonad.Layout.IndependentScreens (
     -- $usage
     VirtualWorkspace, PhysicalWorkspace,
     workspaces',
-    withScreens, onCurrentScreen,
-    marshallPP,
+    withScreen, withScreens,
+    onCurrentScreen,
+    marshallPP, marshallPP',
     whenCurrentOn,
     countScreens,
+    workspacesOn,
     -- * Converting between virtual and physical workspaces
     -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
-    marshallWindowSpace, unmarshallWindowSpace, marshallSort
+    marshallWindowSpace, unmarshallWindowSpace, marshallSort, marshallSort',
+    -- * "XMonad.Actions.CopyWindow" integration
+    -- $integration
+    wsContainingCopies,
+    copyWindowTo,
+    -- * "XMonad.Actions.DynamicWorkspaces" integration
+    -- $integration2
+    withNthWorkspaceScreen
 ) where
 
 -- for the screen stuff
@@ -34,8 +43,10 @@ import Control.Arrow hiding ((|||))
 import Data.List (nub, genericLength)
 import Graphics.X11.Xinerama
 import XMonad
-import XMonad.StackSet hiding (filter, workspaces)
+import qualified XMonad.StackSet as W
 import XMonad.Hooks.DynamicLog
+import XMonad.Actions.CopyWindow (copy, copiesOfOn, taggedWindows)
+import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -79,6 +90,11 @@ import XMonad.Hooks.DynamicLog
 type VirtualWorkspace  = WorkspaceId
 type PhysicalWorkspace = WorkspaceId
 
+-- | A 'WindowSpace' whose tags are 'PhysicalWorkspace's.
+type PhysicalWindowSpace = WindowSpace
+-- | A 'WindowSpace' whose tags are 'VirtualWorkspace's.
+type VirtualWindowSpace = WindowSpace
+
 -- $converting
 -- You shouldn't need to use the functions below very much. They are used
 -- internally. However, in some cases, they may be useful, and so are exported
@@ -101,13 +117,23 @@ unmarshallW = snd . unmarshall
 workspaces' :: XConfig l -> [VirtualWorkspace]
 workspaces' = nub . map unmarshallW . workspaces
 
+-- | Workspace names are independently specified with each monitor.
+-- You can define your workspaces by calling withScreen for each screen:
+--
+-- > myConfig = def { workspaces = withScreen 0 ["web", "email", "irc"]  ++ withScreen 1 ["1", "2", "3"] }
+withScreen :: ScreenId            -- ^ The screen to make workspaces for
+           -> [VirtualWorkspace]  -- ^ The desired virtual workspace names
+           -> [PhysicalWorkspace] -- ^ A list of all internal physical workspace names
+withScreen n vws = [marshall n pws | pws <- vws]
+
+-- | Make all workspaces across the monitors bear the same names
 withScreens :: ScreenId            -- ^ The number of screens to make workspaces for
             -> [VirtualWorkspace]  -- ^ The desired virtual workspace names
             -> [PhysicalWorkspace] -- ^ A list of all internal physical workspace names
-withScreens n vws = [marshall sc pws | pws <- vws, sc <- [0..n-1]]
+withScreens n vws = concatMap (`withScreen` vws) [0..n-1]
 
 onCurrentScreen :: (VirtualWorkspace -> WindowSet -> a) -> (PhysicalWorkspace -> WindowSet -> a)
-onCurrentScreen f vws = screen . current >>= f . flip marshall vws
+onCurrentScreen f vws = W.screen . W.current >>= f . flip marshall vws
 
 -- | In case you don't know statically how many screens there will be, you can call this in main before starting xmonad.  For example, part of my config reads
 --
@@ -121,6 +147,46 @@ onCurrentScreen f vws = screen . current >>= f . flip marshall vws
 --
 countScreens :: (MonadIO m, Integral i) => m i
 countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getScreenInfo closeDisplay
+
+-- | Copy the focused window to a workspace on the current screen;
+-- replacement for 'XMonad.Actions.CopyWindow.copy'.
+--
+-- Key binding example:
+--
+-- > ((modm, xK_v ), copyWindowTo 1) -- copy focused window to the 1st workspace on current screen.
+copyWindowTo :: Int -> X ()
+copyWindowTo j = do
+    winset <- gets windowset
+    sort <- getSortByIndex
+    let ws = sort . W.workspaces $ winset
+        sc = W.screen . W.current $ winset
+        wsID = [ W.tag m | m <- ws, unmarshallS (W.tag m) == sc]
+    windows $ copy $ wsID !! (j - 1)
+
+-- | A list of hidden workspaces containing a copy of the focused window on the current screen.
+wsContainingCopies :: X [WorkspaceId]
+wsContainingCopies = do
+    ws <- gets windowset
+    let sc = W.screen . W.current $ ws
+    return $ copiesOfOn (W.peek ws) (taggedWindows $ workspaceHidden ws sc)
+  where
+    workspaceHidden ws sc = [ w | w <- W.hidden ws, sc == unmarshallS (W.tag w) ]
+
+-- | Do something on the current screen with the nth workspace in the
+-- dynamic order. The callback is given the workspace's tag as well as
+-- the 'WindowSet' of the workspace itself.
+--
+-- Replacement for 'XMonad.Actions.DynamicWorkspaces.withNthWorkspace'.
+withNthWorkspaceScreen :: (WorkspaceId -> WindowSet -> WindowSet) -> Int -> X ()
+withNthWorkspaceScreen job wnum = do
+    winset <- gets windowset
+    sort <- getSortByIndex
+    let ws = sort . W.workspaces $ winset
+        sc = W.screen . W.current $ winset
+        enoughWorkspaces = drop wnum [W.tag j | j <- ws, unmarshallS (W.tag j) == sc]
+    case enoughWorkspaces of
+        (w : _) -> windows $ job w
+        []      -> return ()
 
 -- | This turns a naive pretty-printer into one that is aware of the
 -- independent screens. That is, you can write your pretty printer to behave
@@ -136,6 +202,10 @@ countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getS
 marshallPP :: ScreenId -> PP -> PP
 marshallPP s pp = pp { ppRename = ppRename pp . unmarshallW
                      , ppSort = fmap (marshallSort s) (ppSort pp) }
+
+-- | Like 'marshallPP', but uses 'marshallSort\'' instead of 'marshallSort'.
+marshallPP' :: ScreenId -> PP -> PP
+marshallPP' s pp = (marshallPP s pp){ ppSort = fmap (marshallSort' s) (ppSort pp) }
 
 -- | Take a pretty-printer and turn it into one that only runs when the current
 -- workspace is one associated with the given screen. The way this works is a
@@ -162,7 +232,7 @@ whenCurrentOn s pp = pp
     { ppSort = do
         sort <- ppSort pp
         return $ \xs -> case xs of
-            x:_ | unmarshallS (tag x) == s -> sort xs
+            x:_ | unmarshallS (W.tag x) == s -> sort xs
             _ -> []
     , ppOrder = \i@(wss:_) -> case wss of
         "" -> ["\0"] -- we got passed no workspaces; this is the signal from ppSort that this is a boring case
@@ -172,17 +242,61 @@ whenCurrentOn s pp = pp
         _ -> ppOutput pp out
     }
 
--- | If @vSort@ is a function that sorts 'WindowSpace's with virtual names, then @marshallSort s vSort@ is a function which sorts 'WindowSpace's with physical names in an analogous way -- but keeps only the spaces on screen @s@.
-marshallSort :: ScreenId -> ([WindowSpace] -> [WindowSpace]) -> ([WindowSpace] -> [WindowSpace])
+-- | Filter workspaces that are on current screen.
+workspacesOn :: ScreenId -> [PhysicalWindowSpace] -> [PhysicalWindowSpace]
+workspacesOn s = filter (\ws -> unmarshallS (W.tag ws) == s)
+
+-- | @vSort@ is a function that sorts 'VirtualWindowSpace's with virtual names.
+-- @marshallSort s vSort@ is a function which sorts 'PhysicalWindowSpace's with virtual names, 
+-- but keeps only the 'WindowSpace'\'s on screen @s@.
+marshallSort :: ScreenId -> ([VirtualWindowSpace] -> [VirtualWindowSpace]) -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace])
 marshallSort s vSort = pScreens . vSort . vScreens where
-    onScreen ws = unmarshallS (tag ws) == s
-    vScreens    = map unmarshallWindowSpace . filter onScreen
+    vScreens    = map unmarshallWindowSpace . workspacesOn s
     pScreens    = map (marshallWindowSpace s)
+
+-- | Like 'marshallSort', but operates completely on 'PhysicalWindowSpace' with physical names.
+-- Thus, 'getSortByIndex' can be used in 'xmobarPP' with no problem.
+marshallSort' :: ScreenId -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace]) -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace])
+marshallSort' s vSort = vSort . workspacesOn s
 
 -- | Convert the tag of the 'WindowSpace' from a 'VirtualWorkspace' to a 'PhysicalWorkspace'.
 marshallWindowSpace   :: ScreenId -> WindowSpace -> WindowSpace
 -- | Convert the tag of the 'WindowSpace' from a 'PhysicalWorkspace' to a 'VirtualWorkspace'.
 unmarshallWindowSpace :: WindowSpace -> WindowSpace
 
-marshallWindowSpace s ws = ws { tag = marshall s  (tag ws) }
-unmarshallWindowSpace ws = ws { tag = unmarshallW (tag ws) }
+marshallWindowSpace s ws = ws { W.tag = marshall s  (W.tag ws) }
+unmarshallWindowSpace ws = ws { W.tag = unmarshallW (W.tag ws) }
+
+
+-- $integration
+-- The @logHook@ from "XMonad.Actions.CopyWindow" needs some adjustment
+-- when used with IndependentScreens.
+-- To distinguish workspaces containing copies of the focused window on
+-- the current screen, you can use something like:
+--
+-- > sampleLogHook h s = do
+-- >    copies <- wsContainingCopies
+-- >    let copies' = map (drop 2) copies
+-- >    let check ws | ws `elem` copies' = pad . xmobarColor "red" "black" $ ws
+-- >                 | otherwise = pad ws
+-- >    dynamicLogWithPP $ marshallPP s myPP {ppHidden = check, ppOutput = hPutStrLn h}
+-- 
+-- Then use sampleLogHook in main:
+-- > main = do
+-- >    h <- spawnPipe "xmobar -x 0 <path to config>"
+-- >    h1 <- spawnPipe "xmobar -x 1 <path to config>"
+-- >    xmonad def { logHook = sampleLogHook h 0 <+> sampleLogHook h1 1 }
+--
+-- If the number of screens varies or is uncertain, you can use something like:
+-- > main = do
+-- >    n <- countScreens
+-- >    hs <- traverse (\(S n) -> spawnPipe ("xmobar -x " ++ show n ++ " ~/.xmobarrc-" ++ show n)) [0..n-1]
+-- >    xmonad def { logHook = mconcat (zipWith sampleLogHook hs [0..n-1]) }
+
+-- $integration2
+-- The @withNthWorkspace@ from "XMonad.Actions.DynamicWorkspaces" neeeds some adjustment.
+-- When used with "XMonad.Layout.IndependentScreens", 'withNthWorkspace' can be replaced by 'withNthWorkspaceScreen'.
+-- > ("M-S-1", withNthWorkspace W.shift 1)
+-- can be replaced with:
+-- > ("M-S-1", withNthWorkspaceScreen W.shift 1)
+-- The behavior of 'withNthWorkspace' and 'withNthWorkspaceScreen' are similar on the current screen.

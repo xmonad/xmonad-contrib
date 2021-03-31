@@ -18,7 +18,7 @@ module XMonad.Actions.CopyWindow (
                                  -- * Usage
                                  -- $usage
                                  copy, copyToAll, copyWindow, runOrCopy
-                                 , killAllOtherCopies, kill1
+                                 , killAllOtherCopies, kill1, taggedWindows, copiesOfOn
                                  -- * Highlight workspaces containing copies in logHook
                                  -- $logHook
                                  , wsContainingCopies
