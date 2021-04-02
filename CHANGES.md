@@ -189,6 +189,13 @@
     This module provides a config suitable for use with the LXQt desktop
     environment.
 
+  * `XMonad.Prompt.OrgMode`
+
+    A prompt for interacting with [org-mode](https://orgmode.org/).  It
+    can be used to quickly save TODOs, NOTEs, and the like with the
+    additional capability to schedule/deadline a task, or use the
+    primary selection as the contents of the note.
+
 ### Bug Fixes and Minor Changes
 
   * Add support for GHC 9.0.1.

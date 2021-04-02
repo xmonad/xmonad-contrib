@@ -306,6 +306,7 @@ library
                         XMonad.Prompt.Input
                         XMonad.Prompt.Layout
                         XMonad.Prompt.Man
+                        XMonad.Prompt.OrgMode
                         XMonad.Prompt.Pass
                         XMonad.Prompt.RunOrRaise
                         XMonad.Prompt.Shell
