@@ -64,13 +64,16 @@ import XMonad.Hooks.UrgencyHook
 -- An example usage for this module would be:
 --
 -- > import XMonad
--- > import XMonad.Hooks.DynamicLog
+-- > import XMonad.Hooks.StatusBar
+-- > import XMonad.Hooks.StatusBar.PP
 -- >
 -- > myPP = def { ppCurrent = xmobarColor "black" "white" }
--- > main = xmonad =<< statusBar "xmobar" myPP myToggleStrutsKey myConfig
+-- > main = do
+-- >   mySB <- statusBarProp "xmobar" (pure myPP)
+-- >   xmonad =<< withEasySB mySB defToggleStrutsKey myConfig
 --
--- Check "XMonad.Hooks.StatusBar" for how to use with status bars.
---
+-- Check "XMonad.Hooks.StatusBar" for more examples and an in depth
+-- explanation.
 
 -- | The 'PP' type allows the user to customize the formatting of
 --   status information.

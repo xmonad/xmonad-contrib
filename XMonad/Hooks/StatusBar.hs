@@ -74,9 +74,9 @@ import XMonad.Hooks.StatusBar.PP
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- >    import XMonad
--- >    import XMonad.Hooks.StatusBar
--- >    import XMonad.Hooks.StatusBar.PP
+-- > import XMonad
+-- > import XMonad.Hooks.StatusBar
+-- > import XMonad.Hooks.StatusBar.PP
 --
 -- The easiest way to use this module with xmobar, as well as any other
 -- status bar that supports property logging, is to use 'statusBarProp'

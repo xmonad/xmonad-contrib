@@ -77,8 +77,8 @@ import XMonad.Hooks.StatusBar
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- >    import XMonad
--- >    import XMonad.Hooks.DynamicLog
+-- > import XMonad
+-- > import XMonad.Hooks.DynamicLog
 --
 -- If you just want a quick-and-dirty status bar with zero effort, try
 -- the 'xmobar' or 'dzen' functions:
