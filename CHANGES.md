@@ -60,7 +60,8 @@
     - The type of `getWorkspaceNames` was changed to fit into the new `ppRename`
       field of `PP`.
 
-  * `XMonad.Hooks.DynamicLog` and `XMonad.Util.Run`
+  * `XMonad.Hooks.StatusBar`, `XMonad.Hooks.StatusBar.PP` (previously
+    `XMonad.Hooks.DynamicLog`) and `XMonad.Util.Run`
 
     - `spawnPipe` no longer uses binary mode handles but defaults to the
       current locale encoding instead.
@@ -88,6 +89,39 @@
       instead.
 
 ### New Modules
+
+  * `XMonad.Hooks.StatusBar.PP`
+
+    Originally contained inside `XMonad.Hooks.DynamicLog`, this module provides the
+    pretty-printing abstraction and utilities, used primarly with `logHook`.
+
+    Below are changes from `XMonad.Hooks.DynamicLog`, that now are included in
+    this module:
+
+    - Added `shortenLeft` function, like existing `shorten` but shortens by
+      truncating from left instead of right. Useful for showing directories.
+
+    - Added `shorten'` and `shortenLeft'` functions with customizable overflow
+      markers.
+
+    - Added `filterOutWsPP` for filtering out certain workspaces from being
+      displayed.
+
+    - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
+      the current workspace in the status bar.
+
+    - Added `xmobarBorder` function to create borders around strings.
+
+    - Added `ppRename` to `PP`, which makes it possible for extensions like
+      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
+      intuitively.
+
+
+  * `XMonad.Hooks.StatusBar`
+
+    This module provides a new interface that replaces `XMonad.Hooks.DynamicLog`,
+    by providing composoble status bars. Supports property-based as well
+    as pipe-based status bars.
 
   * `XMonad.Util.Hacks`
 
@@ -172,8 +206,8 @@
   * `XMonad.Util.ClickableWorkspaces`
 
     Provides `clickablePP`, which when applied to the `PP` pretty-printer used by
-    `XMonad.Hooks.DynamicLog.dynamicLogWithPP`, will make the workspace tags
-    clickable in XMobar (for switching focus).
+    `XMonad.Hooks.StatusBar.PP`, will make the workspace tags clickable in XMobar
+    (for switching focus).
 
   * `XMonad.Layout.VoidBorders`
 
@@ -264,45 +298,11 @@
 
   * `XMonad.Hooks.DynamicLog`
 
-    - Added `statusBar'` function, like existing `statusBar` but accepts a pretty
-      printing options argument embedded in the X monad, to allow for dynamically
-      modified options such as `workspaceNamesPP`.
-
-    - Added `shortenLeft` function, like existing `shorten` but shortens by
-      truncating from left instead of right. Useful for showing directories.
-
-    - Added `shorten'` and `shortenLeft'` functions with customizable overflow
-      markers.
-
-    - Added `filterOutWsPP` for filtering out certain workspaces from being
-      displayed.
-
-    - Added `xmobarProp`, `statusBarProp`, and `statusBarPropTo` for
-      property-based alternatives to `xmobar` and `statusBar` respectively.
-
-    - Reworked the module documentation to suggest property-based logging
-      instead of pipe-based logging, due to the various issues associated with
-      the latter.
-
-    - Added `spawnStatusBarAndRemember` and `cleanupStatusBars` to provide
-      a way to safely restart status bars without relying on pipes.
-
-    - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
-      the current workspace in the status bar.
-
-    - Added `xmobarBorder` function to create borders around strings.
-
+    - Added `xmobarProp`, for property-based alternative to `xmobar`.
+    
     - Add the -dock argument to the dzen spawn arguments
 
-    - Added `StatusBarConfig` and `makeStatusBar` and `makeStatusBar'` as
-      an abstraction for status bars; together with `statusBarPropConfig`,
-      `statusBarPropToConfig`, `statusBarHandleConfig` and `statusBarHandleConfig'`
-      to provide the configs for the already existing functionality. This provides
-      multiple status bars support.
-
-    - Added `ppRename` to `PP`, which makes it possible for extensions like
-      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
-      intuitively.
+    - The API for this module is frozen: this is now a compatibility wrapper.
 
   * `XMonad.Layout.BoringWindows`
 

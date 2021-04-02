@@ -8,8 +8,8 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Provides @clickablePP@, which when applied to the PP pretty-printer used by
--- the "XMonad.Hooks.DynamicLog" hook, will make the workspace tags clickable in
+-- Provides @clickablePP@, which when applied to the 'PP' pretty-printer used
+-- by "XMonad.Hooks.StatusBar" will make the workspace tags clickable in
 -- XMobar (for switching focus).
 --
 -----------------------------------------------------------------------------
@@ -25,17 +25,22 @@ import Control.Monad ((>=>))
 import Data.Functor ((<&>))
 
 import XMonad
-import XMonad.Hooks.DynamicLog (xmobarAction, PP(..))
+import XMonad.Hooks.StatusBar.PP (xmobarAction, PP(..))
 import XMonad.Util.WorkspaceCompare (getWsIndex)
 import qualified XMonad.StackSet as W
 
 -- $usage
--- However you have set up your PP, apply @clickablePP@ to it, and bind the result
--- to "XMonad.Hooks.DynamicLog"\'s dynamicLogWithPP like so:
+-- If you're using the "XMonad.Hooks.StatusBar" interface, apply 'clickablePP'
+-- to the 'PP' passed to 'XMonad.Hooks.StatusBar.statusBarProp':
+--
+-- > mySB <- statusBarProp "xmobar" (clickablePP xmobarPP)
+--
+-- Or if you're using the old "XMonad.Hooks.DynamicLog" interface:
 --
 -- > logHook = clickablePP xmobarPP { ... } >>= dynamicLogWithPP
 --
--- * Requirements:
+-- Requirements:
+--
 --   * @xdotool@ on system (in path)
 --   * "XMonad.Hooks.EwmhDesktops" for @xdotool@ support (see Hackage docs for setup)
 --   * use of UnsafeStdinReader/UnsafeXMonadLog in xmobarrc (rather than StdinReader/XMonadLog)
