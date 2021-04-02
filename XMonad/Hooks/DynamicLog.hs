@@ -198,7 +198,7 @@ statusBar :: LayoutClass l Window
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar cmd pp k conf= do
   sb <- statusBarPipe cmd (pure pp)
-  makeStatusBar' sb k conf
+  withEasySB sb k conf
 
 -- |
 -- Helper function which provides ToggleStruts keybinding
@@ -263,4 +263,4 @@ xmobarProp :: LayoutClass l Window
            -> IO (XConfig (ModifiedLayout AvoidStruts l))
 xmobarProp conf = do
     xmobarPropConfig <- statusBarProp "xmobar" (pure xmobarPP)
-    makeStatusBar' xmobarPropConfig toggleStrutsKey conf
+    withEasySB xmobarPropConfig toggleStrutsKey conf

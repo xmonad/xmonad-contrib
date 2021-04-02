@@ -26,8 +26,8 @@ module XMonad.Hooks.StatusBar (
   -- * Usage
   -- $usage
   StatusBarConfig(..),
-  makeStatusBar,
-  makeStatusBar',
+  withSB,
+  withEasySB,
   defToggleStrutsKey,
 
   -- * Available Configs
@@ -80,11 +80,11 @@ import XMonad.Hooks.StatusBar.PP
 --
 -- The easiest way to use this module with xmobar, as well as any other
 -- status bar that supports property logging, is to use 'statusBarProp'
--- with 'makeStatusBar''; these take care of the necessary plumbing:
+-- with 'withEasySB'; these take care of the necessary plumbing:
 --
 -- > main = do
 -- >   mySB <- statusBarProp "xmobar" (pure xmobarPP)
--- >   xmonad =<< makeStatusBar' mySB defToggleStrutsKey def
+-- >   xmonad =<< withEasySB mySB defToggleStrutsKey def
 --
 -- You can read more about X11 properties
 -- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
@@ -94,7 +94,7 @@ import XMonad.Hooks.StatusBar.PP
 -- mentioned above.
 --
 -- Most users will, however, want to customize the logging and integrate it
--- into their existing custom xmonad configuration. The 'makeStatusBar'
+-- into their existing custom xmonad configuration. The 'withSB'
 -- function is more appropriate in this case: it doesn't touch your
 -- keybindings, layout modifiers, or event hooks; instead, you're expected
 -- to configure "XMonad.Hooks.ManageDocks" yourself. Here's what that might
@@ -102,7 +102,7 @@ import XMonad.Hooks.StatusBar.PP
 --
 -- > main = do
 -- >   mySB <- statusBarProp "xmobar" (pure myPP)
--- >   xmonad =<< (makeStatusBar mySB . ewmh . docks $ def {...})
+-- >   xmonad =<< (withSB mySB . ewmh . docks $ def {...})
 --
 -- You then have to tell your status bar to read from the @_XMONAD_LOG@ property
 -- of the root window.  In the case of xmobar, this is achieved by simply using
@@ -137,7 +137,7 @@ import XMonad.Hooks.StatusBar.PP
 -- $plumbing
 -- If you do not want to use any of the "batteries included" functions above,
 -- you can also add all of the necessary plumbing yourself (the source of
--- 'makeStatusBar' might come in handy here).
+-- 'withSB' might come in handy here).
 --
 -- 'xmonadPropLog' allows you to write a string to the @_XMONAD_LOG@ property of
 -- the root window.  Together with 'dynamicLogString', you can now simply set
@@ -220,8 +220,8 @@ import XMonad.Hooks.StatusBar.PP
 
 -- | This datataype abstracts a status bar to provide a common interface
 -- functions like 'statusBarPipe' or 'statusBarProp'. Once defined, a status
--- bar can be incorporated in 'XConfig' by using 'makeStatusBar' or
--- 'makeStatusBar'', which take care of the necessary plumbing.
+-- bar can be incorporated in 'XConfig' by using 'withSB' or
+-- 'withEasySB', which take care of the necessary plumbing.
 data StatusBarConfig = StatusBarConfig  { sbLogHook     :: X ()
                                         -- ^ What and how to log to the status bar.
                                         , sbStartupHook :: X ()
@@ -247,36 +247,36 @@ instance Default StatusBarConfig where
 -- Using this function multiple times to combine status bars may result in
 -- only one status bar working properly. See the section on using multiple
 -- status bars for more details.
-makeStatusBar :: LayoutClass l Window
-              => StatusBarConfig    -- ^ The status bar config
-              -> XConfig l          -- ^ The base config
-              -> IO (XConfig l)
-makeStatusBar (StatusBarConfig lh sh ch) conf =
+withSB :: LayoutClass l Window
+       => StatusBarConfig    -- ^ The status bar config
+       -> XConfig l          -- ^ The base config
+       -> IO (XConfig l)
+withSB (StatusBarConfig lh sh ch) conf =
   return $ conf
     { logHook     = logHook conf *> lh
     , startupHook = startupHook conf *> ch *> sh
     }
 
--- | Like 'makeStatusBar', but takes an extra key to toggle struts. It also
+-- | Like 'withSB', but takes an extra key to toggle struts. It also
 -- applies the 'avoidStruts' layout modifier and the 'docks' combinator.
 --
 -- Using this function multiple times to combine status bars may result in
 -- only one status bar working properly. See the section on using multiple
 -- status bars for more details.
-makeStatusBar' :: LayoutClass l Window
-               => StatusBarConfig -- ^ The status bar config
-               -> (XConfig Layout -> (KeyMask, KeySym))
-                                  -- ^ The key binding
-               -> XConfig l       -- ^ The base config
-               -> IO (XConfig (ModifiedLayout AvoidStruts l))
-makeStatusBar' sb k conf = do
-  conf' <- makeStatusBar sb conf
+withEasySB :: LayoutClass l Window
+           => StatusBarConfig -- ^ The status bar config
+           -> (XConfig Layout -> (KeyMask, KeySym))
+                              -- ^ The key binding
+           -> XConfig l       -- ^ The base config
+           -> IO (XConfig (ModifiedLayout AvoidStruts l))
+withEasySB sb k conf = do
+  conf' <- withSB sb conf
   return $ docks $ conf' { layoutHook = avoidStruts (layoutHook conf')
                          , keys       = (<>) <$> keys' <*> keys conf'
                          }
   where keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
--- | Default @mod-b@ key binding for 'makeStatusBar''
+-- | Default @mod-b@ key binding for 'withEasySB'
 defToggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
 defToggleStrutsKey XConfig{modMask = modm} = (modm, xK_b)
 
@@ -309,7 +309,7 @@ statusBarPipe cmd xpp  = do
 
 -- $multiple
 -- 'StatusBarConfig' is a 'Monoid', which means that multiple status bars can
--- be combined together using '<>' or 'mconcat' and passed to 'makeStatusBar'.
+-- be combined together using '<>' or 'mconcat' and passed to 'withSB'.
 --
 -- Here's an example of what such declarative configuration of multiple status
 -- bars may look like:
@@ -318,7 +318,7 @@ statusBarPipe cmd xpp  = do
 -- >   xmobarTop    <- statusBarPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"    (pure ppTop)
 -- >   xmobarBottom <- statusBarPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
 -- >   xmobar1      <- statusBarPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
--- >   xmonad =<< makeStatusBar (xmobarTop <> xmobarBottom <> xmobar1) myConfig
+-- >   xmonad =<< withSB (xmobarTop <> xmobarBottom <> xmobar1) myConfig
 --
 -- The above example also works if the different status bars support different
 -- logging methods: you could mix property logging and logging via pipes.
