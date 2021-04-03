@@ -198,7 +198,7 @@ statusBar :: LayoutClass l Window
           -> IO (XConfig (ModifiedLayout AvoidStruts l))
 statusBar cmd pp k conf= do
   sb <- statusBarPipe cmd (pure pp)
-  withEasySB sb k conf
+  return $ withEasySB sb k conf
 
 -- |
 -- Helper function which provides ToggleStruts keybinding
@@ -260,7 +260,6 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 -- the menu bar.
 xmobarProp :: LayoutClass l Window
            => XConfig l  -- ^ The base config
-           -> IO (XConfig (ModifiedLayout AvoidStruts l))
-xmobarProp conf = do
-    xmobarPropConfig <- statusBarProp "xmobar" (pure xmobarPP)
-    withEasySB xmobarPropConfig toggleStrutsKey conf
+           -> XConfig (ModifiedLayout AvoidStruts l)
+xmobarProp =
+  withEasySB (statusBarProp "xmobar" (pure xmobarPP)) toggleStrutsKey
