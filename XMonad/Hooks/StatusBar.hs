@@ -82,9 +82,8 @@ import XMonad.Hooks.StatusBar.PP
 -- status bar that supports property logging, is to use 'statusBarProp'
 -- with 'withEasySB'; these take care of the necessary plumbing:
 --
--- > main = do
--- >   mySB <- statusBarProp "xmobar" (pure xmobarPP)
--- >   xmonad =<< withEasySB mySB defToggleStrutsKey def
+-- > mySB = statusBarProp "xmobar" (pure xmobarPP)
+-- > main = xmonad $ withEasySB mySB defToggleStrutsKey def
 --
 -- You can read more about X11 properties
 -- [here](https://en.wikipedia.org/wiki/X_Window_System_core_protocol#Properties)
@@ -100,9 +99,8 @@ import XMonad.Hooks.StatusBar.PP
 -- to configure "XMonad.Hooks.ManageDocks" yourself. Here's what that might
 -- look like:
 --
--- > main = do
--- >   mySB <- statusBarProp "xmobar" (pure myPP)
--- >   xmonad =<< (withSB mySB . ewmh . docks $ def {...})
+-- > mySB = statusBarProp "xmobar" (pure myPP)
+-- > main = xmonad . withSB mySB . ewmh . docks $ def {...}
 --
 -- You then have to tell your status bar to read from the @_XMONAD_LOG@ property
 -- of the root window.  In the case of xmobar, this is achieved by simply using
@@ -132,6 +130,13 @@ import XMonad.Hooks.StatusBar.PP
 -- bar read from that pipe.
 -- Please be aware that this kind of setup is very bug-prone and hence is
 -- discouraged: if anything goes wrong with the bar, xmonad will freeze!
+--
+-- Also note that 'statusBarPipe' returns 'IO StatusBarConfig', so
+-- you need to evaluate it before passing it to 'withSB' or 'withEasySB':
+--
+-- > main = do
+-- >   mySB <- statusBarPipe "xmobar" (pure myPP)
+-- >   xmonad $ withSB mySB myConf
 
 
 -- $plumbing
@@ -250,9 +255,8 @@ instance Default StatusBarConfig where
 withSB :: LayoutClass l Window
        => StatusBarConfig    -- ^ The status bar config
        -> XConfig l          -- ^ The base config
-       -> IO (XConfig l)
-withSB (StatusBarConfig lh sh ch) conf =
-  return $ conf
+       -> XConfig l
+withSB (StatusBarConfig lh sh ch) conf = conf
     { logHook     = logHook conf *> lh
     , startupHook = startupHook conf *> ch *> sh
     }
@@ -268,12 +272,11 @@ withEasySB :: LayoutClass l Window
            -> (XConfig Layout -> (KeyMask, KeySym))
                               -- ^ The key binding
            -> XConfig l       -- ^ The base config
-           -> IO (XConfig (ModifiedLayout AvoidStruts l))
-withEasySB sb k conf = do
-  conf' <- withSB sb conf
-  return $ docks $ conf' { layoutHook = avoidStruts (layoutHook conf')
-                         , keys       = (<>) <$> keys' <*> keys conf'
-                         }
+           -> XConfig (ModifiedLayout AvoidStruts l)
+withEasySB sb k conf = docks . withSB sb $ conf
+    { layoutHook = avoidStruts (layoutHook conf)
+    , keys       = (<>) <$> keys' <*> keys conf
+    }
   where keys' = (`M.singleton` sendMessage ToggleStruts) . k
 
 -- | Default @mod-b@ key binding for 'withEasySB'
@@ -283,16 +286,16 @@ defToggleStrutsKey XConfig{modMask = modm} = (modm, xK_b)
 -- | Creates a 'StatusBarConfig' that uses property logging to @_XMONAD_LOG@, which
 -- is set in 'xmonadDefProp'
 statusBarProp :: String -- ^ The command line to launch the status bar
-                    -> X PP   -- ^ The pretty printing options
-                    -> IO StatusBarConfig
+              -> X PP   -- ^ The pretty printing options
+              -> StatusBarConfig
 statusBarProp = statusBarPropTo xmonadDefProp
 
 -- | Like 'statusBarProp', but lets you define the property
 statusBarPropTo :: String -- ^ Property to write the string to
-                      -> String -- ^ The command line to launch the status bar
-                      -> X PP   -- ^ The pretty printing options
-                      -> IO StatusBarConfig
-statusBarPropTo prop cmd pp = pure def
+                -> String -- ^ The command line to launch the status bar
+                -> X PP   -- ^ The pretty printing options
+                -> StatusBarConfig
+statusBarPropTo prop cmd pp = def
     { sbLogHook     = xmonadPropLog' prop =<< dynamicLogString =<< pp
     , sbStartupHook = spawnStatusBarAndRemember cmd
     , sbCleanupHook = cleanupStatusBars
@@ -300,8 +303,8 @@ statusBarPropTo prop cmd pp = pure def
 
 -- | Like 'statusBarProp', but uses pipe-based logging instead.
 statusBarPipe :: String -- ^ The command line to launch the status bar
-                      -> X PP   -- ^ The pretty printing options
-                      -> IO StatusBarConfig
+              -> X PP   -- ^ The pretty printing options
+              -> IO StatusBarConfig
 statusBarPipe cmd xpp  = do
     h <- spawnPipe cmd
     return $ def { sbLogHook = xpp >>= \pp -> dynamicLogWithPP pp { ppOutput = hPutStrLn h } }
@@ -314,11 +317,12 @@ statusBarPipe cmd xpp  = do
 -- Here's an example of what such declarative configuration of multiple status
 -- bars may look like:
 --
--- > main = do
--- >   xmobarTop    <- statusBarPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"    (pure ppTop)
--- >   xmobarBottom <- statusBarPipe "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
--- >   xmobar1      <- statusBarPipe "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
--- >   xmonad =<< withSB (xmobarTop <> xmobarBottom <> xmobar1) myConfig
+-- > -- Make sure to setup the xmobar config accordingly
+-- > xmobarTop    = statusBarPropTo "_XMONAD_LOG_1" "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"    (pure ppTop)
+-- > xmobarBottom = statusBarPropTo "_XMONAD_LOG_2" "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
+-- > xmobar1      = statusBarPropTo "_XMONAD_LOG_3" "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
+-- >
+-- > main = xmonad $ withSB (xmobarTop <> xmobarBottom <> xmobar1) myConfig
 --
 -- The above example also works if the different status bars support different
 -- logging methods: you could mix property logging and logging via pipes.
