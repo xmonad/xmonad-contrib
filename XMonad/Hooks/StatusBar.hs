@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, TypeApplications #-}
+{-# LANGUAGE FlexibleContexts, TypeApplications, TupleSections  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar
@@ -39,6 +39,11 @@ module XMonad.Hooks.StatusBar (
   -- * Multiple Status Bars
   -- $multiple
 
+  -- * Dynamic Status Bars
+  -- $dynamic
+  dynamicSBs,
+  dynamicEasySBs,
+
   -- * Property Logging utilities
   xmonadPropLog,
   xmonadPropLog',
@@ -60,7 +65,7 @@ import System.Posix.Types (ProcessID)
 import Foreign.C (CChar)
 
 import XMonad
-import XMonad.Prelude ( traverse_, void )
+import XMonad.Prelude
 
 import XMonad.Util.Run
 import qualified XMonad.Util.ExtensibleState as XS
@@ -69,6 +74,8 @@ import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.StatusBar.PP
 import qualified XMonad.StackSet as W
+
+import Graphics.X11.Xrandr (xrrSelectInput)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -316,7 +323,7 @@ statusBarPipe cmd xpp  = do
 -- Here's an example of what such declarative configuration of multiple status
 -- bars may look like:
 --
--- > -- Make sure to setup the xmobar config accordingly
+-- > -- Make sure to setup the xmobar configs accordingly
 -- > xmobarTop    = statusBarPropTo "_XMONAD_LOG_1" "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"    (pure ppTop)
 -- > xmobarBottom = statusBarPropTo "_XMONAD_LOG_2" "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
 -- > xmobar1      = statusBarPropTo "_XMONAD_LOG_3" "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
@@ -360,6 +367,105 @@ statusBarPipe cmd xpp  = do
 --
 -- By using the new interface, the config becomes more declarative and there's
 -- less room for errors.
+--
+-- The only *problem* now is that the status bars will not be updated when your screen
+-- configuration changes (by plugging in a monitor, for example). Check the section
+-- on dynamic status bars for how to do that.
+
+-- $dynamic
+-- Using multiple status bars by just combining them with '<>' works well
+-- as long as the screen configuration does not change often. If it does,
+-- you should use 'dynamicSBs': by providing a function that creates
+-- status bars, it takes care of setting up the event hook, the log hook
+-- and the startup hook necessary to make the status bars, well, dynamic.
+--
+-- > xmobarTop    = statusBarPropTo "_XMONAD_LOG_1" "xmobar -x 0 ~/.config/xmobar/xmobarrc_top"    (pure ppTop)
+-- > xmobarBottom = statusBarPropTo "_XMONAD_LOG_2" "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
+-- > xmobar1      = statusBarPropTo "_XMONAD_LOG_3" "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
+-- >
+-- > barSpawner :: ScreenId -> IO StatusBarConfig
+-- > barSpawner 0 = pure $ xmobarTop <> xmobarBottom -- two bars on the main screen
+-- > barSpawner 1 = pure $ xmobar1
+-- > barSpawner _ = mempty -- nothing on the rest of the screens
+-- >
+-- > main = xmonad $ dynamicSBs barSpawner (def { ... })
+--
+-- Make sure you specify which screen to place the status bar on (in xmobar,
+-- this is achieved by the @-x@ argument). In addition to making sure that your
+-- status bar lands where you intended it to land, the commands are used
+-- internally to keep track of the status bars.
+--
+-- Note also that this interface can be used with one screen, or if
+-- the screen configuration doesn't change.
+
+newtype ActiveSBs = ASB {getASBs :: [(ScreenId,  StatusBarConfig)]}
+
+instance ExtensionClass ActiveSBs where
+  initialValue = ASB []
+
+-- | Given a function to create status bars, 'dynamicSBs'
+-- adds the dynamic status bar capabilities to the config.
+-- For a version of this function that applies 'docks' and
+-- 'avoidStruts', check 'dynamicEasySBs'.
+--
+-- Heavily inspired by "XMonad.Hooks.DynamicBars"
+dynamicSBs :: (ScreenId -> IO StatusBarConfig) -> XConfig l -> XConfig l
+dynamicSBs f conf = conf
+  { startupHook     = startupHook conf
+                      >> setupEventHandler
+                      >> killAllStatusBars
+                      >> updateSBs f
+  , logHook         = logHook conf >> logSBs
+  , handleEventHook = eventHookSBs f <> handleEventHook conf
+  }
+
+-- | Like 'dynamicSBs', but applies 'docks' to the
+-- resulting config and adds 'avoidStruts' to the
+-- layout.
+dynamicEasySBs :: LayoutClass l Window
+               => (ScreenId -> IO StatusBarConfig)
+               -> XConfig l
+               -> XConfig (ModifiedLayout AvoidStruts l)
+dynamicEasySBs f conf =
+  docks . dynamicSBs f $ conf { layoutHook = avoidStruts (layoutHook conf) }
+
+-- | Given the function to create status bars, update
+-- the status bars by killing those that shouldn't be
+-- visible anymore and creates any missing status bars
+updateSBs :: (ScreenId -> IO StatusBarConfig) -> X ()
+updateSBs f = do
+  actualScreens    <- withWindowSet $ return . map W.screen . W.screens
+  (toKeep, toKill) <-
+    partition ((`elem` actualScreens) . fst) . getASBs <$> XS.get
+  -- Kill the status bars
+  cleanSBs (map snd toKill)
+  -- Create new status bars if needed
+  let missing = actualScreens \\ map fst toKeep
+  added <- io $ traverse (\s -> (s,) <$> f s) missing
+  traverse_ (sbStartupHook . snd) added
+  XS.put (ASB (toKeep ++ added))
+
+-- | Handles 'RRScreenChangeNotifyEvent' by updating the
+-- status bars.
+eventHookSBs :: (ScreenId -> IO StatusBarConfig) -> Event -> X All
+eventHookSBs f RRScreenChangeNotifyEvent{} = updateSBs f >> return (All True)
+eventHookSBs _ _                           = return (All True)
+
+-- | Run 'sbLogHook' for the saved 'StatusBarConfig's
+logSBs :: X ()
+logSBs = XS.get >>= traverse_ (sbLogHook . snd) . getASBs
+
+-- | Subscribe to the 'RRScreenChangeNotifyEvent'
+setupEventHandler :: X ()
+setupEventHandler = do
+  dpy  <- asks display
+  root <- asks theRoot
+  io $ xrrSelectInput dpy root rrScreenChangeNotifyMask
+
+-- | Kill the given 'StatusBarConfig's from the given
+-- list
+cleanSBs :: [StatusBarConfig] -> X ()
+cleanSBs = traverse_ sbCleanupHook
 
 -- | The default property xmonad writes to. (@_XMONAD_LOG@).
 xmonadDefProp :: String
@@ -428,7 +534,6 @@ spawnStatusBar :: String -- ^ The command used to spawn the status bar
 spawnStatusBar cmd = do
   newPid <- spawnPID cmd
   XS.modify (StatusBarPIDs . M.insert cmd newPid . getPIDs)
-
 
 -- | Kill all status bars started with 'spawnStatusBar'. Note the
 -- caveats in 'cleanupStatusBar'
