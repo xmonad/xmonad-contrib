@@ -44,25 +44,23 @@ module XMonad.Hooks.StatusBar (
   xmonadPropLog',
   xmonadDefProp,
 
-  -- * Managing Status Bar Processes
-  spawnStatusBarAndRemember,
-  cleanupStatusBars,
-
-  -- * Manual Plumbing
-  -- $plumbing
+  -- * Managing status bar Processes
+  -- $sbprocess
+  spawnStatusBar,
+  killStatusBar,
+  killAllStatusBars,
   ) where
 
 import Control.Exception (SomeException, try)
 import qualified Codec.Binary.UTF8.String as UTF8 (encode)
+import qualified Data.Map as M
 import System.Posix.Signals (sigTERM, signalProcessGroup)
 import System.Posix.Types (ProcessID)
-
-import qualified Data.Map        as M
 
 import Foreign.C (CChar)
 
 import XMonad
-import XMonad.Prelude (void)
+import XMonad.Prelude ( traverse_, void )
 
 import XMonad.Util.Run
 import qualified XMonad.Util.ExtensibleState as XS
@@ -70,6 +68,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.StatusBar.PP
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -189,7 +188,7 @@ import XMonad.Hooks.StatusBar.PP
 -- chosen status bar from spawning again). Using 'statusBarProp', however, takes
 -- care of the necessary plumbing /and/ keeps track of the started status bars, so
 -- they can be correctly restarted with xmonad. This is achieved using
--- 'spawnStatusBarAndRemember' to start them and 'cleanupStatusBars' to kill
+-- 'spawnStatusBar' to start them and 'killStatusBar' to kill
 -- previously started bars.
 --
 -- Even if you don't use a status bar, you can still use 'dynamicLogString' to
@@ -297,8 +296,8 @@ statusBarPropTo :: String -- ^ Property to write the string to
                 -> StatusBarConfig
 statusBarPropTo prop cmd pp = def
     { sbLogHook     = xmonadPropLog' prop =<< dynamicLogString =<< pp
-    , sbStartupHook = spawnStatusBarAndRemember cmd
-    , sbCleanupHook = cleanupStatusBars
+    , sbStartupHook = spawnStatusBar cmd
+    , sbCleanupHook = killStatusBar cmd
     }
 
 -- | Like 'statusBarProp', but uses pipe-based logging instead.
@@ -389,41 +388,50 @@ xmonadPropLog' prop msg = do
 
 -- This newtype wrapper, together with the ExtensionClass instance make use of
 -- the extensible state to save the PIDs bewteen xmonad restarts.
-newtype StatusBarPIDs = StatusBarPIDs { getPIDs :: [ProcessID] }
+newtype StatusBarPIDs = StatusBarPIDs { getPIDs :: M.Map String ProcessID }
   deriving (Show, Read)
 
 instance ExtensionClass StatusBarPIDs where
-  initialValue = StatusBarPIDs []
+  initialValue = StatusBarPIDs mempty
   extensionType = PersistentExtension
 
--- | Kills the status bars started with 'spawnStatusBarAndRemember', and resets
--- the state. This could go for example at the beginning of the startupHook.
+-- | Kills the status bar started with 'spawnStatusBar' using the given command
+-- and resets the state. This could go for example at the beginning of the
+-- startupHook, to kill the status bars that need to be restarted.
 --
 -- Concretely, this function sends a 'sigTERM' to the saved PIDs using
 -- 'signalProcessGroup' to effectively terminate all processes, regardless
--- of how many were started by using  'spawnStatusBarAndRemember'.
+-- of how many were started by using  'spawnStatusBar'.
 --
 -- There is one caveat to keep in mind: to keep the implementation simple;
 -- no checks are executed before terminating the processes. This means: if the
 -- started process dies for some reason, and enough time passes for the PIDs
 -- to wrap around, this function might terminate another process that happens
 -- to have the same PID. However, this isn't a typical usage scenario.
-cleanupStatusBars :: X ()
-cleanupStatusBars =
-    getPIDs <$> XS.get
-    >>= (io . mapM_ killPid)
-    >> XS.put (StatusBarPIDs [])
-   where
-    killPid :: ProcessID -> IO ()
-    killPid pidToKill = void $ try @SomeException (signalProcessGroup sigTERM pidToKill)
+killStatusBar :: String -- ^ The command used to start the status bar
+                 -> X ()
+killStatusBar cmd = do
+    XS.gets (M.lookup cmd . getPIDs) >>= flip whenJust (io . killPid)
+    XS.modify (StatusBarPIDs . M.delete cmd . getPIDs)
 
--- | Spawns a status bar and saves its PID. This is useful when the status bars
--- should be restarted with xmonad. Use this in combination with 'cleanupStatusBars'.
+killPid :: ProcessID -> IO ()
+killPid pidToKill = void $ try @SomeException (signalProcessGroup sigTERM pidToKill)
+
+-- | Spawns a status bar and saves its PID together with the commands that was
+-- used to start it. This is useful when the status bars should be restarted
+-- with xmonad. Use this in combination with 'killStatusBar'.
 --
 -- Note: in some systems, multiple processes might start, even though one command is
 -- provided. This means the first PID, of the group leader, is saved.
-spawnStatusBarAndRemember :: String -- ^ The command used to spawn the status bar
-                          -> X ()
-spawnStatusBarAndRemember cmd = do
+spawnStatusBar :: String -- ^ The command used to spawn the status bar
+               -> X ()
+spawnStatusBar cmd = do
   newPid <- spawnPID cmd
-  XS.modify (StatusBarPIDs . (newPid :) . getPIDs)
+  XS.modify (StatusBarPIDs . M.insert cmd newPid . getPIDs)
+
+
+-- | Kill all status bars started with 'spawnStatusBar'. Note the
+-- caveats in 'cleanupStatusBar'
+killAllStatusBars :: X ()
+killAllStatusBars =
+  XS.gets (M.elems . getPIDs) >>= io . traverse_ killPid >> XS.put (StatusBarPIDs mempty)
