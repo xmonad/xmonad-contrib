@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 {- |
 Module      :  XMonad.Prompt.Shell
 Copyright   :  (C) 2007 Andrea Rossato
@@ -17,9 +19,10 @@ module XMonad.Prompt.Shell
     , shellPrompt
     -- ** Variations on shellPrompt
     -- $spawns
-    , prompt
     , safePrompt
+    , safeDirPrompt
     , unsafePrompt
+    , prompt
 
     -- * Utility functions
     , compgenDirectories
@@ -35,8 +38,9 @@ module XMonad.Prompt.Shell
 import           Codec.Binary.UTF8.String (encodeString)
 import           Control.Exception        as E
 import           Control.Monad            (forM)
+import           Data.Bifunctor           (bimap)
 import           Data.Char                (toLower)
-import           Data.List                (isPrefixOf, sortBy)
+import           Data.List                (isInfixOf, isPrefixOf, sortBy)
 import           System.Directory         (getDirectoryContents)
 import           System.Environment       (getEnv)
 import           System.Posix.Files       (getFileStatus, isDirectory)
@@ -97,25 +101,73 @@ safePrompt c config = mkXPrompt Shell config (getShellCompl [c] $ searchPredicat
 unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c] $ searchPredicate config) run
     where run a = unsafeSpawn $ c ++ " " ++ a
 
+{- | Like 'safePrompt', but optimized for the use-case of a program that
+needs a file as an argument.
+
+For example, a prompt for <https://github.com/mwh/dragon dragon> that
+always starts searching in your home directory would look like
+
+> safeDirPrompt "dragon" def "~/"
+
+This is especially useful when using something like
+'XMonad.Prompt.FuzzyMatch.fuzzyMatch' from "XMonad.Prompt.FuzzyMatch" as
+your prompt's @searchPredicate@.
+-}
+safeDirPrompt
+    :: FilePath  -- ^ The command to execute
+    -> XPConfig  -- ^ The prompt configuration
+    -> String    -- ^ Which string to start @compgen@ with
+    -> X ()
+safeDirPrompt cmd cfg@XPC{ searchPredicate } compgenStr =
+    mkXPrompt Shell cfg mkCompl (safeSpawn cmd . pure)
+  where
+    mkCompl :: String -> IO [String]
+    mkCompl input =
+        shellComplImpl
+            CaseSensitive
+            (filter (searchPredicate ext))
+            (commandCompletionFunction [cmd] searchPredicate input)
+            (if "/" `isInfixOf` input then dir else compgenStr)
+            input
+      where
+        -- "/path/to/some/file" ⇒ ("file", "/path/to/some/")
+        (ext, dir) :: (String, String)
+            = bimap reverse reverse . break (== '/') . reverse $ input
+
 getShellCompl :: [String] -> Predicate -> String -> IO [String]
 getShellCompl = getShellCompl' CaseSensitive
 
 getShellCompl' :: ComplCaseSensitivity -> [String] -> Predicate -> String -> IO [String]
-getShellCompl' csn cmds p s | s == "" || last s == ' ' = return []
-                            | otherwise                = do
-    f     <- fmap lines (compgenFiles csn s)
-    files <- case f of
-               [x] -> do fs <- getFileStatus (encodeString x)
-                         if isDirectory fs then return [x ++ "/"]
-                                           else return [x]
-               _   -> return f
-    return . sortBy typedFirst . uniqSort $ files ++ commandCompletionFunction cmds p s
-    where
+getShellCompl' csn cmds p input =
+    shellComplImpl csn id (commandCompletionFunction cmds p input) input input
+
+-- | Based in the user input and the given filtering function, create
+-- the completion string to show in the prompt.
+shellComplImpl
+    :: ComplCaseSensitivity    -- ^ Whether the @compgen@ query should be case sensitive
+    -> ([String] -> [String])  -- ^ How to filter the files we get back
+    -> [String]                -- ^ The available commands to suggest
+    -> String                  -- ^ Which string to give to @compgen@
+    -> String                  -- ^ The input string
+    -> IO [String]
+shellComplImpl csn filterFiles cmds cmpgenStr input
+    | input == "" || last input == ' ' = pure []
+    | otherwise = do
+        choices <- filterFiles . lines <$> compgenFiles csn cmpgenStr
+        files   <- case choices of
+            [x] -> do fs <- getFileStatus (encodeString x)
+                      pure $ if isDirectory fs then [x ++ "/"] else [x]
+            _   -> pure choices
+        pure . sortBy typedFirst . uniqSort $ files ++ cmds
+  where
+    typedFirst :: String -> String -> Ordering
     typedFirst x y
-        | x `startsWith` s && not (y `startsWith` s) = LT
-        | y `startsWith` s && not (x `startsWith` s) = GT
+        | x `startsWith` input && not (y `startsWith` input) = LT
+        | y `startsWith` input && not (x `startsWith` input) = GT
         | otherwise = x `compare` y
-    startsWith str ps = isPrefixOf (map toLower ps) (map toLower str)
+
+    startsWith :: String -> String -> Bool
+    startsWith str ps = map toLower ps `isPrefixOf` map toLower str
 
 compgenFiles :: ComplCaseSensitivity -> String -> IO String
 compgenFiles csn = compgen csn "file"
