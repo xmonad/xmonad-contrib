@@ -522,6 +522,11 @@
       ability to postpone magnifying until there are a certain number of
       windows on the workspace.
 
+  * `XMonad.Layout.Renamed`
+
+    - Added `KeepWordsLeft` and `KeepWordsRight` for keeping certain number of 
+      words in left or right direction in layout description.
+
 ## 0.16
 
 ### Breaking Changes
