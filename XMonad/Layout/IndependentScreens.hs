@@ -17,6 +17,7 @@ module XMonad.Layout.IndependentScreens (
     -- * Usage
     -- $usage
     VirtualWorkspace, PhysicalWorkspace,
+    VirtualWindowSpace, PhysicalWindowSpace,
     workspaces',
     withScreen, withScreens,
     onCurrentScreen,
