@@ -61,7 +61,7 @@ apply (CutLeft i) s = drop i s
 apply (CutRight i) s = take (length s - i) s
 apply (CutWordsLeft i) s = unwords $ drop i $ words s
 apply (CutWordsRight i) s = let ws = words s
-                           in unwords $ take (length ws - i) ws                        
+                           in unwords $ take (length ws - i) ws
 apply (KeepWordsLeft i) s = unwords $ take i $ words s
 apply (KeepWordsRight i) s = let ws = words s
                            in unwords $ drop (length ws - i) ws

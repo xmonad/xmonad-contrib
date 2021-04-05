@@ -299,7 +299,7 @@
   * `XMonad.Hooks.DynamicLog`
 
     - Added `xmobarProp`, for property-based alternative to `xmobar`.
-    
+
     - Add the -dock argument to the dzen spawn arguments
 
     - The API for this module is frozen: this is now a compatibility wrapper.
@@ -531,7 +531,7 @@
 
   * `XMonad.Layout.Renamed`
 
-    - Added `KeepWordsLeft` and `KeepWordsRight` for keeping certain number of 
+    - Added `KeepWordsLeft` and `KeepWordsRight` for keeping certain number of
       words in left or right direction in layout description.
 
 ## 0.16
