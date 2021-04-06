@@ -410,9 +410,10 @@ highlightedItem st' completions = case complWinDim st' of
       (_,_,_,_,xx,yy) = winDim
       complMatrix = splitInSubListsAt (length yy) (take (length xx * length yy) completions)
       (col_index,row_index) = complIndex st'
-    in case completions of
-      [] -> Nothing
-      _  -> complMatrix !? col_index >>= (!? row_index)
+    in case length completions of
+      0 -> Nothing
+      1 -> Just $ complMatrix !! col_index !! row_index
+      _ -> complMatrix !? col_index >>= (!? row_index)
  where
   -- | Safe version of '(!!)'.
   (!?) :: [a] -> Int -> Maybe a
