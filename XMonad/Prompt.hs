@@ -410,10 +410,9 @@ highlightedItem st' completions = case complWinDim st' of
       (_,_,_,_,xx,yy) = winDim
       complMatrix = splitInSubListsAt (length yy) (take (length xx * length yy) completions)
       (col_index,row_index) = complIndex st'
-    in case length completions of
-      0 -> Nothing
-      1 -> Just $ complMatrix !! col_index !! row_index
-      _ -> complMatrix !? col_index >>= (!? row_index)
+    in case completions of
+      [] -> Nothing
+      _  -> complMatrix !? col_index >>= (!? row_index)
  where
   -- | Safe version of '(!!)'.
   (!?) :: [a] -> Int -> Maybe a
@@ -767,7 +766,12 @@ handleCompletion cs = do
         hlComplete prevCompl l st =
           if | -- The current suggestion matches the command and is a
                -- proper suffix of the last suggestion, so replace it.
-               isSuffixOfCmd && isProperSuffixOfLast -> replaceCompletion
+               isSuffixOfCmd && isProperSuffixOfLast -> replaceCompletion prevCompl
+
+             | -- We only have one suggestion, so we need to be a little
+               -- bit smart in order to avoid a loop.
+               length cs == 1 ->
+                 if command st == hlCompl then put st else replaceCompletion (head cs)
 
                -- The current suggestion matches the command, so advance
                -- to the next completion and try again.
@@ -778,7 +782,7 @@ handleCompletion cs = do
 
                -- If nothing matches at all, delete the suggestion and
                -- highlight the next one.
-             | otherwise -> replaceCompletion
+             | otherwise -> replaceCompletion prevCompl
          where
           hlCompl     :: String       = fromMaybe (command st) $ highlightedItem st l
           complIndex' :: (Int, Int)   = nextComplIndex st (length l)
@@ -788,9 +792,9 @@ handleCompletion cs = do
           isProperSuffixOfLast :: Bool =      hlCompl   `isSuffixOf` prevCompl
                                       && not (prevCompl `isSuffixOf` hlCompl)
 
-          replaceCompletion :: XP () = do
+          replaceCompletion :: String -> XP () = \str -> do
               put st
-              replicateM_ (length $ words prevCompl) $ killWord Prev
+              replicateM_ (length $ words str) $ killWord Prev
               insertString' hlCompl
               endOfLine
 
