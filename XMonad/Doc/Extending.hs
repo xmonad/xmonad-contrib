@@ -477,7 +477,8 @@ Here is a list of the modules found in @XMonad.Hooks@:
     One-shot and permanent ManageHooks that can be updated at runtime.
 
 * "XMonad.Hooks.DynamicIcons":
-    Dynamic Icons based on Windows in Workspaces
+    Dynamically augment workspace names logged to a status bar via DynamicLog
+    based on the contents (windows) of the workspace.
 
 * "XMonad.Hooks.DynamicLog": for use with 'XMonad.Core.logHook'; send
   information about xmonad's state to standard output, suitable for
