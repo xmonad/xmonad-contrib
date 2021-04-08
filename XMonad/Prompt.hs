@@ -1,6 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE CPP #-}
@@ -763,26 +762,26 @@ handleCompletion cs = do
         --
         --TODO: Scroll or paginate results
         hlComplete :: String -> [String] -> XPState -> XP ()
-        hlComplete prevCompl l st =
-          if | -- The current suggestion matches the command and is a
-               -- proper suffix of the last suggestion, so replace it.
-               isSuffixOfCmd && isProperSuffixOfLast -> replaceCompletion prevCompl
+        hlComplete prevCompl l st
+          | -- The current suggestion matches the command and is a
+            -- proper suffix of the last suggestion, so replace it.
+            isSuffixOfCmd && isProperSuffixOfLast = replaceCompletion prevCompl
 
-             | -- We only have one suggestion, so we need to be a little
-               -- bit smart in order to avoid a loop.
-               length cs == 1 ->
-                 if command st == hlCompl then put st else replaceCompletion (head cs)
+          | -- We only have one suggestion, so we need to be a little
+            -- bit smart in order to avoid a loop.
+            length cs == 1 =
+              if command st == hlCompl then put st else replaceCompletion (head cs)
 
-               -- The current suggestion matches the command, so advance
-               -- to the next completion and try again.
-             | isSuffixOfCmd ->
-                 hlComplete hlCompl l $ st{ complIndex = complIndex'
-                                          , highlightedCompl = nextHlCompl
-                                          }
+            -- The current suggestion matches the command, so advance
+            -- to the next completion and try again.
+          | isSuffixOfCmd =
+              hlComplete hlCompl l $ st{ complIndex = complIndex'
+                                       , highlightedCompl = nextHlCompl
+                                       }
 
-               -- If nothing matches at all, delete the suggestion and
-               -- highlight the next one.
-             | otherwise -> replaceCompletion prevCompl
+            -- If nothing matches at all, delete the suggestion and
+            -- highlight the next one.
+          | otherwise = replaceCompletion prevCompl
          where
           hlCompl     :: String       = fromMaybe (command st) $ highlightedItem st l
           complIndex' :: (Int, Int)   = nextComplIndex st (length l)
