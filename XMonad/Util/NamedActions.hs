@@ -119,6 +119,7 @@ spawn' :: String -> NamedAction
 spawn' x = addName x $ spawn x
 
 class HasName a where
+    {-# MINIMAL getAction #-}
     showName :: a -> [String]
     showName = const [""]
     getAction :: a -> X ()

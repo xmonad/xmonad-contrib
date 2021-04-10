@@ -221,17 +221,23 @@ instance XPrompt XPType where
     completionFunction  (XPT t) = completionFunction  t
     modeAction          (XPT t) = modeAction          t
 
--- | The class prompt types must be an instance of. In order to
--- create a prompt you need to create a data type, without parameters,
--- and make it an instance of this class, by implementing a simple
--- method, 'showXPrompt', which will be used to print the string to be
--- displayed in the command line window.
+-- | A class for an abstract prompt. In order for your data type to be a
+-- valid prompt you _must_ make it an instance of this class.
 --
--- This is an example of a XPrompt instance definition:
+-- The minimal complete definition is just 'showXPrompt', i.e. the name
+-- of the prompt. This string will be displayed in the command line
+-- window (before the cursor).
 --
+-- As an example of a complete 'XPrompt' instance definition, we can
+-- look at the 'XMonad.Prompt.Shell.Shell' prompt from
+-- "XMonad.Prompt.Shell":
+--
+-- >     data Shell = Shell
+-- >
 -- >     instance XPrompt Shell where
 -- >          showXPrompt Shell = "Run: "
 class XPrompt t where
+    {-# MINIMAL showXPrompt #-}
 
     -- | This method is used to print the string to be
     -- displayed in the command line window.
