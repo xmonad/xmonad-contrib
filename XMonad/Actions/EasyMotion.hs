@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.EasyMotion
@@ -239,8 +240,8 @@ bar f th r = Rectangle { rect_width  = rect_width r
                        , rect_height = fi th
                        , rect_x      = rect_x r
                        , rect_y      = rect_y r + round (f' * (fi (rect_height r) - fi th)) }
-                         -- clamp f in [0,1] as other values will appear to lock up xmonad
-                         -- as the overlay will be displayed off-screen
+  -- clamp f in [0,1] as other values will appear to lock up xmonad as the overlay will be
+  -- displayed off-screen
   where f' = min 0.0 $ max f 1.0
 
 -- | Handles overlay display and window selection. Called after config has been sanitised.
@@ -252,22 +253,25 @@ handleSelectWindow c = do
   XConf { theRoot = rw, display = dpy } <- ask
   XState { mapped = mappedWins, windowset = ws } <- get
   -- build overlays depending on key configuration
-  overlays <- case sKeys c of
-                AnyKeys ks -> buildOverlays ks <$> sortedOverlayWindows
-                  where
-                    visibleWindows :: [Window]
-                    visibleWindows = toList mappedWins
-                    sortedOverlayWindows :: X [OverlayWindow]
-                    sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
-                PerScreenKeys m -> fmap concat $ sequence $ M.foldr (:) [] $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
-                  where
-                    screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
-                    screenById sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
-                    visibleWindowsOnScreen :: ScreenId -> [Window]
-                    visibleWindowsOnScreen sid = L.filter (`elem` (toList mappedWins)) $ W.integrate' $ (screenById sid) >>= W.stack . W.workspace
-                    sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
-                    sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows dpy th $ visibleWindowsOnScreen sid)
-    :: X [Overlay]
+  overlays :: [Overlay] <- case sKeys c of
+    AnyKeys ks -> buildOverlays ks <$> sortedOverlayWindows
+      where
+        visibleWindows :: [Window]
+        visibleWindows = toList mappedWins
+        sortedOverlayWindows :: X [OverlayWindow]
+        sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
+    PerScreenKeys m ->
+      fmap concat
+        $ sequence
+        $ M.foldr (:) []
+        $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
+      where
+        screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+        screenById sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
+        visibleWindowsOnScreen :: ScreenId -> [Window]
+        visibleWindowsOnScreen sid = L.filter (`elem` (toList mappedWins)) $ W.integrate' $ (screenById sid) >>= W.stack . W.workspace
+        sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
+        sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows dpy th $ visibleWindowsOnScreen sid)
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
   if (status == grabSuccess)
     then do
