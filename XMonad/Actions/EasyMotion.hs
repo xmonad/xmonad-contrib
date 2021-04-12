@@ -30,6 +30,7 @@ module XMonad.Actions.EasyMotion (
                                  , fullSize
                                  , fixedSize
                                  , textSize
+                                 , proportional
                                  , bar
                                  ) where
 
