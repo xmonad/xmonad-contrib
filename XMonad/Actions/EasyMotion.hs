@@ -149,23 +149,23 @@ import           Data.List                (sortOn)
 -- | Associates a user window, an overlay window created by this module and a rectangle
 --   circumscribing these windows
 data OverlayWindow =
-  OverlayWindow { win     :: Window           -- ^ The window managed by xmonad
-                , attrs   :: WindowAttributes -- ^ Window attributes for @win@
-                , overlay :: Window           -- ^ Our window used to display the overlay
-                , rect    :: Rectangle        -- ^ The rectangle of @overlay@
+  OverlayWindow { win     :: !Window           -- ^ The window managed by xmonad
+                , attrs   :: !WindowAttributes -- ^ Window attributes for @win@
+                , overlay :: !Window           -- ^ Our window used to display the overlay
+                , rect    :: !Rectangle        -- ^ The rectangle of @overlay@
                 }
 
 -- | An overlay window and the chord used to select it
 data Overlay =
-  Overlay { overlayWin :: OverlayWindow    -- ^ The window managed by xmonad
-          , chord      :: [KeySym]         -- ^ The chord we'll display in the overlay
+  Overlay { overlayWin :: !OverlayWindow    -- ^ The window managed by xmonad
+          , chord      :: ![KeySym]         -- ^ The chord we'll display in the overlay
           }
 
 
 -- | Maps keys to windows. AnyKeys maps keys to windows regardless which screen they're on.
 --   PerScreenKeys maps keys to screens to windows. See $usage for more examples.
-data ChordKeys = AnyKeys       [KeySym]
-               | PerScreenKeys (M.Map ScreenId [KeySym])
+data ChordKeys = AnyKeys       ![KeySym]
+               | PerScreenKeys !(M.Map ScreenId [KeySym])
 
 -- | Configuration options for EasyMotion.
 --
@@ -178,15 +178,15 @@ data ChordKeys = AnyKeys       [KeySym]
 --   @cancelKey@, @xK_BackSpace@ and any duplicates will be removed from @sKeys@ if included.
 --   See usage for examples of @sKeys@.
 data EasyMotionConfig =
-  EMConf { txtCol      :: String                             -- ^ Color of the text displayed
-         , bgCol       :: String                             -- ^ Color of the window overlaid
-         , overlayF    :: Position -> Rectangle -> Rectangle -- ^ Function to generate overlay rectangle
-         , borderCol   :: String                             -- ^ Color of the overlay window borders
-         , sKeys       :: ChordKeys                          -- ^ Keys to use for window selection
-         , cancelKey   :: KeySym                             -- ^ Key to use to cancel selection
-         , emFont      :: String                             -- ^ Font for selection characters (passed to initXMF)
-         , borderPx    :: Int                                -- ^ Width of border in pixels
-         , maxChordLen :: Int                                -- ^ Maximum chord length. Use 0 for no maximum.
+  EMConf { txtCol      :: !String                               -- ^ Color of the text displayed
+         , bgCol       :: !String                               -- ^ Color of the window overlaid
+         , overlayF    :: !(Position -> Rectangle -> Rectangle) -- ^ Function to generate overlay rectangle
+         , borderCol   :: !String                               -- ^ Color of the overlay window borders
+         , sKeys       :: !ChordKeys                            -- ^ Keys to use for window selection
+         , cancelKey   :: !KeySym                               -- ^ Key to use to cancel selection
+         , emFont      :: !String                               -- ^ Font for selection characters (passed to initXMF)
+         , borderPx    :: !Int                                  -- ^ Width of border in pixels
+         , maxChordLen :: !Int                                  -- ^ Maximum chord length. Use 0 for no maximum.
          }
 
 instance Default EasyMotionConfig where
