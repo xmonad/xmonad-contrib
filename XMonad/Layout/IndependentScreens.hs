@@ -219,7 +219,7 @@ marshallSort s vSort = pScreens . vSort . vScreens where
 -- | Like 'marshallSort', but operates completely on 'PhysicalWindowSpace' with physical names.
 -- Thus, 'getSortByIndex' can be used in 'xmobarPP' with no problem.
 marshallSort' :: ScreenId -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace]) -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace])
-marshallSort' s vSort = pSort . workspacesOn s
+marshallSort' s pSort = pSort . workspacesOn s
 
 -- | Convert the tag of the 'WindowSpace' from a 'VirtualWorkspace' to a 'PhysicalWorkspace'.
 marshallWindowSpace   :: ScreenId -> WindowSpace -> WindowSpace
