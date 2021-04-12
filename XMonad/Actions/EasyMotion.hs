@@ -20,13 +20,16 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.EasyMotion (
-                                   -- * Usage
+module XMonad.Actions.EasyMotion ( -- * Usage
                                    -- $usage
                                    selectWindow
-                                 , def
+
+                                   -- * Configuration
                                  , EasyMotionConfig(..)
                                  , ChordKeys(..)
+                                 , def
+
+                                   -- * Creating overlays
                                  , fullSize
                                  , fixedSize
                                  , textSize
