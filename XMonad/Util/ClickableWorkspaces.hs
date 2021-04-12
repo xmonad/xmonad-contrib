@@ -26,7 +26,7 @@ import Data.Functor ((<&>))
 
 import XMonad
 import XMonad.Hooks.DynamicLog (xmobarAction, PP(..))
-import XMonad.Util.WorkspaceCompare (getWsIndex)
+import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import qualified XMonad.StackSet as W
 
 -- $usage
@@ -49,6 +49,11 @@ import qualified XMonad.StackSet as W
 -- workspace @i@.
 clickableWrap :: Int -> String -> String
 clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" ws
+
+getWsIndex :: X (WorkspaceId -> Maybe Int)
+getWsIndex = do
+    spaces <- gets (map W.tag . getSortByIndex . W.workspaces . windowset)
+    return $ flip elemIndex spaces
 
 -- | Return a function that wraps workspace names in an xmobar action that
 -- switches to that workspace.
