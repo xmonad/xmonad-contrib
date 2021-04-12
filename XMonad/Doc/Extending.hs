@@ -184,6 +184,9 @@ edit your key bindings.
     Provides bindings to add and delete workspaces.  Note that you may only
     delete a workspace that is already empty.
 
+* "XMonad.Actions.EasyMotion":
+    Focus a visible window using a key chord.
+
 * "XMonad.Actions.FindEmptyWorkspace":
     Find an empty workspace.
 

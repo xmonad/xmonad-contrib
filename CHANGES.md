@@ -858,6 +858,13 @@
     Currently needs manual setting of the session start flag. This could be
     automated when this moves to the core repository.
 
+  * `XMonad.Actions.EasyMotion`
+
+    A new module that allows selection of visible screens using a key chord.
+    Inspired by [vim-easymotion](https://github.com/easymotion/vim-easymotion). See the animation
+    in the vim-easymotion repo to get some idea of the functionality of this
+    EasyMotion module.
+
   * `XMonad.Layout.MultiDishes`
 
     A new layout based on Dishes, however it accepts additional configuration
