@@ -212,9 +212,9 @@ proportional f th r = Rectangle { rect_width  = newW
                                 , rect_height = newH
                                 , rect_x      = rect_x r + fi (rect_width r - newW) `div` 2
                                 , rect_y      = rect_y r + fi (rect_height r - newH) `div` 2 }
-  where
-    newH = max (fi th) (round $ f * fi (rect_height r))
-    newW = newH
+ where
+  newH = max (fi th) (round $ f * fi (rect_height r))
+  newW = newH
 
 -- | Create fixed-size overlay windows
 fixedSize :: (Integral a, Integral b) => a -> b -> Position -> Rectangle -> Rectangle
@@ -222,9 +222,9 @@ fixedSize w h th r = Rectangle { rect_width  = rw
                                , rect_height = rh
                                , rect_x      = rect_x r + fi (rect_width r - rw) `div` 2
                                , rect_y      = rect_y r + fi (rect_height r - rh) `div` 2 }
-  where
-    rw = max (fi w) (fi th)
-    rh = max (fi h) (fi th)
+ where
+  rw = max (fi w) (fi th)
+  rh = max (fi h) (fi th)
 
 -- | Create overlay windows the minimum size to contain their key chord
 textSize :: Position -> Rectangle -> Rectangle
@@ -240,40 +240,41 @@ bar f th r = Rectangle { rect_width  = rect_width r
                        , rect_height = fi th
                        , rect_x      = rect_x r
                        , rect_y      = rect_y r + round (f' * (fi (rect_height r) - fi th)) }
-  -- clamp f in [0,1] as other values will appear to lock up xmonad as the overlay will be
-  -- displayed off-screen
-  where f' = min 0.0 $ max f 1.0
+ where
+   -- clamp f in [0,1] as other values will appear to lock up xmonad as the overlay will be
+   -- displayed off-screen
+   f' = min 0.0 $ max f 1.0
 
 -- | Handles overlay display and window selection. Called after config has been sanitised.
 handleSelectWindow :: EasyMotionConfig -> X (Maybe Window)
 handleSelectWindow EMConf { sKeys = AnyKeys [] } = return Nothing
 handleSelectWindow c = do
   f <- initXMF $ font c
-  th <- (\(asc, dsc) -> asc + dsc + 2) <$> (textExtentsXMF f (concatMap keysymToString (allKeys . sKeys $ c)))
+  th <- (\(asc, dsc) -> asc + dsc + 2) <$> textExtentsXMF f (concatMap keysymToString (allKeys . sKeys $ c))
   XConf { theRoot = rw, display = dpy } <- ask
   XState { mapped = mappedWins, windowset = ws } <- get
   -- build overlays depending on key configuration
   overlays :: [Overlay] <- case sKeys c of
     AnyKeys ks -> buildOverlays ks <$> sortedOverlayWindows
-      where
-        visibleWindows :: [Window]
-        visibleWindows = toList mappedWins
-        sortedOverlayWindows :: X [OverlayWindow]
-        sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
+     where
+      visibleWindows :: [Window]
+      visibleWindows = toList mappedWins
+      sortedOverlayWindows :: X [OverlayWindow]
+      sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
     PerScreenKeys m ->
       fmap concat
         $ sequence
         $ M.foldr (:) []
         $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
-      where
-        screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
-        screenById sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
-        visibleWindowsOnScreen :: ScreenId -> [Window]
-        visibleWindowsOnScreen sid = L.filter (`elem` (toList mappedWins)) $ W.integrate' $ (screenById sid) >>= W.stack . W.workspace
-        sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
-        sortedOverlayWindows sid = sortOverlayWindows <$> (buildOverlayWindows dpy th $ visibleWindowsOnScreen sid)
+     where
+      screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+      screenById sid = L.find ((== sid) . screen) (W.current ws : W.visible ws)
+      visibleWindowsOnScreen :: ScreenId -> [Window]
+      visibleWindowsOnScreen sid = L.filter (`elem` toList mappedWins) $ W.integrate' $ screenById sid >>= W.stack . W.workspace
+      sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
+      sortedOverlayWindows sid = sortOverlayWindows <$> buildOverlayWindows dpy th (visibleWindowsOnScreen sid)
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
-  if (status == grabSuccess)
+  if status == grabSuccess
     then do
       resultWin <- handleKeyboard dpy (displayOverlay f) (cancelKey c) overlays []
       io $ ungrabKeyboard dpy currentTime
@@ -284,71 +285,72 @@ handleSelectWindow c = do
         -- focus the selected window
         Selected o -> return . Just . win . overlayWin $ o
         -- return focus correctly
-        _ -> whenJust (W.peek ws :: Maybe Window) (windows . W.focusWindow) >> return Nothing
+        _ -> whenJust (W.peek ws) (windows . W.focusWindow) >> return Nothing
     else releaseXMF f >> return Nothing
-  where
-    allKeys :: ChordKeys -> [KeySym]
-    allKeys (AnyKeys ks) = ks
-    allKeys (PerScreenKeys m) = concat $ M.foldr (:) [] m
+ where
+  allKeys :: ChordKeys -> [KeySym]
+  allKeys (AnyKeys ks) = ks
+  allKeys (PerScreenKeys m) = concat $ M.foldr (:) [] m
 
-    buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
-    buildOverlays ks = appendChords (maxChordLen c) ks
+  buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
+  buildOverlays ks = appendChords (maxChordLen c) ks
 
-    buildOverlayWindows :: Display -> Position -> [Window] -> X [OverlayWindow]
-    buildOverlayWindows dpy th ws = sequence $ (buildOverlayWin dpy th) <$> ws
+  buildOverlayWindows :: Display -> Position -> [Window] -> X [OverlayWindow]
+  buildOverlayWindows dpy th ws = sequence $ buildOverlayWin dpy th <$> ws
 
-    sortOverlayWindows :: [OverlayWindow] -> [OverlayWindow]
-    sortOverlayWindows = (sortOn ((wa_x &&& wa_y) . attrs))
+  sortOverlayWindows :: [OverlayWindow] -> [OverlayWindow]
+  sortOverlayWindows = sortOn ((wa_x &&& wa_y) . attrs)
 
-    makeRect :: WindowAttributes -> Rectangle
-    makeRect wa = Rectangle (fi (wa_x wa)) (fi (wa_y wa)) (fi (wa_width wa)) (fi (wa_height wa))
+  makeRect :: WindowAttributes -> Rectangle
+  makeRect wa = Rectangle (fi (wa_x wa)) (fi (wa_y wa)) (fi (wa_width wa)) (fi (wa_height wa))
 
-    buildOverlayWin :: Display -> Position -> Window -> X OverlayWindow
-    buildOverlayWin dpy th w = do
-      wAttrs <- io $ getWindowAttributes dpy w
-      let r = overlayF c th $ makeRect wAttrs
-      o <- createNewWindow r Nothing "" True
-      return OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
+  buildOverlayWin :: Display -> Position -> Window -> X OverlayWindow
+  buildOverlayWin dpy th w = do
+    wAttrs <- io $ getWindowAttributes dpy w
+    let r = overlayF c th $ makeRect wAttrs
+    o <- createNewWindow r Nothing "" True
+    return OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
 
-    -- | Display an overlay with the provided formatting
-    displayOverlay :: XMonadFont -> Overlay -> X ()
-    displayOverlay f Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = ch } = do
-      showWindow o
-      paintAndWrite o f (fi (rect_width r)) (fi (rect_height r)) (fi (borderPx c)) (bgCol c) (borderCol c) (txtCol c) (bgCol c) [AlignCenter] [concatMap keysymToString ch]
+  -- | Display an overlay with the provided formatting
+  displayOverlay :: XMonadFont -> Overlay -> X ()
+  displayOverlay f Overlay { overlayWin = OverlayWindow { rect = r, overlay = o }, chord = ch } = do
+    showWindow o
+    paintAndWrite o f (fi (rect_width r)) (fi (rect_height r)) (fi (borderPx c)) (bgCol c) (borderCol c) (txtCol c) (bgCol c) [AlignCenter] [concatMap keysymToString ch]
 
 -- | Display overlay windows and chords for window selection
 selectWindow :: EasyMotionConfig -> X (Maybe Window)
 selectWindow conf =
   handleSelectWindow conf { sKeys = sanitiseKeys (sKeys conf) }
-    where
-      -- make sure the key lists don't contain: backspace, or duplicates
-      sanitise :: [KeySym] -> [KeySym]
-      sanitise = L.nub . L.filter (`notElem` [xK_BackSpace, cancelKey conf])
-      sanitiseKeys :: ChordKeys -> ChordKeys
-      sanitiseKeys cKeys =
-        case cKeys of
-          AnyKeys ks -> AnyKeys . sanitise $ ks
-          PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
+ where
+  -- make sure the key lists don't contain: backspace, or duplicates
+  sanitise :: [KeySym] -> [KeySym]
+  sanitise = L.nub . L.filter (`notElem` [xK_BackSpace, cancelKey conf])
+  sanitiseKeys :: ChordKeys -> ChordKeys
+  sanitiseKeys cKeys =
+    case cKeys of
+      AnyKeys ks -> AnyKeys . sanitise $ ks
+      PerScreenKeys m -> PerScreenKeys $ M.map sanitise m
 
 -- | Take a list of overlays lacking chords, return a list of overlays with key chords
 appendChords :: Int -> [KeySym] -> [OverlayWindow] -> [Overlay]
 appendChords _ [] _ = []
 appendChords maxUserSelectedLen ks overlayWins =
   zipWith (\ow c -> Overlay { overlayWin=ow, chord=c }) overlayWins chords
-    where
-      chords = replicateM chordLen ks
-      -- the minimum necessary chord length to assign a unique chord to each visible window
-      minCoverLen = -((-(length overlayWins)) `div` length ks)
-      -- if the user has specified a max chord length we use this even if it will not cover all
-      -- windows, as they may prefer to focus windows with fewer keys over the ability to focus any
-      -- window
-      chordLen = if maxUserSelectedLen <= 0 then minCoverLen else min minCoverLen maxUserSelectedLen
+ where
+  chords = replicateM chordLen ks
+  -- the minimum necessary chord length to assign a unique chord to each visible window
+  minCoverLen = -((-(length overlayWins)) `div` length ks)
+  -- if the user has specified a max chord length we use this even if it will not cover all
+  -- windows, as they may prefer to focus windows with fewer keys over the ability to focus any
+  -- window
+  chordLen = if maxUserSelectedLen <= 0 then minCoverLen else min minCoverLen maxUserSelectedLen
 
 -- | A three-state result for handling user-initiated selection cancellation, successful selection,
 --   or backspace.
 data HandleResult = Exit | Selected Overlay | Backspace
+
 -- | Handle key press events for window selection.
-handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X (HandleResult)
+handleKeyboard :: Display -> (Overlay -> X()) -> KeySym -> [Overlay] -> [Overlay] -> X HandleResult
 handleKeyboard _ _ _ [] _ = return Exit
 handleKeyboard dpy drawFn cancel selected deselected = do
   redraw
@@ -365,18 +367,18 @@ handleKeyboard dpy drawFn cancel selected deselected = do
          io $ allowEvents dpy replayPointer currentTime
          handleKeyboard dpy drawFn cancel selected deselected
      | otherwise -> handleKeyboard dpy drawFn cancel selected deselected
-  where
-    redraw = mapM (mapM_ drawFn) [selected, deselected]
-    retryBackspace x =
-      case x of
-        Backspace -> redraw >> handleKeyboard dpy drawFn cancel selected deselected
-        _ -> return x
-    isNextOverlayKey keySym = isJust (L.find ((== keySym) . head .chord) selected)
-    handleNextOverlayKey keySym =
-      case fg of
-        [x] -> return $ Selected x
-        _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
-      where
-        (fg, bg) = L.partition ((== keySym) . head . chord) selected
-        trim = map (\o -> o { chord = tail $ chord o })
-        clear = map (\o -> o { chord = [] })
+ where
+  redraw = mapM (mapM_ drawFn) [selected, deselected]
+  retryBackspace x =
+    case x of
+      Backspace -> redraw >> handleKeyboard dpy drawFn cancel selected deselected
+      _ -> return x
+  isNextOverlayKey keySym = isJust (L.find ((== keySym) . head .chord) selected)
+  handleNextOverlayKey keySym =
+    case fg of
+      [x] -> return $ Selected x
+      _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
+   where
+    (fg, bg) = L.partition ((== keySym) . head . chord) selected
+    trim = map (\o -> o { chord = tail $ chord o })
+    clear = map (\o -> o { chord = [] })
