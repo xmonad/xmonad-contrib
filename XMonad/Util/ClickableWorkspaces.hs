@@ -26,8 +26,9 @@ import Data.Functor ((<&>))
 
 import XMonad
 import XMonad.Hooks.StatusBar.PP (xmobarAction, PP(..))
-import XMonad.Util.WorkspaceCompare (getWsIndex)
+import XMonad.Util.WorkspaceCompare (getSortByIndex)
 import qualified XMonad.StackSet as W
+import Data.List (elemIndex)
 
 -- $usage
 -- If you're using the "XMonad.Hooks.StatusBar" interface, apply 'clickablePP'
@@ -54,6 +55,19 @@ import qualified XMonad.StackSet as W
 -- workspace @i@.
 clickableWrap :: Int -> String -> String
 clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" ws
+
+-- Note that 'getWsIndex' from "XMonad.Util.WorkspaceCompare" only works for
+-- predefined workspaces. When used together with "XMonad.Action.DynamicWorkspaces",
+-- 'getWsIndex' needs to be rewritten to get the correct index of a workspace.
+-- The workspace order perceived by @xdotool@ is the same as that by 'getSortByIndex'.
+-- So 'getSortByIndex' is used in such case.
+
+-- | Return the index of a workspace if it exists.
+getWsIndex :: X (WorkspaceId -> Maybe Int)
+getWsIndex = do
+    wSort <- getSortByIndex
+    spaces <- gets (map W.tag . wSort . W.workspaces . windowset)
+    return $ flip elemIndex spaces
 
 -- | Return a function that wraps workspace names in an xmobar action that
 -- switches to that workspace.
