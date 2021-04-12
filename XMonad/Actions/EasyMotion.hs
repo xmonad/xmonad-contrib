@@ -85,11 +85,11 @@ import           Data.List                (sortOn)
 -- >    -- key bindings
 -- >    , ((modm, xK_f), (selectWindow emConf) >>= (flip whenJust (windows . W.focusWindow)))
 --
--- To customise font:
+-- To customise the font:
 --
--- >    , ((modm, xK_f), (selectWindow def {font = "xft: Sans-40"}) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), (selectWindow def {emFont = "xft: Sans-40"}) >>= (flip whenJust (windows . W.focusWindow)))
 --
--- The font field provided is supplied directly to the initXMF function. The default is
+-- The @emFont@ field provided is supplied directly to the initXMF function. The default is
 -- "xft:Sans-100". Some example options:
 --
 -- >    "xft: Sans-40"
@@ -180,7 +180,7 @@ data EasyMotionConfig =
          , borderCol   :: String                             -- ^ Color of the overlay window borders
          , sKeys       :: ChordKeys                          -- ^ Keys to use for window selection
          , cancelKey   :: KeySym                             -- ^ Key to use to cancel selection
-         , font        :: String                             -- ^ Font for selection characters (passed to initXMF)
+         , emFont      :: String                             -- ^ Font for selection characters (passed to initXMF)
          , borderPx    :: Int                                -- ^ Width of border in pixels
          , maxChordLen :: Int                                -- ^ Maximum chord length. Use 0 for no maximum.
          }
@@ -196,9 +196,9 @@ instance Default EasyMotionConfig where
            , borderPx    = 1
            , maxChordLen = 0
 #ifdef XFT
-           , font        = "xft:Sans-100"
+           , emFont      = "xft:Sans-100"
 #else
-           , font        = "-misc-fixed-*-*-*-*-200-*-*-*-*-*-*-*"
+           , emFont      = "-misc-fixed-*-*-*-*-200-*-*-*-*-*-*-*"
 #endif
            }
 
@@ -249,7 +249,7 @@ bar f th r = Rectangle { rect_width  = rect_width r
 handleSelectWindow :: EasyMotionConfig -> X (Maybe Window)
 handleSelectWindow EMConf { sKeys = AnyKeys [] } = return Nothing
 handleSelectWindow c = do
-  f <- initXMF $ font c
+  f <- initXMF $ emFont c
   th <- (\(asc, dsc) -> asc + dsc + 2) <$> textExtentsXMF f (concatMap keysymToString (allKeys . sKeys $ c))
   XConf { theRoot = rw, display = dpy } <- ask
   XState { mapped = mappedWins, windowset = ws } <- get
