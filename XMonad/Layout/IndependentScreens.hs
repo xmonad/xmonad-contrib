@@ -25,17 +25,15 @@ module XMonad.Layout.IndependentScreens (
     whenCurrentOn,
     countScreens,
     workspacesOn,
+    currentWorkspaces,
     -- * Converting between virtual and physical workspaces
     -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
     marshallWindowSpace, unmarshallWindowSpace, marshallSort, marshallSort',
     -- * "XMonad.Actions.CopyWindow" integration
     -- $integration
-    wsContainingCopies,
-    copyWindowTo,
     -- * "XMonad.Actions.DynamicWorkspaces" integration
     -- $integration2
-    withNthWorkspaceScreen
 ) where
 
 -- for the screen stuff
@@ -46,8 +44,6 @@ import Graphics.X11.Xinerama
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.DynamicLog
-import XMonad.Actions.CopyWindow (copy, copiesOfOn, taggedWindows)
-import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -118,10 +114,7 @@ unmarshallW = snd . unmarshall
 workspaces' :: XConfig l -> [VirtualWorkspace]
 workspaces' = nub . map unmarshallW . workspaces
 
--- | Workspace names are independently specified with each monitor.
--- You can define your workspaces by calling withScreen for each screen:
---
--- > myConfig = def { workspaces = withScreen 0 ["web", "email", "irc"]  ++ withScreen 1 ["1", "2", "3"] }
+-- | Specify workspace names for each screen
 withScreen :: ScreenId            -- ^ The screen to make workspaces for
            -> [VirtualWorkspace]  -- ^ The desired virtual workspace names
            -> [PhysicalWorkspace] -- ^ A list of all internal physical workspace names
@@ -136,6 +129,14 @@ withScreens n vws = concatMap (`withScreen` vws) [0..n-1]
 onCurrentScreen :: (VirtualWorkspace -> WindowSet -> a) -> (PhysicalWorkspace -> WindowSet -> a)
 onCurrentScreen f vws = W.screen . W.current >>= f . flip marshall vws
 
+currentWorkspaces :: ([PhysicalWindowSpace] -> [PhysicalWindowSpace]) -> X [PhysicalWorkspace]
+currentWorkspaces pSort = do 
+    winset <- gets windowset
+    let ws    = pSort . W.workspaces $ winset
+        sc    = W.screen . W.current $ winset
+        wsOn  = workspacesOn sc ws
+    return $ map W.tag wsOn
+
 -- | In case you don't know statically how many screens there will be, you can call this in main before starting xmonad.  For example, part of my config reads
 --
 -- > main = do
@@ -148,46 +149,6 @@ onCurrentScreen f vws = W.screen . W.current >>= f . flip marshall vws
 --
 countScreens :: (MonadIO m, Integral i) => m i
 countScreens = fmap genericLength . liftIO $ openDisplay "" >>= liftA2 (<*) getScreenInfo closeDisplay
-
--- | Copy the focused window to a workspace on the current screen;
--- replacement for 'XMonad.Actions.CopyWindow.copy'.
---
--- Key binding example:
---
--- > ((modm, xK_v ), copyWindowTo 1) -- copy focused window to the 1st workspace on current screen.
-copyWindowTo :: Int -> X ()
-copyWindowTo j = do
-    winset <- gets windowset
-    sort <- getSortByIndex
-    let ws = sort . W.workspaces $ winset
-        sc = W.screen . W.current $ winset
-        wsID = [ W.tag m | m <- ws, unmarshallS (W.tag m) == sc]
-    windows $ copy $ wsID !! (j - 1)
-
--- | A list of hidden workspaces containing a copy of the focused window on the current screen.
-wsContainingCopies :: X [WorkspaceId]
-wsContainingCopies = do
-    ws <- gets windowset
-    let sc = W.screen . W.current $ ws
-    return $ copiesOfOn (W.peek ws) (taggedWindows $ workspaceHidden ws sc)
-  where
-    workspaceHidden ws sc = [ w | w <- W.hidden ws, sc == unmarshallS (W.tag w) ]
-
--- | Do something on the current screen with the nth workspace in the
--- dynamic order. The callback is given the workspace's tag as well as
--- the 'WindowSet' of the workspace itself.
---
--- Replacement for 'XMonad.Actions.DynamicWorkspaces.withNthWorkspace'.
-withNthWorkspaceScreen :: (WorkspaceId -> WindowSet -> WindowSet) -> Int -> X ()
-withNthWorkspaceScreen job wnum = do
-    winset <- gets windowset
-    sort <- getSortByIndex
-    let ws = sort . W.workspaces $ winset
-        sc = W.screen . W.current $ winset
-        enoughWorkspaces = drop wnum [W.tag j | j <- ws, unmarshallS (W.tag j) == sc]
-    case enoughWorkspaces of
-        (w : _) -> windows $ job w
-        []      -> return ()
 
 -- | This turns a naive pretty-printer into one that is aware of the
 -- independent screens. That is, you can write your pretty printer to behave
@@ -258,7 +219,7 @@ marshallSort s vSort = pScreens . vSort . vScreens where
 -- | Like 'marshallSort', but operates completely on 'PhysicalWindowSpace' with physical names.
 -- Thus, 'getSortByIndex' can be used in 'xmobarPP' with no problem.
 marshallSort' :: ScreenId -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace]) -> ([PhysicalWindowSpace] -> [PhysicalWindowSpace])
-marshallSort' s vSort = vSort . workspacesOn s
+marshallSort' s vSort = pSort . workspacesOn s
 
 -- | Convert the tag of the 'WindowSpace' from a 'VirtualWorkspace' to a 'PhysicalWorkspace'.
 marshallWindowSpace   :: ScreenId -> WindowSpace -> WindowSpace
@@ -267,7 +228,6 @@ unmarshallWindowSpace :: WindowSpace -> WindowSpace
 
 marshallWindowSpace s ws = ws { W.tag = marshall s  (W.tag ws) }
 unmarshallWindowSpace ws = ws { W.tag = unmarshallW (W.tag ws) }
-
 
 -- $integration
 -- The @logHook@ from "XMonad.Actions.CopyWindow" needs some adjustment
@@ -293,6 +253,27 @@ unmarshallWindowSpace ws = ws { W.tag = unmarshallW (W.tag ws) }
 -- >    n <- countScreens
 -- >    hs <- traverse (\(S n) -> spawnPipe ("xmobar -x " ++ show n ++ " ~/.xmobarrc-" ++ show n)) [0..n-1]
 -- >    xmonad def { logHook = mconcat (zipWith sampleLogHook hs [0..n-1]) }
+--
+-- Copy the focused window to a workspace on the current screen;
+-- replacement for 'XMonad.Actions.CopyWindow.copy'.
+--
+-- Key binding example:
+--
+-- > ((modm, xK_v ), copyWindowTo 1) -- copy focused window to the 1st workspace on current screen.
+-- > copyWindowTo :: Int -> X ()
+-- > copyWindowTo j = do
+-- >     sort <- getSortByIndex
+-- >     wsID <- currentWorkspaces sort
+-- >     windows $ copy $ wsID !! (j - 1)
+--
+-- A list of hidden workspaces containing a copy of the focused window on the current screen.
+-- > wsContainingCopies :: X [WorkspaceId]
+-- > wsContainingCopies = do
+-- >     ws <- gets windowset
+-- >     let sc = W.screen . W.current $ ws
+-- >     return $ copiesOfOn (W.peek ws) (taggedWindows $ workspaceHidden ws sc)
+-- >   where
+-- >     workspaceHidden ws sc = [ w | w <- W.hidden ws, sc == unmarshallS (W.tag w) ]
 
 -- $integration2
 -- The @withNthWorkspace@ from "XMonad.Actions.DynamicWorkspaces" neeeds some adjustment.
@@ -301,3 +282,17 @@ unmarshallWindowSpace ws = ws { W.tag = unmarshallW (W.tag ws) }
 -- can be replaced with:
 -- > ("M-S-1", withNthWorkspaceScreen W.shift 1)
 -- The behavior of 'withNthWorkspace' and 'withNthWorkspaceScreen' are similar on the current screen.
+--
+-- Do something on the current screen with the nth workspace in the
+-- dynamic order. The callback is given the workspace's tag as well as
+-- the 'WindowSet' of the workspace itself.
+--
+-- Replacement for 'XMonad.Actions.DynamicWorkspaces.withNthWorkspace'.
+-- > withNthWorkspaceScreen :: (WorkspaceId -> WindowSet -> WindowSet) -> Int -> X ()
+-- > withNthWorkspaceScreen job wnum = do
+-- >     sort <- getSortByIndex
+-- >     cws <- currentWorkspaces sort
+-- >     let enoughWorkspaces = drop wnum cws
+-- >     case enoughWorkspaces of
+-- >         (w : _) -> windows $ job w
+-- >         []      -> return ()
