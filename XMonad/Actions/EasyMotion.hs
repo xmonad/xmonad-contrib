@@ -14,8 +14,8 @@
 -- Provides functionality to use key chords to focus a visible window. Overlays a unique key chord
 -- (a string) above each visible window and allows the user to select a window by typing that
 -- chord.
--- Inspired by https://github.com/easymotion/vim-easymotion.
--- Thanks to Tom Hinton (https://github.com/larkery) for some feature inspiration and window
+-- Inspired by <https://github.com/easymotion/vim-easymotion vim-easymotion>.
+-- Thanks to <https://github.com/larkery Tom Hinton> for some feature inspiration and window
 -- sorting code.
 --
 -----------------------------------------------------------------------------
@@ -53,7 +53,8 @@ import           Data.List                (sortOn)
 
 -- $usage
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module's basic functionality with the following in your
+-- @~\/.xmonad\/xmonad.hs@:
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow)
 --
@@ -61,55 +62,56 @@ import           Data.List                (sortOn)
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..))
 --
--- Then add a keybinding and an action to the selectWindow function. In this case M-f to focus:
+-- Then add a keybinding and an action to the 'selectWindow' function.
+-- In this case @M-f@ to focus the selected window:
 --
--- >    , ((modm, xK_f), (selectWindow def) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), selectWindow def >>= (`whenJust` windows . W.focusWindow))
 --
--- Similarly, to kill a window with M-f:
+-- Similarly, to kill a window with @M-f@:
 --
--- >    , ((modm, xK_f), (selectWindow def) >>= (flip whenJust killWindow))
+-- >    , ((modm, xK_f), selectWindow def >>= (`whenJust` killWindow))
 --
 -- See 'EasyMotionConfig' for all configuration options. A short summary follows.
 --
--- Default chord keys are s,d,f,j,k,l. To customise these and display options assign
--- different values to def:
+-- Default chord keys are @s,d,f,j,k,l@. To customise these and display options assign
+-- different values to 'def' (the default configuration):
 --
--- >    , ((modm, xK_f), (selectWindow def {sKeys = AnyKeys [xK_f, xK_d]}) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), (selectWindow def{sKeys = AnyKeys [xK_f, xK_d]}) >>= (`whenJust` windows . W.focusWindow))
 --
--- You must supply at least two different keys in the sKeys list. Keys provided earlier in the list
--- will be used preferentially- therefore, keys you would like to use more frequently should be
+-- You must supply at least two different keys in the 'sKeys' list. Keys provided earlier in the list
+-- will be used preferentially—therefore, keys you would like to use more frequently should be
 -- earlier in the list.
 --
--- To map different sets of keys to different screens. The following configuration maps keys fdsa
--- to screen 0 and hjkl to screen 1. Keys provided earlier in the list will be used preferentially.
+-- To map different sets of keys to different screens. The following configuration maps keys @fdsa@
+-- to screen 0 and @hjkl@ to screen 1. Keys provided earlier in the list will be used preferentially.
 -- Providing the same key for multiple screens is possible but will break down in some scenarios.
 --
 -- >    import qualified Data.Map.Strict as StrictMap (fromList)
 -- >    emConf :: EasyMotionConfig
 -- >    emConf = def { sKeys = PerScreenKeys $ StrictMap.fromList [(0, [xK_f, xK_d, xK_s, xK_a]), (1, [xK_h, xK_j, xK_k, xK_l])] }
 -- >    -- key bindings
--- >    , ((modm, xK_f), (selectWindow emConf) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), selectWindow emConf >>= (`whenJust` windows . W.focusWindow))
 --
 -- To customise the font:
 --
--- >    , ((modm, xK_f), (selectWindow def {emFont = "xft: Sans-40"}) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), (selectWindow def{emFont = "xft: Sans-40"}) >>= (`whenJust` windows . W.focusWindow))
 --
--- The @emFont@ field provided is supplied directly to the initXMF function. The default is
--- "xft:Sans-100". Some example options:
+-- The 'emFont' field provided is supplied directly to the 'initXMF' function. The default is
+-- @"xft:Sans-100"@. Some example options:
 --
 -- >    "xft: Sans-40"
 -- >    "xft: Arial-100"
 -- >    "xft: Cambria-80"
 --
--- Customise the overlay by supplying a function to do so. The signature is @'Position' ->
--- 'Rectangle' -> 'X' 'Rectangle'@. The parameters are the height in pixels of the selection chord
--- and the rectangle of the window to be overlaid. Some are provided:
+-- Customise the overlay by supplying a function to 'overlayF'. The signature is
+-- @'Position' -> 'Rectangle' -> 'Rectangle'@. The parameters are the height in pixels of
+-- the selection chord and the rectangle of the window to be overlaid. Some are provided:
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow, EasyMotionConfig(..), proportional, bar, fullSize)
--- >    , ((modm, xK_f), (selectWindow def { overlayF = proportional 0.3 }) >>= (flip whenJust (windows . W.focusWindow)))
--- >    , ((modm, xK_f), (selectWindow def { overlayF = bar 0.5 }) >>= (flip whenJust (windows . W.focusWindow)))
--- >    , ((modm, xK_f), (selectWindow def { overlayF = fullSize }) >>= (flip whenJust (windows . W.focusWindow)))
--- >    , ((modm, xK_f), (selectWindow def { overlayF = fixedSize 300 350 }) >>= (flip whenJust (windows . W.focusWindow)))
+-- >    , ((modm, xK_f), (selectWindow def{ overlayF = proportional 0.3  }) >>= (`whenJust` windows . W.focusWindow))
+-- >    , ((modm, xK_f), (selectWindow def{ overlayF = bar 0.5           }) >>= (`whenJust` windows . W.focusWindow))
+-- >    , ((modm, xK_f), (selectWindow def{ overlayF = fullSize          }) >>= (`whenJust` windows . W.focusWindow))
+-- >    , ((modm, xK_f), (selectWindow def{ overlayF = fixedSize 300 350 }) >>= (`whenJust` windows . W.focusWindow))
 
 -- TODO:
 --  - An overlay function that creates an overlay a proportion of the width XOR height of the
@@ -163,8 +165,8 @@ data Overlay =
           }
 
 
--- | Maps keys to windows. AnyKeys maps keys to windows regardless which screen they're on.
---   PerScreenKeys maps keys to screens to windows. See $usage for more examples.
+-- | Maps keys to windows. 'AnyKeys' maps keys to windows regardless which screen they're on.
+--   'PerScreenKeys' maps keys to screens to windows. See @Usage@ for more examples.
 data ChordKeys = AnyKeys       ![KeySym]
                | PerScreenKeys !(M.Map ScreenId [KeySym])
 
@@ -172,12 +174,12 @@ data ChordKeys = AnyKeys       ![KeySym]
 --
 --   All colors are hex strings, e.g. "#000000"
 --
---   If the number of windows for which chords are required exceeds maxChordLen, chords
+--   If the number of windows for which chords are required exceeds 'maxChordLen', chords
 --   will simply not be generated for these windows. In this way, single-key selection may be
 --   preferred over the ability to select any window.
 --
---   @cancelKey@, @xK_BackSpace@ and any duplicates will be removed from @sKeys@ if included.
---   See usage for examples of @sKeys@.
+--   'cancelKey', @xK_BackSpace@ and any duplicates will be removed from 'sKeys' if included.
+--   See @Usage@ for examples of 'sKeys'.
 data EasyMotionConfig =
   EMConf { txtCol      :: !String                               -- ^ Color of the text displayed
          , bgCol       :: !String                               -- ^ Color of the window overlaid
@@ -185,7 +187,7 @@ data EasyMotionConfig =
          , borderCol   :: !String                               -- ^ Color of the overlay window borders
          , sKeys       :: !ChordKeys                            -- ^ Keys to use for window selection
          , cancelKey   :: !KeySym                               -- ^ Key to use to cancel selection
-         , emFont      :: !String                               -- ^ Font for selection characters (passed to initXMF)
+         , emFont      :: !String                               -- ^ Font for selection characters (passed to 'initXMF')
          , borderPx    :: !Int                                  -- ^ Width of border in pixels
          , maxChordLen :: !Int                                  -- ^ Maximum chord length. Use 0 for no maximum.
          }
