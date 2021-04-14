@@ -1579,29 +1579,24 @@ getComplWinDim compl = do
 
   pure $ ComplWindowDim x y winWidth rowHeight xCols yRows
 
+-- | Draw the completion window.
 drawComplWin :: Window -> [String] -> XP ()
 drawComplWin w compl = do
-  st <- get
-  let c   = config st
-      cr  = color st
-      d   = dpy st
-      scr = defaultScreenOfDisplay d
-      bw  = promptBorderWidth c
-      gc  = gcon st
-  Just bgcolor <- io $ initColor d (bgNormal cr)
-  Just borderC <- io $ initColor d (border cr)
+  XPS{ config, color, dpy, gcon } <- get
+  let scr = defaultScreenOfDisplay dpy
+      bw  = promptBorderWidth config
+  Just bgcolor <- io $ initColor dpy (bgNormal color)
+  Just borderC <- io $ initColor dpy (border color)
+  ComplWindowDim{ cwWidth, cwRowHeight, cwCols, cwRows } <- getComplWinDim compl
 
-  ComplWindowDim{cwWidth,cwRowHeight,cwCols,cwRows} <- getComplWinDim compl
-
-  p <- io $ createPixmap d w cwWidth cwRowHeight
-                         (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc borderC bgcolor (fi bw) cwWidth cwRowHeight
+  p <- io $ createPixmap dpy w cwWidth cwRowHeight (defaultDepthOfScreen scr)
+  io $ fillDrawable dpy p gcon borderC bgcolor (fi bw) cwWidth cwRowHeight
   let ac = chunksOf (length cwRows) (take (length cwCols * length cwRows) compl)
 
-  printComplList d p gc (fgNormal cr) (bgNormal cr) cwCols cwRows ac
+  printComplList dpy p gcon (fgNormal color) (bgNormal color) cwCols cwRows ac
   --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
-  io $ copyArea d p w gc 0 0 cwWidth cwRowHeight 0 0
-  io $ freePixmap d p
+  io $ copyArea dpy p w gcon 0 0 cwWidth cwRowHeight 0 0
+  io $ freePixmap dpy p
 
 -- Finds the column and row indexes in which a string appears.
 -- if the string is not in the matrix, the indexes default to (0,0)
