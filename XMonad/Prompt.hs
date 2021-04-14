@@ -4,6 +4,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -1581,51 +1582,59 @@ getComplWinDim compl = do
 
 -- | Draw the completion window.
 drawComplWin :: Window -> [String] -> XP ()
-drawComplWin w compl = do
+drawComplWin w entries = do
   XPS{ config, color, dpy, gcon } <- get
   let scr = defaultScreenOfDisplay dpy
       bw  = promptBorderWidth config
   Just bgcolor <- io $ initColor dpy (bgNormal color)
   Just borderC <- io $ initColor dpy (border color)
-  ComplWindowDim{ cwWidth, cwRowHeight, cwCols, cwRows } <- getComplWinDim compl
+  cwd@ComplWindowDim{ cwWidth, cwRowHeight } <- getComplWinDim entries
 
   p <- io $ createPixmap dpy w cwWidth cwRowHeight (defaultDepthOfScreen scr)
   io $ fillDrawable dpy p gcon borderC bgcolor (fi bw) cwWidth cwRowHeight
-  let ac = chunksOf (length cwRows) (take (length cwCols * length cwRows) compl)
-
-  printComplList dpy p gcon (fgNormal color) (bgNormal color) cwCols cwRows ac
+  printComplEntries dpy p gcon (fgNormal color) (bgNormal color) entries cwd
   --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
   io $ copyArea dpy p w gcon 0 0 cwWidth cwRowHeight 0 0
   io $ freePixmap dpy p
 
--- Finds the column and row indexes in which a string appears.
--- if the string is not in the matrix, the indexes default to (0,0)
-findComplIndex :: String -> [[String]] -> (Int,Int)
-findComplIndex x xss = let
-  colIndex = fromMaybe 0 $ findIndex (\cols -> x `elem` cols) xss
-  rowIndex = fromMaybe 0 $ elemIndex x $ (!!) xss colIndex
-  in (colIndex,rowIndex)
+-- | Print all of the completion entries.
+printComplEntries
+  :: Display
+  -> Drawable
+  -> GC
+  -> String         -- ^ Default foreground color
+  -> String         -- ^ Default background color
+  -> [String]       -- ^ Entries to be printed...
+  -> ComplWindowDim -- ^ ...into a window of this size
+  -> XP ()
+printComplEntries dpy drw gc fc bc entries ComplWindowDim{ cwCols, cwRows } = do
+  st@XPS{ color, complIndex, config = XPC{ alwaysHighlight } } <- get
+  let printItemAt :: Position -> Position -> String -> XP ()
+      printItemAt x y item =
+        printStringXMF dpy drw (fontS st) gc fgCol bgCol x y item
+       where
+        (fgCol, bgCol)
+          | -- default to the first item, the one in (0, 0)
+            alwaysHighlight, complIndex == findComplIndex item
+          = (fgHighlight color, bgHighlight color)
+          | -- compare item with buffer's value
+            completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
+          = (fgHighlight color, bgHighlight color)
+          | -- if nothing matches, use default colors
+            otherwise = (fc, bc)
+  zipWithM_ (\x -> zipWithM_ (printItemAt x) cwRows) cwCols complMat
+ where
+  -- | Create the completion matrix to be printed.
+  complMat :: [[String]]
+    = chunksOf (length cwRows) (take (length cwCols * length cwRows) entries)
 
-printComplList :: Display -> Drawable -> GC -> String -> String
-               -> [Position] -> [Position] -> [[String]] -> XP ()
-printComplList d drw gc fc bc xs ys sss =
-    zipWithM_ (\x ss ->
-        zipWithM_ (\y item -> do
-            st <- get
-            alwaysHlight <- gets $ alwaysHighlight . config
-            let (f,b)
-                  | alwaysHlight -- default to the first item, the one in (0,0)
-                  = let (colIndex,rowIndex) = findComplIndex item sss
-                    in -- assign some colors
-                     if complIndex st == (colIndex,rowIndex)
-                     then (fgHighlight $ color st,bgHighlight $ color st)
-                     else (fc,bc)
-                  | -- compare item with buffer's value
-                    completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
-                  = (fgHighlight $ color st,bgHighlight $ color st)
-                  | otherwise = (fc,bc)
-            printStringXMF d drw (fontS st) gc f b x y item)
-        ys ss) xs sss
+  -- | Find the column and row indexes in which a string appears.
+  -- If the string is not in the matrix, the indices default to @(0, 0)@.
+  findComplIndex :: String -> (Int, Int)
+  findComplIndex item = (colIndex, rowIndex)
+   where
+    colIndex = fromMaybe 0 $ findIndex (\cols -> item `elem` cols) complMat
+    rowIndex = fromMaybe 0 $ elemIndex item =<< complMat !? colIndex
 
 -- History
 
