@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE NamedFieldPuns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -410,8 +411,8 @@ highlightedItem st' completions = case complWinDim st' of
   Nothing -> Nothing -- when there isn't any compl win, we can't say how many cols,rows there are
   Just winDim ->
     let
-      (_,_,_,_,xx,yy) = winDim
-      complMatrix = chunksOf (length yy) (take (length xx * length yy) completions)
+      ComplWindowDim{ cwCols, cwRows } = winDim
+      complMatrix = chunksOf (length cwRows) (take (length cwCols * length cwRows) completions)
       (col_index,row_index) = complIndex st'
     in case completions of
       [] -> Nothing
@@ -908,8 +909,8 @@ bufferOne xs x = (null xs && null x,True)
 nextComplIndex :: XPState -> (Int,Int)
 nextComplIndex st = case complWinDim st of
   Nothing -> (0,0) --no window dims (just destroyed or not created)
-  Just (_,_,_,_,xx,yy) -> let
-    (ncols,nrows) = (length xx, length yy)
+  Just ComplWindowDim{ cwCols, cwRows } -> let
+    (ncols,nrows) = (length cwCols, length cwRows)
     (currentcol,currentrow) = complIndex st
     in if currentcol + 1 >= ncols then --hlight is in the last column
          if currentrow + 1 < nrows then --hlight is still not at the last row
@@ -1374,7 +1375,19 @@ updateHighlightedCompl = do
   alwaysHighlight' <- gets $ alwaysHighlight . config
   when alwaysHighlight' $ modify $ \s -> s {highlightedCompl = highlightedItem st cs}
 
+------------------------------------------------------------------------
 -- X Stuff
+
+-- | The completion windows in its entirety.
+data ComplWindowDim = ComplWindowDim
+  { cwX         :: !Position    -- ^ Starting x position
+  , cwY         :: !Position    -- ^ Starting y position
+  , cwWidth     :: !Dimension   -- ^ Width of the entire prompt
+  , cwRowHeight :: !Dimension   -- ^ Height of a single row
+  , cwCols      :: ![Position]  -- ^ Starting position of all columns
+  , cwRows      :: ![Position]  -- ^ Starting positions of all rows
+  }
+  deriving (Eq)
 
 updateWindows :: XP ()
 updateWindows = do
@@ -1488,17 +1501,12 @@ destroyComplWin = do
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
 
-type ComplWindowDim = (Position,Position,Dimension,Dimension,Columns,Rows)
-type Rows = [Position]
-type Columns = [Position]
-
 createComplWin :: ComplWindowDim -> XP Window
-createComplWin wi@(x,y,wh,ht,_,_) = do
+createComplWin wi@ComplWindowDim{ cwX, cwY, cwWidth, cwRowHeight } = do
   st <- get
   let d = dpy st
       scr = defaultScreenOfDisplay d
-  w <- io $ mkUnmanagedWindow d scr (rootw st)
-                      x y wh ht
+  w <- io $ mkUnmanagedWindow d scr (rootw st) cwX cwY cwWidth cwRowHeight
   io $ mapWindow d w
   setComplWin w wi
   return w
@@ -1537,7 +1545,7 @@ getComplWinDim compl = do
       yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
       xx = take (fi columns) [xp,(xp + fi column_width)..]
 
-  return (rect_x scr + x, rect_y scr + fi y, wh, actual_height, xx, yy)
+  return $ ComplWindowDim (rect_x scr + x) (rect_y scr + fi y) wh actual_height xx yy
 
 drawComplWin :: Window -> [String] -> XP ()
 drawComplWin w compl = do
@@ -1551,16 +1559,16 @@ drawComplWin w compl = do
   Just bgcolor <- io $ initColor d (bgNormal cr)
   Just borderC <- io $ initColor d (border cr)
 
-  (_,_,wh,ht,xx,yy) <- getComplWinDim compl
+  ComplWindowDim{cwWidth,cwRowHeight,cwCols,cwRows} <- getComplWinDim compl
 
-  p <- io $ createPixmap d w wh ht
+  p <- io $ createPixmap d w cwWidth cwRowHeight
                          (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
-  let ac = chunksOf (length yy) (take (length xx * length yy) compl)
+  io $ fillDrawable d p gc borderC bgcolor (fi bw) cwWidth cwRowHeight
+  let ac = chunksOf (length cwRows) (take (length cwCols * length cwRows) compl)
 
-  printComplList d p gc (fgNormal cr) (bgNormal cr) xx yy ac
+  printComplList d p gc (fgNormal cr) (bgNormal cr) cwCols cwRows ac
   --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
-  io $ copyArea d p w gc 0 0 wh ht 0 0
+  io $ copyArea d p w gc 0 0 cwWidth cwRowHeight 0 0
   io $ freePixmap d p
 
 redrawComplWin ::  [String] -> XP ()
