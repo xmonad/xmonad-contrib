@@ -1439,6 +1439,36 @@ redrawWindows emptyAction compls = do
     io $ copyArea dpy pm win gcon 0 0 width ht 0 0
     io $ freePixmap dpy pm
 
+-- | Redraw the completion window, if necessary.
+redrawComplWin ::  [String] -> XP ()
+redrawComplWin compl = do
+  XPS{ showComplWin, complWinDim, complWin } <- get
+  nwi <- getComplWinDim compl
+  let recreate = do destroyComplWin
+                    w <- createComplWin nwi
+                    drawComplWin w compl
+  if compl /= [] && showComplWin
+     then case complWin of
+            Just w -> case complWinDim of
+                        Just wi -> if nwi == wi -- complWinDim did not change
+                                   then drawComplWin w compl -- so update
+                                   else recreate
+                        Nothing -> recreate
+            Nothing -> recreate
+     else destroyComplWin
+ where
+  createComplWin :: ComplWindowDim -> XP Window
+  createComplWin wi@ComplWindowDim{ cwX, cwY, cwWidth, cwRowHeight } = do
+    XPS{ dpy, rootw, complWinRef } <- get
+    let scr = defaultScreenOfDisplay dpy
+    w <- io $ mkUnmanagedWindow dpy scr rootw cwX cwY cwWidth cwRowHeight
+    io $ mapWindow dpy w
+    -- Update the IORef
+    io $ writeIORef complWinRef (Just w)
+    -- Set the completion window to the just created one
+    modify (\s -> s { complWin = Just w, complWinDim = Just wi })
+    return w
+
 printPrompt :: Drawable -> XP ()
 printPrompt drw = do
   st <- get
@@ -1481,12 +1511,6 @@ getCompletions = do
       srt   = sorter (config s)
   io $ (srt q <$> compl q) `E.catch` \(SomeException _) -> return []
 
-setComplWin :: Window -> ComplWindowDim -> XP ()
-setComplWin w wi = do
-  wr <- gets complWinRef
-  io $ writeIORef wr (Just w)
-  modify (\s -> s { complWin = Just w, complWinDim = Just wi })
-
 destroyComplWin :: XP ()
 destroyComplWin = do
   d  <- gets dpy
@@ -1497,16 +1521,6 @@ destroyComplWin = do
                  io $ writeIORef wr Nothing
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
-
-createComplWin :: ComplWindowDim -> XP Window
-createComplWin wi@ComplWindowDim{ cwX, cwY, cwWidth, cwRowHeight } = do
-  st <- get
-  let d = dpy st
-      scr = defaultScreenOfDisplay d
-  w <- io $ mkUnmanagedWindow d scr (rootw st) cwX cwY cwWidth cwRowHeight
-  io $ mapWindow d w
-  setComplWin w wi
-  return w
 
 getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
@@ -1567,23 +1581,6 @@ drawComplWin w compl = do
   --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
   io $ copyArea d p w gc 0 0 cwWidth cwRowHeight 0 0
   io $ freePixmap d p
-
-redrawComplWin ::  [String] -> XP ()
-redrawComplWin compl = do
-  st <- get
-  nwi <- getComplWinDim compl
-  let recreate = do destroyComplWin
-                    w <- createComplWin nwi
-                    drawComplWin w compl
-  if compl /= [] && showComplWin st
-     then case complWin st of
-            Just w -> case complWinDim st of
-                        Just wi -> if nwi == wi -- complWinDim did not change
-                                   then drawComplWin w compl -- so update
-                                   else recreate
-                        Nothing -> recreate
-            Nothing -> recreate
-     else destroyComplWin
 
 -- Finds the column and row indexes in which a string appears.
 -- if the string is not in the matrix, the indexes default to (0,0)
