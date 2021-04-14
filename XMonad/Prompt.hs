@@ -1514,14 +1514,13 @@ getCompletions = do
     XPSingleMode compl _ -> compl
     XPMultipleModes modes -> completionFunction $ W.focus modes
 
+-- | Destroy the currently drawn completion window, if there is one.
 destroyComplWin :: XP ()
 destroyComplWin = do
-  d  <- gets dpy
-  cw <- gets complWin
-  wr <- gets complWinRef
-  case cw of
-    Just w -> do io $ destroyWindow d w
-                 io $ writeIORef wr Nothing
+  XPS{ dpy, complWin, complWinRef } <- get
+  case complWin of
+    Just w -> do io $ destroyWindow dpy w
+                 io $ writeIORef complWinRef Nothing
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
 
