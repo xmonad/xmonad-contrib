@@ -1524,41 +1524,60 @@ destroyComplWin = do
                  modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
     Nothing -> return ()
 
+-- | Given the completions that we would like to show, calculate the
+-- required dimensions for the completion windows.
 getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
-  st <- get
-  let (c,(scr,fs)) = (config &&& screen &&& fontS) st
-      wh = case position c of
-             CenteredAt _ w -> floor $ fi (rect_width scr) * w
-             _ -> rect_width scr
-      ht = height c
-      bw = promptBorderWidth c
+  XPS{ config = cfg, screen = scr, fontS = fs, dpy } <- get
+  let winWidth = case position cfg of
+        CenteredAt{ xpWidth } -> floor $ fi (rect_width scr) * xpWidth
+        _                     -> rect_width scr
+      -- Height of a single completion row
+      ht = height cfg
+      bw = promptBorderWidth cfg
 
-  tws <- mapM (textWidthXMF (dpy st) fs) compl
-  let max_compl_len = (fi ht `div` 2) + maximum tws
-      limit_max_columns = maybe id min (maxComplColumns c)
-      columns = max 1 $ limit_max_columns $ wh `div` fi max_compl_len
-      column_width = wh `div` columns
-      rem_height =  rect_height scr - ht
-      (rows,r) = length compl `divMod` fi columns
-      needed_rows = max 1 (rows + if r == 0 then 0 else 1)
-      limit_max_number = maybe id min (maxComplRows c)
-      actual_max_number_of_rows = limit_max_number $ rem_height `div` ht
-      actual_rows = min actual_max_number_of_rows (fi needed_rows)
-      actual_height = actual_rows * ht
-      (x,y) = case position c of
-                Top -> (0,ht - bw)
-                Bottom -> (0, 0 + rem_height - actual_height + bw)
-                CenteredAt py w
-                  | py <= 1/2 -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) + fi ht/2) - bw)
-                  | otherwise -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) - fi ht/2) - actual_height + bw)
-  (asc,desc) <- io $ textExtentsXMF fs $ head compl
-  let yp = fi $ (ht + fi (asc - desc)) `div` 2
-      xp = (asc + desc) `div` 2
-      yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
-      xx = take (fi columns) [xp,(xp + fi column_width)..]
+  tws <- mapM (textWidthXMF dpy fs) compl
+  let -- Length of widest completion we will print
+      maxComplLen = (fi ht `div` 2) + maximum tws
+      -- Height of the screen rectangle _without_ the prompt window
+      remHeight   = rect_height scr - ht
 
-  return $ ComplWindowDim (rect_x scr + x) (rect_y scr + fi y) wh actual_height xx yy
+      maxColumns  = maybe id min (maxComplColumns cfg)
+      columns     = max 1 . maxColumns $ winWidth `div` fi maxComplLen
+      columnWidth = winWidth `div` columns
+
+      (fullRows, lastRow) = length compl `divMod` fi columns
+      allRows   = max 1 (fullRows + if lastRow == 0 then 0 else 1)
+      -- Maximum number of rows allowed by the config and the screen dimensions
+      maxRows   = maybe id min (maxComplRows cfg) (remHeight `div` ht)
+      -- Actual number of rows to be drawn
+      rows      = min maxRows (fi allRows)
+      rowHeight = rows * ht
+
+      -- Starting x and y position of the completion windows.
+      (x, y) = bimap (rect_x scr +) ((rect_y scr +) . fi) $ case position cfg of
+        Top    -> (0, ht - bw)
+        Bottom -> (0, remHeight - rowHeight + bw)
+        CenteredAt py w
+          | py <= 1/2 ->
+              ( floor $ fi (rect_width scr) * ((1 - w) / 2)
+              , floor (py * fi (rect_height scr) + (fi ht / 2)) - bw
+              )
+          | otherwise ->
+              ( floor $ fi (rect_width scr) * ((1 - w) / 2)
+              , floor (py * fi (rect_height scr) - (fi ht / 2)) - rowHeight + bw
+              )
+
+  -- Get font ascent and descent.  Coherence condition: we will print
+  -- everything using the same font.
+  (asc, desc) <- io $ textExtentsXMF fs $ head compl
+  let yp    = fi $ (ht + fi (asc - desc)) `div` 2 -- y position of the first row
+      yRows = take (fi rows) [yp, yp + fi ht ..]  -- y positions of all rows
+
+      xp    = (asc + desc) `div` 2                           -- x position of the first column
+      xCols = take (fi columns) [xp, xp + fi columnWidth ..] -- x positions of all columns
+
+  pure $ ComplWindowDim x y winWidth rowHeight xCols yRows
 
 drawComplWin :: Window -> [String] -> XP ()
 drawComplWin w compl = do
