@@ -738,7 +738,7 @@ handleCompletion cs = do
     alwaysHlight <- gets $ alwaysHighlight . config
     st <- get
 
-    let updateWins  l = redrawWindows l
+    let updateWins  l = redrawWindows (pure ()) l
         updateState l = if alwaysHlight
             then hlComplete (getLastWord $ command st) l st
             else simpleComplete                        l st
@@ -1389,25 +1389,6 @@ data ComplWindowDim = ComplWindowDim
   }
   deriving (Eq)
 
-updateWindows :: XP ()
-updateWindows = do
-  d <- gets dpy
-  drawWin
-  c <- getCompletions
-  case c  of
-    [] -> void destroyComplWin
-    l  -> redrawComplWin l
-  io $ sync d False
-
-redrawWindows :: [String] -> XP ()
-redrawWindows c = do
-  d <- gets dpy
-  drawWin
-  case c of
-    [] -> return ()
-    l  -> redrawComplWin l
-  io $ sync d False
-
 createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
 createPromptWin d rw c s = do
   let (x,y) = case position c of
@@ -1423,24 +1404,40 @@ createPromptWin d rw c s = do
   mapWindow d w
   return w
 
-drawWin :: XP ()
-drawWin = do
-  st <- get
-  let (c,(cr,(d,(w,gc)))) = (config &&& color &&& dpy &&& win &&& gcon) st
-      scr = defaultScreenOfDisplay d
-      wh = case position c of
-             CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
-             _               -> widthOfScreen scr
-      ht = height c
-      bw = promptBorderWidth c
-  Just bgcolor <- io $ initColor d (bgNormal cr)
-  Just borderC <- io $ initColor d (border cr)
-  p <- io $ createPixmap d w wh ht
-                         (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
-  printPrompt p
-  io $ copyArea d p w gc 0 0 wh ht 0 0
-  io $ freePixmap d p
+--- | Update all prompt windows.
+updateWindows :: XP ()
+updateWindows = redrawWindows (void destroyComplWin) =<< getCompletions
+
+-- | Draw the main prompt window and, if necessary, redraw the
+-- completion window.
+redrawWindows
+  :: XP ()     -- ^ What to do if the completions are empty
+  -> [String]  -- ^ Given completions
+  -> XP ()
+redrawWindows emptyAction compls = do
+  d <- gets dpy
+  drawWin
+  case compls of
+    [] -> emptyAction
+    l  -> redrawComplWin l
+  io $ sync d False
+ where
+  -- | Draw the main prompt window.
+  drawWin :: XP () = do
+    XPS{ config, color, dpy, win, gcon } <- get
+    let scr = defaultScreenOfDisplay dpy
+        width = case position config of
+               CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
+               _               -> widthOfScreen scr
+        ht = height config  -- height of a single row
+        bw = promptBorderWidth config
+    Just bgcolor <- io $ initColor dpy (bgNormal color)
+    Just borderC <- io $ initColor dpy (border color)
+    pm <- io $ createPixmap dpy win width ht (defaultDepthOfScreen scr)
+    io $ fillDrawable dpy pm gcon borderC bgcolor (fi bw) width ht
+    printPrompt pm
+    io $ copyArea dpy pm win gcon 0 0 width ht 0 0
+    io $ freePixmap dpy pm
 
 printPrompt :: Drawable -> XP ()
 printPrompt drw = do
