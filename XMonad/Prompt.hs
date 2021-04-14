@@ -617,6 +617,10 @@ runXP st = do
     (\status ->
       execStateT
         (when (status == grabSuccess) $ do
+          ah <- gets (alwaysHighlight . config)
+          when ah $ do
+            compl <- listToMaybe <$> getCompletions
+            modify' $ \xpst -> xpst{ highlightedCompl = compl }
           updateWindows
           eventLoop handleMain evDefaultStop)
         st
