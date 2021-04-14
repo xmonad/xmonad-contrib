@@ -1499,20 +1499,20 @@ printPrompt drw = do
   -- flip back to the original colors and print the rest of the string
   draw (fgNormal color) (bgNormal color) (x + fi (pcFont + cFont)) y postCursor
 
--- get the current completion function depending on the active mode
-getCompletionFunction :: XPState -> ComplFunction
-getCompletionFunction st = case operationMode st of
-  XPSingleMode compl _ -> compl
-  XPMultipleModes modes -> completionFunction $ W.focus modes
-
--- Completions
+-- | Get all available completions for the current input.
 getCompletions :: XP [String]
 getCompletions = do
-  s <- get
-  let q     = commandToComplete (currentXPMode s) (command s)
-      compl = getCompletionFunction s
-      srt   = sorter (config s)
-  io $ (srt q <$> compl q) `E.catch` \(SomeException _) -> return []
+  st@XPS{ config } <- get
+  let cmd   = commandToComplete (currentXPMode st) (command st)
+      compl = getCompletionFunction st
+      srt   = sorter config
+  io $ (srt cmd <$> compl cmd) `E.catch` \(SomeException _) -> return []
+ where
+  -- | Get the current completion function depending on the active mode.
+  getCompletionFunction :: XPState -> ComplFunction
+  getCompletionFunction st = case operationMode st of
+    XPSingleMode compl _ -> compl
+    XPMultipleModes modes -> completionFunction $ W.focus modes
 
 destroyComplWin :: XP ()
 destroyComplWin = do
