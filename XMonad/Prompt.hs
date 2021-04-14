@@ -1469,32 +1469,34 @@ redrawComplWin compl = do
     modify (\s -> s { complWin = Just w, complWinDim = Just wi })
     return w
 
+-- | Print the main part of the prompt: the prompter, as well as the
+-- command line (including the current input) and the cursor.
 printPrompt :: Drawable -> XP ()
 printPrompt drw = do
-  st <- get
-  let (pr,(cr,gc)) = (prompter &&& color &&& gcon) st
-      (c,(d,fs)) = (config &&& dpy &&& fontS) st
-      (prt,(com,off)) = (pr . show . currentXPMode &&& command &&& offset) st
+  st@XPS{ prompter, color, gcon, config, dpy, fontS, offset } <- get
+  let -- (prompt-specific text before the command, the entered command)
+      (prt, com) = (prompter . show . currentXPMode &&& command) st
       str = prt ++ com
       -- break the string in 3 parts: till the cursor, the cursor and the rest
-      (f,p,ss) = if off >= length com
+      (preCursor, cursor, postCursor) = if offset >= length com
                  then (str, " ","") -- add a space: it will be our cursor ;-)
-                 else let (a,b) = splitAt off com
+                 else let (a, b) = splitAt offset com
                       in (prt ++ a, [head b], tail b)
-      ht = height c
-  fsl <- io $ textWidthXMF (dpy st) fs f
-  psl <- io $ textWidthXMF (dpy st) fs p
-  (asc,desc) <- io $ textExtentsXMF fs str
-  let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
+
+  -- vertical and horizontal text alignment
+  (asc, desc) <- io $ textExtentsXMF fontS str  -- font ascent and descent
+  let y = fi ((height config - fi (asc + desc)) `div` 2) + asc
       x = (asc + desc) `div` 2
 
-  let draw = printStringXMF d drw fs gc
+  pcFont <- io $ textWidthXMF dpy fontS preCursor
+  cFont  <- io $ textWidthXMF dpy fontS cursor
+  let draw = printStringXMF dpy drw fontS gcon
   -- print the first part
-  draw (fgNormal cr) (bgNormal cr) x y f
+  draw (fgNormal color) (bgNormal color) x y preCursor
   -- reverse the colors and print the "cursor" ;-)
-  draw (bgNormal cr) (fgNormal cr) (x + fromIntegral fsl) y p
-  -- reverse the colors and print the rest of the string
-  draw (fgNormal cr) (bgNormal cr) (x + fromIntegral (fsl + psl)) y ss
+  draw (bgNormal color) (fgNormal color) (x + fi pcFont) y cursor
+  -- flip back to the original colors and print the rest of the string
+  draw (fgNormal color) (bgNormal color) (x + fi (pcFont + cFont)) y postCursor
 
 -- get the current completion function depending on the active mode
 getCompletionFunction :: XPState -> ComplFunction
