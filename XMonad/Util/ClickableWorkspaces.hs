@@ -56,13 +56,14 @@ import Data.List (elemIndex)
 clickableWrap :: Int -> String -> String
 clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" ws
 
--- Note that 'getWsIndex' from "XMonad.Util.WorkspaceCompare" only works for
--- predefined workspaces. When used together with "XMonad.Action.DynamicWorkspaces",
--- 'getWsIndex' needs to be rewritten to get the correct index of a workspace.
--- The workspace order perceived by @xdotool@ is the same as that by 'getSortByIndex'.
--- So 'getSortByIndex' is used in such case.
-
--- | Return the index of a workspace if it exists.
+-- | 'XMonad.Util.WorkspaceCompare.getWsIndex' extended to handle workspaces
+-- not the static 'workspaces' config, such as those created by
+-- "XMonad.Action.DynamicWorkspaces".
+--
+-- Uses 'getSortByIndex', as that's what "XMonad.Hooks.EwmhDesktops" uses to
+-- export the information to tools like @xdotool@. (Note that EwmhDesktops can
+-- be configured with a custom sort function, and we don't handle that here
+-- yet.)
 getWsIndex :: X (WorkspaceId -> Maybe Int)
 getWsIndex = do
     wSort <- getSortByIndex
