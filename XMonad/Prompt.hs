@@ -5,6 +5,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -132,15 +133,12 @@ data XPState =
         , rootw                 :: !Window
         , win                   :: !Window
         , screen                :: !Rectangle
-        , complWin              :: Maybe Window
         , complWinDim           :: Maybe ComplWindowDim
         , complIndex            :: !(Int,Int)
-        -- | This IORef should always have the same value as
-        -- complWin. Its purpose is to enable removal of the
-        -- completion window if an exception occurs, since the most
-        -- recent value of complWin is not available when handling
-        -- exceptions.
-        , complWinRef           :: IORef (Maybe Window)
+        , complWin              :: IORef (Maybe Window)
+        -- ^ This is an 'IORef' to enable removal of the completion
+        -- window if an exception occurs, since otherwise the most
+        -- recent value of 'complWin' would not be available.
         , showComplWin          :: Bool
         , operationMode         :: XPOperationMode
         , highlightedCompl      :: Maybe String
@@ -363,9 +361,8 @@ initState d rw w s opMode gc fonts h c nm =
         , rootw                 = rw
         , win                   = w
         , screen                = s
-        , complWin              = Nothing
         , complWinDim           = Nothing
-        , complWinRef        = unsafePerformIO (newIORef Nothing)
+        , complWin              = unsafePerformIO (newIORef Nothing)
         , showComplWin          = not (showCompletionOnTab c)
         , operationMode         = opMode
         , highlightedCompl      = Nothing
@@ -620,7 +617,7 @@ runXP st = do
           updateWindows
           eventLoop handleMain evDefaultStop)
         st
-      `finally` (mapM_ (destroyWindow d) =<< readIORef (complWinRef st))
+      `finally` (mapM_ (destroyWindow d) =<< readIORef (complWin st))
       `finally` sync d False)
 
 type KeyStroke = (KeySym, String)
@@ -1405,6 +1402,13 @@ createPromptWin dpy rootw XPC{ position, height } scn = do
     CenteredAt _ w -> floor $ fi (rect_width scn) * w
     _              -> rect_width scn
 
+-- | Update the state of the completion window.
+updateComplWin :: Maybe Window -> Maybe ComplWindowDim -> XP ()
+updateComplWin win winDim = do
+  cwr <- gets complWin
+  io $ writeIORef cwr win
+  modify' (\s -> s { complWinDim = winDim })
+
 --- | Update all prompt windows.
 updateWindows :: XP ()
 updateWindows = redrawWindows (void destroyComplWin) =<< getCompletions
@@ -1449,7 +1453,7 @@ redrawComplWin compl = do
                     w <- createComplWin nwi
                     drawComplWin w compl
   if compl /= [] && showComplWin
-     then case complWin of
+     then io (readIORef complWin) >>= \case
             Just w -> case complWinDim of
                         Just wi -> if nwi == wi -- complWinDim did not change
                                    then drawComplWin w compl -- so update
@@ -1460,14 +1464,11 @@ redrawComplWin compl = do
  where
   createComplWin :: ComplWindowDim -> XP Window
   createComplWin wi@ComplWindowDim{ cwX, cwY, cwWidth, cwRowHeight } = do
-    XPS{ dpy, rootw, complWinRef } <- get
+    XPS{ dpy, rootw } <- get
     let scr = defaultScreenOfDisplay dpy
     w <- io $ mkUnmanagedWindow dpy scr rootw cwX cwY cwWidth cwRowHeight
     io $ mapWindow dpy w
-    -- Update the IORef
-    io $ writeIORef complWinRef (Just w)
-    -- Set the completion window to the just created one
-    modify (\s -> s { complWin = Just w, complWinDim = Just wi })
+    updateComplWin (Just w) (Just wi)
     return w
 
 -- | Print the main part of the prompt: the prompter, as well as the
@@ -1517,11 +1518,10 @@ getCompletions = do
 -- | Destroy the currently drawn completion window, if there is one.
 destroyComplWin :: XP ()
 destroyComplWin = do
-  XPS{ dpy, complWin, complWinRef } <- get
-  case complWin of
+  XPS{ dpy, complWin } <- get
+  io (readIORef complWin) >>= \case
     Just w -> do io $ destroyWindow dpy w
-                 io $ writeIORef complWinRef Nothing
-                 modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
+                 updateComplWin Nothing Nothing
     Nothing -> return ()
 
 -- | Given the completions that we would like to show, calculate the
