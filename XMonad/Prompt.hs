@@ -1385,20 +1385,25 @@ data ComplWindowDim = ComplWindowDim
   }
   deriving (Eq)
 
+-- | Create the prompt window.
 createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
-createPromptWin d rw c s = do
-  let (x,y) = case position c of
-                Top -> (0,0)
-                Bottom -> (0, rect_height s - height c)
-                CenteredAt py w -> (floor $ fi (rect_width s) * ((1 - w) / 2), floor $ py * fi (rect_height s) - (fi (height c) / 2))
-      width = case position c of
-                CenteredAt _ w -> floor $ fi (rect_width s) * w
-                _              -> rect_width s
-  w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw
-                      (rect_x s + x) (rect_y s + fi y) width (height c)
-  setClassHint d w (ClassHint "xmonad-prompt" "xmonad")
-  mapWindow d w
+createPromptWin dpy rootw XPC{ position, height } scn = do
+  w <- mkUnmanagedWindow dpy (defaultScreenOfDisplay dpy) rootw
+                      (rect_x scn + x) (rect_y scn + y) width height
+  setClassHint dpy w (ClassHint "xmonad-prompt" "xmonad")
+  mapWindow dpy w
   return w
+ where
+  (x, y) :: (Position, Position) = fi <$> case position of
+    Top             -> (0, 0)
+    Bottom          -> (0, rect_height scn - height)
+    CenteredAt py w ->
+      ( floor $ fi (rect_width scn) * ((1 - w) / 2)
+      , floor $ py * fi (rect_height scn) - (fi height / 2)
+      )
+  width :: Dimension = case position of
+    CenteredAt _ w -> floor $ fi (rect_width scn) * w
+    _              -> rect_width scn
 
 --- | Update all prompt windows.
 updateWindows :: XP ()
