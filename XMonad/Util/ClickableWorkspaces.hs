@@ -57,7 +57,7 @@ clickableWrap :: Int -> String -> String
 clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" ws
 
 -- | 'XMonad.Util.WorkspaceCompare.getWsIndex' extended to handle workspaces
--- not the static 'workspaces' config, such as those created by
+-- not in the static 'workspaces' config, such as those created by
 -- "XMonad.Action.DynamicWorkspaces".
 --
 -- Uses 'getSortByIndex', as that's what "XMonad.Hooks.EwmhDesktops" uses to
