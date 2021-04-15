@@ -905,23 +905,18 @@ handleInputBuffer f keymask (keysym,keystr) event =
 bufferOne :: String -> String -> (Bool,Bool)
 bufferOne xs x = (null xs && null x,True)
 
---Receives an state of the prompt, the size of the autocompletion list and returns the column,row
---which should be highlighted next
-nextComplIndex :: XPState -> (Int,Int)
+-- | Return the @(column, row)@ of the next highlight, or @(0, 0)@ if
+-- there is no prompt window or a wrap-around occurs.
+nextComplIndex :: XPState -> (Int, Int)
 nextComplIndex st = case complWinDim st of
-  Nothing -> (0,0) --no window dims (just destroyed or not created)
-  Just ComplWindowDim{ cwCols, cwRows } -> let
-    (ncols,nrows) = (length cwCols, length cwRows)
-    (currentcol,currentrow) = complIndex st
-    in if currentcol + 1 >= ncols then --hlight is in the last column
-         if currentrow + 1 < nrows then --hlight is still not at the last row
-           (currentcol, currentrow + 1)
-         else
-           (0,0)
-       else if currentrow + 1 < nrows then --hlight not at the last row
-              (currentcol, currentrow + 1)
-            else
-              (currentcol + 1, 0)
+  Nothing -> (0, 0)  -- no window dimensions (just destroyed or not created)
+  Just ComplWindowDim{ cwCols, cwRows } ->
+    let (currentcol, currentrow) = complIndex st
+        (colm, rowm) =
+          ((currentcol + 1) `mod` length cwCols, (currentrow + 1) `mod` length cwRows)
+     in if rowm == currentrow + 1
+        then (currentcol, currentrow + 1)  -- We are not in the last row, so go down
+        else (colm, rowm)                  -- otherwise advance to the next column
 
 tryAutoComplete :: XP Bool
 tryAutoComplete = do
