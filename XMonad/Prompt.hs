@@ -208,7 +208,7 @@ type ComplFunction = String -> IO [String]
 type XPMode = XPType
 data XPOperationMode = XPSingleMode ComplFunction XPType | XPMultipleModes (W.Stack XPType)
 
-newtype ComplCaseSensitivity = ComplCaseSensitive Bool
+data ComplCaseSensitivity = CaseSensitive | CaseInSensitive
 
 instance Show XPType where
     show (XPT p) = showXPrompt p
@@ -341,7 +341,7 @@ instance Default XPConfig where
         , defaultText           = []
         , autoComplete          = Nothing
         , showCompletionOnTab   = False
-        , complCaseSensitivity  = ComplCaseSensitive True
+        , complCaseSensitivity  = CaseSensitive
         , searchPredicate       = isPrefixOf
         , alwaysHighlight       = False
         , defaultPrompter       = id

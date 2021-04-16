@@ -62,7 +62,7 @@ import XMonad.StackSet ( tag, currentTag )
 -- If you prefer a prompt with case-insensitive completion:
 --
 -- >  , ((modm .|. shiftMask, xK_x     ),
---       changeDir def {complCaseSensitivity = ComplCaseSensitive False})
+--       changeDir def {complCaseSensitivity = CaseInSensitive})
 --
 -- For detailed instruction on editing the key binding see:
 --

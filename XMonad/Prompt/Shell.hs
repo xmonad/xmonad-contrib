@@ -98,7 +98,7 @@ unsafePrompt c config = mkXPrompt Shell config (getShellCompl [c] $ searchPredic
     where run a = unsafeSpawn $ c ++ " " ++ a
 
 getShellCompl :: [String] -> Predicate -> String -> IO [String]
-getShellCompl = getShellCompl' (ComplCaseSensitive True)
+getShellCompl = getShellCompl' CaseSensitive
 
 getShellCompl' :: ComplCaseSensitivity -> [String] -> Predicate -> String -> IO [String]
 getShellCompl' csn cmds p s | s == "" || last s == ' ' = return []
@@ -128,8 +128,10 @@ compgen csn actionOpt s = runProcessWithInput "bash" [] $
     complCaseSensitivityCmd csn ++ " ; " ++ compgenCmd actionOpt s
 
 complCaseSensitivityCmd :: ComplCaseSensitivity -> String
-complCaseSensitivityCmd (ComplCaseSensitive b) =
-    "bind 'set completion-ignore-case " ++ (if b then "off" else "on") ++ "'"
+complCaseSensitivityCmd CaseSensitive =
+    "bind 'set completion-ignore-case off'"
+complCaseSensitivityCmd CaseInSensitive =
+    "bind 'set completion-ignore-case on'"
 
 compgenCmd :: String -> String -> String
 compgenCmd actionOpt s = "compgen -A " ++ actionOpt ++ " -- " ++ s ++ "\n"
