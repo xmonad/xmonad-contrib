@@ -491,7 +491,8 @@
     - Added `maxComplColumns` field to `XPConfig`, to limit the number of
       columns in the completion window.
 
-    - Redefine `ComplCaseSensitivity` to a proper sum type as opposed to a newtype wrapped around Bool.
+    - Redefine `ComplCaseSensitivity` to a proper sum type as opposed to
+      a `newtype` wrapper around `Bool`.
 
   * `XMonad.Actions.TreeSelect`
 
