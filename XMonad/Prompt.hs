@@ -133,6 +133,7 @@ data XPState =
         , rootw                 :: !Window
         , win                   :: !Window
         , screen                :: !Rectangle
+        , winWidth              :: !Dimension -- ^ Width of the prompt window
         , complWinDim           :: Maybe ComplWindowDim
         , complIndex            :: !(Int,Int)
         , complWin              :: IORef (Maybe Window)
@@ -355,12 +356,14 @@ amberXPConfig = def { bgColor   = "black"
                     }
 
 initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
-          -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> XPState
-initState d rw w s opMode gc fonts h c nm =
+          -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> Dimension
+          -> XPState
+initState d rw w s opMode gc fonts h c nm width =
     XPS { dpy                   = d
         , rootw                 = rw
         , win                   = w
         , screen                = s
+        , winWidth              = width
         , complWinDim           = Nothing
         , complWin              = unsafePerformIO (newIORef Nothing)
         , showComplWin          = not (showCompletionOnTab c)
@@ -555,9 +558,10 @@ mkXPromptImplementation historyKey conf om = do
   cachedir <- asks (cacheDir . directories)
   hist <- io $ readHistory cachedir
   fs <- initXMF (font conf)
+  let width = getWinWidth s (position conf)
   st' <- io $
     bracket
-      (createPromptWin d rw conf s)
+      (createPromptWin d rw conf s width)
       (destroyWindow d)
       (\w ->
         bracket
@@ -567,7 +571,7 @@ mkXPromptImplementation historyKey conf om = do
             selectInput d w $ exposureMask .|. keyPressMask
             setGraphicsExposures d gc False
             let hs = fromMaybe [] $ M.lookup historyKey hist
-                st = initState d rw w s om gc fs hs conf numlock
+                st = initState d rw w s om gc fs hs conf numlock width
             runXP st))
   releaseXMF fs
   when (successful st') $ do
@@ -582,6 +586,13 @@ mkXPromptImplementation historyKey conf om = do
       (prune $ historyFilter conf [selectedCompletion st'])
       hist
   return st'
+ where
+  -- | Based on the ultimate position of the prompt and the screen
+  -- dimensions, calculate its width.
+  getWinWidth :: Rectangle -> XPPosition -> Dimension
+  getWinWidth scr = \case
+    CenteredAt{ xpWidth } -> floor $ fi (rect_width scr) * xpWidth
+    _                     -> rect_width scr
 
 -- | Removes numlock and capslock from a keymask.
 -- Duplicate of cleanMask from core, but in the
@@ -1383,8 +1394,8 @@ data ComplWindowDim = ComplWindowDim
   deriving (Eq)
 
 -- | Create the prompt window.
-createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
-createPromptWin dpy rootw XPC{ position, height } scn = do
+createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> Dimension -> IO Window
+createPromptWin dpy rootw XPC{ position, height } scn width = do
   w <- mkUnmanagedWindow dpy (defaultScreenOfDisplay dpy) rootw
                       (rect_x scn + x) (rect_y scn + y) width height
   setClassHint dpy w (ClassHint "xmonad-prompt" "xmonad")
@@ -1398,9 +1409,6 @@ createPromptWin dpy rootw XPC{ position, height } scn = do
       ( floor $ fi (rect_width scn) * ((1 - w) / 2)
       , floor $ py * fi (rect_height scn) - (fi height / 2)
       )
-  width :: Dimension = case position of
-    CenteredAt _ w -> floor $ fi (rect_width scn) * w
-    _              -> rect_width scn
 
 -- | Update the state of the completion window.
 updateComplWin :: Maybe Window -> Maybe ComplWindowDim -> XP ()
@@ -1429,19 +1437,17 @@ redrawWindows emptyAction compls = do
  where
   -- | Draw the main prompt window.
   drawWin :: XP () = do
-    XPS{ config, color, dpy, win, gcon } <- get
+    XPS{ color, dpy, win, gcon, winWidth } <- get
+    XPC{ height, promptBorderWidth } <- gets config
     let scr = defaultScreenOfDisplay dpy
-        width = case position config of
-               CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
-               _               -> widthOfScreen scr
-        ht = height config  -- height of a single row
-        bw = promptBorderWidth config
+        ht  = height            -- height of a single row
+        bw  = promptBorderWidth
     Just bgcolor <- io $ initColor dpy (bgNormal color)
     Just borderC <- io $ initColor dpy (border color)
-    pm <- io $ createPixmap dpy win width ht (defaultDepthOfScreen scr)
-    io $ fillDrawable dpy pm gcon borderC bgcolor (fi bw) width ht
+    pm <- io $ createPixmap dpy win winWidth ht (defaultDepthOfScreen scr)
+    io $ fillDrawable dpy pm gcon borderC bgcolor (fi bw) winWidth ht
     printPrompt pm
-    io $ copyArea dpy pm win gcon 0 0 width ht 0 0
+    io $ copyArea dpy pm win gcon 0 0 winWidth ht 0 0
     io $ freePixmap dpy pm
 
 -- | Redraw the completion window, if necessary.
@@ -1528,11 +1534,8 @@ destroyComplWin = do
 -- required dimensions for the completion windows.
 getComplWinDim :: [String] -> XP ComplWindowDim
 getComplWinDim compl = do
-  XPS{ config = cfg, screen = scr, fontS = fs, dpy } <- get
-  let winWidth = case position cfg of
-        CenteredAt{ xpWidth } -> floor $ fi (rect_width scr) * xpWidth
-        _                     -> rect_width scr
-      -- Height of a single completion row
+  XPS{ config = cfg, screen = scr, fontS = fs, dpy, winWidth } <- get
+  let -- Height of a single completion row
       ht = height cfg
       bw = promptBorderWidth cfg
 
