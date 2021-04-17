@@ -47,7 +47,7 @@ directoryPrompt c prom f = mkXPrompt (Dir prom csn f) c (getDirCompl csn) f
 directoryMultipleModes :: String            -- ^ Prompt.
                        -> (String -> X ())  -- ^ Action.
                        -> XPType
-directoryMultipleModes = directoryMultipleModes' (ComplCaseSensitive True)
+directoryMultipleModes = directoryMultipleModes' CaseSensitive
 
 -- | Like @directoryMultipleModes@ with a parameter for completion case-sensitivity.
 directoryMultipleModes' :: ComplCaseSensitivity -- ^ Completion case sensitivity.
