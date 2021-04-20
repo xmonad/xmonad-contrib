@@ -58,7 +58,7 @@ import System.Posix.Env (putEnv)
 --
 -- The following gif shows the behaviour of chrome (left) without this fix
 -- compared to firefox, which already behaves as expected by default:
--- <<https://user-images.githubusercontent.com/5300871/99186015-b9512500-274d-11eb-9cfc-6ba3bae6db51.gif>>
+-- <<https://user-images.githubusercontent.com/79924233/115355075-e61dd280-a1ec-11eb-81d3-927ca462945f.gif>>
 --
 -- Using this function, chrome will now behave as expected as well:
 -- <<https://user-images.githubusercontent.com/5300871/99186115-4dbb8780-274e-11eb-9ed2-b7815ba9e597.gif>>
