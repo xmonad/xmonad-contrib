@@ -537,6 +537,14 @@
     - Added `KeepWordsLeft` and `KeepWordsRight` for keeping certain number of
       words in left or right direction in layout description.
 
+  * `XMonad.Hooks.WallpaperSetter`
+
+    - Added `defWPNamesPng`, which works like `defWPNames` but maps
+      `ws-name` to `ws-name.png` instead of `ws-name.jpg`.
+
+    - Added `defWPNamesJpg` as an alias to `defWPNames` and deprecated
+      the latter.
+
 ## 0.16
 
 ### Breaking Changes
