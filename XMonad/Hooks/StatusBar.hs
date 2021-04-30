@@ -324,6 +324,15 @@ statusBarPipe cmd xpp  = do
 -- >
 -- > main = xmonad $ withSB (xmobarTop <> xmobarBottom <> xmobar1) myConfig
 --
+-- And here is an example of the related xmobar configuration for the multiple 
+-- status bars mentioned above:
+--
+-- > xmobarrc_top
+-- > Config { ...
+-- >        , commands = [ Run XPropertyLog "_XMONAD_LOG_1", ... ]
+-- >        , template = "%_XMONAD_LOG_1% }{ ..."
+-- >        }
+--
 -- The above example also works if the different status bars support different
 -- logging methods: you could mix property logging and logging via pipes.
 -- One thing to keep in mind is that if multiple bars read from the same
@@ -349,7 +358,6 @@ statusBarPipe cmd xpp  = do
 --
 -- By using the new interface, the config becomes more declarative and there's
 -- less room for errors.
-
 
 -- | The default property xmonad writes to. (@_XMONAD_LOG@).
 xmonadDefProp :: String
