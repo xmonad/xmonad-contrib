@@ -625,6 +625,11 @@
     - Added new aliases `PhysicalWindowSpace` and `VirtualWindowSpace`
       for a `WindowSpace` for easier to read function signatures.
 
+  * `XMonad.Actions.CopyWindow`
+
+    - Added `copiesPP` to make a `PP` aware of copies of the focused
+      window.
+
 ## 0.16
 
 ### Breaking Changes

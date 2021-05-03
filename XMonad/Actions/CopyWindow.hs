@@ -21,7 +21,7 @@ module XMonad.Actions.CopyWindow (
                                  , killAllOtherCopies, kill1, taggedWindows, copiesOfOn
                                  -- * Highlight workspaces containing copies in logHook
                                  -- $logHook
-                                 , wsContainingCopies
+                                 , wsContainingCopies, copiesPP
                                 ) where
 
 import XMonad
@@ -29,6 +29,7 @@ import Control.Arrow ((&&&))
 import qualified Data.List as L
 
 import XMonad.Actions.WindowGo
+import XMonad.Hooks.StatusBar.PP (PP(..))
 import qualified XMonad.StackSet as W
 
 -- $usage
@@ -76,18 +77,24 @@ import qualified XMonad.StackSet as W
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 -- $logHook
--- To distinguish workspaces containing copies of the focused window use
--- something like:
 --
--- > sampleLogHook h = do
--- >    copies <- wsContainingCopies
--- >    let check ws | ws `elem` copies = pad . xmobarColor "red" "black" $ ws
--- >                 | otherwise = pad ws
--- >    dynamicLogWithPP myPP {ppHidden = check, ppOutput = hPutStrLn h}
--- >
--- > main = do
--- >    h <- spawnPipe "xmobar"
--- >    xmonad def { logHook = sampleLogHook h }
+-- To distinguish workspaces containing copies of the focused window, use 'copiesPP'.
+-- 'copiesPP' takes a pretty printer and makes it aware of copies of the focused window.
+-- It can be applied when creating a 'XMonad.Hooks.StatusBar.StatusBarConfig'.
+--
+-- A sample config looks like this:
+--
+-- > mySB = statusBarProp "xmobar" (copiesPP (pad . xmobarColor "red" "black") xmobarPP)
+-- > main = xmonad $ withEasySB mySB defToggleStrutsKey def
+
+-- | Take a pretty printer and make it aware of copies by using the provided function
+-- to show hidden workspaces that contain copies of the focused window.
+copiesPP :: (WorkspaceId -> String) -> PP -> X PP
+copiesPP wtoS pp = do
+    copies <- wsContainingCopies
+    let check ws | ws `elem` copies = wtoS ws
+                 | otherwise = ppHidden pp ws
+    return pp { ppHidden = check }
 
 -- | Copy the focused window to a workspace.
 copy :: (Eq s, Eq i, Eq a) => i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
