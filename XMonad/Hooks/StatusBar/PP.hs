@@ -100,7 +100,9 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              , ppWsSep :: String
                -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
-               -- ^ window title format for the focused window
+               -- ^ window title format for the focused window. To display
+               -- the titles of all windows—even unfocused ones—check
+               -- 'XMonad.Util.Loggers.logTitles'.
              , ppTitleSanitize :: String -> String
               -- ^ escape / sanitizes input to 'ppTitle'
              , ppLayout :: String -> String
