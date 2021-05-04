@@ -68,9 +68,8 @@ import XMonad.Hooks.UrgencyHook
 -- > import XMonad.Hooks.StatusBar.PP
 -- >
 -- > myPP = def { ppCurrent = xmobarColor "black" "white" }
--- > main = do
--- >   mySB <- statusBarProp "xmobar" (pure myPP)
--- >   xmonad =<< withEasySB mySB defToggleStrutsKey myConfig
+-- > mySB = statusBarProp "xmobar" (pure myPP)
+-- > main = xmonad . withEasySB mySB defToggleStrutsKey $ myConfig
 --
 -- Check "XMonad.Hooks.StatusBar" for more examples and an in depth
 -- explanation.
