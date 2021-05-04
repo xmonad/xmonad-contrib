@@ -31,7 +31,7 @@ module XMonad.Util.Loggers (
 
     -- * XMonad Loggers
     -- $xmonad
-    , logCurrent, logLayout, logTitle
+    , logCurrent, logLayout, logTitle, logTitles
     , logConst, logDefault, (.|)
     -- * XMonad: Screen-specific Loggers
     -- $xmonad-screen
@@ -47,7 +47,7 @@ module XMonad.Util.Loggers (
 
   ) where
 
-import XMonad (liftIO, Window)
+import XMonad (liftIO, Window, gets)
 import XMonad.Core
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.DynamicLog
@@ -174,6 +174,35 @@ maildirNew mdir = logFileCount (mdir ++ "/new/") (not . isPrefixOf ".")
 -- | Get the title (name) of the focused window.
 logTitle :: Logger
 logTitle = withWindowSet $ traverse (fmap show . getName) . W.peek
+
+-- | Get the titles of all windows on the current workspace and format
+-- them according to the given functions.
+--
+-- ==== __Example__
+--
+-- > myXmobarPP :: X PP
+-- > myXmobarPP = pure $ def
+-- >   { ppOrder  = [ws, l, _, wins] -> [ws, l, wins]
+-- >   , ppExtras = [logTitles formatFocused formatUnfocused]
+-- >   }
+-- >  where
+-- >   formatFocused   = wrap "[" "]" . xmobarColor "#ff79c6" "" . shorten 50 . xmobarStrip
+-- >   formatUnfocused = wrap "(" ")" . xmobarColor "#bd93f9" "" . shorten 30 . xmobarStrip
+--
+logTitles
+  :: (String -> String) -- ^ Formatting for the focused   window
+  -> (String -> String) -- ^ Formatting for the unfocused window
+  -> Logger
+logTitles formatFoc formatUnfoc = do
+  winset <- gets windowset
+  let focWin = W.peek  winset
+      wins   = W.index winset
+  winNames <- traverse (fmap show . getName) wins
+  pure . Just
+       . unwords
+       $ zipWith (\w n -> if Just w == focWin then formatFoc n else formatUnfoc n)
+                 wins
+                 winNames
 
 -- | Get the name of the current layout.
 logLayout :: Logger
