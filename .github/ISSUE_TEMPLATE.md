@@ -9,8 +9,8 @@ Give detailed step-by-step instructions on how to reproduce the problem.
 
 ### Configuration File
 
-Please include the smallest configuration file that reproduces the
-problem you are experiencing:
+Please include the smallest _full_ configuration file that reproduces
+the problem you are experiencing:
 
 ```haskell
 module Main (main) where
@@ -25,4 +25,6 @@ main = xmonad def
 
   - [ ] I've read [CONTRIBUTING.md](https://github.com/xmonad/xmonad/blob/master/CONTRIBUTING.md)
 
-  - [ ] I tested my configuration with [xmonad-testing](https://github.com/xmonad/xmonad-testing)
+  - I tested my configuration
+    - [ ] With `xmonad` version XXX (commit XXX if using git)
+    - [ ] With `xmonad-contrib` version XXX (commit XXX if using git)
