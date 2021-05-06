@@ -67,6 +67,11 @@ module XMonad.Doc.Developing
 --------------------------------------------------------------------------------
 
 {- $writing
+
+Here are some libraries that may be useful when writing your own module:
+
+  - XMonad.Prelude: Re-export commonly used functions from prelude, as
+    well as some xmonad-specific helpers.
 -}
 
 {- $xmonad-libs
