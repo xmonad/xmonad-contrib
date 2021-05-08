@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NamedFieldPuns      #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar.PP
@@ -47,7 +48,6 @@ module XMonad.Hooks.StatusBar.PP (
 
 import Control.Applicative (liftA2)
 import Control.Monad (msum)
-import Data.Bool (bool)
 import Data.Char (isSpace)
 import Data.List (intercalate, isPrefixOf, sortOn, stripPrefix)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
@@ -102,11 +102,8 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
                -- ^ window title format for the focused window
-             , ppTitleUnfocused :: String -> String
-               -- ^ window title format for unfocused windows
              , ppTitleSanitize :: String -> String
-              -- ^ escape / sanitizes input to 'ppTitle' and
-              --   'ppTitleUnfocused'
+              -- ^ escape / sanitizes input to 'ppTitle'
              , ppLayout :: String -> String
                -- ^ layout name format
              , ppOrder :: [String] -> [String]
@@ -155,7 +152,6 @@ instance Default PP where
            , ppSep              = " : "
            , ppWsSep            = " "
            , ppTitle            = shorten 80
-           , ppTitleUnfocused   = const ""
            , ppTitleSanitize    = xmobarStrip . dzenEscape
            , ppLayout           = id
            , ppOrder            = id
@@ -186,22 +182,16 @@ dynamicLogString pp = do
     -- workspace list
     let ws = pprWindowSet sort' urgents pp winset
 
-    -- window titles
-    let stack  = S.index winset
-        focWin = S.peek  winset
-        ppWin :: Window -> String -> String  -- pretty print a window title
-            = bool (ppTitleUnfocused pp) (ppTitle pp) . (focWin ==) . Just
-    winNames <- traverse (fmap show . getName) stack
-    let ppNames = unwords . filter (not . null) $
-            zipWith (\w n -> ppWin w $ ppTitleSanitize pp n) stack winNames
-
     -- run extra loggers, ignoring any that generate errors.
     extras <- mapM (`catchX` return Nothing) $ ppExtras pp
+
+    -- window title
+    wt <- maybe (pure "") (fmap show . getName) . S.peek $ winset
 
     return $ sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
-                        , ppNames
+                        , ppTitle  pp $ ppTitleSanitize pp wt
                         ]
                         ++ catMaybes extras
 

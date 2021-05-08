@@ -107,9 +107,6 @@
     - Added `filterOutWsPP` for filtering out certain workspaces from being
       displayed.
 
-    - Added `ppTitleUnfocused` to `PP` for showing unfocused windows on
-      the current workspace in the status bar.
-
     - Added `xmobarBorder` function to create borders around strings.
 
     - Added `ppRename` to `PP`, which makes it possible for extensions like
@@ -416,6 +413,8 @@
 
     - Added `logConst` to log a constant `String`, and `logDefault` (infix: `.|`)
       to combine loggers.
+
+    - Added `logTitles` to log all window titles (focused and unfocused ones).
 
   * `XMonad.Layout.Minimize`
 
