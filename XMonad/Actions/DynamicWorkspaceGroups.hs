@@ -34,6 +34,10 @@ module XMonad.Actions.DynamicWorkspaceGroups
     , promptWSGroupForget
 
     , WSGPrompt
+     -- * TopicSpace Integration
+     -- $topics
+    , viewTopicGroup
+    , promptTopicGroupView
     ) where
 
 import Data.List (find)
@@ -45,6 +49,7 @@ import qualified XMonad.StackSet as W
 
 import XMonad.Prompt
 import qualified XMonad.Util.ExtensibleState as XS
+import XMonad.Actions.TopicSpace
 
 -- $usage
 -- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:
@@ -103,20 +108,24 @@ forgetWSGroup = XS.modify . withWSG . M.delete
 
 -- | View the workspace group with the given name.
 viewWSGroup :: WSGroupId -> X ()
-viewWSGroup name = do
+viewWSGroup = viewGroup (windows . W.greedyView)
+
+-- | Internal function for viewing a group.
+viewGroup :: (WorkspaceId -> X ()) -> WSGroupId -> X ()
+viewGroup fview name = do
   WSG m <- XS.get
   case M.lookup name m of
-    Just grp -> mapM_ (uncurry viewWS) grp
+    Just grp -> mapM_ (uncurry (viewWS fview)) grp
     Nothing -> return ()
 
--- | View the given workspace on the given screen.
-viewWS :: ScreenId -> WorkspaceId -> X ()
-viewWS sid wid = do
+-- | View the given workspace on the given screen, using the provided function.
+viewWS :: (WorkspaceId -> X ())  -> ScreenId -> WorkspaceId -> X ()
+viewWS fview sid wid = do
   mw <- findScreenWS sid
   case mw of
     Just w -> do
       windows $ W.view w
-      windows $ W.greedyView wid
+      fview wid
     Nothing -> return ()
 
 -- | Find the workspace which is currently on the given screen.
@@ -131,9 +140,13 @@ instance XPrompt WSGPrompt where
 
 -- | Prompt for a workspace group to view.
 promptWSGroupView :: XPConfig -> String -> X ()
-promptWSGroupView xp s = do
+promptWSGroupView = promptGroupView viewWSGroup
+
+-- | Internal function for making a prompt to view a workspace group
+promptGroupView :: (WSGroupId -> X ()) -> XPConfig -> String -> X ()
+promptGroupView fview xp s = do
   gs <- fmap (M.keys . unWSG) XS.get
-  mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' xp gs) viewWSGroup
+  mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' xp gs) fview
 
 -- | Prompt for a name for the current workspace group.
 promptWSGroupAdd :: XPConfig -> String -> X ()
@@ -145,3 +158,20 @@ promptWSGroupForget :: XPConfig -> String -> X ()
 promptWSGroupForget xp s = do
   gs <- fmap (M.keys . unWSG) XS.get
   mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' xp gs) forgetWSGroup
+
+-- $topics
+-- You can use this module with "XMonad.Actions.TopicSpace" - just replace
+-- 'promptWSGroupView' with 'promptTopicGroupView':
+--
+-- >    , ("M-y n", promptWSGroupAdd myXPConfig "Name this group: ")
+-- >    , ("M-y g", promptTopicGroupView myTopicConfig myXPConfig "Go to group: ")
+-- >    , ("M-y d", promptWSGroupForget myXPConfig "Forget group: ")
+
+-- | Prompt for a workspace group to view, treating the workspaces as topics.
+promptTopicGroupView :: TopicConfig -> XPConfig -> String -> X ()
+promptTopicGroupView = promptGroupView . viewTopicGroup
+
+-- | View the workspace group with the given name, treating the workspaces as
+-- topics.
+viewTopicGroup :: TopicConfig -> WSGroupId -> X ()
+viewTopicGroup = viewGroup . switchTopic
