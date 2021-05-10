@@ -567,6 +567,11 @@
 
     - Floating windows are no longer moved to the end of the window stack.
 
+  * `XMonad.Layout.BinarySpacePartition`
+
+    - Add the ability to increase/decrease the window size by a custom
+      rational number. E.g: `sendMessage $ ExpandTowardsBy L 0.02`
+
 ## 0.16
 
 ### Breaking Changes
