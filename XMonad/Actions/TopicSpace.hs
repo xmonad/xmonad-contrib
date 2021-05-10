@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TopicSpace
@@ -23,6 +24,7 @@ module XMonad.Actions.TopicSpace
     Topic
   , Dir
   , TopicConfig(..)
+  , TopicItem(..)
 
     -- * Default Topic Config
   , def
@@ -38,6 +40,13 @@ module XMonad.Actions.TopicSpace
   , topicActionWithPrompt
   , topicAction
   , currentTopicAction
+
+    -- * Managing 'TopicItem's
+  , topicNames
+  , tiActions
+  , tiDirs
+  , noAction
+  , inHome
 
     -- * Getting the Topic History
   , getLastFocusedTopics
@@ -69,6 +78,7 @@ import qualified Data.Map.Strict         as M
 import qualified XMonad.Hooks.DynamicLog as DL
 import qualified XMonad.StackSet         as W
 
+import Data.Map (Map)
 import System.IO (hClose, hPutStr)
 
 import XMonad.Prompt (XPConfig)
@@ -109,7 +119,7 @@ import XMonad.Util.Run (spawnPipe)
 --
 -- You will then have to
 --
---   * Define new a new 'TopicConfig'
+--   * Define a new 'TopicConfig'
 --
 --   * Add the appropriate keybindings
 --
@@ -267,9 +277,9 @@ type Topic = WorkspaceId
 type Dir = FilePath
 
 -- | Here is the topic space configuration area.
-data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
+data TopicConfig = TopicConfig { topicDirs          :: Map Topic Dir
                                  -- ^ This mapping associates a directory to each topic.
-                               , topicActions       :: M.Map Topic (X ())
+                               , topicActions       :: Map Topic (X ())
                                  -- ^ This mapping associates an action to trigger when
                                  -- switching to a given topic which workspace is empty.
                                , defaultTopicAction :: Topic -> X ()
@@ -414,3 +424,32 @@ xmessage s = do
   h <- spawnPipe "xmessage -file -"
   hPutStr h s
   hClose h
+
+-- | Convenience type for specifying topics.
+data TopicItem = TI
+  { tiName   :: !Topic  -- ^ 'Topic' ≡ 'String'
+  , tiDir    :: !Dir    -- ^ Directory associated with topic; 'Dir' ≡ 'String'
+  , tiAction :: !(X ()) -- ^ Startup hook when topic is empty
+  }
+
+-- | Extract the names from a given list of 'TopicItem's.
+topicNames :: [TopicItem] -> [Topic]
+topicNames = map tiName
+
+-- | From a list of 'TopicItem's, build a map that can be supplied as
+-- the 'topicDirs'.
+tiDirs :: [TopicItem] -> Map Topic Dir
+tiDirs = M.fromList . map (\TI{ tiName, tiDir } -> (tiName, tiDir))
+
+-- | From a list of 'TopicItem's, build a map that can be supplied as
+-- the 'topicActions'.
+tiActions :: [TopicItem] -> Map Topic (X ())
+tiActions = M.fromList . map (\TI{ tiName, tiAction } -> (tiName, tiAction))
+
+-- | Associate a directory with the topic, but don't spawn anything.
+noAction :: Topic -> Dir -> TopicItem
+noAction n d = TI n d (pure ())
+
+-- | Topic with @tiDir = ~/@.
+inHome :: Topic -> X () -> TopicItem
+inHome n = TI n "."
