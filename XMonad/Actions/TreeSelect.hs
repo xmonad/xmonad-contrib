@@ -655,8 +655,16 @@ drawStringXMF display window visual colormap gc font col x y text = case font of
 --
 -- Note that it uses short to represent its components
 fromARGB :: Pixel -> XRenderColor
-fromARGB x = XRenderColor (fromIntegral $ 0xff00 .&. shiftR x 8)  -- red
-                          (fromIntegral $ 0xff00 .&. shiftL x 8)  -- blue   (swapped with green as a workaround for the
-                          (fromIntegral $ 0xff00 .&. x)           -- green   faulty Storable instance in X11-xft <= 0.3.1)
-                          (fromIntegral $ 0xff00 .&. shiftR x 16) -- alpha
+fromARGB x =
+#if MIN_VERSION_X11_xft(0, 3, 3)
+    XRenderColor r g b a
+#else
+    -- swapped green/blue as a workaround for the faulty Storable instance in X11-xft < 0.3.3
+    XRenderColor r b g a
+#endif
+  where
+    r = fromIntegral $ 0xff00 .&. shiftR x 8
+    g = fromIntegral $ 0xff00 .&. x
+    b = fromIntegral $ 0xff00 .&. shiftL x 8
+    a = fromIntegral $ 0xff00 .&. shiftR x 16
 #endif
