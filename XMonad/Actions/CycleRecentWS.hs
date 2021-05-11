@@ -80,8 +80,8 @@ toggleRecentNonEmptyWS = toggleWindowSets $ recentWS (not . null . stack)
 -- most recent first, where the focused workspace satisfies p.
 recentWS :: (WindowSpace -> Bool) -- ^ A workspace predicate.
          -> WindowSet             -- ^ The current WindowSet
-         -> [WindowSet]
-recentWS p w = map (`view` w) recentTags
+         -> [WorkspaceId]
+recentWS p w = recentTags
  where recentTags = map tag
                   $ filter p
                   $ map workspace (visible w)
@@ -95,7 +95,7 @@ cycref l i = l !! (i `mod` length l)
 -- | Cycle through a finite list of WindowSets with repeated presses of a key, while
 --   a modifier key is held down. For best effects use the same modkey+key combination
 --   as the one used to invoke this action.
-cycleWindowSets :: (WindowSet -> [WindowSet]) -- ^ A function used to create a list of WindowSets to choose from
+cycleWindowSets :: (WindowSet -> [WorkspaceId]) -- ^ A function used to create a list of WindowSets to choose from
                 -> [KeySym]                   -- ^ A list of modifier keys used when invoking this action.
                                               --   As soon as one of them is released, the final WindowSet is chosen and the action exits.
                 -> KeySym                     -- ^ Key used to preview next WindowSet from the list of generated options
@@ -110,7 +110,7 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
                 KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent p
                 s <- keycodeToKeysym d c 0
                 return (t, s)
-  let setOption n = do windows $ const $ options `cycref` n
+  let setOption n = do windows $ view $ options `cycref` n
                        (t, s) <- io event
                        case () of
                          () | t == keyPress   && s == keyNext  -> setOption (n+1)
@@ -123,9 +123,9 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
 
 
 -- | Switch to the first of a finite list of WindowSets.
-toggleWindowSets :: (WindowSet -> [WindowSet]) -> X ()
+toggleWindowSets :: (WindowSet -> [WorkspaceId]) -> X ()
 toggleWindowSets genOptions = do
   options <- gets $ genOptions . windowset
   case options of
     []  -> return ()
-    o:_ -> windows (const o)
+    o:_ -> windows (view o)

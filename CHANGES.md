@@ -88,6 +88,11 @@
       now recommended to directly use `XMonad.Hooks.WorkspaceHistory`
       instead.
 
+  * `XMonad.Actions.CycleRecentWS`
+
+    - Change type signature of `recentWS`, `cycleWindowSets`, `toggleWindowSets`.
+      Replace `[WindowSet]` with `[WorkspaceId]` in type signature for bug fix.
+
 ### New Modules
 
   * `XMonad.Hooks.StatusBar.PP`
