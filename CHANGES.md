@@ -547,6 +547,10 @@
     - Added `defWPNamesJpg` as an alias to `defWPNames` and deprecated
       the latter.
 
+  * `XMonad.Layout.SubLayouts`
+
+    - Floating windows are no longer moved to the end of the window stack.
+
 ## 0.16
 
 ### Breaking Changes
