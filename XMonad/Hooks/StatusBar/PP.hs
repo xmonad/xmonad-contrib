@@ -68,9 +68,8 @@ import XMonad.Hooks.UrgencyHook
 -- > import XMonad.Hooks.StatusBar.PP
 -- >
 -- > myPP = def { ppCurrent = xmobarColor "black" "white" }
--- > main = do
--- >   mySB <- statusBarProp "xmobar" (pure myPP)
--- >   xmonad =<< withEasySB mySB defToggleStrutsKey myConfig
+-- > mySB = statusBarProp "xmobar" (pure myPP)
+-- > main = xmonad . withEasySB mySB defToggleStrutsKey $ myConfig
 --
 -- Check "XMonad.Hooks.StatusBar" for more examples and an in depth
 -- explanation.
@@ -101,7 +100,9 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
              , ppWsSep :: String
                -- ^ separator to use between workspace tags
              , ppTitle :: String -> String
-               -- ^ window title format for the focused window
+               -- ^ window title format for the focused window. To display
+               -- the titles of all windows—even unfocused ones—check
+               -- 'XMonad.Util.Loggers.logTitles'.
              , ppTitleSanitize :: String -> String
               -- ^ escape / sanitizes input to 'ppTitle'
              , ppLayout :: String -> String

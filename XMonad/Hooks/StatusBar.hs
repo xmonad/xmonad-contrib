@@ -339,6 +339,9 @@ statusBarPipe cmd xpp  = do
 -- property, their content will be the same. If you want to use property-based
 -- logging with multiple bars, they should read from different properties.
 --
+-- "XMonad.Util.Loggers" includes loggers that can be bound to specific screens,
+-- like 'logCurrentOnScreen', that might be useful with multiple screens.
+--
 -- Long-time xmonad users will note that the above config is equivalent to
 -- the following less robust and more verbose configuration that they might
 -- find in their old configs:
