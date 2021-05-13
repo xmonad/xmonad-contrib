@@ -6,7 +6,7 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
 import XMonad.Actions.CycleRecentWS (unView)
-import XMonad.StackSet (view)
+import XMonad.StackSet (view, mapLayout)
 
 import Instances
 import Utils (tags)
@@ -17,4 +17,7 @@ spec = do
 
 prop_unView :: T -> Property
 prop_unView ss = conjoin
-    [ counterexample (show t) (unView ss (view t ss) === ss) | t <- tags ss ]
+    [ counterexample (show t) (unView ss (state (view t ss)) === state ss)
+    | t <- tags ss ]
+  where
+    state = mapLayout succ

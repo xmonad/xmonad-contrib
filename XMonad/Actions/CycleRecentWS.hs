@@ -38,8 +38,7 @@ import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter)
 
 import Control.Arrow ((&&&))
-import Data.List (find)
-import Data.Maybe (fromJust)
+import Data.Function (on)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -140,38 +139,29 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
 -- new 'WindowSet' may have accumulated.
 unView :: forall i l a s sd. Eq i
        => StackSet i l a s sd -> StackSet i l a s sd -> StackSet i l a s sd
-unView origW w
-  | -- The focused screen changed; the old focus is on a visible screen
-    newFocT `elem` visT =
-      w { current = (current origW){ workspace = findFoc (workspace <$> visible w) }
-        , visible = zipWith (\v ws -> v{ workspace = ws }) vis (updateNewFoc visW)
-        }
-  | -- The focused screen didn't change; the old focus is hidden
-    newFocT `elem` hidT =
-      w { current = (current origW){ workspace = findFoc (hidden w) }
-        , hidden  = updateNewFoc hid
-        }
+unView w0 w
+  | currentTag w0 == currentTag w = w
+
+  | v1 : vs <- visible w
+  , currentTag w0 == (tag . workspace) v1
+  = w { current = v1
+      , visible = insertAt (commonPrefixV (visible w0) vs) (current w) vs }
+
+  | h1 : hs <- hidden w
+  , currentTag w0 == tag h1
+  = w { current = (current w){ workspace = h1 }
+      , hidden = insertAt (commonPrefixH (hidden w0) hs) (workspace (current w)) hs }
+
   | otherwise = w
  where
-  -- Foci, old and new
-  focT              = tag . workspace . current $ origW
-  (newFoc, newFocT) = id &&& tag $ workspace (current w)
+  commonPrefixV = commonPrefix `on` fmap (tag . workspace)
+  commonPrefixH = commonPrefix `on` fmap tag
 
-  -- Workspaces in the _original_ windowset
-  (hid, hidT)         = id &&& map tag $ hidden origW
-  (vis, (visW, visT)) = id &&& map workspace &&& map (tag . workspace)
-                      $ visible origW
+  insertAt :: Int -> x -> [x] -> [x]
+  insertAt n x xs = let (l, r) = splitAt n xs in l ++ [x] ++ r
 
-  -- | Given a list of new workspaces that contain the old focus,
-  -- return that workspace.
-  findFoc :: [Workspace i l a] -> Workspace i l a
-  findFoc ws = fromJust $ find ((== focT) . tag) ws
-
-  -- | Given a list of old workspaces that contain the new focus,
-  -- update the state of the focus.
-  updateNewFoc :: [Workspace i l a] -> [Workspace i l a]
-  updateNewFoc ws = before ++ newFoc : after
-   where (before, after) = drop 1 <$> break ((== newFocT) . tag) ws
+  commonPrefix :: Eq x => [x] -> [x] -> Int
+  commonPrefix a b = length $ takeWhile id $ zipWith (==) a b
 
 -- | Given some function that generates a list of workspaces from a
 -- given 'WindowSet', switch to the first generated workspace.
