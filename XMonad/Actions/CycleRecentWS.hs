@@ -104,8 +104,7 @@ cycleWindowSets :: (WindowSet -> [WorkspaceId]) -- ^ A function used to create a
                                                 --   If it's the same as nextOption key, it is effectively ignored.
                 -> X ()
 cycleWindowSets genOptions mods keyNext keyPrev = do
-  origWSet <- gets windowset
-  let options = genOptions origWSet
+  (options, unView') <- gets $ (genOptions &&& unView) . windowset
   XConf {theRoot = root, display = d} <- ask
   let event = allocaXEvent $ \p -> do
                 maskEvent d (keyPressMask .|. keyReleaseMask) p
@@ -114,7 +113,7 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
                 return (t, s)
   let setOption n = do
         let nextWs   = options `cycref` n
-            syncW ws = windows $ view ws . restoreOrder origWSet
+            syncW ws = windows $ view ws . unView'
         (t, s) <- io event
         if | t == keyPress   && s == keyNext  -> syncW nextWs >> setOption (n + 1)
            | t == keyPress   && s == keyPrev  -> syncW nextWs >> setOption (n - 1)
@@ -133,8 +132,8 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
   -- 'view' away from the old one, restore the workspace order of the
   -- former inside of the latter.  This respects any new state that the
   -- new 'WindowSet' may have accumulated.
-  restoreOrder :: WindowSet -> WindowSet -> WindowSet
-  restoreOrder origW w
+  unView :: WindowSet -> WindowSet -> WindowSet
+  unView origW w
     | -- The focused screen changed; the old focus is on a visible screen
       newFocT `elem` visT =
         w { current = (current origW){ workspace = findFoc (workspace <$> visible w) }
