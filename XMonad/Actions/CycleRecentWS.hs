@@ -136,8 +136,9 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
 -- new 'WindowSet' may have accumulated.
 unView :: forall i l a s sd. (Eq i, Eq s)
        => StackSet i l a s sd -> StackSet i l a s sd -> StackSet i l a s sd
-unView w0 = fixOrderH . fixOrderV . view (currentTag w0)
+unView w0 w1 = fixOrderH . fixOrderV . view' (currentTag w0) $ w1
  where
+  view' = if screen (current w0) == screen (current w1) then greedyView else view
   fixOrderV w | v : vs <- visible w = w{ visible = insertAt (pfxV (visible w0) vs) v vs }
               | otherwise = w
   fixOrderH w | h : hs <- hidden w = w{ hidden = insertAt (pfxH (hidden w0) hs) h hs }
