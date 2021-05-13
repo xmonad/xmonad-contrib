@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
 -----------------------------------------------------------------------------
@@ -117,18 +116,15 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
                 KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent p
                 s <- keycodeToKeysym d c 0
                 return (t, s)
-  let setOption n = do
-        let nextWs   = options `cycref` n
-            syncW ws = windows $ view ws . unView'
-        (t, s) <- io event
-        if | t == keyPress   && s == keyNext  -> syncW nextWs >> setOption (n + 1)
-           | t == keyPress   && s == keyPrev  -> syncW nextWs >> setOption (n - 1)
-           | t == keyRelease && s `elem` mods ->
-               syncW =<< gets (tag . workspace . current . windowset)
-           | otherwise                        -> setOption n
+  let setOption n = do windows $ view (options `cycref` n) . unView'
+                       (t, s) <- io event
+                       case () of
+                         () | t == keyPress   && s == keyNext  -> setOption (n+1)
+                            | t == keyPress   && s == keyPrev  -> setOption (n-1)
+                            | t == keyRelease && s `elem` mods -> return ()
+                            | otherwise                        -> setOption n
   io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
-  windows $ view (options `cycref` 0) -- view the first ws
-  setOption 1
+  setOption 0
   io $ ungrabKeyboard d currentTime
  where
   cycref :: [a] -> Int -> a
