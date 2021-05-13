@@ -373,15 +373,16 @@ library
 test-suite tests
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
-  other-modules:  ManageDocks
+  other-modules:  CycleRecentWS
+                  Instances
+                  ManageDocks
                   NoBorders
                   RotateSome
                   Selective
                   SwapWorkspaces
-                  XPrompt
-                  Instances
                   Utils
                   ExtensibleConf
+                  XMonad.Actions.CycleRecentWS
                   XMonad.Actions.CycleWS
                   XMonad.Actions.FocusNth
                   XMonad.Actions.PhysicalScreens
@@ -409,6 +410,7 @@ test-suite tests
                   XMonad.Util.WorkspaceCompare
                   XMonad.Util.XSelection
                   XMonad.Util.XUtils
+                  XPrompt
   hs-source-dirs: tests, .
   build-depends: base
                , QuickCheck >= 2

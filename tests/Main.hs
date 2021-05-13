@@ -10,6 +10,7 @@ import qualified RotateSome
 import qualified Selective
 import qualified SwapWorkspaces
 import qualified XPrompt
+import qualified CycleRecentWS
 
 main :: IO ()
 main = hspec $ do
@@ -45,3 +46,4 @@ main = hspec $ do
         prop "prop_skipGetLastWord"  $ XPrompt.prop_skipGetLastWord
     context "NoBorders" $ NoBorders.spec
     context "ExtensibleConf" $ ExtensibleConf.spec
+    context "CycleRecentWS" $ CycleRecentWS.spec
