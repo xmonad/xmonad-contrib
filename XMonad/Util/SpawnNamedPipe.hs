@@ -25,7 +25,7 @@ import XMonad
 import XMonad.Util.Run
 import System.IO
 import qualified XMonad.Util.ExtensibleState as XS
-import Control.Monad
+import XMonad.Prelude
 import qualified Data.Map as Map
 
 -- $usage

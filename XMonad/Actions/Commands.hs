@@ -32,7 +32,7 @@ import XMonad.Util.Dmenu (dmenu)
 
 import qualified Data.Map as M
 import System.Exit
-import Data.Maybe
+import XMonad.Prelude
 
 -- $usage
 --

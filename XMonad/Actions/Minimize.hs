@@ -35,6 +35,7 @@ module XMonad.Actions.Minimize
   ) where
 
 import XMonad
+import XMonad.Prelude (fromMaybe, join, listToMaybe)
 import qualified XMonad.StackSet as W
 
 import qualified XMonad.Layout.BoringWindows as BW
@@ -43,8 +44,6 @@ import XMonad.Util.Minimize
 import XMonad.Util.WindowProperties (getProp32)
 
 import Foreign.C.Types (CLong)
-import Control.Monad (join)
-import Data.Maybe (fromMaybe, listToMaybe)
 import qualified Data.List as L
 import qualified Data.Map as M
 

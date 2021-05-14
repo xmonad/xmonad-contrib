@@ -26,14 +26,12 @@ module XMonad.Actions.TagWindows (
                  TagPrompt,
                  ) where
 
-import Data.List (nub,sortBy)
-import Control.Monad
 import Control.Exception as E
 
-import XMonad.StackSet hiding (filter)
-
-import XMonad.Prompt
 import XMonad hiding (workspaces)
+import XMonad.Prelude
+import XMonad.Prompt
+import XMonad.StackSet hiding (filter)
 
 econst :: Monad m => a -> IOException -> m a
 econst = const . return

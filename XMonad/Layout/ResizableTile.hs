@@ -21,10 +21,9 @@ module XMonad.Layout.ResizableTile (
                                    ) where
 
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
-import Control.Monad
 import qualified Data.Map as M
-import Data.List ((\\))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

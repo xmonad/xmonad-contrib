@@ -21,10 +21,8 @@ module XMonad.Hooks.InsertPosition (
     ) where
 
 import XMonad(ManageHook, MonadReader(ask))
+import XMonad.Prelude (Endo (Endo), find, fromMaybe)
 import qualified XMonad.StackSet as W
-import Data.Maybe(fromMaybe)
-import Data.List(find)
-import Data.Monoid(Endo(Endo))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

@@ -298,6 +298,7 @@ library
                         XMonad.Layout.WindowSwitcherDecoration
                         XMonad.Layout.WorkspaceDir
                         XMonad.Layout.ZoomRow
+                        XMonad.Prelude
                         XMonad.Prompt
                         XMonad.Prompt.AppLauncher
                         XMonad.Prompt.AppendFile

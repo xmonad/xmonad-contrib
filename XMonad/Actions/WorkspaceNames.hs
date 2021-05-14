@@ -44,6 +44,7 @@ module XMonad.Actions.WorkspaceNames (
     ) where
 
 import XMonad
+import XMonad.Prelude (fromMaybe, isInfixOf, (<&>), (>=>))
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 
@@ -54,11 +55,7 @@ import XMonad.Prompt (mkXPrompt, XPConfig)
 import XMonad.Prompt.Workspace (Wor(Wor))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
-import Control.Monad ((>=>))
-import Data.Functor ((<&>))
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
-import Data.List (isInfixOf)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -177,7 +174,7 @@ workspaceNamePrompt conf job = do
               (job . toWsId pairs)
   where toWsId pairs name = fromMaybe "" (lookup name pairs)
         contains completions input =
-          return $ filter (Data.List.isInfixOf input) completions
+          return $ filter (isInfixOf input) completions
 
 -- | Workspace list transformation for
 -- 'XMonad.Hooks.EwmhDesktops.ewmhDesktopsLogHookCustom' that exposes

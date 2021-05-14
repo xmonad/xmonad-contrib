@@ -31,7 +31,7 @@ import XMonad
 import XMonad.Layout.Decoration
 import XMonad.Layout.WindowArranger
 import XMonad.Util.XUtils
-import Control.Monad(when)
+import XMonad.Prelude(when)
 import qualified Data.Map as M
 
 -- $usage

@@ -36,8 +36,8 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
 import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
               broadcastMessage, sendMessage, windows, withFocused, Window)
-import Data.List((\\), union)
-import Data.Maybe(fromMaybe, listToMaybe, maybeToList)
+import XMonad.Prelude (fromMaybe, listToMaybe, maybeToList, union, (\\))
+import XMonad.Util.Stack (reverseS)
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
 
@@ -143,13 +143,13 @@ instance LayoutModifier BoringWindows Window where
                             do windows $ W.modify' skipBoringSwapUp
                                return Nothing
         | Just SwapDown <- fromMessage m =
-                            do windows $ W.modify' (reverseStack . skipBoringSwapUp . reverseStack)
+                            do windows $ W.modify' (reverseS . skipBoringSwapUp . reverseS)
                                return Nothing
         | Just SiftUp <- fromMessage m =
                             do windows $ W.modify' (siftUpSkipping bs)
                                return Nothing
         | Just SiftDown <- fromMessage m =
-                            do windows $ W.modify' (reverseStack . siftUpSkipping bs . reverseStack)
+                            do windows $ W.modify' (reverseS . siftUpSkipping bs . reverseS)
                                return Nothing
         where skipBoring = skipBoring' ((`notElem` bs) . W.focus)
               skipBoringSwapUp = skipBoring'
@@ -162,7 +162,6 @@ instance LayoutModifier BoringWindows Window where
                                    $ iterate f st
               bs = concat $ cbs:maybeToList lbs ++ M.elems nbs
               rjl = return . Just . Left
-              reverseStack (W.Stack t ls rs) = W.Stack t rs ls
     handleMessOrMaybeModifyIt _ _ = return Nothing
 
 -- | Variant of 'focusMaster' that works on a

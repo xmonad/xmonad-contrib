@@ -30,7 +30,7 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Util.Font
 import XMonad.Util.PositionStore
 
-import Data.Maybe
+import XMonad.Prelude
 import qualified Data.Set as S
 
 minimizeButtonOffset :: Int

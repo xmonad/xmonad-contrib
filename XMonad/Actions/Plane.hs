@@ -38,11 +38,9 @@ module XMonad.Actions.Plane
     )
     where
 
-import Control.Monad
-import Data.List
 import Data.Map hiding (split)
-import Data.Maybe
 
+import XMonad.Prelude
 import XMonad
 import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Run

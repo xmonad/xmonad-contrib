@@ -24,12 +24,11 @@ module XMonad.Actions.UpdatePointer
     where
 
 import XMonad
-import XMonad.Util.XUtils (fi)
-import Control.Arrow
-import Control.Monad
+import XMonad.Prelude
 import XMonad.StackSet (member, peek, screenDetail, current)
-import Data.Maybe
-import Control.Exception
+
+import Control.Exception (SomeException, try)
+import Control.Arrow ((&&&), (***))
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -107,4 +106,3 @@ lerp r a b = (1 - r) * realToFrac a + r * realToFrac b
 clip :: Ord a => (a, a) -> a -> a
 clip (lower, upper) x = if x < lower then lower
     else if x > upper then upper else x
-

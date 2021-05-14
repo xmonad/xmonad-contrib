@@ -32,11 +32,11 @@ module XMonad.Layout.Monitor (
     ) where
 
 import XMonad
+import XMonad.Prelude (unless)
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
 import XMonad.Hooks.ManageHelpers (doHideIgnore)
 import XMonad.Hooks.FadeInactive (setOpacity)
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

@@ -21,9 +21,7 @@ module XMonad.Util.ClickableWorkspaces (
   clickableWrap,
   ) where
 
-import Control.Monad ((>=>))
-import Data.Functor ((<&>))
-
+import XMonad.Prelude ((<&>), (>=>))
 import XMonad
 import XMonad.Hooks.StatusBar.PP (xmobarAction, PP(..))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)

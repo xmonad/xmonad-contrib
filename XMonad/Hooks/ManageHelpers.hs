@@ -59,13 +59,9 @@ module XMonad.Hooks.ManageHelpers (
 ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties (getProp32s)
-
-import Control.Monad (filterM)
-import Data.List ((\\))
-import Data.Maybe
-import Data.Monoid
 
 import System.Posix (ProcessID)
 

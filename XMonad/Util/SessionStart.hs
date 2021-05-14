@@ -22,7 +22,7 @@ module XMonad.Util.SessionStart
     )
 where
 
-import Control.Monad (when)
+import XMonad.Prelude (when)
 
 import XMonad
 import qualified XMonad.Util.ExtensibleState as XS

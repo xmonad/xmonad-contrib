@@ -34,6 +34,7 @@ module XMonad.Layout.BinarySpacePartition (
   ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Util.Stack hiding (Zipper)
 import XMonad.Util.Types
@@ -45,9 +46,6 @@ import XMonad.Util.XUtils
 
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.List ((\\), elemIndex, foldl')
-import Data.Maybe (fromMaybe, isNothing, isJust, mapMaybe, catMaybes)
-import Control.Monad
 import Data.Ratio ((%))
 
 -- $usage

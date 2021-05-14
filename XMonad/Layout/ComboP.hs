@@ -24,9 +24,7 @@ module XMonad.Layout.ComboP (
                              Property(..)
                             ) where
 
-import Data.List ( delete, intersect, (\\) )
-import Data.Maybe ( isJust )
-import Control.Monad
+import XMonad.Prelude
 import XMonad hiding (focus)
 import XMonad.StackSet ( Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation

@@ -21,13 +21,13 @@ module XMonad.Prompt.RunOrRaise
     ) where
 
 import XMonad hiding (config)
+import XMonad.Prelude (liftA2)
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
 import Control.Exception as E
-import Control.Applicative (liftA2)
 import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
 
 econst :: Monad m => a -> IOException -> m a

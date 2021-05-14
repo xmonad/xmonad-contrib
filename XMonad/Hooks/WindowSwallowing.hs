@@ -44,14 +44,12 @@ module XMonad.Hooks.WindowSwallowing
   )
 where
 import           XMonad
+import           XMonad.Prelude
 import qualified XMonad.StackSet               as W
 import qualified XMonad.Util.ExtensibleState   as XS
 import           XMonad.Util.WindowProperties
 import           XMonad.Util.Run                ( runProcessWithInput )
-import           Data.Semigroup                 ( All(..) )
 import qualified Data.Map.Strict               as M
-import           Data.List                      ( isInfixOf )
-import           Control.Monad                  ( when )
 
 -- $usage
 -- You can use this module by including  the following in your @~\/.xmonad/xmonad.hs@:
@@ -237,9 +235,3 @@ instance ExtensionClass SwallowingState where
                                  , stackBeforeWindowClosing = Nothing
                                  , floatingBeforeClosing    = mempty
                                  }
-
-
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
-
-

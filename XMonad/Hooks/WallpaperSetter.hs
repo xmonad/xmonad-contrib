@@ -24,6 +24,7 @@ module XMonad.Hooks.WallpaperSetter (
   -- $todo
 ) where
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as S
 import qualified XMonad.Util.ExtensibleState as XS
 
@@ -34,12 +35,7 @@ import System.FilePath ((</>))
 import System.Random (randomRIO)
 
 import qualified Data.Map as M
-import Data.List (sortBy)
-import Data.Char (isAlphaNum)
 import Data.Ord (comparing)
-
-import Control.Monad
-import Data.Maybe
 
 -- $usage
 -- This module requires imagemagick and feh to be installed, as these are utilized

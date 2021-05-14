@@ -32,15 +32,13 @@ module XMonad.Util.NamedScratchpad (
   ) where
 
 import XMonad
+import XMonad.Prelude (filterM, listToMaybe, unless)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Hooks.DynamicLog (PP, ppSort)
 import XMonad.Actions.SpawnOn (spawnHere)
 
 import qualified Data.List.NonEmpty as NE
-
-import Control.Monad (filterM, unless)
-import Data.Maybe (listToMaybe)
 
 import qualified XMonad.StackSet as W
 

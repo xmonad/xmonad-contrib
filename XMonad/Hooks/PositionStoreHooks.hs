@@ -34,15 +34,13 @@ module XMonad.Hooks.PositionStoreHooks (
     ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Util.PositionStore
 import XMonad.Hooks.ManageDocks
 import XMonad.Layout.Decoration
 
 import System.Random(randomRIO)
-import Control.Monad(when)
-import Data.Maybe
-import Data.Monoid
 import qualified Data.Set as S
 
 -- $usage

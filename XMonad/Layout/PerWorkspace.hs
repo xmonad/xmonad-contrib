@@ -25,7 +25,7 @@ module XMonad.Layout.PerWorkspace
 import XMonad
 import qualified XMonad.StackSet as W
 
-import Data.Maybe (fromMaybe)
+import XMonad.Prelude (fromMaybe)
 
 -- $usage
 -- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:

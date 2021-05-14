@@ -31,7 +31,7 @@ import XMonad
 import XMonad.Config.Desktop
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.Ungrab
-import Data.Char (toUpper)
+import XMonad.Prelude (toUpper)
 
 import qualified Data.Map as M
 

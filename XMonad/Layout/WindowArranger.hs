@@ -26,12 +26,11 @@ module XMonad.Layout.WindowArranger
     ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as S
 import XMonad.Layout.LayoutModifier
-import XMonad.Util.XUtils (fi)
 
-import Control.Arrow
-import Data.List
+import Control.Arrow ((***), (>>>), (&&&), first)
 
 -- $usage
 -- You can use this module with the following in your

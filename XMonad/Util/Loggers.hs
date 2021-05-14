@@ -55,8 +55,7 @@ import XMonad.Util.Font (Align (..))
 import XMonad.Util.NamedWindows (getName)
 
 import Control.Exception as E
-import Data.List (find, isPrefixOf, isSuffixOf)
-import Data.Maybe (fromMaybe)
+import XMonad.Prelude (find, fromMaybe, isPrefixOf, isSuffixOf)
 import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
 import System.Directory (getDirectoryContents)
 import System.IO (hGetLine)

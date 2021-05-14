@@ -25,11 +25,10 @@ module XMonad.Layout.ThreeColumns (
                              ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
 import Data.Ratio
-
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

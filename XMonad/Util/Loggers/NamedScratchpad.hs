@@ -28,9 +28,7 @@ import Graphics.X11.Xlib.Extras (Event(..))
 import XMonad.Util.Loggers (Logger)
 import XMonad.Util.NamedScratchpad (NamedScratchpad(..))
 import qualified XMonad.Util.ExtensibleState as XS
-import Data.Monoid (All(..))
-import Data.Char (chr)
-import Control.Monad (forM, foldM)
+import XMonad.Prelude (All (..), chr, foldM, forM)
 import qualified Data.IntMap as M
 import qualified XMonad.StackSet as W (allWindows)
 

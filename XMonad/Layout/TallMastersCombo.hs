@@ -1,9 +1,9 @@
 -- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE PatternGuards,
-    FlexibleContexts, 
-    FlexibleInstances, 
-    DeriveDataTypeable, 
-    TypeSynonymInstances, 
+    FlexibleContexts,
+    FlexibleInstances,
+    DeriveDataTypeable,
+    TypeSynonymInstances,
     MultiParamTypeClasses
 #-}
 ---------------------------------------------------------------------------
@@ -16,11 +16,11 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- A layout combinator that support Shrink, Expand, and IncMasterN just as the 
--- 'Tall' layout, and also support operations of two master windows: 
+-- A layout combinator that support Shrink, Expand, and IncMasterN just as the
+-- 'Tall' layout, and also support operations of two master windows:
 -- a main master, which is the original master window;
 -- a sub master, the first window of the second pane.
--- This combinator can be nested, and has a good support for using 
+-- This combinator can be nested, and has a good support for using
 -- 'XMonad.Layout.Tabbed' as a sublayout.
 --
 -----------------------------------------------------------------------------
@@ -47,11 +47,9 @@ module XMonad.Layout.TallMastersCombo (
 ) where
 
 import XMonad hiding (focus, (|||))
+import XMonad.Prelude (delete, find, foldM, isJust)
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
-import Data.Maybe (isJust)
-import Data.List (delete,find)
-import Control.Monad (foldM)
 import qualified XMonad.Layout as LL
 import XMonad.Layout.Simplest (Simplest(..))
 import XMonad.Layout.Decoration
@@ -71,7 +69,7 @@ import XMonad.Layout.Decoration
 --
 -- > tmsCombineTwoDefault (Tall 0 (3/100) 0) simpleTabbed
 --
--- This will make the 'Tall' layout as the master pane, and 'simpleTabbed' layout as the second pane. 
+-- This will make the 'Tall' layout as the master pane, and 'simpleTabbed' layout as the second pane.
 -- You can shrink, expand, and increase more windows to the master pane just like using the
 -- 'Tall' layout.
 --
@@ -81,7 +79,7 @@ import XMonad.Layout.Decoration
 -- >      , ((modm .|. shiftMask, m),         sendMessage $ FocusSubMaster)
 -- >      , ((modm .|. shiftMask, xK_Return), sendMessage $ SwapSubMaster)
 --
--- In each pane, you can use multiple layouts with the '(|||)' combinator provided by this module, 
+-- In each pane, you can use multiple layouts with the '(|||)' combinator provided by this module,
 -- and switch between them with the 'FocusedNextLayout' message. Below is one example
 --
 -- > layout1 = Simplest ||| Tabbed
@@ -91,14 +89,14 @@ import XMonad.Layout.Decoration
 -- then add the following key binding,
 --
 -- >      , ((modm, w), sendMessage $ FocusedNextLayout)
--- 
+--
 -- Now, pressing this key will toggle the multiple layouts in the currently focused pane.
 --
 -- You can mirror this layout with the default 'Mirror' key binding. But to have a more natural
 -- behaviors, you can use the 'SwitchOrientation' message:
 --
 -- >      , ((modm, xK_space), sendMessage $ SwitchOrientation)
--- 
+--
 -- This will not mirror the tabbed decoration, and will keep sub-layouts that made by TallMastersCombo
 -- and RowsOrColumns display in natural orientations.
 --
@@ -106,7 +104,7 @@ import XMonad.Layout.Decoration
 --
 -- > tmsCombineTwo False 1 (3/100) (1/3) Simplest simpleTabbed
 --
--- This creates a vertical merged layout with 1 window in the master pane, and the master pane shrinks 
+-- This creates a vertical merged layout with 1 window in the master pane, and the master pane shrinks
 -- and expands with a step of (3\/100), and occupies (1\/3) of the screen.
 --
 -- Each sub-layout have a focused window. To rotate between the focused windows across all the
@@ -145,7 +143,7 @@ data RowsOrColumns a = RowsOrColumns { rowMode :: Bool -- ^ arrange windows in r
                                      } deriving (Show, Read)
 
 instance LayoutClass RowsOrColumns a where
-  description (RowsOrColumns rows) = 
+  description (RowsOrColumns rows) =
     if rows then "Rows" else "Columns"
 
   pureLayout (RowsOrColumns rows) r s = zip ws rs
@@ -154,14 +152,14 @@ instance LayoutClass RowsOrColumns a where
           rs = if rows
                then splitVertically len r
                else splitHorizontally len r
-    
+
   pureMessage (RowsOrColumns rows) m
     | Just Row <- fromMessage m = Just $ RowsOrColumns True
     | Just Col <- fromMessage m = Just $ RowsOrColumns False
     | otherwise = Nothing
 
 
-data TMSCombineTwo l1 l2 a = 
+data TMSCombineTwo l1 l2 a =
   TMSCombineTwo { focusLst :: [a]
                 , ws1 :: [a]
                 , ws2 :: [a]
@@ -175,14 +173,14 @@ data TMSCombineTwo l1 l2 a =
         deriving (Show, Read)
 
 -- | Combine two layouts l1 l2 with default behaviors.
-tmsCombineTwoDefault :: (LayoutClass l1 Window, LayoutClass l2 Window) => 
+tmsCombineTwoDefault :: (LayoutClass l1 Window, LayoutClass l2 Window) =>
                           l1 Window -> l2 Window -> TMSCombineTwo l1 l2 Window
 tmsCombineTwoDefault = TMSCombineTwo [] [] [] True 1 (3/100) (1/2)
 
 -- | A more flexible way of merging two layouts. User can specify if merge them vertical or horizontal,
 -- the number of windows in the first pane (master pane), the shink and expand increment, and the proportion
 -- occupied by the master pane.
-tmsCombineTwo :: (LayoutClass l1 Window, LayoutClass l2 Window) => 
+tmsCombineTwo :: (LayoutClass l1 Window, LayoutClass l2 Window) =>
                   Bool -> Int -> Rational -> Rational -> l1 Window -> l2 Window -> TMSCombineTwo l1 l2 Window
 tmsCombineTwo = TMSCombineTwo [] [] []
 
@@ -190,9 +188,9 @@ data Orientation = Row | Col deriving (Read, Show, Typeable)
 instance Message Orientation
 
 -- | A message that switches the orientation of TallMasterCombo layout and the RowsOrColumns layout.
--- This is similar to the 'Mirror' message, but 'Mirror' cannot apply to hidden layouts, and when 'Mirror' 
--- applies to the 'XMonad.Layout.Tabbed' decoration, it will also mirror the tabs, which may lead to unintended 
--- visualizations. The 'SwitchOrientation' message refreshes layouts according to the orientation of the parent layout, 
+-- This is similar to the 'Mirror' message, but 'Mirror' cannot apply to hidden layouts, and when 'Mirror'
+-- applies to the 'XMonad.Layout.Tabbed' decoration, it will also mirror the tabs, which may lead to unintended
+-- visualizations. The 'SwitchOrientation' message refreshes layouts according to the orientation of the parent layout,
 -- and will not affect the 'XMonad.Layout.Tabbed' decoration.
 data SwitchOrientation = SwitchOrientation deriving (Read, Show, Typeable)
 instance Message SwitchOrientation
@@ -217,13 +215,13 @@ instance Message ChangeFocus
 instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
   description _ = "TallMasters"
 
-  runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r = 
+  runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r =
       let (s1,s2,frac',slst1,slst2) = splitStack f nmaster frac s
           (r1, r2) = if vsp
                      then splitHorizontallyBy frac' r
                      else splitVerticallyBy frac' r
-      in 
-      do 
+      in
+      do
          (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
          (ws2,ml2) <- runLayout (Workspace wid layout2 s2) r2
          let newlayout1 = maybe layout1 id ml1
@@ -238,18 +236,18 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
     -- messages that only traverse one level
     | Just Shrink <- fromMessage m = return . Just $ TMSCombineTwo f w1 w2 vsp nmaster delta (max 0 $ frac-delta) layout1 layout2
     | Just Expand <- fromMessage m = return . Just $ TMSCombineTwo f w1 w2 vsp nmaster delta (min 1 $ frac+delta) layout1 layout2
-    | Just (IncMasterN d) <- fromMessage m = 
+    | Just (IncMasterN d) <- fromMessage m =
         let w = w1++w2
             nmasterNew = min (max 0 (nmaster+d)) (length w)
             (w1',w2')  = splitAt nmasterNew w
         in return . Just $ TMSCombineTwo f w1' w2' vsp nmasterNew delta frac layout1 layout2
-    | Just SwitchOrientation <- fromMessage m = 
+    | Just SwitchOrientation <- fromMessage m =
             let m1 = if vsp then SomeMessage Col else SomeMessage Row
             in
             do mlayout1 <- handleMessage layout1 m1
                mlayout2 <- handleMessage layout2 m1
                return $ mergeSubLayouts  mlayout1 mlayout2 (TMSCombineTwo f w1 w2 (not vsp) nmaster delta frac layout1 layout2) True
-    | Just SwapSubMaster <- fromMessage m = 
+    | Just SwapSubMaster <- fromMessage m =
         -- first get the submaster window
         let subMaster = if null w2 then Nothing else Just $ head w2
         in case subMaster of
@@ -266,7 +264,7 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
     | Just NextFocus <- fromMessage m =
         do
           -- All toggle message is passed to the sublayout with focused window
-          mst <- gets (W.stack . W.workspace . W.current . windowset) 
+          mst <- gets (W.stack . W.workspace . W.current . windowset)
           let nextw = adjFocus f mst True
           case nextw of Nothing -> return Nothing
                         Just w  -> do windows $ W.modify' $ focusWindow w
@@ -274,7 +272,7 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
     | Just PrevFocus <- fromMessage m =
         do
           -- All toggle message is passed to the sublayout with focused window
-          mst <- gets (W.stack . W.workspace . W.current . windowset) 
+          mst <- gets (W.stack . W.workspace . W.current . windowset)
           let prevw = adjFocus f mst False
           case prevw of Nothing -> return Nothing
                         Just w  -> do windows $ W.modify' $ focusWindow w
@@ -288,14 +286,14 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
         do mlayout1 <- handleMessage layout1 (SomeMessage Row)
            mlayout2 <- handleMessage layout2 (SomeMessage Row)
            return $ mergeSubLayouts mlayout1 mlayout2 (TMSCombineTwo f w1 w2 True nmaster delta frac layout1 layout2) True
-    | Just FocusedNextLayout <- fromMessage m = 
+    | Just FocusedNextLayout <- fromMessage m =
        do
        -- All toggle message is passed to the sublayout with focused window
-         mst <- gets (W.stack . W.workspace . W.current . windowset) 
+         mst <- gets (W.stack . W.workspace . W.current . windowset)
          let focId = findFocused mst w1 w2
              m1 = if vsp then SomeMessage Row else SomeMessage Col
          if focId == 1
-           then do 
+           then do
                  mlay1 <- handleMessages layout1 [(SomeMessage NextLayout), m1]
                  let mlay2 = Nothing
                  return $ mergeSubLayouts mlay1 mlay2 i True
@@ -303,7 +301,7 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
                  let mlay1 = Nothing
                  mlay2 <- handleMessages layout2 [(SomeMessage NextLayout), m1]
                  return $ mergeSubLayouts mlay1 mlay2 i True
-    | otherwise = 
+    | otherwise =
             do
               mlayout1 <- handleMessage layout1 m
               mlayout2 <- handleMessage layout2 m
@@ -324,7 +322,7 @@ differentiate [] xs = W.differentiate xs
 
 -- | Swap a given window with the focused window.
 swapWindow :: (Eq a) => a -> Stack a -> Stack a
-swapWindow w s = 
+swapWindow w s =
   let upLst   = up s
       foc     = focus s
       downLst = down s
@@ -341,12 +339,12 @@ swapWindow w s =
 
 -- | Focus a given window.
 focusWindow :: (Eq a) => a -> Stack a -> Stack a
-focusWindow w s = 
-  if elem w (up s) 
+focusWindow w s =
+  if elem w (up s)
   then focusSubMasterU w s
   else focusSubMasterD w s
   where
-      focusSubMasterU w i@(Stack foc (l:ls) rs) = 
+      focusSubMasterU w i@(Stack foc (l:ls) rs) =
           if foc == w
           then i
           else
@@ -354,7 +352,7 @@ focusWindow w s =
               then news
               else focusSubMasterU w news
               where news = Stack l ls (foc:rs)
-      focusSubMasterU w (Stack foc [] rs) = 
+      focusSubMasterU w (Stack foc [] rs) =
           Stack foc [] rs
       focusSubMasterD w i@(Stack foc ls (r:rs)) =
           if foc == w
@@ -364,7 +362,7 @@ focusWindow w s =
               then news
               else focusSubMasterD w news
               where news = Stack r (foc:ls) rs
-      focusSubMasterD w (Stack foc ls []) = 
+      focusSubMasterD w (Stack foc ls []) =
           Stack foc ls []
 
 -- | Merge two Maybe sublayouts.
@@ -392,7 +390,7 @@ handleMessages :: (LayoutClass l a) => l a -> [SomeMessage] -> X (Maybe (l a))
 handleMessages l ms = foldM  handleMaybeMsg (Just l) ms
 
 handleMaybeMsg :: (LayoutClass l a) => Maybe (l a) -> SomeMessage -> X (Maybe (l a))
-handleMaybeMsg ml m = case ml of Just l  -> do 
+handleMaybeMsg ml m = case ml of Just l  -> do
                                               res <- handleMessage l m
                                               return $ elseOr (Just l) res
                                  Nothing -> return Nothing
@@ -418,7 +416,7 @@ type Next = Bool
 adjFocus :: (Eq a) => [a] -> Maybe (Stack a) -> Next -> Maybe a
 adjFocus ws ms next =
   case ms of Nothing -> Nothing
-             Just s  -> let searchLst = 
+             Just s  -> let searchLst =
                               case next of True  -> (down s) ++ (reverse (up s))
                                            False -> (up s) ++ (reverse (down s))
                         in  find (flip elem ws) searchLst
@@ -445,16 +443,16 @@ handle l m = handleMessage l (SomeMessage m)
 instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a where
   description (ChooseWrapper d l r lr) = description lr
 
-  runLayout (Workspace wid (ChooseWrapper d l r lr) s) rec = 
-    do 
+  runLayout (Workspace wid (ChooseWrapper d l r lr) s) rec =
+    do
       let (l', r') = case d of L -> (savFocused l s, r)
                                R -> (l, savFocused r s)
       (ws, ml0) <- runLayout (Workspace wid lr s) rec
       let l1 = case ml0 of Just l0 -> Just $ ChooseWrapper d l' r' l0
                            Nothing -> Nothing
       return $ (ws,l1)
-    
-  handleMessage c@(ChooseWrapper d l r lr) m 
+
+  handleMessage c@(ChooseWrapper d l r lr) m
     | Just NextLayout <- fromMessage m = do
         mlr' <- handleMessage lr m
         mlrf <- handle c NextNoWrap
@@ -466,11 +464,11 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
                      Nothing  -> return Nothing
     | Just NextNoWrap <- fromMessage m = do
         mlr' <- handleMessage lr m
-        (d',l',r', end) <- 
-              case d of 
+        (d',l',r', end) <-
+              case d of
                 L -> do
                        ml <- handle l NextNoWrap
-                       case ml of 
+                       case ml of
                            Just l0 -> return (L,l0,r,0)
                            Nothing -> do
                                   mr <- handle r FirstLayout
@@ -483,7 +481,7 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
                          Just r0 -> return (R,l,r0,0)
                          Nothing -> return (d,l,r,1)
         case mlr' of Just lrt -> return $ Just $ ChooseWrapper d' l' r' lrt
-                     Nothing  -> 
+                     Nothing  ->
                         case end of 0 -> return $ Just $ ChooseWrapper d' l' r' lr
                                     1 -> return Nothing
     | Just FirstLayout <- fromMessage m = do
@@ -520,14 +518,14 @@ instance (GetFocused l Window, GetFocused r Window) => GetFocused (TMSCombineTwo
         (f2, str2) = getFocused lay2 s2
     in  (f1 ++ f2, "TMS: " ++ show f ++ "::" ++ str1 ++ "--" ++ str2)
   savFocused i@(TMSCombineTwo f _ _ _ nmaster _ frac lay1 lay2) s =
-    let (s1,s2,_,_,_) = splitStack f nmaster frac s 
+    let (s1,s2,_,_,_) = splitStack f nmaster frac s
         (f', mstr) = getFocused i s
         lay1' = savFocused lay1 s1
         lay2' = savFocused lay2 s2
     in i {focusLst = f', layoutFst=lay1', layoutSnd=lay2'}
-  
+
 instance (GetFocused l a, GetFocused r a) => GetFocused (ChooseWrapper l r) a where
-  getFocused (ChooseWrapper d l r _) s = 
+  getFocused (ChooseWrapper d l r _) s =
     case d of L -> getFocused l s
               R -> getFocused r s
   savFocused (ChooseWrapper d l r lr) s =
@@ -541,4 +539,3 @@ instance (Typeable a) => GetFocused RowsOrColumns a
 instance (Typeable a) => GetFocused Full a
 instance (Typeable a) => GetFocused Tall a
 instance (Typeable l, Typeable a, Typeable m, LayoutModifier m a, LayoutClass l a) => GetFocused (ModifiedLayout m l) a
-

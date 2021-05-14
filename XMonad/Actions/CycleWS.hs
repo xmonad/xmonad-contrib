@@ -78,9 +78,7 @@ module XMonad.Actions.CycleWS (
 
                              ) where
 
-import Data.List ( find, findIndex )
-import Data.Maybe ( isNothing, isJust )
-
+import XMonad.Prelude (find, findIndex, isJust, isNothing)
 import XMonad hiding (workspaces)
 import qualified XMonad.Hooks.WorkspaceHistory as WH
 import XMonad.StackSet hiding (filter)

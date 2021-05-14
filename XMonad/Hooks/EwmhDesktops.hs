@@ -33,18 +33,14 @@ module XMonad.Hooks.EwmhDesktops (
 
 import Codec.Binary.UTF8.String (encode)
 import Data.Bits
-import Data.List
-import Data.Maybe
-import Data.Monoid
 import qualified Data.Map.Strict as M
 
 import XMonad
-import Control.Monad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
 import qualified XMonad.Util.ExtensibleState as E
-import XMonad.Util.XUtils (fi)
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
 import qualified XMonad.Util.ExtensibleState as XS

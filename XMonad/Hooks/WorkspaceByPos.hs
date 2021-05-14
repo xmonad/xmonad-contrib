@@ -21,11 +21,10 @@ module XMonad.Hooks.WorkspaceByPos (
     ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
-import XMonad.Util.XUtils (fi)
 
-import Data.Maybe
-import Control.Monad.Error ((<=<),guard,lift,runErrorT,throwError)
+import Control.Monad.Except (lift, runExceptT, throwError)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -43,7 +42,7 @@ needsMoving :: Window -> X (Maybe WorkspaceId)
 needsMoving w = withDisplay $ \d -> do
     -- only relocate windows with non-zero position
     wa <- io $ getWindowAttributes d w
-    fmap (const Nothing `either` Just) . runErrorT $ do
+    fmap (const Nothing `either` Just) . runExceptT $ do
         guard $ wa_x wa /= 0 || wa_y wa /= 0
         ws <- gets windowset
         sc <- lift $ fromMaybe (W.current ws)

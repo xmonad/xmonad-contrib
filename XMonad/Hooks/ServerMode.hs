@@ -26,12 +26,10 @@ module XMonad.Hooks.ServerMode
     , serverModeEventHookF
     ) where
 
-import Control.Monad (when)
-import Data.Maybe
-import Data.Monoid
 import System.IO
 
 import XMonad
+import XMonad.Prelude
 import XMonad.Actions.Commands
 
 -- $usage
@@ -47,7 +45,7 @@ import XMonad.Actions.Commands
 -- in stderr (so that you can read it in @~\/.xsession-errors@). Uses "XMonad.Actions.Commands#defaultCommands" as the default.
 --
 -- > main = xmonad def { handleEventHook = serverModeEventHook }
--- 
+--
 -- > xmonadctl 0 # tells xmonad to output command list
 -- > xmonadctl 1 # tells xmonad to switch to workspace 1
 --

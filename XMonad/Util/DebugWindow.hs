@@ -8,7 +8,7 @@
 -- Stability   :  unstable
 -- Portability :  not portable
 --
--- Module to dump window information for diagnostic/debugging purposes. See 
+-- Module to dump window information for diagnostic/debugging purposes. See
 -- "XMonad.Hooks.DebugEvents" and "XMonad.Hooks.DebugStack" for practical uses.
 --
 -----------------------------------------------------------------------------
@@ -18,13 +18,10 @@ module XMonad.Util.DebugWindow (debugWindow) where
 import           Prelude
 
 import           XMonad
+import           XMonad.Prelude
 
 import           Codec.Binary.UTF8.String        (decodeString)
 import           Control.Exception                                     as E
-import           Control.Monad                   (when)
-import           Data.List                       (unfoldr
-                                                 ,intercalate
-                                                 )
 import           Foreign
 import           Foreign.C.String
 import           Numeric                         (showHex)
@@ -96,7 +93,7 @@ debugWindow w =  do
                       ,show x
                       ,',':show y
                       ,if null c then "" else ' ':c
-                      ,if null cmd then "" else ' ':cmd 
+                      ,if null cmd then "" else ' ':cmd
                       ,rb
                       ]
 

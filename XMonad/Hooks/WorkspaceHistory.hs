@@ -34,7 +34,7 @@ import           Prelude
 
 import XMonad
 import XMonad.StackSet hiding (delete, filter, new)
-import Data.List (delete, find, foldl', groupBy, nub, sortBy)
+import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy)
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage

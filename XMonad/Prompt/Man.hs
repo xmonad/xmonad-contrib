@@ -25,6 +25,7 @@ module XMonad.Prompt.Man (
 
 
 import XMonad
+import XMonad.Prelude
 import XMonad.Prompt
 import XMonad.Util.Run
 import XMonad.Prompt.Shell (split)
@@ -34,9 +35,6 @@ import System.Process
 import System.IO
 
 import qualified Control.Exception as E
-import Control.Monad
-import Data.List
-import Data.Maybe
 
 -- $usage
 -- 1. In your @~\/.xmonad\/xmonad.hs@:

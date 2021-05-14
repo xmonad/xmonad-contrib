@@ -53,7 +53,6 @@ module XMonad.Hooks.StatusBar (
   ) where
 
 import Control.Exception (SomeException, try)
-import Control.Monad (void)
 import qualified Codec.Binary.UTF8.String as UTF8 (encode)
 import System.Posix.Signals (sigTERM, signalProcessGroup)
 import System.Posix.Types (ProcessID)
@@ -63,6 +62,7 @@ import qualified Data.Map        as M
 import Foreign.C (CChar)
 
 import XMonad
+import XMonad.Prelude (void)
 
 import XMonad.Util.Run
 import qualified XMonad.Util.ExtensibleState as XS

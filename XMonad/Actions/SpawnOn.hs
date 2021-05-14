@@ -29,15 +29,13 @@ module XMonad.Actions.SpawnOn (
 ) where
 
 import Control.Exception (tryJust)
-import Control.Monad (guard)
-import Data.List (isInfixOf)
-import Data.Maybe (isJust)
 import System.IO.Error (isDoesNotExistError)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Posix.Types (ProcessID)
 import Text.Printf (printf)
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.ManageHelpers

@@ -23,11 +23,10 @@ module XMonad.Actions.ShowText
     , ShowTextConfig(..)
     ) where
 
-import Control.Monad (when)
 import Data.Map (Map,empty,insert,lookup)
-import Data.Monoid (All)
 import Prelude hiding (lookup)
 import XMonad
+import XMonad.Prelude (All, fi, when)
 import XMonad.StackSet (current,screen)
 import XMonad.Util.Font (Align(AlignCenter)
                        , initXMF
@@ -37,7 +36,6 @@ import XMonad.Util.Font (Align(AlignCenter)
 import XMonad.Util.Timer (startTimer)
 import XMonad.Util.XUtils (createNewWindow
                          , deleteWindow
-                         , fi
                          , showWindow
                          , paintAndWrite)
 import qualified XMonad.Util.ExtensibleState as ES

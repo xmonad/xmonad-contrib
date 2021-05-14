@@ -46,13 +46,12 @@ module XMonad.Layout.Magnifier
       Magnifier,
     ) where
 
-import Data.Bool (bool)
 import Numeric.Natural (Natural)
 
 import XMonad
+import XMonad.Prelude (bool, fi)
 import XMonad.Layout.LayoutModifier
 import XMonad.StackSet
-import XMonad.Util.XUtils
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

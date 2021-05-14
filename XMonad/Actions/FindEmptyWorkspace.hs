@@ -18,9 +18,7 @@ module XMonad.Actions.FindEmptyWorkspace (
     viewEmptyWorkspace, tagToEmptyWorkspace, sendToEmptyWorkspace
   ) where
 
-import Data.List
-import Data.Maybe ( isNothing )
-
+import XMonad.Prelude
 import XMonad
 import XMonad.StackSet
 

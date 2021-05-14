@@ -52,7 +52,7 @@ module XMonad.Layout.LayoutCombinators
     , NewSelect
     ) where
 
-import Data.Maybe ( isJust, isNothing )
+import XMonad.Prelude ( isJust, isNothing )
 
 import XMonad hiding ((|||))
 import XMonad.StackSet (Workspace (..))

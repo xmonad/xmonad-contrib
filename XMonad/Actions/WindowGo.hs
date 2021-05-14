@@ -36,10 +36,8 @@ module XMonad.Actions.WindowGo (
                  module XMonad.ManageHook
                 ) where
 
-import Control.Monad
-import Data.Char (toLower)
 import qualified Data.List as L (nub,sortBy)
-import Data.Monoid
+import XMonad.Prelude
 import XMonad (Query(), X(), ManageHook, WindowSet, withWindowSet, runQuery, liftIO, ask)
 import Graphics.X11 (Window)
 import XMonad.ManageHook

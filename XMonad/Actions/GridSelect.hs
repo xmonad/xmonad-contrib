@@ -78,15 +78,14 @@ module XMonad.Actions.GridSelect (
     -- * Types
     TwoDState,
     ) where
-import Data.Maybe
+import Control.Arrow ((***))
 import Data.Bits
-import Data.Char
 import Data.Ord (comparing)
 import Control.Monad.State
-import Control.Arrow
 import Data.List as L
 import qualified Data.Map as M
 import XMonad hiding (liftX)
+import XMonad.Prelude
 import XMonad.Util.Font
 import XMonad.Prompt (mkUnmanagedWindow)
 import XMonad.StackSet as W

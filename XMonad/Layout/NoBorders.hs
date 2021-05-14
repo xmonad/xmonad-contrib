@@ -34,15 +34,12 @@ module XMonad.Layout.NoBorders ( -- * Usage
                                ) where
 
 import           XMonad
+import           XMonad.Prelude
 import           XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet                as W
 import qualified XMonad.Util.Rectangle          as R
 
-import           Data.List                      hiding (singleton)
-import           Data.Monoid
 import qualified Data.Map                       as M
-import           Data.Function                  (on)
-import           Control.Monad                  (guard)
 
 
 -- $usage

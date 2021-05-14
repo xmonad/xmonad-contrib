@@ -32,12 +32,12 @@ module XMonad.Layout.MultiToggle (
 ) where
 
 import XMonad
+import XMonad.Prelude hiding (find)
 
 import XMonad.StackSet (Workspace(..))
 
 import Control.Arrow
 import Data.Typeable
-import Data.Maybe
 
 -- $usage
 -- The basic idea is to have a base layout and a set of layout transformers,

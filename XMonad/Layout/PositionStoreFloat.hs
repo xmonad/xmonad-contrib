@@ -29,9 +29,7 @@ import XMonad
 import XMonad.Util.PositionStore
 import qualified XMonad.StackSet as S
 import XMonad.Layout.WindowArranger
-import Control.Monad(when)
-import Data.Maybe(isJust)
-import Data.List(nub)
+import XMonad.Prelude (isJust, nub, when)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

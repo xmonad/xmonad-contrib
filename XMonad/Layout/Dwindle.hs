@@ -27,7 +27,7 @@ module XMonad.Layout.Dwindle ( -- * Usage
                              , Chirality(..)
                              ) where
 
-import Data.List ( unfoldr )
+import XMonad.Prelude ( unfoldr )
 import XMonad
 import XMonad.StackSet ( integrate, Stack )
 import XMonad.Util.Types ( Direction2D(..) )

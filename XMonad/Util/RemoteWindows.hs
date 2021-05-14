@@ -38,8 +38,7 @@ module XMonad.Util.RemoteWindows
 
 import XMonad
 import XMonad.Util.WindowProperties
-import Data.Maybe
-import Control.Monad
+import XMonad.Prelude
 import System.Posix.Env
 
 -- $usage

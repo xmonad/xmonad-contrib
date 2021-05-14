@@ -23,8 +23,8 @@ module XMonad.Util.XSelection (  -- * Usage
                                  transformSafePromptSelection) where
 
 import Control.Exception as E (catch,SomeException(..))
-import Data.Maybe (fromMaybe)
 import XMonad
+import XMonad.Prelude (fromMaybe)
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
 import Codec.Binary.UTF8.String (decode)

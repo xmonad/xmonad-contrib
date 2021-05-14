@@ -22,9 +22,8 @@ module XMonad.Layout.Combo (
                             CombineTwo
                            ) where
 
-import Data.List ( delete, intersect, (\\) )
-import Data.Maybe ( isJust )
 import XMonad hiding (focus)
+import XMonad.Prelude (delete, intersect, isJust, (\\))
 import XMonad.StackSet ( integrate', Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )

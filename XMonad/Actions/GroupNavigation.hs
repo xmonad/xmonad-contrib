@@ -35,15 +35,17 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
 
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.Foldable as Fold
-import Data.Map as Map
-import Data.Sequence as Seq
-import Data.Set as Set
+import Data.Map ((!))
+import qualified Data.Map as Map
+import Data.Sequence (Seq, ViewL (EmptyL, (:<)), viewl, (<|), (><), (|>))
+import qualified Data.Sequence as Seq
+import qualified Data.Set as Set
 import Graphics.X11.Types
 import Prelude hiding (concatMap, drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
 import XMonad.Operations (windows, withFocused)
+import XMonad.Prelude (elem, foldl')
 import qualified XMonad.StackSet as SS
 import qualified XMonad.Util.ExtensibleState as XS
 
@@ -132,7 +134,7 @@ orderedWindowList dir     = withWindowSet $ \ss -> do
   wsids <- asks (Seq.fromList . workspaces . config)
   let wspcs = orderedWorkspaceList ss wsids
       wins  = dirfun dir
-              $ Fold.foldl' (><) Seq.empty
+              $ foldl' (><) Seq.empty
               $ fmap (Seq.fromList . SS.integrate' . SS.stack) wspcs
       cur   = SS.peek ss
   return $ maybe wins (rotfun wins) cur
@@ -146,7 +148,7 @@ orderedWorkspaceList :: WindowSet -> Seq String -> Seq WindowSpace
 orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
     where
       wspcs      = SS.workspaces ss
-      wspcsMap   = Fold.foldl' (\m ws -> Map.insert (SS.tag ws) ws m) Map.empty wspcs
+      wspcsMap   = foldl' (\m ws -> Map.insert (SS.tag ws) ws m) Map.empty wspcs
       wspcs'     = fmap (wspcsMap !) wsids
       isCurWS ws = SS.tag ws == SS.tag (SS.workspace $ SS.current ss)
 
@@ -172,26 +174,11 @@ updateHistory :: HistoryDB -> X HistoryDB
 updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
   let newcur   = SS.peek ss
       wins     = Set.fromList $ SS.allWindows ss
-      newhist  = flt (`Set.member` wins) (ins oldcur oldhist)
+      newhist  = Seq.filter (`Set.member` wins) (ins oldcur oldhist)
   return $ HistoryDB newcur (del newcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
-    del x xs = maybe xs (\x' -> flt (/= x') xs) x
-
---- Two replacements for Seq.filter and Seq.breakl available only in
---- containers-0.3.0.0, which only ships with ghc 6.12.  Once we
---- decide to no longer support ghc < 6.12, these should be replaced
---- with Seq.filter and Seq.breakl.
-
-flt :: (a -> Bool) -> Seq a -> Seq a
-flt p = Fold.foldl (\xs x -> if p x then xs |> x else xs) Seq.empty
-
-brkl :: (a -> Bool) -> Seq a -> (Seq a, Seq a)
-brkl p xs = flip Seq.splitAt xs
-            $ snd
-            $ Fold.foldr (\x (i, j) -> if p x then (i-1, i-1) else (i-1, j)) (l, l) xs
-  where
-    l = Seq.length xs
+    del x xs = maybe xs (\x' -> Seq.filter (/= x') xs) x
 
 --- Some sequence helpers --------------------------------------------
 
@@ -205,7 +192,7 @@ rotate xs = rotate' (viewl xs)
 -- Rotates the sequence until an element matching the given condition
 -- is at the beginning of the sequence.
 rotateTo :: (a -> Bool) -> Seq a -> Seq a
-rotateTo cond xs = let (lxs, rxs) = brkl cond xs in rxs >< lxs
+rotateTo cond xs = let (lxs, rxs) = Seq.breakl cond xs in rxs >< lxs
 
 --- A monadic find ---------------------------------------------------
 
@@ -239,4 +226,3 @@ isOnAnyVisibleWS = do
       visibleWs = w `elem` allVisible
       unfocused = maybe True (w /=) $ SS.peek ws
   return $ visibleWs && unfocused
-

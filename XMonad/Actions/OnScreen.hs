@@ -26,11 +26,8 @@ module XMonad.Actions.OnScreen (
     ) where
 
 import XMonad
+import XMonad.Prelude (fromMaybe, guard)
 import XMonad.StackSet hiding (new)
-
-import Control.Monad (guard)
--- import Control.Monad.State.Class (gets)
-import Data.Maybe (fromMaybe)
 
 
 -- | Focus data definitions

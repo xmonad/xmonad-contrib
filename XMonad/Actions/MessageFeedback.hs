@@ -51,13 +51,11 @@ module XMonad.Actions.MessageFeedback
 
 import XMonad               ( Window )
 import XMonad.Core          ( X(), Message, SomeMessage(..), LayoutClass(..), windowset, catchX, WorkspaceId, Layout, whenJust )
-import XMonad.StackSet      ( Workspace, current, workspace, layout, tag )
 import XMonad.Operations    ( updateLayout, windowBracket, modifyWindowSet )
+import XMonad.Prelude       ( isJust, liftA2, void )
+import XMonad.StackSet      ( Workspace, current, workspace, layout, tag )
 
-import Data.Maybe           ( isJust )
-import Control.Monad        ( void )
 import Control.Monad.State  ( gets )
-import Control.Applicative  ( liftA2 )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

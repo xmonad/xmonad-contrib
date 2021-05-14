@@ -45,16 +45,13 @@ module XMonad.Hooks.RefocusLast (
 ) where
 
 import XMonad
+import XMonad.Prelude (All (..), asum, fromMaybe, when)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Stack (findS, mapZ_)
 import XMonad.Layout.LayoutModifier
 
-import Data.Maybe (fromMaybe)
-import Data.Monoid (All(..))
-import Data.Foldable (asum)
 import qualified Data.Map.Strict as M
-import Control.Monad (when)
 
 -- }}}
 
@@ -292,4 +289,3 @@ withRecents :: (Window -> Window -> X ()) -> X ()
 withRecents f = withWindowSet $ \ws -> withRecentsIn (W.currentTag ws) () f
 
 -- }}}
-

@@ -51,11 +51,8 @@ import XMonad.Layout.WindowNavigation(Navigate(Apply))
 import XMonad.Util.Invisible(Invisible(..))
 import XMonad.Util.Types(Direction2D(..))
 import XMonad hiding (def)
+import XMonad.Prelude
 import Control.Arrow(Arrow(second, (&&&)))
-import Control.Monad((<=<), MonadPlus(mplus), foldM, guard, when, join)
-import Data.Function(on)
-import Data.List(nubBy)
-import Data.Maybe(isNothing, fromMaybe, listToMaybe, mapMaybe)
 
 import qualified XMonad as X
 import qualified XMonad.Layout.BoringWindows as B

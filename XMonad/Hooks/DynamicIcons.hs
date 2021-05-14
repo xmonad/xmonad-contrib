@@ -33,9 +33,7 @@ import qualified XMonad.StackSet as S
 import qualified Data.Map as M
 
 import XMonad.Hooks.DynamicLog
-import Data.Functor ((<&>))
-import Data.Traversable (for)
-import Control.Monad ((<=<), (>=>))
+import XMonad.Prelude (for, (<&>), (<=<), (>=>))
 
 -- $usage
 -- Dynamically augment Workspace's 'WorkspaceId' as shown on a status bar

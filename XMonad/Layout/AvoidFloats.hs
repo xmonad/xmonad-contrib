@@ -26,11 +26,10 @@ module XMonad.Layout.AvoidFloats (
 
 import XMonad
 import XMonad.Layout.LayoutModifier
+import XMonad.Prelude (fi, maximumBy, maybeToList, sortBy)
 import qualified XMonad.StackSet as W
 
-import Data.List
 import Data.Ord
-import Data.Maybe
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -116,7 +115,7 @@ instance LayoutModifier AvoidFloats Window where
             toRect :: WindowAttributes -> Rectangle
             toRect wa = let b = fi $ wa_border_width wa
                         in Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa + 2*b) (fi $ wa_height wa + 2*b)
-            
+
             bigEnough :: Rectangle -> Bool
             bigEnough rect = rect_width rect >= fi (minw lm) && rect_height rect >= fi (minh lm)
 
@@ -217,9 +216,6 @@ findGaps br rs = let (gaps,end) = foldr findGaps' ([], left br) $ sortBy (flip $
 
         inBounds :: Rectangle -> Bool
         inBounds r = left r < right br && left br < right r
-
-fi :: (Integral a, Num b) => a -> b
-fi x = fromIntegral x
 
 (?:) :: Maybe a -> [a] -> [a]
 Just x ?: xs = x:xs

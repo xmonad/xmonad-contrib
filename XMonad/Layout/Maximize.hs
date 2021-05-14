@@ -27,7 +27,7 @@ module XMonad.Layout.Maximize (
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.LayoutModifier
-import Data.List ( partition )
+import XMonad.Prelude ( partition )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

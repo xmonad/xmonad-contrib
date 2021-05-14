@@ -32,7 +32,7 @@ module XMonad.Prompt.Window
     windowPromptBringCopy,
     ) where
 
-import Control.Monad (forM)
+import XMonad.Prelude (forM)
 import qualified Data.Map as M
 
 import qualified XMonad.StackSet as W

@@ -54,15 +54,12 @@ module XMonad.Layout.Groups ( -- * Usage
                             ) where
 
 import XMonad
+import XMonad.Prelude hiding (group)
 import qualified XMonad.StackSet as W
 
 import XMonad.Util.Stack
 
-import Data.Maybe (isJust, isNothing, fromMaybe, catMaybes, fromJust)
-import Data.List ((\\))
 import Control.Arrow ((>>>))
-import Control.Applicative ((<|>))
-import Control.Monad (forM,void)
 
 -- $usage
 -- This module provides a layout combinator that allows you

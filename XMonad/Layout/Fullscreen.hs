@@ -32,6 +32,7 @@ module XMonad.Layout.Fullscreen
     ) where
 
 import           XMonad
+import           XMonad.Prelude
 import           XMonad.Layout.LayoutModifier
 import           XMonad.Layout.NoBorders        (SmartBorder, smartBorders)
 import           XMonad.Hooks.EwmhDesktops      (fullscreenStartup)
@@ -40,11 +41,7 @@ import           XMonad.Util.WindowProperties
 import qualified XMonad.Util.Rectangle          as R
 import qualified XMonad.StackSet                as W
 
-import           Data.List
-import           Data.Maybe
-import           Data.Monoid
 import qualified Data.Map                       as M
-import           Control.Monad
 import           Control.Arrow                  (second)
 
 -- $usage

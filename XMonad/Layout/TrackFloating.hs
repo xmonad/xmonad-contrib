@@ -33,9 +33,7 @@ module XMonad.Layout.TrackFloating
      UseTransientFor,
     ) where
 
-import Control.Applicative ((<|>))
-import Control.Monad
-
+import XMonad.Prelude
 import XMonad
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Stack (findZ)

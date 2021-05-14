@@ -32,9 +32,8 @@ module XMonad.Actions.Prefix
        ) where
 
 import qualified Data.Map as M
-import Data.Maybe
-import Control.Monad (liftM2)
 
+import XMonad.Prelude
 import XMonad
 import XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Paste (sendKey)

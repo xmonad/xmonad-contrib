@@ -24,6 +24,7 @@ module XMonad.Actions.Sift (
   ) where
 
 import XMonad.StackSet (Stack (Stack), StackSet, modify')
+import XMonad.Util.Stack (reverseS)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -44,7 +45,7 @@ import XMonad.StackSet (Stack (Stack), StackSet, modify')
 --
 siftUp, siftDown :: StackSet i l a s sd -> StackSet i l a s sd
 siftUp   = modify' siftUp'
-siftDown = modify' (reverseStack . siftUp' . reverseStack)
+siftDown = modify' (reverseS . siftUp' . reverseS)
 
 siftUp' :: Stack a -> Stack a
 siftUp' (Stack t (l:ls) rs) = Stack t ls (l:rs)
@@ -52,6 +53,3 @@ siftUp' (Stack t []     rs) =
   case reverse rs of
     (x:xs) -> Stack t (xs ++ [x]) []
     []     -> Stack t []          []
-
-reverseStack :: Stack a -> Stack a
-reverseStack (Stack t ls rs) = Stack t rs ls

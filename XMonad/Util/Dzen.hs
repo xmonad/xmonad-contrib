@@ -42,7 +42,7 @@ module XMonad.Util.Dzen (
     (>=>),
   ) where
 
-import Control.Monad
+import XMonad.Prelude
 import XMonad
 import XMonad.StackSet
 import XMonad.Util.Run (runProcessWithInputAndWait, seconds)

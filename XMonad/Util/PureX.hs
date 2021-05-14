@@ -52,16 +52,13 @@ module XMonad.Util.PureX (
 
 -- xmonad
 import XMonad
+import XMonad.Prelude (Any (..), liftA2)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Actions.FocusNth
 
 -- mtl
 import Control.Monad.State
 import Control.Monad.Reader
-
--- base
-import Data.Semigroup (Any(..))
-import Control.Applicative (liftA2)
 
 -- }}}
 
@@ -291,4 +288,3 @@ focusNth :: XLike m => Int -> m Any
 focusNth i = focusWith (W.modify' (XMonad.Actions.FocusNth.focusNth' i))
 
 -- }}}
-

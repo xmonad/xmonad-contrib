@@ -22,7 +22,7 @@ module XMonad.Actions.Warp (
                            warpToWindow
                           ) where
 
-import Data.List
+import XMonad.Prelude
 import XMonad
 import XMonad.StackSet as W
 

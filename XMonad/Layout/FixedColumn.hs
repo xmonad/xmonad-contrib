@@ -22,8 +22,6 @@ module XMonad.Layout.FixedColumn (
         FixedColumn(..)
 ) where
 
-import Control.Monad (msum)
-import Data.Maybe (fromMaybe)
 import Graphics.X11.Xlib (Window, rect_width)
 import Graphics.X11.Xlib.Extras ( getWMNormalHints
                                 , getWindowAttributes
@@ -31,6 +29,7 @@ import Graphics.X11.Xlib.Extras ( getWMNormalHints
                                 , sh_resize_inc
                                 , wa_border_width)
 
+import XMonad.Prelude (fromMaybe, msum)
 import XMonad.Core (X, LayoutClass(..), fromMessage, io, withDisplay)
 import XMonad.Layout (Resize(..), IncMasterN(..), tile)
 import XMonad.StackSet as W

@@ -47,6 +47,7 @@ module XMonad.Layout.Stoppable
     ) where
 
 import XMonad
+import XMonad.Prelude
 import XMonad.Actions.WithAll
 import XMonad.Util.WindowProperties
 import XMonad.Util.RemoteWindows
@@ -54,8 +55,6 @@ import XMonad.Util.Timer
 import XMonad.StackSet hiding (filter)
 import XMonad.Layout.LayoutModifier
 import System.Posix.Signals
-import Data.Maybe
-import Control.Monad
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

@@ -22,10 +22,8 @@ module XMonad.Layout.LayoutBuilderP {-# DEPRECATED "Use XMonad.Layout.LayoutBuil
   Predicate (..), Proxy(..),
   ) where
 
-import Control.Monad
-import Data.Maybe (isJust)
-
 import XMonad
+import XMonad.Prelude hiding (Const)
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties
 

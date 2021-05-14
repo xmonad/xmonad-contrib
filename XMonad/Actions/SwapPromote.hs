@@ -57,15 +57,13 @@ module XMonad.Actions.SwapPromote
 
 
 import           XMonad
+import           XMonad.Prelude
 import qualified XMonad.StackSet                as W
 import qualified XMonad.Util.ExtensibleState    as XS
 
 import qualified Data.Map                       as M
 import qualified Data.Set                       as S
-import           Data.List
-import           Data.Maybe
 import           Control.Arrow
-import           Control.Monad
 
 
 -- $usage

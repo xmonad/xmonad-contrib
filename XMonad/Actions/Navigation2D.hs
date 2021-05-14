@@ -57,11 +57,10 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                    , Direction2D(..)
                                    ) where
 
-import Control.Applicative
 import qualified Data.List as L
 import qualified Data.Map as M
-import Data.Maybe
 import Data.Ord (comparing)
+import XMonad.Prelude
 import XMonad hiding (Screen)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
@@ -889,10 +888,6 @@ swap win winset = W.focusWindow cur
 -- | Calculates the center of a rectangle
 centerOf :: Rectangle -> (Position, Position)
 centerOf r = (rect_x r + fi (rect_width r) `div` 2, rect_y r + fi (rect_height r) `div` 2)
-
--- | Shorthand for integer conversions
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
 
 -- | Functions to choose the subset of windows to operate on
 thisLayer, otherLayer :: a -> a -> a

@@ -19,11 +19,9 @@ module XMonad.Hooks.Minimize
       minimizeEventHook
     ) where
 
-import Data.Monoid
-import Control.Monad(when)
-
 import XMonad
 import XMonad.Actions.Minimize
+import XMonad.Prelude
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

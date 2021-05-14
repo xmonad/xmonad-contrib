@@ -29,7 +29,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 
 import XMonad.Actions.UpdatePointer (updatePointer)
-import Data.Monoid(All(..))
+import XMonad.Prelude(All(..))
 import qualified Data.Map as M
 
 -- $usage

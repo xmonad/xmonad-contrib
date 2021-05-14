@@ -15,7 +15,7 @@ module XMonad.Actions.WithAll (
     sinkAll, withAll,
     withAll', killAll) where
 
-import Data.Foldable hiding (foldr)
+import XMonad.Prelude hiding (foldr)
 
 import XMonad
 import XMonad.StackSet

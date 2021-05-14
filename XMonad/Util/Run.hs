@@ -40,7 +40,7 @@ import Control.Concurrent (threadDelay)
 import System.IO
 import System.Process (runInteractiveProcess)
 import XMonad
-import Control.Monad
+import XMonad.Prelude
 
 -- $usage
 -- For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh"

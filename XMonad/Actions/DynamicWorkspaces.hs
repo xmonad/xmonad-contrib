@@ -35,14 +35,12 @@ module XMonad.Actions.DynamicWorkspaces (
                                          WorkspaceIndex
                                        ) where
 
+import XMonad.Prelude (find, isNothing, when)
 import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace ( Wor(Wor), workspacePrompt )
 import XMonad.Prompt ( XPConfig, mkXPrompt )
 import XMonad.Util.WorkspaceCompare ( getSortByIndex )
-import Data.List (find)
-import Data.Maybe (isNothing)
-import Control.Monad (when)
 import qualified Data.Map.Strict as Map
 import qualified XMonad.Util.ExtensibleState as XS
 

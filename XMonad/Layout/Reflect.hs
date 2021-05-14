@@ -24,12 +24,12 @@ module XMonad.Layout.Reflect (
                              ) where
 
 import XMonad.Core
+import XMonad.Prelude (fi)
 import Graphics.X11 (Rectangle(..), Window)
 import Control.Arrow (second)
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.MultiToggle
-import XMonad.Util.XUtils (fi)
 
 -- $usage
 -- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@ file:

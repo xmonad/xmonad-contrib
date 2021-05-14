@@ -18,9 +18,7 @@ module XMonad.Prompt.FuzzyMatch ( -- * Usage
                                 , fuzzySort
                                 ) where
 
-import Data.Char
-import Data.Function
-import Data.List
+import XMonad.Prelude
 
 -- $usage
 --

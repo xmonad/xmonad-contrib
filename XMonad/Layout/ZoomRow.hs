@@ -35,12 +35,11 @@ module XMonad.Layout.ZoomRow ( -- * Usage
                              ) where
 
 import XMonad
+import XMonad.Prelude (fromMaybe, fi)
 import qualified XMonad.StackSet as W
 
 import XMonad.Util.Stack
-import XMonad.Layout.Decoration (fi)
 
-import Data.Maybe (fromMaybe)
 import Control.Arrow (second)
 
 -- $usage

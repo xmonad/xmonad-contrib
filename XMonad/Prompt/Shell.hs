@@ -37,15 +37,13 @@ module XMonad.Prompt.Shell
 
 import           Codec.Binary.UTF8.String (encodeString)
 import           Control.Exception        as E
-import           Control.Monad            (forM)
 import           Data.Bifunctor           (bimap)
-import           Data.Char                (toLower)
-import           Data.List                (isInfixOf, isPrefixOf, sortBy)
 import           System.Directory         (getDirectoryContents)
 import           System.Environment       (getEnv)
 import           System.Posix.Files       (getFileStatus, isDirectory)
 
 import           XMonad                   hiding (config)
+import           XMonad.Prelude
 import           XMonad.Prompt
 import           XMonad.Util.Run
 

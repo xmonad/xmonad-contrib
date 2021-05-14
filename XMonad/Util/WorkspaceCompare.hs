@@ -25,10 +25,8 @@ module XMonad.Util.WorkspaceCompare ( WorkspaceCompare, WorkspaceSort
 
 import XMonad
 import qualified XMonad.StackSet as S
-import Data.List
-import Data.Maybe
+import XMonad.Prelude
 import XMonad.Actions.PhysicalScreens (ScreenComparator(ScreenComparator), getScreenIdAndRectangle, screenComparatorById)
-import Data.Function (on)
 
 type WorkspaceCompare = WorkspaceId -> WorkspaceId -> Ordering
 type WorkspaceSort = [WindowSpace] -> [WindowSpace]

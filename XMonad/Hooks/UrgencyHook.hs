@@ -70,6 +70,7 @@ module XMonad.Hooks.UrgencyHook (
                                  ) where
 
 import XMonad
+import XMonad.Prelude (delete, fromMaybe, listToMaybe, maybeToList, when, (\\))
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.ManageHelpers (windowTag)
@@ -79,10 +80,7 @@ import XMonad.Util.NamedWindows (getName)
 import XMonad.Util.Timer (TimerId, startTimer, handleTimer)
 import XMonad.Util.WindowProperties (getProp32)
 
-import Control.Monad (when)
 import Data.Bits (testBit)
-import Data.List (delete, (\\))
-import Data.Maybe (listToMaybe, maybeToList, fromMaybe)
 import qualified Data.Set as S
 import System.IO (hPutStrLn, stderr)
 import Foreign.C.Types (CLong)

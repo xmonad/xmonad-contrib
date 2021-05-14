@@ -18,8 +18,7 @@ module XMonad.Actions.CycleSelectedLayouts (
     cycleThroughLayouts) where
 
 import XMonad
-import Data.List (findIndex)
-import Data.Maybe (fromMaybe)
+import XMonad.Prelude (findIndex, fromMaybe)
 import XMonad.Layout.LayoutCombinators (JumpToLayout(..))
 import qualified XMonad.StackSet as S
 

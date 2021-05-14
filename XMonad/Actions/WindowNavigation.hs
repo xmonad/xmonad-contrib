@@ -40,15 +40,14 @@ module XMonad.Actions.WindowNavigation (
                                        ) where
 
 import XMonad
+import XMonad.Prelude (catMaybes, fromMaybe, listToMaybe, sortBy)
 import XMonad.Util.Types (Direction2D(..))
 import qualified XMonad.StackSet as W
 
 import Control.Arrow (second)
 import Data.IORef
-import Data.List (sortBy)
 import Data.Map (Map())
 import qualified Data.Map as M
-import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as S
 

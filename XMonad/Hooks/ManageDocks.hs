@@ -39,14 +39,11 @@ import Foreign.C.Types (CLong)
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
-import XMonad.Util.XUtils (fi)
 import qualified XMonad.Util.ExtensibleState as XS
-import Data.Monoid (All(..))
+import XMonad.Prelude (All (..), fi, filterM, foldlM, void, when, (<=<))
 
 import qualified Data.Set as S
 import qualified Data.Map as M
-import Control.Monad (when, filterM, void, (<=<))
-import Data.Foldable (foldlM)
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:

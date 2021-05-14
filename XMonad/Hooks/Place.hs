@@ -34,18 +34,14 @@ module XMonad.Hooks.Place   ( -- * Usage
 
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as S
 
 import XMonad.Layout.WindowArranger
 import XMonad.Actions.FloatKeys
-import XMonad.Util.XUtils
 
 import qualified Data.Map as M
 import Data.Ratio ((%))
-import Data.List (sortBy, minimumBy, partition)
-import Data.Maybe (fromMaybe, catMaybes)
-import Data.Monoid (Endo(..))
-import Control.Monad (guard, join)
 import Control.Monad.Trans (lift)
 
 -- $usage

@@ -19,7 +19,7 @@ module XMonad.Layout.Cross(
 
 import XMonad( Dimension, Rectangle(..), LayoutClass(..), Resize(..), fromMessage )
 import XMonad.StackSet( focus, up, down )
-import Control.Monad( msum )
+import XMonad.Prelude( msum )
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
