@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CycleRecentWS
@@ -137,25 +138,16 @@ cycleWindowSets genOptions mods keyNext keyPrev = do
 -- 'view' away from the old one, restore the workspace order of the
 -- former inside of the latter.  This respects any new state that the
 -- new 'WindowSet' may have accumulated.
-unView :: forall i l a s sd. Eq i
+unView :: forall i l a s sd. (Eq i, Eq s)
        => StackSet i l a s sd -> StackSet i l a s sd -> StackSet i l a s sd
-unView w0 w
-  | currentTag w0 == currentTag w = w
-
-  | v1 : vs <- visible w
-  , currentTag w0 == (tag . workspace) v1
-  = w { current = v1
-      , visible = insertAt (commonPrefixV (visible w0) vs) (current w) vs }
-
-  | h1 : hs <- hidden w
-  , currentTag w0 == tag h1
-  = w { current = (current w){ workspace = h1 }
-      , hidden = insertAt (commonPrefixH (hidden w0) hs) (workspace (current w)) hs }
-
-  | otherwise = w
+unView w0 = fixOrderH . fixOrderV . view (currentTag w0)
  where
-  commonPrefixV = commonPrefix `on` fmap (tag . workspace)
-  commonPrefixH = commonPrefix `on` fmap tag
+  fixOrderV w | v : vs <- visible w = w{ visible = insertAt (pfxV (visible w0) vs) v vs }
+              | otherwise = w
+  fixOrderH w | h : hs <- hidden w = w{ hidden = insertAt (pfxH (hidden w0) hs) h hs }
+              | otherwise = w
+  pfxV = commonPrefix `on` fmap (tag . workspace)
+  pfxH = commonPrefix `on` fmap tag
 
   insertAt :: Int -> x -> [x] -> [x]
   insertAt n x xs = let (l, r) = splitAt n xs in l ++ [x] ++ r
