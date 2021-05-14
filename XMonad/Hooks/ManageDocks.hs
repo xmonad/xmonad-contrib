@@ -142,7 +142,8 @@ manageDocks = checkDock --> (doIgnore <+> doRequestDockEvents)
 -- (Only if not already a client to avoid overriding 'clientMask')
 requestDockEvents :: Window -> X ()
 requestDockEvents w = whenX (not <$> isClient w) $ withDisplay $ \dpy ->
-    io $ selectInput dpy w (propertyChangeMask .|. structureNotifyMask)
+    withWindowAttributes dpy w $ \attrs -> io $ selectInput dpy w $
+        wa_your_event_mask attrs .|. propertyChangeMask .|. structureNotifyMask
 
 -- | Checks if a window is a DOCK or DESKTOP window
 checkDock :: Query Bool
