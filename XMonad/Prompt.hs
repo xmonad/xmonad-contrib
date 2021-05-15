@@ -558,7 +558,7 @@ mkXPromptImplementation historyKey conf om = do
   fs <- initXMF (font conf)
   st' <- io $
     bracket
-      (createWin d rw conf s)
+      (createPromptWin d rw conf s)
       (destroyWindow d)
       (\w ->
         bracket
@@ -1395,8 +1395,8 @@ redrawWindows c = do
     l  -> redrawComplWin l
   io $ sync d False
 
-createWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
-createWin d rw c s = do
+createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
+createPromptWin d rw c s = do
   let (x,y) = case position c of
                 Top -> (0,0)
                 Bottom -> (0, rect_height s - height c)
@@ -1406,6 +1406,7 @@ createWin d rw c s = do
                 _              -> rect_width s
   w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw
                       (rect_x s + x) (rect_y s + fi y) width (height c)
+  setClassHint d w (ClassHint "xmonad-prompt" "xmonad")
   mapWindow d w
   return w
 
