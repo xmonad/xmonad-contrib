@@ -3,6 +3,7 @@ module Main where
 import Test.Hspec
 import Test.Hspec.QuickCheck
 
+import qualified ExtensibleConf
 import qualified ManageDocks
 import qualified NoBorders
 import qualified RotateSome
@@ -43,3 +44,4 @@ main = hspec $ do
         prop "prop_spliInSubListsAt" $ XPrompt.prop_spliInSubListsAt
         prop "prop_skipGetLastWord"  $ XPrompt.prop_skipGetLastWord
     context "NoBorders" $ NoBorders.spec
+    context "ExtensibleConf" $ ExtensibleConf.spec

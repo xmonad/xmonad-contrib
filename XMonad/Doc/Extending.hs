@@ -1171,6 +1171,12 @@ A non complete list with a brief description:
     Configure key bindings easily, including a
     parser for writing key bindings in "M-C-x" style.
 
+* "XMonad.Util.ExtensibleConf":
+    Extensible and composable configuration for contrib modules. Allows
+    contrib modules to store custom configuration values inside
+    'XMonad.Core.XConfig'. This lets them create custom hooks, ensure they
+    hook into xmonad core only once, and possibly more.
+
 * "XMonad.Util.ExtensibleState":
     Module for storing custom mutable state in xmonad.
 

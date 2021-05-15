@@ -231,6 +231,13 @@
     additional capability to schedule/deadline a task, or use the
     primary selection as the contents of the note.
 
+  * `XMonad.Util.ExtensibleConf`
+
+    Extensible and composable configuration for contrib modules. Allows
+    contrib modules to store custom configuration values inside `XConfig`.
+    This lets them create custom hooks, ensure they hook into xmonad core only
+    once, and possibly more.
+
 ### Bug Fixes and Minor Changes
 
   * Add support for GHC 9.0.1.

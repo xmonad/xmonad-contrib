@@ -333,6 +333,7 @@ library
                         XMonad.Util.Dzen
                         XMonad.Util.EZConfig
                         XMonad.Util.ExclusiveScratchpads
+                        XMonad.Util.ExtensibleConf
                         XMonad.Util.ExtensibleState
                         XMonad.Util.Font
                         XMonad.Util.Hacks
@@ -380,6 +381,7 @@ test-suite tests
                   XPrompt
                   Instances
                   Utils
+                  ExtensibleConf
                   XMonad.Actions.CycleWS
                   XMonad.Actions.FocusNth
                   XMonad.Actions.PhysicalScreens
@@ -394,6 +396,7 @@ test-suite tests
                   XMonad.Prelude
                   XMonad.Prompt
                   XMonad.Prompt.Shell
+                  XMonad.Util.ExtensibleConf
                   XMonad.Util.ExtensibleState
                   XMonad.Util.Font
                   XMonad.Util.Image
