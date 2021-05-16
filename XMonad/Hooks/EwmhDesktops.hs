@@ -160,9 +160,9 @@ whenChanged v action = do
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
 -- user-specified function to transform the workspace list (post-sorting)
 ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
-ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
+ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     sort' <- getSortByIndex
-    let ws = f $ sort' $ W.workspaces s
+    let ws = t $ sort' $ W.workspaces s
 
     -- Set number of workspaces and names thereof
     let desktopNames = map W.tag ws
@@ -175,7 +175,7 @@ ewmhDesktopsLogHookCustom f = withWindowSet $ \s -> do
     whenChanged (ClientList clientList) $ setClientList clientList
 
     -- Remap the current workspace to handle any renames that f might be doing.
-    let maybeCurrent' = W.tag <$> listToMaybe (f [W.workspace $ W.current s])
+    let maybeCurrent' = W.tag <$> listToMaybe (t [W.workspace $ W.current s])
         current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
     whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
@@ -388,7 +388,6 @@ addSupported :: [String] -> X ()
 addSupported props = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_SUPPORTED"
-    fs <- getAtom "_NET_WM_STATE_FULLSCREEN"
     newSupportedList <- mapM (fmap fromIntegral . getAtom) props
     io $ do
         supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r
