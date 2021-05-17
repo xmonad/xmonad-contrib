@@ -13,9 +13,9 @@ module XMonad.Hooks.Rescreen (
     -- * Usage
     -- $usage
     RescreenConfig(..),
+    addAfterRescreenHook,
+    addRandrChangeHook,
     rescreenHook,
-    rescreenStartupHook,
-    rescreenEventHook,
     ) where
 
 import Control.Monad (void)
@@ -23,6 +23,7 @@ import Data.Monoid (All(..))
 
 import Graphics.X11.Xrandr
 import XMonad
+import qualified XMonad.Util.ExtensibleConf as XC
 
 -- $usage
 -- This module provides a replacement for the screen configuration change
@@ -64,6 +65,12 @@ instance Default RescreenConfig where
         , randrChangeHook = mempty
         }
 
+instance Semigroup RescreenConfig where
+    RescreenConfig arh rch <> RescreenConfig arh' rch' = RescreenConfig (arh <> arh') (rch <> rch')
+
+instance Monoid RescreenConfig where
+    mempty = def
+
 -- | Attach custom hooks to screen (xrandr) configuration change events.
 -- Replaces the built-in rescreen handling of xmonad core with:
 --
@@ -79,11 +86,23 @@ instance Default RescreenConfig where
 --
 -- 'randrChangeHook' may be used to automatically trigger xrandr (or perhaps
 -- autorandr) when outputs are (dis)connected.
+--
+-- Note that 'rescreenHook' is safe to use several times, 'rescreen' is still
+-- done just once and hooks are invoked in sequence, also just once.
 rescreenHook :: RescreenConfig -> XConfig a -> XConfig a
-rescreenHook cfg xConfig =
-    xConfig{ startupHook = startupHook xConfig <> rescreenStartupHook
-           , handleEventHook = handleEventHook xConfig <> rescreenEventHook cfg
-           }
+rescreenHook = flip XC.once rescreenHook'
+
+-- | Shortcut for 'rescreenHook'.
+addAfterRescreenHook :: X () -> XConfig a -> XConfig a
+addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = h }
+
+-- | Shortcut for 'rescreenHook'.
+addRandrChangeHook :: X () -> XConfig a -> XConfig a
+addRandrChangeHook h = rescreenHook def{ randrChangeHook = h }
+
+rescreenHook' :: XConfig a -> XConfig a
+rescreenHook' c = c{ startupHook = startupHook c <> rescreenStartupHook
+                   , handleEventHook = handleEventHook c <> rescreenEventHook }
 
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
 rescreenStartupHook :: X ()
@@ -93,18 +112,18 @@ rescreenStartupHook = do
     io $ xrrSelectInput dpy root rrScreenChangeNotifyMask
 
 -- | Event hook with custom rescreen/randr hooks. See 'rescreenHook' for more.
-rescreenEventHook :: RescreenConfig -> Event -> X All
-rescreenEventHook cfg e = do
+rescreenEventHook :: Event -> X All
+rescreenEventHook e = do
     shouldHandle <- case e of
         ConfigureEvent{ ev_window = w } -> isRoot w
         RRScreenChangeNotifyEvent{ ev_window = w } -> isRoot w
         _ -> pure False
     if shouldHandle
-        then All False <$ handleEvent cfg e
+        then All False <$ handleEvent e
         else mempty
 
-handleEvent :: RescreenConfig -> Event -> X ()
-handleEvent RescreenConfig{..} e = do
+handleEvent :: Event -> X ()
+handleEvent e = XC.with $ \RescreenConfig{..} -> do
     -- Xorg emits several events after every change, clear them to prevent
     -- triggering the hook multiple times.
     moreConfigureEvents <- clearTypedWindowEvents (ev_window e) configureNotify
