@@ -488,10 +488,6 @@ Here is a list of the modules found in @XMonad.Hooks@:
   putting in a status bar of some sort. See
   "XMonad.Doc.Extending#The_log_hook_and_external_status_bars".
 
-* "XMonad.Hooks.StatusBar.PP": originally in "XMonad.Hooks.DynamicLog",
-   this module provides the pretty-printing abstraction 'PP' and a set of
-   functions to interact with it.
-
 * "XMonad.Hooks.EwmhDesktops":
     Makes xmonad use the EWMH hints to tell panel applications about its
     workspaces and the windows therein. It also allows the user to interact
@@ -568,8 +564,13 @@ Here is a list of the modules found in @XMonad.Hooks@:
     programs work.
 
 * "XMonad.Hooks.StatusBar":
-   This module provides a new interface that replaces "XMonad.Hooks.DynamicLog",
-   by providing composoble and dynamic status bars.
+    This module provides a new interface that replaces "XMonad.Hooks.DynamicLog",
+    by providing composoble and dynamic status bars.
+
+    * "XMonad.Hooks.StatusBar.PP":
+        Originally in "XMonad.Hooks.DynamicLog", this module provides the
+        pretty-printing abstraction 'XMonad.Hooks.StatusBar.PP.PP' and a set
+        of functions to interact with it.
 
 * "XMonad.Hooks.ToggleHook":
     Hook and keybindings for toggling hook behavior.
@@ -746,13 +747,13 @@ For more information on using those modules for customizing your
     Two-level layout with windows split in individual layout groups, themselves
     managed by a user-provided layout.
 
-*   * "XMonad.Layout.Groups.Examples":
+    * "XMonad.Layout.Groups.Examples":
         Example layouts for "XMonad.Layout.Groups".
 
-*   * "XMonad.Layout.Groups.Helpers":
+    * "XMonad.Layout.Groups.Helpers":
         Utility functions for "XMonad.Layout.Groups".
 
-*   * "XMonad.Layout.Groups.Wmii":
+    * "XMonad.Layout.Groups.Wmii":
         A wmii-like layout algorithm.
 
 * "XMonad.Layout.Hidden":
@@ -868,7 +869,7 @@ For more information on using those modules for customizing your
     currently focused window occupy the whole screen (\"zoom in\") then undo
     the transformation (\"zoom out\").
 
-*   * "XMonad.Layout.MultiToggle.Instances":
+    * "XMonad.Layout.MultiToggle.Instances":
         Some convenient common instances of the Transformer class, for use with "XMonad.Layout.MultiToggle".
 
 * "XMonad.Layout.Named":
@@ -1193,7 +1194,7 @@ A non complete list with a brief description:
     a pretty-printing status logger format. See "XMonad.Hooks.DynamicLog"
     for more information.
 
-*   * "XMonad.Util.Loggers.NamedScratchpad":
+    * "XMonad.Util.Loggers.NamedScratchpad":
         A collection of Loggers (see "XMonad.Util.Loggers") for NamedScratchpads
         (see "XMonad.Util.NamedScratchpad").
 
