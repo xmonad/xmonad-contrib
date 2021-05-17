@@ -160,12 +160,16 @@ promptWSGroupForget xp s = do
   mkXPrompt (WSGPrompt s) xp (mkComplFunFromList' xp gs) forgetWSGroup
 
 -- $topics
--- You can use this module with "XMonad.Actions.TopicSpace" - just replace
+-- You can use this module with "XMonad.Actions.TopicSpace" — just replace
 -- 'promptWSGroupView' with 'promptTopicGroupView':
 --
 -- >    , ("M-y n", promptWSGroupAdd myXPConfig "Name this group: ")
 -- >    , ("M-y g", promptTopicGroupView myTopicConfig myXPConfig "Go to group: ")
 -- >    , ("M-y d", promptWSGroupForget myXPConfig "Forget group: ")
+--
+-- It's also a good idea to replace 'spawn' with
+-- 'XMonad.Actions.SpawnOn.spawnOn' or 'XMonad.Actions.SpawnOn.spawnHere' in
+-- your topic actions, so everything is spawned where it should be.
 
 -- | Prompt for a workspace group to view, treating the workspaces as topics.
 promptTopicGroupView :: TopicConfig -> XPConfig -> String -> X ()
