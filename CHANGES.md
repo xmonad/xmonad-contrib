@@ -231,6 +231,11 @@
 
   * Add support for GHC 9.0.1.
 
+  * `XMonad.Actions.DynamicWorkspaceGroups`
+
+    - Add support for `XMonad.Actions.TopicSpace` through `viewTopicGroup` and
+      `promptTopicGroupView`.
+
   * `XMonad.Actions.TreeSelect`
 
     - Fix swapped green/blue in foreground when using Xft.
