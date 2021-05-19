@@ -788,7 +788,7 @@ handleCompletion cs = do
           | otherwise = replaceCompletion prevCompl
          where
           hlCompl     :: String       = fromMaybe (command st) $ highlightedItem st l
-          complIndex' :: (Int, Int)   = nextComplIndex st (length l)
+          complIndex' :: (Int, Int)   = nextComplIndex st
           nextHlCompl :: Maybe String = highlightedItem st{ complIndex = complIndex' } cs
 
           isSuffixOfCmd        :: Bool = hlCompl `isSuffixOf` command st
@@ -905,8 +905,8 @@ bufferOne xs x = (null xs && null x,True)
 
 --Receives an state of the prompt, the size of the autocompletion list and returns the column,row
 --which should be highlighted next
-nextComplIndex :: XPState -> Int -> (Int,Int)
-nextComplIndex st nitems = case complWinDim st of
+nextComplIndex :: XPState -> (Int,Int)
+nextComplIndex st = case complWinDim st of
   Nothing -> (0,0) --no window dims (just destroyed or not created)
   Just (_,_,_,_,xx,yy) -> let
     (ncols,nrows) = (length xx, length yy)

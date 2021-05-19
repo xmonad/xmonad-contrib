@@ -97,7 +97,7 @@ type Predicate = String -> String -> Bool
 searchUnicode :: [(Char, BS.ByteString)] -> Predicate -> String -> [(Char, String)]
 searchUnicode entries p s = map (second BS.unpack) $ filter go entries
   where w = filter (all isAscii) . filter ((> 1) . length) . words $ map toUpper s
-        go (c,d) = all (`p` (BS.unpack d)) w
+        go (_, d) = all (`p` (BS.unpack d)) w
 
 mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()
 mkUnicodePrompt prog args unicodeDataFilename config =

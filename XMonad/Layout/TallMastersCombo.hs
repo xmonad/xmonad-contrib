@@ -153,7 +153,7 @@ instance LayoutClass RowsOrColumns a where
                then splitVertically len r
                else splitHorizontally len r
 
-  pureMessage (RowsOrColumns rows) m
+  pureMessage RowsOrColumns{} m
     | Just Row <- fromMessage m = Just $ RowsOrColumns True
     | Just Col <- fromMessage m = Just $ RowsOrColumns False
     | otherwise = Nothing
@@ -215,7 +215,7 @@ instance Message ChangeFocus
 instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
   description _ = "TallMasters"
 
-  runLayout (Workspace wid l@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) s) r =
+  runLayout (Workspace wid (TMSCombineTwo f _ _ vsp nmaster delta frac layout1 layout2) s) r =
       let (s1,s2,frac',slst1,slst2) = splitStack f nmaster frac s
           (r1, r2) = if vsp
                      then splitHorizontallyBy frac' r
@@ -352,7 +352,7 @@ focusWindow w s =
               then news
               else focusSubMasterU w news
               where news = Stack l ls (foc:rs)
-      focusSubMasterU w (Stack foc [] rs) =
+      focusSubMasterU _ (Stack foc [] rs) =
           Stack foc [] rs
       focusSubMasterD w i@(Stack foc ls (r:rs)) =
           if foc == w
@@ -362,7 +362,7 @@ focusWindow w s =
               then news
               else focusSubMasterD w news
               where news = Stack r (foc:ls) rs
-      focusSubMasterD w (Stack foc ls []) =
+      focusSubMasterD _ (Stack foc ls []) =
           Stack foc ls []
 
 -- | Merge two Maybe sublayouts.
@@ -441,7 +441,7 @@ handle :: (LayoutClass l a, Message m) => l a -> m -> X (Maybe (l a))
 handle l m = handleMessage l (SomeMessage m)
 
 instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a where
-  description (ChooseWrapper d l r lr) = description lr
+  description (ChooseWrapper _ _ _ lr) = description lr
 
   runLayout (Workspace wid (ChooseWrapper d l r lr) s) rec =
     do
@@ -458,7 +458,7 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
         mlrf <- handle c NextNoWrap
         fstf <- handle c FirstLayout
         let mlf = elseOr fstf mlrf
-            (d',l',r') = case mlf of Just (ChooseWrapper d0 l0 r0 lr0) -> (d0,l0,r0)
+            (d',l',r') = case mlf of Just (ChooseWrapper d0 l0 r0 _) -> (d0,l0,r0)
                                      Nothing                     -> (d,l,r)
         case mlr' of Just lrt -> return $ Just $ ChooseWrapper d' l' r' lrt
                      Nothing  -> return Nothing
@@ -505,7 +505,7 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
 -- a subclass of layout, which contain extra method to return focused window in sub-layouts
 class (LayoutClass l a) => GetFocused l a where
   getFocused :: l a -> Maybe (Stack a) -> ([a], String)
-  getFocused l ms =
+  getFocused _ ms =
     case ms of (Just s) -> ([focus s], "Base")
                Nothing  -> ([], "Base")
   savFocused :: l a -> Maybe (Stack a) -> l a

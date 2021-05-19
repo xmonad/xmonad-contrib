@@ -110,7 +110,7 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
           in value
           : f n_next size_next n_fl True
         -- Last item: included twice.
-        f 0 size div no_room_prev =
+        f 0 size _ _noRoomPrev =
           [size];
       in f
          n_init size_init divide_init False

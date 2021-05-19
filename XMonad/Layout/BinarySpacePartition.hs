@@ -309,12 +309,12 @@ findTheClosestRightmostLeaf s@(_, (LeftCrumb _ _):_) = goUp s >>= goRight >>= fi
 splitShiftLeftCurrent :: Zipper Split -> Maybe (Zipper Split)
 splitShiftLeftCurrent l@(_, []) = Just l
 splitShiftLeftCurrent l@(_, (RightCrumb _ _):_) = Just l -- Do nothing. We can swap windows instead.
-splitShiftLeftCurrent l@(n, c:cs) = removeCurrent l >>= findTheClosestLeftmostLeaf >>= insertRightLeaf n
+splitShiftLeftCurrent l@(n, _) = removeCurrent l >>= findTheClosestLeftmostLeaf >>= insertRightLeaf n
 
 splitShiftRightCurrent :: Zipper Split -> Maybe (Zipper Split)
 splitShiftRightCurrent l@(_, []) = Just l
 splitShiftRightCurrent l@(_, (LeftCrumb _ _):_) = Just l -- Do nothing. We can swap windows instead.
-splitShiftRightCurrent l@(n, c:cs) = removeCurrent l >>= findTheClosestRightmostLeaf >>= insertLeftLeaf n
+splitShiftRightCurrent l@(n, _) = removeCurrent l >>= findTheClosestRightmostLeaf >>= insertLeftLeaf n
 
 isAllTheWay :: Direction2D -> Zipper Split -> Bool
 isAllTheWay _ (_, []) = True
