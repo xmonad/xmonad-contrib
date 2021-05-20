@@ -125,11 +125,11 @@ renameWorkspace conf = workspacePrompt conf renameWorkspaceByName
 
 renameWorkspaceByName :: String -> X ()
 renameWorkspaceByName w = do old  <- gets (currentTag . windowset)
-			     windows $ \s -> let sett wk = wk { tag = w }
-						 setscr scr = scr { workspace = sett $ workspace scr }
-						 sets q = q { current = setscr $ current q }
+                             windows $ \s -> let sett wk = wk { tag = w }
+                                                 setscr scr = scr { workspace = sett $ workspace scr }
+                                                 sets q = q { current = setscr $ current q }
                                              in sets $ removeWorkspace' w s
-			     updateIndexMap old w
+                             updateIndexMap old w
   where updateIndexMap oldIM newIM = do
           wmap <- XS.gets workspaceIndexMap
           XS.modify $ \s -> s {workspaceIndexMap = Map.map (\t -> if t == oldIM then newIM else t) wmap}
