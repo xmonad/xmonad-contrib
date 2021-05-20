@@ -366,6 +366,12 @@ focusWindow w s =
           Stack foc ls []
 
 -- | Merge two Maybe sublayouts.
+mergeSubLayouts
+  :: Maybe (l1 a)           -- ^ Left  layout
+  -> Maybe (l2 a)           -- ^ Right layout
+  -> TMSCombineTwo l1 l2 a  -- ^ How to combine the layouts
+  -> Bool                   -- ^ Return a 'Just' no matter what
+  -> Maybe (TMSCombineTwo l1 l2 a)
 mergeSubLayouts ml1 ml2 (TMSCombineTwo f w1 w2 vsp nmaster delta frac l1 l2) alwaysReturn =
   if alwaysReturn
   then Just $ TMSCombineTwo f w1 w2 vsp nmaster delta frac (maybe l1 id ml1) (maybe l2 id ml2)
