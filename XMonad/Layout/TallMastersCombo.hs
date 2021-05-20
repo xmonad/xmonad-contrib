@@ -226,8 +226,8 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
          (ws', ml') <- runLayout (Workspace wid layout2 s2) r2
          let newlayout1 = maybe layout1 id ml
              newlayout2 = maybe layout2 id ml'
-             (f1, str1) = getFocused newlayout1 s1
-             (f2, str2) = getFocused newlayout2 s2
+             (f1, _) = getFocused newlayout1 s1
+             (f2, _) = getFocused newlayout2 s2
              fnew = f1 ++ f2
          return (ws++ws', Just $ TMSCombineTwo fnew slst1 slst2 vsp nmaster delta frac newlayout1 newlayout2)
 
@@ -519,7 +519,7 @@ instance (GetFocused l Window, GetFocused r Window) => GetFocused (TMSCombineTwo
     in  (f1 ++ f2, "TMS: " ++ show f ++ "::" ++ str1 ++ "--" ++ str2)
   savFocused i@(TMSCombineTwo f _ _ _ nmaster _ frac lay1 lay2) s =
     let (s1,s2,_,_,_) = splitStack f nmaster frac s
-        (f', mstr) = getFocused i s
+        (f', _) = getFocused i s
         lay1' = savFocused lay1 s1
         lay2' = savFocused lay2 s2
     in i {focusLst = f', layoutFst=lay1', layoutSnd=lay2'}

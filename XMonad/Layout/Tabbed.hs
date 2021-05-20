@@ -103,13 +103,13 @@ simpleTabbedBottomAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultS
 simpleTabbedBottomAlways = tabbedBottomAlways shrinkText def
 
 -- | A side-tabbed layout with the default xmonad Theme.
-simpleTabbedLeft, simpleTabbedRight :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) 
+simpleTabbedLeft, simpleTabbedRight :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker)
                                         Simplest Window
 simpleTabbedLeft = tabbedLeft shrinkText def
 simpleTabbedRight = tabbedRight shrinkText def
 
 -- | A side-tabbed layout with the default xmonad Theme.
-simpleTabbedLeftAlways, simpleTabbedRightAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker) 
+simpleTabbedLeftAlways, simpleTabbedRightAlways :: ModifiedLayout (Decoration TabbedDecoration DefaultShrinker)
                                                   Simplest Window
 simpleTabbedLeftAlways = tabbedLeftAlways shrinkText def
 simpleTabbedRightAlways = tabbedRightAlways shrinkText def
@@ -219,13 +219,11 @@ instance Eq a => DecorationStyle TabbedDecoration a where
               loc k h i = k + fi ((h * fi i) `div` max 1 (fi $ length ws))
               esize k h = fi $ maybe k (\i -> loc k h (i+1) - loc k h i) $ w `elemIndex` ws
               wid = esize x wh
-              hid = esize y hh
               n k h = maybe k (loc k h) $ w `elemIndex` ws
               nx = n x wh
-              ny = n y hh
               upperTab = Rectangle nx  y wid (fi ht)
               lowerTab = Rectangle nx (y + fi (hh - ht)) wid (fi ht)
-              fixHeightLoc i = y + fi (((fi ht) * fi i)) 
+              fixHeightLoc i = y + fi (((fi ht) * fi i))
               fixHeightTab k = Rectangle k
                 (maybe y (fixHeightLoc)
                  $ w `elemIndex` ws) (fi wt) (fi ht)
