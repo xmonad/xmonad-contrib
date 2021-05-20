@@ -82,33 +82,32 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
     heights_noflip =
       let
         -- Regular case: check for min size.
-        f n size div False = let
-          n_fl = (fromIntegral n)
-          n_prev_fl = (fromIntegral (n + 1))
-          div_test = min (div) (n_prev_fl)
+        f m size divide False = let
+          m_fl = fromIntegral m
+          m_prev_fl = fromIntegral (m + 1)
+          div_test = min divide m_prev_fl
           value_test = (toInteger (round ((fromIntegral size) / div_test)))
-          value_max = size - (toInteger (min_size * n))
+          value_max = size - toInteger (min_size * m)
           (value, divide_next, no_room) =
             if value_test < value_max then
-              (value_test, div, False)
+              (value_test, divide, False)
             else
-              (value_max, n_fl, True)
+              (value_max, m_fl, True)
           size_next = size - value
-          n_next = n - 1
+          m_next = m - 1
           in value
-          : f n_next size_next divide_next no_room
+          : f m_next size_next divide_next no_room
         -- Fallback case: when windows have reached min size
         -- simply create an even grid with the remaining space.
-        f n size div True = let
-          n_fl = (fromIntegral n)
-          value_even = ((fromIntegral size) / div)
+        f m size divide True = let
+          divide_next = fromIntegral m
+          value_even = ((fromIntegral size) / divide)
           value = (toInteger (round value_even))
 
-          n_next = n - 1
+          m_next = m - 1
           size_next = size - value
-          divide_next = n_fl
           in value
-          : f n_next size_next n_fl True
+          : f m_next size_next divide_next True
         -- Last item: included twice.
         f 0 size _ _noRoomPrev =
           [size];

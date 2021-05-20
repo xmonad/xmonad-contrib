@@ -222,14 +222,14 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
                      else splitVerticallyBy frac' r
       in
       do
-         (ws1,ml1) <- runLayout (Workspace wid layout1 s1) r1
-         (ws2,ml2) <- runLayout (Workspace wid layout2 s2) r2
-         let newlayout1 = maybe layout1 id ml1
-             newlayout2 = maybe layout2 id ml2
+         (ws , ml ) <- runLayout (Workspace wid layout1 s1) r1
+         (ws', ml') <- runLayout (Workspace wid layout2 s2) r2
+         let newlayout1 = maybe layout1 id ml
+             newlayout2 = maybe layout2 id ml'
              (f1, str1) = getFocused newlayout1 s1
              (f2, str2) = getFocused newlayout2 s2
              fnew = f1 ++ f2
-         return (ws1++ws2, Just $ TMSCombineTwo fnew slst1 slst2 vsp nmaster delta frac newlayout1 newlayout2)
+         return (ws++ws', Just $ TMSCombineTwo fnew slst1 slst2 vsp nmaster delta frac newlayout1 newlayout2)
 
 
   handleMessage i@(TMSCombineTwo f w1 w2 vsp nmaster delta frac layout1 layout2) m
@@ -344,23 +344,23 @@ focusWindow w s =
   then focusSubMasterU w s
   else focusSubMasterD w s
   where
-      focusSubMasterU w i@(Stack foc (l:ls) rs) =
-          if foc == w
+      focusSubMasterU win i@(Stack foc (l:ls) rs) =
+          if foc == win
           then i
           else
-              if l == w
+              if l == win
               then news
-              else focusSubMasterU w news
+              else focusSubMasterU win news
               where news = Stack l ls (foc:rs)
       focusSubMasterU _ (Stack foc [] rs) =
           Stack foc [] rs
-      focusSubMasterD w i@(Stack foc ls (r:rs)) =
-          if foc == w
+      focusSubMasterD win i@(Stack foc ls (r:rs)) =
+          if foc == win
           then i
           else
-              if r == w
+              if r == win
               then news
-              else focusSubMasterD w news
+              else focusSubMasterD win news
               where news = Stack r (foc:ls) rs
       focusSubMasterD _ (Stack foc ls []) =
           Stack foc ls []

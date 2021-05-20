@@ -73,8 +73,8 @@ instance ExtensionClass Spawner where
 
 
 getPPIDOf :: ProcessID -> Maybe ProcessID
-getPPIDOf pid =
-    case unsafePerformIO . tryJust (guard . isDoesNotExistError) . readFile . printf "/proc/%d/stat" $ toInteger pid of
+getPPIDOf thisPid =
+    case unsafePerformIO . tryJust (guard . isDoesNotExistError) . readFile . printf "/proc/%d/stat" $ toInteger thisPid of
       Left _         -> Nothing
       Right contents -> case lines contents of
                           []        -> Nothing
@@ -83,11 +83,11 @@ getPPIDOf pid =
                                          _                    -> Nothing
 
 getPPIDChain :: ProcessID -> [ProcessID]
-getPPIDChain pid' = ppid_chain pid' []
-    where ppid_chain pid acc =
-              if pid == 0
+getPPIDChain thisPid = ppid_chain thisPid []
+    where ppid_chain pid' acc =
+              if pid' == 0
               then acc
-              else case getPPIDOf pid of
+              else case getPPIDOf pid' of
                      Nothing   -> acc
                      Just ppid -> ppid_chain ppid (ppid : acc)
 

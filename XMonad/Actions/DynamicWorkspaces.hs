@@ -130,9 +130,9 @@ renameWorkspaceByName w = do old  <- gets (currentTag . windowset)
 						 sets q = q { current = setscr $ current q }
                                              in sets $ removeWorkspace' w s
 			     updateIndexMap old w
-  where updateIndexMap old new = do
+  where updateIndexMap oldIM newIM = do
           wmap <- XS.gets workspaceIndexMap
-          XS.modify $ \s -> s {workspaceIndexMap = Map.map (\t -> if t == old then new else t) wmap}
+          XS.modify $ \s -> s {workspaceIndexMap = Map.map (\t -> if t == oldIM then newIM else t) wmap}
 
 toNthWorkspace :: (String -> X ()) -> Int -> X ()
 toNthWorkspace job wnum = do sort <- getSortByIndex

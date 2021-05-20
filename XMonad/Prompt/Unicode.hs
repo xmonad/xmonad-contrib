@@ -100,13 +100,13 @@ searchUnicode entries p s = map (second BS.unpack) $ filter go entries
         go (_, d) = all (`p` (BS.unpack d)) w
 
 mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()
-mkUnicodePrompt prog args unicodeDataFilename config =
+mkUnicodePrompt prog args unicodeDataFilename xpCfg =
   whenX (populateEntries unicodeDataFilename) $ do
     entries <- fmap getUnicodeData (XS.get :: X UnicodeData)
     mkXPrompt
       Unicode
-      (config {sorter = sorter config . map toUpper})
-      (unicodeCompl entries $ searchPredicate config)
+      (xpCfg {sorter = sorter xpCfg . map toUpper})
+      (unicodeCompl entries $ searchPredicate xpCfg)
       paste
   where
     unicodeCompl :: [(Char, BS.ByteString)] -> Predicate -> String -> IO [String]

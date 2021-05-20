@@ -521,10 +521,10 @@ dumpProp a _ | a == wM_NAME                           =  dumpString
              | a == wM_TRANSIENT_FOR                  =  do
                  root <- fromIntegral <$> inX (asks theRoot)
                  w <- asks window
-                 WMHints {wmh_window_group = group} <-
+                 WMHints {wmh_window_group = wgroup} <-
                    inX $ asks display >>= io . flip getWMHints w
-                 dumpExcept [(0   ,"window group " ++ show group)
-                            ,(root,"window group " ++ show group)
+                 dumpExcept [(0   ,"window group " ++ show wgroup)
+                            ,(root,"window group " ++ show wgroup)
                             ]
                             dumpWindow
              | a == rESOURCE_MANAGER                  =  dumpString

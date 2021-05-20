@@ -244,9 +244,9 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     --   \"smart space\" in between (the space is not included if the
     --   'modifierDescription' is empty).
     modifyDescription :: (LayoutClass l a) => m a -> l a -> String
-    modifyDescription m l = modifierDescription m <> description l
-        where "" <> x = x
-              x <> y = x ++ " " ++ y
+    modifyDescription m l = modifierDescription m `add` description l
+        where "" `add` x = x
+              x `add` y = x ++ " " ++ y
 
 -- | The 'LayoutClass' instance for a 'ModifiedLayout' defines the
 --   semantics of a 'LayoutModifier' applied to an underlying layout.
@@ -277,4 +277,3 @@ data ModifiedLayout m l a = ModifiedLayout (m a) (l a) deriving ( Read, Show )
 -- N.B. I think there is a Haddock bug here; the Haddock output for
 -- the above does not parenthesize (m a) and (l a), which is obviously
 -- incorrect.
-

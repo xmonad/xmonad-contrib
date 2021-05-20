@@ -34,7 +34,7 @@ module XMonad.Layout.BinarySpacePartition (
   ) where
 
 import XMonad
-import XMonad.Prelude
+import XMonad.Prelude hiding (insert)
 import qualified XMonad.StackSet as W
 import XMonad.Util.Stack hiding (Zipper)
 import XMonad.Util.Types

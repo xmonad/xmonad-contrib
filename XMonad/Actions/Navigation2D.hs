@@ -940,16 +940,16 @@ sortedScreens :: WindowSet -> [Screen]
 sortedScreens winset = L.sortBy cmp
                      $ W.screens winset
   where
-    cmp s1 s2 | x1 < x2   = LT
-              | x1 > x2   = GT
-              | y1 < x2   = LT
-              | y1 > y2   = GT
+    cmp s1 s2 | x < x'   = LT
+              | x > x'   = GT
+              | y < x'   = LT
+              | y > y'   = GT
               | otherwise = EQ
       where
-        (x1, y1) = centerOf (screenRect . W.screenDetail $ s1)
-        (x2, y2) = centerOf (screenRect . W.screenDetail $ s2)
+        (x , y ) = centerOf (screenRect . W.screenDetail $ s1)
+        (x', y') = centerOf (screenRect . W.screenDetail $ s2)
 
 
 -- | Calculates the L1-distance between two points.
 lDist :: (Position, Position) -> (Position, Position) -> Int
-lDist (x1, y1) (x2, y2) = abs (fi $ x1 - x2) + abs (fi $ y1 - y2)
+lDist (x, y) (x', y') = abs (fi $ x - x') + abs (fi $ y - y')

@@ -159,9 +159,9 @@ marshallPP s pp = pp { ppRename = ppRename pp . unmarshallW
 whenCurrentOn :: ScreenId -> PP -> PP
 whenCurrentOn s pp = pp
     { ppSort = do
-        sort <- ppSort pp
+        sortWs <- ppSort pp
         return $ \xs -> case xs of
-            x:_ | unmarshallS (tag x) == s -> sort xs
+            x:_ | unmarshallS (tag x) == s -> sortWs xs
             _ -> []
     , ppOrder = \i@(wss:_) -> case wss of
         "" -> ["\0"] -- we got passed no workspaces; this is the signal from ppSort that this is a boring case
