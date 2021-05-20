@@ -223,7 +223,7 @@ instance Eq a => DecorationStyle TabbedDecoration a where
               nx = n x wh
               upperTab = Rectangle nx  y wid (fi ht)
               lowerTab = Rectangle nx (y + fi (hh - ht)) wid (fi ht)
-              fixHeightLoc i = y + fi (((fi ht) * fi i))
+              fixHeightLoc i = y + fi ht * fi i
               fixHeightTab k = Rectangle k
                 (maybe y (fixHeightLoc)
                  $ w `elemIndex` ws) (fi wt) (fi ht)

@@ -86,7 +86,7 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
           m_fl = fromIntegral m
           m_prev_fl = fromIntegral (m + 1)
           div_test = min divide m_prev_fl
-          value_test = (toInteger (round ((fromIntegral size) / div_test)))
+          value_test = round ((fromIntegral size) / div_test) :: Integer
           value_max = size - toInteger (min_size * m)
           (value, divide_next, no_room) =
             if value_test < value_max then
@@ -102,7 +102,7 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
         f m size divide True = let
           divide_next = fromIntegral m
           value_even = ((fromIntegral size) / divide)
-          value = (toInteger (round value_even))
+          value = round value_even :: Integer
 
           m_next = m - 1
           size_next = size - value

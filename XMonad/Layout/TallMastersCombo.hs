@@ -469,7 +469,7 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
                 L -> do
                        ml <- handle l NextNoWrap
                        case ml of
-                           Just l0 -> return (L,l0,r,0)
+                           Just l0 -> return (L, l0, r, 0 :: Integer)
                            Nothing -> do
                                   mr <- handle r FirstLayout
                                   case mr of
