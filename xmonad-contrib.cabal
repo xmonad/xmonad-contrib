@@ -389,13 +389,16 @@ test-suite tests
                   XMonad.Layout.LayoutModifier
                   XMonad.Layout.LimitWindows
                   XMonad.Layout.NoBorders
+                  XMonad.Prelude
                   XMonad.Prompt
                   XMonad.Prompt.Shell
                   XMonad.Util.ExtensibleState
                   XMonad.Util.Font
                   XMonad.Util.Image
                   XMonad.Util.PureX
+                  XMonad.Util.Rectangle
                   XMonad.Util.Run
+                  XMonad.Util.Stack
                   XMonad.Util.Types
                   XMonad.Util.WindowProperties
                   XMonad.Util.WorkspaceCompare
