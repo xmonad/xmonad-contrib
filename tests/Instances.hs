@@ -50,29 +50,29 @@ instance (Integral i, Integral s, Eq a, Arbitrary a, Arbitrary l, Arbitrary sd)
     wsIdxInFocus <- choose (1, numWs) -- pick index of WS to be in focus
 
     -- The same screen id's will be present in the list, with high possibility.
-    screens      <- replicateM numScreens arbitrary
+    screenDims   <- replicateM numScreens arbitrary
 
     -- Generate a list of "windows" for each workspace.
     wsWindows    <- vector numWs :: Gen [[a]]
 
     -- Pick a random window "number" in each workspace, to give focus.
-    focus        <- sequence
+    foc          <- sequence
       [ if null windows
           then return Nothing
           else Just <$> choose (0, length windows - 1)
       | windows <- wsWindows
       ]
 
-    let tags           = [1 .. fromIntegral numWs]
-        focusWsWindows = zip focus wsWindows
-        wss            = zip tags focusWsWindows -- tmp representation of a workspace (tag, windows)
-        initSs         = new lay tags screens
+    let tags'          = [1 .. fromIntegral numWs]
+        focusWsWindows = zip foc wsWindows
+        wss            = zip tags' focusWsWindows -- tmp representation of a workspace (tag, windows)
+        initSs         = new lay tags' screenDims
     return $ view (fromIntegral wsIdxInFocus) $ foldr
-      (\(tag, (focus, windows)) ss -> -- Fold through all generated (tags,windows).
+      (\(tag', (focus', windows)) ss -> -- Fold through all generated (tags,windows).
               -- set workspace active by tag and fold through all
               -- windows while inserting them.  Apply the given number
               -- of `focusUp` on the resulting StackSet.
-        applyN focus focusUp $ foldr insertUp (view tag ss) windows
+        applyN focus' focusUp $ foldr insertUp (view tag' ss) windows
       )
       initSs
       wss

@@ -23,7 +23,7 @@ prop_spliInSubListsAt (x :: Int) (str :: String) =
     x < length str ==> result == take x str
     where result = case chunksOf x str of
                      [] -> []
-                     x -> head x
+                     y -> head y
 
 -- skipLastWord is complementary to getLastWord, unless the only space
 -- in the string is the final character, in which case skipLastWord
