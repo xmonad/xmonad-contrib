@@ -194,6 +194,7 @@ instance Show GroupsMessage where
     show (ToAll _) = "ToAll {...}"
     show Refocus = "Refocus"
     show (Modify _) = "Modify {...}"
+    show (ModifyX _) = "ModifyX {...}"
 
 instance Message GroupsMessage
 

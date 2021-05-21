@@ -75,4 +75,5 @@ instance Eq a => DecorationStyle TabBarDecoration a where
               ny  = case p of
                      Top    -> y
                      Bottom -> y + fi ht - fi dht
+                     _      -> error "Position must be 'Top' or 'Bottom'"
               nx  = (x +) $ maybe 0 (fi . loc) $ w `elemIndex` wrs

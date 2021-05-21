@@ -32,6 +32,7 @@ import           XMonad.Util.DebugWindow                     (debugWindow)
 -- import           Graphics.X11.Xlib.Extras.GetAtomName        (getAtomName)
 
 import           Control.Exception                    as E
+import           Control.Monad.Fail
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Codec.Binary.UTF8.String
@@ -273,6 +274,7 @@ newtype Decoder a = Decoder (ReaderT Decode (StateT DecodeState X) a)
              ,Applicative
              ,Monad
              ,MonadIO
+             ,MonadFail
              ,MonadState  DecodeState
              ,MonadReader Decode
              )
@@ -689,31 +691,30 @@ dumpList'' m ((l,p,t):ps) sep = do
 dumpString :: Decoder Bool
 dumpString =  do
   fmt <- asks pType
-  x <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
-  case x of
-    [cOMPOUND_TEXT,uTF8_STRING] -> case () of
-      () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
-         | fmt == sTRING        -> guardSize  8 $ do
-                                     vs <- gets value
-                                     modify (\r -> r {value = []})
-                                     let ss = flip unfoldr (map twiddle vs) $
-                                              \s -> if null s
-                                                    then Nothing
-                                                    else let (w,s'') = break (== '\NUL') s
-                                                             s'      = if null s''
-                                                                       then s''
-                                                                       else tail s''
-                                                          in Just (w,s')
-                                     case ss of
-                                       [s] -> append $ show s
-                                       ss' -> let go (s:ss'') c = append c        >>
-                                                                  append (show s) >>
-                                                                  go ss'' ","
-                                                  go []       _ = append "]"
-                                               in append "[" >> go ss' ""
-         | fmt == uTF8_STRING   -> dumpUTF -- duplicate type test instead of code :)
-         | otherwise            -> (inX $ atomName fmt) >>=
-                                   failure . ("unrecognized string type " ++)
+  [cOMPOUND_TEXT,uTF8_STRING] <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
+  case () of
+    () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
+       | fmt == sTRING        -> guardSize  8 $ do
+                                   vs <- gets value
+                                   modify (\r -> r {value = []})
+                                   let ss = flip unfoldr (map twiddle vs) $
+                                            \s -> if null s
+                                                  then Nothing
+                                                  else let (w,s'') = break (== '\NUL') s
+                                                           s'      = if null s''
+                                                                     then s''
+                                                                     else tail s''
+                                                        in Just (w,s')
+                                   case ss of
+                                     [s] -> append $ show s
+                                     ss' -> let go (s:ss'') c = append c        >>
+                                                                append (show s) >>
+                                                                go ss'' ","
+                                                go []       _ = append "]"
+                                             in append "[" >> go ss' ""
+       | fmt == uTF8_STRING   -> dumpUTF -- duplicate type test instead of code :)
+       | otherwise            -> (inX $ atomName fmt) >>=
+                                 failure . ("unrecognized string type " ++)
 
 -- show who owns a selection
 dumpSelection :: Decoder Bool
@@ -1170,23 +1171,20 @@ getInt w f =  getInt' w >>= maybe (return False) (append . f)
 -- @@@@@@@@@ evil beyond evil.  there *has* to be a better way
 inhale    :: Int -> Decoder Integer
 inhale  8 =  do
-               x <- eat 1
-               case x of
-                 [b] -> return $ fromIntegral b
+               [b] <- eat 1
+               return $ fromIntegral b
 inhale 16 =  do
-               x <- eat 2
-               case x of
-                 [b0,b1] -> io $ allocaArray 2 $ \p -> do
-                              pokeArray p [b0,b1]
-                              [v] <- peekArray 1 (castPtr p :: Ptr Word16)
-                              return $ fromIntegral v
+               [b0,b1] <- eat 2
+               io $ allocaArray 2 $ \p -> do
+                 pokeArray p [b0,b1]
+                 [v] <- peekArray 1 (castPtr p :: Ptr Word16)
+                 return $ fromIntegral v
 inhale 32 =  do
-               x <- eat 4
-               case x of
-                 [b0,b1,b2,b3] -> io $ allocaArray 4 $ \p -> do
-                                    pokeArray p [b0,b1,b2,b3]
-                                    [v] <- peekArray 1 (castPtr p :: Ptr Word32)
-                                    return $ fromIntegral v
+               [b0,b1,b2,b3] <- eat 4
+               io $ allocaArray 4 $ \p -> do
+                 pokeArray p [b0,b1,b2,b3]
+                 [v] <- peekArray 1 (castPtr p :: Ptr Word32)
+                 return $ fromIntegral v
 inhale  b =  error $ "inhale " ++ show b
 
 eat   :: Int -> Decoder Raw

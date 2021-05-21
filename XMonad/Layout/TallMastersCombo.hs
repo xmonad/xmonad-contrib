@@ -446,6 +446,8 @@ instance Message NextNoWrap
 handle :: (LayoutClass l a, Message m) => l a -> m -> X (Maybe (l a))
 handle l m = handleMessage l (SomeMessage m)
 
+data End = End | NoEnd
+
 instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a where
   description (ChooseWrapper _ _ _ lr) = description lr
 
@@ -475,21 +477,21 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
                 L -> do
                        ml <- handle l NextNoWrap
                        case ml of
-                           Just l0 -> return (L, l0, r, 0 :: Integer)
+                           Just l0 -> return (L, l0, r, NoEnd)
                            Nothing -> do
                                   mr <- handle r FirstLayout
                                   case mr of
-                                    Just r0 -> return (R,l,r0,0)
-                                    Nothing -> return (R,l,r,0)
+                                    Just r0 -> return (R, l, r0, NoEnd)
+                                    Nothing -> return (R, l, r, NoEnd)
                 R -> do
                        mr <- handle r NextNoWrap
                        case mr of
-                         Just r0 -> return (R,l,r0,0)
-                         Nothing -> return (d,l,r,1)
+                         Just r0 -> return (R, l, r0, NoEnd)
+                         Nothing -> return (d, l, r, End)
         case mlr' of Just lrt -> return $ Just $ ChooseWrapper d' l' r' lrt
                      Nothing  ->
-                        case end of 0 -> return $ Just $ ChooseWrapper d' l' r' lr
-                                    1 -> return Nothing
+                        case end of NoEnd -> return $ Just $ ChooseWrapper d' l' r' lr
+                                    End   -> return Nothing
     | Just FirstLayout <- fromMessage m = do
         mlr' <- handleMessage lr m
         (d',l',r') <- do

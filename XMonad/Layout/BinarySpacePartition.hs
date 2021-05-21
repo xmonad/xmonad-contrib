@@ -284,11 +284,13 @@ insertLeftLeaf :: Tree Split -> Zipper Split -> Maybe (Zipper Split)
 insertLeftLeaf (Leaf n) ((Node x l r), crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Node x l r), crumb:cs)
 insertLeftLeaf (Leaf n) (Leaf x, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Leaf x), crumb:cs)
 insertLeftLeaf (Node _ _ _) z = Just z
+insertLeftLeaf _ _ = Nothing
 
 insertRightLeaf :: Tree Split -> Zipper Split -> Maybe (Zipper Split)
 insertRightLeaf (Leaf n) ((Node x l r), crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Node x l r) (Leaf n), crumb:cs)
 insertRightLeaf (Leaf n) (Leaf x, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf x) (Leaf n), crumb:cs)
 insertRightLeaf (Node _ _ _) z = Just z
+insertRightLeaf _ _ = Nothing
 
 findRightLeaf :: Zipper Split -> Maybe (Zipper Split)
 findRightLeaf n@(Node _ _ _, _) = goRight n >>= findRightLeaf
@@ -301,10 +303,12 @@ findLeftLeaf l@(Leaf _, _) = Just l
 findTheClosestLeftmostLeaf :: Zipper Split -> Maybe (Zipper Split)
 findTheClosestLeftmostLeaf s@(_, (RightCrumb _ _):_) = goUp s >>= goLeft >>= findRightLeaf
 findTheClosestLeftmostLeaf s@(_, (LeftCrumb _ _):_) = goUp s >>= findTheClosestLeftmostLeaf
+findTheClosestLeftmostLeaf _ = Nothing
 
 findTheClosestRightmostLeaf :: Zipper Split -> Maybe (Zipper Split)
 findTheClosestRightmostLeaf s@(_, (RightCrumb _ _):_) = goUp s >>= findTheClosestRightmostLeaf
 findTheClosestRightmostLeaf s@(_, (LeftCrumb _ _):_) = goUp s >>= goRight >>= findLeftLeaf
+findTheClosestRightmostLeaf _ = Nothing
 
 splitShiftLeftCurrent :: Zipper Split -> Maybe (Zipper Split)
 splitShiftLeftCurrent l@(_, []) = Just l
