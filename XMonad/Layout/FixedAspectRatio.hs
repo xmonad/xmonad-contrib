@@ -29,7 +29,6 @@ module XMonad.Layout.FixedAspectRatio
 
 import           Control.Arrow
 import qualified Data.Map                      as M
-import           Data.Maybe
 import           Data.Ratio
 
 import           XMonad
