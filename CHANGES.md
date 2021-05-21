@@ -88,6 +88,10 @@
       now recommended to directly use `XMonad.Hooks.WorkspaceHistory`
       instead.
 
+    - Added `TopicItem`, as well as the helper functions `topicNames`,
+      `tiActions`, `tiDirs`, `noAction`, and `inHome` for a more
+      convenient specification of topics.
+
 ### New Modules
 
   * `XMonad.Hooks.StatusBar.PP`

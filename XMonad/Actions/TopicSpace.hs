@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TopicSpace
@@ -23,9 +24,14 @@ module XMonad.Actions.TopicSpace
     Topic
   , Dir
   , TopicConfig(..)
+  , TopicItem(..)
 
-    -- * Default Topic Config
-  , def
+    -- * Managing 'TopicItem's
+  , topicNames
+  , tiActions
+  , tiDirs
+  , noAction
+  , inHome
 
     -- * Switching and Shifting Topics
   , switchTopic
@@ -69,6 +75,7 @@ import qualified Data.Map.Strict         as M
 import qualified XMonad.Hooks.DynamicLog as DL
 import qualified XMonad.StackSet         as W
 
+import Data.Map (Map)
 import System.IO (hClose, hPutStr)
 
 import XMonad.Prompt (XPConfig)
@@ -102,19 +109,21 @@ import XMonad.Util.Run (spawnPipe)
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import qualified Data.Map        as M
+-- > import qualified Data.Map.Strict as M
 -- > import qualified XMonad.StackSet as W
 -- >
 -- > import XMonad.Actions.TopicSpace
+-- > import XMonad.Util.EZConfig    -- for the keybindings
+-- > import XMonad.Prompt.Workspace -- if you want to use the prompt
 --
 -- You will then have to
 --
---   * Define new a new 'TopicConfig'
+--   * Define a new 'TopicConfig' via 'TopicItem's
 --
 --   * Add the appropriate keybindings
 --
---   * Replace the @workspaces@ field in your 'XConfig' with a list of your
---     topics names
+--   * Replace the @workspaces@ field in your 'XConfig' with a list of
+--     your topics names
 --
 --   * Optionally, if you want to use the history features, add
 --     'workspaceHistoryHook' from "XMonad.Hooks.WorkspaceHistory"
@@ -122,138 +131,104 @@ import XMonad.Util.Run (spawnPipe)
 --     @logHook@.  See the documentation of
 --     "XMonad.Hooks.WorkspaceHistory" for further details
 --
--- Let us go through a full example together.  Given the following topic names
+-- Let us go through a full example together.
 --
--- > -- The list of all topics/workspaces of your xmonad configuration.
--- > -- The order is important, new topics must be inserted
--- > -- at the end of the list if you want hot-restarting
--- > -- to work.
--- > myTopics :: [Topic]
--- > myTopics =
--- >   [ "dashboard" -- the first one
--- >   , "admin", "build", "cleaning", "conf", "darcs", "haskell", "irc"
--- >   , "mail", "movie", "music", "talk", "text", "tools", "web", "xmonad"
--- >   , "yi", "documents", "twitter", "pdf"
+-- A 'TopicItem' consists of three things: the name of the topic, its
+-- root directory, and the action associated to it—to be executed if the
+-- topic is empty or the action is forced via a keybinding.
+--
+-- We start by specifying our chosen topics as a list of such
+-- 'TopicItem's:
+--
+-- > topicItems :: [TopicItem]
+-- > topicItems =
+-- >   [ inHome   "1:WEB"              (spawn "firefox")
+-- >   , noAction "2"      "."
+-- >   , noAction "3:VID"  "videos"
+-- >   , TI       "4:VPN"  "openvpn"   (spawn "urxvt -e randomVPN.sh")
+-- >   , inHome   "5:IM"               (spawn "signal" *> spawn "telegram")
+-- >   , inHome   "6:IRC"              (spawn "urxvt -e weechat")
+-- >   , TI       "dts"    ".dotfiles" spawnShell
+-- >   , TI       "xm-con" "hs/xm-con" (spawnShell *> spawnShellIn "hs/xm")
 -- >   ]
 --
--- we can define a 'TopicConfig' like this
+-- Then we just need to put together our topic config:
 --
 -- > myTopicConfig :: TopicConfig
 -- > myTopicConfig = def
--- >   { topicDirs = M.fromList $
--- >       [ ("conf", "w/conf")
--- >       , ("dashboard", "Desktop")
--- >       , ("yi", "w/dev-haskell/yi")
--- >       , ("darcs", "w/dev-haskell/darcs")
--- >       , ("haskell", "w/dev-haskell")
--- >       , ("xmonad", "w/dev-haskell/xmonad")
--- >       , ("tools", "w/tools")
--- >       , ("movie", "Movies")
--- >       , ("talk", "w/talks")
--- >       , ("music", "Music")
--- >       , ("documents", "w/documents")
--- >       , ("pdf", "w/documents")
--- >       ]
--- >   , defaultTopicAction = const $ spawnShell >*> 3
--- >   , defaultTopic = "dashboard"
--- >   , topicActions = M.fromList $
--- >       [ ("conf",       spawnShell >> spawnShellIn "wd/ertai/private")
--- >       , ("darcs",      spawnShell >*> 3)
--- >       , ("yi",         spawnShell >*> 3)
--- >       , ("haskell",    spawnShell >*> 2 >>
--- >                        spawnShellIn "wd/dev-haskell/ghc")
--- >       , ("xmonad",     spawnShellIn "wd/x11-wm/xmonad" >>
--- >                        spawnShellIn "wd/x11-wm/xmonad/contrib" >>
--- >                        spawnShellIn "wd/x11-wm/xmonad/utils" >>
--- >                        spawnShellIn ".xmonad" >>
--- >                        spawnShellIn ".xmonad")
--- >       , ("mail",       mailAction)
--- >       , ("irc",        ssh somewhere)
--- >       , ("admin",      ssh somewhere >>
--- >                        ssh nowhere)
--- >       , ("dashboard",  spawnShell)
--- >       , ("twitter",    spawnShell)
--- >       , ("web",        spawn browserCmd)
--- >       , ("movie",      spawnShell)
--- >       , ("documents",  spawnShell >*> 2 >>
--- >                        spawnShellIn "Documents" >*> 2)
--- >       , ("pdf",        spawn pdfViewerCmd)
--- >       ]
+-- >   { topicDirs          = tiDirs    topicItems
+-- >   , topicActions       = tiActions topicItems
+-- >   , defaultTopicAction = const (pure ()) -- by default, do nothing
+-- >   , defaultTopic       = "1:WEB"         -- fallback
 -- >   }
 --
--- Above we have used the `spawnShell` and `spawnShellIn` helper functions; here
--- they are:
+-- Above, we have used the `spawnShell` and `spawnShellIn` helper
+-- functions; here they are:
 --
 -- > spawnShell :: X ()
 -- > spawnShell = currentTopicDir myTopicConfig >>= spawnShellIn
 -- >
 -- > spawnShellIn :: Dir -> X ()
--- > spawnShellIn dir = spawn $ "urxvt '(cd ''" ++ dir ++ "'' && " ++ myShell ++ " )'"
--- > -- Some terminals support a working-directory option directly:
--- > -- spawnShellIn dir = spawn $ "alacritty --working-directory " ++ dir
+-- > spawnShellIn dir = spawn $ "alacritty --working-directory " ++ dir
 --
--- Next, we define some other other useful helper functions.  Note that some of
--- these function make use of the 'workspacePrompt' function.  You will also
--- have to have an already defined 'XPConfig' (here called @myXPConfig@).
+-- Next, we define some other other useful helper functions.  It is
+-- rather common to have a lot of topics—much more than available keys!
+-- In a situation like that, it's very convenient to switch topics with
+-- a prompt; the following use of 'workspacePrompt' does exactly that.
 --
 -- > goto :: Topic -> X ()
 -- > goto = switchTopic myTopicConfig
 -- >
 -- > promptedGoto :: X ()
--- > promptedGoto = workspacePrompt myXPConfig goto
+-- > promptedGoto = workspacePrompt def goto
 -- >
 -- > promptedShift :: X ()
--- > promptedShift = workspacePrompt myXPConfig $ windows . W.shift
+-- > promptedShift = workspacePrompt def $ windows . W.shift
 -- >
--- > -- Toggle between the two most recently used topics while filtering
--- > -- out the scratchpad topic.
+-- > -- Toggle between the two most recently used topics, but keep
+-- > -- screens separate.  This needs @workspaceHistoryHook@.
 -- > toggleTopic :: X ()
--- > toggleTopic = switchNthLastFocusedExclude ["NSP"] myTopicConfig 1
+-- > toggleTopic = switchNthLastFocusedByScreen myTopicConfig 1
 --
 -- Hopefully you've gotten a general feeling of how to define these kind of
 -- small helper functions using what's provided in this module.
 --
--- Adding the appropriate keybindings works as it normally would:
+-- Adding the appropriate keybindings works as it normally would.  Here,
+-- we'll use "XMonad.Util.EZConfig" syntax:
 --
--- > -- extend your keybindings
--- > myKeys conf@XConfig{modMask=modm} =
--- >   [ ((modm              , xK_n     ), spawnShell) -- %! Launch terminal
--- >   , ((modm              , xK_a     ), currentTopicAction myTopicConfig)
--- >   , ((modm              , xK_g     ), promptedGoto)
--- >   , ((modm .|. shiftMask, xK_g     ), promptedShift)
--- >   , ((modm .|. shiftMask, xK_space ), toggleTopic)
--- >   {- more  keys ... -}
+-- > myKeys :: [(String, X ())]
+-- > myKeys =
+-- >   [ ("M-n"        , spawnShell)
+-- >   , ("M-a"        , currentTopicAction myTopicConfig)
+-- >   , ("M-g"        , promptedGoto)
+-- >   , ("M-S-g"      , promptedShift)
+-- >   , ("M-S-<Space>", toggleTopic)
 -- >   ]
 -- >   ++
--- >   -- Switching to recently used topics
--- >   [ ((modm, k), switchNthLastFocused myTopicConfig i)
--- >   | (i, k) <- zip [1..] workspaceKeys]
---
--- If you want a more "default" experience with regards to @M-1@ through @M-9@
--- (i.e. switch to the first nine topics in `myTopics` instead of switching to
--- the last used ones), you can replace the last list above with the following
--- (using "EZConfig" syntax):
---
 -- >   -- The following does two things:
 -- >   --   1. Switch topics (no modifier)
 -- >   --   2. Move focused window to topic N (shift modifier)
 -- >   [ ("M-" ++ m ++ k, f i)
--- >   | (i, k) <- zip myTopics (map show [1 .. 9 :: Int])
+-- >   | (i, k) <- zip (topicNames topicItems) (map show [1 .. 9 :: Int])
 -- >   , (f, m) <- [(goto, ""), (windows . W.shift, "S-")]
 -- >   ]
 --
--- We can now put the whole configuration together with the following (while
--- also checking that we haven't made any mistakes):
+-- This makes @M-1@ to @M-9@ switch to the first nine topics that we
+-- have specified in @topicItems@.
 --
--- > myConfig = do
--- >     checkTopicConfig myTopics myTopicConfig
--- >     return $ def
--- >          { workspaces = myTopics
--- >          , keys       = myKeys
--- >          }
--- >
+-- You can also switch to the nine last-used topics instead:
+--
+-- >   [ ("M-" ++ show i, switchNthLastFocused myTopicConfig i)
+-- >   | i <- [1 .. 9]
+-- >   ]
+--
+-- We can now put the whole configuration together with the following:
+--
 -- > main :: IO ()
--- > main = xmonad =<< myConfig
+-- > main = xmonad $ def
+-- >   { workspaces = topicNames topicItems
+-- >   }
+-- >  `additionalKeysP` myKeys
 
 -- | An alias for @flip replicateM_@
 (>*>) :: Monad m => m a -> Int -> m ()
@@ -267,9 +242,9 @@ type Topic = WorkspaceId
 type Dir = FilePath
 
 -- | Here is the topic space configuration area.
-data TopicConfig = TopicConfig { topicDirs          :: M.Map Topic Dir
+data TopicConfig = TopicConfig { topicDirs          :: Map Topic Dir
                                  -- ^ This mapping associates a directory to each topic.
-                               , topicActions       :: M.Map Topic (X ())
+                               , topicActions       :: Map Topic (X ())
                                  -- ^ This mapping associates an action to trigger when
                                  -- switching to a given topic which workspace is empty.
                                , defaultTopicAction :: Topic -> X ()
@@ -414,3 +389,32 @@ xmessage s = do
   h <- spawnPipe "xmessage -file -"
   hPutStr h s
   hClose h
+
+-- | Convenience type for specifying topics.
+data TopicItem = TI
+  { tiName   :: !Topic  -- ^ 'Topic' ≡ 'String'
+  , tiDir    :: !Dir    -- ^ Directory associated with topic; 'Dir' ≡ 'String'
+  , tiAction :: !(X ()) -- ^ Startup hook when topic is empty
+  }
+
+-- | Extract the names from a given list of 'TopicItem's.
+topicNames :: [TopicItem] -> [Topic]
+topicNames = map tiName
+
+-- | From a list of 'TopicItem's, build a map that can be supplied as
+-- the 'topicDirs'.
+tiDirs :: [TopicItem] -> Map Topic Dir
+tiDirs = M.fromList . map (\TI{ tiName, tiDir } -> (tiName, tiDir))
+
+-- | From a list of 'TopicItem's, build a map that can be supplied as
+-- the 'topicActions'.
+tiActions :: [TopicItem] -> Map Topic (X ())
+tiActions = M.fromList . map (\TI{ tiName, tiAction } -> (tiName, tiAction))
+
+-- | Associate a directory with the topic, but don't spawn anything.
+noAction :: Topic -> Dir -> TopicItem
+noAction n d = TI n d (pure ())
+
+-- | Topic with @tiDir = ~/@.
+inHome :: Topic -> X () -> TopicItem
+inHome n = TI n "."
