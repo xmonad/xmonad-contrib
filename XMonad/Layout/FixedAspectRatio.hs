@@ -28,6 +28,7 @@ module XMonad.Layout.FixedAspectRatio
 
 import           Control.Arrow
 import qualified Data.Map                      as M
+import           Data.Maybe
 import           Data.Ratio
 
 import           XMonad
@@ -116,13 +117,25 @@ instance LayoutModifier FixedAspectRatio Window where
 
   pureModifier _ _ _ xs = (xs, Nothing)
 
-  handleMess (FixedAspectRatio ratios placement) mess =
-    case fromMessage mess of
+  handleMess (FixedAspectRatio ratios placement) mess
+    | Just DestroyWindowEvent { ev_window = w } <- fromMessage mess
+    = return . Just $ FixedAspectRatio (deleted w) placement
+    | otherwise
+    = case fromMessage mess of
       Just (FixRatio r w) ->
-        return . Just $ FixedAspectRatio (M.insert w r ratios) placement
+        return . Just $ FixedAspectRatio (inserted w r) placement
       Just (ResetRatio w) ->
-        return . Just $ FixedAspectRatio (M.delete w ratios) placement
+        return . Just $ FixedAspectRatio (deleted w) placement
+      Just (ToggleRatio r w) ->
+        return
+          . Just
+          . flip FixedAspectRatio placement
+          . maybe (inserted w r) (const $ deleted w)
+          $ M.lookup w ratios
       _ -> return Nothing
+   where
+    inserted w r = M.insert w r ratios
+    deleted w = M.delete w ratios
 
 -- | A 'ManageHook' to set the aspect ratio for newly spawned windows
 doFixAspect
@@ -140,8 +153,9 @@ adj (w, h) ar | ar' > ar  = (ceiling $ fi h * ar, h)
 
 --- Message handling
 data ManageAspectRatio =
-    FixRatio Rational Window -- ^ Set the aspect ratio for the window
-  | ResetRatio Window        -- ^ Remove the aspect ratio for the window
+    FixRatio Rational Window    -- ^ Set the aspect ratio for the window
+  | ResetRatio Window           -- ^ Remove the aspect ratio for the window
+  | ToggleRatio Rational Window -- ^ Toggle the reatio
   deriving Typeable
 
 instance Message ManageAspectRatio
