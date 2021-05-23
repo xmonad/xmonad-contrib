@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE TypeSynonymInstances, PatternGuards, DeriveDataTypeable #-}
+{-# OPTIONS_GHC -Wno-dodgy-imports #-} -- singleton in Data.List since base 4.15
 
 -----------------------------------------------------------------------------
 -- |
@@ -34,7 +35,7 @@ module XMonad.Layout.NoBorders ( -- * Usage
                                ) where
 
 import           XMonad
-import           XMonad.Prelude
+import           XMonad.Prelude hiding (singleton)
 import           XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet                as W
 import qualified XMonad.Util.Rectangle          as R
