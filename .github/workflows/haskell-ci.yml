@@ -134,6 +134,10 @@ jobs:
           echo "package xmonad-contrib" >> cabal.project
           echo "    ghc-options: -Werror=missing-methods" >> cabal.project
           cat >> cabal.project <<EOF
+          source-repository-package
+            type:     git
+            location: https://github.com/xmonad/xmonad
+            branch:   master
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(xmonad-contrib)$/; }' >> cabal.project.local
           cat cabal.project
