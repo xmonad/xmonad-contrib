@@ -13,21 +13,33 @@ jobs:
       matrix:
         include:
           - resolver: lts-12
+            ghc: 8.4.4
             yaml: stack.yaml
           - resolver: lts-12
+            ghc: 8.4.4
             yaml: stack-master.yaml
           - resolver: lts-14
+            ghc: 8.6.5
             yaml: stack-master.yaml
           - resolver: lts-16
+            ghc: 8.8.4
             yaml: stack-master.yaml
           - resolver: lts-17
+            ghc: 8.10.4
             yaml: stack.yaml
           - resolver: lts-17
+            ghc: 8.10.4
             yaml: stack-master.yaml
 
     steps:
       - name: Clone project
         uses: actions/checkout@v2
+
+      - name: Prepare apt sources
+        run: |
+          set -ex
+          sudo add-apt-repository -y ppa:hvr/ghc
+          sudo apt update -y
 
       - name: Install C dependencies
         run: |
@@ -40,6 +52,13 @@ jobs:
             libxrandr-dev \
             libxss-dev \
             #
+
+      - name: Install GHC
+        # use system ghc in stack, don't waste GH Actions cache space
+        run: |
+          set -ex
+          sudo apt install -y ghc-${{ matrix.ghc }}
+          echo /opt/ghc/${{ matrix.ghc }}/bin >> $GITHUB_PATH
 
       - name: Cache Haskell dependencies
         uses: actions/cache@v2
@@ -56,4 +75,4 @@ jobs:
           stack test \
             --fast --no-terminal \
             --stack-yaml=${{ matrix.yaml }} \
-            --resolver=${{ matrix.resolver }}
+            --resolver=${{ matrix.resolver }} --system-ghc
