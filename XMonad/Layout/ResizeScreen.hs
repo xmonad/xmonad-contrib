@@ -64,13 +64,12 @@ data ResizeScreen a = ResizeScreen ResizeMode Int
 data ResizeMode = T | B | L | R deriving (Read, Show)
 
 instance LayoutModifier ResizeScreen a where
-    modifyLayout m ws rect@(Rectangle x y w h)
+    modifyLayout m ws (Rectangle x y w h)
         | ResizeScreen L i <- m = resize $ Rectangle (x + fi i) y (w - fi i) h
         | ResizeScreen R i <- m = resize $ Rectangle x          y (w - fi i) h
         | ResizeScreen T i <- m = resize $ Rectangle x (y + fi i) w (h - fi i)
         | ResizeScreen B i <- m = resize $ Rectangle x  y         w (h - fi i)
         | WithNewScreen  r <- m = resize r
-        | otherwise             = resize rect
        where resize nr = runLayout ws nr
 
     pureMess (ResizeScreen d _) m

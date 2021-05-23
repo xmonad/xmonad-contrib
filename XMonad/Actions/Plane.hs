@@ -38,7 +38,7 @@ module XMonad.Actions.Plane
     )
     where
 
-import Data.Map hiding (split)
+import Data.Map (Map, fromList)
 
 import XMonad.Prelude
 import XMonad
