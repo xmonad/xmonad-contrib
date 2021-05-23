@@ -1,0 +1,7 @@
+apt:
+  libx11-dev
+  libxext-dev
+  libxft-dev
+  libxinerama-dev
+  libxrandr-dev
+  libxss-dev
