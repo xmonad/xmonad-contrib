@@ -1,0 +1,55 @@
+name: Stack
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: CI
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        resolver:
+          - nightly
+          - lts-17
+          - lts-16
+          - lts-15
+          - lts-14
+          - lts-12
+        yaml: ['stack.yaml', 'stack-master.yaml']
+
+    steps:
+      - name: Clone project
+        uses: actions/checkout@v2
+
+      - name: Install C dependencies
+        run: |
+          set -ex
+          sudo apt install -y \
+            libx11-dev \
+            libxext-dev \
+            libxft-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxss-dev \
+            #
+
+      - name: Cache Haskell dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}-${{ hashFiles('*.cabal') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles(matrix.yaml) }}-
+            ${{ runner.os }}-${{ matrix.resolver }}-
+
+      - name: Build and test
+        run: |
+          set -ex
+          stack test \
+            --fast --no-terminal \
+            --stack-yaml=${{ matrix.yaml }} \
+            --resolver=${{ matrix.resolver }}
