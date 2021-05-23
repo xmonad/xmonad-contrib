@@ -6,20 +6,24 @@ on:
 
 jobs:
   build:
-    name: CI
-    runs-on: ${{ matrix.os }}
+    name: Stack CI - Linux - ${{ matrix.resolver }} - ${{ matrix.yaml }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        resolver:
-          - nightly
-          - lts-17
-          - lts-16
-          - lts-15
-          - lts-14
-          - lts-12
-        yaml: ['stack.yaml', 'stack-master.yaml']
+        include:
+          - resolver: lts-12
+            yaml: stack.yaml
+          - resolver: lts-12
+            yaml: stack-master.yaml
+          - resolver: lts-14
+            yaml: stack-master.yaml
+          - resolver: lts-16
+            yaml: stack-master.yaml
+          - resolver: lts-17
+            yaml: stack.yaml
+          - resolver: lts-17
+            yaml: stack-master.yaml
 
     steps:
       - name: Clone project
