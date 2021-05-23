@@ -5,3 +5,7 @@ apt:
   libxinerama-dev
   libxrandr-dev
   libxss-dev
+
+raw-project
+  package xmonad-contrib
+    flags: +pedantic

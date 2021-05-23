@@ -140,6 +140,9 @@ jobs:
             type:     git
             location: https://github.com/xmonad/xmonad
             branch:   master
+
+          package xmonad-contrib
+            flags: +pedantic
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(xmonad-contrib)$/; }' >> cabal.project.local
           cat cabal.project

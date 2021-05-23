@@ -41,10 +41,10 @@ source-repository head
 flag use_xft
   description: Use Xft to render text
 
-flag testing
-  description: Testing mode
-  manual: True
-  default: False
+flag pedantic
+  description: Be pedantic (-Werror and the like)
+  default:     False
+  manual:      True
 
 library
     build-depends: base >= 4.9 && < 5,
@@ -61,18 +61,20 @@ library
                    xmonad >= 0.15 && < 0.16,
                    utf8-string
 
-    ghc-options:   -fwarn-tabs -Wall -Wno-unused-do-bind -Wno-unused-imports
+    ghc-options:   -Wall -Wno-unused-do-bind
+
+    if flag(pedantic)
+       ghc-options: -Werror -Wwarn=deprecations
 
     -- Keep this in sync with the oldest version in 'tested-with'
-    if impl(ghc <= 8.4.4)
-       ghc-options: -Werror=unused-imports
+    if impl(ghc > 8.4.4)
+       -- don't treat unused-imports warning as errors, they may be necessary
+       -- for compatibility with older versions of base (or other deps)
+       ghc-options: -Wwarn=unused-imports
 
     if flag(use_xft)
         build-depends: X11-xft >= 0.2
         cpp-options: -DXFT
-
-    if flag(testing)
-        ghc-options:    -fwarn-tabs -Werror
 
     exposed-modules:    XMonad.Actions.AfterDrag
                         XMonad.Actions.BluetileCommands
@@ -417,3 +419,13 @@ test-suite tests
                , utf8-string
                , xmonad >= 0.15 && < 0.16
   cpp-options: -DTESTING
+  ghc-options: -Wall -Wno-unused-do-bind
+
+  if flag(pedantic)
+     ghc-options: -Werror -Wwarn=deprecations
+
+  -- Keep this in sync with the oldest version in 'tested-with'
+  if impl(ghc > 8.4.4)
+     -- don't treat unused-imports warning as errors, they may be necessary
+     -- for compatibility with older versions of base (or other deps)
+     ghc-options: -Wwarn=unused-imports

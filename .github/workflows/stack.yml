@@ -99,4 +99,5 @@ jobs:
           stack test \
             --fast --no-terminal \
             --stack-yaml=${{ matrix.yaml }} \
-            --resolver=${{ matrix.resolver }} --system-ghc
+            --resolver=${{ matrix.resolver }} --system-ghc \
+            --flag=xmonad-contrib:pedantic
