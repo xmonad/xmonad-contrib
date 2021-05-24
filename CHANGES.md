@@ -117,6 +117,8 @@
       `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
       intuitively.
 
+    - Added `xmobarFont` for selecting an xmobar font index
+
 
   * `XMonad.Hooks.StatusBar`
 

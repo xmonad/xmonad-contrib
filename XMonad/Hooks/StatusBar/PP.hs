@@ -36,7 +36,7 @@ module XMonad.Hooks.StatusBar.PP (
 
     -- * Formatting utilities
     wrap, pad, trim, shorten, shorten', shortenLeft, shortenLeft',
-    xmobarColor, xmobarAction, xmobarBorder,
+    xmobarColor, xmobarFont, xmobarAction, xmobarBorder,
     xmobarRaw, xmobarStrip, xmobarStripTags,
     dzenColor, dzenEscape, dzenStrip, filterOutWsPP,
 
@@ -285,6 +285,12 @@ dzenStrip = strip [] where
       | '^' == head x       = strip keep (drop 1 . dropWhile (/= ')') $ x)
       | otherwise           = let (good,x') = span (/= '^') x
                               in strip (keep ++ good) x'
+
+-- | Use xmobar escape codes to output a string with the font at the given index
+xmobarFont :: Int     -- ^ index: index of the font to use (0: standard font)
+           -> String  -- ^ output string
+           -> String
+xmobarFont index = wrap ("<fn=" ++ show index ++ ">") "</fn>"
 
 -- | Use xmobar escape codes to output a string with given foreground
 --   and background colors.
