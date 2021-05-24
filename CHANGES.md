@@ -111,14 +111,12 @@
     - Added `filterOutWsPP` for filtering out certain workspaces from being
       displayed.
 
-    - Added `xmobarBorder` function to create borders around strings.
+    - Added `xmobarBorder` for creating borders around strings and
+      `xmobarFont` for selecting an alternative font.
 
     - Added `ppRename` to `PP`, which makes it possible for extensions like
       `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
       intuitively.
-
-    - Added `xmobarFont` for selecting an xmobar font index
-
 
   * `XMonad.Hooks.StatusBar`
 
