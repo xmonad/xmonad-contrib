@@ -96,6 +96,10 @@ jobs:
       - name: Build and test
         run: |
           set -ex
+
+          # workaround for stack/pantry caching of github archives
+          sed -e "s/@{today}/@{$(date -u --iso-8601=seconds)}/" -i ${{ matrix.yaml }}
+
           stack test \
             --fast --no-terminal \
             --stack-yaml=${{ matrix.yaml }} \

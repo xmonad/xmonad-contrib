@@ -8,4 +8,4 @@ packages:
 
 extra-deps:
 - github: xmonad/xmonad
-  commit: master
+  commit: master@{today}
