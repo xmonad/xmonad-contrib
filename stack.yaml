@@ -15,3 +15,6 @@ nix:
     - xorg.libXrandr
     - xorg.libXrender
     - xorg.libXScrnSaver
+
+ghc-options:
+  xmonad-contrib: '-j'

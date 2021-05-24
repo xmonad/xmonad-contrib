@@ -142,7 +142,8 @@ jobs:
             branch:   master
 
           package xmonad-contrib
-            flags: +pedantic
+            flags:       +pedantic
+            ghc-options: -j
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(xmonad-contrib)$/; }' >> cabal.project.local
           cat cabal.project

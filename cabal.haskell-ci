@@ -9,3 +9,4 @@ apt:
 raw-project
   package xmonad-contrib
     flags: +pedantic
+    ghc-options: -j

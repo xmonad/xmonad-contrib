@@ -9,3 +9,6 @@ packages:
 extra-deps:
 - github: xmonad/xmonad
   commit: master@{today}
+
+ghc-options:
+  xmonad-contrib: '-j'
