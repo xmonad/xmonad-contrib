@@ -307,6 +307,7 @@ fullscreenStartup = setFullscreenSupported
 -- Note this is not included in 'ewmh'.
 fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
+  managed <- isClient win
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
   wstate <- fromMaybe [] <$> getProp32 wmstate win
@@ -319,7 +320,7 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       toggle = 2
       chWstate f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
 
-  when (typ == wmstate && fi fullsc `elem` dats) $ do
+  when (managed && typ == wmstate && fi fullsc `elem` dats) $ do
     when (action == add || (action == toggle && not isFull)) $ do
       chWstate (fi fullsc:)
       windows $ W.float win $ W.RationalRect 0 0 1 1
