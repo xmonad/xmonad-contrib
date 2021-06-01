@@ -12,9 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - resolver: lts-12
-            ghc: 8.4.4
-            yaml: stack.yaml
+          # XXX: temporarily disabled until xmonad 0.17 release
+          # - resolver: lts-12
+          #   ghc: 8.4.4
+          #   yaml: stack.yaml
           - resolver: lts-12
             ghc: 8.4.4
             yaml: stack-master.yaml
@@ -24,9 +25,9 @@ jobs:
           - resolver: lts-16
             ghc: 8.8.4
             yaml: stack-master.yaml
-          - resolver: lts-17
-            ghc: 8.10.4
-            yaml: stack.yaml
+          # - resolver: lts-17
+          #   ghc: 8.10.4
+          #   yaml: stack.yaml
           - resolver: lts-17
             ghc: 8.10.4
             yaml: stack-master.yaml

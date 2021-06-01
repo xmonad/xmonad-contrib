@@ -57,8 +57,8 @@ library
                    random,
                    mtl >= 1 && < 3,
                    unix,
-                   X11>=1.6.1 && < 1.10,
-                   xmonad >= 0.15 && < 0.16,
+                   X11 >= 1.10 && < 1.11,
+                   xmonad >= 0.16.999 && < 0.18,
                    utf8-string
 
     ghc-options:   -Wall -Wno-unused-do-bind
@@ -409,7 +409,7 @@ test-suite tests
   hs-source-dirs: tests, .
   build-depends: base
                , QuickCheck >= 2
-               , X11>=1.6.1 && < 1.10
+               , X11 >= 1.10 && < 1.11
                , containers
                , directory
                , hspec >= 2.4.0 && < 3
@@ -417,7 +417,7 @@ test-suite tests
                , process
                , unix
                , utf8-string
-               , xmonad >= 0.15 && < 0.16
+               , xmonad >= 0.16.999 && < 0.18
   cpp-options: -DTESTING
   ghc-options: -Wall -Wno-unused-do-bind
 

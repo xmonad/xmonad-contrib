@@ -7,6 +7,8 @@ packages:
 - ./
 
 extra-deps:
+- github: xmonad/X11
+  commit: master@{today}
 - github: xmonad/xmonad
   commit: master@{today}
 
