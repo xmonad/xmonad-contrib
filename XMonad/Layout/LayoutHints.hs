@@ -25,7 +25,7 @@ module XMonad.Layout.LayoutHints
     )  where
 
 import XMonad(LayoutClass(runLayout), mkAdjust, Window,
-              Dimension, Position, Rectangle(Rectangle), D,
+              Dimension, Position, Rectangle(..), D,
               X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS,
               (<&&>), io, applySizeHints, whenX, isClient, withDisplay,
               getWindowAttributes, getWMNormalHints, WindowAttributes(..))
@@ -125,7 +125,7 @@ fitting rects = sum $ do
     r <- rects
     return $ length $ filter (touching r) rects
 
-applyOrder :: Rectangle -> [((Window, Rectangle),t)] -> [[((Window, Rectangle),t)]]
+applyOrder :: Rectangle -> [((a, Rectangle),t)] -> [[((a, Rectangle),t)]]
 applyOrder root wrs = do
     -- perhaps it would just be better to take all permutations, or apply the
     -- resizing multiple times
@@ -143,7 +143,7 @@ instance LayoutModifier LayoutHintsToCenter Window where
     modifyLayout _ ws@(W.Workspace _ _ (Just st)) r = do
         (arrs,ol) <- runLayout ws r
         flip (,) ol
-            . changeOrder (W.focus st : (filter (/= W.focus st) $ map fst arrs))
+            . changeOrder (map fst arrs)
             . head . reverse . sortBy (compare `on` (fitting . map snd))
             . map (applyHints st r) . applyOrder r
             <$> mapM (\x -> fmap ((,) x) $ mkAdjust (fst x)) arrs
@@ -153,41 +153,36 @@ changeOrder w wr = zip w' $ map (fromJust . flip lookup wr) w'
     where w' = filter (`elem` map fst wr) w
 
 -- apply hints to first, grow adjacent windows
-applyHints :: W.Stack Window -> Rectangle -> [((Window, Rectangle),(D -> D))] -> [(Window, Rectangle)]
+applyHints :: Eq a => W.Stack a -> Rectangle -> [((a, Rectangle),(D -> D))] -> [(a, Rectangle)]
 applyHints _ _ [] = []
 applyHints s root (((w,lrect@(Rectangle a b c d)),adj):xs) =
         let (c',d') = adj (c,d)
             redr = placeRectangle (centerPlacement root lrect :: (Double,Double)) lrect
                     $ if isInStack s w then Rectangle a b c' d' else lrect
 
-            ds = (fromIntegral c - fromIntegral c',fromIntegral d - fromIntegral d')
+            ds = ( fromIntegral a + fromIntegral c - fromIntegral (rect_x redr) - fromIntegral (rect_width redr)
+                 , fromIntegral b + fromIntegral d - fromIntegral (rect_y redr) - fromIntegral (rect_height redr)
+                 , fromIntegral (rect_x redr) - fromIntegral a
+                 , fromIntegral (rect_y redr) - fromIntegral b
+                 )
             growOther' r = growOther ds lrect (freeDirs root lrect) r
             mapSnd f = map (first $ second f)
             next = applyHints s root $ mapSnd growOther' xs
         in (w,redr):next
 
-growOther :: (Position, Position) -> Rectangle -> Set Direction2D -> Rectangle -> Rectangle
-growOther ds lrect fds r
-    | dirs <- flipDir <$> Set.toList (Set.intersection adj fds)
-    , not $ any (uncurry opposite) $ cross dirs =
-        foldr (flip grow ds) r dirs
-    | otherwise = r
+growOther :: (Position, Position, Position, Position) -> Rectangle -> Set Direction2D -> Rectangle -> Rectangle
+growOther ds lrect fds r = foldr (flip grow ds) r $ flipDir <$> Set.toList (Set.intersection adj fds)
     where
         adj = adjacent lrect  r
-        cross xs = [ (a,b) | a <- xs, b <- xs ]
-
         flipDir :: Direction2D -> Direction2D
         flipDir d = case d of { L -> R; U -> D; R -> L; D -> U }
 
-        opposite :: Direction2D -> Direction2D -> Bool
-        opposite x y = flipDir x == y
-
 -- | Leave the opposite edges where they were
-grow :: Direction2D -> (Position,Position) -> Rectangle -> Rectangle
-grow L (px,_ ) (Rectangle x y w h) = Rectangle (x-px) y (w+fromIntegral px) h
-grow U (_ ,py) (Rectangle x y w h) = Rectangle x (y-py) w (h+fromIntegral py)
-grow R (px,_ ) (Rectangle x y w h) = Rectangle x y (w+fromIntegral px) h
-grow D (_ ,py) (Rectangle x y w h) = Rectangle x y w (h+fromIntegral py)
+grow :: Direction2D -> (Position,Position,Position,Position) -> Rectangle -> Rectangle
+grow L (pl,_ ,_ ,_ ) (Rectangle x y w h) = Rectangle (x-pl) y (w+fromIntegral pl) h
+grow U (_ ,pu,_ ,_ ) (Rectangle x y w h) = Rectangle x (y-pu) w (h+fromIntegral pu)
+grow R (_ ,_ ,pr,_ ) (Rectangle x y w h) = Rectangle x y (w+fromIntegral pr) h
+grow D (_ ,_ ,_ ,pd) (Rectangle x y w h) = Rectangle x y w (h+fromIntegral pd)
 
 comparingEdges :: ([Position] -> [Position] -> Bool) -> Rectangle -> Rectangle -> Set Direction2D
 comparingEdges surrounds r1 r2 = Set.fromList $ map fst $ filter snd [ (\k -> (dir,k)) $
@@ -203,8 +198,6 @@ comparingEdges surrounds r1 r2 = Set.fromList $ map fst $ filter snd [ (\k -> (d
 
 -- | in what direction is the second window from the first that can expand if the
 -- first is shrunk, assuming that the root window is fully covered:
---  one direction for a common edge
---  two directions for a common corner
 adjacent :: Rectangle -> Rectangle -> Set Direction2D
 adjacent = comparingEdges (all . onClosedInterval)
 

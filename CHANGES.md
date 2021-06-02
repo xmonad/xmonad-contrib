@@ -969,11 +969,10 @@
 
   * `XMonad.Layout.LayoutHints`
 
-    Preserve the window order of the modified layout, except for the focused
-    window that is placed on top. This fixes an issue where the border of the
-    focused window in certain situations could be rendered below borders of
-    unfocused windows. It also has a lower risk of interfering with the
-    modified layout.
+    - Preserve the window order of the modified layout, this lowers the risk of
+      interfering with the modified layout.
+    - Stop windows from overlapping when a window is exactly in the center along
+      an axis.
 
   * `XMonad.Layout.MultiColumns`
 
