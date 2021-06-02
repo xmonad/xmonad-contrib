@@ -1,10 +1,10 @@
-resolver: lts-17.5
+resolver: lts-17.14
 
 packages:
 - ./
 
 extra-deps:
-- X11-0.10
+- X11-1.10
 - xmonad-0.17
 
 nix:
