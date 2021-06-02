@@ -92,6 +92,15 @@
       `tiActions`, `tiDirs`, `noAction`, and `inHome` for a more
       convenient specification of topics.
 
+  * `XMonad.Actions.CycleRecentWS`
+
+    - Changed the signature of `recentWS` to return a `[WorkspaceId]`
+      instead of a `[WindowSet]`, while `cycleWindowSets` and
+      `toggleWindowSets` now take a function `WindowSet ->
+      [WorkspaceId]` instead of one to `[WindowSet]` as their first
+      argument.  This fixes the interplay between this module and any
+      layout that stores state.
+
 ### New Modules
 
   * `XMonad.Hooks.StatusBar.PP`
