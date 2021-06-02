@@ -57,8 +57,10 @@ module XMonad.Hooks.StatusBar (
   ) where
 
 import Control.Exception (SomeException, try)
+import Data.IORef (newIORef, readIORef, writeIORef)
 import qualified Codec.Binary.UTF8.String as UTF8 (encode)
 import qualified Data.Map as M
+import System.IO (hClose)
 import System.Posix.Signals (sigTERM, signalProcessGroup)
 import System.Posix.Types (ProcessID)
 
@@ -311,9 +313,19 @@ statusBarPropTo prop cmd pp = def
 statusBarPipe :: String -- ^ The command line to launch the status bar
               -> X PP   -- ^ The pretty printing options
               -> IO StatusBarConfig
-statusBarPipe cmd xpp  = do
-    h <- spawnPipe cmd
-    return $ def { sbLogHook = xpp >>= \pp -> dynamicLogWithPP pp { ppOutput = hPutStrLn h } }
+statusBarPipe cmd xpp = do
+    hRef <- newIORef Nothing
+    return $ def
+        { sbStartupHook = io (writeIORef hRef . Just =<< spawnPipe cmd)
+        , sbLogHook     = do
+              pp <- xpp
+              h' <- io (readIORef hRef)
+              whenJust h' $ \h -> dynamicLogWithPP pp { ppOutput = hPutStrLn h }
+        , sbCleanupHook = io
+                          $   readIORef hRef
+                          >>= (`whenJust` hClose)
+                          >>  writeIORef hRef Nothing
+        }
 
 
 -- $multiple
