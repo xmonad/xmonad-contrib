@@ -46,6 +46,6 @@ import XMonad
 -- | Execute a named script hook
 execScriptHook :: String -> X ()
 execScriptHook hook = do
-  xmonadDir <- getXMonadDir
+  xmonadDir <- asks (cfgDir . directories)
   let script = xmonadDir ++ "/hooks "
   spawn (script ++ hook)

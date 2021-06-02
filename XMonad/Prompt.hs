@@ -553,7 +553,7 @@ mkXPromptImplementation historyKey conf om = do
   XConf { display = d, theRoot = rw } <- ask
   s <- gets $ screenRect . W.screenDetail . W.current . windowset
   numlock <- gets X.numberlockMask
-  cachedir <- getXMonadCacheDir
+  cachedir <- asks (cacheDir . directories)
   hist <- io $ readHistory cachedir
   fs <- initXMF (font conf)
   st' <- io $
@@ -1729,7 +1729,7 @@ historyCompletion = historyCompletionP (const True)
 -- name satisfies the given predicate.
 historyCompletionP :: (String -> Bool) -> X ComplFunction
 historyCompletionP p = do
-    cd <- getXMonadCacheDir
+    cd <- asks (cacheDir . directories)
     pure $ \x ->
         let toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
          in toComplList . M.filterWithKey (const . p) <$> readHistory cd
