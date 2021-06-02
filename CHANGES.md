@@ -27,6 +27,9 @@
       constraint (was: `IO`), due to changes in how the xmonad core handles XDG
       directories.
 
+    - The prompt window now sets a `WM_CLASS` property.  This allows
+      other applications, like compositors, to properly match on it.
+
   * `XMonad.Hooks.EwmhDesktops`
 
     - It is no longer recommended to use `fullscreenEventHook` directly.
@@ -259,6 +262,10 @@
   * `XMonad.Actions.TreeSelect`
 
     - Fix swapped green/blue in foreground when using Xft.
+
+    - The spawned tree-select window now sets a `WM_CLASS` property.
+      This allows other applications, like compositors, to properly
+      match on it.
 
   * `XMonad.Layout.Fullscreen`
 
@@ -580,6 +587,11 @@
 
     - Add the ability to increase/decrease the window size by a custom
       rational number. E.g: `sendMessage $ ExpandTowardsBy L 0.02`
+
+  * `XMonad.Layout.Decoration`
+
+    - The decoration window now sets a `WM_CLASS` property.  This allows
+      other applications, like compositors, to properly match on it.
 
 ## 0.16
 

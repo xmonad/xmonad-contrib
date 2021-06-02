@@ -377,8 +377,12 @@ createDecos t ds sc s wrs ((w,r):xs) = do
 createDecos _ _ _ _ _ [] = return []
 
 createDecoWindow :: Theme -> Rectangle -> X Window
-createDecoWindow t r = let mask = Just (exposureMask .|. buttonPressMask) in
-                       createNewWindow r mask (inactiveColor t) True
+createDecoWindow t r = do
+  let mask = Just (exposureMask .|. buttonPressMask)
+  w <- createNewWindow r mask (inactiveColor t) True
+  d <- asks display
+  io $ setClassHint d w (ClassHint "xmonad-decoration" "xmonad")
+  pure w
 
 showDecos :: [DecoWin] -> X ()
 showDecos = showWindows . catMaybes . map fst . filter (isJust . snd)

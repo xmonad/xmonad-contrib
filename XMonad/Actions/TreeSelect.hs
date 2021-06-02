@@ -317,7 +317,9 @@ treeselectAt conf@TSConfig{..} zipper hist = withDisplay $ \display -> do
         set_colormap attributes colormap
         set_background_pixel attributes ts_background
         set_border_pixel attributes 0
-        createWindow display rootw rect_x rect_y rect_width rect_height 0 (visualInfo_depth vinfo) inputOutput (visualInfo_visual vinfo) (cWColormap .|. cWBorderPixel .|. cWBackPixel) attributes
+        w <- createWindow display rootw rect_x rect_y rect_width rect_height 0 (visualInfo_depth vinfo) inputOutput (visualInfo_visual vinfo) (cWColormap .|. cWBorderPixel .|. cWBackPixel) attributes
+        setClassHint display w (ClassHint "xmonad-tree_select" "xmonad")
+        pure w
 
     liftIO $ do
         -- TODO: move below?
