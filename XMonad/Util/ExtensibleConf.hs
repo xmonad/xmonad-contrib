@@ -113,16 +113,16 @@ add x = alter (<> Just x)
 -- This can be used to implement a composable interface for modules that must
 -- only hook into xmonad core once.
 once :: forall a l. (Semigroup a, Typeable a)
-     => a -- ^ configuration to add
-     -> (XConfig l -> XConfig l) -- ^ 'XConfig' modification done only once
+     => (XConfig l -> XConfig l) -- ^ 'XConfig' modification done only once
+     -> a -- ^ configuration to add
      -> XConfig l -> XConfig l
-once x f c = add x $ maybe f (const id) (lookup @a c) c
+once f x c = add x $ maybe f (const id) (lookup @a c) c
 
 -- | Config-time: Applicative (monadic) variant of 'once', useful if the
 -- 'XConfig' modification needs to do some 'IO' (e.g. create an
 -- 'Data.IORef.IORef').
 onceM :: forall a l m. (Applicative m, Semigroup a, Typeable a)
-      => a -- ^ configuration to add
-      -> (XConfig l -> m (XConfig l)) -- ^ 'XConfig' modification done only once
+      => (XConfig l -> m (XConfig l)) -- ^ 'XConfig' modification done only once
+      -> a -- ^ configuration to add
       -> XConfig l -> m (XConfig l)
-onceM x f c = add x <$> maybe f (const pure) (lookup @a c) c
+onceM f x c = add x <$> maybe f (const pure) (lookup @a c) c

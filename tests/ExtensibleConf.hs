@@ -22,9 +22,9 @@ spec = do
         XC.lookup (XC.add "a" (XC.add [1 :: Int] def)) `shouldBe` (Nothing :: Maybe ())
 
     specify "once" $
-        borderWidth (XC.once "a" incBorderWidth def) `shouldBe` succ (borderWidth def)
+        borderWidth (XC.once incBorderWidth "a" def) `shouldBe` succ (borderWidth def)
     specify "once . once" $
-        borderWidth (XC.once "b" incBorderWidth (XC.once "a" incBorderWidth def))
+        borderWidth (XC.once incBorderWidth "b" (XC.once incBorderWidth "a" def))
             `shouldBe` succ (borderWidth def)
 
 incBorderWidth :: XConfig l -> XConfig l
