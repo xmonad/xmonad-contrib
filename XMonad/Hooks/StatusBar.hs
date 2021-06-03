@@ -34,6 +34,7 @@ module XMonad.Hooks.StatusBar (
   -- $availableconfigs
   statusBarProp,
   statusBarPropTo,
+  statusBarGeneric,
   statusBarPipe,
 
   -- * Multiple Status Bars
@@ -303,8 +304,25 @@ statusBarPropTo :: String -- ^ Property to write the string to
                 -> String -- ^ The command line to launch the status bar
                 -> X PP   -- ^ The pretty printing options
                 -> StatusBarConfig
-statusBarPropTo prop cmd pp = def
-    { sbLogHook     = xmonadPropLog' prop =<< dynamicLogString =<< pp
+statusBarPropTo prop cmd pp = statusBarGeneric cmd $
+    xmonadPropLog' prop =<< dynamicLogString =<< pp
+
+-- | A generic 'StatusBarConfig' that launches a status bar but takes a
+-- generic @X ()@ logging function instead of a 'PP'. This has several uses:
+--
+-- * With 'xmonadPropLog' or 'xmonadPropLog'' in the logging function, a
+--   custom non-'PP'-based logger can be used for logging into an @xmobar@.
+--
+-- * With 'mempty' as the logging function, it's possible to manage a status
+--   bar that reads information from EWMH properties like @taffybar@.
+--
+-- * With 'mempty' as the logging function, any other dock like @trayer@ or
+--   @stalonetray@ can be managed by this module.
+statusBarGeneric :: String -- ^ The command line to launch the status bar
+                 -> X ()   -- ^ What and how to log to the status bar ('sbLogHook')
+                 -> StatusBarConfig
+statusBarGeneric cmd lh = def
+    { sbLogHook     = lh
     , sbStartupHook = spawnStatusBar cmd
     , sbCleanupHook = killStatusBar cmd
     }
