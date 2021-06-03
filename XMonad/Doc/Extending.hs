@@ -543,6 +543,12 @@ Here is a list of the modules found in @XMonad.Hooks@:
     even if it was opened in a tiled layout initially. The EventHook makes sure
     that windows are deleted from the PositionStore when they are closed.
 
+* "XMonad.Hooks.Rescreen":
+    Custom hooks for screen (xrandr) configuration changes. These can be used
+    to restart/reposition status bars or systrays automatically after xrandr,
+    as well as to actually invoke xrandr or autorandr when an output is
+    (dis)connected.
+
 * "XMonad.Hooks.RestoreMinimized":
     (Deprecated: Use XMonad.Hooks.Minimize) Lets you restore minimized
     windows (see "XMonad.Layout.Minimize") by selecting them on a

@@ -75,10 +75,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 import XMonad.Layout.LayoutModifier
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.Rescreen
 import XMonad.Hooks.StatusBar.PP
 import qualified XMonad.StackSet as W
-
-import Graphics.X11.Xrandr (xrrSelectInput)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -360,7 +359,7 @@ statusBarPipe cmd xpp = do
 -- >
 -- > main = xmonad $ withSB (xmobarTop <> xmobarBottom <> xmobar1) myConfig
 --
--- And here is an example of the related xmobar configuration for the multiple 
+-- And here is an example of the related xmobar configuration for the multiple
 -- status bars mentioned above:
 --
 -- > xmobarrc_top
@@ -440,13 +439,9 @@ instance ExtensionClass ActiveSBs where
 --
 -- Heavily inspired by "XMonad.Hooks.DynamicBars"
 dynamicSBs :: (ScreenId -> IO StatusBarConfig) -> XConfig l -> XConfig l
-dynamicSBs f conf = conf
-  { startupHook     = startupHook conf
-                      >> setupEventHandler
-                      >> killAllStatusBars
-                      >> updateSBs f
-  , logHook         = logHook conf >> logSBs
-  , handleEventHook = eventHookSBs f <> handleEventHook conf
+dynamicSBs f conf = addAfterRescreenHook (updateSBs f) $ conf
+  { startupHook = startupHook conf >> killAllStatusBars >> updateSBs f
+  , logHook     = logHook conf >> logSBs
   }
 
 -- | Like 'dynamicSBs', but applies 'docks' to the
@@ -475,22 +470,9 @@ updateSBs f = do
   traverse_ (sbStartupHook . snd) added
   XS.put (ASB (toKeep ++ added))
 
--- | Handles 'RRScreenChangeNotifyEvent' by updating the
--- status bars.
-eventHookSBs :: (ScreenId -> IO StatusBarConfig) -> Event -> X All
-eventHookSBs f RRScreenChangeNotifyEvent{} = updateSBs f >> return (All True)
-eventHookSBs _ _                           = return (All True)
-
 -- | Run 'sbLogHook' for the saved 'StatusBarConfig's
 logSBs :: X ()
 logSBs = XS.get >>= traverse_ (sbLogHook . snd) . getASBs
-
--- | Subscribe to the 'RRScreenChangeNotifyEvent'
-setupEventHandler :: X ()
-setupEventHandler = do
-  dpy  <- asks display
-  root <- asks theRoot
-  io $ xrrSelectInput dpy root rrScreenChangeNotifyMask
 
 -- | Kill the given 'StatusBarConfig's from the given
 -- list
