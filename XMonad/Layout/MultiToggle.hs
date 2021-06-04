@@ -25,6 +25,7 @@ module XMonad.Layout.MultiToggle (
     single,
     mkToggle,
     mkToggle1,
+    isToggleActive,
 
     HList,
     HCons,
@@ -35,6 +36,7 @@ import XMonad
 import XMonad.Prelude hiding (find)
 
 import XMonad.StackSet (Workspace(..))
+import qualified XMonad.Util.ExtensibleState as XS
 
 import Control.Arrow
 import Data.Typeable
@@ -198,7 +200,7 @@ instance (Typeable a, Show ts, Typeable ts, HList ts a, LayoutClass l a) => Layo
     handleMessage mt m
         | Just (Toggle t) <- fromMessage m
         , i@(Just _) <- find (transformers mt) t
-            = case currLayout mt of
+                     = case currLayout mt of
                 EL l det -> do
                     l' <- fromMaybe l <$> handleMessage l (SomeMessage ReleaseResources)
                     return . Just $
@@ -207,7 +209,38 @@ instance (Typeable a, Show ts, Typeable ts, HList ts a, LayoutClass l a) => Layo
                             currIndex = if cur then Nothing else i
                         }
                     where cur = (i == currIndex mt)
+        | Just (ToggleQuery t) <- fromMessage m
+        , i@(Just _) <- find (transformers mt) t
+                         =
+                        case currLayout mt of
+                EL l det ->
+                    do
+                      let a = transform' t (EL (det l) id)
+                      XS.put $ ToggleQueryResult (Just (i == currIndex mt))
+                      return Nothing
         | otherwise
             = case currLayout mt of
                 EL l det -> (fmap (\x -> mt { currLayout = EL x det })) <$>
                     handleMessage l m
+
+
+newtype ToggleQueryResult = ToggleQueryResult (Maybe Bool)
+    deriving (Typeable, Read, Show)
+
+instance ExtensionClass ToggleQueryResult where
+    initialValue = ToggleQueryResult Nothing
+    extensionType = PersistentExtension
+
+data ToggleQuery a = forall t. (Transformer t a) => ToggleQuery t
+    deriving (Typeable)
+
+instance (Typeable a) => Message (ToggleQuery a)
+
+isToggleActive
+  :: Transformer t Window
+  => t -> Workspace WorkspaceId (Layout Window) Window -> X (Maybe Bool)
+isToggleActive t w = do
+  XS.put $ ToggleQueryResult Nothing
+  sendMessageWithNoRefresh (ToggleQuery t) w
+  ToggleQueryResult res <- XS.get
+  return res
