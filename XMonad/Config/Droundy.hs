@@ -9,7 +9,7 @@
 
 module XMonad.Config.Droundy ( config, mytab ) where
 
-import XMonad hiding (keys, config, (|||))
+import XMonad hiding (keys, config)
 import qualified XMonad (keys)
 
 import qualified XMonad.StackSet as W

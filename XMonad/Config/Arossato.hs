@@ -22,7 +22,7 @@ module XMonad.Config.Arossato
 
 import qualified Data.Map as M
 
-import XMonad hiding ( (|||) )
+import XMonad
 import qualified XMonad.StackSet as W
 
 import XMonad.Actions.CycleWS
@@ -30,7 +30,6 @@ import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ServerMode
 import XMonad.Layout.Accordion
-import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Magnifier
 import XMonad.Layout.NoBorders
 import XMonad.Layout.SimpleFloat

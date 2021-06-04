@@ -33,7 +33,7 @@ module XMonad.Layout.Groups.Wmii ( -- * Usage
                                  , def
                                  , module XMonad.Layout.Groups.Helpers ) where
 
-import XMonad hiding ((|||))
+import XMonad
 
 import qualified XMonad.Layout.Groups as G
 import XMonad.Layout.Groups.Examples
@@ -42,7 +42,6 @@ import XMonad.Layout.Groups.Helpers
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Named
 import XMonad.Layout.Renamed
-import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.MessageControl
 import XMonad.Layout.Simplest
 
@@ -130,4 +129,3 @@ groupToTabbedLayout = sendMessage $ escape $ JumpToLayout "Tabs"
 -- | Switch the focused group to the \"column\" layout.
 groupToVerticalLayout :: X ()
 groupToVerticalLayout = sendMessage $ escape $ JumpToLayout "Column"
-
