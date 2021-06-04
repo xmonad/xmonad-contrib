@@ -273,7 +273,3 @@ instance (LayoutModifier m a, LayoutClass l a, Typeable m) => LayoutClass (Modif
 --   combined with an underlying layout.  It is, of course, itself a
 --   layout (i.e. an instance of 'LayoutClass').
 data ModifiedLayout m l a = ModifiedLayout (m a) (l a) deriving ( Read, Show )
-
--- N.B. I think there is a Haddock bug here; the Haddock output for
--- the above does not parenthesize (m a) and (l a), which is obviously
--- incorrect.
