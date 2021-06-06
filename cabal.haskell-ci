@@ -6,6 +6,9 @@ apt:
   libxrandr-dev
   libxss-dev
 
+hlint: True
+hlint-yaml: .hlint.yaml
+
 raw-project
   package xmonad-contrib
     flags: +pedantic
