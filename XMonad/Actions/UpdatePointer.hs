@@ -104,5 +104,7 @@ lerp :: (RealFrac r, Real a, Real b) => r -> a -> b -> r
 lerp r a b = (1 - r) * realToFrac a + r * realToFrac b
 
 clip :: Ord a => (a, a) -> a -> a
-clip (lower, upper) x = if x < lower then lower
-    else if x > upper then upper else x
+clip (lower, upper) x
+  | x < lower = lower
+  | x > upper = upper
+  | otherwise = x

@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Replace
@@ -78,11 +77,11 @@ replace = do
     rootw  <- rootWindow dpy dflt
 
     -- check for other WM
-    wmSnAtom <- internAtom dpy ("WM_S" ++ (show dflt)) False
+    wmSnAtom <- internAtom dpy ("WM_S" ++ show dflt) False
     currentWmSnOwner <- xGetSelectionOwner dpy wmSnAtom
     when (currentWmSnOwner /= 0) $ do
-        putStrLn $ "Screen " ++ (show dflt) ++ " on display \""
-                    ++ (displayString dpy) ++ "\" already has a window manager."
+        putStrLn $ "Screen " ++ show dflt ++ " on display \""
+                    ++ displayString dpy ++ "\" already has a window manager."
 
         -- prepare to receive destroyNotify for old WM
         selectInput dpy currentWmSnOwner structureNotifyMask
@@ -97,19 +96,19 @@ replace = do
             createWindow dpy rootw (-100) (-100) 1 1 0 copyFromParent copyFromParent visual attrmask attributes
 
         -- try to acquire wmSnAtom, this should signal the old WM to terminate
-        putStrLn $ "Replacing existing window manager..."
+        putStrLn "Replacing existing window manager..."
         xSetSelectionOwner dpy wmSnAtom netWmSnOwner currentTime
 
         -- SKIPPED: check if we acquired the selection
         -- SKIPPED: send client message indicating that we are now the WM
 
         -- wait for old WM to go away
-        putStr $ "Waiting for other window manager to terminate... "
+        putStr "Waiting for other window manager to terminate... "
         fix $ \again -> do
             evt <- allocaXEvent $ \event -> do
                 windowEvent dpy currentWmSnOwner structureNotifyMask event
                 get_EventType event
 
             when (evt /= destroyNotify) again
-        putStrLn $ "done"
+        putStrLn "done"
     closeDisplay dpy

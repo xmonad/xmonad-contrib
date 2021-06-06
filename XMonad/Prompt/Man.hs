@@ -106,7 +106,7 @@ stripExt = reverse . drop 1 . dropWhile (/= '.') . reverse
 
 stripSuffixes :: Eq a => [[a]] -> [a] -> [a]
 stripSuffixes sufs fn =
-    head . catMaybes $ map (flip rstrip fn) sufs ++ [Just fn]
+    head . catMaybes $ map (`rstrip` fn) sufs ++ [Just fn]
 
 rstrip :: Eq a => [a] -> [a] -> Maybe [a]
 rstrip suf lst

@@ -116,7 +116,7 @@ cycleRecentWindows :: [KeySym] -- ^ A list of modifier keys used when invoking t
                                --   If it's the same as the first key, it is effectively ignored.
                     -> X ()
 cycleRecentWindows = cycleStacks' stacks where
-    stacks s = map (shiftToFocus' `flip` s) (wins s)
+    stacks s = map (`shiftToFocus'` s) (wins s)
     wins (W.Stack t l r) = t : r ++ reverse l
 
 
@@ -205,7 +205,7 @@ rotFocused' :: ([a] -> [a]) -> W.Stack a -> W.Stack a
 rotFocused' _ s@(W.Stack _ [] []) = s
 rotFocused' f   (W.Stack t [] (r:rs)) = W.Stack t' [] (r:rs') -- Master has focus
     where (t':rs') = f (t:rs)
-rotFocused' f s@(W.Stack _ _ _) = rotSlaves' f s              -- otherwise
+rotFocused' f s@W.Stack{} = rotSlaves' f s                    -- otherwise
 
 
 -- $unfocused

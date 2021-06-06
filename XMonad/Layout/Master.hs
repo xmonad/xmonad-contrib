@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances, FlexibleContexts, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, FlexibleContexts, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -26,6 +26,8 @@ module XMonad.Layout.Master (
 import XMonad
 import qualified XMonad.StackSet as S
 import XMonad.Layout.LayoutModifier
+
+import Control.Arrow (first)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -71,7 +73,7 @@ mastered :: (LayoutClass l a) =>
     -> Rational -- ^ @frac@, what portion of the screen to use for the master window
     -> l a      -- ^ the layout to be modified
     -> ModifiedLayout AddMaster l a
-mastered delta frac = multimastered 1 delta frac
+mastered = multimastered 1
 
 instance LayoutModifier AddMaster Window where
     modifyLayout (AddMaster k delta frac) = applyMaster False k delta frac
@@ -84,7 +86,7 @@ instance LayoutModifier AddMaster Window where
 
     pureMess _ _ = Nothing
 
-data FixMaster a = FixMaster (AddMaster a) deriving (Show, Read)
+newtype FixMaster a = FixMaster (AddMaster a) deriving (Show, Read)
 
 instance LayoutModifier FixMaster Window where
     modifyLayout (FixMaster (AddMaster k d f)) = applyMaster True k d f
@@ -110,17 +112,17 @@ applyMaster :: (LayoutClass l Window) =>
                -> X ([(Window, Rectangle)], Maybe (l Window))
 applyMaster f k _ frac wksp rect = do
     let st= S.stack wksp
-    let ws = S.integrate' $ st
+    let ws = S.integrate' st
     let n = length ws + fromEnum f
     if n > 1 then
-        if(n<=k) then
-             return ((divideCol rect ws), Nothing)
+        if n<=k then
+             return (divideCol rect ws, Nothing)
              else do
              let m = take k ws
              let (mr, sr) = splitHorizontallyBy frac rect
-             let nst = st>>= S.filter (\w -> not (w `elem` m))
+             let nst = st>>= S.filter (`notElem` m)
              wrs <- runLayout (wksp {S.stack = nst}) sr
-             return ((divideCol mr m) ++ (fst wrs), snd wrs)
+             return (first (divideCol mr m ++) wrs)
         else runLayout wksp rect
 
 -- | Shift rectangle down
@@ -134,4 +136,3 @@ divideCol (Rectangle x y w h) ws = zip ws rects
           oneH = fromIntegral h `div` n
           oneRect = Rectangle x y w (fromIntegral oneH)
           rects = take n $ iterate (shiftD (fromIntegral oneH)) oneRect
-

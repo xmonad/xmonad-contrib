@@ -13,7 +13,7 @@ import Utils (tags)
 
 spec :: Spec
 spec = do
-    prop "prop_unView" $ prop_unView
+    prop "prop_unView" prop_unView
 
 prop_unView :: T -> Property
 prop_unView ss = conjoin

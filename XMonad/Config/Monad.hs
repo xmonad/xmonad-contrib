@@ -45,5 +45,5 @@ add r x = tell (mkW (r ^: mappend x))
 --
 example :: Config ()
 example = do
-    add layout $ LL [Layout $ Full] -- make this better
+    add layout $ LL [Layout Full] -- make this better
     set terminal "urxvt"

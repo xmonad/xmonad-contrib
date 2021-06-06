@@ -56,7 +56,7 @@ import XMonad.Prelude (Endo (..), chr)
 -- should work fine. Others might not work.
 --
 
-type XPropMatch = ([(Atom, [String] -> Bool)], (Window -> X (WindowSet -> WindowSet)))
+type XPropMatch = ([(Atom, [String] -> Bool)], Window -> X (WindowSet -> WindowSet))
 
 pmX :: (Window -> X ()) -> Window -> X (WindowSet -> WindowSet)
 pmX f w = f w >> return id
@@ -71,10 +71,10 @@ xPropManageHook tms = mconcat $ map propToHook tms
       mkQuery (a, tf)    = fmap tf (getQuery a)
       mkHook func        = ask >>= Query . lift . fmap Endo . func
 
-getProp :: Display -> Window -> Atom -> X ([String])
+getProp :: Display -> Window -> Atom -> X [String]
 getProp d w p = do
     prop <- io $ E.catch (getTextProperty d w p >>= wcTextPropertyToTextList d) (\(_ :: IOException) -> return [[]])
-    let filt q | q == wM_COMMAND = concat . map splitAtNull
+    let filt q | q == wM_COMMAND = concatMap splitAtNull
                | otherwise       = id
     return (filt p prop)
 
@@ -82,7 +82,7 @@ getQuery ::  Atom -> Query [String]
 getQuery p = ask >>= \w ->  Query . lift $ withDisplay $ \d -> getProp d w p
 
 splitAtNull :: String -> [String]
-splitAtNull s = case dropWhile (== (chr 0)) s of
+splitAtNull s = case dropWhile (== chr 0) s of
     "" -> []
     s' -> w : splitAtNull s''
-          where (w, s'') = break (== (chr 0)) s'
+          where (w, s'') = break (== chr 0) s'

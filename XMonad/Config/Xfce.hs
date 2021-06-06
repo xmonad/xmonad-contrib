@@ -39,7 +39,7 @@ xfceConfig = desktopConfig
     { terminal = "xfce4-terminal"
     , keys     = xfceKeys <+> keys desktopConfig }
 
-xfceKeys (XConfig {modMask = modm}) = M.fromList $
+xfceKeys XConfig{modMask = modm} = M.fromList
     [ ((modm,               xK_p), spawn "xfrun4")
     , ((modm .|. shiftMask, xK_p), spawn "xfce4-appfinder")
     , ((modm .|. shiftMask, xK_q), spawn "xfce4-session-logout")

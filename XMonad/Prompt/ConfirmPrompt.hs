@@ -40,7 +40,7 @@ This should be used something like this:
 -}
 
 {- | Customized 'XPrompt' prompt that will ask to confirm the given string -}
-data EnterPrompt = EnterPrompt String
+newtype EnterPrompt = EnterPrompt String
 instance XPrompt EnterPrompt where
     showXPrompt (EnterPrompt n) = "Confirm " ++ n ++ " (esc/ENTER)"
 

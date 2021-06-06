@@ -60,7 +60,7 @@ import qualified XMonad.StackSet as W
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 --------------------------------------------------------------------------------
-data HiddenWindows a = HiddenWindows [Window] deriving (Show, Read)
+newtype HiddenWindows a = HiddenWindows [Window] deriving (Show, Read)
 
 --------------------------------------------------------------------------------
 -- | Messages for the @HiddenWindows@ layout modifier.
@@ -76,8 +76,8 @@ instance Message HiddenMsg
 instance LayoutModifier HiddenWindows Window where
   handleMess h@(HiddenWindows hidden) mess
     | Just (HideWindow win)              <- fromMessage mess = hideWindowMsg h win
-    | Just (PopNewestHiddenWindow)       <- fromMessage mess = popNewestMsg h
-    | Just (PopOldestHiddenWindow)       <- fromMessage mess = popOldestMsg h
+    | Just PopNewestHiddenWindow         <- fromMessage mess = popNewestMsg h
+    | Just PopOldestHiddenWindow         <- fromMessage mess = popOldestMsg h
     | Just (PopSpecificHiddenWindow win) <- fromMessage mess = popSpecificMsg win h
     | Just ReleaseResources              <- fromMessage mess = doUnhook
     | otherwise                                        = return Nothing
@@ -142,9 +142,9 @@ popSpecificMsg win (HiddenWindows hiddenWins) = if win `elem` hiddenWins
   then do
     restoreWindow win
     return . Just . HiddenWindows $ filter (/= win) hiddenWins
-  else 
+  else
     return . Just . HiddenWindows $ hiddenWins
-  
+
 --------------------------------------------------------------------------------
 restoreWindow :: Window -> X ()
 restoreWindow = windows . W.insertUp

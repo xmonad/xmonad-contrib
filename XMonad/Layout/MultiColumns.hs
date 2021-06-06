@@ -128,17 +128,14 @@ doL nwin s r n = rlist
           -- Compute number of windows in last column and add it to the others
           col = c ++ [n-sum c]
           -- Compute width of columns
-          width = if s>0
-                  then if ncol==1
-                       -- Only one window
-                       then [fromIntegral $ rect_width r]
-                       -- Give the master it's space and split the rest equally for the other columns
-                       else size:replicate (ncol-1) ((fromIntegral (rect_width r) - size) `div` (ncol-1))
-                  else if fromIntegral ncol * abs s >= 1
-                       -- Split equally
-                       then replicate ncol $ fromIntegral (rect_width r) `div` ncol
-                       -- Let the master cover what is left...
-                       else (fromIntegral (rect_width r) - (ncol-1)*size):replicate (ncol-1) size
+          width
+            | s>0 = if ncol==1
+                    -- Only one window
+                    then [fromIntegral $ rect_width r]
+                    -- Give the master it's space and split the rest equally for the other columns
+                    else size:replicate (ncol-1) ((fromIntegral (rect_width r) - size) `div` (ncol-1))
+            | fromIntegral ncol * abs s >= 1 = replicate ncol $ fromIntegral (rect_width r) `div` ncol
+            | otherwise = (fromIntegral (rect_width r) - (ncol-1)*size):replicate (ncol-1) size
           -- Compute the horizontal position of columns
           xpos = accumEx (fromIntegral $ rect_x r) width
           -- Exclusive accumulation
@@ -147,4 +144,4 @@ doL nwin s r n = rlist
           -- Create a rectangle for each column
           cr = zipWith (\x w -> r { rect_x=fromIntegral x, rect_width=fromIntegral w }) xpos width
           -- Split the columns into the windows
-          rlist = concat $ zipWith (\num rect -> splitVertically num rect) col cr
+          rlist = concat $ zipWith splitVertically col cr

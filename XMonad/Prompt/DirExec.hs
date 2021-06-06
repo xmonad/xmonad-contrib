@@ -64,7 +64,7 @@ econst = const . return
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data DirExec = DirExec String
+newtype DirExec = DirExec String
 
 instance XPrompt DirExec where
     showXPrompt (DirExec name) = name

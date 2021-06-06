@@ -59,7 +59,7 @@ module XMonad.Actions.Navigation2D ( -- * Usage
 
 import qualified Data.List as L
 import qualified Data.Map as M
-import Data.Ord (comparing)
+import Control.Arrow (second)
 import XMonad.Prelude
 import XMonad hiding (Screen)
 import qualified XMonad.StackSet as W
@@ -476,7 +476,7 @@ switchLayer = actOnLayer otherLayer
 -- navigation should wrap around (e.g., from the left edge of the leftmost
 -- screen to the right edge of the rightmost screen).
 windowGo :: Direction2D -> Bool -> X ()
-windowGo dir wrap = actOnLayer thisLayer
+windowGo dir = actOnLayer thisLayer
                                ( \ conf cur wins -> windows
                                  $ doTiledNavigation conf dir W.focusWindow cur wins
                                )
@@ -486,7 +486,6 @@ windowGo dir wrap = actOnLayer thisLayer
                                ( \ conf cur wspcs -> windows
                                  $ doScreenNavigation conf dir W.view cur wspcs
                                )
-                               wrap
 
 -- | Swaps the current window with the next window in the given direction and in
 -- the same layer as the current window.  (In the floating layer, all that
@@ -495,7 +494,7 @@ windowGo dir wrap = actOnLayer thisLayer
 -- window's screen but retains its position and size relative to the screen.)
 -- The second argument indicates wrapping (see 'windowGo').
 windowSwap :: Direction2D -> Bool -> X ()
-windowSwap dir wrap = actOnLayer thisLayer
+windowSwap dir = actOnLayer thisLayer
                                  ( \ conf cur wins -> windows
                                    $ doTiledNavigation conf dir swap cur wins
                                  )
@@ -503,32 +502,28 @@ windowSwap dir wrap = actOnLayer thisLayer
                                    $ doFloatNavigation conf dir swap cur wins
                                  )
                                  ( \ _ _ _ -> return () )
-                                 wrap
 
 -- | Moves the current window to the next screen in the given direction.  The
 -- second argument indicates wrapping (see 'windowGo').
 windowToScreen :: Direction2D -> Bool -> X ()
-windowToScreen dir wrap = actOnScreens ( \ conf cur wspcs -> windows
+windowToScreen dir = actOnScreens ( \ conf cur wspcs -> windows
                                          $ doScreenNavigation conf dir W.shift cur wspcs
                                        )
-                                       wrap
 
 -- | Moves the focus to the next screen in the given direction.  The second
 -- argument indicates wrapping (see 'windowGo').
 screenGo :: Direction2D -> Bool -> X ()
-screenGo dir wrap = actOnScreens ( \ conf cur wspcs -> windows
+screenGo dir = actOnScreens ( \ conf cur wspcs -> windows
                                    $ doScreenNavigation conf dir W.view cur wspcs
                                  )
-                                 wrap
 
 -- | Swaps the workspace on the current screen with the workspace on the screen
 -- in the given direction.  The second argument indicates wrapping (see
 -- 'windowGo').
 screenSwap :: Direction2D -> Bool -> X ()
-screenSwap dir wrap = actOnScreens ( \ conf cur wspcs -> windows
+screenSwap dir = actOnScreens ( \ conf cur wspcs -> windows
                                      $ doScreenNavigation conf dir W.greedyView cur wspcs
                                    )
-                                   wrap
 
 -- | Maps each window to a fullscreen rect.  This may not be the same rectangle the
 -- window maps to under the Full layout or a similar layout if the layout
@@ -648,7 +643,7 @@ doFocusClosestWindow (cur, rect) winrects
   where
     ctr     = centerOf rect
     winctrs = filter ((cur /=) . fst)
-            $ map (\(w, r) -> (w, centerOf r)) winrects
+            $ map (second centerOf) winrects
     closer wc1@(_, c1) wc2@(_, c2) | lDist ctr c1 > lDist ctr c2 = wc2
                                    | otherwise                   = wc1
 
@@ -668,8 +663,7 @@ doTiledNavigation conf dir act cur winrects winset
     nav     = maximum
             $ map ( fromMaybe (defaultTiledNavigation conf)
                   . flip L.lookup (layoutNavigation conf)
-                  )
-            $ layouts
+                  ) layouts
 
 -- | Implements navigation for the float layer
 doFloatNavigation :: Navigation2DConfig
@@ -714,7 +708,7 @@ doLineNavigation dir (cur, rect) winrects
 
     -- The list of windows that are candidates to receive focus.
     winrects'     = filter dirFilter
-                  $ filter ((cur /=) . fst)
+                  . filter ((cur /=) . fst)
                   $ winrects
 
     -- Decides whether a given window matches the criteria to be a candidate to
@@ -755,9 +749,8 @@ doCenterNavigation dir (cur, rect) winrects
     -- center rotated so the right cone becomes the relevant cone.
     -- The windows are ordered in the order they should be preferred
     -- when they are otherwise tied.
-    winctrs = map (\(w, r) -> (w, dirTransform . centerOf $ r))
-            $ stackTransform
-            $ winrects
+    winctrs = map (second (dirTransform . centerOf))
+            $ stackTransform winrects
 
     -- Give preference to windows later in the stack for going left or up and to
     -- windows earlier in the stack for going right or down.  (The stack order
@@ -815,7 +808,7 @@ doSideNavigationWithBias ::
   Eq a => Int -> Direction2D -> Rect a -> [Rect a] -> Maybe a
 doSideNavigationWithBias bias dir (cur, rect)
   = fmap fst . listToMaybe
-  . L.sortBy (comparing dist) . foldr acClosest []
+  . L.sortOn dist . foldr acClosest []
   . filter (`toRightOf` (cur, transform rect))
   . map (fmap transform)
   where
@@ -843,7 +836,7 @@ doSideNavigationWithBias bias dir (cur, rect)
     -- Greedily accumulate the windows tied for the leftmost left side.
     acClosest (w, r) l@((_, r'):_) | x1 r == x1 r' = (w, r) : l
                                    | x1 r >  x1 r' =          l
-    acClosest (w, r) _                             = (w, r) : []
+    acClosest (w, r) _                             = [(w, r)]
 
     -- Given a (_, SideRect), calculate how far it is from the y=bias line.
     dist (_, r) | (y1 r <= bias) && (bias <= y2 r) = 0
@@ -864,7 +857,7 @@ swap win winset = W.focusWindow cur
     visws    = map W.workspace scrs
 
     -- The focused windows of the visible workspaces
-    focused  = mapMaybe (\ws -> W.focus <$> W.stack ws) visws
+    focused  = mapMaybe (fmap W.focus . W.stack) visws
 
     -- The window lists of the visible workspaces
     wins     = map (W.integrate' . W.stack) visws
@@ -891,8 +884,8 @@ centerOf r = (rect_x r + fi (rect_width r) `div` 2, rect_y r + fi (rect_height r
 
 -- | Functions to choose the subset of windows to operate on
 thisLayer, otherLayer :: a -> a -> a
-thisLayer  = curry fst
-otherLayer = curry snd
+thisLayer  = const
+otherLayer _ x = x
 
 -- | Returns the list of visible workspaces and their screen rects
 visibleWorkspaces :: WindowSet -> Bool -> [WSRect]
@@ -929,8 +922,8 @@ wrapOffsets winset = (max_x - min_x, max_y - min_y)
   where
     min_x = fi $ minimum $ map rect_x rects
     min_y = fi $ minimum $ map rect_y rects
-    max_x = fi $ maximum $ map (\r -> rect_x r + (fi $ rect_width  r)) rects
-    max_y = fi $ maximum $ map (\r -> rect_y r + (fi $ rect_height r)) rects
+    max_x = fi $ maximum $ map (\r -> rect_x r + fi (rect_width  r)) rects
+    max_y = fi $ maximum $ map (\r -> rect_y r + fi (rect_height r)) rects
     rects = map snd $ visibleWorkspaces winset False
 
 

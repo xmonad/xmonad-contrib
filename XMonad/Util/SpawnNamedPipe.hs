@@ -50,7 +50,7 @@ import qualified Data.Map as Map
 -- >                     , logHook = logHook'}
 --
 
-data NamedPipes = NamedPipes { pipeMap :: Map.Map String Handle }
+newtype NamedPipes = NamedPipes { pipeMap :: Map.Map String Handle }
     deriving (Show, Typeable)
 
 instance ExtensionClass NamedPipes where

@@ -1,7 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds #-}
-{-# LANGUAGE StandaloneDeriving, FlexibleContexts, DeriveDataTypeable
-  , UndecidableInstances, FlexibleInstances, LambdaCase, MultiParamTypeClasses
-  , PatternGuards, Rank2Types, TypeSynonymInstances #-}
+{-# LANGUAGE StandaloneDeriving, FlexibleContexts, DeriveDataTypeable, UndecidableInstances, FlexibleInstances, MultiParamTypeClasses, PatternGuards, Rank2Types #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -107,7 +105,7 @@ data Uniq = U Integer Integer
 -- provided you don't use 'gen' again with a key from the list.
 -- (if you need to do that, see 'split' instead)
 gen :: Uniq -> (Uniq, [Uniq])
-gen (U i1 i2) = (U (i1+1) i2, zipWith U (repeat i1) [i2..])
+gen (U i1 i2) = (U (i1+1) i2, map (U i1) [i2..])
 
 -- | Split an infinite list into two. I ended up not
 -- needing this, but let's keep it just in case.
@@ -119,7 +117,7 @@ gen (U i1 i2) = (U (i1+1) i2, zipWith U (repeat i1) [i2..])
 -- | Add a unique identity to a layout so we can
 -- follow it around.
 data WithID l a = ID { getID :: Uniq
-                     , unID :: (l a)}
+                     , unID :: l a}
   deriving (Show, Read)
 
 -- | Compare the ids of two 'WithID' values
@@ -131,8 +129,7 @@ instance Eq (WithID l a) where
 
 instance LayoutClass l a => LayoutClass (WithID l) a where
     runLayout ws@W.Workspace { W.layout = ID id l } r
-        = do (placements, ml') <- flip runLayout r
-                                     ws { W.layout = l}
+        = do (placements, ml') <- runLayout ws{ W.layout = l} r
              return (placements, ID id <$> ml')
     handleMessage (ID id l) sm = do ml' <- handleMessage l sm
                                     return $ ID id <$> ml'
@@ -230,13 +227,13 @@ readapt z g = let mf = getFocusZ z
                                         >>> focusGroup mf
                                         >>> onFocusedZ (onZipper $ focusWindow mf)
     where filterKeepLast _ Nothing = Nothing
-          filterKeepLast f z@(Just s) = maybe (singletonZ $ W.focus s) Just
-                                            $ filterZ_ f z
+          filterKeepLast f z@(Just s) =  filterZ_ f z
+                                     <|> singletonZ (W.focus s)
 
 -- | Remove the windows from a group which are no longer present in
 -- the stack.
 removeDeleted :: Eq a => Zipper a -> Zipper a -> Zipper a
-removeDeleted z = filterZ_ (flip elemZ z)
+removeDeleted z = filterZ_ (`elemZ` z)
 
 -- | Identify the windows not already in a group.
 findNewWindows :: Eq a => [a] -> Zipper (Group l a)
@@ -286,7 +283,7 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
                let placements = concatMap fst results
                    newL = justMakeNew l mpart' (map snd results ++ hidden')
 
-               return $ (placements, newL)
+               return (placements, newL)
 
         handleMessage l@(Groups _ p _ _) sm | Just (ToEnclosing sm') <- fromMessage sm
             = do mp' <- handleMessage p sm'
@@ -321,7 +318,7 @@ instance (LayoutClass l Window, LayoutClass l2 (Group l Window))
                       where step True (G l _) = handleMessage l sm
                             step False _ = return Nothing
                   handleOnIndex i sm z = mapM step $ zip [0..] $ W.integrate z
-                      where step (j, (G l _)) | i == j = handleMessage l sm
+                      where step (j, G l _) | i == j = handleMessage l sm
                             step _ = return Nothing
 
 
@@ -388,9 +385,9 @@ applySpec f g =
                                    >>> foldr (reID g) ((ids, []), [])
                                    >>> snd
                                    >>> fromTags
-    in case groups g == groups g' of
-      True -> Nothing
-      False -> Just g' { seed = seed' }
+    in if groups g == groups g'
+       then Nothing
+       else Just g' { seed = seed' }
 
 applySpecX :: ModifySpecX -> Groups l l2 Window -> X (Maybe (Groups l l2 Window))
 applySpecX f g = do
@@ -400,18 +397,18 @@ applySpecX f g = do
                                 >>> fmap (foldr (reID g) ((ids, []), []))
                                 >>> fmap snd
                                 >>> fmap fromTags
-    return $ case groups g == groups g' of
-      True -> Nothing
-      False -> Just g' { seed = seed' }
+    return $ if groups g == groups g'
+             then Nothing
+             else Just g' { seed = seed' }
 
 reID :: Groups l l2 Window
      -> Either (Group l Window) (Group l Window)
      -> (([Uniq], [Uniq]), [Either (Group l Window) (Group l Window)])
      -> (([Uniq], [Uniq]), [Either (Group l Window) (Group l Window)])
 reID _ _ (([], _), _) = undefined -- The list of ids is infinite
-reID g eg ((id:ids, seen), egs) = case elem myID seen of
-                                    False -> ((id:ids, myID:seen), eg:egs)
-                                    True -> ((ids, seen), mapE_ (setID id) eg:egs)
+reID g eg ((id:ids, seen), egs) = if myID `elem` seen
+                                  then ((ids, seen), mapE_ (setID id) eg:egs)
+                                  else ((id:ids, myID:seen), eg:egs)
     where myID = getID $ gLayout $ fromE eg
           setID id (G (ID _ _) z) = G (ID id $ baseLayout g) z
 
@@ -419,7 +416,7 @@ reID g eg ((id:ids, seen), egs) = case elem myID seen of
 
 -- | helper
 onFocused :: (Zipper Window -> Zipper Window) -> ModifySpec
-onFocused f _ gs = onFocusedZ (onZipper f) gs
+onFocused f _ = onFocusedZ (onZipper f)
 
 -- | Swap the focused window with the previous one.
 swapUp :: ModifySpec

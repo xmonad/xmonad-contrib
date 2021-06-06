@@ -143,12 +143,12 @@ changeRatio ratio delta = fmap f . fromMessage
   where f Expand = ratio * delta
         f Shrink = ratio / delta
 
-dwindle :: AxesGenerator -> Direction2D -> Chirality -> Rational -> Rectangle -> Stack a -> 
+dwindle :: AxesGenerator -> Direction2D -> Chirality -> Rational -> Rectangle -> Stack a ->
            [(a, Rectangle)]
 dwindle trans dir rot ratio rect st = unfoldr genRects (integrate st, rect, dirAxes dir, rot)
-  where genRects ([],     _, _, _)  = Nothing
-        genRects ([w],    r, a, rt) = Just ((w, r),  ([], r,   a,  rt))
-        genRects ((w:ws), r, a, rt) = Just ((w, r'), (ws, r'', a', rt'))
+  where genRects ([],   _, _, _ ) = Nothing
+        genRects ([w],  r, a, rt) = Just ((w, r),  ([], r,   a,  rt))
+        genRects (w:ws, r, a, rt) = Just ((w, r'), (ws, r'', a', rt'))
           where (r', r'') = splitRect r ratio a
                 (a', rt') = trans a rt
 
@@ -160,7 +160,7 @@ squeeze dir ratio rect st = zip wins rects
         totals' = 0 : zipWith (+) sizes totals'
         totals  = tail totals'
         splits  = zip (tail sizes) totals
-        ratios  = reverse $ map (\(l, r) -> l / r) splits
+        ratios  = reverse $ map (uncurry (/)) splits
         rects   = genRects rect ratios
         genRects r []     = [r]
         genRects r (x:xs) = r' : genRects r'' xs

@@ -124,7 +124,7 @@ manageSpawnWithGC garbageCollect = do
 
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
 mkPrompt cb c = do
-    cmds <- io $ getCommands
+    cmds <- io getCommands
     mkXPrompt Shell c (getShellCompl cmds $ searchPredicate c) cb
 
 -- | Replacement for Shell prompt ("XMonad.Prompt.Shell") which launches
@@ -145,13 +145,13 @@ spawnHere cmd = withWindowSet $ \ws -> spawnOn (W.currentTag ws) cmd
 -- | Replacement for 'spawn' which launches
 -- application on given workspace.
 spawnOn :: WorkspaceId -> String -> X ()
-spawnOn ws cmd = spawnAndDo (doShift ws) cmd
+spawnOn ws = spawnAndDo (doShift ws)
 
 -- | Spawn an application and apply the manage hook when it opens.
 spawnAndDo :: ManageHook -> String -> X ()
 spawnAndDo mh cmd = do
     p <- spawnPID $ mangle cmd
-    modifySpawner $ ((p,mh) :)
+    modifySpawner ((p,mh) :)
  where
     -- TODO this is silly, search for a better solution
     mangle xs | any (`elem` metaChars) xs || "exec" `isInfixOf` xs = xs

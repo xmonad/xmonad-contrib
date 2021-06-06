@@ -47,12 +47,12 @@ kde4Config = desktopConfig
     { terminal = "konsole"
     , keys     = kde4Keys <+> keys desktopConfig }
 
-kdeKeys (XConfig {modMask = modm}) = M.fromList $
+kdeKeys XConfig{modMask = modm} = M.fromList
     [ ((modm,               xK_p), spawn "dcop kdesktop default popupExecuteCommand")
     , ((modm .|. shiftMask, xK_q), spawn "dcop kdesktop default logout")
     ]
 
-kde4Keys (XConfig {modMask = modm}) = M.fromList $
+kde4Keys XConfig{modMask = modm} = M.fromList
     [ ((modm,               xK_p), spawn "krunner")
     , ((modm .|. shiftMask, xK_q), spawn "dbus-send --print-reply --dest=org.kde.ksmserver /KSMServer org.kde.KSMServerInterface.logout int32:1 int32:0 int32:1")
     ]

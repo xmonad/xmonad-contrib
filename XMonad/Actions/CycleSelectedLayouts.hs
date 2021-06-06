@@ -18,7 +18,7 @@ module XMonad.Actions.CycleSelectedLayouts (
     cycleThroughLayouts) where
 
 import XMonad
-import XMonad.Prelude (findIndex, fromMaybe)
+import XMonad.Prelude (elemIndex, fromMaybe)
 import qualified XMonad.StackSet as S
 
 -- $usage
@@ -32,7 +32,7 @@ import qualified XMonad.StackSet as S
 cycleToNext :: (Eq a) => [a] -> a -> Maybe a
 cycleToNext lst a = do
     -- not beautiful but simple and readable
-    ind <- findIndex (a==) lst
+    ind <- elemIndex a lst
     return $ lst !! if ind == length lst - 1 then 0 else ind+1
 
 -- | If the current layout is in the list, cycle to the next layout. Otherwise,

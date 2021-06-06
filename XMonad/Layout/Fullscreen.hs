@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, MultiParamTypeClasses, FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, MultiParamTypeClasses, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Fullscreen
@@ -120,7 +120,7 @@ data FullscreenFloat a = FullscreenFloat W.RationalRect (M.Map a (W.RationalRect
 instance LayoutModifier FullscreenFull Window where
   pureMess ff@(FullscreenFull frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> Just $ FullscreenFull frect $ nub $ win:fulls
-    Just (RemoveFullscreen win) -> Just $ FullscreenFull frect $ delete win $ fulls
+    Just (RemoveFullscreen win) -> Just $ FullscreenFull frect $ delete win fulls
     Just FullscreenChanged -> Just ff
     _ -> Nothing
 
@@ -136,11 +136,11 @@ instance LayoutModifier FullscreenFull Window where
 instance LayoutModifier FullscreenFocus Window where
   pureMess ff@(FullscreenFocus frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> Just $ FullscreenFocus frect $ nub $ win:fulls
-    Just (RemoveFullscreen win) -> Just $ FullscreenFocus frect $ delete win $ fulls
+    Just (RemoveFullscreen win) -> Just $ FullscreenFocus frect $ delete win fulls
     Just FullscreenChanged -> Just ff
     _ -> Nothing
 
-  pureModifier (FullscreenFocus frect fulls) rect (Just (W.Stack {W.focus = f})) list
+  pureModifier (FullscreenFocus frect fulls) rect (Just W.Stack {W.focus = f}) list
      | f `elem` fulls = ((f, rect') : rest, Nothing)
      | otherwise = (list, Nothing)
      where rest = filter (not . orP (== f) (R.supersetOf rect')) list
@@ -150,7 +150,7 @@ instance LayoutModifier FullscreenFocus Window where
 instance LayoutModifier FullscreenFloat Window where
   handleMess (FullscreenFloat frect fulls) m = case fromMessage m of
     Just (AddFullscreen win) -> do
-      mrect <- (M.lookup win . W.floating) <$> gets windowset
+      mrect <- M.lookup win . W.floating <$> gets windowset
       return $ case mrect of
         Just rect -> Just $ FullscreenFloat frect $ M.insert win (rect,True) fulls
         Nothing -> Nothing
@@ -229,11 +229,11 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       sendMessage FullscreenChanged
   return $ All True
 
-fullscreenEventHook (DestroyWindowEvent {ev_window = w}) = do
+fullscreenEventHook DestroyWindowEvent{ev_window = w} = do
   -- When a window is destroyed, the layouts should remove that window
   -- from their states.
   broadcastMessage $ RemoveFullscreen w
-  cw <- (W.workspace . W.current) <$> gets windowset
+  cw <- W.workspace . W.current <$> gets windowset
   sendMessageWithNoRefresh FullscreenChanged cw
   return $ All True
 
@@ -254,7 +254,7 @@ fullscreenManageHook' isFull = isFull --> do
   w <- ask
   liftX $ do
     broadcastMessage $ AddFullscreen w
-    cw <- (W.workspace . W.current) <$> gets windowset
+    cw <- W.workspace . W.current <$> gets windowset
     sendMessageWithNoRefresh FullscreenChanged cw
   idHook
 

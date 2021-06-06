@@ -441,7 +441,7 @@ focusedCur' m       = asks currentWorkspace >>= \i -> focusedOn' i m
 
 -- | Does new window appear at particular workspace?
 newOn :: WorkspaceId -> FocusQuery Bool
-newOn i             = (i ==) <$> asks newWorkspace
+newOn i             = asks ((i ==) . newWorkspace)
 -- | Does new window appear at current workspace?
 newOnCur :: FocusQuery Bool
 newOnCur            = asks currentWorkspace >>= newOn

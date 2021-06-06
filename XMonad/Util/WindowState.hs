@@ -70,7 +70,7 @@ catchQuery q = packIntoQuery $ \win -> userCode $ runQuery q win
 -- | Instance of MonadState for StateQuery.
 instance (Show s, Read s, Typeable s) => MonadState (Maybe s) (StateQuery s) where
     get = StateQuery  $ read' <$> get' undefined where
-        get'   :: (Maybe s) -> Query String
+        get'   :: Maybe s -> Query String
         get' x = stringProperty (typePropertyName x)
         read'  :: (Read s) => String -> Maybe s
         read' "" = Nothing

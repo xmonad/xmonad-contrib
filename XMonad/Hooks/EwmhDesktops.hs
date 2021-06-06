@@ -178,7 +178,7 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
 
     -- Remap the current workspace to handle any renames that f might be doing.
     let maybeCurrent' = W.tag <$> listToMaybe (t [W.workspace $ W.current s])
-        current = join (flip elemIndex (map W.tag ws) <$> maybeCurrent')
+        current = flip elemIndex (map W.tag ws) =<< maybeCurrent'
     whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
 
@@ -392,7 +392,7 @@ addSupported props = withDisplay $ \dpy -> do
     a <- getAtom "_NET_SUPPORTED"
     newSupportedList <- mapM (fmap fromIntegral . getAtom) props
     io $ do
-        supportedList <- fmap (join . maybeToList) $ getWindowProperty32 dpy a r
+        supportedList <- join . maybeToList <$> getWindowProperty32 dpy a r
         changeProperty32 dpy r a aTOM propModeReplace (nub $ newSupportedList ++ supportedList)
 
 setFullscreenSupported :: X ()

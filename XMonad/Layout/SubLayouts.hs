@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ParallelListComp, DeriveDataTypeable, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE PatternGuards, ParallelListComp, DeriveDataTypeable, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
@@ -183,7 +183,7 @@ import qualified Data.Set as S
 --  >          $ subLayout [0,1,2] (Simplest ||| Tall 1 0.2 0.5 ||| Circle)
 --  >          $ Tall 1 0.2 0.5 ||| Full
 subLayout :: [Int] -> subl a -> l a -> ModifiedLayout (Sublayout subl) l a
-subLayout nextLayout sl x = ModifiedLayout (Sublayout (I []) (nextLayout,sl) []) x
+subLayout nextLayout sl = ModifiedLayout (Sublayout (I []) (nextLayout,sl) [])
 
 -- | @subTabbed@ is a use of 'subLayout' with 'addTabs' to show decorations.
 subTabbed :: (Eq a, LayoutModifier (Sublayout Simplest) a, LayoutClass l a) =>
@@ -195,7 +195,7 @@ subTabbed  x = addTabs shrinkText X.def $ subLayout [] Simplest x
 -- defaults ones but to be used as a 'submap' for sending messages to the
 -- sublayout.
 defaultSublMap :: XConfig l -> Map (KeyMask, KeySym) (X ())
-defaultSublMap (XConfig { modMask = modm }) = M.fromList
+defaultSublMap XConfig{ modMask = modm } = M.fromList
          [((modm, xK_space), toSubl NextLayout),
           ((modm, xK_j), onGroup W.focusDown'),
           ((modm, xK_k), onGroup W.focusUp'),
@@ -262,14 +262,15 @@ data GroupMsg a
 -- should be focused by a sublayout. Example usage: @withFocused (sendMessage .
 -- mergeDir W.focusDown')@
 mergeDir :: (W.Stack Window -> W.Stack Window) -> Window -> GroupMsg Window
-mergeDir f w = WithGroup g w
+mergeDir f = WithGroup g
  where g cs = do
         let onlyOthers = W.filter (`notElem` W.integrate cs)
-        flip whenJust (sendMessage . Merge (W.focus cs) . W.focus . f)
-            =<< fmap (onlyOthers =<<) currentStack
+        (`whenJust` sendMessage . Merge (W.focus cs) . W.focus . f)
+            . (onlyOthers =<<)
+          =<< currentStack
         return cs
 
-data Broadcast = Broadcast SomeMessage -- ^ send a message to all sublayouts
+newtype Broadcast = Broadcast SomeMessage -- ^ send a message to all sublayouts
     deriving (Typeable)
 
 instance Message Broadcast
@@ -287,7 +288,7 @@ pullWindow = mergeNav (\o c -> sendMessage $ Migrate o c)
 pushWindow = mergeNav (\o c -> sendMessage $ Migrate c o)
 
 mergeNav :: (Window -> Window -> X ()) -> Direction2D -> Navigate
-mergeNav f = Apply (\o -> withFocused (f o))
+mergeNav f = Apply (withFocused . f)
 
 -- | Apply a function on the stack belonging to the currently focused group. It
 -- works for rearranging windows and for changing focus.
@@ -299,7 +300,7 @@ toSubl :: (Message a) => a -> X ()
 toSubl m = withFocused (sendMessage . SubMessage (SomeMessage m))
 
 instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModifier (Sublayout l) Window where
-    modifyLayout (Sublayout { subls = osls }) (W.Workspace i la st) r = do
+    modifyLayout Sublayout{ subls = osls } (W.Workspace i la st) r = do
             let gs' = updateGroup st $ toGroups osls
                 st' = W.filter (`elem` M.keys gs') =<< st
             updateWs gs'
@@ -308,12 +309,12 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
             runLayout (W.Workspace i la st') r <* setStack oldStack
             -- FIXME: merge back reordering, deletions?
 
-    redoLayout (Sublayout { delayMess = I ms, def = defl, subls = osls }) _r st arrs = do
+    redoLayout Sublayout{ delayMess = I ms, def = defl, subls = osls } _r st arrs = do
         let gs' = updateGroup st $ toGroups osls
         sls <- fromGroups defl st gs' osls
 
-        let newL :: LayoutClass l Window => Rectangle -> WorkspaceId -> (l Window) -> Bool
-                    -> (Maybe (W.Stack Window)) -> X ([(Window, Rectangle)], l Window)
+        let newL :: LayoutClass l Window => Rectangle -> WorkspaceId -> l Window -> Bool
+                    -> Maybe (W.Stack Window) -> X ([(Window, Rectangle)], l Window)
             newL rect n ol isNew sst = do
                 orgStack <- currentStack
                 let handle l (y,_)

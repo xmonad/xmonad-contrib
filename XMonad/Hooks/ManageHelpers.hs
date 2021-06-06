@@ -85,9 +85,7 @@ composeOne = foldr try (return mempty)
     where
     try q z = do
         x <- q
-        case x of
-            Just h -> return h
-            Nothing -> z
+        maybe z return x
 
 infixr 0 -?>, -->>, -?>>
 
@@ -119,7 +117,7 @@ p -?> f = do
 (-->>) :: (Monoid b, Monad m) => m (Match a) -> (a -> m b) -> m b
 p -->> f = do
     Match b m <- p
-    if b then (f m) else return mempty
+    if b then f m else return mempty
 
 -- | A helper operator for use in 'composeOne'.  It takes a condition and a function taking a groupdatum to action.  If 'p' is true, it executes the resulting action.  If it fails, it returns 'Nothing' from the 'Query' so 'composeOne' will go on and try the next rule.
 (-?>>) :: (Functor m, Monad m) => m (Match a) -> (a -> m b) -> m (Maybe b)
@@ -166,7 +164,7 @@ isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 --
 -- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm45623487788432>.
 pid :: Query (Maybe ProcessID)
-pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w >>= pure . \case
+pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w <&> \case
     Just [x] -> Just (fromIntegral x)
     _        -> Nothing
 
@@ -196,7 +194,7 @@ transience' = maybeToDefinite transience
 --
 -- See <https://tronche.com/gui/x/icccm/sec-5.html>.
 clientLeader :: Query (Maybe Window)
-clientLeader = ask >>= \w -> liftX $ getProp32s "WM_CLIENT_LEADER" w >>= pure . \case
+clientLeader = ask >>= \w -> liftX $ getProp32s "WM_CLIENT_LEADER" w <&> \case
     Just [x] -> Just (fromIntegral x)
     _        -> Nothing
 
@@ -256,12 +254,14 @@ doSideFloat :: Side -> ManageHook
 doSideFloat side = doFloatDep move
   where
     move (W.RationalRect _ _ w h) = W.RationalRect cx cy w h
-      where cx =      if side `elem` [SC,C ,NC] then (1-w)/2
-                 else if side `elem` [SW,CW,NW] then 0
-                 else {- side `elem` [SE,CE,NE] -}   1-w
-            cy =      if side `elem` [CE,C ,CW] then (1-h)/2
-                 else if side `elem` [NE,NC,NW] then 0
-                 else {- side `elem` [SE,SC,SW] -}   1-h
+      where cx
+              | side `elem` [SC,C ,NC] = (1-w)/2
+              | side `elem` [SW,CW,NW] = 0
+              | otherwise = {- side `elem` [SE,CE,NE] -} 1-w
+            cy
+              | side `elem` [CE,C ,CW] = (1-h)/2
+              | side `elem` [NE,NC,NW] = 0
+              | otherwise = {- side `elem` [SE,SC,SW] -} 1-h
 
 -- | Floats a new window with its original size, but centered.
 doCenterFloat :: ManageHook

@@ -90,7 +90,7 @@ import XMonad.Layout.Simplest
 -- | A layout inspired by wmii
 wmii s t = G.group innerLayout zoomRowG
     where column = named "Column" $ Tall 0 (3/100) (1/2)
-          tabs = named "Tabs" $ Simplest
+          tabs = named "Tabs" Simplest
           innerLayout = renamed [CutWordsLeft 3]
                         $ addTabs s t
                         $ ignore NextLayout

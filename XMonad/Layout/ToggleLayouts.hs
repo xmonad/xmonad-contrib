@@ -20,6 +20,7 @@ module XMonad.Layout.ToggleLayouts (
     ) where
 
 import XMonad
+import XMonad.Prelude (fromMaybe)
 import XMonad.StackSet (Workspace (..))
 
 -- $usage
@@ -60,7 +61,7 @@ instance (LayoutClass lt a, LayoutClass lf a) => LayoutClass (ToggleLayouts lt l
                                                                  return (ws,fmap (\lt' -> ToggleLayouts True lt' lf) mlt')
 
     runLayout (Workspace i (ToggleLayouts False lt lf) ms) r = do (ws,mlf') <- runLayout (Workspace i lf ms) r
-                                                                  return (ws,fmap (\lf' -> ToggleLayouts False lt lf') mlf')
+                                                                  return (ws,fmap (ToggleLayouts False lt) mlf')
     description (ToggleLayouts True lt _) = description lt
     description (ToggleLayouts False _ lf) = description lf
     handleMessage (ToggleLayouts bool lt lf) m
@@ -74,23 +75,23 @@ instance (LayoutClass lt a, LayoutClass lf a) => LayoutClass (ToggleLayouts lt l
                                           (Just lt',Just lf') -> Just $ ToggleLayouts bool lt' lf'
     handleMessage (ToggleLayouts True lt lf) m
         | Just ToggleLayout <- fromMessage m = do mlt' <- handleMessage lt (SomeMessage Hide)
-                                                  let lt' = maybe lt id mlt'
+                                                  let lt' = fromMaybe lt mlt'
                                                   return $ Just $ ToggleLayouts False lt' lf
         | Just (Toggle d) <- fromMessage m,
           d == description lt || d == description lf =
               do mlt' <- handleMessage lt (SomeMessage Hide)
-                 let lt' = maybe lt id mlt'
+                 let lt' = fromMaybe lt mlt'
                  return $ Just $ ToggleLayouts False lt' lf
         | otherwise = do mlt' <- handleMessage lt m
                          return $ fmap (\lt' -> ToggleLayouts True lt' lf) mlt'
     handleMessage (ToggleLayouts False lt lf) m
         | Just ToggleLayout <- fromMessage m = do mlf' <- handleMessage lf (SomeMessage Hide)
-                                                  let lf' = maybe lf id mlf'
+                                                  let lf' = fromMaybe lf mlf'
                                                   return $ Just $ ToggleLayouts True lt lf'
         | Just (Toggle d) <- fromMessage m,
           d == description lt || d == description lf =
               do mlf' <- handleMessage lf (SomeMessage Hide)
-                 let lf' = maybe lf id mlf'
+                 let lf' = fromMaybe lf mlf'
                  return $ Just $ ToggleLayouts True lt lf'
         | otherwise = do mlf' <- handleMessage lf m
-                         return $ fmap (\lf' -> ToggleLayouts False lt lf') mlf'
+                         return $ fmap (ToggleLayouts False lt) mlf'

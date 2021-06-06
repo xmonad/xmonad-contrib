@@ -38,7 +38,7 @@ debugWindow w =  do
   case w' of
     Nothing                                   ->
       return $ "(deleted window " ++ wx ++ ")"
-    Just (WindowAttributes
+    Just WindowAttributes
       { wa_x                 = x
       , wa_y                 = y
       , wa_width             = wid
@@ -46,7 +46,7 @@ debugWindow w =  do
       , wa_border_width      = bw
       , wa_map_state         = m
       , wa_override_redirect = o
-      }) -> do
+      } -> do
       c' <- withDisplay $ \d ->
             io (getWindowProperty8 d wM_CLASS w)
       let c = case c' of
@@ -70,7 +70,7 @@ debugWindow w =  do
       -- NB. modern stuff often does not set WM_COMMAND since it's only ICCCM required and not some
       -- horrible gnome/freedesktop session manager thing like Wayland intended. How helpful of them.
       p' <- withDisplay $ \d -> safeGetCommand d w
-      let p = if null p' then "" else wrap $ intercalate " " p'
+      let p = if null p' then "" else wrap $ unwords p'
       nWP <- getAtom "_NET_WM_PID"
       pid' <- withDisplay $ \d -> io $ getWindowProperty32 d nWP w
       let pid = case pid' of
@@ -118,7 +118,7 @@ tryUTF8                          :: TextProperty -> X [String]
 tryUTF8 (TextProperty s enc _ _) =  do
   uTF8_STRING <- getAtom "UTF8_STRING"
   when (enc /= uTF8_STRING) $ error "String is not UTF8_STRING"
-  (map decodeString . splitNul) <$> io (peekCString s)
+  map decodeString . splitNul <$> io (peekCString s)
 
 tryCompound                            :: TextProperty -> X [String]
 tryCompound t@(TextProperty _ enc _ _) =  do
@@ -140,7 +140,7 @@ catchX' job errcase = do
   c <- ask
   (a, s') <- io $ runX c st job `E.catch` \e -> case fromException e of
     Just x -> throw e `const` (x `asTypeOf` ExitSuccess)
-    _ -> runX c st errcase
+    _      -> runX c st errcase
   put s'
   return a
 

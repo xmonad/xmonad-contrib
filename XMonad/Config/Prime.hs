@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, FunctionalDependencies, KindSignatures, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, FunctionalDependencies, KindSignatures, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -478,7 +478,7 @@ wsActions = Summable wsActions_ (\x c -> c { wsActions_ = x }) (++)
 -- >     wsSetName 1 "mail"
 -- >     wsSetName 2 "web"
 wsSetName :: Int -> String -> Arr WorkspaceConfig WorkspaceConfig
-wsSetName index newName = wsNames =. (map maybeSet . zip [0..])
+wsSetName index newName = wsNames =. zipWith (curry maybeSet) [0..]
   where maybeSet (i, oldName) | i == (index - 1) = newName
                               | otherwise = oldName
 
@@ -497,8 +497,8 @@ withScreens :: Arr ScreenConfig ScreenConfig -> Prime l l
 withScreens sarr xconf = (P.>>=) (sarr def) $ \sconf -> sprime sconf xconf
   where sprime :: ScreenConfig -> Prime l l
         sprime sconf =
-          (keys =+ [(mod ++ key, action sid) | (sid, key) <- zip [0..] (sKeys_ sconf),
-                                               (mod, action) <- sActions_ sconf])
+          keys =+ [(mod ++ key, action sid) | (sid, key) <- zip [0..] (sKeys_ sconf),
+                                              (mod, action) <- sActions_ sconf]
 
 data ScreenConfig = ScreenConfig {
   sKeys_ :: [String],

@@ -88,9 +88,9 @@ tile3 middle f r nmaster n
     | otherwise = splitVertically nmaster r1 ++ splitVertically nslave1 r2 ++ splitVertically nslave2 r3
         where (r1, r2, r3) = split3HorizontallyBy middle (if f<0 then 1+2*f else f) r
               (s1, s2) = splitHorizontallyBy (if f<0 then 1+f else f) r
-              nslave = (n - nmaster)
+              nslave = n - nmaster
               nslave1 = ceiling (nslave % 2)
-              nslave2 = (n - nmaster - nslave1)
+              nslave2 = n - nmaster - nslave1
 
 split3HorizontallyBy :: Bool -> Rational -> Rectangle -> (Rectangle, Rectangle, Rectangle)
 split3HorizontallyBy middle f (Rectangle sx sy sw sh) =

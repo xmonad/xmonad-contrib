@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MouseResizableTile
@@ -153,7 +153,7 @@ instance LayoutClass MouseResizableTile Window where
                                                               focusPos = length l,
                                                               numWindows = length wins })
         where
-            mirrorAdjust a b = if (isMirrored st)
+            mirrorAdjust a b = if isMirrored st
                                 then b
                                 else a
 
@@ -207,7 +207,7 @@ adjustForMirror False dragger = dragger
 adjustForMirror True (draggerRect, draggerCursor, draggerInfo) =
         (mirrorRect draggerRect, draggerCursor', draggerInfo)
     where
-        draggerCursor' = if (draggerCursor == xC_sb_h_double_arrow)
+        draggerCursor' = if draggerCursor == xC_sb_h_double_arrow
                             then xC_sb_v_double_arrow
                             else xC_sb_h_double_arrow
 
@@ -243,8 +243,8 @@ replaceAtPos d (x:xs) pos x' = x : replaceAtPos d xs (pos -1 ) x'
 
 sanitizeRectangle :: Rectangle -> Rectangle -> Rectangle
 sanitizeRectangle (Rectangle sx sy swh sht) (Rectangle x y wh ht) =
-    (Rectangle (within 0 (sx + fromIntegral swh) x) (within 0 (sy + fromIntegral sht) y)
-                (within 1 swh wh) (within 1 sht ht))
+    Rectangle (within 0 (sx + fromIntegral swh) x) (within 0 (sy + fromIntegral sht) y)
+                (within 1 swh wh) (within 1 sht ht)
 
 within :: (Ord a) => a -> a -> a -> a
 within low high a = max low $ min high a

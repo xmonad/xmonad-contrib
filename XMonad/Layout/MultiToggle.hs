@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, ExistentialQuantification, Rank2Types, MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, FlexibleContexts, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable, ExistentialQuantification, Rank2Types, FunctionalDependencies, FlexibleInstances, FlexibleContexts, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -206,8 +206,8 @@ instance (Typeable a, Show ts, Typeable ts, HList ts a, LayoutClass l a) => Layo
                             currLayout = (if cur then id else transform' t) (EL (det l') id),
                             currIndex = if cur then Nothing else i
                         }
-                    where cur = (i == currIndex mt)
+                    where cur = i == currIndex mt
         | otherwise
             = case currLayout mt of
-                EL l det -> (fmap (\x -> mt { currLayout = EL x det })) <$>
+                EL l det -> fmap (\x -> mt { currLayout = EL x det }) <$>
                     handleMessage l m

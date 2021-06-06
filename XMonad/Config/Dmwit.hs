@@ -232,7 +232,7 @@ keyBindings conf = let m = modMask conf in fromList . anyMask $ [
     ((m .|. shiftMask  , xK_p          ), spawnHere termLauncher),
     ((m .|. shiftMask  , xK_c          ), kill),
     ((m                , xK_q          ), restart "xmonad" True),
-    ((m .|. shiftMask  , xK_q          ), io (exitWith ExitSuccess)),
+    ((m .|. shiftMask  , xK_q          ), io exitSuccess),
     ((m                , xK_grave      ), sendMessage NextLayout),
     ((m .|. shiftMask  , xK_grave      ), setLayout $ layoutHook conf),
     ((m                , xK_o          ), sendMessage Toggle),

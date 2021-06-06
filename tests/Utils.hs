@@ -6,8 +6,8 @@ import Graphics.X11.Xlib.Types (Rectangle(..))
 import Data.List (sortBy)
 
 -- Useful operation, the non-local workspaces
-hidden_spaces :: StackSet i l a sid sd -> [Workspace i l a]
-hidden_spaces x = map workspace (visible x) ++ hidden x
+hiddenSpaces :: StackSet i l a sid sd -> [Workspace i l a]
+hiddenSpaces x = map workspace (visible x) ++ hidden x
 
 
 -- normalise workspace list

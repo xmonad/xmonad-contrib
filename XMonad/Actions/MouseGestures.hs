@@ -110,7 +110,7 @@ mouseGestureH moveHook endHook = do
 mouseGesture :: Map [Direction2D] (Window -> X ()) -> Window -> X ()
 mouseGesture tbl win = do
     (mov, end) <- mkCollect
-    mouseGestureH (\d -> mov d >> return ()) $ end >>= \gest ->
+    mouseGestureH (void . mov) $ end >>= \gest ->
         case M.lookup gest tbl of
             Nothing -> return ()
             Just f -> f win

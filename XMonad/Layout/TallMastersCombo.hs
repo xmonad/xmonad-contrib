@@ -1,11 +1,5 @@
 -- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards,
-    FlexibleContexts,
-    FlexibleInstances,
-    DeriveDataTypeable,
-    TypeSynonymInstances,
-    MultiParamTypeClasses
-#-}
+{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, MultiParamTypeClasses #-}
 ---------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TallMastersCombo
@@ -47,7 +41,7 @@ module XMonad.Layout.TallMastersCombo (
 ) where
 
 import XMonad hiding (focus, (|||))
-import XMonad.Prelude (delete, find, foldM, isJust)
+import XMonad.Prelude (delete, find, foldM, fromMaybe, isJust)
 import XMonad.StackSet (Workspace(..),integrate',Stack(..))
 import qualified XMonad.StackSet as W
 import qualified XMonad.Layout as LL
@@ -139,8 +133,8 @@ import XMonad.Layout.Decoration
 
 -- | A simple layout that arranges windows in a row or a column with equal sizes.
 -- It can switch between row mode and column mode by listening to the message 'SwitchOrientation'.
-data RowsOrColumns a = RowsOrColumns { rowMode :: Bool -- ^ arrange windows in rows or columns
-                                     } deriving (Show, Read)
+newtype RowsOrColumns a = RowsOrColumns { rowMode :: Bool -- ^ arrange windows in rows or columns
+                                        } deriving (Show, Read)
 
 instance LayoutClass RowsOrColumns a where
   description (RowsOrColumns rows) =
@@ -224,8 +218,8 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
       do
          (ws , ml ) <- runLayout (Workspace wid layout1 s1) r1
          (ws', ml') <- runLayout (Workspace wid layout2 s2) r2
-         let newlayout1 = maybe layout1 id ml
-             newlayout2 = maybe layout2 id ml'
+         let newlayout1 = fromMaybe layout1 ml
+             newlayout2 = fromMaybe layout2 ml'
              (f1, _) = getFocused newlayout1 s1
              (f2, _) = getFocused newlayout2 s2
              fnew = f1 ++ f2
@@ -294,12 +288,12 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
              m1 = if vsp then SomeMessage Row else SomeMessage Col
          if focId == 1
            then do
-                 mlay1 <- handleMessages layout1 [(SomeMessage NextLayout), m1]
+                 mlay1 <- handleMessages layout1 [SomeMessage NextLayout, m1]
                  let mlay2 = Nothing
                  return $ mergeSubLayouts mlay1 mlay2 i True
            else do
                  let mlay1 = Nothing
-                 mlay2 <- handleMessages layout2 [(SomeMessage NextLayout), m1]
+                 mlay2 <- handleMessages layout2 [SomeMessage NextLayout, m1]
                  return $ mergeSubLayouts mlay1 mlay2 i True
     | otherwise =
             do
@@ -326,7 +320,7 @@ swapWindow w s =
   let upLst   = up s
       foc     = focus s
       downLst = down s
-  in if elem w (downLst)
+  in if w `elem` downLst
      then let us   = takeWhile (/= w) downLst
               d:ds = dropWhile (/= w) downLst
               us'  = reverse us ++ d : upLst
@@ -340,28 +334,24 @@ swapWindow w s =
 -- | Focus a given window.
 focusWindow :: (Eq a) => a -> Stack a -> Stack a
 focusWindow w s =
-  if elem w (up s)
+  if w `elem` up s
   then focusSubMasterU w s
   else focusSubMasterD w s
   where
-      focusSubMasterU win i@(Stack foc (l:ls) rs) =
-          if foc == win
-          then i
-          else
-              if l == win
-              then news
-              else focusSubMasterU win news
-              where news = Stack l ls (foc:rs)
+      focusSubMasterU win i@(Stack foc (l:ls) rs)
+        | foc == win = i
+        | l == win = news
+        | otherwise = focusSubMasterU win news
+        where
+            news = Stack l ls (foc : rs)
       focusSubMasterU _ (Stack foc [] rs) =
           Stack foc [] rs
-      focusSubMasterD win i@(Stack foc ls (r:rs)) =
-          if foc == win
-          then i
-          else
-              if r == win
-              then news
-              else focusSubMasterD win news
-              where news = Stack r (foc:ls) rs
+      focusSubMasterD win i@(Stack foc ls (r:rs))
+        | foc == win = i
+        | r == win = news
+        | otherwise = focusSubMasterD win news
+        where
+            news = Stack r (foc : ls) rs
       focusSubMasterD _ (Stack foc ls []) =
           Stack foc ls []
 
@@ -372,28 +362,25 @@ mergeSubLayouts
   -> TMSCombineTwo l1 l2 a  -- ^ How to combine the layouts
   -> Bool                   -- ^ Return a 'Just' no matter what
   -> Maybe (TMSCombineTwo l1 l2 a)
-mergeSubLayouts ml1 ml2 (TMSCombineTwo f w1 w2 vsp nmaster delta frac l1 l2) alwaysReturn =
-  if alwaysReturn
-  then Just $ TMSCombineTwo f w1 w2 vsp nmaster delta frac (maybe l1 id ml1) (maybe l2 id ml2)
-  else
-    if isJust ml1 || isJust ml2
-    then Just $ TMSCombineTwo f w1 w2 vsp nmaster delta frac (maybe l1 id ml1) (maybe l2 id ml2)
-    else Nothing
+mergeSubLayouts ml1 ml2 (TMSCombineTwo f w1 w2 vsp nmaster delta frac l1 l2) alwaysReturn
+  | alwaysReturn = Just $ TMSCombineTwo f w1 w2 vsp nmaster delta frac (fromMaybe l1 ml1) (fromMaybe l2 ml2)
+  | isJust ml1 || isJust ml2 = Just $ TMSCombineTwo f w1 w2 vsp nmaster delta frac (fromMaybe l1 ml1) (fromMaybe l2 ml2)
+  | otherwise = Nothing
 
 findFocused :: (Eq a) => Maybe (Stack a) -> [a] -> [a] -> Int
 findFocused mst w1 w2 =
         case mst of
           Nothing -> 1
-          Just st -> if elem foc w1
+          Just st -> if foc `elem` w1
                      then 1
-                     else if elem foc w2
+                     else if foc `elem` w2
                           then 2
                           else 1
                      where foc = W.focus st
 
 -- | Handle a list of messages one by one, then return the last refreshed layout.
 handleMessages :: (LayoutClass l a) => l a -> [SomeMessage] -> X (Maybe (l a))
-handleMessages l ms = foldM  handleMaybeMsg (Just l) ms
+handleMessages l = foldM  handleMaybeMsg (Just l)
 
 handleMaybeMsg :: (LayoutClass l a) => Maybe (l a) -> SomeMessage -> X (Maybe (l a))
 handleMaybeMsg ml m = case ml of Just l  -> do
@@ -407,7 +394,7 @@ splitStack f nmaster frac s =
     let slst = integrate' s
         f' = case s of (Just s') -> focus s':delete (focus s') f
                        Nothing   -> f
-        snum = length(slst)
+        snum = length slst
         (slst1, slst2) = splitAt nmaster slst
         s0 = differentiate f' slst
         s1' = differentiate f' slst1
@@ -422,10 +409,10 @@ type Next = Bool
 adjFocus :: (Eq a) => [a] -> Maybe (Stack a) -> Next -> Maybe a
 adjFocus ws ms next =
   case ms of Nothing -> Nothing
-             Just s  -> let searchLst =
-                              case next of True  -> (down s) ++ (reverse (up s))
-                                           False -> (up s) ++ (reverse (down s))
-                        in  find (flip elem ws) searchLst
+             Just s  -> let searchLst = if next
+                                        then down s ++ reverse (up s)
+                                        else up s ++ reverse (down s)
+                        in  find (`elem` ws) searchLst
 
 -- right biased maybe merge
 elseOr :: Maybe a -> Maybe a -> Maybe a
@@ -458,7 +445,7 @@ instance (GetFocused l a, GetFocused r a) => LayoutClass (ChooseWrapper l r) a w
       (ws, ml0) <- runLayout (Workspace wid lr s) rec
       let l1 = case ml0 of Just l0 -> Just $ ChooseWrapper d l' r' l0
                            Nothing -> Nothing
-      return $ (ws,l1)
+      return (ws,l1)
 
   handleMessage c@(ChooseWrapper d l r lr) m
     | Just NextLayout <- fromMessage m = do

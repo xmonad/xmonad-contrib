@@ -39,7 +39,7 @@ import qualified XMonad.StackSet as W
 
 -- | Changes the focus if the mouse is moved within an unfocused window.
 focusOnMouseMove :: Event -> X All
-focusOnMouseMove (MotionEvent { ev_x = x, ev_y = y, ev_window = root }) = do
+focusOnMouseMove MotionEvent{ ev_x = x, ev_y = y, ev_window = root } = do
     -- check only every 15 px to avoid excessive calls to translateCoordinates
     when (x `mod` 15 == 0 || y `mod` 15 == 0) $ do
       dpy <- asks display

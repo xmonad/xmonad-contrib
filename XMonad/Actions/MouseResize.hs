@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -56,7 +56,7 @@ import XMonad.Util.XUtils
 mouseResize :: l a -> ModifiedLayout MouseResize l a
 mouseResize = ModifiedLayout (MR [])
 
-data MouseResize a = MR [((a,Rectangle),Maybe a)]
+newtype MouseResize a = MR [((a,Rectangle),Maybe a)]
 instance Show (MouseResize a) where show        _ = ""
 instance Read (MouseResize a) where readsPrec _ s = [(MR [], s)]
 
@@ -68,7 +68,7 @@ instance LayoutModifier MouseResize Window where
         where
           wrs'         = wrs_to_state [] . filter (isInStack s . fst) $ wrs
           initState    = mapM createInputWindow wrs'
-          processState = mapM (deleteInputWin . snd) st >> mapM createInputWindow wrs'
+          processState = mapM_ (deleteInputWin . snd) st >> mapM createInputWindow wrs'
 
           inputRectangle (Rectangle x y wh ht) = Rectangle (x + fi wh - 5) (y + fi ht - 5) 10 10
 

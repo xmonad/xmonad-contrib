@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -177,7 +177,7 @@ toggleGaps _    _  = []
 
 toggleGap :: GapSpec -> [Direction2D] -> Direction2D -> [Direction2D]
 toggleGap conf cur d | d `elem` cur            = delete d cur
-                     | d `elem` (map fst conf) = d:cur
+                     | d `elem` map fst conf = d:cur
                      | otherwise               = cur
 
 -- | Add togglable manual gaps to a layout.

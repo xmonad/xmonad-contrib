@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -88,7 +88,7 @@ reflectRect Vert (Rectangle _ sy _ sh) (Rectangle rx ry rw rh) =
 
 
 
-data Reflect a = Reflect ReflectDir deriving (Show, Read)
+newtype Reflect a = Reflect ReflectDir deriving (Show, Read)
 
 instance LayoutModifier Reflect a where
 

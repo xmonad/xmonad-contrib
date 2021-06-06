@@ -213,7 +213,7 @@ engine.
 Happy searching! -}
 
 -- | A customized prompt indicating we are searching, and the name of the site.
-data Search = Search Name
+newtype Search = Search Name
 instance XPrompt Search where
     showXPrompt (Search name)= "Search [" ++ name ++ "]: "
     nextCompletion _ = getNextCompletion
@@ -260,7 +260,7 @@ search browser site query = safeSpawn browser [site query]
    Generally, examining the resultant URL of a search will allow you to reverse-engineer
    it if you can't find the necessary URL already described in other projects such as Surfraw. -}
 searchEngine :: Name -> String -> SearchEngine
-searchEngine name site = searchEngineF name (\s -> site ++ (escape s))
+searchEngine name site = searchEngineF name (\s -> site ++ escape s)
 
 {- | If your search engine is more complex than this (you may want to identify
    the kind of input and make the search URL dependent on the input or put the query
@@ -316,7 +316,7 @@ vocabulary    = searchEngine "vocabulary"    "http://www.vocabulary.com/search?q
 duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, (prefixAware google)]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, prefixAware google]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
@@ -326,7 +326,7 @@ multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbt
 
    Now if you search for http:\/\/xmonad.org it will directly open in your browser-}
 intelligent :: SearchEngine -> SearchEngine
-intelligent (SearchEngine name site) = searchEngineF name (\s -> if (fst $ break (==':') s) `elem` ["http", "https", "ftp"] then s else (site s))
+intelligent (SearchEngine name site) = searchEngineF name (\s -> if takeWhile (/= ':') s `elem` ["http", "https", "ftp"] then s else site s)
 
 -- | > removeColonPrefix "foo://bar" ~> "//bar"
 -- > removeColonPrefix "foo//bar" ~> "foo//bar"

@@ -52,7 +52,7 @@ mateConfig = desktopConfig
     , keys     = mateKeys <+> keys desktopConfig
     , startupHook = mateRegister >> startupHook desktopConfig }
 
-mateKeys (XConfig {modMask = modm}) = M.fromList $
+mateKeys XConfig{modMask = modm} = M.fromList
     [ ((modm, xK_p), mateRun)
     , ((modm, xK_d), unGrab >> matePanel "MAIN_MENU")
     , ((modm .|. shiftMask, xK_q), mateLogout) ]

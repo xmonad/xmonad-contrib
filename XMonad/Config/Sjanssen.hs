@@ -24,10 +24,10 @@ sjanssenConfig =
     docks $ ewmh $ def
         { terminal = "exec urxvt"
         , workspaces = ["irc", "web"] ++ map show [3 .. 9 :: Int]
-        , mouseBindings = \(XConfig {modMask = modm}) -> M.fromList $
-                [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w))
-                , ((modm, button2), (\w -> focus w >> windows W.swapMaster))
-                , ((modm.|. shiftMask, button1), (\w -> focus w >> mouseResizeWindow w)) ]
+        , mouseBindings = \XConfig {modMask = modm} -> M.fromList
+                [ ((modm, button1), \w -> focus w >> mouseMoveWindow w)
+                , ((modm, button2), \w -> focus w >> windows W.swapMaster)
+                , ((modm.|. shiftMask, button1), \w -> focus w >> mouseResizeWindow w) ]
         , keys = \c -> mykeys c `M.union` keys def c
         , logHook = dynamicLogString sjanssenPP >>= xmonadPropLog
         , layoutHook  = modifiers layouts
@@ -50,12 +50,12 @@ sjanssenConfig =
              , "trayer --transparent true --expand true --align right "
                ++ "--edge bottom --widthtype request" ]
 
-    mykeys (XConfig {modMask = modm}) = M.fromList $
+    mykeys XConfig{modMask = modm} = M.fromList
         [((modm,               xK_p     ), shellPromptHere myPromptConfig)
         ,((modm .|. shiftMask, xK_Return), spawnHere =<< asks (terminal . config))
         ,((modm .|. shiftMask, xK_c     ), kill1)
         ,((modm .|. shiftMask .|. controlMask, xK_c     ), kill)
-        ,((modm .|. shiftMask, xK_0     ), windows $ copyToAll)
+        ,((modm .|. shiftMask, xK_0     ), windows copyToAll)
         ,((modm,               xK_z     ), layoutScreens 2 $ TwoPane 0.5 0.5)
         ,((modm .|. shiftMask, xK_z     ), rescreen)
         , ((modm             , xK_b     ), sendMessage ToggleStruts)

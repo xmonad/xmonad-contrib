@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TreeSelect
@@ -65,7 +66,7 @@ module XMonad.Actions.TreeSelect
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Tree
-import Foreign
+import Foreign (shiftL, shiftR, (.&.))
 import System.IO
 import System.Posix.Process (forkProcess, executeFile)
 import XMonad hiding (liftX)
@@ -451,8 +452,8 @@ splitPath i = case break (== '.') i of
 -- >        ]
 -- >    ]
 treeselectAction :: TSConfig (X a) -> Forest (TSNode (X a)) -> X ()
-treeselectAction c xs = treeselect c xs >>= \x -> case x of
-    Just a  -> a >> return ()
+treeselectAction c xs = treeselect c xs >>= \case
+    Just a  -> void a
     Nothing -> return ()
 
 forMForest :: (Functor m, Applicative m, Monad m) => [Tree a] -> (a -> m b) -> m [Tree b]
@@ -464,7 +465,7 @@ mapMTree f (Node x xs) = Node <$> f x <*>  mapM (mapMTree f) xs
 
 -- | Quit returning the currently selected node
 select :: TreeSelect a (Maybe a)
-select = Just <$> gets (tsn_value . cursor . tss_tree)
+select = gets (Just . (tsn_value . cursor . tss_tree))
 
 -- | Quit without returning anything
 cancel :: TreeSelect a (Maybe a)

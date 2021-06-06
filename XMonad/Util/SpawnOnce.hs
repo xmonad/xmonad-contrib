@@ -23,7 +23,7 @@ import Data.Set as Set
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Prelude
 
-data SpawnOnce = SpawnOnce { unspawnOnce :: (Set String) }
+newtype SpawnOnce = SpawnOnce { unspawnOnce :: Set String }
     deriving (Read, Show, Typeable)
 
 instance ExtensionClass SpawnOnce where
@@ -33,7 +33,7 @@ instance ExtensionClass SpawnOnce where
 doOnce :: (String -> X ()) -> String -> X ()
 doOnce f s = do
     b <- XS.gets (Set.member s . unspawnOnce)
-    when (not b) $ do
+    unless b $ do
         f s
         XS.modify (SpawnOnce . Set.insert s . unspawnOnce)
 
@@ -42,19 +42,19 @@ doOnce f s = do
 -- that command is executed.  Subsequent invocations for a command do
 -- nothing.
 spawnOnce :: String -> X ()
-spawnOnce cmd = doOnce spawn cmd
+spawnOnce = doOnce spawn
 
 -- | Like spawnOnce but launches the application on the given workspace.
 spawnOnOnce :: WorkspaceId -> String -> X ()
-spawnOnOnce ws cmd = doOnce (spawnOn ws) cmd
+spawnOnOnce ws = doOnce (spawnOn ws)
 
 -- | Lanch the given application n times on the specified
 -- workspace. Subsequent attempts to spawn this application will be
 -- ignored.
 spawnNOnOnce :: Int -> WorkspaceId -> String -> X ()
-spawnNOnOnce n ws cmd = doOnce (\c -> sequence_ $ replicate n $ spawnOn ws c) cmd
+spawnNOnOnce n ws = doOnce (replicateM_ n . spawnOn ws)
 
 -- | Spawn the application once and apply the manage hook. Subsequent
 -- attempts to spawn this application will be ignored.
 spawnAndDoOnce :: ManageHook -> String -> X ()
-spawnAndDoOnce mh cmd = doOnce (spawnAndDo mh) cmd
+spawnAndDoOnce mh = doOnce (spawnAndDo mh)

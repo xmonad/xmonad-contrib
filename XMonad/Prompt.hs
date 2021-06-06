@@ -648,7 +648,7 @@ eventLoop handle stopAction = do
 
 -- | Default event loop stop condition.
 evDefaultStop :: XP Bool
-evDefaultStop = (||) <$> gets modeDone <*> gets done
+evDefaultStop = gets ((||) . modeDone) <*> gets done
 
 -- | Common patterns shared by all event handlers.
 handleOther :: KeyStroke -> Event -> XP ()
@@ -1218,7 +1218,7 @@ changeWord p = join $ f <$> getInput <*> getOffset <*> pure p
     where
         f :: String -> Int -> (Char -> Bool) -> XP ()
         f str off _ | length str <= off ||
-                      length str <= 0       = return ()
+                      null str              = return ()
         f str off p'| p' $ str !! off       = killWord' (not . p') Next
                     | otherwise             = killWord' p' Next
 
@@ -1529,8 +1529,8 @@ getComplWinDim compl = do
                 Top -> (0,ht - bw)
                 Bottom -> (0, 0 + rem_height - actual_height + bw)
                 CenteredAt py w
-                  | py <= 1/2 -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) + (fi ht)/2) - bw)
-                  | otherwise -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) - (fi ht)/2) - actual_height + bw)
+                  | py <= 1/2 -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) + fi ht/2) - bw)
+                  | otherwise -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) - fi ht/2) - actual_height + bw)
   (asc,desc) <- io $ textExtentsXMF fs $ head compl
   let yp = fi $ (ht + fi (asc - desc)) `div` 2
       xp = (asc + desc) `div` 2

@@ -80,7 +80,7 @@ bluetileWorkspaces :: [String]
 bluetileWorkspaces = ["1","2","3","4","5","6","7","8","9","0"]
 
 bluetileKeys :: XConfig Layout -> M.Map (KeyMask, KeySym) (X ())
-bluetileKeys conf@(XConfig {XMonad.modMask = modMask'}) = M.fromList $
+bluetileKeys conf@XConfig{XMonad.modMask = modMask'} = M.fromList $
     -- launching and killing programs
     [ ((modMask'              , xK_Return), spawn $ XMonad.terminal conf) -- %! Launch terminal
     , ((modMask',               xK_p     ), gnomeRun)    --  %! Launch Gnome "Run application" dialog
@@ -111,14 +111,14 @@ bluetileKeys conf@(XConfig {XMonad.modMask = modMask'}) = M.fromList $
 
     -- floating layer support
     , ((modMask',               xK_t     ), withFocused $ windows . W.sink) -- %! Push window back into tiling
-    , ((modMask' .|. shiftMask, xK_t     ), withFocused $ float ) -- %! Float window
+    , ((modMask' .|. shiftMask, xK_t     ), withFocused float ) -- %! Float window
 
     -- increase or decrease number of windows in the master area
     , ((modMask'              , xK_comma ), sendMessage (IncMasterN 1)) -- %! Increment the number of windows in the master area
     , ((modMask'              , xK_period), sendMessage (IncMasterN (-1))) -- %! Deincrement the number of windows in the master area
 
     -- quit, or restart
-    , ((modMask' .|. shiftMask, xK_q     ), io (exitWith ExitSuccess)) -- %! Quit
+    , ((modMask' .|. shiftMask, xK_q     ), io exitSuccess) -- %! Quit
     , ((modMask'              , xK_q     ), restart "xmonad" True) -- %! Restart
 
     -- Metacity-like workspace switching
@@ -158,19 +158,19 @@ bluetileKeys conf@(XConfig {XMonad.modMask = modMask'}) = M.fromList $
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 bluetileMouseBindings :: XConfig Layout -> M.Map (KeyMask, Button) (Window -> X ())
-bluetileMouseBindings (XConfig {XMonad.modMask = modMask'}) = M.fromList $
+bluetileMouseBindings XConfig{XMonad.modMask = modMask'} = M.fromList
     -- mod-button1 %! Move a floated window by dragging
-    [ ((modMask', button1), (\w -> isFloating w >>= \isF -> when (isF) $
-                                focus w >> mouseMoveWindow w >> windows W.shiftMaster))
+    [ ((modMask', button1), \w -> isFloating w >>= \isF -> when isF $
+                                focus w >> mouseMoveWindow w >> windows W.shiftMaster)
     -- mod-button2 %! Switch to next and first layout
-    , ((modMask', button2), (\_ -> sendMessage NextLayout))
-    , ((modMask' .|. shiftMask, button2), (\_ -> sendMessage $ JumpToLayout "Floating"))
+    , ((modMask', button2), \_ -> sendMessage NextLayout)
+    , ((modMask' .|. shiftMask, button2), \_ -> sendMessage $ JumpToLayout "Floating")
     -- mod-button3 %! Resize a floated window by dragging
-    , ((modMask', button3), (\w -> isFloating w >>= \isF -> when (isF) $
-                                focus w >> mouseResizeWindow w >> windows W.shiftMaster))
+    , ((modMask', button3), \w -> isFloating w >>= \isF -> when isF $
+                                focus w >> mouseResizeWindow w >> windows W.shiftMaster)
     ]
 
-isFloating :: Window -> X (Bool)
+isFloating :: Window -> X Bool
 isFloating w = do
     ws <- gets windowset
     return $ M.member w (W.floating ws)
@@ -181,16 +181,15 @@ bluetileManageHook = composeAll
                 , className =? "MPlayer" --> doFloat
                 , isFullscreen --> doFullFloat]
 
-bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $ (
+bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $
                         named "Floating" floating |||
                         named "Tiled1" tiled1 |||
                         named "Tiled2" tiled2 |||
                         named "Fullscreen" fullscreen
-                        )
         where
-            floating = floatingDeco $ maximize $ borderResize $ positionStoreFloat
-            tiled1 = tilingDeco $ maximize $ mouseResizableTileMirrored
-            tiled2 = tilingDeco $ maximize $ mouseResizableTile
+            floating = floatingDeco $ maximize $ borderResize positionStoreFloat
+            tiled1 = tilingDeco $ maximize mouseResizableTileMirrored
+            tiled2 = tilingDeco $ maximize mouseResizableTile
             fullscreen = tilingDeco $ maximize $ smartBorders Full
 
             tilingDeco l = windowSwitcherDecorationWithButtons shrinkText defaultThemeWithButtons (draggingVisualizer l)

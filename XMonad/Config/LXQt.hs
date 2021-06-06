@@ -39,7 +39,7 @@ lxqtConfig = desktopConfig
     { terminal = "qterminal"
     , keys     = lxqtKeys <+> keys desktopConfig }
 
-lxqtKeys (XConfig {modMask = modm}) = M.fromList $
+lxqtKeys XConfig{modMask = modm} = M.fromList
     [ ((modm,               xK_p), spawn "lxqt-runner")
     , ((modm .|. shiftMask, xK_q), spawn "lxqt-leave")
     ]

@@ -162,16 +162,16 @@ placeFocused p = withFocused $ \window -> do
 
                      -- use X.A.FloatKeys if the window is floating, send
                      -- a WindowArranger message otherwise.
-                   case elem window floats of
-                     True -> keysMoveWindowTo (x', y') (0, 0) window
-                     False -> sendMessage $ SetGeometry r'
+                   if window `elem` floats
+                     then keysMoveWindowTo (x', y') (0, 0) window
+                     else sendMessage $ SetGeometry r'
 
 
 -- | Hook to automatically place windows when they are created.
 placeHook :: Placement -> ManageHook
 placeHook p = do window <- ask
                  r <- Query $ lift $ getWindowRectangle window
-                 allRs <- Query $ lift $ getAllRectangles
+                 allRs <- Query $ lift getAllRectangles
                  pointer <- Query $ lift $ getPointer window
 
                  return $ Endo $ \theWS -> fromMaybe theWS $
@@ -186,13 +186,13 @@ placeHook p = do window <- ask
                         -- workspace's screen.
                       let infos = filter ((window `elem`) . stackContents . S.stack . fst)
                                      $ [screenInfo $ S.current theWS]
-                                        ++ (map screenInfo $ S.visible theWS)
+                                        ++ map screenInfo (S.visible theWS)
                                         ++ zip (S.hidden theWS) (repeat currentRect)
 
                       guard(not $ null infos)
 
                       let (workspace, screen) = head infos
-                          rs = catMaybes $ map (flip M.lookup allRs)
+                          rs = mapMaybe (`M.lookup` allRs)
                                $ organizeClients workspace window floats
                           r' = purePlaceWindow p screen rs pointer r
                           newRect = r2rr screen r'
@@ -221,7 +221,7 @@ purePlaceWindow :: Placement -- ^ The placement strategy
                 -> Rectangle -- ^ The window to be placed
                 -> Rectangle
 purePlaceWindow (Bounds (t,r,b,l) p') (Rectangle sx sy sw sh) rs p w
-  = let s' = (Rectangle (sx + fi l) (sy + fi t) (sw - l - r) (sh - t - b))
+  = let s' = Rectangle (sx + fi l) (sy + fi t) (sw - l - r) (sh - t - b)
     in checkBounds s' $ purePlaceWindow p' s' rs p w
 
 purePlaceWindow (Fixed ratios) s _ _ w = placeRatio ratios s w
@@ -275,7 +275,7 @@ stackContents :: Maybe (S.Stack w) -> [w]
 stackContents = maybe [] S.integrate
 
 screenInfo :: S.Screen i l a sid ScreenDetail -> (S.Workspace i l a, Rectangle)
-screenInfo (S.Screen { S.workspace = ws, S.screenDetail = (SD s)}) = (ws, s)
+screenInfo S.Screen{ S.workspace = ws, S.screenDetail = (SD s)} = (ws, s)
 
 getWindowRectangle :: Window -> X Rectangle
 getWindowRectangle window
@@ -325,8 +325,7 @@ getNecessaryData :: Window
 getNecessaryData window ws floats
   = do r <- getWindowRectangle window
 
-       rs <- return (organizeClients ws window floats)
-             >>= mapM getWindowRectangle
+       rs <- mapM getWindowRectangle (organizeClients ws window floats)
 
        pointer <- getPointer window
 

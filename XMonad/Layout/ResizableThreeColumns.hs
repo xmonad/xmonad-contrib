@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -78,14 +78,14 @@ instance LayoutClass ResizableThreeCol a where
   doLayout (ResizableThreeCol n _ f mf) r    = doL False n f mf r
   doLayout (ResizableThreeColMid n _ f mf) r = doL True  n f mf r
   handleMessage l m = do
-    ms <- (W.stack . W.workspace . W.current) <$> gets windowset
-    fs <- (M.keys . W.floating) <$> gets windowset
+    ms <- W.stack . W.workspace . W.current <$> gets windowset
+    fs <- M.keys . W.floating <$> gets windowset
     return $ do
       s <- ms
       -- make sure current stack isn't floating
-      guard . not $ W.focus s `elem` fs
+      guard (W.focus s `notElem` fs)
       -- remove floating windows from stack
-      let s' = s { W.up = (W.up s) \\ fs, W.down = (W.down s) \\ fs }
+      let s' = s { W.up = W.up s \\ fs, W.down = W.down s \\ fs }
       -- handle messages
       msum [ fmap resize       (fromMessage m)
            , fmap (mresize s') (fromMessage m)
@@ -95,10 +95,10 @@ instance LayoutClass ResizableThreeCol a where
       resize Shrink = l { threeColFrac = max (-0.5) $ frac-delta }
       resize Expand = l { threeColFrac = min 1 $ frac+delta }
       mresize s MirrorShrink = mresize' s delta
-      mresize s MirrorExpand = mresize' s (0-delta)
+      mresize s MirrorExpand = mresize' s (negate delta)
       mresize' s delt =
         let up = length $ W.up s
-            total = up + (length $ W.down s) + 1
+            total = up + length (W.down s) + 1
             pos = if up == (nmaster-1) || up == (total-1) then up-1 else up
             mfrac' = modifymfrac (mfrac ++ repeat 1) delt pos
         in l { threeColSlaves = take total mfrac'}
@@ -117,16 +117,15 @@ doL :: Bool -> Int -> Rational -> [Rational] -> Rectangle
     -> W.Stack a -> X ([(a, Rectangle)], Maybe (layout a))
 doL middle nmaster f mf r =
   return
-  . (\x -> (x, Nothing))
+  . (, Nothing)
   . ap zip (tile3 middle f (mf ++ repeat 1) r nmaster . length) . W.integrate
 
 -- | tile3.  Compute window positions using 3 panes
 tile3 :: Bool -> Rational -> [Rational] -> Rectangle -> Int -> Int -> [Rectangle]
 tile3 middle f mf r nmaster n
   | n <= nmaster || nmaster == 0 = splitVertically mf n r
-  | n <= nmaster+1 = concat [ splitVertically mf nmaster s1
-                            , splitVertically (drop nmaster mf) (n-nmaster) s2
-                            ]
+  | n <= nmaster+1 = splitVertically mf nmaster s1
+                  ++ splitVertically (drop nmaster mf) (n-nmaster) s2
   | otherwise = concat [ splitVertically mf nmaster r1
                        , splitVertically (drop nmaster mf) nslave1 r2
                        , splitVertically (drop (nmaster + nslave1) mf) nslave2 r3
@@ -134,9 +133,9 @@ tile3 middle f mf r nmaster n
   where
     (r1, r2, r3) = split3HorizontallyBy middle (if f<0 then 1+2*f else f) r
     (s1, s2)     = splitHorizontallyBy (if f<0 then 1+f else f) r
-    nslave       = (n - nmaster)
+    nslave       = n - nmaster
     nslave1      = ceiling (nslave % 2)
-    nslave2      = (n - nmaster - nslave1)
+    nslave2      = n - nmaster - nslave1
 
 splitVertically :: RealFrac r => [r] -> Int -> Rectangle -> [Rectangle]
 splitVertically [] _ r = [r]

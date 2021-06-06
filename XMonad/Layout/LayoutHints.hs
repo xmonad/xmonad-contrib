@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE ParallelListComp, PatternGuards #-}
+{-# LANGUAGE TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutHints
@@ -29,7 +30,7 @@ import XMonad(LayoutClass(runLayout), mkAdjust, Window,
               X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS,
               (<&&>), io, applySizeHints, whenX, isClient, withDisplay,
               getWindowAttributes, getWMNormalHints, WindowAttributes(..))
-import XMonad.Prelude (All (..), fromJust, join, on, sortBy)
+import XMonad.Prelude (All (..), fromJust, join, maximumBy, on, sortBy)
 import qualified XMonad.StackSet as W
 
 import XMonad.Layout.Decoration(isInStack)
@@ -96,7 +97,7 @@ layoutHintsWithPlacement rs = ModifiedLayout (LayoutHints rs)
 layoutHintsToCenter :: (LayoutClass l a) => l a -> ModifiedLayout LayoutHintsToCenter l a
 layoutHintsToCenter = ModifiedLayout LayoutHintsToCenter
 
-data LayoutHints a = LayoutHints (Double, Double)
+newtype LayoutHints a = LayoutHints (Double, Double)
                      deriving (Read, Show)
 
 instance LayoutModifier LayoutHints Window where
@@ -142,18 +143,17 @@ instance LayoutModifier LayoutHintsToCenter Window where
     modifyLayout _ ws@(W.Workspace _ _ Nothing) r = runLayout ws r
     modifyLayout _ ws@(W.Workspace _ _ (Just st)) r = do
         (arrs,ol) <- runLayout ws r
-        flip (,) ol
-            . changeOrder (W.focus st : (filter (/= W.focus st) $ map fst arrs))
-            . head . reverse . sortBy (compare `on` (fitting . map snd))
-            . map (applyHints st r) . applyOrder r
-            <$> mapM (\x -> fmap ((,) x) $ mkAdjust (fst x)) arrs
+        (, ol) . changeOrder (W.focus st : filter (/= W.focus st) (map fst arrs))
+               . maximumBy (compare `on` (fitting . map snd))
+               . map (applyHints st r) . applyOrder r
+             <$> mapM (\x -> (x,) <$> mkAdjust (fst x)) arrs
 
 changeOrder :: [Window] -> [(Window, Rectangle)] -> [(Window, Rectangle)]
 changeOrder w wr = zip w' $ map (fromJust . flip lookup wr) w'
     where w' = filter (`elem` map fst wr) w
 
 -- apply hints to first, grow adjacent windows
-applyHints :: W.Stack Window -> Rectangle -> [((Window, Rectangle),(D -> D))] -> [(Window, Rectangle)]
+applyHints :: W.Stack Window -> Rectangle -> [((Window, Rectangle),D -> D)] -> [(Window, Rectangle)]
 applyHints _ _ [] = []
 applyHints s root (((w,lrect@(Rectangle a b c d)),adj):xs) =
         let (c',d') = adj (c,d)
@@ -170,7 +170,7 @@ growOther :: (Position, Position) -> Rectangle -> Set Direction2D -> Rectangle -
 growOther ds lrect fds r
     | dirs <- flipDir <$> Set.toList (Set.intersection adj fds)
     , not $ any (uncurry opposite) $ cross dirs =
-        foldr (flip grow ds) r dirs
+        foldr (`grow` ds) r dirs
     | otherwise = r
     where
         adj = adjacent lrect  r
@@ -190,7 +190,7 @@ grow R (px,_ ) (Rectangle x y w h) = Rectangle x y (w+fromIntegral px) h
 grow D (_ ,py) (Rectangle x y w h) = Rectangle x y w (h+fromIntegral py)
 
 comparingEdges :: ([Position] -> [Position] -> Bool) -> Rectangle -> Rectangle -> Set Direction2D
-comparingEdges surrounds r1 r2 = Set.fromList $ map fst $ filter snd [ (\k -> (dir,k)) $
+comparingEdges surrounds r1 r2 = Set.fromList $ map fst $ filter snd [ (dir,) $
             any and [[dir `elem` [R,L], allEq [a,c,w,y], [b,d] `surrounds` [x,z]]
                     ,[dir `elem` [U,D], allEq [b,d,x,z], [a,c] `surrounds` [w,y]]]
     | ((a,b),(c,d)) <- edge $ corners r1
@@ -253,9 +253,9 @@ centerPlacement' cf root assigned
 
 -- | Event hook that refreshes the layout whenever a window changes its hints.
 hintsEventHook :: Event -> X All
-hintsEventHook (PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w })
+hintsEventHook PropertyEvent{ ev_event_type = t, ev_atom = a, ev_window = w }
     | t == propertyNotify && a == wM_NORMAL_HINTS = do
-        whenX (isClient w <&&> hintsMismatch w) $ refresh
+        whenX (isClient w <&&> hintsMismatch w) refresh
         return (All True)
 hintsEventHook _ = return (All True)
 

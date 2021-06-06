@@ -1,5 +1,7 @@
 #!/usr/bin/env runhaskell
 
+{-# LANGUAGE LambdaCase #-}
+
 -- Copyright Spencer Janssen <spencerjanssen@gmail.com>
 -- BSD3 (see LICENSE)
 --
@@ -29,7 +31,7 @@ main :: IO ()
 main = do
     hSetBuffering stdout LineBuffering
 
-    atom <- flip fmap getArgs $ \args -> case args of
+    atom <- flip fmap getArgs $ \case
         [a] -> a
         _   -> "_XMONAD_LOG"
 

@@ -157,7 +157,7 @@ instance Message SelectMoveNode
 data Axis = Horizontal | Vertical deriving (Show, Read, Eq)
 
 -- | Message for shifting window by splitting its neighbour
-data SplitShiftDirectional = SplitShift Direction1D deriving Typeable
+newtype SplitShiftDirectional = SplitShift Direction1D deriving Typeable
 instance Message SplitShiftDirectional
 
 oppositeDirection :: Direction2D -> Direction2D
@@ -253,9 +253,7 @@ goSibling z@(_, LeftCrumb _ _:_) = Just z >>= goUp >>= goRight
 goSibling z@(_, RightCrumb _ _:_) = Just z >>= goUp >>= goLeft
 
 top :: Zipper a -> Zipper a
-top z = case goUp z of
-          Nothing -> z
-          Just z' -> top z'
+top z = maybe z top (goUp z)
 
 toTree :: Zipper a -> Tree a
 toTree = fst . top
@@ -283,10 +281,10 @@ removeCurrent :: Zipper a -> Maybe (Zipper a)
 removeCurrent (Leaf _, LeftCrumb _ r:cs) = Just (r, cs)
 removeCurrent (Leaf _, RightCrumb _ l:cs) = Just (l, cs)
 removeCurrent (Leaf _, []) = Nothing
-removeCurrent (Node _ (Leaf _) r@(Node _ _ _), cs) = Just (r, cs)
-removeCurrent (Node _ l@(Node _ _ _) (Leaf _), cs) = Just (l, cs)
+removeCurrent (Node _ (Leaf _) r@Node{}, cs) = Just (r, cs)
+removeCurrent (Node _ l@Node{} (Leaf _), cs) = Just (l, cs)
 removeCurrent (Node _ (Leaf _) (Leaf _), cs) = Just (Leaf 0, cs)
-removeCurrent z@(Node _ _ _, _) = goLeft z >>= removeCurrent
+removeCurrent z@(Node{}, _) = goLeft z >>= removeCurrent
 
 rotateCurrent :: Zipper Split -> Maybe (Zipper Split)
 rotateCurrent l@(_, []) = Just l
@@ -297,23 +295,23 @@ swapCurrent l@(_, []) = Just l
 swapCurrent (n, c:cs) = Just (n, swapCrumb c:cs)
 
 insertLeftLeaf :: Tree Split -> Zipper Split -> Maybe (Zipper Split)
-insertLeftLeaf (Leaf n) ((Node x l r), crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Node x l r), crumb:cs)
+insertLeftLeaf (Leaf n) (Node x l r, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Node x l r), crumb:cs)
 insertLeftLeaf (Leaf n) (Leaf x, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf n) (Leaf x), crumb:cs)
-insertLeftLeaf (Node _ _ _) z = Just z
+insertLeftLeaf Node{} z = Just z
 insertLeftLeaf _ _ = Nothing
 
 insertRightLeaf :: Tree Split -> Zipper Split -> Maybe (Zipper Split)
-insertRightLeaf (Leaf n) ((Node x l r), crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Node x l r) (Leaf n), crumb:cs)
+insertRightLeaf (Leaf n) (Node x l r, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Node x l r) (Leaf n), crumb:cs)
 insertRightLeaf (Leaf n) (Leaf x, crumb:cs) = Just (Node (Split (oppositeAxis . axis . parentVal $ crumb) 0.5) (Leaf x) (Leaf n), crumb:cs)
-insertRightLeaf (Node _ _ _) z = Just z
+insertRightLeaf Node{} z = Just z
 insertRightLeaf _ _ = Nothing
 
 findRightLeaf :: Zipper Split -> Maybe (Zipper Split)
-findRightLeaf n@(Node _ _ _, _) = goRight n >>= findRightLeaf
+findRightLeaf n@(Node{}, _) = goRight n >>= findRightLeaf
 findRightLeaf l@(Leaf _, _) = Just l
 
 findLeftLeaf :: Zipper Split -> Maybe (Zipper Split)
-findLeftLeaf n@(Node _ _ _, _) = goLeft n
+findLeftLeaf n@(Node{}, _) = goLeft n
 findLeftLeaf l@(Leaf _, _) = Just l
 
 findTheClosestLeftmostLeaf :: Zipper Split -> Maybe (Zipper Split)
@@ -508,7 +506,7 @@ toNodeRef l (Just (_, cs)) = NodeRef l (reverse $ map crumbToDir cs) []
 nodeRefToLeaf :: NodeRef -> Maybe (Zipper a) -> Maybe Int
 nodeRefToLeaf n (Just z) = case goToNode n z of
   Just (Leaf l, _) -> Just l
-  Just (Node _ _ _, _) -> Nothing
+  Just (Node{}, _) -> Nothing
   Nothing -> Nothing
 nodeRefToLeaf _ Nothing = Nothing
 
@@ -693,13 +691,13 @@ replaceFloating wsm = do
 -- some helpers to filter windows
 --
 getFloating :: X [Window]
-getFloating = (M.keys . W.floating) <$> gets windowset -- all floating windows
+getFloating = M.keys . W.floating <$> gets windowset -- all floating windows
 
 getStackSet :: X (Maybe (W.Stack Window))
-getStackSet = (W.stack . W.workspace . W.current) <$> gets windowset -- windows on this WS (with floating)
+getStackSet = W.stack . W.workspace . W.current <$> gets windowset -- windows on this WS (with floating)
 
 getScreenRect :: X Rectangle
-getScreenRect = (screenRect . W.screenDetail . W.current) <$> gets windowset
+getScreenRect = screenRect . W.screenDetail . W.current <$> gets windowset
 
 withoutFloating :: [Window] -> Maybe (W.Stack Window) -> Maybe (W.Stack Window)
 withoutFloating fs = maybe Nothing (unfloat fs)
@@ -772,8 +770,8 @@ instance LayoutClass BinarySpacePartition Window where
           splitShift (SplitShift dir) = resetFoc $ splitShiftNth dir b
 
           b = numerateLeaves b_orig
-          resetFoc bsp = bsp{getFocusedNode=(getFocusedNode bsp){refLeaf=(-1)}
-                            ,getSelectedNode=(getSelectedNode bsp){refLeaf=(-1)}}
+          resetFoc bsp = bsp{getFocusedNode=(getFocusedNode bsp){refLeaf= -1}
+                            ,getSelectedNode=(getSelectedNode bsp){refLeaf= -1}}
 
   description _  = "BSP"
 
@@ -850,8 +848,8 @@ createBorder (Rectangle wx wy ww wh) c = do
               ]
   ws <- mapM (\r -> createNewWindow r Nothing bc False) rects
   showWindows ws
-  maybe Nothing (\s -> Just s{W.down=W.down s ++ ws}) <$> getStackSet >>= replaceStack
-  M.union (M.fromList $ zip ws $ map toRR rects) . W.floating . windowset <$> get >>= replaceFloating
+  replaceStack . maybe Nothing (\s -> Just s{W.down=W.down s ++ ws}) =<< getStackSet
+  replaceFloating . M.union (M.fromList $ zip ws $ map toRR rects) . W.floating . windowset =<< get
   modify (\s -> s{mapped=mapped s `S.union` S.fromList ws})
   -- show <$> mapM isClient ws >>= debug
   return ws
@@ -861,6 +859,6 @@ createBorder (Rectangle wx wy ww wh) c = do
 removeBorder :: [Window] -> X ()
 removeBorder ws = do
   modify (\s -> s{mapped = mapped s `S.difference` S.fromList ws})
-  flip (foldl (flip M.delete)) ws . W.floating . windowset <$> get >>= replaceFloating
-  maybe Nothing (\s -> Just s{W.down=W.down s \\ ws}) <$> getStackSet >>= replaceStack
+  replaceFloating . flip (foldl (flip M.delete)) ws . W.floating . windowset =<< get
+  replaceStack . maybe Nothing (\s -> Just s{W.down=W.down s \\ ws}) =<< getStackSet
   deleteWindows ws

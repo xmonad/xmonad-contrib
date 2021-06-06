@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -80,7 +80,7 @@ promoteWarp = promoteWarp' (0.5, 0.5) (0.85, 0.85)
 -- | promoteWarp' allows you to specify an arbitrary pair of arguments to
 -- pass to 'updatePointer' when the mouse enters another window.
 promoteWarp' :: (Rational, Rational) -> (Rational, Rational) -> Event -> X All
-promoteWarp' refPos ratio e@(CrossingEvent {ev_window = w, ev_event_type = t})
+promoteWarp' refPos ratio e@CrossingEvent{ev_window = w, ev_event_type = t}
     | t == enterNotify && ev_mode   e == notifyNormal = do
         ws <- gets windowset
         let foc = W.peek ws
@@ -98,7 +98,7 @@ promoteWarp' _ _ _ = return $ All True
 -- focusFollowsMouse only for given workspaces or layouts.
 -- Beware that your focusFollowsMouse setting is ignored if you use this event hook.
 followOnlyIf :: X Bool -> Event -> X All
-followOnlyIf cond e@(CrossingEvent {ev_window = w, ev_event_type = t})
+followOnlyIf cond e@CrossingEvent{ev_window = w, ev_event_type = t}
     | t == enterNotify && ev_mode e == notifyNormal
     = whenX cond (focus w) >> return (All False)
 followOnlyIf _ _ = return $ All True

@@ -35,9 +35,9 @@ import XMonad.Prelude
 -- >                   , handleEventHook = myHandleEventHook }
 
 minimizeEventHook :: Event -> X All
-minimizeEventHook (ClientMessageEvent {ev_window = w,
-                                       ev_message_type = mt,
-                                       ev_data = dt}) = do
+minimizeEventHook ClientMessageEvent{ev_window = w,
+                                     ev_message_type = mt,
+                                     ev_data = dt} = do
     a_aw <- getAtom "_NET_ACTIVE_WINDOW"
     a_cs <- getAtom "WM_CHANGE_STATE"
 

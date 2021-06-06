@@ -105,7 +105,7 @@ data ZoomRow f a = ZC { zoomEq ::  f a
                           -- ^ Function to compare elements for
                           -- equality, a real Eq instance might
                           -- not be what you want in some cases
-                      , zoomRatios :: (Zipper (Elt a))
+                      , zoomRatios :: Zipper (Elt a)
                           -- ^ Element specs. The zipper is so we
                           -- know what the focus is when we handle
                           --  a message
@@ -236,7 +236,7 @@ instance (EQF f a, Show a, Read a, Show (f a), Read (f a), Typeable f)
                         helper (Right a:as) (Right b:bs) = a `sameAs` b && as `helper` bs
                         helper (Left a:as) (Left b:bs) = a `sameAs` b && as `helper` bs
                         helper _ _ = False
-                        E a1 r1 b1 `sameAs` E a2 r2 b2 = (eq f a1 a2) && (r1 == r2) && (b1 == b2)
+                        E a1 r1 b1 `sameAs` E a2 r2 b2 = eq f a1 a2 && (r1 == r2) && (b1 == b2)
 
     pureMessage (ZC f zelts) sm | Just (ZoomFull False) <- fromMessage sm
                                 , Just (E a r True) <- getFocusZ zelts

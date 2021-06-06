@@ -86,7 +86,7 @@ type WorkspaceIndex  = Int
 
 -- | Internal dynamic project state that stores a mapping between
 --   workspace indexes and workspace tags.
-data DynamicWorkspaceState = DynamicWorkspaceState {workspaceIndexMap :: Map.Map WorkspaceIndex WorkspaceTag}
+newtype DynamicWorkspaceState = DynamicWorkspaceState {workspaceIndexMap :: Map.Map WorkspaceIndex WorkspaceTag}
   deriving (Typeable, Read, Show)
 
 instance ExtensionClass DynamicWorkspaceState where
@@ -239,14 +239,14 @@ isEmpty t = do wsl <- gets $ workspaces . windowset
                return $ maybe True (isNothing . stack) mws
 
 addHiddenWorkspace' :: (Workspace i l a -> [Workspace i l a] -> [Workspace i l a]) -> i -> l -> StackSet i l a sid sd -> StackSet i l a sid sd
-addHiddenWorkspace' add newtag l s@(StackSet { hidden = ws }) = s { hidden = add (Workspace newtag l Nothing) ws }
+addHiddenWorkspace' add newtag l s@StackSet{ hidden = ws } = s { hidden = add (Workspace newtag l Nothing) ws }
 
 -- | Remove the hidden workspace with the given tag from the StackSet, if
 --   it exists. All the windows in that workspace are moved to the current
 --   workspace.
 removeWorkspace' :: (Eq i) => i -> StackSet i l a sid sd -> StackSet i l a sid sd
-removeWorkspace' torem s@(StackSet { current = scr@(Screen { workspace = wc })
-                                   , hidden = hs })
+removeWorkspace' torem s@StackSet{ current = scr@Screen { workspace = wc }
+                                 , hidden  = hs }
     = let (xs, ys) = break ((== torem) . tag) hs
       in removeWorkspace'' xs ys
    where meld Nothing Nothing = Nothing

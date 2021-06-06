@@ -49,7 +49,7 @@ repeatableAction mods pressHandler = do
                    return (t, s)
       handleEvent (t, s)
         | t == keyRelease && s `elem` mods = return ()
-        | otherwise = (pressHandler t s) >> getNextEvent >>= handleEvent
+        | otherwise = pressHandler t s >> getNextEvent >>= handleEvent
 
   io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
   getNextEvent >>= handleEvent
@@ -81,9 +81,9 @@ cycleWorkspaceOnScreen screenId mods nextKey prevKey = workspaceHistoryTransacti
         current <- readIORef currentWSIndex
         modifyIORef
           currentWSIndex
-          ((`mod` (length cycleWorkspaces)) . (+ increment))
+          ((`mod` length cycleWorkspaces) . (+ increment))
         return $ cycleWorkspaces !! current
-      focusIncrement i = (io $ getAndIncrementWS i) >>= (windows . W.greedyView)
+      focusIncrement i = io (getAndIncrementWS i) >>= (windows . W.greedyView)
 
   focusIncrement 1 -- Do the first workspace cycle
   repeatableAction mods $

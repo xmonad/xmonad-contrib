@@ -90,4 +90,4 @@ ifMax :: (LayoutClass l1 w, LayoutClass l2 w)
       -> l1 w           -- ^ First layout
       -> l2 w           -- ^ Second layout
       -> IfMax l1 l2 w
-ifMax n l1 l2 = IfMax n l1 l2
+ifMax = IfMax

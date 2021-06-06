@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.OneBig
@@ -55,8 +55,8 @@ oneBigMessage (OneBig cx cy) m = fmap resize (fromMessage m)
 -- | Main layout function
 oneBigLayout :: OneBig a -> Rectangle -> W.Stack a -> [(a, Rectangle)]
 oneBigLayout (OneBig cx cy) rect stack = [(master,masterRect)]
-                                      ++ (divideBottom bottomRect bottomWs)
-                                      ++ (divideRight rightRect rightWs)
+                                      ++ divideBottom bottomRect bottomWs
+                                      ++ divideRight rightRect rightWs
       where ws = W.integrate stack
             n = length ws
             ht (Rectangle _ _ _ hh) = hh
@@ -79,16 +79,16 @@ calcBottomWs n w h' = case n of
                         2 -> 1
                         3 -> 2
                         4 -> 2
-                        _ -> (fromIntegral w)*(n-1) `div` fromIntegral (h'+(fromIntegral w))
+                        _ -> fromIntegral w*(n-1) `div` fromIntegral (h'+fromIntegral w)
 
 -- | Calculate rectangle for master window
 cmaster:: Int -> Int -> Float -> Float -> Rectangle -> Rectangle
 cmaster n m cx cy (Rectangle x y sw sh) = Rectangle x y w h
-    where w = if (n > m+1) then
+    where w = if n > m+1 then
                 round (fromIntegral sw*cx)
               else
                 sw
-          h = if (n > 1) then
+          h = if n > 1 then
                 round (fromIntegral sh*cy)
               else
                 sh
@@ -97,13 +97,13 @@ cmaster n m cx cy (Rectangle x y sw sh) = Rectangle x y w h
 cbottom:: Float -> Rectangle -> Rectangle
 cbottom cy (Rectangle sx sy sw sh) = Rectangle sx y sw h
     where h = round (fromIntegral sh*(1-cy))
-          y = round (fromIntegral sh*cy+(fromIntegral sy))
+          y = round (fromIntegral sh*cy+fromIntegral sy)
 
 -- | Calculate rectangle for right windows
 cright:: Float -> Float -> Rectangle -> Rectangle
 cright cx cy (Rectangle sx sy sw sh) = Rectangle x sy w h
     where w = round (fromIntegral sw*(1-cx))
-          x = round (fromIntegral sw*cx+(fromIntegral sx))
+          x = round (fromIntegral sw*cx+fromIntegral sx)
           h = round (fromIntegral sh*cy)
 
 -- | Divide bottom rectangle between windows
@@ -116,7 +116,7 @@ divideBottom (Rectangle x y w h) ws = zip ws rects
 
 -- | Divide right rectangle between windows
 divideRight :: Rectangle -> [a] -> [(a, Rectangle)]
-divideRight (Rectangle x y w h) ws = if (n==0) then [] else zip ws rects
+divideRight (Rectangle x y w h) ws = if n==0 then [] else zip ws rects
     where n = length ws
           oneH = fromIntegral h `div` n
           oneRect = Rectangle x y w (fromIntegral oneH)

@@ -59,7 +59,7 @@ simpleDeco :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration SimpleDecoration s) l a
 simpleDeco s c = decoration s c $ Simple True
 
-data SimpleDecoration a = Simple Bool deriving (Show, Read)
+newtype SimpleDecoration a = Simple Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle SimpleDecoration a where
     describeDeco _ = "Simple"

@@ -61,7 +61,7 @@ simpleTabBar = decoration shrinkText def (TabBar Top) . resizeVertical 20
 tabBar :: (Eq a, Shrinker s) => s -> Theme -> XPPosition -> l a -> ModifiedLayout (Decoration TabBarDecoration s) l a
 tabBar s t p = decoration s t (TabBar p)
 
-data TabBarDecoration a = TabBar XPPosition deriving (Read, Show)
+newtype TabBarDecoration a = TabBar XPPosition deriving (Read, Show)
 
 instance Eq a => DecorationStyle TabBarDecoration a where
     describeDeco  _ = "TabBar"

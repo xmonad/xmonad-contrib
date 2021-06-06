@@ -140,7 +140,7 @@ usePrefixArgument prefix conf = conf {
 useDefaultPrefixArgument :: LayoutClass l Window
                          => XConfig l
                          -> XConfig l
-useDefaultPrefixArgument = usePrefixArgument (\_ -> (controlMask, xK_u))
+useDefaultPrefixArgument = usePrefixArgument (const (controlMask, xK_u))
 
 handlePrefixArg :: [(KeyMask, KeySym)] -> X ()
 handlePrefixArg events = do

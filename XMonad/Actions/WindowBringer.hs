@@ -146,7 +146,7 @@ windowMap' titler = do
   ws <- gets X.windowset
   M.fromList . concat <$> mapM keyValuePairs (W.workspaces ws)
  where keyValuePairs ws = mapM (keyValuePair ws) $ W.integrate' (W.stack ws)
-       keyValuePair ws w = flip (,) w <$> titler ws w
+       keyValuePair ws w = (, w) <$> titler ws w
 
 -- | Returns the window name as will be listed in dmenu.
 --   Tagged with the workspace ID, to guarantee uniqueness, and to let the user

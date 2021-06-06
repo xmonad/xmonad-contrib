@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances, ParallelListComp, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -26,7 +26,7 @@ module XMonad.Layout.AvoidFloats (
 
 import XMonad
 import XMonad.Layout.LayoutModifier
-import XMonad.Prelude (fi, maximumBy, maybeToList, sortBy)
+import XMonad.Prelude (fi, mapMaybe, maximumBy, sortOn)
 import qualified XMonad.StackSet as W
 
 import Data.Ord
@@ -107,10 +107,10 @@ instance LayoutModifier AvoidFloats Window where
     modifyLayoutWithUpdate lm w r = withDisplay $ \d -> do
         floating <- gets $ W.floating . windowset
         case cache lm of
-            Just (key, mer) | key == (floating,r) -> flip (,) Nothing <$> runLayout w mer
+            Just (key, mer) | key == (floating,r) -> (, Nothing) <$> runLayout w mer
             _ -> do rs <- io $ map toRect <$> mapM (getWindowAttributes d) (filter shouldAvoid $ M.keys floating)
                     let mer = maximumBy (comparing area) $ filter bigEnough $ maxEmptyRectangles r rs
-                    flip (,) (Just $ pruneWindows $ lm { cache = Just ((floating,r),mer) }) <$> runLayout w mer
+                    (, Just $ pruneWindows $ lm { cache = Just ((floating,r),mer) }) <$> runLayout w mer
         where
             toRect :: WindowAttributes -> Rectangle
             toRect wa = let b = fi $ wa_border_width wa
@@ -122,9 +122,9 @@ instance LayoutModifier AvoidFloats Window where
             shouldAvoid a = avoidAll lm || a `S.member` chosen lm
 
     pureMess lm m
-        | Just (AvoidFloatToggle) <- fromMessage m =                               Just $ lm { avoidAll = not (avoidAll lm), cache = Nothing }
+        | Just AvoidFloatToggle <- fromMessage m =                                 Just $ lm { avoidAll = not (avoidAll lm), cache = Nothing }
         | Just (AvoidFloatSet s) <- fromMessage m, s /= avoidAll lm =              Just $ lm { avoidAll = s, cache = Nothing }
-        | Just (AvoidFloatClearItems) <- fromMessage m =                           Just $ lm { chosen = S.empty, cache = Nothing }
+        | Just AvoidFloatClearItems <- fromMessage m =                             Just $ lm { chosen = S.empty, cache = Nothing }
         | Just (AvoidFloatAddItem a) <- fromMessage m, a `S.notMember` chosen lm = Just $ lm { chosen = S.insert a (chosen lm), cache = Nothing }
         | Just (AvoidFloatRemoveItem a) <- fromMessage m, a `S.member` chosen lm = Just $ lm { chosen = S.delete a (chosen lm), cache = Nothing }
         | Just (AvoidFloatToggleItem a) <- fromMessage m =                         let op = if a `S.member` chosen lm then S.delete else S.insert
@@ -134,7 +134,7 @@ instance LayoutModifier AvoidFloats Window where
 pruneWindows :: AvoidFloats Window -> AvoidFloats Window
 pruneWindows lm = case cache lm of
     Nothing -> lm
-    Just ((floating,_),_) -> lm { chosen = S.filter (flip M.member floating) (chosen lm) }
+    Just ((floating,_),_) -> lm { chosen = S.filter (`M.member` floating) (chosen lm) }
 
 -- | Find all maximum empty rectangles (MERs) that are axis aligned. This is
 --   done in O(n^2) time using a modified version of the algoprithm MERAlg 1
@@ -144,9 +144,9 @@ maxEmptyRectangles :: Rectangle -> [Rectangle] -> [Rectangle]
 maxEmptyRectangles br rectangles = filter (\a -> area a > 0) $ upAndDownEdge ++ noneOrUpEdge ++ downEdge
     where
         upAndDownEdge = findGaps br rectangles
-        noneOrUpEdge = concat $ map (everyLower br bottoms) bottoms
-        downEdge = concat $ map maybeToList $ map (bottomEdge br bottoms) bottoms
-        bottoms = sortBy (comparing bottom) $ splitContainers rectangles
+        noneOrUpEdge = concatMap (everyLower br bottoms) bottoms
+        downEdge = mapMaybe (bottomEdge br bottoms) bottoms
+        bottoms = sortOn bottom $ splitContainers rectangles
 
 everyLower :: Rectangle -> [Rectangle] -> Rectangle -> [Rectangle]
 everyLower br bottoms r = let (rs, boundLeft, boundRight, boundRects) = foldr (everyUpper r) ([], left br, right br, reverse bottoms) bottoms
@@ -177,8 +177,8 @@ shrinkBounds' mr r (boundLeft, boundRight)
 
 bottomEdge :: Rectangle -> [Rectangle] -> Rectangle -> Maybe Rectangle
 bottomEdge br bottoms r = let rs = filter (\a -> bottom r < bottom a && top a < bottom br) bottoms
-                              boundLeft = maximum $ left br : (filter (< right r) $ map right rs)
-                              boundRight = minimum $ right br : (filter (> left r) $ map left rs)
+                              boundLeft = maximum $ left br : filter (< right r) (map right rs)
+                              boundRight = minimum $ right br : filter (> left r) (map left rs)
                           in if any (\a -> left a <= left r && right r <= right a) rs
                              then Nothing
                              else mkRect boundLeft boundRight (bottom r) (bottom br)
@@ -186,11 +186,11 @@ bottomEdge br bottoms r = let rs = filter (\a -> bottom r < bottom a && top a < 
 -- | Split rectangles that horizontally fully contains another rectangle
 --   without sharing either the left or right side.
 splitContainers :: [Rectangle] -> [Rectangle]
-splitContainers rects = splitContainers' [] $ sortBy (comparing rect_width) rects
+splitContainers rects = splitContainers' [] $ sortOn rect_width rects
     where
         splitContainers' :: [Rectangle] -> [Rectangle] -> [Rectangle]
         splitContainers' res [] = res
-        splitContainers' res (r:rs) = splitContainers' (r:res) $ concat $ map (doSplit r) rs
+        splitContainers' res (r:rs) = splitContainers' (r:res) $ concatMap (doSplit r) rs
 
         doSplit :: Rectangle -> Rectangle -> [Rectangle]
         doSplit guide r
@@ -206,7 +206,7 @@ findGaps
     :: Rectangle    -- ^ Bounding rectangle.
     -> [Rectangle]  -- ^ List of all rectangles that can cover areas in the bounding rectangle.
     -> [Rectangle]
-findGaps br rs = let (gaps,end) = foldr findGaps' ([], left br) $ sortBy (flip $ comparing left) $ filter inBounds rs
+findGaps br rs = let (gaps,end) = foldr findGaps' ([], left br) $ sortOn (Down . left) $ filter inBounds rs
                      lastgap = mkRect end (right br) (top br) (bottom br)
                  in lastgap?:gaps
     where

@@ -88,7 +88,7 @@ data LimitWindows a = LimitWindows SliceStyle Int deriving (Read,Show)
 
 data SliceStyle = FirstN | Slice deriving (Read,Show)
 
-data LimitChange = LimitChange { unLC :: (Int -> Int) } deriving (Typeable)
+newtype LimitChange = LimitChange { unLC :: Int -> Int } deriving (Typeable)
 
 instance Message LimitChange
 
@@ -142,7 +142,7 @@ select s stk
                     (take (nRest s) . drop (start s - lups - 1) $ downs) }
     | otherwise
         = stk { W.up=reverse (take (nMaster s) ups ++ drop (start s) ups),
-                W.down=take ((nRest s) - (lups - start s) - 1) downs }
+                W.down=take (nRest s - (lups - start s) - 1) downs }
     where
         downs = W.down stk
         ups = reverse $ W.up stk
@@ -151,11 +151,11 @@ select s stk
 updateStart :: Selection l -> W.Stack a -> Int
 updateStart s stk
     | lups < nMaster s  -- the focussed window is in the master pane
-        = start s `min` (lups + ldown - (nRest s) + 1) `max` nMaster s
+        = start s `min` (lups + ldown - nRest s + 1) `max` nMaster s
     | otherwise
         = start s `min` lups
-                  `max` (lups - (nRest s) + 1)
-                  `min` (lups + ldown - (nRest s) + 1)
+                  `max` (lups - nRest s + 1)
+                  `min` (lups + ldown - nRest s + 1)
                   `max` nMaster s
     where
         lups = length $ W.up stk

@@ -42,7 +42,7 @@ import System.Exit
 
 workspaceCommands :: Int -> X [(String, X ())]
 workspaceCommands sid = asks (workspaces . config) >>= \spaces -> return
-                            [(("greedyView" ++ show i),
+                            [( "greedyView" ++ show i,
                                 activateScreen sid >> windows (W.greedyView i))
                                 | i <- spaces ]
 
@@ -65,7 +65,7 @@ masterAreaCommands sid = [ ("increase master n", activateScreen sid >>
                          ]
 
 quitCommands :: [(String, X ())]
-quitCommands = [ ("quit bluetile", io (exitWith ExitSuccess))
+quitCommands = [ ("quit bluetile", io exitSuccess)
                , ("quit bluetile and start metacity", restart "metacity" False)
                ]
 

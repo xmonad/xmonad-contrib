@@ -30,7 +30,7 @@ module XMonad.Actions.PhysicalScreens (
                                       ) where
 
 import XMonad
-import XMonad.Prelude (findIndex, on, sortBy)
+import XMonad.Prelude (elemIndex, fromMaybe, on, sortBy)
 import qualified XMonad.StackSet as W
 
 {- $usage
@@ -70,7 +70,7 @@ For detailed instructions on editing your key bindings, see
 -- | The type of the index of a screen by location
 newtype PhysicalScreen = P Int deriving (Eq,Ord,Show,Read,Enum,Num,Integral,Real)
 
-getScreenIdAndRectangle :: (W.Screen i l a ScreenId ScreenDetail) -> (ScreenId, Rectangle)
+getScreenIdAndRectangle :: W.Screen i l a ScreenId ScreenDetail -> (ScreenId, Rectangle)
 getScreenIdAndRectangle screen = (W.screen screen, rect) where
   rect = screenRect $ W.screenDetail screen
 
@@ -129,7 +129,7 @@ getNeighbour :: ScreenComparator -> Int -> X ScreenId
 getNeighbour (ScreenComparator cmpScreen) d =
   do w <- gets windowset
      let ss = map W.screen $ sortBy (cmpScreen `on` getScreenIdAndRectangle) $ W.current w : W.visible w
-         curPos = maybe 0 id $ findIndex (== W.screen (W.current w)) ss
+         curPos = fromMaybe 0 $ elemIndex (W.screen (W.current w)) ss
          pos = (curPos + d) `mod` length ss
      return $ ss !! pos
 

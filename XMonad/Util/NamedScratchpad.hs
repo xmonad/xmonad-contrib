@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedScratchpad
@@ -32,7 +31,7 @@ module XMonad.Util.NamedScratchpad (
   ) where
 
 import XMonad
-import XMonad.Prelude (filterM, listToMaybe, unless)
+import XMonad.Prelude (filterM, find, unless)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Hooks.DynamicLog (PP, ppSort)
@@ -119,7 +118,7 @@ type NamedScratchpads = [NamedScratchpad]
 
 -- | Finds named scratchpad configuration by name
 findByName :: NamedScratchpads -> String -> Maybe NamedScratchpad
-findByName c s = listToMaybe $ filter ((s ==) . name) c
+findByName c s = find ((s ==) . name) c
 
 -- | Runs application which should appear in specified scratchpad
 runApplication :: NamedScratchpad -> X ()

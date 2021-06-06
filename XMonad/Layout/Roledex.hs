@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -49,8 +49,8 @@ instance LayoutClass Roledex Window where
 
 roledexLayout :: Eq a => Rectangle -> W.Stack a -> X ([(a, Rectangle)], Maybe (Roledex a))
 roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
-                              (zip ups tops) ++
-                              (reverse (zip dns bottoms))
+                              zip ups tops ++
+                              reverse (zip dns bottoms)
                                ,Nothing)
  where ups    = W.up ws
        dns    = W.down ws
@@ -65,12 +65,12 @@ roledexLayout sc ws = return ([(W.focus ws, mainPane)] ++
             (Rectangle _ _ _ h) = sc
             (Rectangle _ _ _ rh) = rect
        mainPane = mrect (gw * fromIntegral c) (gh * fromIntegral c) rect
-       mrect  mx my (Rectangle x y w h) = Rectangle (x + (fromIntegral mx)) (y + (fromIntegral my)) w h
+       mrect  mx my (Rectangle x y w h) = Rectangle (x + fromIntegral mx) (y + fromIntegral my) w h
        tops    = map f $ cd c (length dns)
-       bottoms = map f $ [0..(length dns)]
-       f n = mrect (gw * (fromIntegral n)) (gh * (fromIntegral n)) rect
+       bottoms = map f [0..(length dns)]
+       f n = mrect (gw * fromIntegral n) (gh * fromIntegral n) rect
        cd n m = if n > m
-                then (n - 1) : (cd (n-1) m)
+                then (n - 1) : cd (n-1) m
                 else []
 
 div' :: Integral a => a -> a -> a

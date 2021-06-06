@@ -33,8 +33,7 @@ instance Arbitrary (Selection a) where
   arbitrary = do
     nm <- arbNat
     st <- arbNat
-    nr <- arbPos
-    return $ Sel nm (st + nm) nr
+    Sel nm (st + nm) <$> arbPos
 
 --
 -- The all important Arbitrary instance for StackSet.
@@ -176,5 +175,5 @@ arbitraryWindow :: NonEmptyWindowsStackSet -> Gen Window
 arbitraryWindow (NonEmptyWindowsStackSet x) = do
   let ws = allWindows x
   -- We know that there are at least 1 window in a NonEmptyWindowsStackSet.
-  idx <- choose (0, (length ws) - 1)
+  idx <- choose (0, length ws - 1)
   return $ ws !! idx

@@ -56,27 +56,27 @@ import           System.IO                       (hPutStrLn
 
 -- | Print key events to stderr for debugging
 debugKeyEvents :: Event -> X All
-debugKeyEvents (KeyEvent {ev_event_type = t, ev_state = m, ev_keycode = code})
+debugKeyEvents KeyEvent{ev_event_type = t, ev_state = m, ev_keycode = code}
   | t == keyPress =
       withDisplay $ \dpy -> do
         sym <- io $ keycodeToKeysym dpy code 0
         msk <- cleanMask m
         nl <- gets numberlockMask
-        io $ hPutStrLn stderr $ intercalate " " ["keycode"
-                                                ,show code
-                                                ,"sym"
-                                                ,show sym
-                                                ," ("
-                                                ,hex sym
-                                                ," \""
-                                                ,keysymToString sym
-                                                ,"\") mask"
-                                                ,hex m
-                                                ,"(" ++ vmask nl m ++ ")"
-                                                ,"clean"
-                                                ,hex msk
-                                                ,"(" ++ vmask nl msk ++ ")"
-                                                ]
+        io $ hPutStrLn stderr $ unwords ["keycode"
+                                        ,show code
+                                        ,"sym"
+                                        ,show sym
+                                        ," ("
+                                        ,hex sym
+                                        ," \""
+                                        ,keysymToString sym
+                                        ,"\") mask"
+                                        ,hex m
+                                        ,"(" ++ vmask nl m ++ ")"
+                                        ,"clean"
+                                        ,hex msk
+                                        ,"(" ++ vmask nl msk ++ ")"
+                                        ]
         return (All True)
 debugKeyEvents _ = return (All True)
 
@@ -86,7 +86,7 @@ hex v = "0x" ++ showHex v ""
 
 -- | Convert a modifier mask into a useful string
 vmask                 :: KeyMask -> KeyMask -> String
-vmask numLockMask msk =  intercalate " " $
+vmask numLockMask msk =  unwords $
                          reverse $
                          fst $
                          foldr vmask' ([],msk) masks

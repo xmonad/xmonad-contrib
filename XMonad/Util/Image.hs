@@ -46,7 +46,7 @@ imageDims img = (length (head img), length img)
 -- | Return the 'x' and 'y' positions inside a 'Rectangle' to start drawing
 --   the image given its 'Placement'
 iconPosition :: Rectangle -> Placement -> [[Bool]] -> (Position,Position)
-iconPosition (Rectangle _ _ _ _) (OffsetLeft x y) _ = (fi x, fi y)
+iconPosition Rectangle{} (OffsetLeft x y) _ = (fi x, fi y)
 iconPosition (Rectangle _ _ w _) (OffsetRight x y) icon =
   let (icon_w, _) = imageDims icon
   in (fi w - fi x - fi icon_w, fi y)
@@ -72,7 +72,7 @@ movePoint x y (Point a b) = Point (a + x) (b + y)
 
 -- | Displaces a list of points along a vector 'x', 'y'
 movePoints :: Position -> Position -> [Point] -> [Point]
-movePoints x y points = map (movePoint x y) points
+movePoints x y = map (movePoint x y)
 
 -- | Draw an image into a X surface
 drawIcon :: (Functor m, MonadIO m) => Display -> Drawable -> GC -> String

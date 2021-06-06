@@ -61,18 +61,18 @@ import XMonad.Prelude
 -- | Create a 'Data.Map.Map' from @String@s to xmonad actions from a
 --   list of pairs.
 commandMap :: [(String, X ())] -> M.Map String (X ())
-commandMap c = M.fromList c
+commandMap = M.fromList
 
 -- | Generate a list of commands to switch to\/send windows to workspaces.
 workspaceCommands :: X [(String, X ())]
 workspaceCommands = asks (workspaces . config) >>= \spaces -> return
-                            [((m ++ show i), windows $ f i)
+                            [( m ++ show i, windows $ f i)
                                 | i <- spaces
                                 , (f, m) <- [(view, "view"), (shift, "shift")] ]
 
 -- | Generate a list of commands dealing with multiple screens.
 screenCommands :: [(String, X ())]
-screenCommands = [((m ++ show sc), screenWorkspace (fromIntegral sc) >>= flip whenJust (windows . f))
+screenCommands = [( m ++ show sc, screenWorkspace (fromIntegral sc) >>= flip whenJust (windows . f))
                       | sc <- [0, 1]::[Int] -- TODO: adapt to screen changes
                       , (f, m) <- [(view, "screen"), (shift, "screen-to-")]
                  ]
@@ -100,7 +100,7 @@ defaultCommands = do
         , ("swap-down"           , windows swapDown                                 )
         , ("swap-master"         , windows swapMaster                               )
         , ("sink"                , withFocused $ windows . sink                     )
-        , ("quit-wm"             , io $ exitWith ExitSuccess                        )
+        , ("quit-wm"             , io exitSuccess                                   )
         ]
 
 -- | Given a list of command\/action pairs, prompt the user to choose a

@@ -40,7 +40,7 @@ module XMonad.Actions.WindowNavigation (
                                        ) where
 
 import XMonad
-import XMonad.Prelude (catMaybes, fromMaybe, listToMaybe, sortBy)
+import XMonad.Prelude (catMaybes, fromMaybe, listToMaybe, sortOn)
 import XMonad.Util.Types (Direction2D(..))
 import qualified XMonad.StackSet as W
 
@@ -48,7 +48,6 @@ import Control.Arrow (second)
 import Data.IORef
 import Data.Map (Map())
 import qualified Data.Map as M
-import Data.Ord (comparing)
 import qualified Data.Set as S
 
 -- $usage
@@ -123,9 +122,12 @@ swap = withTargetWindow swapWithFocused
                                    mapWindows (swapWin currentWin targetWin) winSet
                 Nothing -> winSet
         mapWindows f ss = W.mapWorkspace (mapWindows' f) ss
-        mapWindows' f ws@(W.Workspace { W.stack = s }) = ws { W.stack = mapWindows'' f <$> s }
+        mapWindows' f ws@W.Workspace{ W.stack = s } = ws { W.stack = mapWindows'' f <$> s }
         mapWindows'' f (W.Stack focused up down) = W.Stack (f focused) (map f up) (map f down)
-        swapWin win1 win2 win = if win == win1 then win2 else if win == win2 then win1 else win
+        swapWin win1 win2 win
+          | win == win1 = win2
+          | win == win2 = win1
+          | otherwise = win
 
 withTargetWindow :: (Window -> WindowSet -> WindowSet) -> IORef WNState -> Direction2D -> X ()
 withTargetWindow adj posRef dir = fromCurrentPoint posRef $ \win pos -> do
@@ -191,7 +193,7 @@ windowRects = fmap catMaybes . mapM windowRect . S.toList =<< gets mapped
 windowRect :: Window -> X (Maybe (Window, Rectangle))
 windowRect win = withDisplay $ \dpy -> do
     (_, x, y, w, h, bw, _) <- io $ getGeometry dpy win
-    return $ Just $ (win, Rectangle x y (w + 2 * bw) (h + 2 * bw))
+    return $ Just (win, Rectangle x y (w + 2 * bw) (h + 2 * bw))
     `catchX` return Nothing
 
 -- Modified from droundy's implementation of WindowNavigation:
@@ -207,7 +209,7 @@ inr L (Point px py) (Rectangle rx ry w h) =             px > rx + fromIntegral w
                                             py >= ry && py < ry + fromIntegral h
 
 sortby :: Direction2D -> [(a,Rectangle)] -> [(a,Rectangle)]
-sortby D = sortBy $ comparing (rect_y . snd)
-sortby R = sortBy $ comparing (rect_x . snd)
+sortby D = sortOn (rect_y . snd)
+sortby R = sortOn (rect_x . snd)
 sortby U = reverse . sortby D
 sortby L = reverse . sortby R

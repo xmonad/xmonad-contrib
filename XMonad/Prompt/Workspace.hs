@@ -37,7 +37,7 @@ import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data Wor = Wor String
+newtype Wor = Wor String
 
 instance XPrompt Wor where
     showXPrompt (Wor x) = x

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable, MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ComboP
@@ -97,7 +97,7 @@ instance (LayoutClass l (), LayoutClass l1 Window, LayoutClass l2 Window) =>
             superstack = Just Stack { focus=(), up=[], down=[()] }
             f' = focus s:delete (focus s) f  -- list of focused windows, contains 2 elements at most
         in do
-            matching <- (hasProperty prop) `filterM` new  -- new windows matching predecate
+            matching <- hasProperty prop `filterM` new  -- new windows matching predecate
             let w1' = w1c ++ matching                     -- updated first pane windows
                 w2' = w2c ++ (new \\ matching)            -- updated second pane windows
                 s1 = differentiate f' w1'                 -- first pane stack
@@ -105,8 +105,8 @@ instance (LayoutClass l (), LayoutClass l1 Window, LayoutClass l2 Window) =>
             ([((),r1),((),r2)], msuper') <- runLayout (Workspace "" super superstack) rinput
             (wrs1, ml1') <- runLayout (Workspace "" l1 s1) r1
             (wrs2, ml2') <- runLayout (Workspace "" l2 s2) r2
-            return  (wrs1++wrs2, Just $ C2P f' w1' w2' (maybe super id msuper')
-                (maybe l1 id ml1') (maybe l2 id ml2') prop)
+            return  (wrs1++wrs2, Just $ C2P f' w1' w2' (fromMaybe super msuper')
+                (fromMaybe l1 ml1') (fromMaybe l2 ml2') prop)
 
     handleMessage us@(C2P f ws1 ws2 super l1 l2 prop) m
         | Just PartitionWins   <- fromMessage m = return . Just $ C2P [] [] [] super l1 l2 prop
@@ -127,13 +127,13 @@ instance (LayoutClass l (), LayoutClass l1 Window, LayoutClass l2 Window) =>
                          msuper' <- handleMessage super m
                          if isJust msuper' || isJust ml1' || isJust ml2'
                             then return $ Just $ C2P f ws1 ws2
-                                                 (maybe super id msuper')
-                                                 (maybe l1 id ml1')
-                                                 (maybe l2 id ml2') prop
+                                                 (fromMaybe super msuper')
+                                                 (fromMaybe l1 ml1')
+                                                 (fromMaybe l2 ml2') prop
                             else return Nothing
 
     description (C2P _ _ _ super l1 l2 prop) = "combining " ++ description l1 ++ " and "++
-                                description l2 ++ " with " ++ description super ++ " using "++ (show prop)
+                                description l2 ++ " with " ++ description super ++ " using "++ show prop
 
 -- send focused window to the other pane. Does nothing if we don't
 -- own the focused window
@@ -164,7 +164,7 @@ forwardToFocused (C2P f ws1 ws2 super l1 l2 prop) m = do
             then return Nothing
             else handleMessage super m
     if isJust ml1 || isJust ml2 || isJust ms
-        then return $ Just $ C2P f ws1 ws2 (maybe super id ms) (maybe l1 id ml1) (maybe l2 id ml2) prop
+        then return $ Just $ C2P f ws1 ws2 (fromMaybe super ms) (fromMaybe l1 ml1) (fromMaybe l2 ml2) prop
         else return Nothing
 
 -- forwards message m to layout l if focused window is among w
@@ -172,7 +172,7 @@ forwardIfFocused :: (LayoutClass l Window) => l Window -> [Window] -> SomeMessag
 forwardIfFocused l w m = do
     mst <- gets (W.stack . W.workspace . W.current . windowset)
     maybe (return Nothing) send mst where
-    send st = if (W.focus st) `elem` w
+    send st = if W.focus st `elem` w
                 then handleMessage l m
                 else return Nothing
 

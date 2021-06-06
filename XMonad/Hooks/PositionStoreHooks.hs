@@ -92,12 +92,12 @@ positionStoreInit mDecoTheme w  = withDisplay $ \d -> do
                                         (Rectangle (fi $ wa_x wa) (fi (wa_y wa) - fi decoH)
                                             (fi $ wa_width wa) (decoH + fi (wa_height wa))) sr' )
     where
-        randomIntOffset :: X (Int)
+        randomIntOffset :: X Int
         randomIntOffset = io $ randomRIO (42, 242)
 
 positionStoreEventHook :: Event -> X All
-positionStoreEventHook (DestroyWindowEvent {ev_window = w, ev_event_type = et}) = do
+positionStoreEventHook DestroyWindowEvent{ev_window = w, ev_event_type = et} = do
     when (et == destroyNotify) $
-        modifyPosStore (\ps -> posStoreRemove ps w)
+        modifyPosStore (`posStoreRemove` w)
     return (All True)
 positionStoreEventHook _ = return (All True)

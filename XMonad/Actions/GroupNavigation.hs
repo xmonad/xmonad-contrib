@@ -224,5 +224,5 @@ isOnAnyVisibleWS = do
   ws <- liftX $ gets windowset
   let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
       visibleWs = w `elem` allVisible
-      unfocused = maybe True (w /=) $ SS.peek ws
+      unfocused = Just w /= SS.peek ws
   return $ visibleWs && unfocused

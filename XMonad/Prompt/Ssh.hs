@@ -51,11 +51,11 @@ data Ssh = Ssh
 
 instance XPrompt Ssh where
     showXPrompt       Ssh = "SSH to: "
-    commandToComplete _ c = maybe c (\(_u,h) -> h) (parseHost c)
+    commandToComplete _ c = maybe c snd (parseHost c)
     nextCompletion _t c l = maybe next (\(u,_h) -> u ++ "@" ++ next) hostPared
                             where
                               hostPared = parseHost c
-                              next = getNextCompletion (maybe c (\(_u,h) -> h) hostPared) l
+                              next = getNextCompletion (maybe c snd hostPared) l
 
 sshPrompt :: XPConfig -> X ()
 sshPrompt c = do
@@ -138,4 +138,4 @@ getWithPort ('[':str) = host ++ " -p " ++ port
 getWithPort  str = str
 
 parseHost :: String -> Maybe (String, String)
-parseHost a = elemIndex '@' a  >>= (\c-> Just ( (take c a), (drop (c+1) a) ) )
+parseHost a = elemIndex '@' a  >>= (\c-> Just ( take c a, drop (c+1) a ) )

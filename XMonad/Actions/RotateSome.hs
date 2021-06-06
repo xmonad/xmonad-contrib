@@ -152,8 +152,7 @@ rotateSome p (Stack t ls rs) =
         . span ((< 0) . fst)
         . sortOn fst
         . (++) anchors
-        . map (fst *** snd)
-        $ zip movables (rotate movables)
+        $ zipWith (curry (fst *** snd)) movables (rotate movables)
   in
     Stack t' (reverse ls') rs'
 

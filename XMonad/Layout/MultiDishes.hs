@@ -69,7 +69,7 @@ multiDishes h s nmaster dishesPerStack n = if n <= nmaster
                         else ws
  where
     (filledDishStackCount, remainder) =
-      (n - nmaster) `quotRem` (max 1 dishesPerStack)
+      (n - nmaster) `quotRem` max 1 dishesPerStack
 
     (firstDepth, dishStackCount) =
       if remainder == 0 then
@@ -78,7 +78,7 @@ multiDishes h s nmaster dishesPerStack n = if n <= nmaster
         (remainder, filledDishStackCount + 1)
 
     (masterRect, dishesRect) =
-      splitVerticallyBy (1 - (fromIntegral dishStackCount) * h) s
+      splitVerticallyBy (1 - fromIntegral dishStackCount * h) s
 
     dishStackRects =
       splitVertically dishStackCount dishesRect

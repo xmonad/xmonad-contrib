@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -68,10 +68,10 @@ import XMonad.StackSet ( tag, currentTag )
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data Chdir = Chdir String deriving ( Typeable )
+newtype Chdir = Chdir String deriving ( Typeable )
 instance Message Chdir
 
-data WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
+newtype WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )
 
 instance LayoutModifier WorkspaceDir Window where
     modifyLayout (WorkspaceDir d) w r = do tc <- gets (currentTag.windowset)

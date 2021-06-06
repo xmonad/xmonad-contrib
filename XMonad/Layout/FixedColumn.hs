@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.FixedColumn
@@ -29,7 +29,7 @@ import Graphics.X11.Xlib.Extras ( getWMNormalHints
                                 , sh_resize_inc
                                 , wa_border_width)
 
-import XMonad.Prelude (fromMaybe, msum)
+import XMonad.Prelude (fromMaybe, msum, (<&>))
 import XMonad.Core (X, LayoutClass(..), fromMessage, io, withDisplay)
 import XMonad.Layout (Resize(..), IncMasterN(..), tile)
 import XMonad.StackSet as W
@@ -61,7 +61,7 @@ instance LayoutClass FixedColumn Window where
             fws <- mapM (widthCols fallback ncol) ws
             let frac = maximum (take nmaster fws) // rect_width r
                 rs   = tile frac r nmaster (length ws)
-            return $ (zip ws rs, Nothing)
+            return (zip ws rs, Nothing)
         where ws     = W.integrate s
               x // y = fromIntegral x / fromIntegral y
 
@@ -84,7 +84,7 @@ widthCols :: Int -> Int -> Window -> X Int
 widthCols inc n w = withDisplay $ \d -> io $ do
     sh <- getWMNormalHints d w
     bw <- fromIntegral . wa_border_width <$> getWindowAttributes d w
-    let widthHint f = f sh >>= return . fromIntegral . fst
+    let widthHint f = f sh <&> fromIntegral . fst
         oneCol      = fromMaybe inc $ widthHint sh_resize_inc
         base        = fromMaybe 0 $ widthHint sh_base_size
     return $ 2 * bw + base + n * oneCol

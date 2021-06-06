@@ -77,5 +77,5 @@ pid = ask >>= (\w -> liftX $ withDisplay $ \d -> getPID d w)
     where getPID d w = getAtom "_NET_WM_PID" >>= \a -> io $
                        fmap getPID' (getWindowProperty32 d a w)
           getPID' (Just (x:_)) = fromIntegral x
-          getPID' (Just [])     = -1
-          getPID' (Nothing)     = -1
+          getPID' (Just [])    = -1
+          getPID' Nothing      = -1

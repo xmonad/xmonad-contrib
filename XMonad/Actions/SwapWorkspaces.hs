@@ -59,6 +59,7 @@ swapTo dir = findWorkspace getSortByIndex dir AnyWS 1 >>= windows . swapWithCurr
 --   one with the two corresponding workspaces' tags swapped.
 swapWorkspaces :: Eq i => i -> i -> StackSet i l a s sd -> StackSet i l a s sd
 swapWorkspaces t1 t2 = mapWorkspace swap
-    where swap w = if      tag w == t1 then w { tag = t2 }
-                   else if tag w == t2 then w { tag = t1 }
-                   else w
+    where swap w
+            | tag w == t1 = w { tag = t2 }
+            | tag w == t2 = w { tag = t1 }
+            | otherwise = w

@@ -40,8 +40,8 @@ import XMonad
 -- | Rotate the windows in the current stack, excluding the first one
 --   (master).
 rotSlavesUp,rotSlavesDown :: X ()
-rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> (tail l)++[head l]))
-rotSlavesDown = windows $ modify' (rotSlaves' (\l -> [last l]++(init l)))
+rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> tail l++[head l]))
+rotSlavesDown = windows $ modify' (rotSlaves' (\l -> last l : init l))
 
 -- | The actual rotation, as a pure function on the window stack.
 rotSlaves' :: ([a] -> [a]) -> Stack a -> Stack a
@@ -49,12 +49,12 @@ rotSlaves' _ s@(Stack _ [] []) = s
 rotSlaves' f   (Stack t [] rs) = Stack t [] (f rs)                -- Master has focus
 rotSlaves' f s@(Stack _ ls _ ) = Stack t' (reverse revls') rs'    -- otherwise
     where  (master:ws)     = integrate s
-           (revls',t':rs') = splitAt (length ls) (master:(f ws))
+           (revls',t':rs') = splitAt (length ls) (master:f ws)
 
 -- | Rotate all the windows in the current stack.
 rotAllUp,rotAllDown :: X ()
-rotAllUp   = windows $ modify' (rotAll' (\l -> (tail l)++[head l]))
-rotAllDown = windows $ modify' (rotAll' (\l -> [last l]++(init l)))
+rotAllUp   = windows $ modify' (rotAll' (\l -> tail l++[head l]))
+rotAllDown = windows $ modify' (rotAll' (\l -> last l : init l))
 
 -- | The actual rotation, as a pure function on the window stack.
 rotAll' :: ([a] -> [a]) -> Stack a -> Stack a

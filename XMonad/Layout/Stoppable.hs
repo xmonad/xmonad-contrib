@@ -120,7 +120,7 @@ instance LayoutModifier Stoppable Window where
           where run = sigStoppableWorkspacesHook m >> return Nothing
     handleMess (Stoppable m d _) msg
         | Just Hide <- fromMessage msg =
-            (Just . Stoppable m d . Just) <$> startTimer d
+            Just . Stoppable m d . Just <$> startTimer d
         | otherwise = return Nothing
 
 -- | Convert a layout to a stoppable layout using the default mark

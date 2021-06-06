@@ -135,7 +135,7 @@ runPureX (PureX m) = runState . runReaderT m
 -- | Despite appearing less general, @PureX a@ is actually isomorphic to
 --   @XLike m => m a@.
 toXLike :: XLike m => PureX a -> m a
-toXLike pa = state =<< runPureX pa <$> ask
+toXLike pa = state . runPureX pa =<< ask
 
 -- | A generalisation of 'windowBracket'. Handles refreshing for an action that
 --   __performs no refresh of its own__ but can indicate that it needs one
@@ -155,7 +155,7 @@ defile = void . windowBracket' getAny
 -- | A version of @windowBracket@ specialised to take an @X ()@ action and
 --   perform a refresh handling any changes it makes.
 handlingRefresh :: X () -> X ()
-handlingRefresh = windowBracket (\_ -> True)
+handlingRefresh = windowBracket (const True)
 
 -- }}}
 
@@ -167,7 +167,7 @@ when' b ma = if b then ma else return mempty
 
 -- | A @whenX@/@whenM@ that accepts a monoidal return value.
 whenM' :: (Monad m, Monoid a) => m Bool -> m a -> m a
-whenM' mb m = when' <$> mb >>= ($ m)
+whenM' mb m = ($ m) . when' =<< mb
 
 -- | A 'whenJust' that accepts a monoidal return value.
 whenJust' :: (Monad m, Monoid b) => Maybe a -> (a -> m b) -> m b
@@ -213,7 +213,7 @@ getStack = W.stack <$> curWorkspace
 
 -- | Set the stack on the current workspace.
 putStack :: XLike m => Maybe (W.Stack Window) -> m ()
-putStack mst = modifyWindowSet' . modify'' $ \_ -> mst
+putStack mst = modifyWindowSet' . modify'' $ const mst
 
 -- | Get the focused window if there is one.
 peek :: XLike m => m (Maybe Window)

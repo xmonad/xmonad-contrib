@@ -67,14 +67,14 @@ instance ExtensionClass WorkscreenStorage where
 
 -- | Helper to group workspaces. Multiply workspace by screens number.
 expandWorkspace :: Int -> [WorkspaceId] -> [WorkspaceId]
-expandWorkspace nscr ws = concat $ map expandId ws
+expandWorkspace nscr = concatMap expandId
   where expandId wsId = let t = wsId ++ "_"
                         in map ((++) t . show ) [1..nscr]
 
 -- | Create workscreen list from workspace list. Group workspaces to
 -- packets of screens number size.
 fromWorkspace :: Int -> [WorkspaceId] -> [Workscreen]
-fromWorkspace n ws = map (\(a,b) -> Workscreen a b) $ zip [0..] (fromWorkspace' n ws)
+fromWorkspace n ws = zipWith Workscreen [0..] (fromWorkspace' n ws)
 fromWorkspace' :: Int -> [WorkspaceId] -> [[WorkspaceId]]
 fromWorkspace' _ [] = []
 fromWorkspace' n ws = take n ws : fromWorkspace' n (drop n ws)

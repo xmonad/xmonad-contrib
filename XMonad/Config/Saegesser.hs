@@ -58,7 +58,7 @@ myStartupHook = do
   spawnOnOnce "emacs" "emacs"
   spawnNOnOnce 4 "xterms" "xterm"
 
-myLayoutHook = smartBorders $ avoidStruts $ standardLayouts
+myLayoutHook = smartBorders $ avoidStruts standardLayouts
   where standardLayouts = tiled ||| mosaic 2 [3,2]  ||| Mirror tiled ||| Full
         tiled = ResizableTall nmaster delta ratio []
         nmaster = 1
@@ -68,7 +68,7 @@ myLayoutHook = smartBorders $ avoidStruts $ standardLayouts
 myLogHook p =  do
   copies <- wsContainingCopies
   let check ws | ws == "NSP" = ""                               -- Hide the scratchpad workspace
-               | ws `elem` copies = xmobarColor "red" "black" $ ws  -- Workspaces with copied windows are red on black
+               | ws `elem` copies = xmobarColor "red" "black" ws  -- Workspaces with copied windows are red on black
                | otherwise = ws
   dynamicLogWithPP $ xmobarPP { ppHidden = check
                               , ppOutput = hPutStrLn p

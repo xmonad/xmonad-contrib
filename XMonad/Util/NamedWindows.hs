@@ -24,7 +24,7 @@ module XMonad.Util.NamedWindows (
                                   ) where
 
 import Control.Exception as E
-import XMonad.Prelude ( fromMaybe, listToMaybe )
+import XMonad.Prelude ( fromMaybe, listToMaybe, (>=>) )
 
 import qualified XMonad.StackSet as W ( peek )
 
@@ -53,7 +53,7 @@ getName w = withDisplay $ \d -> do
 
         copy prop = fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
 
-    io $ getIt `E.catch` \(SomeException _) ->  ((`NW` w) . resName) <$> getClassHint d w
+    io $ getIt `E.catch` \(SomeException _) ->  (`NW` w) . resName <$> getClassHint d w
 
 -- | Get 'NamedWindow' using 'wM_CLASS'
 getNameWMClass :: Window -> X NamedWindow
@@ -67,11 +67,11 @@ getNameWMClass w =
           fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
     io $
       getIt `E.catch` \(SomeException _) ->
-        ((`NW` w) . resName) <$> getClassHint d w
+        (`NW` w) . resName <$> getClassHint d w
 
 unName :: NamedWindow -> Window
 unName (NW _ w) = w
 
 withNamedWindow :: (NamedWindow -> X ()) -> X ()
 withNamedWindow f = do ws <- gets windowset
-                       whenJust (W.peek ws) $ \w -> getName w >>= f
+                       whenJust (W.peek ws) (getName >=> f)

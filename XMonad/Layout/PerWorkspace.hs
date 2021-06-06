@@ -56,8 +56,8 @@ import XMonad.Prelude (fromMaybe)
 --   'onWorkspace', and so on.
 onWorkspace :: (LayoutClass l1 a, LayoutClass l2 a)
                => WorkspaceId -- ^ the tag of the workspace to match
-               -> (l1 a)      -- ^ layout to use on the matched workspace
-               -> (l2 a)      -- ^ layout to use everywhere else
+               -> l1 a        -- ^ layout to use on the matched workspace
+               -> l2 a        -- ^ layout to use everywhere else
                -> PerWorkspace l1 l2 a
 onWorkspace wsId = onWorkspaces [wsId]
 
@@ -65,8 +65,8 @@ onWorkspace wsId = onWorkspaces [wsId]
 --   another to use on all other workspaces.
 onWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
                 => [WorkspaceId]  -- ^ tags of workspaces to match
-                -> (l1 a)         -- ^ layout to use on matched workspaces
-                -> (l2 a)         -- ^ layout to use everywhere else
+                -> l1 a           -- ^ layout to use on matched workspaces
+                -> l2 a           -- ^ layout to use everywhere else
                 -> PerWorkspace l1 l2 a
 onWorkspaces wsIds = modWorkspaces wsIds . const
 
@@ -108,7 +108,7 @@ instance (LayoutClass l1 a, LayoutClass l2 a, Show a) => LayoutClass (PerWorkspa
 
     handleMessage (PerWorkspace wsIds bool lt lf) m
         | bool      = handleMessage lt m >>= maybe (return Nothing) (\nt -> return . Just $ PerWorkspace wsIds bool nt lf)
-        | otherwise = handleMessage lf m >>= maybe (return Nothing) (\nf -> return . Just $ PerWorkspace wsIds bool lt nf)
+        | otherwise = handleMessage lf m >>= maybe (return Nothing) (return . Just . PerWorkspace wsIds bool lt)
 
     description (PerWorkspace _ True  l1 _) = description l1
     description (PerWorkspace _ _     _ l2) = description l2
@@ -122,5 +122,5 @@ mkNewPerWorkspaceT (PerWorkspace wsIds _ lt lf) mlt' =
 mkNewPerWorkspaceF :: PerWorkspace l1 l2 a -> Maybe (l2 a) ->
                       PerWorkspace l1 l2 a
 mkNewPerWorkspaceF (PerWorkspace wsIds _ lt lf) mlf' =
-    (\lf' -> PerWorkspace wsIds False lt lf') $ fromMaybe lf mlf'
+    PerWorkspace wsIds False lt $ fromMaybe lf mlf'
 

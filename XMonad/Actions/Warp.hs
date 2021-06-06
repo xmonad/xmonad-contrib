@@ -101,7 +101,7 @@ warpToWindow h v =
 warpToScreen :: ScreenId -> Rational -> Rational -> X ()
 warpToScreen n h v = do
     root <- asks theRoot
-    (StackSet {current = x, visible = xs}) <- gets windowset
+    StackSet{current = x, visible = xs} <- gets windowset
     whenJust (fmap (screenRect . W.screenDetail) . find ((n==) . W.screen) $ x : xs)
         $ \r ->
             warp root (rect_x r + fraction h (rect_width  r))

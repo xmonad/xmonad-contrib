@@ -69,7 +69,7 @@ data PointRectangle a = PointRectangle
 -- indices are unable to represent zero-dimension rectangles.
 --
 -- Consider pixels as indices. Do not use this on empty rectangles.
-pixelsToIndices :: Rectangle -> (PointRectangle Integer)
+pixelsToIndices :: Rectangle -> PointRectangle Integer
 pixelsToIndices (Rectangle px py dx dy) =
     PointRectangle (fromIntegral px)
                    (fromIntegral py)
@@ -77,7 +77,7 @@ pixelsToIndices (Rectangle px py dx dy) =
                    (fromIntegral py + fromIntegral dy - 1)
 
 -- | Consider pixels as @[N,N+1)@ coordinates. Available for empty rectangles.
-pixelsToCoordinates :: Rectangle -> (PointRectangle Integer)
+pixelsToCoordinates :: Rectangle -> PointRectangle Integer
 pixelsToCoordinates (Rectangle px py dx dy) =
     PointRectangle (fromIntegral px)
                    (fromIntegral py)
@@ -85,7 +85,7 @@ pixelsToCoordinates (Rectangle px py dx dy) =
                    (fromIntegral py + fromIntegral dy)
 
 -- | Invert 'pixelsToIndices'.
-indicesToRectangle :: (PointRectangle Integer) -> Rectangle
+indicesToRectangle :: PointRectangle Integer -> Rectangle
 indicesToRectangle (PointRectangle x1 y1 x2 y2) =
     Rectangle (fromIntegral x1)
               (fromIntegral y1)
@@ -93,7 +93,7 @@ indicesToRectangle (PointRectangle x1 y1 x2 y2) =
               (fromIntegral $ y2 - y1 + 1)
 
 -- | Invert 'pixelsToCoordinates'.
-coordinatesToRectangle :: (PointRectangle Integer) -> Rectangle
+coordinatesToRectangle :: PointRectangle Integer -> Rectangle
 coordinatesToRectangle (PointRectangle x1 y1 x2 y2) =
     Rectangle (fromIntegral x1)
               (fromIntegral y1)
@@ -105,7 +105,7 @@ coordinatesToRectangle (PointRectangle x1 y1 x2 y2) =
 empty :: Rectangle -> Bool
 empty (Rectangle _ _ _ 0) = True
 empty (Rectangle _ _ 0 _) = True
-empty (Rectangle _ _ _ _) = False
+empty Rectangle{}         = False
 
 -- | True if the intersection of the set of points comprising each rectangle is
 -- not the empty set. Therefore any rectangle containing the initial points of
@@ -141,21 +141,13 @@ difference r1 r2 | r1 `intersects` r2 = map coordinatesToRectangle $
     where PointRectangle r1_x1 r1_y1 r1_x2 r1_y2 = pixelsToCoordinates r1
           PointRectangle r2_x1 r2_y1 r2_x2 r2_y2 = pixelsToCoordinates r2
           -- top - assuming (0,0) is top-left
-          rt = if r2_y1 > r1_y1 && r2_y1 < r1_y2
-               then [PointRectangle (max r2_x1 r1_x1) r1_y1 r1_x2 r2_y1]
-               else []
+          rt = [PointRectangle (max r2_x1 r1_x1) r1_y1 r1_x2 r2_y1 | r2_y1 > r1_y1 && r2_y1 < r1_y2]
           -- right
-          rr = if r2_x2 > r1_x1 && r2_x2 < r1_x2
-               then [PointRectangle r2_x2 (max r2_y1 r1_y1) r1_x2 r1_y2]
-               else []
+          rr = [PointRectangle r2_x2 (max r2_y1 r1_y1) r1_x2 r1_y2 | r2_x2 > r1_x1 && r2_x2 < r1_x2]
           -- bottom
-          rb = if r2_y2 > r1_y1 && r2_y2 < r1_y2
-               then [PointRectangle r1_x1 r2_y2 (min r2_x2 r1_x2) r1_y2]
-               else []
+          rb = [PointRectangle r1_x1 r2_y2 (min r2_x2 r1_x2) r1_y2 | r2_y2 > r1_y1 && r2_y2 < r1_y2]
           -- left
-          rl = if r2_x1 > r1_x1 && r2_x1 < r1_x2
-               then [PointRectangle r1_x1 r1_y1 r2_x1 (min r2_y2 r1_y2)]
-               else []
+          rl = [PointRectangle r1_x1 r1_y1 r2_x1 (min r2_y2 r1_y2) | r2_x1 > r1_x1 && r2_x1 < r1_x2]
 
 -- | Fit a 'Rectangle' within the given borders of itself. Given insufficient
 -- space, borders are minimized while preserving the ratio of opposite borders.
@@ -198,8 +190,8 @@ withBorder t b r l i (Rectangle x y w h) =
 -- | Calculate the center - @(x,y)@ - as if the 'Rectangle' were bounded.
 center :: Rectangle -> (Ratio Integer,Ratio Integer)
 center (Rectangle x y w h) = (cx,cy)
-    where cx = fromIntegral x + (fromIntegral w) % 2
-          cy = fromIntegral y + (fromIntegral h) % 2
+    where cx = fromIntegral x + fromIntegral w % 2
+          cy = fromIntegral y + fromIntegral h % 2
 
 -- | Invert 'scaleRationalRect'. Since that operation is lossy a roundtrip
 -- conversion may not result in the original value. The first 'Rectangle' is

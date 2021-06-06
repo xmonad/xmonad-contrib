@@ -24,7 +24,7 @@ module XMonad.Layout.DraggingVisualizer
 import XMonad
 import XMonad.Layout.LayoutModifier
 
-data DraggingVisualizer a = DraggingVisualizer (Maybe (Window, Rectangle)) deriving ( Read, Show )
+newtype DraggingVisualizer a = DraggingVisualizer (Maybe (Window, Rectangle)) deriving ( Read, Show )
 draggingVisualizer :: LayoutClass l Window => l Window -> ModifiedLayout DraggingVisualizer l Window
 draggingVisualizer = ModifiedLayout $ DraggingVisualizer Nothing
 
@@ -36,7 +36,7 @@ instance Message DraggingVisualizerMsg
 instance LayoutModifier DraggingVisualizer Window where
     modifierDescription (DraggingVisualizer _) = "DraggingVisualizer"
     pureModifier (DraggingVisualizer (Just dragged@(draggedWin, _))) _ _ wrs =
-            if draggedWin `elem` (map fst wrs)
+            if draggedWin `elem` map fst wrs
                 then (dragged : rest, Nothing)
                 else (wrs, Just $ DraggingVisualizer Nothing)
         where
@@ -45,5 +45,5 @@ instance LayoutModifier DraggingVisualizer Window where
 
     pureMess (DraggingVisualizer _) m = case fromMessage m of
         Just (DraggingWindow w rect) -> Just $ DraggingVisualizer $ Just (w, rect)
-        Just (DraggingStopped) -> Just $ DraggingVisualizer Nothing
+        Just DraggingStopped -> Just $ DraggingVisualizer Nothing
         _ -> Nothing

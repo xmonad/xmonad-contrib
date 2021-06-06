@@ -135,7 +135,7 @@ getWindows = gets $ W.integrate' . W.stack . W.workspace . W.current . windowset
 
 ifFloat :: X () -> X () -> X ()
 ifFloat x1 x2 = withFocused $ \w -> do floats <- getFloats
-                                       if elem w floats then x1 else x2
+                                       if w `elem` floats then x1 else x2
 
 focusNonFloat :: X ()
 focusNonFloat = alt2 G.Refocus helper
@@ -143,7 +143,7 @@ focusNonFloat = alt2 G.Refocus helper
                      ws <- getWindows
                      floats <- getFloats
                      let (before,  after) = span (/=w) ws
-                     case filter (flip notElem floats) $ after ++ before of
+                     case filter (`notElem` floats) $ after ++ before of
                        [] -> return ()
                        w':_ -> focus w'
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving, FlexibleInstances, TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.GridSelect
@@ -222,7 +222,7 @@ instance HasColorizer String where
 instance {-# OVERLAPPABLE #-} HasColorizer a where
     defaultColorizer _ isFg =
         let getColor = if isFg then focusedBorderColor else normalBorderColor
-        in asks $ flip (,) "black" . getColor . config
+        in asks $ (, "black") . getColor . config
 
 instance HasColorizer a => Default (GSConfig a) where
     def = buildDefaultGSConfig defaultColorizer
@@ -257,7 +257,7 @@ generateElementmap s = do
     -- Sorts the elementmap
     sortedElements = orderElementmap searchString filteredElements
     -- Case Insensitive version of isInfixOf
-    needle `isInfixOfI` haystack = (upper needle) `isInfixOf` (upper haystack)
+    needle `isInfixOfI` haystack = upper needle `isInfixOf` upper haystack
     upper = map toUpper
 
 
@@ -301,8 +301,8 @@ diamondLayer n =
   -- tr = top right
   --  r = ur ++ 90 degree clock-wise rotation of ur
   let tr = [ (x,n-x) | x <- [0..n-1] ]
-      r  = tr ++ (map (\(x,y) -> (y,-x)) tr)
-  in r ++ (map (negate *** negate) r)
+      r  = tr ++ map (\(x,y) -> (y,-x)) tr
+  in r ++ map (negate *** negate) r
 
 diamond :: (Enum a, Num a, Eq a) => [(a, a)]
 diamond = concatMap diamondLayer [0..]
@@ -332,7 +332,7 @@ drawWinBox win font (fg,bg) bc ch cw text x y cp =
     drawRectangle dpy win bordergc (fromInteger x) (fromInteger y) (fromInteger cw) (fromInteger ch)
   stext <- shrinkWhile (shrinkIt shrinkText)
            (\n -> do size <- liftIO $ textWidthXMF dpy font n
-                     return $ size > (fromInteger (cw-(2*cp))))
+                     return $ size > fromInteger (cw-(2*cp)))
            text
   -- calculate the offset to vertically centre the text based on the ascender and descender
   (asc,desc) <- liftIO $ textExtentsXMF font stext
@@ -385,7 +385,7 @@ updateElementsWithColorizer colorizer elementmap = do
     mapM_ updateElement elementmap
 
 stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
-stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
+stdHandle ButtonEvent{ ev_event_type = t, ev_x = x, ev_y = y } contEventloop
     | t == buttonRelease = do
         s@TwoDState { td_paneX = px, td_paneY = py,
                          td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _ _) } <- get
@@ -396,7 +396,7 @@ stdHandle (ButtonEvent { ev_event_type = t, ev_x = x, ev_y = y }) contEventloop
              Nothing -> contEventloop
     | otherwise = contEventloop
 
-stdHandle (ExposeEvent { }) contEventloop = updateAllElements >> contEventloop
+stdHandle ExposeEvent{} contEventloop = updateAllElements >> contEventloop
 
 stdHandle _ contEventloop = contEventloop
 
@@ -443,7 +443,7 @@ setPos newPos = do
       oldPos = td_curpos s
   when (isJust newSelectedEl && newPos /= oldPos) $ do
     put s { td_curpos = newPos }
-    updateElements (catMaybes [(findInElementMap oldPos elmap), newSelectedEl])
+    updateElements (catMaybes [findInElementMap oldPos elmap, newSelectedEl])
 
 -- | Moves the cursor by the offsets specified
 move :: (Integer, Integer) -> TwoD a ()
@@ -543,7 +543,7 @@ navNSearch = makeXEventhandler $ shadowWithKeymap navNSearchKeyMap navNSearchDef
           ,((0,xK_Up)         , move (0,-1) >> navNSearch)
           ,((0,xK_Tab)        , moveNext >> navNSearch)
           ,((shiftMask,xK_Tab), movePrev >> navNSearch)
-          ,((0,xK_BackSpace), transformSearchString (\s -> if (s == "") then "" else init s) >> navNSearch)
+          ,((0,xK_BackSpace), transformSearchString (\s -> if s == "" then "" else init s) >> navNSearch)
           ]
         -- The navigation handler ignores unknown key symbols, therefore we const
         navNSearchDefaultHandler (_,s,_) = do
@@ -557,7 +557,7 @@ substringSearch returnNavigation = fix $ \me ->
   let searchKeyMap = M.fromList [
            ((0,xK_Escape)   , transformSearchString (const "") >> returnNavigation)
           ,((0,xK_Return)   , returnNavigation)
-          ,((0,xK_BackSpace), transformSearchString (\s -> if (s == "") then "" else init s) >> me)
+          ,((0,xK_BackSpace), transformSearchString (\s -> if s == "" then "" else init s) >> me)
           ]
       searchDefaultHandler (_,s,_) = do
           transformSearchString (++ s)
@@ -569,8 +569,8 @@ substringSearch returnNavigation = fix $ \me ->
 -- Conversion scheme as in http://en.wikipedia.org/wiki/HSV_color_space
 hsv2rgb :: Fractional a => (Integer,a,a) -> (a,a,a)
 hsv2rgb (h,s,v) =
-    let hi = (div h 60) `mod` 6 :: Integer
-        f = (((fromInteger h)/60) - (fromInteger hi)) :: Fractional a => a
+    let hi = div h 60 `mod` 6 :: Integer
+        f = ((fromInteger h/60) - fromInteger hi) :: Fractional a => a
         q = v * (1-f)
         p = v * (1-s)
         t = v * (1-(1-f)*s)
@@ -587,19 +587,19 @@ hsv2rgb (h,s,v) =
 stringColorizer :: String -> Bool -> X (String, String)
 stringColorizer s active =
     let seed x = toInteger (sum $ map ((*x).fromEnum) s) :: Integer
-        (r,g,b) = hsv2rgb ((seed 83) `mod` 360,
-                           (fromInteger ((seed 191) `mod` 1000))/2500+0.4,
-                           (fromInteger ((seed 121) `mod` 1000))/2500+0.4)
+        (r,g,b) = hsv2rgb (seed 83 `mod` 360,
+                           fromInteger (seed 191 `mod` 1000)/2500+0.4,
+                           fromInteger (seed 121 `mod` 1000)/2500+0.4)
     in if active
          then return ("#faff69", "black")
-         else return ("#" ++ concat (map (twodigitHex.(round :: Double -> Word8).(*256)) [r, g, b] ), "white")
+         else return ("#" ++ concatMap (twodigitHex.(round :: Double -> Word8).(*256)) [r, g, b], "white")
 
 -- | Colorize a window depending on it's className.
 fromClassName :: Window -> Bool -> X (String, String)
 fromClassName w active = runQuery className w >>= flip defaultColorizer active
 
 twodigitHex :: Word8 -> String
-twodigitHex a = printf "%02x" a
+twodigitHex = printf "%02x"
 
 -- | A colorizer that picks a color inside a range,
 -- and depending on the window's class.
@@ -655,14 +655,14 @@ gridselect gsconfig elements =
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width scr
         screenHeight = toInteger $ rect_height scr
-    selectedElement <- if (status == grabSuccess) then do
+    selectedElement <- if status == grabSuccess then do
                             let restriction ss cs = (fromInteger ss/fromInteger (cs gsconfig)-1)/2 :: Double
                                 restrictX = floor $ restriction screenWidth gs_cellwidth
                                 restrictY = floor $ restriction screenHeight gs_cellheight
-                                originPosX = floor $ ((gs_originFractX gsconfig) - (1/2)) * 2 * fromIntegral restrictX
-                                originPosY = floor $ ((gs_originFractY gsconfig) - (1/2)) * 2 * fromIntegral restrictY
+                                originPosX = floor $ (gs_originFractX gsconfig - (1/2)) * 2 * fromIntegral restrictX
+                                originPosY = floor $ (gs_originFractY gsconfig - (1/2)) * 2 * fromIntegral restrictY
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
-                                s = TwoDState { td_curpos = (head coords),
+                                s = TwoDState { td_curpos = head coords,
                                                 td_availSlots = coords,
                                                 td_elements = elements,
                                                 td_gsconfig = gsconfig,
@@ -673,7 +673,7 @@ gridselect gsconfig elements =
                                                 td_searchString = "",
                                                 td_elementmap = [] }
                             m <- generateElementmap s
-                            evalTwoD (updateAllElements >> (gs_navigate gsconfig))
+                            evalTwoD (updateAllElements >> gs_navigate gsconfig)
                                      (s { td_elementmap = m })
                       else
                           return Nothing
@@ -695,16 +695,13 @@ gridselectWindow gsconf = windowMap >>= gridselect gsconf
 withSelectedWindow :: (Window -> X ()) -> GSConfig Window -> X ()
 withSelectedWindow callback conf = do
     mbWindow <- gridselectWindow conf
-    case mbWindow of
-        Just w -> callback w
-        Nothing -> return ()
+    for_ mbWindow callback
 
 windowMap :: X [(String,Window)]
 windowMap = do
     ws <- gets windowset
-    wins <- mapM keyValuePair (W.allWindows ws)
-    return wins
- where keyValuePair w = flip (,) w <$> decorateName' w
+    mapM keyValuePair (W.allWindows ws)
+ where keyValuePair w = (, w) <$> decorateName' w
 
 decorateName' :: Window -> X String
 decorateName' w = do
@@ -782,7 +779,7 @@ noRearranger _ = return
 -- already present).
 searchStringRearrangerGenerator :: (String -> a) -> Rearranger a
 searchStringRearrangerGenerator f =
-    let r "" xs                       = return $ xs
-        r s  xs | s `elem` map fst xs = return $ xs
+    let r "" xs                       = return xs
+        r s  xs | s `elem` map fst xs = return xs
                 | otherwise           = return $ xs ++ [(s, f s)]
     in r

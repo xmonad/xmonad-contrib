@@ -68,7 +68,7 @@ windowMenu = withFocused $ \w -> do
                     | tag <- tags ]
     runSelectedAction gsConfig actions
 
-getSize :: Window -> X (Rectangle)
+getSize :: Window -> X Rectangle
 getSize w = do
   d  <- asks display
   wa <- io $ getWindowAttributes d w

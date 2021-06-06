@@ -281,8 +281,9 @@ getRecentsMap = XS.get >>= \(RecentsMap m) -> return m
 -- | Perform an X action dependent on successful lookup of the RecentWins for
 --   the specified workspace, or return a default value.
 withRecentsIn :: WorkspaceId -> a -> (Window -> Window -> X a) -> X a
-withRecentsIn tag dflt f = M.lookup tag <$> getRecentsMap
-                       >>= maybe (return dflt) (\(Recent lw cw) -> f lw cw)
+withRecentsIn tag dflt f = maybe (return dflt) (\(Recent lw cw) -> f lw cw)
+                         . M.lookup tag
+                       =<< getRecentsMap
 
 -- | The above specialised to the current workspace and unit.
 withRecents :: (Window -> Window -> X ()) -> X ()

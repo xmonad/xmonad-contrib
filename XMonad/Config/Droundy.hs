@@ -14,7 +14,7 @@ import qualified XMonad (keys)
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
-import System.Exit ( exitWith, ExitCode(ExitSuccess) )
+import System.Exit ( exitSuccess )
 
 import XMonad.Layout.Tabbed ( tabbed,
                               shrinkText, Shrinker, shrinkIt, CustomShrink(CustomShrink) )
@@ -77,7 +77,7 @@ keys x = M.fromList $
     , ((modMask x,               xK_t     ), withFocused $ windows . W.sink) -- %! Push window back into tiling
 
     -- quit, or restart
-    , ((modMask x .|. shiftMask, xK_Escape), io (exitWith ExitSuccess)) -- %! Quit xmonad
+    , ((modMask x .|. shiftMask, xK_Escape), io exitSuccess) -- %! Quit xmonad
     , ((modMask x              , xK_Escape), restart "xmonad" True) -- %! Restart xmonad
 
     , ((modMask x .|. shiftMask, xK_Right), moveTo Next HiddenNonEmptyWS)

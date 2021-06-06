@@ -62,7 +62,7 @@ layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ sh
 layoutScreens nscr l =
     do rtrect <- asks theRoot >>= getWindowRectangle
        (wss, _) <- runLayout (W.Workspace "" l (Just $ W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] })) rtrect
-       windows $ \ws@(W.StackSet { W.current = v, W.visible = vs, W.hidden = hs }) ->
+       windows $ \ws@W.StackSet{ W.current = v, W.visible = vs, W.hidden = hs } ->
            let (x:xs, ys) = splitAt nscr $ map W.workspace (v:vs) ++ hs
                s:ss = map snd wss
            in  ws { W.current = W.Screen x 0 (SD s)
@@ -75,11 +75,11 @@ layoutSplitScreen nscr _ | nscr < 1 = trace $ "Can't layoutSplitScreen with only
 layoutSplitScreen nscr l =
     do rect <- gets $ screenRect . W.screenDetail . W.current . windowset
        (wss, _) <- runLayout (W.Workspace "" l (Just $ W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] })) rect
-       windows $ \ws@(W.StackSet { W.current = c, W.visible = vs, W.hidden = hs }) ->
+       windows $ \ws@W.StackSet{ W.current = c, W.visible = vs, W.hidden = hs } ->
            let (x:xs, ys) = splitAt nscr $ W.workspace c : hs
                s:ss = map snd wss
            in  ws { W.current = W.Screen x (W.screen c) (SD s)
-                  , W.visible = (zipWith3 W.Screen xs [(W.screen c+1) ..] $ map SD ss) ++
+                  , W.visible = zipWith3 W.Screen xs [(W.screen c+1) ..] (map SD ss) ++
                                 map (\v -> if W.screen v>W.screen c then v{W.screen = W.screen v + fromIntegral (nscr-1)} else v) vs
                   , W.hidden  = ys }
 
@@ -89,7 +89,7 @@ getWindowRectangle w = withDisplay $ \d ->
        return $ Rectangle (fromIntegral $ wa_x a)     (fromIntegral $ wa_y a)
                           (fromIntegral $ wa_width a) (fromIntegral $ wa_height a)
 
-data FixedLayout a = FixedLayout [Rectangle] deriving (Read,Show)
+newtype FixedLayout a = FixedLayout [Rectangle] deriving (Read,Show)
 
 instance LayoutClass FixedLayout a where
     doLayout (FixedLayout rs) _ s = return (zip (W.integrate s) rs, Nothing)

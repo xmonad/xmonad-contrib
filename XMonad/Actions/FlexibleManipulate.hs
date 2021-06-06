@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,8 +23,9 @@ module XMonad.Actions.FlexibleManipulate (
 ) where
 
 import XMonad
+import XMonad.Prelude ((<&>))
 import qualified Prelude as P
-import Prelude (($), (.), fst, snd, uncurry, const, id, Ord(..), Monad(..), fromIntegral, Double, Integer, map, round, otherwise)
+import Prelude (Double, Integer, Ord (..), const, fromIntegral, fst, id, map, otherwise, round, snd, uncurry, ($), (.))
 
 -- $usage
 -- First, add this import to your @~\/.xmonad\/xmonad.hs@:
@@ -79,9 +80,9 @@ position = const 0.5
 --   manipulation action.
 mouseWindow :: (Double -> Double) -> Window -> X ()
 mouseWindow f w = whenX (isClient w) $ withDisplay $ \d -> do
-    [wpos, wsize] <- io $ getWindowAttributes d w >>= return . winAttrs
+    [wpos, wsize] <- io $ getWindowAttributes d w <&> winAttrs
     sh <- io $ getWMNormalHints d w
-    pointer <- io $ queryPointer d w >>= return . pointerPos
+    pointer <- io $ queryPointer d w <&> pointerPos
 
     let uv = (pointer - wpos) / wsize
         fc = mapP f uv
@@ -112,7 +113,7 @@ type Pnt = (Double, Double)
 pairUp :: [a] -> [(a,a)]
 pairUp [] = []
 pairUp [_] = []
-pairUp (x:y:xs) = (x, y) : (pairUp xs)
+pairUp (x:y:xs) = (x, y) : pairUp xs
 
 mapP :: (a -> b) -> (a, a) -> (b, b)
 mapP f (x, y) = (f x, f y)
@@ -131,4 +132,3 @@ infixl 7  *, /
 (*) = zipP (P.*)
 (/) :: (P.Fractional a) => (a,a) -> (a,a) -> (a,a)
 (/) = zipP (P./)
-

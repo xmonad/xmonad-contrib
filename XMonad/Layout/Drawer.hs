@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Drawer
@@ -71,7 +71,7 @@ instance (LayoutClass l Window, Read (l Window)) => LayoutModifier (Drawer l) Wi
     modifyLayout (Drawer rs rb p l) ws rect =
         case stack ws of
             Nothing -> runLayout ws rect
-            Just stk@(Stack { up=up_, down=down_, S.focus=w }) -> do
+            Just stk@Stack{ up=up_, down=down_, S.focus=w } -> do
                     (upD, upM) <- partitionM (hasProperty p) up_
                     (downD, downM) <- partitionM (hasProperty p) down_
                     b <- hasProperty p w
@@ -94,7 +94,7 @@ instance (LayoutClass l Window, Read (l Window)) => LayoutModifier (Drawer l) Wi
         mkStack (x:xs) ys = Just (Stack { up=xs, S.focus=x, down=ys })
 
         rectB = rect { rect_width=round $ fromIntegral (rect_width rect) * rb }
-        rectS = rectB { rect_x=rect_x rectB - (round $ (rb - rs) * fromIntegral (rect_width rect)) }
+        rectS = rectB { rect_x=rect_x rectB - round ((rb - rs) * fromIntegral (rect_width rect)) }
         rectM = rect { rect_x=rect_x rect + round (fromIntegral (rect_width rect) * rs)
                      , rect_width=rect_width rect - round (fromIntegral (rect_width rect) * rs) }
 
@@ -114,7 +114,7 @@ simpleDrawer rs rb p = Drawer rs rb p vertical
 drawer ::    Rational   -- ^ The portion of the screen taken up by the drawer when closed
           -> Rational   -- ^ The portion of the screen taken up by the drawer when open
           -> Property   -- ^ Which windows to put in the drawer
-          -> (l a)      -- ^ The layout of windows in the drawer
+          -> l a        -- ^ The layout of windows in the drawer
           -> Drawer l a
 drawer = Drawer
 

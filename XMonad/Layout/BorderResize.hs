@@ -57,7 +57,7 @@ data BorderInfo = BI { bWin :: Window,
 
 type RectWithBorders = (Rectangle, [BorderInfo])
 
-data BorderResize a = BR (M.Map Window RectWithBorders) deriving (Show, Read)
+newtype BorderResize a = BR (M.Map Window RectWithBorders) deriving (Show, Read)
 
 brBorderSize :: Dimension
 brBorderSize = 2
@@ -99,7 +99,7 @@ instance LayoutModifier BorderResize Window where
 
 compileWrs :: M.Map Window RectWithBorders -> [Window] -> [(Window, Rectangle)]
 compileWrs wrsThisTime correctOrder = let wrs = reorder (M.toList wrsThisTime) correctOrder
-                                      in concat $ map compileWr wrs
+                                      in concatMap compileWr wrs
 
 compileWr :: (Window, RectWithBorders) -> [(Window, Rectangle)]
 compileWr (w, (r, borderInfos)) =
@@ -109,7 +109,7 @@ compileWr (w, (r, borderInfos)) =
 handleGone :: M.Map Window RectWithBorders -> X ()
 handleGone wrsGone = mapM_ deleteWindow borderWins
     where
-        borderWins = map bWin . concat . map snd . M.elems $ wrsGone
+        borderWins = map bWin . concatMap snd . M.elems $ wrsGone
 
 handleAppeared :: M.Map Window Rectangle -> X (M.Map Window RectWithBorders)
 handleAppeared wrsAppeared = do
@@ -124,58 +124,58 @@ handleSingleAppeared (w, r) = do
     return (w, (r, borderInfos))
 
 handleStillThere :: M.Map Window (Maybe Rectangle, RectWithBorders) -> M.Map Window RectWithBorders
-handleStillThere wrsStillThere = M.map handleSingleStillThere wrsStillThere
+handleStillThere = M.map handleSingleStillThere
 
 handleSingleStillThere :: (Maybe Rectangle, RectWithBorders) -> RectWithBorders
 handleSingleStillThere (Nothing, entry) = entry
 handleSingleStillThere (Just rCurrent, (_, borderInfos)) = (rCurrent, updatedBorderInfos)
     where
         changedBorderBlueprints = prepareBorders rCurrent
-        updatedBorderInfos = map updateBorderInfo . zip borderInfos $ changedBorderBlueprints
+        updatedBorderInfos = zipWith (curry updateBorderInfo) borderInfos changedBorderBlueprints
           -- assuming that the four borders are always in the same order
 
 updateBorderInfo :: (BorderInfo, BorderBlueprint) -> BorderInfo
 updateBorderInfo (borderInfo, (r, _, _)) = borderInfo { bRect = r }
 
 createBorderLookupTable :: M.Map Window RectWithBorders -> [(Window, (BorderType, Window, Rectangle))]
-createBorderLookupTable wrsLastTime = concat $ map processSingleEntry $ M.toList wrsLastTime
+createBorderLookupTable wrsLastTime = concatMap processSingleEntry (M.toList wrsLastTime)
     where
         processSingleEntry :: (Window, RectWithBorders) -> [(Window, (BorderType, Window, Rectangle))]
         processSingleEntry (w, (r, borderInfos)) = for borderInfos $ \bi -> (bWin bi, (bType bi, w, r))
 
 prepareBorders :: Rectangle -> [BorderBlueprint]
 prepareBorders (Rectangle x y wh ht) =
-    [((Rectangle (x + fi wh - fi brBorderSize) y brBorderSize ht), xC_right_side , RightSideBorder),
-     ((Rectangle x y brBorderSize ht)                            , xC_left_side  , LeftSideBorder),
-     ((Rectangle x y wh brBorderSize)                            , xC_top_side   , TopSideBorder),
-     ((Rectangle x (y + fi ht - fi brBorderSize) wh brBorderSize), xC_bottom_side, BottomSideBorder)
+    [(Rectangle (x + fi wh - fi brBorderSize) y brBorderSize ht, xC_right_side , RightSideBorder),
+     (Rectangle x y brBorderSize ht                            , xC_left_side  , LeftSideBorder),
+     (Rectangle x y wh brBorderSize                            , xC_top_side   , TopSideBorder),
+     (Rectangle x (y + fi ht - fi brBorderSize) wh brBorderSize, xC_bottom_side, BottomSideBorder)
     ]
 
 handleResize :: [(Window, (BorderType, Window, Rectangle))] -> Event -> X ()
 handleResize borders ButtonEvent { ev_window = ew, ev_event_type = et }
     | et == buttonPress, Just edge <- lookup ew borders =
     case edge of
-        (RightSideBorder, hostWin, (Rectangle hx hy _ hht)) ->
+        (RightSideBorder, hostWin, Rectangle hx hy _ hht) ->
             mouseDrag (\x _ -> do
                             let nwh = max 1 $ fi (x - hx)
                                 rect = Rectangle hx hy nwh hht
                             focus hostWin
                             when (x - hx > 0) $ sendMessage (SetGeometry rect)) (focus hostWin)
-        (LeftSideBorder, hostWin, (Rectangle hx hy hwh hht)) ->
+        (LeftSideBorder, hostWin, Rectangle hx hy hwh hht) ->
             mouseDrag (\x _ -> do
-                            let nx = max 0 $ min (hx + fi hwh) $ x
+                            let nx = max 0 $ min (hx + fi hwh) x
                                 nwh = max 1 $ hwh + fi (hx - x)
                                 rect = Rectangle nx hy nwh hht
                             focus hostWin
                             when (x < hx + fi hwh) $ sendMessage (SetGeometry rect)) (focus hostWin)
-        (TopSideBorder, hostWin, (Rectangle hx hy hwh hht)) ->
+        (TopSideBorder, hostWin, Rectangle hx hy hwh hht) ->
             mouseDrag (\_ y -> do
-                            let ny = max 0 $ min (hy + fi hht) $ y
+                            let ny = max 0 $ min (hy + fi hht) y
                                 nht = max 1 $ hht + fi (hy - y)
                                 rect = Rectangle hx ny hwh nht
                             focus hostWin
                             when (y < hy + fi hht) $ sendMessage (SetGeometry rect)) (focus hostWin)
-        (BottomSideBorder, hostWin, (Rectangle hx hy hwh _)) ->
+        (BottomSideBorder, hostWin, Rectangle hx hy hwh _) ->
             mouseDrag (\_ y -> do
                             let nht = max 1 $ fi (y - hy)
                                 rect = Rectangle hx hy hwh nht
@@ -183,7 +183,7 @@ handleResize borders ButtonEvent { ev_window = ew, ev_event_type = et }
                             when (y - hy > 0) $ sendMessage (SetGeometry rect)) (focus hostWin)
 handleResize _ _ = return ()
 
-createBorder :: BorderBlueprint -> X (BorderInfo)
+createBorder :: BorderBlueprint -> X BorderInfo
 createBorder (borderRect, borderCursor, borderType) = do
     borderWin <- createInputWindow borderCursor borderRect
     return BI { bWin = borderWin, bRect = borderRect, bType = borderType }
@@ -214,10 +214,10 @@ for = flip map
 
 reorder :: (Eq a) => [(a, b)] -> [a] -> [(a, b)]
 reorder wrs order =
-    let ordered = concat $ map (pickElem wrs) order
-        rest = filter (\(w, _) -> not (w `elem` order)) wrs
+    let ordered = concatMap (pickElem wrs) order
+        rest = filter (\(w, _) -> w `notElem` order) wrs
     in ordered ++ rest
     where
-        pickElem list e = case (lookup e list) of
+        pickElem list e = case lookup e list of
                                 Just result -> [(e, result)]
                                 Nothing -> []

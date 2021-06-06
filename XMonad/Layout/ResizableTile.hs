@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -67,25 +67,25 @@ data ResizableTall a = ResizableTall
 
 instance LayoutClass ResizableTall a where
     doLayout (ResizableTall nmaster _ frac mfrac) r =
-        return . (\x->(x,Nothing)) .
+        return . (, Nothing) .
         ap zip (tile frac (mfrac ++ repeat 1) r nmaster . length) . W.integrate
     handleMessage (ResizableTall nmaster delta frac mfrac) m =
-        do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
-           fs <- (M.keys . W.floating) <$> gets windowset
+        do ms <- W.stack . W.workspace . W.current <$> gets windowset
+           fs <- M.keys . W.floating <$> gets windowset
            return $ ms >>= unfloat fs >>= handleMesg
         where handleMesg s = msum [fmap resize (fromMessage m)
-                                  ,fmap (\x -> mresize x s) (fromMessage m)
+                                  ,fmap (`mresize` s) (fromMessage m)
                                   ,fmap incmastern (fromMessage m)]
               unfloat fs s = if W.focus s `elem` fs
                                then Nothing
-                               else Just (s { W.up = (W.up s) \\ fs
-                                            , W.down = (W.down s) \\ fs })
+                               else Just (s { W.up = W.up s \\ fs
+                                            , W.down = W.down s \\ fs })
               resize Shrink = ResizableTall nmaster delta (max 0 $ frac-delta) mfrac
               resize Expand = ResizableTall nmaster delta (min 1 $ frac+delta) mfrac
               mresize MirrorShrink s = mresize' s delta
-              mresize MirrorExpand s = mresize' s (0-delta)
+              mresize MirrorExpand s = mresize' s (negate delta)
               mresize' s d = let n = length $ W.up s
-                                 total = n + (length $ W.down s) + 1
+                                 total = n + length (W.down s) + 1
                                  pos = if n == (nmaster-1) || n == (total-1) then n-1 else n
                                  mfrac' = modifymfrac (mfrac ++ repeat 1) d pos
                              in ResizableTall nmaster delta frac $ take total mfrac'

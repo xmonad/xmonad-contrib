@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
-{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
@@ -152,30 +151,30 @@ checkDock = ask >>= \w -> liftX $ do
     desk <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
     mbr <- getProp32s "_NET_WM_WINDOW_TYPE" w
     case mbr of
-        Just rs -> return $ any (`elem` [dock,desk]) (map fromIntegral rs)
+        Just rs -> return $ any ((`elem` [dock,desk]) . fromIntegral) rs
         _       -> return False
 
 -- | Whenever a new dock appears, refresh the layout immediately to avoid the
 -- new dock.
 docksEventHook :: Event -> X All
-docksEventHook (MapNotifyEvent { ev_window = w }) = do
+docksEventHook MapNotifyEvent{ ev_window = w } = do
     whenX (runQuery checkDock w <&&> (not <$> isClient w)) $
         whenX (updateStrutCache w) refreshDocks
     return (All True)
-docksEventHook (PropertyEvent { ev_window = w
-                              , ev_atom = a }) = do
+docksEventHook PropertyEvent{ ev_window = w
+                            , ev_atom = a } = do
     nws <- getAtom "_NET_WM_STRUT"
     nwsp <- getAtom "_NET_WM_STRUT_PARTIAL"
     when (a == nws || a == nwsp) $
         whenX (updateStrutCache w) refreshDocks
     return (All True)
-docksEventHook (DestroyWindowEvent {ev_window = w}) = do
+docksEventHook DestroyWindowEvent{ ev_window = w } = do
     whenX (deleteFromStrutCache w) refreshDocks
     return (All True)
 docksEventHook _ = return (All True)
 
 docksStartupHook :: X ()
-docksStartupHook = void $ getStrutCache
+docksStartupHook = void getStrutCache
 
 -- | Gets the STRUT config, if present, in xmonad gap order
 getStrut :: Window -> X [Strut]
@@ -222,7 +221,7 @@ avoidStrutsOn :: LayoutClass l a =>
               -> ModifiedLayout AvoidStruts l a
 avoidStrutsOn ss = ModifiedLayout $ AvoidStruts (S.fromList ss)
 
-data AvoidStruts a = AvoidStruts (S.Set Direction2D) deriving ( Read, Show )
+newtype AvoidStruts a = AvoidStruts (S.Set Direction2D) deriving ( Read, Show )
 
 -- | Message type which can be sent to an 'AvoidStruts' layout
 --   modifier to alter its behavior.

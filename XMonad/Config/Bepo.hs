@@ -39,9 +39,8 @@ import qualified Data.Map as M
 
 bepoConfig = def { keys = bepoKeys <+> keys def }
 
-bepoKeys conf@(XConfig { modMask = modm }) = M.fromList $
-    [((modm, xK_semicolon), sendMessage (IncMasterN (-1)))]
-    ++
-    [((m .|. modm, k), windows $ f i)
-        | (i, k) <- zip (workspaces conf) [0x22,0xab,0xbb,0x28,0x29,0x40,0x2b,0x2d,0x2f,0x2a],
-          (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+bepoKeys conf@XConfig { modMask = modm } = M.fromList $
+    ((modm, xK_semicolon), sendMessage (IncMasterN (-1)))
+    : [((m .|. modm, k), windows $ f i)
+          | (i, k) <- zip (workspaces conf) [0x22,0xab,0xbb,0x28,0x29,0x40,0x2b,0x2d,0x2f,0x2a],
+            (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]

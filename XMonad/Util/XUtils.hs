@@ -127,8 +127,8 @@ paintAndWrite :: Window     -- ^ The window where to draw
               -> X ()
 paintAndWrite w fs wh ht bw bc borc ffc fbc als strs = do
     d <- asks display
-    strPositions <- forM (zip als strs) $ \(al, str) ->
-        stringPosition d fs (Rectangle 0 0 wh ht) al str
+    strPositions <- forM (zip als strs) $
+        uncurry (stringPosition d fs (Rectangle 0 0 wh ht))
     let ms = Just (fs,ffc,fbc, zip strs strPositions)
     paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms Nothing
 
@@ -150,9 +150,8 @@ paintTextAndIcons :: Window      -- ^ The window where to draw
                   -> X ()
 paintTextAndIcons w fs wh ht bw bc borc ffc fbc als strs i_als icons = do
     d <- asks display
-    strPositions <- forM (zip als strs) $ \(al, str) ->
-        stringPosition d fs (Rectangle 0 0 wh ht) al str
-    let iconPositions = map ( \(al, icon) -> iconPosition (Rectangle 0 0 wh ht) al icon ) (zip i_als icons)
+    strPositions <- forM (zip als strs) $ uncurry (stringPosition d fs (Rectangle 0 0 wh ht))
+    let iconPositions = zipWith (iconPosition (Rectangle 0 0 wh ht)) i_als icons
         ms = Just (fs,ffc,fbc, zip strs strPositions)
         is = Just (ffc, fbc, zip iconPositions icons)
     paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms is

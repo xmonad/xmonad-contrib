@@ -170,8 +170,8 @@ resetExclusiveSp xs = withFocused $ \w -> whenX (isScratchpad xs w) $ do
   let ys = filterM (flip runQuery w . query) xs
 
   unlessX (null <$> ys) $ do
-    mh <- (head . map hook) <$> ys  -- ys /= [], so `head` is fine
-    n  <- (head . map name) <$> ys  -- same
+    mh <- head . map hook <$> ys  -- ys /= [], so `head` is fine
+    n  <- head . map name <$> ys  -- same
 
     (windows . appEndo <=< runQuery mh) w
     hideOthers xs n
@@ -214,7 +214,7 @@ joinQueries = foldl (<||>) (liftX $ return False)
 
 -- | Useful queries
 isExclusive, isMaximized :: Query Bool
-isExclusive = (notElem "_XSP_NOEXCLUSIVE" . words) <$> stringProperty "_XMONAD_TAGS"
+isExclusive = notElem "_XSP_NOEXCLUSIVE" . words <$> stringProperty "_XMONAD_TAGS"
 isMaximized = not <$> isInProperty "_NET_WM_STATE" "_NET_WM_STATE_HIDDEN"
 
 -- -----------------------------------------------------------------------------------

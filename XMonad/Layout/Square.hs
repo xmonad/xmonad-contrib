@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -46,7 +46,7 @@ data Square a = Square deriving ( Read, Show )
 
 instance LayoutClass Square a where
     pureLayout Square r s = arrange (integrate s)
-        where arrange ws@(_:_) = map (\w->(w,rest)) (init ws) ++ [(last ws,sq)]
+        where arrange ws@(_:_) = map (, rest) (init ws) ++ [(last ws,sq)]
               arrange [] = [] -- actually, this is an impossible case
               (rest, sq) = splitSquare r
 

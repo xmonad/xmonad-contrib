@@ -70,8 +70,8 @@ pattern StateFull = FocusTracking Nothing Full
 instance LayoutClass l Window => LayoutClass (FocusTracking l) Window where
 
   description (FocusTracking _ child)
-    | (chDesc == "Full")  = "StateFull"
-    | (' ' `elem` chDesc) = "FocusTracking (" ++ chDesc ++ ")"
+    | chDesc == "Full"  = "StateFull"
+    | ' ' `elem` chDesc = "FocusTracking (" ++ chDesc ++ ")"
     | otherwise           = "FocusTracking " ++ chDesc
     where chDesc = description child
 

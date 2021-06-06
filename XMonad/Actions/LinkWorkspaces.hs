@@ -27,6 +27,7 @@ module XMonad.Actions.LinkWorkspaces (
                                        ) where
 
 import XMonad
+import XMonad.Prelude (for_)
 import qualified XMonad.StackSet as W
 import XMonad.Layout.IndependentScreens(countScreens)
 import qualified XMonad.Util.ExtensibleState as XS (get, put)
@@ -59,7 +60,7 @@ import qualified Data.Map as M
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data MessageConfig = MessageConfig {  messageFunction :: (ScreenId -> [Char] -> [Char] -> [Char] -> X())
+data MessageConfig = MessageConfig {  messageFunction :: ScreenId -> [Char] -> [Char] -> [Char] -> X()
                     , foreground :: [Char]
                     , alertedForeground :: [Char]
                     , background :: [Char]
@@ -75,8 +76,8 @@ noMessageFn :: ScreenId -> [Char] -> [Char] -> [Char] -> X()
 noMessageFn _ _ _ _ = return () :: X ()
 
 -- | Stuff for linking workspaces
-data WorkspaceMap = WorkspaceMap (M.Map WorkspaceId WorkspaceId) deriving (Read, Show, Typeable)
-instance ExtensionClass WorkspaceMap 
+newtype WorkspaceMap = WorkspaceMap (M.Map WorkspaceId WorkspaceId) deriving (Read, Show, Typeable)
+instance ExtensionClass WorkspaceMap
     where initialValue = WorkspaceMap M.empty
           extensionType = PersistentExtension
 
@@ -85,12 +86,12 @@ switchWS f m ws = switchWS' f m ws Nothing
 
 -- | Switch to the given workspace in a non greedy way, stop if we reached the first screen
 -- | we already did switching on
-switchWS' :: (WorkspaceId -> X ()) -> MessageConfig  -> WorkspaceId -> (Maybe ScreenId) -> X ()
+switchWS' :: (WorkspaceId -> X ()) -> MessageConfig  -> WorkspaceId -> Maybe ScreenId -> X ()
 switchWS' switchFn message workspace stopAtScreen = do
   ws <- gets windowset
   nScreens <- countScreens
   let now = W.screen (W.current ws)
-  let next = ((now + 1) `mod` nScreens)
+  let next = (now + 1) `mod` nScreens
   switchFn workspace
   case stopAtScreen of
     Nothing -> sTM now next (Just now)
@@ -99,21 +100,21 @@ switchWS' switchFn message workspace stopAtScreen = do
 
 -- | Switch to the workspace that matches the current one, executing switches for that workspace as well.
 -- | The function switchWorkspaceNonGreedy' will take of stopping if we reached the first workspace again.
-switchToMatching :: (WorkspaceId -> (Maybe ScreenId) -> X ()) -> MessageConfig -> WorkspaceId -> ScreenId 
-    -> ScreenId -> (Maybe ScreenId) -> X ()
+switchToMatching :: (WorkspaceId -> Maybe ScreenId -> X ()) -> MessageConfig -> WorkspaceId -> ScreenId
+    -> ScreenId -> Maybe ScreenId -> X ()
 switchToMatching f message t now next stopAtScreen = do
     WorkspaceMap matchings <- XS.get :: X WorkspaceMap
-    case (M.lookup t matchings) of
+    case M.lookup t matchings of
         Nothing -> return () :: X()
         Just newWorkspace -> do
-            onScreen' (f newWorkspace stopAtScreen) FocusCurrent next 
+            onScreen' (f newWorkspace stopAtScreen) FocusCurrent next
             messageFunction message now (foreground message) (background message) ("Switching to: " ++ (t ++ " and " ++ newWorkspace))
 
 -- | Insert a mapping between t1 and t2 or remove it was already present
 toggleMatching :: MessageConfig -> WorkspaceId -> WorkspaceId -> X ()
 toggleMatching message t1 t2 = do
     WorkspaceMap matchings <- XS.get :: X WorkspaceMap
-    case (M.lookup t1 matchings) of
+    case M.lookup t1 matchings of
         Nothing -> setMatching message t1 t2 matchings
         Just t -> if t == t2 then removeMatching' message t1 t2 matchings else setMatching message t1 t2 matchings
     return ()
@@ -142,7 +143,7 @@ removeAllMatchings :: MessageConfig -> X ()
 removeAllMatchings message = do
    ws <- gets windowset
    let now = W.screen (W.current ws)
-   XS.put $ WorkspaceMap $ M.empty
+   XS.put $ WorkspaceMap M.empty
    messageFunction message now (alertedForeground message) (background message) "All links removed!"
 
 -- | remove all matching regarding a given workspace
@@ -163,7 +164,6 @@ toggleLinkWorkspaces' first message = do
     let now = W.screen (W.current ws)
     let next = (now + 1) `mod` nScreens
     if next == first then return () else do -- this is also the case if there is only one screen
-        case (W.lookupWorkspace next ws) of
-            Nothing -> return ()
-            Just name -> toggleMatching message (W.currentTag ws) (name)
+        for_ (W.lookupWorkspace next ws)
+             (toggleMatching message (W.currentTag ws))
         onScreen' (toggleLinkWorkspaces' first message) FocusCurrent next

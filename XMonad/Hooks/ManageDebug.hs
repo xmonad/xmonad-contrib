@@ -36,7 +36,7 @@ import           XMonad.Util.EZConfig
 import qualified XMonad.Util.ExtensibleState                                                 as XS
 
 -- persistent state for manageHook debugging to trigger logHook debugging
-data ManageStackDebug = MSD (Bool,Bool) deriving Typeable
+newtype ManageStackDebug = MSD (Bool,Bool) deriving Typeable
 instance ExtensionClass ManageStackDebug where
   initialValue = MSD (False,False)
 

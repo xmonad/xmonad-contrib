@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BinaryColumn
@@ -86,7 +86,7 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
           m_fl = fromIntegral m
           m_prev_fl = fromIntegral (m + 1)
           div_test = min divide m_prev_fl
-          value_test = round ((fromIntegral size) / div_test) :: Integer
+          value_test = round (fromIntegral size / div_test) :: Integer
           value_max = size - toInteger (min_size * m)
           (value, divide_next, no_room) =
             if value_test < value_max then
@@ -101,7 +101,7 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
         -- simply create an even grid with the remaining space.
         f m size divide True = let
           divide_next = fromIntegral m
-          value_even = ((fromIntegral size) / divide)
+          value_even = (fromIntegral size / divide)
           value = round value_even :: Integer
 
           m_next = m - 1
@@ -112,21 +112,21 @@ columnLayout (BinaryColumn scale min_size) rect stack = zip ws rects
          n_init size_init divide_init False
       where
         n_init = n - 1
-        size_init = (toInteger (rect_height rect))
+        size_init = toInteger (rect_height rect)
         divide_init =
           if scale_abs == 0.0 then
-            (fromIntegral n)
+            fromIntegral n
           else
-            (1.0 / (0.5 * scale_abs))
+            1.0 / (0.5 * scale_abs)
 
     heights =
-      if (scale < 0.0) then
+      if scale < 0.0 then
         Data.List.reverse (take n heights_noflip)
       else
         heights_noflip
 
     ys = [fromIntegral $ sum $ take k heights | k <- [0..n - 1]]
-    rects = map (mkRect rect) $ zip heights ys
+    rects = zipWith (curry (mkRect rect)) heights ys
 
 mkRect :: XMonad.Rectangle
   -> (Integer,XMonad.Position)

@@ -29,7 +29,7 @@ main = do
   xmonad $ desktopConfig
     { modMask    = mod4Mask -- Use the "Win" key for the mod key
     , manageHook = myManageHook <+> manageHook desktopConfig
-    , layoutHook = desktopLayoutModifiers $ myLayouts
+    , layoutHook = desktopLayoutModifiers myLayouts
     , logHook    = (dynamicLogString def >>= xmonadPropLog)
                     <+> logHook desktopConfig
     }

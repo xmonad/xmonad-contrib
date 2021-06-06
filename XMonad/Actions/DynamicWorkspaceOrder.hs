@@ -89,7 +89,7 @@ import Data.Ord (comparing)
 -- tweak as desired.
 
 -- | Extensible state storage for the workspace order.
-data WSOrderStorage = WSO { unWSO :: Maybe (M.Map WorkspaceId Int) }
+newtype WSOrderStorage = WSO { unWSO :: Maybe (M.Map WorkspaceId Int) }
   deriving (Typeable, Read, Show)
 
 instance ExtensionClass WSOrderStorage where

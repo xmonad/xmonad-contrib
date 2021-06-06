@@ -49,7 +49,7 @@ startTimer s = io $ do
 -- | Given a 'TimerId' and an 'Event', run an action when the 'Event'
 -- has been sent by the timer specified by the 'TimerId'
 handleTimer :: TimerId -> Event -> X (Maybe a) -> X (Maybe a)
-handleTimer ti (ClientMessageEvent {ev_message_type = mt, ev_data = dt}) action = do
+handleTimer ti ClientMessageEvent{ev_message_type = mt, ev_data = dt} action = do
   d <- asks display
   a <- io $ internAtom d "XMONAD_TIMER" False
   if mt == a && dt /= [] && fromIntegral (head dt) == ti

@@ -57,7 +57,7 @@ Then you can add the bindings to the applications.
  -}
 
 -- A customized prompt
-data AppPrompt = AppPrompt String
+newtype AppPrompt = AppPrompt String
 instance XPrompt AppPrompt where
     showXPrompt (AppPrompt n) = n ++ " "
 

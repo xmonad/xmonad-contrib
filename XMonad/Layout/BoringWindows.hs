@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable #-}
 {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
@@ -36,7 +36,7 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
 import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
               broadcastMessage, sendMessage, windows, withFocused, Window)
-import XMonad.Prelude (fromMaybe, listToMaybe, maybeToList, union, (\\))
+import XMonad.Prelude (find, fromMaybe, listToMaybe, maybeToList, union, (\\))
 import XMonad.Util.Stack (reverseS)
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
@@ -110,13 +110,13 @@ boringAuto :: (LayoutClass l a, Eq a) => l a -> ModifiedLayout BoringWindows l a
 boringAuto = ModifiedLayout (BoringWindows M.empty [] (Just []))
 
 instance LayoutModifier BoringWindows Window where
-    redoLayout (b@BoringWindows { hiddenBoring = bs }) _r mst arrs = do
+    redoLayout b@BoringWindows{ hiddenBoring = bs } _r mst arrs = do
         let bs' = W.integrate' mst \\ map fst arrs
-        return (arrs, Just $ b { hiddenBoring = const bs' <$> bs } )
+        return (arrs, Just $ b { hiddenBoring = bs' <$ bs } )
 
     handleMessOrMaybeModifyIt bst@(BoringWindows nbs cbs lbs) m
         | Just (Replace k ws) <- fromMessage m
-        , maybe True (ws/=) (M.lookup k nbs) =
+        , Just ws /= M.lookup k nbs =
             let nnb = if null ws then M.delete k nbs
                           else M.insert k ws nbs
             in rjl bst { namedBoring = nnb }
@@ -155,8 +155,8 @@ instance LayoutModifier BoringWindows Window where
               skipBoringSwapUp = skipBoring'
                                    (maybe True (`notElem` bs) . listToMaybe . W.down)
                                    swapUp'
-              skipBoring' p f st = fromMaybe st $ listToMaybe
-                                   $ filter p
+              skipBoring' p f st = fromMaybe st
+                                   $ find p
                                    $ drop 1
                                    $ take (length $ W.integrate st)
                                    $ iterate f st

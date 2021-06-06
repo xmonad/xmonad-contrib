@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.FadeWindows
@@ -220,7 +220,7 @@ fadeWindowsLogHook h =  withWindowSet $ \s -> do
 --   "XMonad.Layout.Full" or "XMonad.Layout.Tabbed".  This hook may
 --   also be useful with "XMonad.Hooks.FadeInactive".
 fadeWindowsEventHook                     :: Event -> X All
-fadeWindowsEventHook (MapNotifyEvent {}) =
+fadeWindowsEventHook MapNotifyEvent{} =
   -- we need to run the fadeWindowsLogHook.  only one way...
   asks config >>= logHook >> return (All True)
 fadeWindowsEventHook _                   =  return (All True)

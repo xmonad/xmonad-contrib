@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances #-}
 {- |
 
 Module      :  XMonad.Layout.TrackFloating
@@ -42,12 +42,12 @@ import qualified XMonad.StackSet as W
 import qualified Data.Traversable as T
 
 
-data TrackFloating a = TrackFloating (Maybe Window)
+newtype TrackFloating a = TrackFloating (Maybe Window)
     deriving (Read,Show)
 
 
 instance LayoutModifier TrackFloating Window where
-    modifyLayoutWithUpdate (TrackFloating mw) ws@(W.Workspace{ W.stack = ms }) r
+    modifyLayoutWithUpdate (TrackFloating mw) ws@W.Workspace{ W.stack = ms } r
       = do
         xCur <- gets (W.peek . W.view (W.tag ws) . windowset)
         let isF = xCur /= (W.focus <$> ms)
@@ -67,12 +67,12 @@ instance LayoutModifier TrackFloating Window where
 on the window named by the WM_TRANSIENT_FOR property on the floating window.
 -}
 useTransientFor :: l a -> ModifiedLayout UseTransientFor l a
-useTransientFor x = ModifiedLayout UseTransientFor x
+useTransientFor = ModifiedLayout UseTransientFor
 
 data UseTransientFor a = UseTransientFor deriving (Read,Show,Eq)
 
 instance LayoutModifier UseTransientFor Window where
-    modifyLayout _ ws@(W.Workspace{ W.stack = ms }) r = do
+    modifyLayout _ ws@W.Workspace{ W.stack = ms } r = do
         m <- gets (W.peek . W.view (W.tag ws) . windowset)
         d <- asks display
         parent <- join <$> T.traverse (io . getTransientForHint d) m
@@ -128,7 +128,7 @@ window regardless of which tiled window was focused before.
 
 -}
 trackFloating ::  l a -> ModifiedLayout TrackFloating l a
-trackFloating layout = ModifiedLayout (TrackFloating Nothing) layout
+trackFloating = ModifiedLayout (TrackFloating Nothing)
 
 {- $layoutModifier
 It also corrects focus issues for full-like layouts inside other layout

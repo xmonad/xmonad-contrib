@@ -218,7 +218,7 @@ sortByZ f = fromTags . sortBy (adapt f) . toTags
 -- | Map a function over a stack. The boolean argument indcates whether
 -- the current element is the focused one
 mapZ :: (Bool -> a -> b) -> Zipper a -> Zipper b
-mapZ f as = fromTags . map (mapE f) . toTags $ as
+mapZ f = fromTags . map (mapE f) . toTags
 
 -- | 'mapZ' without the 'Bool' argument
 mapZ_ :: (a -> b) -> Zipper a -> Zipper b
@@ -316,7 +316,7 @@ foldlZ_ = foldlZ . const
 
 -- | Find whether an element is present in a stack.
 elemZ :: Eq a => a -> Zipper a -> Bool
-elemZ a as = foldlZ_ step False as
+elemZ a = foldlZ_ step False
     where step True _ = True
           step False a' = a' == a
 

@@ -106,7 +106,7 @@ import Control.Monad.State  ( gets )
 -- 'XMonad.Operations.sendMessage' code - foregoes the O(n) 'updateLayout'.
 sendSomeMessageB :: SomeMessage -> X Bool
 sendSomeMessageB m = windowBracket id $ do
-    w  <- workspace . current <$> gets windowset
+    w  <- gets ((workspace . current) . windowset)
     ml <- handleMessage (layout w) m `catchX` return Nothing
     whenJust ml $ \l ->
         modifyWindowSet $ \ws -> ws { current = (current ws)
@@ -138,7 +138,7 @@ sendSomeMessageWithNoRefresh m = void . sendSomeMessageWithNoRefreshB m
 -- 'XMonad.Operations.sendMessageWithNoRefresh' (does not refresh).
 sendSomeMessageWithNoRefreshToCurrentB :: SomeMessage -> X Bool
 sendSomeMessageWithNoRefreshToCurrentB m
-    =   (gets $ workspace . current . windowset)
+    =   gets (workspace . current . windowset)
     >>= sendSomeMessageWithNoRefreshB m
 
 -- | Variant of 'sendSomeMessageWithNoRefreshToCurrentB' that discards the

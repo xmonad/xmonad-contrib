@@ -44,7 +44,7 @@ import Control.Arrow ((&&&))
 import qualified Data.Map as M
 
 import XMonad
-import XMonad.Prelude (find)
+import XMonad.Prelude (find, for_)
 import qualified XMonad.StackSet as W
 
 import XMonad.Prompt
@@ -68,14 +68,14 @@ type WSGroup = [(ScreenId,WorkspaceId)]
 
 type WSGroupId = String
 
-data WSGroupStorage = WSG { unWSG :: M.Map WSGroupId WSGroup }
+newtype WSGroupStorage = WSG { unWSG :: M.Map WSGroupId WSGroup }
   deriving (Typeable, Read, Show)
 
 withWSG :: (M.Map WSGroupId WSGroup -> M.Map WSGroupId WSGroup) -> WSGroupStorage -> WSGroupStorage
 withWSG f = WSG . f . unWSG
 
 instance ExtensionClass WSGroupStorage where
-  initialValue = WSG $ M.empty
+  initialValue = WSG M.empty
   extensionType = PersistentExtension
 
 -- | Add a new workspace group of the given name, mapping to an
@@ -90,9 +90,7 @@ addWSGroup :: WSGroupId -> [WorkspaceId] -> X ()
 addWSGroup name wids = withWindowSet $ \w -> do
   let wss  = map ((W.tag . W.workspace) &&& W.screen) $ W.screens w
       wmap = mapM (strength . (flip lookup wss &&& id)) wids
-  case wmap of
-    Just ps -> addRawWSGroup name ps
-    Nothing -> return ()
+  for_ wmap (addRawWSGroup name)
  where strength (ma, b) = ma >>= \a -> return (a,b)
 
 -- | Give a name to the current workspace group.
@@ -114,9 +112,8 @@ viewWSGroup = viewGroup (windows . W.greedyView)
 viewGroup :: (WorkspaceId -> X ()) -> WSGroupId -> X ()
 viewGroup fview name = do
   WSG m <- XS.get
-  case M.lookup name m of
-    Just grp -> mapM_ (uncurry (viewWS fview)) grp
-    Nothing -> return ()
+  for_ (M.lookup name m) $
+    mapM_ (uncurry (viewWS fview))
 
 -- | View the given workspace on the given screen, using the provided function.
 viewWS :: (WorkspaceId -> X ())  -> ScreenId -> WorkspaceId -> X ()
@@ -133,7 +130,7 @@ findScreenWS :: ScreenId -> X (Maybe WorkspaceId)
 findScreenWS sid = withWindowSet $
   return . fmap (W.tag . W.workspace) . find ((==sid) . W.screen) . W.screens
 
-data WSGPrompt = WSGPrompt String
+newtype WSGPrompt = WSGPrompt String
 
 instance XPrompt WSGPrompt where
   showXPrompt (WSGPrompt s) = s

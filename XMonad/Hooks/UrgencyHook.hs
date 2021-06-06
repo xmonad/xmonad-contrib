@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards, DeriveDataTypeable,
-  FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, DeriveDataTypeable, FlexibleInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -196,7 +195,7 @@ import Foreign.C.Types (CLong)
 -- instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig l
-withUrgencyHook hook conf = withUrgencyHookC hook urgencyConfig conf
+withUrgencyHook hook = withUrgencyHookC hook urgencyConfig
 
 -- | This lets you modify the defaults set in 'urgencyConfig'. An example:
 --
@@ -211,7 +210,7 @@ withUrgencyHookC hook urgConf conf = conf {
         startupHook = cleanupStaleUrgents >> startupHook conf
     }
 
-data Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show,Typeable)
+newtype Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show,Typeable)
 
 onUrgents :: ([Window] -> [Window]) -> Urgents -> Urgents
 onUrgents f = Urgents . f . fromUrgents
@@ -283,7 +282,7 @@ withUrgents f = readUrgents >>= f
 cleanupStaleUrgents :: X ()
 cleanupStaleUrgents = withWindowSet $ \ws -> do
     adjustUrgents (filter (`W.member` ws))
-    adjustReminders (filter $ ((`W.member` ws) . window))
+    adjustReminders (filter ((`W.member` ws) . window))
 
 adjustUrgents :: ([Window] -> [Window]) -> X ()
 adjustUrgents = XS.modify . onUrgents
@@ -324,7 +323,7 @@ changeNetWMState dpy w f = do
 
 -- | Add an atom to the _NET_WM_STATE property.
 addNetWMState :: Display -> Window -> Atom -> X ()
-addNetWMState dpy w atom = changeNetWMState dpy w $ ((fromIntegral atom):)
+addNetWMState dpy w atom = changeNetWMState dpy w (fromIntegral atom :)
 
 -- | Remove an atom from the _NET_WM_STATE property.
 removeNetWMState :: Display -> Window -> Atom -> X ()
@@ -356,7 +355,7 @@ handleEvent wuh event =
       PropertyEvent { ev_event_type = t, ev_atom = a, ev_window = w } ->
           when (t == propertyNotify && a == wM_HINTS) $ withDisplay $ \dpy -> do
               WMHints { wmh_flags = flags } <- io $ getWMHints dpy w
-              if (testBit flags urgencyHintBit) then markUrgent w else markNotUrgent w
+              if testBit flags urgencyHintBit then markUrgent w else markNotUrgent w
       -- Window destroyed
       DestroyWindowEvent {ev_window = w} ->
           markNotUrgent w
@@ -380,7 +379,7 @@ handleEvent wuh event =
           mapM_ handleReminder =<< readReminders
       where handleReminder reminder = handleTimer (timer reminder) event $ reminderHook wuh reminder
             markUrgent w = do
-                adjustUrgents (\ws -> if elem w ws then ws else w : ws)
+                adjustUrgents (\ws -> if w `elem` ws then ws else w : ws)
                 callUrgencyHook wuh w
                 userCodeDef () =<< asks (logHook . config)
             markNotUrgent w = do
@@ -423,9 +422,9 @@ cleanupUrgents sw = clearUrgents' =<< suppressibleWindows sw
 clearUrgents' :: [Window] -> X ()
 clearUrgents' ws = do
     a_da <- getAtom "_NET_WM_STATE_DEMANDS_ATTENTION"
-    dpy <- withDisplay (\dpy -> return dpy)
+    dpy <- withDisplay return
     mapM_ (\w -> removeNetWMState dpy w a_da) ws
-    adjustUrgents (\\ ws) >> adjustReminders (filter $ ((`notElem` ws) . window))
+    adjustUrgents (\\ ws) >> adjustReminders (filter ((`notElem` ws) . window))
 
 suppressibleWindows :: SuppressWhen -> X [Window]
 suppressibleWindows Visible  = gets $ S.toList . mapped
@@ -491,7 +490,7 @@ instance UrgencyHook FocusHook where
 
 borderUrgencyHook :: String -> Window -> X ()
 borderUrgencyHook = urgencyHook . BorderUrgencyHook
-data BorderUrgencyHook = BorderUrgencyHook { urgencyBorderColor :: !String }
+newtype BorderUrgencyHook = BorderUrgencyHook { urgencyBorderColor :: String }
                        deriving (Read, Show)
 
 instance UrgencyHook BorderUrgencyHook where

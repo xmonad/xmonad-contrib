@@ -222,7 +222,7 @@ layoutAll box sub = LayoutB Nothing Nothing (LimitR (0,1)) box Nothing sub Nothi
 
 --------------------------------------------------------------------------------
 -- | Change the number of windows handled by the focused layout.
-data IncLayoutN = IncLayoutN Int deriving Typeable
+newtype IncLayoutN = IncLayoutN Int deriving Typeable
 instance Message IncLayoutN
 
 --------------------------------------------------------------------------------
@@ -367,7 +367,7 @@ sendFocus l@(LayoutB subFocus _ _ _ _ _ _) m = do
 -- | Check to see if the given window is currently focused.
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
-isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
+isFocus (Just w) = do ms <- W.stack . W.workspace . W.current <$> gets windowset
                       return $ maybe False (\s -> show w == show (W.focus s)) ms
 
 --------------------------------------------------------------------------------

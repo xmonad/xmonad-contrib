@@ -171,10 +171,10 @@ desktopConfig = docks $ ewmh def
     , logHook         = desktopLogHook <+> logHook def
     , keys            = desktopKeys <+> keys def }
 
-desktopKeys (XConfig {modMask = modm}) = M.fromList $
+desktopKeys XConfig{modMask = modm} = M.fromList
     [ ((modm, xK_b), sendMessage ToggleStruts) ]
 
-desktopLayoutModifiers layout = avoidStruts layout
+desktopLayoutModifiers = avoidStruts
 
 -- | 'logHook' preserving old 'ewmh' behavior to switch workspace and focus to
 -- activated window.

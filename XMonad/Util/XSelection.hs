@@ -24,7 +24,6 @@ module XMonad.Util.XSelection (  -- * Usage
 
 import Control.Exception as E (catch,SomeException(..))
 import XMonad
-import XMonad.Prelude (fromMaybe)
 import XMonad.Util.Run (safeSpawn, unsafeSpawn)
 
 import Codec.Binary.UTF8.String (decode)
@@ -68,7 +67,7 @@ getSelection = io $ do
     ev <- getEvent e
     result <- if ev_event_type ev == selectionNotify
                  then do res <- getWindowProperty8 dpy clp win
-                         return $ decode . map fromIntegral . fromMaybe [] $ res
+                         return $ decode . maybe [] (map fromIntegral) $ res
                  else destroyWindow dpy win >> return ""
     closeDisplay dpy
     return result

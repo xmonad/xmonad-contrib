@@ -61,7 +61,7 @@ type ExtensionActions = M.Map String (String -> X())
 instance XPrompt CalculatorMode where
   showXPrompt CalcMode = "calc %s> "
   commandToComplete CalcMode = id --send the whole string to `calc`
-  completionFunction CalcMode = \s -> if (length s == 0) then return [] else
+  completionFunction CalcMode = \s -> if null s then return [] else
     lines <$> runProcessWithInput "calc" [s] ""
   modeAction CalcMode _ _ = return () -- do nothing; this might copy the result to the clipboard
 

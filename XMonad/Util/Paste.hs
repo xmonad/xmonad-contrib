@@ -97,6 +97,6 @@ unicodeToKeysym :: Char -> KeySym
 unicodeToKeysym c
   | (ucp >= 32)  && (ucp <= 126) = fromIntegral ucp
   | (ucp >= 160) && (ucp <= 255) = fromIntegral ucp
-  | (ucp >= 256)                 = fromIntegral $ ucp + 0x1000000
+  | ucp >= 256                   = fromIntegral $ ucp + 0x1000000
   | otherwise                    = 0 -- this is supposed to be an error, but it's not ideal
   where ucp = fromEnum c -- codepoint

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ScreenCorners
@@ -63,13 +63,13 @@ addScreenCorner corner xF = do
     (win,xFunc) <- case find (\(_,(sc,_)) -> sc == corner) (M.toList m) of
 
                         Just (w, (_,xF')) -> return (w, xF' >> xF) -- chain X actions
-                        Nothing           -> flip (,) xF <$> createWindowAt corner
+                        Nothing           -> (, xF) <$> createWindowAt corner
 
     XS.modify $ \(ScreenCornerState m') -> ScreenCornerState $ M.insert win (corner,xFunc) m'
 
 -- | Add a list of @(ScreenCorner, X ())@ tuples
 addScreenCorners :: [ (ScreenCorner, X ()) ] -> X ()
-addScreenCorners = mapM_ (\(corner, xF) -> addScreenCorner corner xF)
+addScreenCorners = mapM_ (uncurry addScreenCorner)
 
 
 --------------------------------------------------------------------------------

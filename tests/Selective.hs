@@ -26,7 +26,7 @@ prop_select_master sel (stk :: Stack Int) =
     take (nMaster sel) (integrate stk) == take (nMaster sel) (integrate $ select sel stk)
 
 -- the focus should always be selected in normalized selections
-prop_select_focus sel (stk :: Stack Int) = focus stk == (focus $ select sel' stk)
+prop_select_focus sel (stk :: Stack Int) = focus stk == focus (select sel' stk)
     where sel' = update sel stk
 
 -- select doesn't change order (or duplicate elements)

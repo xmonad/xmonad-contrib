@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -67,7 +67,7 @@ maximize = ModifiedLayout $ Maximize 25 Nothing
 maximizeWithPadding :: LayoutClass l Window => Dimension -> l Window -> ModifiedLayout Maximize l Window
 maximizeWithPadding padding = ModifiedLayout $ Maximize padding Nothing
 
-data MaximizeRestore = MaximizeRestore Window deriving ( Typeable, Eq )
+newtype MaximizeRestore = MaximizeRestore Window deriving ( Typeable, Eq )
 instance Message MaximizeRestore
 maximizeRestore :: Window -> MaximizeRestore
 maximizeRestore = MaximizeRestore
@@ -91,7 +91,7 @@ instance LayoutModifier Maximize Window where
 
     pureMess (Maximize padding mw) m = case fromMessage m of
         Just (MaximizeRestore w) -> case mw of
-            Just w' -> if (w == w')
+            Just w' -> if w == w'
                         then Just $ Maximize padding Nothing   -- restore window
                         else Just $ Maximize padding $ Just w  -- maximize different window
             Nothing -> Just $ Maximize padding $ Just w        -- maximize window

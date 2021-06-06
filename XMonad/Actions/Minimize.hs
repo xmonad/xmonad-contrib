@@ -118,7 +118,7 @@ maximizeWindowAndFocus = maximizeWindowAndChangeWSet W.focusWindow
 -- | Perform an action with first minimized window on current workspace
 --   or do nothing if there is no minimized windows on current workspace
 withFirstMinimized :: (Window -> X ()) -> X ()
-withFirstMinimized action = withFirstMinimized' (flip whenJust action)
+withFirstMinimized action = withFirstMinimized' (`whenJust` action)
 
 -- | Like withFirstMinimized but the provided action is always invoked with a
 --   'Maybe Window', that will be nothing if there is no first minimized window.
@@ -128,7 +128,7 @@ withFirstMinimized' action = withMinimized (action . listToMaybe . reverse)
 -- | Perform an action with last minimized window on current workspace
 --   or do nothing if there is no minimized windows on current workspace
 withLastMinimized :: (Window -> X ()) -> X ()
-withLastMinimized action = withLastMinimized' (flip whenJust action)
+withLastMinimized action = withLastMinimized' (`whenJust` action)
 
 -- | Like withLastMinimized but the provided action is always invoked with a
 --   'Maybe Window', that will be nothing if there is no last minimized window.

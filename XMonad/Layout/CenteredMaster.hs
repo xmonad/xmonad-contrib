@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.CenteredMaster
@@ -28,6 +28,8 @@ module XMonad.Layout.CenteredMaster (
 import XMonad
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.StackSet as W
+
+import Control.Arrow (first)
 
 -- $usage
 -- This module defines two new layout modifiers: centerMaster and topRightMaster.
@@ -76,15 +78,15 @@ applyPosition :: (LayoutClass l a, Eq a) =>
 
 applyPosition pos wksp rect = do
   let stack = W.stack wksp
-  let ws = W.integrate' $ stack
+  let ws = W.integrate' stack
   if null ws then
      runLayout wksp rect
      else do
-       let first = head ws
-       let other = tail ws
-       let filtStack = stack >>= W.filter (first /=)
+       let firstW = head ws
+       let other  = tail ws
+       let filtStack = stack >>= W.filter (firstW /=)
        wrs <- runLayout (wksp {W.stack = filtStack}) rect
-       return ((first, place pos other rect) : fst wrs, snd wrs)
+       return $ first ((firstW, place pos other rect) :) wrs
 
 -- | Place master window (it's Rectangle is given), using the given Positioner.
 -- If second argument is empty (that is, there is only one window on workspace),
@@ -107,5 +109,3 @@ center rx ry (Rectangle sx sy sw sh) = Rectangle x y w h
         h = round (fromIntegral sh * ry)
         x = sx + fromIntegral (sw-w) `div` 2
         y = sy + fromIntegral (sh-h) `div` 2
-
-

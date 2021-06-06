@@ -70,8 +70,8 @@ import           System.Posix.Env                  (getEnv)
 --   'onHost', and so on.
 onHost :: (LayoutClass l1 a, LayoutClass l2 a)
        => String -- ^ the name of the host to match
-       -> (l1 a) -- ^ layout to use on the matched host
-       -> (l2 a) -- ^ layout to use everywhere else
+       -> l1 a   -- ^ layout to use on the matched host
+       -> l2 a   -- ^ layout to use everywhere else
        -> OnHost l1 l2 a
 onHost host = onHosts [host]
 
@@ -79,10 +79,10 @@ onHost host = onHosts [host]
 --   another to use on all other hosts.
 onHosts :: (LayoutClass l1 a, LayoutClass l2 a)
         => [String] -- ^ names of hosts to match
-        -> (l1 a)   -- ^ layout to use on matched hosts
-        -> (l2 a)   -- ^ layout to use everywhere else
+        -> l1 a     -- ^ layout to use on matched hosts
+        -> l2 a     -- ^ layout to use everywhere else
         -> OnHost l1 l2 a
-onHosts hosts l1 l2 = OnHost hosts False l1 l2
+onHosts hosts = OnHost hosts False
 
 -- | Specify a layout modifier to apply on a particular host; layouts
 --   on all other hosts will remain unmodified.
@@ -124,7 +124,7 @@ instance (LayoutClass l1 a, LayoutClass l2 a, Show a) => LayoutClass (OnHost l1 
 
     handleMessage (OnHost hosts bool lt lf) m
         | bool      = handleMessage lt m >>= maybe (return Nothing) (\nt -> return . Just $ OnHost hosts bool nt lf)
-        | otherwise = handleMessage lf m >>= maybe (return Nothing) (\nf -> return . Just $ OnHost hosts bool lt nf)
+        | otherwise = handleMessage lf m >>= maybe (return Nothing) (return . Just . OnHost hosts bool lt)
 
     description (OnHost _ True  l1 _) = description l1
     description (OnHost _ _     _ l2) = description l2
@@ -136,7 +136,7 @@ mkNewOnHostT (OnHost hosts _ lt lf) mlt' =
 
 mkNewOnHostF :: OnHost l1 l2 a -> Maybe (l2 a) -> OnHost l1 l2 a
 mkNewOnHostF (OnHost hosts _ lt lf) mlf' =
-  (\lf' -> OnHost hosts False lt lf') $ fromMaybe lf mlf'
+  OnHost hosts False lt $ fromMaybe lf mlf'
 
 -- | 'Data.List.elem' except that if one side has a dot and the other doesn't, we truncate
 --   the one that does at the dot.

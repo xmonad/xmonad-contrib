@@ -38,8 +38,8 @@ import XMonad hiding (focus)
 
 
 data TwoPanePersistent a = TwoPanePersistent
-  { slaveWin :: (Maybe a)  -- ^ slave window; if 'Nothing' or not in the current workspace,
-                           -- the window below the master will go into the slave pane
+  { slaveWin :: Maybe a  -- ^ slave window; if 'Nothing' or not in the current workspace,
+                         -- the window below the master will go into the slave pane
   , dFrac :: Rational -- ^ shrink/expand size
   , mFrac :: Rational -- ^ initial master size
   } deriving (Show, Read)
@@ -76,7 +76,7 @@ focusedMaster (TwoPanePersistent w delta split) s r =
                                     , Just $ TwoPanePersistent (Just next) delta split )
                     in case w of
                       -- if retains state, preserve the layout
-                      Just win -> if win `elem` (down s) && (focus s /= win)
+                      Just win -> if win `elem` down s && (focus s /= win)
                                   then ( [(focus s, left), (win, right)]
                                        , Just $ TwoPanePersistent w delta split )
                                   else nextSlave

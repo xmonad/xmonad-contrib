@@ -48,7 +48,7 @@ buttonDeco :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration ButtonDecoration s) l a
 buttonDeco s c = decoration s c $ NFD True
 
-data ButtonDecoration a = NFD Bool deriving (Show, Read)
+newtype ButtonDecoration a = NFD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle ButtonDecoration a where
     describeDeco _ = "ButtonDeco"

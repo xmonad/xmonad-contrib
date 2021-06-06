@@ -66,12 +66,12 @@ mouseResizeEdgeWindow edge w = whenX (isClient w) $ withDisplay $ \d -> do
               (float w)
     where
     findPos :: CInt -> Position -> Maybe Bool
-    findPos m s = if p < 0.5 - edge/2
-                  then Just True
-                  else if p < 0.5 + edge/2
-                       then Nothing
-                       else Just False
-                  where p = fi m / fi s
+    findPos m s
+      | p < 0.5 - edge/2 = Just True
+      | p < 0.5 + edge/2 = Nothing
+      | otherwise = Just False
+      where
+          p = fi m / fi s
     mkSel :: Maybe Bool -> Position -> Position -> (Position, Dimension -> Position, Position -> Dimension)
     mkSel b k p = case b of
                       Just True ->  (0, (fi k + fi p -).fi, (fi k + fi p -).fi)

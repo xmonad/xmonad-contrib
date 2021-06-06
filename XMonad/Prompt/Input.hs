@@ -77,7 +77,7 @@ import XMonad.Prompt
 -- "XMonad.Prompt.Email", which prompts the user for a recipient,
 -- subject, and one-line body, and sends a quick email.
 
-data InputPrompt = InputPrompt String
+newtype InputPrompt = InputPrompt String
 
 instance XPrompt InputPrompt  where
     showXPrompt (InputPrompt s) = s ++ ": "

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SimplestFloat
@@ -47,8 +47,8 @@ simplestFloat = windowArrangeAll SF
 
 data SimplestFloat a = SF deriving (Show, Read)
 instance LayoutClass SimplestFloat Window where
-    doLayout SF sc (S.Stack w l r) = fmap (flip (,) Nothing)
-                                   $ mapM (getSize sc) (w : reverse l ++ r)
+    doLayout SF sc (S.Stack w l r) =  (, Nothing)
+                                  <$> mapM (getSize sc) (w : reverse l ++ r)
     description _ = "SimplestFloat"
 
 getSize :: Rectangle -> Window -> X (Window,Rectangle)
@@ -58,6 +58,6 @@ getSize (Rectangle rx ry _ _) w = do
   wa <- io $ getWindowAttributes d w
   let x  =  max rx $ fi $ wa_x wa
       y  =  max ry $ fi $ wa_y wa
-      wh = (fi $ wa_width  wa) + (bw * 2)
-      ht = (fi $ wa_height wa) + (bw * 2)
+      wh = fi (wa_width  wa) + (bw * 2)
+      ht = fi (wa_height wa) + (bw * 2)
   return (w, Rectangle x y wh ht)

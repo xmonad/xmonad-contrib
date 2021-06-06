@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances, PatternGuards, DeriveDataTypeable, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, UndecidableInstances, PatternGuards, ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LayoutBuilderP
@@ -84,7 +84,7 @@ instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq 
             = do (subs,nexts,subf',nextf') <- splitStack s prop subf nextf
                  let selBox = if isJust nextf'
                                 then box
-                                else maybe box id mbox
+                                else fromMaybe box mbox
 
                  (sublist,sub') <- handle sub subs $ calcArea selBox rect
 
@@ -95,14 +95,14 @@ instance (LayoutClass l1 w, LayoutClass l2 w, Predicate p w, Show w, Read w, Eq 
                  return (sublist++nextlist, Just $ LayoutP subf' nextf' prop box mbox sub' next' )
               where
                   handle l s' r = do (res,ml) <- runLayout (W.Workspace "" l s') r
-                                     l' <- return $ maybe l id ml
+                                     let l' = fromMaybe l ml
                                      return (res,l')
 
         -- |  Propagate messages.
         handleMessage l m
             | Just (IncMasterN _) <- fromMessage m = sendFocus l m
-            | Just (Shrink) <- fromMessage m = sendFocus l m
-            | Just (Expand) <- fromMessage m = sendFocus l m
+            | Just Shrink         <- fromMessage m = sendFocus l m
+            | Just Expand         <- fromMessage m = sendFocus l m
             | otherwise = sendBoth l m
 
         -- |  Descriptive name for layout.
@@ -115,7 +115,7 @@ sendSub :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a
 sendSub (LayoutP subf nextf prop box mbox sub next) m =
     do sub' <- handleMessage sub m
        return $ if isJust sub'
-                then Just $ LayoutP subf nextf prop box mbox (maybe sub id sub') next
+                then Just $ LayoutP subf nextf prop box mbox (fromMaybe sub sub') next
                 else Nothing
 
 sendBoth :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a, Predicate p a)
@@ -125,7 +125,7 @@ sendBoth (LayoutP subf nextf prop box mbox sub (Just next)) m =
     do sub' <- handleMessage sub m
        next' <- handleMessage next m
        return $ if isJust sub' || isJust next'
-                then Just $ LayoutP subf nextf prop box mbox (maybe sub id sub') (Just $ maybe next id next')
+                then Just $ LayoutP subf nextf prop box mbox (fromMaybe sub sub') (Just $ fromMaybe next next')
                 else Nothing
 
 sendNext :: (LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a, Predicate p a)
@@ -145,13 +145,13 @@ sendFocus l@(LayoutP subf _ _ _ _ _ _) m = do foc <- isFocus subf
 
 isFocus :: (Show a) => Maybe a -> X Bool
 isFocus Nothing = return False
-isFocus (Just w) = do ms <- (W.stack . W.workspace . W.current) <$> gets windowset
-                      return $ maybe False (\s -> show w == (show $ W.focus s)) ms
+isFocus (Just w) = do ms <- W.stack . W.workspace . W.current <$> gets windowset
+                      return $ maybe False (\s -> show w == show (W.focus s)) ms
 
 
 -- | Split given list of objects (i.e. windows) using predicate.
 splitBy :: (Predicate p w) => p -> [w] -> X ([w], [w])
-splitBy prop ws = foldM step ([], []) ws
+splitBy prop = foldM step ([], [])
   where
     step (good, bad) w = do
       ok <- checkPredicate prop w
@@ -173,11 +173,10 @@ splitStack (Just s) prop subf nextf = do
            )
   where
     foc [] _ = Nothing
-    foc l f = if W.focus s `elem` l
-              then Just $ W.focus s
-              else if maybe False (`elem` l) f
-                   then f
-                   else Just $ head l
+    foc l f
+      | W.focus s `elem` l = Just $ W.focus s
+      | maybe False (`elem` l) f = f
+      | otherwise = Just $ head l
 
 calcArea :: B.SubBox -> Rectangle -> Rectangle
 calcArea (B.SubBox xpos ypos width height) rect = Rectangle (rect_x rect + fromIntegral xpos') (rect_y rect + fromIntegral ypos') width' height'
@@ -190,7 +189,7 @@ calcArea (B.SubBox xpos ypos width height) rect = Rectangle (rect_x rect + fromI
         calc zneg val tot = fromIntegral $ min (fromIntegral tot) $ max 0 $
             case val of B.Rel v -> floor $ v * fromIntegral tot
                         B.Abs v -> if v<0 || (zneg && v==0)
-                                 then (fromIntegral tot)+v
+                                 then fromIntegral tot+v
                                  else v
 
 differentiate' :: Eq q => Maybe q -> [q] -> Maybe (W.Stack q)

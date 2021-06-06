@@ -46,7 +46,7 @@ azertyKeys = azertyKeysTop [0x26,0xe9,0x22,0x27,0x28,0x2d,0xe8,0x5f,0xe7,0xe0]
 
 belgianKeys = azertyKeysTop [0x26,0xe9,0x22,0x27,0x28,0xa7,0xe8,0x21,0xe7,0xe0]
 
-azertyKeysTop topRow conf@(XConfig {modMask = modm}) = M.fromList $
+azertyKeysTop topRow conf@XConfig{modMask = modm} = M.fromList $
     [((modm, xK_semicolon), sendMessage (IncMasterN (-1)))]
     ++
     [((m .|. modm, k), windows $ f i)

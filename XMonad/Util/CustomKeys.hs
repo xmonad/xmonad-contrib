@@ -17,6 +17,7 @@ module XMonad.Util.CustomKeys (
                               ) where
 
 import XMonad
+import XMonad.Prelude ((<&>))
 import Control.Monad.Reader
 
 import qualified Data.Map as M
@@ -70,8 +71,8 @@ customize :: XConfig l
 customize conf ds is = asks (keys conf) >>= delete ds >>= insert is
 
 delete :: (MonadReader r m, Ord a) => (r -> [a]) -> M.Map a b -> m (M.Map a b)
-delete dels kmap = asks dels >>= return . foldr M.delete kmap
+delete dels kmap = asks dels <&> foldr M.delete kmap
 
 insert :: (MonadReader r m, Ord a) =>
           (r -> [(a, b)]) -> M.Map a b -> m (M.Map a b)
-insert ins kmap = asks ins >>= return . foldr (uncurry M.insert) kmap
+insert ins kmap = asks ins <&> foldr (uncurry M.insert) kmap

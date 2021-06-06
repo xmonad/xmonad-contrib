@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards, TypeSynonymInstances #-}
+{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -54,7 +54,7 @@ handleColor :: String
 handleColor = "#000000"
 
 dragPane :: DragType -> Double -> Double -> DragPane a
-dragPane t x y = DragPane (I Nothing) t x y
+dragPane = DragPane (I Nothing)
 
 data DragPane a =
     DragPane (Invisible Maybe (Window,Rectangle,Int)) DragType Double Double
@@ -87,12 +87,12 @@ handleMess _ _ = return Nothing
 
 handleEvent :: DragPane a -> Event -> X ()
 handleEvent (DragPane (I (Just (win,r,ident))) ty _ _)
-            (ButtonEvent {ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t })
+            ButtonEvent{ev_window = thisw, ev_subwindow = thisbw, ev_event_type = t }
     | t == buttonPress && thisw == win || thisbw == win  =
   mouseDrag (\ex ey -> do
              let frac = case ty of
-                        Vertical   -> (fromIntegral ex - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width  r)
-                        Horizontal -> (fromIntegral ey - (fromIntegral $ rect_x r))/(fromIntegral $ rect_width r)
+                        Vertical   -> (fromIntegral ex - fromIntegral (rect_x r))/fromIntegral (rect_width  r)
+                        Horizontal -> (fromIntegral ey - fromIntegral (rect_x r))/fromIntegral (rect_width r)
              sendMessage (SetFrac ident frac))
             (return ())
 handleEvent _ _  = return ()
@@ -121,7 +121,7 @@ doLay mirror (DragPane mw ty delta split) r s = do
                     return (wrs, Just $ DragPane (I $ Just (w',r',ident)) ty delta split)
             I Nothing -> do
                     w <- newDragWin handr
-                    i <- io $ newUnique
+                    i <- io newUnique
                     return (wrs, Just $ DragPane (I $ Just (w,r',hashUnique i)) ty delta split)
      else return (wrs, Nothing)
 

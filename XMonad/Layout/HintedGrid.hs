@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,7 +24,7 @@ module XMonad.Layout.HintedGrid (
 import Prelude hiding ((.))
 
 import XMonad
-import XMonad.Prelude (replicateM, sortBy)
+import XMonad.Prelude (replicateM, sortBy, sortOn)
 import XMonad.StackSet
 
 import Control.Monad.State (runState)
@@ -62,15 +62,15 @@ defaultRatio = 16/9
 
 instance LayoutClass Grid Window where
     doLayout (Grid m)        r w = doLayout (GridRatio defaultRatio m) r w
-    doLayout (GridRatio d m) r w = flip (,) Nothing . arrange d m r (integrate w)
+    doLayout (GridRatio d m) r w = (, Nothing) . arrange d m r (integrate w)
 
 replicateS :: Int -> (a -> (b, a)) -> a -> ([b], a)
 replicateS n f = runState . replicateM n $ do (a,s) <- gets f; put s; return a
 
-doColumn :: Dimension -> Dimension -> Dimension -> [(D -> D)] -> [D]
+doColumn :: Dimension -> Dimension -> Dimension -> [D -> D] -> [D]
 doColumn width height k adjs =
     let
-        (ind, fs) = unzip . sortBy (comparing $ snd . ($ (width, height)) . snd) . zip [0 :: Int ..] $ adjs
+        (ind, fs) = unzip . sortOn (snd . ($ (width, height)) . snd) . zip [0 :: Int ..] $ adjs
         (_, ds) = doC height k fs
     in
     map snd . sortBy (comparing fst) . zip ind $ ds
@@ -96,7 +96,7 @@ doRect height = doR
             hoffset = hsingle `div` 2
             width' = width - maxw
             ys = map ((height -) . subtract hoffset) . scanl1 (+) . map (hsingle +) $ hs
-            xs = map ((width' +) . (`div` 2) . (maxw -)) $ ws
+            xs = map ((width' +) . (`div` 2) . (maxw -)) ws
         in
         zipWith3 (\x y (w, h) -> Rectangle (fromIntegral x) (fromIntegral y) w h) xs ys c' ++ doR width' (n - 1) cs
 

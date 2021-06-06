@@ -75,7 +75,7 @@ windowSwitcherDecorationWithButtons :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration WindowSwitcherDecoration s) l a
 windowSwitcherDecorationWithButtons s c = decoration s c $ WSD True
 
-data WindowSwitcherDecoration a = WSD Bool deriving (Show, Read)
+newtype WindowSwitcherDecoration a = WSD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle WindowSwitcherDecoration a where
     describeDeco _ = "WindowSwitcherDeco"
@@ -86,7 +86,7 @@ instance Eq a => DecorationStyle WindowSwitcherDecoration a where
     decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleTiledDraggingInProgress ex ey (mainw, r) x y
     decorationAfterDraggingHook _ (mainw, _) decoWin = do focus mainw
                                                           hasCrossed <- handleScreenCrossing mainw decoWin
-                                                          unless hasCrossed $ do sendMessage $ DraggingStopped
+                                                          unless hasCrossed $ do sendMessage DraggingStopped
                                                                                  performWindowSwitching mainw
 
 -- Note: the image button code is duplicated from the above
@@ -96,7 +96,7 @@ windowSwitcherDecorationWithImageButtons :: (Eq a, Shrinker s) => s -> Theme
            -> l a -> ModifiedLayout (Decoration ImageWindowSwitcherDecoration s) l a
 windowSwitcherDecorationWithImageButtons s c = decoration s c $ IWSD True
 
-data ImageWindowSwitcherDecoration a = IWSD Bool deriving (Show, Read)
+newtype ImageWindowSwitcherDecoration a = IWSD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle ImageWindowSwitcherDecoration a where
     describeDeco _ = "ImageWindowSwitcherDeco"
@@ -107,7 +107,7 @@ instance Eq a => DecorationStyle ImageWindowSwitcherDecoration a where
     decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleTiledDraggingInProgress ex ey (mainw, r) x y
     decorationAfterDraggingHook _ (mainw, _) decoWin = do focus mainw
                                                           hasCrossed <- handleScreenCrossing mainw decoWin
-                                                          unless hasCrossed $ do sendMessage $ DraggingStopped
+                                                          unless hasCrossed $ do sendMessage DraggingStopped
                                                                                  performWindowSwitching mainw
 
 handleTiledDraggingInProgress :: CInt -> CInt -> (Window, Rectangle) -> Position -> Position -> X ()
@@ -126,13 +126,11 @@ performWindowSwitching win =
        ws <- gets windowset
        let allWindows = S.index ws
        -- do a little double check to be sure
-       if (win `elem` allWindows) && (selWin `elem` allWindows)
-            then do
+       when ((win `elem` allWindows) && (selWin `elem` allWindows)) $ do
                 let allWindowsSwitched = map (switchEntries win selWin) allWindows
                 let (ls, t:rs) = break (win ==) allWindowsSwitched
                 let newStack = S.Stack t (reverse ls) rs
-                windows $ S.modify' $ \_ -> newStack
-            else return ()
+                windows $ S.modify' $ const newStack
     where
         switchEntries a b x
             | x == a    = b

@@ -65,13 +65,13 @@ import Control.Arrow (second)
 -- | the Ignore layout modifier. Prevents its inner layout from receiving
 -- messages of a certain type.
 
-data Ignore m l w = I (l w)
+newtype Ignore m l w = I (l w)
                     deriving (Show, Read)
 
 instance (Message m, LayoutClass l w) => LayoutClass (Ignore m l) w where
     runLayout ws r = second (I <$>) <$> runLayout (unILayout ws) r
         where  unILayout :: Workspace i (Ignore m l w) w -> Workspace i (l w) w
-               unILayout w@(Workspace { layout = (I l) }) = w { layout = l }
+               unILayout w@Workspace{ layout = (I l) } = w { layout = l }
     handleMessage l@(I l') sm
         = case fromMessageAs sm l of
             Just _ -> return Nothing
@@ -110,12 +110,12 @@ escape = Escape . SomeMessage
 -- | Applies the UnEscape layout modifier to a layout.
 
 unEscape :: LayoutClass l w => l w -> ModifiedLayout UnEscape l w
-unEscape l = ModifiedLayout UE l
+unEscape = ModifiedLayout UE
 
 
 -- | Applies the Ignore layout modifier to a layout, blocking
 -- all messages of the same type as the one passed as its first argument.
 
 ignore :: (Message m, LayoutClass l w)
-          => m -> l w -> (Ignore m l w)
-ignore _ l = I l
+          => m -> l w -> Ignore m l w
+ignore _ = I

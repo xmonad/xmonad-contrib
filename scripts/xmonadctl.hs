@@ -33,14 +33,13 @@ parse input addr args = case args of
 
 repl :: String -> IO ()
 repl addr = do e <- isEOF
-               case e of
-                True -> return ()
-                False -> do l <- getLine
-                            sendCommand addr l
-                            repl addr
+               unless e $ do
+                 l <- getLine
+                 sendCommand addr l
+                 repl addr
 
 sendAll :: String -> [String] -> IO ()
-sendAll addr ss = foldr (\a b -> sendCommand addr a >> b) (return ()) ss
+sendAll addr = foldr (\a b -> sendCommand addr a >> b) (return ())
 
 sendCommand :: String -> String -> IO ()
 sendCommand addr s = do

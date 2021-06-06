@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.RemoteWindows
@@ -71,7 +72,7 @@ setRemoteProp w host = do
 -- checking environment variables and assuming that hostname never
 -- changes.
 isLocalWindow :: Window -> X Bool
-isLocalWindow w = getProp32s "XMONAD_REMOTE" w >>= \p -> case p of
+isLocalWindow w = getProp32s "XMONAD_REMOTE" w >>= \case
     Just [y] -> return $ y == 0
     _ -> io guessHostName >>= \host -> hasProperty (Machine host) w
 

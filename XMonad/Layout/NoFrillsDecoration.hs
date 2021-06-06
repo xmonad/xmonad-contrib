@@ -46,7 +46,7 @@ noFrillsDeco :: (Eq a, Shrinker s) => s -> Theme
              -> l a -> ModifiedLayout (Decoration NoFrillsDecoration s) l a
 noFrillsDeco s c = decoration s c $ NFD True
 
-data NoFrillsDecoration a = NFD Bool deriving (Show, Read)
+newtype NoFrillsDecoration a = NFD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle NoFrillsDecoration a where
     describeDeco _ = "NoFrillsDeco"

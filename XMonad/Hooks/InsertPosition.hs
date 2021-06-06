@@ -21,7 +21,7 @@ module XMonad.Hooks.InsertPosition (
     ) where
 
 import XMonad(ManageHook, MonadReader(ask))
-import XMonad.Prelude (Endo (Endo), find, fromMaybe)
+import XMonad.Prelude (Endo (Endo), find)
 import qualified XMonad.StackSet as W
 
 -- $usage
@@ -44,7 +44,7 @@ insertPosition :: Position -> Focus -> ManageHook
 insertPosition pos foc = Endo . g <$> ask
   where
     g w = viewingWs w (updateFocus w . ins w . W.delete' w)
-    ins w = (\f ws -> fromMaybe id (W.focusWindow <$> W.peek ws) $ f ws) $
+    ins w = (\f ws -> maybe id W.focusWindow (W.peek ws) $ f ws) $
         case pos of
             Master -> W.insertUp w . W.focusMaster
             End    -> insertDown w . W.modify' focusLast'

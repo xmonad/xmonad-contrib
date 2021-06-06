@@ -338,7 +338,7 @@ split' p i l =
             then (c+1,e:ys,ns)
             else (c+1,ys,e:ns)
         (c',ys',ns') = foldr accumulate (0,[],[]) $ zip [i..] l
-    in  (c',ys',snd . unzip $ ns')
+    in  (c',ys',map snd ns')
 
 -- | Wrap 'merge'' with an initial virtual index of @0@. Return only the
 -- unindexed list with elements from the leftover indexed list appended.

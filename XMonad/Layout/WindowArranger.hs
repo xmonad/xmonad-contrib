@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances    #-}
+{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowArranger
@@ -162,7 +162,7 @@ getWR ::  Eq a => a -> [(a,Rectangle)] -> [(a,Rectangle)]
 getWR = memberFromList fst (==)
 
 mkNewAWRs :: Eq a => ArrangeAll -> [a] -> [(a,Rectangle)] -> [ArrangedWindow a]
-mkNewAWRs b w wrs = map t . concatMap (flip getWR wrs) $ w
+mkNewAWRs b w wrs = map t . concatMap (`getWR` wrs) $ w
     where t = if b then AWR else WR
 
 removeAWRs :: Eq a => [a] -> [ArrangedWindow a] -> [ArrangedWindow a]
@@ -177,7 +177,7 @@ replaceWR :: Eq a => [(a, Rectangle)] -> [ArrangedWindow a] -> [ArrangedWindow a
 replaceWR wrs = foldr r []
     where r x xs
               | WR wr <- x = case fst wr `elemIndex` map fst wrs of
-                               Just i  -> (WR $ wrs !! i):xs
+                               Just i  -> WR (wrs !! i):xs
                                Nothing -> x:xs
               | otherwise  = x:xs
 

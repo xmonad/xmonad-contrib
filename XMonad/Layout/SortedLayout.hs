@@ -63,7 +63,7 @@ instance Eq WindowDescriptor where
 instance Ord WindowDescriptor where
   compare a b = compare (wdSeqn a) (wdSeqn b)
 
-data SortedLayout a = SortedLayout [Property] deriving (Show, Read)
+newtype SortedLayout a = SortedLayout [Property] deriving (Show, Read)
 
 instance LayoutModifier SortedLayout Window where
     modifyLayout (SortedLayout props) = sortLayout props

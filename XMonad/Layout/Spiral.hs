@@ -57,7 +57,7 @@ blend :: Rational -> [Rational] -> [Rational]
 blend scale ratios = zipWith (+) ratios scaleFactors
     where
       len = length ratios
-      step = (scale - (1 % 1)) / (fromIntegral len)
+      step = (scale - (1 % 1)) / fromIntegral len
       scaleFactors = map (* step) . reverse . take len $ [0..]
 
 -- | A spiral layout.  The parameter controls the size ratio between
@@ -95,7 +95,7 @@ instance LayoutClass SpiralWithDir a where
 divideRects :: [(Rational, Direction)] -> Rectangle -> [Rectangle]
 divideRects [] r = [r]
 divideRects ((r,d):xs) rect = case divideRect r d rect of
-                                (r1, r2) -> r1 : (divideRects xs r2)
+                                (r1, r2) -> r1 : divideRects xs r2
 
 -- It's much simpler if we work with all Integers and convert to
 -- Rectangle at the end.
@@ -120,5 +120,5 @@ divideRect' ratio dir (Rect x y w h) =
       North -> let (h1, h2) = chop (1 - ratio) h in (Rect x (y + h1) w h2, Rect x y w h1)
 
 chop :: Rational -> Integer -> (Integer, Integer)
-chop rat n = let f = ((fromIntegral n) * (numerator rat)) `div` (denominator rat) in
+chop rat n = let f = (fromIntegral n * numerator rat) `div` denominator rat in
              (f, n - f)

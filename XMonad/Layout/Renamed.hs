@@ -70,7 +70,7 @@ apply (Append s') s = s ++ s'
 apply (Prepend s') s = s' ++ s
 apply (AppendWords s') s = unwords $ words s ++ [s']
 apply (PrependWords s') s = unwords $ s' : words s
-apply (Chain rs) s = ($s) $ foldr (flip (.)) id $ map apply rs
+apply (Chain rs) s = ($s) $ foldr (flip (.) . apply) id rs
 
 instance LayoutModifier Rename a where
     modifyDescription r l = apply r (description l)

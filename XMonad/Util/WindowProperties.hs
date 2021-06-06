@@ -52,7 +52,7 @@ infixr 8 `Or`
 
 -- | Does given window have this property?
 hasProperty :: Property -> Window -> X Bool
-hasProperty p w = runQuery (propertyToQuery p) w
+hasProperty p = runQuery (propertyToQuery p)
 
 -- | Does the focused window have this property?
 focusedHasProperty :: Property -> X Bool

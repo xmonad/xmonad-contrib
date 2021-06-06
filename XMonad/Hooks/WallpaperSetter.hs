@@ -35,7 +35,6 @@ import System.FilePath ((</>))
 import System.Random (randomRIO)
 
 import qualified Data.Map as M
-import Data.Ord (comparing)
 
 -- $usage
 -- This module requires imagemagick and feh to be installed, as these are utilized
@@ -176,7 +175,7 @@ completeWPConf (WallpaperConf dir (WallpaperList ws)) = do
 getVisibleWorkspaces :: X [WorkspaceId]
 getVisibleWorkspaces = do
   winset <- gets windowset
-  return $ map (S.tag . S.workspace) . sortBy (comparing S.screen) $ S.current winset : S.visible winset
+  return $ map (S.tag . S.workspace) . sortOn S.screen $ S.current winset : S.visible winset
 
 getPicPathsAndWSRects :: WallpaperConf -> X [(Rectangle, FilePath)]
 getPicPathsAndWSRects wpconf = do
@@ -185,7 +184,7 @@ getPicPathsAndWSRects wpconf = do
   visws <- getVisibleWorkspaces
   let visscr = S.current winset : S.visible winset
       visrects = M.fromList $ map (\x -> ((S.tag . S.workspace) x, S.screenDetail x)) visscr
-      hasPicAndIsVisible (n, mp) = n `elem` visws && (isJust mp)
+      hasPicAndIsVisible (n, mp) = n `elem` visws && isJust mp
       getRect tag = screenRect $ fromJust $ M.lookup tag visrects
       foundpaths = map (\(n,Just p)->(getRect n,p)) $ filter hasPicAndIsVisible paths
   return foundpaths
@@ -224,4 +223,4 @@ layerCommand (rect, path) = do
     Just rotate -> let size = show (rect_width rect) ++ "x" ++ show (rect_height rect) in
                      " \\( '"++path++"' "++(if rotate then "-rotate 90 " else "")
                       ++ " -scale "++size++"^ -gravity center -extent "++size++" +gravity \\)"
-                      ++ " -geometry +" ++ (show $rect_x rect) ++ "+" ++ (show $rect_y rect) ++ " -composite "
+                      ++ " -geometry +" ++ show (rect_x rect) ++ "+" ++ show (rect_y rect) ++ " -composite "

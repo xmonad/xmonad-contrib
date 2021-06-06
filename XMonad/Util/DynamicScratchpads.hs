@@ -45,11 +45,11 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- , ((modm              , xK_b), spawnDynamicSP "dyn2")
 
 -- | Stores dynamic scratchpads as a map of name to window
-data SPStorage = SPStorage (M.Map String Window)
+newtype SPStorage = SPStorage (M.Map String Window)
     deriving (Typeable,Read,Show)
 
 instance ExtensionClass SPStorage where
-    initialValue = SPStorage $ M.fromList []
+    initialValue = SPStorage M.empty
     extensionType = PersistentExtension
 
 -- | Makes a window a dynamic scratchpad with the given name, or stop a window
@@ -63,16 +63,14 @@ makeDynamicSP s w = do
         Nothing -> addDynamicSP s w
         Just ow  -> if w == ow
                     then removeDynamicSP s
-                    else (showWindow ow >> addDynamicSP s w)
+                    else showWindow ow >> addDynamicSP s w
 
 -- | Spawn the specified dynamic scratchpad
 spawnDynamicSP :: String -- ^ Scratchpad name
                -> X ()
 spawnDynamicSP s = do
     (SPStorage m) <- XS.get
-    case M.lookup s m of
-        Nothing -> mempty
-        Just w  -> spawnDynamicSP' w
+    maybe mempty spawnDynamicSP' (M.lookup s m)
 
 spawnDynamicSP' :: Window -> X ()
 spawnDynamicSP' w = withWindowSet $ \s -> do
@@ -87,7 +85,7 @@ addDynamicSP s w = XS.modify $ alterSPStorage (\_ -> Just w) s
 
 -- | Make a window stop being a dynamic scratchpad
 removeDynamicSP :: String -> X ()
-removeDynamicSP s = XS.modify $ alterSPStorage (\_ -> Nothing) s
+removeDynamicSP s = XS.modify $ alterSPStorage (const Nothing) s
 
 -- | Moves window to the scratchpad workspace, effectively hiding it
 hideWindow :: Window -> X ()
@@ -96,7 +94,7 @@ hideWindow = windows . W.shiftWin "NSP"
 -- | Move window to current workspace and focus it
 showWindow :: Window -> X ()
 showWindow w = windows $ \ws ->
-    (W.focusWindow w) . (W.shiftWin (W.currentTag ws) w) $ ws
+    W.focusWindow w . W.shiftWin (W.currentTag ws) w $ ws
 
 alterSPStorage :: (Maybe Window -> Maybe Window) -> String -> SPStorage -> SPStorage
 alterSPStorage f k (SPStorage m) = SPStorage $ M.alter f k m

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -42,7 +42,7 @@ import XMonad.Prelude (ap)
 data Dishes a = Dishes Int Rational deriving (Show, Read)
 instance LayoutClass Dishes a where
     doLayout (Dishes nmaster h) r =
-        return . (\x->(x,Nothing)) .
+        return . (, Nothing) .
         ap zip (dishes h r nmaster . length) . integrate
     pureMessage (Dishes nmaster h) m = fmap incmastern (fromMessage m)
         where incmastern (IncMasterN d) = Dishes (max 0 (nmaster+d)) h
@@ -52,5 +52,5 @@ dishes h s nmaster n = if n <= nmaster
                         then splitHorizontally n s
                         else ws
  where
-    (m,rest) = splitVerticallyBy (1 - (fromIntegral $ n - nmaster) * h) s
+    (m,rest) = splitVerticallyBy (1 - fromIntegral (n - nmaster) * h) s
     ws = splitHorizontally nmaster m ++ splitVertically (n - nmaster) rest

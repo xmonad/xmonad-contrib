@@ -23,7 +23,7 @@ module XMonad.Layout.Combo (
                            ) where
 
 import XMonad hiding (focus)
-import XMonad.Prelude (delete, intersect, isJust, (\\))
+import XMonad.Prelude (delete, fromMaybe, intersect, isJust, (\\))
 import XMonad.StackSet ( integrate', Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
 import qualified XMonad.StackSet as W ( differentiate )
@@ -76,14 +76,14 @@ combineTwo = C2 [] []
 instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, Eq a, Typeable a)
     => LayoutClass (CombineTwo (l ()) l1 l2) a where
     runLayout (Workspace _ (C2 f w2 super l1 l2) s) rinput = arrange (integrate' s)
-        where arrange [] = do l1' <- maybe l1 id <$> handleMessage l1 (SomeMessage ReleaseResources)
-                              l2' <- maybe l2 id <$> handleMessage l2 (SomeMessage ReleaseResources)
-                              super' <- maybe super id <$>
+        where arrange [] = do l1' <- fromMaybe l1 <$> handleMessage l1 (SomeMessage ReleaseResources)
+                              l2' <- fromMaybe l2 <$> handleMessage l2 (SomeMessage ReleaseResources)
+                              super' <- fromMaybe super <$>
                                         handleMessage super (SomeMessage ReleaseResources)
                               return ([], Just $ C2 [] [] super' l1' l2')
-              arrange [w] = do l1' <- maybe l1 id <$> handleMessage l1 (SomeMessage ReleaseResources)
-                               l2' <- maybe l2 id <$> handleMessage l2 (SomeMessage ReleaseResources)
-                               super' <- maybe super id <$>
+              arrange [w] = do l1' <- fromMaybe l1 <$> handleMessage l1 (SomeMessage ReleaseResources)
+                               l2' <- fromMaybe l2 <$> handleMessage l2 (SomeMessage ReleaseResources)
+                               super' <- fromMaybe super <$>
                                          handleMessage super (SomeMessage ReleaseResources)
                                return ([(w,rinput)], Just $ C2 [w] [w] super' l1' l2')
               arrange origws =
@@ -101,17 +101,17 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                      (wrs1, ml1') <- runLayout (Workspace "" l1 s1) r1
                      (wrs2, ml2') <- runLayout (Workspace "" l2 s2) r2
                      return (wrs1++wrs2, Just $ C2 f' w2'
-                                     (maybe super id msuper') (maybe l1 id ml1') (maybe l2 id ml2'))
+                                     (fromMaybe super msuper') (fromMaybe l1 ml1') (fromMaybe l2 ml2'))
     handleMessage (C2 f ws2 super l1 l2) m
         | Just (MoveWindowToWindow w1 w2) <- fromMessage m,
           w1 `notElem` ws2,
-          w2 `elem` ws2 = do l1' <- maybe l1 id <$> handleMessage l1 m
-                             l2' <- maybe l2 id <$> handleMessage l2 m
+          w2 `elem` ws2 = do l1' <- fromMaybe l1 <$> handleMessage l1 m
+                             l2' <- fromMaybe l2 <$> handleMessage l2 m
                              return $ Just $ C2 f (w1:ws2) super l1' l2'
         | Just (MoveWindowToWindow w1 w2) <- fromMessage m,
           w1 `elem` ws2,
-          w2 `notElem` ws2 = do l1' <- maybe l1 id <$> handleMessage l1 m
-                                l2' <- maybe l2 id <$> handleMessage l2 m
+          w2 `notElem` ws2 = do l1' <- fromMaybe l1 <$> handleMessage l1 m
+                                l2' <- fromMaybe l2 <$> handleMessage l2 m
                                 let ws2' = case delete w1 ws2 of [] -> [w2]
                                                                  x -> x
                                 return $ Just $ C2 f ws2' super l1' l2'
@@ -138,6 +138,6 @@ differentiate [] xs = W.differentiate xs
 broadcastPrivate :: LayoutClass l b => SomeMessage -> [l b] -> X (Maybe [l b])
 broadcastPrivate a ol = do nml <- mapM f ol
                            if any isJust nml
-                              then return $ Just $ zipWith ((flip maybe) id) ol nml
+                              then return $ Just $ zipWith (`maybe` id) ol nml
                               else return Nothing
     where f l = handleMessage l a `catchX` return Nothing

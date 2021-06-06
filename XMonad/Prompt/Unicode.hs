@@ -25,7 +25,6 @@ module XMonad.Prompt.Unicode (
  ) where
 
 import qualified Data.ByteString.Char8 as BS
-import Data.Ord
 import Numeric
 import System.IO
 import System.IO.Error
@@ -81,7 +80,7 @@ populateEntries unicodeDataFilename = do
           hPutStrLn stderr "Do you have unicode-data installed?"
           return False
         Right dat -> do
-          XS.put . UnicodeData . sortBy (comparing (BS.length . snd)) $ parseUnicodeData dat
+          XS.put . UnicodeData . sortOn (BS.length . snd) $ parseUnicodeData dat
           return True
     else return True
 
@@ -97,7 +96,7 @@ type Predicate = String -> String -> Bool
 searchUnicode :: [(Char, BS.ByteString)] -> Predicate -> String -> [(Char, String)]
 searchUnicode entries p s = map (second BS.unpack) $ filter go entries
   where w = filter (all isAscii) . filter ((> 1) . length) . words $ map toUpper s
-        go (_, d) = all (`p` (BS.unpack d)) w
+        go (_, d) = all (`p` BS.unpack d) w
 
 mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()
 mkUnicodePrompt prog args unicodeDataFilename xpCfg =

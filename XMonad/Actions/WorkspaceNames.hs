@@ -161,7 +161,7 @@ swapNames w1 w2 = do
     WorkspaceNames m <- XS.get
     let getname w = fromMaybe "" $ M.lookup w m
         set w name m' = if null name then M.delete w m' else M.insert w name m'
-    XS.put $ WorkspaceNames $ set w1 (getname w2) $ set w2 (getname w1) $ m
+    XS.put $ WorkspaceNames $ set w1 (getname w2) $ set w2 (getname w1) m
 
 -- | Same behavior than 'XMonad.Prompt.Workspace.workspacePrompt' excepted it acts on the workspace name provided by this module.
 workspaceNamePrompt :: XPConfig -> (WorkspaceId -> X ()) -> X ()

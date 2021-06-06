@@ -96,7 +96,7 @@ copy n s | Just w <- W.peek s = copyWindow w n s
 
 -- | Copy the focused window to all workspaces.
 copyToAll :: (Eq s, Eq i, Eq a) => W.StackSet i l a s sd -> W.StackSet i l a s sd
-copyToAll s = foldr copy s $ map W.tag (W.workspaces s)
+copyToAll s = foldr (copy . W.tag) s (W.workspaces s)
 
 -- | Copy an arbitrary window to a workspace.
 copyWindow :: (Eq a, Eq i, Eq s) => a -> i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
@@ -142,9 +142,9 @@ killAllOtherCopies = do ss <- gets windowset
                                                    W.view (W.currentTag ss) .
                                                    delFromAllButCurrent w
     where
-      delFromAllButCurrent w ss = foldr ($) ss $
-                                  map (delWinFromWorkspace w . W.tag) $
-                                  W.hidden ss ++ map W.workspace (W.visible ss)
+      delFromAllButCurrent w ss = foldr (delWinFromWorkspace w . W.tag)
+                                  ss
+                                  (W.hidden ss ++ map W.workspace (W.visible ss))
       delWinFromWorkspace w wid = viewing wid $ W.modify Nothing (W.filter (/= w))
 
       viewing wis f ss = W.view (W.currentTag ss) $ f $ W.view wis ss

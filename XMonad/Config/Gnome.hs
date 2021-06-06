@@ -45,7 +45,7 @@ gnomeConfig = desktopConfig
     , keys     = gnomeKeys <+> keys desktopConfig
     , startupHook = gnomeRegister >> startupHook desktopConfig }
 
-gnomeKeys (XConfig {modMask = modm}) = M.fromList $
+gnomeKeys XConfig{modMask = modm} = M.fromList
     [ ((modm, xK_p), gnomeRun)
     , ((modm .|. shiftMask, xK_q), spawn "gnome-session-quit --logout") ]
 

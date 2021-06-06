@@ -31,7 +31,6 @@ import XMonad.Core
 import XMonad.Prompt
 
 import System.IO
-import Control.Exception (bracket)
 
 -- $usage
 --
@@ -70,7 +69,7 @@ import Control.Exception (bracket)
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data AppendFile = AppendFile FilePath
+newtype AppendFile = AppendFile FilePath
 
 instance XPrompt AppendFile where
     showXPrompt (AppendFile fn) = "Add to " ++ fn ++ ": "
@@ -78,7 +77,7 @@ instance XPrompt AppendFile where
 -- | Given an XPrompt configuration and a file path, prompt the user
 --   for a line of text, and append it to the given file.
 appendFilePrompt :: XPConfig -> FilePath -> X ()
-appendFilePrompt c fn = appendFilePrompt' c id fn
+appendFilePrompt c = appendFilePrompt' c id
 
 -- | Given an XPrompt configuration, string transformation function
 --   and a file path, prompt the user for a line of text, transform it
@@ -91,4 +90,4 @@ appendFilePrompt' c trans fn = mkXPrompt (AppendFile fn)
 
 -- | Append a string to a file.
 doAppend :: (String -> String) -> FilePath -> String -> X ()
-doAppend trans fn = io . bracket (openFile fn AppendMode) hClose . flip hPutStrLn . trans
+doAppend trans fn = io . withFile fn AppendMode . flip hPutStrLn . trans

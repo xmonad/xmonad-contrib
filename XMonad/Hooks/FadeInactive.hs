@@ -91,7 +91,7 @@ fadeInactiveCurrentWSLogHook = fadeOutLogHook . fadeIf isUnfocusedOnCurrentWS
 
 -- | Returns True if the window doesn't have the focus.
 isUnfocused :: Query Bool
-isUnfocused = ask >>= \w -> liftX . gets $ maybe True (w /=) . W.peek . windowset
+isUnfocused = ask >>= \w -> liftX . gets $ (Just w /=) . W.peek . windowset
 
 -- | Returns True if the window doesn't have the focus, and the window is on the
 -- current workspace. This is specifically handy in a multi monitor setup
@@ -103,7 +103,7 @@ isUnfocusedOnCurrentWS = do
   w <- ask
   ws <- liftX $ gets windowset
   let thisWS = w `elem` W.index ws
-      unfocused = maybe True (w /=) $ W.peek ws
+      unfocused = Just w /= W.peek ws
   return $ thisWS && unfocused
 
 -- | Fades out every window by the amount returned by the query.

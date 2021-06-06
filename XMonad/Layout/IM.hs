@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeSynonymInstances, FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -33,6 +33,8 @@ import qualified XMonad.StackSet as S
 import XMonad.Layout.Grid
 import XMonad.Layout.LayoutModifier
 import XMonad.Util.WindowProperties
+
+import Control.Arrow (first)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -97,14 +99,14 @@ applyIM :: (LayoutClass l Window) =>
             -> X ([(Window, Rectangle)], Maybe (l Window))
 applyIM ratio prop wksp rect = do
     let stack = S.stack wksp
-    let ws = S.integrate' $ stack
+    let ws = S.integrate' stack
     let (masterRect, slaveRect) = splitHorizontallyBy ratio rect
     master <- findM (hasProperty prop) ws
     case master of
         Just w -> do
             let filteredStack = stack >>= S.filter (w /=)
             wrs <- runLayout (wksp {S.stack = filteredStack}) slaveRect
-            return ((w, masterRect) : fst wrs, snd wrs)
+            return (first ((w, masterRect) :) wrs)
         Nothing -> runLayout wksp rect
 
 -- | Like find, but works with monadic computation instead of pure function.

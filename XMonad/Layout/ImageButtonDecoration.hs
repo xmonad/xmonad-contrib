@@ -76,7 +76,7 @@ closeButtonOffset = 4
 -- it easier to visualize
 
 convertToBool' :: [Int] -> [Bool]
-convertToBool' = map (\x -> x == 1)
+convertToBool' = map (== 1)
 
 convertToBool :: [[Int]] -> [[Bool]]
 convertToBool = map convertToBool'
@@ -148,19 +148,16 @@ closeButton = convertToBool closeButton'
 -- See 'defaultThemeWithImageButtons' below.
 imageTitleBarButtonHandler :: Window -> Int -> Int -> X Bool
 imageTitleBarButtonHandler mainw distFromLeft distFromRight = do
-    let action = if (fi distFromLeft >= menuButtonOffset &&
-                      fi distFromLeft <= menuButtonOffset + buttonSize)
-                        then focus mainw >> windowMenu >> return True
-                  else if (fi distFromRight >= closeButtonOffset &&
-                           fi distFromRight <= closeButtonOffset + buttonSize)
-                              then focus mainw >> kill >> return True
-                  else if (fi distFromRight >= maximizeButtonOffset &&
-                           fi distFromRight <= maximizeButtonOffset + buttonSize)
-                             then focus mainw >> sendMessage (maximizeRestore mainw) >> return True
-                  else if (fi distFromRight >= minimizeButtonOffset &&
-                           fi distFromRight <= minimizeButtonOffset + buttonSize)
-                             then focus mainw >> minimizeWindow mainw >> return True
-                  else return False
+    let action
+          | fi distFromLeft >= menuButtonOffset &&
+             fi distFromLeft <= menuButtonOffset + buttonSize = focus mainw >> windowMenu >> return True
+          | fi distFromRight >= closeButtonOffset &&
+            fi distFromRight <= closeButtonOffset + buttonSize = focus mainw >> kill >> return True
+          | fi distFromRight >= maximizeButtonOffset &&
+            fi distFromRight <= maximizeButtonOffset + buttonSize = focus mainw >> sendMessage (maximizeRestore mainw) >> return True
+          | fi distFromRight >= minimizeButtonOffset &&
+            fi distFromRight <= minimizeButtonOffset + buttonSize = focus mainw >> minimizeWindow mainw >> return True
+          | otherwise = return False
     action
 
 defaultThemeWithImageButtons :: Theme
@@ -175,7 +172,7 @@ imageButtonDeco :: (Eq a, Shrinker s) => s -> Theme
                    -> l a -> ModifiedLayout (Decoration ImageButtonDecoration s) l a
 imageButtonDeco s c = decoration s c $ NFD True
 
-data ImageButtonDecoration a = NFD Bool deriving (Show, Read)
+newtype ImageButtonDecoration a = NFD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle ImageButtonDecoration a where
     describeDeco _ = "ImageButtonDeco"

@@ -99,7 +99,7 @@ put v = modifyStateExts . M.insert (show . typeOf $ v) . Right . extensionType $
 -- | Try to retrieve a value of the requested type, return an initial value if there is no such value.
 get :: (ExtensionClass a, XLike m) => m a
 get = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
-  where toValue val = maybe initialValue id $ cast val
+  where toValue val = fromMaybe initialValue $ cast val
         getState' :: (ExtensionClass a, XLike m) => a -> m a
         getState' k = do
           v <- State.gets $ M.lookup (show . typeOf $ k) . extensibleState
@@ -110,7 +110,7 @@ get = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
                 let val = fromMaybe initialValue $ cast =<< safeRead str `asTypeOf` Just x
                 put (val `asTypeOf` k)
                 return val
-            _ -> return $ initialValue
+            _ -> return initialValue
         safeRead str = case reads str of
                          [(x,"")] -> Just x
                          _ -> Nothing

@@ -51,18 +51,15 @@ buttonSize = 10
 -- See 'defaultThemeWithButtons' below.
 titleBarButtonHandler :: Window -> Int -> Int -> X Bool
 titleBarButtonHandler mainw distFromLeft distFromRight = do
-    let action = if (fi distFromLeft <= 3 * buttonSize)
-                        then focus mainw >> windowMenu >> return True
-                  else if (fi distFromRight >= closeButtonOffset &&
-                           fi distFromRight <= closeButtonOffset + buttonSize)
-                              then focus mainw >> kill >> return True
-                  else if (fi distFromRight >= maximizeButtonOffset &&
-                           fi distFromRight <= maximizeButtonOffset + (2 * buttonSize))
-                             then focus mainw >> sendMessage (maximizeRestore mainw) >> return True
-                  else if (fi distFromRight >= minimizeButtonOffset &&
-                           fi distFromRight <= minimizeButtonOffset + buttonSize)
-                             then focus mainw >> minimizeWindow mainw >> return True
-                  else return False
+    let action
+          | fi distFromLeft <= 3 * buttonSize = focus mainw >> windowMenu >> return True
+          | fi distFromRight >= closeButtonOffset &&
+            fi distFromRight <= closeButtonOffset + buttonSize = focus mainw >> kill >> return True
+          | fi distFromRight >= maximizeButtonOffset &&
+            fi distFromRight <= maximizeButtonOffset + (2 * buttonSize) = focus mainw >> sendMessage (maximizeRestore mainw) >> return True
+          | fi distFromRight >= minimizeButtonOffset &&
+            fi distFromRight <= minimizeButtonOffset + buttonSize = focus mainw >> minimizeWindow mainw >> return True
+          | otherwise = return False
     action
 
 -- | Intended to be used together with 'titleBarButtonHandler'. See above.
@@ -88,7 +85,7 @@ handleScreenCrossing w decoWin = withDisplay $ \d -> do
     maybeWksp <- screenWorkspace $ W.screen sc
     let targetWksp = maybeWksp >>= \wksp ->
                         W.findTag w ws >>= \currentWksp ->
-                        if (currentWksp /= wksp)
+                        if currentWksp /= wksp
                             then Just wksp
                             else Nothing
     case targetWksp of

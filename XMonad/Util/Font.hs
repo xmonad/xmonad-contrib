@@ -143,7 +143,7 @@ textExtentsXMF :: MonadIO m => XMonadFont -> String -> m (Int32,Int32)
 textExtentsXMF (Utf8 fs) s = do
   let (_,rl)  = wcTextExtents fs s
       ascent  = fi $ - (rect_y rl)
-      descent = fi $ rect_height rl + (fi $ rect_y rl)
+      descent = fi $ rect_height rl + fi (rect_y rl)
   return (ascent, descent)
 textExtentsXMF (Core fs) s = do
   let (_,a,d,_) = textExtents fs s

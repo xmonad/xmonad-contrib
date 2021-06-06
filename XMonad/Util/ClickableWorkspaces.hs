@@ -52,7 +52,7 @@ import Data.List (elemIndex)
 -- | Wrap string with an xmobar action that uses @xdotool@ to switch to
 -- workspace @i@.
 clickableWrap :: Int -> String -> String
-clickableWrap i ws = xmobarAction ("xdotool set_desktop " ++ show i) "1" ws
+clickableWrap i = xmobarAction ("xdotool set_desktop " ++ show i) "1"
 
 -- | 'XMonad.Util.WorkspaceCompare.getWsIndex' extended to handle workspaces
 -- not in the static 'workspaces' config, such as those created by

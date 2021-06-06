@@ -87,8 +87,8 @@ handleTimerEvent :: Event -> X All
 handleTimerEvent (ClientMessageEvent _ _ _ dis _ mtyp d) = do
     (ShowText m) <- ES.get :: X ShowText
     a <- io $ internAtom dis "XMONAD_TIMER" False
-    when (mtyp == a && length d >= 1)
-         (whenJust (lookup (fromIntegral $ d !! 0) m) deleteWindow)
+    when (mtyp == a && not (null d))
+         (whenJust (lookup (fromIntegral $ head d) m) deleteWindow)
     mempty
 handleTimerEvent _ = mempty
 

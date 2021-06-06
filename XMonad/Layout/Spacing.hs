@@ -146,7 +146,7 @@ instance Eq a => LayoutModifier Spacing a where
             else (wrs,ml)
       where
         moveByQuadrant :: Rectangle -> Rectangle -> Border -> Rectangle
-        moveByQuadrant rr mr@(Rectangle {rect_x = x, rect_y = y}) (Border bt bb br bl) =
+        moveByQuadrant rr mr@Rectangle{rect_x = x, rect_y = y} (Border bt bb br bl) =
             let (rcx,rcy) = R.center rr
                 (mcx,mcy) = R.center mr
                 dx = orderSelect (compare mcx rcx) (bl,0,negate br)
@@ -349,7 +349,7 @@ type SmartSpacingWithEdge = Spacing
 
 -- | Message to dynamically modify (e.g. increase\/decrease\/set) the size of
 -- the screen spacing and window spacing. See 'SpacingModifier'.
-data ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
+newtype ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
 
 instance Message ModifySpacing
 
