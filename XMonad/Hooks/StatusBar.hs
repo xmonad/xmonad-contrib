@@ -488,8 +488,7 @@ xmonadPropLog :: String -> X ()
 xmonadPropLog = xmonadPropLog' xmonadDefProp
 
 -- | Write a string to a property on the root window.  This property is of type
--- @UTF8_STRING@. The string must have been processed by 'encodeString'
--- ('dynamicLogString' does this).
+-- @UTF8_STRING@.
 xmonadPropLog' :: String  -- ^ Property name
                -> String  -- ^ Message to be written to the property
                -> X ()
