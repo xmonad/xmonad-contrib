@@ -13,6 +13,8 @@
 --
 -----------------------------------------------------------------------------
 
+-- TODO: note about XMonad.Hooks.Focus
+
 module XMonad.Hooks.InsertPosition (
     -- * Usage
     -- $usage

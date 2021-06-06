@@ -35,7 +35,7 @@ import           XMonad
 import           XMonad.Prelude
 import           XMonad.Layout.LayoutModifier
 import           XMonad.Layout.NoBorders        (SmartBorder, smartBorders)
-import           XMonad.Hooks.EwmhDesktops      (fullscreenStartup)
+import           XMonad.Hooks.EwmhDesktops      (addSupported)
 import           XMonad.Hooks.ManageHelpers     (isFullscreen)
 import           XMonad.Util.WindowProperties
 import qualified XMonad.Util.Rectangle          as R
@@ -206,6 +206,10 @@ fullscreenFloat = fullscreenFloatRect $ W.RationalRect 0 0 1 1
 fullscreenFloatRect :: LayoutClass l a =>
   W.RationalRect -> l a -> ModifiedLayout FullscreenFloat l a
 fullscreenFloatRect r = ModifiedLayout $ FullscreenFloat r M.empty
+
+-- | Advertises EWMH fullscreen support to the X server.
+fullscreenStartup :: X ()
+fullscreenStartup = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
 
 -- | The event hook required for the layout modifiers to work
 fullscreenEventHook :: Event -> X All

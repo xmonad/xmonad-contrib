@@ -33,9 +33,9 @@
   * `XMonad.Hooks.EwmhDesktops`
 
     - It is no longer recommended to use `fullscreenEventHook` directly.
-      Instead, use `ewmhFullscreen` which additionally advertises fullscreen
-      support in `_NET_SUPPORTED` and fixes fullscreening of applications that
-      explicitly check it, e.g. mupdf-gl, sxiv, …
+      Instead, use `ewmh' def{fullscreen = True}` which additionally advertises
+      fullscreen support in `_NET_SUPPORTED` and fixes fullscreening of
+      applications that explicitly check it, e.g. mupdf-gl, sxiv, …
 
       `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
       and no configuration changes are required in this case.
@@ -47,6 +47,9 @@
       activation behavior and then add resulting `ManageHook` using
       `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
       additional combinators.
+
+      TODO: refactor and update and make it not a breaking change
+      TODO: mention doAskUrgent
 
   * All modules still exporting a `defaultFoo` constructor
 
@@ -470,8 +473,10 @@
 
   * `XMonad.Actions.WorkspaceNames`
 
-    - Added `workspaceNamesListTransform` which makes workspace names visible
-      to external pagers.
+    - Added `workspaceNamesRenameWS` which makes workspace names visible
+      to external pagers and tools like `wmctrl` or `arbtt`.
+
+      TODO: drop this
 
   * `XMonad.Util.PureX`
 
