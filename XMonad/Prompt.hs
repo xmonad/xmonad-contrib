@@ -3,6 +3,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -130,15 +133,13 @@ data XPState =
         , rootw                 :: !Window
         , win                   :: !Window
         , screen                :: !Rectangle
-        , complWin              :: Maybe Window
+        , winWidth              :: !Dimension -- ^ Width of the prompt window
         , complWinDim           :: Maybe ComplWindowDim
         , complIndex            :: !(Int,Int)
-        -- | This IORef should always have the same value as
-        -- complWin. Its purpose is to enable removal of the
-        -- completion window if an exception occurs, since the most
-        -- recent value of complWin is not available when handling
-        -- exceptions.
-        , complWinRef           :: IORef (Maybe Window)
+        , complWin              :: IORef (Maybe Window)
+        -- ^ This is an 'IORef' to enable removal of the completion
+        -- window if an exception occurs, since otherwise the most
+        -- recent value of 'complWin' would not be available.
         , showComplWin          :: Bool
         , operationMode         :: XPOperationMode
         , highlightedCompl      :: Maybe String
@@ -355,15 +356,16 @@ amberXPConfig = def { bgColor   = "black"
                     }
 
 initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
-          -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> XPState
-initState d rw w s opMode gc fonts h c nm =
+          -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> Dimension
+          -> XPState
+initState d rw w s opMode gc fonts h c nm width =
     XPS { dpy                   = d
         , rootw                 = rw
         , win                   = w
         , screen                = s
-        , complWin              = Nothing
+        , winWidth              = width
         , complWinDim           = Nothing
-        , complWinRef        = unsafePerformIO (newIORef Nothing)
+        , complWin              = unsafePerformIO (newIORef Nothing)
         , showComplWin          = not (showCompletionOnTab c)
         , operationMode         = opMode
         , highlightedCompl      = Nothing
@@ -410,8 +412,8 @@ highlightedItem st' completions = case complWinDim st' of
   Nothing -> Nothing -- when there isn't any compl win, we can't say how many cols,rows there are
   Just winDim ->
     let
-      (_,_,_,_,xx,yy) = winDim
-      complMatrix = chunksOf (length yy) (take (length xx * length yy) completions)
+      ComplWindowDim{ cwCols, cwRows } = winDim
+      complMatrix = chunksOf (length cwRows) (take (length cwCols * length cwRows) completions)
       (col_index,row_index) = complIndex st'
     in case completions of
       [] -> Nothing
@@ -556,9 +558,10 @@ mkXPromptImplementation historyKey conf om = do
   cachedir <- asks (cacheDir . directories)
   hist <- io $ readHistory cachedir
   fs <- initXMF (font conf)
+  let width = getWinWidth s (position conf)
   st' <- io $
     bracket
-      (createPromptWin d rw conf s)
+      (createPromptWin d rw conf s width)
       (destroyWindow d)
       (\w ->
         bracket
@@ -568,7 +571,7 @@ mkXPromptImplementation historyKey conf om = do
             selectInput d w $ exposureMask .|. keyPressMask
             setGraphicsExposures d gc False
             let hs = fromMaybe [] $ M.lookup historyKey hist
-                st = initState d rw w s om gc fs hs conf numlock
+                st = initState d rw w s om gc fs hs conf numlock width
             runXP st))
   releaseXMF fs
   when (successful st') $ do
@@ -583,6 +586,13 @@ mkXPromptImplementation historyKey conf om = do
       (prune $ historyFilter conf [selectedCompletion st'])
       hist
   return st'
+ where
+  -- | Based on the ultimate position of the prompt and the screen
+  -- dimensions, calculate its width.
+  getWinWidth :: Rectangle -> XPPosition -> Dimension
+  getWinWidth scr = \case
+    CenteredAt{ xpWidth } -> floor $ fi (rect_width scr) * xpWidth
+    _                     -> rect_width scr
 
 -- | Removes numlock and capslock from a keymask.
 -- Duplicate of cleanMask from core, but in the
@@ -618,7 +628,7 @@ runXP st = do
           updateWindows
           eventLoop handleMain evDefaultStop)
         st
-      `finally` (mapM_ (destroyWindow d) =<< readIORef (complWinRef st))
+      `finally` (mapM_ (destroyWindow d) =<< readIORef (complWin st))
       `finally` sync d False)
 
 type KeyStroke = (KeySym, String)
@@ -737,7 +747,7 @@ handleCompletion cs = do
     alwaysHlight <- gets $ alwaysHighlight . config
     st <- get
 
-    let updateWins  l = redrawWindows l
+    let updateWins  l = redrawWindows (pure ()) l
         updateState l = if alwaysHlight
             then hlComplete (getLastWord $ command st) l st
             else simpleComplete                        l st
@@ -903,23 +913,18 @@ handleInputBuffer f keymask (keysym,keystr) event =
 bufferOne :: String -> String -> (Bool,Bool)
 bufferOne xs x = (null xs && null x,True)
 
---Receives an state of the prompt, the size of the autocompletion list and returns the column,row
---which should be highlighted next
-nextComplIndex :: XPState -> (Int,Int)
+-- | Return the @(column, row)@ of the next highlight, or @(0, 0)@ if
+-- there is no prompt window or a wrap-around occurs.
+nextComplIndex :: XPState -> (Int, Int)
 nextComplIndex st = case complWinDim st of
-  Nothing -> (0,0) --no window dims (just destroyed or not created)
-  Just (_,_,_,_,xx,yy) -> let
-    (ncols,nrows) = (length xx, length yy)
-    (currentcol,currentrow) = complIndex st
-    in if currentcol + 1 >= ncols then --hlight is in the last column
-         if currentrow + 1 < nrows then --hlight is still not at the last row
-           (currentcol, currentrow + 1)
-         else
-           (0,0)
-       else if currentrow + 1 < nrows then --hlight not at the last row
-              (currentcol, currentrow + 1)
-            else
-              (currentcol + 1, 0)
+  Nothing -> (0, 0)  -- no window dimensions (just destroyed or not created)
+  Just ComplWindowDim{ cwCols, cwRows } ->
+    let (currentcol, currentrow) = complIndex st
+        (colm, rowm) =
+          ((currentcol + 1) `mod` length cwCols, (currentrow + 1) `mod` length cwRows)
+     in if rowm == currentrow + 1
+        then (currentcol, currentrow + 1)  -- We are not in the last row, so go down
+        else (colm, rowm)                  -- otherwise advance to the next column
 
 tryAutoComplete :: XP Bool
 tryAutoComplete = do
@@ -1374,240 +1379,264 @@ updateHighlightedCompl = do
   alwaysHighlight' <- gets $ alwaysHighlight . config
   when alwaysHighlight' $ modify $ \s -> s {highlightedCompl = highlightedItem st cs}
 
+------------------------------------------------------------------------
 -- X Stuff
 
+-- | The completion windows in its entirety.
+data ComplWindowDim = ComplWindowDim
+  { cwX         :: !Position    -- ^ Starting x position
+  , cwY         :: !Position    -- ^ Starting y position
+  , cwWidth     :: !Dimension   -- ^ Width of the entire prompt
+  , cwRowHeight :: !Dimension   -- ^ Height of a single row
+  , cwCols      :: ![Position]  -- ^ Starting position of all columns
+  , cwRows      :: ![Position]  -- ^ Starting positions of all rows
+  }
+  deriving (Eq)
+
+-- | Create the prompt window.
+createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> Dimension -> IO Window
+createPromptWin dpy rootw XPC{ position, height } scn width = do
+  w <- mkUnmanagedWindow dpy (defaultScreenOfDisplay dpy) rootw
+                      (rect_x scn + x) (rect_y scn + y) width height
+  setClassHint dpy w (ClassHint "xmonad-prompt" "xmonad")
+  mapWindow dpy w
+  return w
+ where
+  (x, y) :: (Position, Position) = fi <$> case position of
+    Top             -> (0, 0)
+    Bottom          -> (0, rect_height scn - height)
+    CenteredAt py w ->
+      ( floor $ fi (rect_width scn) * ((1 - w) / 2)
+      , floor $ py * fi (rect_height scn) - (fi height / 2)
+      )
+
+-- | Update the state of the completion window.
+updateComplWin :: Maybe Window -> Maybe ComplWindowDim -> XP ()
+updateComplWin win winDim = do
+  cwr <- gets complWin
+  io $ writeIORef cwr win
+  modify' (\s -> s { complWinDim = winDim })
+
+--- | Update all prompt windows.
 updateWindows :: XP ()
-updateWindows = do
+updateWindows = redrawWindows (void destroyComplWin) =<< getCompletions
+
+-- | Draw the main prompt window and, if necessary, redraw the
+-- completion window.
+redrawWindows
+  :: XP ()     -- ^ What to do if the completions are empty
+  -> [String]  -- ^ Given completions
+  -> XP ()
+redrawWindows emptyAction compls = do
   d <- gets dpy
   drawWin
-  c <- getCompletions
-  case c  of
-    [] -> void destroyComplWin
+  case compls of
+    [] -> emptyAction
     l  -> redrawComplWin l
   io $ sync d False
+ where
+  -- | Draw the main prompt window.
+  drawWin :: XP () = do
+    XPS{ color, dpy, win, gcon, winWidth } <- get
+    XPC{ height, promptBorderWidth } <- gets config
+    let scr = defaultScreenOfDisplay dpy
+        ht  = height            -- height of a single row
+        bw  = promptBorderWidth
+    Just bgcolor <- io $ initColor dpy (bgNormal color)
+    Just borderC <- io $ initColor dpy (border color)
+    pm <- io $ createPixmap dpy win winWidth ht (defaultDepthOfScreen scr)
+    io $ fillDrawable dpy pm gcon borderC bgcolor (fi bw) winWidth ht
+    printPrompt pm
+    io $ copyArea dpy pm win gcon 0 0 winWidth ht 0 0
+    io $ freePixmap dpy pm
 
-redrawWindows :: [String] -> XP ()
-redrawWindows c = do
-  d <- gets dpy
-  drawWin
-  case c of
-    [] -> return ()
-    l  -> redrawComplWin l
-  io $ sync d False
-
-createPromptWin :: Display -> Window -> XPConfig -> Rectangle -> IO Window
-createPromptWin d rw c s = do
-  let (x,y) = case position c of
-                Top -> (0,0)
-                Bottom -> (0, rect_height s - height c)
-                CenteredAt py w -> (floor $ fi (rect_width s) * ((1 - w) / 2), floor $ py * fi (rect_height s) - (fi (height c) / 2))
-      width = case position c of
-                CenteredAt _ w -> floor $ fi (rect_width s) * w
-                _              -> rect_width s
-  w <- mkUnmanagedWindow d (defaultScreenOfDisplay d) rw
-                      (rect_x s + x) (rect_y s + fi y) width (height c)
-  setClassHint d w (ClassHint "xmonad-prompt" "xmonad")
-  mapWindow d w
-  return w
-
-drawWin :: XP ()
-drawWin = do
-  st <- get
-  let (c,(cr,(d,(w,gc)))) = (config &&& color &&& dpy &&& win &&& gcon) st
-      scr = defaultScreenOfDisplay d
-      wh = case position c of
-             CenteredAt _ wd -> floor $ wd * fi (widthOfScreen scr)
-             _               -> widthOfScreen scr
-      ht = height c
-      bw = promptBorderWidth c
-  Just bgcolor <- io $ initColor d (bgNormal cr)
-  Just borderC <- io $ initColor d (border cr)
-  p <- io $ createPixmap d w wh ht
-                         (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
-  printPrompt p
-  io $ copyArea d p w gc 0 0 wh ht 0 0
-  io $ freePixmap d p
-
-printPrompt :: Drawable -> XP ()
-printPrompt drw = do
-  st <- get
-  let (pr,(cr,gc)) = (prompter &&& color &&& gcon) st
-      (c,(d,fs)) = (config &&& dpy &&& fontS) st
-      (prt,(com,off)) = (pr . show . currentXPMode &&& command &&& offset) st
-      str = prt ++ com
-      -- break the string in 3 parts: till the cursor, the cursor and the rest
-      (f,p,ss) = if off >= length com
-                 then (str, " ","") -- add a space: it will be our cursor ;-)
-                 else let (a,b) = splitAt off com
-                      in (prt ++ a, [head b], tail b)
-      ht = height c
-  fsl <- io $ textWidthXMF (dpy st) fs f
-  psl <- io $ textWidthXMF (dpy st) fs p
-  (asc,desc) <- io $ textExtentsXMF fs str
-  let y = fi $ ((ht - fi (asc + desc)) `div` 2) + fi asc
-      x = (asc + desc) `div` 2
-
-  let draw = printStringXMF d drw fs gc
-  -- print the first part
-  draw (fgNormal cr) (bgNormal cr) x y f
-  -- reverse the colors and print the "cursor" ;-)
-  draw (bgNormal cr) (fgNormal cr) (x + fromIntegral fsl) y p
-  -- reverse the colors and print the rest of the string
-  draw (fgNormal cr) (bgNormal cr) (x + fromIntegral (fsl + psl)) y ss
-
--- get the current completion function depending on the active mode
-getCompletionFunction :: XPState -> ComplFunction
-getCompletionFunction st = case operationMode st of
-  XPSingleMode compl _ -> compl
-  XPMultipleModes modes -> completionFunction $ W.focus modes
-
--- Completions
-getCompletions :: XP [String]
-getCompletions = do
-  s <- get
-  let q     = commandToComplete (currentXPMode s) (command s)
-      compl = getCompletionFunction s
-      srt   = sorter (config s)
-  io $ (srt q <$> compl q) `E.catch` \(SomeException _) -> return []
-
-setComplWin :: Window -> ComplWindowDim -> XP ()
-setComplWin w wi = do
-  wr <- gets complWinRef
-  io $ writeIORef wr (Just w)
-  modify (\s -> s { complWin = Just w, complWinDim = Just wi })
-
-destroyComplWin :: XP ()
-destroyComplWin = do
-  d  <- gets dpy
-  cw <- gets complWin
-  wr <- gets complWinRef
-  case cw of
-    Just w -> do io $ destroyWindow d w
-                 io $ writeIORef wr Nothing
-                 modify (\s -> s { complWin = Nothing, complWinDim = Nothing })
-    Nothing -> return ()
-
-type ComplWindowDim = (Position,Position,Dimension,Dimension,Columns,Rows)
-type Rows = [Position]
-type Columns = [Position]
-
-createComplWin :: ComplWindowDim -> XP Window
-createComplWin wi@(x,y,wh,ht,_,_) = do
-  st <- get
-  let d = dpy st
-      scr = defaultScreenOfDisplay d
-  w <- io $ mkUnmanagedWindow d scr (rootw st)
-                      x y wh ht
-  io $ mapWindow d w
-  setComplWin w wi
-  return w
-
-getComplWinDim :: [String] -> XP ComplWindowDim
-getComplWinDim compl = do
-  st <- get
-  let (c,(scr,fs)) = (config &&& screen &&& fontS) st
-      wh = case position c of
-             CenteredAt _ w -> floor $ fi (rect_width scr) * w
-             _ -> rect_width scr
-      ht = height c
-      bw = promptBorderWidth c
-
-  tws <- mapM (textWidthXMF (dpy st) fs) compl
-  let max_compl_len = (fi ht `div` 2) + maximum tws
-      limit_max_columns = maybe id min (maxComplColumns c)
-      columns = max 1 $ limit_max_columns $ wh `div` fi max_compl_len
-      column_width = wh `div` columns
-      rem_height =  rect_height scr - ht
-      (rows,r) = length compl `divMod` fi columns
-      needed_rows = max 1 (rows + if r == 0 then 0 else 1)
-      limit_max_number = maybe id min (maxComplRows c)
-      actual_max_number_of_rows = limit_max_number $ rem_height `div` ht
-      actual_rows = min actual_max_number_of_rows (fi needed_rows)
-      actual_height = actual_rows * ht
-      (x,y) = case position c of
-                Top -> (0,ht - bw)
-                Bottom -> (0, 0 + rem_height - actual_height + bw)
-                CenteredAt py w
-                  | py <= 1/2 -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) + fi ht/2) - bw)
-                  | otherwise -> (floor $ fi (rect_width scr) * ((1 - w) / 2), floor (py * fi (rect_height scr) - fi ht/2) - actual_height + bw)
-  (asc,desc) <- io $ textExtentsXMF fs $ head compl
-  let yp = fi $ (ht + fi (asc - desc)) `div` 2
-      xp = (asc + desc) `div` 2
-      yy = map fi . take (fi actual_rows) $ [yp,(yp + ht)..]
-      xx = take (fi columns) [xp,(xp + fi column_width)..]
-
-  return (rect_x scr + x, rect_y scr + fi y, wh, actual_height, xx, yy)
-
-drawComplWin :: Window -> [String] -> XP ()
-drawComplWin w compl = do
-  st <- get
-  let c   = config st
-      cr  = color st
-      d   = dpy st
-      scr = defaultScreenOfDisplay d
-      bw  = promptBorderWidth c
-      gc  = gcon st
-  Just bgcolor <- io $ initColor d (bgNormal cr)
-  Just borderC <- io $ initColor d (border cr)
-
-  (_,_,wh,ht,xx,yy) <- getComplWinDim compl
-
-  p <- io $ createPixmap d w wh ht
-                         (defaultDepthOfScreen scr)
-  io $ fillDrawable d p gc borderC bgcolor (fi bw) wh ht
-  let ac = chunksOf (length yy) (take (length xx * length yy) compl)
-
-  printComplList d p gc (fgNormal cr) (bgNormal cr) xx yy ac
-  --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
-  io $ copyArea d p w gc 0 0 wh ht 0 0
-  io $ freePixmap d p
-
+-- | Redraw the completion window, if necessary.
 redrawComplWin ::  [String] -> XP ()
 redrawComplWin compl = do
-  st <- get
+  XPS{ showComplWin, complWinDim, complWin } <- get
   nwi <- getComplWinDim compl
   let recreate = do destroyComplWin
                     w <- createComplWin nwi
                     drawComplWin w compl
-  if compl /= [] && showComplWin st
-     then case complWin st of
-            Just w -> case complWinDim st of
+  if compl /= [] && showComplWin
+     then io (readIORef complWin) >>= \case
+            Just w -> case complWinDim of
                         Just wi -> if nwi == wi -- complWinDim did not change
                                    then drawComplWin w compl -- so update
                                    else recreate
                         Nothing -> recreate
             Nothing -> recreate
      else destroyComplWin
+ where
+  createComplWin :: ComplWindowDim -> XP Window
+  createComplWin wi@ComplWindowDim{ cwX, cwY, cwWidth, cwRowHeight } = do
+    XPS{ dpy, rootw } <- get
+    let scr = defaultScreenOfDisplay dpy
+    w <- io $ mkUnmanagedWindow dpy scr rootw cwX cwY cwWidth cwRowHeight
+    io $ mapWindow dpy w
+    updateComplWin (Just w) (Just wi)
+    return w
 
--- Finds the column and row indexes in which a string appears.
--- if the string is not in the matrix, the indexes default to (0,0)
-findComplIndex :: String -> [[String]] -> (Int,Int)
-findComplIndex x xss = let
-  colIndex = fromMaybe 0 $ findIndex (\cols -> x `elem` cols) xss
-  rowIndex = fromMaybe 0 $ elemIndex x $ (!!) xss colIndex
-  in (colIndex,rowIndex)
+-- | Print the main part of the prompt: the prompter, as well as the
+-- command line (including the current input) and the cursor.
+printPrompt :: Drawable -> XP ()
+printPrompt drw = do
+  st@XPS{ prompter, color, gcon, config, dpy, fontS, offset } <- get
+  let -- (prompt-specific text before the command, the entered command)
+      (prt, com) = (prompter . show . currentXPMode &&& command) st
+      str = prt ++ com
+      -- break the string in 3 parts: till the cursor, the cursor and the rest
+      (preCursor, cursor, postCursor) = if offset >= length com
+                 then (str, " ","") -- add a space: it will be our cursor ;-)
+                 else let (a, b) = splitAt offset com
+                      in (prt ++ a, [head b], tail b)
 
-printComplList :: Display -> Drawable -> GC -> String -> String
-               -> [Position] -> [Position] -> [[String]] -> XP ()
-printComplList d drw gc fc bc xs ys sss =
-    zipWithM_ (\x ss ->
-        zipWithM_ (\y item -> do
-            st <- get
-            alwaysHlight <- gets $ alwaysHighlight . config
-            let (f,b)
-                  | alwaysHlight -- default to the first item, the one in (0,0)
-                  = let (colIndex,rowIndex) = findComplIndex item sss
-                    in -- assign some colors
-                     if complIndex st == (colIndex,rowIndex)
-                     then (fgHighlight $ color st,bgHighlight $ color st)
-                     else (fc,bc)
-                  | -- compare item with buffer's value
-                    completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
-                  = (fgHighlight $ color st,bgHighlight $ color st)
-                  | otherwise = (fc,bc)
-            printStringXMF d drw (fontS st) gc f b x y item)
-        ys ss) xs sss
+  -- vertical and horizontal text alignment
+  (asc, desc) <- io $ textExtentsXMF fontS str  -- font ascent and descent
+  let y = fi ((height config - fi (asc + desc)) `div` 2) + asc
+      x = (asc + desc) `div` 2
+
+  pcFont <- io $ textWidthXMF dpy fontS preCursor
+  cFont  <- io $ textWidthXMF dpy fontS cursor
+  let draw = printStringXMF dpy drw fontS gcon
+  -- print the first part
+  draw (fgNormal color) (bgNormal color) x y preCursor
+  -- reverse the colors and print the "cursor" ;-)
+  draw (bgNormal color) (fgNormal color) (x + fi pcFont) y cursor
+  -- flip back to the original colors and print the rest of the string
+  draw (fgNormal color) (bgNormal color) (x + fi (pcFont + cFont)) y postCursor
+
+-- | Get all available completions for the current input.
+getCompletions :: XP [String]
+getCompletions = do
+  st@XPS{ config } <- get
+  let cmd   = commandToComplete (currentXPMode st) (command st)
+      compl = getCompletionFunction st
+      srt   = sorter config
+  io $ (srt cmd <$> compl cmd) `E.catch` \(SomeException _) -> return []
+ where
+  -- | Get the current completion function depending on the active mode.
+  getCompletionFunction :: XPState -> ComplFunction
+  getCompletionFunction st = case operationMode st of
+    XPSingleMode compl _ -> compl
+    XPMultipleModes modes -> completionFunction $ W.focus modes
+
+-- | Destroy the currently drawn completion window, if there is one.
+destroyComplWin :: XP ()
+destroyComplWin = do
+  XPS{ dpy, complWin } <- get
+  io (readIORef complWin) >>= \case
+    Just w -> do io $ destroyWindow dpy w
+                 updateComplWin Nothing Nothing
+    Nothing -> return ()
+
+-- | Given the completions that we would like to show, calculate the
+-- required dimensions for the completion windows.
+getComplWinDim :: [String] -> XP ComplWindowDim
+getComplWinDim compl = do
+  XPS{ config = cfg, screen = scr, fontS = fs, dpy, winWidth } <- get
+  let -- Height of a single completion row
+      ht = height cfg
+      bw = promptBorderWidth cfg
+
+  tws <- mapM (textWidthXMF dpy fs) compl
+  let -- Length of widest completion we will print
+      maxComplLen = (fi ht `div` 2) + maximum tws
+      -- Height of the screen rectangle _without_ the prompt window
+      remHeight   = rect_height scr - ht
+
+      maxColumns  = maybe id min (maxComplColumns cfg)
+      columns     = max 1 . maxColumns $ winWidth `div` fi maxComplLen
+      columnWidth = winWidth `div` columns
+
+      (fullRows, lastRow) = length compl `divMod` fi columns
+      allRows   = max 1 (fullRows + if lastRow == 0 then 0 else 1)
+      -- Maximum number of rows allowed by the config and the screen dimensions
+      maxRows   = maybe id min (maxComplRows cfg) (remHeight `div` ht)
+      -- Actual number of rows to be drawn
+      rows      = min maxRows (fi allRows)
+      rowHeight = rows * ht
+
+      -- Starting x and y position of the completion windows.
+      (x, y) = bimap (rect_x scr +) ((rect_y scr +) . fi) $ case position cfg of
+        Top    -> (0, ht - bw)
+        Bottom -> (0, remHeight - rowHeight + bw)
+        CenteredAt py w
+          | py <= 1/2 ->
+              ( floor $ fi (rect_width scr) * ((1 - w) / 2)
+              , floor (py * fi (rect_height scr) + (fi ht / 2)) - bw
+              )
+          | otherwise ->
+              ( floor $ fi (rect_width scr) * ((1 - w) / 2)
+              , floor (py * fi (rect_height scr) - (fi ht / 2)) - rowHeight + bw
+              )
+
+  -- Get font ascent and descent.  Coherence condition: we will print
+  -- everything using the same font.
+  (asc, desc) <- io $ textExtentsXMF fs $ head compl
+  let yp    = fi $ (ht + fi (asc - desc)) `div` 2 -- y position of the first row
+      yRows = take (fi rows) [yp, yp + fi ht ..]  -- y positions of all rows
+
+      xp    = (asc + desc) `div` 2                           -- x position of the first column
+      xCols = take (fi columns) [xp, xp + fi columnWidth ..] -- x positions of all columns
+
+  pure $ ComplWindowDim x y winWidth rowHeight xCols yRows
+
+-- | Draw the completion window.
+drawComplWin :: Window -> [String] -> XP ()
+drawComplWin w entries = do
+  XPS{ config, color, dpy, gcon } <- get
+  let scr = defaultScreenOfDisplay dpy
+      bw  = promptBorderWidth config
+  Just bgcolor <- io $ initColor dpy (bgNormal color)
+  Just borderC <- io $ initColor dpy (border color)
+  cwd@ComplWindowDim{ cwWidth, cwRowHeight } <- getComplWinDim entries
+
+  p <- io $ createPixmap dpy w cwWidth cwRowHeight (defaultDepthOfScreen scr)
+  io $ fillDrawable dpy p gcon borderC bgcolor (fi bw) cwWidth cwRowHeight
+  printComplEntries dpy p gcon (fgNormal color) (bgNormal color) entries cwd
+  --lift $ spawn $ "xmessage " ++ " ac: " ++ show ac  ++ " xx: " ++ show xx ++ " length xx: " ++ show (length xx) ++ " yy: " ++ show (length yy)
+  io $ copyArea dpy p w gcon 0 0 cwWidth cwRowHeight 0 0
+  io $ freePixmap dpy p
+
+-- | Print all of the completion entries.
+printComplEntries
+  :: Display
+  -> Drawable
+  -> GC
+  -> String         -- ^ Default foreground color
+  -> String         -- ^ Default background color
+  -> [String]       -- ^ Entries to be printed...
+  -> ComplWindowDim -- ^ ...into a window of this size
+  -> XP ()
+printComplEntries dpy drw gc fc bc entries ComplWindowDim{ cwCols, cwRows } = do
+  st@XPS{ color, complIndex, config = XPC{ alwaysHighlight } } <- get
+  let printItemAt :: Position -> Position -> String -> XP ()
+      printItemAt x y item =
+        printStringXMF dpy drw (fontS st) gc fgCol bgCol x y item
+       where
+        (fgCol, bgCol)
+          | -- default to the first item, the one in (0, 0)
+            alwaysHighlight, complIndex == findComplIndex item
+          = (fgHighlight color, bgHighlight color)
+          | -- compare item with buffer's value
+            completionToCommand (currentXPMode st) item == commandToComplete (currentXPMode st) (command st)
+          = (fgHighlight color, bgHighlight color)
+          | -- if nothing matches, use default colors
+            otherwise = (fc, bc)
+  zipWithM_ (\x -> zipWithM_ (printItemAt x) cwRows) cwCols complMat
+ where
+  -- | Create the completion matrix to be printed.
+  complMat :: [[String]]
+    = chunksOf (length cwRows) (take (length cwCols * length cwRows) entries)
+
+  -- | Find the column and row indexes in which a string appears.
+  -- If the string is not in the matrix, the indices default to @(0, 0)@.
+  findComplIndex :: String -> (Int, Int)
+  findComplIndex item = (colIndex, rowIndex)
+   where
+    colIndex = fromMaybe 0 $ findIndex (\cols -> item `elem` cols) complMat
+    rowIndex = fromMaybe 0 $ elemIndex item =<< complMat !? colIndex
 
 -- History
 
