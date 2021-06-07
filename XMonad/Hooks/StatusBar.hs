@@ -335,9 +335,8 @@ statusBarPipe cmd xpp = do
     return $ def
         { sbStartupHook = io (writeIORef hRef . Just =<< spawnPipe cmd)
         , sbLogHook     = do
-              pp <- xpp
               h' <- io (readIORef hRef)
-              whenJust h' $ \h -> dynamicLogWithPP pp { ppOutput = hPutStrLn h }
+              whenJust h' $ \h -> io . hPutStrLn h =<< dynamicLogString =<< xpp
         , sbCleanupHook = io
                           $   readIORef hRef
                           >>= (`whenJust` hClose)

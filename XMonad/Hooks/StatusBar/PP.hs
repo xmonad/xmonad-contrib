@@ -128,7 +128,9 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- output it.  Can be used to specify an alternative
                -- output method (e.g. write to a pipe instead of
                -- stdout), and\/or to perform some last-minute
-               -- formatting.
+               -- formatting. Note that this is only used by
+               -- 'dynamicLogWithPP'; it won't work with 'dynamicLogString' or
+               -- "XMonad.Hooks.StatusBar".
              }
 
 -- | The default pretty printing options:
@@ -179,7 +181,7 @@ dynamicLogString pp = do
     let ws = pprWindowSet sort' urgents pp winset
 
     -- run extra loggers, ignoring any that generate errors.
-    extras <- mapM (`catchX` return Nothing) $ ppExtras pp
+    extras <- mapM (userCodeDef Nothing) $ ppExtras pp
 
     -- window title
     wt <- maybe (pure "") (fmap show . getName) . S.peek $ winset
