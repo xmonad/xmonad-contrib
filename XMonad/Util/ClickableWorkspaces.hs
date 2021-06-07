@@ -42,7 +42,7 @@ import Data.List (elemIndex)
 --
 --   * @xdotool@ on system (in path)
 --   * "XMonad.Hooks.EwmhDesktops" for @xdotool@ support (see Hackage docs for setup)
---   * use of UnsafeStdinReader/UnsafeXMonadLog in xmobarrc (rather than StdinReader/XMonadLog)
+--   * use of UnsafeStdinReader\/UnsafeXMonadLog in xmobarrc (rather than StdinReader\/XMonadLog)
 --
 -- Note that UnsafeStdinReader is potentially dangerous if your workspace
 -- names are dynamically generated from untrusted input (like window titles).
