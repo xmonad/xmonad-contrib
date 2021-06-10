@@ -324,8 +324,10 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
       next  <- munch1 (/= head ptn)
       next' <- munch1 (/= ' ')
       if next' == ptn
-        then pure $ consumed <> next
-        else go   $ consumed <> next <> next'
+        then -- If we're done, it's time to prune extra whitespace
+             pure $ consumed <> dropWhileEnd (== ' ') next
+        else -- If not, keep it as it's part of something else
+             go   $ consumed <> next <> next'
 
 -- | Try to parse a 'Time'.
 pTimeOfDay :: ReadP (Maybe TimeOfDay)
