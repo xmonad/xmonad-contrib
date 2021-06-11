@@ -145,6 +145,11 @@ data ClipboardSupport
   = PrimarySelection
   | NoClpSupport
 
+-- | How one should display the clipboard string.
+data Clp
+  = Header String  -- ^ In the header as a link: @* [[clp][message]]@
+  | Body   String  -- ^ In the body as additional text: @* message \n clp@
+
 instance XPrompt OrgMode where
   showXPrompt :: OrgMode -> String
   showXPrompt OrgMode{ todoHeader, orgFile, clpSupport } =
@@ -163,8 +168,12 @@ orgPrompt
   -> X ()
 orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
 
--- | Like 'orgPrompt', but fill in the primary selection as the contents
--- of the note.  The prompt will display a little @+ PS@ in the window
+-- | Like 'orgPrompt', but additionally make use of the primary
+-- selection.  If it is a URL, then use an org-style link
+-- @[[primary-selection][entered message]]@ as the heading.  Otherwise,
+-- use the primary selection as the content of the note.
+--
+-- The prompt will display a little @+ PS@ in the window
 -- after the type of note.
 orgPromptPrimary :: XPConfig -> String -> FilePath -> X ()
 orgPromptPrimary xpc = mkOrgPrompt xpc .: OrgMode PrimarySelection
@@ -179,8 +188,12 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
   appendNote :: String -> X ()
   appendNote input = io $ do
     clpStr <- case clpSupport of
-      NoClpSupport     -> pure ""
-      PrimarySelection -> ("\n " <>) <$> getSelection
+      NoClpSupport     -> pure $ Body ""
+      PrimarySelection -> do
+        sel <- getSelection
+        pure $ if   any (`isPrefixOf` sel) ["http://", "https://"]
+               then Header sel
+               else Body   $ "\n " <> sel
 
     -- Expand relative path with $HOME
     fp <- case orgFile of
@@ -295,16 +308,20 @@ data Note
   | NormalMsg String
 
 -- | Pretty print a given 'Note'.
-ppNote :: String -> String -> Note -> IO String
+ppNote :: Clp -> String -> Note -> IO String
 ppNote clp todo = \case
-  Scheduled str time -> mkLine str "SCHEDULED: " time
-  Deadline  str time -> mkLine str "DEADLINE: "  time
-  NormalMsg str      -> pure . mconcat $ ["* ", todo, " ", str, clp]
+  Scheduled str time -> mkLine str "SCHEDULED: " (Just time)
+  Deadline  str time -> mkLine str "DEADLINE: "  (Just time)
+  NormalMsg str      -> mkLine str ""            Nothing
  where
-  mkLine :: String -> String -> Time -> IO String
-  mkLine inp sched
-    = fmap (\d -> mconcat ["* ", todo, " ", inp, "\n  ", sched, d, clp])
-    . ppDate
+  mkLine :: String -> String -> Maybe Time -> IO String
+  mkLine str sched time = do
+    t <- case time of
+      Nothing -> pure ""
+      Just ti -> (("\n  " <> sched) <>) <$> ppDate ti
+    pure $ case clp of
+      Body   c -> mconcat ["* ", todo, " ", str, t, c]
+      Header c -> mconcat ["* ", todo, " [[", c, "][", str,"]]", t]
 
 ------------------------------------------------------------------------
 -- Parsing
@@ -324,8 +341,10 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
       next  <- munch1 (/= head ptn)
       next' <- munch1 (/= ' ')
       if next' == ptn
-        then pure $ consumed <> next
-        else go   $ consumed <> next <> next'
+        then -- If we're done, it's time to prune extra whitespace
+             pure $ consumed <> dropWhileEnd (== ' ') next
+        else -- If not, keep it as it's part of something else
+             go   $ consumed <> next <> next'
 
 -- | Try to parse a 'Time'.
 pTimeOfDay :: ReadP (Maybe TimeOfDay)
