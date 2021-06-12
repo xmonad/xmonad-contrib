@@ -339,8 +339,9 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
   getLast :: String -> ReadP String
   getLast ptn = go ""
    where
-    go :: String -> ReadP String = \consumed -> do
-      next  <- munch1 (/= head ptn)
+    go :: String -> ReadP String
+    go consumed = do
+      next  <- munch (/= head ptn)
       next' <- munch1 (/= ' ')
       if next' == ptn
         then -- If we're done, it's time to prune extra whitespace
