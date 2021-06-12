@@ -67,6 +67,7 @@ module XMonad.Actions.CycleWS (
                               , hiddenWS
                               , anyWS
                               , wsTagGroup
+                              , ignoringWSs
 
                               , shiftTo
                               , moveTo
@@ -296,6 +297,15 @@ hiddenWS = WSIs $ do
 -- | Cycle through all workspaces
 anyWS :: WSType
 anyWS = WSIs . return $ const True
+
+-- | Cycle through workspaces that are not in the given list. This could, for
+--   example, be used for skipping the workspace reserved for
+--   "XMonad.Util.NamedScratchpad":
+--
+-- >  moveTo Next $ hidden :&: Not empty :&: ignoringWSs [scratchpadWorkspaceTag]
+--
+ignoringWSs :: [WorkspaceId] -> WSType
+ignoringWSs ts = WSIs . return $ (`notElem` ts) . tag
 
 -- | Cycle through workspaces in the same group, the
 --   group name is all characters up to the first

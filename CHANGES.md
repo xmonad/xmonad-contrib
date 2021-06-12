@@ -116,7 +116,7 @@
   - `XMonad.Actions.CycleWS`
 
     - Deprecated `EmptyWS`, `HiddenWS`, `NonEmptyWS`, `HiddenNonEmptyWS`,
-      `HiddenEmptyWS`, `AnyWS` and `WSTagGroup`
+      `HiddenEmptyWS`, `AnyWS` and `WSTagGroup`.
 
 ### New Modules
 
@@ -642,6 +642,10 @@
 
     - Added `hiddenWS`, `emptyWS` and `anyWS` to replace deprecated
       constructors.
+
+    - Added `ingoringWSs` as a `WSType` predicate to skip workspaces having a
+      tag in a given list.
+
 
 ## 0.16
 
