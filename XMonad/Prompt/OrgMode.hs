@@ -71,22 +71,24 @@ above you can write
 > , ("M-C-o", orgPrompt def "TODO" "org/todos.org")
 
 There is also some scheduling and deadline functionality present.  They
-are initiated by entering @+s@ or @+d@ into the prompt respectively,
-followed by a date and a time of day.  Any of the following are valid
-dates:
+are initiated by entering @+s@ or @+d@—separated by at least one
+whitespace character on either side—into the prompt respectively,
+followed a date and (optionally) a time of day.  Any of the following
+are valid dates:
 
-  - today
-  - tomorrow
+  - tod[ay]
+  - tom[orrow]
   - /any weekday/
   - /any date of the form DD MM YYYY/
 
 In the last case, the month and the year are optional and will be, if
-missing, filled out with the current month and year.  We disambiguate as
-early as possible, so a simple @w@ will suffice to mean Wednesday, while
-@s@ will not be enough to say Sunday.  Weekdays also always schedule
-into the future, e.g. if today is Monday and you schedule something for
-Monday, you will actually schedule it for the /next/ Monday (the one in
-seven days).
+missing, filled out with the current month and year.  For weekdays, we
+also disambiguate as early as possible, so a simple @w@ will suffice to
+mean Wednesday, while @s@ will not be enough to say Sunday.  You can,
+however, still write the full word without any troubles.  Weekdays also
+always schedule into the future, e.g. if today is Monday and you
+schedule something for Monday, you will actually schedule it for the
+/next/ Monday (the one in seven days).
 
 The time is specified in the @HH:MM@ format.  The minutes may be
 omitted, in which case @00@ will be substituted.
@@ -357,16 +359,17 @@ pTimeOfDay = lchoice
 -- | Parse a 'Date'.
 pDate :: ReadP Date
 pDate = skipSpaces *> lchoice
-  [ Today    <$  string "tod"
-  , Tomorrow <$  string "tom"
+  [ pString "tod" "ay"    Today
+  , pString "tom" "orrow" Tomorrow
   , Next     <$> pNext
   , Date     <$> pDate1 <++ pDate2 <++ pDate3
-  ] <* munch (/= ' ') <* skipSpaces  -- cleanup
+  ] <* skipSpaces  -- cleanup
  where
   pNext :: ReadP DayOfWeek = lchoice
-    [ Monday   <$ string "m" , Tuesday <$ string "tu", Wednesday <$ string "w"
-    , Thursday <$ string "th", Friday  <$ string "f" , Saturday  <$ string "sa"
-    , Sunday   <$ string "su"
+    [ pString "m"  "onday"    Monday   , pString "tu" "esday"  Tuesday
+    , pString "w"  "ednesday" Wednesday, pString "th" "ursday" Thursday
+    , pString "f"  "riday"    Friday   , pString "sa" "turday" Saturday
+    , pString "su" "nday"     Sunday
     ]
 
   -- XXX: This is really horrible, but I can't see a way to not have
@@ -382,12 +385,23 @@ pDate = skipSpaces *> lchoice
   pDate' p p' =
     (,,) <$> pInt
          <*> p (skipSpaces *> lchoice
-               [ 1  <$ string "ja" , 2  <$ string "f"  , 3  <$ string "mar"
-               , 4  <$ string "ap" , 5  <$ string "may", 6  <$ string "jun"
-               , 7  <$ string "jul", 8  <$ string "au" , 9  <$ string "s"
-               , 10 <$ string "o"  , 11 <$ string "n"  , 12 <$ string "d"
+               [ pString "ja"  "nuary"    1 , pString "f"   "ebruary" 2
+               , pString "mar" "ch"       3 , pString "ap"  "ril"     4
+               , pString "may" ""         5 , pString "jun" "e"       6
+               , pString "jul" "y"        7 , pString "au"  "gust"    8
+               , pString "s"   "eptember" 9 , pString "o"   "ctober"  10
+               , pString "n"   "ovember"  11, pString "d"   "ecember" 12
                ])
          <*> p' (skipSpaces *> pInt)
+
+-- | Parse a @start@ and see whether the rest of the word (separated by
+-- spaces) fits the @leftover@.
+pString :: String -> String -> a -> ReadP a
+pString start leftover ret = do
+  void $ string start
+  l <- munch (/= ' ')
+  guard (l `isPrefixOf` leftover)
+  pure ret
 
 -- | Parse a number.
 pInt :: (Read a, Integral a) => ReadP a
