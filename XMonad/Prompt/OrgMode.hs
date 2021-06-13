@@ -226,7 +226,10 @@ data TimeOfDay = TimeOfDay Int Int
 
 instance Show TimeOfDay where
   show :: TimeOfDay -> String
-  show (TimeOfDay h m) = show h <> ":" <> show m <> if m <= 9 then "0" else ""
+  show (TimeOfDay h m) = pad h <> ":" <> pad m
+   where
+    pad :: Int -> String
+    pad n = (if n <= 9 then "0" else "") <> show n
 
 -- | Type for specifying exactly which day one wants.
 data Date
