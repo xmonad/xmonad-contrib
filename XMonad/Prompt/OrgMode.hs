@@ -114,6 +114,11 @@ above, pressed it, and are now confronted with a prompt:
   - @hello +s 11 jan 2013@ would schedule the note for the 11th of
     January 2013.
 
+Note that, due to ambiguity issues, years below @25@ result in undefined
+parsing behaviour.  Otherwise, what should @message +s 11 jan 13@
+resolve to—the 11th of january at 13:00 or the 11th of january in the
+year 13?
+
 There's also the possibility to take what's currently in the primary
 selection and paste that as the content of the created note.  This is
 especially useful when you want to quickly save a URL for later and
@@ -393,7 +398,7 @@ pDate = skipSpaces *> lchoice
                , pString "s"   "eptember" 9 , pString "o"   "ctober"  10
                , pString "n"   "ovember"  11, pString "d"   "ecember" 12
                ])
-         <*> p' (skipSpaces *> pInt)
+         <*> p' (skipSpaces *> pInt >>= \i -> guard (i >= 25) $> i)
 
 -- | Parse a @start@ and see whether the rest of the word (separated by
 -- spaces) fits the @leftover@.
