@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -35,6 +36,16 @@ module XMonad.Prompt.OrgMode (
     -- * Types
     ClipboardSupport (..),
     OrgMode,                -- abstract
+
+#ifdef TESTING
+    pInput,
+    Note (..),
+    Date (..),
+    Time (..),
+    TimeOfDay (..),
+    DayOfWeek (..),
+#endif
+
 ) where
 
 import XMonad.Prelude
@@ -220,9 +231,11 @@ data Time = Time
   { date :: Date
   , tod  :: Maybe TimeOfDay
   }
+  deriving (Eq, Show)
 
 -- | The time in HH:MM.
 data TimeOfDay = TimeOfDay Int Int
+  deriving (Eq)
 
 instance Show TimeOfDay where
   show :: TimeOfDay -> String
@@ -241,6 +254,7 @@ data Date
     -- following Monday)
   | Date (Int, Maybe Int, Maybe Integer)
     -- ^ Manual date entry in the format DD [MM] [YYYY]
+  deriving (Eq, Ord, Show)
 
 toOrgFmt :: Maybe TimeOfDay -> Day -> String
 toOrgFmt tod day =
@@ -282,7 +296,7 @@ dayOfWeek (ModifiedJulianDay d) = toEnum $ fromInteger $ d + 3
 
 data DayOfWeek
   = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
-  deriving (Show, Eq)
+  deriving (Eq, Ord, Show)
 
 -- | \"Circular\", so for example @[Tuesday ..]@ gives an endless
 -- sequence.  Also: 'fromEnum' gives [1 .. 7] for [Monday .. Sunday],
@@ -316,6 +330,7 @@ data Note
   = Scheduled String Time
   | Deadline  String Time
   | NormalMsg String
+  deriving (Eq, Show)
 
 -- | Pretty print a given 'Note'.
 ppNote :: Clp -> String -> Note -> IO String
