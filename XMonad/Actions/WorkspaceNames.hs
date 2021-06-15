@@ -48,7 +48,7 @@ import XMonad.Prelude (fromMaybe, isInfixOf, (<&>), (>=>))
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 
-import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..))
+import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..), anyWS)
 import qualified XMonad.Actions.SwapWorkspaces as Swap
 import XMonad.Hooks.DynamicLog (PP(..))
 import XMonad.Prompt (mkXPrompt, XPConfig)
@@ -141,7 +141,7 @@ workspaceNamesPP pp = getWorkspaceNames ":" <&> \ren -> pp{ ppRename = ppRename 
 
 -- | See 'XMonad.Actions.SwapWorkspaces.swapTo'. This is the same with names.
 swapTo :: Direction1D -> X ()
-swapTo dir = swapTo' dir AnyWS
+swapTo dir = swapTo' dir anyWS
 
 -- | Swap with the previous or next workspace of the given type.
 swapTo' :: Direction1D -> WSType -> X ()

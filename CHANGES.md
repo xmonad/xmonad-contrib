@@ -113,6 +113,11 @@
 
     - Removed the `Wrap` and `NextLayoutNoWrap` data constructors.
 
+  - `XMonad.Actions.CycleWS`
+
+    - Deprecated `EmptyWS`, `HiddenWS`, `NonEmptyWS`, `HiddenNonEmptyWS`,
+      `HiddenEmptyWS`, `AnyWS` and `WSTagGroup`.
+
 ### New Modules
 
   * `XMonad.Hooks.StatusBar.PP`
@@ -629,6 +634,18 @@
 
     - Added `copiesPP` to make a `PP` aware of copies of the focused
       window.
+
+  - `XMonad.Actions.CycleWS`
+
+    - Added `:&:`, `:|:` and `Not` data constructors to `WSType` to logically
+      combine predicates.
+
+    - Added `hiddenWS`, `emptyWS` and `anyWS` to replace deprecated
+      constructors.
+
+    - Added `ingoringWSs` as a `WSType` predicate to skip workspaces having a
+      tag in a given list.
+
 
 ## 0.16
 
