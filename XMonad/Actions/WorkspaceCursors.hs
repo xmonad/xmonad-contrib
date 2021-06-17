@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.WorkspaceCursors
@@ -46,7 +46,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Actions.FocusNth(focusNth')
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMess, redoLayout))
-import XMonad(Typeable, Message, WorkspaceId, X, XState(windowset),
+import XMonad(Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
 import XMonad.Util.Stack (reverseS)
 import XMonad.Prelude (find, fromJust, guard, liftA2, toList, when, (<=<))
@@ -114,7 +114,7 @@ end = Cons . fromJust . W.differentiate . map End
 
 data Cursors a
     = Cons (W.Stack (Cursors a))
-    | End a deriving (Eq,Show,Read,Typeable)
+    | End a deriving (Eq,Show,Read)
 
 instance Foldable Cursors where
     foldMap f (End x) = f x
@@ -190,7 +190,7 @@ modifyCursors ::  (Cursors String -> X (Cursors String)) -> X ()
 modifyCursors = sendMessage . ChangeCursors . (liftA2 (>>) updateXMD return <=<)
 
 newtype WorkspaceCursors a = WorkspaceCursors (Cursors String)
-    deriving (Typeable,Read,Show)
+    deriving (Read,Show)
 
 -- | The state is stored in the 'WorkspaceCursors' layout modifier. Put this as
 -- your outermost modifier, unless you want different cursors at different
@@ -199,7 +199,6 @@ workspaceCursors :: Cursors String -> l a -> ModifiedLayout WorkspaceCursors l a
 workspaceCursors = ModifiedLayout . WorkspaceCursors
 
 newtype ChangeCursors = ChangeCursors { unWrap :: Cursors String -> X (Cursors String) }
-    deriving (Typeable)
 
 instance Message ChangeCursors
 

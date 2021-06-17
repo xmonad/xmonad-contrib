@@ -109,4 +109,3 @@ leftRectangle (Rectangle rx ry rw rh) f = Rectangle
                                           rx
                                            (ry + fromIntegral (rh <%> ((1-f)*(1/2))))
                                            (rw <%> (1/2)) (rh <%> f)
-

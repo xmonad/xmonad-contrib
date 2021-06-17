@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -68,7 +68,7 @@ import XMonad.StackSet ( tag, currentTag )
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-newtype Chdir = Chdir String deriving ( Typeable )
+newtype Chdir = Chdir String
 instance Message Chdir
 
 newtype WorkspaceDir a = WorkspaceDir String deriving ( Read, Show )

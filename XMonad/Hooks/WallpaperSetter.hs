@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------
 -- |
 -- Module      : XMonad.Hooks.WallpaperSetter
@@ -62,7 +61,7 @@ import qualified Data.Map as M
 -- * find out how to merge multiple images from stdin to one (-> for caching all pictures in memory)
 
 -- | internal. to use XMonad state for memory in-between log-hook calls and remember PID of old external call
-data WCState = WCState (Maybe [WorkspaceId]) (Maybe ProcessHandle) deriving Typeable
+data WCState = WCState (Maybe [WorkspaceId]) (Maybe ProcessHandle)
 instance ExtensionClass WCState where
   initialValue = WCState Nothing Nothing
 

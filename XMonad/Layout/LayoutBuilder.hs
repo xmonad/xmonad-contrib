@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -222,7 +221,7 @@ layoutAll box sub = LayoutB Nothing Nothing (LimitR (0,1)) box Nothing sub Nothi
 
 --------------------------------------------------------------------------------
 -- | Change the number of windows handled by the focused layout.
-newtype IncLayoutN = IncLayoutN Int deriving Typeable
+newtype IncLayoutN = IncLayoutN Int
 instance Message IncLayoutN
 
 --------------------------------------------------------------------------------

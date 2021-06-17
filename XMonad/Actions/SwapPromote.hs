@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.SwapPromote
@@ -115,7 +113,7 @@ import           Control.Arrow
 -- Without history, the list is empty.
 newtype MasterHistory = MasterHistory
     { getMasterHistory :: M.Map WorkspaceId [Window]
-    } deriving (Read,Show,Typeable)
+    } deriving (Read,Show)
 
 instance ExtensionClass MasterHistory where
     initialValue = MasterHistory M.empty

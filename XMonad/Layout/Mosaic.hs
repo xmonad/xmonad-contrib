@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Mosaic
@@ -28,8 +28,7 @@ module XMonad.Layout.Mosaic (
 
 import Prelude hiding (sum)
 
-import XMonad(Typeable,
-              LayoutClass(doLayout, handleMessage, pureMessage, description),
+import XMonad(LayoutClass(doLayout, handleMessage, pureMessage, description),
               Message, X, fromMessage, withWindowSet, Resize(..),
               splitHorizontallyBy, splitVerticallyBy, sendMessage, Rectangle)
 import XMonad.Prelude (mplus, on, sortBy, sum)
@@ -67,7 +66,6 @@ data Aspect
     | Wider
     | Reset
     | SlopeMod ([Rational] -> [Rational])
-    deriving (Typeable)
 
 instance Message Aspect
 

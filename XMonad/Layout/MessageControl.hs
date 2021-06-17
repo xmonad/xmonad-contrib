@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -31,7 +31,6 @@ import XMonad.StackSet (Workspace(..))
 
 import XMonad.Layout.LayoutModifier (LayoutModifier(..), ModifiedLayout(..))
 
-import Data.Typeable (Typeable)
 import Control.Arrow (second)
 
 -- $usage
@@ -96,8 +95,6 @@ instance LayoutModifier UnEscape a where
 -- | Data type for an escaped message. Send with 'escape'.
 
 newtype EscapedMessage = Escape SomeMessage
-    deriving Typeable
-
 instance Message EscapedMessage
 
 

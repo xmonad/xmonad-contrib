@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE CPP, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 #ifdef TESTING
 {-# OPTIONS_GHC -Wno-duplicate-exports #-}
 #endif
@@ -88,7 +88,7 @@ data LimitWindows a = LimitWindows SliceStyle Int deriving (Read,Show)
 
 data SliceStyle = FirstN | Slice deriving (Read,Show)
 
-newtype LimitChange = LimitChange { unLC :: Int -> Int } deriving (Typeable)
+newtype LimitChange = LimitChange { unLC :: Int -> Int }
 
 instance Message LimitChange
 

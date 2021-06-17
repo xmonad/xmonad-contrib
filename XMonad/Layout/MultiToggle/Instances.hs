@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -29,7 +29,7 @@ data StdTransformers = FULL          -- ^ switch to Full layout
                      | MIRROR        -- ^ Mirror the current layout.
                      | NOBORDERS     -- ^ Remove borders.
                      | SMARTBORDERS  -- ^ Apply smart borders.
-  deriving (Read, Show, Eq, Typeable)
+  deriving (Read, Show, Eq)
 
 instance Transformer StdTransformers Window where
     transform FULL         x k = k Full (const x)

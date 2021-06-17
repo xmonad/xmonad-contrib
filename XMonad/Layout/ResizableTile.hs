@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -48,7 +48,7 @@ import qualified Data.Map as M
 --
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-data MirrorResize = MirrorShrink | MirrorExpand deriving Typeable
+data MirrorResize = MirrorShrink | MirrorExpand
 instance Message MirrorResize
 
 data ResizableTall a = ResizableTall

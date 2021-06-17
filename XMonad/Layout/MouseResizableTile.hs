@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MouseResizableTile
@@ -80,7 +80,6 @@ data MRTMessage = SetMasterFraction Rational
                     | SetRightSlaveFraction Int Rational
                     | ShrinkSlave
                     | ExpandSlave
-                    deriving Typeable
 instance Message MRTMessage
 
 data DraggerInfo = MasterDragger Position Rational

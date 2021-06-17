@@ -110,7 +110,7 @@ import XMonad.Util.Types ( Direction2D(..) )
 --
 -- * First split chirality
 --
--- * Size ratio between rectangle allocated to current window and rectangle 
+-- * Size ratio between rectangle allocated to current window and rectangle
 -- allocated to remaining windows
 --
 -- * Factor by which the size ratio is changed in response to 'Expand' or 'Shrink'

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, PatternGuards, RankNTypes, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, PatternGuards, RankNTypes, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -384,7 +384,7 @@ data Navigation2DConfig = Navigation2DConfig
                                                        -- function calculates a rectangle for a given unmapped
                                                        -- window from the screen it is on and its window ID.
                                                        -- See <#Finer_Points> for how to use this.
-  } deriving Typeable
+  }
 
 -- | Shorthand for the tedious screen type
 type Screen = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail

@@ -15,8 +15,6 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module XMonad.Actions.WorkspaceNames (
     -- * Usage
     -- $usage
@@ -87,7 +85,7 @@ import qualified Data.Map as M
 
 -- | Workspace names container.
 newtype WorkspaceNames = WorkspaceNames (M.Map WorkspaceId String)
-    deriving (Typeable, Read, Show)
+    deriving (Read, Show)
 
 instance ExtensionClass WorkspaceNames where
     initialValue = WorkspaceNames M.empty

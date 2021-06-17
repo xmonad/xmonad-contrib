@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
@@ -34,7 +34,7 @@ module XMonad.Layout.BoringWindows (
 
 import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
-import XMonad(Typeable, LayoutClass, Message, X, fromMessage,
+import XMonad(LayoutClass, Message, X, fromMessage,
               broadcastMessage, sendMessage, windows, withFocused, Window)
 import XMonad.Prelude (find, fromMaybe, listToMaybe, maybeToList, union, (\\))
 import XMonad.Util.Stack (reverseS)
@@ -70,14 +70,13 @@ data BoringMessage = FocusUp | FocusDown | FocusMaster | IsBoring Window | Clear
                      | SwapDown
                      | SiftUp
                      | SiftDown
-                     deriving ( Read, Show, Typeable )
+                     deriving ( Read, Show )
 
 instance Message BoringMessage
 
 -- | UpdateBoring is sent before attempting to view another boring window, so
 -- that layouts have a chance to mark boring windows.
 data UpdateBoring = UpdateBoring
-    deriving (Typeable)
 instance Message UpdateBoring
 
 markBoring, clearBoring, focusUp, focusDown, focusMaster, swapUp, swapDown, siftUp, siftDown :: X ()
@@ -100,7 +99,7 @@ data BoringWindows a = BoringWindows
     { namedBoring :: M.Map String [a] -- ^ store borings with a specific source
     , chosenBoring :: [a]             -- ^ user-chosen borings
     , hiddenBoring :: Maybe [a]       -- ^ maybe mark hidden windows
-    } deriving (Show,Read,Typeable)
+    } deriving (Show,Read)
 
 boringWindows :: (LayoutClass l a, Eq a) => l a -> ModifiedLayout BoringWindows l a
 boringWindows = ModifiedLayout (BoringWindows M.empty [] Nothing)

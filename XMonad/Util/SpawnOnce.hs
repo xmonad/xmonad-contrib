@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SpawnOnce
@@ -24,7 +22,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Prelude
 
 newtype SpawnOnce = SpawnOnce { unspawnOnce :: Set String }
-    deriving (Read, Show, Typeable)
+    deriving (Read, Show)
 
 instance ExtensionClass SpawnOnce where
     initialValue = SpawnOnce Set.empty

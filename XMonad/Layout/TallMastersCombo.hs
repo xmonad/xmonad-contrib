@@ -1,5 +1,5 @@
--- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, MultiParamTypeClasses #-}
+-- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, TypeSynonymInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 ---------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TallMastersCombo
@@ -178,7 +178,7 @@ tmsCombineTwo :: (LayoutClass l1 Window, LayoutClass l2 Window) =>
                   Bool -> Int -> Rational -> Rational -> l1 Window -> l2 Window -> TMSCombineTwo l1 l2 Window
 tmsCombineTwo = TMSCombineTwo [] [] []
 
-data Orientation = Row | Col deriving (Read, Show, Typeable)
+data Orientation = Row | Col deriving (Read, Show)
 instance Message Orientation
 
 -- | A message that switches the orientation of TallMasterCombo layout and the RowsOrColumns layout.
@@ -186,23 +186,23 @@ instance Message Orientation
 -- applies to the 'XMonad.Layout.Tabbed' decoration, it will also mirror the tabs, which may lead to unintended
 -- visualizations. The 'SwitchOrientation' message refreshes layouts according to the orientation of the parent layout,
 -- and will not affect the 'XMonad.Layout.Tabbed' decoration.
-data SwitchOrientation = SwitchOrientation deriving (Read, Show, Typeable)
+data SwitchOrientation = SwitchOrientation deriving (Read, Show)
 instance Message SwitchOrientation
 
 -- | This message swaps the current focused window with the sub master window (first window in the second pane).
-data SwapSubMaster = SwapSubMaster deriving (Read, Show, Typeable)
+data SwapSubMaster = SwapSubMaster deriving (Read, Show)
 instance Message SwapSubMaster
 
 -- | This message changes the focus to the sub master window (first window in the second pane).
-data FocusSubMaster = FocusSubMaster deriving (Read, Show, Typeable)
+data FocusSubMaster = FocusSubMaster deriving (Read, Show)
 instance Message FocusSubMaster
 
 -- | This message triggers the 'NextLayout' message in the pane that contains the focused window.
-data FocusedNextLayout = FocusedNextLayout deriving (Read, Show, Typeable)
+data FocusedNextLayout = FocusedNextLayout deriving (Read, Show)
 instance Message FocusedNextLayout
 
 -- | This is a message for changing to the previous or next focused window across all the sub-layouts.
-data ChangeFocus = NextFocus | PrevFocus deriving (Read, Show, Typeable)
+data ChangeFocus = NextFocus | PrevFocus deriving (Read, Show)
 instance Message ChangeFocus
 
 -- instance (Typeable l1, Typeable l2, LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (TMSCombineTwo l1 l2) Window where
@@ -427,7 +427,7 @@ elseOr x y = case y of
 data LR = L | R deriving (Show, Read, Eq)
 data ChooseWrapper l r a = ChooseWrapper LR (l a) (r a) (Choose l r a) deriving (Show, Read)
 
-data NextNoWrap = NextNoWrap deriving (Eq, Show, Typeable)
+data NextNoWrap = NextNoWrap deriving (Eq, Show)
 instance Message NextNoWrap
 
 handle :: (LayoutClass l a, Message m) => l a -> m -> X (Maybe (l a))

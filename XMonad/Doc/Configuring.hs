@@ -148,4 +148,3 @@ GHC and xmonad are in the @$PATH@ in the environment from which xmonad
 is started.
 
 -}
-

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, FlexibleInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -210,7 +210,7 @@ withUrgencyHookC hook urgConf conf = conf {
         startupHook = cleanupStaleUrgents >> startupHook conf
     }
 
-newtype Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show,Typeable)
+newtype Urgents = Urgents { fromUrgents :: [Window] } deriving (Read,Show)
 
 onUrgents :: ([Window] -> [Window]) -> Urgents -> Urgents
 onUrgents f = Urgents . f . fromUrgents
@@ -295,7 +295,7 @@ data Reminder = Reminder { timer     :: TimerId
                          , window    :: Window
                          , interval  :: Interval
                          , remaining :: Maybe Int
-                         } deriving (Show,Read,Eq,Typeable)
+                         } deriving (Show,Read,Eq)
 
 instance ExtensionClass [Reminder] where
     initialValue = []

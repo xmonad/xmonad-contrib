@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.SpawnOn
@@ -66,7 +65,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
-newtype Spawner = Spawner {pidsRef :: [(ProcessID, ManageHook)]} deriving Typeable
+newtype Spawner = Spawner {pidsRef :: [(ProcessID, ManageHook)]}
 
 instance ExtensionClass Spawner where
     initialValue = Spawner []

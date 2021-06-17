@@ -14,8 +14,6 @@ The provided @unicodePrompt@ and @typeUnicodePrompt@ use @xsel@ and @xdotool@
 respectively.
 -}
 
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module XMonad.Prompt.Unicode (
  -- * Usage
  -- $usage
@@ -44,7 +42,7 @@ instance XPrompt Unicode where
   nextCompletion Unicode = getNextCompletion
 
 newtype UnicodeData = UnicodeData { getUnicodeData :: [(Char, BS.ByteString)] }
-  deriving (Typeable, Read, Show)
+  deriving (Read, Show)
 
 instance ExtensionClass UnicodeData where
   initialValue = UnicodeData []

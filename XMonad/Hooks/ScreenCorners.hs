@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ScreenCorners
@@ -43,14 +43,11 @@ data ScreenCorner = SCUpperLeft
                   | SCLowerRight
                   deriving (Eq, Ord, Show)
 
-
-
 --------------------------------------------------------------------------------
 -- ExtensibleState modifications
 --------------------------------------------------------------------------------
 
 newtype ScreenCornerState = ScreenCornerState (M.Map Window (ScreenCorner, X ()))
-    deriving Typeable
 
 instance ExtensionClass ScreenCornerState where
     initialValue = ScreenCornerState M.empty

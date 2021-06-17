@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -208,7 +208,6 @@ data SpacingModifier
     | ModifyScreenBorderEnabled (Bool -> Bool)
     | ModifyWindowBorder (Border -> Border)
     | ModifyWindowBorderEnabled (Bool -> Bool)
-    deriving (Typeable)
 
 instance Message SpacingModifier
 
@@ -349,7 +348,7 @@ type SmartSpacingWithEdge = Spacing
 
 -- | Message to dynamically modify (e.g. increase\/decrease\/set) the size of
 -- the screen spacing and window spacing. See 'SpacingModifier'.
-newtype ModifySpacing = ModifySpacing (Int -> Int) deriving (Typeable)
+newtype ModifySpacing = ModifySpacing (Int -> Int)
 
 instance Message ModifySpacing
 

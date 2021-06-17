@@ -76,4 +76,3 @@ myLogHook p =  do
                               , ppTitle  = xmobarColor "green" "" . shorten 180
                               }
   fadeInactiveLogHook 0.6
-

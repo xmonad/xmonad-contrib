@@ -70,7 +70,7 @@ cycleActionWithResult name actions = do
   actions !! idx
 
 
-newtype ActionCycleState = ActionCycleState (M.Map String Int) deriving (Typeable)
+newtype ActionCycleState = ActionCycleState (M.Map String Int)
 
 instance ExtensionClass ActionCycleState where
   initialValue = ActionCycleState mempty

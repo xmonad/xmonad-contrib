@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -115,7 +115,7 @@ data MonitorMessage = ToggleMonitor | ShowMonitor | HideMonitor
                     | ToggleMonitorNamed String
                     | ShowMonitorNamed String
                     | HideMonitorNamed String
-    deriving (Read,Show,Eq,Typeable)
+    deriving (Read,Show,Eq)
 instance Message MonitorMessage
 
 withMonitor :: Property -> a -> (Window -> X a) -> X a

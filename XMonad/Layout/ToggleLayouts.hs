@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -50,7 +50,7 @@ import XMonad.StackSet (Workspace (..))
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 data ToggleLayouts lt lf a = ToggleLayouts Bool (lt a) (lf a) deriving (Read,Show)
-data ToggleLayout = ToggleLayout | Toggle String deriving (Read,Show,Typeable)
+data ToggleLayout = ToggleLayout | Toggle String deriving (Read,Show)
 instance Message ToggleLayout
 
 toggleLayouts :: (LayoutClass lt a, LayoutClass lf a) => lt a -> lf a -> ToggleLayouts lt lf a

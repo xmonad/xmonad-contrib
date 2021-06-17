@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -120,7 +119,7 @@ instance Default Theme where
 
 -- | A 'Decoration' layout modifier will handle 'SetTheme', a message
 -- to dynamically change the decoration 'Theme'.
-newtype DecorationMsg = SetTheme Theme deriving ( Typeable )
+newtype DecorationMsg = SetTheme Theme
 instance Message DecorationMsg
 
 -- | The 'Decoration' state component, where the list of decorated

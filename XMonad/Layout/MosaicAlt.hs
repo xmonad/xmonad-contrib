@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, TypeSynonymInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, TypeSynonymInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -70,7 +70,7 @@ data HandleWindowAlt =
     | TallWindowAlt Window
     | WideWindowAlt Window
     | ResetAlt
-    deriving ( Typeable, Eq )
+    deriving ( Eq )
 instance Message HandleWindowAlt
 shrinkWindowAlt, expandWindowAlt :: Window -> HandleWindowAlt
 tallWindowAlt, wideWindowAlt :: Window -> HandleWindowAlt

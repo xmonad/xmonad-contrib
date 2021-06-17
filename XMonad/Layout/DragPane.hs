@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -67,7 +67,7 @@ instance LayoutClass DragPane a where
     doLayout d@(DragPane _ Horizontal _ _) = doLay mirrorRect d
     handleMessage = handleMess
 
-data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq, Typeable )
+data SetFrac = SetFrac Int Double deriving ( Show, Read, Eq)
 instance Message SetFrac
 
 handleMess :: DragPane a -> SomeMessage -> X (Maybe (DragPane a))

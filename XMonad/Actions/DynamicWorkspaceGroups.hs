@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicWorkspaceGroups
@@ -69,7 +67,7 @@ type WSGroup = [(ScreenId,WorkspaceId)]
 type WSGroupId = String
 
 newtype WSGroupStorage = WSG { unWSG :: M.Map WSGroupId WSGroup }
-  deriving (Typeable, Read, Show)
+  deriving (Read, Show)
 
 withWSG :: (M.Map WSGroupId WSGroup -> M.Map WSGroupId WSGroup) -> WSGroupStorage -> WSGroupStorage
 withWSG f = WSG . f . unWSG

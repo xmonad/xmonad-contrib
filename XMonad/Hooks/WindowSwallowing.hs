@@ -208,7 +208,7 @@ data SwallowingState =
     { currentlySwallowed       :: M.Map Window Window         -- ^ mapping from child window window to the currently swallowed parent window
     , stackBeforeWindowClosing :: Maybe (W.Stack Window)      -- ^ current stack state right before DestroyWindowEvent is sent
     , floatingBeforeClosing    :: M.Map Window W.RationalRect -- ^ floating map of the stackset right before DestroyWindowEvent is sent
-    } deriving (Typeable, Show)
+    } deriving (Show)
 
 getSwallowedParent :: Window -> SwallowingState -> Maybe Window
 getSwallowedParent win SwallowingState { currentlySwallowed } =

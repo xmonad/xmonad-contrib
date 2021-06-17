@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE DeriveDataTypeable     #-}
 {-# OPTIONS_HADDOCK show-extensions #-}
 
 -- |
@@ -349,7 +348,7 @@ instance Default Focus where
                         }
 
 newtype FocusLock   = FocusLock {getFocusLock :: Bool}
-  deriving (Show, Typeable)
+  deriving (Show)
 instance ExtensionClass FocusLock where
     initialValue    = FocusLock False
 

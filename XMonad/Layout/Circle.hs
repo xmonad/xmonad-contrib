@@ -72,4 +72,3 @@ satellite (Rectangle sx sy sw sh) a = Rectangle (sx + round (rx + rx * cos a))
           ry = fromIntegral (sh - h) / 2
           w = sw * 10 `div` 25
           h = sh * 10 `div` 25
-

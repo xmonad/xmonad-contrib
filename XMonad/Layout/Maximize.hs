@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -67,7 +67,7 @@ maximize = ModifiedLayout $ Maximize 25 Nothing
 maximizeWithPadding :: LayoutClass l Window => Dimension -> l Window -> ModifiedLayout Maximize l Window
 maximizeWithPadding padding = ModifiedLayout $ Maximize padding Nothing
 
-newtype MaximizeRestore = MaximizeRestore Window deriving ( Typeable, Eq )
+newtype MaximizeRestore = MaximizeRestore Window deriving ( Eq )
 instance Message MaximizeRestore
 maximizeRestore :: Window -> MaximizeRestore
 maximizeRestore = MaximizeRestore

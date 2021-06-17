@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, TypeSynonymInstances, PatternGuards #-}
 
 ----------------------------------------------------------------------------
 -- |
@@ -68,7 +68,7 @@ data HiddenMsg = HideWindow Window                -- ^ Hide a window.
                | PopNewestHiddenWindow            -- ^ Restore window (FILO).
                | PopOldestHiddenWindow            -- ^ Restore window (FIFO).
                | PopSpecificHiddenWindow Window   -- ^ Restore specific window.
-               deriving (Typeable, Eq)
+               deriving (Eq)
 
 instance Message HiddenMsg
 
