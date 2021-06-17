@@ -11,6 +11,7 @@ import qualified Selective
 import qualified SwapWorkspaces
 import qualified XPrompt
 import qualified CycleRecentWS
+import qualified OrgMode
 
 main :: IO ()
 main = hspec $ do
@@ -47,3 +48,4 @@ main = hspec $ do
     context "NoBorders"      NoBorders.spec
     context "ExtensibleConf" ExtensibleConf.spec
     context "CycleRecentWS"  CycleRecentWS.spec
+    context "OrgMode"        OrgMode.spec

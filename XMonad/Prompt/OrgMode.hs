@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -35,6 +36,16 @@ module XMonad.Prompt.OrgMode (
     -- * Types
     ClipboardSupport (..),
     OrgMode,                -- abstract
+
+#ifdef TESTING
+    pInput,
+    Note (..),
+    Date (..),
+    Time (..),
+    TimeOfDay (..),
+    DayOfWeek (..),
+#endif
+
 ) where
 
 import XMonad.Prelude
@@ -71,22 +82,24 @@ above you can write
 > , ("M-C-o", orgPrompt def "TODO" "org/todos.org")
 
 There is also some scheduling and deadline functionality present.  They
-are initiated by entering @+s@ or @+d@ into the prompt respectively,
-followed by a date and a time of day.  Any of the following are valid
-dates:
+are initiated by entering @+s@ or @+d@—separated by at least one
+whitespace character on either side—into the prompt respectively,
+followed a date and (optionally) a time of day.  Any of the following
+are valid dates:
 
-  - today
-  - tomorrow
+  - tod[ay]
+  - tom[orrow]
   - /any weekday/
   - /any date of the form DD MM YYYY/
 
 In the last case, the month and the year are optional and will be, if
-missing, filled out with the current month and year.  We disambiguate as
-early as possible, so a simple @w@ will suffice to mean Wednesday, while
-@s@ will not be enough to say Sunday.  Weekdays also always schedule
-into the future, e.g. if today is Monday and you schedule something for
-Monday, you will actually schedule it for the /next/ Monday (the one in
-seven days).
+missing, filled out with the current month and year.  For weekdays, we
+also disambiguate as early as possible, so a simple @w@ will suffice to
+mean Wednesday, while @s@ will not be enough to say Sunday.  You can,
+however, still write the full word without any troubles.  Weekdays also
+always schedule into the future, e.g. if today is Monday and you
+schedule something for Monday, you will actually schedule it for the
+/next/ Monday (the one in seven days).
 
 The time is specified in the @HH:MM@ format.  The minutes may be
 omitted, in which case @00@ will be substituted.
@@ -111,6 +124,11 @@ above, pressed it, and are now confronted with a prompt:
 
   - @hello +s 11 jan 2013@ would schedule the note for the 11th of
     January 2013.
+
+Note that, due to ambiguity issues, years below @25@ result in undefined
+parsing behaviour.  Otherwise, what should @message +s 11 jan 13@
+resolve to—the 11th of january at 13:00 or the 11th of january in the
+year 13?
 
 There's also the possibility to take what's currently in the primary
 selection and paste that as the content of the created note.  This is
@@ -213,13 +231,18 @@ data Time = Time
   { date :: Date
   , tod  :: Maybe TimeOfDay
   }
+  deriving (Eq, Show)
 
 -- | The time in HH:MM.
 data TimeOfDay = TimeOfDay Int Int
+  deriving (Eq)
 
 instance Show TimeOfDay where
   show :: TimeOfDay -> String
-  show (TimeOfDay h m) = show h <> ":" <> show m <> if m <= 9 then "0" else ""
+  show (TimeOfDay h m) = pad h <> ":" <> pad m
+   where
+    pad :: Int -> String
+    pad n = (if n <= 9 then "0" else "") <> show n
 
 -- | Type for specifying exactly which day one wants.
 data Date
@@ -231,6 +254,7 @@ data Date
     -- following Monday)
   | Date (Int, Maybe Int, Maybe Integer)
     -- ^ Manual date entry in the format DD [MM] [YYYY]
+  deriving (Eq, Ord, Show)
 
 toOrgFmt :: Maybe TimeOfDay -> Day -> String
 toOrgFmt tod day =
@@ -272,7 +296,7 @@ dayOfWeek (ModifiedJulianDay d) = toEnum $ fromInteger $ d + 3
 
 data DayOfWeek
   = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
-  deriving (Show, Eq)
+  deriving (Eq, Ord, Show)
 
 -- | \"Circular\", so for example @[Tuesday ..]@ gives an endless
 -- sequence.  Also: 'fromEnum' gives [1 .. 7] for [Monday .. Sunday],
@@ -306,6 +330,7 @@ data Note
   = Scheduled String Time
   | Deadline  String Time
   | NormalMsg String
+  deriving (Eq, Show)
 
 -- | Pretty print a given 'Note'.
 ppNote :: Clp -> String -> Note -> IO String
@@ -337,8 +362,9 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
   getLast :: String -> ReadP String
   getLast ptn = go ""
    where
-    go :: String -> ReadP String = \consumed -> do
-      next  <- munch1 (/= head ptn)
+    go :: String -> ReadP String
+    go consumed = do
+      next  <- munch (/= head ptn)
       next' <- munch1 (/= ' ')
       if next' == ptn
         then -- If we're done, it's time to prune extra whitespace
@@ -357,16 +383,17 @@ pTimeOfDay = lchoice
 -- | Parse a 'Date'.
 pDate :: ReadP Date
 pDate = skipSpaces *> lchoice
-  [ Today    <$  string "tod"
-  , Tomorrow <$  string "tom"
+  [ pString "tod" "ay"    Today
+  , pString "tom" "orrow" Tomorrow
   , Next     <$> pNext
   , Date     <$> pDate1 <++ pDate2 <++ pDate3
-  ] <* munch (/= ' ') <* skipSpaces  -- cleanup
+  ] <* skipSpaces  -- cleanup
  where
   pNext :: ReadP DayOfWeek = lchoice
-    [ Monday   <$ string "m" , Tuesday <$ string "tu", Wednesday <$ string "w"
-    , Thursday <$ string "th", Friday  <$ string "f" , Saturday  <$ string "sa"
-    , Sunday   <$ string "su"
+    [ pString "m"  "onday"    Monday   , pString "tu" "esday"  Tuesday
+    , pString "w"  "ednesday" Wednesday, pString "th" "ursday" Thursday
+    , pString "f"  "riday"    Friday   , pString "sa" "turday" Saturday
+    , pString "su" "nday"     Sunday
     ]
 
   -- XXX: This is really horrible, but I can't see a way to not have
@@ -382,12 +409,23 @@ pDate = skipSpaces *> lchoice
   pDate' p p' =
     (,,) <$> pInt
          <*> p (skipSpaces *> lchoice
-               [ 1  <$ string "ja" , 2  <$ string "f"  , 3  <$ string "mar"
-               , 4  <$ string "ap" , 5  <$ string "may", 6  <$ string "jun"
-               , 7  <$ string "jul", 8  <$ string "au" , 9  <$ string "s"
-               , 10 <$ string "o"  , 11 <$ string "n"  , 12 <$ string "d"
+               [ pString "ja"  "nuary"    1 , pString "f"   "ebruary" 2
+               , pString "mar" "ch"       3 , pString "ap"  "ril"     4
+               , pString "may" ""         5 , pString "jun" "e"       6
+               , pString "jul" "y"        7 , pString "au"  "gust"    8
+               , pString "s"   "eptember" 9 , pString "o"   "ctober"  10
+               , pString "n"   "ovember"  11, pString "d"   "ecember" 12
                ])
-         <*> p' (skipSpaces *> pInt)
+         <*> p' (skipSpaces *> pInt >>= \i -> guard (i >= 25) $> i)
+
+-- | Parse a @start@ and see whether the rest of the word (separated by
+-- spaces) fits the @leftover@.
+pString :: String -> String -> a -> ReadP a
+pString start leftover ret = do
+  void $ string start
+  l <- munch (/= ' ')
+  guard (l `isPrefixOf` leftover)
+  pure ret
 
 -- | Parse a number.
 pInt :: (Read a, Integral a) => ReadP a

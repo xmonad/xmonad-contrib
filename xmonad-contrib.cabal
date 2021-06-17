@@ -378,6 +378,7 @@ test-suite tests
                   Instances
                   ManageDocks
                   NoBorders
+                  OrgMode
                   RotateSome
                   Selective
                   SwapWorkspaces
@@ -397,6 +398,7 @@ test-suite tests
                   XMonad.Layout.NoBorders
                   XMonad.Prelude
                   XMonad.Prompt
+                  XMonad.Prompt.OrgMode
                   XMonad.Prompt.Shell
                   XMonad.Util.ExtensibleConf
                   XMonad.Util.ExtensibleState
@@ -418,6 +420,7 @@ test-suite tests
                , X11 >= 1.10 && < 1.11
                , containers
                , directory
+               , time >= 1.8 && < 1.12
                , hspec >= 2.4.0 && < 3
                , mtl
                , process
