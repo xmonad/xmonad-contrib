@@ -192,7 +192,7 @@
 
   * `XMonad.Hooks.WindowSwallowing`
 
-    A handleEventHook that implements window swallowing:
+    HandleEventHooks that implement window swallowing or sublayouting:
     Hide parent windows like terminals when opening other programs (like image viewers) from within them,
     restoring them once the child application closes.
 
