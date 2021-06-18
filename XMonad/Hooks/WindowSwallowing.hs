@@ -91,8 +91,8 @@ handleMapRequestEvent parentQ childQ childWindow x =
         _ -> return ()
       return ()
 
--- | handleEventHook that will swallow child windows when they are
--- opened from another window.
+-- | handleEventHook that will merge child windows via
+-- "XMonad.Layouts.SubLayouts" when they are opened from another window.
 swallowEventHookSub
   :: Query Bool -- ^ query the parent window has to match for window swallowing to occur.
                 --   Set this to @return True@ to run swallowing for every parent.
