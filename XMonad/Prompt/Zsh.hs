@@ -61,4 +61,3 @@ stripZsh :: String -> String
 stripZsh "" = ""
 stripZsh (' ':'-':'-':' ':_) = ""
 stripZsh (x:xs) = x : stripZsh xs
-

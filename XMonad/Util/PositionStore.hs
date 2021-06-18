@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.PositionStore
@@ -35,9 +33,9 @@ import qualified Data.Map as M
 -- This way windows can be easily relocated and scaled when switching screens.
 
 newtype PositionStore = PS (M.Map Window PosStoreRectangle)
-                            deriving (Read,Show,Typeable)
+                            deriving (Read,Show)
 data PosStoreRectangle = PSRectangle Double Double Double Double
-                            deriving (Read,Show,Typeable)
+                            deriving (Read,Show)
 
 instance ExtensionClass PositionStore where
   initialValue = PS M.empty

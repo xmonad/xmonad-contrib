@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 ----------------------------------------------------------------------
 -- |
@@ -82,7 +82,6 @@ changeGridAspect (Grid aspect) (ChangeGridAspect delta) =
 data ChangeGridGeom
     = SetGridAspect !Rational
     | ChangeGridAspect !Rational
-      deriving Typeable
 
 instance Message ChangeGridGeom
 
@@ -125,7 +124,6 @@ data ChangeMasterGridGeom
     | SetMasterRows     !Int      -- ^Set the number of master rows to absolute value
     | SetMasterCols     !Int      -- ^Set the number of master columns to absolute value
     | SetMasterFraction !Rational -- ^Set the fraction of the screen used by the master grid
-    deriving Typeable
 
 instance Message ChangeMasterGridGeom
 

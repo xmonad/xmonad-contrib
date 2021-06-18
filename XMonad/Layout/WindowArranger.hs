@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowArranger
@@ -92,7 +92,6 @@ data WindowArrangerMsg = DeArrange
                        | MoveUp        Int
                        | MoveDown      Int
                        | SetGeometry   Rectangle
-                         deriving ( Typeable )
 instance Message WindowArrangerMsg
 
 data ArrangedWindow a = WR   (a, Rectangle)

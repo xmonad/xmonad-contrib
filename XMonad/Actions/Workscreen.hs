@@ -20,7 +20,6 @@
 -- This also permits to see all workspaces of a workscreen even if just
 -- one screen is present, and to move windows from workspace to workscreen.
 -----------------------------------------------------------------------------
-{-# LANGUAGE DeriveDataTypeable #-}
 
 module XMonad.Actions.Workscreen (
   -- * Usage
@@ -58,10 +57,10 @@ import XMonad.Actions.OnScreen
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 
-data Workscreen = Workscreen{workscreenId::Int,workspaces::[WorkspaceId]} deriving (Show,Typeable)
+data Workscreen = Workscreen{workscreenId::Int,workspaces::[WorkspaceId]} deriving (Show)
 type WorkscreenId=Int
 
-data WorkscreenStorage = WorkscreenStorage WorkscreenId [Workscreen] deriving (Show,Typeable)
+data WorkscreenStorage = WorkscreenStorage WorkscreenId [Workscreen] deriving (Show)
 instance ExtensionClass WorkscreenStorage where
   initialValue = WorkscreenStorage 0 []
 

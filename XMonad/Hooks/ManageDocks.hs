@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
+{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
@@ -90,7 +90,7 @@ docks c = c { startupHook     = docksStartupHook <+> startupHook c
 
 type WindowStruts = M.Map Window [Strut]
 
-data UpdateDocks = UpdateDocks deriving Typeable
+data UpdateDocks = UpdateDocks
 instance Message UpdateDocks
 
 refreshDocks :: X ()
@@ -98,7 +98,7 @@ refreshDocks = sendMessage UpdateDocks
 
 -- Nothing means cache hasn't been initialized yet
 newtype StrutCache = StrutCache { fromStrutCache :: Maybe WindowStruts }
-    deriving (Eq, Typeable)
+    deriving Eq
 
 instance ExtensionClass StrutCache where
     initialValue = StrutCache Nothing
@@ -227,7 +227,7 @@ newtype AvoidStruts a = AvoidStruts (S.Set Direction2D) deriving ( Read, Show )
 --   modifier to alter its behavior.
 data ToggleStruts = ToggleStruts
                   | ToggleStrut Direction2D
-  deriving (Read,Show,Typeable)
+  deriving (Read,Show)
 
 instance Message ToggleStruts
 
@@ -253,7 +253,7 @@ instance Message ToggleStruts
 data SetStruts = SetStruts { addedStruts   :: [Direction2D]
                            , removedStruts :: [Direction2D] -- ^ These are removed from the currently set struts before 'addedStruts' are added.
                            }
-  deriving (Read,Show,Typeable)
+  deriving (Read,Show)
 
 instance Message SetStruts
 

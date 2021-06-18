@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SpawnNamedPipe
@@ -51,7 +49,7 @@ import qualified Data.Map as Map
 --
 
 newtype NamedPipes = NamedPipes { pipeMap :: Map.Map String Handle }
-    deriving (Show, Typeable)
+    deriving (Show)
 
 instance ExtensionClass NamedPipes where
     initialValue = NamedPipes Map.empty

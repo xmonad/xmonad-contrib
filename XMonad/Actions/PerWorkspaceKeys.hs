@@ -46,4 +46,3 @@ bindOn bindings = chooseAction chooser where
         Nothing -> case lookup "" bindings of
             Just action -> action
             Nothing -> return ()
-

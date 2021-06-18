@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.CurrentWorkspaceOnTop
@@ -40,7 +39,7 @@ import qualified Data.Map as M
 -- >  }
 --
 
-newtype CWOTState = CWOTS String deriving Typeable
+newtype CWOTState = CWOTS String
 
 instance ExtensionClass CWOTState where
   initialValue = CWOTS ""

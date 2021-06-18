@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, TupleSections #-}
+{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, TupleSections #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -90,15 +90,12 @@ data AvoidFloatMsg
     = AvoidFloatToggle        -- ^ Toggle between avoiding all or only selected.
     | AvoidFloatSet Bool      -- ^ Set if all all floating windows should be avoided.
     | AvoidFloatClearItems    -- ^ Clear the set of windows to specifically avoid.
-    deriving (Typeable)
-
 
 -- | Change the state of the avoid float layout modifier conserning a specific window.
 data AvoidFloatItemMsg a
     = AvoidFloatAddItem a     -- ^ Add a window to always avoid.
     | AvoidFloatRemoveItem a  -- ^ Stop always avoiding selected window.
     | AvoidFloatToggleItem a  -- ^ Toggle between always avoiding selected window.
-    deriving (Typeable)
 
 instance Message AvoidFloatMsg
 instance Typeable a => Message (AvoidFloatItemMsg a)

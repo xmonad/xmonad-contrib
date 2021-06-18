@@ -39,4 +39,3 @@ takeTopFocus ::
   X ()
 takeTopFocus =
   withWindowSet (maybe (setFocusX =<< asks theRoot) takeFocusX . W.peek) >> setWMName "LG3D"
-

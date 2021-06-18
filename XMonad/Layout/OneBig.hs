@@ -129,5 +129,3 @@ shiftR s (Rectangle x y w h) = Rectangle (x+s) y w h
 -- | Shift rectangle bottom
 shiftB :: Position -> Rectangle -> Rectangle
 shiftB s (Rectangle x y w h) = Rectangle x (y+s) w h
-
-

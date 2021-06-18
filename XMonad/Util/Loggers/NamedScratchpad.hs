@@ -12,8 +12,6 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE DeriveDataTypeable #-}
-
 module XMonad.Util.Loggers.NamedScratchpad (-- * Usage
                                             -- $usage
                                             nspTrackStartup
@@ -54,7 +52,7 @@ import qualified XMonad.StackSet as W (allWindows)
 -- them instead (see 'XMonad.Util.NoTaskbar').
 
 -- The extension data for tracking NSP windows
-newtype NSPTrack = NSPTrack [Maybe Window] deriving Typeable
+newtype NSPTrack = NSPTrack [Maybe Window]
 instance ExtensionClass NSPTrack where
   initialValue = NSPTrack []
 

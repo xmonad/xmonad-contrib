@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE PatternGuards              #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -158,7 +157,7 @@ magnifierczOff' cz = magnify cz (NoMaster 1) False
 maximizeVertical :: l a -> ModifiedLayout Magnifier l a
 maximizeVertical = ModifiedLayout (Mag 1 (1, 1000) Off (AllWins 1))
 
-data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle deriving ( Typeable )
+data MagnifyMsg = MagnifyMore | MagnifyLess | ToggleOn | ToggleOff | Toggle
 instance Message MagnifyMsg
 
 -- | The type for magnifying a given type; do note that the given type

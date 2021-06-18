@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE PatternGuards #-}
 
@@ -111,7 +110,7 @@ ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
 -- Cached desktop names (e.g. @_NET_NUMBER_OF_DESKTOPS@ and
 -- @_NET_DESKTOP_NAMES@).
 newtype DesktopNames = DesktopNames [String]
-                     deriving (Eq)
+                     deriving Eq
 
 instance ExtensionClass DesktopNames where
     initialValue = DesktopNames []
@@ -119,7 +118,7 @@ instance ExtensionClass DesktopNames where
 -- |
 -- Cached client list (e.g. @_NET_CLIENT_LIST@).
 newtype ClientList = ClientList [Window]
-                   deriving (Eq)
+                   deriving Eq
 
 instance ExtensionClass ClientList where
     initialValue = ClientList [none]
@@ -127,7 +126,7 @@ instance ExtensionClass ClientList where
 -- |
 -- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
 newtype CurrentDesktop = CurrentDesktop Int
-                       deriving (Eq)
+                       deriving Eq
 
 instance ExtensionClass CurrentDesktop where
     initialValue = CurrentDesktop (-1)
@@ -135,7 +134,7 @@ instance ExtensionClass CurrentDesktop where
 -- |
 -- Cached window-desktop assignments (e.g. @_NET_CLIENT_LIST_STACKING@).
 newtype WindowDesktops = WindowDesktops (M.Map Window Int)
-                       deriving (Eq)
+                       deriving Eq
 
 instance ExtensionClass WindowDesktops where
     initialValue = WindowDesktops (M.singleton none (-1))
@@ -144,7 +143,7 @@ instance ExtensionClass WindowDesktops where
 -- The value of @_NET_ACTIVE_WINDOW@, cached to avoid unnecessary property
 -- updates.
 newtype ActiveWindow = ActiveWindow Window
-                     deriving (Eq)
+                     deriving Eq
 
 instance ExtensionClass ActiveWindow where
     initialValue = ActiveWindow (complement none)
@@ -217,7 +216,7 @@ ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
 -- this value in global state, because i use 'logHook' for handling activated
 -- windows and i need a way to tell 'logHook' what window is activated.
 newtype NetActivated    = NetActivated {netActivated :: Maybe Window}
-  deriving (Show, Typeable)
+  deriving Show
 instance ExtensionClass NetActivated where
     initialValue        = NetActivated Nothing
 

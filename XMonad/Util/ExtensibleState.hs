@@ -40,10 +40,9 @@ import XMonad.Prelude (fromMaybe)
 -- and make it an instance of ExtensionClass. You can then use
 -- the functions from this module for storing and retrieving your data:
 --
--- > {-# LANGUAGE DeriveDataTypeable #-}
 -- > import qualified XMonad.Util.ExtensibleState as XS
 -- >
--- > data ListStorage = ListStorage [Integer] deriving Typeable
+-- > data ListStorage = ListStorage [Integer]
 -- > instance ExtensionClass ListStorage where
 -- >   initialValue = ListStorage []
 -- >
@@ -61,7 +60,7 @@ import XMonad.Prelude (fromMaybe)
 -- To make your data persistent between restarts, the data type needs to be
 -- an instance of Read and Show and the instance declaration has to be changed:
 --
--- > data ListStorage = ListStorage [Integer] deriving (Typeable,Read,Show)
+-- > data ListStorage = ListStorage [Integer] deriving (Read,Show)
 -- >
 -- > instance ExtensionClass ListStorage where
 -- >   initialValue = ListStorage []

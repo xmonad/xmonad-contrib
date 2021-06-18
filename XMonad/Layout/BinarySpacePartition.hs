@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DoAndIfThenElse #-}
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BinarySpacePartition
@@ -112,18 +112,18 @@ import Data.Ratio ((%))
 --
 
 -- | Message for rotating the binary tree around the parent node of the window to the left or right
-data TreeRotate = RotateL | RotateR deriving Typeable
+data TreeRotate = RotateL | RotateR
 instance Message TreeRotate
 
 -- | Message to balance the tree in some way (Balance retiles the windows, Equalize changes ratios)
-data TreeBalance = Balance | Equalize deriving Typeable
+data TreeBalance = Balance | Equalize
 instance Message TreeBalance
 
 -- | Message for resizing one of the cells in the BSP
 data ResizeDirectional =
         ExpandTowardsBy Direction2D Rational
       | ShrinkFromBy Direction2D Rational
-      | MoveSplitBy Direction2D Rational deriving Typeable
+      | MoveSplitBy Direction2D Rational
 instance Message ResizeDirectional
 
 -- | @ExpandTowards x@ is now the equivalent of @ExpandTowardsBy x 0.05@
@@ -139,25 +139,25 @@ pattern MoveSplit :: Direction2D -> ResizeDirectional
 pattern MoveSplit d = MoveSplitBy d 0.05
 
 -- | Message for rotating a split (horizontal/vertical) in the BSP
-data Rotate = Rotate deriving Typeable
+data Rotate = Rotate
 instance Message Rotate
 
 -- | Message for swapping the left child of a split with the right child of split
-data Swap = Swap deriving Typeable
+data Swap = Swap
 instance Message Swap
 
 -- | Message to cyclically select the parent node instead of the leaf
-data FocusParent = FocusParent deriving Typeable
+data FocusParent = FocusParent
 instance Message FocusParent
 
 -- | Message to move nodes inside the tree
-data SelectMoveNode = SelectNode | MoveNode deriving Typeable
+data SelectMoveNode = SelectNode | MoveNode
 instance Message SelectMoveNode
 
 data Axis = Horizontal | Vertical deriving (Show, Read, Eq)
 
 -- | Message for shifting window by splitting its neighbour
-newtype SplitShiftDirectional = SplitShift Direction1D deriving Typeable
+newtype SplitShiftDirectional = SplitShift Direction1D
 instance Message SplitShiftDirectional
 
 oppositeDirection :: Direction2D -> Direction2D

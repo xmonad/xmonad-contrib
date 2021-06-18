@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, TypeSynonymInstances, MultiParamTypeClasses, FlexibleContexts #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, FlexibleContexts #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DraggingVisualizer
@@ -30,7 +30,7 @@ draggingVisualizer = ModifiedLayout $ DraggingVisualizer Nothing
 
 data DraggingVisualizerMsg = DraggingWindow Window Rectangle
                                 | DraggingStopped
-                                deriving ( Typeable, Eq )
+                                deriving Eq
 instance Message DraggingVisualizerMsg
 
 instance LayoutModifier DraggingVisualizer Window where

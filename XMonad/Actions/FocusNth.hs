@@ -57,5 +57,3 @@ listToStack n l = Stack t ls rs
  where
     (t:rs)    = drop n l
     ls        = reverse (take n l)
-
-

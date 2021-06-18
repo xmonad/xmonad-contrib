@@ -123,4 +123,3 @@ mkNewPerWorkspaceF :: PerWorkspace l1 l2 a -> Maybe (l2 a) ->
                       PerWorkspace l1 l2 a
 mkNewPerWorkspaceF (PerWorkspace wsIds _ lt lf) mlf' =
     PerWorkspace wsIds False lt $ fromMaybe lf mlf'
-

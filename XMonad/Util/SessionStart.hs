@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SessionStart
@@ -39,7 +37,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- ---------------------------------------------------------------------
 
 newtype SessionStart = SessionStart { unSessionStart :: Bool }
-    deriving (Read, Show, Typeable)
+    deriving (Read, Show)
 
 instance ExtensionClass SessionStart where
     initialValue = SessionStart True

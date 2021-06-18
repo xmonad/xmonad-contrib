@@ -39,7 +39,7 @@ import XMonad.Prelude (ap)
 -- the maximum number of dishes allowed within a stack.
 --
 -- > MultiDishes x 1 y
--- is equivalent to 
+-- is equivalent to
 -- > Dishes x y
 --
 -- The stack with the fewest dishes is always on top, so 4 windows

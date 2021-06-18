@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE CPP                #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.ShowText
@@ -56,7 +55,7 @@ import qualified XMonad.Util.ExtensibleState as ES
 
 -- | ShowText contains the map with timers as keys and created windows as values
 newtype ShowText = ShowText (Map Atom Window)
-    deriving (Read,Show,Typeable)
+    deriving (Read,Show)
 
 instance ExtensionClass ShowText where
     initialValue = ShowText empty

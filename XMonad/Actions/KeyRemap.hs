@@ -1,4 +1,3 @@
- {-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.KeyRemap
@@ -33,7 +32,7 @@ import XMonad.Util.Paste
 import qualified XMonad.Util.ExtensibleState as XS
 
 
-newtype KeymapTable = KeymapTable [((KeyMask, KeySym), (KeyMask, KeySym))] deriving (Typeable, Show)
+newtype KeymapTable = KeymapTable [((KeyMask, KeySym), (KeyMask, KeySym))] deriving (Show)
 
 instance ExtensionClass KeymapTable where
    initialValue = KeymapTable []

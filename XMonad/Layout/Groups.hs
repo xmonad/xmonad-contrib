@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds #-}
-{-# LANGUAGE StandaloneDeriving, FlexibleContexts, DeriveDataTypeable, UndecidableInstances, FlexibleInstances, MultiParamTypeClasses, PatternGuards, Rank2Types #-}
+{-# LANGUAGE StandaloneDeriving, FlexibleContexts, UndecidableInstances, FlexibleInstances, MultiParamTypeClasses, PatternGuards, Rank2Types #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -182,7 +182,6 @@ data GroupsMessage = ToEnclosing SomeMessage -- ^ Send a message to the enclosin
                    | Modify ModifySpec -- ^ Modify the ordering\/grouping\/focusing
                                        -- of windows according to a 'ModifySpec'
                    | ModifyX ModifySpecX -- ^ Same as 'Modify', but within the 'X' monad
-                     deriving Typeable
 
 instance Show GroupsMessage where
     show (ToEnclosing _) = "ToEnclosing {...}"

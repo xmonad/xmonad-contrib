@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -107,7 +107,6 @@ data GapMessage = ToggleGaps              -- ^ Toggle all gaps.
                 | IncGap !Int !Direction2D    -- ^ Increase a gap by a certain number of pixels.
                 | DecGap !Int !Direction2D    -- ^ Decrease a gap.
                 | ModifyGaps (GapSpec -> GapSpec) -- ^ Modify arbitrarily.
-  deriving (Typeable)
 
 instance Message GapMessage
 

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing -fno-warn-unused-binds #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses
-  , PatternGuards, DeriveDataTypeable, ExistentialQuantification
+  , PatternGuards, ExistentialQuantification
   , FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ data ZoomMessage = Zoom Rational
                  | ZoomFullToggle
                  -- ^ Toggle whether the focused window should
                  -- occupy all available space when it has focus
-  deriving (Typeable, Show)
+  deriving (Show)
 
 instance Message ZoomMessage
 

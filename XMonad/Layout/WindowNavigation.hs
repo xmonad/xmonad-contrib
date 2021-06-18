@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -64,12 +64,11 @@ import XMonad.Util.XUtils
 -- "XMonad.Doc.Extending#Editing_key_bindings".
 
 
-data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show, Typeable )
+data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show)
 instance Typeable a => Message (MoveWindowToWindow a)
 
 data Navigate = Go Direction2D | Swap Direction2D | Move Direction2D
               | Apply (Window -> X()) Direction2D -- ^ Apply action with destination window
-        deriving ( Typeable )
 instance Message Navigate
 
 data WNConfig =

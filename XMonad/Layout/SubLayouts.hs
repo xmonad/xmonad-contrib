@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ParallelListComp, DeriveDataTypeable, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards, ParallelListComp, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
@@ -255,7 +255,6 @@ data GroupMsg a
     | WithGroup (W.Stack a -> X (W.Stack a)) a
     | SubMessage SomeMessage  a
                 -- ^ the sublayout with the given window will get the message
-    deriving (Typeable)
 
 -- | merge the window that would be focused by the function when applied to the
 -- W.Stack of all windows, with the current group removed. The given window
@@ -271,7 +270,6 @@ mergeDir f = WithGroup g
         return cs
 
 newtype Broadcast = Broadcast SomeMessage -- ^ send a message to all sublayouts
-    deriving (Typeable)
 
 instance Message Broadcast
 instance Typeable a => Message (GroupMsg a)

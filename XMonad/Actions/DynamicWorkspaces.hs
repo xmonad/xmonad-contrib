@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicWorkspaces
@@ -87,7 +85,7 @@ type WorkspaceIndex  = Int
 -- | Internal dynamic project state that stores a mapping between
 --   workspace indexes and workspace tags.
 newtype DynamicWorkspaceState = DynamicWorkspaceState {workspaceIndexMap :: Map.Map WorkspaceIndex WorkspaceTag}
-  deriving (Typeable, Read, Show)
+  deriving (Read, Show)
 
 instance ExtensionClass DynamicWorkspaceState where
   initialValue = DynamicWorkspaceState Map.empty

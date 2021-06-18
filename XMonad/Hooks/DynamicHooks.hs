@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicHooks
@@ -48,7 +47,6 @@ import qualified XMonad.Util.ExtensibleState as XS
 data DynamicHooks = DynamicHooks
     { transients :: [(Query Bool, ManageHook)]
     , permanent  :: ManageHook }
-                    deriving Typeable
 
 instance ExtensionClass DynamicHooks where
     initialValue = DynamicHooks [] idHook

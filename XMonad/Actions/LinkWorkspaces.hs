@@ -14,7 +14,6 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE DeriveDataTypeable  #-}
 module XMonad.Actions.LinkWorkspaces (
                                          -- * Usage
                                          -- $usage
@@ -76,7 +75,7 @@ noMessageFn :: ScreenId -> [Char] -> [Char] -> [Char] -> X()
 noMessageFn _ _ _ _ = return () :: X ()
 
 -- | Stuff for linking workspaces
-newtype WorkspaceMap = WorkspaceMap (M.Map WorkspaceId WorkspaceId) deriving (Read, Show, Typeable)
+newtype WorkspaceMap = WorkspaceMap (M.Map WorkspaceId WorkspaceId) deriving (Read, Show)
 instance ExtensionClass WorkspaceMap
     where initialValue = WorkspaceMap M.empty
           extensionType = PersistentExtension

@@ -46,7 +46,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 -- | Stores dynamic scratchpads as a map of name to window
 newtype SPStorage = SPStorage (M.Map String Window)
-    deriving (Typeable,Read,Show)
+    deriving (Read,Show)
 
 instance ExtensionClass SPStorage where
     initialValue = SPStorage M.empty

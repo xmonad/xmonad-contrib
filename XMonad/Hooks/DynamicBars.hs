@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicBars
@@ -81,7 +80,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 newtype DynStatusBarInfo = DynStatusBarInfo
   { dsbInfo :: [(ScreenId, Handle)]
-  } deriving (Typeable)
+  }
 
 instance ExtensionClass DynStatusBarInfo where
   initialValue = DynStatusBarInfo []

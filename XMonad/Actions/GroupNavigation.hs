@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 ----------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Actions.GroupNavigation
@@ -157,7 +155,7 @@ orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
 -- The state extension that holds the history information
 data HistoryDB = HistoryDB (Maybe Window) -- currently focused window
                            (Seq Window)   -- previously focused windows
-               deriving (Read, Show, Typeable)
+               deriving (Read, Show)
 
 instance ExtensionClass HistoryDB where
 

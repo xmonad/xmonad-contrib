@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -110,7 +110,7 @@ implementation is the following:
 -}
 
 data PrefixArgument = Raw Int | Numeric Int | None
-                      deriving (Typeable, Read, Show)
+                      deriving (Read, Show)
 instance ExtensionClass PrefixArgument where
   initialValue = None
   extensionType = PersistentExtension

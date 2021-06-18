@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Minimize
 -- Copyright   :  (c) Bogdan Sinitsyn (2016)
@@ -28,7 +27,7 @@ data Minimized = Minimized
     { rectMap :: RectMap
     , minimizedStack :: [Window]
     }
-    deriving (Eq, Typeable, Read, Show)
+    deriving (Eq, Read, Show)
 
 instance ExtensionClass Minimized where
   initialValue = Minimized { rectMap = M.empty

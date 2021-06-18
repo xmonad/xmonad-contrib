@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WorkspaceHistory
@@ -64,7 +62,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 newtype WorkspaceHistory = WorkspaceHistory
   { history :: [(ScreenId, WorkspaceId)] -- ^ Workspace Screens in
                                          -- reverse-chronological order.
-  } deriving (Typeable, Read, Show)
+  } deriving (Read, Show)
 
 instance ExtensionClass WorkspaceHistory where
     initialValue = WorkspaceHistory []

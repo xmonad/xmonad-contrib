@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_GHC -Wno-dodgy-imports #-} -- singleton in Data.List since base 4.15
 
 -----------------------------------------------------------------------------
@@ -122,7 +122,6 @@ data BorderMessage
     | ResetBorder Window
         -- ^ Reset the effects of any 'HasBorder' messages on the specified
         -- window.
-    deriving (Typeable)
 
 instance Message BorderMessage
 

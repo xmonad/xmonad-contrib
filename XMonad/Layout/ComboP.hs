@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, PatternGuards #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, PatternGuards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ComboP
@@ -67,7 +67,7 @@ import qualified XMonad.StackSet as W
 
 data SwapWindow =  SwapWindow        -- ^ Swap window between panes
                  | SwapWindowN Int   -- ^ Swap window between panes in the N-th nested ComboP. @SwapWindowN 0@ equals to SwapWindow
-                 deriving (Read, Show, Typeable)
+                 deriving (Read, Show)
 instance Message SwapWindow
 
 data PartitionWins = PartitionWins  -- ^ Reset the layout and
@@ -77,7 +77,7 @@ data PartitionWins = PartitionWins  -- ^ Reset the layout and
                                     -- changed and you want ComboP to
                                     -- update which layout a window
                                     -- belongs to.
-                   deriving (Read, Show, Typeable)
+                   deriving (Read, Show)
 instance Message PartitionWins
 
 data CombineTwoP l l1 l2 a = C2P [a] [a] [a] l (l1 a) (l2 a) Property

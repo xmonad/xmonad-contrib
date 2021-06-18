@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable, MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -42,6 +42,6 @@ import XMonad.Layout.TabBarDecoration
 -- > ...
 
 -- | Transformer for "XMonad.Layout.TabBarDecoration".
-data SimpleTabBar = SIMPLETABBAR deriving (Read, Show, Eq, Typeable)
+data SimpleTabBar = SIMPLETABBAR deriving (Read, Show, Eq)
 instance Transformer SimpleTabBar Window where
     transform _ x k = k (simpleTabBar x) (\(ModifiedLayout _ (ModifiedLayout _ x')) -> x')

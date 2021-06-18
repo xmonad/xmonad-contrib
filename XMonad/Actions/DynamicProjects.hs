@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicProjects
@@ -126,14 +124,14 @@ data Project = Project
   { projectName      :: !ProjectName    -- ^ Workspace name.
   , projectDirectory :: !FilePath       -- ^ Working directory.
   , projectStartHook :: !(Maybe (X ())) -- ^ Optional start-up hook.
-  } deriving Typeable
+  }
 
 --------------------------------------------------------------------------------
 -- | Internal project state.
 data ProjectState = ProjectState
   { projects        :: !ProjectTable
   , previousProject :: !(Maybe WorkspaceId)
-  } deriving Typeable
+  }
 
 --------------------------------------------------------------------------------
 instance ExtensionClass ProjectState where

@@ -117,4 +117,3 @@ keysMoveResize f move resize w = whenX (isClient w) $ withDisplay $ \d -> do
     io $ resizeWindow d w `uncurry` wn_dim
     io $ moveWindow d w `uncurry` wn_pos
     float w
-

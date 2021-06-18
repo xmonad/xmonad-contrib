@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, FlexibleContexts, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, FlexibleInstances #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Fullscreen
@@ -104,7 +104,6 @@ fullscreenSupportBorder c =
 data FullscreenMessage = AddFullscreen Window
                        | RemoveFullscreen Window
                        | FullscreenChanged
-     deriving (Typeable)
 
 instance Message FullscreenMessage
 

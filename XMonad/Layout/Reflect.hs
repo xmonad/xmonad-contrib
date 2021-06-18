@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,7 +23,6 @@ module XMonad.Layout.Reflect (
 
                              ) where
 
-import XMonad.Core
 import XMonad.Prelude (fi)
 import Graphics.X11 (Rectangle(..), Window)
 import Control.Arrow (second)
@@ -101,8 +100,8 @@ instance LayoutModifier Reflect a where
 
 -------- instances for MultiToggle ------------------
 
-data REFLECTX = REFLECTX deriving (Read, Show, Eq, Typeable)
-data REFLECTY = REFLECTY deriving (Read, Show, Eq, Typeable)
+data REFLECTX = REFLECTX deriving (Read, Show, Eq)
+data REFLECTY = REFLECTY deriving (Read, Show, Eq)
 
 instance Transformer REFLECTX Window where
     transform REFLECTX x k = k (reflectHoriz x) (\(ModifiedLayout _ x') -> x')
