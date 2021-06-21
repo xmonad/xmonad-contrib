@@ -491,6 +491,8 @@
     - Added `focusWindow` and `focusNth` which don't refresh (and thus
       possibly flicker) when they happen to be a no-op.
 
+    - Added `shiftWin` as a refresh tracking version of `W.shiftWin`.
+
   * Several `LayoutClass` instances now have an additional `Typeable`
     constraint which may break some advanced configs. The upside is that we
     can now add `Typeable` to `LayoutClass` in `XMonad.Core` and make it
