@@ -27,15 +27,17 @@ module XMonad.Util.NamedScratchpad (
   allNamedScratchpadAction,
   namedScratchpadManageHook,
   namedScratchpadFilterOutWorkspace,
-  namedScratchpadFilterOutWorkspacePP
+  namedScratchpadFilterOutWorkspacePP,
+  nsHideOnFocusLoss,
   ) where
 
 import XMonad
-import XMonad.Prelude (filterM, find, unless)
-import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
-import XMonad.Hooks.DynamicLog (PP, ppSort)
 import XMonad.Actions.SpawnOn (spawnHere)
+import XMonad.Hooks.DynamicLog (PP, ppSort)
+import XMonad.Hooks.ManageHelpers (doRectFloat)
+import XMonad.Hooks.RefocusLast (withRecentsIn)
+import XMonad.Prelude (filterM, find, unless, when)
 
 import qualified Data.List.NonEmpty as NE
 
@@ -92,6 +94,11 @@ import qualified XMonad.StackSet as W
 -- For this, you can use functions 'XMonad.Hooks.DynamicLog.filterOutWsPP' and
 -- 'XMonad.Util.WorkspaceCompare.filterOutWs'.  See the documentation of these
 -- functions for examples.
+--
+-- Further, there is also a @logHook@ that you can use to hide
+-- scratchpads when they lose focus; this is functionality akin to what
+-- some dropdown terminals provide.  See the documentation of
+-- 'nsHideOnFocusLoss' for an example how to set this up.
 --
 
 -- | Single named scratchpad configuration
@@ -152,6 +159,31 @@ allNamedScratchpadAction :: NamedScratchpads
                          -> X ()
 allNamedScratchpadAction = someNamedScratchpadAction mapM_ runApplication
 
+-- | A @logHook@ to hide scratchpads when they lose focus.  This can be
+-- useful for e.g. dropdown terminals.  Note that this also requires you
+-- to use the 'XMonad.Hooks.RefocusLast.refocusLastLogHook'.
+--
+-- ==== __Example__
+--
+-- > import XMonad.Hooks.RefocusLast (refocusLastLogHook)
+-- > import XMonad.Util.NamedScratchpad
+-- >
+-- > main = xmonad $ def
+-- >   { logHook = refocusLastLogHook
+-- >            >> nsHideOnFocusLoss myScratchpads
+-- >               -- enable hiding for all of @myScratchpads@
+-- >   }
+nsHideOnFocusLoss :: NamedScratchpads -> X ()
+nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
+    let cur = W.currentTag winSet
+    withRecentsIn cur () $ \lastFocus _ ->
+        when (lastFocus `elem` W.index winSet && cur /= scratchpadWorkspaceTag) $
+            whenX (isNS lastFocus) $
+                shiftToNSP (W.workspaces winSet) ($ lastFocus)
+  where
+    isNS :: Window -> X Bool
+    isNS w = or <$> traverse ((`runQuery` w) . query) scratches
+
 -- | execute some action on a named scratchpad
 someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> (NamedScratchpad -> X ())
@@ -173,11 +205,7 @@ someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
                     Just wins -> f (windows . W.shiftWin (W.currentTag winSet)) wins
 
                 -- matching window running on current workspace -> window should be shifted to scratchpad workspace
-                Just wins -> do
-                    unless (any (\wsp -> scratchpadWorkspaceTag == W.tag wsp) (W.workspaces winSet))
-                        (addHiddenWorkspace scratchpadWorkspaceTag)
-                    f (windows . W.shiftWin scratchpadWorkspaceTag) wins
-
+                Just wins -> shiftToNSP (W.workspaces winSet) (`f` wins)
         Nothing -> return ()
 
 -- | Tag of the scratchpad workspace
@@ -188,6 +216,14 @@ scratchpadWorkspaceTag = "NSP"
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
 namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
+
+-- | Shift some windows to the scratchpad workspace according to the
+-- given function.  The workspace is created if necessary.
+shiftToNSP :: [WindowSpace] -> ((Window -> X ()) -> X ()) -> X ()
+shiftToNSP ws f = do
+    unless (any ((scratchpadWorkspaceTag ==) . W.tag) ws) $
+        addHiddenWorkspace scratchpadWorkspaceTag
+    f (windows . W.shiftWin scratchpadWorkspaceTag)
 
 -- | Transforms a workspace list containing the NSP workspace into one that
 -- doesn't contain it. Intended for use with logHooks.
