@@ -379,6 +379,9 @@
 
      - Exported the `scratchpadWorkspaceTag`.
 
+     - Added a new logHook `nsHideOnFocusLoss` for hiding scratchpads
+       when they lose focus.
+
   * `XMonad.Prompt.Window`
 
     - Added `allApplications` function which maps application executable
