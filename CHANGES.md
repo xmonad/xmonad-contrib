@@ -118,6 +118,7 @@
     - Deprecated `EmptyWS`, `HiddenWS`, `NonEmptyWS`, `HiddenNonEmptyWS`,
       `HiddenEmptyWS`, `AnyWS` and `WSTagGroup`.
 
+
 ### New Modules
 
   * `XMonad.Hooks.StatusBar.PP`
@@ -270,6 +271,13 @@
     to restart/reposition status bars or systrays automatically after xrandr,
     as well as to actually invoke xrandr or autorandr when an output is
     (dis)connected.
+
+  * `XMonad.Actions.EasyMotion`
+
+    A new module that allows selection of visible screens using a key chord.
+    Inspired by [vim-easymotion](https://github.com/easymotion/vim-easymotion). See the animation
+    in the vim-easymotion repo to get some idea of the functionality of this
+    EasyMotion module.
 
 ### Bug Fixes and Minor Changes
 
@@ -970,13 +978,6 @@
 
     Currently needs manual setting of the session start flag. This could be
     automated when this moves to the core repository.
-
-  * `XMonad.Actions.EasyMotion`
-
-    A new module that allows selection of visible screens using a key chord.
-    Inspired by [vim-easymotion](https://github.com/easymotion/vim-easymotion). See the animation
-    in the vim-easymotion repo to get some idea of the functionality of this
-    EasyMotion module.
 
   * `XMonad.Layout.MultiDishes`
 
