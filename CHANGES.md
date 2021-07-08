@@ -190,6 +190,7 @@
   * `XMonad.Hooks.DynamicIcons`
 
     Added Dynamic Strings as `dynamicLogIconWithPP` based on a Workspaces Windows
+    Added ability to change to only show focused window
 
   * `XMonad.Hooks.WindowSwallowing`
 
