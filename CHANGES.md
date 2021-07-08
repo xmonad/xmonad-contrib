@@ -387,6 +387,9 @@
 
      - Exported the `scratchpadWorkspaceTag`.
 
+     - Added a new logHook `nsHideOnFocusLoss` for hiding scratchpads
+       when they lose focus.
+
   * `XMonad.Prompt.Window`
 
     - Added `allApplications` function which maps application executable
@@ -490,6 +493,8 @@
 
     - Added `focusWindow` and `focusNth` which don't refresh (and thus
       possibly flicker) when they happen to be a no-op.
+
+    - Added `shiftWin` as a refresh tracking version of `W.shiftWin`.
 
   * Several `LayoutClass` instances now have an additional `Typeable`
     constraint which may break some advanced configs. The upside is that we

@@ -41,7 +41,9 @@ module XMonad.Hooks.RefocusLast (
   RecentWins(..),
   RecentsMap(..),
   RefocusLastLayoutHook(..),
-  RefocusLastToggle(..)
+  RefocusLastToggle(..),
+  -- * Library functions
+  withRecentsIn,
 ) where
 
 import XMonad
@@ -262,7 +264,7 @@ updateRecentsOn tag = withWindowSet $ \ws ->
 
 -- }}}
 
--- --< Private Utilities >-- {{{
+-- --< Utilities >-- {{{
 
 -- | Focuses the first window in the list it can find on the current workspace.
 tryFocus :: [Window] -> WindowSet -> WindowSet
