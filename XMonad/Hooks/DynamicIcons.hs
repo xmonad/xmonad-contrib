@@ -21,7 +21,7 @@ module XMonad.Hooks.DynamicIcons (
     dynamicLogIconsWithPP, appIcon,
 
     -- * Customization
-    dynamicIconsPP, getWorkspaceIcons,
+    dynamicIconsPP, getWorkspaceIcons, getWorkspaceIcons', getMasterIcon,
     IconConfig(..),
     iconsFmtAppend, iconsFmtReplace, wrapUnwords,
 
@@ -32,7 +32,7 @@ import qualified XMonad.StackSet as S
 import qualified Data.Map as M
 
 import XMonad.Hooks.DynamicLog
-import XMonad.Prelude (for, (<&>), (<=<), (>=>))
+import XMonad.Prelude (for, (<&>), (<=<), (>=>), maybeToList)
 
 -- $usage
 -- Dynamically augment Workspace's 'WorkspaceId' as shown on a status bar
@@ -95,10 +95,18 @@ dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename 
 -- | Returns a function for 'ppRename' that augments workspaces with icons
 -- according to the provided 'IconConfig'.
 getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
-getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconConfigIcons
+getWorkspaceIcons IconConfig{..} = fmt <$> iconFilterFunction iconConfigIcons
   where
     fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
 
+-- | Only use the focused window for each workspace to find icon
+getMasterIcon :: Query [String] -> X (M.Map WorkspaceId [String])
+getMasterIcon q = do
+    ws <- gets (S.workspaces . windowset)
+    is <- flip foldMap ws $ fmap maybeToList . traverse (runQuery q .  S.focus) . S.stack
+    pure $ M.fromList (zip (map S.tag ws) is)
+
+-- | Use all icons for each workspace
 getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
 getWorkspaceIcons' q = do
     ws <- gets (S.workspaces . windowset)
@@ -112,12 +120,15 @@ data IconConfig = IconConfig
       -- ^ What icons to use for each window.
     , iconConfigFmt :: WorkspaceId -> [String] -> String
       -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
+    , iconFilterFunction :: Query [String] -> X (M.Map WorkspaceId [String])
+      -- ^ How to find the appropriate icons for each workspace
     }
 
 instance Default IconConfig where
     def = IconConfig
         { iconConfigIcons = mempty
         , iconConfigFmt = iconsFmtReplace (wrapUnwords "{" "}")
+        , iconFilterFunction = getWorkspaceIcons'
         }
 
 -- | 'iconConfigFmt' that replaces the workspace name with icons, if any.
