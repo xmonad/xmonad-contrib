@@ -26,13 +26,13 @@ module XMonad.Hooks.DynamicIcons (
     iconsFmtAppend, iconsFmtReplace, wrapUnwords,
 
     ) where
-import XMonad
+import           XMonad
 
-import qualified XMonad.StackSet as S
-import qualified Data.Map as M
+import qualified Data.Map                as M
+import qualified XMonad.StackSet         as S
 
-import XMonad.Hooks.DynamicLog
-import XMonad.Prelude (for, (<&>), (<=<), (>=>), maybeToList)
+import           XMonad.Hooks.DynamicLog
+import           XMonad.Prelude          (for, maybeToList, (<&>), (<=<), (>=>))
 
 -- $usage
 -- Dynamically augment Workspace's 'WorkspaceId' as shown on a status bar
@@ -103,22 +103,22 @@ getWorkspaceIcons IconConfig{..} = fmt <$> iconFilterFunction iconConfigIcons
 getMasterIcon :: Query [String] -> X (M.Map WorkspaceId [String])
 getMasterIcon q = do
     ws <- gets (S.workspaces . windowset)
-    is <- flip foldMap ws $ fmap maybeToList . traverse (runQuery q .  S.focus) . S.stack
+    is <- for ws $  fmap (concat . maybeToList) . traverse (runQuery q . S.focus)  . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
 
 -- | Use all icons for each workspace
 getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
 getWorkspaceIcons' q = do
     ws <- gets (S.workspaces . windowset)
-    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
+    is <- flip foldMap ws $ traverse (runQuery q .  S.focus) . maybeToList . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
 
 
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
-    { iconConfigIcons :: Query [String]
+    { iconConfigIcons    :: Query [String]
       -- ^ What icons to use for each window.
-    , iconConfigFmt :: WorkspaceId -> [String] -> String
+    , iconConfigFmt      :: WorkspaceId -> [String] -> String
       -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
     , iconFilterFunction :: Query [String] -> X (M.Map WorkspaceId [String])
       -- ^ How to find the appropriate icons for each workspace
