@@ -21,7 +21,7 @@ module XMonad.Hooks.DynamicIcons (
     dynamicLogIconsWithPP, appIcon,
 
     -- * Customization
-    dynamicIconsPP, getWorkspaceIcons, getWorkspaceIcons', getMasterIcon,
+    dynamicIconsPP, getWorkspaceIcons, getWorkspaceIcons', getFocusedIcon,
     IconConfig(..),
     iconsFmtAppend, iconsFmtReplace, wrapUnwords,
 
@@ -100,8 +100,8 @@ getWorkspaceIcons IconConfig{..} = fmt <$> iconFilterFunction iconConfigIcons
     fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
 
 -- | Only use the focused window for each workspace to find icon
-getMasterIcon :: Query [String] -> X (M.Map WorkspaceId [String])
-getMasterIcon q = do
+getFocusedIcon :: Query [String] -> X (M.Map WorkspaceId [String])
+getFocusedIcon q = do
     ws <- gets (S.workspaces . windowset)
     is <- for ws $  fmap (concat . maybeToList) . traverse (runQuery q . S.focus)  . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
@@ -181,4 +181,4 @@ iconsFmtAppend cat ws is | null is   = ws
 -- ""
 wrapUnwords :: String -> String -> [String] -> String
 wrapUnwords _ _ [x] = x
-wrapUnwords l r xs  = wrap l r (unwords xs)
+ (unwords xs)
