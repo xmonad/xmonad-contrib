@@ -110,7 +110,7 @@ getFocusedIcon q = do
 getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
 getWorkspaceIcons' q = do
     ws <- gets (S.workspaces . windowset)
-    is <- flip foldMap ws $ traverse (runQuery q .  S.focus) . maybeToList . S.stack
+    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
 
 
