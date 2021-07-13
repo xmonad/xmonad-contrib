@@ -181,4 +181,4 @@ iconsFmtAppend cat ws is | null is   = ws
 -- ""
 wrapUnwords :: String -> String -> [String] -> String
 wrapUnwords _ _ [x] = x
- (unwords xs)
+wrapUnwords l r xs  = wrap l r (unwords xs)
