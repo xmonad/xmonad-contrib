@@ -32,7 +32,7 @@ import XMonad
 import qualified XMonad.StackSet as S
 import qualified Data.Map as M
 
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.StatusBar.PP
 import XMonad.Prelude (for, maybeToList, (<&>), (<=<), (>=>))
 
 -- $usage
