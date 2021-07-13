@@ -659,6 +659,9 @@
     - Added `ingoringWSs` as a `WSType` predicate to skip workspaces having a
       tag in a given list.
 
+  - `XMonad.Actions.DynamicWorkspaceOrder`
+
+    - Added `swapWithCurrent` and `swapOrder` to the list of exported names.
 
 ## 0.16
 

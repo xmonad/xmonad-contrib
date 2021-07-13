@@ -21,6 +21,8 @@ module XMonad.Actions.DynamicWorkspaceOrder
       getWsCompareByOrder
     , getSortByOrder
     , swapWith
+    , swapWithCurrent
+    , swapOrder
     , updateName
     , removeName
 
