@@ -21,7 +21,7 @@ module XMonad.Hooks.DynamicIcons (
     dynamicLogIconsWithPP, appIcon,
 
     -- * Customization
-    dynamicIconsPP, getWorkspaceIcons, getWorkspaceIcons', getFocusedIcon,
+    dynamicIconsPP, getWorkspaceIcons, getAllIcons , getFocusedIcon,
     IconConfig(..),
     iconsFmtAppend, iconsFmtReplace, wrapUnwords,
 
@@ -95,22 +95,22 @@ dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename 
 -- | Returns a function for 'ppRename' that augments workspaces with icons
 -- according to the provided 'IconConfig'.
 getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
-getWorkspaceIcons IconConfig{..} = fmt <$> iconFilterFunction iconConfigIcons
+getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconFilterFunction iconConfigIcons
   where
     fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
 
 -- | Only use the focused window for each workspace to find icon
-getFocusedIcon :: Query [String] -> X (M.Map WorkspaceId [String])
-getFocusedIcon q = do
-    ws <- gets (S.workspaces . windowset)
-    is <- for ws $  fmap (concat . maybeToList) . traverse (runQuery q . S.focus)  . S.stack
-    pure $ M.fromList (zip (map S.tag ws) is)
+getFocusedIcon ::  Maybe (S.Stack Window) -> X [Window]
+getFocusedIcon = pure . maybeToList . fmap S.focus
+
+getAllIcons :: Maybe (S.Stack Window) -> X [Window]
+getAllIcons = pure . S.integrate'
 
 -- | Use all icons for each workspace
-getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
-getWorkspaceIcons' q = do
+getWorkspaceIcons' :: (Maybe (S.Stack Window) -> X [Window]) -> Query [String]  -> X (M.Map WorkspaceId [String])
+getWorkspaceIcons' f q = do
     ws <- gets (S.workspaces . windowset)
-    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
+    is <- for ws $ foldMap (runQuery q) <=< f . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
 
 
@@ -120,7 +120,7 @@ data IconConfig = IconConfig
       -- ^ What icons to use for each window.
     , iconConfigFmt      :: WorkspaceId -> [String] -> String
       -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
-    , iconFilterFunction :: Query [String] -> X (M.Map WorkspaceId [String])
+    , iconFilterFunction :: Maybe (S.Stack Window) -> X [Window]
       -- ^ How to find the appropriate icons for each workspace
     }
 
@@ -128,7 +128,7 @@ instance Default IconConfig where
     def = IconConfig
         { iconConfigIcons = mempty
         , iconConfigFmt = iconsFmtReplace (wrapUnwords "{" "}")
-        , iconFilterFunction = getWorkspaceIcons'
+        , iconFilterFunction = getAllIcons
         }
 
 -- | 'iconConfigFmt' that replaces the workspace name with icons, if any.
