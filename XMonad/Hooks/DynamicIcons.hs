@@ -95,15 +95,15 @@ dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename 
 -- | Returns a function for 'ppRename' that augments workspaces with icons
 -- according to the provided 'IconConfig'.
 getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
-getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconFilterFunction iconConfigIcons
+getWorkspaceIcons conf@IconConfig{..} = fmt <$> getWorkspaceIcons' conf
   where
     fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
 
 -- | Use all icons for each workspace
-getWorkspaceIcons' :: (Maybe (S.Stack Window) -> X [Window]) -> Query [String]  -> X (M.Map WorkspaceId [String])
-getWorkspaceIcons' f q = do
+getWorkspaceIcons' :: IconConfig  -> X (M.Map WorkspaceId [String])
+getWorkspaceIcons' IconConfig{..} = do
     ws <- gets (S.workspaces . windowset)
-    is <- for ws $ foldMap (runQuery q) <=< f . S.stack
+    is <- for ws $ foldMap (runQuery iconConfigIcons) <=< iconFilterFunction . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
 
 -- | Only use the focused window for each workspace to find icon
@@ -113,9 +113,6 @@ getFocusedIcon = pure . maybeToList . fmap S.focus
 ---- | Use all windows for each workspace to find icon
 getAllIcons :: Maybe (S.Stack Window) -> X [Window]
 getAllIcons = pure . S.integrate'
-
-
-
 
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
