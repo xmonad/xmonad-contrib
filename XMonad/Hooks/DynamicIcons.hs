@@ -24,6 +24,7 @@ module XMonad.Hooks.DynamicIcons (
     dynamicIconsPP, getWorkspaceIcons,
     IconConfig(..),
     iconsFmtAppend, iconsFmtReplace, wrapUnwords,
+    iconsGetAll, iconsGetFocus,
 
     ) where
 import XMonad
@@ -31,8 +32,8 @@ import XMonad
 import qualified XMonad.StackSet as S
 import qualified Data.Map as M
 
-import XMonad.Hooks.DynamicLog
-import XMonad.Prelude (for, (<&>), (<=<), (>=>))
+import XMonad.Hooks.StatusBar.PP
+import XMonad.Prelude (for, maybeToList, (<&>), (<=<), (>=>))
 
 -- $usage
 -- Dynamically augment Workspace's 'WorkspaceId' as shown on a status bar
@@ -95,16 +96,15 @@ dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename 
 -- | Returns a function for 'ppRename' that augments workspaces with icons
 -- according to the provided 'IconConfig'.
 getWorkspaceIcons :: IconConfig -> X (String -> WindowSpace -> String)
-getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconConfigIcons
+getWorkspaceIcons conf@IconConfig{..} = fmt <$> getWorkspaceIcons' conf
   where
     fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
 
-getWorkspaceIcons' :: Query [String] -> X (M.Map WorkspaceId [String])
-getWorkspaceIcons' q = do
+getWorkspaceIcons' :: IconConfig  -> X (M.Map WorkspaceId [String])
+getWorkspaceIcons' IconConfig{..} = do
     ws <- gets (S.workspaces . windowset)
-    is <- for ws $ foldMap (runQuery q) . S.integrate' . S.stack
+    is <- for ws $ foldMap (runQuery iconConfigIcons) <=< iconConfigFilter . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
-
 
 -- | Datatype for expanded 'Icon' configurations
 data IconConfig = IconConfig
@@ -112,12 +112,15 @@ data IconConfig = IconConfig
       -- ^ What icons to use for each window.
     , iconConfigFmt :: WorkspaceId -> [String] -> String
       -- ^ How to format the result, see 'iconsFmtReplace', 'iconsFmtAppend'.
+    , iconConfigFilter :: Maybe (S.Stack Window) -> X [Window]
+      -- ^ Which windows (icons) to show.
     }
 
 instance Default IconConfig where
     def = IconConfig
         { iconConfigIcons = mempty
         , iconConfigFmt = iconsFmtReplace (wrapUnwords "{" "}")
+        , iconConfigFilter = iconsGetAll
         }
 
 -- | 'iconConfigFmt' that replaces the workspace name with icons, if any.
@@ -171,3 +174,11 @@ iconsFmtAppend cat ws is | null is   = ws
 wrapUnwords :: String -> String -> [String] -> String
 wrapUnwords _ _ [x] = x
 wrapUnwords l r xs  = wrap l r (unwords xs)
+
+-- | 'iconConfigFilter' that shows all windows of every workspace.
+iconsGetAll :: Maybe (S.Stack Window) -> X [Window]
+iconsGetAll = pure . S.integrate'
+
+-- | 'iconConfigFilter' that shows only the focused window for each workspace.
+iconsGetFocus :: Maybe (S.Stack Window) -> X [Window]
+iconsGetFocus = pure . maybeToList . fmap S.focus

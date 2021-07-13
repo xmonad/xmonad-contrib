@@ -189,7 +189,8 @@
 
   * `XMonad.Hooks.DynamicIcons`
 
-    Added Dynamic Strings as `dynamicLogIconWithPP` based on a Workspaces Windows
+    Dynamically augment workspace names logged to a status bar via DynamicLog
+    based on the contents (windows) of the workspace.
 
   * `XMonad.Hooks.WindowSwallowing`
 
