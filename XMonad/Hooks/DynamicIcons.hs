@@ -99,19 +99,22 @@ getWorkspaceIcons IconConfig{..} = fmt <$> getWorkspaceIcons' iconFilterFunction
   where
     fmt icons s w = iconConfigFmt s (M.findWithDefault [] (S.tag w) icons)
 
--- | Only use the focused window for each workspace to find icon
-getFocusedIcon ::  Maybe (S.Stack Window) -> X [Window]
-getFocusedIcon = pure . maybeToList . fmap S.focus
-
-getAllIcons :: Maybe (S.Stack Window) -> X [Window]
-getAllIcons = pure . S.integrate'
-
 -- | Use all icons for each workspace
 getWorkspaceIcons' :: (Maybe (S.Stack Window) -> X [Window]) -> Query [String]  -> X (M.Map WorkspaceId [String])
 getWorkspaceIcons' f q = do
     ws <- gets (S.workspaces . windowset)
     is <- for ws $ foldMap (runQuery q) <=< f . S.stack
     pure $ M.fromList (zip (map S.tag ws) is)
+
+-- | Only use the focused window for each workspace to find icon
+getFocusedIcon ::  Maybe (S.Stack Window) -> X [Window]
+getFocusedIcon = pure . maybeToList . fmap S.focus
+
+---- | Use all windows for each workspace to find icon
+getAllIcons :: Maybe (S.Stack Window) -> X [Window]
+getAllIcons = pure . S.integrate'
+
+
 
 
 -- | Datatype for expanded 'Icon' configurations
