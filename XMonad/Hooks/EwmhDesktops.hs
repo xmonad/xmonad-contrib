@@ -124,6 +124,14 @@ instance ExtensionClass ClientList where
     initialValue = ClientList [none]
 
 -- |
+-- Cached stacking client list (e.g. @_NET_CLIENT_LIST_STACKING@).
+newtype ClientListStacking = ClientListStacking [Window]
+                           deriving Eq
+
+instance ExtensionClass ClientListStacking where
+    initialValue = ClientListStacking [none]
+
+-- |
 -- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
 newtype CurrentDesktop = CurrentDesktop Int
                        deriving Eq
@@ -171,9 +179,16 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
         setNumberOfDesktops (length desktopNames)
         setDesktopNames desktopNames
 
-    -- Set client list; all windows, with focused windows last
-    let clientList = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
+    -- Set client list which should be sorted by window age. We just
+    -- guess that StackSet contains windows list in this order which
+    -- isn't true but at least gives consistency with windows cycling
+    let clientList = nub . concatMap (W.integrate' . W.stack) $ ws
     whenChanged (ClientList clientList) $ setClientList clientList
+
+    -- Set stacking client list which should have bottom-to-top
+    -- stacking order, i.e. focused window should be last
+    let clientListStacking = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
+    whenChanged (ClientListStacking clientListStacking) $ setClientListStacking clientListStacking
 
     -- Remap the current workspace to handle any renames that f might be doing.
     let maybeCurrent' = W.tag <$> listToMaybe (t [W.workspace $ W.current s])
@@ -354,12 +369,15 @@ setDesktopNames names = withDisplay $ \dpy -> do
 
 setClientList :: [Window] -> X ()
 setClientList wins = withDisplay $ \dpy -> do
-    -- (What order do we really need? Something about age and stacking)
     r <- asks theRoot
     a <- getAtom "_NET_CLIENT_LIST"
     io $ changeProperty32 dpy r a wINDOW propModeReplace (fmap fromIntegral wins)
-    a' <- getAtom "_NET_CLIENT_LIST_STACKING"
-    io $ changeProperty32 dpy r a' wINDOW propModeReplace (fmap fromIntegral wins)
+
+setClientListStacking :: [Window] -> X ()
+setClientListStacking wins = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_CLIENT_LIST_STACKING"
+    io $ changeProperty32 dpy r a wINDOW propModeReplace (fmap fromIntegral wins)
 
 setWindowDesktop :: (Integral a) => Window -> a -> X ()
 setWindowDesktop win i = withDisplay $ \dpy -> do
