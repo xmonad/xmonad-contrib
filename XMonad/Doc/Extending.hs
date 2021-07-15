@@ -598,7 +598,7 @@ Here is a list of the modules found in @XMonad.Hooks@:
     Keeps track of workspace viewing order.
 
 * "XMonad.Hooks.WindowSwallowing"
-    A handleEventHook that implements window swallowing:
+    handleEventHooks that implement window swallowing or sublayouting:
     Hide parent windows like terminals when opening other programs (like image viewers) from within them,
     restoring them once the child application closes.
 
