@@ -122,6 +122,11 @@
     - Deprecated `EmptyWS`, `HiddenWS`, `NonEmptyWS`, `HiddenNonEmptyWS`,
       `HiddenEmptyWS`, `AnyWS` and `WSTagGroup`.
 
+  - `XMonad.Actions.GridSelect`
+
+    - `colorRangeFromClassName` now uses different hash function,
+      so colors of inactive window tiles will be different (but still inside
+      the provided color range).
 
 ### New Modules
 
