@@ -32,7 +32,9 @@ import           XMonad.Util.DebugWindow                     (debugWindow)
 -- import           Graphics.X11.Xlib.Extras.GetAtomName        (getAtomName)
 
 import           Control.Exception                    as E
+#if __GLASGOW_HASKELL__ <= 806
 import           Control.Monad.Fail
+#endif
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Codec.Binary.UTF8.String
