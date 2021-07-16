@@ -279,6 +279,8 @@ instance SetsAmbiguous Ambiguity where
                         in lr == wr1 && (not . or) vu
                     OnlyLayoutFloat ->
                         lr == wr1
+                    OnlyFloat ->
+                        True
                     _ ->
                         wr1 `R.supersetOf` sr
                 return w1
@@ -288,6 +290,7 @@ instance SetsAmbiguous Ambiguity where
               | Screen <- amb = [w]
               | OnlyScreenFloat <- amb = []
               | OnlyLayoutFloat <- amb = []
+              | OnlyFloat <- amb = []
               | OnlyLayoutFloatBelow <- amb = []
               | OtherIndicated <- amb
               , let nonF = map integrate $ W.current wset : W.visible wset
@@ -326,6 +329,9 @@ data Ambiguity
         -- ^ Focus in an empty screen does not count as ambiguous.
     | OtherIndicated
         -- ^ No borders on full when all other screens have borders.
+    | OnlyFloat
+        -- ^ Remove borders on all floating windows; tiling windows of
+        -- any kinds are not affected.
     | Screen
         -- ^ Borders are never drawn on singleton screens.  With this one you
         -- really need another way such as a statusbar to detect focus.
