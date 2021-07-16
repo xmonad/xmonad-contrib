@@ -122,6 +122,8 @@ instance Arbitrary RectC where
 instance Arbitrary Rectangle where
   arbitrary = Rectangle <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
 
+instance Arbitrary RationalRect where
+  arbitrary = RationalRect <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
 
 newtype SizedPositive = SizedPositive Int
     deriving (Eq, Ord, Show, Read)
