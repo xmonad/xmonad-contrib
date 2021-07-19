@@ -375,6 +375,8 @@ test-suite tests
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   other-modules:  CycleRecentWS
+                  ExtensibleConf
+                  GridSelect
                   Instances
                   ManageDocks
                   NoBorders
@@ -383,31 +385,41 @@ test-suite tests
                   Selective
                   SwapWorkspaces
                   Utils
-                  ExtensibleConf
                   XMonad.Actions.CycleRecentWS
                   XMonad.Actions.CycleWS
                   XMonad.Actions.FocusNth
+                  XMonad.Actions.GridSelect
                   XMonad.Actions.PhysicalScreens
                   XMonad.Actions.RotateSome
                   XMonad.Actions.SwapWorkspaces
                   XMonad.Actions.TagWindows
+                  XMonad.Actions.WindowBringer
                   XMonad.Hooks.ManageDocks
+                  XMonad.Hooks.ManageHelpers
+                  XMonad.Hooks.UrgencyHook
                   XMonad.Hooks.WorkspaceHistory
+                  XMonad.Layout.Decoration
                   XMonad.Layout.LayoutModifier
                   XMonad.Layout.LimitWindows
                   XMonad.Layout.NoBorders
+                  XMonad.Layout.WindowArranger
                   XMonad.Prelude
                   XMonad.Prompt
                   XMonad.Prompt.OrgMode
                   XMonad.Prompt.Shell
+                  XMonad.Util.Dmenu
+                  XMonad.Util.Dzen
                   XMonad.Util.ExtensibleConf
                   XMonad.Util.ExtensibleState
                   XMonad.Util.Font
                   XMonad.Util.Image
+                  XMonad.Util.Invisible
+                  XMonad.Util.NamedWindows
                   XMonad.Util.PureX
                   XMonad.Util.Rectangle
                   XMonad.Util.Run
                   XMonad.Util.Stack
+                  XMonad.Util.Timer
                   XMonad.Util.Types
                   XMonad.Util.WindowProperties
                   XMonad.Util.WorkspaceCompare
@@ -423,6 +435,7 @@ test-suite tests
                , time >= 1.8 && < 1.12
                , hspec >= 2.4.0 && < 3
                , mtl
+               , random
                , process
                , unix
                , utf8-string
