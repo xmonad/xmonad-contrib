@@ -47,6 +47,7 @@ module XMonad.Actions.GridSelect (
     fromClassName,
     stringColorizer,
     colorRangeFromClassName,
+    stringToRatio,
 
     -- * Navigation Mode assembly
     TwoD,
@@ -93,7 +94,7 @@ import XMonad.Layout.Decoration
 import XMonad.Util.NamedWindows
 import XMonad.Actions.WindowBringer (bringWindow)
 import Text.Printf
-import System.Random (mkStdGen, genRange, next)
+import System.Random (mkStdGen, randomR)
 import Data.Word (Word8)
 
 -- $usage
@@ -628,15 +629,12 @@ mix (r1, g1, b1) (r2, g2, b2) r = (mix' r1 r2, mix' g1 g2, mix' b1 b2)
 
 -- | Generates a Double from a string, trying to
 -- achieve a random distribution.
--- We create a random seed from the sum of all characters
+-- We create a random seed from the hash of all characters
 -- in the string, and use it to generate a ratio between 0 and 1
 stringToRatio :: String -> Double
 stringToRatio "" = 0
-stringToRatio s = let gen = mkStdGen $ sum $ map fromEnum s
-                      range = (\(a, b) -> b - a) $ genRange gen
-                      randomInt = foldr1 combine $ replicate 20 next
-                      combine f1 f2 g = let (_, g') = f1 g in f2 g'
-                  in fi (fst $ randomInt gen) / fi range
+stringToRatio s = let gen = mkStdGen $ foldl' (\t c -> t * 31 + fromEnum c) 0 s
+                  in fst $ randomR (0, 1) gen
 
 -- | Brings up a 2D grid of elements in the center of the screen, and one can
 -- select an element with cursors keys. The selected element is returned.
