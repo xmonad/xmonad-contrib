@@ -156,7 +156,8 @@ import XMonad.Hooks.StatusBar
 -- You should use this function only when the default 'dzen' function does not
 -- serve your purpose.
 --
-dzenWithFlags :: LayoutClass l Window
+dzenWithFlags :: (LayoutClass l Window
+                 ,Read (l Window))
               => String     -- ^ Flags to give to @dzen@
               -> XConfig l  -- ^ The base config
               -> IO (XConfig (ModifiedLayout AvoidStruts l))
@@ -170,7 +171,8 @@ dzenWithFlags flags = statusBar ("dzen2 " ++ flags) dzenPP toggleStrutsKey
 --
 -- This works pretty much the same as the 'xmobar' function.
 --
-dzen :: LayoutClass l Window
+dzen :: (LayoutClass l Window
+        ,Read (l Window))
      => XConfig l  -- ^ The base config
      -> IO (XConfig (ModifiedLayout AvoidStruts l))
 dzen = dzenWithFlags flags
@@ -181,7 +183,8 @@ dzen = dzenWithFlags flags
 
 -- | This function works like 'xmobarProp', but uses pipes instead of
 -- property-based logging.
-xmobar :: LayoutClass l Window
+xmobar :: (LayoutClass l Window
+          ,Read (l Window))
        => XConfig l  -- ^ The base config
        -> IO (XConfig (ModifiedLayout AvoidStruts l))
 xmobar = statusBar "xmobar" xmobarPP toggleStrutsKey
@@ -189,7 +192,8 @@ xmobar = statusBar "xmobar" xmobarPP toggleStrutsKey
 -- | Like 'statusBarProp', but uses pipes instead of property-based logging.
 -- Only use this function if your status bar does not support reading from a
 -- property of the root window.
-statusBar :: LayoutClass l Window
+statusBar :: (LayoutClass l Window
+             ,Read (l Window))
           => String    -- ^ The command line to launch the status bar
           -> PP        -- ^ The pretty printing options
           -> (XConfig Layout -> (KeyMask, KeySym))
@@ -258,7 +262,8 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 -- The binding uses the "XMonad.Hooks.ManageDocks" module to automatically
 -- handle screen placement for xmobar, and enables 'mod-b' for toggling
 -- the menu bar.
-xmobarProp :: LayoutClass l Window
+xmobarProp :: (LayoutClass l Window
+              ,Read (l Window))
            => XConfig l  -- ^ The base config
            -> XConfig (ModifiedLayout AvoidStruts l)
 xmobarProp =
