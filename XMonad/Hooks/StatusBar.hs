@@ -275,7 +275,8 @@ withSB (StatusBarConfig lh sh ch) conf = conf
 -- Using this function multiple times to combine status bars may result in
 -- only one status bar working properly. See the section on using multiple
 -- status bars for more details.
-withEasySB :: LayoutClass l Window
+withEasySB :: (LayoutClass l Window
+              ,Read (l Window))
            => StatusBarConfig -- ^ The status bar config
            -> (XConfig Layout -> (KeyMask, KeySym))
                               -- ^ The key binding
@@ -285,7 +286,18 @@ withEasySB sb k conf = docks . withSB sb $ conf
     { layoutHook = avoidStruts (layoutHook conf)
     , keys       = (<>) <$> keys' <*> keys conf
     }
-  where keys' = (`M.singleton` sendMessage ToggleStruts) . k
+  where
+    -- This usually means the user passed 'def' for the keybinding
+    -- function, and is otherwise meaningless to harmful depending on
+    -- whether 383ffb7 has been applied to xmonad or not. So do what
+    -- they probably intend.
+    --
+    -- A user who wants no keybinding function should probably use
+    -- 'withSB' instead, especially since NoSymbol didn't do anything
+    -- sane before 383ffb7. ++bsa
+    k' | k conf {layoutHook = Layout (layoutHook conf)} == (0,0) = defToggleStrutsKey
+       | otherwise = k
+    keys' = (`M.singleton` sendMessage ToggleStruts) . k'
 
 -- | Default @mod-b@ key binding for 'withEasySB'
 defToggleStrutsKey :: XConfig t -> (KeyMask, KeySym)
