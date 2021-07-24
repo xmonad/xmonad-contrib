@@ -122,6 +122,10 @@ instance Arbitrary RectC where
 instance Arbitrary Rectangle where
   arbitrary = Rectangle <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
 
+instance Arbitrary RationalRect where
+  arbitrary = RationalRect <$> dim <*> dim <*> dim <*> dim
+   where
+    dim = arbitrary `suchThat` liftM2 (&&) (>= 0) (<= 1)
 
 newtype SizedPositive = SizedPositive Int
     deriving (Eq, Ord, Show, Read)

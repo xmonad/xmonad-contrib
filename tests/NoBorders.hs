@@ -1,13 +1,17 @@
+{-# LANGUAGE ViewPatterns    #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wall #-}
 module NoBorders where
 
+import Instances ()
 import Test.Hspec
+import Test.Hspec.QuickCheck
 
 import qualified Data.Map as M
 
 import XMonad hiding (Screen)
 import qualified XMonad.Layout.NoBorders as NB
+import XMonad.Prelude
 import XMonad.StackSet
 
 spec :: Spec
@@ -39,6 +43,27 @@ spec = do
                 NB.hiddens amb ws r1 s1 [] `shouldBe` [1]
             it "removes border on visible screen" $ do
                 NB.hiddens amb ws r2 s2 [] `shouldBe` [2]
+        prop "prop_OnlyFloat" prop_OnlyFloat
+
+-- | All floating windows should be borderless.
+prop_OnlyFloat
+    :: [Window]       -- ^ Windows on the first monitor
+    -> [Window]       -- ^ Windows on the second monitor
+    -> [RationalRect] -- ^ Floating window rectangles
+    -> Bool           -- ^ Whether to consider focused or visible screen
+    -> Bool
+prop_OnlyFloat (nub -> w1) (nub -> w2) frs b
+     = sort (w `intersect` map fst floats)
+    == sort (NB.hiddens NB.OnlyFloat ws r (differentiate w) [])
+  where
+    (w, w', r) = if b then (w1, w2, r1) else (w2, w1, r2)
+    ws         = wsDualHead (differentiate w1) (differentiate w2) floats
+    floats     = zip (interleave w w') frs
+
+    interleave :: [a] -> [a] -> [a]
+    interleave (x : xs) (y : ys) = x : y : interleave xs ys
+    interleave []       ys       = ys
+    interleave xs       []       = xs
 
 -- +------+------+
 -- |  r1  |  r2  |

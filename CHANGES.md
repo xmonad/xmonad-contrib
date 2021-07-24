@@ -582,6 +582,9 @@
 
     - Fixed handling of floating window borders in multihead setups that was
       broken since 0.14.
+      
+    - Added `OnlyFloat` constructor to `Ambiguity` to unconditionally
+      remove all borders on floating windows.
 
   * `XMonad.Hooks.UrgencyHook`
 
