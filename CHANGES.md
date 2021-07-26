@@ -686,6 +686,13 @@
     - Fixed issue with keyboard/pointer staying grabbed when a blocking action
       like `runProcessWithInput` was invoked.
 
+  - `XMonad.Actions.UpdateFocus`
+
+    - Added `focusUnderPointer`, that updates the focus based on pointer
+      position, an inverse of `X.A.UpdatePointer`, which moves the mouse
+      pointer to match the focused window). Together these can be used to
+      ensure focus stays in sync with mouse.
+
 ## 0.16
 
 ### Breaking Changes
