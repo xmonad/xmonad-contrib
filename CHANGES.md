@@ -47,7 +47,7 @@
       activation behavior and then add resulting `ManageHook` using
       `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
       additional combinators.
-      
+
     - Ordering of windows that are set to `_NET_CLIENT_LIST` and `_NET_CLIENT_LIST_STACKING`
       was changed to be closer to the spec. From now these two lists will have
       differently sorted windows.
@@ -582,7 +582,7 @@
 
     - Fixed handling of floating window borders in multihead setups that was
       broken since 0.14.
-      
+
     - Added `OnlyFloat` constructor to `Ambiguity` to unconditionally
       remove all borders on floating windows.
 
