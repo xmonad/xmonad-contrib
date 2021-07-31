@@ -578,6 +578,11 @@ Here is a list of the modules found in @XMonad.Hooks@:
         pretty-printing abstraction 'XMonad.Hooks.StatusBar.PP.PP' and a set
         of functions to interact with it.
 
+* "XMonad.Hooks.TaffybarPagerHints"
+    This module exports additional X properties that allow
+    [taffybar](https://github.com/taffybar/taffybar) to understand the state of
+    XMonad.
+
 * "XMonad.Hooks.ToggleHook":
     Hook and keybindings for toggling hook behavior.
 

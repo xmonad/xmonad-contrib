@@ -130,6 +130,11 @@
 
 ### New Modules
 
+  * `XMonad.Hooks.TaffybarPagerHints`
+
+    Add a module that exports information about XMonads internal state that is
+    not available through EWMH that is used by the taffybar status bar.
+
   * `XMonad.Hooks.StatusBar.PP`
 
     Originally contained inside `XMonad.Hooks.DynamicLog`, this module provides the
