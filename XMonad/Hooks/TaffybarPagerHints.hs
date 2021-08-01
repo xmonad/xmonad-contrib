@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Util.TaffybarPagerHints
+-- Module      :  XMonad.Hooks.TaffybarPagerHints
 -- Copyright   :  (c) 2020 Ivan Malison
 -- License     :  BSD3-style (see LICENSE)
 --
