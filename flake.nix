@@ -23,6 +23,7 @@
   rec {
     devShell = pkgs.haskellPackages.shellFor {
       packages = p: [ p.xmonad-contrib ];
+      nativeBuildInputs = [ pkgs.cabal-install ];
     };
     defaultPackage = pkgs.haskellPackages.xmonad-contrib;
   }) // { inherit overlay overlays; } ;

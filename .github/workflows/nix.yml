@@ -22,4 +22,7 @@ jobs:
       - name: Clone project
         uses: actions/checkout@v2
       - name: Build
-        run: nix build --print-build-logs
+        # "nix build" builds with full optimization and includes a profiling
+        # build, so just the build of xmonad-contrib itself takes 3 minutes.
+        # As a workaround, we invoke cabal manually here.
+        run: nix develop -c cabal v2-build -O0 -j
