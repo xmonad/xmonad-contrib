@@ -213,6 +213,7 @@ library
                         XMonad.Layout.Column
                         XMonad.Layout.Combo
                         XMonad.Layout.ComboP
+                        XMonad.Layout.ConditionalModifier
                         XMonad.Layout.Cross
                         XMonad.Layout.Decoration
                         XMonad.Layout.DecorationAddons

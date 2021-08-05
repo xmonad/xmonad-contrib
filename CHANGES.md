@@ -134,6 +134,12 @@
 
     Layout modifier for user provided per-window aspect ratios.
 
+  * `XMonad.Layout.ConditionModifier`
+
+	This module provides a LayoutModifier that modifies an existing
+    LayoutModifier so that its modifications are only applied when a particular
+    condition is met.
+
   * `XMonad.Hooks.TaffybarPagerHints`
 
     Add a module that exports information about XMonads internal state that is
