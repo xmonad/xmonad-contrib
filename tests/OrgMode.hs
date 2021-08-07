@@ -23,12 +23,12 @@ spec = do
   prop "prop_decodeLinearity" prop_decodeLinearity
 
 -- | Printing omits no information from output.
-prop_encodeLinearity :: OrgMsg -> Bool
-prop_encodeLinearity (OrgMsg s) = Just s == (ppNote <$> pInput s)
+prop_encodeLinearity :: OrgMsg -> Property
+prop_encodeLinearity (OrgMsg s) = Just s === (ppNote <$> pInput s)
 
 -- | Parsing discards no information from input.
-prop_decodeLinearity :: Note -> Bool
-prop_decodeLinearity n = Just n == pInput (ppNote n)
+prop_decodeLinearity :: Note -> Property
+prop_decodeLinearity n = Just n === pInput (ppNote n)
 
 ------------------------------------------------------------------------
 -- Pretty Printing
