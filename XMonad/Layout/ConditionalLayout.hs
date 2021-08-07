@@ -8,7 +8,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module       : XMonad.Layout.ConditionModifier
+-- Module       : XMonad.Layout.ConditionalLayout
 -- Copyright    : (c) Ivan Malison <IvanMalison@gmail.com>
 -- License      : BSD
 --
@@ -21,7 +21,7 @@
 -- condition is met.
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.ConditionalModifier where
+module XMonad.Layout.ConditionalLayout where
 
 import XMonad
 import XMonad.Layout.LayoutModifier
