@@ -68,7 +68,6 @@ import Control.Monad.State
 import Data.Tree
 import Foreign (shiftL, shiftR, (.&.))
 import System.IO
-import System.Posix.Process (forkProcess, executeFile)
 import XMonad hiding (liftX)
 import XMonad.Prelude
 import XMonad.StackSet as W
@@ -409,7 +408,7 @@ treeselectWorkspace c xs f = do
                             , "XConfig.workspaces: "
                             ] ++ map tag ws
         hPutStrLn stderr msg
-        _ <- forkProcess $ executeFile "xmessage" True [msg] Nothing
+        xmessage msg
         return ()
   where
     mkNode n w = do

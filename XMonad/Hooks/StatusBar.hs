@@ -205,7 +205,7 @@ import qualified XMonad.StackSet as W
 -- the current layout when it changes, you could make a keybinding to cycle the
 -- layout and display the current status:
 --
--- > ((mod1Mask, xK_a), sendMessage NextLayout >> (dynamicLogString myPP >>= \d -> spawn $ "xmessage " ++ d))
+-- > ((mod1Mask, xK_a), sendMessage NextLayout >> (dynamicLogString myPP >>= xmessage))
 --
 -- If you use a status bar that does not support reading from a property
 -- (like dzen), and you don't want to use the 'statusBar' function, you can,
