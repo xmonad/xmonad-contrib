@@ -28,7 +28,7 @@ jobs:
         include:
           - compiler: ghc-9.0.1
             allow-failure: false
-          - compiler: ghc-8.10.3
+          - compiler: ghc-8.10.4
             allow-failure: false
           - compiler: ghc-8.8.4
             allow-failure: false
