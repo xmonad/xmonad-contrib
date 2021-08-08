@@ -681,6 +681,11 @@
 
     - Added `swapWithCurrent` and `swapOrder` to the list of exported names.
 
+  - `XMonad.Actions.Submap`, `XMonad.Util.Ungrab`:
+
+    - Fixed issue with keyboard/pointer staying grabbed when a blocking action
+      like `runProcessWithInput` was invoked.
+
 ## 0.16
 
 ### Breaking Changes

@@ -92,5 +92,6 @@ submapDefaultWithKey defAction keys = do
 
     io $ ungrabPointer d currentTime
     io $ ungrabKeyboard d currentTime
+    io $ sync d False
 
     fromMaybe (defAction (m', s)) (M.lookup (m', s) keys)
