@@ -10,6 +10,7 @@ hlint: True
 hlint-yaml: .hlint.yaml
 
 raw-project
+  optimization: False
   package xmonad-contrib
     flags: +pedantic
     ghc-options: -j

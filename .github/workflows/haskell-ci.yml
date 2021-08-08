@@ -152,6 +152,8 @@ jobs:
             location: https://github.com/xmonad/xmonad
             branch:   master
 
+          optimization: False
+
           package xmonad-contrib
             flags:       +pedantic
             ghc-options: -j
