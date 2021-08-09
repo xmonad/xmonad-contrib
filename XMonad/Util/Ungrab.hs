@@ -18,6 +18,7 @@ module XMonad.Util.Ungrab
       unGrab
     ) where
 
+import Graphics.X11.Xlib (sync)
 import Graphics.X11.Xlib.Extras (currentTime)
 import Graphics.X11.Xlib.Misc (ungrabKeyboard, ungrabPointer)
 import XMonad.Core
@@ -40,4 +41,4 @@ import XMonad.Core
 
 -- | Release xmonad's keyboard grab, so other grabbers can do their thing.
 unGrab :: X ()
-unGrab = withDisplay $ \d -> io (ungrabKeyboard d currentTime >> ungrabPointer d currentTime)
+unGrab = withDisplay $ \d -> io (ungrabKeyboard d currentTime >> ungrabPointer d currentTime >> sync d False)
