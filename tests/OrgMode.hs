@@ -22,6 +22,14 @@ spec = do
   prop "prop_encodeLinearity" prop_encodeLinearity
   prop "prop_decodeLinearity" prop_decodeLinearity
 
+  -- Checking for regressions
+  context "+d +d f" $ do
+    it "encode" $ prop_encodeLinearity (OrgMsg "+d +d f")
+    it "decode" $ prop_decodeLinearity (Deadline "+d" (Time {date = Next Friday, tod = Nothing}))
+  context "+d f 1 +d f" $ do
+    it "encode" $ prop_encodeLinearity (OrgMsg "+d f 1 +d f")
+    it "decode" $ prop_decodeLinearity (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}))
+
 -- | Printing omits no information from output.
 prop_encodeLinearity :: OrgMsg -> Property
 prop_encodeLinearity (OrgMsg s) = Just s === (ppNote <$> pInput s)

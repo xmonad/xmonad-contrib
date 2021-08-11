@@ -360,17 +360,18 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
   ]
  where
   getLast :: String -> ReadP String
-  getLast ptn = go ""
+  getLast ptn =  reverse
+              .  dropWhile (== ' ')    -- trim whitespace at the end
+              .  drop (length ptn)     -- drop only the last pattern
+              .  reverse
+              .  concat
+             <$> endBy1 (go "") (pure ptn)
    where
     go :: String -> ReadP String
     go consumed = do
-      next  <- munch (/= head ptn)
-      next' <- munch1 (/= ' ')
-      if next' == ptn
-        then -- If we're done, it's time to prune extra whitespace
-             pure $ consumed <> dropWhileEnd (== ' ') next
-        else -- If not, keep it as it's part of something else
-             go   $ consumed <> next <> next'
+      str  <- munch  (/= head ptn)
+      word <- munch1 (/= ' ')
+      bool go pure (word == ptn) $ consumed <> str <> word
 
 -- | Try to parse a 'Time'.
 pTimeOfDay :: ReadP (Maybe TimeOfDay)
@@ -435,3 +436,13 @@ pInt = read <$> munch1 isDigit
 -- parsing when the left-most parser succeeds.
 lchoice :: [ReadP a] -> ReadP a
 lchoice = foldl' (<++) empty
+
+-- | Like 'Text.ParserCombinators.ReadP.endBy1', but only return the
+-- parse where @parser@ had the highest number of applications.
+endBy1 :: ReadP a -> ReadP sep -> ReadP [a]
+endBy1 parser sep = many1 (parser <* sep)
+ where
+  -- | Like 'Text.ParserCombinators.ReadP.many1', but use '(<++)'
+  -- instead of '(+++)'.
+  many1 :: ReadP a -> ReadP [a]
+  many1 p = (:) <$> p <*> (many1 p <++ pure [])
