@@ -223,6 +223,7 @@ library
                         XMonad.Layout.Drawer
                         XMonad.Layout.Dwindle
                         XMonad.Layout.DwmStyle
+                        XMonad.Layout.FixedAspectRatio
                         XMonad.Layout.FixedColumn
                         XMonad.Layout.Fullscreen
                         XMonad.Layout.Gaps

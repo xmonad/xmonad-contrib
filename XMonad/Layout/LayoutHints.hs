@@ -23,6 +23,8 @@ module XMonad.Layout.LayoutHints
     , LayoutHints
     , LayoutHintsToCenter
     , hintsEventHook
+    -- * For developers
+    , placeRectangle
     )  where
 
 import XMonad(LayoutClass(runLayout), mkAdjust, Window,
