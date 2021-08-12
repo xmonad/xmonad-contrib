@@ -637,10 +637,11 @@ eventLoop handle stopAction = do
                     -- Also capture @buttonPressMask@, see Note [Allow ButtonEvents]
                     maskEvent d (exposureMask .|. keyPressMask .|. buttonPressMask) e
                     ev <- getEvent e
-                    (ks,s) <- if ev_event_type ev == keyPress
-                              then lookupString $ asKeyEvent e
-                              else return (Nothing, "")
-                    return (fromMaybe xK_VoidSymbol ks,s,ev)
+                    if ev_event_type ev == keyPress
+                        then do (_, s) <- lookupString $ asKeyEvent e
+                                ks <- keycodeToKeysym d (ev_keycode ev) 0
+                                return (ks, s, ev)
+                        else return (noSymbol, "", ev)
         l   -> do
                 modify $ \s -> s { eventBuffer = tail l }
                 return $ head l
