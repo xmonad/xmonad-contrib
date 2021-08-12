@@ -28,6 +28,12 @@
     - Added `transposeChars` to interchange the characters around the
       point and bound it to `C-t` in the Emacs XPKeymaps.
 
+    - Added xft-based font fallback support.  This may be used by
+      appending other fonts to the given string:
+      `xft:iosevka-11,FontAwesome-9`.  Note that this requires
+      `xmonad-contrib` to be compiled with `X11-xft` version 0.3.4 or
+      higher.
+
   * `XMonad.Hooks.WindowSwallowing`
 
     - Fixed windows getting lost when used in conjunction with
@@ -52,6 +58,14 @@
     - The focused window will always be at the master area in the stack being
       passed onto the modified layout, even when focus leaves the workspace
       using the modified layout.
+
+  * `XMonad.Actions.TreeSelect`
+
+    - Added xft-based font fallback support.  This may be used by
+      appending other fonts to the given string:
+      `xft:iosevka-11,FontAwesome-9`.  Note that this requires
+      `xmonad-contrib` to be compiled with `X11-xft` version 0.3.4 or
+      higher.
 
 ## 0.17.0 (October 27, 2021)
 
