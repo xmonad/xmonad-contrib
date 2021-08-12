@@ -408,13 +408,14 @@ makeXEventhandler :: ((KeySym, String, KeyMask) -> TwoD a (Maybe a)) -> TwoD a (
 makeXEventhandler keyhandler = fix $ \me -> join $ liftX $ withDisplay $ \d -> liftIO $ allocaXEvent $ \e -> do
                              maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
                              ev <- getEvent e
-                             if ev_event_type ev == keyPress
-                               then do
-                                  (ks,s) <- lookupString $ asKeyEvent e
+                             case ev of
+                               KeyEvent {ev_state = km, ev_keycode = kc} -> do
+                                  (_, s) <- lookupString $ asKeyEvent e
+                                  ks <- keycodeToKeysym d kc 0
                                   return $ do
-                                      mask <- liftX $ cleanMask (ev_state ev)
-                                      keyhandler (fromMaybe xK_VoidSymbol ks, s, mask)
-                               else
+                                      mask <- liftX $ cleanMask km
+                                      keyhandler (ks, s, 0x1fff .&. mask)
+                               _ ->
                                   return $ stdHandle ev me
 
 -- | When the map contains (KeySym,KeyMask) tuple for the given event,
