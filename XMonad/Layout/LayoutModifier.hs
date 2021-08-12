@@ -188,10 +188,26 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     redoLayout :: m a               -- ^ the layout modifier
                -> Rectangle         -- ^ screen rectangle
                -> Maybe (Stack a)   -- ^ current window stack
-               -> [(a, Rectangle)]  -- ^ (window,rectangle) pairs returned
+               -> [(a, Rectangle)]  -- ^ (window, rectangle) pairs returned
                                     -- by the underlying layout
                -> X ([(a, Rectangle)], Maybe (m a))
     redoLayout m r ms wrs = do hook m; return $ pureModifier m r ms wrs
+
+    -- | 'redoLayoutWithWorkspace' is exactly like 'redoLayout', execept
+    -- that the original workspace is also provided as an argument
+    redoLayoutWithWorkspace :: m a
+                            -- ^ the layout modifier
+                            -> Workspace WorkspaceId (ModifiedLayout m l a) a
+                            -- ^ The original workspace that is being laid out
+                            -> Rectangle
+                            -- ^ screen rectangle
+                            -> Maybe (Stack a)
+                            -- ^ current window stack
+                            -> [(a, Rectangle)]
+                            -- ^ (window, rectangle) pairs returned by the
+                            -- underlying layout
+                            -> X ([(a, Rectangle)], Maybe (m a))
+    redoLayoutWithWorkspace m _ = redoLayout m
 
     -- | 'pureModifier' allows you to intercept a call to 'runLayout'
     --   /after/ it is called on the underlying layout, in order to
@@ -251,9 +267,9 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
 -- | The 'LayoutClass' instance for a 'ModifiedLayout' defines the
 --   semantics of a 'LayoutModifier' applied to an underlying layout.
 instance (LayoutModifier m a, LayoutClass l a, Typeable m) => LayoutClass (ModifiedLayout m l) a where
-    runLayout (Workspace i (ModifiedLayout m l) ms) r =
+    runLayout w@(Workspace i (ModifiedLayout m l) ms) r =
         do ((ws, ml'),mm')  <- modifyLayoutWithUpdate m (Workspace i l ms) r
-           (ws', mm'') <- redoLayout (fromMaybe m mm') r ms ws
+           (ws', mm'') <- redoLayoutWithWorkspace (fromMaybe m mm') w r ms ws
            let ml'' = case mm'' `mplus` mm' of
                         Just m' -> Just $ ModifiedLayout m' $ fromMaybe l ml'
                         Nothing -> ModifiedLayout m <$> ml'
