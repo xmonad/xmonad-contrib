@@ -18,13 +18,18 @@
     };
     overlays = xmonad.overlays ++ [ overlay ];
   in flake-utils.lib.eachDefaultSystem (system:
-  let pkgs = import nixpkgs { inherit system overlays; };
+  let
+    pkgs = import nixpkgs { inherit system overlays; };
+    modifyDevShell =
+      if builtins.pathExists ./develop.nix
+      then import ./develop.nix
+      else _: x: x;
   in
   rec {
-    devShell = pkgs.haskellPackages.shellFor {
+    devShell = pkgs.haskellPackages.shellFor (modifyDevShell pkgs {
       packages = p: [ p.xmonad-contrib ];
       nativeBuildInputs = [ pkgs.cabal-install ];
-    };
+    });
     defaultPackage = pkgs.haskellPackages.xmonad-contrib;
   }) // { inherit overlay overlays; } ;
 }
