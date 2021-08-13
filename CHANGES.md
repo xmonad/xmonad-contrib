@@ -697,6 +697,11 @@
       pointer to match the focused window). Together these can be used to
       ensure focus stays in sync with mouse.
 
+  - `XMonad.Layout.MultiToggle`
+
+    - Added `isToggleActive` for querying the toggle state of transformers.
+      Useful to show the state in a status bar.
+
 ## 0.16
 
 ### Breaking Changes
