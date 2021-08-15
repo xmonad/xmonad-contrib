@@ -597,10 +597,14 @@ mkXPromptImplementation historyKey conf om = do
 -- | Removes numlock and capslock from a keymask.
 -- Duplicate of cleanMask from core, but in the
 -- XP monad instead of X.
+-- Additionally it strips high bits from the mask
+-- which encode active layout group in X.
 cleanMask :: KeyMask -> XP KeyMask
 cleanMask msk = do
   numlock <- gets numlockMask
-  let highMasks = 1 `shiftL` 12 - 1
+  let highMasks = 0x1fff
+  -- The highest documented "proper" key mask is button5Mask = 4096 = 0x1000
+  -- strip the rest.
   return (complement (numlock .|. lockMask) .&. msk .&. highMasks)
 
 -- | Inverse of 'Codec.Binary.UTF8.String.utf8Encode', that is, a convenience
@@ -646,10 +650,13 @@ eventLoop handle stopAction = do
                     -- Also capture @buttonPressMask@, see Note [Allow ButtonEvents]
                     maskEvent d (exposureMask .|. keyPressMask .|. buttonPressMask) e
                     ev <- getEvent e
-                    (ks,s) <- if ev_event_type ev == keyPress
-                              then lookupString $ asKeyEvent e
-                              else return (Nothing, "")
-                    return (fromMaybe xK_VoidSymbol ks,s,ev)
+                    (ks,s) <- case ev of
+                      KeyEvent {ev_state = km, ev_keycode = kc} | ev_event_type ev == keyPress -> do
+                        ks <- keycodeToKeysym d kc 0
+                        (_, s) <- lookupString $ asKeyEvent e
+                        return (ks, s)
+                      _ -> return (xK_VoidSymbol, "")
+                    return (ks,s,ev)
         l   -> do
                 modify $ \s -> s { eventBuffer = tail l }
                 return $ head l
