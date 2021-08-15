@@ -81,28 +81,29 @@ above you can write
 
 > , ("M-C-o", orgPrompt def "TODO" "org/todos.org")
 
-There is also some scheduling and deadline functionality present.  They
-are initiated by entering @+s@ or @+d@—separated by at least one
-whitespace character on either side—into the prompt respectively,
-followed a date and (optionally) a time of day.  Any of the following
-are valid dates:
+There is also some scheduling and deadline functionality present.  This
+may be initiated by entering @+s@ or @+d@—separated by at least one
+whitespace character on either side—into the prompt, respectively.
+Then, one may enter a date and (optionally) a time of day.  Any of the
+following are valid dates, where brackets indicate optionality:
 
   - tod[ay]
   - tom[orrow]
   - /any weekday/
-  - /any date of the form DD MM YYYY/
+  - /any date of the form DD [MM] [YYYY]/
 
-In the last case, the month and the year are optional and will be, if
-missing, filled out with the current month and year.  For weekdays, we
-also disambiguate as early as possible, so a simple @w@ will suffice to
-mean Wednesday, while @s@ will not be enough to say Sunday.  You can,
-however, still write the full word without any troubles.  Weekdays also
-always schedule into the future, e.g. if today is Monday and you
-schedule something for Monday, you will actually schedule it for the
-/next/ Monday (the one in seven days).
+In the last case, the missing month and year will be filled out with the
+current month and year.
+
+For weekdays, we also disambiguate as early as possible; a simple @w@
+will suffice to mean Wednesday, but @s@ will not be enough to say
+Sunday.  You can, however, also write the full word without any
+troubles.  Weekdays always schedule into the future; e.g., if today is
+Monday and you schedule something for Monday, you will actually schedule
+it for the /next/ Monday (the one in seven days).
 
 The time is specified in the @HH:MM@ format.  The minutes may be
-omitted, in which case @00@ will be substituted.
+omitted, in which case we assume a full hour is specified.
 
 A few examples are probably in order.  Suppose we have bound the key
 above, pressed it, and are now confronted with a prompt:
@@ -125,10 +126,10 @@ above, pressed it, and are now confronted with a prompt:
   - @hello +s 11 jan 2013@ would schedule the note for the 11th of
     January 2013.
 
-Note that, due to ambiguity issues, years below @25@ result in undefined
-parsing behaviour.  Otherwise, what should @message +s 11 jan 13@
-resolve to—the 11th of january at 13:00 or the 11th of january in the
-year 13?
+Note that, due to ambiguity concerns, years below @25@ result in
+undefined parsing behaviour.  Otherwise, what should @message +s 11 jan
+13@ resolve to—the 11th of january at 13:00 or the 11th of january in
+the year 13?
 
 There's also the possibility to take what's currently in the primary
 selection and paste that as the content of the created note.  This is
