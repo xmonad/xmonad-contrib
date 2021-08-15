@@ -80,6 +80,7 @@ prepended with @$HOME@ or an equivalent directory.  I.e. instead of the
 above you can write
 
 > , ("M-C-o", orgPrompt def "TODO" "org/todos.org")
+>                -- also possible: "~/org/todos.org"
 
 There is also some scheduling and deadline functionality present.  This
 may be initiated by entering @+s@ or @+d@—separated by at least one
@@ -214,10 +215,11 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
                then Header sel
                else Body   $ "\n " <> sel
 
-    -- Expand relative path with $HOME
+    -- Expand path if applicable
     fp <- case orgFile of
-      '/' : _ -> pure orgFile
-      _       -> getHomeDirectory <&> (<> ('/' : orgFile))
+      '/'       : _ -> pure orgFile
+      '~' : '/' : _ -> getHomeDirectory <&> (<> drop 1 orgFile)
+      _             -> getHomeDirectory <&> (<> ('/' : orgFile))
 
     withFile fp AppendMode . flip hPutStrLn
       <=< maybe (pure "") (ppNote clpStr todoHeader) . pInput
