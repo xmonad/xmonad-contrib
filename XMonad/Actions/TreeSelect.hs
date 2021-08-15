@@ -531,17 +531,18 @@ navigate = gets tss_display >>= \d -> join . liftIO . allocaXEvent $ \e -> do
 
     ev <- getEvent e
 
-    if | ev_event_type ev == keyPress -> do
-           (ks, _) <- lookupString $ asKeyEvent e
-           return $ do
-               mask <- liftX $ cleanMask (ev_state ev)
-               f <- asks ts_navigate
-               fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
-       | ev_event_type ev == buttonPress -> do
-           -- See XMonad.Prompt Note [Allow ButtonEvents]
-           allowEvents d replayPointer currentTime
-           return navigate
-       | otherwise -> return navigate
+    case ev of
+      KeyEvent {ev_state = km, ev_keycode = kc} | ev_event_type ev == keyPress -> do
+        ks <- keycodeToKeysym d kc 0
+        return $ do
+            mask <- liftX $ cleanMask km
+            f <- asks ts_navigate
+            fromMaybe navigate $ M.lookup (0x1fff .&. mask, ks) f
+      ButtonEvent {} | ev_event_type ev == buttonPress -> do
+        -- See XMonad.Prompt Note [Allow ButtonEvents]
+        allowEvents d replayPointer currentTime
+        return navigate
+      _ -> return navigate
 
 -- | Request a full redraw
 redraw :: TreeSelect a ()
