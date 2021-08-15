@@ -409,7 +409,7 @@ makeXEventhandler keyhandler = fix $ \me -> join $ liftX $ withDisplay $ \d -> l
                              maskEvent d (exposureMask .|. keyPressMask .|. buttonReleaseMask) e
                              ev <- getEvent e
                              case ev of
-                               KeyEvent {ev_state = km, ev_keycode = kc} -> do
+                               KeyEvent {ev_state = km, ev_keycode = kc} | ev_event_type ev == keyPress -> do
                                   (_, s) <- lookupString $ asKeyEvent e
                                   ks <- keycodeToKeysym d kc 0
                                   return $ do
