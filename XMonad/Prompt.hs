@@ -651,7 +651,7 @@ eventLoop handle stopAction = do
                     maskEvent d (exposureMask .|. keyPressMask .|. buttonPressMask) e
                     ev <- getEvent e
                     (ks,s) <- case ev of
-                      KeyEvent {ev_state = km, ev_keycode = kc} | ev_event_type ev == keyPress -> do
+                      KeyEvent {ev_keycode = kc} | ev_event_type ev == keyPress -> do
                         ks <- keycodeToKeysym d kc 0
                         (_, s) <- lookupString $ asKeyEvent e
                         return (ks, s)
