@@ -76,7 +76,6 @@ import qualified XMonad.Hooks.DynamicLog as DL
 import qualified XMonad.StackSet         as W
 
 import Data.Map (Map)
-import System.IO (hClose, hPutStr)
 
 import XMonad.Prompt (XPConfig)
 import XMonad.Prompt.Workspace (workspacePrompt)
@@ -90,8 +89,6 @@ import XMonad.Hooks.WorkspaceHistory
     , workspaceHistoryHookExclude
     , workspaceHistoryModify
     )
-
-import XMonad.Util.Run (spawnPipe)
 
 -- $overview
 -- This module allows to organize your workspaces on a precise topic basis.  So
@@ -382,13 +379,6 @@ checkTopicConfig tags tg = do
 
   check diffTopic "Seen but missing topics/workspaces"
   check dups      "Duplicate topics/workspaces"
-
--- | Display the given message using the @xmessage@ program.
-xmessage :: String -> IO ()
-xmessage s = do
-  h <- spawnPipe "xmessage -file -"
-  hPutStr h s
-  hClose h
 
 -- | Convenience type for specifying topics.
 data TopicItem = TI
