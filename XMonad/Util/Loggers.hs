@@ -36,7 +36,7 @@ module XMonad.Util.Loggers (
     -- * XMonad: Screen-specific Loggers
     -- $xmonad-screen
     , logCurrentOnScreen, logLayoutOnScreen
-    , logTitleOnScreen, logWhenActive
+    , logTitleOnScreen, logWhenActive, logTitlesOnScreen
     -- * Formatting Utilities
     -- $format
     , onLogger
@@ -174,8 +174,8 @@ maildirNew mdir = logFileCount (mdir ++ "/new/") (not . isPrefixOf ".")
 logTitle :: Logger
 logTitle = withWindowSet $ traverse (fmap show . getName) . W.peek
 
--- | Get the titles of all windows on the current workspace and format
--- them according to the given functions.
+-- | Get the titles of all windows on the visible workspace of the given
+-- screen and format them according to the given functions.
 --
 -- ==== __Example__
 --
@@ -188,20 +188,27 @@ logTitle = withWindowSet $ traverse (fmap show . getName) . W.peek
 -- >   formatFocused   = wrap "[" "]" . xmobarColor "#ff79c6" "" . shorten 50 . xmobarStrip
 -- >   formatUnfocused = wrap "(" ")" . xmobarColor "#bd93f9" "" . shorten 30 . xmobarStrip
 --
-logTitles
-  :: (String -> String) -- ^ Formatting for the focused   window
+logTitlesOnScreen
+  :: ScreenId           -- ^ Screen to log the titles on
+  -> (String -> String) -- ^ Formatting for the focused   window
   -> (String -> String) -- ^ Formatting for the unfocused window
   -> Logger
-logTitles formatFoc formatUnfoc = do
-  winset <- gets windowset
-  let focWin = W.peek  winset
-      wins   = W.index winset
+logTitlesOnScreen sid formatFoc formatUnfoc = (`withScreen` sid) $ \screen -> do
+  let focWin = fmap W.focus . W.stack . W.workspace $ screen
+      wins   = maybe [] W.integrate . W.stack . W.workspace $ screen
   winNames <- traverse (fmap show . getName) wins
   pure . Just
        . unwords
        $ zipWith (\w n -> if Just w == focWin then formatFoc n else formatUnfoc n)
                  wins
                  winNames
+
+-- | Like 'logTitlesOnScreen', but directly use the "focused" screen
+-- (the one with the currently focused workspace).
+logTitles :: (String -> String) -> (String -> String) -> Logger
+logTitles formatFoc formatUnfoc = do
+  sid <- gets $ W.screen . W.current . windowset
+  logTitlesOnScreen sid formatFoc formatUnfoc
 
 -- | Get the name of the current layout.
 logLayout :: Logger
