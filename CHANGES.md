@@ -501,7 +501,9 @@
     - Added `logConst` to log a constant `String`, and `logDefault` (infix: `.|`)
       to combine loggers.
 
-    - Added `logTitles` to log all window titles (focused and unfocused ones).
+    - Added `logTitles` to log all window titles (focused and unfocused
+      ones) on the focused workspace, as well as `logTitlesOnScreen` as
+      a screen-specific variant thereof.
 
   * `XMonad.Layout.Minimize`
 
