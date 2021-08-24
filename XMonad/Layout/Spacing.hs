@@ -329,13 +329,8 @@ orderSelect o (lt,eq,gt) = case o of
 -----------------------------------------------------------------------------
 {-# DEPRECATED SpacingWithEdge, SmartSpacing, SmartSpacingWithEdge "Use Spacing instead." #-}
 {-# DEPRECATED ModifySpacing "Use SpacingModifier instead, perhaps with sendMessages." #-}
-{-# DEPRECATED spacing, spacingWithEdge, smartSpacing, smartSpacingWithEdge "Use spacingRaw instead." #-}
 {-# DEPRECATED setSpacing "Use setScreenWindowSpacing instead." #-}
 {-# DEPRECATED incSpacing "Use incScreenWindowSpacing instead." #-}
-
--- $backwardsCompatibility
--- The following functions and types exist solely for compatibility with
--- pre-0.14 releases.
 
 -- | A type synonym for the 'Spacing' 'LayoutModifier'.
 type SpacingWithEdge = Spacing
