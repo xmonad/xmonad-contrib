@@ -34,14 +34,13 @@ module XMonad.Layout.Spacing
     , decWindowSpacing, decScreenSpacing
     , incScreenWindowSpacing, decScreenWindowSpacing
     , borderMap, borderIncrementBy
-      -- * Backwards Compatibility
-      -- $backwardsCompatibility
-    , SpacingWithEdge
-    , SmartSpacing, SmartSpacingWithEdge
-    , ModifySpacing (..)
     , spacing, spacingWithEdge
     , smartSpacing, smartSpacingWithEdge
     , setSpacing, incSpacing
+      -- * Backwards Compatibility
+    , SpacingWithEdge
+    , SmartSpacing, SmartSpacingWithEdge
+    , ModifySpacing (..)
     ) where
 
 import           XMonad
