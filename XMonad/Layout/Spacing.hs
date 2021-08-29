@@ -19,10 +19,13 @@
 module XMonad.Layout.Spacing
     ( -- * Usage
       -- $usage
-      Border (..)
-    , Spacing (..)
-    , SpacingModifier (..)
+      Spacing (..)
     , spacingRaw
+    , spacing, spacingWithEdge
+    , smartSpacing, smartSpacingWithEdge
+
+      -- * Modify Spacing
+    , SpacingModifier (..)
     , setSmartSpacing
     , setScreenSpacing, setScreenSpacingEnabled
     , setWindowSpacing, setWindowSpacingEnabled
@@ -33,14 +36,16 @@ module XMonad.Layout.Spacing
     , incWindowSpacing, incScreenSpacing
     , decWindowSpacing, decScreenSpacing
     , incScreenWindowSpacing, decScreenWindowSpacing
+
+      -- * Modify Borders
+    , Border (..)
     , borderMap, borderIncrementBy
-    , spacing, spacingWithEdge
-    , smartSpacing, smartSpacingWithEdge
-    , setSpacing, incSpacing
+
       -- * Backwards Compatibility
     , SpacingWithEdge
     , SmartSpacing, SmartSpacingWithEdge
     , ModifySpacing (..)
+    , setSpacing, incSpacing
     ) where
 
 import           XMonad
