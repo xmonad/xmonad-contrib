@@ -708,6 +708,11 @@
     - Added `isToggleActive` for querying the toggle state of transformers.
       Useful to show the state in a status bar.
 
+  * `XMonad.Layout.Spacing`
+
+    - Removed deprecations for `spacing`, `spacingWithEdge`,
+      `smartSpacing`, and `smartSpacingWithEdge`.
+
 ## 0.16
 
 ### Breaking Changes
