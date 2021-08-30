@@ -19,10 +19,13 @@
 module XMonad.Layout.Spacing
     ( -- * Usage
       -- $usage
-      Border (..)
-    , Spacing (..)
-    , SpacingModifier (..)
+      Spacing (..)
     , spacingRaw
+    , spacing, spacingWithEdge
+    , smartSpacing, smartSpacingWithEdge
+
+      -- * Modify Spacing
+    , SpacingModifier (..)
     , setSmartSpacing
     , setScreenSpacing, setScreenSpacingEnabled
     , setWindowSpacing, setWindowSpacingEnabled
@@ -33,14 +36,15 @@ module XMonad.Layout.Spacing
     , incWindowSpacing, incScreenSpacing
     , decWindowSpacing, decScreenSpacing
     , incScreenWindowSpacing, decScreenWindowSpacing
+
+      -- * Modify Borders
+    , Border (..)
     , borderMap, borderIncrementBy
+
       -- * Backwards Compatibility
-      -- $backwardsCompatibility
     , SpacingWithEdge
     , SmartSpacing, SmartSpacingWithEdge
     , ModifySpacing (..)
-    , spacing, spacingWithEdge
-    , smartSpacing, smartSpacingWithEdge
     , setSpacing, incSpacing
     ) where
 
@@ -57,10 +61,40 @@ import           XMonad.Actions.MessageFeedback
 --
 -- > import XMonad.Layout.Spacing
 --
--- and modifying your layoutHook as follows (for example):
+-- and, for example, modifying your @layoutHook@ as follows:
 --
--- > layoutHook = spacingRaw True (Border 0 10 10 10) True (Border 10 10 10 10) True $
--- >              layoutHook def
+-- > main :: IO ()
+-- > main = xmonad $ def
+-- >   { layoutHook = spacingWithEdge 10 $ myLayoutHook
+-- >   }
+-- >
+-- > myLayoutHook = Full ||| ...
+--
+-- The above would add a 10 pixel gap around windows on all sides, as
+-- well as add the same amount of spacing around the edges of the
+-- screen.  If you only want to add spacing around windows, you can use
+-- 'spacing' instead.
+--
+-- There is also the 'spacingRaw' command, for more fine-grained
+-- control.  For example:
+--
+-- > layoutHook = spacingRaw True (Border 0 10 10 10) True (Border 10 10 10 10) True
+-- >            $ myLayoutHook
+--
+-- Breaking this down, the above would do the following:
+--
+--   - @True@: Enable the 'smartBorder' to not apply borders when there
+--     is only one window.
+--
+--   - @(Border 0 10 10 10)@: Add a 'screenBorder' of 10 pixels in every
+--     direction but the top.
+--
+--   - @True@: Enable the 'screenBorder'.
+--
+--   - @(Border 10 10 10 10)@: Add a 'windowBorder' of 10 pixels in
+--     every direction.
+--
+--   - @True@: Enable the 'windowBorder'.
 
 -- | Represent the borders of a rectangle.
 data Border = Border
