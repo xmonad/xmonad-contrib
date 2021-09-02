@@ -4,6 +4,7 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 
 import qualified ExtensibleConf
+import qualified ExtensibleState
 import qualified ManageDocks
 import qualified NoBorders
 import qualified RotateSome
@@ -48,6 +49,7 @@ main = hspec $ do
         prop "prop_skipGetLastWord"  XPrompt.prop_skipGetLastWord
     context "NoBorders"      NoBorders.spec
     context "ExtensibleConf" ExtensibleConf.spec
+    context "ExtensibleState" ExtensibleState.spec
     context "CycleRecentWS"  CycleRecentWS.spec
     context "OrgMode"        OrgMode.spec
     context "GridSelect"     GridSelect.spec
