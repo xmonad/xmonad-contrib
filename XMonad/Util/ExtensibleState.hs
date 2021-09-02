@@ -1,5 +1,10 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeOperators #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.ExtensibleState
@@ -24,14 +29,18 @@ module XMonad.Util.ExtensibleState (
                               , gets
                               , modified
                               , modifiedM
+
+#ifdef TESTING
+                              , upgrade
+#endif
                               ) where
 
-import Data.Typeable (typeOf,cast)
+import Data.Typeable
 import qualified Data.Map as M
 import XMonad.Core
 import XMonad.Util.PureX
 import qualified Control.Monad.State as State
-import XMonad.Prelude (fromMaybe)
+import XMonad.Prelude
 
 -- ---------------------------------------------------------------------
 -- $usage
@@ -76,13 +85,43 @@ import XMonad.Prelude (fromMaybe)
 -- trying to store the same data type without a wrapper.
 --
 
+type ExtensibleState = M.Map (Either String TypeRep) (Either String StateExtension)
+
 -- | Modify the map of state extensions by applying the given function.
-modifyStateExts
-  :: XLike m
-  => (M.Map String (Either String StateExtension)
-  -> M.Map String (Either String StateExtension))
-  -> m ()
+modifyStateExts :: XLike m => (ExtensibleState -> ExtensibleState) -> m ()
 modifyStateExts f = State.modify $ \st -> st { extensibleState = f (extensibleState st) }
+
+upgrade :: (ExtensionClass a) => a -> ExtensibleState -> ExtensibleState
+upgrade wit
+    | PersistentExtension wip <- extensionType wit, Just Refl <- eqT' wit wip = upgradePersistent wit
+    | otherwise = id
+  where
+    eqT' :: (Typeable a, Typeable b) => a -> b -> Maybe (a :~: b)
+    eqT' _ _ = eqT
+
+upgradePersistent :: (ExtensionClass a, Read a, Show a) => a -> ExtensibleState -> ExtensibleState
+upgradePersistent wit = \m -> fromMaybe (neitherInsertInitial m) $
+    rightNoop m <|>                   -- already upgraded/deserialized
+    leftDecode (showExtType t) m <|>  -- deserialize
+    leftDecode (show t) m             -- upgrade from old representation and deserialize
+  where
+    t = typeOf wit
+    deserialize s = PersistentExtension $ fromMaybe initialValue (safeRead s) `asTypeOf` wit
+
+    pop k m = k `M.lookup` m <&> (, k `M.delete` m)
+    rightNoop m = do
+        _ <- Right t `M.lookup` m
+        pure m
+    leftDecode k m = do
+        (Left v, m') <- Left k `pop` m
+        pure $ M.insert (Right t) (Right (deserialize v)) m'
+    neitherInsertInitial =
+        M.insert (Right t) (Right (PersistentExtension (initialValue `asTypeOf` wit)))
+
+    safeRead :: Read a => String -> Maybe a
+    safeRead str = case reads str of
+        [(x, "")] -> Just x
+        _ -> Nothing
 
 -- | Apply a function to a stored value of the matching type or the initial value if there
 -- is none.
@@ -93,33 +132,25 @@ modify f = put . f =<< get
 -- type will be overwritten. (More precisely: A value whose string representation of its type
 -- is equal to the new one's)
 put :: (ExtensionClass a, XLike m) => a -> m ()
-put v = modifyStateExts . M.insert (show . typeOf $ v) . Right . extensionType $ v
+put v = modifyStateExts $ M.insert (Right (typeOf v)) (Right (extensionType v)) . upgrade v
 
 -- | Try to retrieve a value of the requested type, return an initial value if there is no such value.
-get :: (ExtensionClass a, XLike m) => m a
-get = getState' undefined -- `trick' to avoid needing -XScopedTypeVariables
-  where toValue val = fromMaybe initialValue $ cast val
-        getState' :: (ExtensionClass a, XLike m) => a -> m a
-        getState' k = do
-          v <- State.gets $ M.lookup (show . typeOf $ k) . extensibleState
-          case v of
-            Just (Right (StateExtension val)) -> return $ toValue val
-            Just (Right (PersistentExtension val)) -> return $ toValue val
-            Just (Left str) | PersistentExtension x <- extensionType k -> do
-                let val = fromMaybe initialValue $ cast =<< safeRead str `asTypeOf` Just x
-                put (val `asTypeOf` k)
-                return val
-            _ -> return initialValue
-        safeRead str = case reads str of
-                         [(x,"")] -> Just x
-                         _ -> Nothing
+get :: forall a m. (ExtensionClass a, XLike m) => m a
+get = do
+    modifyStateExts $ upgrade wit
+    State.gets $ unwrap . M.lookup (Right (typeOf wit)) . extensibleState
+  where
+    wit = undefined :: a
+    unwrap (Just (Right (StateExtension v))) = fromMaybe initialValue (cast v)
+    unwrap (Just (Right (PersistentExtension v))) = fromMaybe initialValue (cast v)
+    unwrap _ = initialValue
 
 gets :: (ExtensionClass a, XLike m) => (a -> b) -> m b
 gets = flip fmap get
 
 -- | Remove the value from the extensible state field that has the same type as the supplied argument
 remove :: (ExtensionClass a, XLike m) => a -> m ()
-remove wit = modifyStateExts $ M.delete (show . typeOf $ wit)
+remove wit = modifyStateExts $ M.delete (Right (typeOf wit)) . upgrade wit
 
 modified :: (ExtensionClass a, Eq a, XLike m) => (a -> a) -> m Bool
 modified = modifiedM . (pure .)
