@@ -302,6 +302,11 @@
 
   * Add support for GHC 9.0.1.
 
+  * `XMonad.Prompt.XMonad`
+
+    - Added `xmonadPromptCT`, which allows you to create an XMonad
+      prompt with a custom title.
+
   * `XMonad.Actions.DynamicWorkspaceGroups`
 
     - Add support for `XMonad.Actions.TopicSpace` through `viewTopicGroup` and
