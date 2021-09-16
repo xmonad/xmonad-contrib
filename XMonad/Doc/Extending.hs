@@ -336,8 +336,8 @@ edit your key bindings.
     Experimental rewrite of "XMonad.Layout.WindowNavigation".
 
 * "XMonad.Actions.WithAll":
-    Provides functions for performing a given action on all windows of
-    the current workspace.
+    Provides functions for performing a given action on all or certain
+    groups of windows on the current workspace.
 
 * "XMonad.Actions.Workscreen":
     A workscreen permits to display a set of workspaces on several screens. In
