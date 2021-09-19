@@ -1,5 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE FlexibleContexts    #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar.PP
@@ -31,6 +33,11 @@ module XMonad.Hooks.StatusBar.PP (
     dynamicLogString,
     dynamicLogWithPP,
 
+    -- * Predicates and formatters
+    -- $predicates
+    WS(..), WSPP, WSPP', fallbackPrinters,
+    isUrgent, isCurrent, isVisible, isVisibleNoWindows, isHidden,
+
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
 
@@ -46,10 +53,11 @@ module XMonad.Hooks.StatusBar.PP (
 
     ) where
 
-import qualified XMonad.StackSet as S
+import Control.Monad.Reader
 
 import XMonad
 import XMonad.Prelude
+import qualified XMonad.StackSet as S
 
 import XMonad.Util.NamedWindows
 import XMonad.Util.WorkspaceCompare
@@ -131,6 +139,9 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- formatting. Note that this is only used by
                -- 'dynamicLogWithPP'; it won't work with 'dynamicLogString' or
                -- "XMonad.Hooks.StatusBar".
+             , ppPrinters :: WSPP
+               -- ^ extend workspace types with custom predicates.
+               -- Check $predicates for more details.
              }
 
 -- | The default pretty printing options:
@@ -156,6 +167,7 @@ instance Default PP where
            , ppOutput           = putStrLn
            , ppSort             = getSortByIndex
            , ppExtras           = []
+           , ppPrinters         = empty
            }
 
 -- | Format the current status using the supplied pretty-printing format,
@@ -200,17 +212,112 @@ pprWindowSet :: WorkspaceSort -> [Window] -> PP -> WindowSet -> String
 pprWindowSet sort' urgents pp s = sepBy (ppWsSep pp) . map fmt . sort' $
             map S.workspace (S.current s : S.visible s) ++ S.hidden s
   where
-    this     = S.currentTag s
-    visibles = map (S.tag . S.workspace) (S.visible s)
-
-    fmt w = printer pp (ppRename pp (S.tag w) w)
+    fmt :: WindowSpace -> String
+    fmt w = pr (ppRename pp (S.tag w) w)
       where
-        printer | any (\x -> (== Just (S.tag w)) (S.findTag x s)) urgents = ppUrgent
-                | S.tag w == this                                         = ppCurrent
-                | S.tag w `elem` visibles && isJust (S.stack w)           = ppVisible
-                | S.tag w `elem` visibles                                 = liftA2 fromMaybe ppVisible ppVisibleNoWindows
-                | isJust (S.stack w)                                      = ppHidden
-                | otherwise                                               = ppHiddenNoWindows
+        printers = ppPrinters pp <|> fallbackPrinters
+        pr = fromMaybe id $ runReaderT printers $
+            WS{ wsUrgents = urgents, wsWindowSet = s, wsWS = w, wsPP = pp }
+
+-- $predicates
+-- Using 'WSPP' with 'ppPrinters' allows extension modules (and users) to
+-- extend 'PP' with new workspace types beyond 'ppCurrent', 'ppUrgent', and
+-- the rest.
+
+-- | The data available to 'WSPP''.
+data WS = WS{ wsUrgents :: [Window] -- ^ Urgent windows
+            , wsWindowSet :: WindowSet -- ^ The entire 'WindowSet', for context
+            , wsWS :: WindowSpace -- ^ The 'WindowSpace' being formatted
+            , wsPP :: PP -- ^ The actual final 'PP'
+            }
+
+-- XXX: ReaderT instead of -> because there is no
+--
+-- > instance Alternative (Λa. r -> Maybe a)
+--
+-- (there cannot be, Haskell has no Λ), and there is no
+--
+-- > instance Alternative (Compose ((->) r) Maybe)
+--
+-- either, and even if there was, Compose isn't very practical.
+--
+-- But we don't need Alternative for WS -> Bool, so we use the simple
+-- function-based reader for the condition functions, as their definitions are
+-- much prettier that way. This may be a bit confusing. :-/
+type WSPP' = ReaderT WS Maybe
+
+-- | The type allowing to build formatters (and predicates). See
+-- the source 'fallbackPrinters' for an example.
+type WSPP = WSPP' (WorkspaceId -> String)
+
+-- | For a 'PP' @pp@, @fallbackPrinters pp@ returns the default 'WSPP'
+-- used to format workspaces: the formatter chosen corresponds to the
+-- first matching workspace type, respecting the following precedence:
+-- 'ppUrgent', 'ppCurrent', 'ppVisible', 'ppVisibleNoWindows', 'ppHidden',
+-- 'ppHiddenNoWindows'.
+--
+-- This can be useful if one needs to use the default set of formatters and
+-- post-process their output. (For pre-processing their input, there's
+-- 'ppRename'.)
+fallbackPrinters :: WSPP
+fallbackPrinters = isUrgent            ?-> ppUrgent
+               <|> isCurrent'          ?-> ppCurrent
+               <|> isVisible'          ?-> ppVisible
+               <|> isVisibleNoWindows' ?-> liftA2 fromMaybe ppVisible ppVisibleNoWindows
+               <|> isHidden'           ?-> ppHidden
+               <|> pure True           ?-> ppHiddenNoWindows
+  where
+    cond ?-> ppr = (asks cond >>= guard) *> asks (ppr . wsPP)
+
+-- | Predicate for urgent workspaces.
+isUrgent :: WS -> Bool
+isUrgent WS{..} = any (\x -> (== Just (S.tag wsWS)) (S.findTag x wsWindowSet)) wsUrgents
+
+-- | Predicate for the current workspace. Caution: assumes default
+-- precedence is respected.
+isCurrent' :: WS -> Bool
+isCurrent' WS{..} = S.tag wsWS == S.currentTag wsWindowSet
+
+-- | Predicate for the current workspace.
+isCurrent :: WS -> Bool
+isCurrent = (not <$> isUrgent) <&&> isCurrent'
+
+-- | Predicate for visible workspaces. Caution: assumes default
+-- precedence is respected.
+isVisible' :: WS -> Bool
+isVisible' = isVisibleNoWindows' <&&> isJust . S.stack . wsWS
+
+-- | Predicate for visible workspaces.
+isVisible :: WS -> Bool
+isVisible = (not <$> isUrgent) <&&> (not <$> isCurrent') <&&> isVisible'
+
+-- | Predicate for visible workspaces that have no windows. Caution:
+-- assumes default precedence is respected.
+isVisibleNoWindows' :: WS -> Bool
+isVisibleNoWindows' WS{..} = S.tag wsWS `elem` visibles
+  where visibles = map (S.tag . S.workspace) (S.visible wsWindowSet)
+
+-- | Predicate for visible workspaces that have no windows.
+isVisibleNoWindows :: WS -> Bool
+isVisibleNoWindows =
+    (not <$> isUrgent)
+        <&&> (not <$> isCurrent')
+        <&&> (not <$> isVisible')
+        <&&> isVisibleNoWindows'
+
+-- | Predicate for non-empty hidden workspaces. Caution: assumes default
+-- precedence is respected.
+isHidden' :: WS -> Bool
+isHidden' = isJust . S.stack . wsWS
+
+-- | Predicate for hidden workspaces.
+isHidden :: WS -> Bool
+isHidden =
+    (not <$> isUrgent)
+        <&&> (not <$> isCurrent')
+        <&&> (not <$> isVisible')
+        <&&> (not <$> isVisibleNoWindows')
+        <&&> isHidden'
 
 pprWindowSetXinerama :: WindowSet -> String
 pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
