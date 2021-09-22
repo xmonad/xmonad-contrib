@@ -42,7 +42,6 @@ module XMonad.Actions.Search (   -- * Usage
                                  hoogle,
                                  images,
                                  imdb,
-                                 isohunt,
                                  lucky,
                                  maps,
                                  mathworld,
@@ -116,6 +115,8 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'ebay' -- Ebay keyword search.
 
+* 'github' -- GitHub keyword search.
+
 * 'google' -- basic Google search.
 
 * 'hackage' -- Hackage, the Haskell package database.
@@ -128,8 +129,6 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'imdb'   -- the Internet Movie Database.
 
-* 'isohunt' -- isoHunt search.
-
 * 'lucky' -- Google "I'm feeling lucky" search.
 
 * 'maps'   -- Google maps.
@@ -140,7 +139,7 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'scholar' -- Google scholar academic search.
 
-* 'thesaurus' -- thesaurus.reference.com search.
+* 'thesaurus' -- thesaurus.com search.
 
 * 'wayback' -- the Wayback Machine.
 
@@ -284,39 +283,39 @@ searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
 
 -- The engines.
-amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, google, hackage, hoogle,
-  images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, stackage, thesaurus, vocabulary, wayback, wikipedia, wiktionary,
+amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, github, google, hackage, hoogle,
+  images, imdb, lucky, maps, mathworld, openstreetmap, scholar, stackage, thesaurus, vocabulary, wayback, wikipedia, wiktionary,
   youtube, duckduckgo :: SearchEngine
 amazon        = searchEngine "amazon"        "http://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
 alpha         = searchEngine "alpha"         "http://www.wolframalpha.com/input/?i="
-codesearch    = searchEngine "codesearch"    "http://www.google.com/codesearch?q="
+codesearch    = searchEngine "codesearch"    "http://developers.google.com/s/results/code-search?q="
 deb           = searchEngine "deb"           "http://packages.debian.org/"
 debbts        = searchEngine "debbts"        "http://bugs.debian.org/"
 debpts        = searchEngine "debpts"        "http://packages.qa.debian.org/"
 dictionary    = searchEngine "dict"          "http://dictionary.reference.com/browse/"
 ebay          = searchEngine "ebay"          "http://www.ebay.com/sch/i.html?_nkw="
+github        = searchEngine "github"        "https://github.com/search?q="
 google        = searchEngine "google"        "http://www.google.com/search?num=100&q="
 hackage       = searchEngine "hackage"       "http://hackage.haskell.org/package/"
 hoogle        = searchEngine "hoogle"        "http://hoogle.haskell.org/?hoogle="
 images        = searchEngine "images"        "http://images.google.fr/images?q="
 imdb          = searchEngine "imdb"          "http://www.imdb.com/find?s=all&q="
-isohunt       = searchEngine "isohunt"       "http://isohunt.com/torrents/?ihq="
 lucky         = searchEngine "lucky"         "http://www.google.com/search?btnI&q="
 maps          = searchEngine "maps"          "http://maps.google.com/maps?q="
 mathworld     = searchEngine "mathworld"     "http://mathworld.wolfram.com/search/?query="
-openstreetmap = searchEngine "openstreetmap" "http://gazetteer.openstreetmap.org/namefinder/?find="
+openstreetmap = searchEngine "openstreetmap" "https://www.openstreetmap.org/search?query="
 scholar       = searchEngine "scholar"       "http://scholar.google.com/scholar?q="
 stackage      = searchEngine "stackage"      "www.stackage.org/lts/hoogle?q="
-thesaurus     = searchEngine "thesaurus"     "http://thesaurus.reference.com/search?q="
 wikipedia     = searchEngine "wiki"          "http://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary    = searchEngine "wikt"          "http://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "http://www.youtube.com/results?search_type=search_videos&search_query="
 wayback       = searchEngineF "wayback"      ("http://web.archive.org/web/*/"++)
 vocabulary    = searchEngine "vocabulary"    "http://www.vocabulary.com/search?q="
+thesaurus     = searchEngine "thesaurus"     "https://thesaurus.com/browse/"
 duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, google, hackage, hoogle, images, imdb, isohunt, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, prefixAware google]
+multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, github, google, hackage, hoogle, images, imdb, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, prefixAware google]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
