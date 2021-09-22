@@ -302,6 +302,11 @@
 
   * Add support for GHC 9.0.1.
 
+  * `XMonad.Actions.WithAll`
+
+    - Added `killOthers`, which kills all unfocused windows on the
+      current workspace.
+
   * `XMonad.Prompt.XMonad`
 
     - Added `xmonadPromptCT`, which allows you to create an XMonad

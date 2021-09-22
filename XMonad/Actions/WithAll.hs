@@ -5,15 +5,16 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Provides functions for performing a given action on all windows of
--- the current workspace.
+-- Provides functions for performing a given action on all or certain
+-- groups of windows on the current workspace.
 -----------------------------------------------------------------------------
 
 module XMonad.Actions.WithAll (
     -- * Usage
     -- $usage
     sinkAll, withAll,
-    withAll', killAll) where
+    withAll', killAll,
+    killOthers) where
 
 import XMonad.Prelude hiding (foldr)
 
@@ -50,3 +51,7 @@ withAll f = withWindowSet $ \ws -> let all' = integrate' . stack . workspace . c
 -- | Kill all the windows on the current workspace.
 killAll :: X()
 killAll = withAll killWindow
+
+-- | Kill all the unfocused windows on the current workspace.
+killOthers :: X ()
+killOthers = withUnfocused killWindow
