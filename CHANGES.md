@@ -128,6 +128,15 @@
       so colors of inactive window tiles will be different (but still inside
       the provided color range).
 
+  * `XMonad.Actions.Search`
+
+    - Removed outdated `isohunt` search engine.
+
+    - Updated URLs for `codesearch`, `openstreetmap`, and `thesaurus`
+      search engines.
+
+    - Added `github` search engine.
+
 ### New Modules
 
   * `XMonad.Layout.FixedAspectRatio`
