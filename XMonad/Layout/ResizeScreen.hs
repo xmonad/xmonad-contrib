@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ResizeScreen
+-- Description :  A layout transformer to have a layout respect a given screen geometry.
 -- Copyright   :  (c) 2007 Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

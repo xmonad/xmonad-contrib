@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar
+-- Description :  Composable and dynamic status bars.
 -- Copyright   :  (c) Yecine Megdiche <yecine.megdiche@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

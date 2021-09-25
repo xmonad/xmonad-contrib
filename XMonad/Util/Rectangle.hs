@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Rectangle
+-- Description :  A module for handling pixel rectangles.
 -- Copyright   :  (c) 2018 Yclept Nemo
 -- License     :  BSD-style (see LICENSE)
 --

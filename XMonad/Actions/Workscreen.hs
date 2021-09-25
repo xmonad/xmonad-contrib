@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module     :  XMonad.Actions.Workscreen
+-- Description:  Display a set of workspaces on several screens.
 -- Copyright  :  (c) 2012 kedals0
 -- License    :  BSD3-style (see LICENSE)
 --

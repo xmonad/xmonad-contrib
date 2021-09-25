@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.RunOrRaise
+-- Description :  A prompt to run a program, open a file, or raise a running program.
 -- Copyright   :  (C) 2008 Justin Bogner
 -- License     :  BSD3
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Themes
+-- Description :  A collection of themes for decorated layouts.
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --

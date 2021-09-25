@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CycleRecentWS
+-- Description :  Cycle through most recently used workspaces.
 -- Copyright   :  (c) Michal Janeczek <janeczek@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

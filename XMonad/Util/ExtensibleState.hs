@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.ExtensibleState
+-- Description :  Module for storing custom mutable state in xmonad.
 -- Copyright   :  (c) Daniel Schoepe 2009
 -- License     :  BSD3-style (see LICENSE)
 --

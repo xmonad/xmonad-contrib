@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SpawnNamedPipe
+-- Description :  A module for spawning a pipe whose handle lives in the XMonad state.
 -- Copyright   :  (c) Christian Wills 2014
 -- License     :  BSD3-style (see LICENSE)
 --

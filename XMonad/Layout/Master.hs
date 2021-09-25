@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Master
+-- Description :  Layout modfier that adds a master window to another layout.
 -- Copyright   :  (c) Ismael Carnales, Lukas Mai
 -- License     :  BSD-style (see LICENSE)
 --

@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.FixedAspectRatio
+-- Description :  A layout modifier for user provided per-window aspect ratios.
 -- Copyright   :  (c) Yecine Megdiche <yecine.megdiche@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

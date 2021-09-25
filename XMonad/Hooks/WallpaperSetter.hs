@@ -1,6 +1,7 @@
 -----------------------------------
 -- |
 -- Module      : XMonad.Hooks.WallpaperSetter
+-- Description : Change the wallpapers depending on visible workspaces.
 -- Copyright   : (c) Anton Pirogov, 2014
 -- License     : BSD3
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Circle
+-- Description :  An elliptical, overlapping layout.
 -- Copyright   :  (c) Peter De Wachter
 -- License     :  BSD-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicWorkspaceOrder
+-- Description :  Remember a dynamically updateable ordering on workspaces.
 -- Copyright   :  (c) Brent Yorgey 2009
 -- License     :  BSD-style (see LICENSE)
 --

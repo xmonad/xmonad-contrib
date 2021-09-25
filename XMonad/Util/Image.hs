@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Image
+-- Description :  Utilities for manipulating @[[Bool]]@ as images.
 -- Copyright   :  (c) 2010 Alejandro Serrano
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.DebugKeyEvents
+-- Description  : Track key events.
 -- Copyright    : (c) 2011 Brandon S Allbery <allbery.b@gmail.com>
 -- License      : BSD
 --

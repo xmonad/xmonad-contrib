@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Dzen
+-- Description :  Handy wrapper for dzen.
 -- Copyright   :  (c) glasser@mit.edu
 -- License     :  BSD
 --

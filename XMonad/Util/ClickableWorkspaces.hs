@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.ClickableWorkspaces
+-- Description :  Make workspace tags clickable in XMobar (for switching focus).
 -- Copyright   :  (c) Geoff deRosenroll <geoffderosenroll@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

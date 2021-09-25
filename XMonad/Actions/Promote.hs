@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Promote
+-- Description :  Alternate promote function for xmonad.
 -- Copyright   :  (c) Miikka Koskinen 2007
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Man
+-- Description :  A manual page prompt.
 -- Copyright   :  (c) 2007 Valery V. Vorotyntsev
 -- License     :  BSD3-style (see LICENSE)
 --

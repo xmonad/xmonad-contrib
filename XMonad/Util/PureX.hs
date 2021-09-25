@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.PureX
+-- Description :  Composable @X@ actions.
 -- Copyright   :  L. S. Leary 2018
 -- License     :  BSD3-style (see LICENSE)
 --

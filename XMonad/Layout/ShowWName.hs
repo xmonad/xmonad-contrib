@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ShowWName
+-- Description :  A layout modifier that will show the workspace name.
 -- Copyright   :  (c) Andrea Rossato 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

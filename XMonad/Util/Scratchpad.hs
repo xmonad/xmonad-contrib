@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Scratchpad
+-- Description :  Very handy hotkey-launched toggleable floating terminal window.
 -- Copyright   :  (c) Braden Shepherdson 2008
 -- License     :  BSD-style (as xmonad)
 --

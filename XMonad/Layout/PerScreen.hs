@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.PerScreen
+-- Description :  Configure layouts based on the width of your screen.
 -- Copyright   :  (c) Edward Z. Yang
 -- License     :  BSD-style (see LICENSE)
 --

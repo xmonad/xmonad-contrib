@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicHooks
+-- Description :  One-shot and permanent ManageHooks that can be updated at runtime.
 -- Copyright   :  (c) Braden Shepherdson 2008
 -- License     :  BSD-style (as xmonad)
 --

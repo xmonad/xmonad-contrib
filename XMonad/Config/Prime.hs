@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Config.Prime
+-- Description :  Draft of a brand new config syntax for xmonad.
 -- Copyright   :  Devin Mullins <devin.mullins@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

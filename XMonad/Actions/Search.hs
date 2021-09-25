@@ -1,4 +1,6 @@
-{- | Module      :  XMonad.Actions.Search
+{- |
+   Module      :  XMonad.Actions.Search
+   Description :  Easily run Internet searches on web sites through xmonad.
    Copyright   :  (C) 2007 Gwern Branwen
    License     :  None; public domain
 

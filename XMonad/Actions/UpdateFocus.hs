@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.UpdateFocus
+-- Description :  Updates the focus on mouse move in unfocused windows.
 -- Copyright   :  (c) Daniel Schoepe
 -- License     :  BSD3-style (see LICENSE)
 --

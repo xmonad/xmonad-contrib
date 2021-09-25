@@ -9,6 +9,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LayoutBuilder
+-- Description :  Send a number of windows to one rectangle and the rest to another.
 --
 -- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>,
 --                    2011 Ilya Portnov <portnov84@rambler.ru>,

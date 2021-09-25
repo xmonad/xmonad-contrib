@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.SwapWorkspaces
+-- Description :  Swap workspace tags without having to move individual windows.
 -- Copyright   :  (c) Devin Mullins <me@twifkak.com>
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CycleWS
+-- Description :  Cycle through workspaces.
 -- Copyright   :  (c) Joachim Breitner <mail@joachim-breitner.de>,
 --                    Nelson Elhage <nelhage@mit.edu> (`toggleWS' function)
 -- License     :  BSD3-style (see LICENSE)

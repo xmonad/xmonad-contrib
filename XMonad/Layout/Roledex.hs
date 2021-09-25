@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Roledex
+-- Description :  A completely pointless layout which acts like Microsoft's Flip 3D.
 -- Copyright   :  (c) tim.thelion@gmail.com
 -- License     :  BSD
 --

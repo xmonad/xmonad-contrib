@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Groups.Wmii
+-- Description :  A wmii-like layout algorithm.
 -- Copyright   :  Quentin Moser <moserq@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

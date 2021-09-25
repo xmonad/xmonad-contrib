@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.HintedGrid
+-- Description :  A layout that puts all windows in a square grid while obeying their size hints.
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD-style (see LICENSE)
 --

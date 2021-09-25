@@ -4,6 +4,7 @@
 
 -- |
 -- Module:      XMonad.Hooks.Focus
+-- Description: Provide additional information about a new window.
 -- Copyright:   sgf-dma, 2016
 -- Maintainer:  sgf.dma@gmail.com
 --

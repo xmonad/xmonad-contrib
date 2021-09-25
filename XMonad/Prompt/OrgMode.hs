@@ -7,6 +7,7 @@
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.OrgMode
+-- Description :  A prompt for interacting with org-mode.
 -- Copyright   :  (c) 2021  slotThe <soliditsallgood@mailbox.org>
 -- License     :  BSD3-style (see LICENSE)
 --

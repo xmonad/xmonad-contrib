@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Grid
+-- Description :  A simple layout that attempts to put all windows in a square grid.
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD-style (see LICENSE)
 --

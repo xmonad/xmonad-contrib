@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.AppendFile
+-- Description :  A prompt for appending a single line of text to a file.
 -- Copyright   :  (c) 2007 Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Workspace
+-- Description :  A workspace prompt.
 -- Copyright   :  (C) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD3
 --

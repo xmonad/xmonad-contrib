@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Azerty
+-- Description  : Fix some keybindings for users of French keyboard layouts.
 -- Copyright    : (c) Devin Mullins <me@twifkak.com>
 -- License      : BSD
 --

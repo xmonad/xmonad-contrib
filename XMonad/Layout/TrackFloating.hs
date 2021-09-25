@@ -2,6 +2,7 @@
 {- |
 
 Module      :  XMonad.Layout.TrackFloating
+Description :  Track focus in the tiled layer.
 Copyright   :  (c) 2010 & 2013 Adam Vogt
                2011 Willem Vanlint
 License     :  BSD-style (see xmonad/LICENSE)

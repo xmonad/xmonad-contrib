@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.KeyRemap
+-- Description :  Remap Keybinding on the fly.
 -- Copyright   :  (c) Christian Dietrich
 -- License     :  BSD-style (as xmonad)
 --

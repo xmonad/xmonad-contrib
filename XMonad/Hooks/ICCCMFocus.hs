@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ICCCMFocus
+-- Description  : Deprecated.
 -- License      : BSD
 --
 -- Maintainer   : Tony Morris <haskell@tmorris.net>

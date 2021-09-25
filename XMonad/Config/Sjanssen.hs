@@ -1,4 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Config.Sjanssen
+-- Description :  Spencer Janssen's xmonad config.
+--
+------------------------------------------------------------------------
 module XMonad.Config.Sjanssen (sjanssenConfig) where
 
 import XMonad hiding (Tall(..))

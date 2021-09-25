@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Commands
+-- Description :  Run internal xmonad commands using a dmenu menu.
 -- Copyright   :  (c) David Glasser 2007
 -- License     :  BSD3
 --

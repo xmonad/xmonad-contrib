@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MultiDishes
+-- Description :  A layout stacking groups of extra windows underneath the master windows.
 -- Copyright   :  (c) Jeremy Apthorp, Nathan Fairhurst
 -- License     :  BSD-style (see LICENSE)
 --

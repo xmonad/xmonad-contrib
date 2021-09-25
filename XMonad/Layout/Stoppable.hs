@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Stoppable
+-- Description :  A layout modifier to stop all non-visible processes.
 -- Copyright   :  (c) Anton Vorontsov <anton@enomsg.org> 2014
 -- License     :  BSD-style (as xmonad)
 --

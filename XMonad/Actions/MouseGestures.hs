@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.MouseGestures
+-- Description :  Support for simple mouse gestures.
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD3-style (see LICENSE)
 --

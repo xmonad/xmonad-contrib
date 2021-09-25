@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DraggingVisualizer
+-- Description :  Visualize the process of dragging a window.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

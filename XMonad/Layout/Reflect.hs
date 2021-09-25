@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Reflect
+-- Description :  Reflect a layout horizontally or vertically.
 -- Copyright   :  (c) Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

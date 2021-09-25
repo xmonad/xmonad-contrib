@@ -1,3 +1,17 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      : XMonad.Util.NoTaskbar
+-- Description : Mark a window to be ignored by EWMH taskbars and pagers.
+-- Copyright   : (c) ???
+-- License     : BSD3-style (see LICENSE)
+--
+-- Maintainer  : ???
+--
+-- Function and manageHook to mark a window to be ignored by EWMH
+-- taskbars and pagers.
+--
+-----------------------------------------------------------------------------
+
 module XMonad.Util.NoTaskbar (-- * Usage
                               -- $usage
                               noTaskbar

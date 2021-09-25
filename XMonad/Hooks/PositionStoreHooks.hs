@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.PositionStoreHooks
+-- Description :  Hooks for XMonad.Util.PositionStore.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

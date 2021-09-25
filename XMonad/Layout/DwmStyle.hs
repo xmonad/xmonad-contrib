@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DwmStyle
+-- Description :  A layout modifier for decorating windows in a dwm like style.
 -- Copyright   :  (c) 2007 Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

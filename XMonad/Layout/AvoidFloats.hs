@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.AvoidFloats
+-- Description :  Avoid floats when placing tiled windows.
 -- Copyright   :  (c) 2014 Anders Engstrom <ankaan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

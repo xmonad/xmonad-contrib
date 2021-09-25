@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.AutoMaster
+-- Description :  Change size of the stack area depending on the number of its windows.
 -- Copyright   :  (c) 2009 Ilya Portnov
 -- License     :  BSD3-style (see LICENSE)
 --

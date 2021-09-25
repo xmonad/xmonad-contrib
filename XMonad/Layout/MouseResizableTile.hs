@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MouseResizableTile
+-- Description :  Like "XMonad.Layout.ResizableTile", but use the mouse to adjust the layout.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

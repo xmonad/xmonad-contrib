@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Drawer
+-- Description :  A layout modifier to put windows in a "drawer".
 -- Copyright   :  (c) 2009 Max Rabkin
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

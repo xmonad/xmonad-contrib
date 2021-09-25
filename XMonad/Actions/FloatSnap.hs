@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.FloatSnap
+-- Description :  Snap to other windows or the edge of the screen while moving or resizing.
 -- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

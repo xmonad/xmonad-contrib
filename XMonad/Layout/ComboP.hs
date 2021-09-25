@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ComboP
+-- Description :  Combine multiple layouts and specify where to put new windows.
 -- Copyright   :  (c) Konstantin Sobolev <konstantin.sobolev@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

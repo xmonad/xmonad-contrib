@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LayoutBuilderP
+-- Description :  (DEPRECATED) An old version of "XMonad.Layout.LayoutBuilderP".
 -- Copyright   :  (c) 2009 Anders Engstrom <ankaan@gmail.com>, 2011 Ilya Portnov <portnov84@rambler.ru>
 -- License     :  BSD3-style (see LICENSE)
 --

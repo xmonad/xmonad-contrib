@@ -2,6 +2,7 @@
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prelude
+-- Description :  Utility functions and re-exports.
 -- Copyright   :  slotThe <soliditsallgood@mailbox.org>
 -- License     :  BSD3-style (see LICENSE)
 --

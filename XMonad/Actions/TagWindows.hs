@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.TagWindows
+-- Description  : Functions for tagging windows and selecting them by tags.
 -- Copyright    : (c) Karsten Schoelzel <kuser@gmx.de>
 -- License      : BSD
 --

@@ -2,11 +2,12 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
+-- Module      :  XMonad.Config.Droundy
+-- Description :  David Roundy's xmonad config.
 -- Copyright   :  (c) Spencer Janssen 2007
 -- License     :  BSD3-style (see LICENSE)
 --
 ------------------------------------------------------------------------
-
 module XMonad.Config.Droundy ( config, mytab ) where
 
 import XMonad hiding (keys, config)

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MessageControl
+-- Description :  Message escaping and filtering facilities.
 -- Copyright   :  (c) 2008 Quentin Moser
 -- License     :  BSD3
 --

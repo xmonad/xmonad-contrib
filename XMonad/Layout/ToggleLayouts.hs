@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.ToggleLayouts
+-- Description :  A module to toggle between two layouts.
 -- Copyright    : (c) David Roundy <droundy@darcs.net>
 -- License      : BSD
 --

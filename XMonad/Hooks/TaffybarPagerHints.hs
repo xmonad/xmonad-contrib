@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.TaffybarPagerHints
+-- Description :  Export additional X properties for [taffybar](https://github.com/taffybar/taffybar).
 -- Copyright   :  (c) 2020 Ivan Malison
 -- License     :  BSD3-style (see LICENSE)
 --

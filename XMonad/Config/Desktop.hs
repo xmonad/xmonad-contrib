@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Desktop
+-- Description  : Core settings for interfacing with desktop environments.
 -- Copyright    : (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License      : BSD
 --

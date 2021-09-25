@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CycleSelectedLayouts
+-- Description :  Cycle through the given subset of layouts.
 -- Copyright   :  (c) Roman Cheplyaka
 -- License     :  BSD3-style (see LICENSE)
 --

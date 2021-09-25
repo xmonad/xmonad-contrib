@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedWindows
+-- Description :  Associate the X titles of windows with them.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

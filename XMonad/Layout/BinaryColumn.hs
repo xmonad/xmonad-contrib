@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BinaryColumn
+-- Description :  A layout that places all windows in one column.
 -- Copyright   :  (c) 2009 Ilya Portnov, (c) 2018 Campbell Barton
 -- License     :  BSD3-style (see LICENSE)
 --

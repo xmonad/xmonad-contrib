@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ImageButtonDecoration
+-- Description :  Decoration that includes image buttons, executing actions when clicked on.
 -- Copyright   :  (c) Jan Vornberger 2009
 --                    Alejandro Serrano 2010
 -- License     :  BSD3-style (see LICENSE)

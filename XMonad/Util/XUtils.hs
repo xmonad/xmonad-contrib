@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.XUtils
+-- Description :  A module for painting on the screen.
 -- Copyright   :  (c) 2007 Andrea Rossato
 --                    2010 Alejandro Serrano
 -- License     :  BSD-style (see xmonad/LICENSE)

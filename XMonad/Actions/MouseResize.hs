@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.MouseResize
+-- Description :  A layout modifier to resize windows with the mouse.
 -- Copyright   :  (c) 2007 Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.Place
+-- Description :  Automatic placement of floating windows.
 -- Copyright   :  Quentin Moser <moserq@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

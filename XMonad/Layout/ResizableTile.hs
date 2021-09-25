@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ResizableTile
+-- Description :  More useful tiled layout that allows you to change a width\/height of window.
 -- Copyright   :  (c) MATSUYAMA Tomohiro <t.matsuyama.pub@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

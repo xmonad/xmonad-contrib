@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.UrgencyHook
+-- Description :  Configure an action to occur when a window demands your attention.
 -- Copyright   :  Devin Mullins <me@twifkak.com>
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Navigation2D
+-- Description :  Directional navigation of windows and screens.
 -- Copyright   :  (c) 2011  Norbert Zeh <nzeh@cs.dal.ca>
 -- License     :  BSD3-style (see LICENSE)
 --

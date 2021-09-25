@@ -2,6 +2,7 @@
 
 -- |
 -- Module      :  XMonad.Layout.Cross
+-- Description :  A Cross Layout with the main window in the center.
 -- Copyright   :  (c) Luis Cabellos <zhen.sydow@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

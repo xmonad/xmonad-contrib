@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CycleWorkspaceByScreen
+-- Description :  Cycle workspaces in a screen-aware fashion.
 -- Copyright   :  (c) 2017 Ivan Malison
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DebugStack
+-- Description :  Dump the state of the StackSet.
 -- Copyright   :  (c) Brandon S Allbery KF8NH, 2014
 -- License     :  BSD3-style (see LICENSE)
 --

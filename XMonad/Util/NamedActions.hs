@@ -3,6 +3,7 @@
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedActions
+-- Description :  A wrapper for keybinding configuration that can list the available keybindings.
 -- Copyright   :  2009 Adam Vogt <vogt.adam@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

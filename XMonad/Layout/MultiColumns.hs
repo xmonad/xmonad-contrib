@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MultiColumns
+-- Description :  A layout that tiles windows in a growing number of columns.
 -- Copyright   :  (c) Anders Engstrom <ankaan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

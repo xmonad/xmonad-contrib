@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.RemoteWindows
+-- Description :  A module to find out whether the window is remote or local.
 -- Copyright   :  (c) Anton Vorontsov <anton@enomsg.org> 2014
 -- License     :  BSD-style (as xmonad)
 --

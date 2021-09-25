@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.FlexibleResize
+-- Description :  Resize floating windows from any corner.
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD3-style (see LICENSE)
 --

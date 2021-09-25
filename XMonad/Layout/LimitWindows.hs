@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LimitWindows
+-- Description :  A layout modifier that limits the number of windows that can be shown.
 -- Copyright   :  (c) 2009 Adam Vogt
 --                (c) 2009 Max Rabkin -- wrote limitSelect
 -- License     :  BSD-style (see xmonad/LICENSE)

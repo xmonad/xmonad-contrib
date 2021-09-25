@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Ssh
+-- Description :  An ssh prompt.
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --

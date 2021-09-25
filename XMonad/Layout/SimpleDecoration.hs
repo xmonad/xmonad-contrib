@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SimpleDecoration
+-- Description :  Add simple decorations to the windows of a given layout.
 -- Copyright   :  (c) 2007 Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

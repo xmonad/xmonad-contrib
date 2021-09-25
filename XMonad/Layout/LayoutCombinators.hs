@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutCombinators
+-- Description :  Easily combine multiple layouts into one composite layout.
 -- Copyright    : (c) David Roundy <droundy@darcs.net>
 -- License      : BSD
 --

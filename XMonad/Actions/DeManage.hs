@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DeManage
+-- Description :  Cease management of a window without unmapping it.
 -- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.DynamicScratchpads
+-- Description :  Dynamically declare any window as a scratchpad.
 -- Copyright   :  (c) Robin Oberschweiber <mephory@mephory.com>
 -- License     :  BSD-style (see LICENSE)
 --

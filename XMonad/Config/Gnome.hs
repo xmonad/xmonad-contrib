@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Gnome
+-- Description  : Config for integrating xmonad with GNOME.
 -- Copyright    : (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License      : BSD
 --

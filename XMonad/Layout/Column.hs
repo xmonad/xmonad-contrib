@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Column
+-- Description :  Layout that places all windows in one column.
 -- Copyright   :  (c) 2009 Ilya Portnov
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns      #-}
 {- |
 Module      :  XMonad.Prompt.Shell
+Description :  A shell prompt.
 Copyright   :  (C) 2007 Andrea Rossato
 License     :  BSD3
 

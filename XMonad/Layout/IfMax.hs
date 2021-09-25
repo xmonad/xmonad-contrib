@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.IfMax
+-- Description :  Decide upon a layout depending on the number of windows.
 -- Copyright   :  (c) 2013 Ilya Portnov
 -- License     :  BSD3-style (see LICENSE)
 --

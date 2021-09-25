@@ -3,6 +3,7 @@
 ---------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TallMastersCombo
+-- Description :  A version of @Tall@ with two permanent master windows.
 -- Copyright   :  (c) 2019 Ningji Wei
 -- License     :  BSD3-style (see LICENSE)
 --

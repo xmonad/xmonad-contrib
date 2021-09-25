@@ -1,5 +1,6 @@
 {- |
 Module      :  XMonad.Actions.WindowGo
+Description :  Operations for raising (traveling to) windows.
 License     :  Public domain
 
 Maintainer  :  <gwern0@gmail.com>

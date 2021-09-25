@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.OnHost
+-- Description :  Use layouts and apply layout modifiers selectively, depending on the host.
 -- Copyright   :  (c) Brandon S Allbery, Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

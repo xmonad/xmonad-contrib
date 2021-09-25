@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DecorationMadness
+-- Description :  A collection of decorated layouts.
 -- Copyright   :  (c) 2007 Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

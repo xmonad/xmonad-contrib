@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {- |
 Module      :  XMonad.Util.XSelection
+Description :  A module for accessing and manipulating the primary selection.
 Copyright   :  (C) 2007 Andrea Rossato, Matthew Sackman
 License     :  BSD3
 

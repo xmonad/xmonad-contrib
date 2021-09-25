@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MultiToggle
+-- Description :  Dynamically apply and unapply transformers to your window layout.
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD-style (see LICENSE)
 --

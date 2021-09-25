@@ -3,6 +3,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Config.Bluetile
+-- Description :  Default configuration of [Bluetile](http://projects.haskell.org/bluetile/).
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.ShowText
+-- Description :  Display text on the screen.
 -- Copyright   :  (c) Mario Pastorelli (2012)
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

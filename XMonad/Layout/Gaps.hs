@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Gaps
+-- Description :  Create manually-sized gaps along edges of the screen.
 -- Copyright   :  (c) 2008 Brent Yorgey
 -- License     :  BSD3
 --

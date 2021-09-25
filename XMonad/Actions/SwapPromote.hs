@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.SwapPromote
+-- Description :  Track the master window history per workspace.
 -- Copyright   :  (c) 2018 Yclept Nemo
 -- License     :  BSD-style (see LICENSE)
 --

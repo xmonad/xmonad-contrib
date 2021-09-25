@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.FadeWindows
+-- Description :  A more flexible and general compositing interface than FadeInactive.
 -- Copyright   :  Brandon S Allbery KF8NH <allbery.b@gmail.com>
 -- License     :  BSD
 --

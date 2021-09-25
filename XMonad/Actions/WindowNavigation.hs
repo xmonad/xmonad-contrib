@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.WindowNavigation
+-- Description :  Experimental rewrite of "XMonad.Layout.WindowNavigation".
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>,
 --                          Devin Mullins <me@twifkak.com>
 -- Maintainer  :  Devin Mullins <me@twifkak.com>

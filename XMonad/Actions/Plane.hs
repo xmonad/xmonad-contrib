@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Plane
+-- Description :  Navigate through workspaces in a bidimensional manner.
 -- Copyright   :  (c) Marco Túlio Gontijo e Silva <marcot@riseup.net>,
 --                    Leonardo Serra <leoserra@minaslivre.org>
 -- License     :  BSD3-style (see LICENSE)

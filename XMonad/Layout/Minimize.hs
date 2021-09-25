@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Minimize
+-- Description :  Minimize windows, temporarily removing them from the layout.
 -- Copyright   :  (c) Jan Vornberger 2009, Alejandro Serrano 2010
 -- License     :  BSD3-style (see LICENSE)
 --

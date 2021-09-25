@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TopicSpace
+-- Description :  Turns your workspaces into a more topic oriented system.
 -- Copyright   :  (c) Nicolas Pouillard
 -- License     :  BSD-style (see LICENSE)
 --

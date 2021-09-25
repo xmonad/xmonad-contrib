@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.ConstrainedResize
+-- Description :  Constrain the aspect ratio of a floating window.
 -- Copyright   :  (c) Dougal Stanton
 -- License     :  BSD3-style (see LICENSE)
 --

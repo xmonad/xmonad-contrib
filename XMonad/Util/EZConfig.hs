@@ -1,6 +1,7 @@
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.EZConfig
+-- Description :  Configure key bindings easily in Emacs style.
 -- Copyright   :  Devin Mullins <me@twifkak.com>
 --                Brent Yorgey <byorgey@gmail.com> (key parsing)
 -- License     :  BSD3-style (see LICENSE)

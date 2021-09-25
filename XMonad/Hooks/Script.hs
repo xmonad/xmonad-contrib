@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Hooks.Script
+-- Description : Simple interface for running a ~\/.xmonad\/hooks script with the name of a hook.
 -- Copyright   : (c) Trevor Elliott <trevor@galois.com>
 -- License     : BSD3-style (see LICENSE)
 --

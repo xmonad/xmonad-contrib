@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TiledWindowDragging
+-- Description :  Change the position of windows by dragging them.
 -- Copyright   :  (c) 2020 Leon Kowarschick
 -- License     :  BSD3-style (see LICENSE)
 --

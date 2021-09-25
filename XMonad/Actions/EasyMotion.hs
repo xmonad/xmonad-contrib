@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.EasyMotion
+-- Description :  Focus a visible window using a key chord.
 -- Copyright   :  (c) Matt Kingston <mattkingston@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

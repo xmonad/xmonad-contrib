@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.WindowMenu
+-- Description :  Display window management actions in the center of the focused window.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

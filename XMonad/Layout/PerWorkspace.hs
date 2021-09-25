@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.PerWorkspace
+-- Description :  Use layouts and apply layout modifiers selectively.
 -- Copyright   :  (c) Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

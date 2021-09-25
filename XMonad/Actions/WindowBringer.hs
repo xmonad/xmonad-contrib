@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.WindowBringer
+-- Description :  Dmenu operations to bring windows to you, and bring you to windows.
 -- Copyright   :  Devin Mullins <me@twifkak.com>
 -- License     :  BSD-style (see LICENSE)
 --

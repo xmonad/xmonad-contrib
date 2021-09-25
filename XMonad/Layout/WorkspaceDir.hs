@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WorkspaceDir
+-- Description :  A layout modifier to set the current directory in a workspace.
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

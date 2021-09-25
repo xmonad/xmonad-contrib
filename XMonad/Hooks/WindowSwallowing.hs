@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WindowSwallowing
+-- Description :  Temporarily hide parent windows when opening other programs.
 -- Copyright   :  (c) 2020 Leon Kowarschick
 -- License     :  BSD3-style (see LICENSE)
 --

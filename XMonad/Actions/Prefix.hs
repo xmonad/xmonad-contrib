@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Prefix
+-- Description :  Use an Emacs-style prefix argument for commands.
 -- Copyright   :  (c) Matus Goljer <matus.goljer@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

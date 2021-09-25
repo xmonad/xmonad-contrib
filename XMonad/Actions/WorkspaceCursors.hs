@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.WorkspaceCursors
+-- Description  : Like "XMonad.Actions.Plane" for an arbitrary number of dimensions.
 -- Copyright    : (c) 2009 Adam Vogt <vogt.adam@gmail.com>
 -- License      : BSD
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.SetWMName
+-- Description :  Set the WM name to a given string.
 -- Copyright   :  © 2007 Ivan Tarasov <Ivan.Tarasov@gmail.com>
 -- License     :  BSD
 --

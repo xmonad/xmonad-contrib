@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.WithAll
+-- Description  : Perform a given action on all or certain groups of windows.
 -- License      : BSD3-style (see LICENSE)
 -- Stability    : unstable
 -- Portability  : unportable

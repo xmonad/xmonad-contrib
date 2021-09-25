@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WorkspaceByPos
+-- Description :  Move new window to non-focused screen based on its requested geometry.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

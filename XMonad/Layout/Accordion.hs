@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Accordion
+-- Description :  Put non-focused windows in ribbons at the top and bottom of the screen.
 -- Copyright   :  (c) glasser@mit.edu
 -- License     :  BSD
 --

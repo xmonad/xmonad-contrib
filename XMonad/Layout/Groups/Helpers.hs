@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Groups.Helpers
+-- Description :  Utility functions for "XMonad.Layout.Groups".
 -- Copyright   :  Quentin Moser <moserq@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

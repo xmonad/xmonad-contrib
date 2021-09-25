@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicProjects
+-- Description :  Treat workspaces as individual project areas.
 -- Copyright   :  (c) Peter J. Jones
 -- License     :  BSD3-style (see LICENSE)
 --

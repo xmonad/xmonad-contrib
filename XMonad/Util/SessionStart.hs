@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SessionStart
+-- Description :  A module for detectiong session startup.
 -- Copyright   :  (c) Markus Ongyerth 2017
 -- License     :  BSD3-style (see LICENSE)
 --

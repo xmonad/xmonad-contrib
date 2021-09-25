@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedScratchpad
+-- Description :  Toggle arbitrary windows to and from the current workspace.
 -- Copyright   :  (c) Konstantin Sobolev <konstantin.sobolev@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BorderResize
+-- Description :  Resize windows by dragging their borders with the mouse.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

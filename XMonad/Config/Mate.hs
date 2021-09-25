@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Mate
+-- Description  : Config for integrating xmonad with MATE.
 -- Copyright    : (c) Brandon S Allbery KF8NH, 2014
 -- License      : BSD
 --

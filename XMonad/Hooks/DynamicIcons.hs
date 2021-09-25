@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicIcons
+-- Description :  Dynamically update workspace names based on its contents\/windows on it.
 -- Copyright   :  (c) Will Pierlot <willp@outlook.com.au>
 -- License     :  BSD3-style (see LICENSE)
 --

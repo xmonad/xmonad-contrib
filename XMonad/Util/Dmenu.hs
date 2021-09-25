@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Dmenu
+-- Description :  Convenient bindings to dmenu.
 -- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Email
+-- Description :  A prompt for sending quick, one-line emails, via GNU \'mail\'.
 -- Copyright   :  (c) 2007 Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

@@ -1,11 +1,9 @@
-{-#
-  LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving,
-  FlexibleInstances, MultiParamTypeClasses,
-  FlexibleContexts -- ghc-6.12 only
-  #-}
+{-# LANGUAGE ScopedTypeVariables, GeneralizedNewtypeDeriving,
+  FlexibleInstances, MultiParamTypeClasses, FlexibleContexts #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Util.WindowState
+-- Description  :  Functions for saving per-window data.
 -- Copyright    : (c) Dmitry Bogatov <KAction@gnu.org>
 -- License      : BSD
 --

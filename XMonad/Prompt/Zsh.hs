@@ -1,5 +1,6 @@
 {- |
 Module      :  XMonad.Prompt.Zsh
+Description :  Zsh-specific version of "XMonad.Prompt.Shell".
 Copyright   :  (C) 2020 Zubin Duggal
 License     :  BSD3
 

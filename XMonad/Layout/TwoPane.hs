@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TwoPane
+-- Description :  A layout that splits the screen horizontally and shows two windows.
 -- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

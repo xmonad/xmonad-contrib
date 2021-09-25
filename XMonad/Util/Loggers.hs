@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Loggers
+-- Description :  A collection of simple logger functions and formatting utilities.
 -- Copyright   :  (c) Brent Yorgey, Wirt Wolff
 -- License     :  BSD-style (see LICENSE)
 --

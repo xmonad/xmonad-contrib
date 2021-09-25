@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.RotateSome
+-- Description :  Rotate some elements around the stack.
 -- Copyright   :  (c) 2020 Ivan Brennan <ivanbrennan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

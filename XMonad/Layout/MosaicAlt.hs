@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MosaicAlt
+-- Description :  An alternative version of "XMonad.Layout.Mosaic".
 -- Copyright   :  (c) 2007 James Webb
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

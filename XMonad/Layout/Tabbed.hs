@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Tabbed
+-- Description :  A tabbed layout.
 -- Copyright   :  (c) 2007 David Roundy, Andrea Rossato
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

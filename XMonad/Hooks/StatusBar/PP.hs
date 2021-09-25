@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar.PP
+-- Description :  The pretty-printing abstraction for handling status bars.
 -- Copyright   :  (c) Don Stewart <dons@cse.unsw.edu.au>
 -- License     :  BSD3-style (see LICENSE)
 --

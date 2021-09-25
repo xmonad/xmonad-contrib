@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.XMonad
+-- Description :  A prompt for running XMonad commands.
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --

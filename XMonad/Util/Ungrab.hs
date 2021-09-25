@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Ungrab
+-- Description :  Release xmonad's keyboard and pointer grabs immediately.
 -- Copyright   :  (c) 2016 Brandon S Allbery
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

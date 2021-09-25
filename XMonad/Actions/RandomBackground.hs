@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.RandomBackground
+-- Description :  Start terminals with a random background color.
 -- Copyright   :  (c) 2009 Anze Slosar
 --                translation to Haskell by Adam Vogt
 -- License     :  BSD3-style (see LICENSE)

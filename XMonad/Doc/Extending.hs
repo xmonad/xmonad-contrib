@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Doc.Extending
+-- Description :  A module to document the xmonad-contrib library.
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --

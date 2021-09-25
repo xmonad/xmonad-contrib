@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.DirExec
+-- Description :  A directory file executables prompt for XMonad.
 -- Copyright   :  (C) 2008 Juraj Hercek
 -- License     :  BSD3
 --

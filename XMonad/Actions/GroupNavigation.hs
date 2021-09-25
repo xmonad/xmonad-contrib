@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Actions.GroupNavigation
+-- Description : Cycle through groups of windows across workspaces.
 -- Copyright   : (c) nzeh@cs.dal.ca
 -- License     : BSD3-style (see LICENSE)
 --
