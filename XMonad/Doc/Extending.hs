@@ -104,6 +104,22 @@ extensive documentation.  If you find a module that could be better
 documented, or has incorrect documentation, please report it as a bug
 (<https://github.com/xmonad/xmonad/issues>)!
 
+First and foremost, xmonad defines its own prelude for commonly used
+functions, as well as re-exports from @base@.
+
+* "XMonad.Prelude":
+    Utility functions and re-exports for a more ergonomic developing
+    experience.
+
+There are also other documentation modules, showing you around
+individual parts of xmonad:
+
+* "XMonad.Doc.Configuring":
+    Brief tutorial that will teach you how to create a basic
+    xmonad configuration.
+
+* "XMonad.Doc.Developing":
+    A brief overview of xmonad's internals.
 -}
 
 {- $actions
@@ -154,6 +170,10 @@ edit your key bindings.
 * "XMonad.Actions.CycleWindows":
     Provides bindings to cycle windows up or down on the current workspace
     stack while maintaining focus in place.
+
+* "XMonad.Action.CycleWorkspaceByScreen":
+    Cycle through previously viewed workspaces in the order they were
+    viewed most recently on the screen where cycling is taking place.
 
 * "XMonad.Actions.DeManage":
     This module provides a method to cease management of a window
@@ -233,6 +253,9 @@ edit your key bindings.
     of whether the message was handled, and utility functions based on
     this facility.
 
+* "XMonad.Actions.Minimize":
+    Adds actions for minimizing and maximizing windows.
+
 * "XMonad.Actions.MouseGestures":
     Support for simple mouse gestures.
 
@@ -250,6 +273,9 @@ edit your key bindings.
 * "XMonad.Actions.OnScreen":
     Control workspaces on different screens (in xinerama mode).
 
+* "XMonad.Actions.PerWindowKeys":
+    Define key-bindings on a per-window basis.
+
 * "XMonad.Actions.PerWorkspaceKeys":
     Define key-bindings on per-workspace basis.
 
@@ -259,6 +285,10 @@ edit your key bindings.
 * "XMonad.Actions.Plane":
     This module has functions to navigate through workspaces in a bidimensional
     manner.
+
+* "XMonad.Actions.Prefix":
+    A module that allows the user to use an Emacs-style prefix argument
+    for commands (raw or numeric).
 
 * "XMonad.Actions.Promote":
     Alternate promote function for xmonad.
@@ -270,6 +300,12 @@ edit your key bindings.
     Rotate all windows except the master window and keep the focus in
     place.
 
+* "XMonad.Actions.RotateSome":
+    Functions for rotating some elements around the stack while keeping
+    others anchored in place. Useful in combination with layouts that
+    dictate window visibility based on stack position, such as
+    "XMonad.Layout.LimitWindows".
+
 * "XMonad.Actions.Search":
     A module for easily running Internet searches on web sites through xmonad.
     Modeled after the handy Surfraw CLI search tools at <https://secure.wikimedia.org/wikipedia/en/wiki/Surfraw>.
@@ -277,6 +313,13 @@ edit your key bindings.
 * "XMonad.Actions.ShowText":
     ShowText displays text for sometime on the screen similar to
     "XMonad.Util.Dzen" which offers more features (currently).
+
+* "XMonad.Actions.Sift":
+    Functions for sifting windows up and down. Sifts behave identically
+    to swaps (i.e. 'swapUp' and 'swapDown' from "XMonad.StackSet"),
+    except in the wrapping case: rather than rotating the entire stack
+    by one position like a swap would, a sift causes the windows at
+    either end of the stack to trade positions.
 
 * "XMonad.Actions.SimpleDate":
     An example external contrib module for XMonad.
@@ -294,9 +337,17 @@ edit your key bindings.
 * "XMonad.Actions.Submap":
     A module that allows the user to create a sub-mapping of key bindings.
 
+* "XMonad.Actions.SwapPromote":
+    Module for tracking master window history per workspace, and
+    associated functions for manipulating the stack using such history.
+
 * "XMonad.Actions.SwapWorkspaces":
     Lets you swap workspace tags, so you can keep related ones next to
     each other, without having to move individual windows.
+
+* "XMonad.Actions.TiledWindowDragging":
+    Provides an action that allows you to change the position of windows
+    by dragging them around.
 
 * "XMonad.Actions.TagWindows":
     Functions for tagging windows and selecting them by tags.
@@ -488,6 +539,10 @@ Here is a list of the modules found in @XMonad.Hooks@:
   putting in a status bar of some sort. See
   "XMonad.Doc.Extending#The_log_hook_and_external_status_bars".
 
+* "XMonad.Hooks.DynamicProperty":
+    Module to apply a ManageHook to an already-mapped window when a
+    property Fchanges.
+
 * "XMonad.Hooks.EwmhDesktops":
     Makes xmonad use the EWMH hints to tell panel applications about its
     workspaces and the windows therein. It also allows the user to interact
@@ -506,6 +561,9 @@ Here is a list of the modules found in @XMonad.Hooks@:
 * "XMonad.Hooks.FloatNext":
     Hook and keybindings for automatically sending the next
     spawned window(s) to the floating layer.
+
+* "XMonad.Hooks.Focus":
+    Provide additional information about a new window.
 
 * "XMonad.Hooks.ICCCMFocus":
     Deprecated.
@@ -642,6 +700,9 @@ For more information on using those modules for customizing your
 * "XMonad.Layout.AvoidFloats":
     Find a maximum empty rectangle around floating windows and use that area to
     display non-floating windows.
+
+* "XMonad.Layout.BinaryColumn":
+    Provides Column layout that places all windows in one column.
 
 * "XMonad.Layout.BinarySpacePartition":
     Layout where new windows will split the focused window in half, based off of BSPWM.
@@ -877,6 +938,10 @@ For more information on using those modules for customizing your
     This layout tiles windows in a growing number of columns. The number of
     windows in each column can be controlled by messages.
 
+* "XMonad.Layout.MultiDishes":
+    MultiDishes is a layout that stacks groups of extra windows
+    underneath the master windows.
+
 * "XMonad.Layout.MultiToggle":
     Dynamically apply and unapply transformers to your window layout. This can
     be used to rotate your window layout by 90 degrees, or to make the
@@ -1008,6 +1073,12 @@ For more information on using those modules for customizing your
 * "XMonad.Layout.Tabbed":
     A tabbed layout for the Xmonad Window Manager
 
+* "XMonad.Layout.TallMastersCombo":
+    A layout combinator that support Shrink, Expand, and IncMasterN just
+    as the 'Tall' layout, and also support operations of two master
+    windows: a main master, which is the original master window; a sub
+    master, the first window of the second pane.
+
 * "XMonad.Layout.ThreeColumns":
     A layout similar to tall but with three columns. With 2560x1600 pixels this
     layout can be used for a huge main window and up to six reasonable sized
@@ -1016,10 +1087,26 @@ For more information on using those modules for customizing your
 * "XMonad.Layout.ToggleLayouts":
     A module to toggle between two layouts.
 
+* "XMonad.Layout.TrackFloating":
+    Layout modifier that tracks focus in the tiled layer while the
+    floating layer or another sublayout is in use.
+
 * "XMonad.Layout.TwoPane":
     A layout that splits the screen horizontally and shows two windows.  The
     left window is always the master window, and the right is either the
     currently focused window or the second window in layout order.
+
+* "XMonad.Layout.TwoPanePersistent":
+    This layout is the same as "XMonad.Layout.TwoPane" except that it
+    keeps track of the slave window that is alongside the master
+    pane. In other words, it prevents the slave pane from changing after
+    the focus goes back to the master pane.
+
+* "XMonad.Layout.VoidBorders":
+    Modifies a layout to set borders to 0 for all windows in the
+    workspace.  Unlike XMonad.Layout.NoBorders, this modifier will not
+    restore the window border if the windows are moved to a different
+    workspace or the layout is changed.
 
 * "XMonad.Layout.WindowArranger":
     This is a pure layout modifier that will let you move and resize
@@ -1040,6 +1127,9 @@ For more information on using those modules for customizing your
     (or other programs) pulled up in that workspace (with that layout) will
     execute in that working directory.  Sort of handy, I think.
     Note this extension requires the 'directory' package to be installed.
+
+* "XMonad.Layout.ZoomRow":
+    Row layout with individually resizable elements.
 
 -}
 
@@ -1139,6 +1229,10 @@ These are the available prompts:
 * "XMonad.Prompt.XMonad":
     A prompt for running XMonad commands
 
+* "XMonad.Prompt.Zsh":
+    A version of "XMonad.Prompt.Shell" that lets you access the awesome
+    power of Zsh completions in your xmonad prompt
+
 Usually a prompt is called by some key binding. See
 "XMonad.Doc.Extending#Editing_key_bindings", which includes examples
 of adding some prompts.
@@ -1178,12 +1272,18 @@ A non complete list with a brief description:
     A convenient binding to dmenu.
     Requires the process-1.0 package
 
+* "XMonad.Util.DynamicScratchpads":
+    Dynamically declare any window as a scratchpad.
+
 * "XMonad.Util.Dzen":
     Handy wrapper for dzen. Requires dzen >= 0.2.4.
 
 * "XMonad.Util.EZConfig":
     Configure key bindings easily, including a
     parser for writing key bindings in "M-C-x" style.
+
+* "XMonad.Util.ExclusiveScratchpads":
+    Named scratchpads that can be mutually exclusive.
 
 * "XMonad.Util.ExtensibleConf":
     Extensible and composable configuration for contrib modules. Allows
@@ -1218,6 +1318,10 @@ A non complete list with a brief description:
         A collection of Loggers (see "XMonad.Util.Loggers") for NamedScratchpads
         (see "XMonad.Util.NamedScratchpad").
 
+* "XMonad.Util.Minimize":
+    Stores some common utilities for modules used for window
+    minimizing/maximizing
+
 * "XMonad.Util.NamedActions":
     A wrapper for keybinding configuration that can list the available
     keybindings.
@@ -1243,6 +1347,12 @@ A non complete list with a brief description:
     A utility module to store information about position and size of a window.
     See "XMonad.Layout.PositionStoreFloat" for a layout that makes use of this.
 
+* "XMonad.Util.PureX":
+    Composable @X@ actions.
+
+* "XMonad.Util.Rectangle":
+    A module for handling pixel rectangles: 'Rectangle'.
+
 * "XMonad.Util.RemoteWindows":
     This module implements a proper way of finding out whether the window is remote or local.
 
@@ -1257,6 +1367,11 @@ A non complete list with a brief description:
 
 * "XMonad.Util.Scratchpad":
     Very handy hotkey-launched toggleable floating terminal window.
+
+* "XMonad.Util.SessionStart":
+    A module for detectiong session startup.  Useful to start status
+    bars, compositors and session initialization.  This is a more
+    general approach than spawnOnce and allows spawnOn etc.
 
 * "XMonad.Util.SpawnNamedPipe":
     A module for spawning a pipe whose Handle lives in the Xmonad state.
@@ -1278,6 +1393,10 @@ A non complete list with a brief description:
 
 * "XMonad.Util.Timer":
     A module for setting up timers
+
+* "XMonad.Actions.TreeSelect":
+    <https://wiki.haskell.org/Zipper Zipper> over the "Data.Tree" data
+    structure.
 
 * "XMonad.Util.Types":
     Miscellaneous commonly used types.
