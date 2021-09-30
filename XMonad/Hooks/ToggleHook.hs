@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ToggleHook
+-- Description :  Hook and keybindings for toggling hook behavior.
 -- Copyright   :  Ben Boeckel <mathstuf@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

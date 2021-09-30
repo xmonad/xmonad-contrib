@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Timer
+-- Description :  A module for setting up timers.
 -- Copyright   :  (c) Andrea Rossato and David Roundy 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

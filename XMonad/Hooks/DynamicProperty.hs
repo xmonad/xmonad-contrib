@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DynamicProperty
+-- Description :  Apply a ManageHook to an already-mapped window.
 -- Copyright   :  (c) Brandon S Allbery, 2015
 -- License     :  BSD3-style (see LICENSE)
 --

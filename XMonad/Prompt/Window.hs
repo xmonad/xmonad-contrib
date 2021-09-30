@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Window
+-- Description :  A prompt for bringing windows to you, and bring you to windows.
 -- Copyright   :  Devin Mullins <me@twifkak.com>
 --                Andrea Rossato <andrea.rossato@unibz.it>
 -- License     :  BSD-style (see LICENSE)

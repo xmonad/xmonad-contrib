@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Square
+-- Description :  A layout that splits the screen into a square area and the rest of the screen.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

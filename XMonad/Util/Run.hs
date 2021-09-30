@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Run
+-- Description :  This modules provides several commands to run an external process.
 -- Copyright   :  (C) 2007 Spencer Janssen, Andrea Rossato, glasser@mit.edu
 -- License     :  BSD-style (see LICENSE)
 --

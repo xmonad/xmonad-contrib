@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.CurrentWorkspaceOnTop
+-- Description :  Ensure that windows on the current workspace are on top.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

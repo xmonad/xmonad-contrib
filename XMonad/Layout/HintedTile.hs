@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.HintedTile
+-- Description :  A gapless tiled layout that obeys window size hints.
 -- Copyright   :  (c) Peter De Wachter <pdewacht@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutModifier
+-- Description :  A module for writing layout modifiers.
 -- Copyright    : (c) David Roundy <droundy@darcs.net>
 -- License      : BSD
 --

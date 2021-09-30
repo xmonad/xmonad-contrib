@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BinarySpacePartition
+-- Description :  New windows split the focused window in half; based off of BSPWM.
 -- Copyright   :  (c) 2013 Ben Weitzman    <benweitzman@gmail.com>
 --                    2015 Anton Pirogov   <anton.pirogov@gmail.com>
 --                    2019 Mateusz Karbowy <obszczymucha@gmail.com

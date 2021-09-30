@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.PerWorkspaceKeys
+-- Description :  Define key-bindings on per-workspace basis.
 -- Copyright   :  (c) Roman Cheplyaka, 2008
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Config.Arossato
+-- Description :  Andrea Rossato's xmonad configuration.
 -- Copyright   :  (c) Andrea Rossato 2007
 -- License     :  BSD3-style (see LICENSE)
 --

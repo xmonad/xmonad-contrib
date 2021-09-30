@@ -6,6 +6,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Decoration
+-- Description :  A layout modifier and a class for easily creating decorated layouts.
 -- Copyright   :  (c) 2007 Andrea Rossato, 2009 Jan Vornberger
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

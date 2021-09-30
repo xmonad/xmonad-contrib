@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.FocusNth
+-- Description  : Focus the nth window of the current workspace.
 -- Copyright    : (c) Karsten Schoelzel <kuser@gmx.de>
 -- License      : BSD
 --

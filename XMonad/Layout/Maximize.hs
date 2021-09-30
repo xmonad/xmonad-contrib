@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Maximize
+-- Description :  Temporarily yank the focused window out of the layout to mostly fill the screen.
 -- Copyright   :  (c) 2007 James Webb
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.LinkWorkspaces
+-- Description : Bindings to add and delete links between workspaces.
 -- Copyright   :  (c) Jan-David Quesel <quesel@gmail.org>
 -- License     :  BSD3-style (see LICENSE)
 --

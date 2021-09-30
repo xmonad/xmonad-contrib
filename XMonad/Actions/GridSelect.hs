@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.GridSelect
+-- Description :  Display items in a 2D grid and select from it with the keyboard or the mouse.
 -- Copyright   :  Clemens Fruhwirth <clemens@endorphin.org>
 -- License     :  BSD-style (see LICENSE)
 --

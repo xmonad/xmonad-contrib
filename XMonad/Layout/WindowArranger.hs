@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowArranger
+-- Description :  A layout modifier to move and resize windows with the keyboard.
 -- Copyright   :  (c) Andrea Rossato 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

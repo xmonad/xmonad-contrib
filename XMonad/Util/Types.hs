@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Types
+-- Description :  Miscellaneous commonly used types.
 -- Copyright   :  (c) Daniel Schoepe (2009)
 -- License     :  BSD3-style (see LICENSE)
 --

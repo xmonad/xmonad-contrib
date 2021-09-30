@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicWorkspaces
+-- Description :  Provides bindings to add and delete workspaces.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

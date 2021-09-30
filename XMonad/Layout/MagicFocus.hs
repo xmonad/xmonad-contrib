@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.MagicFocus
+-- Description :  Automagically put the focused window in the master area.
 -- Copyright    : (c) Peter De Wachter <pdewacht@gmail.com>
 -- License      : BSD
 --

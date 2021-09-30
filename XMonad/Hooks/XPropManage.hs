@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.XPropManage
+-- Description  : ManageHook matching on XProperties.
 -- Copyright    : (c) Karsten Schoelzel <kuser@gmx.de>
 -- License      : BSD
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Spiral
+-- Description :  A spiral tiling layout.
 -- Copyright   :  (c) Joe Thornber <joe.thornber@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

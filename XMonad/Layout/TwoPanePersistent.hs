@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TwoPanePersistent
+-- Description :  "XMonad.Layout.TwoPane" with a persistent stack window.
 -- Copyright   :  (c) Chayanon Wichitrnithed
 -- License     :  BSD3-style (see LICENSE)
 --

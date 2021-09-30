@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DragPane
+-- Description :  Split the screen either horizontally or vertically and show two windows.
 -- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 --                    David Roundy <droundy@darcs.net>,
 --                    Andrea Rossato <andrea.rossato@unibz.it>

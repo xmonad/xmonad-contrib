@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Cursor
+-- Description :  Set the default mouse cursor.
 -- Copyright   :  (c) 2009 Collabora Ltd
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

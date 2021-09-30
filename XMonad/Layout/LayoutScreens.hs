@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.LayoutScreens
+-- Description :  A layout to divide a single screen into multiple screens.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 ----------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Layout.GridVariants
+-- Description : Two grid layouts.
 -- Copyright   : (c) Norbert Zeh
 -- License     : BSD-style (see LICENSE)
 --

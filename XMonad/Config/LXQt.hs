@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.LXQt
+-- Description  : Config for integrating xmonad with LXQt.
 -- Copyright    : (c) Petr Shevtsov <petr.shevtsov@gmail.com>
 -- License      : BSD
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Doc.Developing
+-- Description :  Brief overview of the xmonad internals.
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --

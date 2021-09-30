@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.SpawnOn
+-- Description  : Modify a window spawned by a command.
 -- Copyright    : (c) Spencer Janssen
 -- License      : BSD
 --

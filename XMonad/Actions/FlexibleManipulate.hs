@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.FlexibleManipulate
+-- Description :  Move and resize floating windows without warping the mouse.
 -- Copyright   :  (c) Michael Sloan
 -- License     :  BSD3-style (see LICENSE)
 --

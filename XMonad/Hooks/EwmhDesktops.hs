@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.EwmhDesktops
+-- Description :  Make xmonad use the extended window manager hints (EWMH).
 -- Copyright    : (c) 2007, 2008 Joachim Breitner <mail@joachim-breitner.de>
 -- License      : BSD
 --

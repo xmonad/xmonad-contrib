@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Groups.Examples
+-- Description :  Example layouts for "XMonad.Layout.Groups".
 -- Copyright   :  Quentin Moser <moserq@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

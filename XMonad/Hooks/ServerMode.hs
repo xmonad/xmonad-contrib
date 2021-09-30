@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ServerMode
+-- Description :  Send commands to a running xmonad process.
 -- Copyright   :  (c) Peter Olson 2013 and Andrea Rossato and David Roundy 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.DebugWindow
+-- Description :  Dump window information for diagnostic\/debugging purposes.
 -- Copyright   :  (c) Brandon S Allbery KF8NH, 2014
 -- License     :  BSD3-style (see LICENSE)
 --

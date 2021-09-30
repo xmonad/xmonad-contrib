@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DwmPromote
+-- Description :  DWM-like swap function for xmonad.
 -- Copyright   :  (c) Miikka Koskinen 2007
 -- License     :  BSD3-style (see LICENSE)
 --

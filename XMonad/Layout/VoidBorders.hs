@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.VoidBorders
+-- Description :  Set borders to 0 for all windows in the workspace.
 -- Copyright   :  Wilson Sales <spoonm@spoonm.org>
 -- License     :  BSD-style (see LICENSE)
 --

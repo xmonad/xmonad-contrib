@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.AfterDrag
+-- Description :  Allows you to add actions dependent on the current mouse drag.
 -- Copyright   :  (c) 2014 Anders Engstrom <ankaan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

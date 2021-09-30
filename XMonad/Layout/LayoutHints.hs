@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutHints
+-- Description :  Make layouts respect size hints.
 -- Copyright    : (c) David Roundy <droundy@darcs.net>
 -- License      : BSD
 --

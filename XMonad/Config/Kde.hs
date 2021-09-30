@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Kde
+-- Description  : Config for integrating xmonad with KDE.
 -- Copyright    : (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License      : BSD
 --

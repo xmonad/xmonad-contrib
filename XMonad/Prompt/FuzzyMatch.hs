@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Prompt.FuzzyMatch
+-- Description : A prompt for fuzzy completion matching in prompts akin to Emacs ido-mode.
 -- Copyright   : (C) 2015 Norbert Zeh
 -- License     : GPL
 --

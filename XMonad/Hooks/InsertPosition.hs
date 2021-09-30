@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.InsertPosition
+-- Description :  Configure where new windows should be added and how focus should shift.
 -- Copyright   :  (c) 2009 Adam Vogt
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

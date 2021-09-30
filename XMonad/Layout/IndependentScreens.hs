@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.IndependentScreens
+-- Description :  Simulate independent sets of workspaces on each screen (dwm-like).
 -- Copyright   :  (c) 2009 Daniel Wagner
 -- License     :  BSD3
 --

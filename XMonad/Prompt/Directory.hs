@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Directory
+-- Description :  A directory prompt for XMonad.
 -- Copyright   :  (C) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD3
 --

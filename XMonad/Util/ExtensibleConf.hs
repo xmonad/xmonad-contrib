@@ -4,6 +4,7 @@
 
 -- |
 -- Module      :  XMonad.Util.ExtensibleConf
+-- Description :  Extensible and composable configuration for contrib modules.
 -- Copyright   :  (c) 2021 Tomáš Janoušek <tomi@nomi.cz>
 -- License     :  BSD3
 -- Maintainer  :  Tomáš Janoušek <tomi@nomi.cz>

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.AppLauncher
+-- Description :  A prompt for launch applications that receive command line parameters.
 -- Copyright   :  (C) 2008 Luis Cabellos
 -- License     :  BSD3
 --

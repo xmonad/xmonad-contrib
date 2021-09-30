@@ -1,5 +1,6 @@
 {- |
 Module      :  XMonad.Prompt.Unicode
+Description :  A prompt for inputting Unicode characters.
 Copyright   :  (c) 2016 Joachim Breitner
                    2017 Nick Hu
 License     :  BSD-style (see LICENSE)

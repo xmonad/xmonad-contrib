@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Magnifier
+-- Description :  Increase the size of the window that has focus.
 -- Copyright   :  (c) Peter De Wachter and Andrea Rossato 2007
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

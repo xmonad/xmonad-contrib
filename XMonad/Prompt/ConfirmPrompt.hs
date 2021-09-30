@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.ConfirmPrompt
+-- Description :  A prompt for setting up simple confirmation prompts for keybindings.
 -- Copyright   :  (C) 2015 Antoine Beaupré
 -- License     :  BSD3
 --

@@ -3,6 +3,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Hidden
+-- Description :  Hide windows from layouts.
 -- Copyright   :  (c) Peter Jones 2015
 -- License     :  BSD3-style (see LICENSE)
 --

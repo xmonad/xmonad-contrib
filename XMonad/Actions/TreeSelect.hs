@@ -6,6 +6,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TreeSelect
+-- Description :  Display workspaces or actions in a tree-like format.
 -- Copyright   :  (c) Tom Smeets <tom.tsmeets@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

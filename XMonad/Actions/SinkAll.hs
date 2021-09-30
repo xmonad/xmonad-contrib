@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.SinkAll
+-- Description  : (DEPRECATED) Push floating windows back into tiling.
 -- License      : BSD3-style (see LICENSE)
 -- Stability    : unstable
 -- Portability  : unportable

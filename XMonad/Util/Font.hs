@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Font
+-- Description :  A module for abstracting a font facility over Core fonts and Xft.
 -- Copyright   :  (c) 2007 Andrea Rossato and Spencer Janssen
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

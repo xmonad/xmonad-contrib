@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.DynamicWorkspaceGroups
+-- Description :  Dynamically manage workspace groups in multi-head setups.
 -- Copyright   :  (c) Brent Yorgey 2009
 -- License     :  BSD-style (see LICENSE)
 --

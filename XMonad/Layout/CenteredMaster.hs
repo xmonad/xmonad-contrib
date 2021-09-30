@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.CenteredMaster
+-- Description :  Place the master pane on top of other windows; in the center or top right.
 -- Copyright   :  (c) 2009 Ilya Portnov
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

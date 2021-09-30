@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Pass
+-- Description :  A prompt for interacting with @pass(1)@.
 -- Copyright   :  (c) 2014 Igor Babuschkin, Antoine R. Dumont
 -- License     :  BSD3-style (see LICENSE)
 --

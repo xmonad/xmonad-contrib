@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.FindEmptyWorkspace
+-- Description :  Find an empty workspace.
 -- Copyright   :  (c) Miikka Koskinen 2007
 -- License     :  BSD3-style (see LICENSE)
 --

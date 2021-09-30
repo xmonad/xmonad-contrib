@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Spacing
+-- Description :  Add a configurable amount of space around windows.
 -- Copyright   :  (C) --   Brent Yorgey
 --                    2018 Yclept Nemo
 -- License     :  BSD-style (see LICENSE)

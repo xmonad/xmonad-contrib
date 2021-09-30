@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Sift
+-- Description :  Functions for sifting windows up and down.
 -- Copyright   :  (c) 2020 Ivan Brennan <ivanbrennan@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

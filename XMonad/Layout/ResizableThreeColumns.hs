@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ResizableThreeColumns
+-- Description :  Like "XMonad.Layout.ThreeColumns", but allows resizing.
 -- Copyright   :  (c) Sam Tay <sam.chong.tay@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

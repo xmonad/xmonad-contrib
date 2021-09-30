@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Submap
+-- Description :  Create a sub-mapping of key bindings.
 -- Copyright   :  (c) Jason Creighton <jcreigh@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

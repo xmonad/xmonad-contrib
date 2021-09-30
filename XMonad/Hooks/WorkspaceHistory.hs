@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WorkspaceHistory
+-- Description :  Keep track of workspace viewing order.
 -- Copyright   :  (c) 2013 Dmitri Iouchtchenko
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.DebugEvents
+-- Description :  Dump diagnostic information about X11 events received by xmonad.
 -- Copyright   :  (c) Brandon S Allbery KF8NH, 2012
 -- License     :  BSD3-style (see LICENSE)
 --

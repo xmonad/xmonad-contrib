@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.WorkspaceCompare
+-- Description :  Functions for examining, comparing, and sorting workspaces.
 -- Copyright   :  (c) Spencer Janssen <spencerjanssen@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

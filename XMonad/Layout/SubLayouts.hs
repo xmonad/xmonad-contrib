@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
+-- Description :  A layout combinator that allows layouts to be nested.
 -- Copyright   :  (c) 2009 Adam Vogt
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowNavigation
+-- Description :  A layout modifier to allow easy navigation of a workspace.
 -- Copyright   :  (c) 2007  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

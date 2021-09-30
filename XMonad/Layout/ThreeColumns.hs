@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.ThreeColumns
+-- Description :  A layout similar to @Tall@, but with three columns.
 -- Copyright   :  (c) Kai Grossjohann <kai@emptydomain.de>
 -- License     :  BSD3-style (see LICENSE)
 --

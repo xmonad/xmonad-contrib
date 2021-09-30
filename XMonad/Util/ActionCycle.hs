@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.ActionCycle
+-- Description :  Provides a way to implement cycling actions.
 -- Copyright   :  (c) 2020 Leon Kowarschick
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Invisible
+-- Description :  A data type to store the layout state.
 -- Copyright   :  (c) 2007 Andrea Rossato, David Roundy
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

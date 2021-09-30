@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Minimize
+-- Description :  Actions for minimizing and maximizing windows.
 -- Copyright   :  (c) Bogdan Sinitsyn (2016)
 -- License     :  BSD3-style (see LICENSE)
 --

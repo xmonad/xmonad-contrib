@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Monitor
+-- Description :  Layout modfier for displaying some window (monitor) above other windows.
 -- Copyright   :  (c) Roman Cheplyaka
 -- License     :  BSD-style (see LICENSE)
 --

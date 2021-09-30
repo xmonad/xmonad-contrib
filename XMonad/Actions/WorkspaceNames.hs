@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.WorkspaceNames
+-- Description :  Persistently rename workspace and swap them along with their names.
 -- Copyright   :  (c) Tomas Janousek <tomi@nomi.cz>
 -- License     :  BSD3-style (see LICENSE)
 --

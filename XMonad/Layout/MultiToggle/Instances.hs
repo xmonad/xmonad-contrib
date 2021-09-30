@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.MultiToggle.Instances
+-- Description :  Common instances for "XMonad.Layout.MultiToggle".
 -- Copyright   :  (c) 2008  Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

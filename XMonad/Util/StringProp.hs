@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.StringProp
+-- Description :  Internal utility functions for storing Strings with the root window.
 -- Copyright   :  (c) Nicolas Pouillard 2009
 -- License     :  BSD-style (see LICENSE)
 --

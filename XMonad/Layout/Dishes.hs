@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Dishes
+-- Description :  A layout that stacks extra windows underneath the master windows.
 -- Copyright   :  (c) Jeremy Apthorp
 -- License     :  BSD-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Named
+-- Description :  Assign a name to a given layout.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SimplestFloat
+-- Description :  Like "XMonad.Layout.SimpleFloat" but without the decoration.
 -- Copyright   :  (c) 2008 Jussi Mäki
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

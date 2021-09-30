@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ScreenCorners
+-- Description :  Run X () actions by touching the edge of your screen with your mouse.
 -- Copyright   :  (c) 2009 Nils Schweinsberg, 2015 Evgeny Kurnevsky
 -- License     :  BSD3-style (see LICENSE)
 --

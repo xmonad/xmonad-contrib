@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Hacks
+-- Description :  A collection of small fixes and utilities with possibly hacky implementations.
 -- Copyright   :  (c) 2020 Leon Kowarschick
 -- License     :  BSD3-style (see LICENSE)
 --

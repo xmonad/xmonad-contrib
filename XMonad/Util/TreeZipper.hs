@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.TreeSelect
+-- Description :  Zipper over "Data.Tree".
 -- Copyright   :  (c) Tom Smeets <tom.tsmeets@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

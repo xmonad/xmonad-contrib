@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.BluetileCommands
+-- Description :  Interface with the [Bluetile](https://hackage.haskell.org/package/bluetile) tiling window manager.
 -- Copyright   :  (c) Jan Vornberger 2009
 -- License     :  BSD3-style (see LICENSE)
 --

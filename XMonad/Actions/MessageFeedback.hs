@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.MessageFeedback
+-- Description :  An alternative @sendMessage@.
 -- Copyright    : (c) --   Quentin Moser <moserq@gmail.com>
 --                    2018 Yclept Nemo
 -- License      : BSD3

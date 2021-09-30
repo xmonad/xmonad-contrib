@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.BoringWindows
+-- Description :  Mark windows as boring.
 -- Copyright   :  (c) 2008  David Roundy <droundy@darcs.net>
 -- License     :  BSD3-style (see LICENSE)
 --

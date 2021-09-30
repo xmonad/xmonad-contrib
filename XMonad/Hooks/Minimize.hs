@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.Minimize
+-- Description :  Handle window manager hints to minimize and restore windows.
 -- Copyright   :  (c) Justin Bogner 2010
 -- License     :  BSD3-style (see LICENSE)
 --

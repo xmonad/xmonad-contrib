@@ -1,8 +1,9 @@
 --------------------------------------------------------------------
 -- |
--- Module     : XMonad.Util.CustomKeys
--- Copyright  : (c) 2007 Valery V. Vorotyntsev
--- License    : BSD3-style (see LICENSE)
+-- Module      : XMonad.Util.CustomKeys
+-- Description : Configure key bindings.
+-- Copyright   : (c) 2007 Valery V. Vorotyntsev
+-- License     : BSD3-style (see LICENSE)
 --
 -- Customized key bindings.
 --

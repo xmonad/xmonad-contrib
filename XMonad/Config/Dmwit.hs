@@ -1,6 +1,12 @@
 -- boilerplate {{{
 {-# LANGUAGE ExistentialQuantification, NoMonomorphismRestriction, TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  XMonad.Config.Dmwit
+-- Description :  Daniel Wagner's xmonad configuration.
+--
+------------------------------------------------------------------------
 module XMonad.Config.Dmwit where
 
 -- system imports

@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.NoBorders
+-- Description :  Make a given layout display without borders.
 -- Copyright   :  (c) --    David Roundy <droundy@darcs.net>
 --                    2018  Yclept Nemo
 -- License     :  BSD3-style (see LICENSE)

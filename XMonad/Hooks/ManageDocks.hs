@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
+-- Description :  Automatically manage 'dock' type programs.
 -- Copyright    : (c) Joachim Breitner <mail@joachim-breitner.de>
 -- License      : BSD
 --

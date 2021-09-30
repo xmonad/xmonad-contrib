@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.FadeInactive
+-- Description :  Set the _NET_WM_WINDOW_OPACITY atom for inactive windows.
 -- Copyright    : (c) 2008 Justin Bogner <mail@justinbogner.com>
 -- License      : BSD
 --

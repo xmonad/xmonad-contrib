@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 -- |
 -- Module      :  XMonad.Hooks.Rescreen
+-- Description :  Custom hooks for screen (xrandr) configuration changes.
 -- Copyright   :  (c) 2021 Tomáš Janoušek <tomi@nomi.cz>
 -- License     :  BSD3
 -- Maintainer  :  Tomáš Janoušek <tomi@nomi.cz>

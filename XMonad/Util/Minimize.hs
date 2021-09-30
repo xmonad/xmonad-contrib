@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Minimize
+-- Description :  Common utilities for window minimizing\/maximizing.
 -- Copyright   :  (c) Bogdan Sinitsyn (2016)
 -- License     :  BSD3-style (see LICENSE)
 --

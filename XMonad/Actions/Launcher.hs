@@ -1,5 +1,6 @@
 {- |
 Module      :  XMonad.Actions.Launcher
+Description :  A set of prompts for XMonad.
 Copyright   :  (C) 2012 Carlos López-Camey
 License     :  None; public domain
 

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.FixedColumn
+-- Description :  Like Tall, but split at a fixed column (or a window's smallest resize amount).
 -- Copyright   :  (c) 2008 Justin Bogner <mail@justinbogner.com>
 -- License     :  BSD3-style (as xmonad)
 --

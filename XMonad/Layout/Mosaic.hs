@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Mosaic
+-- Description :  Give each window a specified amount of screen space relative to the others.
 -- Copyright   :  (c) 2009 Adam Vogt, 2007 James Webb
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

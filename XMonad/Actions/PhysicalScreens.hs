@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.PhysicalScreens
+-- Description  : Manipulate screens ordered by physical location instead of ID.
 -- Copyright    : (c) Nelson Elhage <nelhage@mit.edu>
 -- License      : BSD
 --

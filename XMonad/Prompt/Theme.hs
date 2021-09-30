@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Theme
+-- Description :  A prompt for changing the theme of the current workspace.
 -- Copyright   :  (C) 2007 Andrea Rossato
 -- License     :  BSD3
 --

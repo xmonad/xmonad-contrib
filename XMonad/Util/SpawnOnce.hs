@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.SpawnOnce
+-- Description :  A module for spawning a command once, and only once.
 -- Copyright   :  (c) Spencer Janssen 2009
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowSwitcherDecoration
+-- Description :  Switch the position of windows by dragging them onto each other.
 -- Copyright   :  (c) Jan Vornberger 2009
 --                    Alejandro Serrano 2010
 -- License     :  BSD3-style (see LICENSE)

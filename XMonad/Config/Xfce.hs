@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Xfce
+-- Description  : Config for integrating xmonad with Xfce.
 -- Copyright    : (c) Ivan Miljenovic <Ivan.Miljenovic@gmail.com>
 -- License      : BSD
 --

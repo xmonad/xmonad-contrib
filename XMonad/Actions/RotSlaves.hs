@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.RotSlaves
+-- Description  : Rotate all windows except the master window and keep the focus in place.
 -- Copyright    : (c) Hans Philipp Annen <haphi@gmx.net>, Mischa Dieterle <der_m@freenet.de>
 -- License      : BSD3-style (see LICENSE)
 --

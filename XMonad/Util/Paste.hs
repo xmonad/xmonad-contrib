@@ -1,5 +1,6 @@
 {- |
 Module      :  XMonad.Util.Paste
+Description :  A module for sending key presses to windows.
 Copyright   :  (C) 2008 Jérémy Bobbio, gwern
 License     :  BSD3
 

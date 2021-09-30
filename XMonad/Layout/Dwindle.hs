@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Dwindle
+-- Description :  Various spirally layouts.
 -- Copyright   :  (c) Norbert Zeh <norbert.zeh@gmail.com>
 -- License     :  BSD3
 --

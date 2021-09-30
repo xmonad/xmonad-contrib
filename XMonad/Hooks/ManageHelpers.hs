@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageHelpers
+-- Description  : Helper functions to be used in manageHook.
 -- Copyright    : (c) Lukas Mai
 -- License      : BSD
 --

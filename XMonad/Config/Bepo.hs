@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Bepo
+-- Description  : Fix keybindings for the BEPO keyboard layout.
 -- Copyright    : (c) Yorick Laupa <yo.eight@gmail.com>
 -- License      : BSD
 --

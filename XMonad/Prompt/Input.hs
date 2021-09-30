@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.Input
+-- Description :  Prompt the user for input and pass it along to some other action.
 -- Copyright   :  (c) 2007 Brent Yorgey
 -- License     :  BSD-style (see LICENSE)
 --

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CopyWindow
+-- Description :  Duplicate a window on multiple workspaces.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>, Ivan Veselov <veselov@gmail.com>, Lanny Ripple <lan3ny@gmail.com>
 -- License     :  BSD3-style (see LICENSE)
 --

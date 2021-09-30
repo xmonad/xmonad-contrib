@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.StackTile
+-- Description :  Like "XMonad.Layout.Dishes" but with the ability to resize the master pane.
 -- Copyright   :  (c) Rickard Gustafsson <acura@allyourbase.se>
 -- License     :  BSD-style (see LICENSE)
 --

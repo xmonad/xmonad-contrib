@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.IM
+-- Description :  Layout modfier for multi-windowed instant messengers like Psi or Tkabber.
 -- Copyright   :  (c) Roman Cheplyaka, Ivan N. Veselov <veselov@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.ExclusiveScratchpads
+-- Description :  Named scratchpads that can be mutually exclusive.
 -- Copyright   :  Bruce Forte (2017)
 -- License     :  BSD-style (see LICENSE)
 --

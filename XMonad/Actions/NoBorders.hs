@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.NoBorders
+-- Description :  Helper functions for dealing with window borders.
 -- Copyright   :  (c) Lukas Mai
 -- License     :  BSD3-style (see LICENSE)
 --

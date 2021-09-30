@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Combo
+-- Description :  A layout that combines multiple layouts.
 -- Copyright   :  (c) David Roundy <droundy@darcs.net>
 -- License     :  BSD-style (see LICENSE)
 --

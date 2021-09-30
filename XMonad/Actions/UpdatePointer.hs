@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonadContrib.UpdatePointer
+-- Description :  Causes the pointer to follow whichever window focus changes to.
 -- Copyright   :  (c) Robert Marlow <robreim@bobturf.org>, 2015 Evgeny Kurnevsky
 -- License     :  BSD3-style (see LICENSE)
 --

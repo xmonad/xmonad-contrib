@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.OneBig
+-- Description :  Place one window at top left corner, and other windows at the top.
 -- Copyright   :  (c) 2009 Ilya Portnov
 -- License     :  BSD3-style (see LICENSE)
 --

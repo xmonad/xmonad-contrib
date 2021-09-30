@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Loggers.NamedScratchpad
+-- Description :  A collection of Loggers for "XMonad.Util.NamedScratchpad".
 -- Copyright   :  (c) Brandon S Allbery <allbery.b@gmail.com>
 -- License     :  BSD-style (see LICENSE)
 --

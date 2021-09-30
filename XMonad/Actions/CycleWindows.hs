@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.CycleWindows
+-- Description  : Cycle windows while maintaining focus in place.
 -- Copyright    : (c) Wirt Wolff <wirtwolff@gmail.com>
 -- License      : BSD3-style (see LICENSE)
 --

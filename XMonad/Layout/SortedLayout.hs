@@ -4,6 +4,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SortedLayout
+-- Description :  A layout modifier that sorts a given layout by a list of properties.
 -- Copyright   :  (c) 2016 Kurt Dietrich
 -- License     :  BSD-style (see xmonad/LICENSE)
 --

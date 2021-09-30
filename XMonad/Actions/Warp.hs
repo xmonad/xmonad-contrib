@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Warp
+-- Description :  Warp the pointer to a given window or screen.
 -- Copyright   :  (c) daniel@wagner-home.com
 -- License     :  BSD3-style (see LICENSE)
 --

@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.FloatKeys
+-- Description  :  Move and resize floating windows.
 -- Copyright    : (c) Karsten Schoelzel <kuser@gmx.de>
 -- License      : BSD
 --

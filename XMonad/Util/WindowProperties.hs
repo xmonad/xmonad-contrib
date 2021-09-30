@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.WindowProperties
+-- Description :  EDSL for specifying window properties.
 -- Copyright   :  (c) Roman Cheplyaka
 -- License     :  BSD-style (see LICENSE)
 --
