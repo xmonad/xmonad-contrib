@@ -23,6 +23,7 @@ module XMonad.Actions.FloatKeys (
                 ) where
 
 import XMonad
+import XMonad.Prelude (fi)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -45,8 +46,8 @@ import XMonad
 keysMoveWindow :: D -> Window -> X ()
 keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
     wa <- io $ getWindowAttributes d w
-    io $ moveWindow d w (fromIntegral (fromIntegral (wa_x wa) + dx))
-                        (fromIntegral (fromIntegral (wa_y wa) + dy))
+    io $ moveWindow d w (fi (fi (wa_x wa) + dx))
+                        (fi (fi (wa_y wa) + dy))
     float w
 
 -- | @keysMoveWindowTo (x, y) (gx, gy)@ moves the window relative
@@ -62,8 +63,8 @@ keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
 keysMoveWindowTo :: P -> G -> Window -> X ()
 keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d -> do
     wa <- io $ getWindowAttributes d w
-    io $ moveWindow d w (x - round (gx * fromIntegral (wa_width wa)))
-                        (y - round (gy * fromIntegral (wa_height wa)))
+    io $ moveWindow d w (x - round (gx * fi (wa_width wa)))
+                        (y - round (gy * fi (wa_height wa)))
     float w
 
 type G = (Rational, Rational)
@@ -97,23 +98,23 @@ keysAbsResizeWindow' sh (x,y) (w,h) (dx,dy) (ax, ay) = ((round nx, round ny), (n
     where
         (nw, nh) = applySizeHintsContents sh (w + dx, h + dy)
         nx :: Rational
-        nx = fromIntegral (ax * w + nw * (fromIntegral x - ax)) / fromIntegral w
+        nx = fi (ax * w + nw * (fi x - ax)) / fi w
         ny :: Rational
-        ny = fromIntegral (ay * h + nh * (fromIntegral y - ay)) / fromIntegral h
+        ny = fi (ay * h + nh * (fi y - ay)) / fi h
 
 keysResizeWindow' :: SizeHints -> P -> D -> D -> G -> (P,D)
 keysResizeWindow' sh (x,y) (w,h) (dx,dy) (gx, gy) = ((nx, ny), (nw, nh))
     where
         (nw, nh) = applySizeHintsContents sh (w + dx, h + dy)
-        nx = round $ fromIntegral x + gx * fromIntegral w - gx * fromIntegral nw
-        ny = round $ fromIntegral y + gy * fromIntegral h - gy * fromIntegral nh
+        nx = round $ fi x + gx * fi w - gx * fi nw
+        ny = round $ fi y + gy * fi h - gy * fi nh
 
 keysMoveResize :: (SizeHints -> P -> D -> a -> b -> (P,D)) -> a -> b -> Window -> X ()
 keysMoveResize f move resize w = whenX (isClient w) $ withDisplay $ \d -> do
     wa <- io $ getWindowAttributes d w
     sh <- io $ getWMNormalHints d w
-    let wa_dim = (fromIntegral $ wa_width wa, fromIntegral $ wa_height wa)
-        wa_pos = (fromIntegral $ wa_x wa, fromIntegral $ wa_y wa)
+    let wa_dim = (fi $ wa_width wa, fi $ wa_height wa)
+        wa_pos = (fi $ wa_x wa, fi $ wa_y wa)
         (wn_pos, wn_dim) = f sh wa_pos wa_dim move resize
     io $ resizeWindow d w `uncurry` wn_dim
     io $ moveWindow d w `uncurry` wn_pos
