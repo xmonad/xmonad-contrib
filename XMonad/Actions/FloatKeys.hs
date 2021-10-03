@@ -69,6 +69,7 @@ keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d -> do
 
 type G = (Rational, Rational)
 type P = (Position, Position)
+type ChangeDim = (Int, Int)
 
 -- | @keysResizeWindow (dx, dy) (gx, gy)@ changes the width by @dx@
 --   and the height by @dy@, leaving the window-relative point @(gx,
@@ -80,7 +81,7 @@ type P = (Position, Position)
 -- > keysResizeWindow (10, 0) (0, 1%2)    -- does the same, unless sizeHints are applied
 -- > keysResizeWindow (10, 10) (1%2, 1%2) -- add 5 pixels on each side
 -- > keysResizeWindow (-10, -10) (0, 1)   -- shrink the window in direction of the bottom-left corner
-keysResizeWindow :: D -> G -> Window -> X ()
+keysResizeWindow :: ChangeDim -> G -> Window -> X ()
 keysResizeWindow = keysMoveResize keysResizeWindow'
 
 -- | @keysAbsResizeWindow (dx, dy) (ax, ay)@ changes the width by @dx@
@@ -90,22 +91,24 @@ keysResizeWindow = keysMoveResize keysResizeWindow'
 --   For example:
 --
 -- > keysAbsResizeWindow (10, 10) (0, 0)   -- enlarge the window; if it is not in the top-left corner it will also be moved down and to the right.
-keysAbsResizeWindow :: D -> D -> Window -> X ()
+keysAbsResizeWindow :: ChangeDim -> D -> Window -> X ()
 keysAbsResizeWindow = keysMoveResize keysAbsResizeWindow'
 
-keysAbsResizeWindow' :: SizeHints -> P -> D -> D -> D -> (P,D)
+keysAbsResizeWindow' :: SizeHints -> P -> D -> ChangeDim -> D -> (P,D)
 keysAbsResizeWindow' sh (x,y) (w,h) (dx,dy) (ax, ay) = ((round nx, round ny), (nw, nh))
     where
-        (nw, nh) = applySizeHintsContents sh (w + dx, h + dy)
+        -- The width and height of a window are positive and thus
+        -- converting to 'Dimension' should be safe.
+        (nw, nh) = applySizeHintsContents sh (fi w + dx, fi h + dy)
         nx :: Rational
         nx = fi (ax * w + nw * (fi x - ax)) / fi w
         ny :: Rational
         ny = fi (ay * h + nh * (fi y - ay)) / fi h
 
-keysResizeWindow' :: SizeHints -> P -> D -> D -> G -> (P,D)
+keysResizeWindow' :: SizeHints -> P -> D -> ChangeDim -> G -> (P,D)
 keysResizeWindow' sh (x,y) (w,h) (dx,dy) (gx, gy) = ((nx, ny), (nw, nh))
     where
-        (nw, nh) = applySizeHintsContents sh (w + dx, h + dy)
+        (nw, nh) = applySizeHintsContents sh (fi w + dx, fi h + dy)
         nx = round $ fi x + gx * fi w - gx * fi nw
         ny = round $ fi y + gy * fi h - gy * fi nh
 
