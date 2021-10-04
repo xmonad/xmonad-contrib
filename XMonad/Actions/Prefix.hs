@@ -39,6 +39,7 @@ import XMonad
 import XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Paste (sendKey)
 import XMonad.Actions.Submap (submapDefaultWithKey)
+import XMonad.Util.EZConfig (readKeySequence)
 
 {- $usage
 
@@ -97,17 +98,13 @@ The simplest way to enable this is to use 'useDefaultPrefixArgument'
 >    xmonad $ useDefaultPrefixArgument $ def { .. }
 
 The default prefix argument is C-u.  If you want to customize the
-prefix argument, use the following:
+prefix argument, 'usePrefixArgument' can be used:
 
->    xmonad $ usePrefixArgument prefixKey $ def { .. }
+>    xmonad $ usePrefixArgument "M-u" $ def { .. }
 
-where 'prefixKey' is a function which takes 'XConfig' as an argument
-in case you wish to extract the 'modMask'.  An example
-implementation is the following:
-
->    prefixKey :: XConfig t -> (KeyMask, KeySym)
->    prefixKey XConfig{modMask = modm} = (modm, xK_u)
-
+where the key is entered in Emacs style (or "XMonad.Util.EZConfig"
+style) notation.  The letter `M` stands for your chosen modifier.  The
+function defaults to C-u if the argument could not be parsed.
 -}
 
 data PrefixArgument = Raw Int | Numeric Int | None
@@ -123,25 +120,25 @@ instance ExtensionClass PrefixArgument where
 finallyX :: X a -> X a -> X a
 finallyX job cleanup = catchX (job >>= \r -> cleanup >> return r) cleanup
 
--- | Set Prefix up with custom configuration.
+-- | Set up Prefix.  Defaults to C-u when given an invalid key.
 --
 -- See usage section.
 usePrefixArgument :: LayoutClass l Window
-                  => (XConfig Layout -> (KeyMask, KeySym))
+                  => String
                   -> XConfig l
                   -> XConfig l
-usePrefixArgument prefix conf = conf {
-    keys = liftM2 M.union keys' (keys conf)
-  }
-  where keys' conf' =
-          let binding = prefix conf'
-          in M.singleton binding (handlePrefixArg [binding])
+usePrefixArgument prefix conf =
+  conf{ keys = M.insert binding (handlePrefixArg [binding]) . keys conf }
+ where
+  binding = case readKeySequence conf prefix of
+    Just [key] -> key
+    _          -> (controlMask, xK_u)
 
 -- | Set Prefix up with default prefix key (C-u).
 useDefaultPrefixArgument :: LayoutClass l Window
                          => XConfig l
                          -> XConfig l
-useDefaultPrefixArgument = usePrefixArgument (const (controlMask, xK_u))
+useDefaultPrefixArgument = usePrefixArgument "C-u"
 
 handlePrefixArg :: [(KeyMask, KeySym)] -> X ()
 handlePrefixArg events = do
