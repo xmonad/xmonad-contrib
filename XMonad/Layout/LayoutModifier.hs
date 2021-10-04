@@ -234,7 +234,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
     --   should only override this if it is important that the
     --   presence of the layout modifier be displayed in text
     --   representations of the layout (for example, in the status bar
-    --   of a "XMonad.Hooks.DynamicLog" user).
+    --   of a "XMonad.Hooks.StatusBar" user).
     modifierDescription :: m a -> String
     modifierDescription = const ""
 
