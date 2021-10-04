@@ -58,7 +58,7 @@ import XMonad.Prelude (for, maybeToList, (<&>), (<=<), (>=>))
 -- then you can add the hook to your config:
 --
 -- > main = xmonad $ … $ def
--- >   { logHook = dynamicLogIconsWithPP icons xmobarPP
+-- >   { logHook = dynamicLogIconsWithPP myIcons xmobarPP
 -- >   , … }
 --
 -- Here is an example of this
