@@ -72,16 +72,16 @@ where
 import XMonad
 import XMonad.Prelude
 
-import qualified Data.Map.Strict         as M
-import qualified XMonad.Hooks.DynamicLog as DL
-import qualified XMonad.StackSet         as W
+import qualified Data.Map.Strict           as M
+import qualified XMonad.Hooks.StatusBar.PP as SBPP
+import qualified XMonad.StackSet           as W
 
 import Data.Map (Map)
 
 import XMonad.Prompt (XPConfig)
 import XMonad.Prompt.Workspace (workspacePrompt)
 
-import XMonad.Hooks.DynamicLog (PP(ppHidden, ppVisible))
+import XMonad.Hooks.StatusBar.PP (PP(ppHidden, ppVisible))
 import XMonad.Hooks.UrgencyHook (readUrgents)
 import XMonad.Hooks.WorkspaceHistory
     ( workspaceHistory
@@ -284,9 +284,9 @@ setLastFocusedTopic tc w predicate = do
 reverseLastFocusedTopics :: X ()
 reverseLastFocusedTopics = workspaceHistoryModify reverse
 
--- | This function is a variant of 'DL.pprWindowSet' which takes a topic configuration
--- and a pretty-printing record 'PP'. It will show the list of topics sorted historically
--- and highlight topics with urgent windows.
+-- | This function is a variant of 'SBPP.pprWindowSet' which takes a topic
+-- configuration and a pretty-printing record 'PP'. It will show the list of
+-- topics sorted historically and highlight topics with urgent windows.
 pprWindowSet :: TopicConfig -> PP -> X String
 pprWindowSet tg pp = do
   winset <- gets windowset
@@ -301,7 +301,7 @@ pprWindowSet tg pp = do
       add_depth proj topic = proj pp . (((topic++":")++) . show) . depth $ topic
       pp' = pp { ppHidden = add_depth ppHidden, ppVisible = add_depth ppVisible }
       sortWindows = take maxDepth . sortOn (depth . W.tag)
-  return $ DL.pprWindowSet sortWindows urgents pp' winset
+  return $ SBPP.pprWindowSet sortWindows urgents pp' winset
 
 -- | Given a prompt configuration and a topic configuration, trigger the action associated with
 -- the topic given in prompt.
