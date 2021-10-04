@@ -30,7 +30,7 @@ module XMonad.Hooks.ToggleHook ( -- * Usage
                                , willHookNext
                                , willHookAllNew
 
-                                 -- * 'DynamicLog' utilities
+                                 -- * Status bar utilities
                                  -- $pp
                                , willHookNextPP
                                , willHookAllNewPP
@@ -143,10 +143,10 @@ willHookAllNew n = _get n snd
 -- $pp
 -- The following functions are used to display the current
 -- state of 'hookNext' and 'hookAllNew' in your
--- 'XMonad.Hooks.DynamicLog.dynamicLogWithPP'.
--- 'willHookNextPP' and 'willHookAllNewPP' should be added
--- to the 'XMonad.Hooks.DynamicLog.ppExtras' field of your
--- 'XMonad.Hooks.DynamicLog.PP'.
+-- "XMonad.Hooks.StatusBar". 'willHookNextPP' and
+-- 'willHookAllNewPP' should be added to the
+-- 'XMonad.Hooks.StatusBar.PP.ppExtras' field of your
+-- "XMonad.Hooks.StatusBar.PP".
 --
 -- Use 'runLogHook' to refresh the output of your 'logHook', so
 -- that the effects of a 'hookNext'/... will be visible
