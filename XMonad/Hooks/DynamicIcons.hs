@@ -10,7 +10,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Dynamically augment workspace names logged to a status bar via DynamicLog
+-- Dynamically augment workspace names logged to a status bar
 -- based on the contents (windows) of the workspace.
 -----------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ module XMonad.Hooks.DynamicIcons (
     -- $usage
 
     -- * Creating Dynamic Icons
-    dynamicLogIconsWithPP, appIcon,
+    iconsPP, dynamicLogIconsWithPP, appIcon,
 
     -- * Customization
     dynamicIconsPP, getWorkspaceIcons,
@@ -55,11 +55,10 @@ import XMonad.Prelude (for, maybeToList, (<&>), (<=<), (>=>))
 -- >   , className =? "Spotify" <||> className =? "spotify" --> appIcon "阮"
 -- >   ]
 --
--- then you can add the hook to your config:
+-- then you can add it to your "XMonad.Hooks.StatusBar" config:
 --
--- > main = xmonad $ … $ def
--- >   { logHook = dynamicLogIconsWithPP myIcons xmobarPP
--- >   , … }
+-- > myBar = statusBarProp "xmobar" (iconsPP myIcons myPP)
+-- > main = xmonad . withSB myBar $ … $ def
 --
 -- Here is an example of this
 --
@@ -71,6 +70,18 @@ import XMonad.Prelude (for, maybeToList, (<&>), (<=<), (>=>))
 -- If you want to customize formatting and/or combine this with other
 -- 'PP' extensions like "XMonad.Util.ClickableWorkspaces", here's a more
 -- advanced example how to do that:
+--
+-- > myIconConfig = def{ iconConfigIcons = myIcons, iconConfigFmt = iconsFmtAppend concat }
+-- > myBar = statusBarProp "xmobar" (clickablePP =<< dynamicIconsPP myIconConfig myPP)
+-- > main = xmonad . withSB myBar . … $ def
+--
+-- This can be also used with "XMonad.Hooks.DynamicLog":
+--
+-- > main = xmonad $ … $ def
+-- >   { logHook = dynamicLogIconsWithPP myIcons xmobarPP
+-- >   , … }
+--
+-- or with more customziation:
 --
 -- > myIconConfig = def{ iconConfigIcons = myIcons, iconConfigFmt = iconsFmtAppend concat }
 -- > main = xmonad $ … $ def
@@ -87,9 +98,15 @@ appIcon = pure . pure
 dynamicLogIconsWithPP :: Query [String] -- ^ The 'IconSet' to use
                       -> PP -- ^ The 'PP' to alter
                       -> X () -- ^ The resulting 'X' action
-dynamicLogIconsWithPP q = dynamicLogWithPP <=< dynamicIconsPP def{ iconConfigIcons = q }
+dynamicLogIconsWithPP q = dynamicLogWithPP <=< iconsPP q
 
--- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to augment
+-- | Adjusts the 'PP' with the given 'IconSet'
+iconsPP :: Query [String] -- ^ The 'IconSet' to use
+        -> PP -- ^ The 'PP' to alter
+        -> X PP -- ^ The resulting 'X PP'
+iconsPP q = dynamicIconsPP def{ iconConfigIcons = q }
+
+-- | Modify a pretty-printer, 'PP', to augment
 -- workspace names with icons based on the contents (windows) of the workspace.
 dynamicIconsPP :: IconConfig -> PP -> X PP
 dynamicIconsPP ic pp = getWorkspaceIcons ic <&> \ren -> pp{ ppRename = ppRename pp >=> ren }
