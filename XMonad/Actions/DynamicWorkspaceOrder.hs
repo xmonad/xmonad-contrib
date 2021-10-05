@@ -11,7 +11,7 @@
 --
 -- Remember a dynamically updateable ordering on workspaces, together
 -- with tools for using this ordering with "XMonad.Actions.CycleWS"
--- and "XMonad.Hooks.DynamicLog".
+-- and "XMonad.Hooks.StatusBar.PP".
 --
 -----------------------------------------------------------------------------
 
@@ -68,10 +68,10 @@ import Data.Ord (comparing)
 -- order of workspaces must be updated to use the auxiliary ordering.
 --
 -- To change the order in which workspaces are displayed by
--- "XMonad.Hooks.DynamicLog", use 'getSortByOrder' in your
--- 'XMonad.Hooks.DynamicLog.ppSort' field, for example:
+-- "XMonad.Hooks.StatusBar.PP", use 'getSortByOrder' in your
+-- 'XMonad.Hooks.StatusBar.PP.ppSort' field, for example:
 --
--- >   ... dynamicLogWithPP $ byorgeyPP {
+-- >   myPP = ... byorgeyPP {
 -- >     ...
 -- >     , ppSort = DO.getSortByOrder
 -- >     ...
