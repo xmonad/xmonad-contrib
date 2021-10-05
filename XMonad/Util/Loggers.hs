@@ -75,31 +75,30 @@ econst = const . return
 -- "XMonad.Hooks.StatusBar.PP", possibly with extra formatting .
 -- For example:
 --
--- >   -- display load averages and a pithy quote along with xmonad status.
--- >   , logHook = dynamicLogWithPP $ def {
--- >                  ppExtras = [ padL loadAvg, logCmd "fortune -n 40 -s" ]
--- >                }
+-- > myPP = def {
+-- >            ppExtras = [ padL loadAvg, logCmd "fortune -n 40 -s" ]
+-- >         }
 -- >   -- gives something like " 3.27 3.52 3.26 Drive defensively.  Buy a tank."
 --
 -- See the formatting section below for another example using
 -- a @where@ block to define some formatted loggers for a top-level
--- @myLogHook@.
+-- @myPP@.
 --
 -- Loggers are named either for their function, as in 'battery',
 -- 'aumixVolume', and 'maildirNew', or are prefixed with \"log\" when
 -- making use of other functions or by analogy with the pp* functions.
--- For example, the logger version of 'XMonad.Hooks.DynamicLog.ppTitle'
+-- For example, the logger version of 'XMonad.Hooks.StatusBar.PP.ppTitle'
 -- is 'logTitle', and 'logFileCount' loggerizes the result of file
 -- counting code.
 --
 -- Formatting utility names are generally as short as possible and
 -- carry the suffix \"L\". For example, the logger version of
--- 'XMonad.Hooks.DynamicLog.shorten' is 'shortenL'.
+-- 'XMonad.Hooks.StatusBar.PP.shorten' is 'shortenL'.
 --
 -- Of course, there is nothing really special about these so-called
 -- \"loggers\": they are just @X (Maybe String)@ actions.  So you can
 -- use them anywhere you would use an @X (Maybe String)@, not just
--- with DynamicLog.
+-- with PP.
 --
 -- Additional loggers welcome!
 
