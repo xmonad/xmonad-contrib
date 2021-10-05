@@ -20,7 +20,7 @@
       ghcWithPackages = prev.ghcWithPackages.override (fn prev);
       haskellPackages = prev.haskellPackages.override (fn prev);
     };
-    overlays = [ overlay ];
+    overlays = xmonad.overlays ++ [ overlay ];
   in flake-utils.lib.eachDefaultSystem (system:
   let pkgs = import nixpkgs { inherit system overlays; };
   in
