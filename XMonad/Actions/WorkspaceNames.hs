@@ -9,7 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  unportable
 --
--- Provides bindings to rename workspaces, show these names in DynamicLog and
+-- Provides bindings to rename workspaces, show these names in a status bar and
 -- swap workspaces along with their names. These names survive restart.
 -- Together with "XMonad.Layout.WorkspaceDir" this provides for a fully
 -- dynamic topic space workflow.
@@ -49,7 +49,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..), anyWS)
 import qualified XMonad.Actions.SwapWorkspaces as Swap
-import XMonad.Hooks.DynamicLog (PP(..))
+import XMonad.Hooks.StatusBar.PP (PP(..))
 import XMonad.Prompt (mkXPrompt, XPConfig)
 import XMonad.Prompt.Workspace (Wor(Wor))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
@@ -65,10 +65,12 @@ import qualified Data.Map as M
 --
 -- >   , ((modm .|. shiftMask, xK_r      ), renameWorkspace def)
 --
--- and apply workspaceNamesPP to your DynamicLog pretty-printer:
+-- and apply workspaceNamesPP to your pretty-printer:
 --
--- > myLogHook =
--- >     workspaceNamesPP xmobarPP >>= dynamicLogString >>= xmonadPropLog
+-- > myPP = workspaceNamesPP xmobarPP
+--
+-- Check "XMonad.Hooks.StatusBar" for more information on how to incorprate
+-- this into your status bar.
 --
 -- We also provide a modification of "XMonad.Actions.SwapWorkspaces"\'s
 -- functionality, which may be used this way:
@@ -133,7 +135,7 @@ renameWorkspace conf =
     mkXPrompt pr conf (const (return [])) setCurrentWorkspaceName
     where pr = Wor "Workspace name: "
 
--- | Modify "XMonad.Hooks.DynamicLog"\'s pretty-printing format to show
+-- | Modify 'XMonad.Hooks.StatusBar.PP.PP'\'s pretty-printing format to show
 -- workspace names as well.
 workspaceNamesPP :: PP -> X PP
 workspaceNamesPP pp = getWorkspaceNames ":" <&> \ren -> pp{ ppRename = ppRename pp >=> ren }
