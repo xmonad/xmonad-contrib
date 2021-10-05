@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Hooks.DynamicBars (
+module XMonad.Hooks.DynamicBars {-# DEPRECATED "Use XMonad.Hooks.StatusBar instead" #-} (
   -- * Usage
   -- $usage
     DynamicStatusBar
