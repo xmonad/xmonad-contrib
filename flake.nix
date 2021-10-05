@@ -12,7 +12,7 @@
         overrides = prev.lib.composeExtensions (old.overrides or (_: _: {}))
         (hself: hsuper: {
           xmonad-contrib =
-            hself.callCabal2nix "xmonad-contrib" (git-ignore-nix.gitIgnoreSource ./.) { };
+            hself.callCabal2nix "xmonad-contrib" (git-ignore-nix.lib.gitignoreSource ./.) { };
         });
       });
     };
