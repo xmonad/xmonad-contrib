@@ -52,6 +52,11 @@
       was changed to be closer to the spec. From now these two lists will have
       differently sorted windows.
 
+    - `_NET_WM_STATE_DEMANDS_ATTENTION` was added to the list of supported
+      hints (as per `_NET_SUPPORTED`). This hint has long been understood by
+      `UrgencyHook`. This enables certain applications (e.g. kitty terminal
+      emulator) that check whether the hint is supported to use it.
+
   * All modules still exporting a `defaultFoo` constructor
 
     - All of these were now removed. You can use the re-exported `def` from
