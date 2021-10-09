@@ -22,14 +22,14 @@ module XMonad.Prompt.RunOrRaise
     ) where
 
 import XMonad hiding (config)
-import XMonad.Prelude (liftA2)
+import XMonad.Prelude (isNothing, isSuffixOf, liftA2)
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Actions.WindowGo (runOrRaise)
 import XMonad.Util.Run (runProcessWithInput)
 
 import Control.Exception as E
-import System.Directory (doesDirectoryExist, doesFileExist, executable, getPermissions)
+import System.Directory (doesDirectoryExist, doesFileExist, executable, findExecutable, getPermissions)
 
 econst :: Monad m => a -> IOException -> m a
 econst = const . return
@@ -60,9 +60,14 @@ open path = io (isNormalFile path) >>= \b ->
             then spawn $ "xdg-open \"" ++ path ++ "\""
             else uncurry runOrRaise . getTarget $ path
     where
-      isNormalFile f = exists f >>= \e -> if e then notExecutable f else return False
-      exists f = or <$> sequence [doesFileExist f,doesDirectoryExist f]
+      isNormalFile f = do
+          notCommand <- isNothing <$> findExecutable f -- not a command (executable in $PATH)
+          exists <- or <$> sequence [doesDirExist f, doesFileExist f]
+          case (notCommand, exists) of
+              (True, True) -> notExecutable f -- not executable as a file in current dir
+              _            -> pure False
       notExecutable = fmap (not . executable) . getPermissions
+      doesDirExist f = ("/" `isSuffixOf` f &&) <$> doesDirectoryExist f
       getTarget x = (x,isApp x)
 
 isApp :: String -> Query Bool
