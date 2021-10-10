@@ -390,6 +390,7 @@ setSupported = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_SUPPORTED"
     supp <- mapM getAtom ["_NET_WM_STATE_HIDDEN"
+                         ,"_NET_WM_STATE_DEMANDS_ATTENTION"
                          ,"_NET_NUMBER_OF_DESKTOPS"
                          ,"_NET_CLIENT_LIST"
                          ,"_NET_CLIENT_LIST_STACKING"
