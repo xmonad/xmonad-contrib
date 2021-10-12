@@ -1,5 +1,7 @@
 name:               xmonad-contrib
 version:            0.16.999
+-- ^ also update cpp-options: -DXMONAD_CONTRIB_VERSION_*
+
 homepage:           http://xmonad.org/
 synopsis:           Third party extensions for xmonad
 description:
@@ -61,6 +63,9 @@ library
                    xmonad >= 0.16.99999 && < 0.18,
                    utf8-string
 
+    cpp-options:   -DXMONAD_CONTRIB_VERSION_MAJOR=0
+                   -DXMONAD_CONTRIB_VERSION_MINOR=16
+                   -DXMONAD_CONTRIB_VERSION_PATCH=999
     ghc-options:   -Wall -Wno-unused-do-bind
 
     if flag(pedantic)
