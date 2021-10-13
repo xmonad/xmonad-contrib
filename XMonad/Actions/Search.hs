@@ -39,6 +39,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  debpts,
                                  dictionary,
                                  ebay,
+                                 github,
                                  google,
                                  hackage,
                                  hoogle,
