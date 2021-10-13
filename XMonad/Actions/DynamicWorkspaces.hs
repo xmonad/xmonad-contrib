@@ -34,7 +34,7 @@ module XMonad.Actions.DynamicWorkspaces (
                                          WorkspaceIndex
                                        ) where
 
-import XMonad.Prelude (find, isNothing, when)
+import XMonad.Prelude (find, isNothing, nub, when)
 import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace ( Wor(Wor), workspacePrompt )
@@ -243,7 +243,7 @@ addHiddenWorkspace' add newtag l s@StackSet{ hidden = ws } = s { hidden = add (W
 -- | Remove the hidden workspace with the given tag from the StackSet, if
 --   it exists. All the windows in that workspace are moved to the current
 --   workspace.
-removeWorkspace' :: (Eq i) => i -> StackSet i l a sid sd -> StackSet i l a sid sd
+removeWorkspace' :: (Eq i, Eq a) => i -> StackSet i l a sid sd -> StackSet i l a sid sd
 removeWorkspace' torem s@StackSet{ current = scr@Screen { workspace = wc }
                                  , hidden  = hs }
     = let (xs, ys) = break ((== torem) . tag) hs
@@ -251,7 +251,7 @@ removeWorkspace' torem s@StackSet{ current = scr@Screen { workspace = wc }
    where meld Nothing Nothing = Nothing
          meld x Nothing = x
          meld Nothing x = x
-         meld (Just x) (Just y) = differentiate (integrate x ++ integrate y)
+         meld (Just x) (Just y) = differentiate . nub $ integrate x ++ integrate y
          removeWorkspace'' xs (y:ys) = s { current = scr { workspace = wc { stack = meld (stack y) (stack wc) } }
                                          , hidden = xs ++ ys }
          removeWorkspace'' _  _      = s
