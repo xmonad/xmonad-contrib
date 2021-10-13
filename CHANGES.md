@@ -737,6 +737,11 @@
     - Removed deprecations for `spacing`, `spacingWithEdge`,
       `smartSpacing`, and `smartSpacingWithEdge`.
 
+  * `XMonad.Actions.DynamicWorkspaces`
+
+    - Fixed a system freeze when using `X.A.CopyWindow.copy` in
+      combination with `removeWorkspace`.
+
 ## 0.16
 
 ### Breaking Changes
