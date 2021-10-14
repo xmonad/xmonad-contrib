@@ -22,20 +22,61 @@
 -- currently ignores properties being removed, in part because you can't
 -- do anything useful in a ManageHook involving nonexistence of a property.
 --
+-- This module could also be useful for Electron applications like Spotify
+-- which sets its WM_CLASS too late for window manager to map it properly.
+--
 -----------------------------------------------------------------------------
 
-module XMonad.Hooks.DynamicProperty where
+module XMonad.Hooks.DynamicProperty ( -- * Usage
+                                      -- $usage
+
+                                      -- * Documentation
+                                      dynamicPropertyChange
+                                    , dynamicTitle
+                                    ) where
 
 import XMonad
 import XMonad.Prelude
 
+-- $usage
+-- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+--
+-- > import XMonad.Hooks.DynamicProperty
+--
+-- Enable it by including in you handleEventHook definition:
+--
+-- >  main = xmonad $ def
+-- >      { ...
+-- >      , handleEventHook = dynamicPropertyChange "WM_NAME" (title =? "Spotify" --> doShift "5"))
+-- >      , ...
+-- >      }
+--
+-- Or you could create a dynamicManageHook as below:
+--
+-- > myDynamicManageHook :: ManageHook
+-- > myDynamicManageHook =
+-- >  composeAll
+-- >    [ className =? "Spotify" --> doShift (myWorkspaces !! 4),
+-- >      title =? "maybe_special_terminal" <||> title =? "special_terminal" --> doCenterFloat,
+-- >      className =? "dynamicApp" <&&> title =? "dynamic_app" --> doCenterFloat
+-- >    ]
+--
+-- And then use it in your handleEventHookDefinition:
+--
+-- >  main = xmonad $ def
+-- >      { ...
+-- >      , handleEventHook = dynamicPropertyChange "WM_NAME" myDynamicManageHook <+> handleEventHook baseConfig
+-- >      , ...
+-- >      }
+--
+
 -- |
 -- Run a 'ManageHook' when a specific property is changed on a window. Note
 -- that this will run on any window which changes the property, so you should
--- be very specific in your 'MansgeHook' matching (lots of windows change
+-- be very specific in your 'ManageHook' matching (lots of windows change
 -- their titles on the fly!):
 --
--- dynamicPropertyChange "WM_NAME" (className =? "Iceweasel" <&&> title =? "whatever" --> doShift "2")
+-- > dynamicPropertyChange "WM_NAME" (className =? "Iceweasel" <&&> title =? "whatever" --> doShift "2")
 --
 -- Note that the fixity of (-->) won't allow it to be mixed with ($), so you
 -- can't use the obvious $ shorthand.
@@ -45,9 +86,11 @@ import XMonad.Prelude
 -- Consider instead phrasing it like any
 -- other 'ManageHook':
 --
+-- >  main = xmonad $ def
+-- >      { ...
 -- >      , handleEventHook = dynamicPropertyChange "WM_NAME" myDynHook <+> handleEventHook baseConfig
--- >
--- >    {- ... -}
+-- >      , ...
+-- >      }
 -- >
 -- >    myDynHook = composeAll [...]
 --
