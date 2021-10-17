@@ -52,7 +52,7 @@ import qualified XMonad.Util.ExtensibleConf as XC
 --
 -- > main = xmonad $ … . rescreenHook rescreenCfg . … $ def{…}
 
--- | Hook configuration for 'rescreenEventHook'.
+-- | Hook configuration for 'rescreenHook'.
 data RescreenConfig = RescreenConfig
     { afterRescreenHook :: X () -- ^ hook to invoke after 'rescreen'
     , randrChangeHook :: X () -- ^ hook for other randr changes, e.g. (dis)connects
