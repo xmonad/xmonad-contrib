@@ -334,6 +334,7 @@ library
                         XMonad.Util.Dmenu
                         XMonad.Util.DynamicScratchpads
                         XMonad.Util.Dzen
+                        XMonad.Util.EWMH
                         XMonad.Util.EZConfig
                         XMonad.Util.ExclusiveScratchpads
                         XMonad.Util.ExtensibleConf
