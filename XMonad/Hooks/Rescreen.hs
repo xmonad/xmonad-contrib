@@ -19,11 +19,9 @@ module XMonad.Hooks.Rescreen (
     rescreenHook,
     ) where
 
-import Control.Monad (void)
-import Data.Monoid (All(..))
-
 import Graphics.X11.Xrandr
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.Util.ExtensibleConf as XC
 
 -- $usage
