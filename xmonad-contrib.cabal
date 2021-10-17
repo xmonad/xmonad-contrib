@@ -170,6 +170,7 @@ library
                         XMonad.Hooks.DynamicIcons
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.DynamicProperty
+                        XMonad.Hooks.EWMH.Desktops
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FadeWindows
