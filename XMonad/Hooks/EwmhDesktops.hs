@@ -42,7 +42,6 @@ import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.SetWMName
-import qualified XMonad.Util.ExtensibleState as E
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
 import qualified XMonad.Util.ExtensibleState as XS
@@ -160,11 +159,7 @@ instance ExtensionClass ActiveWindow where
 -- | Compare the given value against the value in the extensible state. Run the
 -- action if it has changed.
 whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
-whenChanged v action = do
-    v0 <- E.get
-    unless (v == v0) $ do
-        action
-        E.put v
+whenChanged = whenX . XS.modified . const
 
 -- |
 -- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
