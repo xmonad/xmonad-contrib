@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
 
 -----------------------------------------------------------------------------
@@ -23,6 +24,19 @@ module XMonad.Hooks.EwmhDesktops (
     -- $usage
     ewmh,
     ewmhFullscreen,
+
+    -- * Customization
+    -- $customization
+
+    -- ** Sorting/filtering of workspaces
+    -- $customSort
+    addEwmhWorkspaceSort, setEwmhWorkspaceSort,
+
+    -- ** Renaming of workspaces
+    -- $customRename
+    addEwmhWorkspaceRename, setEwmhWorkspaceRename,
+
+    -- ** Window activation
     NetActivated (..),
     activated,
     activateLogHook,
@@ -48,6 +62,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.SetWMName
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
+import qualified XMonad.Util.ExtensibleConf as XC
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
@@ -102,6 +117,99 @@ ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
            , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
            , logHook         = ewmhDesktopsLogHook <+> logHook c }
 
+
+-- $customization
+-- It's possible to customize the behaviour of 'ewmh' in several ways:
+
+-- | Customizable configuration for EwmhDesktops
+data EwmhDesktopsConfig =
+    EwmhDesktopsConfig
+        { workspaceSort :: X WorkspaceSort
+            -- ^ configurable workspace sorting/filtering
+        , workspaceRename :: X (String -> WindowSpace -> String)
+            -- ^ configurable workspace rename (see 'XMonad.Hooks.StatusBar.PP.ppRename')
+        }
+
+instance Default EwmhDesktopsConfig where
+    def = EwmhDesktopsConfig
+        { workspaceSort = getSortByIndex
+        , workspaceRename = pure pure
+        }
+
+
+-- $customSort
+-- The list of workspaces exposed to EWMH pagers (like
+-- <https://github.com/taffybar/taffybar taffybar> and
+-- <https://github.com/polybar/polybar polybar>) and clients (such as
+-- <http://tomas.styblo.name/wmctrl/ wmctrl> and
+-- <https://github.com/jordansissel/xdotool/ xdotool>) may be sorted and/or
+-- filtered via a user-defined function.
+--
+-- To show visible workspaces first, one may switch to a Xinerama-aware
+-- sorting function:
+--
+-- > import XMonad.Util.WorkspaceCompare
+-- >
+-- > mySort = getSortByXineramaRule
+-- > main = xmonad $ … . setEwmhWorkspaceSort mySort . ewmh . … $ def{…}
+--
+-- Another useful example is not exposing the hidden scratchpad workspace:
+--
+-- > import XMonad.Util.NamedScratchpad
+-- > import XMonad.Util.WorkspaceCompare
+-- >
+-- > myFilter = filterOutWs [scratchpadWorkspaceTag]
+-- > main = xmonad $ … . addEwmhWorkspaceSort (pure myFilter) . ewmh . … $ def{…}
+
+-- | Add (compose after) an arbitrary user-specified function to sort/filter
+-- the workspace list. The default/initial function is 'getSortByIndex'. This
+-- can be used to e.g. filter out scratchpad workspaces. Workspaces /must not/
+-- be renamed here.
+addEwmhWorkspaceSort :: X WorkspaceSort -> XConfig l -> XConfig l
+addEwmhWorkspaceSort f = XC.modifyDef $ \c -> c{ workspaceSort = liftA2 (.) f (workspaceSort c) }
+
+-- | Like 'addEwmhWorkspaceSort', but replace it instead of adding/composing.
+setEwmhWorkspaceSort :: X WorkspaceSort -> XConfig l -> XConfig l
+setEwmhWorkspaceSort f = XC.modifyDef $ \c -> c{ workspaceSort = f }
+
+
+-- $customRename
+-- The workspace names exposed to EWMH pagers and other clients (e.g.
+-- <https://arbtt.nomeata.de/ arbtt>) may be altered using a similar
+-- interface to 'XMonad.Hooks.StatusBar.PP.ppRename'. To configure workspace
+-- renaming, use 'addEwmhWorkspaceRename'.
+--
+-- As an example, to expose workspaces uppercased:
+--
+-- > import Data.Char
+-- >
+-- > myRename :: String -> WindowSpace -> String
+-- > myRename s _w = map toUpper s
+-- >
+-- > main = xmonad $ … . addEwmhWorkspaceRename (pure myRename) . ewmh . … $ def{…}
+--
+-- Some modules like "XMonad.Actions.WorkspaceNames" provide ready-made
+-- integrations:
+--
+-- > import XMonad.Actions.WorkspaceNames
+-- >
+-- > main = xmonad $ … . workspaceNamesEwmh . ewmh . … $ def{…}
+--
+-- The above ensures workspace names are exposed through EWMH.
+
+-- | Add (compose after) an arbitrary user-specified function to rename each
+-- workspace. This works just like 'XMonad.Hooks.StatusBar.PP.ppRename': the
+-- @WindowSpace -> …@ acts as a Reader monad. Useful with
+-- "XMonad.Actions.WorkspaceNames", "XMonad.Layout.IndependentScreens",
+-- "XMonad.Hooks.DynamicIcons".
+addEwmhWorkspaceRename :: X (String -> WindowSpace -> String) -> XConfig l -> XConfig l
+addEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = liftA2 (<=<) f (workspaceRename c) }
+
+-- | Like 'addEwmhWorkspaceRename', but replace it instead of adding/composing.
+setEwmhWorkspaceRename :: X (String -> WindowSpace -> String) -> XConfig l -> XConfig l
+setEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = f }
+
+
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
 ewmhDesktopsStartup :: X ()
 ewmhDesktopsStartup = setSupported
@@ -109,7 +217,35 @@ ewmhDesktopsStartup = setSupported
 -- | Notifies pagers and window lists, such as those in the gnome-panel of the
 -- current state of workspaces and windows.
 ewmhDesktopsLogHook :: X ()
-ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+ewmhDesktopsLogHook = XC.withDef ewmhDesktopsLogHook'
+
+-- | Generalized version of ewmhDesktopsLogHook that allows an arbitrary
+-- user-specified function to sort/filter the workspace list (post-sorting).
+{-# DEPRECATED ewmhDesktopsLogHookCustom "Use ewmh and addEwmhWorkspaceSort instead." #-}
+ewmhDesktopsLogHookCustom :: WorkspaceSort -> X ()
+ewmhDesktopsLogHookCustom f =
+    ewmhDesktopsLogHook' def{ workspaceSort = (f .) <$> workspaceSort def }
+
+-- | Intercepts messages from pagers and similar applications and reacts on them.
+--
+-- Currently supports:
+--
+--  * _NET_CURRENT_DESKTOP (switching desktops)
+--
+--  * _NET_WM_DESKTOP (move windows to other desktops)
+--
+--  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
+--
+--  * _NET_CLOSE_WINDOW (close window)
+ewmhDesktopsEventHook :: Event -> X All
+ewmhDesktopsEventHook = XC.withDef . ewmhDesktopsEventHook'
+
+-- | Generalized version of ewmhDesktopsEventHook that allows an arbitrary
+-- user-specified function to sort/filter the workspace list (post-sorting).
+{-# DEPRECATED ewmhDesktopsEventHookCustom "Use ewmh and addEwmhWorkspaceSort instead." #-}
+ewmhDesktopsEventHookCustom :: WorkspaceSort -> Event -> X All
+ewmhDesktopsEventHookCustom f e =
+    ewmhDesktopsEventHook' e def{ workspaceSort = (f .) <$> workspaceSort def }
 
 -- | Cached @_NET_DESKTOP_NAMES@, @_NET_NUMBER_OF_DESKTOPS@
 newtype DesktopNames = DesktopNames [String] deriving Eq
@@ -140,15 +276,14 @@ instance ExtensionClass ActiveWindow where initialValue = ActiveWindow (compleme
 whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
 whenChanged = whenX . XS.modified . const
 
--- | Generalized version of ewmhDesktopsLogHook that allows an arbitrary
--- user-specified function to transform the workspace list (post-sorting)
-ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
-ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
-    sort' <- getSortByIndex
-    let ws = t $ sort' $ W.workspaces s
+ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
+ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWindowSet $ \s -> do
+    sort' <- workspaceSort
+    let ws = sort' $ W.workspaces s
 
     -- Set number of workspaces and names thereof
-    let desktopNames = map W.tag ws
+    rename <- workspaceRename
+    let desktopNames = [ rename (W.tag w) w | w <- ws ]
     whenChanged (DesktopNames desktopNames) $ do
         setNumberOfDesktops (length desktopNames)
         setDesktopNames desktopNames
@@ -164,9 +299,8 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     let clientListStacking = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
     whenChanged (ClientListStacking clientListStacking) $ setClientListStacking clientListStacking
 
-    -- Remap the current workspace to handle any renames that f might be doing.
-    let maybeCurrent' = W.tag <$> listToMaybe (t [W.workspace $ W.current s])
-        current = flip elemIndex (map W.tag ws) =<< maybeCurrent'
+    -- Set current desktop number
+    let current = W.currentTag s `elemIndex` map W.tag ws
     whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
 
@@ -180,25 +314,6 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     -- Set active window
     let activeWindow' = fromMaybe none (W.peek s)
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
-
--- | Intercepts messages from pagers and similar applications and reacts on them.
---
--- Currently supports:
---
---  * _NET_CURRENT_DESKTOP (switching desktops)
---
---  * _NET_WM_DESKTOP (move windows to other desktops)
---
---  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
---
---  * _NET_CLOSE_WINDOW (close window)
-ewmhDesktopsEventHook :: Event -> X All
-ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
-
--- | Generalized version of ewmhDesktopsEventHook that allows an arbitrary
--- user-specified function to transform the workspace list (post-sorting)
-ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
-ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
 
 -- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
 -- this value in global state, because i use 'logHook' for handling activated
@@ -234,11 +349,13 @@ activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
         XS.put NetActivated{netActivated = Nothing}
         windows (appEndo f)
 
-handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
-handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
+ewmhDesktopsEventHook' :: Event -> EwmhDesktopsConfig -> X All
+ewmhDesktopsEventHook'
+        ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d}
+        EwmhDesktopsConfig{workspaceSort} =
     withWindowSet $ \s -> do
-        sort' <- getSortByIndex
-        let ws = f $ sort' $ W.workspaces s
+        sort' <- workspaceSort
+        let ws = sort' $ W.workspaces s
 
         a_cd <- getAtom "_NET_CURRENT_DESKTOP"
         a_d <- getAtom "_NET_WM_DESKTOP"
@@ -266,8 +383,10 @@ handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
             | otherwise ->
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager
-                return ()
-handle _ _ = return ()
+                mempty
+
+        mempty
+ewmhDesktopsEventHook' _ _ = mempty
 
 -- | Add EWMH fullscreen functionality to the given config.
 ewmhFullscreen :: XConfig a -> XConfig a

@@ -40,6 +40,13 @@
       `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
       and no configuration changes are required in this case.
 
+    - Deprecated `ewmhDesktopsLogHookCustom` and `ewmhDesktopsEventHookCustom`;
+      these are now replaced by a composable `XMonad.Util.ExtensibleConf`-based
+      interface. Users are advised to just use the `ewmh` XConfig combinator
+      and customize behaviour using the provided `addEwmhWorkspaceSort`,
+      `addEwmhWorkspaceRename` functions, or better still, use integrations
+      provided by modules such as `XMonad.Actions.WorkspaceNames`.
+
     - `ewmh` function will use `logHook` for handling activated window. And now
       by default window activation will do nothing.
 
