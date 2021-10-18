@@ -545,8 +545,8 @@
 
   * `XMonad.Actions.WorkspaceNames`
 
-    - Added `workspaceNamesListTransform` which makes workspace names visible
-      to external pagers.
+    - Added `workspaceNamesEwmh` which makes workspace names visible to
+      external pagers.
 
   * `XMonad.Util.PureX`
 
