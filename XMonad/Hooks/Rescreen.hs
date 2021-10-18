@@ -88,17 +88,17 @@ instance Monoid RescreenConfig where
 --
 -- Note that 'rescreenHook' is safe to use several times, 'rescreen' is still
 -- done just once and hooks are invoked in sequence, also just once.
-rescreenHook :: RescreenConfig -> XConfig a -> XConfig a
+rescreenHook :: RescreenConfig -> XConfig l -> XConfig l
 rescreenHook = XC.once $ \c -> c
     { startupHook = startupHook c <> rescreenStartupHook
     , handleEventHook = handleEventHook c <> rescreenEventHook }
 
 -- | Shortcut for 'rescreenHook'.
-addAfterRescreenHook :: X () -> XConfig a -> XConfig a
+addAfterRescreenHook :: X () -> XConfig l -> XConfig l
 addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = h }
 
 -- | Shortcut for 'rescreenHook'.
-addRandrChangeHook :: X () -> XConfig a -> XConfig a
+addRandrChangeHook :: X () -> XConfig l -> XConfig l
 addRandrChangeHook h = rescreenHook def{ randrChangeHook = h }
 
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
