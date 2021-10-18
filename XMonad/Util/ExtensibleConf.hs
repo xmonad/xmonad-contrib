@@ -23,9 +23,14 @@ module XMonad.Util.ExtensibleConf (
 
     -- * High-level idioms
     with,
+    withDef,
     add,
     once,
     onceM,
+    modify,
+    modifyDef,
+    onceIni,
+    onceIniM,
 
     -- * Low-level primitivies
     ask,
@@ -34,9 +39,11 @@ module XMonad.Util.ExtensibleConf (
     ) where
 
 import Prelude hiding (lookup)
-import XMonad hiding (ask)
+import XMonad hiding (ask, modify, trace)
+import XMonad.Prelude ((<|>), fromMaybe)
 
 import Data.Typeable
+import Debug.Trace
 import qualified Data.Map as M
 
 
@@ -101,6 +108,11 @@ mapConfExt f = fmap ConfExtension . f . (>>= fromConfExt)
 with :: (MonadReader XConf m, Typeable a, Monoid b) => (a -> m b) -> m b
 with a = ask >>= maybe (pure mempty) a
 
+-- | Run-time: Run a monadic action with the value of the custom
+-- configuration, or the 'Default' value thereof, if absent.
+withDef :: (MonadReader XConf m, Typeable a, Default a) => (a -> m b) -> m b
+withDef a = ask >>= a . fromMaybe def
+
 -- | Config-time: Add (append) a piece of custom configuration to an 'XConfig'
 -- using the 'Semigroup' instance of the configuration type.
 add :: (Semigroup a, Typeable a)
@@ -113,11 +125,14 @@ add x = alter (<> Just x)
 --
 -- This can be used to implement a composable interface for modules that must
 -- only hook into xmonad core once.
+--
+-- (The piece of custom configuration is the last argument as it's expected to
+-- come from the user.)
 once :: forall a l. (Semigroup a, Typeable a)
      => (XConfig l -> XConfig l) -- ^ 'XConfig' modification done only once
      -> a -- ^ configuration to add
      -> XConfig l -> XConfig l
-once f x c = add x $ maybe f (const id) (lookup @a c) c
+once f x c = maybe f (const id) (lookup @a c) $ add x c
 
 -- | Config-time: Applicative (monadic) variant of 'once', useful if the
 -- 'XConfig' modification needs to do some 'IO' (e.g. create an
@@ -126,4 +141,50 @@ onceM :: forall a l m. (Applicative m, Semigroup a, Typeable a)
       => (XConfig l -> m (XConfig l)) -- ^ 'XConfig' modification done only once
       -> a -- ^ configuration to add
       -> XConfig l -> m (XConfig l)
-onceM f x c = add x <$> maybe f (const pure) (lookup @a c) c
+onceM f x c = maybe f (const pure) (lookup @a c) $ add x c
+
+-- | Config-time: Modify a configuration value in 'XConfig', or print a
+-- warning to stderr if there's no value to be modified. This is an
+-- alternative to 'add' for when a 'Semigroup' instance is unavailable or
+-- unsuitable.
+--
+-- Note that this must be used /after/ 'once' or any of its variants for the
+-- warning to not be printed.
+modify :: forall a l. (Typeable a)
+       => (a -> a) -- ^ modification of configuration
+       -> XConfig l -> XConfig l
+modify f c = maybe (trace missing) (const (alter (f <$>))) (lookup @a c) c
+  where
+    missing = "X.U.ExtensibleConf.modify: no value of type " <> show (typeRep (Proxy @a))
+    -- TODO: xmessage in startupHook instead
+
+-- | Config-time: Modify a configuration value in 'XConfig', initializing it
+-- to its 'Default' value first if absent. This is an alternative to 'add' for
+-- when a 'Semigroup' instance is unavailable or unsuitable.
+--
+-- Note that this must /not/ be used together with any variant of 'once'!
+modifyDef :: forall a l. (Typeable a, Default a)
+          => (a -> a) -- ^ modification of configuration
+          -> XConfig l -> XConfig l
+modifyDef f = alter ((f <$>) . (<|> Just def))
+
+-- | Config-time: Apply a modification to 'XConfig' only once, guarded by the
+-- absence of a configuration value. This is an alternative to 'once' for when
+-- a 'Semigroup' instance is unavailable or unsuitable.
+--
+-- (The configuration value is the first argument as it's expected to be
+-- supplied by the contrib module.)
+onceIni :: forall a l. (Typeable a)
+        => a -- ^ initial (default, empty, …) configuration
+        -> (XConfig l -> XConfig l) -- ^ 'XConfig' modification done only once
+        -> XConfig l -> XConfig l
+onceIni x f c = maybe f (const id) (lookup @a c) $ alter (<|> Just x) c
+
+-- | Config-time: Applicative (monadic) variant of 'once'', useful if the
+-- 'XConfig' modification needs to do some 'IO' (e.g. create an
+-- 'Data.IORef.IORef').
+onceIniM :: forall a l m. (Applicative m, Typeable a)
+         => a -- ^ initial (default, empty, …) configuration
+         -> (XConfig l -> m (XConfig l)) -- ^ 'XConfig' modification done only once
+         -> XConfig l -> m (XConfig l)
+onceIniM x f c = maybe f (const pure) (lookup @a c) $ alter (<|> Just x) c

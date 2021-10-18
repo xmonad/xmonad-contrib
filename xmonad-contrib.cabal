@@ -170,6 +170,7 @@ library
                         XMonad.Hooks.DynamicIcons
                         XMonad.Hooks.DynamicLog
                         XMonad.Hooks.DynamicProperty
+                        XMonad.Hooks.EWMH.Desktops
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FadeWindows
@@ -334,6 +335,7 @@ library
                         XMonad.Util.Dmenu
                         XMonad.Util.DynamicScratchpads
                         XMonad.Util.Dzen
+                        XMonad.Util.EWMH
                         XMonad.Util.EZConfig
                         XMonad.Util.ExclusiveScratchpads
                         XMonad.Util.ExtensibleConf
