@@ -76,7 +76,7 @@ setEwmhWorkspaceListTransform f = XC.modifyDef $ \c -> c{ workspaceListTransform
 -- existing instead of replacing it.
 addEwmhWorkspaceListTransform :: ([WindowSpace] -> [WindowSpace]) -> XConfig l -> XConfig l
 addEwmhWorkspaceListTransform f = XC.modifyDef $ \c ->
-    c{ workspaceListTransform = workspaceListTransform c <> f }
+    c{ workspaceListTransform = f . workspaceListTransform c }
 
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = XC.withDef $ \EwmhDesktopsConfig{workspaceListTransform} -> do
