@@ -116,10 +116,10 @@ import Foreign.C.Types (CLong)
 -- > main = xmonad $ withUrgencyHook NoUrgencyHook
 -- >               $ def
 --
--- Now, your "XMonad.Hooks.DynamicLog" must be set up to display the urgent
--- windows. If you're using the 'dzen' or 'dzenPP' functions from that module,
--- then you should be good. Otherwise, you want to figure out how to set
--- 'ppUrgent'.
+-- Now, your "XMonad.Hooks.StatusBar.PP" must be set up to display the urgent
+-- windows. If you're using the 'dzen' (from "XMonad.Hooks.DynamicLog") or
+-- 'dzenPP' functions from that module, then you should be good. Otherwise,
+-- you want to figure out how to set 'ppUrgent'.
 
 -- $keybinding
 --

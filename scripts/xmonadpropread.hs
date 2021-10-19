@@ -7,7 +7,7 @@
 --
 -- Reads from an X property on the root window and writes to standard output.
 --
--- May be used together with XMonad.Hooks.DynamicLog.xmonadPropLog and a
+-- May be used together with XMonad.Hooks.StatusBar.xmonadPropLog and a
 -- status bar that doesn't support reading from properties itself, such as
 -- dzen.
 --

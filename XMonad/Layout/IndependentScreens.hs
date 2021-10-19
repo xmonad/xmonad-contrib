@@ -38,7 +38,7 @@ import Graphics.X11.Xinerama
 import XMonad
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.StatusBar.PP
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

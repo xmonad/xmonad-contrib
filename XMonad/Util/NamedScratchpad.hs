@@ -35,7 +35,7 @@ module XMonad.Util.NamedScratchpad (
 import XMonad
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Actions.SpawnOn (spawnHere)
-import XMonad.Hooks.DynamicLog (PP, ppSort)
+import XMonad.Hooks.StatusBar.PP (PP, ppSort)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Hooks.RefocusLast (withRecentsIn)
 import XMonad.Prelude (filterM, find, unless, when)
@@ -92,7 +92,7 @@ import qualified XMonad.StackSet as W
 --
 -- For some applications (like displaying your workspaces in a status bar) it is
 -- convenient to filter out the @NSP@ workspace when looking at all workspaces.
--- For this, you can use functions 'XMonad.Hooks.DynamicLog.filterOutWsPP' and
+-- For this, you can use functions 'XMonad.Hooks.StatusBar.PP.filterOutWsPP' and
 -- 'XMonad.Util.WorkspaceCompare.filterOutWs'.  See the documentation of these
 -- functions for examples.
 --
@@ -247,6 +247,6 @@ namedScratchpadFilterOutWorkspacePP :: PP -> PP
 namedScratchpadFilterOutWorkspacePP pp = pp {
   ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
   }
-{-# DEPRECATED namedScratchpadFilterOutWorkspacePP "Use XMonad.Hooks.DynamicLog.filterOutWsPP [scratchpadWorkspaceTag] instead" #-}
+{-# DEPRECATED namedScratchpadFilterOutWorkspacePP "Use XMonad.Hooks.StatusBar.PP.filterOutWsPP [scratchpadWorkspaceTag] instead" #-}
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:

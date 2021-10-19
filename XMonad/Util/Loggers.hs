@@ -10,8 +10,8 @@
 -- Portability :  unportable
 --
 -- A collection of simple logger functions and formatting utilities
--- which can be used in the 'XMonad.Hooks.DynamicLog.ppExtras' field of
--- a pretty-printing status logger format. See "XMonad.Hooks.DynamicLog"
+-- which can be used in the 'XMonad.Hooks.StatusBar.PP.ppExtras' field of
+-- a pretty-printing status logger format. See "XMonad.Hooks.StatusBar.PP"
 -- for more information.
 -----------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ module XMonad.Util.Loggers (
 import XMonad (liftIO, Window, gets)
 import XMonad.Core
 import qualified XMonad.StackSet as W
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.StatusBar.PP
 import XMonad.Util.Font (Align (..))
 import XMonad.Util.NamedWindows (getName)
 
@@ -71,35 +71,34 @@ econst = const . return
 -- > import XMonad.Util.Loggers
 --
 -- Then, add one or more loggers to the
--- 'XMonad.Hooks.DynamicLog.ppExtras' field of your
--- 'XMonad.Hooks.DynamicLoc.PP', possibly with extra formatting .
+-- 'XMonad.Hooks.StatusBar.PP.ppExtras' field of your
+-- "XMonad.Hooks.StatusBar.PP", possibly with extra formatting .
 -- For example:
 --
--- >   -- display load averages and a pithy quote along with xmonad status.
--- >   , logHook = dynamicLogWithPP $ def {
--- >                  ppExtras = [ padL loadAvg, logCmd "fortune -n 40 -s" ]
--- >                }
+-- > myPP = def {
+-- >            ppExtras = [ padL loadAvg, logCmd "fortune -n 40 -s" ]
+-- >         }
 -- >   -- gives something like " 3.27 3.52 3.26 Drive defensively.  Buy a tank."
 --
 -- See the formatting section below for another example using
 -- a @where@ block to define some formatted loggers for a top-level
--- @myLogHook@.
+-- @myPP@.
 --
 -- Loggers are named either for their function, as in 'battery',
 -- 'aumixVolume', and 'maildirNew', or are prefixed with \"log\" when
 -- making use of other functions or by analogy with the pp* functions.
--- For example, the logger version of 'XMonad.Hooks.DynamicLog.ppTitle'
+-- For example, the logger version of 'XMonad.Hooks.StatusBar.PP.ppTitle'
 -- is 'logTitle', and 'logFileCount' loggerizes the result of file
 -- counting code.
 --
 -- Formatting utility names are generally as short as possible and
 -- carry the suffix \"L\". For example, the logger version of
--- 'XMonad.Hooks.DynamicLog.shorten' is 'shortenL'.
+-- 'XMonad.Hooks.StatusBar.PP.shorten' is 'shortenL'.
 --
 -- Of course, there is nothing really special about these so-called
 -- \"loggers\": they are just @X (Maybe String)@ actions.  So you can
 -- use them anywhere you would use an @X (Maybe String)@, not just
--- with DynamicLog.
+-- with PP.
 --
 -- Additional loggers welcome!
 
@@ -286,12 +285,12 @@ withScreen f n = do
 
 -- $format
 -- Combine logger formatting functions to make your
--- 'XMonad.Hooks.DynamicLog.ppExtras' more colorful and readable.
+-- 'XMonad.Hooks.StatusBar.PP.ppExtras' more colorful and readable.
 -- (For convenience, you can use '<$>' instead of \'.\' or \'$\' in hard to read
 -- formatting lines.
 -- For example:
 --
--- > myLogHook = dynamicLogWithPP def {
+-- > myPP = def {
 -- >     -- skipped
 -- >     , ppExtras = [lLoad, lTitle, logSp 3, wrapL "[" "]" $ date "%a %d %b"]
 -- >     , ppOrder = \(ws:l:_:xs) -> [l,ws] ++ xs
@@ -303,6 +302,9 @@ withScreen f n = do
 -- >
 -- >     lLoad = dzenColorL "#6A5ACD" "" . wrapL loadIcon "   " . padL $ loadAvg
 -- >     loadIcon = " ^i(/home/me/.dzen/icons/load.xbm)"
+--
+-- For more information on how to add the pretty-printer to your status bar, please
+-- check "XMonad.Hooks.StatusBar".
 --
 -- Note: When applying 'shortenL' or 'fixedWidthL' to logger strings
 -- containing colors or other formatting commands, apply the formatting

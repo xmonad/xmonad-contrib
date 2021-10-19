@@ -30,7 +30,7 @@ module XMonad.Hooks.FloatNext ( -- * Usage
                               , willFloatNext
                               , willFloatAllNew
 
-                                -- * 'DynamicLog' utilities
+                                -- * Status bar utilities
                                 -- $pp
                               , willFloatNextPP
                               , willFloatAllNewPP
@@ -97,10 +97,10 @@ willFloatAllNew = willHookAllNew hookName
 -- $pp
 -- The following functions are used to display the current
 -- state of 'floatNext' and 'floatAllNew' in your
--- 'XMonad.Hooks.DynamicLog.dynamicLogWithPP'.
+-- "XMonad.Hooks.StatusBar.PP".
 -- 'willFloatNextPP' and 'willFloatAllNewPP' should be added
--- to the 'XMonad.Hooks.DynamicLog.ppExtras' field of your
--- 'XMonad.Hooks.DynamicLog.PP'.
+-- to the 'XMonad.Hooks.StatusBar.PP.ppExtras' field of your
+-- "XMonad.Hooks.StatusBar.PP".
 --
 -- Use 'runLogHook' to refresh the output of your 'logHook', so
 -- that the effects of a 'floatNext'/... will be visible

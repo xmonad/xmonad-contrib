@@ -58,13 +58,10 @@ import XMonad.Prelude (find, fromJust, guard, liftA2, toList, when, (<=<))
 --
 -- > import XMonad
 -- > import XMonad.Actions.WorkspaceCursors
--- > import XMonad.Hooks.DynamicLog
 -- > import XMonad.Util.EZConfig
 -- > import qualified XMonad.StackSet as W
 -- >
--- > main = do
--- >     x <- xmobar conf
--- >     xmonad x
+-- > main = xmonad conf
 -- >
 -- > conf = additionalKeysP def
 -- >        { layoutHook = workspaceCursors myCursors $ layoutHook def
@@ -89,7 +86,8 @@ import XMonad.Prelude (find, fromJust, guard, liftA2, toList, when, (<=<))
 --   workspaces. Or change it such that workspaces are created when you try to
 --   view it.
 --
--- * Function for pretty printing for DynamicLog that groups workspaces by
+-- * Function for pretty printing for "XMonad.Hooks.StatusBar.PP" that groups
+--   workspaces by
 -- common prefixes
 --
 -- * Examples of adding workspaces to the cursors, having them appear multiple

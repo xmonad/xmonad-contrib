@@ -63,6 +63,11 @@ import qualified Data.Set as S
 -- >             $ def { ... }
 -- >     xmonad config
 --
+-- Or, for the brave souls:
+--
+-- > main = xmonad =<< withWindowNavigation (xK_w, xK_a, xK_s, xK_d)
+-- >             $ def { ... }
+--
 -- Here, we pass in the keys for navigation in counter-clockwise order from up.
 -- It creates keybindings for @modMask@ to move to window, and @modMask .|. shiftMask@
 -- to swap windows.

@@ -408,6 +408,9 @@
 
     - The API for this module is frozen: this is now a compatibility wrapper.
 
+    - References for this module are updated to point to `X.H.StatusBar` or
+      `X.H.StatusBar.PP`
+
   * `XMonad.Layout.BoringWindows`
 
     - Added boring-aware `swapUp`, `swapDown`, `siftUp`, and `siftDown` functions.
