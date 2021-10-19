@@ -37,9 +37,8 @@ module XMonad.Hooks.EwmhDesktops (
     addEwmhWorkspaceRename, setEwmhWorkspaceRename,
 
     -- ** Window activation
-    NetActivated (..),
-    activated,
-    activateLogHook,
+    -- $customActivate
+    setEwmhActivateHook,
 
     -- * Standalone hooks (to be deprecated)
     ewmhDesktopsStartup,
@@ -59,6 +58,7 @@ import XMonad
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
+import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.SetWMName
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
@@ -81,34 +81,6 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- 'XMonad.Hooks.UrgencyHook.withUrgencyHook', which provide support for other
 -- parts of the
 -- <https://specifications.freedesktop.org/wm-spec/latest/ EWMH specification>.
---
--- __/NOTE:/__ 'ewmh' function will call 'logHook' for handling activated
--- window.
---
--- And now by default window activation will do nothing: neither switch
--- workspace, nor focus. You can use regular 'ManageHook' combinators for
--- changing window activation behavior and then add resulting 'ManageHook'
--- using 'activateLogHook' to your 'logHook'. Also, you may be interested in
--- "XMonad.Hooks.Focus", which provides additional predicates for using in
--- 'ManageHook'.
---
--- To get back old 'ewmh' window activation behavior (switch workspace and
--- focus to activated window) you may use:
---
--- > import XMonad
--- >
--- > import XMonad.Hooks.EwmhDesktops
--- > import qualified XMonad.StackSet as W
--- >
--- > main :: IO ()
--- > main = do
--- >         let acMh :: ManageHook
--- >             acMh = reader W.focusWindow >>= doF
--- >             xcf = ewmh $ def
--- >                    { modMask = mod4Mask
--- >                    , logHook = activateLogHook acMh <+> logHook def
--- >                    }
--- >         xmonad xcf
 
 -- | Add EWMH support for workspaces (virtual desktops) to the given
 -- 'XConfig'.  See above for an example.
@@ -128,12 +100,15 @@ data EwmhDesktopsConfig =
             -- ^ configurable workspace sorting/filtering
         , workspaceRename :: X (String -> WindowSpace -> String)
             -- ^ configurable workspace rename (see 'XMonad.Hooks.StatusBar.PP.ppRename')
+        , activateHook :: ManageHook
+            -- ^ configurable handling of window activation requests
         }
 
 instance Default EwmhDesktopsConfig where
     def = EwmhDesktopsConfig
         { workspaceSort = getSortByIndex
         , workspaceRename = pure pure
+        , activateHook = doFocus
         }
 
 
@@ -208,6 +183,50 @@ addEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = liftA2 (<=<
 -- | Like 'addEwmhWorkspaceRename', but replace it instead of adding/composing.
 setEwmhWorkspaceRename :: X (String -> WindowSpace -> String) -> XConfig l -> XConfig l
 setEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = f }
+
+
+-- $customActivate
+-- When a client sends a @_NET_ACTIVE_WINDOW@ request to activate a window, by
+-- default that window is activated by invoking the 'doFocus' 'ManageHook'.
+-- <https://specifications.freedesktop.org/wm-spec/1.5/ar01s03.html#idm45623294083744 The EWMH specification suggests>
+-- that a window manager may instead just mark the window as urgent, and this
+-- can be achieved using the following:
+--
+-- > import XMonad.Hooks.UrgencyHook
+-- >
+-- > main = xmonad $ … . setEwmhActivateHook doAskUrgent . ewmh . … $ def{…}
+--
+-- One may also wish to ignore activation requests from certain applications
+-- entirely:
+--
+-- > import XMonad.Hooks.ManageHelpers
+-- >
+-- > myActivateHook :: ManageHook
+-- > myActivateHook =
+-- >   className /=? "Google-chrome" <&&> className /=? "google-chrome" --> doFocus
+-- >
+-- > main = xmonad $ … . setEwmhActivateHook myActivateHook . ewmh . … $ def{…}
+--
+-- Arbitrarily complex hooks can be used. This last example marks Chrome
+-- windows as urgent and focuses everything else:
+--
+-- > myActivateHook :: ManageHook
+-- > myActivateHook = composeOne
+-- >   [ className =? "Google-chrome" <||> className =? "google-chrome" -?> doAskUrgent
+-- >   , pure True -?> doFocus ]
+--
+-- See "XMonad.ManageHook", "XMonad.Hooks.ManageHelpers" and "XMonad.Hooks.Focus"
+-- for functions that can be useful here.
+
+-- | Set (replace) the hook which is invoked when a client sends a
+-- @_NET_ACTIVE_WINDOW@ request to activate a window. The default is 'doFocus'
+-- which focuses the window immediately, switching workspace if necessary.
+-- 'XMonad.Hooks.UrgencyHook.doAskUrgent' is a less intrusive alternative.
+--
+-- More complex hooks can be constructed using combinators from
+-- "XMonad.ManageHook", "XMonad.Hooks.ManageHelpers" and "XMonad.Hooks.Focus".
+setEwmhActivateHook :: ManageHook -> XConfig l -> XConfig l
+setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 
 
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
@@ -315,44 +334,10 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWi
     let activeWindow' = fromMaybe none (W.peek s)
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
--- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
--- this value in global state, because i use 'logHook' for handling activated
--- windows and i need a way to tell 'logHook' what window is activated.
-newtype NetActivated    = NetActivated {netActivated :: Maybe Window}
-  deriving Show
-instance ExtensionClass NetActivated where
-    initialValue        = NetActivated Nothing
-
--- | Was new window @_NET_ACTIVE_WINDOW@ activated?
-activated :: Query Bool
-activated           = fmap (isJust . netActivated) (liftX XS.get)
-
--- | Run supplied 'ManageHook' for activated windows /only/. If you want to
--- run this 'ManageHook' for new windows too, add it to 'manageHook'.
---
--- __/NOTE:/__ 'activateLogHook' will work only _once_. I.e. if several
--- 'activateLogHook'-s was used, only first one will actually run (because it
--- resets 'NetActivated' at the end and others won't know, that window is
--- activated).
-activateLogHook :: ManageHook -> X ()
-activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
-  where
-    go :: Window -> X ()
-    go w            = do
-        f <- runQuery mh w
-        -- I should reset 'NetActivated' here, because:
-        --  * 'windows' calls 'logHook' and i shouldn't go here the second
-        --  time for one window.
-        --  * if i reset 'NetActivated' before running 'logHook' once,
-        --  then 'activated' predicate won't match.
-        -- Thus, here is the /only/ correct place.
-        XS.put NetActivated{netActivated = Nothing}
-        windows (appEndo f)
-
 ewmhDesktopsEventHook' :: Event -> EwmhDesktopsConfig -> X All
 ewmhDesktopsEventHook'
         ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d}
-        EwmhDesktopsConfig{workspaceSort} =
+        EwmhDesktopsConfig{workspaceSort, activateHook} =
     withWindowSet $ \s -> do
         sort' <- workspaceSort
         let ws = sort' $ W.workspaces s
@@ -373,11 +358,9 @@ ewmhDesktopsEventHook'
             | mt == a_aw, 2 : _ <- d ->
                 -- when the request comes from a pager, honor it unconditionally
                 -- https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#sourceindication
-                windows $ W.focusWindow w
-            | mt == a_aw, W.peek s /= Just w -> do
-                lh <- asks (logHook . config)
-                XS.put (NetActivated (Just w))
-                lh
+                if W.peek s == Just w then mempty else windows $ W.focusWindow w
+            | mt == a_aw -> do
+                if W.peek s == Just w then mempty else windows . appEndo =<< runQuery activateHook w
             | mt == a_cw ->
                 killWindow w
             | otherwise ->

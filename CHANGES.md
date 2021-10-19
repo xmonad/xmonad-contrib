@@ -47,13 +47,11 @@
       `addEwmhWorkspaceRename` functions, or better still, use integrations
       provided by modules such as `XMonad.Actions.WorkspaceNames`.
 
-    - `ewmh` function will use `logHook` for handling activated window. And now
-      by default window activation will do nothing.
-
-      You can use regular `ManageHook` combinators for changing window
-      activation behavior and then add resulting `ManageHook` using
-      `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
-      additional combinators.
+      This interface now additionally allows customization of what happens
+      when clients request window activation. This can be used to ignore
+      activation of annoying applications, to mark windows as urgent instead
+      of focusing them, and more. There's also a new `XMonad.Hooks.Focus`
+      module extending the ManageHook EDSL with useful combinators.
 
     - Ordering of windows that are set to `_NET_CLIENT_LIST` and `_NET_CLIENT_LIST_STACKING`
       was changed to be closer to the spec. From now these two lists will have

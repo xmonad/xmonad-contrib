@@ -564,7 +564,7 @@ askUrgent w = withDisplay $ \dpy -> do
 
 -- | Helper for 'ManageHook' that marks the window as urgent (unless
 -- suppressed, see 'SuppressWhen'). Useful in
--- 'XMonad.Hooks.EwmhDesktops.activateLogHook' and also in combination with
--- "XMonad.Hooks.InsertPosition", "XMonad.Hooks.Focus".
+-- 'XMonad.Hooks.EwmhDesktops.setEwmhActivateHook' and also in combination
+-- with "XMonad.Hooks.InsertPosition", "XMonad.Hooks.Focus".
 doAskUrgent :: ManageHook
 doAskUrgent = ask >>= \w -> liftX (askUrgent w) >> mempty

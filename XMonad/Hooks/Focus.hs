@@ -70,7 +70,6 @@ import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Hooks.ManageHelpers (currentWs)
-import XMonad.Hooks.EwmhDesktops (activated)
 
 
 -- $main
@@ -555,22 +554,19 @@ when' b mx
 -- | Default EWMH window activation behavior: switch to workspace with
 -- activated window and switch focus to it.
 activateSwitchWs :: ManageHook
-activateSwitchWs    = manageFocus (liftQuery activated -->
-                        switchWorkspace <+> switchFocus)
+activateSwitchWs    = manageFocus (switchWorkspace <+> switchFocus)
 
 -- | Move activated window to current workspace.
 activateOnCurrent' :: ManageHook
-activateOnCurrent'  = activated --> currentWs >>= unlessFocusLock . doShift
+activateOnCurrent'  = currentWs >>= unlessFocusLock . doShift
 
 -- | Move activated window to current workspace and switch focus to it. Note,
 -- that i need to explicitly call 'switchFocus' here, because otherwise, when
 -- activated window is /already/ on current workspace, focus won't be
 -- switched.
 activateOnCurrentWs :: ManageHook
-activateOnCurrentWs = manageFocus (liftQuery activated <&&> newOnCur --> switchFocus)
-                        <+> activateOnCurrent'
+activateOnCurrentWs = manageFocus (newOnCur --> switchFocus) <+> activateOnCurrent'
 
 -- | Move activated window to current workspace, but keep focus unchanged.
 activateOnCurrentKeepFocus :: ManageHook
-activateOnCurrentKeepFocus  = manageFocus (liftQuery activated <&&> newOnCur --> keepFocus)
-                        <+> activateOnCurrent'
+activateOnCurrentKeepFocus  = manageFocus (newOnCur --> keepFocus) <+> activateOnCurrent'
