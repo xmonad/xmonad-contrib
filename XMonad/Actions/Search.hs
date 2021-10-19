@@ -348,6 +348,7 @@ removeColonPrefix s = if ':' `elem` s then drop 1 $ dropWhile (':' /=) s else s
   google. The use of intelligent will make sure that URLs are opened directly. -}
 (!>) :: SearchEngine -> SearchEngine -> SearchEngine
 (SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if (name1++":") `isPrefixOf` s then site1 (removeColonPrefix s) else site2 s)
+infixr 6 !>
 
 {- | Makes a search engine prefix-aware. Especially useful together with '!>'.
    It will automatically remove the prefix from a query so that you don\'t end
