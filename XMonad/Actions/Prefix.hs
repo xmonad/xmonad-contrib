@@ -195,7 +195,12 @@ isPrefixNumeric _ = False
 -- > myPrinter :: PP
 -- > myPrinter = def { ppExtras = [ppFormatPrefix] }
 --
--- And then in your 'logHook' configuration
+-- And then add to your status bar using "XMonad.Hooks.StatusBar":
+--
+-- > mySB = statusBarProp "xmobar" myPrinter
+-- > main = xmonad $ withEasySB mySB defToggleStrutsKey def
+--
+-- Or, directly in your 'logHook' configuration
 --
 -- > logHook = dynamicLogWithPP myPrinter
 ppFormatPrefix :: X (Maybe String)
