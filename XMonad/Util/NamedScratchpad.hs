@@ -90,11 +90,13 @@ import qualified XMonad.StackSet as W
 -- For detailed instruction on editing the key binding see
 -- "XMonad.Doc.Extending#Editing_key_bindings"
 --
--- For some applications (like displaying your workspaces in a status bar) it is
--- convenient to filter out the @NSP@ workspace when looking at all workspaces.
--- For this, you can use functions 'XMonad.Hooks.StatusBar.PP.filterOutWsPP' and
--- 'XMonad.Util.WorkspaceCompare.filterOutWs'.  See the documentation of these
--- functions for examples.
+-- For some applications (like displaying your workspaces in a status bar) it
+-- is convenient to filter out the @NSP@ workspace when looking at all
+-- workspaces. For this, you can use 'XMonad.Hooks.StatusBar.PP.filterOutWsPP',
+-- or 'XMonad.Util.WorkspaceCompare.filterOutWs' together with
+-- 'XMonad.Hooks.EwmhDesktops.addEwmhWorkspaceSort' if your status bar gets
+-- the list of workspaces from EWMH.  See the documentation of these functions
+-- for examples.
 --
 -- Further, there is also a @logHook@ that you can use to hide
 -- scratchpads when they lose focus; this is functionality akin to what

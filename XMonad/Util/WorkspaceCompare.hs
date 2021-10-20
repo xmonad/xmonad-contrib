@@ -33,7 +33,9 @@ type WorkspaceCompare = WorkspaceId -> WorkspaceId -> Ordering
 type WorkspaceSort = [WindowSpace] -> [WindowSpace]
 
 -- | Transforms a workspace list by filtering out the workspaces that
--- correspond to the given 'tag's.  Intended for use with logHooks.
+-- correspond to the given 'tag's.  Intended for use with 'logHook's (see
+-- 'XMonad.Hooks.StatusBar.PP.filterOutWsPP') and "XMonad.Hooks.EwmhDesktops"
+-- (see 'XMonad.Hooks.EwmhDesktops.addEwmhWorkspaceSort').
 filterOutWs :: [WorkspaceId] -> WorkspaceSort
 filterOutWs ws = filter (\S.Workspace{ S.tag = tag } -> tag `notElem` ws)
 
