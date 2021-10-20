@@ -40,7 +40,7 @@ module XMonad.Hooks.EwmhDesktops (
     -- $customActivate
     setEwmhActivateHook,
 
-    -- * Standalone hooks (to be deprecated)
+    -- * Standalone hooks (deprecated)
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
@@ -230,11 +230,13 @@ setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 
 
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
+{-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
 ewmhDesktopsStartup :: X ()
 ewmhDesktopsStartup = setSupported
 
 -- | Notifies pagers and window lists, such as those in the gnome-panel of the
 -- current state of workspaces and windows.
+{-# DEPRECATED ewmhDesktopsLogHook "Use ewmh instead." #-}
 ewmhDesktopsLogHook :: X ()
 ewmhDesktopsLogHook = XC.withDef ewmhDesktopsLogHook'
 
@@ -256,6 +258,7 @@ ewmhDesktopsLogHookCustom f =
 --  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
 --
 --  * _NET_CLOSE_WINDOW (close window)
+{-# DEPRECATED ewmhDesktopsEventHook "Use ewmh instead." #-}
 ewmhDesktopsEventHook :: Event -> X All
 ewmhDesktopsEventHook = XC.withDef . ewmhDesktopsEventHook'
 
@@ -377,6 +380,7 @@ ewmhFullscreen c = c { startupHook     = startupHook c <+> fullscreenStartup
                      , handleEventHook = handleEventHook c <+> fullscreenEventHook }
 
 -- | Advertises EWMH fullscreen support to the X server.
+{-# DEPRECATED fullscreenStartup "Use ewmhFullscreen instead." #-}
 fullscreenStartup :: X ()
 fullscreenStartup = setFullscreenSupported
 
@@ -385,6 +389,7 @@ fullscreenStartup = setFullscreenSupported
 -- function, such as Totem, Evince and OpenOffice.org.
 --
 -- Note this is not included in 'ewmh'.
+{-# DEPRECATED fullscreenEventHook "Use ewmhFullscreen instead." #-}
 fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   managed <- isClient win
