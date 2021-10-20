@@ -1,10 +1,11 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.EwmhDesktops
--- Description :  Make xmonad use the extended window manager hints (EWMH).
+-- Description  : Make xmonad use the extended window manager hints (EWMH).
 -- Copyright    : (c) 2007, 2008 Joachim Breitner <mail@joachim-breitner.de>
 -- License      : BSD
 --
@@ -12,25 +13,41 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Makes xmonad use the EWMH hints to tell panel applications about its
--- workspaces and the windows therein. It also allows the user to interact
--- with xmonad by clicking on panels and window lists.
+-- Makes xmonad use the
+-- <https://specifications.freedesktop.org/wm-spec/latest/ EWMH>
+-- hints to tell panel applications about its workspaces and the windows
+-- therein. It also allows the user to interact with xmonad by clicking on
+-- panels and window lists.
 -----------------------------------------------------------------------------
 module XMonad.Hooks.EwmhDesktops (
     -- * Usage
     -- $usage
     ewmh,
+    ewmhFullscreen,
+
+    -- * Customization
+    -- $customization
+
+    -- ** Sorting/filtering of workspaces
+    -- $customSort
+    addEwmhWorkspaceSort, setEwmhWorkspaceSort,
+
+    -- ** Renaming of workspaces
+    -- $customRename
+    addEwmhWorkspaceRename, setEwmhWorkspaceRename,
+
+    -- ** Window activation
+    -- $customActivate
+    setEwmhActivateHook,
+
+    -- * Standalone hooks (deprecated)
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
     ewmhDesktopsLogHookCustom,
-    NetActivated (..),
-    activated,
-    activateLogHook,
     ewmhDesktopsEventHook,
     ewmhDesktopsEventHookCustom,
-    ewmhFullscreen,
     fullscreenEventHook,
-    fullscreenStartup
+    fullscreenStartup,
     ) where
 
 import Codec.Binary.UTF8.String (encode)
@@ -41,10 +58,11 @@ import XMonad
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
+import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.SetWMName
-import qualified XMonad.Util.ExtensibleState as E
 import XMonad.Util.WorkspaceCompare
 import XMonad.Util.WindowProperties (getProp32)
+import qualified XMonad.Util.ExtensibleConf as XC
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
@@ -59,123 +77,235 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- > main = xmonad $ … . ewmh . … $ def{…}
 --
--- You may also be interested in 'docks' from "XMonad.Hooks.ManageDocks".
---
--- __/NOTE:/__ 'ewmh' function will call 'logHook' for handling activated
--- window.
---
--- And now by default window activation will do nothing: neither switch
--- workspace, nor focus. You can use regular 'ManageHook' combinators for
--- changing window activation behavior and then add resulting 'ManageHook'
--- using 'activateLogHook' to your 'logHook'. Also, you may be interested in
--- "XMonad.Hooks.Focus", which provides additional predicates for using in
--- 'ManageHook'.
---
--- To get back old 'ewmh' window activation behavior (switch workspace and
--- focus to activated window) you may use:
---
--- > import XMonad
--- >
--- > import XMonad.Hooks.EwmhDesktops
--- > import qualified XMonad.StackSet as W
--- >
--- > main :: IO ()
--- > main = do
--- >         let acMh :: ManageHook
--- >             acMh = reader W.focusWindow >>= doF
--- >             xcf = ewmh $ def
--- >                    { modMask = mod4Mask
--- >                    , logHook = activateLogHook acMh <+> logHook def
--- >                    }
--- >         xmonad xcf
+-- You may also be interested in 'XMonad.Hooks.ManageDocks.docks' and
+-- 'XMonad.Hooks.UrgencyHook.withUrgencyHook', which provide support for other
+-- parts of the
+-- <https://specifications.freedesktop.org/wm-spec/latest/ EWMH specification>.
 
--- | Add EWMH functionality to the given config.  See above for an example.
+-- | Add EWMH support for workspaces (virtual desktops) to the given
+-- 'XConfig'.  See above for an example.
 ewmh :: XConfig a -> XConfig a
 ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
            , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
            , logHook         = ewmhDesktopsLogHook <+> logHook c }
 
--- |
--- Initializes EwmhDesktops and advertises EWMH support to the X
--- server
+
+-- $customization
+-- It's possible to customize the behaviour of 'ewmh' in several ways:
+
+-- | Customizable configuration for EwmhDesktops
+data EwmhDesktopsConfig =
+    EwmhDesktopsConfig
+        { workspaceSort :: X WorkspaceSort
+            -- ^ configurable workspace sorting/filtering
+        , workspaceRename :: X (String -> WindowSpace -> String)
+            -- ^ configurable workspace rename (see 'XMonad.Hooks.StatusBar.PP.ppRename')
+        , activateHook :: ManageHook
+            -- ^ configurable handling of window activation requests
+        }
+
+instance Default EwmhDesktopsConfig where
+    def = EwmhDesktopsConfig
+        { workspaceSort = getSortByIndex
+        , workspaceRename = pure pure
+        , activateHook = doFocus
+        }
+
+
+-- $customSort
+-- The list of workspaces exposed to EWMH pagers (like
+-- <https://github.com/taffybar/taffybar taffybar> and
+-- <https://github.com/polybar/polybar polybar>) and clients (such as
+-- <http://tomas.styblo.name/wmctrl/ wmctrl> and
+-- <https://github.com/jordansissel/xdotool/ xdotool>) may be sorted and/or
+-- filtered via a user-defined function.
+--
+-- To show visible workspaces first, one may switch to a Xinerama-aware
+-- sorting function:
+--
+-- > import XMonad.Util.WorkspaceCompare
+-- >
+-- > mySort = getSortByXineramaRule
+-- > main = xmonad $ … . setEwmhWorkspaceSort mySort . ewmh . … $ def{…}
+--
+-- Another useful example is not exposing the hidden scratchpad workspace:
+--
+-- > import XMonad.Util.NamedScratchpad
+-- > import XMonad.Util.WorkspaceCompare
+-- >
+-- > myFilter = filterOutWs [scratchpadWorkspaceTag]
+-- > main = xmonad $ … . addEwmhWorkspaceSort (pure myFilter) . ewmh . … $ def{…}
+
+-- | Add (compose after) an arbitrary user-specified function to sort/filter
+-- the workspace list. The default/initial function is 'getSortByIndex'. This
+-- can be used to e.g. filter out scratchpad workspaces. Workspaces /must not/
+-- be renamed here.
+addEwmhWorkspaceSort :: X WorkspaceSort -> XConfig l -> XConfig l
+addEwmhWorkspaceSort f = XC.modifyDef $ \c -> c{ workspaceSort = liftA2 (.) f (workspaceSort c) }
+
+-- | Like 'addEwmhWorkspaceSort', but replace it instead of adding/composing.
+setEwmhWorkspaceSort :: X WorkspaceSort -> XConfig l -> XConfig l
+setEwmhWorkspaceSort f = XC.modifyDef $ \c -> c{ workspaceSort = f }
+
+
+-- $customRename
+-- The workspace names exposed to EWMH pagers and other clients (e.g.
+-- <https://arbtt.nomeata.de/ arbtt>) may be altered using a similar
+-- interface to 'XMonad.Hooks.StatusBar.PP.ppRename'. To configure workspace
+-- renaming, use 'addEwmhWorkspaceRename'.
+--
+-- As an example, to expose workspaces uppercased:
+--
+-- > import Data.Char
+-- >
+-- > myRename :: String -> WindowSpace -> String
+-- > myRename s _w = map toUpper s
+-- >
+-- > main = xmonad $ … . addEwmhWorkspaceRename (pure myRename) . ewmh . … $ def{…}
+--
+-- Some modules like "XMonad.Actions.WorkspaceNames" provide ready-made
+-- integrations:
+--
+-- > import XMonad.Actions.WorkspaceNames
+-- >
+-- > main = xmonad $ … . workspaceNamesEwmh . ewmh . … $ def{…}
+--
+-- The above ensures workspace names are exposed through EWMH.
+
+-- | Add (compose after) an arbitrary user-specified function to rename each
+-- workspace. This works just like 'XMonad.Hooks.StatusBar.PP.ppRename': the
+-- @WindowSpace -> …@ acts as a Reader monad. Useful with
+-- "XMonad.Actions.WorkspaceNames", "XMonad.Layout.IndependentScreens",
+-- "XMonad.Hooks.DynamicIcons".
+addEwmhWorkspaceRename :: X (String -> WindowSpace -> String) -> XConfig l -> XConfig l
+addEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = liftA2 (<=<) f (workspaceRename c) }
+
+-- | Like 'addEwmhWorkspaceRename', but replace it instead of adding/composing.
+setEwmhWorkspaceRename :: X (String -> WindowSpace -> String) -> XConfig l -> XConfig l
+setEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = f }
+
+
+-- $customActivate
+-- When a client sends a @_NET_ACTIVE_WINDOW@ request to activate a window, by
+-- default that window is activated by invoking the 'doFocus' 'ManageHook'.
+-- <https://specifications.freedesktop.org/wm-spec/1.5/ar01s03.html#idm45623294083744 The EWMH specification suggests>
+-- that a window manager may instead just mark the window as urgent, and this
+-- can be achieved using the following:
+--
+-- > import XMonad.Hooks.UrgencyHook
+-- >
+-- > main = xmonad $ … . setEwmhActivateHook doAskUrgent . ewmh . … $ def{…}
+--
+-- One may also wish to ignore activation requests from certain applications
+-- entirely:
+--
+-- > import XMonad.Hooks.ManageHelpers
+-- >
+-- > myActivateHook :: ManageHook
+-- > myActivateHook =
+-- >   className /=? "Google-chrome" <&&> className /=? "google-chrome" --> doFocus
+-- >
+-- > main = xmonad $ … . setEwmhActivateHook myActivateHook . ewmh . … $ def{…}
+--
+-- Arbitrarily complex hooks can be used. This last example marks Chrome
+-- windows as urgent and focuses everything else:
+--
+-- > myActivateHook :: ManageHook
+-- > myActivateHook = composeOne
+-- >   [ className =? "Google-chrome" <||> className =? "google-chrome" -?> doAskUrgent
+-- >   , pure True -?> doFocus ]
+--
+-- See "XMonad.ManageHook", "XMonad.Hooks.ManageHelpers" and "XMonad.Hooks.Focus"
+-- for functions that can be useful here.
+
+-- | Set (replace) the hook which is invoked when a client sends a
+-- @_NET_ACTIVE_WINDOW@ request to activate a window. The default is 'doFocus'
+-- which focuses the window immediately, switching workspace if necessary.
+-- 'XMonad.Hooks.UrgencyHook.doAskUrgent' is a less intrusive alternative.
+--
+-- More complex hooks can be constructed using combinators from
+-- "XMonad.ManageHook", "XMonad.Hooks.ManageHelpers" and "XMonad.Hooks.Focus".
+setEwmhActivateHook :: ManageHook -> XConfig l -> XConfig l
+setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
+
+
+-- | Initializes EwmhDesktops and advertises EWMH support to the X server.
+{-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
 ewmhDesktopsStartup :: X ()
 ewmhDesktopsStartup = setSupported
 
--- |
--- Notifies pagers and window lists, such as those in the gnome-panel
--- of the current state of workspaces and windows.
+-- | Notifies pagers and window lists, such as those in the gnome-panel of the
+-- current state of workspaces and windows.
+{-# DEPRECATED ewmhDesktopsLogHook "Use ewmh instead." #-}
 ewmhDesktopsLogHook :: X ()
-ewmhDesktopsLogHook = ewmhDesktopsLogHookCustom id
+ewmhDesktopsLogHook = XC.withDef ewmhDesktopsLogHook'
 
--- |
--- Cached desktop names (e.g. @_NET_NUMBER_OF_DESKTOPS@ and
--- @_NET_DESKTOP_NAMES@).
-newtype DesktopNames = DesktopNames [String]
-                     deriving Eq
+-- | Generalized version of ewmhDesktopsLogHook that allows an arbitrary
+-- user-specified function to sort/filter the workspace list (post-sorting).
+{-# DEPRECATED ewmhDesktopsLogHookCustom "Use ewmh and addEwmhWorkspaceSort instead." #-}
+ewmhDesktopsLogHookCustom :: WorkspaceSort -> X ()
+ewmhDesktopsLogHookCustom f =
+    ewmhDesktopsLogHook' def{ workspaceSort = (f .) <$> workspaceSort def }
 
-instance ExtensionClass DesktopNames where
-    initialValue = DesktopNames []
+-- | Intercepts messages from pagers and similar applications and reacts on them.
+--
+-- Currently supports:
+--
+--  * _NET_CURRENT_DESKTOP (switching desktops)
+--
+--  * _NET_WM_DESKTOP (move windows to other desktops)
+--
+--  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
+--
+--  * _NET_CLOSE_WINDOW (close window)
+{-# DEPRECATED ewmhDesktopsEventHook "Use ewmh instead." #-}
+ewmhDesktopsEventHook :: Event -> X All
+ewmhDesktopsEventHook = XC.withDef . ewmhDesktopsEventHook'
 
--- |
--- Cached client list (e.g. @_NET_CLIENT_LIST@).
-newtype ClientList = ClientList [Window]
-                   deriving Eq
+-- | Generalized version of ewmhDesktopsEventHook that allows an arbitrary
+-- user-specified function to sort/filter the workspace list (post-sorting).
+{-# DEPRECATED ewmhDesktopsEventHookCustom "Use ewmh and addEwmhWorkspaceSort instead." #-}
+ewmhDesktopsEventHookCustom :: WorkspaceSort -> Event -> X All
+ewmhDesktopsEventHookCustom f e =
+    ewmhDesktopsEventHook' e def{ workspaceSort = (f .) <$> workspaceSort def }
 
-instance ExtensionClass ClientList where
-    initialValue = ClientList [none]
+-- | Cached @_NET_DESKTOP_NAMES@, @_NET_NUMBER_OF_DESKTOPS@
+newtype DesktopNames = DesktopNames [String] deriving Eq
+instance ExtensionClass DesktopNames where initialValue = DesktopNames []
 
--- |
--- Cached stacking client list (e.g. @_NET_CLIENT_LIST_STACKING@).
-newtype ClientListStacking = ClientListStacking [Window]
-                           deriving Eq
+-- | Cached @_NET_CLIENT_LIST@
+newtype ClientList = ClientList [Window] deriving Eq
+instance ExtensionClass ClientList where initialValue = ClientList [none]
 
-instance ExtensionClass ClientListStacking where
-    initialValue = ClientListStacking [none]
+-- | Cached @_NET_CLIENT_LIST_STACKING@
+newtype ClientListStacking = ClientListStacking [Window] deriving Eq
+instance ExtensionClass ClientListStacking where initialValue = ClientListStacking [none]
 
--- |
--- Cached current desktop (e.g. @_NET_CURRENT_DESKTOP@).
-newtype CurrentDesktop = CurrentDesktop Int
-                       deriving Eq
+-- | Cached @_NET_CURRENT_DESKTOP@
+newtype CurrentDesktop = CurrentDesktop Int deriving Eq
+instance ExtensionClass CurrentDesktop where initialValue = CurrentDesktop (complement 0)
 
-instance ExtensionClass CurrentDesktop where
-    initialValue = CurrentDesktop (-1)
+-- | Cached @_NET_WM_DESKTOP@
+newtype WindowDesktops = WindowDesktops (M.Map Window Int) deriving Eq
+instance ExtensionClass WindowDesktops where initialValue = WindowDesktops (M.singleton none (complement 0))
 
--- |
--- Cached window-desktop assignments (e.g. @_NET_CLIENT_LIST_STACKING@).
-newtype WindowDesktops = WindowDesktops (M.Map Window Int)
-                       deriving Eq
-
-instance ExtensionClass WindowDesktops where
-    initialValue = WindowDesktops (M.singleton none (-1))
-
--- |
--- The value of @_NET_ACTIVE_WINDOW@, cached to avoid unnecessary property
--- updates.
-newtype ActiveWindow = ActiveWindow Window
-                     deriving Eq
-
-instance ExtensionClass ActiveWindow where
-    initialValue = ActiveWindow (complement none)
+-- | Cached @_NET_ACTIVE_WINDOW@
+newtype ActiveWindow = ActiveWindow Window deriving Eq
+instance ExtensionClass ActiveWindow where initialValue = ActiveWindow (complement none)
 
 -- | Compare the given value against the value in the extensible state. Run the
 -- action if it has changed.
 whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
-whenChanged v action = do
-    v0 <- E.get
-    unless (v == v0) $ do
-        action
-        E.put v
+whenChanged = whenX . XS.modified . const
 
--- |
--- Generalized version of ewmhDesktopsLogHook that allows an arbitrary
--- user-specified function to transform the workspace list (post-sorting)
-ewmhDesktopsLogHookCustom :: ([WindowSpace] -> [WindowSpace]) -> X ()
-ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
-    sort' <- getSortByIndex
-    let ws = t $ sort' $ W.workspaces s
+ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
+ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWindowSet $ \s -> do
+    sort' <- workspaceSort
+    let ws = sort' $ W.workspaces s
 
     -- Set number of workspaces and names thereof
-    let desktopNames = map W.tag ws
+    rename <- workspaceRename
+    let desktopNames = [ rename (W.tag w) w | w <- ws ]
     whenChanged (DesktopNames desktopNames) $ do
         setNumberOfDesktops (length desktopNames)
         setDesktopNames desktopNames
@@ -191,9 +321,8 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     let clientListStacking = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
     whenChanged (ClientListStacking clientListStacking) $ setClientListStacking clientListStacking
 
-    -- Remap the current workspace to handle any renames that f might be doing.
-    let maybeCurrent' = W.tag <$> listToMaybe (t [W.workspace $ W.current s])
-        current = flip elemIndex (map W.tag ws) =<< maybeCurrent'
+    -- Set current desktop number
+    let current = W.currentTag s `elemIndex` map W.tag ws
     whenChanged (CurrentDesktop $ fromMaybe 0 current) $
         mapM_ setCurrentDesktop current
 
@@ -208,65 +337,13 @@ ewmhDesktopsLogHookCustom t = withWindowSet $ \s -> do
     let activeWindow' = fromMaybe none (W.peek s)
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
--- |
--- Intercepts messages from pagers and similar applications and reacts on them.
--- Currently supports:
---
---  * _NET_CURRENT_DESKTOP (switching desktops)
---
---  * _NET_WM_DESKTOP (move windows to other desktops)
---
---  * _NET_ACTIVE_WINDOW (activate another window, changing workspace if needed)
---
---  * _NET_CLOSE_WINDOW (close window)
-ewmhDesktopsEventHook :: Event -> X All
-ewmhDesktopsEventHook = ewmhDesktopsEventHookCustom id
-
--- |
--- Generalized version of ewmhDesktopsEventHook that allows an arbitrary
--- user-specified function to transform the workspace list (post-sorting)
-ewmhDesktopsEventHookCustom :: ([WindowSpace] -> [WindowSpace]) -> Event -> X All
-ewmhDesktopsEventHookCustom f e = handle f e >> return (All True)
-
--- | Whether new window _NET_ACTIVE_WINDOW activated or not. I should keep
--- this value in global state, because i use 'logHook' for handling activated
--- windows and i need a way to tell 'logHook' what window is activated.
-newtype NetActivated    = NetActivated {netActivated :: Maybe Window}
-  deriving Show
-instance ExtensionClass NetActivated where
-    initialValue        = NetActivated Nothing
-
--- | Was new window @_NET_ACTIVE_WINDOW@ activated?
-activated :: Query Bool
-activated           = fmap (isJust . netActivated) (liftX XS.get)
-
--- | Run supplied 'ManageHook' for activated windows /only/. If you want to
--- run this 'ManageHook' for new windows too, add it to 'manageHook'.
---
--- __/NOTE:/__ 'activateLogHook' will work only _once_. I.e. if several
--- 'activateLogHook'-s was used, only first one will actually run (because it
--- resets 'NetActivated' at the end and others won't know, that window is
--- activated).
-activateLogHook :: ManageHook -> X ()
-activateLogHook mh  = XS.get >>= maybe (return ()) go . netActivated
-  where
-    go :: Window -> X ()
-    go w            = do
-        f <- runQuery mh w
-        -- I should reset 'NetActivated' here, because:
-        --  * 'windows' calls 'logHook' and i shouldn't go here the second
-        --  time for one window.
-        --  * if i reset 'NetActivated' before running 'logHook' once,
-        --  then 'activated' predicate won't match.
-        -- Thus, here is the /only/ correct place.
-        XS.put NetActivated{netActivated = Nothing}
-        windows (appEndo f)
-
-handle :: ([WindowSpace] -> [WindowSpace]) -> Event -> X ()
-handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
+ewmhDesktopsEventHook' :: Event -> EwmhDesktopsConfig -> X All
+ewmhDesktopsEventHook'
+        ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d}
+        EwmhDesktopsConfig{workspaceSort, activateHook} =
     withWindowSet $ \s -> do
-        sort' <- getSortByIndex
-        let ws = f $ sort' $ W.workspaces s
+        sort' <- workspaceSort
+        let ws = sort' $ W.workspaces s
 
         a_cd <- getAtom "_NET_CURRENT_DESKTOP"
         a_d <- getAtom "_NET_WM_DESKTOP"
@@ -284,42 +361,35 @@ handle f ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d} =
             | mt == a_aw, 2 : _ <- d ->
                 -- when the request comes from a pager, honor it unconditionally
                 -- https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#sourceindication
-                windows $ W.focusWindow w
-            | mt == a_aw, W.peek s /= Just w -> do
-                lh <- asks (logHook . config)
-                XS.put (NetActivated (Just w))
-                lh
+                if W.peek s == Just w then mempty else windows $ W.focusWindow w
+            | mt == a_aw -> do
+                if W.peek s == Just w then mempty else windows . appEndo =<< runQuery activateHook w
             | mt == a_cw ->
                 killWindow w
             | otherwise ->
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager
-                return ()
-handle _ _ = return ()
+                mempty
+
+        mempty
+ewmhDesktopsEventHook' _ _ = mempty
 
 -- | Add EWMH fullscreen functionality to the given config.
---
--- This must be applied after 'ewmh', like so:
---
--- > main = xmonad $ ewmhFullscreen $ ewmh def
---
--- NOT:
---
--- > main = xmonad $ ewmh $ ewmhFullscreen def
 ewmhFullscreen :: XConfig a -> XConfig a
 ewmhFullscreen c = c { startupHook     = startupHook c <+> fullscreenStartup
                      , handleEventHook = handleEventHook c <+> fullscreenEventHook }
 
 -- | Advertises EWMH fullscreen support to the X server.
+{-# DEPRECATED fullscreenStartup "Use ewmhFullscreen instead." #-}
 fullscreenStartup :: X ()
 fullscreenStartup = setFullscreenSupported
 
--- |
--- An event hook to handle applications that wish to fullscreen using the
--- _NET_WM_STATE protocol. This includes users of the gtk_window_fullscreen()
+-- | An event hook to handle applications that wish to fullscreen using the
+-- @_NET_WM_STATE@ protocol. This includes users of the @gtk_window_fullscreen()@
 -- function, such as Totem, Evince and OpenOffice.org.
 --
 -- Note this is not included in 'ewmh'.
+{-# DEPRECATED fullscreenEventHook "Use ewmhFullscreen instead." #-}
 fullscreenEventHook :: Event -> X All
 fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
   managed <- isClient win
@@ -385,6 +455,12 @@ setWindowDesktop win i = withDisplay $ \dpy -> do
     a <- getAtom "_NET_WM_DESKTOP"
     io $ changeProperty32 dpy win a cARDINAL propModeReplace [fromIntegral i]
 
+setActiveWindow :: Window -> X ()
+setActiveWindow w = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- getAtom "_NET_ACTIVE_WINDOW"
+    io $ changeProperty32 dpy r a wINDOW propModeReplace [fromIntegral w]
+
 setSupported :: X ()
 setSupported = withDisplay $ \dpy -> do
     r <- asks theRoot
@@ -416,9 +492,3 @@ addSupported props = withDisplay $ \dpy -> do
 
 setFullscreenSupported :: X ()
 setFullscreenSupported = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
-
-setActiveWindow :: Window -> X ()
-setActiveWindow w = withDisplay $ \dpy -> do
-    r <- asks theRoot
-    a <- getAtom "_NET_ACTIVE_WINDOW"
-    io $ changeProperty32 dpy r a wINDOW propModeReplace [fromIntegral w]

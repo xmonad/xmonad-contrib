@@ -40,13 +40,18 @@
       `XMonad.Layout.Fullscreen.fullscreenSupport` now advertises it as well,
       and no configuration changes are required in this case.
 
-    - `ewmh` function will use `logHook` for handling activated window. And now
-      by default window activation will do nothing.
+    - Deprecated `ewmhDesktopsLogHookCustom` and `ewmhDesktopsEventHookCustom`;
+      these are now replaced by a composable `XMonad.Util.ExtensibleConf`-based
+      interface. Users are advised to just use the `ewmh` XConfig combinator
+      and customize behaviour using the provided `addEwmhWorkspaceSort`,
+      `addEwmhWorkspaceRename` functions, or better still, use integrations
+      provided by modules such as `XMonad.Actions.WorkspaceNames`.
 
-      You can use regular `ManageHook` combinators for changing window
-      activation behavior and then add resulting `ManageHook` using
-      `activateLogHook` to your `logHook`. Also, module `X.H.Focus` provides
-      additional combinators.
+      This interface now additionally allows customization of what happens
+      when clients request window activation. This can be used to ignore
+      activation of annoying applications, to mark windows as urgent instead
+      of focusing them, and more. There's also a new `XMonad.Hooks.Focus`
+      module extending the ManageHook EDSL with useful combinators.
 
     - Ordering of windows that are set to `_NET_CLIENT_LIST` and `_NET_CLIENT_LIST_STACKING`
       was changed to be closer to the spec. From now these two lists will have
@@ -538,8 +543,8 @@
 
   * `XMonad.Actions.WorkspaceNames`
 
-    - Added `workspaceNamesListTransform` which makes workspace names visible
-      to external pagers.
+    - Added `workspaceNamesEwmh` which makes workspace names visible to
+      external pagers.
 
   * `XMonad.Util.PureX`
 
@@ -636,6 +641,10 @@
 
     - Added a variant of `filterUrgencyHook` that takes a generic `Query Bool`
       to select which windows should never be marked urgent.
+
+    - Added `askUrgent` and a `doAskUrgent` manage hook helper for marking
+      windows as urgent from inside of xmonad. This can be used as a less
+      intrusive action for windows requesting focus.
 
   * `XMonad.Hooks.ServerMode`
 

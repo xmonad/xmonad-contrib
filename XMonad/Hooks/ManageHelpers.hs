@@ -56,6 +56,7 @@ module XMonad.Hooks.ManageHelpers (
     doSink,
     doLower,
     doRaise,
+    doFocus,
     Match,
 ) where
 
@@ -274,7 +275,7 @@ doHideIgnore = ask >>= \w -> liftX (hide w) >> doF (W.delete w)
 
 -- | Sinks a window
 doSink :: ManageHook
-doSink = reader (Endo . W.sink)
+doSink = doF . W.sink =<< ask
 
 -- | Lower an unmanaged window. Useful together with 'doIgnore' to lower
 -- special windows that for some reason don't do it themselves.
@@ -285,3 +286,7 @@ doLower = ask >>= \w -> liftX $ withDisplay $ \dpy -> io (lowerWindow dpy w) >> 
 -- special windows that for some reason don't do it themselves.
 doRaise :: ManageHook
 doRaise = ask >>= \w -> liftX $ withDisplay $ \dpy -> io (raiseWindow dpy w) >> mempty
+
+-- | Focus a window (useful in 'XMonad.Hooks.EwmhDesktops.setActivateHook').
+doFocus :: ManageHook
+doFocus = doF . W.focusWindow =<< ask

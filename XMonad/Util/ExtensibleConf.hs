@@ -21,20 +21,27 @@ module XMonad.Util.ExtensibleConf (
     -- * Usage
     -- $usage
 
-    -- * High-level idioms
+    -- * High-level idioms based on Semigroup
     with,
     add,
     once,
     onceM,
 
+    -- * High-level idioms based on Default
+    withDef,
+    modifyDef,
+    modifyDefM,
+
     -- * Low-level primitivies
     ask,
     lookup,
     alter,
+    alterF,
     ) where
 
 import Prelude hiding (lookup)
-import XMonad hiding (ask)
+import XMonad hiding (ask, modify, trace)
+import XMonad.Prelude ((<|>), (<&>), fromMaybe)
 
 import Data.Typeable
 import qualified Data.Map as M
@@ -85,6 +92,15 @@ alter f = mapEC $ M.alter (mapConfExt f) (typeRep (Proxy @a))
   where
     mapEC g c = c{ extensibleConf = g (extensibleConf c) }
 
+-- | Config-time: Functor variant of 'alter', useful if the configuration
+-- modifications needs to do some 'IO'.
+alterF :: forall a l f. (Typeable a, Functor f)
+       => (Maybe a -> f (Maybe a)) -> XConfig l -> f (XConfig l)
+alterF f = mapEC $ M.alterF (mapConfExtF f) (typeRep (Proxy @a))
+  where
+    mapEC g c = g (extensibleConf c) <&> \ec -> c{ extensibleConf = ec }
+
+
 fromConfExt :: Typeable a => ConfExtension -> Maybe a
 fromConfExt (ConfExtension val) = cast val
 
@@ -92,9 +108,13 @@ mapConfExt :: Typeable a
            => (Maybe a -> Maybe a) -> Maybe ConfExtension -> Maybe ConfExtension
 mapConfExt f = fmap ConfExtension . f . (>>= fromConfExt)
 
+mapConfExtF :: (Typeable a, Functor f)
+            => (Maybe a -> f (Maybe a)) -> Maybe ConfExtension -> f (Maybe ConfExtension)
+mapConfExtF f = fmap (fmap ConfExtension) . f . (>>= fromConfExt)
+
 
 -- ---------------------------------------------------------------------
--- High-level idioms
+-- High-level idioms based on Semigroup
 
 -- | Run-time: Run a monadic action with the value of the custom
 -- configuration, if set.
@@ -113,11 +133,14 @@ add x = alter (<> Just x)
 --
 -- This can be used to implement a composable interface for modules that must
 -- only hook into xmonad core once.
+--
+-- (The piece of custom configuration is the last argument as it's expected to
+-- come from the user.)
 once :: forall a l. (Semigroup a, Typeable a)
      => (XConfig l -> XConfig l) -- ^ 'XConfig' modification done only once
      -> a -- ^ configuration to add
      -> XConfig l -> XConfig l
-once f x c = add x $ maybe f (const id) (lookup @a c) c
+once f x c = maybe f (const id) (lookup @a c) $ add x c
 
 -- | Config-time: Applicative (monadic) variant of 'once', useful if the
 -- 'XConfig' modification needs to do some 'IO' (e.g. create an
@@ -126,4 +149,33 @@ onceM :: forall a l m. (Applicative m, Semigroup a, Typeable a)
       => (XConfig l -> m (XConfig l)) -- ^ 'XConfig' modification done only once
       -> a -- ^ configuration to add
       -> XConfig l -> m (XConfig l)
-onceM f x c = add x <$> maybe f (const pure) (lookup @a c) c
+onceM f x c = maybe f (const pure) (lookup @a c) $ add x c
+
+
+-- ---------------------------------------------------------------------
+-- High-level idioms based on Default
+
+-- | Run-time: Run a monadic action with the value of the custom
+-- configuration, or the 'Default' value thereof, if absent.
+withDef :: (MonadReader XConf m, Typeable a, Default a) => (a -> m b) -> m b
+withDef a = ask >>= a . fromMaybe def
+
+-- | Config-time: Modify a configuration value in 'XConfig', initializing it
+-- to its 'Default' value first if absent. This is an alternative to 'add' for
+-- when a 'Semigroup' instance is unavailable or unsuitable.
+--
+-- Note that this must /not/ be used together with any variant of 'once'!
+modifyDef :: forall a l. (Default a, Typeable a)
+          => (a -> a) -- ^ modification of configuration
+          -> XConfig l -> XConfig l
+modifyDef f = alter ((f <$>) . (<|> Just def))
+
+-- | Config-time: Applicative (monadic) variant of 'modifyDef', useful if the
+-- configuration value modification needs to do some 'IO' (e.g. create an
+-- 'Data.IORef.IORef').
+--
+-- Note that this must /not/ be used together with any variant of 'once'!
+modifyDefM :: forall a l m. (Applicative m, Default a, Typeable a)
+           => (a -> m a) -- ^ modification of configuration
+           -> XConfig l -> m (XConfig l)
+modifyDefM f = alterF (traverse f . (<|> Just def))

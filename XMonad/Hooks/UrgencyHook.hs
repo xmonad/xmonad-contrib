@@ -60,6 +60,7 @@ module XMonad.Hooks.UrgencyHook (
                                  FocusHook(..),
                                  filterUrgencyHook, filterUrgencyHook',
                                  minutes, seconds,
+                                 askUrgent, doAskUrgent,
                                  -- * Stuff for developers:
                                  readUrgents, withUrgents, clearUrgents',
                                  StdoutUrgencyHook(..),
@@ -70,7 +71,7 @@ module XMonad.Hooks.UrgencyHook (
                                  ) where
 
 import XMonad
-import XMonad.Prelude (delete, fromMaybe, listToMaybe, maybeToList, when, (\\))
+import XMonad.Prelude (fi, delete, fromMaybe, listToMaybe, maybeToList, when, (\\))
 import qualified XMonad.StackSet as W
 
 import XMonad.Hooks.ManageHelpers (windowTag)
@@ -542,3 +543,28 @@ filterUrgencyHook skips = filterUrgencyHook' $ maybe False (`elem` skips) <$> wi
 -- should never be marked urgent.
 filterUrgencyHook' :: Query Bool -> Window -> X ()
 filterUrgencyHook' q w = whenX (runQuery q w) (clearUrgents' [w])
+
+-- | Mark the given window urgent.
+--
+-- (The implementation is a bit hacky: send a _NET_WM_STATE ClientMessage to
+-- ourselves. This is so that we respect the 'SuppressWhen' of the configured
+-- urgency hooks. If this module if ever migrated to the ExtensibleConf
+-- infrastrcture, we'll then invoke markUrgent directly.)
+askUrgent :: Window -> X ()
+askUrgent w = withDisplay $ \dpy -> do
+    rw <- asks theRoot
+    a_wmstate <- getAtom "_NET_WM_STATE"
+    a_da      <- getAtom "_NET_WM_STATE_DEMANDS_ATTENTION"
+    let state_add = 1
+    let source_pager = 2
+    io $ allocaXEvent $ \e -> do
+        setEventType e clientMessage
+        setClientMessageEvent' e w a_wmstate 32 [state_add, fi a_da, 0, source_pager]
+        sendEvent dpy rw False (substructureRedirectMask .|. substructureNotifyMask) e
+
+-- | Helper for 'ManageHook' that marks the window as urgent (unless
+-- suppressed, see 'SuppressWhen'). Useful in
+-- 'XMonad.Hooks.EwmhDesktops.setEwmhActivateHook' and also in combination
+-- with "XMonad.Hooks.InsertPosition", "XMonad.Hooks.Focus".
+doAskUrgent :: ManageHook
+doAskUrgent = ask >>= \w -> liftX (askUrgent w) >> mempty
