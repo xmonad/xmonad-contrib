@@ -11,5 +11,3 @@ behind them.
         manually, ...) and concluded: XXX
 
   - [ ] I updated the `CHANGES.md` file
-
-  - [ ] I updated the `XMonad.Doc.Extending` file (if appropriate)
