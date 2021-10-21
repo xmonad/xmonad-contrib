@@ -707,6 +707,12 @@
     - Added new aliases `PhysicalWindowSpace` and `VirtualWindowSpace`
       for a `WindowSpace` for easier to read function signatures.
 
+    - Added a few useful utility functions related to simplify using the
+      module; namely `workspaceOnScreen`, `focusWindow'`, `focusScreen`,
+      `nthWorkspace`, and `withWspOnScreen`.
+
+    - Fixed wrong type-signature of `onCurrentScreen`.
+
   * `XMonad.Actions.CopyWindow`
 
     - Added `copiesPP` to make a `PP` aware of copies of the focused
