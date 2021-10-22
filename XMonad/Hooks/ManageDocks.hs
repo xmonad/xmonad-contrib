@@ -17,7 +17,6 @@ module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
     docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn,
-    docksEventHook, docksStartupHook,
     ToggleStruts(..),
     SetStruts(..),
     module XMonad.Util.Types,
@@ -28,8 +27,11 @@ module XMonad.Hooks.ManageDocks (
     RectC(..),
 #endif
 
-    -- for XMonad.Actions.FloatSnap
-    calcGap
+    -- * For developers of other modules ("XMonad.Actions.FloatSnap")
+    calcGap,
+
+    -- * Standalone hooks (deprecated)
+    docksEventHook, docksStartupHook,
     ) where
 
 
@@ -157,6 +159,7 @@ checkDock = ask >>= \w -> liftX $ do
 
 -- | Whenever a new dock appears, refresh the layout immediately to avoid the
 -- new dock.
+{-# DEPRECATED docksEventHook "Use docks instead." #-}
 docksEventHook :: Event -> X All
 docksEventHook MapNotifyEvent{ ev_window = w } = do
     whenX (runQuery checkDock w <&&> (not <$> isClient w)) $
@@ -174,6 +177,7 @@ docksEventHook DestroyWindowEvent{ ev_window = w } = do
     return (All True)
 docksEventHook _ = return (All True)
 
+{-# DEPRECATED docksStartupHook "Use docks instead." #-}
 docksStartupHook :: X ()
 docksStartupHook = void getStrutCache
 

@@ -495,6 +495,10 @@
     - Restored compatibility with pre-0.13 configs by making the startup hook
       unnecessary for correct functioning (strut cache is initialized on-demand).
 
+      This is a temporary measure, however. The individual hooks are now
+      deprecated in favor of the `docks` combinator, `xmonad --recompile` now
+      reports deprecation warnings, and the hooks will be removed soon.
+
     - Fixed ignoring of strut updates from override-redirect windows, which is
       default for xmobar.
 
