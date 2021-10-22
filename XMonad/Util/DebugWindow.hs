@@ -153,14 +153,6 @@ wrap s =  ' ' : '"' : wrap' s ++ "\""
                   | otherwise  =        s' : wrap' ss
     wrap' ""                   =             ""
 
--- Graphics.X11.Extras.getWindowAttributes is bugggggggy
-safeGetWindowAttributes     :: Display -> Window -> IO (Maybe WindowAttributes)
-safeGetWindowAttributes d w =  alloca $ \p -> do
-  s <- xGetWindowAttributes d w p
-  case s of
-    0 -> return Nothing
-    _ -> Just <$> peek p
-
 -- and so is getCommand
 safeGetCommand     :: Display -> Window -> X [String]
 safeGetCommand d w =  do

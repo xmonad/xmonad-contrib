@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase   #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prelude
@@ -20,7 +21,11 @@ module XMonad.Prelude (
     (!?),
     NonEmpty((:|)),
     notEmpty,
+    safeGetWindowAttributes,
 ) where
+
+import Foreign (alloca, peek)
+import XMonad
 
 import Control.Applicative as Exports
 import Control.Monad       as Exports
@@ -68,3 +73,10 @@ chunksOf i xs = chunk : chunksOf i rest
 notEmpty :: HasCallStack => [a] -> NonEmpty a
 notEmpty [] = error "unexpected empty list"
 notEmpty (x:xs) = x :| xs
+
+-- | A safe version of 'Graphics.X11.Extras.getWindowAttributes'.
+safeGetWindowAttributes :: Window -> X (Maybe WindowAttributes)
+safeGetWindowAttributes w = withDisplay $ \dpy -> io . alloca $ \p ->
+  xGetWindowAttributes dpy w p >>= \case
+    0 -> pure Nothing
+    _ -> Just <$> peek p
