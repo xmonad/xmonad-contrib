@@ -1,24 +1,56 @@
-# xmonad-contrib: Third Party Extensions to the xmonad Window Manager
+<p align="center">
+  <img alt="XMonad logo" src="https://xmonad.org/images/logo-wrapped.svg" height=150>
+</p>
+<p align="center">
+  <a href="https://hackage.haskell.org/package/xmonad-contrib">
+    <img alt="Hackage" src="https://img.shields.io/hackage/v/xmonad-contrib">
+  </a>
+  <a href="https://github.com/xmonad/xmonad-contrib/blob/readme/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/xmonad/xmonad-contrib">
+  </a>
+  <a href="https://haskell.org/">
+    <img alt="Made in Haskell" src="https://img.shields.io/badge/Made%20in-Haskell-%235e5086?logo=haskell">
+  </a>
+  <br>
+  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/stack.yml">
+    <img alt="Stack" src="https://github.com/xmonad/xmonad-contrib/actions/workflows/stack.yml/badge.svg">
+  </a>
+  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/haskell-ci.yml">
+    <img alt="Cabal" src="https://github.com/xmonad/xmonad-contrib/actions/workflows/haskell-ci.yml/badge.svg">
+  </a>
+  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/nix.yml">
+    <img alt="Nix" src="https://github.com/xmonad/xmonad-contrib/actions/workflows/nix.yml/badge.svg">
+  </a>
+  <br>
+  <a href="https://github.com/sponsors/xmonad">
+    <img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/xmonad?label=GitHub%20Sponsors">
+  </a>
+  <a href="https://opencollective.com/xmonad">
+    <img alt="Open Collective" src="https://img.shields.io/opencollective/all/xmonad?label=Open%20Collective">
+  </a>
+</p>
 
-![Tests](https://github.com/xmonad/xmonad-contrib/workflows/Tests/badge.svg)
-[![Open Source Helpers](https://www.codetriage.com/xmonad/xmonad-contrib/badges/users.svg)](https://www.codetriage.com/xmonad/xmonad-contrib)
+# xmonad-contrib
 
-You need the ghc compiler and xmonad window manager installed in
-order to use these extensions.
+**Community-maintained extensions for the [XMonad][web:xmonad] window manager.**
 
-For installation and configuration instructions, please see the
-[xmonad website][xmonad], the documents included with the
-[xmonad source distribution][xmonad-git], and the
-[online haddock documentation][xmonad-docs].
+[xmonad core][gh:xmonad] is minimal, stable, yet extensible.
+[xmonad-contrib][gh:xmonad-contrib] is home to hundreds of additional tiling
+algorithms and extension modules. The two combined make for a powerful X11
+window-manager with endless customization possibilities. They are, quite
+literally, libraries for creating your own window manager.
 
-## Getting or Updating XMonadContrib
+[web:xmonad]: https://xmonad.org/
+[gh:xmonad]: https://github.com/xmonad/xmonad
+[gh:xmonad-contrib]: https://github.com/xmonad/xmonad-contrib
 
-  * Latest release: <https://hackage.haskell.org/package/xmonad-contrib>
+## Installation
 
-  * Git version: <https://github.com/xmonad/xmonad-contrib>
+For installation and configuration instructions, please see:
 
-(To use git xmonad-contrib you must also use the
-[git version of xmonad][xmonad-git].)
+ * [downloading and installing xmonad](https://xmonad.org/download.html)
+ * [installing latest xmonad snapshot from git](https://xmonad.org/INSTALL.html)
+ * [configuring xmonad](https://xmonad.org/TUTORIAL.html)
 
 ## Contributing
 
@@ -29,15 +61,14 @@ example, to use the Grid layout, one would import:
 
     XMonad.Layout.Grid
 
-For further details, see the [documentation][developing] for the
-`XMonad.Doc.Developing` module, XMonad's [CONTRIBUTING.md](https://github.com/xmonad/xmonad/blob/master/CONTRIBUTING.md)  and the [xmonad website][xmonad].
+For further details, see the [documentation for the `XMonad.Doc.Developing`
+module][doc:developing], XMonad's [CONTRIBUTING][gh:xmonad:contributing] and
+the [xmonad website][web:xmonad].
+
+[gh:xmonad:contributing]: https://github.com/xmonad/xmonad/blob/master/CONTRIBUTING.md
+[doc:developing]: https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Doc-Developing.html
 
 ## License
 
-Code submitted to the contrib repo is licensed under the same license as
-xmonad itself, with copyright held by the authors.
- 
-[xmonad]: http://xmonad.org
-[xmonad-git]: https://github.com/xmonad/xmonad
-[xmonad-docs]: http://hackage.haskell.org/package/xmonad
-[developing]: http://hackage.haskell.org/package/xmonad-contrib/docs/XMonad-Doc-Developing.html
+Code submitted to the xmonad-contrib repo is licensed under the same license
+as xmonad core itself, with copyright held by the authors.

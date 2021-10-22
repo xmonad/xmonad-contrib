@@ -2,11 +2,11 @@ name:               xmonad-contrib
 version:            0.16.999
 -- ^ also update cpp-options: -DXMONAD_CONTRIB_VERSION_*
 
-homepage:           http://xmonad.org/
-synopsis:           Third party extensions for xmonad
+homepage:           https://xmonad.org/
+synopsis:           Community-maintained extensions extensions for xmonad
 description:
-    Third party tiling algorithms, configurations and scripts to xmonad,
-    a tiling window manager for X.
+    Community-maintained tiling algorithms and extension modules for xmonad,
+    an X11 tiling window manager.
     .
     For an introduction to building, configuring and using xmonad
     extensions, see "XMonad.Doc". In particular:
