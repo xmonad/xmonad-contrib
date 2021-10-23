@@ -1,9 +1,11 @@
 <p align="center">
-  <img alt="XMonad logo" src="https://xmonad.org/images/logo-wrapped.svg" height=150>
+  <a href="https://xmonad.org/">
+    <img alt="XMonad logo" src="https://xmonad.org/images/logo-wrapped.svg" height=150>
+  </a>
 </p>
 <p align="center">
   <a href="https://hackage.haskell.org/package/xmonad-contrib">
-    <img alt="Hackage" src="https://img.shields.io/hackage/v/xmonad-contrib">
+    <img alt="Hackage" src="https://img.shields.io/hackage/v/xmonad-contrib?logo=haskell">
   </a>
   <a href="https://github.com/xmonad/xmonad-contrib/blob/readme/LICENSE">
     <img alt="License" src="https://img.shields.io/github/license/xmonad/xmonad-contrib">
@@ -13,20 +15,20 @@
   </a>
   <br>
   <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/stack.yml">
-    <img alt="Stack" src="https://github.com/xmonad/xmonad-contrib/actions/workflows/stack.yml/badge.svg">
+    <img alt="Stack" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Stack?label=Stack&logo=githubactions&logoColor=white">
   </a>
   <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/haskell-ci.yml">
-    <img alt="Cabal" src="https://github.com/xmonad/xmonad-contrib/actions/workflows/haskell-ci.yml/badge.svg">
+    <img alt="Cabal" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Haskell-CI?label=Cabal&logo=githubactions&logoColor=white">
   </a>
   <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/nix.yml">
-    <img alt="Nix" src="https://github.com/xmonad/xmonad-contrib/actions/workflows/nix.yml/badge.svg">
+    <img alt="Nix" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Nix?label=Nix&logo=githubactions&logoColor=white">
   </a>
   <br>
   <a href="https://github.com/sponsors/xmonad">
-    <img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/xmonad?label=GitHub%20Sponsors">
+    <img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/xmonad?label=GitHub%20Sponsors&logo=githubsponsors">
   </a>
   <a href="https://opencollective.com/xmonad">
-    <img alt="Open Collective" src="https://img.shields.io/opencollective/all/xmonad?label=Open%20Collective">
+    <img alt="Open Collective" src="https://img.shields.io/opencollective/all/xmonad?label=Open%20Collective&logo=opencollective">
   </a>
 </p>
 
@@ -40,35 +42,56 @@ algorithms and extension modules. The two combined make for a powerful X11
 window-manager with endless customization possibilities. They are, quite
 literally, libraries for creating your own window manager.
 
-[web:xmonad]: https://xmonad.org/
-[gh:xmonad]: https://github.com/xmonad/xmonad
-[gh:xmonad-contrib]: https://github.com/xmonad/xmonad-contrib
-
 ## Installation
 
 For installation and configuration instructions, please see:
 
- * [downloading and installing xmonad](https://xmonad.org/download.html)
- * [installing latest xmonad snapshot from git](https://xmonad.org/INSTALL.html)
- * [configuring xmonad](https://xmonad.org/TUTORIAL.html)
+ * [downloading and installing xmonad][web:download]
+ * [installing latest xmonad snapshot from git][web:install]
+ * [configuring xmonad][web:tutorial]
+
+If you run into any trouble, consult our [documentation][web:documentation] or
+ask the [community][web:community] for help.
 
 ## Contributing
 
-Haskell code contributed to this repo should live under the
-appropriate subdivision of the `XMonad` namespace (currently includes
-`Actions`, `Config`, `Hooks`, `Layout`, `Prompt`, and `Util`). For
-example, to use the Grid layout, one would import:
+We welcome all forms of contributions:
 
-    XMonad.Layout.Grid
+ * [bug reports and feature ideas][gh:xmonad-contrib:issues]
+   (also to [xmonad][gh:xmonad:issues])
+ * [bug fixes, new features, new extensions][gh:xmonad-contrib:pulls]
+   (also to [xmonad][gh:xmonad:pulls])
+ * documentation fixes and improvements: [xmonad][gh:xmonad],
+   [xmonad-contrib][gh:xmonad-contrib], [xmonad-web][gh:xmonad-web]
+ * helping others in the [community][web:community]
+ * financial support: [GitHub Sponsors][gh:xmonad:sponsors],
+   [Open Collective][opencollective:xmonad]
 
-For further details, see the [documentation for the `XMonad.Doc.Developing`
-module][doc:developing], XMonad's [CONTRIBUTING][gh:xmonad:contributing] and
-the [xmonad website][web:xmonad].
-
-[gh:xmonad:contributing]: https://github.com/xmonad/xmonad/blob/master/CONTRIBUTING.md
-[doc:developing]: https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Doc-Developing.html
+Please do read the [CONTRIBUTING][gh:xmonad:contributing] document for more
+information about bug reporting and code contributions. For a brief overview
+of the architecture and code conventions, see the [documentation for the
+`XMonad.Doc.Developing` module][doc:developing]. If in doubt, [talk to
+us][web:community].
 
 ## License
 
 Code submitted to the xmonad-contrib repo is licensed under the same license
 as xmonad core itself, with copyright held by the authors.
+
+[doc:developing]: https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Doc-Developing.html
+[gh:xmonad-contrib:issues]: https://github.com/xmonad/xmonad-contrib/issues
+[gh:xmonad-contrib:pulls]: https://github.com/xmonad/xmonad-contrib/pulls
+[gh:xmonad-contrib]: https://github.com/xmonad/xmonad-contrib
+[gh:xmonad-web]: https://github.com/xmonad/xmonad-web
+[gh:xmonad:contributing]: https://github.com/xmonad/xmonad/blob/master/CONTRIBUTING.md
+[gh:xmonad:issues]: https://github.com/xmonad/xmonad/issues
+[gh:xmonad:pulls]: https://github.com/xmonad/xmonad/pulls
+[gh:xmonad:sponsors]: https://github.com/sponsors/xmonad
+[gh:xmonad]: https://github.com/xmonad/xmonad
+[opencollective:xmonad]: https://opencollective.com/xmonad
+[web:community]: https://xmonad.org/community.html
+[web:documentation]: https://xmonad.org/documentation.html
+[web:download]: https://xmonad.org/download.html
+[web:install]: https://xmonad.org/INSTALL.html
+[web:tutorial]: https://xmonad.org/TUTORIAL.html
+[web:xmonad]: https://xmonad.org/
