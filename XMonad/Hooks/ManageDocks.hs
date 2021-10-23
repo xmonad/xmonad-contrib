@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP #-}
+{-# LANGUAGE PatternGuards, FlexibleInstances, MultiParamTypeClasses, CPP, LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Hooks.ManageDocks
@@ -42,10 +42,11 @@ import XMonad.Layout.LayoutModifier
 import XMonad.Util.Types
 import XMonad.Util.WindowProperties (getProp32s)
 import qualified XMonad.Util.ExtensibleState as XS
-import XMonad.Prelude (All (..), fi, filterM, foldlM, void, when, (<=<))
+import XMonad.Prelude
 
-import qualified Data.Set as S
-import qualified Data.Map as M
+import qualified Data.Set        as S
+import qualified Data.Map        as M
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
@@ -200,15 +201,16 @@ getStrut w = do
 -- | Goes through the list of windows and find the gap so that all
 --   STRUT settings are satisfied.
 calcGap :: S.Set Direction2D -> X (Rectangle -> Rectangle)
-calcGap ss = withDisplay $ \dpy -> do
+calcGap ss = do
     rootw <- asks theRoot
     struts <- filter careAbout . concat . M.elems <$> getStrutCache
 
-    -- we grab the window attributes of the root window rather than checking
-    -- the width of the screen because xlib caches this info and it tends to
-    -- be incorrect after RAndR
-    wa <- io $ getWindowAttributes dpy rootw
-    let screen = r2c $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
+    -- If possible, we grab the window attributes of the root window rather
+    -- than checking the width of the screen because xlib caches this info
+    -- and it tends to be incorrect after RAndR
+    screen <- safeGetWindowAttributes rootw >>= \case
+        Nothing -> gets $ r2c . screenRect . W.screenDetail . W.current . windowset
+        Just wa -> pure . r2c $ Rectangle (fi $ wa_x wa) (fi $ wa_y wa) (fi $ wa_width wa) (fi $ wa_height wa)
     return $ \r -> c2r $ foldr (reduce screen) (r2c r) struts
   where careAbout (s,_,_,_) = s `S.member` ss
 

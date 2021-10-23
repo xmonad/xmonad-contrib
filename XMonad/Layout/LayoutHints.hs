@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE ParallelListComp, PatternGuards #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Layout.LayoutHints
@@ -32,8 +33,8 @@ import XMonad(LayoutClass(runLayout), mkAdjust, Window,
               Dimension, Position, Rectangle(Rectangle), D,
               X, refresh, Event(..), propertyNotify, wM_NORMAL_HINTS,
               (<&&>), io, applySizeHints, whenX, isClient, withDisplay,
-              getWindowAttributes, getWMNormalHints, WindowAttributes(..))
-import XMonad.Prelude (All (..), fromJust, join, maximumBy, on, sortBy)
+              getWMNormalHints, WindowAttributes(..))
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
 import XMonad.Layout.Decoration(isInStack)
@@ -264,8 +265,9 @@ hintsEventHook _ = return (All True)
 
 -- | True if the window's current size does not satisfy its size hints.
 hintsMismatch :: Window -> X Bool
-hintsMismatch w = withDisplay $ \d -> io $ do
-    wa <- getWindowAttributes d w
-    sh <- getWMNormalHints d w
-    let dim = (fromIntegral $ wa_width wa, fromIntegral $ wa_height wa)
-    return $ dim /= applySizeHints 0 sh dim
+hintsMismatch w = safeGetWindowAttributes w >>= \case
+    Nothing -> pure False
+    Just wa -> do
+        sh <- withDisplay $ \d -> io (getWMNormalHints d w)
+        let dim = (fromIntegral $ wa_width wa, fromIntegral $ wa_height wa)
+        return $ dim /= applySizeHints 0 sh dim

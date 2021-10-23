@@ -92,8 +92,8 @@ snapMagicMouseResize
     -> Maybe Int -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
     -> Window    -- ^ The window to move and resize.
     -> X ()
-snapMagicMouseResize middle collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+snapMagicMouseResize middle collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     (_, _, _, px, py, _, _, _) <- io $ queryPointer d w
     let x = (fromIntegral px - wx wa)/ww wa
         y = (fromIntegral py - wy wa)/wh wa
@@ -119,9 +119,8 @@ snapMagicResize
     -> Maybe Int   -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
     -> Window      -- ^ The window to move and resize.
     -> X ()
-snapMagicResize dir collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
-
+snapMagicResize dir collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     (xbegin,xend) <- handleAxis True d wa
     (ybegin,yend) <- handleAxis False d wa
 
@@ -168,9 +167,8 @@ snapMagicMove
     -> Maybe Int -- ^ The maximum distance to snap. Use Nothing to not impose any boundary.
     -> Window    -- ^ The window to move.
     -> X ()
-snapMagicMove collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
-
+snapMagicMove collidedist snapdist w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     nx <- handleAxis True d wa
     ny <- handleAxis False d wa
 
@@ -208,8 +206,8 @@ snapMove U = doSnapMove False True
 snapMove D = doSnapMove False False
 
 doSnapMove :: Bool -> Bool -> Maybe Int -> Window -> X ()
-doSnapMove horiz rev collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+doSnapMove horiz rev collidedist w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     ((bl,br,_),(fl,fr,_)) <- getSnap horiz collidedist d w
 
     let (mb,mf) = if rev then (bl,fl)
@@ -247,8 +245,8 @@ snapShrink
 snapShrink = snapResize False
 
 snapResize :: Bool -> Direction2D -> Maybe Int -> Window -> X ()
-snapResize grow dir collidedist w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+snapResize grow dir collidedist w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     mr <- case dir of
               L -> do ((mg,ms,_),(_,_,_)) <- getSnap True collidedist d w
                       return $ case (if grow then mg else ms) of

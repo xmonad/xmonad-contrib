@@ -44,8 +44,8 @@ import XMonad
 
 -- | Resize (floating) window with optional aspect ratio constraints.
 mouseResizeWindow :: Window -> Bool -> X ()
-mouseResizeWindow w c = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+mouseResizeWindow w c = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     sh <- io $ getWMNormalHints d w
     io $ warpPointer d none w 0 0 0 0 (fromIntegral (wa_width wa)) (fromIntegral (wa_height wa))
     mouseDrag (\ex ey -> do

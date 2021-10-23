@@ -62,8 +62,9 @@ import qualified XMonad.StackSet as W
 -- | Modify all screens.
 layoutScreens :: LayoutClass l Int => Int -> l Int -> X ()
 layoutScreens nscr _ | nscr < 1 = trace $ "Can't layoutScreens with only " ++ show nscr ++ " screens."
-layoutScreens nscr l =
-    do rtrect <- asks theRoot >>= getWindowRectangle
+layoutScreens nscr l = asks theRoot >>= \w -> withDisplay $ \d ->
+  withWindowAttributes d w $ \attrs ->
+    do let rtrect = windowRectangle attrs
        (wss, _) <- runLayout (W.Workspace "" l (Just $ W.Stack { W.focus=1, W.up=[],W.down=[1..nscr-1] })) rtrect
        windows $ \ws@W.StackSet{ W.current = v, W.visible = vs, W.hidden = hs } ->
            let x = W.workspace v
@@ -88,11 +89,9 @@ layoutSplitScreen nscr l =
                                 map (\v -> if W.screen v>W.screen c then v{W.screen = W.screen v + fromIntegral (nscr-1)} else v) vs
                   , W.hidden  = ys }
 
-getWindowRectangle :: Window -> X Rectangle
-getWindowRectangle w = withDisplay $ \d ->
-    do a <- io $ getWindowAttributes d w
-       return $ Rectangle (fromIntegral $ wa_x a)     (fromIntegral $ wa_y a)
-                          (fromIntegral $ wa_width a) (fromIntegral $ wa_height a)
+windowRectangle :: WindowAttributes -> Rectangle
+windowRectangle a = Rectangle (fromIntegral $ wa_x a)     (fromIntegral $ wa_y a)
+                              (fromIntegral $ wa_width a) (fromIntegral $ wa_height a)
 
 newtype FixedLayout a = FixedLayout [Rectangle] deriving (Read,Show)
 

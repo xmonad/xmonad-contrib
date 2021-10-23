@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
@@ -263,7 +264,7 @@ handleSelectWindow c = do
       visibleWindows :: [Window]
       visibleWindows = toList mappedWins
       sortedOverlayWindows :: X [OverlayWindow]
-      sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows dpy th visibleWindows
+      sortedOverlayWindows = sortOverlayWindows <$> buildOverlayWindows th visibleWindows
     PerScreenKeys m ->
       fmap concat
         $ sequence
@@ -275,7 +276,7 @@ handleSelectWindow c = do
       visibleWindowsOnScreen :: ScreenId -> [Window]
       visibleWindowsOnScreen sid = filter (`elem` toList mappedWins) $ W.integrate' $ screenById sid >>= W.stack . W.workspace
       sortedOverlayWindows :: ScreenId -> X [OverlayWindow]
-      sortedOverlayWindows sid = sortOverlayWindows <$> buildOverlayWindows dpy th (visibleWindowsOnScreen sid)
+      sortedOverlayWindows sid = sortOverlayWindows <$> buildOverlayWindows th (visibleWindowsOnScreen sid)
   status <- io $ grabKeyboard dpy rw True grabModeAsync grabModeAsync currentTime
   if status == grabSuccess
     then do
@@ -298,8 +299,9 @@ handleSelectWindow c = do
   buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
   buildOverlays = appendChords (maxChordLen c)
 
-  buildOverlayWindows :: Display -> Position -> [Window] -> X [OverlayWindow]
-  buildOverlayWindows dpy th ws = sequence $ buildOverlayWin dpy th <$> ws
+  buildOverlayWindows :: Position -> [Window] -> X [OverlayWindow]
+  buildOverlayWindows th = fmap (fromMaybe [] . sequenceA)
+                         . traverse (buildOverlayWin th)
 
   sortOverlayWindows :: [OverlayWindow] -> [OverlayWindow]
   sortOverlayWindows = sortOn ((wa_x &&& wa_y) . attrs)
@@ -307,12 +309,13 @@ handleSelectWindow c = do
   makeRect :: WindowAttributes -> Rectangle
   makeRect wa = Rectangle (fi (wa_x wa)) (fi (wa_y wa)) (fi (wa_width wa)) (fi (wa_height wa))
 
-  buildOverlayWin :: Display -> Position -> Window -> X OverlayWindow
-  buildOverlayWin dpy th w = do
-    wAttrs <- io $ getWindowAttributes dpy w
-    let r = overlayF c th $ makeRect wAttrs
-    o <- createNewWindow r Nothing "" True
-    return OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
+  buildOverlayWin :: Position -> Window -> X (Maybe OverlayWindow)
+  buildOverlayWin th w = safeGetWindowAttributes w >>= \case
+    Nothing     -> pure Nothing
+    Just wAttrs -> do
+      let r = overlayF c th $ makeRect wAttrs
+      o <- createNewWindow r Nothing "" True
+      return . Just $ OverlayWindow { rect=r, overlay=o, win=w, attrs=wAttrs }
 
   -- | Display an overlay with the provided formatting
   displayOverlay :: XMonadFont -> Overlay -> X ()

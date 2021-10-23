@@ -68,10 +68,9 @@ positionStoreManageHook :: Maybe Theme -> ManageHook
 positionStoreManageHook mDecoTheme = ask >>= liftX . positionStoreInit mDecoTheme >> idHook
 
 positionStoreInit :: Maybe Theme -> Window -> X ()
-positionStoreInit mDecoTheme w  = withDisplay $ \d -> do
+positionStoreInit mDecoTheme w  = withDisplay $ \d -> withWindowAttributes d w $ \wa -> do
         let decoH = maybe 0 decoHeight mDecoTheme   -- take decoration into account, which - in its current
                                                     -- form - makes windows smaller to make room for it
-        wa <- io $ getWindowAttributes d w
         ws <- gets windowset
         arbitraryOffsetX <- randomIntOffset
         arbitraryOffsetY <- randomIntOffset

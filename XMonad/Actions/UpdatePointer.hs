@@ -28,7 +28,6 @@ import XMonad
 import XMonad.Prelude
 import XMonad.StackSet (member, peek, screenDetail, current)
 
-import Control.Exception (SomeException, try)
 import Control.Arrow ((&&&), (***))
 
 -- $usage
@@ -73,10 +72,9 @@ updatePointer refPos ratio = do
   let defaultRect = screenRect $ screenDetail $ current ws
   rect <- case peek ws of
         Nothing -> return defaultRect
-        Just w  -> do tryAttributes <- io $ try $ getWindowAttributes dpy w
-                      return $ case tryAttributes of
-                        Left (_ :: SomeException) -> defaultRect
-                        Right attributes          -> windowAttributesToRectangle attributes
+        Just w  -> maybe defaultRect windowAttributesToRectangle
+               <$> safeGetWindowAttributes w
+
   root <- asks theRoot
   mouseIsMoving <- asks mouseFocused
   (_sameRoot,_,currentWindow,rootX,rootY,_,_,_) <- io $ queryPointer dpy root

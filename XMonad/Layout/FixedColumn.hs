@@ -23,17 +23,9 @@ module XMonad.Layout.FixedColumn (
         FixedColumn(..)
 ) where
 
-import Graphics.X11.Xlib (Window, rect_width)
-import Graphics.X11.Xlib.Extras ( getWMNormalHints
-                                , getWindowAttributes
-                                , sh_base_size
-                                , sh_resize_inc
-                                , wa_border_width)
-
-import XMonad.Prelude (fromMaybe, msum, (<&>))
-import XMonad.Core (X, LayoutClass(..), fromMessage, io, withDisplay)
-import XMonad.Layout (Resize(..), IncMasterN(..), tile)
-import XMonad.StackSet as W
+import XMonad
+import XMonad.Prelude
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -82,9 +74,10 @@ instance LayoutClass FixedColumn Window where
 --   columns wide, using @inc@ as a resize increment for windows that
 --   don't have one
 widthCols :: Int -> Int -> Window -> X Int
-widthCols inc n w = withDisplay $ \d -> io $ do
-    sh <- getWMNormalHints d w
-    bw <- fromIntegral . wa_border_width <$> getWindowAttributes d w
+widthCols inc n w = do
+    d  <- asks display
+    bw <- asks $ fi . borderWidth . config
+    sh <- io $ getWMNormalHints d w
     let widthHint f = f sh <&> fromIntegral . fst
         oneCol      = fromMaybe inc $ widthHint sh_resize_inc
         base        = fromMaybe 0 $ widthHint sh_base_size

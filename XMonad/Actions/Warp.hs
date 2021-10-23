@@ -91,11 +91,9 @@ warp w x y = withDisplay $ \d -> io $ warpPointer d none w 0 0 0 0 x y
 -- | Warp the pointer to a given position relative to the currently
 --   focused window.  Top left = (0,0), bottom right = (1,1).
 warpToWindow :: Rational -> Rational -> X ()
-warpToWindow h v =
-    withDisplay $ \d ->
-        withFocused $ \w -> do
-            wa <- io $ getWindowAttributes d w
-            warp w (fraction h (wa_width wa)) (fraction v (wa_height wa))
+warpToWindow h v = withDisplay $ \d -> withFocused $ \w ->
+  withWindowAttributes d w $ \wa ->
+    warp w (fraction h (wa_width wa)) (fraction v (wa_height wa))
 
 -- | Warp the pointer to the given position (top left = (0,0), bottom
 --   right = (1,1)) on the given screen.

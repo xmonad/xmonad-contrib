@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WorkspaceByPos
@@ -40,10 +41,10 @@ workspaceByPos :: ManageHook
 workspaceByPos = (maybe idHook doShift <=< liftX . needsMoving) =<< ask
 
 needsMoving :: Window -> X (Maybe WorkspaceId)
-needsMoving w = withDisplay $ \d -> do
-    -- only relocate windows with non-zero position
-    wa <- io $ getWindowAttributes d w
-    fmap (const Nothing `either` Just) . runExceptT $ do
+needsMoving w = safeGetWindowAttributes w >>= \case
+    Nothing -> pure Nothing
+    Just wa -> fmap (either (const Nothing) Just) . runExceptT $ do
+        -- only relocate windows with non-zero position
         guard $ wa_x wa /= 0 || wa_y wa /= 0
         ws <- gets windowset
         sc <- lift $ fromMaybe (W.current ws)
