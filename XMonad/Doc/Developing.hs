@@ -307,6 +307,6 @@ extension, see the tutorial on the wiki:
 {- $license
 
 New modules should identify the author, and be submitted under the
-same license as xmonad (BSD3 license or freer).
+same license as xmonad (BSD3).
 
 -}
