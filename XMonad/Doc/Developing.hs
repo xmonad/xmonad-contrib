@@ -249,29 +249,9 @@ to do
 
 {- $style
 
-These are the coding guidelines for contributing to xmonad and the
-xmonad contributed extensions.
-
-* Comment every top level function (particularly exported funtions), and
-  provide a type signature.
-
-* Use Haddock syntax in the comments (see below).
-
-* Follow the coding style of the other modules.
-
-* Code should be compilable with "ghc-options: -Wall -Werror" set in the
-xmonad-contrib.cabal file. There should be no warnings.
-
-* Code should be free of any warnings or errors from the Hlint tool; use your
-  best judgement on some warnings like eta-reduction or bracket removal, though.
-
-* Partial functions should be avoided: the window manager should not
-  crash, so never call 'error' or 'undefined'.
-
-* Tabs are /illegal/. Use 4 spaces for indenting.
-
-* Any pure function added to the core must have QuickCheck properties
-  precisely defining its behaviour. Tests for everything else are encouraged.
+For coding style guidelines while contributing, please see the
+<https://github.com/xmonad/xmonad/blob/master/CONTRIBUTING.md#style-guidelines style guidelines>
+of xmonad's CONTRIBUTING.md.
 
 For examples of Haddock documentation syntax, have a look at
 <https://haskell-haddock.readthedocs.io/en/latest/markup.html its documentation>
