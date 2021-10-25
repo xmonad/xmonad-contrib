@@ -273,8 +273,9 @@ xmonad-contrib.cabal file. There should be no warnings.
 * Any pure function added to the core must have QuickCheck properties
   precisely defining its behaviour. Tests for everything else are encouraged.
 
-For examples of Haddock documentation syntax, have a look at other
-extensions.  Important points are:
+For examples of Haddock documentation syntax, have a look at
+<https://haskell-haddock.readthedocs.io/en/latest/markup.html its documentation>
+or other extensions.  Important points are:
 
 * Every exported function (or even better, every function) should have
   a Haddock comment explaining what it does, and providing examples.
@@ -290,6 +291,13 @@ extensions.  Important points are:
 * Literal quote marks and slashes should be escaped with a backslash.
 
 To generate and view the Haddock documentation for your extension, run
+
+> stack haddock --no-haddock-deps
+
+If the builds succeeds, at the end stack should tell you where the
+generated @index.html@ is located.
+
+Alternatively, you can run
 
 > runhaskell Setup haddock
 
