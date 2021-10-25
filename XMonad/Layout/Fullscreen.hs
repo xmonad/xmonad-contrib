@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts, MultiParamTypeClasses, FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-deprecations #-} -- FIXME: fullscreenStartup temporarily silenced
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Fullscreen
