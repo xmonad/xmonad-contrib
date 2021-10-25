@@ -277,11 +277,11 @@ To generate and view the Haddock documentation for your extension, run
 If the builds succeeds, at the end stack should tell you where the
 generated @index.html@ is located.
 
-Alternatively, you can run
+Alternatively, you can also run
 
-> runhaskell Setup haddock
+> cabal haddock
 
-and then point your browser to @\/path\/to\/XMonadContrib\/dist\/doc\/html\/xmonad-contrib\/index.html@.
+to similar effect.
 
 For more information, see the Haddock documentation:
 <http://www.haskell.org/haddock/doc/html/index.html>.
