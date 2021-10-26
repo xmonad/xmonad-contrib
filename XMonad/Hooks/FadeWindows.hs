@@ -176,7 +176,7 @@ fadeTo, translucence, fadeBy :: Rational -> FadeHook
 fadeTo       = transparency
 -- | An alias for 'transparency'.
 translucence = transparency
--- | An alias for 'transparency'.
+-- | An alias for 'opacity'.
 fadeBy       = opacity
 
 invisible, solid :: FadeHook
