@@ -520,6 +520,9 @@
 
     - Added `windowTag`
 
+    - Added `(^?)`, `(~?)` and `($?)` operators as infix versions of `isPrefixOf`, `isInfixOf`
+      and `isSuffixOf` working with `ManageHook`s.
+
   * `XMonad.Util.EZConfig`
 
     - Added support for XF86Bluetooth.
