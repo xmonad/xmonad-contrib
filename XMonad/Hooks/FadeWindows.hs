@@ -172,17 +172,17 @@ opacity :: Rational -- ^ The opacity of a window as a fraction.
 opacity =  doS . Opacity . clampRatio
 
 fadeTo, translucence, fadeBy :: Rational -> FadeHook
--- ^ An alias for 'transparency'.
+-- | An alias for 'transparency'.
 fadeTo       = transparency
--- ^ An alias for 'transparency'.
+-- | An alias for 'transparency'.
 translucence = transparency
--- ^ An alias for 'transparency'.
+-- | An alias for 'opacity'.
 fadeBy       = opacity
 
 invisible, solid :: FadeHook
--- ^ An alias for 'transparent'.
+-- | An alias for 'transparent'.
 invisible    = transparent
--- ^ An alias for 'opaque'.
+-- | An alias for 'opaque'.
 solid        = opaque
 
 -- | Like 'doF', but usable with 'ManageHook'-like hooks that
