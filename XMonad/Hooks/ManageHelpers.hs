@@ -26,7 +26,7 @@
 -- >         ...
 -- >     }
 --
--- Some helpers defined here you can easily extend by yourself:
+-- Here's how you can define more helpers like the ones from this module:
 --
 -- > -- some function you want to transform into an infix operator
 -- > f :: a -> b -> Bool

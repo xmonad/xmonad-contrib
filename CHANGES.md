@@ -67,11 +67,6 @@
     - All of these were now removed. You can use the re-exported `def` from
       `Data.Default` instead.
 
-  * `XMonad.Hooks.ManageHelpers`
-
-    - Added `(^?)`, `(~?)` and `($?)` operators as infix versions of `isPrefixOf`, `isInfixOf`
-      and `isSuffixOf` working with `ManageHook`s.
-
   * `XMonad.Hooks.Script`
 
     - `execScriptHook` now has an `X` constraint (was: `MonadIO`), due to changes
@@ -524,6 +519,9 @@
       (using either the `WM_CLIENT_LEADER` or `_NET_WM_PID` property).
 
     - Added `windowTag`
+
+    - Added `(^?)`, `(~?)` and `($?)` operators as infix versions of `isPrefixOf`, `isInfixOf`
+      and `isSuffixOf` working with `ManageHook`s.
 
   * `XMonad.Util.EZConfig`
 
