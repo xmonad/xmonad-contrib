@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.16.999
+version:            0.17.0
 -- ^ also update cpp-options: -DXMONAD_CONTRIB_VERSION_*
 
 homepage:           https://xmonad.org/
@@ -64,8 +64,8 @@ library
                    utf8-string
 
     cpp-options:   -DXMONAD_CONTRIB_VERSION_MAJOR=0
-                   -DXMONAD_CONTRIB_VERSION_MINOR=16
-                   -DXMONAD_CONTRIB_VERSION_PATCH=999
+                   -DXMONAD_CONTRIB_VERSION_MINOR=17
+                   -DXMONAD_CONTRIB_VERSION_PATCH=0
     ghc-options:   -Wall -Wno-unused-do-bind
 
     if flag(pedantic)
