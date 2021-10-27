@@ -179,8 +179,13 @@
       `xmobarFont` for selecting an alternative font.
 
     - Added `ppRename` to `PP`, which makes it possible for extensions like
-      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` to compose
-      intuitively.
+      `workspaceNamesPP`, `marshallPP` and/or `clickablePP` (which need to
+      access the original `WorkspaceId`) to compose intuitively.
+
+    - Added `ppPrinters`, `WSPP` and `fallbackPrinters` as a generalization of
+      the `ppCurrent`, `ppVisible`… sextet, which makes it possible for
+      extensions like `copiesPP` (which acts as if there was a
+      `ppHiddenWithCopies`) to compose intuitively.
 
   * `XMonad.Hooks.StatusBar`
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RecordWildCards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CopyWindow
@@ -26,11 +27,12 @@ module XMonad.Actions.CopyWindow (
                                 ) where
 
 import XMonad
+import XMonad.Prelude
 import Control.Arrow ((&&&))
 import qualified Data.List as L
 
 import XMonad.Actions.WindowGo
-import XMonad.Hooks.StatusBar.PP (PP(..))
+import XMonad.Hooks.StatusBar.PP (PP(..), WS(..), isHidden)
 import qualified XMonad.StackSet as W
 
 -- $usage
@@ -93,9 +95,9 @@ import qualified XMonad.StackSet as W
 copiesPP :: (WorkspaceId -> String) -> PP -> X PP
 copiesPP wtoS pp = do
     copies <- wsContainingCopies
-    let check ws | ws `elem` copies = wtoS ws
-                 | otherwise = ppHidden pp ws
-    return pp { ppHidden = check }
+    let check WS{..} = W.tag wsWS `elem` copies
+    let printer = (asks (isHidden <&&> check) >>= guard) $> wtoS
+    return pp{ ppPrinters = printer <|> ppPrinters pp }
 
 -- | Copy the focused window to a workspace.
 copy :: (Eq s, Eq i, Eq a) => i -> W.StackSet i l a s sd -> W.StackSet i l a s sd
