@@ -273,10 +273,10 @@ instance SetsAmbiguous Ambiguity where
                 guard $ case amb of
                     OnlyLayoutFloatBelow ->
                         let vu = do
-                            gr           <- sr `R.difference` lr
-                            (i2,_w2,wr2) <- ts ++ fs
-                            guard $ i2 < i1
-                            [wr2 `R.intersects` gr]
+                                gr           <- sr `R.difference` lr
+                                (i2,_w2,wr2) <- ts ++ fs
+                                guard $ i2 < i1
+                                [wr2 `R.intersects` gr]
                         in lr == wr1 && (not . or) vu
                     OnlyLayoutFloat ->
                         lr == wr1

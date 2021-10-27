@@ -88,8 +88,8 @@ getScreen (ScreenComparator cmpScreen) (P i) = do w <- gets windowset
 viewScreen :: ScreenComparator -> PhysicalScreen -> X ()
 viewScreen sc p = do i <- getScreen sc p
                      whenJust i $ \s -> do
-                     w <- screenWorkspace s
-                     whenJust w $ windows . W.view
+                         w <- screenWorkspace s
+                         whenJust w $ windows . W.view
 
 -- | Send the active window to a given physical screen
 sendToScreen :: ScreenComparator -> PhysicalScreen -> X ()

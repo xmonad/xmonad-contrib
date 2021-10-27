@@ -152,12 +152,12 @@ debugEventsHook' PropertyEvent         {ev_window    = w
   a' <- atomName a
   -- too many of these, and they're not real useful
   if a' == "_NET_WM_USER_TIME" then return () else do
-  windowEvent "Property on" w
-  s' <- case s of
-          1 -> return "deleted"
-          0 -> dumpProperty a a' w (7 + length a')
-          _ -> error "Illegal propState; Xlib corrupted?"
-  say "  atom" $ a' ++ s'
+    windowEvent "Property on" w
+    s' <- case s of
+            1 -> return "deleted"
+            0 -> dumpProperty a a' w (7 + length a')
+            _ -> error "Illegal propState; Xlib corrupted?"
+    say "  atom" $ a' ++ s'
 
 debugEventsHook' ExposeEvent           {ev_window = w
                                        } =
@@ -812,10 +812,10 @@ dumpUTF :: Decoder Bool
 dumpUTF =  do
   uTF8_STRING <- inX $ getAtom "UTF8_STRING"
   guardType uTF8_STRING $ guardSize 8 $ do
-  s <- gets value
-  modify (\r -> r {value = []})
-  append . show . decode . map fromIntegral $ s
-  return True
+    s <- gets value
+    modify (\r -> r {value = []})
+    append . show . decode . map fromIntegral $ s
+    return True
 
 -- dump an enumerated value using a translation table
 dumpEnum'        :: [String] -> Atom -> Decoder Bool
