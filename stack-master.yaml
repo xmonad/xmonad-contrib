@@ -1,7 +1,7 @@
 # This stack.yaml is used to build xmonad-contrib with master versions
 # of X11 and xmonad
 
-resolver: lts-17.14
+resolver: lts-18.14
 
 packages:
 - ./
