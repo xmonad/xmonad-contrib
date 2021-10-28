@@ -21,8 +21,10 @@
 -- Stability   :  unstable
 -- Portability :  portable
 --
--- This module documents the xmonad-contrib library and
--- how to use it to extend the capabilities of xmonad.
+-- This module documents the xmonad-contrib library and how to use it
+-- to extend the capabilities of xmonad.  If you're new to xmonad, you
+-- should first check out the <https://xmonad.org/TUTORIAL.html tutorial>
+-- and treat this document as supplemental reading.
 --
 -- Reading this document should not require a deep knowledge of
 -- Haskell; the examples are intended to be useful and understandable
@@ -37,9 +39,8 @@
 -- extensions (it's easier than it sounds, we promise!) should read
 -- the documentation in "XMonad.Doc.Developing".
 --
--- More configuration examples may be found on the Haskell wiki:
---
--- <http://haskell.org/haskellwiki/Xmonad/Config_archive>
+-- More configuration examples can be found
+-- <https://xmonad.org/TUTORIAL.html#closing-thoughts here>.
 --
 -----------------------------------------------------------------------------
 
