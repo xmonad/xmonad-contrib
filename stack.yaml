@@ -1,1 +1,24 @@
-stack-master.yaml
+# This stack.yaml is used to build xmonad-contrib with released versions
+# of X11 and xmonad
+
+resolver: lts-17.14
+
+packages:
+- ./
+
+extra-deps:
+- X11-1.10.2
+- xmonad-0.17.0
+
+nix:
+  packages:
+    - pkg-config
+    - xorg.libX11
+    - xorg.libXext
+    - xorg.libXft
+    - xorg.libXrandr
+    - xorg.libXrender
+    - xorg.libXScrnSaver
+
+ghc-options:
+  xmonad-contrib: '-j'
