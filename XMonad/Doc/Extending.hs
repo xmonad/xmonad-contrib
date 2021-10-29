@@ -65,11 +65,8 @@ module XMonad.Doc.Extending
     -- * Extending xmonad
     -- $extending
 
-    -- ** Editing key bindings
+    -- ** Adding key bindings
     -- $keys
-
-    -- *** Adding key bindings
-    -- $keyAdding
 
     -- *** Removing key bindings
     -- $keyDel
@@ -141,9 +138,6 @@ In the @XMonad.Actions@ namespace you can find modules exporting
 various functions that are usually intended to be bound to key
 combinations or mouse actions, in order to provide functionality
 beyond the standard keybindings provided by xmonad.
-
-See "XMonad.Doc.Extending#Editing_key_bindings" for instructions on how to
-edit your key bindings.
 
 -}
 
@@ -236,111 +230,158 @@ yourself.
 -}
 
 {- $keys
-#Editing_key_bindings#
 
-Editing key bindings means changing the 'XMonad.Core.XConfig.keys'
-field of the 'XMonad.Core.XConfig' record used by xmonad.  For
-example, you could write:
+In the
+<https://github.com/xmonad/xmonad/blob/master/TUTORIAL.md#customizing-xmonad customization section>
+of the tutorial we have seen how to add new keys to xmonad with the help
+of the 'XMonad.Util.EZConfig.additionalKeysP' function.  But how does
+that work?  Assuming that library didn't exist yet, could we write it
+ourselves?
 
->    import XMonad
+Let's concentrate on the easier case of trying to write our own
+'XMonad.Util.EZConfig.additionalKeys'.  This works exactly like its
+almost-namesake, but requires you to specify the keys in the "default"
+style—that is:
+
+> main :: IO ()
+> main = xmonad $ def
+>   `additionalKeys`
+>     [ ((mod1Mask, xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
+>     , ((mod1Mask, xK_BackSpace), spawn "xterm")
+>     ]
+
+The extra work that 'XMonad.Util.EZConfig.additionalKeysP' does is only
+in parsing the input string (turning @"M1-m"@ into @(mod1Mask, xK_m)@).
+As we have seen in the tutorial, is also allows one to write @M@ and
+have xmonad pick up on the correct modifier key to use—something which
+'XMonad.Util.EZConfig.additionalKeys' can't do.
+
+Editing key bindings means changing the 'XMonad.Core.keys' field of the
+'XMonad.Core.XConfig' record used by xmonad.  For example, to override
+/all/ of the default bindings with our own, we would write
+
+> import XMonad
+> import Data.Map (Map)
+> import qualified Data.Map as Map
 >
->    main = xmonad $ def { keys = myKeys }
+> main :: IO ()
+> main = xmonad $ def { keys = myKeys }
+>  where
+>   myKeys :: XConfig l -> Map (ButtonMask, KeySym) (X ())
+>   myKeys conf = Map.fromList
+>     [ ((mod1Mask    , xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
+>     , ((modMask conf, xK_BackSpace), spawn "xterm")
+>     ]
 
-and provide an appropriate definition of @myKeys@, such as:
+Now, obviously we don't want to do that; we only want to add to existing
+bindings (or, perhaps, override some of them with our own).  Let's break
+@myKeys@ down a little.  You can think of the type signature of @myKeys@
+(and hence also of @keys@) like this:
 
-> myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
->             [ ((modm, xK_F12), xmonadPrompt def)
->             , ((modm, xK_F3 ), shellPrompt  def)
->             ]
+>    myKeys :: UserConfig -> Map KeyPress Action
 
-This particular definition also requires importing "XMonad.Prompt",
-"XMonad.Prompt.Shell", "XMonad.Prompt.XMonad", and "Data.Map":
+It takes some user config and, from that, produces a map that associates
+certain keypresses with actions to execute.  The reason why it might
+take the user config may seem a bit mysterious at first, but it is for
+the simple reason that some keybindings (like the workspace switching
+ones) need access to the user config.  We have already seen this above
+when we queried @modMask conf@.  If it helps, think of this as a
+@Reader@ monad with the config being the read-only state.
 
-> import qualified Data.Map as M
-> import XMonad.Prompt
-> import XMonad.Prompt.Shell
-> import XMonad.Prompt.XMonad
+This means that, as a first guess, the type signature of our version of
+'XMonad.Util.EZConfig.additionalKeys' might look like
 
-For a list of the names of particular keys (such as xK_F12, and so
-on), see
-<http://hackage.haskell.org/packages/archive/X11/latest/doc/html/Graphics-X11-Types.html>
+> myAdditionalKeys :: XConfig l
+>                     -- ^ Base config with xmonad's default keybindings
+>                  -> (XConfig l -> Map (ButtonMask, KeySym) (X ()))
+>                     -- ^ User supplied keybindings
+>                  -> XConfig l
+>                     -- ^ Resulting config with everything merged together
 
-Usually, rather than completely redefining the key bindings, as we did
-above, we want to simply add some new bindings and\/or remove existing
-ones.
+However, even assuming a correct implementation, using this is not very
+ergonomic:
 
--}
+> main = xmonad $ def
+>  `myAdditionalKeys`
+>    (\conf -> Map.fromList
+>      [ ((mod1Mask    , xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
+>      , ((modMask conf, xK_BackSpace), spawn "xterm")
+>      ])
 
-{- $keyAdding
-#Adding_key_bindings#
+Having to specify a lambda with parentheses and call
+'Data.Map.Strict.fromList' does not make for a good user experience.
+Since one /always/ has to call that function anyways, we may well just
+accept a list from the user and transform it to a map ourselves.  As an
+additional simplification, how about we don't care about the config
+argument at all and simply ask the user for a list?  The resulting
+signature
 
-Adding key bindings can be done in different ways. See the end of this
-section for the easiest ways. The type signature of
-'XMonad.Core.XConfig.keys' is:
+> myAdditionalKeys :: XConfig l
+>                  -> [(ButtonMask, KeySym), (X ())]
+>                  -> XConfig l
 
->    keys :: XConfig Layout -> M.Map (ButtonMask,KeySym) (X ())
+looks exactly like what we want!  Note that this is also the time we
+lose the ability to automagically fill in the correct modifier key,
+since the input to @myAdditionalKeys@ is already structured data (as
+opposed to just some strings that need to be parsed).
 
-In order to add new key bindings, you need to first create an
-appropriate 'Data.Map.Map' from a list of key bindings using
-'Data.Map.fromList'.  This 'Data.Map.Map' of new key bindings then
-needs to be joined to a 'Data.Map.Map' of existing bindings using
-'Data.Map.union'.
+Now that we know what kind of data structure—that is, maps—we are
+dealing with, the implementation of this function simply merges the two
+together, preferring the user config to xmonad's defaults in case of any
+conflicts.  Thankfully, someone else has already done the hard work and
+written the merging function for us; it's called
+'Data.Map.Strict.union'.
 
-Since we are going to need some of the functions of the "Data.Map"
-module, before starting we must first import this modules:
+What's left is essentially playing "type tetris":
 
->    import qualified Data.Map as M
+> myAdditionalKeys baseConf keyList =
+>   let mergeKeylist conf = Map.fromList keyList `Map.union` (keys baseConf) conf
+>    in baseConf { keys = mergeKeylist }
 
+The function @mergeKeyList@ take some user config, transforms the custom
+keybindings into a map (@Map.fromList keyList@), gets the keys from the
+base config (remember @keys baseConf@ is again a function, morally of
+type @UserConfig -> Map KeyPress Action@, and so we have to apply @conf@
+to it in order to get a map!), and then merges these two maps together.
+Since @mergeKeylist@ now has exactly the right type signature, we can
+just set that as the keys.
 
-For instance, if you have defined some additional key bindings like
-these:
+If you like operators, 'Data.Monoid.<>' (or xmonad's alias for it,
+'XMonad.ManageHook.<+>') does exactly the same as the explicit usage of
+'Data.Map.Strict.union' because that's the specified binary operation in
+the 'Data.Monoid.Monoid' instance for 'Data.Map.Strict.Map'.  Note that
+the function works as expected (preferring user defined keys) because
+'Data.Map.union' is /left biased/, which means that if the same key is
+present in both maps it will prefer the associated value of the left
+map.
 
->    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
->             [ ((modm, xK_F12), xmonadPrompt def)
->             , ((modm, xK_F3 ), shellPrompt  def)
->             ]
+Our function now works as expected:
 
-then you can create a new key bindings map by joining the default one
-with yours:
+> main :: IO ()
+> main = xmonad $ def
+>   `myAdditionalKeys`
+>     [ ((mod1Mask, xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
+>     , ((mod1Mask, xK_BackSpace), spawn "xterm")
+>     ]
 
->    newKeys x  = myKeys x `M.union` keys def x
+Lastly, if you want you can also emulate the automatic modifier
+detection by 'XMonad.Util.EZConfig.additionalKeysP' by defining the bulk
+of your config as a separate function
 
-Finally, you can use @newKeys@ in the 'XMonad.Core.XConfig.keys' field
-of the configuration:
+> myConfig = def { modMask = mod4Mask }
 
->    main = xmonad $ def { keys = newKeys }
+and then using that information
 
-Alternatively, the '<+>' operator can be used which in this usage does exactly
-the same as the explicit usage of 'M.union' and propagation of the config
-argument, thanks to appropriate instances in "Data.Monoid".
+> main :: IO ()
+> main = xmonad $ myConfig
+>   `myAdditionalKeys`
+>     [ ((mod, xK_m        ), spawn "echo 'Hi, mom!' | dzen2 -p 4")
+>     , ((mod, xK_BackSpace), spawn "xterm")
+>     ]
+>  where mod = modMask myConfig
 
->    main = xmonad $ def { keys = myKeys <+> keys def }
-
-All together, your @~\/.xmonad\/xmonad.hs@ would now look like this:
-
-
->    module Main (main) where
->
->    import XMonad
->
->    import qualified Data.Map as M
->    import Graphics.X11.Xlib
->    import XMonad.Prompt
->    import XMonad.Prompt.Shell
->    import XMonad.Prompt.XMonad
->
->    main :: IO ()
->    main = xmonad $ def { keys = myKeys <+> keys def }
->
->    myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList
->             [ ((modm, xK_F12), xmonadPrompt def)
->             , ((modm, xK_F3 ), shellPrompt  def)
->             ]
-
-There are much simpler ways to accomplish this, however, if you are
-willing to use an extension module to help you configure your keys.
-For instance, "XMonad.Util.EZConfig" and "XMonad.Util.CustomKeys" both
-provide useful functions for editing your key bindings; "XMonad.Util.EZConfig" even lets you use emacs-style keybinding descriptions like \"M-C-<F12>\".
+Hopefully you now feel well equipped to write some small functions that
+extend xmonad an scratch a particular itch!
 
  -}
 
@@ -467,7 +508,7 @@ advanced feature of the Haskell programming language: type classes.
 This allows us to very easily write new layouts, combine or modify
 existing layouts, create layouts with internal state, etc. See
 "XMonad.Doc.Extending#The_LayoutClass" for more information. This
-means that we cannot simply have a list of layouts; a list requires
+means that we cannot simply have a list of layouts: a list requires
 every member to belong to the same type!
 
 Instead the combination of layouts to be used by xmonad is created
