@@ -21,23 +21,21 @@
 -- Stability   :  unstable
 -- Portability :  portable
 --
--- This module documents the xmonad-contrib library and how to use it
--- to extend the capabilities of xmonad.  If you're new to xmonad, you
--- should first check out the <https://xmonad.org/TUTORIAL.html tutorial>
--- and treat this document as supplemental reading.
+-- This module documents the xmonad-contrib library and guides you
+-- through some more advanced parts of extending the capabilities of
+-- xmonad.  If you're new to xmonad, you should first check out the
+-- <https://xmonad.org/TUTORIAL.html tutorial> and treat this document
+-- as supplemental reading.
 --
--- Reading this document should not require a deep knowledge of
--- Haskell; the examples are intended to be useful and understandable
--- for those users who do not know Haskell and don't want to have to
--- learn it just to configure xmonad.  You should be able to get by
--- just fine by ignoring anything you don't understand and using the
--- provided examples as templates.  However, relevant Haskell features
--- are discussed when appropriate, so this document will hopefully be
--- useful for more advanced Haskell users as well.
+-- Knowing Haskell is by no means a prerequisite for configuring xmonad
+-- and the tutorial emphasizes this.  This document, however, does
+-- assume a basic familiarity with the language.  This is so that we can
+-- dive a bit deeper into what the different hooks do, or how to write
+-- our own little functions to configure xmonad.
 --
 -- Those wishing to be totally hardcore and develop their own xmonad
--- extensions (it's easier than it sounds, we promise!) should read
--- the documentation in "XMonad.Doc.Developing".
+-- extensions (it's easier than it sounds, we promise!) should read the
+-- documentation in "XMonad.Doc.Developing".
 --
 -- More configuration examples can be found
 -- <https://xmonad.org/TUTORIAL.html#closing-thoughts here>.
@@ -100,10 +98,10 @@ module XMonad.Doc.Extending
 
 {- $library
 
-The xmonad-contrib (xmc) library is a set of extension modules
-contributed by xmonad hackers and users, which provide additional
-xmonad features.  Examples include various layout modes (tabbed,
-spiral, three-column...), prompts, program launchers, the ability to
+The xmonad-contrib library is a set of extension modules contributed
+by xmonad hackers and users that provide additional features to
+xmonad.  Examples include various layout modes (tabbed, spiral,
+three-column...), prompts, program launchers, the ability to
 manipulate windows and workspaces in various ways, alternate
 navigation modes, and much more.  There are also \"meta-modules\"
 which make it easier to write new modules and extensions.
@@ -155,23 +153,23 @@ In the @XMonad.Hooks@ namespace you can find modules exporting
 hooks. Hooks are actions that xmonad performs when certain events
 occur. The three most important hooks are:
 
-* 'XMonad.Core.manageHook': this hook is called when a new window
+* 'XMonad.Core.manageHook': this hook is called when a new window that
   xmonad must take care of is created. This is a very powerful hook,
   since it lets us examine the new window's properties and act
   accordingly. For instance, we can configure xmonad to put windows
   belonging to a given application in the float layer, not to manage
   dock applications, or open them in a given workspace. See
-  "XMonad.Doc.Extending#Editing_the_manage_hook" for more information on
-  customizing 'XMonad.Core.manageHook'.
+  "XMonad.Doc.Extending#Editing_the_manage_hook" for more information
+  on customizing 'XMonad.Core.manageHook'.
 
 * 'XMonad.Core.logHook': this hook is called when the stack of windows
-  managed by xmonad has been changed, by calling the
-  'XMonad.Operations.windows' function. For instance
+  managed by xmonad has been changed; for example, this is invoked at
+  the end of the 'XMonad.Operations.windows' function. For instance
   "XMonad.Hooks.DynamicLog" will produce a string (whose format can be
   configured) to be printed to the standard output. This can be used
   to display some information about the xmonad state in a status bar.
-  See "XMonad.Doc.Extending#The_log_hook_and_external_status_bars" for more
-  information.
+  See "XMonad.Doc.Extending#The_log_hook_and_external_status_bars" for
+  more information.
 
 * 'XMonad.Core.handleEventHook': this hook is called on all events handled
   by xmonad, thus it is extremely powerful. See "Graphics.X11.Xlib.Extras"
@@ -182,7 +180,7 @@ occur. The three most important hooks are:
 {- $layouts
 
 In the @XMonad.Layout@ namespace you can find modules exporting
-contributed tiling algorithms, such as a tabbed layout, a circle, a spiral,
+contributed layout algorithms, such as a tabbed layout, a circle, a spiral,
 three columns, and so on.
 
 You will also find modules which provide facilities for combining
@@ -205,8 +203,8 @@ In the @XMonad.Prompt@ name space you can find modules providing
 graphical prompts for getting user input and using it to perform
 various actions.
 
-The "XMonad.Prompt" provides a library for easily writing new prompt
-modules.
+The "XMonad.Prompt" module provides a library for easily writing new
+prompts.
 
 -}
 
@@ -349,13 +347,13 @@ provide useful functions for editing your key bindings; "XMonad.Util.EZConfig" e
 {- $keyDel
 #Removing_key_bindings#
 
-Removing key bindings requires modifying the 'Data.Map.Map' which
-stores the key bindings.  This can be done with 'Data.Map.difference'
-or with 'Data.Map.delete'.
+Removing key bindings requires modifying the 'Data.Map.Strict.Map' which
+stores the key bindings.  This can be done with 'Data.Map.difference' or
+with 'Data.Map.Strict.delete'.
 
 For example, suppose you want to get rid of @mod-q@ and @mod-shift-q@
-(you just want to leave xmonad running forever). To do this you need
-to define @newKeys@ as a 'Data.Map.difference' between the default
+(you just want to leave xmonad running forever). To do this you need to
+define @newKeys@ as a 'Data.Map.Strict.difference' between the default
 map and the map of the key bindings you want to remove.  Like so:
 
 >    newKeys x = keys def x `M.difference` keysToRemove x
@@ -371,8 +369,8 @@ keys listed in @keysToRemove@, so we just use @return ()@ (the
 \"null\" action).
 
 It is also possible to simply define a list of keys we want to unbind
-and then use 'Data.Map.delete' to remove them. In that case we would
-write something like:
+and then use 'Data.Map.Strict.delete' to remove them. In that case we
+would write something like:
 
 >    newKeys x = foldr M.delete (keys def x) (keysToRemove x)
 >
@@ -469,9 +467,8 @@ advanced feature of the Haskell programming language: type classes.
 This allows us to very easily write new layouts, combine or modify
 existing layouts, create layouts with internal state, etc. See
 "XMonad.Doc.Extending#The_LayoutClass" for more information. This
-means that we cannot simply have a list of layouts as we used to have
-before the 0.5 release: a list requires every member to belong to the
-same type!
+means that we cannot simply have a list of layouts; a list requires
+every member to belong to the same type!
 
 Instead the combination of layouts to be used by xmonad is created
 with a specific layout combinator: 'XMonad.Layout.|||'.
@@ -666,11 +663,11 @@ And then we can add @myManageHook@ to the default one to create
 One more thing to note about this system is that if
 a window matches multiple rules in a 'XMonad.Config.manageHook', /all/
 of the corresponding actions will be run (in the order in which they
-are defined).  This is a change from versions before 0.5, when only
-the first rule that matched was run.
+are defined).  An alternative version where only the first rule that
+matches is run is available as 'XMonad.Hooks.ManageHelpers.composeOne'.
 
-Finally, for additional rules and actions you can use in your
-manageHook, check out the contrib module "XMonad.Hooks.ManageHelpers".
+For additional rules and actions you can use in your manageHook, check
+out the contrib module "XMonad.Hooks.ManageHelpers".
 
 -}
 
