@@ -157,6 +157,11 @@
 
 ### New Modules
 
+  * `XMonad.Layout.CenteredIfSingle`
+
+    Layout modifier that, if only a single window is on screen, places that window
+    in the middle of the screen.
+
   * `XMonad.Layout.FixedAspectRatio`
 
     Layout modifier for user provided per-window aspect ratios.
