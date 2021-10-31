@@ -285,11 +285,7 @@ orderElementmap searchString elements = if not $ null searchString then sortedEl
 
 
 newtype TwoD a b = TwoD { unTwoD :: StateT (TwoDState a) X b }
-    deriving (Monad,Functor,MonadState (TwoDState a))
-
-instance Applicative (TwoD a) where
-    (<*>) = ap
-    pure = return
+    deriving (Functor, Applicative, Monad, MonadState (TwoDState a))
 
 liftX ::  X a1 -> TwoD a a1
 liftX = TwoD . lift
