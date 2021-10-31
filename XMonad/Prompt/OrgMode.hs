@@ -55,7 +55,8 @@ import XMonad (X, io)
 import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPrompt)
 import XMonad.Util.XSelection (getSelection)
 
-import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
+import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, fromGregorian, getCurrentTime, nominalDay, toGregorian)
+import Data.Time.Format.ISO8601 (iso8601Show)
 import System.Directory (getHomeDirectory)
 import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
 import Text.ParserCombinators.ReadP (ReadP, munch, munch1, readP_to_S, skipSpaces, string, (<++))
@@ -265,7 +266,7 @@ toOrgFmt tod day =
   mconcat ["<", isoDay, " ", take 3 $ show (dayOfWeek day), time, ">"]
  where
   time   :: String = maybe "" ((' ' :) . show) tod
-  isoDay :: String = formatTime defaultTimeLocale (iso8601DateFormat Nothing) day
+  isoDay :: String = iso8601Show day
 
 -- | Pretty print a 'Date' and an optional time to reflect the actual
 -- date.
