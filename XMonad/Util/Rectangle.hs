@@ -30,6 +30,7 @@ module XMonad.Util.Rectangle
     ) where
 
 import           XMonad
+import           XMonad.Prelude (fi)
 import qualified XMonad.StackSet as W
 
 import           Data.Ratio
@@ -202,6 +203,6 @@ center (Rectangle x y w h) = (cx,cy)
 -- RationalRect (1 % 5) (1 % 5) (3 % 5) (3 % 5)
 toRatio :: Rectangle -> Rectangle -> W.RationalRect
 toRatio (Rectangle x1 y1 w1 h1) (Rectangle x2 y2 w2 h2) =
-    let [x1n,y1n,x2n,y2n] = map fromIntegral [x1,y1,x2,y2]
-        [w1n,h1n,w2n,h2n] = map fromIntegral [w1,h1,w2,h2]
-    in  W.RationalRect ((x1n-x2n)/w2n) ((y1n-y2n)/h2n) (w1n/w2n) (h1n/h2n)
+    W.RationalRect ((fi x1 - fi x2) / fi w2)
+                   ((fi y1 - fi y2) / fi h2)
+                   (fi w1 / fi w2) (fi h1 / fi h2)

@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ParallelListComp, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards, ParallelListComp, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ViewPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
@@ -211,7 +211,7 @@ defaultSublMap XConfig{ modMask = modm } = M.fromList
          ]
         where
          -- should these go into XMonad.StackSet?
-         focusMaster' st = let (f:fs) = W.integrate st
+         focusMaster' st = let (notEmpty -> f :| fs) = W.integrate st
             in W.Stack f [] fs
          swapMaster' (W.Stack f u d) = W.Stack f [] $ reverse u ++ d
 
@@ -444,7 +444,7 @@ fromGroupStack = M.fromList . map (W.focus &&& id) . W.integrate
 -- outdated) Groups.
 toGroupStack :: (Ord a) => Groups a -> W.Stack a -> GroupStack a
 toGroupStack gs st@(W.Stack f ls rs) =
-    W.Stack (let Just f' = lu f in f') (mapMaybe lu ls) (mapMaybe lu rs)
+    W.Stack (fromJust (lu f)) (mapMaybe lu ls) (mapMaybe lu rs)
   where
     wset = S.fromList (W.integrate st)
     dead = W.filter (`S.member` wset) -- drop dead windows or entire groups

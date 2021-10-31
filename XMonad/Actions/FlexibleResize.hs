@@ -55,7 +55,10 @@ mouseResizeEdgeWindow edge w = whenX (isClient w) $ withDisplay $ \d -> do
     sh <- io $ getWMNormalHints d w
     (_, _, _, _, _, ix, iy, _) <- io $ queryPointer d w
     let
-        [pos_x, pos_y, width, height] = map (fi . ($ wa)) [wa_x, wa_y, wa_width, wa_height]
+        pos_x  = fi $ wa_x wa
+        pos_y  = fi $ wa_y wa
+        width  = fi $ wa_width wa
+        height = fi $ wa_height wa
         west  = findPos ix width
         north = findPos iy height
         (cx, fx, gx) = mkSel west  width  pos_x

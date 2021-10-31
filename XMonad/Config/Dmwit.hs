@@ -1,5 +1,5 @@
 -- boilerplate {{{
-{-# LANGUAGE ExistentialQuantification, NoMonomorphismRestriction, TypeSynonymInstances #-}
+{-# LANGUAGE ExistentialQuantification, NoMonomorphismRestriction, TypeSynonymInstances, ViewPatterns, LambdaCase #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 -----------------------------------------------------------------------------
 -- |
@@ -78,7 +78,7 @@ modVolume kind n = do
     where
     sign | n > 0 = "+" | otherwise = "-"
     ctlKind      = map (\c -> if c == ' ' then '-' else c) kind
-    parseKind    = unwords . map (\(c:cs) -> toUpper c : cs) . words $ kind
+    parseKind    = unwords . map (\(notEmpty -> c :| cs) -> toUpper c : cs) . words $ kind
     setCommand i = "pactl set-" ++ ctlKind ++ "-volume " ++ i ++ " -- " ++ sign ++ show (abs n) ++ "%"
     listCommand  = "pactl list " ++ ctlKind ++ "s"
 -- }}}
@@ -308,7 +308,7 @@ allPPs nScreens = sequence_ [dynamicLogWithPP (pp s) | s <- [0..nScreens-1], pp 
 color c = xmobarColor c ""
 
 ppFocus s@(S s_) = whenCurrentOn s def {
-    ppOrder  = \(_:_:windowTitle:_) -> [windowTitle],
+    ppOrder  = \case{ _:_:windowTitle:_ -> [windowTitle]; _ -> [] },
     ppOutput = appendFile (pipeName "focus" s_) . (++ "\n")
     }
 
@@ -318,7 +318,7 @@ ppWorkspaces s@(S s_) = marshallPP s def {
     ppHiddenNoWindows   = color dark,
     ppUrgent            = color "red",
     ppSep               = "",
-    ppOrder             = \(wss:_layout:_title:_) -> [wss],
+    ppOrder             = \case{ wss:_layout:_title:_ -> [wss]; _ -> [] },
     ppOutput            = appendFile (pipeName "workspaces" s_) . (++"\n")
     }
 -- }}}

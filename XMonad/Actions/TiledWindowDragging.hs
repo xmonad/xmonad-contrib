@@ -85,7 +85,7 @@ performWindowSwitching win = do
     let allWindows = W.index ws
     when ((win `elem` allWindows) && (selWin `elem` allWindows)) $ do
         let allWindowsSwitched = map (switchEntries win selWin) allWindows
-        let (ls, t : rs)       = break (== win) allWindowsSwitched
+        (ls, t : rs)          <- pure $ break (== win) allWindowsSwitched
         let newStack           = W.Stack t (reverse ls) rs
         windows $ W.modify' $ const newStack
    where

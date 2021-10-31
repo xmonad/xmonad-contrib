@@ -317,7 +317,7 @@ handleMouseFocusDrag ds (DS dwrs _) ButtonEvent { ev_window     = ew
                                                 , ev_y_root     = ey }
     | et == buttonPress
     , Just ((mainw,r), (_, decoRectM)) <- lookFor ew dwrs = do
-        let Just (Rectangle dx _ dwh _) = decoRectM
+        let Rectangle dx _ dwh _ = fromJust decoRectM
             distFromLeft = ex - fi dx
             distFromRight = fi dwh - (ex - fi dx)
         dealtWith <- decorationCatchClicksHook ds mainw (fi distFromLeft) (fi distFromRight)

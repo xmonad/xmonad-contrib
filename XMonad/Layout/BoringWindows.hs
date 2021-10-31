@@ -37,8 +37,9 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
                                     LayoutModifier(handleMessOrMaybeModifyIt, redoLayout))
 import XMonad(LayoutClass, Message, X, fromMessage,
               broadcastMessage, sendMessage, windows, withFocused, Window)
-import XMonad.Prelude (find, fromMaybe, listToMaybe, maybeToList, union, (\\))
+import XMonad.Prelude
 import XMonad.Util.Stack (reverseS)
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 import qualified XMonad.StackSet as W
 
@@ -168,7 +169,7 @@ instance LayoutModifier BoringWindows Window where
 -- 'Stack' rather than an entire 'StackSet'.
 focusMaster' :: W.Stack a -> W.Stack a
 focusMaster' c@(W.Stack _ [] _) = c
-focusMaster' (W.Stack t ls rs) = W.Stack x [] (xs ++ t : rs) where (x:xs) = reverse ls
+focusMaster' (W.Stack t (l:ls) rs) = W.Stack x [] (xs ++ t : rs) where (x :| xs) = NE.reverse (l :| ls)
 
 swapUp' :: W.Stack a -> W.Stack a
 swapUp' (W.Stack t (l:ls) rs) = W.Stack t ls (l:rs)

@@ -432,7 +432,8 @@ resizeSplit dir (xsc,ysc) z = case goToBorder dir z of
     U -> (t{value=sp{ratio=1-scaleRatio (1-ratio sp) ysc}}, crumb)
     where sp = value t
           scaleRatio r fac = min 0.9 $ max 0.1 $ r*fac
-  Just (Leaf{}, _) -> undefined
+  Just (Leaf{}, _) ->
+    undefined -- silence -Wincomplete-uni-patterns (goToBorder/goUp never return a Leaf)
 
 -- starting from a leaf, go to node representing a border of the according window
 goToBorder :: Direction2D -> Zipper Split -> Maybe (Zipper Split)

@@ -79,17 +79,11 @@ gauge :: (Direction2D -> X ()) -> Pos -> IORef (Maybe (Direction2D, Pos)) -> Pos
 gauge hook op st nx ny = do
     let np = (nx, ny)
     stx <- io $ readIORef st
-    let
-        (~(Just od), pivot) = case stx of
-            Nothing -> (Nothing, op)
-            Just (d, zp) -> (Just d, zp)
-        cont = do
-            guard $ significant np pivot
-            return $ do
-                let d' = dir pivot np
-                when (isNothing stx || od /= d') $ hook d'
-                io $ writeIORef st (Just (d', np))
-    fromMaybe (return ()) cont
+    let pivot = maybe op snd stx
+    when (significant np pivot) $ do
+        let d' = dir pivot np
+        when ((fst <$> stx) /= Just d') $ hook d'
+        io $ writeIORef st (Just (d', np))
     where
     significant a b = delta a b >= 10
 

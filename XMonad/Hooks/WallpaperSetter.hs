@@ -183,9 +183,8 @@ getPicPathsAndWSRects wpconf = do
   visws <- getVisibleWorkspaces
   let visscr = S.current winset : S.visible winset
       visrects = M.fromList $ map (\x -> ((S.tag . S.workspace) x, S.screenDetail x)) visscr
-      hasPicAndIsVisible (n, mp) = n `elem` visws && isJust mp
       getRect tag = screenRect $ fromJust $ M.lookup tag visrects
-      foundpaths = map (\(n,Just p)->(getRect n,p)) $ filter hasPicAndIsVisible paths
+      foundpaths = [ (getRect n, p) | (n, Just p) <- paths, n `elem` visws ]
   return foundpaths
   where getPicPaths = mapM (\(x,y) -> getPicPath wpconf y
                              >>= \p -> return (x,p)) wl

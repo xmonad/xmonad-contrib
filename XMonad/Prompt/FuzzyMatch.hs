@@ -20,6 +20,7 @@ module XMonad.Prompt.FuzzyMatch ( -- * Usage
                                 ) where
 
 import XMonad.Prelude
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
@@ -84,12 +85,12 @@ rankMatch q s = (if null matches then (maxBound, maxBound) else minimum matches,
 
 rankMatches :: String -> String -> [(Int, Int)]
 rankMatches [] _ = [(0, 0)]
-rankMatches q  s = map (\(l, r) -> (r - l, l)) $ findShortestMatches q s
+rankMatches (q:qs) s = map (\(l, r) -> (r - l, l)) $ findShortestMatches (q :| qs) s
 
-findShortestMatches :: String -> String -> [(Int, Int)]
+findShortestMatches :: NonEmpty Char -> String -> [(Int, Int)]
 findShortestMatches q s = foldl' extendMatches spans oss
-  where (os:oss) = map (findOccurrences s) q
-        spans    = [(o, o) | o <- os]
+  where (os :| oss) = NE.map (findOccurrences s) q
+        spans       = [(o, o) | o <- os]
 
 findOccurrences :: String -> Char -> [Int]
 findOccurrences s c = map snd $ filter ((toLower c ==) . toLower . fst) $ zip s [0..]

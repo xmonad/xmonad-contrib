@@ -18,6 +18,8 @@ module XMonad.Prelude (
     chunksOf,
     (.:),
     (!?),
+    NonEmpty((:|)),
+    notEmpty,
 ) where
 
 import Control.Applicative as Exports
@@ -31,6 +33,9 @@ import Data.List           as Exports
 import Data.Maybe          as Exports
 import Data.Monoid         as Exports
 import Data.Traversable    as Exports
+
+import Data.List.NonEmpty (NonEmpty((:|)))
+import GHC.Stack
 
 -- | Short for 'fromIntegral'.
 fi :: (Integral a, Num b) => a -> b
@@ -55,3 +60,11 @@ chunksOf i xs = chunk : chunksOf i rest
 -- > f .: g ≡ (f .) . g ≡ \c d -> f (g c d)
 (.:) :: (a -> b) -> (c -> d -> a) -> c -> d -> b
 (.:) = (.) . (.)
+
+-- | 'Data.List.NonEmpty.fromList' with a better error message. Useful to
+-- silence GHC's Pattern match(es) are non-exhaustive warning in places where
+-- the programmer knows it's always non-empty, but it's infeasible to express
+-- that in the type system.
+notEmpty :: HasCallStack => [a] -> NonEmpty a
+notEmpty [] = error "unexpected empty list"
+notEmpty (x:xs) = x :| xs

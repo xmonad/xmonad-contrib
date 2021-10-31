@@ -330,8 +330,7 @@ borderIncrementBy i (Border t b r l) =
     let bl = [t,b,r,l]
         o  = maximum bl
         o' = max i $ negate o
-        [t',b',r',l'] = map (+o') bl
-    in  Border t' b' r' l'
+    in  Border (t + o') (b + o') (r + o') (l + o')
 
 -- | Interface to 'XMonad.Util.Rectangle.withBorder'.
 withBorder' :: Border -> Integer -> Rectangle -> Rectangle

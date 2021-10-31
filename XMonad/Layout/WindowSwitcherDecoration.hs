@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, ViewPatterns #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowSwitcherDecoration
@@ -129,7 +129,7 @@ performWindowSwitching win =
        -- do a little double check to be sure
        when ((win `elem` allWindows) && (selWin `elem` allWindows)) $ do
                 let allWindowsSwitched = map (switchEntries win selWin) allWindows
-                let (ls, t:rs) = break (win ==) allWindowsSwitched
+                let (ls, notEmpty -> t :| rs) = break (win ==) allWindowsSwitched
                 let newStack = S.Stack t (reverse ls) rs
                 windows $ S.modify' $ const newStack
     where

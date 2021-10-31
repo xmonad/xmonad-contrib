@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 --------------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.CycleWindows
@@ -53,7 +55,9 @@ module XMonad.Actions.CycleWindows (
 ) where
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
+import qualified Data.List.NonEmpty as NE
 import XMonad.Actions.RotSlaves
 
 import Control.Arrow (second)
@@ -179,7 +183,7 @@ rotOpposite' :: W.Stack a -> W.Stack a
 rotOpposite' (W.Stack t l r) = W.Stack t' l' r'
   where rrvl = r ++ reverse l
         part = (length rrvl + 1) `div` 2
-        (l',t':r') =  second reverse . splitAt (length l) $
+        (l', notEmpty -> t' :| r') = second reverse . splitAt (length l) $
                                 reverse (take part rrvl ++ t : drop part rrvl)
 
 
@@ -205,7 +209,7 @@ rotFocusedDown = windows . W.modify' $ rotFocused' rotDown
 rotFocused' :: ([a] -> [a]) -> W.Stack a -> W.Stack a
 rotFocused' _ s@(W.Stack _ [] []) = s
 rotFocused' f   (W.Stack t [] (r:rs)) = W.Stack t' [] (r:rs') -- Master has focus
-    where (t':rs') = f (t:rs)
+    where (notEmpty -> t' :| rs') = f (t:rs)
 rotFocused' f s@W.Stack{} = rotSlaves' f s                    -- otherwise
 
 
@@ -223,7 +227,7 @@ rotUnfocused' :: ([a] -> [a]) -> W.Stack a -> W.Stack a
 rotUnfocused' _ s@(W.Stack _ [] []) = s
 rotUnfocused' f s@(W.Stack _ [] _ ) = rotSlaves' f s                 -- Master has focus
 rotUnfocused' f   (W.Stack t ls rs) = W.Stack t (reverse revls') rs' -- otherwise
-    where  (master:revls)  = reverse ls
+    where  (master :| revls) = NE.reverse (let l:ll = ls in l :| ll)
            (revls',rs') = splitAt (length ls) (f $ master:revls ++ rs)
 
 -- $generic

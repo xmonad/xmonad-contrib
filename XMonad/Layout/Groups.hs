@@ -197,16 +197,16 @@ instance Message GroupsMessage
 
 modifyGroups :: (Zipper (Group l a) -> Zipper (Group l a))
              -> Groups l l2 a -> Groups l l2 a
-modifyGroups f g = let (seed', id:_) = gen (seed g)
-                       defaultGroups = fromJust $ singletonZ $ G (ID id $ baseLayout g) emptyZ
+modifyGroups f g = let (seed', ids) = gen (seed g)
+                       defaultGroups = fromJust $ singletonZ $ G (ID (head ids) $ baseLayout g) emptyZ
                    in g { groups = fromMaybe defaultGroups . f . Just $ groups g
                         , seed = seed' }
 
 modifyGroupsX :: (Zipper (Group l a) -> X (Zipper (Group l a)))
               -> Groups l l2 a -> X (Groups l l2 a)
 modifyGroupsX f g = do
-  let (seed', id:_) = gen (seed g)
-      defaultGroups = fromJust $ singletonZ $ G (ID id $ baseLayout g) emptyZ
+  let (seed', ids) = gen (seed g)
+      defaultGroups = fromJust $ singletonZ $ G (ID (head ids) $ baseLayout g) emptyZ
   g' <- f . Just $ groups g
   return g { groups = fromMaybe defaultGroups g', seed = seed' }
 
@@ -218,12 +218,12 @@ modifyGroupsX f g = do
 -- other stack changes as gracefully as possible.
 readapt :: Eq a => Zipper a -> Groups l l2 a -> Groups l l2 a
 readapt z g = let mf = getFocusZ z
-                  (seed', id:_) = gen $ seed g
+                  (seed', ids) = gen $ seed g
                   g' = g { seed = seed' }
               in flip modifyGroups g' $ mapZ_ (onZipper $ removeDeleted z)
                                         >>> filterKeepLast (isJust . gZipper)
                                         >>> findNewWindows (W.integrate' z)
-                                        >>> addWindows (ID id $ baseLayout g)
+                                        >>> addWindows (ID (head ids) $ baseLayout g)
                                         >>> focusGroup mf
                                         >>> onFocusedZ (onZipper $ focusWindow mf)
     where filterKeepLast _ Nothing = Nothing
@@ -379,10 +379,10 @@ type ModifySpecX = forall l. WithID l Window
 -- | Apply a ModifySpec.
 applySpec :: ModifySpec -> Groups l l2 Window -> Maybe (Groups l l2 Window)
 applySpec f g =
-    let (seed', id:ids) =  gen $ seed g
-        g' = flip modifyGroups g $ f (ID id $ baseLayout g)
+    let (seed', ids) =  gen $ seed g
+        g' = flip modifyGroups g $ f (ID (head ids) $ baseLayout g)
                                    >>> toTags
-                                   >>> foldr (reID g) ((ids, []), [])
+                                   >>> foldr (reID g) ((tail ids, []), [])
                                    >>> snd
                                    >>> fromTags
     in if groups g == groups g'
@@ -391,10 +391,10 @@ applySpec f g =
 
 applySpecX :: ModifySpecX -> Groups l l2 Window -> X (Maybe (Groups l l2 Window))
 applySpecX f g = do
-    let (seed', id:ids) = gen $ seed g
-    g' <- flip modifyGroupsX g $ f (ID id $ baseLayout g)
+    let (seed', ids) = gen $ seed g
+    g' <- flip modifyGroupsX g $ f (ID (head ids) $ baseLayout g)
                                 >>> fmap toTags
-                                >>> fmap (foldr (reID g) ((ids, []), []))
+                                >>> fmap (foldr (reID g) ((tail ids, []), []))
                                 >>> fmap snd
                                 >>> fmap fromTags
     return $ if groups g == groups g'

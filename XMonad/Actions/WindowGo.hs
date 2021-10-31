@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 {- |
 Module      :  XMonad.Actions.WindowGo
 Description :  Operations for raising (traveling to) windows.
@@ -158,8 +160,10 @@ raiseNextMaybeCustomFocus :: (Window -> WindowSet -> WindowSet) -> X() -> Query 
 raiseNextMaybeCustomFocus focusFn f qry = flip (ifWindows qry) f $ \ws -> do
   foc <- withWindowSet $ return . W.peek
   case foc of
-    Just w | w `elem` ws -> let (_:y:_) = dropWhile (/=w) $ cycle ws -- cannot fail to match
-                            in windows $ focusFn y
+    Just w | w `elem` ws ->
+        let (notEmpty -> _ :| (notEmpty -> y :| _)) = dropWhile (/=w) $ cycle ws
+            -- cannot fail to match
+        in windows $ focusFn y
     _ -> windows . focusFn . head $ ws
 
 -- | Given a function which gets us a String, we try to raise a window with that classname,
