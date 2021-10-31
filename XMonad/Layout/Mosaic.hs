@@ -190,14 +190,13 @@ instance Functor Tree where
    fmap f (Branch l r) = Branch (fmap f l) (fmap f r)
    fmap _ Empty = Empty
 
+instance Semigroup (Tree a) where
+    Empty <> x = x
+    x <> Empty = x
+    x <> y = Branch x y
+
 instance Monoid (Tree a) where
     mempty = Empty
-    mappend Empty x = x
-    mappend x Empty = x
-    mappend x y = Branch x y
-
-instance Semigroup (Tree a) where
-    (<>) = mappend
 
 makeTree ::  (Num a1, Ord a1) => (a -> a1) -> [a] -> Tree a
 makeTree _ [] = Empty

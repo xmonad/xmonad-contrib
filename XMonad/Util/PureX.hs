@@ -115,7 +115,6 @@ instance Semigroup a => Semigroup (PureX a) where
   (<>) = liftA2 (<>)
 
 instance Monoid a => Monoid (PureX a) where
-  mappend = liftA2 mappend
   mempty  = return mempty
 
 -- | The @XLike@ typeclass over monads reading @XConf@ values and tracking

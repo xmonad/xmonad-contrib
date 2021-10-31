@@ -74,13 +74,12 @@ data Wallpaper = WallpaperFix FilePath -- ^ Single, fixed wallpaper
 newtype WallpaperList = WallpaperList [(WorkspaceId, Wallpaper)]
   deriving (Show,Read)
 
-instance Monoid WallpaperList where
-  mempty = WallpaperList []
-  mappend (WallpaperList w1) (WallpaperList w2) =
+instance Semigroup WallpaperList where
+  WallpaperList w1 <> WallpaperList w2 =
     WallpaperList $ M.toList $ M.fromList w2 `M.union` M.fromList w1
 
-instance Semigroup WallpaperList where
-  (<>) = mappend
+instance Monoid WallpaperList where
+  mempty = WallpaperList []
 
 -- | Complete wallpaper configuration passed to the hook
 data WallpaperConf = WallpaperConf {

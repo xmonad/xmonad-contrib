@@ -373,7 +373,6 @@ instance Semigroup a => Semigroup (FocusQuery a) where
     (<>)            = liftM2 (<>)
 instance Monoid a => Monoid (FocusQuery a) where
     mempty          = return mempty
-    mappend         = (<>)
 
 runFocusQuery :: FocusQuery a -> Focus -> Query a
 runFocusQuery (FocusQuery m)    = runReaderT m
