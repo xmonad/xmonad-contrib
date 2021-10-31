@@ -6,6 +6,11 @@
 
 ### New Modules
 
+  * `XMonad.Layout.CenteredIfSingle`
+
+    Layout modifier that, if only a single window is on screen, places that window
+    in the middle of the screen.
+
 ### Bug Fixes and Minor Changes
 
 ## 0.17.0 (October 27, 2021)
@@ -156,11 +161,6 @@
     - Added `github` search engine.
 
 ### New Modules
-
-  * `XMonad.Layout.CenteredIfSingle`
-
-    Layout modifier that, if only a single window is on screen, places that window
-    in the middle of the screen.
 
   * `XMonad.Layout.FixedAspectRatio`
 
