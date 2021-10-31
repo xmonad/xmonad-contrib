@@ -33,7 +33,7 @@ cabal-version:      1.12
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with:        GHC == 8.4.4 || == 8.6.5 || == 8.8.4 || == 8.10.4 || == 9.0.1
+tested-with:        GHC == 8.4.4 || == 8.6.5 || == 8.8.4 || == 8.10.4 || == 9.0.1 || == 9.2.1
 
 source-repository head
   type:     git
