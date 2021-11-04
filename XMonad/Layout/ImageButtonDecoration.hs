@@ -177,5 +177,5 @@ newtype ImageButtonDecoration a = NFD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle ImageButtonDecoration a where
     describeDeco _ = "ImageButtonDeco"
-    decorationCatchClicksHook _ mainw dFL dFR = imageTitleBarButtonHandler mainw dFL dFR
+    decorationCatchClicksHook _ = imageTitleBarButtonHandler
     decorationAfterDraggingHook _ (mainw, _) decoWin = focus mainw >> handleScreenCrossing mainw decoWin >> return ()

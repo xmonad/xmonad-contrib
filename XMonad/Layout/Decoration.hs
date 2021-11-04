@@ -152,7 +152,7 @@ class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
 
     -- | The description that the 'Decoration' modifier will display.
     describeDeco :: ds a -> String
-    describeDeco ds = show ds
+    describeDeco = show
 
     -- | Shrink the window's rectangle when applying a decoration.
     shrink :: ds a -> Rectangle -> Rectangle -> Rectangle
@@ -160,7 +160,7 @@ class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
 
     -- | The decoration event hook
     decorationEventHook :: ds a -> DecorationState -> Event -> X ()
-    decorationEventHook ds s e = handleMouseFocusDrag ds s e
+    decorationEventHook = handleMouseFocusDrag
 
     -- | A hook that can be used to catch the cases when the user
     -- clicks on the decoration. If you return True here, the click event
@@ -176,7 +176,7 @@ class (Read (ds a), Show (ds a), Eq a) => DecorationStyle ds a where
     -- The hook can be overwritten if a different way of handling the dragging
     -- is required.
     decorationWhileDraggingHook :: ds a -> CInt -> CInt -> (Window, Rectangle) -> Position -> Position -> X ()
-    decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleDraggingInProgress ex ey (mainw, r) x y
+    decorationWhileDraggingHook _ = handleDraggingInProgress
 
     -- | This hoook is called after a window has been dragged using the decoration.
     decorationAfterDraggingHook :: ds a -> (Window, Rectangle) -> Window -> X ()

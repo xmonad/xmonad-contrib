@@ -194,7 +194,7 @@ bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $
             fullscreen = tilingDeco $ maximize $ smartBorders Full
 
             tilingDeco l = windowSwitcherDecorationWithButtons shrinkText defaultThemeWithButtons (draggingVisualizer l)
-            floatingDeco l = buttonDeco shrinkText defaultThemeWithButtons l
+            floatingDeco = buttonDeco shrinkText defaultThemeWithButtons
 
 bluetileConfig =
     docks . ewmhFullscreen . ewmh $

@@ -53,5 +53,5 @@ newtype ButtonDecoration a = NFD Bool deriving (Show, Read)
 
 instance Eq a => DecorationStyle ButtonDecoration a where
     describeDeco _ = "ButtonDeco"
-    decorationCatchClicksHook _ mainw dFL dFR = titleBarButtonHandler mainw dFL dFR
+    decorationCatchClicksHook _ = titleBarButtonHandler
     decorationAfterDraggingHook _ (mainw, _) decoWin = focus mainw >> handleScreenCrossing mainw decoWin >> return ()

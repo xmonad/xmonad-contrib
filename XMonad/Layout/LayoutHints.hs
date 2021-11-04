@@ -164,7 +164,7 @@ applyHints s root (((w,lrect@(Rectangle a b c d)),adj):xs) =
                     $ if isInStack s w then Rectangle a b c' d' else lrect
 
             ds = (fromIntegral c - fromIntegral c',fromIntegral d - fromIntegral d')
-            growOther' r = growOther ds lrect (freeDirs root lrect) r
+            growOther' = growOther ds lrect (freeDirs root lrect)
             mapSnd f = map (first $ second f)
             next = applyHints s root $ mapSnd growOther' xs
         in (w,redr):next

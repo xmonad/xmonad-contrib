@@ -107,7 +107,7 @@ class (Show (m a), Read (m a)) => LayoutModifier m a where
                  -> Workspace WorkspaceId (l a) a   -- ^ current workspace
                  -> Rectangle                       -- ^ screen rectangle
                  -> X ([(a, Rectangle)], Maybe (l a))
-    modifyLayout _ w r = runLayout w r
+    modifyLayout _ = runLayout
 
     -- | Similar to 'modifyLayout', but this function also allows you
     -- update the state of your layout modifier(the second value in the

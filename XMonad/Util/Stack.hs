@@ -162,20 +162,20 @@ focusUpZ :: Zipper a -> Zipper a
 focusUpZ Nothing = Nothing
 focusUpZ (Just s) | u:up <- W.up s = Just $ W.Stack u up (W.focus s:W.down s)
 focusUpZ (Just s) | null $ W.down s = Just s
-focusUpZ (Just (W.Stack f _ down)) = Just $ W.Stack (last down) (reverse (init down) ++ [f]) []
+focusUpZ (Just (W.Stack f _ down)) = Just $ W.Stack (last down) (tail (reverse down) ++ [f]) []
 
 -- | Move the focus to the next element
 focusDownZ :: Zipper a -> Zipper a
 focusDownZ Nothing = Nothing
 focusDownZ (Just s) | d:down <- W.down s = Just $ W.Stack d (W.focus s:W.up s) down
 focusDownZ (Just s) | null $ W.up s = Just s
-focusDownZ (Just (W.Stack f up _)) = Just $ W.Stack (last up) [] (reverse (init up) ++ [f])
+focusDownZ (Just (W.Stack f up _)) = Just $ W.Stack (last up) [] (tail (reverse up) ++ [f])
 
 -- | Move the focus to the first element
 focusMasterZ :: Zipper a -> Zipper a
 focusMasterZ Nothing = Nothing
 focusMasterZ (Just (W.Stack f up down)) | not $ null up
-    = Just $ W.Stack (last up) [] (reverse (init up) ++ [f] ++ down)
+    = Just $ W.Stack (last up) [] (tail (reverse up) ++ [f] ++ down)
 focusMasterZ (Just s) = Just s
 
 -- | Refocus a @Stack a@ on an element satisfying the predicate, or fail to
@@ -284,7 +284,7 @@ deleteFocusedZ = filterZ (\b _ -> not b)
 -- | Delete the ith element
 deleteIndexZ :: Int -> Zipper a -> Zipper a
 deleteIndexZ i z = let numbered = (fromTags . zipWith number [0..] . toTags) z
-                       number j ea = mapE (\_ a -> (j,a)) ea
+                       number j = mapE (\_ a -> (j,a))
                    in mapZ_ snd $ filterZ_ ((/=i) . fst) numbered
 
 -- ** Folds

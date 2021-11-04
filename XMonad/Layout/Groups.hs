@@ -239,7 +239,7 @@ removeDeleted z = filterZ_ (`elemZ` z)
 findNewWindows :: Eq a => [a] -> Zipper (Group l a)
                -> (Zipper (Group l a), [a])
 findNewWindows as gs = (gs, foldrZ_ removePresent as gs)
-    where removePresent g as' = filter (not . flip elemZ (gZipper g)) as'
+    where removePresent g = filter (not . flip elemZ (gZipper g))
 
 -- | Add windows to the focused group. If you need to create one,
 -- use the given layout and an id from the given list.

@@ -62,7 +62,7 @@ type ExtensionActions = M.Map String (String -> X())
 instance XPrompt CalculatorMode where
   showXPrompt CalcMode = "calc %s> "
   commandToComplete CalcMode = id --send the whole string to `calc`
-  completionFunction CalcMode = \s -> if null s then return [] else
+  completionFunction CalcMode s = if null s then return [] else
     lines <$> runProcessWithInput "calc" [s] ""
   modeAction CalcMode _ _ = return () -- do nothing; this might copy the result to the clipboard
 
@@ -70,7 +70,7 @@ instance XPrompt CalculatorMode where
 instance XPrompt HoogleMode where
   showXPrompt _ = "hoogle %s> "
   commandToComplete _ = id
-  completionFunction (HMode pathToHoogleBin' _) = \s -> completionFunctionWith pathToHoogleBin' ["--count","8",s]
+  completionFunction (HMode pathToHoogleBin' _) s = completionFunctionWith pathToHoogleBin' ["--count","8",s]
   -- This action calls hoogle again to find the URL corresponding to the autocompleted item
   modeAction (HMode pathToHoogleBin'' browser') query result = do
     completionsWithLink <- liftIO $ completionFunctionWith pathToHoogleBin'' ["--count","5","--link",query]
