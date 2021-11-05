@@ -38,7 +38,7 @@ import qualified XMonad.StackSet as W
 --
 -- > import XMonad.Hooks.TaffybarPagerHints (pagerHints)
 -- >
--- > main = xmonad $ ewmh $ pagerHints $ defaultConfig
+-- > main = xmonad $ ewmh $ pagerHints $ def
 -- > ...
 
 -- | The \"Current Layout\" custom hint.
