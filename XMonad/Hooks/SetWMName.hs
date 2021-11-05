@@ -69,7 +69,7 @@ setWMName name = do
         changeProperty32 dpy root atom_NET_SUPPORTED_ATOM aTOM propModeReplace (nub $ fromIntegral atom_NET_SUPPORTING_WM_CHECK : fromIntegral atom_NET_WM_NAME : supportedList)
   where
     latin1StringToCCharList :: String -> [CChar]
-    latin1StringToCCharList str = map (fromIntegral . ord) str
+    latin1StringToCCharList = map (fromIntegral . ord)
 
 netSupportingWMCheckAtom :: X Atom
 netSupportingWMCheckAtom = getAtom "_NET_SUPPORTING_WM_CHECK"

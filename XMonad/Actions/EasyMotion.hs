@@ -296,7 +296,7 @@ handleSelectWindow c = do
   allKeys (PerScreenKeys m) = concat $ M.elems m
 
   buildOverlays :: [KeySym] -> [OverlayWindow] -> [Overlay]
-  buildOverlays ks = appendChords (maxChordLen c) ks
+  buildOverlays = appendChords (maxChordLen c)
 
   buildOverlayWindows :: Display -> Position -> [Window] -> X [OverlayWindow]
   buildOverlayWindows dpy th ws = sequence $ buildOverlayWin dpy th <$> ws

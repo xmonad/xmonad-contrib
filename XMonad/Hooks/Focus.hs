@@ -361,7 +361,6 @@ instance Applicative FocusQuery where
     pure x                              = FocusQuery (pure x)
     (FocusQuery f) <*> (FocusQuery mx)  = FocusQuery (f <*> mx)
 instance Monad FocusQuery where
-    return x                = FocusQuery (return x)
     (FocusQuery mx) >>= f   = FocusQuery $ mx >>= \x ->
                               let FocusQuery y = f x in y
 instance MonadReader Focus FocusQuery where
@@ -373,7 +372,6 @@ instance Semigroup a => Semigroup (FocusQuery a) where
     (<>)            = liftM2 (<>)
 instance Monoid a => Monoid (FocusQuery a) where
     mempty          = return mempty
-    mappend         = (<>)
 
 runFocusQuery :: FocusQuery a -> Focus -> Query a
 runFocusQuery (FocusQuery m)    = runReaderT m

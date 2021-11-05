@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module     :  XMonad.Actions.Workscreen
@@ -35,6 +37,7 @@ module XMonad.Actions.Workscreen (
   ) where
 
 import XMonad hiding (workspaces)
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Actions.OnScreen
@@ -90,7 +93,7 @@ viewWorkscreen wscrId = do (WorkscreenStorage c a) <- XS.get
                            let wscr = if wscrId == c
                                           then Workscreen wscrId $ shiftWs (workspaces $ a !! wscrId)
                                           else a !! wscrId
-                               (x,_:ys) = splitAt wscrId a
+                               (x, notEmpty -> _ :| ys) = splitAt wscrId a
                                newWorkscreenStorage = WorkscreenStorage wscrId (x ++ [wscr] ++ ys)
                            windows (viewWorkscreen' wscr)
                            XS.put newWorkscreenStorage

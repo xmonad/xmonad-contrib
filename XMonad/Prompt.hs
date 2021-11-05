@@ -271,7 +271,7 @@ class XPrompt t where
     -- The argument passed to this function is given by `commandToComplete`
     -- The default implementation shows an error message.
     completionFunction :: t -> ComplFunction
-    completionFunction t = \_ -> return ["Completions for " ++ showXPrompt t ++ " could not be loaded"]
+    completionFunction t = const $ return ["Completions for " ++ showXPrompt t ++ " could not be loaded"]
 
     -- | When the prompt has multiple modes (created with mkXPromptWithModes), this function is called
     -- when the user picks an item from the autocompletion list.
@@ -748,7 +748,7 @@ handleCompletion cs = do
     alwaysHlight <- gets $ alwaysHighlight . config
     st <- get
 
-    let updateWins  l = redrawWindows (pure ()) l
+    let updateWins    = redrawWindows (pure ())
         updateState l = if alwaysHlight
             then hlComplete (getLastWord $ command st) l st
             else simpleComplete                        l st

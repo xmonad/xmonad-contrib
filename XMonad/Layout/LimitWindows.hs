@@ -99,8 +99,8 @@ instance LayoutModifier LimitWindows a where
       where pos x   = guard (x>=1)     >> return x
             app f x = guard (f x /= x) >>  return (f x)
 
-     modifyLayout (LimitWindows style n) ws r =
-        runLayout ws { W.stack = f n <$> W.stack ws } r
+     modifyLayout (LimitWindows style n) ws =
+        runLayout ws { W.stack = f n <$> W.stack ws }
       where f = case style of
                     FirstN -> firstN
                     Slice -> slice
@@ -123,8 +123,8 @@ data Selection a = Sel { nMaster :: Int, start :: Int, nRest :: Int }
     deriving (Read, Show, Eq)
 
 instance LayoutModifier Selection a where
-    modifyLayout s w r =
-        runLayout (w { W.stack = updateAndSelect s <$> W.stack w }) r
+    modifyLayout s w =
+        runLayout (w { W.stack = updateAndSelect s <$> W.stack w })
 
     pureModifier sel _ stk wins = (wins, update sel <$> stk)
 

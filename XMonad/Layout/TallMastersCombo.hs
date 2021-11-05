@@ -317,19 +317,10 @@ differentiate [] xs = W.differentiate xs
 
 -- | Swap a given window with the focused window.
 swapWindow :: (Eq a) => a -> Stack a -> Stack a
-swapWindow w s =
-  let upLst   = up s
-      foc     = focus s
-      downLst = down s
-  in if w `elem` downLst
-     then let us   = takeWhile (/= w) downLst
-              d:ds = dropWhile (/= w) downLst
-              us'  = reverse us ++ d : upLst
-          in  Stack foc us' ds
-     else let ds   = takeWhile (/= w) upLst
-              u:us = dropWhile (/= w) upLst
-              ds'  = reverse ds ++ u : downLst
-          in  Stack foc us ds'
+swapWindow w (Stack foc upLst downLst)
+    | (us, d:ds) <- break (== w) downLst = Stack foc (reverse us ++ d : upLst) ds
+    | (ds, u:us) <- break (== w)   upLst = Stack foc us (reverse ds ++ u : downLst)
+    | otherwise = Stack foc upLst downLst
 
 
 -- | Focus a given window.

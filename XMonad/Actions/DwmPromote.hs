@@ -25,6 +25,9 @@ module XMonad.Actions.DwmPromote (
 
 import XMonad
 import XMonad.StackSet
+import XMonad.Prelude
+
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
@@ -45,6 +48,6 @@ import XMonad.StackSet
 dwmpromote :: X ()
 dwmpromote = windows $ modify' $
              \c -> case c of
-                   Stack _ [] []     -> c
-                   Stack t [] (x:rs) -> Stack x [] (t:rs)
-                   Stack t ls rs     -> Stack t [] (ys ++ x : rs) where (x:ys) = reverse ls
+                   Stack _ []     []     -> c
+                   Stack t []     (r:rs) -> Stack r [] (t:rs)
+                   Stack t (l:ls) rs     -> Stack t [] (ys ++ y : rs) where (y :| ys) = NE.reverse (l :| ls)

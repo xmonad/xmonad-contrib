@@ -74,13 +74,12 @@ data Wallpaper = WallpaperFix FilePath -- ^ Single, fixed wallpaper
 newtype WallpaperList = WallpaperList [(WorkspaceId, Wallpaper)]
   deriving (Show,Read)
 
-instance Monoid WallpaperList where
-  mempty = WallpaperList []
-  mappend (WallpaperList w1) (WallpaperList w2) =
+instance Semigroup WallpaperList where
+  WallpaperList w1 <> WallpaperList w2 =
     WallpaperList $ M.toList $ M.fromList w2 `M.union` M.fromList w1
 
-instance Semigroup WallpaperList where
-  (<>) = mappend
+instance Monoid WallpaperList where
+  mempty = WallpaperList []
 
 -- | Complete wallpaper configuration passed to the hook
 data WallpaperConf = WallpaperConf {
@@ -184,9 +183,8 @@ getPicPathsAndWSRects wpconf = do
   visws <- getVisibleWorkspaces
   let visscr = S.current winset : S.visible winset
       visrects = M.fromList $ map (\x -> ((S.tag . S.workspace) x, S.screenDetail x)) visscr
-      hasPicAndIsVisible (n, mp) = n `elem` visws && isJust mp
       getRect tag = screenRect $ fromJust $ M.lookup tag visrects
-      foundpaths = map (\(n,Just p)->(getRect n,p)) $ filter hasPicAndIsVisible paths
+      foundpaths = [ (getRect n, p) | (n, Just p) <- paths, n `elem` visws ]
   return foundpaths
   where getPicPaths = mapM (\(x,y) -> getPicPath wpconf y
                              >>= \p -> return (x,p)) wl

@@ -92,8 +92,8 @@ instance XPrompt WindowModePrompt where
     showXPrompt (WindowModePrompt action _ _) =
         showXPrompt action
 
-    completionFunction (WindowModePrompt _ winmap predicate) =
-        \s -> return . filter (predicate s) . map fst . M.toList $ winmap
+    completionFunction (WindowModePrompt _ winmap predicate) s =
+        return . filter (predicate s) . map fst . M.toList $ winmap
 
     modeAction (WindowModePrompt action winmap _) buf auto = do
         let name = if null auto then buf else auto

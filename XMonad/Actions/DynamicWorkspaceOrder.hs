@@ -152,7 +152,8 @@ swapOrder :: WorkspaceId -> WorkspaceId -> X ()
 swapOrder w1 w2 = do
   io $ print (w1,w2)
   WSO (Just m) <- XS.get
-  let [i1,i2] = map (fromJust . flip M.lookup m) [w1,w2]
+  let i1 = fromJust (w1 `M.lookup` m)
+  let i2 = fromJust (w2 `M.lookup` m)
   XS.modify (withWSO (M.insert w1 i2 . M.insert w2 i1))
   windows id  -- force a status bar update
 

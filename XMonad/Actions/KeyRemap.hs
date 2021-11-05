@@ -148,8 +148,6 @@ dvorakProgrammerKeyRemap =
 
     layoutDvorakShift = map getShift layoutDvorak
     layoutDvorakKey   = map getKey layoutDvorak
-    getKey  char = let Just index = elemIndex char layoutUs
-                    in layoutUsKey !! index
-    getShift char = let Just index = elemIndex char layoutUs
-                    in layoutUsShift !! index
+    getKey   char = fromJust $ (layoutUsKey   !?) =<< elemIndex char layoutUs
+    getShift char = fromJust $ (layoutUsShift !?) =<< elemIndex char layoutUs
     charToMask char = if [char] == "0" then 0 else shiftMask

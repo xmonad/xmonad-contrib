@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, ViewPatterns #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.WindowSwitcherDecoration
@@ -84,7 +84,7 @@ instance Eq a => DecorationStyle WindowSwitcherDecoration a where
     decorationCatchClicksHook (WSD withButtons) mainw dFL dFR = if withButtons
                                                                     then titleBarButtonHandler mainw dFL dFR
                                                                     else return False
-    decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleTiledDraggingInProgress ex ey (mainw, r) x y
+    decorationWhileDraggingHook _ = handleTiledDraggingInProgress
     decorationAfterDraggingHook _ (mainw, _) decoWin = do focus mainw
                                                           hasCrossed <- handleScreenCrossing mainw decoWin
                                                           unless hasCrossed $ do sendMessage DraggingStopped
@@ -105,7 +105,7 @@ instance Eq a => DecorationStyle ImageWindowSwitcherDecoration a where
     decorationCatchClicksHook (IWSD withButtons) mainw dFL dFR = if withButtons
                                                                     then imageTitleBarButtonHandler mainw dFL dFR
                                                                     else return False
-    decorationWhileDraggingHook _ ex ey (mainw, r) x y = handleTiledDraggingInProgress ex ey (mainw, r) x y
+    decorationWhileDraggingHook _ = handleTiledDraggingInProgress
     decorationAfterDraggingHook _ (mainw, _) decoWin = do focus mainw
                                                           hasCrossed <- handleScreenCrossing mainw decoWin
                                                           unless hasCrossed $ do sendMessage DraggingStopped
@@ -129,7 +129,7 @@ performWindowSwitching win =
        -- do a little double check to be sure
        when ((win `elem` allWindows) && (selWin `elem` allWindows)) $ do
                 let allWindowsSwitched = map (switchEntries win selWin) allWindows
-                let (ls, t:rs) = break (win ==) allWindowsSwitched
+                let (ls, notEmpty -> t :| rs) = break (win ==) allWindowsSwitched
                 let newStack = S.Stack t (reverse ls) rs
                 windows $ S.modify' $ const newStack
     where

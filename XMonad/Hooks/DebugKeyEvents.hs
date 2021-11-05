@@ -92,10 +92,6 @@ vmask numLockMask msk =  unwords $
                          fst $
                          foldr vmask' ([],msk) masks
     where
-
-#if __GLASGOW_HASKELL__ < 707
-      finiteBitSize x = bitSize x
-#endif
       masks = map (\m -> (m,show m)) [0..toEnum (finiteBitSize msk - 1)] ++
               [(numLockMask,"num"  )
               ,(   lockMask,"lock" )

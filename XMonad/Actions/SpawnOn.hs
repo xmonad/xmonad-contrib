@@ -109,11 +109,9 @@ manageSpawnWithGC garbageCollect = do
     let ppid_chain = case mp of
                        Just winpid -> winpid : getPPIDChain winpid
                        Nothing     -> []
-        known_window_handlers = [ mh
+        known_window_handlers = [ mpid
                                 | ppid <- ppid_chain
-                                , let mpid = lookup ppid pids
-                                , isJust mpid
-                                , let (Just mh) = mpid ]
+                                , Just mpid <- [lookup ppid pids] ]
     case known_window_handlers of
         [] -> idHook
         (mh:_)  -> do

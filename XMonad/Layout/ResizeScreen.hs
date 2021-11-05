@@ -71,7 +71,7 @@ instance LayoutModifier ResizeScreen a where
         | ResizeScreen T i <- m = resize $ Rectangle x (y + fi i) w (h - fi i)
         | ResizeScreen B i <- m = resize $ Rectangle x  y         w (h - fi i)
         | WithNewScreen  r <- m = resize r
-       where resize nr = runLayout ws nr
+       where resize = runLayout ws
 
     pureMess (ResizeScreen d _) m
         | Just (SetTheme t) <- fromMessage m = Just $ ResizeScreen d (fi $ decoHeight t)

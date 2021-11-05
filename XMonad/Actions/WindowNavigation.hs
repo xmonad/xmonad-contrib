@@ -127,7 +127,7 @@ swap = withTargetWindow swapWithFocused
                 Just currentWin -> W.focusWindow currentWin $
                                    mapWindows (swapWin currentWin targetWin) winSet
                 Nothing -> winSet
-        mapWindows f ss = W.mapWorkspace (mapWindows' f) ss
+        mapWindows f = W.mapWorkspace (mapWindows' f)
         mapWindows' f ws@W.Workspace{ W.stack = s } = ws { W.stack = mapWindows'' f <$> s }
         mapWindows'' f (W.Stack focused up down) = W.Stack (f focused) (map f up) (map f down)
         swapWin win1 win2 win

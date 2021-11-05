@@ -114,10 +114,10 @@ copyWindow w n = copy'
     where copy' s = if n `W.tagMember` s
                     then W.view (W.currentTag s) $ insertUp' w $ W.view n s
                     else s
-          insertUp' a s = W.modify (Just $ W.Stack a [] [])
+          insertUp' a = W.modify (Just $ W.Stack a [] [])
                           (\(W.Stack t l r) -> if a `elem` t:l++r
                                              then Just $ W.Stack t l r
-                                             else Just $ W.Stack a (L.delete a l) (L.delete a (t:r))) s
+                                             else Just $ W.Stack a (L.delete a l) (L.delete a (t:r)))
 
 
 -- | runOrCopy will run the provided shell command unless it can

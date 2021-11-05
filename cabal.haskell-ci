@@ -7,6 +7,7 @@ apt:
   libxss-dev
 
 hlint: True
+hlint-job: 9.0.1
 hlint-yaml: .hlint.yaml
 
 github-patches:

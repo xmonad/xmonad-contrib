@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.RotateSome
@@ -26,7 +28,7 @@ module XMonad.Actions.RotateSome (
   ) where
 
 import Control.Arrow ((***))
-import XMonad.Prelude (partition, sortOn, (\\))
+import XMonad.Prelude (NonEmpty(..), notEmpty, partition, sortOn, (\\))
 import qualified Data.Map as M
 import XMonad (Window, WindowSpace, Rectangle, X, runLayout, screenRect, windows, withWindowSet)
 import XMonad.StackSet (Screen (Screen), Stack (Stack), current, floating, modify', stack)
@@ -148,7 +150,7 @@ rotateSome p (Stack t ls rs) =
     -- Append anchored elements, along with their unchanged indices, and sort
     -- by index. Separate lefts (negative indices) from the rest, and grab the
     -- new focus from the head of the remaining elements.
-    (ls', t':rs') =
+    (ls', notEmpty -> t' :| rs') =
       (map snd *** map snd)
         . span ((< 0) . fst)
         . sortOn fst

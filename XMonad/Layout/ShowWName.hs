@@ -77,7 +77,7 @@ instance Default SWNConfig where
          }
 
 instance LayoutModifier ShowWName a where
-    redoLayout      sn r _ wrs = doShow sn r wrs
+    redoLayout      sn r _ = doShow sn r
 
     handleMess (SWN _ c (Just (i,w))) m
         | Just e    <- fromMessage m = handleTimer i e (deleteWindow w >> return Nothing)
