@@ -6,6 +6,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ViewPatterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -1016,6 +1017,7 @@ emacsLikeXPKeymap' p = M.fromList $
   , (xK_y, pasteString)
   , (xK_g, quit)
   , (xK_bracketleft, quit)
+  , (xK_t, transposeChars)
   ] ++
   map (first $ (,) mod1Mask) -- meta key + <key>
   [ (xK_BackSpace, killWord' p Prev)
@@ -1226,6 +1228,23 @@ changeWord p = join $ f <$> getInput <*> getOffset <*> pure p
                       null str              = return ()
         f str off p'| p' $ str !! off       = killWord' (not . p') Next
                     | otherwise             = killWord' p' Next
+
+-- | Interchange characters around point, moving forward one character
+--   if not at the end of the input.
+transposeChars :: XP ()
+transposeChars = do
+  off <- gets offset
+  cmd <- gets command
+  let (beforeCursor, afterCursor) = splitAt off cmd
+      (ncom, noff) = fromMaybe (cmd, off) (go beforeCursor afterCursor off)
+  modify $ \s -> setCommand ncom $ s{ offset = noff }
+ where
+  go :: [a] -> [a] -> Int -> Maybe ([a], Int)
+  go (reverse -> (b1 : b2 : bs)) [] offset =  -- end of line
+    Just (reverse $ b2 : b1 : bs, offset)
+  go (reverse -> (b : bs)) (a : as) offset =  -- middle of line
+    Just (reverse (a : bs) ++ b : as, offset + 1)
+  go _ _ _ = Nothing
 
 -- | Put the cursor at the end of line
 endOfLine :: XP ()

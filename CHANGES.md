@@ -13,6 +13,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Prompt`
+
+    - Added `transposeChars` to interchange the characters around the
+      point and bound it to `C-t` in the Emacs XPKeymaps.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
