@@ -243,7 +243,7 @@ dynamicLogXinerama = withWindowSet $ io . putStrLn . pprWindowSetXinerama
 -- | Run xmonad with a property-based xmobar status bar set to some nice
 -- defaults.
 --
--- > main = xmonad =<< xmobarProp myConfig
+-- > main = xmonad $ xmobarProp myConfig
 -- >
 -- > myConfig = def { ... }
 --
