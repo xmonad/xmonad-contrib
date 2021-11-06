@@ -103,6 +103,14 @@
     - Changed type signature of `keysMoveWindow` from `D -> Window -> X ()`
       to `ChangeDim -> Window -> X ()` to allow negative numbers without compiler warnings.
 
+  * `XMonad.Util.Hacks`
+
+    - Added `trayerQuery` for easily querying trayer and
+      `trayerPaddingXmobarEventHook` (as well as a variant to specify a
+      different X property) to communicate trayer resize events to
+      XMobar so that padding space may be reserved on xmobar for the
+      tray.  Requires `xmobar` version 0.40 or higher.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes

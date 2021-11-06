@@ -32,12 +32,20 @@ module XMonad.Util.Hacks (
 
   -- * Stacking trays (trayer) above panels (xmobar)
   -- $raiseTrayer
+  trayerQuery,
   trayerAboveXmobarEventHook,
   trayAbovePanelEventHook,
+
+  -- * Inform xmobar when trays (e.g., trayer) change width
+  -- $padTrayer
+  trayPaddingXmobarDefProp,
+  trayerPaddingXmobarEventHook,
+  trayerPaddingXmobarEventHook',
   ) where
 
 
 import XMonad
+import XMonad.Hooks.StatusBar (xmonadPropLog')
 import XMonad.Prelude (All (All), filterM, when)
 import System.Posix.Env (putEnv)
 
@@ -126,9 +134,13 @@ javaHack conf = conf
 --
 -- > handleEventHook = … <> Hacks.trayerAboveXmobarEventHook
 
--- | 'trayAbovePanelEventHook' for trayer/xmobar
+-- | A 'Query' to identify the trayer window.
+trayerQuery :: Query Bool
+trayerQuery = className =? "trayer"
+
+-- | Like 'trayAbovePanelEventHook', but specialised for trayer/xmobar.
 trayerAboveXmobarEventHook :: Event -> X All
-trayerAboveXmobarEventHook = trayAbovePanelEventHook (className =? "trayer") (appName =? "xmobar")
+trayerAboveXmobarEventHook = trayAbovePanelEventHook trayerQuery (appName =? "xmobar")
 
 -- | Whenever a tray window lowers itself to the bottom of the stack, look for
 -- any panels above it and lower these.
@@ -145,3 +157,75 @@ trayAbovePanelEventHook trayQ panelQ ConfigureEvent{ev_window = w, ev_above = a}
     mapM_ (io . lowerWindow dpy) panelWs
   mempty
 trayAbovePanelEventHook _ _ _ = mempty
+
+-- $padTrayer
+-- Communicating tray (e.g., trayer) resize events to xmobar so that
+-- padding space may be reserved on xmobar for the tray.
+--
+-- Basic Usage with trayer:
+--
+-- First, add the padding hook to your @handleEventHook@ as follows:
+--
+-- > main = xmonad $ def
+-- > { ...
+-- > , handleEventHook = handleEventHook def
+-- >                  <> Hacks.trayerPaddingXmobarEventHook
+-- > }
+--
+-- Then, assuming the tray is placed on the right, update your
+-- @xmobarrc@ as follows:
+--
+-- > Config { ...
+-- >        , commands = [ ...
+-- >                     , Run XPropertyLog "_XMONAD_TRAYPAD", ... ]
+-- >        , template = " ... %_XMONAD_TRAYPAD%"
+-- >        }
+--
+-- As an example of what happens in this basic usage, consider the
+-- case where trayer updates to a width of 53 pixels.
+-- The following property will appear on the root window:
+--
+-- > _XMONAD_TRAYPAD(UTF8_STRING) = "<hspace=53/>"
+
+-- | 'trayPaddingXmobarDefProp' is default property name,
+-- @"_XMONAD_TRAYPAD"@, to use with 'xmonadPropLog''
+trayPaddingXmobarDefProp :: String
+trayPaddingXmobarDefProp = "_XMONAD_TRAYPAD"
+
+-- | A simple trayer-specific event hook that watches for trayer window
+-- resize changes and update the value in the property specified by
+-- 'trayPaddingXmobarDefProp'.
+trayerPaddingXmobarEventHook :: Event -> X All -- ^ event hook
+trayerPaddingXmobarEventHook = trayerPaddingXmobarEventHook' trayPaddingXmobarDefProp
+
+-- | A more generic version of 'trayerPaddingXmobarEventHook' that
+-- allows the user to specify the property to use with 'xmonadPropLog''
+-- when 'trayPaddingXmobarDefProp' is not desired.  This is still a
+-- trayer-specific hook.
+trayerPaddingXmobarEventHook'
+  :: String         -- ^ 'xmonadPropLog'' string to use
+  -> Event -> X All -- ^ event hook result
+trayerPaddingXmobarEventHook' s = trayPaddingXmobarEventHook (trayDefaultAction s) trayerQuery
+
+-- | A fully generic tray resize hook.  This function is not
+-- trayer-specific; note the prefix is @tray@, not @trayer@.  Both the
+-- action to take and the tray identification query are given as
+-- arguments.
+trayPaddingXmobarEventHook
+  :: (Int -> X())   -- ^ action to take when query succeeds, pixels to action
+  -> Query Bool     -- ^ query to identify the tray window
+  -> Event -> X All -- ^ event hook result
+trayPaddingXmobarEventHook action trayQ ConfigureEvent{ ev_window = w, ev_width = wa } = do
+  whenX (runQuery trayQ w) $ action (fromIntegral wa)
+  return (All True)
+trayPaddingXmobarEventHook _ _ _ = return (All True)
+
+-- | The default tray action that is used by both
+-- 'trayerPaddingXmobarEventHook' and 'trayerPaddingXmobarEventHook''.
+-- This action places @\<hspace=pixels\/\>@ on the specified
+-- 'xmonadPropLog'' property.
+trayDefaultAction
+  :: String -- ^ 'xmonadPropLog'' property to use
+  -> Int    -- ^ new tray width in pixels
+  -> X ()   -- ^ resultant update
+trayDefaultAction xPropLog n = xmonadPropLog' xPropLog ("<hspace=" ++ show n ++ "/>")
