@@ -18,6 +18,11 @@
     - Added `transposeChars` to interchange the characters around the
       point and bound it to `C-t` in the Emacs XPKeymaps.
 
+  * `XMonad.Hooks.WindowSwallowing`
+
+    - Fixed windows getting lost when used in conjunction with
+      `smartBorders` and a single window.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
