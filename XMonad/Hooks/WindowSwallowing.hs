@@ -155,14 +155,19 @@ swallowEventHook parentQ childQ event = do
         maybeOldStack        <- XS.gets stackBeforeWindowClosing
         oldFloating          <- XS.gets floatingBeforeClosing
         case (maybeSwallowedParent, maybeOldStack) of
+          -- If there actually is a corresponding swallowed parent window for this window,
+          -- we will try to restore it.
+          -- Because there are some cases where the stack-state is not stored correctly in the ConfigureEvent hook,
+          -- we have to first check if the stack-state is valid.
+          -- If it is, we can restore the parent exactly where the child window was before being closed.
+          -- If the stored stack-state is invalid however, we still restore the window
+          -- by just inserting it as the focused window in the stack.
+          --
+          -- After restoring, we remove the information about the swallowing from the state.
+          (Just parent, Nothing) -> do
+            windows (insertIntoStack parent)
+            deleteState childWindow
           (Just parent, Just oldStack) -> do
-            -- If there actually is a corresponding swallowed parent window for this window,
-            -- we will try to restore it.
-            -- because there are some cases where the stack-state is not stored correctly in the ConfigureEvent hook,
-            -- we have to first check if the stack-state is valid.
-            -- if it is, we can restore the parent exactly where the child window was before being closed
-            -- if the stored stack-state is invalid however, we still restore the window
-            -- by just inserting it as the focused window in the stack.
             stackStoredCorrectly <- do
               curStack <- withWindowSet (return . currentStack)
               let oldLen = length (W.integrate oldStack)
@@ -178,13 +183,15 @@ swallowEventHook parentQ childQ event = do
                     $ ws { W.floating = oldFloating }
                 )
               else windows (insertIntoStack parent)
-            -- after restoring, we remove the information about the swallowing from the state.
-            XS.modify $ removeSwallowed childWindow
-            XS.modify $ setStackBeforeWindowClosing Nothing
+            deleteState childWindow
           _ -> return ()
-        return ()
     _ -> return ()
   return $ All True
+ where
+  deleteState :: Window -> X ()
+  deleteState childWindow = do
+    XS.modify $ removeSwallowed childWindow
+    XS.modify $ setStackBeforeWindowClosing Nothing
 
 -- | insert a window as focused into the current stack, moving the previously focused window down the stack
 insertIntoStack :: a -> W.StackSet i l a sid sd -> W.StackSet i l a sid sd
