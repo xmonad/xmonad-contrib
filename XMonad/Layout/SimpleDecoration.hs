@@ -53,7 +53,7 @@ import XMonad.Layout.Decoration
 --
 -- and
 --
--- > myL = dwmStyle shrinkText mySDConfig (layoutHook def)
+-- > myL = simpleDeco shrinkText mySDConfig (layoutHook def)
 
 -- | Add simple decorations to windows of a layout.
 simpleDeco :: (Eq a, Shrinker s) => s -> Theme
