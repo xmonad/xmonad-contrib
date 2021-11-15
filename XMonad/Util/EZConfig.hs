@@ -181,6 +181,8 @@ removeMouseBindings conf mouseBindingList =
 -- > <Tab>
 -- > <Return>
 -- > <Pause>
+-- > <Num_Lock>
+-- > <Caps_Lock>
 -- > <Scroll_lock>
 -- > <Sys_Req>
 -- > <Print>
@@ -197,6 +199,18 @@ removeMouseBindings conf mouseBindingList =
 -- > <Insert>
 -- > <Break>
 -- > <Space>
+-- > <Control_L>
+-- > <Control_R>
+-- > <Shift_L>
+-- > <Shift_R>
+-- > <Alt_L>
+-- > <Alt_R>
+-- > <Meta_L>
+-- > <Meta_R>
+-- > <Super_L>
+-- > <Super_R>
+-- > <Hyper_L>
+-- > <Hyper_R>
 -- > <F1>-<F24>
 -- > <KP_Space>
 -- > <KP_Tab>
@@ -460,6 +474,8 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("Tab"        , xK_Tab)
               , ("Return"     , xK_Return)
               , ("Pause"      , xK_Pause)
+              , ("Num_Lock"   , xK_Num_Lock)
+              , ("Caps_Lock"  , xK_Caps_Lock)
               , ("Scroll_lock", xK_Scroll_Lock)
               , ("Sys_Req"    , xK_Sys_Req)
               , ("Print"      , xK_Print)
@@ -481,6 +497,18 @@ specialKeys = [ ("Backspace"  , xK_BackSpace)
               , ("Insert"     , xK_Insert)
               , ("Break"      , xK_Break)
               , ("Space"      , xK_space)
+              , ("Control_L"  , xK_Control_L)
+              , ("Control_R"  , xK_Control_R)
+              , ("Shift_L"    , xK_Shift_L)
+              , ("Shift_R"    , xK_Shift_R)
+              , ("Alt_L"      , xK_Alt_L)
+              , ("Alt_R"      , xK_Alt_R)
+              , ("Meta_L"     , xK_Meta_L)
+              , ("Meta_R"     , xK_Meta_R)
+              , ("Super_L"    , xK_Super_L)
+              , ("Super_R"    , xK_Super_R)
+              , ("Hyper_L"    , xK_Hyper_L)
+              , ("Hyper_R"    , xK_Hyper_R)
               , ("KP_Space"   , xK_KP_Space)
               , ("KP_Tab"     , xK_KP_Tab)
               , ("KP_Enter"   , xK_KP_Enter)
