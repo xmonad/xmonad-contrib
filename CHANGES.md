@@ -23,6 +23,10 @@
     - Fixed windows getting lost when used in conjunction with
       `smartBorders` and a single window.
 
+  * `XMonad.Util.EZConfig`
+
+    - Added support for Modifier Keys `KeySym`s for Emacs-like `additionalKeysP`
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
