@@ -32,9 +32,9 @@
 -- > f :: a -> b -> Bool
 -- >
 -- > -- a new helper
--- > q ***? x = fmap (\a -> f a x) q
+-- > q ***? x = fmap (\a -> f a x) q   -- or: (\b -> f x b)
 -- > -- or
--- > q ***? x = fmap (`f` x) q
+-- > q ***? x = fmap (`f` x) q         -- or: (x `f`)
 --
 -- Any existing operator can be "lifted" in the same way:
 --
@@ -109,17 +109,17 @@ infixr 0 -?>, -->>, -?>>
 (/=?) :: (Eq a, Functor m) => m a -> a -> m Bool
 q /=? x = fmap (/= x) q
 
--- | q ^? x. if the result of q 'isPrefixOf' x, return True
+-- | q ^? x. if the result of @x `isPrefixOf` q@, return True
 (^?) :: (Eq a, Functor m) => m [a] -> [a] -> m Bool
-q ^? x = fmap (`isPrefixOf` x) q
+q ^? x = fmap (x `isPrefixOf`) q
 
--- | q ~? x. if the result of q 'isSuffixOf' x, return True
+-- | q ~? x. if the result of @x `isInfixOf` q@, return True
 (~?) :: (Eq a, Functor m) => m [a] -> [a] -> m Bool
-q ~? x = fmap (`isInfixOf` x) q
+q ~? x = fmap (x `isInfixOf`) q
 
--- | q $? x. if the result of q 'isSuffixOf' x, return True
+-- | q $? x. if the result of @x `isSuffixOf` q@, return True
 ($?) :: (Eq a, Functor m) => m [a] -> [a] -> m Bool
-q $? x = fmap (`isSuffixOf` x) q
+q $? x = fmap (x `isSuffixOf`) q
 
 -- | q <==? x. if the result of q equals x, return True grouped with q
 (<==?) :: (Eq a, Functor m) => m a -> a -> m (Match a)

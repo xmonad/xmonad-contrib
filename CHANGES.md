@@ -25,7 +25,12 @@
 
   * `XMonad.Util.EZConfig`
 
-    - Added support for Modifier Keys `KeySym`s for Emacs-like `additionalKeysP`
+    - Added support for Modifier Keys `KeySym`s for Emacs-like `additionalKeysP`.
+
+  * `XMonad.Hooks.ManageHelpers`
+
+    - Flipped how `(^?)`, `(~?)`, and `($?)` work to more accurately
+      reflect how one uses these operators.
 
 ## 0.17.0 (October 27, 2021)
 
