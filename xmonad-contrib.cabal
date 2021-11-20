@@ -316,6 +316,8 @@ library
                         XMonad.Prompt.AppendFile
                         XMonad.Prompt.ConfirmPrompt
                         XMonad.Prompt.DirExec
+                        XMonad.Prompt.DotDesktop
+                        XMonad.Prompt.DotDesktopParser
                         XMonad.Prompt.Directory
                         XMonad.Prompt.Email
                         XMonad.Prompt.FuzzyMatch
