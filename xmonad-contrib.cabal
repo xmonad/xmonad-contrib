@@ -61,7 +61,8 @@ library
                    unix,
                    X11 >= 1.10 && < 1.11,
                    xmonad >= 0.16.99999 && < 0.18,
-                   utf8-string
+                   utf8-string,
+                   parallel
     default-language: Haskell2010
 
     cpp-options:   -DXMONAD_CONTRIB_VERSION_MAJOR=0
@@ -448,6 +449,7 @@ test-suite tests
                , process
                , unix
                , utf8-string
+               , parallel
                , xmonad >= 0.16.9999 && < 0.18
   cpp-options: -DTESTING
   ghc-options: -Wall -Wno-unused-do-bind

@@ -34,6 +34,7 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
 
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Seq (using, seqFoldable, rseq)
 import Data.Map ((!))
 import qualified Data.Map as Map
 import Data.Sequence (Seq, ViewL (EmptyL, (:<)), viewl, (<|), (><), (|>))
@@ -166,15 +167,20 @@ instance ExtensionClass HistoryDB where
 -- | Action that needs to be executed as a logHook to maintain the
 -- focus history of all windows as the WindowSet changes.
 historyHook :: X ()
-historyHook = XS.get >>= updateHistory >>= XS.put
+historyHook = do
+  db <- XS.get
+  db'@(HistoryDB cur del) <- updateHistory db
+  let del' = del `using` seqFoldable rseq
+      cur' = cur `using` seqFoldable rseq
+  cur' `seq` del' `seq` XS.put db'
 
 -- Updates the history in response to a WindowSet change
 updateHistory :: HistoryDB -> X HistoryDB
-updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
+updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss ->
   let newcur   = SS.peek ss
       wins     = Set.fromList $ SS.allWindows ss
       newhist  = Seq.filter (`Set.member` wins) (ins oldcur oldhist)
-  return $ HistoryDB newcur (del newcur newhist)
+  in pure $ HistoryDB newcur (del newcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
     del x xs = maybe xs (\x' -> Seq.filter (/= x') xs) x
