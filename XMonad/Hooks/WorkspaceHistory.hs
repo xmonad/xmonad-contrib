@@ -28,9 +28,9 @@ module XMonad.Hooks.WorkspaceHistory (
   , workspaceHistoryModify
   ) where
 
+import Control.Seq (using, seqFoldable, seqTuple2, rseq)
 import           Control.Applicative
 import           Prelude
-
 import XMonad
 import XMonad.StackSet hiding (delete, filter, new)
 import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy)
@@ -72,15 +72,20 @@ instance ExtensionClass WorkspaceHistory where
 -- | A 'logHook' that keeps track of the order in which workspaces have
 -- been viewed.
 workspaceHistoryHook :: X ()
-workspaceHistoryHook = gets windowset >>= (XS.modify . updateLastActiveOnEachScreen)
+workspaceHistoryHook = workspaceHistoryHookExclude []
 
 -- | Like 'workspaceHistoryHook', but with the ability to exclude
 -- certain workspaces.
 workspaceHistoryHookExclude :: [WorkspaceId] -> X ()
 workspaceHistoryHookExclude ws = do
   s <- gets windowset
-  let update' a = force (updateLastActiveOnEachScreenExclude ws s a)
+  let update' = forceHistory . updateLastActiveOnEachScreenExclude ws s
   XS.modify' update'
+
+forceHistory :: WorkspaceHistory -> WorkspaceHistory
+forceHistory (WorkspaceHistory l) =
+  let l' = l `using` seqFoldable (seqTuple2 rseq rseq)
+  in l' `seq` WorkspaceHistory l'
 
 workspaceHistoryWithScreen :: X [(ScreenId, WorkspaceId)]
 workspaceHistoryWithScreen = XS.gets history
