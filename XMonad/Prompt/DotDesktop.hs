@@ -11,8 +11,6 @@ import XMonad.Prompt.DotDesktopParser ( runDotDesktopParser )
 
 import qualified Data.Map as M
 import Control.Monad (filterM)
-import Control.Monad.Except
-    ( runExceptT, ExceptT (ExceptT), liftEither )
 import Control.Exception ( try, Exception )
 import Data.Functor ( (<&>) )
 import Data.List ( isSuffixOf, dropWhileEnd )
@@ -51,8 +49,8 @@ convertExceptionToStringHelper = either (Left . convertExceptionToStringHelperHe
 convertExceptionToStringHelperHelper :: Exception e => e -> String
 convertExceptionToStringHelperHelper = show :: Exception e => e -> String
 
-doReadFileLBS :: String -> ExceptT String IO String
-doReadFileLBS = ExceptT . convertExceptionToString . try @IOError . readFile
+doReadFileLBS :: String -> IO (Either String String)
+doReadFileLBS = convertExceptionToString . try @IOError . readFile
 
 getVal :: String -> String -> M.Map String String -> Either String String
 getVal msg k kvmap = maybeToEither msg $ M.lookup k kvmap
@@ -61,20 +59,23 @@ maybeToEither :: b -> Maybe a -> Either b a
 maybeToEither _ (Just a) = Right a
 maybeToEither b Nothing = Left b
 
-doParseFile :: String -> ExceptT String IO DotDesktopApp
-doParseFile filePath = do
-  content <- doReadFileLBS filePath
-  parsed <- liftEither $ runDotDesktopParser content
+doParseFile :: String -> IO (Either String DotDesktopApp)
+doParseFile filePath = doReadFileLBS filePath
+                   <&> (>>= doParseContent filePath)
+
+doParseContent :: String -> String -> Either String DotDesktopApp
+doParseContent filePath content = do
+  parsed <- runDotDesktopParser content
   let kvMaybe = snd <$> listToMaybe (rights parsed)
-  keyVals <- liftEither $
+  keyVals <-
     maybe
-      (Left $ "Parse Resulted in no KeyVals in file " ++ filePath)
-      Right
-      kvMaybe
+    (Left $ "Parse Resulted in no KeyVals in file " ++ filePath)
+    Right
+    kvMaybe
   let errMsg = "Unable to find Name in file " ++ filePath
-  nom <- liftEither $ getVal errMsg "Name" keyVals
-  exc <- liftEither $ getVal errMsg "Exec" keyVals
-  typ <- liftEither $ getVal errMsg "Type" keyVals
+  nom <- getVal errMsg "Name" keyVals
+  exc <- getVal errMsg "Exec" keyVals
+  typ <- getVal errMsg "Type" keyVals
   return DotDesktopApp { fileName = filePath
                        , name = nom
                        , type_ = typ
@@ -89,7 +90,6 @@ data DotDesktopApp = DotDesktopApp { fileName :: String
                              , cmd :: String
                              } deriving Show
 
-
 getAppFolders :: IO [FilePath]
 getAppFolders = do
   xdgDataHome <- getXdgDirectory XdgData ""
@@ -97,20 +97,20 @@ getAppFolders = do
   let possibleAppDirs = (xdgDataHome : xdgDataDirs) <&> (</> "applications")
   filterM doesDirectoryExist possibleAppDirs
 
-getDirContents :: FilePath -> ExceptT String IO [FilePath]
+getDirContents :: FilePath -> IO (Either String [FilePath])
 getDirContents dir = do
-  fn <- ExceptT . convertExceptionToString . try @IOError . listDirectory $ dir
-  return $ (dir </>) <$> fn
+  fn <- convertExceptionToString . try @IOError . listDirectory $ dir
+  return $ (fmap . fmap) (dir </>) fn
 
 getDotDesktopApps :: IO [DotDesktopApp]
 getDotDesktopApps = do
   appFolders <- getAppFolders
-  contentsPerFolder <- mapM (runExceptT . getDirContents) appFolders
+  contentsPerFolder <- mapM getDirContents appFolders
   let folderFiles = join $ rights contentsPerFolder
       dotDesktopFiles = filter isDotDesktop folderFiles
       folderWarnings = join $ lefts contentsPerFolder
   mapM_ print folderWarnings
-  parseResults <- mapM (runExceptT . doParseFile) dotDesktopFiles
+  parseResults <- mapM doParseFile dotDesktopFiles
   let parseErrs = lefts parseResults
       dotDesktopApps = rights parseResults
   mapM_ print parseErrs
@@ -124,6 +124,5 @@ appLaunchPrompt cfg = do
         complFunc s = filter (searchPredicate cfg s) cmdNameMapKeys
         --
         complAction :: String -> X ()
-        complAction s = do
-          spawn $ cmdNameMap M.! s
+        complAction s = spawn $ cmdNameMap M.! s
     mkXPrompt Shell cfg (pure . complFunc) complAction
