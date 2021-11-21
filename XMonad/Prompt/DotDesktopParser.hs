@@ -1,171 +1,144 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE LambdaCase #-}
 module XMonad.Prompt.DotDesktopParser
-    ( runDotDesktopParser
+    ( doParseContent
+    , DotDesktopApp (..)
     ) where
 
-import Data.Maybe ( catMaybes )
-import Control.Monad ( MonadPlus(..) )
-import Control.Applicative ( Alternative(..) )
+import Text.ParserCombinators.ReadP
+    ( ReadP
+    , (<++)
+    , char
+    , eof
+    , many
+    , many1
+    , readP_to_S
+    , satisfy
+    , skipSpaces
+    , string
+    , between
+    ,  (+++) )
+import Data.Maybe ( listToMaybe, catMaybes, fromMaybe )
 import qualified Data.Map as MAP
-
-newtype Parser a = Parser { parse :: String -> [(a,String)] }
-
-runParser :: Parser a -> String -> Either String a
-runParser m s =
-  case parse m s of
-    [(res, [])] -> Right res
-    [(_, b)]    -> Left $ "Parser did not consume entire stream.  Remaining: " ++ show b -- ++ " " ++ show b
-    _           -> Left "Parser error."
-
-item :: Parser Char
-item = Parser $ \case
-   []     -> []
-   (c:cs) -> [(c,cs)]
-
-instance Functor Parser where
-  fmap f (Parser cs) = Parser (\s -> [(f a, b) | (a, b) <- cs s])
-
-instance Applicative Parser where
-  pure a = Parser (\s -> [(a,s)])
-  (Parser cs1) <*> (Parser cs2) = Parser (\s -> [(f a, s2) | (f, s1) <- cs1 s, (a, s2) <- cs2 s1])
-
-instance Monad Parser where
-  p >>= f = Parser $ \s -> concatMap (\(a, s') -> parse (f a) s') $ parse p s
-
-instance MonadPlus Parser where
-  mzero = failure
-  mplus = combine
-
-instance Alternative Parser where
-  empty = mzero
-  (<|>) = option
-
-combine :: Parser a -> Parser a -> Parser a
-combine p q = Parser (\s -> parse p s ++ parse q s)
-
-failure :: Parser a
-failure = Parser (const [])
-
-option :: Parser a -> Parser a -> Parser a
-option  p q = Parser $ \s ->
-  case parse p s of
-    []     -> parse q s
-    res    -> res
-
-satisfy :: (Char -> Bool) -> Parser Char
-satisfy p = item >>= \c ->
-  if p c
-  then return c
-  else failure
+import Control.Monad ( (>=>), void )
+import Data.Char ( isSpace )
+import Data.List ( dropWhileEnd )
 
 type Predicate a = a -> Bool
 
 notP :: Predicate a -> Predicate a
 notP = (not .)
 
--------------------------------------------------------------------------------
--- Combinators
--------------------------------------------------------------------------------
-
-oneOf :: String -> Parser Char
-oneOf s = satisfy (`elem` s)
-
-notOneOf :: String -> Parser Char
+notOneOf :: String -> ReadP Char
 notOneOf s = satisfy (notP (`elem` s))
 
-char :: Char -> Parser Char
-char c = satisfy (c ==)
+newline :: ReadP ()
+newline = void (char '\n')
 
-string :: String -> Parser String
-string [] = return []
-string (c:cs) = do { char c; string cs; return (c:cs)}
+squareBrackets :: ReadP a -> ReadP a
+squareBrackets = between (char '[') (char ']')
 
-token :: Parser a -> Parser a
-token p = do { a <- p; spaces ; return a}
+keyName :: ReadP String
+keyName = many1 (notOneOf "=\n \t")
 
-reserved :: String -> Parser String
-reserved s = token (string s)
-
-spaces :: Parser String
-spaces = many $ oneOf " \t"
-
-newline :: Parser Char
-newline = char '\n'
-
-squareBrackets :: Parser a -> Parser a
-squareBrackets m = do
-  reserved "["
-  n <- m
-  reserved "]"
-  return n
-
-data IniFile
-  = DesktopEntrySection String
-  | KeyValues [(String, String)]
-  deriving Show
-
-keyName :: Parser String
-keyName = some (notOneOf "=\n \t")
-
-keyValue :: Parser (String, String)
+keyValue :: ReadP (String, String)
 keyValue = do
   key <- keyName
-  spaces
+  skipSpaces
   char '='
-  spaces
+  skipSpaces
   val <- many (notOneOf "\n")
-  newline
+  char '\n'
   return (key, val)
 
-nonSectionLine :: Parser String
-nonSectionLine = do
-  startChar <- notOneOf "["
-  otherChar <- many $ notOneOf "\n"
-  newline
-  return $ startChar : otherChar
-
-desktopEntrySectionLine :: Parser (Either String String)
+desktopEntrySectionLine :: ReadP (Either String String)
 desktopEntrySectionLine = do
   sectionName <- squareBrackets (string "Desktop Entry")
   newline
   return $ Right sectionName
 
-badSectionLine :: Parser (Either String String)
+badSectionLine :: ReadP (Either String String)
 badSectionLine = do
   startChar <- char '['
   otherChar <- many $ notOneOf "\n"
   newline
   return $ Left $ startChar : otherChar
 
-emptyLine :: Parser ()
+emptyLine :: ReadP ()
 emptyLine = do
-  whitespaceLine <|> commentLine
+  whitespaceLine +++ commentLine +++ newline
   return ()
-  where whitespaceLine = spaces >> newline
-        commentLine = spaces
+  where whitespaceLine = skipSpaces >> newline
+        commentLine = skipSpaces
                    >> char '#'
                    >> many (notOneOf "\n")
                    >> newline
 
-sectionBodyLine :: Parser (Maybe (String, String))
+sectionBodyLine :: ReadP (Maybe (String, String))
 sectionBodyLine = (Just <$> keyValue)
-                  <|> (Nothing <$ emptyLine)
+                  <++ (Nothing <$ emptyLine)
 
-
-section :: Parser (Either String (String, MAP.Map String String))
+section :: ReadP (Either String (String, MAP.Map String String))
 section = do
-  many nonSectionLine
-  sectionLabel <- desktopEntrySectionLine <|> badSectionLine
+  many emptyLine
+  sec <- desktopEntrySectionLine <++ badSectionLine
   keyValsList <- catMaybes <$> many sectionBodyLine
   let keyVals = MAP.fromList keyValsList
-  return $ (,keyVals) <$> sectionLabel
+  return $ (,keyVals) <$> sec
 
-dotDesktopParser :: Parser [Either String (String, MAP.Map String String)]
-dotDesktopParser = do
+dotDesktopReadP :: ReadP [Either String (String, MAP.Map String String)]
+dotDesktopReadP = do
   sections <- many section
-  many nonSectionLine
+  eof
   return sections
 
-runDotDesktopParser :: String -> Either String [Either String (String, MAP.Map String String)]
-runDotDesktopParser = runParser dotDesktopParser
+runDotDesktopParser :: String -> Maybe (Either String (String, MAP.Map String String))
+runDotDesktopParser = (listToMaybe . readP_to_S dotDesktopReadP) >=> (listToMaybe . fst)
+
+maybeToEither :: b -> Maybe a -> Either b a
+maybeToEither _ (Just a) = Right a
+maybeToEither b Nothing = Left b
+
+getVal :: String -> String
+  -> MAP.Map String String -> Either String String
+getVal msg k kvmap = maybeToEither msg $ MAP.lookup k kvmap
+
+cmdFilter :: String -> String  -- fixme future do something other than dropping these
+cmdFilter ('%':'f':xs) = cmdFilter xs
+cmdFilter ('%':'F':xs) = cmdFilter xs
+cmdFilter ('%':'u':xs) = cmdFilter xs
+cmdFilter ('%':'U':xs) = cmdFilter xs
+cmdFilter ('%':'c':xs) = cmdFilter xs
+cmdFilter ('%':'k':xs) = cmdFilter xs
+cmdFilter ('%':'i':xs) = cmdFilter xs
+cmdFilter ('%':'%':xs) = '%' : cmdFilter xs
+cmdFilter (x:xs) = x : cmdFilter xs
+cmdFilter "" = ""
+
+trimWhitespace :: String -> String
+trimWhitespace = dropWhileEnd isSpace . dropWhile isSpace
+
+doParseContent :: String -> String -> Either String DotDesktopApp
+doParseContent filePath content = do
+  parsed <- fromMaybe
+            (Left $ "Parse Resulted in no KeyVals in file " ++ filePath)
+            (runDotDesktopParser content)
+  let keyVals = snd parsed
+  let errMsg = "Unable to find Name in file " ++ filePath
+  nom <- getVal errMsg "Name" keyVals
+  exc <- getVal errMsg "Exec" keyVals
+  typ <- getVal errMsg "Type" keyVals
+  return DotDesktopApp { fileName = filePath
+                       , name = nom
+                       , type_ = typ
+                       , exec = exc
+                       , cmd = (trimWhitespace . cmdFilter) exc
+                       }
+
+data DotDesktopApp = DotDesktopApp { fileName :: String
+                             , name :: String
+                             , type_ :: String
+                             , exec :: String
+                             , cmd :: String
+                             } deriving Show
+

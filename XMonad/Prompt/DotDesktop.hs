@@ -7,38 +7,27 @@ module XMonad.Prompt.DotDesktop
 import XMonad ( spawn, io, X )
 import XMonad.Prompt ( mkXPrompt, XPConfig(searchPredicate) )
 import XMonad.Prompt.Shell ( Shell(Shell) )
-import XMonad.Prompt.DotDesktopParser ( runDotDesktopParser )
+import XMonad.Prompt.DotDesktopParser ( doParseContent
+                                      , DotDesktopApp (..) )
 
 import qualified Data.Map as M
-import Control.Monad (filterM)
+import Control.Monad ( filterM )
 import Control.Exception ( try, Exception )
 import Data.Functor ( (<&>) )
-import Data.List ( isSuffixOf, dropWhileEnd )
-import Data.Maybe ( listToMaybe )
-import System.Directory (listDirectory, doesDirectoryExist, getXdgDirectory, XdgDirectory (XdgData), XdgDirectoryList (XdgDataDirs), getXdgDirectoryList)
-import System.FilePath ((</>))
+import Data.List ( isSuffixOf )
+import System.Directory ( listDirectory
+                        , doesDirectoryExist
+                        , getXdgDirectory
+                        , XdgDirectory (XdgData)
+                        , XdgDirectoryList (XdgDataDirs)
+                        , getXdgDirectoryList)
+import System.FilePath ( (</>) )
 
-import Data.Char (isSpace)
-import Data.Either (rights, lefts)
-import XMonad.Prelude (join)
+import Data.Either ( rights, lefts )
+import XMonad.Prelude ( join )
 
 isDotDesktop :: FilePath -> Bool
 isDotDesktop = isSuffixOf ".desktop"
-
-trimWhitespace :: String -> String
-trimWhitespace = dropWhileEnd isSpace . dropWhile isSpace
-
-cmdFilter :: String -> String  -- fixme future do something other than dropping these
-cmdFilter ('%':'f':xs) = cmdFilter xs
-cmdFilter ('%':'F':xs) = cmdFilter xs
-cmdFilter ('%':'u':xs) = cmdFilter xs
-cmdFilter ('%':'U':xs) = cmdFilter xs
-cmdFilter ('%':'c':xs) = cmdFilter xs
-cmdFilter ('%':'k':xs) = cmdFilter xs
-cmdFilter ('%':'i':xs) = cmdFilter xs
-cmdFilter ('%':'%':xs) = '%' : cmdFilter xs
-cmdFilter (x:xs) = x : cmdFilter xs
-cmdFilter "" = ""
 
 exceptionToString :: Exception e => Either e a -> Either String a
 exceptionToString = either (Left . show) Right
@@ -46,43 +35,9 @@ exceptionToString = either (Left . show) Right
 doReadFileLBS :: String -> IO (Either String String)
 doReadFileLBS = fmap exceptionToString . try @IOError . readFile
 
-getVal :: String -> String -> M.Map String String -> Either String String
-getVal msg k kvmap = maybeToEither msg $ M.lookup k kvmap
-
-maybeToEither :: b -> Maybe a -> Either b a
-maybeToEither _ (Just a) = Right a
-maybeToEither b Nothing = Left b
-
 doParseFile :: String -> IO (Either String DotDesktopApp)
 doParseFile filePath = doReadFileLBS filePath
                    <&> (>>= doParseContent filePath)
-
-doParseContent :: String -> String -> Either String DotDesktopApp
-doParseContent filePath content = do
-  parsed <- runDotDesktopParser content
-  let kvMaybe = snd <$> listToMaybe (rights parsed)
-  keyVals <-
-    maybe
-    (Left $ "Parse Resulted in no KeyVals in file " ++ filePath)
-    Right
-    kvMaybe
-  let errMsg = "Unable to find Name in file " ++ filePath
-  nom <- getVal errMsg "Name" keyVals
-  exc <- getVal errMsg "Exec" keyVals
-  typ <- getVal errMsg "Type" keyVals
-  return DotDesktopApp { fileName = filePath
-                       , name = nom
-                       , type_ = typ
-                       , exec = exc
-                       , cmd = (trimWhitespace . cmdFilter) exc
-                       }
-
-data DotDesktopApp = DotDesktopApp { fileName :: String
-                             , name :: String
-                             , type_ :: String
-                             , exec :: String
-                             , cmd :: String
-                             } deriving Show
 
 getAppFolders :: IO [FilePath]
 getAppFolders = do
