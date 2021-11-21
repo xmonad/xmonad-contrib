@@ -33,10 +33,25 @@ import           XMonad.Hooks.WorkspaceHistory
 import qualified XMonad.StackSet as W
 
 -- $usage
--- This module must be used in conjuction with XMonad.Hooks.WorkspaceHistory
 --
--- To use, add something like the following to your keybindings
--- , ((mod4Mask,  xK_slash), cycleWorkspaceOnCurrentScreen [xK_Super_L] xK_slash xK_p)
+-- To use this module, first import it as well as
+-- "XMonad.Hooks.WorkspaceHistory":
+--
+-- > import XMonad.Hooks.WorkspaceHistory (workspaceHistoryHook)
+-- > import XMonad.Actions.CycleWorkspaceByScreen
+--
+-- Then add 'workspaceHistoryHook' to your @logHook@ like this:
+--
+-- > main :: IO ()
+-- > main = xmonad $ def
+-- >    { ...
+-- >    , logHook = workspaceHistoryHook >> ...
+-- >    }
+--
+-- Finally, define a new keybinding for cycling (seen) workspaces per
+-- screen:
+--
+-- > , ((mod4Mask, xK_slash), cycleWorkspaceOnCurrentScreen [xK_Super_L] xK_slash xK_p)
 
 repeatableAction :: [KeySym] -> (EventType -> KeySym -> X ()) -> X ()
 repeatableAction mods pressHandler = do
@@ -72,7 +87,16 @@ runFirst :: [EventType -> KeySym -> Maybe (X ())] -> EventType -> KeySym -> X ()
 runFirst matchers eventType key =
   fromMaybe (return ()) $ join $ find isJust $ map (\fn -> fn eventType key) matchers
 
-cycleWorkspaceOnScreen :: ScreenId -> [KeySym] -> KeySym -> KeySym -> X ()
+-- | Like 'XMonad.Actions.CycleRecentWS.cycleRecentWS', but only cycle
+-- through the most recent workspaces on the given screen.
+cycleWorkspaceOnScreen
+  :: ScreenId -- ^ The screen to cycle on.
+  -> [KeySym] -- ^ A list of modifier keys used when invoking this
+              --   action; as soon as one of them is released, the final
+              --   switch is made.
+  -> KeySym   -- ^ Key used to switch to next workspace.
+  -> KeySym   -- ^ Key used to switch to previous workspace.
+  -> X ()
 cycleWorkspaceOnScreen screenId mods nextKey prevKey = workspaceHistoryTransaction $ do
   startingHistory <- workspaceHistoryByScreen
   currentWSIndex <- io $ newIORef 1
@@ -93,6 +117,8 @@ cycleWorkspaceOnScreen screenId mods nextKey prevKey = workspaceHistoryTransacti
       ]
   return ()
 
+-- | Like 'cycleWorkspaceOnScreen', but supply the currently focused
+-- screen as the @screenId@.
 cycleWorkspaceOnCurrentScreen
   :: [KeySym] -> KeySym -> KeySym -> X ()
 cycleWorkspaceOnCurrentScreen mods n p =
