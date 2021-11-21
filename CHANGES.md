@@ -32,6 +32,11 @@
     - Flipped how `(^?)`, `(~?)`, and `($?)` work to more accurately
       reflect how one uses these operators.
 
+  * `XMonad.Actions.WindowNavigation`
+
+    -  Fixed navigation getting "stuck" in certain situations for
+       widescreen resolutions.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
