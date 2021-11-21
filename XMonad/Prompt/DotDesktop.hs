@@ -6,20 +6,18 @@ module XMonad.Prompt.DotDesktop
 
 import XMonad ( spawn, io, X )
 import XMonad.Prompt ( mkXPrompt, XPConfig(searchPredicate) )
-import XMonad.Prompt.Shell ( Shell(Shell), split )
+import XMonad.Prompt.Shell ( Shell(Shell) )
 import XMonad.Prompt.DotDesktopParser ( runDotDesktopParser )
 
 import qualified Data.Map as M
-import Control.Applicative ( Alternative((<|>)) )
 import Control.Monad (filterM)
 import Control.Monad.Except
     ( runExceptT, ExceptT (ExceptT), liftEither )
 import Control.Exception ( try, Exception )
 import Data.Functor ( (<&>) )
 import Data.List ( isSuffixOf, dropWhileEnd )
-import Data.Maybe ( fromMaybe, maybeToList, listToMaybe )
-import System.Directory (listDirectory, doesDirectoryExist)
-import System.Environment ( lookupEnv )
+import Data.Maybe ( listToMaybe )
+import System.Directory (listDirectory, doesDirectoryExist, getXdgDirectory, XdgDirectory (XdgData), XdgDirectoryList (XdgDataDirs), getXdgDirectoryList)
 import System.FilePath ((</>))
 
 import Data.Char (isSpace)
@@ -91,27 +89,12 @@ data DotDesktopApp = DotDesktopApp { fileName :: String
                              , cmd :: String
                              } deriving Show
 
-getXdgDataHome :: IO (Maybe FilePath)
-getXdgDataHome = do
-  envXdgDataHome <- envXdgDataHomeIO
-  defaultXdgDataHome <- defaultXdgDataHomeIO
-  return $ envXdgDataHome <|> defaultXdgDataHome
-  where
-    defaultXdgDataHomeIO = lookupEnv "HOME" <&> fmap (</> ".local" </> "share")
-    envXdgDataHomeIO = lookupEnv "XDG_DATA_HOME"
-
-getXdgDataDirs :: IO [FilePath]
-getXdgDataDirs =
-  fromMaybe defaultXdgDataDirs <$> envXdgDataDirsIO
-  where
-    defaultXdgDataDirs = split ':' "/usr/local/share:/usr/share"
-    envXdgDataDirsIO = lookupEnv "XDG_DATA_DIRS" <&> (<&> split ':')
 
 getAppFolders :: IO [FilePath]
 getAppFolders = do
-  xdgDataHome <- maybeToList <$> getXdgDataHome
-  xdgDataDirs <- getXdgDataDirs
-  let possibleAppDirs = xdgDataHome ++ xdgDataDirs <&> (</> "applications")
+  xdgDataHome <- getXdgDirectory XdgData ""
+  xdgDataDirs <- getXdgDirectoryList XdgDataDirs
+  let possibleAppDirs = (xdgDataHome : xdgDataDirs) <&> (</> "applications")
   filterM doesDirectoryExist possibleAppDirs
 
 getDirContents :: FilePath -> ExceptT String IO [FilePath]
