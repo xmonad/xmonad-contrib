@@ -40,17 +40,11 @@ cmdFilter ('%':'%':xs) = '%' : cmdFilter xs
 cmdFilter (x:xs) = x : cmdFilter xs
 cmdFilter "" = ""
 
-convertExceptionToString :: Exception e => IO (Either e a) -> IO (Either String a)
-convertExceptionToString = fmap convertExceptionToStringHelper
-
-convertExceptionToStringHelper :: Exception e => Either e a -> Either String a
-convertExceptionToStringHelper = either (Left . convertExceptionToStringHelperHelper) Right
-
-convertExceptionToStringHelperHelper :: Exception e => e -> String
-convertExceptionToStringHelperHelper = show :: Exception e => e -> String
+exceptionToString :: Exception e => Either e a -> Either String a
+exceptionToString = either (Left . show) Right
 
 doReadFileLBS :: String -> IO (Either String String)
-doReadFileLBS = convertExceptionToString . try @IOError . readFile
+doReadFileLBS = fmap exceptionToString . try @IOError . readFile
 
 getVal :: String -> String -> M.Map String String -> Either String String
 getVal msg k kvmap = maybeToEither msg $ M.lookup k kvmap
@@ -99,7 +93,7 @@ getAppFolders = do
 
 getDirContents :: FilePath -> IO (Either String [FilePath])
 getDirContents dir = do
-  fn <- convertExceptionToString . try @IOError . listDirectory $ dir
+  fn <- fmap exceptionToString . try @IOError . listDirectory $ dir
   return $ (fmap . fmap) (dir </>) fn
 
 getDotDesktopApps :: IO [DotDesktopApp]
