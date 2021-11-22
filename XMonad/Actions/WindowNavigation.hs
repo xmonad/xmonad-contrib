@@ -209,9 +209,9 @@ inr D (Point px py) (Rectangle rx ry w h) = px >= rx && px < rx + fromIntegral w
                                                         py < ry + fromIntegral h
 inr U (Point px py) (Rectangle rx ry w _) = px >= rx && px < rx + fromIntegral w &&
                                             py >  ry
-inr R (Point px py) (Rectangle rx ry _ h) = px <  rx &&
+inr R (Point px py) (Rectangle rx ry w h) =             px < rx + fromIntegral w &&
                                             py >= ry && py < ry + fromIntegral h
-inr L (Point px py) (Rectangle rx ry w h) =             px > rx + fromIntegral w &&
+inr L (Point px py) (Rectangle rx ry _ h) = px >  rx &&
                                             py >= ry && py < ry + fromIntegral h
 
 sortby :: Direction2D -> [(a,Rectangle)] -> [(a,Rectangle)]
