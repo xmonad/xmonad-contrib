@@ -20,6 +20,7 @@ module XMonad.Util.ExtensibleState (
                               -- $usage
                               put
                               , modify
+                              , modify'
                               , remove
                               , get
                               , gets
@@ -89,6 +90,11 @@ modifyStateExts f = State.modify $ \st -> st { extensibleState = f (extensibleSt
 -- is none.
 modify :: (ExtensionClass a, XLike m) => (a -> a) -> m ()
 modify f = put . f =<< get
+
+-- | Like @modify@ but the result value is applied strictly in respect to
+-- the monadic environment.
+modify' :: (ExtensionClass a, XLike m) => (a -> a) -> m ()
+modify' f = (\a -> let res = f a in res `seq` put res) =<< get
 
 -- | Add a value to the extensible state field. A previously stored value with the same
 -- type will be overwritten. (More precisely: A value whose string representation of its type

@@ -77,8 +77,10 @@ workspaceHistoryHook = gets windowset >>= (XS.modify . updateLastActiveOnEachScr
 -- | Like 'workspaceHistoryHook', but with the ability to exclude
 -- certain workspaces.
 workspaceHistoryHookExclude :: [WorkspaceId] -> X ()
-workspaceHistoryHookExclude ws =
-  gets windowset >>= XS.modify . updateLastActiveOnEachScreenExclude ws
+workspaceHistoryHookExclude ws = do
+  s <- gets windowset
+  let update' a = force (updateLastActiveOnEachScreenExclude ws s a)
+  XS.modify' update'
 
 workspaceHistoryWithScreen :: X [(ScreenId, WorkspaceId)]
 workspaceHistoryWithScreen = XS.gets history
