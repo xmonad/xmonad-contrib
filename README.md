@@ -1,35 +1,17 @@
 <p align="center">
-  <a href="https://xmonad.org/">
-    <img alt="XMonad logo" src="https://xmonad.org/images/logo-wrapped.svg" height=150>
-  </a>
+  <a href="https://xmonad.org/"><img alt="XMonad logo" src="https://xmonad.org/images/logo-wrapped.svg" height=150></a>
 </p>
 <p align="center">
-  <a href="https://hackage.haskell.org/package/xmonad-contrib">
-    <img alt="Hackage" src="https://img.shields.io/hackage/v/xmonad-contrib?logo=haskell">
-  </a>
-  <a href="https://github.com/xmonad/xmonad-contrib/blob/readme/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/xmonad/xmonad-contrib">
-  </a>
-  <a href="https://haskell.org/">
-    <img alt="Made in Haskell" src="https://img.shields.io/badge/Made%20in-Haskell-%235e5086?logo=haskell">
-  </a>
+  <a href="https://hackage.haskell.org/package/xmonad-contrib"><img alt="Hackage" src="https://img.shields.io/hackage/v/xmonad-contrib?logo=haskell"></a>
+  <a href="https://github.com/xmonad/xmonad-contrib/blob/readme/LICENSE"><img alt="License" src="https://img.shields.io/github/license/xmonad/xmonad-contrib"></a>
+  <a href="https://haskell.org/"><img alt="Made in Haskell" src="https://img.shields.io/badge/Made%20in-Haskell-%235e5086?logo=haskell"></a>
   <br>
-  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/stack.yml">
-    <img alt="Stack" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Stack?label=Stack&logo=githubactions&logoColor=white">
-  </a>
-  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/haskell-ci.yml">
-    <img alt="Cabal" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Haskell-CI?label=Cabal&logo=githubactions&logoColor=white">
-  </a>
-  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/nix.yml">
-    <img alt="Nix" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Nix?label=Nix&logo=githubactions&logoColor=white">
-  </a>
+  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/stack.yml"><img alt="Stack" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Stack?label=Stack&logo=githubactions&logoColor=white"></a>
+  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/haskell-ci.yml"><img alt="Cabal" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Haskell-CI?label=Cabal&logo=githubactions&logoColor=white"></a>
+  <a href="https://github.com/xmonad/xmonad-contrib/actions/workflows/nix.yml"><img alt="Nix" src="https://img.shields.io/github/workflow/status/xmonad/xmonad-contrib/Nix?label=Nix&logo=githubactions&logoColor=white"></a>
   <br>
-  <a href="https://github.com/sponsors/xmonad">
-    <img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/xmonad?label=GitHub%20Sponsors&logo=githubsponsors">
-  </a>
-  <a href="https://opencollective.com/xmonad">
-    <img alt="Open Collective" src="https://img.shields.io/opencollective/all/xmonad?label=Open%20Collective&logo=opencollective">
-  </a>
+  <a href="https://github.com/sponsors/xmonad"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/xmonad?label=GitHub%20Sponsors&logo=githubsponsors"></a>
+  <a href="https://opencollective.com/xmonad"><img alt="Open Collective" src="https://img.shields.io/opencollective/all/xmonad?label=Open%20Collective&logo=opencollective"></a>
 </p>
 
 # xmonad-contrib
