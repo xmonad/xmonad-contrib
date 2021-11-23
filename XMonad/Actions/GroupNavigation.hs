@@ -1,3 +1,4 @@
+{-# language DeriveGeneric, DeriveAnyClass #-}
 ----------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Actions.GroupNavigation
@@ -34,13 +35,14 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
 
 import Control.Monad.Reader
 import Control.Monad.State
-import Control.Seq (using, seqFoldable, rseq)
+import Control.DeepSeq
 import Data.Map ((!))
 import qualified Data.Map as Map
 import Data.Sequence (Seq, ViewL (EmptyL, (:<)), viewl, (<|), (><), (|>))
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Graphics.X11.Types
+import GHC.Generics
 import Prelude hiding (concatMap, drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
@@ -157,7 +159,7 @@ orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
 -- The state extension that holds the history information
 data HistoryDB = HistoryDB (Maybe Window) -- currently focused window
                            (Seq Window)   -- previously focused windows
-               deriving (Read, Show)
+               deriving (Read, Show, Generic, NFData)
 
 instance ExtensionClass HistoryDB where
 
@@ -168,11 +170,8 @@ instance ExtensionClass HistoryDB where
 -- focus history of all windows as the WindowSet changes.
 historyHook :: X ()
 historyHook = do
-  db <- XS.get
-  db'@(HistoryDB cur del) <- updateHistory db
-  let del' = del `using` seqFoldable rseq
-      cur' = cur `using` seqFoldable rseq
-  cur' `seq` del' `seq` XS.put db'
+  db' <- XS.get >>= updateHistory
+  db' `deepseq` XS.put db'
 
 -- Updates the history in response to a WindowSet change
 updateHistory :: HistoryDB -> X HistoryDB
