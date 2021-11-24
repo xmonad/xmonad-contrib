@@ -1,3 +1,4 @@
+{-# language DeriveGeneric, DeriveAnyClass #-}
 ----------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Actions.GroupNavigation
@@ -34,12 +35,14 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
 
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.DeepSeq
 import Data.Map ((!))
 import qualified Data.Map as Map
 import Data.Sequence (Seq, ViewL (EmptyL, (:<)), viewl, (<|), (><), (|>))
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Graphics.X11.Types
+import GHC.Generics
 import Prelude hiding (concatMap, drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
@@ -156,7 +159,7 @@ orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
 -- The state extension that holds the history information
 data HistoryDB = HistoryDB (Maybe Window) -- currently focused window
                            (Seq Window)   -- previously focused windows
-               deriving (Read, Show)
+               deriving (Read, Show, Generic, NFData)
 
 instance ExtensionClass HistoryDB where
 
@@ -166,15 +169,17 @@ instance ExtensionClass HistoryDB where
 -- | Action that needs to be executed as a logHook to maintain the
 -- focus history of all windows as the WindowSet changes.
 historyHook :: X ()
-historyHook = XS.get >>= updateHistory >>= XS.put
+historyHook = do
+  db' <- XS.get >>= updateHistory
+  db' `deepseq` XS.put db'
 
 -- Updates the history in response to a WindowSet change
 updateHistory :: HistoryDB -> X HistoryDB
-updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss -> do
+updateHistory (HistoryDB oldcur oldhist) = withWindowSet $ \ss ->
   let newcur   = SS.peek ss
       wins     = Set.fromList $ SS.allWindows ss
       newhist  = Seq.filter (`Set.member` wins) (ins oldcur oldhist)
-  return $ HistoryDB newcur (del newcur newhist)
+  in pure $ HistoryDB newcur (del newcur newhist)
   where
     ins x xs = maybe xs (<| xs) x
     del x xs = maybe xs (\x' -> Seq.filter (/= x') xs) x

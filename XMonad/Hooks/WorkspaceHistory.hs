@@ -28,9 +28,9 @@ module XMonad.Hooks.WorkspaceHistory (
   , workspaceHistoryModify
   ) where
 
-import           Control.Applicative
-import           Prelude
-
+import Control.Applicative
+import Control.DeepSeq
+import Prelude
 import XMonad
 import XMonad.StackSet hiding (delete, filter, new)
 import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy)
@@ -65,6 +65,13 @@ newtype WorkspaceHistory = WorkspaceHistory
                                          -- reverse-chronological order.
   } deriving (Read, Show)
 
+-- @ScreenId@ is not an instance of NFData, but is a newtype on @Int@. @seq@
+-- is enough for forcing it. This requires us to provide an instance.
+instance NFData WorkspaceHistory where
+  rnf (WorkspaceHistory hist) =
+    let go = liftRnf2 rwhnf rwhnf
+    in liftRnf go hist
+
 instance ExtensionClass WorkspaceHistory where
     initialValue = WorkspaceHistory []
     extensionType = PersistentExtension
@@ -72,13 +79,15 @@ instance ExtensionClass WorkspaceHistory where
 -- | A 'logHook' that keeps track of the order in which workspaces have
 -- been viewed.
 workspaceHistoryHook :: X ()
-workspaceHistoryHook = gets windowset >>= (XS.modify . updateLastActiveOnEachScreen)
+workspaceHistoryHook = workspaceHistoryHookExclude []
 
 -- | Like 'workspaceHistoryHook', but with the ability to exclude
 -- certain workspaces.
 workspaceHistoryHookExclude :: [WorkspaceId] -> X ()
-workspaceHistoryHookExclude ws =
-  gets windowset >>= XS.modify . updateLastActiveOnEachScreenExclude ws
+workspaceHistoryHookExclude ws = do
+  s <- gets windowset
+  let update' = force . updateLastActiveOnEachScreenExclude ws s
+  XS.modify' update'
 
 workspaceHistoryWithScreen :: X [(ScreenId, WorkspaceId)]
 workspaceHistoryWithScreen = XS.gets history
