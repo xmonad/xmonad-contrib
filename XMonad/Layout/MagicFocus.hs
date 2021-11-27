@@ -57,14 +57,11 @@ magicFocus = ModifiedLayout MagicFocus
 data MagicFocus a = MagicFocus deriving (Show, Read)
 
 instance LayoutModifier MagicFocus Window where
-  modifyLayout MagicFocus (W.Workspace i l s) r =
-    withWindowSet $ \wset ->
-      runLayout (W.Workspace i l (s >>= \st -> Just $ swap st (W.peek wset))) r
+  modifyLayout MagicFocus (W.Workspace i l s) =
+    runLayout (W.Workspace i l (s >>= Just . shift))
 
-swap :: (Eq a) => W.Stack a -> Maybe a -> W.Stack a
-swap (W.Stack f u d) focused
-    | Just f == focused = W.Stack f [] (reverse u ++ d)
-    | otherwise         = W.Stack f u d
+shift :: (Eq a) => W.Stack a -> W.Stack a
+shift (W.Stack f u d) = W.Stack f [] (reverse u ++ d)
 
 -- | An eventHook that overrides the normal focusFollowsMouse. When the mouse
 -- it moved to another window, that window is replaced as the master, and the
