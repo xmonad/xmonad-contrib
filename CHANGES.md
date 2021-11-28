@@ -37,6 +37,12 @@
     -  Fixed navigation getting "stuck" in certain situations for
        widescreen resolutions.
 
+  * `XMonad.Layout.MagicFocus`
+
+    - The focused window will always be at the master area in the stack being
+      passed onto the modified layout, even when focus leaves the workspace
+      using the modified layout.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
