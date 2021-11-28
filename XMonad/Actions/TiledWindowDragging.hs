@@ -48,10 +48,11 @@ import           XMonad.Layout.DraggingVisualizer
 -- | Create a mouse binding for this to be able to drag your windows around.
 -- You need "XMonad.Layout.DraggingVisualizer" for this to look good.
 dragWindow :: Window -> X ()
-dragWindow window = whenX (isClient window) $ do
+dragWindow window = whenX (isClient window) $ withDisplay $ \dpy ->
+  withWindowAttributes dpy window $ \wa -> do
     focus window
-    (offsetX, offsetY)                <- getPointerOffset window
-    (winX, winY, winWidth, winHeight) <- getWindowPlacement window
+    (offsetX, offsetY)                    <- getPointerOffset window
+    let (winX, winY, winWidth, winHeight)  = getWindowPlacement wa
 
     mouseDrag
         (\posX posY ->
@@ -71,11 +72,8 @@ getPointerOffset win = do
     return (fi oX, fi oY)
 
 -- | return a tuple of windowX, windowY, windowWidth, windowHeight
-getWindowPlacement :: Window -> X (Int, Int, Int, Int)
-getWindowPlacement window = do
-    wa <- withDisplay (\d -> io $ getWindowAttributes d window)
-    return (fi $ wa_x wa, fi $ wa_y wa, fi $ wa_width wa, fi $ wa_height wa)
-
+getWindowPlacement :: WindowAttributes -> (Int, Int, Int, Int)
+getWindowPlacement wa = (fi $ wa_x wa, fi $ wa_y wa, fi $ wa_width wa, fi $ wa_height wa)
 
 performWindowSwitching :: Window -> X ()
 performWindowSwitching win = do

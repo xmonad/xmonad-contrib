@@ -50,8 +50,8 @@ mouseResizeEdgeWindow
   :: Rational -- ^ The size of the area where only one edge is resized.
   -> Window   -- ^ The window to resize.
   -> X ()
-mouseResizeEdgeWindow edge w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+mouseResizeEdgeWindow edge w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     sh <- io $ getWMNormalHints d w
     (_, _, _, _, _, ix, iy, _) <- io $ queryPointer d w
     let

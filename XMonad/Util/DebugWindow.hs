@@ -23,7 +23,6 @@ import           XMonad.Prelude
 
 import           Codec.Binary.UTF8.String        (decodeString)
 import           Control.Exception                                     as E
-import           Foreign
 import           Foreign.C.String
 import           Numeric                         (showHex)
 import           System.Exit
@@ -35,7 +34,7 @@ debugWindow   :: Window -> X String
 debugWindow 0 =  return "-no window-"
 debugWindow w =  do
   let wx = pad 8 '0' $ showHex w ""
-  w' <- withDisplay $ \d -> io (safeGetWindowAttributes d w)
+  w' <- safeGetWindowAttributes w
   case w' of
     Nothing                                   ->
       return $ "(deleted window " ++ wx ++ ")"
@@ -152,14 +151,6 @@ wrap s =  ' ' : '"' : wrap' s ++ "\""
                   | s' == '\\' = '\\' : s' : wrap' ss
                   | otherwise  =        s' : wrap' ss
     wrap' ""                   =             ""
-
--- Graphics.X11.Extras.getWindowAttributes is bugggggggy
-safeGetWindowAttributes     :: Display -> Window -> IO (Maybe WindowAttributes)
-safeGetWindowAttributes d w =  alloca $ \p -> do
-  s <- xGetWindowAttributes d w p
-  case s of
-    0 -> return Nothing
-    _ -> Just <$> peek p
 
 -- and so is getCommand
 safeGetCommand     :: Display -> Window -> X [String]

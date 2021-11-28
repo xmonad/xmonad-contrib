@@ -44,8 +44,8 @@ import XMonad.Prelude (fi)
 -- | @keysMoveWindow (dx, dy)@ moves the window by @dx@ pixels to the
 --   right and @dy@ pixels down.
 keysMoveWindow :: D -> Window -> X ()
-keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     io $ moveWindow d w (fi (fi (wa_x wa) + dx))
                         (fi (fi (wa_y wa) + dy))
     float w
@@ -61,8 +61,8 @@ keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d -> do
 -- > keysMoveWindowTo (512,384) (1%2, 1%2) -- center the window on screen
 -- > keysMoveWindowTo (1024,0) (1, 0)      -- put window in the top right corner
 keysMoveWindowTo :: P -> G -> Window -> X ()
-keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+keysMoveWindowTo (x,y) (gx, gy) w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     io $ moveWindow d w (x - round (gx * fi (wa_width wa)))
                         (y - round (gy * fi (wa_height wa)))
     float w
@@ -113,8 +113,8 @@ keysResizeWindow' sh (x,y) (w,h) (dx,dy) (gx, gy) = ((nx, ny), (nw, nh))
         ny = round $ fi y + gy * fi h - gy * fi nh
 
 keysMoveResize :: (SizeHints -> P -> D -> a -> b -> (P,D)) -> a -> b -> Window -> X ()
-keysMoveResize f move resize w = whenX (isClient w) $ withDisplay $ \d -> do
-    wa <- io $ getWindowAttributes d w
+keysMoveResize f move resize w = whenX (isClient w) $ withDisplay $ \d ->
+  withWindowAttributes d w $ \wa -> do
     sh <- io $ getWMNormalHints d w
     let wa_dim = (fi $ wa_width wa, fi $ wa_height wa)
         wa_pos = (fi $ wa_x wa, fi $ wa_y wa)

@@ -616,11 +616,8 @@ actOnScreens act wrap = withWindowSet $ \winset -> do
 
 -- | Determines whether a given window is mapped
 isMapped :: Window -> X Bool
-isMapped win  =  withDisplay
-              $  \dpy -> io
-              $  (waIsUnmapped /=)
-              .  wa_map_state
-             <$> getWindowAttributes dpy win
+isMapped = fmap (maybe False ((waIsUnmapped /=) .  wa_map_state))
+         . safeGetWindowAttributes
 
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
