@@ -4,6 +4,12 @@
 
 ### Breaking Changes
 
+  * `XMonad.Util.EZConfig`
+
+    - The functions `parseKey`, `parseKeyCombo`, and `parseKeySequence`
+      now return a `Parser` (from `XMonad.Util.Parser`) instead of a
+      `ReadP`.
+
 ### New Modules
 
   * `XMonad.Layout.CenteredIfSingle`
