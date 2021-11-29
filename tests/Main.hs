@@ -13,6 +13,7 @@ import qualified XPrompt
 import qualified CycleRecentWS
 import qualified OrgMode
 import qualified GridSelect
+import qualified EZConfig
 
 main :: IO ()
 main = hspec $ do
@@ -51,3 +52,4 @@ main = hspec $ do
     context "CycleRecentWS"  CycleRecentWS.spec
     context "OrgMode"        OrgMode.spec
     context "GridSelect"     GridSelect.spec
+    context "EZConfig"       EZConfig.spec

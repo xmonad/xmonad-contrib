@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.EZConfig
@@ -34,7 +35,11 @@ module XMonad.Util.EZConfig (
 
                              parseKey, -- used by XMonad.Util.Paste
                              parseKeyCombo,
-                             parseKeySequence, readKeySequence
+                             parseKeySequence, readKeySequence,
+#ifdef TESTING
+                             functionKeys, specialKeys, multimediaKeys,
+                             parseModifier,
+#endif
                             ) where
 
 import XMonad

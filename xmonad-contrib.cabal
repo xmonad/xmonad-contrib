@@ -388,6 +388,7 @@ test-suite tests
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   other-modules:  CycleRecentWS
+                  EZConfig
                   ExtensibleConf
                   GridSelect
                   Instances
@@ -404,6 +405,7 @@ test-suite tests
                   XMonad.Actions.GridSelect
                   XMonad.Actions.PhysicalScreens
                   XMonad.Actions.RotateSome
+                  XMonad.Actions.Submap
                   XMonad.Actions.SwapWorkspaces
                   XMonad.Actions.TagWindows
                   XMonad.Actions.WindowBringer
@@ -422,11 +424,13 @@ test-suite tests
                   XMonad.Prompt.Shell
                   XMonad.Util.Dmenu
                   XMonad.Util.Dzen
+                  XMonad.Util.EZConfig
                   XMonad.Util.ExtensibleConf
                   XMonad.Util.ExtensibleState
                   XMonad.Util.Font
                   XMonad.Util.Image
                   XMonad.Util.Invisible
+                  XMonad.Util.NamedActions
                   XMonad.Util.NamedWindows
                   XMonad.Util.Parser
                   XMonad.Util.PureX
