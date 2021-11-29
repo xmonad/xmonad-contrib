@@ -21,6 +21,11 @@
     While XMonad provides config to set all window borders at the same
     width, this extension defines and sets border width for each window.
 
+  * `XMonad.Util.Parser`
+
+    A wrapper around the 'ReadP' parser combinator, providing behaviour
+    that's closer to the more popular parser combinator libraries.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt`

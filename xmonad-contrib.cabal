@@ -359,6 +359,7 @@ library
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
                         XMonad.Util.NoTaskbar
+                        XMonad.Util.Parser
                         XMonad.Util.Paste
                         XMonad.Util.PositionStore
                         XMonad.Util.PureX
@@ -427,6 +428,7 @@ test-suite tests
                   XMonad.Util.Image
                   XMonad.Util.Invisible
                   XMonad.Util.NamedWindows
+                  XMonad.Util.Parser
                   XMonad.Util.PureX
                   XMonad.Util.Rectangle
                   XMonad.Util.Run
