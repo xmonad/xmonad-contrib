@@ -59,10 +59,17 @@
     - Flipped how `(^?)`, `(~?)`, and `($?)` work to more accurately
       reflect how one uses these operators.
 
+    - Added `isMinimized`
+
   * `XMonad.Actions.WindowNavigation`
 
     -  Fixed navigation getting "stuck" in certain situations for
        widescreen resolutions.
+
+  * `XMonad.Layout.BinarySpacePartition`
+
+    - Hidden windows are now ignored by the layout so that hidden windows in
+      the stack don't offset position calculations in the layout.
 
   * `XMonad.Layout.MagicFocus`
 
