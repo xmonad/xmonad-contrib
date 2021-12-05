@@ -168,6 +168,7 @@ library
                         XMonad.Doc.Configuring
                         XMonad.Doc.Developing
                         XMonad.Doc.Extending
+                        XMonad.Hooks.BorderPerWindow
                         XMonad.Hooks.CurrentWorkspaceOnTop
                         XMonad.Hooks.DebugEvents
                         XMonad.Hooks.DebugKeyEvents
@@ -335,6 +336,7 @@ library
                         XMonad.Prompt.XMonad
                         XMonad.Prompt.Zsh
                         XMonad.Util.ActionCycle
+                        XMonad.Util.ActionQueue
                         XMonad.Util.ClickableWorkspaces
                         XMonad.Util.Cursor
                         XMonad.Util.CustomKeys

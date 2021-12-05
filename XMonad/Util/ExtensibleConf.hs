@@ -62,7 +62,7 @@ import qualified Data.Map as M
 -- > newtype MyConf = MyConf{ fromMyConf :: [Int] } deriving Semigroup
 -- >
 -- > customLogger :: Int -> XConfig l -> XConfig l
--- > customLogger i = XC.once (MyConf [i]) $ \c -> c{ logHook = logHook c <> lh }
+-- > customLogger i = XC.once (\c -> c{ logHook = logHook c <> lh }) (MyConf [i])
 -- >   where
 -- >     lh :: X ()
 -- >     lh = XC.with $ io . print . fromMyConf

@@ -11,6 +11,16 @@
     Layout modifier that, if only a single window is on screen, places that window
     in the middle of the screen.
 
+  * `XMonad.Util.ActionQueue`
+
+    Put XMonad actions in the queue to be executed every time the
+    `logHook` (or, alternatively, a hook of your choice) runs.
+
+  * `XMonad.Hooks.BorderPerWindow`
+
+    While XMonad provides config to set all window borders at the same
+    width, this extension defines and sets border width for each window.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt`
