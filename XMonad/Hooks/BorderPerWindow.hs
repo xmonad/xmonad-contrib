@@ -38,9 +38,9 @@ import XMonad.Util.ActionQueue (enqueue, actionQueue)
 --
 -- > myManageHook :: ManageHook
 -- > myManageHook = composeAll
--- >     [ className =? "firefox"  --> defineWindowWidth 0
--- >     , className =? "Chromium" --> defineWindowWidth 0
--- >     , isDialog                --> defineWindowWidth 8
+-- >     [ className =? "firefox"  --> defineBorderWidth 0
+-- >     , className =? "Chromium" --> defineBorderWidth 0
+-- >     , isDialog                --> defineBorderWidth 8
 -- >     ]
 --
 -- Finally, add the 'actionQueue' combinator and @myManageHook@ to your
