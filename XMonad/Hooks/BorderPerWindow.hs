@@ -23,7 +23,6 @@ module XMonad.Hooks.BorderPerWindow ( -- * Usage
                                     ) where
 
 
-import Graphics.X11.Xlib (Dimension)
 import XMonad
 import XMonad.Util.ActionQueue (enqueue, actionQueue)
 
