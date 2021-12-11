@@ -79,8 +79,9 @@ import XMonad.Hooks.WorkspaceHistory
 import qualified Data.Map as M
 
 #ifdef XFT
-import Graphics.X11.Xft
+import qualified Data.List.NonEmpty as NE
 import Graphics.X11.Xrender
+import Graphics.X11.Xft
 #endif
 
 -- $usage
@@ -648,10 +649,14 @@ drawStringXMF display window visual colormap gc font col x y text = case font of
         setForeground display gc col
         wcDrawImageString display window fnt gc x y text
 #ifdef XFT
-    Xft fnt -> do
+    Xft fnts -> do
         withXftDraw display window visual colormap $
             \ft_draw -> withXftColorValue display visual colormap (fromARGB col) $
-            \ft_color -> xftDrawString ft_draw ft_color fnt x y text
+#if MIN_VERSION_X11_xft(0, 3, 4)
+            \ft_color -> xftDrawStringFallback ft_draw ft_color (NE.toList fnts) (fi x) (fi y) text
+#else
+            \ft_color -> xftDrawString ft_draw ft_color (NE.head fnts) x y text
+#endif
 
 -- | Convert 'Pixel' to 'XRenderColor'
 --

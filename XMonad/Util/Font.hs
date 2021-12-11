@@ -41,15 +41,16 @@ import Control.Exception as E
 import Text.Printf (printf)
 
 #ifdef XFT
-import Graphics.X11.Xft
+import qualified Data.List.NonEmpty as NE
 import Graphics.X11.Xrender
+import Graphics.X11.Xft
 #endif
 
 -- Hide the Core Font/Xft switching here
 data XMonadFont = Core FontStruct
                 | Utf8 FontSet
 #ifdef XFT
-                | Xft  XftFont
+                | Xft  (NE.NonEmpty XftFont)
 #endif
 
 -- $usage
@@ -109,34 +110,44 @@ releaseUtf8Font fs = do
 -- Example: 'xft: Sans-10'
 initXMF :: String -> X XMonadFont
 initXMF s =
-#ifdef XFT
+#ifndef XFT
+  Utf8 <$> initUtf8Font s
+#else
   if xftPrefix `isPrefixOf` s then
      do dpy <- asks display
-        xftdraw <- io $ xftFontOpen dpy (defaultScreenOfDisplay dpy) (drop (length xftPrefix) s)
-        return (Xft xftdraw)
-  else
-#endif
-      Utf8 <$> initUtf8Font s
-#ifdef XFT
-  where xftPrefix = "xft:"
+        let fonts = case wordsBy (== ',') (drop (length xftPrefix) s) of
+              []       -> "xft:monospace" :| []  -- NE.singleton only in base 4.15
+              (x : xs) -> x :| xs
+        Xft <$> io (traverse (openFont dpy) fonts)
+  else Utf8 <$> initUtf8Font s
+ where
+  xftPrefix = "xft:"
+  openFont dpy str = xftFontOpen dpy (defaultScreenOfDisplay dpy) str
+  wordsBy p str = case dropWhile p str of
+    ""   -> []
+    str' -> w : wordsBy p str''
+     where (w, str'') = break p str'
 #endif
 
 releaseXMF :: XMonadFont -> X ()
 #ifdef XFT
-releaseXMF (Xft xftfont) = do
+releaseXMF (Xft xftfonts) = do
   dpy <- asks display
-  io $ xftFontClose dpy xftfont
+  io $ mapM_ (xftFontClose dpy) xftfonts
 #endif
 releaseXMF (Utf8 fs) = releaseUtf8Font fs
 releaseXMF (Core fs) = releaseCoreFont fs
-
 
 textWidthXMF :: MonadIO m => Display -> XMonadFont -> String -> m Int
 textWidthXMF _   (Utf8 fs) s = return $ fi $ wcTextEscapement fs s
 textWidthXMF _   (Core fs) s = return $ fi $ textWidth fs s
 #ifdef XFT
 textWidthXMF dpy (Xft xftdraw) s = liftIO $ do
-    gi <- xftTextExtents dpy xftdraw s
+#if MIN_VERSION_X11_xft(0, 3, 4)
+    gi <- xftTextAccumExtents dpy (toList xftdraw) s
+#else
+    gi <- xftTextExtents dpy (NE.head xftdraw) s
+#endif
     return $ xglyphinfo_xOff gi
 #endif
 
@@ -150,9 +161,15 @@ textExtentsXMF (Core fs) s = do
   let (_,a,d,_) = textExtents fs s
   return (a,d)
 #ifdef XFT
-textExtentsXMF (Xft xftfont) _ = io $ do
-  ascent  <- fi <$> xftfont_ascent  xftfont
-  descent <- fi <$> xftfont_descent xftfont
+#if MIN_VERSION_X11_xft(0, 3, 4)
+textExtentsXMF (Xft xftfonts) _ = io $ do
+  ascent  <- fi <$> xftfont_max_ascent  xftfonts
+  descent <- fi <$> xftfont_max_descent xftfonts
+#else
+textExtentsXMF (Xft xftfonts) _ = io $ do
+  ascent  <- fi <$> xftfont_ascent  (NE.head xftfonts)
+  descent <- fi <$> xftfont_descent (NE.head xftfonts)
+#endif
   return (ascent, descent)
 #endif
 
@@ -188,13 +205,17 @@ printStringXMF d p (Utf8 fs) gc fc bc x y s = io $ do
     setBackground d gc bc'
     io $ wcDrawImageString d p fs gc x y s
 #ifdef XFT
-printStringXMF dpy drw fs@(Xft font) gc fc bc x y s = do
+printStringXMF dpy drw fs@(Xft fonts) gc fc bc x y s = do
   let screen   = defaultScreenOfDisplay dpy
       colormap = defaultColormapOfScreen screen
       visual   = defaultVisualOfScreen screen
   bcolor <- stringToPixel dpy bc
   (a,d)  <- textExtentsXMF fs s
-  gi <- io $ xftTextExtents dpy font s
+#if MIN_VERSION_X11_xft(0, 3, 4)
+  gi <- io $ xftTextAccumExtents dpy (toList fonts) s
+#else
+  gi <- io $ xftTextExtents dpy (NE.head fonts) s
+#endif
   io $ setForeground dpy gc bcolor
   io $ fillRectangle dpy drw gc (x - fi (xglyphinfo_x gi))
                                 (y - fi a)
@@ -202,5 +223,9 @@ printStringXMF dpy drw fs@(Xft font) gc fc bc x y s = do
                                 (fi $ a + d)
   io $ withXftDraw dpy drw visual colormap $
          \draw -> withXftColorName dpy visual colormap fc $
-                   \color -> xftDrawString draw color font x y s
+#if MIN_VERSION_X11_xft(0, 3, 4)
+                   \color -> xftDrawStringFallback draw color (toList fonts) (fi x) (fi y) s
+#else
+                   \color -> xftDrawString draw color (NE.head fonts) x y s
+#endif
 #endif
