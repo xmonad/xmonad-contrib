@@ -17,7 +17,8 @@ module XMonad.Util.DynamicScratchpads (
   -- * Usage
   -- $usage
   makeDynamicSP,
-  spawnDynamicSP
+  spawnDynamicSP,
+  SPStorage
   ) where
 
 import Graphics.X11.Types
