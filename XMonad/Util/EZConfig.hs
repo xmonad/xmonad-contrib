@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.EZConfig
@@ -34,20 +35,23 @@ module XMonad.Util.EZConfig (
 
                              parseKey, -- used by XMonad.Util.Paste
                              parseKeyCombo,
-                             parseKeySequence, readKeySequence
+                             parseKeySequence, readKeySequence,
+#ifdef TESTING
+                             functionKeys, specialKeys, multimediaKeys,
+                             parseModifier,
+#endif
                             ) where
 
 import XMonad
 import XMonad.Actions.Submap
-import XMonad.Prelude hiding (many)
+import XMonad.Prelude
 
 import XMonad.Util.NamedActions
+import XMonad.Util.Parser
 
 import Control.Arrow (first, (&&&))
 import qualified Data.Map as M
 import Data.Ord (comparing)
-
-import Text.ParserCombinators.ReadP
 
 -- $usage
 -- To use this module, first import it into your @~\/.xmonad\/xmonad.hs@:
@@ -408,16 +412,15 @@ readKeymap c = mapMaybe (maybeKeys . first (readKeySequence c))
 -- | Parse a sequence of keys, returning Nothing if there is
 --   a parse failure (no parse, or ambiguous parse).
 readKeySequence :: XConfig l -> String -> Maybe [(KeyMask, KeySym)]
-readKeySequence c = listToMaybe . parses
-  where parses = map fst . filter (null.snd) . readP_to_S (parseKeySequence c)
+readKeySequence c = runParser (parseKeySequence c)
 
 -- | Parse a sequence of key combinations separated by spaces, e.g.
 --   @\"M-c x C-S-2\"@ (mod+c, x, ctrl+shift+2).
-parseKeySequence :: XConfig l -> ReadP [(KeyMask, KeySym)]
-parseKeySequence c = sepBy1 (parseKeyCombo c) (many1 $ char ' ')
+parseKeySequence :: XConfig l -> Parser [(KeyMask, KeySym)]
+parseKeySequence c = parseKeyCombo c `sepBy1` many1 (char ' ')
 
 -- | Parse a modifier-key combination such as "M-C-s" (mod+ctrl+s).
-parseKeyCombo :: XConfig l -> ReadP (KeyMask, KeySym)
+parseKeyCombo :: XConfig l -> Parser (KeyMask, KeySym)
 parseKeyCombo c = do mods <- many (parseModifier c)
                      k <- parseKey
                      return (foldl' (.|.) 0 mods, k)
@@ -425,23 +428,23 @@ parseKeyCombo c = do mods <- many (parseModifier c)
 -- | Parse a modifier: either M- (user-defined mod-key),
 --   C- (control), S- (shift), or M#- where # is an integer
 --   from 1 to 5 (mod1Mask through mod5Mask).
-parseModifier :: XConfig l -> ReadP KeyMask
-parseModifier c =  (string "M-" >> return (modMask c))
-               +++ (string "C-" >> return controlMask)
-               +++ (string "S-" >> return shiftMask)
-               +++ do _ <- char 'M'
-                      n <- satisfy (`elem` ['1'..'5'])
-                      _ <- char '-'
-                      return $ indexMod (read [n] - 1)
+parseModifier :: XConfig l -> Parser KeyMask
+parseModifier c = (string "M-" $> modMask c)
+               <> (string "C-" $> controlMask)
+               <> (string "S-" $> shiftMask)
+               <> do _ <- char 'M'
+                     n <- satisfy (`elem` ['1'..'5'])
+                     _ <- char '-'
+                     return $ indexMod (read [n] - 1)
     where indexMod = (!!) [mod1Mask,mod2Mask,mod3Mask,mod4Mask,mod5Mask]
 
 -- | Parse an unmodified basic key, like @\"x\"@, @\"<F1>\"@, etc.
-parseKey :: ReadP KeySym
-parseKey = parseRegular +++ parseSpecial
+parseKey :: Parser KeySym
+parseKey = parseSpecial <> parseRegular
 
 -- | Parse a regular key name (represented by itself).
-parseRegular :: ReadP KeySym
-parseRegular = choice [ char s >> return k
+parseRegular :: Parser KeySym
+parseRegular = choice [ char s $> k
                       | (s,k) <- zip ['!'             .. '~'          ] -- ASCII
                                      [xK_exclam       .. xK_asciitilde]
 
@@ -450,13 +453,11 @@ parseRegular = choice [ char s >> return k
                       ]
 
 -- | Parse a special key name (one enclosed in angle brackets).
-parseSpecial :: ReadP KeySym
-parseSpecial = do _   <- char '<'
-                  key <- choice [ string name >> return k
-                                | (name,k) <- keyNames
-                                ]
-                  _   <- char '>'
-                  return key
+parseSpecial :: Parser KeySym
+parseSpecial = do _ <- char '<'
+                  choice [ k <$ string name <* char '>'
+                         | (name, k) <- keyNames
+                         ]
 
 -- | A list of all special key names and their associated KeySyms.
 keyNames :: [(String, KeySym)]

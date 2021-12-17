@@ -28,10 +28,10 @@ import Graphics.X11
 import Graphics.X11.Xlib.Extras (none, setEventType, setKeyEvent)
 import Control.Monad.Reader (asks)
 import XMonad.Operations (withFocused)
-import XMonad.Prelude (isUpper, listToMaybe)
+import XMonad.Prelude (isUpper, fromMaybe)
 import XMonad.Util.XSelection (getSelection)
 import XMonad.Util.EZConfig (parseKey)
-import Text.ParserCombinators.ReadP (readP_to_S)
+import XMonad.Util.Parser (runParser)
 
 {- $usage
 
@@ -72,8 +72,8 @@ pasteString = mapM_ (\x -> if isUpper x || x `elem` "~!@#$%^&*()_+{}|:\"<>?" the
    outside ASCII.
 -}
 pasteChar :: KeyMask -> Char -> X ()
-pasteChar m c = sendKey m $ maybe (unicodeToKeysym c) fst
-                $ listToMaybe $ readP_to_S parseKey [c]
+pasteChar m c = sendKey m $ fromMaybe (unicodeToKeysym c)
+                $ runParser parseKey [c]
 
 -- | Send a key with a modifier to the currently focused window.
 sendKey :: KeyMask -> KeySym -> X ()

@@ -4,6 +4,12 @@
 
 ### Breaking Changes
 
+  * `XMonad.Util.EZConfig`
+
+    - The functions `parseKey`, `parseKeyCombo`, and `parseKeySequence`
+      now return a `Parser` (from `XMonad.Util.Parser`) instead of a
+      `ReadP`.
+
 ### New Modules
 
   * `XMonad.Layout.CenteredIfSingle`
@@ -20,6 +26,11 @@
 
     While XMonad provides config to set all window borders at the same
     width, this extension defines and sets border width for each window.
+
+  * `XMonad.Util.Parser`
+
+    A wrapper around the 'ReadP' parser combinator, providing behaviour
+    that's closer to the more popular parser combinator libraries.
 
 ### Bug Fixes and Minor Changes
 

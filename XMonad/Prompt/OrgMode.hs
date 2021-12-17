@@ -53,12 +53,12 @@ import XMonad.Prelude
 
 import XMonad (X, io)
 import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPrompt)
+import XMonad.Util.Parser
 import XMonad.Util.XSelection (getSelection)
 
 import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
 import System.Directory (getHomeDirectory)
 import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
-import Text.ParserCombinators.ReadP (ReadP, munch, munch1, readP_to_S, skipSpaces, string, (<++))
 
 {- $usage
 
@@ -357,13 +357,13 @@ ppNote clp todo = \case
 
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
-pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
+pInput inp = (`runParser` inp) . choice $
   [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay)
   , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay)
   , NormalMsg <$> munch1 (const True)
   ]
  where
-  getLast :: String -> ReadP String
+  getLast :: String -> Parser String
   getLast ptn =  reverse
               .  dropWhile (== ' ')    -- trim whitespace at the end
               .  drop (length ptn)     -- drop only the last pattern
@@ -371,82 +371,54 @@ pInput inp = fmap fst . listToMaybe . (`readP_to_S` inp) . lchoice $
               .  concat
              <$> endBy1 (go "") (pure ptn)
    where
-    go :: String -> ReadP String
+    go :: String -> Parser String
     go consumed = do
       str  <- munch  (/= head ptn)
       word <- munch1 (/= ' ')
       bool go pure (word == ptn) $ consumed <> str <> word
 
 -- | Try to parse a 'Time'.
-pTimeOfDay :: ReadP (Maybe TimeOfDay)
-pTimeOfDay = lchoice
-  [ Just <$> (TimeOfDay <$> pInt <* string ":" <*> pInt  ) -- HH:MM
-  , Just <$> (TimeOfDay <$> pInt               <*> pure 0) -- HH
+pTimeOfDay :: Parser (Maybe TimeOfDay)
+pTimeOfDay = choice
+  [ Just <$> (TimeOfDay <$> num <* string ":" <*> num   ) -- HH:MM
+  , Just <$> (TimeOfDay <$> num               <*> pure 0) -- HH
   , pure Nothing
   ]
 
 -- | Parse a 'Date'.
-pDate :: ReadP Date
-pDate = skipSpaces *> lchoice
-  [ pString "tod" "ay"    Today
-  , pString "tom" "orrow" Tomorrow
-  , Next     <$> pNext
-  , Date     <$> pDate1 <++ pDate2 <++ pDate3
+pDate :: Parser Date
+pDate = skipSpaces *> choice
+  [ pPrefix "tod" "ay"    Today
+  , pPrefix "tom" "orrow" Tomorrow
+  , Next <$> pNext
+  , Date <$> pDate'
   ] <* skipSpaces  -- cleanup
  where
-  pNext :: ReadP DayOfWeek = lchoice
-    [ pString "m"  "onday"    Monday   , pString "tu" "esday"  Tuesday
-    , pString "w"  "ednesday" Wednesday, pString "th" "ursday" Thursday
-    , pString "f"  "riday"    Friday   , pString "sa" "turday" Saturday
-    , pString "su" "nday"     Sunday
+  pNext :: Parser DayOfWeek = choice
+    [ pPrefix "m"  "onday"    Monday   , pPrefix "tu" "esday"  Tuesday
+    , pPrefix "w"  "ednesday" Wednesday, pPrefix "th" "ursday" Thursday
+    , pPrefix "f"  "riday"    Friday   , pPrefix "sa" "turday" Saturday
+    , pPrefix "su" "nday"     Sunday
     ]
 
-  -- XXX: This is really horrible, but I can't see a way to not have
-  -- exponential blowup with ReadP otherwise.
-  pDate1, pDate2, pDate3 :: ReadP (Int, Maybe Int, Maybe Integer)
-  pDate1 = pDate' (fmap Just)            (fmap Just)
-  pDate2 = pDate' (fmap Just)            (const (pure Nothing))
-  pDate3 = pDate' (const (pure Nothing)) (const (pure Nothing))
-  pDate'
-    :: (ReadP Int     -> ReadP (f Int    ))
-    -> (ReadP Integer -> ReadP (f Integer))
-    -> ReadP (Int, f Int, f Integer)
-  pDate' p p' =
-    (,,) <$> pInt
-         <*> p (skipSpaces *> lchoice
-               [ pString "ja"  "nuary"    1 , pString "f"   "ebruary" 2
-               , pString "mar" "ch"       3 , pString "ap"  "ril"     4
-               , pString "may" ""         5 , pString "jun" "e"       6
-               , pString "jul" "y"        7 , pString "au"  "gust"    8
-               , pString "s"   "eptember" 9 , pString "o"   "ctober"  10
-               , pString "n"   "ovember"  11, pString "d"   "ecember" 12
+  pDate' :: Parser (Int, Maybe Int, Maybe Integer)
+  pDate' =
+    (,,) <$> num
+         <*> optional (skipSpaces *> choice
+               [ pPrefix "ja"  "nuary"    1 , pPrefix "f"   "ebruary" 2
+               , pPrefix "mar" "ch"       3 , pPrefix "ap"  "ril"     4
+               , pPrefix "may" ""         5 , pPrefix "jun" "e"       6
+               , pPrefix "jul" "y"        7 , pPrefix "au"  "gust"    8
+               , pPrefix "s"   "eptember" 9 , pPrefix "o"   "ctober"  10
+               , pPrefix "n"   "ovember"  11, pPrefix "d"   "ecember" 12
                ])
-         <*> p' (skipSpaces *> pInt >>= \i -> guard (i >= 25) $> i)
+         <*> optional (skipSpaces *> num >>= \i -> guard (i >= 25) $> i)
 
--- | Parse a @start@ and see whether the rest of the word (separated by
--- spaces) fits the @leftover@.
-pString :: String -> String -> a -> ReadP a
-pString start leftover ret = do
-  void $ string start
-  l <- munch (/= ' ')
-  guard (l `isPrefixOf` leftover)
-  pure ret
-
--- | Parse a number.
-pInt :: (Read a, Integral a) => ReadP a
-pInt = read <$> munch1 isDigit
-
--- | Like 'choice', but with '(<++)' instead of '(+++)', stopping
--- parsing when the left-most parser succeeds.
-lchoice :: [ReadP a] -> ReadP a
-lchoice = foldl' (<++) empty
-
--- | Like 'Text.ParserCombinators.ReadP.endBy1', but only return the
--- parse where @parser@ had the highest number of applications.
-endBy1 :: ReadP a -> ReadP sep -> ReadP [a]
-endBy1 parser sep = many1 (parser <* sep)
- where
-  -- | Like 'Text.ParserCombinators.ReadP.many1', but use '(<++)'
-  -- instead of '(+++)'.
-  many1 :: ReadP a -> ReadP [a]
-  many1 p = (:) <$> p <*> (many1 p <++ pure [])
+  -- | Parse a prefix and drop a potential suffix up to the next (space
+  -- separated) word.  If successful, return @ret@.
+  pPrefix :: String -> String -> a -> Parser a
+  pPrefix start leftover ret = do
+    void $ string start
+    l <- munch (/= ' ')
+    guard (l `isPrefixOf` leftover)
+    pure ret
