@@ -377,7 +377,7 @@ statusBarPipe cmd xpp = do
 --
 -- > xmobarrc_top
 -- > Config { ...
--- >        , commands = [ Run XPropertyLog "_XMONAD_LOG_1", ... ]
+-- >        , commands = [ Run (XPropertyLog "_XMONAD_LOG_1"), ... ]
 -- >        , template = "%_XMONAD_LOG_1% }{ ..."
 -- >        }
 --

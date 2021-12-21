@@ -78,6 +78,10 @@
       `xmonad-contrib` to be compiled with `X11-xft` version 0.3.4 or
       higher.
 
+  * `XMonad.Hooks.StatusBar`
+
+    - Added missing parentheses to example in multiple status bars section
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
