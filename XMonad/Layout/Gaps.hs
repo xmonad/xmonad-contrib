@@ -91,6 +91,10 @@ import XMonad.Util.Types (Direction2D(..))
 --
 -- To configure gaps differently per-screen, use
 -- "XMonad.Layout.PerScreen" (coming soon).
+--
+-- __Warning__: If you also use the 'avoidStruts' layout modifier, it
+-- must come /before/ any of these modifiers. See the documentation of
+-- 'avoidStruts' for details.
 
 -- | A manual gap configuration.  Each side of the screen on which a
 --   gap is enabled is paired with a size in pixels.
