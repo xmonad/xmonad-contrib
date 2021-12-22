@@ -96,6 +96,10 @@ import           XMonad.Actions.MessageFeedback
 --     every direction.
 --
 --   - @True@: Enable the 'windowBorder'.
+--
+-- __Warning__: If you also use the 'avoidStruts' layout modifier, it
+-- must come /before/ any of these modifiers. See the documentation of
+-- 'avoidStruts' for details.
 
 -- | Represent the borders of a rectangle.
 data Border = Border
