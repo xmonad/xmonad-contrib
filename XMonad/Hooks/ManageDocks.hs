@@ -216,12 +216,18 @@ calcGap ss = do
 
 -- | Adjust layout automagically: don't cover up any docks, status
 --   bars, etc.
+--
+--   Note that this modifier must be applied before any modifier that
+--   changes the screen rectangle, or struts will be applied in the wrong
+--   place and may affect the other modifier(s) in odd ways. This is
+--   most commonly seen with the 'spacing' modifier and friends.
 avoidStruts :: LayoutClass l a => l a -> ModifiedLayout AvoidStruts l a
 avoidStruts = avoidStrutsOn [U,D,L,R]
 
 -- | Adjust layout automagically: don't cover up docks, status bars,
---   etc. on the indicated sides of the screen.  Valid sides are U
---   (top), D (bottom), R (right), or L (left).
+--   etc. on the indicated sides of the screen.  Valid sides are 'U'
+--   (top), 'D' (bottom), 'R' (right), or 'L' (left). The warning in
+--   'avoidStruts' applies to this modifier as well.
 avoidStrutsOn :: LayoutClass l a =>
                  [Direction2D]
               -> l a
