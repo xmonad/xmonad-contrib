@@ -850,6 +850,9 @@
     - Fixed a system freeze when using `X.A.CopyWindow.copy` in
       combination with `removeWorkspace`.
 
+    - `withWorkspace` now honors the users `searchPredicate`, for
+      example `fuzzyMatch` from `Prompt.FuzzyMatch`.
+
 ## 0.16
 
 ### Breaking Changes
