@@ -38,7 +38,7 @@ import XMonad.Prelude (find, isNothing, nub, when)
 import XMonad hiding (workspaces)
 import XMonad.StackSet hiding (filter, modify, delete)
 import XMonad.Prompt.Workspace ( Wor(Wor), workspacePrompt )
-import XMonad.Prompt ( XPConfig, mkXPrompt )
+import XMonad.Prompt ( XPConfig, mkComplFunFromList', mkXPrompt )
 import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 import qualified Data.Map.Strict as Map
 import qualified XMonad.Util.ExtensibleState as XS
@@ -107,17 +107,13 @@ withWorkspaceIndex job widx = do
       ilookup :: WorkspaceIndex -> X (Maybe WorkspaceTag)
       ilookup idx = Map.lookup idx <$> XS.gets workspaceIndexMap
 
-
-mkCompl :: [String] -> String -> IO [String]
-mkCompl l s = return $ filter (\x -> take (length s) x == s) l
-
 withWorkspace :: XPConfig -> (String -> X ()) -> X ()
 withWorkspace c job = do ws <- gets (workspaces . windowset)
                          sort <- getSortByIndex
                          let ts = map tag $ sort ws
                              job' t | t `elem` ts = job t
                                     | otherwise = addHiddenWorkspace t >> job t
-                         mkXPrompt (Wor "") c (mkCompl ts) job'
+                         mkXPrompt (Wor "") c (mkComplFunFromList' c ts) job'
 
 renameWorkspace :: XPConfig -> X ()
 renameWorkspace conf = workspacePrompt conf renameWorkspaceByName
