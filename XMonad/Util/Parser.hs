@@ -139,7 +139,7 @@ runParser (Parser p) = fmap fst . listToMaybe . ReadP.readP_to_S p
 
 -- | Always fails
 pfail :: Parser a
-pfail = Parser $ ReadP.pfail
+pfail = empty
 
 -- | Consume and return the next character.  Fails if there is no input
 -- left.
