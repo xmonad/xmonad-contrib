@@ -34,6 +34,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Prompt.OrgMode`
+
+    - Fixes the date parsing issue such that entries with format of
+      `todo +d 12 02 2024` works.
+
   * `XMonad.Prompt`
 
     - Added `transposeChars` to interchange the characters around the
