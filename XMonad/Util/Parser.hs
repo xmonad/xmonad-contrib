@@ -52,6 +52,7 @@ module XMonad.Util.Parser (
   endBy1,
   munch,
   munch1,
+  pfail
 ) where
 
 import XMonad.Prelude
@@ -135,6 +136,10 @@ instance Alternative Parser where
 -- | Run a parser on a given string.
 runParser :: Parser a -> String -> Maybe a
 runParser (Parser p) = fmap fst . listToMaybe . ReadP.readP_to_S p
+
+-- | Always fails
+pfail :: Parser a
+pfail = Parser $ ReadP.pfail
 
 -- | Consume and return the next character.  Fails if there is no input
 -- left.
