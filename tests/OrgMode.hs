@@ -22,6 +22,29 @@ spec = do
   prop "prop_encodeLinearity" prop_encodeLinearity
   prop "prop_decodeLinearity" prop_decodeLinearity
 
+  describe "pInput" $ do
+    it "works with todo +d 22 january 2021" $ do
+      pInput "todo +d 22 ja 2021"
+        `shouldBe` Just
+          ( Deadline
+              "todo"
+              (Time {date = Date (22, Just 1, Just 2021), tod = Nothing})
+          )
+    it "works with todo +d 22 01 2022" $ do
+      pInput "todo +d 22 01 2022"
+        `shouldBe` Just
+          ( Deadline
+              "todo"
+              (Time {date = Date (22, Just 1, Just 2022), tod = Nothing})
+          )
+    it "works with todo +d 1 01:01" $ do
+      pInput "todo +d 1 01:01"
+        `shouldBe` Just
+          ( Deadline
+              "todo"
+              (Time {date = Date (1, Nothing, Nothing), tod = Just $ TimeOfDay 1 1})
+          )
+
   -- Checking for regressions
   context "+d +d f" $ do
     it "encode" $ prop_encodeLinearity (OrgMsg "+d +d f")

@@ -401,6 +401,14 @@ pDate = skipSpaces *> choice
     , pPrefix "su" "nday"     Sunday
     ]
 
+  numWithoutColon :: Parser Int
+  numWithoutColon = do
+    str <- num
+    c <- get
+    if c == ':'
+    then pfail
+    else pure str
+
   pDate' :: Parser (Int, Maybe Int, Maybe Integer)
   pDate' =
     (,,) <$> num
@@ -411,6 +419,7 @@ pDate = skipSpaces *> choice
                , pPrefix "jul" "y"        7 , pPrefix "au"  "gust"    8
                , pPrefix "s"   "eptember" 9 , pPrefix "o"   "ctober"  10
                , pPrefix "n"   "ovember"  11, pPrefix "d"   "ecember" 12
+               , numWithoutColon
                ])
          <*> optional (skipSpaces *> num >>= \i -> guard (i >= 25) $> i)
 
