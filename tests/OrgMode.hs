@@ -19,9 +19,10 @@ import Test.QuickCheck
 
 spec :: Spec
 spec = do
-  prop "prop_encodeLinearity" prop_encodeLinearity
-  prop "prop_decodeLinearity" prop_decodeLinearity
+  prop "prop_encodeLinearity" prop_encodePreservation
+  prop "prop_decodeLinearity" prop_decodePreservation
 
+  -- Checking for regressions
   describe "pInput" $ do
     it "works with todo +d 22 january 2021" $ do
       pInput "todo +d 22 ja 2021"
@@ -45,21 +46,20 @@ spec = do
               (Time {date = Date (1, Nothing, Nothing), tod = Just $ TimeOfDay 1 1})
           )
 
-  -- Checking for regressions
   context "+d +d f" $ do
-    it "encode" $ prop_encodeLinearity (OrgMsg "+d +d f")
-    it "decode" $ prop_decodeLinearity (Deadline "+d" (Time {date = Next Friday, tod = Nothing}))
+    it "encode" $ prop_encodePreservation (OrgMsg "+d +d f")
+    it "decode" $ prop_decodePreservation (Deadline "+d" (Time {date = Next Friday, tod = Nothing}))
   context "+d f 1 +d f" $ do
-    it "encode" $ prop_encodeLinearity (OrgMsg "+d f 1 +d f")
-    it "decode" $ prop_decodeLinearity (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}))
+    it "encode" $ prop_encodePreservation (OrgMsg "+d f 1 +d f")
+    it "decode" $ prop_decodePreservation (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}))
 
--- | Printing omits no information from output.
-prop_encodeLinearity :: OrgMsg -> Property
-prop_encodeLinearity (OrgMsg s) = Just s === (ppNote <$> pInput s)
+-- | Parsing preserves all info that printing does.
+prop_encodePreservation :: OrgMsg -> Property
+prop_encodePreservation (OrgMsg s) = pInput s === (pInput . ppNote =<< pInput s)
 
--- | Parsing discards no information from input.
-prop_decodeLinearity :: Note -> Property
-prop_decodeLinearity n = Just n === pInput (ppNote n)
+-- | Printing preserves all info that parsing does.
+prop_decodePreservation :: Note -> Property
+prop_decodePreservation n = Just (ppNote n) === (fmap ppNote . pInput $ ppNote n)
 
 ------------------------------------------------------------------------
 -- Pretty Printing
@@ -101,13 +101,17 @@ instance Arbitrary OrgMsg where
       [ pure $ days ! Today
       , pure $ days ! Tomorrow
       , elements $ (days !) . Next <$> [Monday .. Sunday]
-      , rNat
-      , unwords <$> sequenceA [rNat, monthGen]
-      , unwords <$> sequenceA [rNat, monthGen, show <$> posInt `suchThat` (> 25)]
+      , rNat                                                   -- 17
+      , unwords <$> sequenceA [rNat, monthGen]                 -- 17 jan
+      , unwords <$> sequenceA [rNat, monthGen, rYear]          -- 17 jan 2021
+      , unwords <$> traverse (fmap show) [rNat, rMonth]        -- 17 01
+      , unwords <$> traverse (fmap show) [rNat, rMonth, rYear] -- 17 01 2021
       ]
      where
-      rNat :: Gen String
-      rNat = show <$> posInt
+      rNat, rYear, rMonth :: Gen String
+      rNat   = show <$> posInt
+      rMonth = show <$> posInt `suchThat` (<= 12)
+      rYear  = show <$> posInt `suchThat` (>  25)
 
       monthGen :: Gen String
       monthGen = elements $ Map.elems months
