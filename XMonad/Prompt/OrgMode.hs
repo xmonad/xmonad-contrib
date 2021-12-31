@@ -380,10 +380,13 @@ pInput inp = (`runParser` inp) . choice $
 -- | Try to parse a 'Time'.
 pTimeOfDay :: Parser (Maybe TimeOfDay)
 pTimeOfDay = choice
-  [ Just <$> (TimeOfDay <$> num <* string ":" <*> num   ) -- HH:MM
-  , Just <$> (TimeOfDay <$> num               <*> pure 0) -- HH
+  [ Just <$> (TimeOfDay <$> pHour <* string ":" <*> pMinute) -- HH:MM
+  , Just <$> (TimeOfDay <$> pHour               <*> pure 0 ) -- HH
   , pure Nothing
   ]
+ where
+  pMinute :: Parser Int = pNumBetween 1 60
+  pHour   :: Parser Int = pNumBetween 1 24
 
 -- | Parse a 'Date'.
 pDate :: Parser Date
@@ -403,7 +406,7 @@ pDate = skipSpaces *> choice
 
   numWithoutColon :: Parser Int
   numWithoutColon = do
-    str <- num
+    str <- pNumBetween 1 12 -- month
     c <- get
     if c == ':'
     then pfail
@@ -411,7 +414,7 @@ pDate = skipSpaces *> choice
 
   pDate' :: Parser (Int, Maybe Int, Maybe Integer)
   pDate' =
-    (,,) <$> num
+    (,,) <$> pNumBetween 1 31               -- day
          <*> optional (skipSpaces *> choice
                [ pPrefix "ja"  "nuary"    1 , pPrefix "f"   "ebruary" 2
                , pPrefix "mar" "ch"       3 , pPrefix "ap"  "ril"     4
@@ -431,3 +434,9 @@ pDate = skipSpaces *> choice
     l <- munch (/= ' ')
     guard (l `isPrefixOf` leftover)
     pure ret
+
+-- | Parse a number between @lo@ (inclusive) and @hi@ (inclusive).
+pNumBetween :: Int -> Int -> Parser Int
+pNumBetween lo hi = do
+  n <- num
+  n <$ guard (n >= lo && n <= hi)
