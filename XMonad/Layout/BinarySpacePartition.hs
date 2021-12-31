@@ -38,6 +38,7 @@ module XMonad.Layout.BinarySpacePartition (
 import XMonad
 import XMonad.Prelude hiding (insert)
 import qualified XMonad.StackSet as W
+import XMonad.Hooks.ManageHelpers (isMinimized)
 import XMonad.Util.Stack hiding (Zipper)
 import XMonad.Util.Types
 
@@ -696,20 +697,23 @@ replaceFloating wsm = do
 getFloating :: X [Window]
 getFloating = M.keys . W.floating <$> gets windowset -- all floating windows
 
+getHidden :: X [Window]
+getHidden = getStackSet >>= filterM (runQuery isMinimized) . W.integrate'
+
 getStackSet :: X (Maybe (W.Stack Window))
 getStackSet = W.stack . W.workspace . W.current <$> gets windowset -- windows on this WS (with floating)
 
 getScreenRect :: X Rectangle
 getScreenRect = screenRect . W.screenDetail . W.current <$> gets windowset
 
-withoutFloating :: [Window] -> Maybe (W.Stack Window) -> Maybe (W.Stack Window)
-withoutFloating fs = maybe Nothing (unfloat fs)
+withoutFloating :: [Window] -> [Window] -> Maybe (W.Stack Window) -> Maybe (W.Stack Window)
+withoutFloating fs hs = maybe Nothing (unfloat fs hs)
 
 -- ignore messages if current focus is on floating window, otherwise return stack without floating
-unfloat :: [Window] -> W.Stack Window -> Maybe (W.Stack Window)
-unfloat fs s = if W.focus s `elem` fs
+unfloat :: [Window] -> [Window] -> W.Stack Window -> Maybe (W.Stack Window)
+unfloat fs hs s = if W.focus s `elem` fs
       then Nothing
-      else Just $ s{W.up = W.up s \\ fs, W.down = W.down s \\ fs}
+      else Just $ s{W.up = W.up s \\ (fs ++ hs), W.down = W.down s \\ (fs ++ hs)}
 
 instance LayoutClass BinarySpacePartition Window where
   doLayout b r s = do
@@ -743,9 +747,10 @@ instance LayoutClass BinarySpacePartition Window where
    | otherwise = do
        ws <- getStackSet
        fs <- getFloating
+       hs <- getHidden
        r <- getScreenRect
        -- removeBorder $ refWins $ getSelectedNode b
-       let lws = withoutFloating fs ws                                    -- tiled windows on WS
+       let lws = withoutFloating fs hs ws                                 -- tiled windows on WS
            lfs = maybe [] W.integrate ws \\ maybe [] W.integrate lws      -- untiled windows on WS
            b'  = handleMesg r                -- transform tree (concerns only tiled windows)
            ws' = adjustStack ws lws lfs b'   -- apply transformation to window stack, reintegrate floating wins
@@ -783,6 +788,7 @@ handleResize :: BinarySpacePartition Window -> WindowArrangerMsg -> X (Maybe (Bi
 handleResize b (SetGeometry newrect@(Rectangle _ _ w h)) = do
   ws <- getStackSet
   fs <- getFloating
+  hs <- getHidden
   case W.focus <$> ws of
     Nothing -> return Nothing
     Just win -> do
@@ -791,7 +797,7 @@ handleResize b (SetGeometry newrect@(Rectangle _ _ w h)) = do
       let (xsc,ysc)   = (fi w % fi ow, fi h % fi oh)
           (xsc',ysc') = (rough xsc, rough ysc)
           dirs = changedDirs oldrect newrect (fi mx,fi my)
-          n = elemIndex win $ maybe [] W.integrate $ withoutFloating fs ws
+          n = elemIndex win $ maybe [] W.integrate $ withoutFloating fs hs ws
       -- unless (isNothing dir) $ debug $
       --       show (fi x-fi ox,fi y-fi oy) ++ show (fi w-fi ow,fi h-fi oh)
       --       ++ show dir ++ " " ++ show win ++ " " ++ show (mx,my)
@@ -822,7 +828,7 @@ updateNodeRef b force r = do
             else return b
     b'' <- if force then return b'{getSelectedNode=noRef} else return b'
     renderBorders r b''
-  where getCurrFocused = maybe 0 index <$> (withoutFloating <$> getFloating <*> getStackSet)
+  where getCurrFocused = maybe 0 index <$> (withoutFloating <$> getFloating <*> getHidden <*> getStackSet)
 
 -- create border around focused node if necessary
 renderBorders :: Rectangle -> BinarySpacePartition a -> X (BinarySpacePartition a)
