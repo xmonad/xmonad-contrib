@@ -50,14 +50,18 @@ import qualified Data.Map as M
 
 -- $usage
 -- Import this module with "XMonad.Layout.Minimize" and "XMonad.Layout.BoringWindows":
+--
 -- > import XMonad.Actions.Minimize
 -- > import XMonad.Layout.Minimize
 -- > import qualified XMonad.Layout.BoringWindows as BW
 --
 -- Then apply 'minimize' and 'boringWindows' to your layout hook and use some
 -- actions from this module:
+--
 -- > main = xmonad def { layoutHook = minimize . BW.boringWindows $ whatever }
+--
 -- Example keybindings:
+--
 -- >        , ((modm,               xK_m     ), withFocused minimizeWindow      )
 -- >        , ((modm .|. shiftMask, xK_m     ), withLastMinimized maximizeWindow)
 
