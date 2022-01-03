@@ -90,6 +90,11 @@
       `xmonad-contrib` to be compiled with `X11-xft` version 0.3.4 or
       higher.
 
+  * `XMonad.Actions.FloatKeys`
+
+    - Changed type signature of `keysMoveWindow` from `D -> Window -> X ()`
+      to `ChangeDim -> Window -> X ()` to allow negative numbers without compiler warnings.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes

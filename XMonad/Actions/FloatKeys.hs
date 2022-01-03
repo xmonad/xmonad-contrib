@@ -43,7 +43,7 @@ import XMonad.Prelude (fi)
 
 -- | @keysMoveWindow (dx, dy)@ moves the window by @dx@ pixels to the
 --   right and @dy@ pixels down.
-keysMoveWindow :: D -> Window -> X ()
+keysMoveWindow :: ChangeDim -> Window -> X ()
 keysMoveWindow (dx,dy) w = whenX (isClient w) $ withDisplay $ \d ->
   withWindowAttributes d w $ \wa -> do
     io $ moveWindow d w (fi (fi (wa_x wa) + dx))
