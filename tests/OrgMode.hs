@@ -19,8 +19,8 @@ import Test.QuickCheck
 
 spec :: Spec
 spec = do
-  prop "prop_encodeLinearity" prop_encodePreservation
-  prop "prop_decodeLinearity" prop_decodePreservation
+  prop "prop_encodePreservation" prop_encodePreservation
+  prop "prop_decodePreservation" prop_decodePreservation
 
   -- Checking for regressions
   describe "pInput" $ do
