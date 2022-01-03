@@ -19,7 +19,7 @@ module XMonad.Actions.FloatKeys (
                 keysMoveWindowTo,
                 keysResizeWindow,
                 keysAbsResizeWindow,
-                P, G,
+                P, G, ChangeDim
                 ) where
 
 import XMonad
