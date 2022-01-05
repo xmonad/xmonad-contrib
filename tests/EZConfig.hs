@@ -25,6 +25,11 @@ spec = do
                          , mod2Mask, mod3Mask, mod4Mask, mod5Mask
                          ]]
 
+  -- Checking for regressions
+  describe "readKeySequence" $
+    it "Fails on the non-existent key M-10" $
+      readKeySequence def "M-10" `shouldBe` Nothing
+
 regularKeys :: ([String], [KeySym])
 regularKeys = unzip . map (first (: ""))
             $ zip ['!'    .. '~'   ] [xK_exclam       .. xK_asciitilde]

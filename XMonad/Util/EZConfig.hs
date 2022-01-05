@@ -412,7 +412,7 @@ readKeymap c = mapMaybe (maybeKeys . first (readKeySequence c))
 -- | Parse a sequence of keys, returning Nothing if there is
 --   a parse failure (no parse, or ambiguous parse).
 readKeySequence :: XConfig l -> String -> Maybe [(KeyMask, KeySym)]
-readKeySequence c = runParser (parseKeySequence c)
+readKeySequence c = runParser (parseKeySequence c <* eof)
 
 -- | Parse a sequence of key combinations separated by spaces, e.g.
 --   @\"M-c x C-S-2\"@ (mod+c, x, ctrl+shift+2).
