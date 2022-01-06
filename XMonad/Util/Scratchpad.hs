@@ -110,7 +110,7 @@ scratchpadManageHook :: W.RationalRect -- ^ User-specified screen rectangle.
 scratchpadManageHook rect = namedScratchpadManageHook [NS "" "" scratchpadQuery (customFloating rect)]
 
 
--- | Transforms a workspace list containing the SP workspace into one that
+-- | Transforms a workspace list containing the NSP workspace into one that
 -- doesn't contain it. Intended for use with 'logHook's (see
 -- 'XMonad.Hooks.StatusBar.PP.filterOutWsPP') and "XMonad.Hooks.EwmhDesktops"
 -- (see 'XMonad.Hooks.EwmhDesktops.addEwmhWorkspaceSort').
