@@ -5,7 +5,7 @@
 -- Description :  Spencer Janssen's xmonad config.
 --
 ------------------------------------------------------------------------
-module XMonad.Config.Sjanssen (sjanssenConfig) where
+module XMonad.Config.Sjanssen {-# DEPRECATED "This module contains a personal configuration, to be removed from xmonad-contrib.  If you use this module, please copy the relevant parts to your configuration or obtain a copy of it on https://xmonad.org/configurations.html and include it as a local module." #-} (sjanssenConfig) where
 
 import XMonad hiding (Tall(..))
 import qualified XMonad.StackSet as W
