@@ -121,6 +121,12 @@
     - Added `keymaskToString` and `keyToString` to show a key mask and a
       key in the style of `XMonad.Util.EZConfig`.
 
+  * `XMonad.Util.XUtils`
+
+    - Added `withSimpleWindow`, `showSimpleWindow`, `WindowConfig`, and
+      `WindowRect` in order to simplify the handling of simply popup
+      windows.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes

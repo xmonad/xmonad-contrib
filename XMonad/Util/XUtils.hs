@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP             #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE TupleSections   #-}
+{-# LANGUAGE RecordWildCards #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.XUtils
@@ -17,7 +21,11 @@
 module XMonad.Util.XUtils
     ( -- * Usage:
       -- $usage
-      averagePixels
+      withSimpleWindow
+    , showSimpleWindow
+    , WindowConfig(..)
+    , WindowRect(..)
+    , averagePixels
     , createNewWindow
     , showWindow
     , showWindows
@@ -37,6 +45,7 @@ import XMonad.Prelude
 import XMonad
 import XMonad.Util.Font
 import XMonad.Util.Image
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" or
@@ -156,6 +165,86 @@ paintTextAndIcons w fs wh ht bw bc borc ffc fbc als strs i_als icons = do
         ms = Just (fs,ffc,fbc, zip strs strPositions)
         is = Just (ffc, fbc, zip iconPositions icons)
     paintWindow' w (Rectangle 0 0 wh ht) bw bc borc ms is
+
+-- | The config for a window, as interpreted by 'showSimpleWindow'.
+--
+-- The font @winFont@ can either be specified in the TODO format or as an
+-- xft font.  For example:
+--
+-- > winFont = "xft:monospace-20"
+--
+-- or
+--
+-- > winFont = "-misc-fixed-*-*-*-*-20-*-*-*-*-*-*-*"
+data WindowConfig = WindowConfig
+  { winFont :: !String      -- ^ Font to use.
+  , winBg   :: !String      -- ^ Background color.
+  , winFg   :: !String      -- ^ Foreground color.
+  , winRect :: !WindowRect  -- ^ Position and size of the rectangle.
+  }
+
+instance Default WindowConfig where
+  def = WindowConfig
+    {
+#ifdef XFT
+      winFont = "xft:monospace-20"
+#else
+      winFont = "-misc-fixed-*-*-*-*-20-*-*-*-*-*-*-*"
+#endif
+    , winBg   = "black"
+    , winFg   = "white"
+    , winRect = CenterWindow
+    }
+
+-- | What kind of window we should be.
+data WindowRect
+  = CenterWindow         -- ^ Centered, big enough to fit all the text.
+  | CustomRect Rectangle -- ^ Completely custom dimensions.
+
+-- | Create a window, then fill and show it with the given text.  If you
+-- are looking for a version of this function that also takes care of
+-- destroying the window, refer to 'withSimpleWindow'.
+showSimpleWindow :: WindowConfig -- ^ Window config.
+                 -> [String]     -- ^ Lines of text to show.
+                 -> X Window
+showSimpleWindow WindowConfig{..} strs = do
+  let pad = 20
+  font <- initXMF winFont
+  dpy  <- asks display
+  Rectangle sx sy sw sh <- getRectangle winRect
+
+  -- Text extents for centering all fonts
+  extends <- maximum . map (uncurry (+)) <$> traverse (textExtentsXMF font) strs
+  -- Height and width of entire window
+  height <- pure . fi $ (1 + length strs) * fi extends
+  width  <- (+ pad) . fi . maximum <$> traverse (textWidthXMF dpy font) strs
+
+  let -- x and y coordinates that specify the upper left corner of the window
+      x = sx + (fi sw - width  + 2) `div` 2
+      y = sy + (fi sh - height + 2) `div` 2
+      -- y position of first string
+      yFirst = (height + extends) `div` fi (1 + length strs)
+      -- (x starting, y starting) for all strings
+      strPositions = map (pad `div` 2, ) [yFirst, yFirst + extends ..]
+
+  w <- createNewWindow (Rectangle x y (fi width) (fi height)) Nothing "" True
+  let ms = Just (font, winFg, winBg, zip strs strPositions)
+  showWindow w
+  paintWindow' w (Rectangle 0 0 (fi width) (fi height)) 0 winBg "" ms Nothing
+  releaseXMF font
+  pure w
+ where
+  getRectangle :: WindowRect -> X Rectangle
+  getRectangle = \case
+    CenterWindow -> gets $ screenRect . W.screenDetail . W.current . windowset
+    CustomRect r -> pure r
+
+-- | Like 'showSimpleWindow', but fully manage the window; i.e., destroy
+-- it after the given function finishes its execution.
+withSimpleWindow :: WindowConfig -> [String] -> X a -> X a
+withSimpleWindow wc strs doStuff = do
+  w <- showSimpleWindow wc strs
+  doStuff <* withDisplay (io . (`destroyWindow` w))
 
 -- This stuff is not exported
 
