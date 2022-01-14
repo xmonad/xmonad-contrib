@@ -124,8 +124,13 @@
   * `XMonad.Util.XUtils`
 
     - Added `withSimpleWindow`, `showSimpleWindow`, `WindowConfig`, and
-      `WindowRect` in order to simplify the handling of simply popup
+      `WindowRect` in order to simplify the handling of simple popup
       windows.
+
+  * `XMonad.Actions.Submap`
+
+    - Added `visualSubmap` to visualise the available keys and their
+      actions when inside a submap.
 
 ## 0.17.0 (October 27, 2021)
 
