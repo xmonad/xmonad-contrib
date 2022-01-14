@@ -78,7 +78,7 @@ import qualified XMonad.StackSet as W
 -- screen into a physical workspace name.
 --
 -- A complete example abusing many of the functions below is available in the
--- "XMonad.Config.Dmwit" module.
+-- <https://xmonad.org/configurations.html XMonad.Config.Dmwit> configuration.
 
 type VirtualWorkspace  = WorkspaceId
 type PhysicalWorkspace = WorkspaceId

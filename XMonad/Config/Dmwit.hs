@@ -7,7 +7,7 @@
 -- Description :  Daniel Wagner's xmonad configuration.
 --
 ------------------------------------------------------------------------
-module XMonad.Config.Dmwit where
+module XMonad.Config.Dmwit {-# DEPRECATED "This module contains a personal configuration, to be removed from xmonad-contrib.  If you use this module, please copy the relevant parts to your configuration or obtain a copy of it on https://xmonad.org/configurations.html and include it as a local module." #-} where
 
 -- system imports
 import Control.Monad.Trans

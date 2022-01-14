@@ -23,7 +23,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Config.Prime (
+module XMonad.Config.Prime {-# DEPRECATED "This module is a perpetual draft and will therefore be removed from xmonad-contrib in the near future." #-} (
 -- Note: The identifiers here are listed in the order that makes the most sense
 -- for a user, while the definitions below are listed in the order that makes
 -- the most sense for a developer.

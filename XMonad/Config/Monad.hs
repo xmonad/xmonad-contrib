@@ -15,7 +15,7 @@ ideas:
     "only once" features like avoidStruts, ewmhDesktops
 -}
 
-module XMonad.Config.Monad where
+module XMonad.Config.Monad {-# DEPRECATED "This module does not work." #-} where
 
 import XMonad hiding (terminal, keys)
 import qualified XMonad as X
