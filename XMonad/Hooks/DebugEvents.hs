@@ -111,7 +111,7 @@ debugEventsHook' ButtonEvent           {ev_window = w
   windowEvent "Button" w
   nl <- gets numberlockMask
   let msk | s == 0    = ""
-          | otherwise = "modifiers " ++ vmask nl s
+          | otherwise = "modifiers " ++ keymaskToString nl s
   say "  button" $ show b ++ msk
 
 debugEventsHook' DestroyWindowEvent    {ev_window = w
@@ -217,28 +217,6 @@ clientMessages =  [("_NET_ACTIVE_WINDOW",("_NET_ACTIVE_WINDOW",32,1))
                   ,("WM_COMMAND"        ,("STRING"            , 8,0))
                   ,("WM_SAVE_YOURSELF"  ,("STRING"            , 8,0))
                   ]
-
--- | Convert a modifier mask into a useful string
-vmask                 :: KeyMask -> KeyMask -> String
-vmask numLockMask msk =  unwords $
-                         reverse $
-                         fst     $
-                         foldr vmask' ([],msk) masks
-    where
-      masks = map (\m -> (m,show m)) [0..toEnum (finiteBitSize msk - 1)] ++
-              [(numLockMask,"num"  )
-              ,(   lockMask,"lock" )
-              ,(controlMask,"ctrl" )
-              ,(  shiftMask,"shift")
-              ,(   mod5Mask,"mod5" )
-              ,(   mod4Mask,"mod4" )
-              ,(   mod3Mask,"mod3" )
-              ,(   mod2Mask,"mod2" )
-              ,(   mod1Mask,"mod1" )
-              ]
-      vmask'   _   a@( _,0)                = a
-      vmask' (m,s)   (ss,v) | v .&. m == m = (s : ss,v .&. complement m)
-      vmask'   _        r                  = r
 
 -- formatting properties.  ick. --
 

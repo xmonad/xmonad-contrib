@@ -47,10 +47,9 @@ module XMonad.Util.NamedActions (
 
 
 import XMonad.Actions.Submap(submap)
-import XMonad.Prelude (groupBy)
+import XMonad.Prelude (groupBy, keyToString)
 import XMonad
-import Control.Arrow(Arrow((&&&), second, (***)))
-import Data.Bits(Bits((.&.), complement))
+import Control.Arrow(Arrow((&&&), second))
 import System.Exit(exitSuccess)
 
 import qualified Data.Map as M
@@ -165,22 +164,6 @@ submapName = NamedAction . (submap . M.map getAction . M.fromList &&& showKm)
 (^++^) :: (HasName b, HasName b1) =>
      [(d, b)] -> [(d, b1)] -> [(d, NamedAction)]
 a ^++^ b = map (second NamedAction) a ++ map (second NamedAction) b
-
--- | Or allow another lookup table?
-modToString :: KeyMask -> String
-modToString mask = concatMap (++"-") $ filter (not . null)
-                $ map (uncurry pick)
-                [(mod1Mask, "M1")
-                ,(mod2Mask, "M2")
-                ,(mod3Mask, "M3")
-                ,(mod4Mask, "M4")
-                ,(mod5Mask, "M5")
-                ,(controlMask, "C")
-                ,(shiftMask,"Shift")]
-    where pick m str = if m .&. complement mask == 0 then str else ""
-
-keyToString :: (KeyMask, KeySym) -> [Char]
-keyToString = uncurry (++) . (modToString *** keysymToString)
 
 showKmSimple :: [((KeyMask, KeySym), NamedAction)] -> [[Char]]
 showKmSimple = concatMap (\(k,e) -> if snd k == 0 then "":showName e else map ((keyToString k ++) . smartSpace) $ showName e)

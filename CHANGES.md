@@ -116,6 +116,11 @@
       resetting borders back in layouts where you want borders after calling
       `voidBorders`.
 
+  * `XMonad.Prelude`
+
+    - Added `keymaskToString` and `keyToString` to show a key mask and a
+      key in the style of `XMonad.Util.EZConfig`.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
