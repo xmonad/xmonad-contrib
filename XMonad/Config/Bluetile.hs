@@ -20,7 +20,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Config.Bluetile {-# DEPRECATED "This module contains a personal configuration, to be removed from xmonad-contrib.  If you use this module, please copy the relevant parts to your configuration or obtain a copy of it on https://xmonad.org/configurations.html and include it as a local module." #-} (
+module XMonad.Config.Bluetile (
     -- * Usage
     -- $usage
     bluetileConfig
