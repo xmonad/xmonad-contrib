@@ -84,10 +84,10 @@ workspaceHistoryHook = workspaceHistoryHookExclude []
 -- | Like 'workspaceHistoryHook', but with the ability to exclude
 -- certain workspaces.
 workspaceHistoryHookExclude :: [WorkspaceId] -> X ()
-workspaceHistoryHookExclude ws = do
-  s <- gets windowset
-  let update' = force . updateLastActiveOnEachScreenExclude ws s
-  XS.modify' update'
+workspaceHistoryHookExclude ws = XS.modify' . update =<< gets windowset
+  where
+    update :: WindowSet -> WorkspaceHistory -> WorkspaceHistory
+    update s = force . updateLastActiveOnEachScreenExclude ws s
 
 workspaceHistoryWithScreen :: X [(ScreenId, WorkspaceId)]
 workspaceHistoryWithScreen = XS.gets history
@@ -110,7 +110,7 @@ workspaceHistoryTransaction action = do
   startingHistory <- XS.gets history
   action
   new <- flip updateLastActiveOnEachScreen (WorkspaceHistory startingHistory) <$> gets windowset
-  XS.put new
+  XS.put $! force new
 
 -- | Update the last visible workspace on each monitor if needed
 -- already there, or move it to the front if it is.
@@ -134,4 +134,4 @@ updateLastActiveOnEachScreenExclude ws StackSet {current = cur, visible = vis} w
 
 -- | Modify a the workspace history with a given pure function.
 workspaceHistoryModify :: ([(ScreenId, WorkspaceId)] -> [(ScreenId, WorkspaceId)]) -> X ()
-workspaceHistoryModify action = XS.modify $ WorkspaceHistory . action . history
+workspaceHistoryModify action = XS.modify' $ force . WorkspaceHistory . action . history

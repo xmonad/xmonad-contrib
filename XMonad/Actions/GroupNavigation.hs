@@ -169,9 +169,7 @@ instance ExtensionClass HistoryDB where
 -- | Action that needs to be executed as a logHook to maintain the
 -- focus history of all windows as the WindowSet changes.
 historyHook :: X ()
-historyHook = do
-  db' <- XS.get >>= updateHistory
-  db' `deepseq` XS.put db'
+historyHook = (XS.put $!) . force =<< updateHistory =<< XS.get
 
 -- Updates the history in response to a WindowSet change
 updateHistory :: HistoryDB -> X HistoryDB
