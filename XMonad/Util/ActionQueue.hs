@@ -55,27 +55,17 @@ import Data.Sequence (Seq (..), ViewL (..), viewl, (|>))
 --
 
 newtype ActionQueue = ActionQueue (Seq (X ()))
-  deriving newtype (Semigroup)
-
--- NOTE: The 'Semigroup' instance is technically wrong for a queue
--- (simply appending two queues together).  However, since these are
--- only needed for essentially the unit element and multiplication with
--- the unit, this does not seem like a big deal.
---
--- Indeed, since 'ActionQueue' is exported as an abstract type, there is
--- no way to build up a queue outside os using 'enqueue', meaning users
--- can't abuse these.
 
 instance ExtensionClass ActionQueue where
-    initialValue = emptyQueue
+    initialValue = ActionQueue mempty
 
-emptyQueue :: ActionQueue
-emptyQueue = ActionQueue mempty
+newtype ActionQueueHooked = ActionQueueHooked ()
+  deriving newtype (Semigroup)
 
 -- | Every time the @logHook@ runs, execute all actions in the queue.
 actionQueue :: XConfig l -> XConfig l
 actionQueue = XC.once (\cfg -> cfg{ logHook = logHook cfg <> exequeue })
-                      emptyQueue
+                      ActionQueueHooked
 
 -- | Enqueue an action.
 enqueue :: X () -> X ()
