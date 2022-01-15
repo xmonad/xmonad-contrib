@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.BorderPerWindow
--- Description :  Set border width for each window in all layouts.
+-- Description :  Set border width for a window in a ManageHook.
 -- Copyright   :  (c) 2021 Xiaokui Shu
 -- License     :  BSD-style (see LICENSE)
 --

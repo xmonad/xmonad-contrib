@@ -32,7 +32,8 @@
   * `XMonad.Hooks.BorderPerWindow`
 
     While XMonad provides config to set all window borders at the same
-    width, this extension defines and sets border width for each window.
+    width, this extension lets user set border width for a specific window
+    using a ManageHook.
 
   * `XMonad.Util.Parser`
 
