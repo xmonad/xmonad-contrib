@@ -10,7 +10,7 @@
       now return a `Parser` (from `XMonad.Util.Parser`) instead of a
       `ReadP`.
 
-  * `XMonad.Config.{Arossato,Bluetile,Dmwit,Droundy,Monad,Prime,Saegesser,Sjanssen}`
+  * `XMonad.Config.{Arossato,Dmwit,Droundy,Monad,Prime,Saegesser,Sjanssen}`
 
     - Deprecated all of these modules.  The user-specific configuration
       modules may still be found [on the website].
