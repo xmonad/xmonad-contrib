@@ -32,8 +32,9 @@ import XMonad.Util.Run
 import XMonad.Prompt.Shell (split)
 
 import System.Directory
-import System.Process
+import System.FilePath (dropExtensions, (</>))
 import System.IO
+import System.Process
 
 import qualified Control.Exception as E
 
@@ -70,12 +71,11 @@ getMans = do
     p2 <- getout "manpath 2>/dev/null"
     return $ intercalate ":" $ lines $ p1 ++ p2
   let sects    = ["man" ++ show n | n <- [1..9 :: Int]]
-      dirs     = [d ++ "/" ++ s | d <- split ':' paths, s <- sects]
+      dirs     = [d </> s | d <- split ':' paths, s <- sects]
   mans <- forM (nub dirs) $ \d -> do
             exists <- doesDirectoryExist d
             if exists
-              then map (stripExt . stripSuffixes [".gz", ".bz2"]) <$>
-                   getDirectoryContents d
+              then map dropExtensions <$> getDirectoryContents d
               else return []
   return $ uniqSort $ concat mans
 
@@ -101,15 +101,3 @@ getCommandOutput s = do
   E.evaluate (length output)
   hClose perr
   return output
-
-stripExt :: String -> String
-stripExt = reverse . drop 1 . dropWhile (/= '.') . reverse
-
-stripSuffixes :: Eq a => [[a]] -> [a] -> [a]
-stripSuffixes sufs fn =
-    head . catMaybes $ map (`rstrip` fn) sufs ++ [Just fn]
-
-rstrip :: Eq a => [a] -> [a] -> Maybe [a]
-rstrip suf lst
-    | suf `isSuffixOf` lst = Just $ take (length lst - length suf) lst
-    | otherwise            = Nothing
