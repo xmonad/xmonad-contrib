@@ -68,10 +68,7 @@ import qualified Data.List.NonEmpty as NE
 -- | Returns True if the first argument is a subsequence of the second argument,
 -- that is, it can be obtained from the second sequence by deleting elements.
 fuzzyMatch :: String -> String -> Bool
-fuzzyMatch []         _      = True
-fuzzyMatch _          []     = False
-fuzzyMatch xxs@(x:xs) (y:ys) | toLower x == toLower y = fuzzyMatch xs  ys
-                             | otherwise              = fuzzyMatch xxs ys
+fuzzyMatch a b = isSubsequenceOf (map toLower a) (map toLower b)
 
 -- | Sort the given set of strings by how well they match.  Match quality is
 -- measured first by the length of the substring containing the match and second
