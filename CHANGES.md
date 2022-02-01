@@ -111,7 +111,7 @@
       XMobar so that padding space may be reserved on xmobar for the
       tray.  Requires `xmobar` version 0.40 or higher.
 
-- `XMonad.Layout.VoidBorders`
+  * `XMonad.Layout.VoidBorders`
 
     - Added new layout modifier `normalBorders` which can be used for
       resetting borders back in layouts where you want borders after calling
