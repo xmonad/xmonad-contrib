@@ -13,11 +13,14 @@
 -- Portability :  unportable
 --
 -- Modifies a layout to set borders to 0 for all windows in the workspace.
--- It can also restore the window border if the window is moved to a different
--- workspace or if the layout is changed.
+--
+-- Unlike "XMonad.Layout.NoBorders", the 'voidBorders' modifier will not
+-- restore the window border if the windows are moved to a different workspace
+-- or the layout is changed. There is, however, a companion 'normalBorders'
+-- modifier which explicitly restores the border.
 --
 -- This modifier's primary use is to eliminate the "border flash" you get
--- while switching workspaces with the `noBorders` modifier.
+-- while switching workspaces with the "XMonad.Layout.NoBorders" modifier.
 --
 -----------------------------------------------------------------------------
 
@@ -83,4 +86,3 @@ resetBorders w = asks (borderWidth . config) >>= setBorders w
 
 setBorders :: Window -> Dimension -> X ()
 setBorders w bw = withDisplay $ \d -> io $ setWindowBorderWidth d w bw
-
