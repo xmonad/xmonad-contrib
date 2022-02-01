@@ -13,19 +13,21 @@
 -- Portability :  unportable
 --
 -- Modifies a layout to set borders to 0 for all windows in the workspace.
--- Unlike XMonad.Layout.NoBorders, this modifier will not restore the window
--- border if the windows are moved to a different workspace or the layout is
--- changed.
+--
+-- Unlike "XMonad.Layout.NoBorders", the 'voidBorders' modifier will not
+-- restore the window border if the windows are moved to a different workspace
+-- or the layout is changed. There is, however, a companion 'normalBorders'
+-- modifier which explicitly restores the border.
 --
 -- This modifier's primary use is to eliminate the "border flash" you get
--- while switching workspaces with the `noBorders` modifier. It won't return
--- the borders to their original width, however.
+-- while switching workspaces with the "XMonad.Layout.NoBorders" modifier.
 --
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.VoidBorders ( -- * Usage
                                    -- $usage
                                    voidBorders
+                                 , normalBorders
                                  ) where
 
 import XMonad
@@ -39,18 +41,16 @@ import XMonad.StackSet (integrate)
 -- > import XMonad.Layout.VoidBorders
 --
 -- and modify the layouts to call 'voidBorders' on the layouts you want to
--- remove borders from windows:
+-- remove borders from windows, and 'normalBorders' on the layouts you want
+-- to keep borders for:
 --
--- > layoutHook = ... ||| voidBorders Full ||| ...
+-- > layoutHook = ... ||| voidBorders Full ||| normalBorders Tall ...
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 
 data VoidBorders a = VoidBorders deriving (Read, Show)
-
-voidBorders :: l Window -> ModifiedLayout VoidBorders l Window
-voidBorders = ModifiedLayout VoidBorders
 
 instance LayoutModifier VoidBorders Window where
   modifierDescription = const "VoidBorders"
@@ -60,6 +60,29 @@ instance LayoutModifier VoidBorders Window where
     mapM_ setZeroBorder $ integrate s
     return (wrs, Nothing)
 
+voidBorders :: l Window -> ModifiedLayout VoidBorders l Window
+voidBorders = ModifiedLayout VoidBorders
+
+data NormalBorders a = NormalBorders deriving (Read, Show)
+
+instance LayoutModifier NormalBorders Window where
+  modifierDescription = const "NormalBorders"
+
+  redoLayout NormalBorders _ Nothing wrs = return (wrs, Nothing)
+  redoLayout NormalBorders _ (Just s) wrs = do
+    mapM_ resetBorders $ integrate s
+    return (wrs, Nothing)
+
+normalBorders :: l Window -> ModifiedLayout NormalBorders l Window
+normalBorders = ModifiedLayout NormalBorders
+
 -- | Sets border width to 0 for every window from the specified layout.
 setZeroBorder :: Window -> X ()
-setZeroBorder w = withDisplay $ \d -> io $ setWindowBorderWidth d w 0
+setZeroBorder w = setBorders w 0
+
+-- | Resets the border to the value read from the current configuration.
+resetBorders :: Window -> X ()
+resetBorders w = asks (borderWidth . config) >>= setBorders w
+
+setBorders :: Window -> Dimension -> X ()
+setBorders w bw = withDisplay $ \d -> io $ setWindowBorderWidth d w bw
