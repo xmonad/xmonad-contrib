@@ -105,11 +105,10 @@
 
   * `XMonad.Util.Hacks`
 
-    - Added `trayerQuery` for easily querying trayer and
-      `trayerPaddingXmobarEventHook` (as well as a variant to specify a
-      different X property) to communicate trayer resize events to
-      XMobar so that padding space may be reserved on xmobar for the
-      tray.  Requires `xmobar` version 0.40 or higher.
+    - Added `trayerPaddingXmobarEventHook` (plus generic variants for other
+      trays/panels) to communicate trayer resize events to XMobar so that
+      padding space may be reserved on xmobar for the tray.  Requires `xmobar`
+      version 0.40 or higher.
 
   * `XMonad.Layout.VoidBorders`
 
