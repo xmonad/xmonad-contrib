@@ -48,7 +48,7 @@ module XMonad.Util.Loggers (
 
   ) where
 
-import XMonad (liftIO, Window, gets)
+import XMonad (liftIO, gets)
 import XMonad.Core
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.StatusBar.PP
@@ -56,7 +56,7 @@ import XMonad.Util.Font (Align (..))
 import XMonad.Util.NamedWindows (getName)
 
 import Control.Exception as E
-import XMonad.Prelude (find, fromMaybe, isPrefixOf, isSuffixOf)
+import XMonad.Prelude (find, fromMaybe, isPrefixOf, isSuffixOf, WindowScreen)
 import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
 import System.Directory (getDirectoryContents)
 import System.IO (hGetLine)
@@ -271,9 +271,6 @@ logCurrentOnScreen = withScreen $ logConst . W.tag . W.workspace
 logLayoutOnScreen :: ScreenId -> Logger
 logLayoutOnScreen =
   withScreen $ logConst . description . W.layout . W.workspace
-
--- | A shortcut to a screen
-type WindowScreen = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
 
 -- | A helper function to create screen-specific loggers.
 withScreen :: (WindowScreen -> Logger) -> ScreenId -> Logger

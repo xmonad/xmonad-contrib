@@ -121,6 +121,9 @@
     - Added `keymaskToString` and `keyToString` to show a key mask and a
       key in the style of `XMonad.Util.EZConfig`.
 
+    - Added `WindowScreen`, which is a type synonym for the specialized `Screen`
+      type, that results from the `WindowSet` definition in `XMonad.Core`.
+
   * `XMonad.Util.XUtils`
 
     - Added `withSimpleWindow`, `showSimpleWindow`, `WindowConfig`, and

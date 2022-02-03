@@ -388,7 +388,7 @@ data Navigation2DConfig = Navigation2DConfig
   }
 
 -- | Shorthand for the tedious screen type
-type Screen = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
+type Screen = WindowScreen
 
 -- | Convenience function for enabling Navigation2D with typical keybindings.
 -- Takes a Navigation2DConfig, an (up, left, down, right) tuple, a mapping from
