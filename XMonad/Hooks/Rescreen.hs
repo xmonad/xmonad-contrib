@@ -98,11 +98,11 @@ rescreenHook = XC.once $ \c -> c
 
 -- | Shortcut for 'rescreenHook'.
 addAfterRescreenHook :: X () -> XConfig l -> XConfig l
-addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = h }
+addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = userCodeDef () h }
 
 -- | Shortcut for 'rescreenHook'.
 addRandrChangeHook :: X () -> XConfig l -> XConfig l
-addRandrChangeHook h = rescreenHook def{ randrChangeHook = h }
+addRandrChangeHook h = rescreenHook def{ randrChangeHook = userCodeDef () h }
 
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
 rescreenStartupHook :: X ()
