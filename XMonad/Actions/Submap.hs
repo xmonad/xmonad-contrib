@@ -17,13 +17,18 @@ module XMonad.Actions.Submap (
                              -- * Usage
                              -- $usage
                              submap,
+                             visualSubmap,
                              submapDefault,
-                             submapDefaultWithKey
+                             submapDefaultWithKey,
+
+                             -- * Utilities
+                             subName,
                             ) where
 import Data.Bits
-import XMonad.Prelude (fix, fromMaybe)
-import XMonad hiding (keys)
 import qualified Data.Map as M
+import XMonad hiding (keys)
+import XMonad.Prelude (fix, fromMaybe, keyToString)
+import XMonad.Util.XUtils
 
 {- $usage
 
@@ -62,6 +67,44 @@ For detailed instructions on editing your key bindings, see
 submap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
 submap = submapDefault (return ())
 
+-- | Like 'submap', but visualise the relevant options.
+--
+-- ==== __Example__
+--
+-- > import qualified Data.Map as Map
+-- > import XMonad.Actions.Submap
+-- >
+-- > gotoLayout :: [(String, X ())]   -- for use with EZConfig
+-- > gotoLayout =  -- assumes you have a layout named "Tall" and one named "Full".
+-- >   ["M-l", visualSubmap def $ Map.fromList $ map (\(k, s, a) -> ((0, k), (s, a)))
+-- >             [ (xK_t, "Tall", switchToLayout "Tall")     -- "M-l t" switches to "Tall"
+-- >             , (xK_r, "Full", switchToLayout "Full")     -- "M-l r" switches to "full"
+-- >             ]]
+--
+-- One could alternatively also write @gotoLayout@ as
+--
+-- > gotoLayout = ["M-l", visualSubmap def $ Map.fromList $
+-- >                        [ ((0, xK_t), subName "Tall" $ switchToLayout "Tall")
+-- >                        , ((0, xK_r), subName "Full" $ switchToLayout "Full")
+-- >                        ]]
+visualSubmap :: WindowConfig -- ^ The config for the spawned window.
+             -> M.Map (KeyMask, KeySym) (String, X ())
+                             -- ^ A map @keybinding -> (description, action)@.
+             -> X ()
+visualSubmap wc keys =
+    withSimpleWindow wc descriptions waitForKeyPress >>= \(m', s) ->
+        maybe (pure ()) snd (M.lookup (m', s) keys)
+  where
+    descriptions :: [String]
+    descriptions =
+        zipWith (\key desc -> keyToString key <> ": " <> desc)
+                (M.keys keys)
+                (map fst (M.elems keys))
+
+-- | Give a name to an action.
+subName :: String -> X () -> (String, X ())
+subName = (,)
+
 -- | Like 'submap', but executes a default action if the key did not match.
 submapDefault :: X () -> M.Map (KeyMask, KeySym) (X ()) -> X ()
 submapDefault = submapDefaultWithKey . const
@@ -71,28 +114,33 @@ submapDefault = submapDefaultWithKey . const
 submapDefaultWithKey :: ((KeyMask, KeySym) -> X ())
                      -> M.Map (KeyMask, KeySym) (X ())
                      -> X ()
-submapDefaultWithKey defAction keys = do
-    XConf { theRoot = root, display = d } <- ask
+submapDefaultWithKey defAction keys = waitForKeyPress >>=
+    \(m', s) -> fromMaybe (defAction (m', s)) (M.lookup (m', s) keys)
 
-    io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
-    io $ grabPointer d root False buttonPressMask grabModeAsync grabModeAsync
-                     none none currentTime
+-----------------------------------------------------------------------
+-- Internal stuff
+
+waitForKeyPress :: X (KeyMask, KeySym)
+waitForKeyPress = do
+    XConf{ theRoot = root, display = dpy } <- ask
+
+    io $ do grabKeyboard dpy root False grabModeAsync grabModeAsync currentTime
+            grabPointer dpy root False buttonPressMask grabModeAsync grabModeAsync
+                        none none currentTime
 
     (m, s) <- io $ allocaXEvent $ \p -> fix $ \nextkey -> do
-        maskEvent d (keyPressMask .|. buttonPressMask) p
+        maskEvent dpy (keyPressMask .|. buttonPressMask) p
         ev <- getEvent p
         case ev of
           KeyEvent { ev_keycode = code, ev_state = m } -> do
-            keysym <- keycodeToKeysym d code 0
+            keysym <- keycodeToKeysym dpy code 0
             if isModifierKey keysym
                 then nextkey
                 else return (m, keysym)
           _ -> return (0, 0)
     -- Remove num lock mask and Xkb group state bits
     m' <- cleanMask $ m .&. ((1 `shiftL` 12) - 1)
-
-    io $ ungrabPointer d currentTime
-    io $ ungrabKeyboard d currentTime
-    io $ sync d False
-
-    fromMaybe (defAction (m', s)) (M.lookup (m', s) keys)
+    io $ do ungrabPointer dpy currentTime
+            ungrabKeyboard dpy currentTime
+            sync dpy False
+    pure (m', s)

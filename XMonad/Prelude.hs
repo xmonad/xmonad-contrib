@@ -22,6 +22,8 @@ module XMonad.Prelude (
     NonEmpty((:|)),
     notEmpty,
     safeGetWindowAttributes,
+    keyToString,
+    keymaskToString,
 ) where
 
 import Foreign (alloca, peek)
@@ -39,7 +41,9 @@ import Data.Maybe          as Exports
 import Data.Monoid         as Exports
 import Data.Traversable    as Exports
 
-import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Bifunctor (bimap)
+import Data.Bits
+import Data.List.NonEmpty (NonEmpty ((:|)))
 import GHC.Stack
 
 -- | Short for 'fromIntegral'.
@@ -80,3 +84,35 @@ safeGetWindowAttributes w = withDisplay $ \dpy -> io . alloca $ \p ->
   xGetWindowAttributes dpy w p >>= \case
     0 -> pure Nothing
     _ -> Just <$> peek p
+
+-- | Convert a modifier mask into a useful string.
+keymaskToString :: KeyMask -- ^ Num lock mask
+                -> KeyMask -- ^ Modifier mask
+                -> String
+keymaskToString numLockMask msk =
+  unwords . reverse . fst . foldr go ([], msk) $ masks
+ where
+  masks :: [(KeyMask, String)]
+  masks = map (\m -> (m, show m))
+              [0 .. toEnum (finiteBitSize msk - 1)]
+       ++ [ (numLockMask, "num-" )
+          , (lockMask,    "lock-")
+          , (controlMask, "C-"   )
+          , (shiftMask,   "S-"   )
+          , (mod5Mask,    "M5-"  )
+          , (mod4Mask,    "M4-"  )
+          , (mod3Mask,    "M3-"  )
+          , (mod2Mask,    "M2-"  )
+          , (mod1Mask,    "M1-"  )
+          ]
+
+  go :: (KeyMask, String) -> ([String], KeyMask) -> ([String], KeyMask)
+  go (m, s) a@(ss, v)
+    | v == 0       = a
+    | v .&. m == m = (s : ss, v .&. complement m)
+    | otherwise    = a
+
+-- | Convert a full key combination; i.e., a 'KeyMask' and 'KeySym'
+-- pair, into a string.
+keyToString :: (KeyMask, KeySym) -> [Char]
+keyToString = uncurry (++) . bimap (keymaskToString 0) keysymToString
