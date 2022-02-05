@@ -91,7 +91,7 @@ keymaskToString :: KeyMask -- ^ Num lock mask
                 -> KeyMask -- ^ Modifier mask
                 -> String
 keymaskToString numLockMask msk =
-  unwords . reverse . fst . foldr go ([], msk) $ masks
+  concat . reverse . fst . foldr go ([], msk) $ masks
  where
   masks :: [(KeyMask, String)]
   masks = map (\m -> (m, show m))
