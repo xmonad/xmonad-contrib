@@ -27,7 +27,7 @@ module XMonad.Actions.Submap (
 import Data.Bits
 import qualified Data.Map as M
 import XMonad hiding (keys)
-import XMonad.Prelude (fix, fromMaybe, keyToString)
+import XMonad.Prelude (fix, fromMaybe, keyToString, cleanKeyMask)
 import XMonad.Util.XUtils
 
 {- $usage
@@ -138,8 +138,7 @@ waitForKeyPress = do
                 then nextkey
                 else return (m, keysym)
           _ -> return (0, 0)
-    -- Remove num lock mask and Xkb group state bits
-    m' <- cleanMask $ m .&. ((1 `shiftL` 12) - 1)
+    m' <- cleanKeyMask <*> pure m
     io $ do ungrabPointer dpy currentTime
             ungrabKeyboard dpy currentTime
             sync dpy False
