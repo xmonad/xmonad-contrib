@@ -409,7 +409,7 @@ makeXEventhandler keyhandler = fix $ \me -> join $ liftX $ withDisplay $ \d -> l
                                then do
                                   (ks,s) <- lookupString $ asKeyEvent e
                                   return $ do
-                                      mask <- liftX $ cleanMask (ev_state ev)
+                                      mask <- liftX $ cleanKeyMask <*> pure (ev_state ev)
                                       keyhandler (fromMaybe xK_VoidSymbol ks, s, mask)
                                else
                                   return $ stdHandle ev me

@@ -535,7 +535,7 @@ navigate = gets tss_display >>= \d -> join . liftIO . allocaXEvent $ \e -> do
     if | ev_event_type ev == keyPress -> do
            (ks, _) <- lookupString $ asKeyEvent e
            return $ do
-               mask <- liftX $ cleanMask (ev_state ev)
+               mask <- liftX $ cleanKeyMask <*> pure (ev_state ev)
                f <- asks ts_navigate
                fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
        | ev_event_type ev == buttonPress -> do

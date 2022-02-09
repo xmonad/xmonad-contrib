@@ -24,6 +24,7 @@ module XMonad.Prelude (
     safeGetWindowAttributes,
     keyToString,
     keymaskToString,
+    cleanKeyMask,
 ) where
 
 import Foreign (alloca, peek)
@@ -116,3 +117,18 @@ keymaskToString numLockMask msk =
 -- pair, into a string.
 keyToString :: (KeyMask, KeySym) -> [Char]
 keyToString = uncurry (++) . bimap (keymaskToString 0) keysymToString
+
+-- | Strip numlock, capslock, mouse buttons and XKB group from a 'KeyMask',
+-- leaving only modifier keys like Shift, Control, Super, Hyper in the mask
+-- (hence the \"Key\" in \"cleanKeyMask\").
+--
+-- Core's 'cleanMask' only strips the first two because key events from
+-- passive grabs (key bindings) are stripped of mouse buttons and XKB group by
+-- the X server already for compatibility reasons. For more info, see:
+-- <https://www.x.org/releases/X11R7.7/doc/kbproto/xkbproto.html#Delivering_a_Key_or_Button_Event_to_a_Client>
+cleanKeyMask :: X (KeyMask -> KeyMask)
+cleanKeyMask = cleanKeyMask' <$> gets numberlockMask
+
+cleanKeyMask' :: KeyMask -> KeyMask -> KeyMask
+cleanKeyMask' numLockMask mask =
+    mask .&. complement (numLockMask .|. lockMask) .&. (button1Mask - 1)
