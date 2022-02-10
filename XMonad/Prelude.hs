@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP          #-}
 {-# LANGUAGE LambdaCase   #-}
 --------------------------------------------------------------------
 -- |
@@ -127,8 +128,12 @@ keyToString = uncurry (++) . bimap (keymaskToString 0) keysymToString
 -- the X server already for compatibility reasons. For more info, see:
 -- <https://www.x.org/releases/X11R7.7/doc/kbproto/xkbproto.html#Delivering_a_Key_or_Button_Event_to_a_Client>
 cleanKeyMask :: X (KeyMask -> KeyMask)
-cleanKeyMask = cleanKeyMask' <$> gets numberlockMask
+#if MIN_VERSION_xmonad(0, 17, 1)
+cleanKeyMask = cleanKeyMask' <$> join (asks (stripModMask . config))
+#else
+cleanKeyMask = cleanKeyMask' . (lockMask .|.) <$> gets numberlockMask
+#endif
 
 cleanKeyMask' :: KeyMask -> KeyMask -> KeyMask
-cleanKeyMask' numLockMask mask =
-    mask .&. complement (numLockMask .|. lockMask) .&. (button1Mask - 1)
+cleanKeyMask' stripMask mask =
+    mask .&. complement stripMask .&. (button1Mask - 1)
