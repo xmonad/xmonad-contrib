@@ -132,6 +132,13 @@
     - Added `visualSubmap` to visualise the available keys and their
       actions when inside a submap.
 
+  * `XMonad.Prompt`, `XMonad.Actions.TreeSelect`, `XMonad.Actions.GridSelect`
+
+    - Key bindings now behave similarly to xmonad core:
+      State of mouse buttons and XKB layout groups is ignored.
+      Translation of key codes to symbols ignores modifiers, so `Shift-Tab` is
+      now just `(shiftMap, xK_Tab)` instead of `(shiftMap, xK_ISO_Left_Tab)`.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
