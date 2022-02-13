@@ -99,7 +99,6 @@ module XMonad.Prompt
 
 import           XMonad                       hiding (cleanMask, config)
 import           XMonad.Prelude               hiding (toList)
-import qualified XMonad                       as X (numberlockMask)
 import qualified XMonad.StackSet              as W
 import           XMonad.Util.Font
 import           XMonad.Util.Types
@@ -150,7 +149,7 @@ data XPState =
         , offset                :: !Int
         , config                :: XPConfig
         , successful            :: Bool
-        , numlockMask           :: KeyMask
+        , cleanMask             :: KeyMask -> KeyMask
         , done                  :: Bool
         , modeDone              :: Bool
         , color                 :: XPColor
@@ -357,9 +356,9 @@ amberXPConfig = def { bgColor   = "black"
                     }
 
 initState :: Display -> Window -> Window -> Rectangle -> XPOperationMode
-          -> GC -> XMonadFont -> [String] -> XPConfig -> KeyMask -> Dimension
-          -> XPState
-initState d rw w s opMode gc fonts h c nm width =
+          -> GC -> XMonadFont -> [String] -> XPConfig -> (KeyMask -> KeyMask)
+          -> Dimension -> XPState
+initState d rw w s opMode gc fonts h c cm width =
     XPS { dpy                   = d
         , rootw                 = rw
         , win                   = w
@@ -382,7 +381,7 @@ initState d rw w s opMode gc fonts h c nm width =
         , successful            = False
         , done                  = False
         , modeDone              = False
-        , numlockMask           = nm
+        , cleanMask             = cm
         , prompter              = defaultPrompter c
         , color                 = defaultColor c
         , eventBuffer           = []
@@ -555,7 +554,7 @@ mkXPromptImplementation :: String -> XPConfig -> XPOperationMode -> X XPState
 mkXPromptImplementation historyKey conf om = do
   XConf { display = d, theRoot = rw } <- ask
   s <- gets $ screenRect . W.screenDetail . W.current . windowset
-  numlock <- gets X.numberlockMask
+  cleanMask <- cleanKeyMask
   cachedir <- asks (cacheDir . directories)
   hist <- io $ readHistory cachedir
   fs <- initXMF (font conf)
@@ -572,7 +571,7 @@ mkXPromptImplementation historyKey conf om = do
             selectInput d w $ exposureMask .|. keyPressMask
             setGraphicsExposures d gc False
             let hs = fromMaybe [] $ M.lookup historyKey hist
-                st = initState d rw w s om gc fs hs conf numlock width
+                st = initState d rw w s om gc fs hs conf cleanMask width
             runXP st))
   releaseXMF fs
   when (successful st') $ do
@@ -594,15 +593,6 @@ mkXPromptImplementation historyKey conf om = do
   getWinWidth scr = \case
     CenteredAt{ xpWidth } -> floor $ fi (rect_width scr) * xpWidth
     _                     -> rect_width scr
-
--- | Removes numlock and capslock from a keymask.
--- Duplicate of cleanMask from core, but in the
--- XP monad instead of X.
-cleanMask :: KeyMask -> XP KeyMask
-cleanMask msk = do
-  numlock <- gets numlockMask
-  let highMasks = 1 `shiftL` 12 - 1
-  return (complement (numlock .|. lockMask) .&. msk .&. highMasks)
 
 -- | Inverse of 'Codec.Binary.UTF8.String.utf8Encode', that is, a convenience
 -- function that checks to see if the input string is UTF8 encoded before
@@ -647,10 +637,11 @@ eventLoop handle stopAction = do
                     -- Also capture @buttonPressMask@, see Note [Allow ButtonEvents]
                     maskEvent d (exposureMask .|. keyPressMask .|. buttonPressMask) e
                     ev <- getEvent e
-                    (ks,s) <- if ev_event_type ev == keyPress
-                              then lookupString $ asKeyEvent e
-                              else return (Nothing, "")
-                    return (fromMaybe xK_VoidSymbol ks,s,ev)
+                    if ev_event_type ev == keyPress
+                        then do (_, s) <- lookupString $ asKeyEvent e
+                                ks <- keycodeToKeysym d (ev_keycode ev) 0
+                                return (ks, s, ev)
+                        else return (noSymbol, "", ev)
         l   -> do
                 modify $ \s -> s { eventBuffer = tail l }
                 return $ head l
@@ -699,7 +690,7 @@ merely discarded, but passed to the respective application window.
 handleMain :: KeyStroke -> Event -> XP ()
 handleMain stroke@(keysym,_) KeyEvent{ev_event_type = t, ev_state = m} = do
     (compKey,modeKey) <- gets $ (completionKey &&& changeModeKey) . config
-    keymask <- cleanMask m
+    keymask <- gets cleanMask <*> pure m
     -- haven't subscribed to keyRelease, so just in case
     when (t == keyPress) $
         if (keymask,keysym) == compKey
@@ -831,7 +822,7 @@ handleSubmap :: XP ()
              -> Event
              -> XP ()
 handleSubmap defaultAction keymap stroke KeyEvent{ev_event_type = t, ev_state = m} = do
-    keymask <- cleanMask m
+    keymask <- gets cleanMask <*> pure m
     when (t == keyPress) $ handleInputSubmap defaultAction keymap keymask stroke
 handleSubmap _ _ stroke event = handleOther stroke event
 
@@ -888,7 +879,7 @@ handleBuffer :: (String -> String -> (Bool,Bool))
              -> Event
              -> XP ()
 handleBuffer f stroke event@KeyEvent{ev_event_type = t, ev_state = m} = do
-    keymask <- cleanMask m
+    keymask <- gets cleanMask <*> pure m
     when (t == keyPress) $ handleInputBuffer f keymask stroke event
 handleBuffer _ stroke event = handleOther stroke event
 

@@ -533,11 +533,11 @@ navigate = gets tss_display >>= \d -> join . liftIO . allocaXEvent $ \e -> do
     ev <- getEvent e
 
     if | ev_event_type ev == keyPress -> do
-           (ks, _) <- lookupString $ asKeyEvent e
+           ks <- keycodeToKeysym d (ev_keycode ev) 0
            return $ do
-               mask <- liftX $ cleanMask (ev_state ev)
+               mask <- liftX $ cleanKeyMask <*> pure (ev_state ev)
                f <- asks ts_navigate
-               fromMaybe navigate $ M.lookup (mask, fromMaybe xK_VoidSymbol ks) f
+               fromMaybe navigate $ M.lookup (mask, ks) f
        | ev_event_type ev == buttonPress -> do
            -- See XMonad.Prompt Note [Allow ButtonEvents]
            allowEvents d replayPointer currentTime
