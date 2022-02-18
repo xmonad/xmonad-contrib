@@ -422,7 +422,7 @@ updateGroup :: Ord a => Maybe (W.Stack a) -> Groups a -> Groups a
 updateGroup Nothing _ = mempty
 updateGroup (Just st) gs = fromGroupStack (toGroupStack gs st)
 
--- | rearrange the windowset to put the groups of tabs next to eachother, so
+-- | rearrange the windowset to put the groups of tabs next to each other, so
 -- that the stack of tabs stays put.
 updateWs :: Groups Window -> X ()
 updateWs = windowsMaybe . updateWs'
@@ -447,6 +447,11 @@ fromGroupStack = M.fromList . map (W.focus &&& id) . W.integrate
 
 -- | Arrange a stack of windows into a stack of stacks, according to (possibly
 -- outdated) Groups.
+--
+-- Assumes that the groups are disjoint and there are no duplicates in the
+-- stack; will result in additional duplicates otherwise. This is a reasonable
+-- assumption—the rest of xmonad will mishave too—but it isn't checked
+-- anywhere and there had been bugs breaking this assumption in the past.
 toGroupStack :: (Ord a) => Groups a -> W.Stack a -> GroupStack a
 toGroupStack gs st@(W.Stack f ls rs) =
     W.Stack (fromJust (lu f)) (mapMaybe lu ls) (mapMaybe lu rs)
