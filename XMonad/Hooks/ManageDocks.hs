@@ -148,15 +148,20 @@ requestDockEvents w = whenX (not <$> isClient w) $ withDisplay $ \dpy ->
     withWindowAttributes dpy w $ \attrs -> io $ selectInput dpy w $
         wa_your_event_mask attrs .|. propertyChangeMask .|. structureNotifyMask
 
--- | Checks if a window is a DOCK or DESKTOP window
+-- | Checks if a window is a DOCK or DESKTOP window.
+-- Ignores xmonad's own windows (usually _NET_WM_WINDOW_TYPE_DESKTOP) to avoid
+-- unnecessary refreshes.
 checkDock :: Query Bool
-checkDock = ask >>= \w -> liftX $ do
-    dock <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
-    desk <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
-    mbr <- getProp32s "_NET_WM_WINDOW_TYPE" w
-    case mbr of
-        Just rs -> return $ any ((`elem` [dock,desk]) . fromIntegral) rs
-        _       -> return False
+checkDock = isDockOrDesktop <&&> (not <$> isXMonad)
+  where
+    isDockOrDesktop = ask >>= \w -> liftX $ do
+        dock <- getAtom "_NET_WM_WINDOW_TYPE_DOCK"
+        desk <- getAtom "_NET_WM_WINDOW_TYPE_DESKTOP"
+        mbr <- getProp32s "_NET_WM_WINDOW_TYPE" w
+        case mbr of
+            Just rs -> return $ any ((`elem` [dock,desk]) . fromIntegral) rs
+            _       -> return False
+    isXMonad = className =? "xmonad"
 
 -- | Whenever a new dock appears, refresh the layout immediately to avoid the
 -- new dock.
