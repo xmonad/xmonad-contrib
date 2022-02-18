@@ -1,4 +1,11 @@
-{-# LANGUAGE PatternGuards, ParallelListComp, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
@@ -298,7 +305,7 @@ onGroup f = withFocused (sendMessage . WithGroup (return . f))
 toSubl :: (Message a) => a -> X ()
 toSubl m = withFocused (sendMessage . SubMessage (SomeMessage m))
 
-instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModifier (Sublayout l) Window where
+instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModifier (Sublayout l) Window where
     modifyLayout Sublayout{ subls = osls } (W.Workspace i la st) r = do
             let gs' = updateGroup st $ toGroups osls
                 st' = W.filter (`elem` M.keys gs') =<< st
@@ -398,10 +405,8 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
 
            findGroup z = mplus (M.lookup z gs) $ listToMaybe
                     $ M.elems $ M.filter ((z `elem`) . W.integrate) gs
-           -- catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
-           --  This l must be the same as from the instance head,
-           --  -XScopedTypeVariables should bring it into scope, but we are
-           --  trying to avoid warnings with ghc-6.8.2 and avoid CPP
+
+           catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
            catchLayoutMess x = do
             let m' = x `asTypeOf` (undefined :: LayoutMessages)
             ms' <- zip (repeat $ SomeMessage m') . W.integrate'
