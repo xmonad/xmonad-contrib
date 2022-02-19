@@ -223,7 +223,7 @@ showSimpleWindow WindowConfig{..} strs = do
       x = sx + (fi sw - width  + 2) `div` 2
       y = sy + (fi sh - height + 2) `div` 2
       -- y position of first string
-      yFirst = (height + extends) `div` fi (1 + length strs)
+      yFirst = (height + 2 * extends) `div` fi (2 + length strs)
       -- (x starting, y starting) for all strings
       strPositions = map (pad `div` 2, ) [yFirst, yFirst + extends ..]
 
