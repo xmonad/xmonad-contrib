@@ -1,4 +1,11 @@
-{-# LANGUAGE PatternGuards, ParallelListComp, FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, ViewPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.SubLayouts
@@ -298,7 +305,7 @@ onGroup f = withFocused (sendMessage . WithGroup (return . f))
 toSubl :: (Message a) => a -> X ()
 toSubl m = withFocused (sendMessage . SubMessage (SomeMessage m))
 
-instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModifier (Sublayout l) Window where
+instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModifier (Sublayout l) Window where
     modifyLayout Sublayout{ subls = osls } (W.Workspace i la st) r = do
             let gs' = updateGroup st $ toGroups osls
                 st' = W.filter (`elem` M.keys gs') =<< st
@@ -398,10 +405,8 @@ instance (Read (l Window), Show (l Window), LayoutClass l Window) => LayoutModif
 
            findGroup z = mplus (M.lookup z gs) $ listToMaybe
                     $ M.elems $ M.filter ((z `elem`) . W.integrate) gs
-           -- catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
-           --  This l must be the same as from the instance head,
-           --  -XScopedTypeVariables should bring it into scope, but we are
-           --  trying to avoid warnings with ghc-6.8.2 and avoid CPP
+
+           catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
            catchLayoutMess x = do
             let m' = x `asTypeOf` (undefined :: LayoutMessages)
             ms' <- zip (repeat $ SomeMessage m') . W.integrate'
@@ -417,7 +422,7 @@ updateGroup :: Ord a => Maybe (W.Stack a) -> Groups a -> Groups a
 updateGroup Nothing _ = mempty
 updateGroup (Just st) gs = fromGroupStack (toGroupStack gs st)
 
--- | rearrange the windowset to put the groups of tabs next to eachother, so
+-- | rearrange the windowset to put the groups of tabs next to each other, so
 -- that the stack of tabs stays put.
 updateWs :: Groups Window -> X ()
 updateWs = windowsMaybe . updateWs'
@@ -442,6 +447,11 @@ fromGroupStack = M.fromList . map (W.focus &&& id) . W.integrate
 
 -- | Arrange a stack of windows into a stack of stacks, according to (possibly
 -- outdated) Groups.
+--
+-- Assumes that the groups are disjoint and there are no duplicates in the
+-- stack; will result in additional duplicates otherwise. This is a reasonable
+-- assumption—the rest of xmonad will mishave too—but it isn't checked
+-- anywhere and there had been bugs breaking this assumption in the past.
 toGroupStack :: (Ord a) => Groups a -> W.Stack a -> GroupStack a
 toGroupStack gs st@(W.Stack f ls rs) =
     W.Stack (fromJust (lu f)) (mapMaybe lu ls) (mapMaybe lu rs)
