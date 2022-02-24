@@ -40,6 +40,12 @@
     A wrapper around the 'ReadP' parser combinator, providing behaviour
     that's closer to the more popular parser combinator libraries.
 
+  * `XMonad.Hooks.StatusBar.WorkspaceScreen`
+
+    In multi-head setup, it might be useful to have screen information of the
+    visible workspaces combined with the workspace name, for example in a status
+    bar. This module provides utility functions to do just that.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt.OrgMode`
@@ -120,6 +126,9 @@
 
     - Added `keymaskToString` and `keyToString` to show a key mask and a
       key in the style of `XMonad.Util.EZConfig`.
+
+    - Added `WindowScreen`, which is a type synonym for the specialized `Screen`
+      type, that results from the `WindowSet` definition in `XMonad.Core`.
 
   * `XMonad.Util.XUtils`
 

@@ -32,6 +32,7 @@ module XMonad.Prelude (
     specialKeys,
     multimediaKeys,
     functionKeys,
+    WindowScreen,
 ) where
 
 import Foreign (alloca, peek)
@@ -57,6 +58,7 @@ import Data.Bits
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Tuple (swap)
 import GHC.Stack
+import qualified XMonad.StackSet as W
 
 -- | Short for 'fromIntegral'.
 fi :: (Integral a, Num b) => a -> b
@@ -415,3 +417,7 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
   , "XF86_Prev_VMode"
   , "XF86Bluetooth"
   ]
+
+-- | The specialized 'W.Screen' derived from 'WindowSet'.
+type WindowScreen -- FIXME move to core
+    = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail

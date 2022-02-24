@@ -200,6 +200,7 @@ library
                         XMonad.Hooks.SetWMName
                         XMonad.Hooks.StatusBar
                         XMonad.Hooks.StatusBar.PP
+                        XMonad.Hooks.StatusBar.WorkspaceScreen
                         XMonad.Hooks.TaffybarPagerHints
                         XMonad.Hooks.ToggleHook
                         XMonad.Hooks.UrgencyHook

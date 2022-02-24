@@ -271,7 +271,7 @@ handleSelectWindow c = do
         $ M.elems
         $ M.mapWithKey (\sid ks -> buildOverlays ks <$> sortedOverlayWindows sid) m
      where
-      screenById :: ScreenId -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+      screenById :: ScreenId -> Maybe WindowScreen
       screenById sid = find ((== sid) . W.screen) (W.screens ws)
       visibleWindowsOnScreen :: ScreenId -> [Window]
       visibleWindowsOnScreen sid = filter (`elem` toList mappedWins) $ W.integrate' $ screenById sid >>= W.stack . W.workspace

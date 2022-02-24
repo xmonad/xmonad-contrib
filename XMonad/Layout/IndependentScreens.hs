@@ -148,7 +148,7 @@ withWspOnScreen screenId operation ws = case workspaceOnScreen screenId ws of
     Nothing -> ws
 
 -- | Get the workspace that is active on a given screen.
-screenOnMonitor :: ScreenId -> WindowSet -> Maybe (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+screenOnMonitor :: ScreenId -> WindowSet -> Maybe WindowScreen
 screenOnMonitor screenId ws = find ((screenId ==) . W.screen) (W.current ws : W.visible ws)
 
 -- | Focus a window, switching workspace on the correct Xinerama screen if neccessary.

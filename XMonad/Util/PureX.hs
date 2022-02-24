@@ -53,7 +53,7 @@ module XMonad.Util.PureX (
 
 -- xmonad
 import XMonad
-import XMonad.Prelude (Any (..), liftA2)
+import XMonad.Prelude (Any (..), liftA2, WindowScreen)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Actions.FocusNth
 
@@ -220,9 +220,7 @@ peek :: XLike m => m (Maybe Window)
 peek = withWindowSet' (return . W.peek)
 
 -- | Get the current screen.
-curScreen
-  :: XLike m
-  => m (W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail)
+curScreen :: XLike m => m WindowScreen
 curScreen = withWindowSet' (return . W.current)
 
 -- | Get the current workspace.
