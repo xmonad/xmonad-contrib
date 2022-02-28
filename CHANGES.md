@@ -46,6 +46,11 @@
     visible workspaces combined with the workspace name, for example in a status
     bar. This module provides utility functions to do just that.
 
+  * `XMonad.Hooks.ShowWName`
+
+    Flashes the name of the current workspace when switching to it.
+    Like `XMonad.Layout.ShowWName`, but as a logHook.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt.OrgMode`
