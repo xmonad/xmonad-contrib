@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.DynamicScratchpads (
+module XMonad.Util.DynamicScratchpads {-# DEPRECATED "Use the dynamic scratchpad facility of XMonad.Util.NamedScratchpad instead." #-} (
   -- * Usage
   -- $usage
   makeDynamicSP,
@@ -36,7 +36,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- Like with XMonad.Util.NamedScratchpad, you have to have a workspace called
 -- NSP, where hidden scratchpads will be moved to.
 --
--- You can declare dynamic scrachpads in your xmonad.hs like so:
+-- You can declare dynamic scratchpads in your xmonad.hs like so:
 --
 -- import XMonad.Util.DynamicScratchpads
 --
@@ -65,6 +65,7 @@ makeDynamicSP s w = do
         Just ow  -> if w == ow
                     then removeDynamicSP s
                     else showWindow ow >> addDynamicSP s w
+{-# DEPRECATED makeDynamicSP "Use XMonad.Util.NamedScratchpad.toggleDynamicNSP instead" #-}
 
 -- | Spawn the specified dynamic scratchpad
 spawnDynamicSP :: String -- ^ Scratchpad name
@@ -72,6 +73,7 @@ spawnDynamicSP :: String -- ^ Scratchpad name
 spawnDynamicSP s = do
     (SPStorage m) <- XS.get
     maybe mempty spawnDynamicSP' (M.lookup s m)
+{-# DEPRECATED spawnDynamicSP "Use XMonad.Util.NamedScratchpad.dynamicNSPAction instead" #-}
 
 spawnDynamicSP' :: Window -> X ()
 spawnDynamicSP' w = withWindowSet $ \s -> do

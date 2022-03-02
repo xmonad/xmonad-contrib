@@ -24,6 +24,11 @@
       in the module's documentation) should _not_ notice any difference
       in behaviour.
 
+  * `XMonad.Util.DynamicScratchpads`
+
+    - Deprecated the module; use the new dynamic scratchpad
+      functionality of `XMonad.Util.NamedScratchpad` instead.
+
 [on the website]: https://xmonad.org/configurations.html
 
 ### New Modules
