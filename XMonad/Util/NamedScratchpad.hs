@@ -1,3 +1,6 @@
+{-# LANGUAGE InstanceSigs     #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedScratchpad
@@ -111,6 +114,12 @@ data NamedScratchpad = NS { name   :: String      -- ^ Scratchpad name
                           , hook   :: ManageHook  -- ^ Manage hook called for application window, use it to define the placement. See @nonFloating@, @defaultFloating@ and @customFloating@
                           }
 
+newtype NSPState = NSPState [NamedScratchpad]
+
+instance ExtensionClass NSPState where
+  initialValue :: NSPState
+  initialValue = NSPState mempty
+
 -- | Manage hook that makes the window non-floating
 nonFloating :: ManageHook
 nonFloating = idHook
@@ -139,24 +148,34 @@ runApplicationHere :: NamedScratchpad -> X ()
 runApplicationHere = spawnHere . cmd
 
 -- | Action to pop up specified named scratchpad
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> String           -- ^ Scratchpad name
                       -> X ()
 namedScratchpadAction = customRunNamedScratchpadAction runApplication
 
 -- | Action to pop up specified named scratchpad, initially starting it on the current workspace.
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 spawnHereNamedScratchpadAction :: NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
                                -> X ()
 spawnHereNamedScratchpadAction = customRunNamedScratchpadAction runApplicationHere
 
 -- | Action to pop up specified named scratchpad, given a custom way to initially start the application.
+--
+-- NOTE: Ignores its second argument and uses 'NSPState' instead.
 customRunNamedScratchpadAction :: (NamedScratchpad -> X ())  -- ^ Function initially running the application, given the configured @scratchpad@ cmd
                                -> NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
                                -> X ()
 customRunNamedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ NE.head ws)
 
+-- | Like 'namedScratchpadAction', but execute the action for all
+-- scratchpads that match the query.
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 allNamedScratchpadAction :: NamedScratchpads
                          -> String
                          -> X ()
@@ -187,13 +206,16 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
     isNS :: Window -> X Bool
     isNS w = or <$> traverse ((`runQuery` w) . query) scratches
 
--- | execute some action on a named scratchpad
+-- | Execute some action on a named scratchpad.
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> (NamedScratchpad -> X ())
                           -> NamedScratchpads
                           -> String
                           -> X ()
-someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
+someNamedScratchpadAction f runApp _ns scratchpadName = do
+    NSPState scratchpadConfig <- XS.get
     case findByName scratchpadConfig scratchpadName of
         Just conf -> withWindowSet $ \winSet -> do
             let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
@@ -218,7 +240,11 @@ scratchpadWorkspaceTag = "NSP"
 -- | Manage hook to use with named scratchpads
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
-namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
+namedScratchpadManageHook nsps = do
+    ns <- liftX $ XS.get >>= \case
+        NSPState [] -> nsps <$ XS.put (NSPState nsps) -- initialise
+        NSPState xs -> pure xs
+    composeAll $ fmap (\c -> query c --> hook c) ns
 
 -- | Shift some windows to the scratchpad workspace according to the
 -- given function.  The workspace is created if necessary.
@@ -250,5 +276,3 @@ namedScratchpadFilterOutWorkspacePP pp = pp {
   ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
   }
 {-# DEPRECATED namedScratchpadFilterOutWorkspacePP "Use XMonad.Hooks.StatusBar.PP.filterOutWsPP [scratchpadWorkspaceTag] instead" #-}
-
--- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:
