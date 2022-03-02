@@ -162,6 +162,11 @@
       Translation of key codes to symbols ignores modifiers, so `Shift-Tab` is
       now just `(shiftMap, xK_Tab)` instead of `(shiftMap, xK_ISO_Left_Tab)`.
 
+  * `XMonad.Util.NamedScratchpad`
+
+    - Added support for dynamic scratchpads in the form of
+      `dynamicNSPAction` and `toggleDynamicNSP`.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes

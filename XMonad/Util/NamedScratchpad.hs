@@ -33,20 +33,26 @@ module XMonad.Util.NamedScratchpad (
   namedScratchpadFilterOutWorkspace,
   namedScratchpadFilterOutWorkspacePP,
   nsHideOnFocusLoss,
+
+  -- * Dynamic Scratchpads
+  -- $dynamic-scratchpads
+  dynamicNSPAction,
+  toggleDynamicNSP,
   ) where
 
+import Data.Coerce (coerce)
 import XMonad
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Actions.SpawnOn (spawnHere)
-import XMonad.Hooks.StatusBar.PP (PP, ppSort)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Hooks.RefocusLast (withRecentsIn)
+import XMonad.Hooks.StatusBar.PP (PP, ppSort)
 import XMonad.Prelude (filterM, find, unless, when)
 
 import qualified Data.List.NonEmpty as NE
 
-import qualified XMonad.StackSet as W
-
+import qualified XMonad.StackSet             as W
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- Allows to have several floating scratchpads running different applications.
@@ -253,6 +259,76 @@ shiftToNSP ws f = do
     unless (any ((scratchpadWorkspaceTag ==) . W.tag) ws) $
         addHiddenWorkspace scratchpadWorkspaceTag
     f (windows . W.shiftWin scratchpadWorkspaceTag)
+
+------------------------------------------------------------------------
+-- Dynamic scratchpad functionality
+
+-- $dynamic-scratchpads
+--
+-- Dynamic scratchpads allow you to declare existing windows as
+-- scratchpads.  You can bind a key to make a window start/stop being a
+-- scratchpad, and another key to toggle its visibility.  Because
+-- dynamic scratchpads are based on existing windows, they have some
+-- caveats in comparison to "normal" scratchpads:
+--
+--   * @xmonad@ has no way of knowing /how/ windows were spawned and
+--     thus one is not able to "start" dynamic scratchpads again after
+--     the associated window has been closed.
+--
+--   * If you already have an active dynamic scratchpad @"dyn1"@ and you
+--     call 'makeDynamicSP' with another window, that window will
+--     henceforth occupy the @"dyn1"@ scratchpad.  If you still need the
+--     old window, you might have to travel to your scratchpad workspace
+--     ('scratchpadWorkspaceTag') in order to retrieve it.
+--
+-- As an example, the following snippet contains keybindings for two
+-- dynamic scratchpads, called @"dyn1"@ and @"dyn2"@:
+--
+-- > import XMonad.Util.NamedScratchpads
+-- >
+-- > , ("M-s-a", withFocused $ makeDynamicSP "dyn1")
+-- > , ("M-s-b", withFocused $ makeDynamicSP "dyn2")
+-- > , ("M-a"  , spawnDynamicSP "dyn1")
+-- > , ("M-b"  , spawnDynamicSP "dyn2")
+--
+
+-- | A 'NamedScratchpad' representing a "dynamic" scratchpad; i.e., a
+-- scratchpad based on an already existing window.
+mkDynamicNSP :: String -> Window -> NamedScratchpad
+mkDynamicNSP s w =
+    NS { name  = s
+       , cmd   = ""               -- we are never going to spawn a dynamic scratchpad
+       , query = (w ==) <$> ask
+       , hook  = mempty           -- cmd is never called so this will never run
+       }
+
+-- | Make a window a dynamic scratchpad
+addDynamicNSP :: String -> Window -> X ()
+addDynamicNSP s w = do
+    removeDynamicNSP s
+    XS.modify @NSPState $ coerce (mkDynamicNSP s w :)
+
+-- | Make a window stop being a dynamic scratchpad
+removeDynamicNSP :: String -> X ()
+removeDynamicNSP s = XS.modify @NSPState $ coerce (filter ((/= s) . name))
+
+-- | Toggle the visibility of a dynamic scratchpad.
+dynamicNSPAction :: String -> X ()
+dynamicNSPAction = customRunNamedScratchpadAction (const $ pure ()) []
+
+-- | Either create a dynamic scratchpad out of the given window, or stop
+-- a window from being one if it already is.
+toggleDynamicNSP :: String -> Window -> X ()
+toggleDynamicNSP s w = do
+    NSPState xs <- XS.get
+    case find ((s ==) . name) xs of
+        Nothing  -> addDynamicNSP s w
+        Just nsp -> ifM (runQuery (query nsp) w)
+                        (removeDynamicNSP s)
+                        (addDynamicNSP s w)
+
+------------------------------------------------------------------------
+-- Deprecations
 
 -- | Transforms a workspace list containing the NSP workspace into one that
 -- doesn't contain it. Intended for use with logHooks.
