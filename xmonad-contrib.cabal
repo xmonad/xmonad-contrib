@@ -23,7 +23,7 @@ license:            BSD3
 license-file:       LICENSE
 author:             Spencer Janssen & others
 maintainer:         xmonad@haskell.org
-extra-source-files: README.md CHANGES.md scripts/generate-configs scripts/run-xmonad.sh
+extra-source-files: README.md CHANGES.md NIX.md scripts/generate-configs scripts/run-xmonad.sh
                     scripts/window-properties.sh
                     scripts/xinitrc scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c
