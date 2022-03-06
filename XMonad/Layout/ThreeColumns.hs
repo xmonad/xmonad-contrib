@@ -46,10 +46,10 @@ import Data.Ratio
 -- resizing and the third argument specifies the initial size of the columns.
 -- A positive size designates the fraction of the screen that the main window
 -- should occupy, but if the size is negative the absolute value designates the
--- fraction a slave column should occupy. If both slave columns are visible,
+-- fraction a stack column should occupy. If both stack columns are visible,
 -- they always occupy the same amount of space.
 --
--- The ThreeColMid variant places the main window between the slave columns.
+-- The ThreeColMid variant places the main window between the stack columns.
 --
 -- For more detailed instructions on editing the layoutHook see:
 --
@@ -57,7 +57,7 @@ import Data.Ratio
 
 
 -- $screenshot
--- <<http://server.c-otto.de/xmonad/ThreeColumnsMiddle.png>>
+-- <<https://user-images.githubusercontent.com/50166980/156938482-ac38fdd7-eb94-4371-801b-e191cdb9a4ba.png>>
 
 -- | Arguments are nmaster, delta, fraction
 data ThreeCol a = ThreeColMid { threeColNMaster :: !Int, threeColDelta :: !Rational, threeColFrac :: !Rational}
