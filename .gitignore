@@ -27,3 +27,4 @@ tags
 
 stack.yaml.lock
 
+flake.lock
