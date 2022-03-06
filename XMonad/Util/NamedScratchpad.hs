@@ -1,5 +1,4 @@
 {-# LANGUAGE InstanceSigs     #-}
-{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 -----------------------------------------------------------------------------
 -- |
@@ -44,14 +43,16 @@ module XMonad.Util.NamedScratchpad (
   ) where
 
 import Data.Coerce (coerce)
+import Data.Map.Strict (Map, (!?))
 import XMonad
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Actions.SpawnOn (spawnHere)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Hooks.RefocusLast (withRecentsIn)
 import XMonad.Hooks.StatusBar.PP (PP, ppSort)
-import XMonad.Prelude (filterM, find, unless, when)
+import XMonad.Prelude (filterM, unless, when)
 
+import qualified Data.Map.Strict    as Map
 import qualified Data.List.NonEmpty as NE
 
 import qualified XMonad.StackSet             as W
@@ -123,11 +124,16 @@ data NamedScratchpad = NS { name   :: String      -- ^ Scratchpad name
                           , hook   :: ManageHook  -- ^ Manage hook called for application window, use it to define the placement. See @nonFloating@, @defaultFloating@ and @customFloating@
                           }
 
-newtype NSPState = NSPState [NamedScratchpad]
+-- | The NSP state associates a name to an entire scratchpad.
+newtype NSPState = NSPState (Map String NamedScratchpad)
 
 instance ExtensionClass NSPState where
   initialValue :: NSPState
   initialValue = NSPState mempty
+
+-- | Construct an 'NSPState' from an ordinary list of scratchpads.
+buildNSPState :: NamedScratchpads -> NSPState
+buildNSPState nsps = NSPState . Map.fromList $ zip (map name nsps) nsps
 
 -- | Manage hook that makes the window non-floating
 nonFloating :: ManageHook
@@ -143,10 +149,6 @@ customFloating = doRectFloat
 
 -- | Named scratchpads configuration
 type NamedScratchpads = [NamedScratchpad]
-
--- | Finds named scratchpad configuration by name
-findByName :: NamedScratchpads -> String -> Maybe NamedScratchpad
-findByName c s = find ((s ==) . name) c
 
 -- | Runs application which should appear in specified scratchpad
 runApplication :: NamedScratchpad -> X ()
@@ -225,7 +227,7 @@ someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> X ()
 someNamedScratchpadAction f runApp _ns scratchpadName = do
     NSPState scratchpadConfig <- XS.get
-    case findByName scratchpadConfig scratchpadName of
+    case scratchpadConfig !? scratchpadName of
         Just conf -> withWindowSet $ \winSet -> do
             let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
                 allWindows        = W.allWindows winSet
@@ -250,9 +252,10 @@ scratchpadWorkspaceTag = "NSP"
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
 namedScratchpadManageHook nsps = do
-    ns <- liftX $ XS.get >>= \case
-        NSPState [] -> nsps <$ XS.put (NSPState nsps) -- initialise
-        NSPState xs -> pure xs
+    ns <- liftX $ XS.get >>= \(NSPState xs) ->
+        if   null xs
+        then nsps <$ XS.put (buildNSPState nsps)
+        else pure $ Map.elems xs
     composeAll $ fmap (\c -> query c --> hook c) ns
 
 -- | Shift some windows to the scratchpad workspace according to the
@@ -307,13 +310,11 @@ mkDynamicNSP s w =
 
 -- | Make a window a dynamic scratchpad
 addDynamicNSP :: String -> Window -> X ()
-addDynamicNSP s w = do
-    removeDynamicNSP s
-    XS.modify @NSPState $ coerce (mkDynamicNSP s w :)
+addDynamicNSP s w = XS.modify @NSPState . coerce $ Map.insert s (mkDynamicNSP s w)
 
 -- | Make a window stop being a dynamic scratchpad
 removeDynamicNSP :: String -> X ()
-removeDynamicNSP s = XS.modify @NSPState $ coerce (filter ((/= s) . name))
+removeDynamicNSP s = XS.modify @NSPState . coerce $ Map.delete @_ @NamedScratchpad s
 
 -- | Toggle the visibility of a dynamic scratchpad.
 dynamicNSPAction :: String -> X ()
@@ -323,8 +324,8 @@ dynamicNSPAction = customRunNamedScratchpadAction (const $ pure ()) []
 -- a window from being one if it already is.
 toggleDynamicNSP :: String -> Window -> X ()
 toggleDynamicNSP s w = do
-    NSPState xs <- XS.get
-    case find ((s ==) . name) xs of
+    NSPState nsps <- XS.get
+    case nsps !? s of
         Nothing  -> addDynamicNSP s w
         Just nsp -> ifM (runQuery (query nsp) w)
                         (removeDynamicNSP s)
