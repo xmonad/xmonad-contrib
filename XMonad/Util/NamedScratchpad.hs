@@ -30,14 +30,17 @@ module XMonad.Util.NamedScratchpad (
   customRunNamedScratchpadAction,
   allNamedScratchpadAction,
   namedScratchpadManageHook,
-  namedScratchpadFilterOutWorkspace,
-  namedScratchpadFilterOutWorkspacePP,
   nsHideOnFocusLoss,
 
   -- * Dynamic Scratchpads
   -- $dynamic-scratchpads
   dynamicNSPAction,
   toggleDynamicNSP,
+
+  -- * Deprecations
+  namedScratchpadFilterOutWorkspace,
+  namedScratchpadFilterOutWorkspacePP,
+
   ) where
 
 import Data.Coerce (coerce)
