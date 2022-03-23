@@ -34,7 +34,7 @@ import qualified XMonad.Util.ExtensibleConf as XC
 --
 -- To use this, include the following in your @~\/.xmonad\/xmonad.hs@:
 --
--- > import XMonad.Hooks.RescreenHook
+-- > import XMonad.Hooks.Rescreen
 --
 -- define your custom hooks:
 --
