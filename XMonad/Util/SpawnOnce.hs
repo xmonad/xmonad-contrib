@@ -10,7 +10,9 @@
 -- Portability :  not portable
 --
 -- A module for spawning a command once, and only once.  Useful to start
--- status bars and make session settings inside startupHook.
+-- status bars and make session settings inside startupHook. See also
+-- 'XMonad.Util.SessionStart' for a different and more flexible way to
+-- run commands only on first startup.
 --
 -----------------------------------------------------------------------------
 
