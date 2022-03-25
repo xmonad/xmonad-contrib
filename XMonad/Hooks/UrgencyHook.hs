@@ -197,11 +197,11 @@ import Foreign.C.Types (CLong)
 -- instead.
 withUrgencyHook :: (LayoutClass l Window, UrgencyHook h) =>
                    h -> XConfig l -> XConfig l
-withUrgencyHook hook = withUrgencyHookC hook urgencyConfig
+withUrgencyHook hook = withUrgencyHookC hook def
 
 -- | This lets you modify the defaults set in 'urgencyConfig'. An example:
 --
--- > withUrgencyHookC dzenUrgencyHook { ... } urgencyConfig { suppressWhen = Focused }
+-- > withUrgencyHookC dzenUrgencyHook { ... } def { suppressWhen = Focused }
 --
 -- (Don't type the @...@, you dolt.) See 'UrgencyConfig' for details on configuration.
 withUrgencyHookC :: (LayoutClass l Window, UrgencyHook h) =>
@@ -250,11 +250,16 @@ data RemindWhen = Dont                    -- ^ triggering once is enough
 minutes :: Rational -> Rational
 minutes secs = secs * 60
 
--- | The default 'UrgencyConfig'. suppressWhen = Visible, remindWhen = Dont.
--- Use a variation of this in your config just as you use a variation of
--- 'def' for your xmonad definition.
+-- | The default 'UrgencyConfig': @urgencyConfig = 'def'@.
 urgencyConfig :: UrgencyConfig
-urgencyConfig = UrgencyConfig { suppressWhen = Visible, remindWhen = Dont }
+urgencyConfig = def
+{-# DEPRECATED urgencyConfig "Use def insetad." #-}
+
+-- | The default 'UrgencyConfig': @suppressWhen = 'Visible', remindWhen = 'Dont'@.
+-- Use a variation of this in your config just as you would use any
+-- other instance of 'def'.
+instance Default UrgencyConfig where
+  def = UrgencyConfig { suppressWhen = Visible, remindWhen = Dont }
 
 -- | Focuses the most recently urgent window. Good for what ails ya -- I mean, your keybindings.
 -- Example keybinding:
@@ -510,7 +515,11 @@ instance UrgencyHook BorderUrgencyHook where
 -- Defaults to a duration of five seconds, and no extra args to dzen.
 -- See 'DzenUrgencyHook'.
 dzenUrgencyHook :: DzenUrgencyHook
-dzenUrgencyHook = DzenUrgencyHook { duration = seconds 5, args = [] }
+dzenUrgencyHook = def
+
+-- | @'def' = 'dzenUrgencyHook'@.
+instance Default DzenUrgencyHook where
+  def = DzenUrgencyHook { duration = seconds 5, args = [] }
 
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
