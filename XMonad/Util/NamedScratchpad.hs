@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs     #-}
+{-# LANGUAGE TypeApplications #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedScratchpad
@@ -27,23 +29,34 @@ module XMonad.Util.NamedScratchpad (
   customRunNamedScratchpadAction,
   allNamedScratchpadAction,
   namedScratchpadManageHook,
+  nsHideOnFocusLoss,
+
+  -- * Dynamic Scratchpads
+  -- $dynamic-scratchpads
+  dynamicNSPAction,
+  toggleDynamicNSP,
+
+  -- * Deprecations
   namedScratchpadFilterOutWorkspace,
   namedScratchpadFilterOutWorkspacePP,
-  nsHideOnFocusLoss,
+
   ) where
 
+import Data.Coerce (coerce)
+import Data.Map.Strict (Map, (!?))
 import XMonad
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Actions.SpawnOn (spawnHere)
-import XMonad.Hooks.StatusBar.PP (PP, ppSort)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Hooks.RefocusLast (withRecentsIn)
-import XMonad.Prelude (filterM, find, unless, when)
+import XMonad.Hooks.StatusBar.PP (PP, ppSort)
+import XMonad.Prelude (filterM, unless, when)
 
+import qualified Data.Map.Strict    as Map
 import qualified Data.List.NonEmpty as NE
 
-import qualified XMonad.StackSet as W
-
+import qualified XMonad.StackSet             as W
+import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- Allows to have several floating scratchpads running different applications.
@@ -111,6 +124,17 @@ data NamedScratchpad = NS { name   :: String      -- ^ Scratchpad name
                           , hook   :: ManageHook  -- ^ Manage hook called for application window, use it to define the placement. See @nonFloating@, @defaultFloating@ and @customFloating@
                           }
 
+-- | The NSP state associates a name to an entire scratchpad.
+newtype NSPState = NSPState (Map String NamedScratchpad)
+
+instance ExtensionClass NSPState where
+  initialValue :: NSPState
+  initialValue = NSPState mempty
+
+-- | Construct an 'NSPState' from an ordinary list of scratchpads.
+buildNSPState :: NamedScratchpads -> NSPState
+buildNSPState nsps = NSPState . Map.fromList $ zip (map name nsps) nsps
+
 -- | Manage hook that makes the window non-floating
 nonFloating :: ManageHook
 nonFloating = idHook
@@ -126,10 +150,6 @@ customFloating = doRectFloat
 -- | Named scratchpads configuration
 type NamedScratchpads = [NamedScratchpad]
 
--- | Finds named scratchpad configuration by name
-findByName :: NamedScratchpads -> String -> Maybe NamedScratchpad
-findByName c s = find ((s ==) . name) c
-
 -- | Runs application which should appear in specified scratchpad
 runApplication :: NamedScratchpad -> X ()
 runApplication = spawn . cmd
@@ -139,24 +159,34 @@ runApplicationHere :: NamedScratchpad -> X ()
 runApplicationHere = spawnHere . cmd
 
 -- | Action to pop up specified named scratchpad
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> String           -- ^ Scratchpad name
                       -> X ()
 namedScratchpadAction = customRunNamedScratchpadAction runApplication
 
 -- | Action to pop up specified named scratchpad, initially starting it on the current workspace.
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 spawnHereNamedScratchpadAction :: NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
                                -> X ()
 spawnHereNamedScratchpadAction = customRunNamedScratchpadAction runApplicationHere
 
 -- | Action to pop up specified named scratchpad, given a custom way to initially start the application.
+--
+-- NOTE: Ignores its second argument and uses 'NSPState' instead.
 customRunNamedScratchpadAction :: (NamedScratchpad -> X ())  -- ^ Function initially running the application, given the configured @scratchpad@ cmd
                                -> NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
                                -> X ()
 customRunNamedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ NE.head ws)
 
+-- | Like 'namedScratchpadAction', but execute the action for all
+-- scratchpads that match the query.
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 allNamedScratchpadAction :: NamedScratchpads
                          -> String
                          -> X ()
@@ -187,14 +217,17 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
     isNS :: Window -> X Bool
     isNS w = or <$> traverse ((`runQuery` w) . query) scratches
 
--- | execute some action on a named scratchpad
+-- | Execute some action on a named scratchpad.
+--
+-- NOTE: Ignores its first argument and uses 'NSPState' instead.
 someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> (NamedScratchpad -> X ())
                           -> NamedScratchpads
                           -> String
                           -> X ()
-someNamedScratchpadAction f runApp scratchpadConfig scratchpadName =
-    case findByName scratchpadConfig scratchpadName of
+someNamedScratchpadAction f runApp _ns scratchpadName = do
+    NSPState scratchpadConfig <- XS.get
+    case scratchpadConfig !? scratchpadName of
         Just conf -> withWindowSet $ \winSet -> do
             let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
                 allWindows        = W.allWindows winSet
@@ -218,7 +251,12 @@ scratchpadWorkspaceTag = "NSP"
 -- | Manage hook to use with named scratchpads
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
-namedScratchpadManageHook = composeAll . fmap (\c -> query c --> hook c)
+namedScratchpadManageHook nsps = do
+    ns <- liftX $ XS.get >>= \(NSPState xs) ->
+        if   null xs
+        then nsps <$ XS.put (buildNSPState nsps)
+        else pure $ Map.elems xs
+    composeAll $ fmap (\c -> query c --> hook c) ns
 
 -- | Shift some windows to the scratchpad workspace according to the
 -- given function.  The workspace is created if necessary.
@@ -227,6 +265,74 @@ shiftToNSP ws f = do
     unless (any ((scratchpadWorkspaceTag ==) . W.tag) ws) $
         addHiddenWorkspace scratchpadWorkspaceTag
     f (windows . W.shiftWin scratchpadWorkspaceTag)
+
+------------------------------------------------------------------------
+-- Dynamic scratchpad functionality
+
+-- $dynamic-scratchpads
+--
+-- Dynamic scratchpads allow you to declare existing windows as
+-- scratchpads.  You can bind a key to make a window start/stop being a
+-- scratchpad, and another key to toggle its visibility.  Because
+-- dynamic scratchpads are based on existing windows, they have some
+-- caveats in comparison to "normal" scratchpads:
+--
+--   * @xmonad@ has no way of knowing /how/ windows were spawned and
+--     thus one is not able to "start" dynamic scratchpads again after
+--     the associated window has been closed.
+--
+--   * If you already have an active dynamic scratchpad @"dyn1"@ and you
+--     call 'makeDynamicSP' with another window, that window will
+--     henceforth occupy the @"dyn1"@ scratchpad.  If you still need the
+--     old window, you might have to travel to your scratchpad workspace
+--     ('scratchpadWorkspaceTag') in order to retrieve it.
+--
+-- As an example, the following snippet contains keybindings for two
+-- dynamic scratchpads, called @"dyn1"@ and @"dyn2"@:
+--
+-- > import XMonad.Util.NamedScratchpads
+-- >
+-- > , ("M-s-a", withFocused $ makeDynamicSP "dyn1")
+-- > , ("M-s-b", withFocused $ makeDynamicSP "dyn2")
+-- > , ("M-a"  , spawnDynamicSP "dyn1")
+-- > , ("M-b"  , spawnDynamicSP "dyn2")
+--
+
+-- | A 'NamedScratchpad' representing a "dynamic" scratchpad; i.e., a
+-- scratchpad based on an already existing window.
+mkDynamicNSP :: String -> Window -> NamedScratchpad
+mkDynamicNSP s w =
+    NS { name  = s
+       , cmd   = ""               -- we are never going to spawn a dynamic scratchpad
+       , query = (w ==) <$> ask
+       , hook  = mempty           -- cmd is never called so this will never run
+       }
+
+-- | Make a window a dynamic scratchpad
+addDynamicNSP :: String -> Window -> X ()
+addDynamicNSP s w = XS.modify @NSPState . coerce $ Map.insert s (mkDynamicNSP s w)
+
+-- | Make a window stop being a dynamic scratchpad
+removeDynamicNSP :: String -> X ()
+removeDynamicNSP s = XS.modify @NSPState . coerce $ Map.delete @_ @NamedScratchpad s
+
+-- | Toggle the visibility of a dynamic scratchpad.
+dynamicNSPAction :: String -> X ()
+dynamicNSPAction = customRunNamedScratchpadAction (const $ pure ()) []
+
+-- | Either create a dynamic scratchpad out of the given window, or stop
+-- a window from being one if it already is.
+toggleDynamicNSP :: String -> Window -> X ()
+toggleDynamicNSP s w = do
+    NSPState nsps <- XS.get
+    case nsps !? s of
+        Nothing  -> addDynamicNSP s w
+        Just nsp -> ifM (runQuery (query nsp) w)
+                        (removeDynamicNSP s)
+                        (addDynamicNSP s w)
+
+------------------------------------------------------------------------
+-- Deprecations
 
 -- | Transforms a workspace list containing the NSP workspace into one that
 -- doesn't contain it. Intended for use with logHooks.
@@ -250,5 +356,3 @@ namedScratchpadFilterOutWorkspacePP pp = pp {
   ppSort = fmap (. namedScratchpadFilterOutWorkspace) (ppSort pp)
   }
 {-# DEPRECATED namedScratchpadFilterOutWorkspacePP "Use XMonad.Hooks.StatusBar.PP.filterOutWsPP [scratchpadWorkspaceTag] instead" #-}
-
--- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:

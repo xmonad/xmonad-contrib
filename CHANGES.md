@@ -15,6 +15,20 @@
     - Deprecated all of these modules.  The user-specific configuration
       modules may still be found [on the website].
 
+ * `XMonad.Util.NamedScratchpad`
+
+    - Scratchpads are now only based on the argument given to
+      `namedScratchpadManageHook`; all other scratchpad arguments are,
+      while still present, ignored.  Users passing all of their
+      scratchpads to functions like `namedScratchpadAction` (as is shown
+      in the module's documentation) should _not_ notice any difference
+      in behaviour.
+
+  * `XMonad.Util.DynamicScratchpads`
+
+    - Deprecated the module; use the new dynamic scratchpad
+      functionality of `XMonad.Util.NamedScratchpad` instead.
+
 [on the website]: https://xmonad.org/configurations.html
 
 ### New Modules
@@ -152,6 +166,11 @@
       State of mouse buttons and XKB layout groups is ignored.
       Translation of key codes to symbols ignores modifiers, so `Shift-Tab` is
       now just `(shiftMap, xK_Tab)` instead of `(shiftMap, xK_ISO_Left_Tab)`.
+
+  * `XMonad.Util.NamedScratchpad`
+
+    - Added support for dynamic scratchpads in the form of
+      `dynamicNSPAction` and `toggleDynamicNSP`.
 
 ## 0.17.0 (October 27, 2021)
 
