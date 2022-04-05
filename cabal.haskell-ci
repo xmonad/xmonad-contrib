@@ -7,11 +7,12 @@ apt:
   libxss-dev
 
 hlint: True
-hlint-job: 9.0.1
+hlint-job: 9.0.2
 hlint-yaml: .hlint.yaml
 
 github-patches:
   .github/workflows/haskell-ci-hackage.patch
+  .github/workflows/haskell-ci-hlint.patch
 
 raw-project
   optimization: False

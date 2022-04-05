@@ -24,14 +24,14 @@ jobs:
           - resolver: lts-16
             ghc: 8.8.4
             yaml: stack-master.yaml
-          - resolver: lts-17
-            ghc: 8.10.4
+          - resolver: lts-18
+            ghc: 8.10.7
             yaml: stack-master.yaml
-          - resolver: lts-18
-            ghc: 8.10.7
+          - resolver: lts-19
+            ghc: 9.0.2
             yaml: stack.yaml
-          - resolver: lts-18
-            ghc: 8.10.7
+          - resolver: lts-19
+            ghc: 9.0.2
             yaml: stack-master.yaml
 
     steps:
