@@ -282,7 +282,7 @@ shiftToNSP ws f = do
 --     the associated window has been closed.
 --
 --   * If you already have an active dynamic scratchpad @"dyn1"@ and you
---     call 'makeDynamicSP' with another window, that window will
+--     call 'toggleDynamicNSP' with another window, that window will
 --     henceforth occupy the @"dyn1"@ scratchpad.  If you still need the
 --     old window, you might have to travel to your scratchpad workspace
 --     ('scratchpadWorkspaceTag') in order to retrieve it.
@@ -292,10 +292,10 @@ shiftToNSP ws f = do
 --
 -- > import XMonad.Util.NamedScratchpads
 -- >
--- > , ("M-s-a", withFocused $ makeDynamicSP "dyn1")
--- > , ("M-s-b", withFocused $ makeDynamicSP "dyn2")
--- > , ("M-a"  , spawnDynamicSP "dyn1")
--- > , ("M-b"  , spawnDynamicSP "dyn2")
+-- > , ("M-s-a", withFocused $ toggleDynamicNSP "dyn1")
+-- > , ("M-s-b", withFocused $ toggleDynamicNSP "dyn2")
+-- > , ("M-a"  , dynamicNSPAction "dyn1")
+-- > , ("M-b"  , dynamicNSPAction "dyn2")
 --
 
 -- | A 'NamedScratchpad' representing a "dynamic" scratchpad; i.e., a
