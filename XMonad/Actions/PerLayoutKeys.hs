@@ -29,7 +29,7 @@ import XMonad.StackSet as S
 --
 -- >  import XMonad.Actions.PerLayoutKeys
 --
--- >   ,((0, xK_F2), bindOn [("Tall", spawn "rxvt"), ("Mirror Tall", spawn "xeyes"), ("", spawn "xmessage hello")])
+-- >   ,((0, xK_F2), bindByLayout [("Tall", spawn "rxvt"), ("Mirror Tall", spawn "xeyes"), ("", spawn "xmessage hello")])
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
