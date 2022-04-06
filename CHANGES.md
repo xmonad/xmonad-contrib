@@ -33,6 +33,10 @@
 
 ### New Modules
 
+  * `XMonad.Actions.PerLayoutKeys`
+
+    Customizes a keybinding on a per-layout basis. Based on PerWorkspaceKeys.
+
   * `XMonad.Layout.CenteredIfSingle`
 
     Layout modifier that, if only a single window is on screen, places that window
