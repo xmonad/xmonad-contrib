@@ -118,6 +118,7 @@ library
                         XMonad.Actions.Navigation2D
                         XMonad.Actions.NoBorders
                         XMonad.Actions.OnScreen
+                        XMonad.Actions.PerLayoutKeys
                         XMonad.Actions.PerWindowKeys
                         XMonad.Actions.PerWorkspaceKeys
                         XMonad.Actions.PhysicalScreens
