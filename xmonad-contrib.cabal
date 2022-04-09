@@ -3,7 +3,7 @@ version:            0.17.0.9
 -- ^ also update cpp-options: -DXMONAD_CONTRIB_VERSION_*
 
 homepage:           https://xmonad.org/
-synopsis:           Community-maintained extensions extensions for xmonad
+synopsis:           Community-maintained extensions for xmonad
 description:
     Community-maintained tiling algorithms and extension modules for xmonad,
     an X11 tiling window manager.
