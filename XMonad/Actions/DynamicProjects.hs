@@ -109,8 +109,8 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- And finally, configure some optional key bindings:
 --
--- >  , ((modm, xK_space), switchProjectPrompt)
--- >  , ((modm, xK_slash), shiftToProjectPrompt)
+-- >  , ((modm, xK_space), switchProjectPrompt def)
+-- >  , ((modm, xK_slash), shiftToProjectPrompt def)
 --
 -- For detailed instructions on editing your key bindings, see
 -- "XMonad.Doc.Extending#Editing_key_bindings".
