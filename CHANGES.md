@@ -69,6 +69,11 @@
     Flashes the name of the current workspace when switching to it.
     Like `XMonad.Layout.ShowWName`, but as a logHook.
 
+  * `XMonad.Actions.RepeatAction`
+
+    A module for adding a keybinding to repeat the last action, similar
+    to Vim's `.` or Emacs's `dot-mode`.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt.OrgMode`
