@@ -181,6 +181,12 @@
     - Added support for dynamic scratchpads in the form of
       `dynamicNSPAction` and `toggleDynamicNSP`.
 
+### Other changes
+
+  * Migrated the sample build scripts from the deprecated `xmonad-testing` repo to
+    `scripts/build`. This will be followed by a documentation update in the `xmonad`
+    repo.
+
 ## 0.17.0 (October 27, 2021)
 
 ### Breaking Changes
