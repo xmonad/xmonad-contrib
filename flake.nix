@@ -11,7 +11,7 @@
       xmonad-contrib = hself.callCabal2nix "xmonad-contrib"
         (git-ignore-nix.lib.gitignoreSource ./.) { };
     };
-    overlay = xmonad.lib.fromHOL hoverlay;
+    overlay = xmonad.lib.fromHOL hoverlay { };
     overlays = xmonad.overlays ++ [ overlay ];
   in flake-utils.lib.eachDefaultSystem (system:
   let
@@ -27,5 +27,5 @@
       nativeBuildInputs = [ pkgs.cabal-install ];
     });
     defaultPackage = pkgs.haskellPackages.xmonad-contrib;
-  }) // { inherit overlay overlays; };
+  }) // { inherit hoverlay overlay overlays; } ;
 }
