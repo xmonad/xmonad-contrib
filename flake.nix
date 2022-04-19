@@ -6,13 +6,24 @@
     xmonad.url = github:xmonad/xmonad;
   };
   outputs = { self, flake-utils, nixpkgs, git-ignore-nix, xmonad }:
+  with xmonad.lib;
   let
     hoverlay = final: prev: hself: hsuper: {
       xmonad-contrib = hself.callCabal2nix "xmonad-contrib"
         (git-ignore-nix.lib.gitignoreSource ./.) { };
     };
-    overlay = xmonad.lib.fromHOL hoverlay { };
+    overlay = fromHOL hoverlay { };
     overlays = xmonad.overlays ++ [ overlay ];
+    nixosModule = { config, lib, ... }: with lib;
+      let
+        cfg = config.services.xserver.windowManager.xmonad;
+        comp = { inherit (cfg.flake) prefix compiler; };
+      in {
+        config = mkIf (cfg.flake.enable && cfg.enableContribAndExtras) {
+          nixpkgs.overlays = [ (fromHOL hoverlay comp) ];
+        };
+      };
+    nixosModules = xmonad.nixosModules ++ [ nixosModule ];
   in flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system overlays; };
@@ -27,5 +38,5 @@
       nativeBuildInputs = [ pkgs.cabal-install ];
     });
     defaultPackage = pkgs.haskellPackages.xmonad-contrib;
-  }) // { inherit hoverlay overlay overlays; } ;
+  }) // { inherit hoverlay overlay overlays nixosModule nixosModules; } ;
 }
