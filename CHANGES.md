@@ -33,9 +33,10 @@
 
 ### New Modules
 
-  * `XMonad.Actions.PerLayoutKeys`
+  * `XMonad.Actions.ConditionalKeys`
 
-    Customizes a keybinding on a per-layout basis. Based on PerWorkspaceKeys.
+    Customizes a keybinding on a per-layout and or per-workspace basis. Depricating/Removing;
+    XMonad.Actions.PerLayoutKeys and XMonad.Actions.PerWorkspaceKeys 
 
   * `XMonad.Layout.CenteredIfSingle`
 
