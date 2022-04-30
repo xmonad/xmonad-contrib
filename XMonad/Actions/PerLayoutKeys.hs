@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Actions.PerLayouteKeys
+-- Module      :  XMonad.Actions.PerLayoutKeys
 -- Description :  Define key-bindings on per-layout basis.
 -- Copyright   :  (c) brandon s allbery kf8nh 2022, Roman Cheplyaka, 2008
 -- License     :  BSD3-style (see LICENSE)
