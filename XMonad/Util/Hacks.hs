@@ -73,7 +73,7 @@ import System.Posix.Env (putEnv)
 -- Usage:
 -- add to handleEventHook as follows:
 --
--- > handleEventHook = handleEventHook def <+> Hacks.windowedFullscreenFixEventHook
+-- > handleEventHook = handleEventHook def <> Hacks.windowedFullscreenFixEventHook
 --
 
 -- | Fixes fullscreen behaviour of chromium based apps by quickly applying and undoing a resize.

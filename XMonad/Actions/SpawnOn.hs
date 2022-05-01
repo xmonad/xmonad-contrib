@@ -51,7 +51,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >    main = do
 -- >      xmonad def {
 -- >         ...
--- >         manageHook = manageSpawn <+> manageHook def
+-- >         manageHook = manageSpawn <> manageHook def
 -- >         ...
 -- >      }
 --

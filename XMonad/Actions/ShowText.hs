@@ -47,7 +47,7 @@ import qualified XMonad.Util.ExtensibleState as ES
 --
 -- Then add the event hook handler:
 --
--- > xmonad { handleEventHook = myHandleEventHooks <+> handleTimerEvent }
+-- > xmonad { handleEventHook = myHandleEventHooks <> handleTimerEvent }
 --
 -- You can then use flashText in your keybindings:
 --

@@ -280,7 +280,7 @@ instance SummableClass (Summable x y) y where
 --
 -- Note that operator precedence mandates the parentheses here.
 manageHook :: Summable ManageHook ManageHook (XConfig l)
-manageHook = Summable X.manageHook (\x c -> c { X.manageHook = x }) (<+>)
+manageHook = Summable X.manageHook (\x c -> c { X.manageHook = x }) (<>)
 
 -- | Custom X event handler. Return @All True@ if the default handler should
 -- also be run afterwards. Default does nothing. To add an event handler:
@@ -289,7 +289,7 @@ manageHook = Summable X.manageHook (\x c -> c { X.manageHook = x }) (<+>)
 -- > ...
 -- >   handleEventHook =+ serverModeEventHook
 handleEventHook :: Summable (Event -> X All) (Event -> X All) (XConfig l)
-handleEventHook = Summable X.handleEventHook (\x c -> c { X.handleEventHook = x }) (<+>)
+handleEventHook = Summable X.handleEventHook (\x c -> c { X.handleEventHook = x }) (<>)
 
 -- | List of workspaces' names. Default: @map show [1 .. 9 :: Int]@. Adding
 -- appends to the end:

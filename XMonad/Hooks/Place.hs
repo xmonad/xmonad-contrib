@@ -57,10 +57,10 @@ import Control.Monad.Trans (lift)
 -- and adding 'placeHook' to your 'manageHook', for example:
 --
 -- > main = xmonad $ def { manageHook = placeHook simpleSmart
--- >                                    <+> manageHook def }
+-- >                                    <> manageHook def }
 --
 -- Note that 'placeHook' should be applied after most other hooks, especially hooks
--- such as 'doFloat' and 'doShift'. Since hooks combined with '<+>' are applied from
+-- such as 'doFloat' and 'doShift'. Since hooks combined with '<>' are applied from
 -- right to left, this means that 'placeHook' should be the /first/ hook in your chain.
 --
 -- You can also define a key to manually trigger repositioning with 'placeFocused' by

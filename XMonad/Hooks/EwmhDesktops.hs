@@ -85,9 +85,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- | Add EWMH support for workspaces (virtual desktops) to the given
 -- 'XConfig'.  See above for an example.
 ewmh :: XConfig a -> XConfig a
-ewmh c = c { startupHook     = ewmhDesktopsStartup <+> startupHook c
-           , handleEventHook = ewmhDesktopsEventHook <+> handleEventHook c
-           , logHook         = ewmhDesktopsLogHook <+> logHook c }
+ewmh c = c { startupHook     = ewmhDesktopsStartup <> startupHook c
+           , handleEventHook = ewmhDesktopsEventHook <> handleEventHook c
+           , logHook         = ewmhDesktopsLogHook <> logHook c }
 
 
 -- $customization
@@ -376,8 +376,8 @@ ewmhDesktopsEventHook' _ _ = mempty
 
 -- | Add EWMH fullscreen functionality to the given config.
 ewmhFullscreen :: XConfig a -> XConfig a
-ewmhFullscreen c = c { startupHook     = startupHook c <+> fullscreenStartup
-                     , handleEventHook = handleEventHook c <+> fullscreenEventHook }
+ewmhFullscreen c = c { startupHook     = startupHook c <> fullscreenStartup
+                     , handleEventHook = handleEventHook c <> fullscreenEventHook }
 
 -- | Advertises EWMH fullscreen support to the X server.
 {-# DEPRECATED fullscreenStartup "Use ewmhFullscreen instead." #-}

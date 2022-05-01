@@ -38,7 +38,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 --
 -- To use this module, add 'dynamicMasterHook' to your 'manageHook':
 --
--- > xmonad { manageHook = myManageHook <+> dynamicMasterHook }
+-- > xmonad { manageHook = myManageHook <> dynamicMasterHook }
 --
 -- You can then use the supplied functions in your keybindings:
 --
@@ -70,7 +70,7 @@ dynamicMasterHook = ask >>= \w -> liftX $ do
 
 -- | Appends the given 'ManageHook' to the permanent dynamic 'ManageHook'.
 addDynamicHook :: ManageHook -> X ()
-addDynamicHook m = updateDynamicHook (<+> m)
+addDynamicHook m = updateDynamicHook (<> m)
 
 -- | Modifies the permanent 'ManageHook' with an arbitrary function.
 updateDynamicHook :: (ManageHook -> ManageHook) -> X ()

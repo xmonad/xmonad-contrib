@@ -33,7 +33,7 @@ import Control.Monad.Except (lift, runExceptT, throwError)
 --
 -- > import XMonad.Hooks.WorkspaceByPos
 -- >
--- > myManageHook = workspaceByPos <+> manageHook def
+-- > myManageHook = workspaceByPos <> manageHook def
 -- >
 -- > main = xmonad def { manageHook = myManageHook }
 

@@ -78,9 +78,9 @@ fullscreenSupport :: LayoutClass l Window =>
   XConfig l -> XConfig (ModifiedLayout FullscreenFull l)
 fullscreenSupport c = c {
     layoutHook = fullscreenFull $ layoutHook c,
-    handleEventHook = handleEventHook c <+> fullscreenEventHook,
-    manageHook = manageHook c <+> fullscreenManageHook,
-    startupHook = startupHook c <+> fullscreenStartup
+    handleEventHook = handleEventHook c <> fullscreenEventHook,
+    manageHook = manageHook c <> fullscreenManageHook,
+    startupHook = startupHook c <> fullscreenStartup
   }
 
 -- | fullscreenSupport with smartBorders support so the border doesn't

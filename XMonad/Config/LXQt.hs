@@ -38,7 +38,7 @@ import qualified Data.Map as M
 
 lxqtConfig = desktopConfig
     { terminal = "qterminal"
-    , keys     = lxqtKeys <+> keys desktopConfig }
+    , keys     = lxqtKeys <> keys desktopConfig }
 
 lxqtKeys XConfig{modMask = modm} = M.fromList
     [ ((modm,               xK_p), spawn "lxqt-runner")

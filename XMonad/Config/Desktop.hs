@@ -106,7 +106,7 @@ import qualified Data.Map as M
 -- > main =
 -- >   xmonad $ desktopConfig {
 -- >     -- add manage hooks while still ignoring panels and using default manageHooks
--- >       manageHook = myManageHook <+> manageHook desktopConfig
+-- >       manageHook = myManageHook <> manageHook desktopConfig
 -- >
 -- >     -- add a fullscreen tabbed layout that does not avoid covering
 -- >     -- up desktop panels before the desktop layouts
@@ -129,7 +129,7 @@ import qualified Data.Map as M
 -- To add to the logHook while still sending workspace and window information
 -- to DE apps use something like:
 --
--- >  , logHook = myLogHook <+> logHook desktopConfig
+-- >  , logHook = myLogHook <> logHook desktopConfig
 --
 -- Or for more elaborate logHooks you can use @do@:
 --
@@ -143,7 +143,7 @@ import qualified Data.Map as M
 -- To customize xmonad's event handling while still having it respond
 -- to EWMH events from pagers, task bars:
 --
--- >  , handleEventHook = myEventHooks <+> handleEventHook desktopConfig
+-- >  , handleEventHook = myEventHooks <> handleEventHook desktopConfig
 --
 -- or 'mconcat' if you write a list event of event hooks
 --
@@ -157,7 +157,7 @@ import qualified Data.Map as M
 
 -- $startupHook
 -- To run the desktop startupHook, plus add further actions to be run each
--- time xmonad starts or restarts, use '<+>' to combine actions as in the
+-- time xmonad starts or restarts, use '<>' to combine actions as in the
 -- logHook example, or something like:
 --
 -- >  , startupHook = do
@@ -169,9 +169,9 @@ import qualified Data.Map as M
 desktopConfig :: XConfig (ModifiedLayout AvoidStruts
                              (Choose Tall (Choose (Mirror Tall) Full)))
 desktopConfig = docks $ ewmh def
-    { startupHook     = setDefaultCursor xC_left_ptr <+> startupHook def
+    { startupHook     = setDefaultCursor xC_left_ptr <> startupHook def
     , layoutHook      = desktopLayoutModifiers $ layoutHook def
-    , keys            = desktopKeys <+> keys def }
+    , keys            = desktopKeys <> keys def }
 
 desktopKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
 desktopKeys XConfig{modMask = modm} = M.fromList

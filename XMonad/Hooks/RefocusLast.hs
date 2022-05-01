@@ -79,10 +79,10 @@ import qualified Data.Map.Strict as M
 -- >
 -- > main :: IO ()
 -- > main = xmonad def
--- >     { handleEventHook = refocusLastWhen myPred <+> handleEventHook def
--- >     , logHook         = refocusLastLogHook     <+> logHook         def
+-- >     { handleEventHook = refocusLastWhen myPred <> handleEventHook def
+-- >     , logHook         = refocusLastLogHook     <> logHook         def
 -- > --  , layoutHook      = refocusLastLayoutHook   $  layoutHook      def
--- >     , keys            = refocusLastKeys        <+> keys            def
+-- >     , keys            = refocusLastKeys        <> keys            def
 -- >     } where
 -- >         myPred = refocusingIsActive <||> isFloat
 -- >         refocusLastKeys cnf
