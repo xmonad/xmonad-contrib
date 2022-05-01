@@ -43,7 +43,7 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Graphics.X11.Types
 import GHC.Generics
-import Prelude hiding (concatMap, drop, elem, filter, null, reverse)
+import Prelude hiding (drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
 import XMonad.Operations (windows, withFocused)
@@ -224,7 +224,7 @@ isOnAnyVisibleWS :: Query Bool
 isOnAnyVisibleWS = do
   w <- ask
   ws <- liftX $ gets windowset
-  let allVisible = concat $ maybe [] SS.integrate . SS.stack . SS.workspace <$> SS.current ws:SS.visible ws
+  let allVisible = concatMap (maybe [] SS.integrate . SS.stack . SS.workspace) (SS.current ws:SS.visible ws)
       visibleWs = w `elem` allVisible
       unfocused = Just w /= SS.peek ws
   return $ visibleWs && unfocused

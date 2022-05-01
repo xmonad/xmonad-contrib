@@ -397,7 +397,7 @@ instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => L
             in fgs $ nxsAdd $ M.insert x zs $ M.delete yf gs
 
 
-        | otherwise = join <$> sequenceA (catchLayoutMess <$> fromMessage m)
+        | otherwise = join <$> traverse catchLayoutMess (fromMessage m)
      where gs = toGroups sls
            fgs gs' = do
                 st <- currentStack

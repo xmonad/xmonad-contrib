@@ -35,6 +35,7 @@ module XMonad.Layout.MouseResizableTile (
                                    ) where
 
 import XMonad hiding (tile, splitVertically, splitHorizontallyBy)
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Util.XUtils
 import Graphics.X11 as X
@@ -146,7 +147,7 @@ instance LayoutClass MouseResizableTile Window where
                                             (rightFracs st ++ repeat (slaveFrac st)) sr' num drg
             rects' = map (mirrorAdjust id mirrorRect . sanitizeRectangle sr') rects
         mapM_ deleteDragger $ draggers st
-        (draggerWrs, newDraggers) <- unzip <$> mapM
+        (draggerWrs, newDraggers) <- mapAndUnzipM
                                         (createDragger sr . adjustForMirror (isMirrored st))
                                         preparedDraggers
         return (draggerWrs ++ zip wins rects', Just $ st { draggers = newDraggers,

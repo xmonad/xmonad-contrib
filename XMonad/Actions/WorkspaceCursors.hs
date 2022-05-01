@@ -212,4 +212,4 @@ instance LayoutModifier WorkspaceCursors a where
         return (arrs,WorkspaceCursors <$> focusTo cws cs)
 
     handleMess (WorkspaceCursors cs) m =
-        sequenceA $ fmap WorkspaceCursors . ($ cs) . unWrap <$> fromMessage m
+        traverse (fmap WorkspaceCursors . ($ cs) . unWrap) (fromMessage m)
