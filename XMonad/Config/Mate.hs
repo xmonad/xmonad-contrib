@@ -50,7 +50,7 @@ import System.Environment (getEnvironment)
 
 mateConfig = desktopConfig
     { terminal = "mate-terminal"
-    , keys     = mateKeys <+> keys desktopConfig
+    , keys     = mateKeys <> keys desktopConfig
     , startupHook = mateRegister >> startupHook desktopConfig }
 
 mateKeys XConfig{modMask = modm} = M.fromList

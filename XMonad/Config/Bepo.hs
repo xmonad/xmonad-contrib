@@ -38,7 +38,7 @@ import qualified Data.Map as M
 -- > import qualified Data.Map as M
 -- > main = xmonad someConfig { keys = \c -> bepoKeys c `M.union` keys someConfig c }
 
-bepoConfig = def { keys = bepoKeys <+> keys def }
+bepoConfig = def { keys = bepoKeys <> keys def }
 
 bepoKeys conf@XConfig { modMask = modm } = M.fromList $
     ((modm, xK_semicolon), sendMessage (IncMasterN (-1)))

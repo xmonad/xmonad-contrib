@@ -42,16 +42,16 @@ instance ExtensionClass ManageStackDebug where
 
 -- | A combinator to add full 'ManageHook' debugging in a single operation.
 debugManageHook :: XConfig l -> XConfig l
-debugManageHook cf = cf {logHook    = manageDebugLogHook <+> logHook    cf
-                        ,manageHook = manageDebug        <+> manageHook cf
+debugManageHook cf = cf {logHook    = manageDebugLogHook <> logHook    cf
+                        ,manageHook = manageDebug        <> manageHook cf
                         }
 
 -- | A combinator to add triggerable 'ManageHook' debugging in a single operation.
 --   Specify a key sequence as a string in 'XMonad.Util.EZConfig' syntax; press
 --   this key before opening the window to get just that logged.
 debugManageHookOn :: String -> XConfig l -> XConfig l
-debugManageHookOn key cf = cf {logHook    = manageDebugLogHook <+> logHook    cf
-                              ,manageHook = maybeManageDebug   <+> manageHook cf
+debugManageHookOn key cf = cf {logHook    = manageDebugLogHook <> logHook    cf
+                              ,manageHook = maybeManageDebug   <> manageHook cf
                               }
                            `additionalKeysP`
                            [(key,debugNextManagedWindow)]

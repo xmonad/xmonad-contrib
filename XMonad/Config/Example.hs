@@ -28,10 +28,10 @@ main = do
   -- simple overrides:
   xmonad $ desktopConfig
     { modMask    = mod4Mask -- Use the "Win" key for the mod key
-    , manageHook = myManageHook <+> manageHook desktopConfig
+    , manageHook = myManageHook <> manageHook desktopConfig
     , layoutHook = desktopLayoutModifiers myLayouts
     , logHook    = (dynamicLogString def >>= xmonadPropLog)
-                    <+> logHook desktopConfig
+                    <> logHook desktopConfig
     }
 
     `additionalKeysP` -- Add some extra key bindings:
@@ -72,7 +72,7 @@ myManageHook = composeOne
   -- Handle floating windows:
   [ transience            -- move transient windows to their parent
   , isDialog              -?> doCenterFloat
-  ] <+> composeAll
+  ] <> composeAll
   [ className =? "Pidgin" --> doFloat
   , className =? "XCalc"  --> doFloat
   , className =? "mpv"    --> doFloat

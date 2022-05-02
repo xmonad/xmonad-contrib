@@ -59,7 +59,7 @@ instance ExtensionClass NSPTrack where
 
 -- | 'startupHook' to initialize scratchpad activation tracking
 --
--- > , startupHook = ... <+> nspTrackStartup scratchpads
+-- > , startupHook = ... <> nspTrackStartup scratchpads
 --
 -- If you kickstart the 'logHook', do it /after/ 'nspTrackStartup'!
 nspTrackStartup :: [NamedScratchpad] -> X ()
@@ -83,7 +83,7 @@ scratchpadWindow ns = foldM sp' Nothing (zip [0..] ns)
 
 -- | 'handleEventHook' to track scratchpad activation/deactivation
 --
--- > , handleEventHook = ... <+> nspTrackHook scratchpads
+-- > , handleEventHook = ... <> nspTrackHook scratchpads
 nspTrackHook :: [NamedScratchpad] -> Event -> X All
 nspTrackHook _ DestroyWindowEvent{ev_window = w} = do
   XS.modify $ \(NSPTrack ws) -> NSPTrack $ map (\sw -> if sw == Just w then Nothing else sw) ws

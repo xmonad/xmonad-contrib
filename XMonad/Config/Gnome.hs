@@ -43,7 +43,7 @@ import System.Environment (getEnvironment)
 
 gnomeConfig = desktopConfig
     { terminal = "gnome-terminal"
-    , keys     = gnomeKeys <+> keys desktopConfig
+    , keys     = gnomeKeys <> keys desktopConfig
     , startupHook = gnomeRegister >> startupHook desktopConfig }
 
 gnomeKeys XConfig{modMask = modm} = M.fromList

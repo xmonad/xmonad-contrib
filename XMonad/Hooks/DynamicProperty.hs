@@ -65,7 +65,7 @@ import XMonad.Prelude
 --
 -- >  main = xmonad $ def
 -- >      { ...
--- >      , handleEventHook = dynamicPropertyChange "WM_NAME" myDynamicManageHook <+> handleEventHook baseConfig
+-- >      , handleEventHook = dynamicPropertyChange "WM_NAME" myDynamicManageHook <> handleEventHook baseConfig
 -- >      , ...
 -- >      }
 --
@@ -88,7 +88,7 @@ import XMonad.Prelude
 --
 -- >  main = xmonad $ def
 -- >      { ...
--- >      , handleEventHook = dynamicPropertyChange "WM_NAME" myDynHook <+> handleEventHook baseConfig
+-- >      , handleEventHook = dynamicPropertyChange "WM_NAME" myDynHook <> handleEventHook baseConfig
 -- >      , ...
 -- >      }
 -- >

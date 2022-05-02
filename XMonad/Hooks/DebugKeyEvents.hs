@@ -41,7 +41,7 @@ import           System.IO                       (hPutStrLn
 --
 -- If you already have a handleEventHook then you should append it:
 --
--- >      , handleEventHook = ... <+> debugKeyEvents
+-- >      , handleEventHook = ... <> debugKeyEvents
 --
 -- Logged key events look like:
 --

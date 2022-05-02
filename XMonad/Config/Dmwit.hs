@@ -217,13 +217,13 @@ dmwitConfig nScreens = docks $ def {
     keys                    = keyBindings,
     layoutHook              = magnifierOff $ avoidStruts (GridRatio 0.9) ||| noBorders Full,
     manageHook              =     (title =? "CGoban: Main Window" --> doF sinkFocus)
-                              <+> (className =? "Wine" <&&> (appName =? "hl2.exe" <||> appName =? "portal2.exe") --> ask >>= viewFullOn {-centerWineOn-} 1 "5")
-                              <+> (className =? "VirtualBox" --> ask >>= viewFullOn 1 "5")
-                              <+> (isFullscreen --> doFullFloat) -- TF2 matches the "isFullscreen" criteria, so its manage hook should appear after (e.g., to the left of a <+> compared to) this one
-                              <+> (appName =? "huludesktop" --> doRectFloat fullscreen43on169)
-                              <+> fullscreenMPlayer
-                              <+> floatAll ["Gimp", "Wine"]
-                              <+> manageSpawn,
+                              <> (className =? "Wine" <&&> (appName =? "hl2.exe" <||> appName =? "portal2.exe") --> ask >>= viewFullOn {-centerWineOn-} 1 "5")
+                              <> (className =? "VirtualBox" --> ask >>= viewFullOn 1 "5")
+                              <> (isFullscreen --> doFullFloat) -- TF2 matches the "isFullscreen" criteria, so its manage hook should appear after (e.g., to the left of a <> compared to) this one
+                              <> (appName =? "huludesktop" --> doRectFloat fullscreen43on169)
+                              <> fullscreenMPlayer
+                              <> floatAll ["Gimp", "Wine"]
+                              <> manageSpawn,
     logHook                 = allPPs nScreens,
     startupHook             = refresh
                            >> mapM_ (spawnOnce . xmobarCommand) [0 .. nScreens-1]

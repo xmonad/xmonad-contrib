@@ -73,7 +73,7 @@ import XMonad.Hooks.FadeInactive (setOpacity)
 --
 -- Add ManageHook to de-manage monitor windows and apply opacity settings.
 --
--- > manageHook = myManageHook <+> manageMonitor clock
+-- > manageHook = myManageHook <> manageMonitor clock
 --
 -- Apply layout modifier.
 --

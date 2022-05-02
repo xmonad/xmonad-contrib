@@ -41,8 +41,8 @@ sjanssenConfig =
                                     | (x, w) <- [ ("Firefox", "web")
                                                 , ("Ktorrent", "7")
                                                 , ("Amarokapp", "7")]]
-                        <+> manageHook def <+> manageSpawn
-                        <+> (isFullscreen --> doFullFloat)
+                        <> manageHook def <> manageSpawn
+                        <> (isFullscreen --> doFullFloat)
         , startupHook = mapM_ spawnOnce spawns
         }
  where

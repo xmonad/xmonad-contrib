@@ -73,7 +73,7 @@ import qualified XMonad.StackSet as W
 --
 -- Add the hooks to your managehook (see "XMonad.Doc.Extending#Editing_the_manage_hook"), eg.:
 --
--- > manageHook = myManageHook <+> xScratchpadsManageHook scratchpads
+-- > manageHook = myManageHook <> xScratchpadsManageHook scratchpads
 --
 -- And finally add some keybindings (see "XMonad.Doc.Extending#Editing_key_bindings"):
 --

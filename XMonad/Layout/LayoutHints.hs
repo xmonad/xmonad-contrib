@@ -73,7 +73,7 @@ import qualified Data.Set as Set
 -- To make XMonad reflect changes in window hints immediately, add
 -- 'hintsEventHook' to your 'handleEventHook'.
 --
--- > myHandleEventHook = hintsEventHook <+> ...
+-- > myHandleEventHook = hintsEventHook <> ...
 -- >
 -- > main = xmonad def { handleEventHook = myHandleEventHook
 -- >                   , ... }

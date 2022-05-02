@@ -608,7 +608,7 @@ This is another example of 'XMonad.Config.manageHook', taken from
 >                               , resource =? "win"          --> doF (W.shift "doc") -- xpdf
 >                               , resource =? "firefox-bin"  --> doF (W.shift "web")
 >                               ]
->    newManageHook = myManageHook <+> manageHook def
+>    newManageHook = myManageHook <> manageHook def
 
 
 Again we use 'XMonad.ManageHook.composeAll' to compose a list of
@@ -617,7 +617,7 @@ RealPlayer on the float layer, the second one will put the xpdf
 windows in the workspace named \"doc\", with 'XMonad.ManageHook.doF'
 and 'XMonad.StackSet.shift' functions, and the third one will put all
 firefox windows on the workspace called "web". Then we use the
-'XMonad.ManageHook.<+>' combinator to compose @myManageHook@ with the
+'<>' combinator to compose @myManageHook@ with the
 default 'XMonad.Config.manageHook' to form @newManageHook@.
 
 Each 'XMonad.Config.ManageHook' has the form:
@@ -667,10 +667,10 @@ Then we create our own 'XMonad.Config.manageHook':
 
 >    myManageHook = resource =? "realplay.bin" --> doFloat
 
-We can now use the 'XMonad.ManageHook.<+>' combinator to add our
+We can now use the '<>' combinator to add our
 'XMonad.Config.manageHook' to the default one:
 
->    newManageHook = myManageHook <+> manageHook def
+>    newManageHook = myManageHook <> manageHook def
 
 (Of course, if we wanted to completely replace the default
 'XMonad.Config.manageHook', this step would not be necessary.) Now,

@@ -56,7 +56,7 @@ import qualified Data.Set as S
 -- otherwise use 'Just def' or similar to inform the module about the
 -- decoration theme used.
 --
--- > myManageHook = positionStoreManageHook Nothing <+> manageHook def
+-- > myManageHook = positionStoreManageHook Nothing <> manageHook def
 -- > myHandleEventHook = positionStoreEventHook
 -- >
 -- > main = xmonad def { manageHook = myManageHook
