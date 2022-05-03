@@ -293,6 +293,10 @@ instance ExtensionClass WindowDesktops where initialValue = WindowDesktops (M.si
 newtype ActiveWindow = ActiveWindow Window deriving Eq
 instance ExtensionClass ActiveWindow where initialValue = ActiveWindow (complement none)
 
+-- | Cached @_NET_DESKTOP_VIEWPORT@
+newtype MonitorTags = MonitorTags [WorkspaceId] deriving (Show,Eq)
+instance ExtensionClass MonitorTags where initialValue = MonitorTags []
+
 -- | Compare the given value against the value in the extensible state. Run the
 -- action if it has changed.
 whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
@@ -336,6 +340,32 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWi
     -- Set active window
     let activeWindow' = fromMaybe none (W.peek s)
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
+
+    -- Set desktop Viewport
+    let visibleScreens = W.current s : W.visible s
+        currentTags    = map (W.tag . W.workspace) visibleScreens
+    whenChanged (MonitorTags currentTags) $ mkViewPorts s (map W.tag ws)
+
+-- | Create the viewports from the current 'WindowSet' and a list of
+-- already sorted workspace IDs.
+mkViewPorts :: WindowSet -> [WorkspaceId] -> X ()
+mkViewPorts winset = setDesktopViewport . concat . mapMaybe (viewPorts M.!?)
+  where
+    foc = W.current winset
+    -- Hidden workspaces are mapped to the current screen's viewport.
+    viewPorts :: M.Map WorkspaceId [Position]
+    viewPorts = M.fromList $ map mkVisibleViewPort (foc : W.visible winset)
+                          ++ map (mkViewPort foc)  (W.hidden winset)
+
+    mkViewPort :: WindowScreen -> WindowSpace -> (WorkspaceId, [Position])
+    mkViewPort scr w = (W.tag w, mkPos scr)
+
+    mkVisibleViewPort :: WindowScreen -> (WorkspaceId, [Position])
+    mkVisibleViewPort x = mkViewPort x (W.workspace x)
+
+    mkPos :: WindowScreen -> [Position]
+    mkPos scr = [rect_x (rect scr), rect_y (rect scr)]
+      where rect = screenRect . W.screenDetail
 
 ewmhDesktopsEventHook' :: Event -> EwmhDesktopsConfig -> X All
 ewmhDesktopsEventHook'
@@ -460,6 +490,12 @@ setActiveWindow w = withDisplay $ \dpy -> do
     r <- asks theRoot
     a <- getAtom "_NET_ACTIVE_WINDOW"
     io $ changeProperty32 dpy r a wINDOW propModeReplace [fromIntegral w]
+
+setDesktopViewport :: [Position] -> X ()
+setDesktopViewport positions = withDisplay $ \dpy -> do
+    r <- asks theRoot
+    a <- io $ internAtom dpy "_NET_DESKTOP_VIEWPORT" True
+    io $ changeProperty32 dpy r a cARDINAL propModeReplace (map fi positions)
 
 setSupported :: X ()
 setSupported = withDisplay $ \dpy -> do
