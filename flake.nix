@@ -1,4 +1,5 @@
-# This file is maintained by @IvanMalison (github)
+# This file is maintained by @IvanMalison and @LSLeary (github)
+# See NIX.md for an overview of module usage.
 {
   inputs = {
     flake-utils.url = github:numtide/flake-utils;
@@ -6,17 +7,24 @@
     xmonad.url = github:xmonad/xmonad;
   };
   outputs = { self, flake-utils, nixpkgs, git-ignore-nix, xmonad }:
+  with xmonad.lib;
   let
-    overlay = final: prev: {
-      haskellPackages = prev.haskellPackages.override (old: {
-        overrides = prev.lib.composeExtensions (old.overrides or (_: _: {}))
-        (hself: hsuper: {
-          xmonad-contrib =
-            hself.callCabal2nix "xmonad-contrib" (git-ignore-nix.lib.gitignoreSource ./.) { };
-        });
-      });
+    hoverlay = final: prev: hself: hsuper: {
+      xmonad-contrib = hself.callCabal2nix "xmonad-contrib"
+        (git-ignore-nix.lib.gitignoreSource ./.) { };
     };
+    overlay = fromHOL hoverlay { };
     overlays = xmonad.overlays ++ [ overlay ];
+    nixosModule = { config, lib, ... }: with lib;
+      let
+        cfg = config.services.xserver.windowManager.xmonad;
+        comp = { inherit (cfg.flake) prefix compiler; };
+      in {
+        config = mkIf (cfg.flake.enable && cfg.enableContribAndExtras) {
+          nixpkgs.overlays = [ (fromHOL hoverlay comp) ];
+        };
+      };
+    nixosModules = xmonad.nixosModules ++ [ nixosModule ];
   in flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system overlays; };
@@ -31,5 +39,5 @@
       nativeBuildInputs = [ pkgs.cabal-install ];
     });
     defaultPackage = pkgs.haskellPackages.xmonad-contrib;
-  }) // { inherit overlay overlays; } ;
+  }) // { inherit hoverlay overlay overlays nixosModule nixosModules; } ;
 }
