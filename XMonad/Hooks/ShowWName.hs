@@ -3,10 +3,10 @@
 -- |
 -- Module      :  XMonad.Hooks.ShowWName
 -- Description :  Like 'XMonad.Layout.ShowWName', but as a logHook
--- Copyright   :  (c) 2022  Solid <soliditsallgood@mailbox.org>
+-- Copyright   :  (c) 2022  Tony Zorman
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  soliditsallgood@mailbox.org
+-- Maintainer  :  Tony Zorman <soliditsallgood@mailbox.org>
 --
 -- Flash the names of workspaces name when switching to them.  This is a
 -- reimplementation of 'XMonad.Layout.ShowWName' as a logHook.

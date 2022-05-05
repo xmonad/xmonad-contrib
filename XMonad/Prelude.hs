@@ -4,10 +4,10 @@
 -- |
 -- Module      :  XMonad.Prelude
 -- Description :  Utility functions and re-exports.
--- Copyright   :  slotThe <soliditsallgood@mailbox.org>
+-- Copyright   :  (c) 2021  Tony Zorman
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  slotThe <soliditsallgood@mailbox.org>
+-- Maintainer  :  Tony Zorman <soliditsallgood@mailbox.org>
 --
 -- Utility functions and re-exports for a more ergonomic developing
 -- experience.  Users themselves will not find much use here.

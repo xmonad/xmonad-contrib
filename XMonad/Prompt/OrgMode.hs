@@ -8,10 +8,10 @@
 -- |
 -- Module      :  XMonad.Prompt.OrgMode
 -- Description :  A prompt for interacting with org-mode.
--- Copyright   :  (c) 2021  slotThe <soliditsallgood@mailbox.org>
+-- Copyright   :  (c) 2021  Tony Zorman
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  slotThe <soliditsallgood@mailbox.org>
+-- Maintainer  :  Tony Zorman <soliditsallgood@mailbox.org>
 -- Stability   :  experimental
 -- Portability :  unknown
 --

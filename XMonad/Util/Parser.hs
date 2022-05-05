@@ -7,9 +7,9 @@
 -- |
 -- Module      : XMonad.Util.Parser
 -- Description : A parser combinator library for xmonad
--- Copyright   : (c) 2021  slotThe <soliditsallgood@mailbox.org>
+-- Copyright   : (c) 2021  Tony Zorman
 -- License     : BSD3
--- Maintainer  : slotThe <soliditsallgood@mailbox.org>
+-- Maintainer  : Tony Zorman <soliditsallgood@mailbox.org>
 -- Stability   : experimental
 -- Portability : non-portable
 --
