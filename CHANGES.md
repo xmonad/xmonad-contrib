@@ -181,6 +181,11 @@
     - Added support for dynamic scratchpads in the form of
       `dynamicNSPAction` and `toggleDynamicNSP`.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Added support for `_NET_DESKTOP_VIEWPORT`, which is required by
+      some status bars.
+
 ### Other changes
 
   * Migrated the sample build scripts from the deprecated `xmonad-testing` repo to
