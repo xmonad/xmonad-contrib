@@ -1,3 +1,7 @@
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Run
@@ -17,31 +21,35 @@
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Run (
-                          -- * Usage
-                          -- $usage
-                          runProcessWithInput,
-                          runProcessWithInputAndWait,
-                          safeSpawn,
-                          safeSpawnProg,
-                          unsafeSpawn,
-                          runInTerm,
-                          safeRunInTerm,
-                          seconds,
-                          spawnPipe,
-                          spawnPipeWithLocaleEncoding,
-                          spawnPipeWithUtf8Encoding,
-                          spawnPipeWithNoEncoding,
-                          hPutStr, hPutStrLn  -- re-export for convenience
-                         ) where
+  -- * Usage
+  -- $usage
+  runProcessWithInput,
+  runProcessWithInputAndWait,
+  safeSpawn,
+  safeSpawnProg,
+  unsafeSpawn,
+  runInTerm,
+  safeRunInTerm,
+  seconds,
+  spawnPipe,
+  spawnPipeWithLocaleEncoding,
+  spawnPipeWithUtf8Encoding,
+  spawnPipeWithNoEncoding,
+  hPutStr,
+  hPutStrLn,  -- re-export for convenience
+) where
 
-import Codec.Binary.UTF8.String
-import System.Posix.IO
-import System.Posix.Process (createSession, executeFile, forkProcess)
-import Control.Concurrent (threadDelay)
-import System.IO
-import System.Process (runInteractiveProcess)
 import XMonad
 import XMonad.Prelude
+import qualified XMonad.Util.ExtensibleConf as XC
+
+import Codec.Binary.UTF8.String (encodeString)
+import Control.Concurrent (threadDelay)
+import System.Directory (getDirectoryContents, getHomeDirectory)
+import System.IO
+import System.Posix.IO
+import System.Posix.Process (createSession, executeFile, forkProcess)
+import System.Process (runInteractiveProcess)
 
 -- $usage
 -- For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh"
@@ -180,3 +188,172 @@ spawnPipe' encoding x = io $ do
           executeFile "/bin/sh" False ["-c", encodeString x] Nothing
     closeFd rd
     return h
+
+-- | Additional information that might be useful when spawning external
+-- programs.
+data ProcessConfig = ProcessConfig
+  { editor :: !String
+    -- ^ Default editor.  Defaults to @"emacsclient -c -a ''"@.
+  , emacsLispDir :: !FilePath
+    -- ^ Directory for your custom Emacs lisp files.  Probably
+    -- @user-emacs-directory@ or @user-emacs-directory/lisp@.  Defaults
+    -- to @"~\/.config\/emacs\/lisp\/"@
+  , emacsElpaDir :: !FilePath
+    -- ^ Directory for all packages from [M,Non-GNU]ELPA; probably
+    -- @user-emacs-directory/elpa@.  Defaults to
+    -- @"~\/.config\/emacs\/elpa"@.
+  , emacs :: !String
+    -- ^ /Standalone/ Emacs executable; this should not be @emacsclient@
+    -- since, for example, the client does not support @--batch@ mode.
+    -- Defaults to @"emacs"@.
+  }
+
+-- | Given a 'ProcessConfig', remember it for spawning external
+-- processes later on.
+spawnExternalProcess :: ProcessConfig -> XConfig l -> XConfig l
+spawnExternalProcess = XC.modifyDef . const
+
+instance Default ProcessConfig where
+  def :: ProcessConfig
+  def = ProcessConfig
+    { editor       = "emacsclient -c -a ''"
+    , emacsLispDir = "~/.config/emacs/lisp/"
+    , emacsElpaDir = "~/.config/emacs/elpa/"
+    , emacs        = "emacs"
+    }
+
+-- | Convenient type alias.
+type Input = ShowS
+
+-- | Combine inputs together.
+(>->) :: X Input -> X Input -> X Input
+(>->) = (<>)
+infixr 3 >->
+
+-- | Combine an input with an ordinary string.
+(>-$) :: X Input -> X String -> X Input
+(>-$) xi xs = xi >-> fmap mkDList xs
+infixr 3 >-$
+
+-- | Spawn a completed input.
+proc :: X Input -> X ()
+proc xi = spawn =<< getInput xi
+
+-- | Get the completed input string.
+getInput :: X Input -> X String
+getInput xi = xi <&> ($ "")
+
+-- | Use the 'editor'.
+inEditor :: X Input
+inEditor = XC.withDef $ \ProcessConfig{editor} -> pure $ mkDList editor
+
+-- | Use the 'XMonad.Core.XConfig.terminal'.
+inTerm :: X Input
+inTerm = asks $ mkDList . terminal . config
+
+-- | Execute the argument.  Current /thing/ must support a @-e@ option.
+-- For programs such as Emacs, 'eval' may be the safer option; while
+-- @emacsclient@ supports @-e@, the @emacs@ executable itself does not.
+execute :: String -> X Input
+execute this = pure ((" -e " <> this) <>)
+
+-- | Eval(uate) the argument.  Current /thing/ must support a @--eval@
+-- option.
+eval :: String -> X Input
+eval this = pure ((" --eval " <> this) <>)
+
+-- | Use 'emacs'.
+inEmacs :: X Input
+inEmacs = XC.withDef $ \ProcessConfig{emacs} -> pure $ mkDList emacs
+
+-- | Use the given program.
+inProgram :: String -> X Input
+inProgram = pure . mkDList
+
+-- | Spawn /thing/ in the current working directory.  /thing/ must
+-- support a @--working-directory@ option.
+inWorkingDir :: X Input
+inWorkingDir = pure (" --working-directory " <>)
+
+-- | Set a frame name for the @emacsclient@.
+--
+-- Note that this uses the @-F@ option to set the
+-- <https://www.gnu.org/software/emacs/manual/html_node/emacs/Frame-Parameters.html
+-- frame parameters> alist, which the @emacs@ executable does not
+-- support.
+setFrameName :: String -> X Input
+setFrameName n = pure ((" -F '(quote (name . \"" <> n <> "\"))' ") <>)
+
+-- | Set the appropriate X class for a window.  This will more often
+-- than not actually be the
+-- <https://tronche.com/gui/x/icccm/sec-4.html#WM_CLASS instance name>.
+setXClass :: String -> X Input
+setXClass = pure . mkDList . (" --class " <>)
+
+-- | Spawn the 'XMonad.Core.XConfig.terminal' in some directory; it must
+-- support the @--working-directory@ option.
+termInDir :: X Input
+termInDir = inTerm >-> inWorkingDir
+
+-- | Transform the given input into an elisp function; i.e., surround it
+-- with parentheses.
+elispFun :: String -> String
+elispFun f = " '(" <> f <> " )' "
+
+-- | Treat an argument as a string; i.e., wrap it with quotes.
+asString :: String -> String
+asString s = " \"" <> s <> "\" "
+
+-- | Wrap the given commands in a @progn@.  The commands need not be
+-- wrapped in parentheses, this will be done by the function.
+progn :: [String] -> String
+progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
+
+-- | Require a package.
+require :: String -> String
+require = inParens . ("require " <>) .  inParens . ("quote " <>)
+
+-----------------------------------------------------------------------
+-- Batch mode
+
+-- | Tell Emacs to enable batch-mode.
+asBatch :: X Input
+asBatch = pure (" --batch " <>)
+
+-- | An Emacs library.
+data EmacsLib
+  = OwnFile !String
+    -- ^ A /file/ from 'emacsLispDir'.
+  | ElpaLib !String
+    -- ^ A /directory/ in 'emacsElpaDir'.
+  | Special !String
+    -- ^ Special /files/; these will not be looked up somewhere, but
+    -- forwarded verbatim (as a path).
+
+-- | Load some Emacs libraries.  This is useful when executing scripts
+-- in batch mode.
+withEmacsLibs :: [EmacsLib] -> X Input
+withEmacsLibs libs = XC.withDef $ \ProcessConfig{emacsLispDir, emacsElpaDir} -> do
+  home       <- liftIO getHomeDirectory
+  let lispDir = mkAbsolutePath home emacsLispDir
+      elpaDir = mkAbsolutePath home emacsElpaDir
+
+  lisp <- liftIO $ getDirectoryContents lispDir
+  elpa <- liftIO $ getDirectoryContents elpaDir
+
+  let getLib :: EmacsLib -> Maybe String = \case
+        OwnFile f -> (("-l " <> lispDir) <>) <$> find (f          `isInfixOf`) lisp
+        ElpaLib d -> (("-L " <> elpaDir) <>) <$> find ((d <> "-") `isInfixOf`) elpa
+        Special f -> Just $ " -l " <> f
+  pure . mkDList . unwords . mapMaybe getLib $ libs
+
+-----------------------------------------------------------------------
+-- Util
+
+mkDList :: String -> ShowS
+mkDList = (<>) . (<> " ")
+
+inParens :: String -> String
+inParens s = case s of
+  '(' : _ -> s
+  _       -> "(" <> s <> ")"
