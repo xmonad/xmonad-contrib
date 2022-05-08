@@ -30,6 +30,8 @@ module XMonad.Layout.ImageButtonDecoration
       imageButtonDeco
     , defaultThemeWithImageButtons
     , shrinkText
+    , CustomShrink(CustomShrink)
+    , Shrinker
     , imageTitleBarButtonHandler
     , ImageButtonDecoration
     ) where
