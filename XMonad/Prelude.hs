@@ -22,6 +22,7 @@ module XMonad.Prelude (
     NonEmpty((:|)),
     notEmpty,
     safeGetWindowAttributes,
+    mkAbsolutePath,
 
     -- * Keys
     keyToString,
@@ -58,6 +59,7 @@ import Data.Bits
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Tuple (swap)
 import GHC.Stack
+import System.Directory (getHomeDirectory)
 import qualified XMonad.StackSet as W
 
 -- | Short for 'fromIntegral'.
@@ -98,6 +100,24 @@ safeGetWindowAttributes w = withDisplay $ \dpy -> io . alloca $ \p ->
   xGetWindowAttributes dpy w p >>= \case
     0 -> pure Nothing
     _ -> Just <$> peek p
+
+-- | (Naïvely) turn a relative path into an absolute one.
+--
+-- * If the path starts with @\/@, do nothing.
+--
+-- * If it starts with @~\/@, replace that with the actual home
+-- * directory.
+--
+-- * Otherwise, prepend a @\/@ to the path.
+mkAbsolutePath :: MonadIO m => FilePath -> m FilePath
+mkAbsolutePath ps = do
+  home <- liftIO getHomeDirectory
+  pure $ case ps of
+    '/'       : _ ->                ps
+    '~' : '/' : _ -> home <> drop 1 ps
+    _             -> home <> ('/' : ps)
+{-# SPECIALISE mkAbsolutePath :: FilePath -> IO FilePath #-}
+{-# SPECIALISE mkAbsolutePath :: FilePath -> X  FilePath #-}
 
 -----------------------------------------------------------------------
 -- Keys

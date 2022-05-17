@@ -86,7 +86,7 @@ import qualified XMonad.Util.ExtensibleConf as XC
 
 import Codec.Binary.UTF8.String (encodeString)
 import Control.Concurrent (threadDelay)
-import System.Directory (getDirectoryContents, getHomeDirectory)
+import System.Directory (getDirectoryContents)
 import System.IO
 import System.Posix.IO
 import System.Posix.Process (createSession, executeFile, forkProcess)
@@ -451,12 +451,10 @@ data EmacsLib
 -- in batch mode.
 withEmacsLibs :: [EmacsLib] -> X Input
 withEmacsLibs libs = XC.withDef $ \ProcessConfig{emacsLispDir, emacsElpaDir} -> do
-  home       <- liftIO getHomeDirectory
-  let lispDir = mkAbsolutePath home emacsLispDir
-      elpaDir = mkAbsolutePath home emacsElpaDir
-
-  lisp <- liftIO $ getDirectoryContents lispDir
-  elpa <- liftIO $ getDirectoryContents elpaDir
+  lispDir <- mkAbsolutePath emacsLispDir
+  elpaDir <- mkAbsolutePath emacsElpaDir
+  lisp    <- liftIO $ getDirectoryContents lispDir
+  elpa    <- liftIO $ getDirectoryContents elpaDir
 
   let getLib :: EmacsLib -> Maybe String = \case
         OwnFile f -> (("-l " <> lispDir) <>) <$> find (f          `isInfixOf`) lisp

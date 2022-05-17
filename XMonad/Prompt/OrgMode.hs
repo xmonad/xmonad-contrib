@@ -57,7 +57,6 @@ import XMonad.Util.Parser
 import XMonad.Util.XSelection (getSelection)
 
 import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
-import System.Directory (getHomeDirectory)
 import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
 
 {- $usage
@@ -217,10 +216,7 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
                else Body   $ "\n " <> sel
 
     -- Expand path if applicable
-    fp <- case orgFile of
-      '/'       : _ -> pure orgFile
-      '~' : '/' : _ -> getHomeDirectory <&> (<> drop 1 orgFile)
-      _             -> getHomeDirectory <&> (<> ('/' : orgFile))
+    fp <- mkAbsolutePath orgFile
 
     withFile fp AppendMode . flip hPutStrLn
       <=< maybe (pure "") (ppNote clpStr todoHeader) . pInput
