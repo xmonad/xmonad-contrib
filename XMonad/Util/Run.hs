@@ -414,19 +414,32 @@ termInDir = inTerm >-> inWorkingDir
 
 -- | Transform the given input into an elisp function; i.e., surround it
 -- with parentheses.
+--
+-- >>> elispFun "arxiv-citation URL"
+-- " '( arxiv-citation URL )' "
 elispFun :: String -> String
-elispFun f = " '(" <> f <> " )' "
+elispFun f = " '( " <> f <> " )' "
 
 -- | Treat an argument as a string; i.e., wrap it with quotes.
+--
+-- >>> asString "string"
+-- " \"string\" "
 asString :: String -> String
 asString s = " \"" <> s <> "\" "
 
--- | Wrap the given commands in a @progn@.  The commands need not be
--- wrapped in parentheses, this will be done by the function.
+-- | Wrap the given commands in a @progn@ and also escape it by wrapping
+-- it inside single quotes.  The given commands need not be wrapped in
+-- parentheses, this will be done by the function.  For example:
+--
+-- >>> progn [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
+-- " '( progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2) )' "
 progn :: [String] -> String
 progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
 
 -- | Require a package.
+--
+-- >>> require "arxiv-citation"
+-- "(require (quote arxiv-citation))"
 require :: String -> String
 require = inParens . ("require " <>) .  inParens . ("quote " <>)
 
