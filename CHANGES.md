@@ -186,6 +186,11 @@
     - Added support for `_NET_DESKTOP_VIEWPORT`, which is required by
       some status bars.
 
+  * `XMonad.Util.Run`
+
+    - Added an EDSL—particularly geared towards programs like terminals
+      or Emacs—to spawn processes from XMonad in a compositional way.
+
 ### Other changes
 
   * Migrated the sample build scripts from the deprecated `xmonad-testing` repo to

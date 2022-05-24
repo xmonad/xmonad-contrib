@@ -1,58 +1,118 @@
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Run
--- Description :  This modules provides several commands to run an external process.
--- Copyright   :  (C) 2007 Spencer Janssen, Andrea Rossato, glasser@mit.edu
+-- Description :  Several commands, as well as an EDSL, to run external processes.
+-- Copyright   :  (C) 2007  Spencer Janssen, Andrea Rossato, glasser@mit.edu
+--                    2022  Tony Zorman
 -- License     :  BSD-style (see LICENSE)
 --
--- Maintainer  :  Christian Thiemann <mail@christian-thiemann.de>
+-- Maintainer  :  Tony Zorman <soliditsallgood@mailbox.org>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- This modules provides several commands to run an external process.
--- It is composed of functions formerly defined in "XMonad.Util.Dmenu" (by
--- Spencer Janssen), "XMonad.Util.Dzen" (by glasser\@mit.edu) and
--- XMonad.Util.RunInXTerm (by Andrea Rossato).
+-- This module provides several commands to run an external process.
+-- Additionally, it provides an abstraction—particularly geared towards
+-- programs like terminals or Emacs—to specify these processes from
+-- XMonad in a compositional way.
 --
+-- Originally, this module was composed of functions formerly defined in
+-- "XMonad.Util.Dmenu" (by Spencer Janssen), "XMonad.Util.Dzen" (by
+-- glasser\@mit.edu) and @XMonad.Util.RunInXTerm@ (by Andrea Rossato).
 -----------------------------------------------------------------------------
 
 module XMonad.Util.Run (
-                          -- * Usage
-                          -- $usage
-                          runProcessWithInput,
-                          runProcessWithInputAndWait,
-                          safeSpawn,
-                          safeSpawnProg,
-                          unsafeSpawn,
-                          runInTerm,
-                          safeRunInTerm,
-                          seconds,
-                          spawnPipe,
-                          spawnPipeWithLocaleEncoding,
-                          spawnPipeWithUtf8Encoding,
-                          spawnPipeWithNoEncoding,
-                          hPutStr, hPutStrLn  -- re-export for convenience
-                         ) where
+  -- * Usage
+  -- $usage
+  runProcessWithInput,
+  runProcessWithInputAndWait,
+  safeSpawn,
+  safeSpawnProg,
+  unsafeSpawn,
+  runInTerm,
+  safeRunInTerm,
+  seconds,
+  spawnPipe,
+  spawnPipeWithLocaleEncoding,
+  spawnPipeWithUtf8Encoding,
+  spawnPipeWithNoEncoding,
 
-import Codec.Binary.UTF8.String
-import System.Posix.IO
-import System.Posix.Process (createSession, executeFile, forkProcess)
-import Control.Concurrent (threadDelay)
-import System.IO
-import System.Process (runInteractiveProcess)
+  -- * Compositionally Spawning Processes #EDSL#
+  -- $EDSL
+
+  -- ** Configuration and Running
+  ProcessConfig (..),
+  Input,
+  spawnExternalProcess,
+  proc,
+  getInput,
+
+  -- ** Programs
+  inEditor,
+  inTerm,
+  termInDir,
+  inProgram,
+
+  -- ** General Combinators
+  (>->),
+  (>-$),
+  inWorkingDir,
+  execute,
+  eval,
+  setXClass,
+  asString,
+
+  -- ** Emacs Integration
+  EmacsLib (..),
+  setFrameName,
+  withEmacsLibs,
+  inEmacs,
+  elispFun,
+  asBatch,
+  require,
+  progn,
+
+  -- * Re-exports
+  hPutStr,
+  hPutStrLn,
+) where
+
 import XMonad
 import XMonad.Prelude
+import qualified XMonad.Util.ExtensibleConf as XC
 
--- $usage
--- For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh"
---
--- For an example usage of 'runProcessWithInput' see
--- "XMonad.Prompt.DirectoryPrompt", "XMonad.Util.Dmenu",
--- "XMonad.Prompt.ShellPrompt", "XMonad.Actions.WmiiActions",
--- "XMonad.Prompt.WorkspaceDir"
---
--- For an example usage of 'runProcessWithInputAndWait' see
--- "XMonad.Util.Dzen"
+import Codec.Binary.UTF8.String (encodeString)
+import Control.Concurrent (threadDelay)
+import System.Directory (getDirectoryContents)
+import System.IO
+import System.Posix.IO
+import System.Posix.Process (createSession, executeFile, forkProcess)
+import System.Process (runInteractiveProcess)
+
+{- $usage
+
+You can use this module by importing it in your @xmonad.hs@
+
+> import XMonad.Util.Run
+
+It then all depends on what you want to do:
+
+  - If you want to compositionally spawn programs, see [the relevant
+    extended documentation](#g:EDSL).
+
+  - For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh".
+
+  - For an example usage of 'runProcessWithInput' see
+    "XMonad.Prompt.DirectoryPrompt", "XMonad.Util.Dmenu",
+    "XMonad.Prompt.ShellPrompt", "XMonad.Actions.WmiiActions", or
+    "XMonad.Prompt.WorkspaceDir".
+
+  - For an example usage of 'runProcessWithInputAndWait' see
+    "XMonad.Util.Dzen".
+-}
 
 -- | Returns the output.
 runProcessWithInput :: MonadIO m => FilePath -> [String] -> String -> m String
@@ -180,3 +240,248 @@ spawnPipe' encoding x = io $ do
           executeFile "/bin/sh" False ["-c", encodeString x] Nothing
     closeFd rd
     return h
+
+{- $EDSL
+
+To use the provided EDSL, you must first add the 'spawnExternalProcess'
+combinator to your xmonad configuration, like so:
+
+> main = xmonad $ … $ spawnExternalProcess def $ … $ def
+
+See 'ProcessConfig' for a list of all default configuration options, in
+case you'd like to change them—especially if you want to make use of the
+Emacs integration.
+
+After that, the real fun begins!  The format for spawning these
+processes is always the same: a call to 'proc', its argument being a
+bunch of function calls, separated by the pipe operator '(>->)'.  You
+can just bind the resulting function to a key; no additional plumbing
+required.  For example, using "XMonad.Util.EZConfig" syntax and with
+@terminal = "alacritty"@ in you XMonad configuration, spawning a @ghci@
+session with a special class name, "calculator", would look like
+
+> ("M-y", proc $ inTerm >-> setXClass "calculator" >-> execute "ghci")
+
+which would translate, more or less, to @\/usr\/bin\/sh -c "alacritty
+--class calculator -e ghci"@.  The usefulness of this notation becomes
+apparent with more complicated examples:
+
+> proc $ inEmacs
+>    >-> withEmacsLibs [OwnFile "mailboxes"]
+>    >-> execute (elispFun "notmuch")
+>    >-> setFrameName "mail"
+
+This is equivalent to spawning
+
+> emacs -l /home/slot/.config/emacs/lisp/mailboxes.el
+>       -e '(notmuch)'
+>       -F '(quote (name . "mail"))'
+
+Notice how we did not have to specify the whole path to @mailboxes.el@,
+since we had set the correct 'emacsLispDir' upon starting xmonad.  This
+becomes especially relevant when running Emacs in batch mode, where one
+has to include [M,Non-GNU]ELPA packages in the call, whose exact names
+may change at any time.  Then the following
+
+> do url <- getSelection  -- from XMonad.Util.XSelection
+>    proc $ inEmacs
+>       >-> withEmacsLibs [ElpaLib "dash", ElpaLib "s", OwnFile "arXiv-citation"]
+>       >-> asBatch
+>       >-> execute (elispFun $ "arXiv-citation" <> asString url)
+
+becomes
+
+> emacs -L /home/slot/.config/emacs/elpa/dash-20220417.2250
+>       -L /home/slot/.config/emacs/elpa/s-20210616.619
+>       -l /home/slot/.config/emacs/lisp/arXiv-citation.el
+>       --batch
+>       -e '(arXiv-citation "<url-in-the-primary-selection>")'
+
+which would be quite bothersome to type indeed!
+
+-}
+
+-----------------------------------------------------------------------
+-- Types and whatnot
+
+-- | Additional information that might be useful when spawning external
+-- programs.
+data ProcessConfig = ProcessConfig
+  { editor :: !String
+    -- ^ Default editor.  Defaults to @"emacsclient -c -a ''"@.
+  , emacsLispDir :: !FilePath
+    -- ^ Directory for your custom Emacs lisp files.  Probably
+    -- @user-emacs-directory@ or @user-emacs-directory/lisp@.  Defaults
+    -- to @"~\/.config\/emacs\/lisp\/"@
+  , emacsElpaDir :: !FilePath
+    -- ^ Directory for all packages from [M,Non-GNU]ELPA; probably
+    -- @user-emacs-directory/elpa@.  Defaults to
+    -- @"~\/.config\/emacs\/elpa"@.
+  , emacs :: !String
+    -- ^ /Standalone/ Emacs executable; this should not be @emacsclient@
+    -- since, for example, the client does not support @--batch@ mode.
+    -- Defaults to @"emacs"@.
+  }
+
+-- | Given a 'ProcessConfig', remember it for spawning external
+-- processes later on.
+spawnExternalProcess :: ProcessConfig -> XConfig l -> XConfig l
+spawnExternalProcess = XC.modifyDef . const
+
+instance Default ProcessConfig where
+  def :: ProcessConfig
+  def = ProcessConfig
+    { editor       = "emacsclient -c -a ''"
+    , emacsLispDir = "~/.config/emacs/lisp/"
+    , emacsElpaDir = "~/.config/emacs/elpa/"
+    , emacs        = "emacs"
+    }
+
+-- | Convenient type alias.
+type Input = ShowS
+
+-----------------------------------------------------------------------
+-- Combinators
+
+-- | Combine inputs together.
+(>->) :: X Input -> X Input -> X Input
+(>->) = (<>)
+infixr 3 >->
+
+-- | Combine an input with an ordinary string.
+(>-$) :: X Input -> X String -> X Input
+(>-$) xi xs = xi >-> fmap mkDList xs
+infixr 3 >-$
+
+-- | Spawn a completed input.
+proc :: X Input -> X ()
+proc xi = spawn =<< getInput xi
+
+-- | Get the completed input string.
+getInput :: X Input -> X String
+getInput xi = xi <&> ($ "")
+
+-- | Use the 'editor'.
+inEditor :: X Input
+inEditor = XC.withDef $ \ProcessConfig{editor} -> pure $ mkDList editor
+
+-- | Use the 'XMonad.Core.XConfig.terminal'.
+inTerm :: X Input
+inTerm = asks $ mkDList . terminal . config
+
+-- | Execute the argument.  Current /thing/ must support a @-e@ option.
+-- For programs such as Emacs, 'eval' may be the safer option; while
+-- @emacsclient@ supports @-e@, the @emacs@ executable itself does not.
+execute :: String -> X Input
+execute this = pure ((" -e " <> this) <>)
+
+-- | Eval(uate) the argument.  Current /thing/ must support a @--eval@
+-- option.
+eval :: String -> X Input
+eval this = pure ((" --eval " <> this) <>)
+
+-- | Use 'emacs'.
+inEmacs :: X Input
+inEmacs = XC.withDef $ \ProcessConfig{emacs} -> pure $ mkDList emacs
+
+-- | Use the given program.
+inProgram :: String -> X Input
+inProgram = pure . mkDList
+
+-- | Spawn /thing/ in the current working directory.  /thing/ must
+-- support a @--working-directory@ option.
+inWorkingDir :: X Input
+inWorkingDir = pure (" --working-directory " <>)
+
+-- | Set a frame name for the @emacsclient@.
+--
+-- Note that this uses the @-F@ option to set the
+-- <https://www.gnu.org/software/emacs/manual/html_node/emacs/Frame-Parameters.html frame parameters>
+-- alist, which the @emacs@ executable does not support.
+setFrameName :: String -> X Input
+setFrameName n = pure ((" -F '(quote (name . \"" <> n <> "\"))' ") <>)
+
+-- | Set the appropriate X class for a window.  This will more often
+-- than not actually be the
+-- <https://tronche.com/gui/x/icccm/sec-4.html#WM_CLASS instance name>.
+setXClass :: String -> X Input
+setXClass = pure . mkDList . (" --class " <>)
+
+-- | Spawn the 'XMonad.Core.XConfig.terminal' in some directory; it must
+-- support the @--working-directory@ option.
+termInDir :: X Input
+termInDir = inTerm >-> inWorkingDir
+
+-- | Transform the given input into an elisp function; i.e., surround it
+-- with parentheses.
+--
+-- >>> elispFun "arxiv-citation URL"
+-- " '( arxiv-citation URL )' "
+elispFun :: String -> String
+elispFun f = " '( " <> f <> " )' "
+
+-- | Treat an argument as a string; i.e., wrap it with quotes.
+--
+-- >>> asString "string"
+-- " \"string\" "
+asString :: String -> String
+asString s = " \"" <> s <> "\" "
+
+-- | Wrap the given commands in a @progn@ and also escape it by wrapping
+-- it inside single quotes.  The given commands need not be wrapped in
+-- parentheses, this will be done by the function.  For example:
+--
+-- >>> progn [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
+-- " '( progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2) )' "
+progn :: [String] -> String
+progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
+
+-- | Require a package.
+--
+-- >>> require "arxiv-citation"
+-- "(require (quote arxiv-citation))"
+require :: String -> String
+require = inParens . ("require " <>) .  inParens . ("quote " <>)
+
+-----------------------------------------------------------------------
+-- Batch mode
+
+-- | Tell Emacs to enable batch-mode.
+asBatch :: X Input
+asBatch = pure (" --batch " <>)
+
+-- | An Emacs library.
+data EmacsLib
+  = OwnFile !String
+    -- ^ A /file/ from 'emacsLispDir'.
+  | ElpaLib !String
+    -- ^ A /directory/ in 'emacsElpaDir'.
+  | Special !String
+    -- ^ Special /files/; these will not be looked up somewhere, but
+    -- forwarded verbatim (as a path).
+
+-- | Load some Emacs libraries.  This is useful when executing scripts
+-- in batch mode.
+withEmacsLibs :: [EmacsLib] -> X Input
+withEmacsLibs libs = XC.withDef $ \ProcessConfig{emacsLispDir, emacsElpaDir} -> do
+  lispDir <- mkAbsolutePath emacsLispDir
+  elpaDir <- mkAbsolutePath emacsElpaDir
+  lisp    <- liftIO $ getDirectoryContents lispDir
+  elpa    <- liftIO $ getDirectoryContents elpaDir
+
+  let getLib :: EmacsLib -> Maybe String = \case
+        OwnFile f -> (("-l " <> lispDir) <>) <$> find (f          `isInfixOf`) lisp
+        ElpaLib d -> (("-L " <> elpaDir) <>) <$> find ((d <> "-") `isInfixOf`) elpa
+        Special f -> Just $ " -l " <> f
+  pure . mkDList . unwords . mapMaybe getLib $ libs
+
+-----------------------------------------------------------------------
+-- Util
+
+mkDList :: String -> ShowS
+mkDList = (<>) . (<> " ")
+
+inParens :: String -> String
+inParens s = case s of
+  '(' : _ -> s
+  _       -> "(" <> s <> ")"
