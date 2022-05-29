@@ -511,6 +511,7 @@ setSupported = withDisplay $ \dpy -> do
                          ,"_NET_ACTIVE_WINDOW"
                          ,"_NET_WM_DESKTOP"
                          ,"_NET_WM_STRUT"
+                         ,"_NET_DESKTOP_VIEWPORT"
                          ]
     io $ changeProperty32 dpy r a aTOM propModeReplace (fmap fromIntegral supp)
 
