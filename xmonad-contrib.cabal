@@ -353,6 +353,7 @@ library
                         XMonad.Util.ExtensibleConf
                         XMonad.Util.ExtensibleState
                         XMonad.Util.Font
+                        XMonad.Util.Grab
                         XMonad.Util.Hacks
                         XMonad.Util.Image
                         XMonad.Util.Invisible

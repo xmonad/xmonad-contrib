@@ -74,6 +74,10 @@
     A module for adding a keybinding to repeat the last action, similar
     to Vim's `.` or Emacs's `dot-mode`.
 
+ * `XMonad.Util.Grab`
+
+    Utilities for making grabbing and ungrabbing keys more convenient.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt.OrgMode`
