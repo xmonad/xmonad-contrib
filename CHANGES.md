@@ -78,6 +78,10 @@
 
     Utilities for making grabbing and ungrabbing keys more convenient.
 
+  * `XMonad.Hooks.Modal`
+
+    This module implements modal keybindings for xmonad.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt.OrgMode`

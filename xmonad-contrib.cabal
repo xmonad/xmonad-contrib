@@ -191,6 +191,7 @@ library
                         XMonad.Hooks.ManageDocks
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Minimize
+                        XMonad.Hooks.Modal
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RefocusLast
