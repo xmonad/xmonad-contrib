@@ -29,7 +29,7 @@ module XMonad.Hooks.Modal
   , Mode
   , setMode
   , exitMode
- -- ** Provided Modes
+ -- * Provided Modes #ProvidedModes#
  -- $ProvidedModes
   , noModModeLabel
   , noModMode
@@ -39,7 +39,7 @@ module XMonad.Hooks.Modal
   , overlayedFloatMode
   , floatMap
   , overlay
- -- ** Logger
+ -- * Logger
   , logMode
   ) where
 
@@ -99,8 +99,8 @@ import           XMonad.Util.Loggers
 -- of @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@). The label
 -- of the active mode can be logged with 'logMode' to be displayed in a
 -- status bar, for example (For more information check
--- 'XMonad.Util.Loggers'). Check $ProvidedModes for a small collection of
--- provided modes.
+-- 'XMonad.Util.Loggers'). Some examples can be found are included
+-- in [the provided modes](#g:ProvidedModes).
 
 -- }}}
 
