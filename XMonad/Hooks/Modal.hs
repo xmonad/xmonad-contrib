@@ -99,8 +99,8 @@ import           XMonad.Util.Loggers
 -- of @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@). The label
 -- of the active mode can be logged with 'logMode' to be displayed in a
 -- status bar, for example (For more information check
--- 'XMonad.Util.Loggers'). Some examples can be found are included
--- in [the provided modes](#g:ProvidedModes).
+-- 'XMonad.Util.Loggers'). Some examples are included in
+-- [the provided modes](#g:ProvidedModes).
 
 -- }}}
 
