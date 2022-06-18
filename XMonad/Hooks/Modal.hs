@@ -70,11 +70,12 @@ import           XMonad.Util.Loggers
 
 -- $Usage
 --
--- This module provides modal keybindings in xmonad. You can think of modes as
--- submaps from 'XMonad.Actions.Submap', but after each action you execute, you
--- land back into the submap until you explicitly exit the submap.
--- To use this module you should apply the 'modal' function to the config, which
--- will setup the list of modes (or rather, @XConfig Layout -> Mode@) your provide:
+-- This module provides modal keybindings in xmonad. If you're not familiar with
+-- modal keybindings from Vim, you can think of modes as submaps from
+-- 'XMonad.Actions.Submap', but after each action you execute, you land back in
+-- the submap until you explicitly exit the submap. To use this module you
+-- should apply the 'modal' function to the config, which will setup the list of
+-- modes (or rather, @XConfig Layout -> Mode@) you provide:
 --
 -- >
 -- > import XMonad
@@ -85,16 +86,16 @@ import           XMonad.Util.Loggers
 -- >   xmonad
 -- >     . modal [noModMode, floatMode 10, overlayedFloatMode 10, sayHelloMode]
 -- >     $ def
--- >     `addiotnalKeysP` [ ("M-S-n", setMode noModModeLabel)
--- >                      , ("M-S-r", setMode floatModeLabel)
--- >                      , ("M-S-z", setMode overlayedFloatModeLabel)
--- >                      ]
+-- >     `additionalKeysP` [ ("M-S-n", setMode noModModeLabel)
+-- >                       , ("M-S-r", setMode floatModeLabel)
+-- >                       , ("M-S-z", setMode overlayedFloatModeLabel)
+-- >                       ]
 -- >
 -- > sayHelloMode :: Mode
 -- > sayHelloMode = mode "Hello"
 -- >   $ const (M.fromList [((noModMask, xK_h), xmessage "Hello World! ")])
 --
--- A 'Mode' has a label describing its purpose and keybinings (in form
+-- A 'Mode' has a label describing its purpose and keybindings (in form
 -- of @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@). The label
 -- of the active mode can be logged with 'logMode' to be displayed in a
 -- status bar, for example (For more information check
@@ -179,12 +180,12 @@ mode'
   -> Mode
 mode' exitKey mlabel keysF = Mode mlabel (M.insert exitKey exitMode . keysF)
 
--- | Create a 'Mode' from the given label and keybindings. Sets The
+-- | Create a 'Mode' from the given label and keybindings. Sets the
 -- @escape@ key to 'exitMode'.
 mode :: String -> (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())) -> Mode
 mode = mode' (noModMask, xK_Escape)
 
--- | Set the current @Mode@ based on its label.
+-- | Set the current 'Mode' based on its label.
 setMode :: String -> X ()
 setMode l = do
   XC.with $ \(MC ls) -> case find ((== l) . label) ls of
@@ -193,7 +194,7 @@ setMode l = do
       XS.modify $ \cm -> cm { currentMode = Just m }
       refreshMode
 
--- | Exists the current mode.
+-- | Exits the current mode.
 exitMode :: X ()
 exitMode = do
   XS.modify $ \m -> m { currentMode = Nothing }
@@ -209,7 +210,7 @@ noModModeLabel = "NoMod"
 floatModeLabel = "Float"
 overlayedFloatModeLabel = "Overlayed Float"
 
--- | In this @Mode@, all keysbindings are available without the need for pressing
+-- | In this 'Mode', all keybindings are available without the need for pressing
 -- the modifier. Pressing @escape@ exits the mode.
 noModMode :: Mode
 noModMode =
