@@ -74,6 +74,7 @@ module XMonad.Util.Run (
   asBatch,
   require,
   progn,
+  quote,
 
   -- * Re-exports
   hPutStr,
@@ -441,7 +442,14 @@ progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
 -- >>> require "arxiv-citation"
 -- "(require (quote arxiv-citation))"
 require :: String -> String
-require = inParens . ("require " <>) .  inParens . ("quote " <>)
+require = inParens . ("require " <>) . quote
+
+-- | Quote a symbol.
+--
+-- >>> quote "new-process"
+-- "(quote new-process)"
+quote :: String -> String
+quote = inParens . ("quote " <>)
 
 -----------------------------------------------------------------------
 -- Batch mode
