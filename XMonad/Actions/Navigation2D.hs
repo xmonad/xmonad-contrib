@@ -433,7 +433,7 @@ additionalNav2DKeys (u, l, d, r) modifiers wrap =
 -- mapping from key prefix to action, and a bool to indicate if wrapping should
 -- occur, and returns a function from XConfig to XConfig. Example:
 --
--- >  additionalNav2DKeysP def ("w", "a", "s", "d") [("M-", windowGo), ("M-S-", windowSwap)] False myConfig
+-- >  additionalNav2DKeysP ("w", "a", "s", "d") [("M-", windowGo), ("M-S-", windowSwap)] False myConfig
 additionalNav2DKeysP :: (String, String, String, String) -> [(String, Direction2D -> Bool -> X ())] ->
                         Bool -> XConfig l -> XConfig l
 additionalNav2DKeysP (u, l, d, r) modifiers wrap =
