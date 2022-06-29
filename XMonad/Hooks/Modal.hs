@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
@@ -28,6 +27,7 @@ module XMonad.Hooks.Modal
   , modeWithExit
   , mode
   , Mode
+  , mkKeysEz
   , setMode
   , exitMode
  -- * Provided Modes #ProvidedModes#
@@ -50,7 +50,6 @@ import           XMonad
 import           Data.Bits                     ( (.&.)
                                                , complement
                                                )
-import           Data.Coerce                   ( coerce )
 import           Data.List
 import qualified Data.Map.Strict               as M
 -- contrib
@@ -58,10 +57,14 @@ import           XMonad.Actions.FloatKeys      ( keysMoveWindow
                                                , keysResizeWindow
                                                )
 import           XMonad.Prelude
+import           XMonad.Util.EZConfig          ( parseKeyCombo
+                                               , mkKeymap
+                                               )
 import qualified XMonad.Util.ExtensibleConf    as XC
 import qualified XMonad.Util.ExtensibleState   as XS
 import           XMonad.Util.Grab
 import           XMonad.Util.Loggers
+import           XMonad.Util.Parser            ( runParser )
 
 -- }}}
 
@@ -107,10 +110,21 @@ import           XMonad.Util.Loggers
 
 -- --< Types >-- {{{
 
+-- | Internally, we represent keys as the usual function type:
+-- @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@.
+type Keys = XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())
+
+-- | From a list of 'XMonad.Util.EZConfig'-style bindings, generate a
+-- key representation.
+--
+-- >>> mkKeysEz [("h", xmessage "Hello, world!")]
+mkKeysEz :: [(String, X ())] -> Keys
+mkKeysEz = flip mkKeymap
+
 -- | The mode type. Use 'mode' or 'modeWithExit' to create modes.
 data Mode = Mode
   { label     :: !String
-  , boundKeys :: !(XConfig Layout -> M.Map (ButtonMask, KeySym) (X ()))
+  , boundKeys :: !Keys
   }
 
 -- | Newtype for the extensible config.
@@ -118,7 +132,7 @@ newtype ModeConfig = MC [Mode] deriving Semigroup
 
 -- | Newtype for the extensible state.
 newtype CurrentMode = CurrentMode
-  {  currentMode :: Maybe Mode
+  { currentMode :: Maybe Mode
   }
 
 instance ExtensionClass CurrentMode where
@@ -174,17 +188,15 @@ modal modes = XC.once
 
 -- | Create a 'Mode' from the given binding to 'exitMode', label and
 -- keybindings.
-modeWithExit
-  :: (ButtonMask, KeySym)
-  -> String
-  -> (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ()))
-  -> Mode
-modeWithExit exitKey mlabel keysF = Mode mlabel (M.insert exitKey exitMode . keysF)
+modeWithExit :: String -> String -> Keys -> Mode
+modeWithExit exitKey mlabel keys = Mode mlabel $ \cnf ->
+  let exit = fromMaybe (0, xK_Escape) $ runParser (parseKeyCombo cnf) exitKey
+   in M.insert exit exitMode (keys cnf)
 
 -- | Create a 'Mode' from the given label and keybindings. Sets the
 -- @escape@ key to 'exitMode'.
-mode :: String -> (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())) -> Mode
-mode = modeWithExit (noModMask, xK_Escape)
+mode :: String -> Keys -> Mode
+mode = modeWithExit "<Escape>"
 
 -- | Set the current 'Mode' based on its label.
 setMode :: String -> X ()
@@ -262,10 +274,10 @@ overlayedFloatMode = overlay overlayedFloatModeLabel . floatMode
 -- | Modifies a mode so that the keybindings are merged with those from
 -- the config instead of replacing them.
 overlay
-  :: String -- ^ Label for the new mode
+  :: String  -- ^ Label for the new mode
   -> Mode -- ^ Base mode
   -> Mode
-overlay label m = Mode label $ \cnf -> boundKeys m cnf `M.union` keys cnf cnf
+overlay label m = Mode label $ \cnf -> boundKeys m cnf <> keys cnf cnf
 
 -- | Strips the modifier key from the provided keybindings.
 stripModifier
