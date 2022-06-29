@@ -84,6 +84,8 @@ import           XMonad.Util.Parser            ( runParser )
 -- >
 -- > import XMonad
 -- > import XMonad.Hooks.Modal
+-- > import XMonad.Util.EZConfig
+-- > import qualified Data.Map as M
 -- >
 -- > main :: IO ()
 -- > main =
@@ -93,18 +95,41 @@ import           XMonad.Util.Parser            ( runParser )
 -- >     `additionalKeysP` [ ("M-S-n", setMode noModModeLabel)
 -- >                       , ("M-S-r", setMode floatModeLabel)
 -- >                       , ("M-S-z", setMode overlayedFloatModeLabel)
+-- >                       , ("M-S-h", setMode "Hello")
 -- >                       ]
 -- >
 -- > sayHelloMode :: Mode
--- > sayHelloMode = mode "Hello"
--- >   $ const (M.fromList [((noModMask, xK_h), xmessage "Hello World! ")])
+-- > sayHelloMode = mode "Hello" $ mkKeysEz
+-- >   [ ("h", xmessage "Hello, World!")
+-- >   , ("M-g", xmessage "Goodbye, World!")
+-- >   ]
 --
--- A 'Mode' has a label describing its purpose and keybindings (in form
--- of @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@). The label
--- of the active mode can be logged with 'logMode' to be displayed in a
--- status bar, for example (For more information check
--- "XMonad.Util.Loggers"). Some examples are included in
--- [the provided modes](#g:ProvidedModes).
+-- Alternatively, one could have defined @sayHelloMode@ as
+--
+-- > sayHelloMode :: Mode
+-- > sayHelloMode = mode "Hello" $ \cfg ->
+-- >   M.fromList [ ((noModMask, xK_h), xmessage "Hello, World!")
+-- >              , ((modMask cfg, xK_g), xmessage "Goodbye, World!")
+-- >              ]
+--
+-- In short, a 'Mode' has a label describing its purpose, as well as
+-- attached keybindings. These are of the form
+--
+--   - @[(String, X ())]@, or
+--
+--   - @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@).
+--
+-- The former—accessible via 'mkKeysEz'—is how specifying keys work with
+-- "XMonad.Util.EZConfig", while the latter is more geared towards how
+-- defining keys works by default in xmonad. Note that, by default,
+-- modes are exited with the Escape key. If one wishes to customise
+-- this, the 'modeWithExit' function should be used instead of 'mode'
+-- when defining a new mode.
+--
+-- The label of the active mode can be logged with 'logMode' to be
+-- displayed in a status bar, for example (For more information check
+-- "XMonad.Util.Loggers"). Some examples are included in [the provided
+-- modes](#g:ProvidedModes).
 
 -- }}}
 
