@@ -131,9 +131,16 @@ instance ExtensionClass NSPState where
   initialValue :: NSPState
   initialValue = NSPState mempty
 
--- | Construct an 'NSPState' from an ordinary list of scratchpads.
-buildNSPState :: NamedScratchpads -> NSPState
-buildNSPState nsps = NSPState . Map.fromList $ zip (map name nsps) nsps
+-- | Try to fill the 'NSPState' with the given list of scratchpads.  In
+-- case the state is already non-empty, don't do anything and return
+-- that state.  Otherwise, fill the state with the given scratchpads.
+fillNSPState :: NamedScratchpads -> X NSPState
+fillNSPState nsps = do
+    nsp@(NSPState xs) <- XS.get
+    let nspState = NSPState . Map.fromList $ zip (map name nsps) nsps
+    if null xs
+        then nspState <$ XS.put nspState
+        else pure nsp
 
 -- | Manage hook that makes the window non-floating
 nonFloating :: ManageHook
@@ -160,7 +167,11 @@ runApplicationHere = spawnHere . cmd
 
 -- | Action to pop up specified named scratchpad
 --
--- NOTE: Ignores its first argument and uses 'NSPState' instead.
+-- Note [Ignored Arguments]: Most of the time, this function ignores its
+-- first argument and uses 'NSPState' instead.  The only time when it
+-- does not is when no other window has been opened before in the
+-- running xmonad instance.  If this is not your use-case, you can
+-- safely call this function with an empty list.
 namedScratchpadAction :: NamedScratchpads -- ^ Named scratchpads configuration
                       -> String           -- ^ Scratchpad name
                       -> X ()
@@ -168,7 +179,8 @@ namedScratchpadAction = customRunNamedScratchpadAction runApplication
 
 -- | Action to pop up specified named scratchpad, initially starting it on the current workspace.
 --
--- NOTE: Ignores its first argument and uses 'NSPState' instead.
+-- This function /almost always/ ignores its first argument; see Note
+-- [Ignored Arguments] for 'namedScratchpadAction'.
 spawnHereNamedScratchpadAction :: NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
                                -> X ()
@@ -176,7 +188,8 @@ spawnHereNamedScratchpadAction = customRunNamedScratchpadAction runApplicationHe
 
 -- | Action to pop up specified named scratchpad, given a custom way to initially start the application.
 --
--- NOTE: Ignores its second argument and uses 'NSPState' instead.
+-- This function /almost always/ ignores its second argument; see Note
+-- [Ignored Arguments] for 'namedScratchpadAction'.
 customRunNamedScratchpadAction :: (NamedScratchpad -> X ())  -- ^ Function initially running the application, given the configured @scratchpad@ cmd
                                -> NamedScratchpads           -- ^ Named scratchpads configuration
                                -> String                     -- ^ Scratchpad name
@@ -186,7 +199,8 @@ customRunNamedScratchpadAction = someNamedScratchpadAction (\f ws -> f $ NE.head
 -- | Like 'namedScratchpadAction', but execute the action for all
 -- scratchpads that match the query.
 --
--- NOTE: Ignores its first argument and uses 'NSPState' instead.
+-- This function /almost always/ ignores its first argument; see Note
+-- [Ignored Arguments] for 'namedScratchpadAction'.
 allNamedScratchpadAction :: NamedScratchpads
                          -> String
                          -> X ()
@@ -219,14 +233,15 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
 
 -- | Execute some action on a named scratchpad.
 --
--- NOTE: Ignores its first argument and uses 'NSPState' instead.
+-- This function /almost always/ ignores its third argument; see Note
+-- [Ignored Arguments] for 'namedScratchpadAction'.
 someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> (NamedScratchpad -> X ())
                           -> NamedScratchpads
                           -> String
                           -> X ()
 someNamedScratchpadAction f runApp _ns scratchpadName = do
-    NSPState scratchpadConfig <- XS.get
+    NSPState scratchpadConfig <- fillNSPState _ns  -- See Note [Filling NSPState]
     case scratchpadConfig !? scratchpadName of
         Just conf -> withWindowSet $ \winSet -> do
             let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
@@ -244,6 +259,23 @@ someNamedScratchpadAction f runApp _ns scratchpadName = do
                 Just wins -> shiftToNSP (W.workspaces winSet) (`f` wins)
         Nothing -> return ()
 
+{- Note [Filling NSPState]
+
+We have to potentially populate the state with the given scratchpads
+here, in case the manageHook didn't run yet and it's still empty.
+
+For backwards compatibility, 3fc830aa09368dca04df24bf7ec4ac817f2de479
+introduced an internal state that's filled in the
+namedScratchpadManageHook.  A priori, this means that we would need some
+kind of MapRequestEvent to happen before processing scratchpads, since
+the manageHook doesn't run otherwise, leaving the extensible state empty
+until then.  When trying to open a scratchpad right after starting
+xmonad—i.e., before having opened a window—we thus have to populate the
+NSPState before looking for scratchpads.
+
+Related: https://github.com/xmonad/xmonad-contrib/issues/728
+-}
+
 -- | Tag of the scratchpad workspace
 scratchpadWorkspaceTag :: String
 scratchpadWorkspaceTag = "NSP"
@@ -252,10 +284,7 @@ scratchpadWorkspaceTag = "NSP"
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
 namedScratchpadManageHook nsps = do
-    ns <- liftX $ XS.get >>= \(NSPState xs) ->
-        if   null xs
-        then nsps <$ XS.put (buildNSPState nsps)
-        else pure $ Map.elems xs
+    ns <- Map.elems . coerce <$> liftX (fillNSPState nsps)
     composeAll $ fmap (\c -> query c --> hook c) ns
 
 -- | Shift some windows to the scratchpad workspace according to the
