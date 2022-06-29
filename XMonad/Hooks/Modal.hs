@@ -1,6 +1,7 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -24,7 +25,7 @@ module XMonad.Hooks.Modal
  -- * Usage
  -- $Usage
     modal
-  , mode'
+  , modeWithExit
   , mode
   , Mode
   , setMode
@@ -45,19 +46,19 @@ module XMonad.Hooks.Modal
 
 -- core
 import           XMonad
-
 -- base
-import           Data.Bits                      ( (.&.)
-                                                , complement
-                                                )
+import           Data.Bits                     ( (.&.)
+                                               , complement
+                                               )
+import           Data.Coerce                   ( coerce )
 import           Data.List
 import qualified Data.Map.Strict               as M
-import           XMonad.Actions.FloatKeys       ( keysMoveWindow
-                                                , keysResizeWindow
-                                                )
+-- contrib
+import           XMonad.Actions.FloatKeys      ( keysMoveWindow
+                                               , keysResizeWindow
+                                               )
 import           XMonad.Prelude
 import qualified XMonad.Util.ExtensibleConf    as XC
--- contrib
 import qualified XMonad.Util.ExtensibleState   as XS
 import           XMonad.Util.Grab
 import           XMonad.Util.Loggers
@@ -72,7 +73,7 @@ import           XMonad.Util.Loggers
 --
 -- This module provides modal keybindings in xmonad. If you're not familiar with
 -- modal keybindings from Vim, you can think of modes as submaps from
--- 'XMonad.Actions.Submap', but after each action you execute, you land back in
+-- "XMonad.Actions.Submap", but after each action you execute, you land back in
 -- the submap until you explicitly exit the submap. To use this module you
 -- should apply the 'modal' function to the config, which will setup the list of
 -- modes (or rather, @XConfig Layout -> Mode@) you provide:
@@ -99,17 +100,17 @@ import           XMonad.Util.Loggers
 -- of @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@). The label
 -- of the active mode can be logged with 'logMode' to be displayed in a
 -- status bar, for example (For more information check
--- 'XMonad.Util.Loggers'). Some examples are included in
+-- "XMonad.Util.Loggers"). Some examples are included in
 -- [the provided modes](#g:ProvidedModes).
 
 -- }}}
 
 -- --< Types >-- {{{
 
--- | The mode type. Use 'mode' or 'mode'' to create modes.
+-- | The mode type. Use 'mode' or 'modeWithExit' to create modes.
 data Mode = Mode
-  { label     :: String
-  , boundKeys :: XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())
+  { label     :: !String
+  , boundKeys :: !(XConfig Layout -> M.Map (ButtonMask, KeySym) (X ()))
   }
 
 -- | Newtype for the extensible config.
@@ -173,17 +174,17 @@ modal modes = XC.once
 
 -- | Create a 'Mode' from the given binding to 'exitMode', label and
 -- keybindings.
-mode'
+modeWithExit
   :: (ButtonMask, KeySym)
   -> String
   -> (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ()))
   -> Mode
-mode' exitKey mlabel keysF = Mode mlabel (M.insert exitKey exitMode . keysF)
+modeWithExit exitKey mlabel keysF = Mode mlabel (M.insert exitKey exitMode . keysF)
 
 -- | Create a 'Mode' from the given label and keybindings. Sets the
 -- @escape@ key to 'exitMode'.
 mode :: String -> (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())) -> Mode
-mode = mode' (noModMask, xK_Escape)
+mode = modeWithExit (noModMask, xK_Escape)
 
 -- | Set the current 'Mode' based on its label.
 setMode :: String -> X ()
