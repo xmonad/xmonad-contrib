@@ -29,6 +29,11 @@
     - Deprecated the module; use the new dynamic scratchpad
       functionality of `XMonad.Util.NamedScratchpad` instead.
 
+  * `XMonad.Hooks.UrgencyHook`
+
+    - Deprecated `urgencyConfig`; use `def` from the new `Default`
+      instance of `UrgencyConfig` instead.
+
 [on the website]: https://xmonad.org/configurations.html
 
 ### New Modules
@@ -198,6 +203,10 @@
 
     - Added an EDSL—particularly geared towards programs like terminals
       or Emacs—to spawn processes from XMonad in a compositional way.
+
+  * `XMonad.Hooks.UrgencyHook`
+
+    - Added a `Default` instance for `UrgencyConfig` and `DzenUrgencyHook`.
 
 ### Other changes
 
