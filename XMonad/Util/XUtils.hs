@@ -46,16 +46,24 @@ import XMonad
 import XMonad.Util.Font
 import XMonad.Util.Image
 import qualified XMonad.StackSet as W
+import Data.Bits ((.&.))
 
 -- $usage
 -- See "XMonad.Layout.Tabbed" or "XMonad.Layout.DragPane" or
 -- "XMonad.Layout.Decoration" for usage examples
 
--- | Compute the weighted average the colors of two given Pixel values.
+-- | Compute the weighted average the colors of two given 'Pixel' values.
+--
+-- This function masks out any alpha channel in the passed pixels, and the
+-- result has no alpha channel. X11 mishandles @Pixel@ values with alpha
+-- channels and throws errors while producing black pixels.
 averagePixels :: Pixel -> Pixel -> Double -> X Pixel
-averagePixels p1 p2 f =
+averagePixels p1' p2' f =
     do d <- asks display
        let cm = defaultColormap d (defaultScreen d)
+           mask p = p .&. 0x00FFFFFF
+           p1 = mask p1'
+           p2 = mask p2'
        [Color _ r1 g1 b1 _,Color _ r2 g2 b2 _] <- io $ queryColors d cm [Color p1 0 0 0 0,Color p2 0 0 0 0]
        let mn x1 x2 = round (fromIntegral x1 * f + fromIntegral x2 * (1-f))
        Color p _ _ _ _ <- io $ allocColor d cm (Color 0 (mn r1 r2) (mn g1 g2) (mn b1 b2) 0)
