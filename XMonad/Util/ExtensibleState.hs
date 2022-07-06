@@ -21,6 +21,8 @@ module XMonad.Util.ExtensibleState (
                               put
                               , modify
                               , modify'
+                              , modifyM
+                              , modifyM'
                               , remove
                               , get
                               , gets
@@ -89,12 +91,20 @@ modifyStateExts f = State.modify $ \st -> st { extensibleState = f (extensibleSt
 -- | Apply a function to a stored value of the matching type or the initial value if there
 -- is none.
 modify :: (ExtensionClass a, XLike m) => (a -> a) -> m ()
-modify f = put . f =<< get
+modify = modifyM . (pure .)
 
--- | Like @modify@ but the result value is applied strictly in respect to
--- the monadic environment.
+-- | Apply an action to a stored value of the matching type or the initial value if there
+-- is none.
+modifyM :: (ExtensionClass a, XLike m) => (a -> m a) -> m ()
+modifyM f = put =<< f =<< get
+
+-- | Like 'modify' but the result value is forced to WHNF before being stored.
 modify' :: (ExtensionClass a, XLike m) => (a -> a) -> m ()
-modify' f = (put $!) . f =<< get
+modify' = modifyM' . (pure .)
+
+-- | Like 'modifyM' but the result value is forced to WHNF before being stored.
+modifyM' :: (ExtensionClass a, XLike m) => (a -> m a) -> m ()
+modifyM' f = (put $!) =<< f =<< get
 
 -- | Add a value to the extensible state field. A previously stored value with the same
 -- type will be overwritten. (More precisely: A value whose string representation of its type

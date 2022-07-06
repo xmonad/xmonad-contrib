@@ -368,6 +368,7 @@ library
                         XMonad.Util.Parser
                         XMonad.Util.Paste
                         XMonad.Util.PositionStore
+                        XMonad.Util.Process
                         XMonad.Util.PureX
                         XMonad.Util.Rectangle
                         XMonad.Util.RemoteWindows
@@ -439,6 +440,7 @@ test-suite tests
                   XMonad.Util.NamedActions
                   XMonad.Util.NamedWindows
                   XMonad.Util.Parser
+                  XMonad.Util.Process
                   XMonad.Util.PureX
                   XMonad.Util.Rectangle
                   XMonad.Util.Run
@@ -454,6 +456,7 @@ test-suite tests
   build-depends: base
                , QuickCheck >= 2
                , X11 >= 1.10 && < 1.11
+               , bytestring >= 0.10 && < 0.12
                , containers
                , directory
                , time >= 1.8 && < 1.13

@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.SpawnOn
@@ -28,11 +30,7 @@ module XMonad.Actions.SpawnOn (
     shellPromptOn
 ) where
 
-import Control.Exception (tryJust)
-import System.IO.Error (isDoesNotExistError)
-import System.IO.Unsafe (unsafePerformIO)
 import System.Posix.Types (ProcessID)
-import Text.Printf (printf)
 
 import XMonad
 import XMonad.Prelude
@@ -42,6 +40,7 @@ import XMonad.Hooks.ManageHelpers
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import qualified XMonad.Util.ExtensibleState as XS
+import XMonad.Util.Process (getPPIDChain)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -72,28 +71,12 @@ instance ExtensionClass Spawner where
     initialValue = Spawner []
 
 
-getPPIDOf :: ProcessID -> Maybe ProcessID
-getPPIDOf thisPid =
-    case unsafePerformIO . tryJust (guard . isDoesNotExistError) . readFile . printf "/proc/%d/stat" $ toInteger thisPid of
-      Left _         -> Nothing
-      Right contents -> case lines contents of
-                          []        -> Nothing
-                          first : _ -> case words first of
-                                         _ : _ : _ : ppid : _ -> Just $ fromIntegral (read ppid :: Int)
-                                         _                    -> Nothing
-
-getPPIDChain :: ProcessID -> [ProcessID]
-getPPIDChain thisPid = ppid_chain thisPid []
-    where ppid_chain pid' acc =
-              if pid' == 0
-              then acc
-              else case getPPIDOf pid' of
-                     Nothing   -> acc
-                     Just ppid -> ppid_chain ppid (ppid : acc)
-
 -- | Get the current Spawner or create one if it doesn't exist.
 modifySpawner :: ([(ProcessID, ManageHook)] -> [(ProcessID, ManageHook)]) -> X ()
 modifySpawner f = XS.modify (Spawner . f . pidsRef)
+
+modifySpawnerM :: ([(ProcessID, ManageHook)] -> X [(ProcessID, ManageHook)]) -> X ()
+modifySpawnerM f = XS.modifyM (fmap Spawner . f . pidsRef)
 
 -- | Provides a manage hook to react on process spawned with
 -- 'spawnOn', 'spawnHere' etc.
@@ -103,22 +86,16 @@ manageSpawn = manageSpawnWithGC (return . take 20)
 manageSpawnWithGC :: ([(ProcessID, ManageHook)] -> X [(ProcessID, ManageHook)])
         -- ^ function to stop accumulation of entries for windows that never set @_NET_WM_PID@
        -> ManageHook
-manageSpawnWithGC garbageCollect = do
-    Spawner pids <- liftX XS.get
-    mp <- pid
-    let ppid_chain = case mp of
-                       Just winpid -> winpid : getPPIDChain winpid
-                       Nothing     -> []
-        known_window_handlers = [ mpid
-                                | ppid <- ppid_chain
-                                , Just mpid <- [lookup ppid pids] ]
-    case known_window_handlers of
-        [] -> idHook
-        (mh:_)  -> do
-            whenJust mp $ \p -> liftX $ do
-                ps <- XS.gets pidsRef
-                XS.put . Spawner =<< garbageCollect (filter ((/= p) . fst) ps)
-            mh
+manageSpawnWithGC garbageCollect = pid >>= \case
+    Nothing -> mempty
+    Just p -> do
+        Spawner pids <- liftX XS.get
+        ppid_chain <- io $ getPPIDChain p
+        case mapMaybe (`lookup` pids) ppid_chain of
+            [] -> mempty
+            mh : _ -> liftX (gc p) >> mh
+  where
+    gc p = modifySpawnerM $ garbageCollect . filter ((/= p) . fst)
 
 mkPrompt :: (String -> X ()) -> XPConfig -> X ()
 mkPrompt cb c = do

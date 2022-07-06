@@ -110,6 +110,14 @@
     - Fixed windows getting lost when used in conjunction with
       `smartBorders` and a single window.
 
+    - No longer needs `pstree` to detect child/parent relationships.
+
+    - Fixed some false positives in child/parent relationship detection.
+
+  * `XMonad.Actions.SpawnOn`
+
+    - Fixed parsing of `/proc/*/stat` to correctly handle complex process names.
+
   * `XMonad.Util.EZConfig`
 
     - Added support for Modifier Keys `KeySym`s for Emacs-like `additionalKeysP`.
