@@ -124,7 +124,7 @@ import Data.Word (Word8)
 -- > ...
 -- > gsconfig1 = def { gs_cellheight = 30, gs_cellwidth = 100 }
 --
--- An example where 'buildDefaultGSConfig' is used instead of 'defaultGSConfig'
+-- An example where 'buildDefaultGSConfig' is used instead of 'def'
 -- in order to specify a custom colorizer is @gsconfig2@ (found in
 -- "XMonad.Actions.GridSelect#Colorizers"):
 --
