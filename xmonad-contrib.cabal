@@ -30,6 +30,8 @@ extra-source-files: README.md
                     scripts/xinitrc
                     scripts/xmonad-acpi.c
                     scripts/xmonad-clock.c
+                    scripts/xmonadctl.hs
+                    scripts/xmonadpropread.hs
                     XMonad/Config/dmwit.xmobarrc
                     XMonad/Config/Example.hs
 cabal-version:      1.12
