@@ -23,12 +23,12 @@ module XMonad.Prompt.Unicode (
  mkUnicodePrompt
  ) where
 
+import Codec.Binary.UTF8.String (decodeString)
 import qualified Data.ByteString.Char8 as BS
 import Numeric
 import System.IO
 import System.IO.Error
 import Text.Printf
-import Control.Arrow (second)
 
 import XMonad
 import XMonad.Prelude
@@ -42,7 +42,7 @@ instance XPrompt Unicode where
   commandToComplete Unicode s = s
   nextCompletion Unicode = getNextCompletion
 
-newtype UnicodeData = UnicodeData { getUnicodeData :: [(Char, BS.ByteString)] }
+newtype UnicodeData = UnicodeData { getUnicodeData :: [(Char, String)] }
   deriving (Read, Show)
 
 instance ExtensionClass UnicodeData where
@@ -79,23 +79,24 @@ populateEntries unicodeDataFilename = do
           hPutStrLn stderr "Do you have unicode-data installed?"
           return False
         Right dat -> do
-          XS.put . UnicodeData . sortOn (BS.length . snd) $ parseUnicodeData dat
+          XS.put . UnicodeData . sortOn (length . snd) $ parseUnicodeData dat
           return True
     else return True
 
-parseUnicodeData :: BS.ByteString -> [(Char, BS.ByteString)]
+parseUnicodeData :: BS.ByteString -> [(Char, String)]
 parseUnicodeData = mapMaybe parseLine . BS.lines
   where parseLine l = do
           field1 : field2 : _ <- return $ BS.split ';' l
           [(c,"")] <- return . readHex $ BS.unpack field1
-          return (chr c, field2)
+          desc <- return . decodeString $ BS.unpack field2
+          return (chr c, desc)
 
 type Predicate = String -> String -> Bool
 
-searchUnicode :: [(Char, BS.ByteString)] -> Predicate -> String -> [(Char, String)]
-searchUnicode entries p s = map (second BS.unpack) $ filter go entries
-  where w = filter (all isAscii) . filter ((> 1) . length) . words $ map toUpper s
-        go (_, d) = all (`p` BS.unpack d) w
+searchUnicode :: [(Char, String)] -> Predicate -> String -> [(Char, String)]
+searchUnicode entries p s = filter go entries
+  where w = filter ((> 1) . length) . words $ map toUpper s
+        go (_, d) = all (`p` d) w
 
 mkUnicodePrompt :: String -> [String] -> String -> XPConfig -> X ()
 mkUnicodePrompt prog args unicodeDataFilename xpCfg =
@@ -107,7 +108,7 @@ mkUnicodePrompt prog args unicodeDataFilename xpCfg =
       (unicodeCompl entries $ searchPredicate xpCfg)
       paste
   where
-    unicodeCompl :: [(Char, BS.ByteString)] -> Predicate -> String -> IO [String]
+    unicodeCompl :: [(Char, String)] -> Predicate -> String -> IO [String]
     unicodeCompl _ _ "" = return []
     unicodeCompl entries p s = do
       let m = searchUnicode entries p s

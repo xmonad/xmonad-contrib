@@ -112,6 +112,11 @@
     - Added the ability to specify alphabetic (`#A`, `#B`, and `#C`)
       [priorities] at the end of the input note.
 
+  * `XMonad.Prompt.Unicode`
+
+    - Fixed the display of non-ASCII characters in the description of Unicode
+      characters
+
   * `XMonad.Prompt`
 
     - Added `transposeChars` to interchange the characters around the
