@@ -39,7 +39,6 @@ import XMonad.Prelude
 import Foreign
 import Control.Exception as E
 import Text.Printf (printf)
-import Data.Bits ((.&.))
 
 #ifdef XFT
 import qualified Data.List.NonEmpty as NE
