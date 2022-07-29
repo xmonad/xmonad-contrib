@@ -28,11 +28,13 @@ import           Numeric                         (showHex)
 import           System.Exit
 
 -- | Output a window by ID in hex, decimal, its ICCCM resource name and class,
---   and its title if available.  Also indicate override_redirect with an
---   exclamation mark, and wrap in brackets if it is unmapped or withdrawn.
+--   its title if available, and EWMH type and state if available.  Also
+--   indicate override_redirect with an exclamation mark, and wrap in brackets
+--   if it is unmapped or withdrawn.
 debugWindow   :: Window -> X String
 debugWindow 0 =  return "-no window-"
 debugWindow w =  do
+  d <- asks display
   let wx = pad 8 '0' $ showHex w ""
   w' <- safeGetWindowAttributes w
   case w' of
@@ -47,8 +49,7 @@ debugWindow w =  do
       , wa_map_state         = m
       , wa_override_redirect = o
       } -> do
-      c' <- withDisplay $ \d ->
-            io (getWindowProperty8 d wM_CLASS w)
+      c' <- io (getWindowProperty8 d wM_CLASS w)
       let c = case c' of
                 Nothing -> ""
                 Just c''  -> intercalate "/" $
@@ -69,10 +70,10 @@ debugWindow w =  do
       -- if it has WM_COMMAND use it, else use the appName
       -- NB. modern stuff often does not set WM_COMMAND since it's only ICCCM required and not some
       -- horrible gnome/freedesktop session manager thing like Wayland intended. How helpful of them.
-      p' <- withDisplay $ \d -> safeGetCommand d w
+      p' <- safeGetCommand d w
       let p = if null p' then "" else wrap $ unwords p'
       nWP <- getAtom "_NET_WM_PID"
-      pid' <- withDisplay $ \d -> io $ getWindowProperty32 d nWP w
+      pid' <- io $ getWindowProperty32 d nWP w
       let pid = case pid' of
                   Just [pid''] -> '(':show pid'' ++ ")"
                   _            -> ""
@@ -81,6 +82,11 @@ debugWindow w =  do
                       () | m == waIsViewable -> ("","")
                          | otherwise         -> ("[","]")
           o'      = if o then "!" else ""
+      wT <- getAtom "_NET_WM_WINDOW_TYPE"
+      wt' <- io $ getWindowProperty32 d wT w
+      ewmh <- case wt' of
+                Just wt'' -> windowType d w (fmap fi wt'')
+                _         -> return ""
       return $ concat [lb
                       ,o'
                       ,wx
@@ -94,6 +100,7 @@ debugWindow w =  do
                       ,',':show y
                       ,if null c then "" else ' ':c
                       ,if null cmd then "" else ' ':cmd
+                      ,ewmh
                       ,rb
                       ]
 
@@ -169,3 +176,49 @@ safeGetCommand d w =  do
 
 getMachine   :: Window -> X String
 getMachine w =  catchX' (getAtom "WM_CLIENT_MACHINE" >>= getDecodedStringProp w) (return "")
+
+-- if it's one EWMH atom then we strip prefix and lowercase, otherwise we
+-- return the whole thing. we also get the state here, with similar rules
+-- (all EWMH = all prefixes removed and lowercased)
+windowType        :: Display -> Window -> [Atom] -> X String
+windowType d w ts =  do
+  tstr <- decodeType ts
+  wS <- getAtom "_NET_WM_STATE"
+  ss' <- io $ getWindowProperty32 d wS w
+  sstr <- case ss' of
+            Just ss -> windowState (fmap fi ss)
+            _       -> return ""
+  return $ " (" ++ tstr ++ sstr ++ ")"
+  where
+    decodeType     :: [Atom] -> X String
+    decodeType []  =  return ""
+    decodeType [t] =  simplify "_NET_WM_WINDOW_TYPE_" t
+    decodeType tys =  unAtoms tys " (" False
+
+    unAtoms             :: [Atom] -> String -> Bool -> X String
+    unAtoms []     t i  =  return $ if i then t else t ++ ")"
+    unAtoms (a:as) t i  =  do
+                            s' <- io $ getAtomName d a
+                            let s = case s' of
+                                      Just s'' -> s''
+                                      _        -> '<':show a ++ ">"
+                            unAtoms as (t ++ (if i then ' ':s else s)) True
+    
+    simplify       :: String -> Atom -> X String
+    simplify pfx a =  do
+                        s' <- io $ getAtomName d a
+                        case s' of
+                          Nothing -> return $ '<':show a ++ ">"
+                          Just s  -> if pfx `isPrefixOf` s then
+                                       return $ map toLower (drop (length pfx) s)
+                                     else
+                                       return s
+
+    -- note that above it says this checks all of them before simplifying.
+    -- I'll do that after I'm confident this works as intended.    
+    windowState     :: [Atom] -> X String
+    windowState []  =  return ""
+    windowState as' =  go as' ";"
+      where
+        go []     t = return t
+        go (a:as) t = simplify "_NET_WM_STATE_" a >>= \t' -> go as (t ++ ' ':t') 
