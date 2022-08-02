@@ -29,7 +29,7 @@ module XMonad.Util.Grab
   ) where
 
 -- core
-import           XMonad
+import           XMonad                         hiding (mkGrabs)
 
 import           Control.Monad                  ( when )
 import           Data.Bits                      ( setBit )
