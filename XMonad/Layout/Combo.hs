@@ -36,7 +36,7 @@ import qualified XMonad.StackSet as W ( differentiate )
 --
 -- and add something like
 --
--- > combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf)
+-- > combineTwo (TwoPane 0.03 0.5) (tabbed shrinkText def) (tabbed shrinkText def)
 --
 -- to your layouts.
 --
