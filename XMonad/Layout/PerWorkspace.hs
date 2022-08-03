@@ -42,7 +42,7 @@ import XMonad.Prelude (fromMaybe)
 --
 -- Note that @l1@, @l2@, and @l3@ can be arbitrarily complicated
 -- layouts, e.g. @(Full ||| smartBorders $ tabbed shrinkText
--- defaultTConf ||| ...)@, and @m1@ can be any layout modifier, i.e. a
+-- def ||| ...)@, and @m1@ can be any layout modifier, i.e. a
 -- function of type @(l a -> ModifiedLayout lm l a)@. (In fact, @m1@ can be any
 -- function @(LayoutClass l a, LayoutClass l' a) => l a -> l' a@.)
 --

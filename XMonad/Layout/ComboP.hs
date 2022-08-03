@@ -39,7 +39,7 @@ import qualified XMonad.StackSet as W
 --
 -- and add something like
 --
--- > combineTwoP (TwoPane 0.03 0.5) (tabbed shrinkText defaultTConf) (tabbed shrinkText defaultTConf) (ClassName "Firefox")
+-- > combineTwoP (TwoPane 0.03 0.5) (tabbed shrinkText def) (tabbed shrinkText def) (ClassName "Firefox")
 --
 -- to your layouts. This way all windows with class = \"Firefox\" will always go
 -- to the left pane, all others - to the right.

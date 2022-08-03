@@ -47,7 +47,7 @@ import           System.Posix.Env                  (getEnv)
 --
 -- Note that @l1@, @l2@, and @l3@ can be arbitrarily complicated
 -- layouts, e.g. @(Full ||| smartBorders $ tabbed shrinkText
--- defaultTConf ||| ...)@, and @m1@ can be any layout modifier, i.e. a
+-- def ||| ...)@, and @m1@ can be any layout modifier, i.e. a
 -- function of type @(l a -> ModifiedLayout lm l a)@.
 --
 -- In another scenario, suppose you wanted to have layouts A, B, and C
