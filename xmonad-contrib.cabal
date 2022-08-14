@@ -296,6 +296,7 @@ library
                         XMonad.Layout.ResizeScreen
                         XMonad.Layout.Roledex
                         XMonad.Layout.ShowWName
+                        XMonad.Layout.SideBorderDecoration
                         XMonad.Layout.SimpleDecoration
                         XMonad.Layout.SimpleFloat
                         XMonad.Layout.Simplest
