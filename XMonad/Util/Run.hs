@@ -478,8 +478,8 @@ withEmacsLibs libs = XC.withDef $ \ProcessConfig{emacsLispDir, emacsElpaDir} -> 
   elpa    <- liftIO $ getDirectoryContents elpaDir
 
   let getLib :: EmacsLib -> Maybe String = \case
-        OwnFile f -> (("-l " <> lispDir) <>) <$> find (f          `isInfixOf`) lisp
-        ElpaLib d -> (("-L " <> elpaDir) <>) <$> find ((d <> "-") `isInfixOf`) elpa
+        OwnFile f -> (("-l " <> lispDir) <>) <$> find (f          `isPrefixOf`) lisp
+        ElpaLib d -> (("-L " <> elpaDir) <>) <$> find ((d <> "-") `isPrefixOf`) elpa
         Special f -> Just $ " -l " <> f
   pure . mkDList . unwords . mapMaybe getLib $ libs
 
