@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Loggers
@@ -32,12 +33,15 @@ module XMonad.Util.Loggers (
 
     -- * XMonad Loggers
     -- $xmonad
-    , logCurrent, logLayout, logTitle, logTitles
+    , logCurrent, logLayout
+    , logTitle, logTitles, logTitles'
     , logConst, logDefault, (.|)
     -- * XMonad: Screen-specific Loggers
     -- $xmonad-screen
     , logCurrentOnScreen, logLayoutOnScreen
-    , logTitleOnScreen, logWhenActive, logTitlesOnScreen
+    , logTitleOnScreen, logWhenActive
+    , logTitlesOnScreen, logTitlesOnScreen'
+    , TitlesFormat(..)
     -- * Formatting Utilities
     -- $format
     , onLogger
@@ -48,10 +52,11 @@ module XMonad.Util.Loggers (
 
   ) where
 
-import XMonad (liftIO, gets)
+import XMonad (Default, gets, liftIO, Window)
 import XMonad.Core
 import qualified XMonad.StackSet as W
 import XMonad.Hooks.StatusBar.PP
+import XMonad.Hooks.UrgencyHook (readUrgents)
 import XMonad.Util.Font (Align (..))
 import XMonad.Util.NamedWindows (getName)
 
@@ -193,15 +198,30 @@ logTitlesOnScreen
   -> (String -> String) -- ^ Formatting for the focused   window
   -> (String -> String) -- ^ Formatting for the unfocused window
   -> Logger
-logTitlesOnScreen sid formatFoc formatUnfoc = (`withScreen` sid) $ \screen -> do
-  let focWin = fmap W.focus . W.stack . W.workspace $ screen
-      wins   = maybe [] W.integrate . W.stack . W.workspace $ screen
+logTitlesOnScreen sid formatFoc formatUnfoc =
+  logTitlesOnScreen' sid TitlesFormat{ focusedFormat   = formatFoc
+                                     , unfocusedFormat = formatUnfoc
+                                     , urgentFormat    = id
+                                     }
+
+-- | Like 'logTitlesOnScreen' but with support for urgent windows.  To
+-- be used with "XMonad.Hooks.UrgencyHook".
+logTitlesOnScreen' :: ScreenId -> TitlesFormat -> Logger
+logTitlesOnScreen' sid (TitlesFormat formatFoc formatUnfoc formatUrg) =
+  (`withScreen` sid) $ \screen -> do
+    let focWin = fmap W.focus . W.stack . W.workspace $ screen
+    urgWins <- readUrgents
+    logTitlesOnScreenWorker screen $ \win name ->
+      if | Just win == focWin -> formatFoc   name
+         | win `elem` urgWins -> formatUrg   name
+         | otherwise          -> formatUnfoc name
+
+-- | Internal function for 'logTitlesOnScreen' and 'logTitlesOnScreen''.
+logTitlesOnScreenWorker :: WindowScreen -> (Window -> String -> String) -> Logger
+logTitlesOnScreenWorker screen logger = do
+  let wins = maybe [] W.integrate . W.stack . W.workspace $ screen
   winNames <- traverse (fmap show . getName) wins
-  pure . Just
-       . unwords
-       $ zipWith (\w n -> if Just w == focWin then formatFoc n else formatUnfoc n)
-                 wins
-                 winNames
+  pure . Just . unwords $ zipWith logger wins winNames
 
 -- | Like 'logTitlesOnScreen', but directly use the "focused" screen
 -- (the one with the currently focused workspace).
@@ -209,6 +229,27 @@ logTitles :: (String -> String) -> (String -> String) -> Logger
 logTitles formatFoc formatUnfoc = do
   sid <- gets $ W.screen . W.current . windowset
   logTitlesOnScreen sid formatFoc formatUnfoc
+
+-- | Variant of 'logTitles', but with support for urgent windows.
+logTitles' :: TitlesFormat -> Logger
+logTitles' formatter =
+  gets (W.screen . W.current . windowset) >>= (`logTitlesOnScreen'` formatter)
+
+-- | Formatting applied to the titles of certain windows.
+data TitlesFormat = TitlesFormat
+  { focusedFormat   :: String -> String  -- ^ Focused formatting.
+  , unfocusedFormat :: String -> String  -- ^ Unfocused formatting.
+  , urgentFormat    :: String -> String  -- ^ Formatting when urgent.
+  }
+
+-- | How to format these titles by default when using 'logTitles'' and
+-- 'logTitlesOnScreen''.
+instance Default TitlesFormat where
+  def = TitlesFormat
+    { focusedFormat   = wrap "[" "]" . xmobarRaw . shorten 30 . xmobarStrip
+    , unfocusedFormat =                xmobarRaw . shorten 30 . xmobarStrip
+    , urgentFormat    = wrap "!" "!" . xmobarRaw . shorten 30 . xmobarStrip
+    }
 
 -- | Get the name of the current layout.
 logLayout :: Logger
