@@ -1,8 +1,10 @@
-{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs               #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
 --------------------------------------------------------------------
 -- |
 -- Module      : XMonad.Util.Parser
@@ -60,6 +62,7 @@ import XMonad.Prelude
 import qualified Text.ParserCombinators.ReadP as ReadP
 
 import Data.Coerce (coerce)
+import Data.String (IsString (fromString))
 import Text.ParserCombinators.ReadP (ReadP, (<++))
 
 {- $usage
@@ -132,6 +135,13 @@ instance Alternative Parser where
 
   (<|>) :: Parser a -> Parser a -> Parser a
   (<|>) = (<>)
+
+-- | When @-XOverloadedStrings@ is on, treat a string @s@ as the parser
+-- @'string' s@, when appropriate.  This allows one to write things like
+-- @"a" *> otherParser@ instead of @'string' "a" *> otherParser@.
+instance a ~ String => IsString (Parser a) where
+  fromString :: String -> Parser a
+  fromString = string
 
 -- | Run a parser on a given string.
 runParser :: Parser a -> String -> Maybe a
