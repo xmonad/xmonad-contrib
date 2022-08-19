@@ -87,6 +87,11 @@
 
     This module implements modal keybindings for xmonad.
 
+  * `XMonad.Layout.SideBorderDecoration`
+
+    This module allows for having a configurable border position around
+    windows; i.e., it can move the border to either cardinal direction.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Prompt.OrgMode`
