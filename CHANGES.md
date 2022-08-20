@@ -94,6 +94,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Prompt.AppendFile`
+
+    - Use `XMonad.Prelude.mkAbsolutePath` to force names to be relative to the
+      home directory and support `~/` prefixes.
+
   * `XMonad.Prompt.OrgMode`
 
     - Fixes the date parsing issue such that entries with format of
@@ -224,6 +229,8 @@
   * `XMonad.Hooks.UrgencyHook`
 
     - Added a `Default` instance for `UrgencyConfig` and `DzenUrgencyHook`.
+
+[this PR]: https://github.com/xmonad/xmonad-contrib/pull/744
 
 ### Other changes
 
