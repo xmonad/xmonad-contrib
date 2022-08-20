@@ -51,13 +51,18 @@ module XMonad.Prompt.Pass
 
       -- * Retrieving passwords
       passPrompt
+    , passPrompt'
     , passTypePrompt
 
       -- * Editing passwords
     , passEditPrompt
+    , passEditPrompt'
     , passRemovePrompt
+    , passRemovePrompt'
     , passGeneratePrompt
+    , passGeneratePrompt'
     , passGenerateAndCopyPrompt
+    , passGenerateAndCopyPrompt'
 
       -- * Misc
     , passOTPPrompt
@@ -89,6 +94,10 @@ import XMonad.Util.Run (runProcessWithInput)
 -- >   , ((modMask .|. controlMask, xK_p)               , passGeneratePrompt def)
 -- >   , ((modMask .|. shiftMask, xK_p)                 , passEditPrompt def)
 -- >   , ((modMask .|. controlMask  .|. shiftMask, xK_p), passRemovePrompt def)
+--
+-- You can also use the versions that let you specify a custom prompt:
+--
+-- >   , ((modMask , xK_p)                              , passPrompt' "Ask 'pass' for" def)
 --
 -- For detailed instructions on:
 --
@@ -137,7 +146,11 @@ mkPassPrompt promptLabel passwordFunction xpconfig = do
 -- | A prompt to retrieve a password from a given entry.
 --
 passPrompt :: XPConfig -> X ()
-passPrompt = mkPassPrompt "Select password" selectPassword
+passPrompt = passPrompt' "Select password"
+
+-- | The same as 'passPrompt' but with a user-specified prompt.
+passPrompt' :: String -> XPConfig -> X ()
+passPrompt' s = mkPassPrompt s selectPassword
 
 -- | A prompt to retrieve a OTP from a given entry.  Note that you will
 -- need to use the <https://github.com/tadfisher/pass-otp pass-otp>
@@ -151,20 +164,32 @@ passOTPPrompt = mkPassPrompt "Select OTP" selectOTP
 -- (Beware that no confirmation is asked)
 --
 passGeneratePrompt :: XPConfig -> X ()
-passGeneratePrompt = mkPassPrompt "Generate password" generatePassword
+passGeneratePrompt = passGeneratePrompt' "Generate password"
+
+-- | The same as 'passGeneratePrompt' but with a user-specified prompt.
+passGeneratePrompt' :: String -> XPConfig -> X ()
+passGeneratePrompt' s = mkPassPrompt s generatePassword
 
 -- | A prompt to generate a password for a given entry and immediately copy it
 -- to the clipboard.  This can be used to override an already stored entry.
 -- (Beware that no confirmation is asked)
 --
 passGenerateAndCopyPrompt :: XPConfig -> X ()
-passGenerateAndCopyPrompt = mkPassPrompt "Generate and copy password" generateAndCopyPassword
+passGenerateAndCopyPrompt = passGenerateAndCopyPrompt' "Generate and copy password"
+
+-- | The same as 'passGenerateAndCopyPrompt' but with a user-specified prompt.
+passGenerateAndCopyPrompt' :: String -> XPConfig -> X ()
+passGenerateAndCopyPrompt' s = mkPassPrompt s generateAndCopyPassword
 
 -- | A prompt to remove a password for a given entry.
 -- (Beware that no confirmation is asked)
 --
 passRemovePrompt :: XPConfig -> X ()
-passRemovePrompt = mkPassPrompt "Remove password" removePassword
+passRemovePrompt = passRemovePrompt' "Remove password"
+
+-- | The same as 'passRemovePrompt' but with a user-specified prompt.
+passRemovePrompt' :: String -> XPConfig -> X ()
+passRemovePrompt' s = mkPassPrompt s removePassword
 
 -- | A prompt to type in a password for a given entry.
 -- This doesn't touch the clipboard.
@@ -176,7 +201,11 @@ passTypePrompt = mkPassPrompt "Type password" typePassword
 -- This doesn't touch the clipboard.
 --
 passEditPrompt :: XPConfig -> X ()
-passEditPrompt = mkPassPrompt "Edit password" editPassword
+passEditPrompt = passEditPrompt' "Edit password"
+
+-- | The same as 'passEditPrompt' but with a user-specified prompt.
+passEditPrompt' :: String -> XPConfig -> X ()
+passEditPrompt' s = mkPassPrompt s editPassword
 
 -- | Select a password.
 --
@@ -223,7 +252,7 @@ escapeQuote = concatMap escape
         escape '"' = "\\\""
         escape x   = [x]
 
--- | Retrieve the list of passwords from the password store 'passwordStoreDir
+-- | Retrieve the list of passwords from the password store 'passwordStoreDir'
 --
 getPasswords :: FilePath -> IO [String]
 getPasswords passwordStoreDir = do
