@@ -99,6 +99,11 @@
     - Added new versions of the `pass` functions that allow user-specified
       prompts.
 
+  * `XMonad.Prompt.AppendFile`
+
+    - Use `XMonad.Prelude.mkAbsolutePath` to force names to be relative to the
+      home directory and support `~/` prefixes.
+
   * `XMonad.Prompt.OrgMode`
 
     - Fixes the date parsing issue such that entries with format of
@@ -189,6 +194,10 @@
     - Added `WindowScreen`, which is a type synonym for the specialized `Screen`
       type, that results from the `WindowSet` definition in `XMonad.Core`.
 
+    - Modified `mkAbsolutePath` to support a leading environment variable, so
+      things like `$HOME/NOTES` work. If you want more general environment
+      variable support, comment on [this PR].
+
   * `XMonad.Util.XUtils`
 
     - Added `withSimpleWindow`, `showSimpleWindow`, `WindowConfig`, and
@@ -225,6 +234,8 @@
   * `XMonad.Hooks.UrgencyHook`
 
     - Added a `Default` instance for `UrgencyConfig` and `DzenUrgencyHook`.
+
+[this PR]: https://github.com/xmonad/xmonad-contrib/pull/744
 
 ### Other changes
 
