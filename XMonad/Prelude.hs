@@ -1,5 +1,6 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prelude
@@ -60,6 +61,8 @@ import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Tuple (swap)
 import GHC.Stack
 import System.Directory (getHomeDirectory)
+import System.Environment (getEnv)
+import Control.Exception (SomeException, handle)
 import qualified XMonad.StackSet as W
 
 -- | Short for 'fromIntegral'.
@@ -80,7 +83,7 @@ chunksOf i xs = chunk : chunksOf i rest
 (!?) xs n | n < 0 = Nothing
           | otherwise = listToMaybe $ drop n xs
 
--- | Multivariant composition.
+-- | Multivariable composition.
 --
 -- > f .: g ≡ (f .) . g ≡ \c d -> f (g c d)
 (.:) :: (a -> b) -> (c -> d -> a) -> c -> d -> b
@@ -108,14 +111,19 @@ safeGetWindowAttributes w = withDisplay $ \dpy -> io . alloca $ \p ->
 -- * If it starts with @~\/@, replace that with the actual home
 -- * directory.
 --
--- * Otherwise, prepend a @\/@ to the path.
+-- * If it starts with @$@, read the name of an environment
+-- * variable and replace it with the contents of that.
+--
+-- * Otherwise, prepend the home directory and @\/@ to the path.
 mkAbsolutePath :: MonadIO m => FilePath -> m FilePath
 mkAbsolutePath ps = do
-  home <- liftIO getHomeDirectory
-  pure $ case ps of
-    '/'       : _ ->                ps
-    '~' : '/' : _ -> home <> drop 1 ps
-    _             -> home <> ('/' : ps)
+  home <- io getHomeDirectory
+  case ps of
+    '/'       : _ -> pure ps
+    '~' : '/' : _ -> pure (home <> drop 1 ps)
+    '$'       : _ -> let (v,ps') = span (`elem` ("_"<>['A'..'Z']<>['a'..'z']<>['0'..'9'])) (drop 1 ps)
+                      in io ((\(_ :: SomeException) -> pure "") `handle` getEnv v) Exports.<&> (<> ps')
+    _             -> pure (home <> ('/' : ps))
 {-# SPECIALISE mkAbsolutePath :: FilePath -> IO FilePath #-}
 {-# SPECIALISE mkAbsolutePath :: FilePath -> X  FilePath #-}
 
