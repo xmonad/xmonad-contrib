@@ -792,6 +792,11 @@
       ones) on the focused workspace, as well as `logTitlesOnScreen` as
       a screen-specific variant thereof.
 
+    - Added `logTitles'` and `logTitleOnScreen'`.  These act like
+      `logTitles` and `logTitlesOnScreen` but use a record as an input
+      to enable logging for more window types.  For example, currently
+      urgent windows are additionally supported.
+
   * `XMonad.Layout.Minimize`
 
     - Export `Minimize` type constructor.
