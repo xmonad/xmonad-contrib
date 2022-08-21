@@ -94,6 +94,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Prompt.Pass`
+
+    - Added new versions of the `pass` functions that allow user-specified
+      prompts.
+
   * `XMonad.Prompt.AppendFile`
 
     - Use `XMonad.Prelude.mkAbsolutePath` to force names to be relative to the
