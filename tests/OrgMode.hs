@@ -30,6 +30,7 @@ spec = do
           ( Deadline
               "todo"
               (Time {date = Date (22, Just 1, Just 2021), tod = Nothing})
+              NoPriority
           )
     it "works with todo +d 22 01 2022" $ do
       pInput "todo +d 22 01 2022"
@@ -37,6 +38,7 @@ spec = do
           ( Deadline
               "todo"
               (Time {date = Date (22, Just 1, Just 2022), tod = Nothing})
+              NoPriority
           )
     it "works with todo +d 1 01:01" $ do
       pInput "todo +d 1 01:01"
@@ -44,14 +46,15 @@ spec = do
           ( Deadline
               "todo"
               (Time {date = Date (1, Nothing, Nothing), tod = Just $ TimeOfDay 1 1})
+              NoPriority
           )
 
   context "+d +d f" $ do
     it "encode" $ prop_encodePreservation (OrgMsg "+d +d f")
-    it "decode" $ prop_decodePreservation (Deadline "+d" (Time {date = Next Friday, tod = Nothing}))
+    it "decode" $ prop_decodePreservation (Deadline "+d" (Time {date = Next Friday, tod = Nothing}) NoPriority)
   context "+d f 1 +d f" $ do
     it "encode" $ prop_encodePreservation (OrgMsg "+d f 1 +d f")
-    it "decode" $ prop_decodePreservation (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}))
+    it "decode" $ prop_decodePreservation (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}) NoPriority)
 
 -- | Parsing preserves all info that printing does.
 prop_encodePreservation :: OrgMsg -> Property
@@ -66,9 +69,9 @@ prop_decodePreservation n = Just (ppNote n) === (fmap ppNote . pInput $ ppNote n
 
 ppNote :: Note -> String
 ppNote = \case
-  Scheduled str t -> str <> " +s " <> ppTime t
-  Deadline  str t -> str <> " +d " <> ppTime t
-  NormalMsg str   -> str
+  Scheduled str t _ -> str <> " +s " <> ppTime t
+  Deadline  str t _ -> str <> " +d " <> ppTime t
+  NormalMsg str   _ -> str
 
 ppTime :: Time -> String
 ppTime (Time d t) = ppDate d <> ppTOD t
@@ -130,7 +133,7 @@ instance Arbitrary Note where
   arbitrary = do
     msg <- randomString
     t   <- arbitrary
-    elements [Scheduled msg t, Deadline msg t, NormalMsg msg]
+    elements [Scheduled msg t NoPriority, Deadline msg t NoPriority, NormalMsg msg NoPriority]
 
 instance Arbitrary Time where
   arbitrary :: Gen Time

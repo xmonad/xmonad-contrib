@@ -106,8 +106,11 @@
 
   * `XMonad.Prompt.OrgMode`
 
-    - Fixes the date parsing issue such that entries with format of
-      `todo +d 12 02 2024` works.
+    - Fixed the date parsing issue such that entries with a format of
+      `todo +d 12 02 2024` work.
+
+    - Added the ability to specify alphabetic (`#A`, `#B`, and `#C`)
+      [priorities] at the end of the input note.
 
   * `XMonad.Prompt`
 
@@ -236,6 +239,7 @@
     - Added a `Default` instance for `UrgencyConfig` and `DzenUrgencyHook`.
 
 [this PR]: https://github.com/xmonad/xmonad-contrib/pull/744
+[priorities]: https://orgmode.org/manual/Priorities.html
 
 ### Other changes
 
