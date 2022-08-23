@@ -99,6 +99,18 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- >   , ((modMask , xK_p)                              , passPrompt' "Ask 'pass' for" def)
 --
+-- Note that, by default, we do not use fuzzy matching in this module.
+-- To enable this feature, import the "XMonad.Prompt.FuzzyMatch" module
+-- and add the relevant functions to your prompt configuration:
+--
+-- > myXPConfig :: XPConfig
+-- > myXPConfig = def
+-- >   { searchPredicate = fuzzyMatch
+-- >   , sorter          = fuzzySort
+-- >   }
+-- >
+-- > , ((modMask , xK_p), passPrompt myXPConfig)
+--
 -- For detailed instructions on:
 --
 -- - editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings".
