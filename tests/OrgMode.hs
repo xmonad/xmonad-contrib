@@ -48,13 +48,27 @@ spec = do
               (Time {date = Date (1, Nothing, Nothing), tod = Just $ TimeOfDay 1 1})
               NoPriority
           )
+    it "works with todo +d 22 jan 2021 01:01 #b" $ do
+      pInput "todo +d 22 jan 2021 01:01 #b"
+        `shouldBe` Just
+          ( Deadline
+                "todo"
+                (Time {date = Date (22, Just 1, Just 2021), tod = Just $ TimeOfDay 1 1})
+                B
+          )
 
   context "+d +d f" $ do
     it "encode" $ prop_encodePreservation (OrgMsg "+d +d f")
     it "decode" $ prop_decodePreservation (Deadline "+d" (Time {date = Next Friday, tod = Nothing}) NoPriority)
+  context "+d f 1 +d f #c" $ do
+    it "encode" $ prop_encodePreservation (OrgMsg "+d +d f")
+    it "decode" $ prop_decodePreservation (Deadline "+d" (Time {date = Next Friday, tod = Nothing}) C)
   context "+d f 1 +d f" $ do
     it "encode" $ prop_encodePreservation (OrgMsg "+d f 1 +d f")
     it "decode" $ prop_decodePreservation (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}) NoPriority)
+  context "+d f 1 +d f #b" $ do
+    it "encode" $ prop_encodePreservation (OrgMsg "+d f 1 +d f #b")
+    it "decode" $ prop_decodePreservation (Deadline "+d f 1" (Time {date = Next Friday, tod = Nothing}) B)
 
 -- | Parsing preserves all info that printing does.
 prop_encodePreservation :: OrgMsg -> Property
@@ -69,9 +83,14 @@ prop_decodePreservation n = Just (ppNote n) === (fmap ppNote . pInput $ ppNote n
 
 ppNote :: Note -> String
 ppNote = \case
-  Scheduled str t _ -> str <> " +s " <> ppTime t
-  Deadline  str t _ -> str <> " +d " <> ppTime t
-  NormalMsg str   _ -> str
+  Scheduled str t p -> str <> " +s " <> ppTime t <> ppPrio p
+  Deadline  str t p -> str <> " +d " <> ppTime t <> ppPrio p
+  NormalMsg str   p -> str                       <> ppPrio p
+
+ppPrio :: Priority -> String
+ppPrio = \case
+  NoPriority -> ""
+  prio       -> " #" <> show prio
 
 ppTime :: Time -> String
 ppTime (Time d t) = ppDate d <> ppTOD t
@@ -96,8 +115,10 @@ newtype OrgMsg = OrgMsg String
 
 instance Arbitrary OrgMsg where
   arbitrary :: Gen OrgMsg
-  arbitrary = OrgMsg <$>
-    randomString <<>> elements [" +s ", " +d ", ""] <<>> dateGen <<>> hourGen
+  arbitrary
+    = OrgMsg <$> randomString                                             -- note
+            <<>> elements [" +s ", " +d ", ""] <<>> dateGen <<>> hourGen  -- time and date
+            <<>> elements ("" : map (reverse . (: " #")) "AaBbCc")        -- priority
    where
     dateGen :: Gen String
     dateGen = oneof
@@ -133,7 +154,12 @@ instance Arbitrary Note where
   arbitrary = do
     msg <- randomString
     t   <- arbitrary
-    elements [Scheduled msg t NoPriority, Deadline msg t NoPriority, NormalMsg msg NoPriority]
+    p   <- arbitrary
+    elements [Scheduled msg t p, Deadline msg t p, NormalMsg msg p]
+
+instance Arbitrary Priority where
+  arbitrary :: Gen Priority
+  arbitrary = elements [A, B, C, NoPriority]
 
 instance Arbitrary Time where
   arbitrary :: Gen Time
