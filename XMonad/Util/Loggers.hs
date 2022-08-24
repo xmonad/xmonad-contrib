@@ -201,7 +201,7 @@ logTitlesOnScreen
 logTitlesOnScreen sid formatFoc formatUnfoc =
   logTitlesOnScreen' sid TitlesFormat{ focusedFormat   = formatFoc
                                      , unfocusedFormat = formatUnfoc
-                                     , urgentFormat    = id
+                                     , urgentFormat    = formatUnfoc
                                      }
 
 -- | Like 'logTitlesOnScreen' but with support for urgent windows.  To
