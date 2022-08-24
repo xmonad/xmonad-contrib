@@ -2,8 +2,9 @@
 {-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
-{-# LANGUAGE StrictData          #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData          #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.OrgMode
@@ -20,9 +21,9 @@
 -- "XMonad.Prompt.AppendFile", allowing for more interesting
 -- interactions with that particular file type.
 --
--- It can be used to quickly save TODOs, NOTEs, and the like with
--- the additional capability to schedule/deadline a task, or use
--- the system's clipboard (really: the primary selection) as the
+-- It can be used to quickly save TODOs, NOTEs, and the like with the
+-- additional capability to schedule/deadline a task, add a priority,
+-- and use the system's clipboard (really: the primary selection) as the
 -- contents of the note.
 --
 --------------------------------------------------------------------
@@ -41,6 +42,7 @@ module XMonad.Prompt.OrgMode (
 #ifdef TESTING
     pInput,
     Note (..),
+    Priority (..),
     Date (..),
     Time (..),
     TimeOfDay (..),
@@ -131,6 +133,12 @@ Note that, due to ambiguity concerns, years below @25@ result in
 undefined parsing behaviour.  Otherwise, what should @message +s 11 jan
 13@ resolve to—the 11th of january at 13:00 or the 11th of january in
 the year 13?
+
+There is basic support for alphabetic org-mode
+<https:\/\/orgmode.org\/manual\/Priorities.html priorities>.
+Simply append either @#A@, @#B@, or @#C@ (capitalisation is optional) to
+the end of the note.  For example, one could write @"hello +s 11 jan
+2013 #A"@ or @"hello #C"@.
 
 There's also the possibility to take what's currently in the primary
 selection and paste that as the content of the created note.  This is
@@ -327,26 +335,39 @@ instance Enum DayOfWeek where
 
 -- | An @org-mode@ style note.
 data Note
-  = Scheduled String Time
-  | Deadline  String Time
-  | NormalMsg String
+  = Scheduled String Time Priority
+  | Deadline  String Time Priority
+  | NormalMsg String      Priority
+  deriving (Eq, Show)
+
+-- | An @org-mode@ style priority symbol[1]; e.g., something like
+-- @[#A]@.  Note that this uses the standard org conventions: supported
+-- priorities are @A@, @B@, and @C@, with @A@ being the highest.
+-- Numerical priorities are not supported.
+--
+-- [1]: https://orgmode.org/manual/Priorities.html
+data Priority = A | B | C | NoPriority
   deriving (Eq, Show)
 
 -- | Pretty print a given 'Note'.
 ppNote :: Clp -> String -> Note -> IO String
 ppNote clp todo = \case
-  Scheduled str time -> mkLine str "SCHEDULED: " (Just time)
-  Deadline  str time -> mkLine str "DEADLINE: "  (Just time)
-  NormalMsg str      -> mkLine str ""            Nothing
+  Scheduled str time prio -> mkLine str "SCHEDULED: " (Just time) prio
+  Deadline  str time prio -> mkLine str "DEADLINE: "  (Just time) prio
+  NormalMsg str      prio -> mkLine str ""            Nothing     prio
  where
-  mkLine :: String -> String -> Maybe Time -> IO String
-  mkLine str sched time = do
+  mkLine :: String -> String -> Maybe Time -> Priority -> IO String
+  mkLine str sched time prio = do
     t <- case time of
       Nothing -> pure ""
       Just ti -> (("\n  " <> sched) <>) <$> ppDate ti
-    pure $ case clp of
-      Body   c -> mconcat ["* ", todo, " ", str, t, c]
-      Header c -> mconcat ["* ", todo, " [[", c, "][", str,"]]", t]
+    pure $ "* " <> todo <> priority <> case clp of
+      Body   c -> mconcat [str, t, c]
+      Header c -> mconcat ["[[", c, "][", str,"]]", t]
+   where
+    priority = case prio of
+      NoPriority -> " "
+      otherPrio  -> " [#" <> show otherPrio <> "] "
 
 ------------------------------------------------------------------------
 -- Parsing
@@ -354,16 +375,29 @@ ppNote clp todo = \case
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
 pInput inp = (`runParser` inp) . choice $
-  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay)
-  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay)
-  , NormalMsg <$> munch1 (const True)
+  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
+  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
+  , do s <- munch1 (pure True)
+       let (s', p) = splitAt (length s - 2) s
+       pure $ case tryPrio p of
+         Just prio -> NormalMsg (dropStripEnd 0 s') prio
+         Nothing   -> NormalMsg s                   NoPriority
   ]
  where
+  tryPrio :: String -> Maybe Priority
+  tryPrio ['#', x]
+    | x `elem` ("Aa" :: String) = Just A
+    | x `elem` ("Bb" :: String) = Just B
+    | x `elem` ("Cc" :: String) = Just C
+  tryPrio _ = Nothing
+
+  -- Trim whitespace at the end of a string after dropping some number
+  -- of characters from it.
+  dropStripEnd :: Int -> String -> String
+  dropStripEnd n = reverse . dropWhile (== ' ') . drop n . reverse
+
   getLast :: String -> Parser String
-  getLast ptn =  reverse
-              .  dropWhile (== ' ')    -- trim whitespace at the end
-              .  drop (length ptn)     -- drop only the last pattern
-              .  reverse
+  getLast ptn =  dropStripEnd (length ptn) -- drop only the last pattern before stripping
               .  concat
              <$> endBy1 (go "") (pure ptn)
    where
@@ -372,6 +406,15 @@ pInput inp = (`runParser` inp) . choice $
       str  <- munch  (/= head ptn)
       word <- munch1 (/= ' ')
       bool go pure (word == ptn) $ consumed <> str <> word
+
+-- | Parse a 'Priority'.
+pPriority :: Parser Priority
+pPriority = skipSpaces *> choice
+  [ "#" *> ("A" <|> "a") $> A
+  , "#" *> ("B" <|> "b") $> B
+  , "#" *> ("C" <|> "c") $> C
+  , pure NoPriority
+  ]
 
 -- | Try to parse a 'Time'.
 pTimeOfDay :: Parser (Maybe TimeOfDay)
@@ -424,9 +467,9 @@ pDate = skipSpaces *> choice
 
   -- | Parse a prefix and drop a potential suffix up to the next (space
   -- separated) word.  If successful, return @ret@.
-  pPrefix :: String -> String -> a -> Parser a
+  pPrefix :: Parser String -> String -> a -> Parser a
   pPrefix start leftover ret = do
-    void $ string start
+    void start
     l <- munch (/= ' ')
     guard (l `isPrefixOf` leftover)
     pure ret
