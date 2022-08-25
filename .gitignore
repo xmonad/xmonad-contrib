@@ -27,4 +27,6 @@ tags
 
 stack.yaml.lock
 
+# nix artifacts
+result
 flake.lock
