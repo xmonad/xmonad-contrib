@@ -20,9 +20,9 @@ module XMonad.Layout.WindowNavigation (
                                    -- $usage
                                    windowNavigation, configurableNavigation,
                                    Navigate(..), Direction2D(..),
-                                   MoveWindowToWindow(..),
+                                   MoveWindowToWindow(..), WNConfig,
                                    navigateColor, navigateBrightness,
-                                   noNavigateBorders, def, WNConfig,
+                                   noNavigateBorders, def,
                                    WindowNavigation,
                                   ) where
 
@@ -39,13 +39,13 @@ import XMonad.Util.XUtils
 --
 -- > import XMonad.Layout.WindowNavigation
 --
--- Then edit your @layoutHook@ by adding the WindowNavigation layout modifier
+-- Then edit your 'layoutHook' by adding the WindowNavigation layout modifier
 -- to some layout:
 --
--- > myLayout = windowNavigation (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
+-- > myLayout = windowNavigation (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
+-- For more detailed instructions on editing the 'layoutHook' see:
 --
 -- "XMonad.Doc.Extending#Editing_the_layout_hook"
 --
@@ -72,6 +72,14 @@ data Navigate = Go Direction2D | Swap Direction2D | Move Direction2D
               | Apply (Window -> X()) Direction2D -- ^ Apply action with destination window
 instance Message Navigate
 
+-- | Used with 'configurableNavigation' to specify how to show reachable windows'
+-- borders. You cannot create 'WNConfig' values directly; use 'def' or one of the following
+-- three functions to create one.
+-- 
+-- 'def', and 'windowNavigation', uses the focused border color at 40% brightness, as if
+-- you had specified
+-- 
+-- > configurableNavigation (navigateBrightness 0.4)
 data WNConfig =
     WNC { brightness    :: Maybe Double -- Indicates a fraction of the focus color.
         , upColor       :: String
@@ -80,14 +88,18 @@ data WNConfig =
         , rightColor    :: String
         } deriving (Show, Read)
 
+-- | Don't use window borders for navigation.
 noNavigateBorders :: WNConfig
 noNavigateBorders =
     def {brightness = Just 0}
 
+-- | Indicate reachable windows by drawing their borders in the specified color.
 navigateColor :: String -> WNConfig
 navigateColor c =
     WNC Nothing c c c c
 
+-- | Indicate reachable windows by drawing their borders in the active border color, with
+-- the specified brightness.
 navigateBrightness :: Double -> WNConfig
 navigateBrightness f = def { brightness = Just $ max 0 $ min 1 f }
 
