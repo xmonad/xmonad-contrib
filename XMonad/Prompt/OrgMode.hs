@@ -26,6 +26,9 @@
 -- and use the system's clipboard (really: the primary selection) as the
 -- contents of the note.
 --
+-- A blog post highlighting some features of this module can be found
+-- <https://tony-zorman.com/posts/orgmode-prompt/2022-08-27-xmonad-and-org-mode.html here>.
+--
 --------------------------------------------------------------------
 module XMonad.Prompt.OrgMode (
     -- * Usage
