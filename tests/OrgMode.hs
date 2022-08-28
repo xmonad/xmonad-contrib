@@ -57,6 +57,13 @@ spec = do
                 B
           )
 
+  context "no priority#b" $ do
+    it "parses to the correct thing" $
+      pInput "no priority#b"
+        `shouldBe` Just (NormalMsg "no priority#b" NoPriority)
+    it "encode" $ prop_encodePreservation (OrgMsg "no priority#b")
+    it "decode" $ prop_decodePreservation (NormalMsg "no priority#b" NoPriority)
+
   context "+d +d f" $ do
     it "encode" $ prop_encodePreservation (OrgMsg "+d +d f")
     it "decode" $ prop_decodePreservation (Deadline "+d" (Time {date = Next Friday, tod = Nothing}) NoPriority)

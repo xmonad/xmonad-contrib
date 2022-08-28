@@ -141,7 +141,9 @@ There is basic support for alphabetic org-mode
 <https:\/\/orgmode.org\/manual\/Priorities.html priorities>.
 Simply append either @#A@, @#B@, or @#C@ (capitalisation is optional) to
 the end of the note.  For example, one could write @"hello +s 11 jan
-2013 #A"@ or @"hello #C"@.
+2013 #A"@ or @"hello #C"@.  Note that there has to be at least one
+whitespace character between the end of the note and the chosen
+priority.
 
 There's also the possibility to take what's currently in the primary
 selection and paste that as the content of the created note.  This is
@@ -381,14 +383,14 @@ pInput inp = (`runParser` inp) . choice $
   [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
   , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
   , do s <- munch1 (pure True)
-       let (s', p) = splitAt (length s - 2) s
+       let (s', p) = splitAt (length s - 3) s
        pure $ case tryPrio p of
          Just prio -> NormalMsg (dropStripEnd 0 s') prio
          Nothing   -> NormalMsg s                   NoPriority
   ]
  where
   tryPrio :: String -> Maybe Priority
-  tryPrio ['#', x]
+  tryPrio [' ', '#', x]
     | x `elem` ("Aa" :: String) = Just A
     | x `elem` ("Bb" :: String) = Just B
     | x `elem` ("Cc" :: String) = Just C
@@ -412,20 +414,20 @@ pInput inp = (`runParser` inp) . choice $
 
 -- | Parse a 'Priority'.
 pPriority :: Parser Priority
-pPriority = skipSpaces *> choice
-  [ "#" *> ("A" <|> "a") $> A
-  , "#" *> ("B" <|> "b") $> B
-  , "#" *> ("C" <|> "c") $> C
-  , pure NoPriority
-  ]
+pPriority = pLast (pure NoPriority) $
+  " " *> skipSpaces *> choice
+    [ "#" *> ("A" <|> "a") $> A
+    , "#" *> ("B" <|> "b") $> B
+    , "#" *> ("C" <|> "c") $> C
+    ]
 
 -- | Try to parse a 'Time'.
 pTimeOfDay :: Parser (Maybe TimeOfDay)
-pTimeOfDay = choice
-  [ Just <$> (TimeOfDay <$> pHour <* string ":" <*> pMinute) -- HH:MM
-  , Just <$> (TimeOfDay <$> pHour               <*> pure 0 ) -- HH
-  , pure Nothing
-  ]
+pTimeOfDay = pLast (pure Nothing) $
+  skipSpaces *> choice
+    [ Just <$> (TimeOfDay <$> pHour <* string ":" <*> pMinute) -- HH:MM
+    , Just <$> (TimeOfDay <$> pHour               <*> pure 0 ) -- HH
+    ]
  where
   pMinute :: Parser Int = pNumBetween 1 60
   pHour   :: Parser Int = pNumBetween 1 24
@@ -437,7 +439,7 @@ pDate = skipSpaces *> choice
   , pPrefix "tom" "orrow" Tomorrow
   , Next <$> pNext
   , Date <$> pDate'
-  ] <* skipSpaces  -- cleanup
+  ]
  where
   pNext :: Parser DayOfWeek = choice
     [ pPrefix "m"  "onday"    Monday   , pPrefix "tu" "esday"  Tuesday
@@ -482,3 +484,9 @@ pNumBetween :: Int -> Int -> Parser Int
 pNumBetween lo hi = do
   n <- num
   n <$ guard (n >= lo && n <= hi)
+
+-- | A flipped version of '(<|>)'.  Useful when @p'@ is some complicated
+-- expression that, for example, consumes spaces and @p@ does not want
+-- to do that.
+pLast :: Parser a -> Parser a -> Parser a
+pLast p p' = p' <|> p
