@@ -388,42 +388,63 @@ extend xmonad an scratch a particular itch!
 {- $keyDel
 #Removing_key_bindings#
 
-Removing key bindings requires modifying the 'Data.Map.Strict.Map' which
-stores the key bindings.  This can be done with 'Data.Map.difference' or
-with 'Data.Map.Strict.delete'.
+As we've learned, XMonad stores keybindings inside of a
+'Data.Map.Strict.Map', which means that removing keybindings requires
+modifying it.  This can be done with 'Data.Map.difference' or with
+'Data.Map.Strict.delete'.
 
-For example, suppose you want to get rid of @mod-q@ and @mod-shift-q@
-(you just want to leave xmonad running forever). To do this you need to
-define @newKeys@ as a 'Data.Map.Strict.difference' between the default
-map and the map of the key bindings you want to remove.  Like so:
+For example, suppose you want to entirely rid yourself of @"M-q"@ and
+@"M-s-q"@ (you just want to leave xmonad running forever).  To do this
+with bare @xmonad@, you need to define @newKeys@ as a
+'Data.Map.Strict.difference' between the default map and the map of the
+key bindings you want to remove.  Like so:
 
->    newKeys x = keys def x `M.difference` keysToRemove x
+> newKeys :: XConfig l -> Map (KeyMask, KeySym) (X ())
+> newKeys x = keys def x `M.difference` keysToRemove x
 >
->    keysToRemove :: XConfig Layout ->    M.Map (KeyMask, KeySym) (X ())
->    keysToRemove x = M.fromList
->             [ ((modm              , xK_q ), return ())
->             , ((modm .|. shiftMask, xK_q ), return ())
->             ]
+> keysToRemove :: XConfig l -> Map (KeyMask, KeySym) (X ())
+> keysToRemove x = M.fromList
+>          [ ((modm              , xK_q ), return ())
+>          , ((modm .|. shiftMask, xK_q ), return ())
+>          ]
 
 As you can see, it doesn't matter what actions we associate with the
-keys listed in @keysToRemove@, so we just use @return ()@ (the
-\"null\" action).
+keys listed in @keysToRemove@, so we just use @return ()@ (the \"null\"
+action).  Since @newKeys@ contains all of the default keys, you can
+simply pass it to 'XMonad.Core.XConfig' as your map of keybindings:
 
-It is also possible to simply define a list of keys we want to unbind
-and then use 'Data.Map.Strict.delete' to remove them. In that case we
-would write something like:
+> main :: IO ()
+> main = xmonad $ def { keys = newKeys }
 
->    newKeys x = foldr M.delete (keys def x) (keysToRemove x)
->
->    keysToRemove :: XConfig Layout -> [(KeyMask, KeySym)]
->    keysToRemove x =
->             [ (modm              , xK_q )
->             , (modm .|. shiftMask, xK_q )
->             ]
+However, having to manually type @return ()@ every time seems like a
+drag, doesn't it?  And this approach isn't at all compatible with adding
+custom keybindings via 'XMonad.Util.EZConfig.additionalKeysP'!  Well,
+good thing "XMonad.Util.EZConfig" also sports
+'XMonad.Util.EZConfig.removeKeysP'.  You can use it as you would expect.
 
-Another even simpler possibility is the use of some of the utilities
-provided by the xmonad-contrib library. Look, for instance, at
-'XMonad.Util.EZConfig.removeKeys'.
+> main :: IO ()
+> main = xmonad $ def
+>   { … }
+>  `removeKeysP` ["M-q", "M-S-q"]
+
+Can you guess how 'XMonad.Util.EZConfig.removeKeysP' works?  It's almost
+the same code we wrote above, just accepting a list of keybindings.  Try
+to see if you can come up with an implementation of
+
+> removeKeysP :: XConfig l -> [String] -> XConfig l
+
+If you're done, just click on @# Source@ when viewing the
+'XMonad.Util.EZConfig.removeKeysP' documentation (did you know that
+Haddock lets you do that for every function?) and compare.
+
+If you don't use the @P@ alternatives of EZConfig, there is also an
+aptly named 'XMonad.Util.EZConfig.removeKeys'.  Again, can you try to
+come up with an implementation yourself that has the correct signature?
+
+> removeKeys :: XConfig a -> [(KeyMask, KeySym)] -> XConfig a
+
+In addition to 'Data.Map.Strict.delete', you will probably need to use
+'foldr'.
 
 -}
 
