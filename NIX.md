@@ -87,7 +87,7 @@ options in your `configuration.nix` under `flake`:
     flake = {
       enable = true;
     # prefix = "unstable";
-      compiler = "ghc921";
+      compiler = "ghc924";
     };
   };
 ```
