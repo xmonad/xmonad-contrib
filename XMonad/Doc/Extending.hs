@@ -77,13 +77,13 @@ module XMonad.Doc.Extending
     -- ** Editing mouse bindings
     -- $mouse
 
-    -- ** Editing the layout hook
+    -- ** Editing the layout hook #LayoutHook#
     -- $layoutHook
 
-    -- ** Editing the manage hook
+    -- ** Editing the manage hook #ManageHook#
     -- $manageHook
 
-    -- ** The log hook and external status bars
+    -- ** The log hook and external status bars #LogHook#
     -- $logHook
     ) where
 
@@ -187,13 +187,13 @@ interface for writing layout modifiers is implemented in
 "XMonad.Layout.LayoutModifier".
 
 For more information on using those modules for customizing your
-'XMonad.Core.layoutHook' see "XMonad.Doc.Extending#Editing_the_layout_hook".
+'XMonad.Core.layoutHook' see [Editing the layout hook](#g:LayoutHook).
 
 -}
 
 {- $prompts
 
-In the @XMonad.Prompt@ name space you can find modules providing
+In the @XMonad.Prompt@ namespace you can find modules providing
 graphical prompts for getting user input and using it to perform
 various actions.
 
