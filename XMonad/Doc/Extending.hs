@@ -108,8 +108,8 @@ For more information about any particular module, go to the root of
 the documentation and just click on its name to view its Haddock
 documentation; each module should come with extensive documentation.
 If you find a module that could be better documented, or has incorrect
-documentation, please report it as a bug
-(<https://github.com/xmonad/xmonad-contrib/issues>)!
+documentation, please
+<https://github.com/xmonad/xmonad-contrib/issues report it as a bug>!
 
 First and foremost, xmonad defines its own prelude for commonly used
 functions, as well as re-exports from @base@.
@@ -137,33 +137,33 @@ A list of the contrib modules can be found at
 In the @XMonad.Actions@ namespace you can find modules exporting
 various functions that are usually intended to be bound to key
 combinations or mouse actions, in order to provide functionality
-beyond the standard keybindings provided by xmonad.
+beyond the standard keybindings offered by xmonad.
 
 -}
 
 {- $hooks
 
 In the @XMonad.Hooks@ namespace you can find modules exporting
-hooks. Hooks are actions that xmonad performs when certain events
-occur. The three most important hooks are:
+hooks—actions that xmonad performs when certain events occur.
+The three most important hooks are:
 
 * 'XMonad.Core.manageHook': this hook is called when a new window that
   xmonad must take care of is created. This is a very powerful hook,
   since it lets us examine the new window's properties and act
   accordingly. For instance, we can configure xmonad to put windows
   belonging to a given application in the float layer, not to manage
-  dock applications, or open them in a given workspace. See
-  "XMonad.Doc.Extending#Editing_the_manage_hook" for more information
-  on customizing 'XMonad.Core.manageHook'.
+  dock applications, or open them in a given workspace. See [Editing the
+  manage hook](#g:Editing_the_manage_hook) for more information on
+  customizing 'XMonad.Core.manageHook'.
 
 * 'XMonad.Core.logHook': this hook is called when the stack of windows
-  managed by xmonad has been changed; for example, this is invoked at
-  the end of the 'XMonad.Operations.windows' function. For instance
-  "XMonad.Hooks.DynamicLog" will produce a string (whose format can be
-  configured) to be printed to the standard output. This can be used
-  to display some information about the xmonad state in a status bar.
-  See "XMonad.Doc.Extending#The_log_hook_and_external_status_bars" for
-  more information.
+  managed by xmonad changes; for example, this is invoked at the end of
+  the 'XMonad.Operations.windows' function. A big application for this
+  is to display some information about xmonad in a status bar. The aptly
+  named "XMonad.Hooks.StatusBar" will produce a string (whose format can
+  be configured) to be written, for example, to an X11 property. See
+  [The log hook and external status
+  bars](#g:The_log_hook_and_external_status_bars) for more information.
 
 * 'XMonad.Core.handleEventHook': this hook is called on all events handled
   by xmonad, thus it is extremely powerful. See "Graphics.X11.Xlib.Extras"
@@ -206,7 +206,7 @@ prompts.
 
 In the @XMonad.Util@ namespace you can find modules exporting various
 utility functions that are used by the other modules of the
-xmonad-contrib library.
+@xmonad-contrib@ library.
 
 There are also utilities for helping in configuring xmonad or using
 external utilities.
@@ -222,7 +222,7 @@ external utilities.
 {- $extending
 #Extending_xmonad#
 
-Since the @xmonad.hs@ file is just another Haskell module, you may
+Since the @xmonad.hs@ file is just another Haskell program, you may
 import and use any Haskell code or libraries you wish, such as
 extensions from the xmonad-contrib library, or other code you write
 yourself.
@@ -506,8 +506,7 @@ xmonad will use for laying out windows on the screen(s).
 The problem is that the layout subsystem is implemented with an
 advanced feature of the Haskell programming language: type classes.
 This allows us to very easily write new layouts, combine or modify
-existing layouts, create layouts with internal state, etc. See
-"XMonad.Doc.Extending#The_LayoutClass" for more information. This
+existing layouts, create layouts with internal state, etc. This
 means that we cannot simply have a list of layouts: a list requires
 every member to belong to the same type!
 
