@@ -71,9 +71,6 @@ module XMonad.Doc.Extending
     -- *** Removing key bindings
     -- $keyDel
 
-    -- *** Adding and removing key bindings
-    -- $keyAddDel
-
     -- ** Editing mouse bindings
     -- $mouse
 
@@ -83,8 +80,6 @@ module XMonad.Doc.Extending
     -- ** Editing the manage hook #ManageHook#
     -- $manageHook
 
-    -- ** The log hook and external status bars #LogHook#
-    -- $logHook
     ) where
 
 --------------------------------------------------------------------------------
@@ -161,9 +156,7 @@ The three most important hooks are:
   the 'XMonad.Operations.windows' function. A big application for this
   is to display some information about xmonad in a status bar. The aptly
   named "XMonad.Hooks.StatusBar" will produce a string (whose format can
-  be configured) to be written, for example, to an X11 property. See
-  [The log hook and external status
-  bars](#g:The_log_hook_and_external_status_bars) for more information.
+  be configured) to be written, for example, to an X11 property.
 
 * 'XMonad.Core.handleEventHook': this hook is called on all events handled
   by xmonad, thus it is extremely powerful. See "Graphics.X11.Xlib.Extras"
@@ -437,6 +430,16 @@ If you're done, just click on @# Source@ when viewing the
 'XMonad.Util.EZConfig.removeKeysP' documentation (did you know that
 Haddock lets you do that for every function?) and compare.
 
+By the way, one can conveniently combine
+'XMonad.Util.EZConfig.additionalKeysP' and
+'XMonad.Util.EZConfig.removeKeysP' by just intuitively chaining them:
+
+> main :: IO ()
+> main = xmonad $ def
+>   { … }
+>  `additionalKeysP myKeys
+>  `removeKeysP`    ["M-q", "M-S-q"]
+
 If you don't use the @P@ alternatives of EZConfig, there is also an
 aptly named 'XMonad.Util.EZConfig.removeKeys'.  Again, can you try to
 come up with an implementation yourself that has the correct signature?
@@ -446,46 +449,6 @@ come up with an implementation yourself that has the correct signature?
 In addition to 'Data.Map.Strict.delete', you will probably need to use
 'foldr'.
 
--}
-
-{- $keyAddDel
-#Adding_and_removing_key_bindings#
-
-Adding and removing key bindings requires simply combining the steps
-for removing and adding.  Here is an example from
-"XMonad.Config.Arossato":
-
->    defKeys    = keys def
->    delKeys x  = foldr M.delete           (defKeys x) (toRemove x)
->    newKeys x  = foldr (uncurry M.insert) (delKeys x) (toAdd    x)
->    -- remove some of the default key bindings
->    toRemove XConfig{modMask = modm} =
->        [ (modm              , xK_j     )
->        , (modm              , xK_k     )
->        , (modm              , xK_p     )
->        , (modm .|. shiftMask, xK_p     )
->        , (modm .|. shiftMask, xK_q     )
->        , (modm              , xK_q     )
->        ] ++
->        -- I want modm .|. shiftMask 1-9 to be free!
->        [(shiftMask .|. modm, k) | k <- [xK_1 .. xK_9]]
->    -- These are my personal key bindings
->    toAdd XConfig{modMask = modm} =
->        [ ((modm              , xK_F12   ), xmonadPrompt def )
->        , ((modm              , xK_F3    ), shellPrompt  def )
->        ] ++
->        -- Use modm .|. shiftMask .|. controlMask 1-9 instead
->        [( (m .|. modm, k), windows $ f i)
->         | (i, k) <- zip (workspaces x) [xK_1 .. xK_9]
->        ,  (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask .|. controlMask)]
->        ]
-
-You can achieve the same result using the "XMonad.Util.CustomKeys"
-module; take a look at the 'XMonad.Util.CustomKeys.customKeys'
-function in particular.
-
-NOTE: modm is defined as the modMask you defined (or left as the default) in
-your config.
 -}
 
 {- $mouse
@@ -729,44 +692,5 @@ matches is run is available as 'XMonad.Hooks.ManageHelpers.composeOne'.
 
 For additional rules and actions you can use in your manageHook, check
 out the contrib module "XMonad.Hooks.ManageHelpers".
-
--}
-
-{- $logHook
-#The_log_hook_and_external_status_bars#
-
-When the stack of the windows managed by xmonad changes for any
-reason, xmonad will call 'XMonad.Core.logHook', which can be used to
-output some information about the internal state of xmonad, such as the
-layout that is presently in use, the workspace we are in, the focused
-window's title, and so on.
-
-Extracting information about the internal xmonad state can be somewhat
-difficult if you are not familiar with the source code. Therefore,
-it's usually easiest to use a module that has been designed
-specifically for logging some of the most interesting information
-about the internal state of xmonad: "XMonad.Hooks.DynamicLog".  This
-module can be used with an external status bar to print the produced
-logs in a convenient way; the most commonly used status bars are dzen
-and xmobar. The module "XMonad.Hooks.StatusBar" offers another interface
-to interact with status bars, that might be more convenient to use.
-
-By default the 'XMonad.Core.logHook' doesn't produce anything. To
-enable it you need first to import "XMonad.Hooks.DynamicLog":
-
->    import XMonad.Hooks.DynamicLog
-
-Then you just need to update the 'XMonad.Core.logHook' field of the
-'XMonad.Core.XConfig' record with one of the provided functions. For
-example:
-
->    main = xmonad def { logHook = dynamicLog }
-
-More interesting configurations are also possible; see the
-"XMonad.Hooks.DynamicLog" module for more possibilities.
-
-You may now enjoy your extended xmonad experience.
-
-Have fun!
 
 -}
