@@ -5,6 +5,12 @@
 ### Breaking Changes
 ### New Modules
 ### Bug Fixes and Minor Changes
+
+* `XMonad.Layout.BorderResize`
+
+  - Added `borderResizeNear` as a variant of `borderResize` that can
+    control how many pixels near a border resizing still works.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

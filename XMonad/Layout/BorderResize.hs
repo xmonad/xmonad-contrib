@@ -24,6 +24,7 @@ module XMonad.Layout.BorderResize
     ( -- * Usage
       -- $usage
       borderResize
+    , borderResizeNear
     , BorderResize (..)
     , RectWithBorders, BorderInfo,
     ) where
@@ -58,27 +59,34 @@ data BorderInfo = BI { bWin :: Window,
 
 type RectWithBorders = (Rectangle, [BorderInfo])
 
-newtype BorderResize a = BR (M.Map Window RectWithBorders) deriving (Show, Read)
-
-brBorderSize :: Dimension
-brBorderSize = 2
+data BorderResize a = BR
+  { brBorderSize  :: !Dimension
+  -- ^ Still resize when this number of pixels around the border.
+  , brWrsLastTime :: !(M.Map Window RectWithBorders)
+  }
+  deriving (Show, Read)
 
 borderResize :: l a -> ModifiedLayout BorderResize l a
-borderResize = ModifiedLayout (BR M.empty)
+borderResize = borderResizeNear 2
+
+-- | Like 'borderResize', but takes the number of pixels near the border
+-- up to which dragging still resizes a window.
+borderResizeNear :: Dimension -> l a -> ModifiedLayout BorderResize l a
+borderResizeNear borderSize = ModifiedLayout (BR borderSize M.empty)
 
 instance LayoutModifier BorderResize Window where
     redoLayout _       _ Nothing  wrs = return (wrs, Nothing)
-    redoLayout (BR wrsLastTime) _ _ wrs = do
+    redoLayout (BR borderSize wrsLastTime) _ _ wrs = do
             let correctOrder = map fst wrs
                 wrsCurrent = M.fromList wrs
                 wrsGone = M.difference wrsLastTime wrsCurrent
                 wrsAppeared = M.difference wrsCurrent wrsLastTime
                 wrsStillThere = M.intersectionWith testIfUnchanged wrsLastTime wrsCurrent
             handleGone wrsGone
-            wrsCreated <- handleAppeared wrsAppeared
-            let wrsChanged = handleStillThere wrsStillThere
+            wrsCreated <- handleAppeared borderSize wrsAppeared
+            let wrsChanged = handleStillThere borderSize wrsStillThere
                 wrsThisTime = M.union wrsChanged wrsCreated
-            return (compileWrs wrsThisTime correctOrder, Just $ BR wrsThisTime)
+            return (compileWrs wrsThisTime correctOrder, Just $ BR borderSize wrsThisTime)
             -- What we return is the original wrs with the new border
             -- windows inserted at the correct positions - this way, the core
             -- will restack the borders correctly.
@@ -91,11 +99,11 @@ instance LayoutModifier BorderResize Window where
                     then (Nothing, entry)
                     else (Just rCurrent, entry)
 
-    handleMess (BR wrsLastTime) m
+    handleMess (BR borderSize wrsLastTime) m
         | Just e <- fromMessage m :: Maybe Event =
             handleResize (createBorderLookupTable wrsLastTime) e >> return Nothing
         | Just _ <- fromMessage m :: Maybe LayoutMessages =
-            handleGone wrsLastTime >> return (Just $ BR M.empty)
+            handleGone wrsLastTime >> return (Just $ BR borderSize M.empty)
     handleMess _ _ = return Nothing
 
 compileWrs :: M.Map Window RectWithBorders -> [Window] -> [(Window, Rectangle)]
@@ -112,26 +120,26 @@ handleGone wrsGone = mapM_ deleteWindow borderWins
     where
         borderWins = map bWin . concatMap snd . M.elems $ wrsGone
 
-handleAppeared :: M.Map Window Rectangle -> X (M.Map Window RectWithBorders)
-handleAppeared wrsAppeared = do
+handleAppeared :: Dimension -> M.Map Window Rectangle -> X (M.Map Window RectWithBorders)
+handleAppeared borderSize wrsAppeared = do
     let wrs = M.toList wrsAppeared
-    wrsCreated <- mapM handleSingleAppeared wrs
+    wrsCreated <- mapM (handleSingleAppeared borderSize) wrs
     return $ M.fromList wrsCreated
 
-handleSingleAppeared :: (Window, Rectangle) -> X (Window, RectWithBorders)
-handleSingleAppeared (w, r) = do
-    let borderBlueprints = prepareBorders r
+handleSingleAppeared :: Dimension ->(Window, Rectangle) -> X (Window, RectWithBorders)
+handleSingleAppeared borderSize (w, r) = do
+    let borderBlueprints = prepareBorders borderSize r
     borderInfos <- mapM createBorder borderBlueprints
     return (w, (r, borderInfos))
 
-handleStillThere :: M.Map Window (Maybe Rectangle, RectWithBorders) -> M.Map Window RectWithBorders
-handleStillThere = M.map handleSingleStillThere
+handleStillThere :: Dimension -> M.Map Window (Maybe Rectangle, RectWithBorders) -> M.Map Window RectWithBorders
+handleStillThere borderSize = M.map (handleSingleStillThere borderSize)
 
-handleSingleStillThere :: (Maybe Rectangle, RectWithBorders) -> RectWithBorders
-handleSingleStillThere (Nothing, entry) = entry
-handleSingleStillThere (Just rCurrent, (_, borderInfos)) = (rCurrent, updatedBorderInfos)
+handleSingleStillThere :: Dimension -> (Maybe Rectangle, RectWithBorders) -> RectWithBorders
+handleSingleStillThere _            (Nothing, entry)                  = entry
+handleSingleStillThere borderSize (Just rCurrent, (_, borderInfos)) = (rCurrent, updatedBorderInfos)
     where
-        changedBorderBlueprints = prepareBorders rCurrent
+        changedBorderBlueprints = prepareBorders borderSize rCurrent
         updatedBorderInfos = zipWith (curry updateBorderInfo) borderInfos changedBorderBlueprints
           -- assuming that the four borders are always in the same order
 
@@ -144,12 +152,12 @@ createBorderLookupTable wrsLastTime = concatMap processSingleEntry (M.toList wrs
         processSingleEntry :: (Window, RectWithBorders) -> [(Window, (BorderType, Window, Rectangle))]
         processSingleEntry (w, (r, borderInfos)) = for borderInfos $ \bi -> (bWin bi, (bType bi, w, r))
 
-prepareBorders :: Rectangle -> [BorderBlueprint]
-prepareBorders (Rectangle x y wh ht) =
-    [(Rectangle (x + fi wh - fi brBorderSize) y brBorderSize ht, xC_right_side , RightSideBorder),
-     (Rectangle x y brBorderSize ht                            , xC_left_side  , LeftSideBorder),
-     (Rectangle x y wh brBorderSize                            , xC_top_side   , TopSideBorder),
-     (Rectangle x (y + fi ht - fi brBorderSize) wh brBorderSize, xC_bottom_side, BottomSideBorder)
+prepareBorders :: Dimension -> Rectangle -> [BorderBlueprint]
+prepareBorders borderSize (Rectangle x y wh ht) =
+    [(Rectangle (x + fi wh - fi borderSize) y borderSize ht, xC_right_side , RightSideBorder),
+     (Rectangle x y borderSize ht                          , xC_left_side  , LeftSideBorder),
+     (Rectangle x y wh borderSize                          , xC_top_side   , TopSideBorder),
+     (Rectangle x (y + fi ht - fi borderSize) wh borderSize, xC_bottom_side, BottomSideBorder)
     ]
 
 handleResize :: [(Window, (BorderType, Window, Rectangle))] -> Event -> X ()
