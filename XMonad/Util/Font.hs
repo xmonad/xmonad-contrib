@@ -123,12 +123,15 @@ initXMF s =
   if xftPrefix `isPrefixOf` s then
      do dpy <- asks display
         let fonts = case wordsBy (== ',') (drop (length xftPrefix) s) of
-              []       -> "xft:monospace" :| []  -- NE.singleton only in base 4.15
+              []       -> fallback :| []  -- NE.singleton only in base 4.15
               (x : xs) -> x :| xs
-        Xft <$> io (traverse (openFont dpy) fonts)
+        fb <- io $ openFont dpy fallback
+        fmap Xft . io $ traverse (\f -> E.catch (openFont dpy f) (econst $ pure fb))
+                                 fonts
   else Utf8 <$> initUtf8Font s
  where
   xftPrefix = "xft:"
+  fallback  = "xft:monospace"
   openFont dpy str = xftFontOpen dpy (defaultScreenOfDisplay dpy) str
   wordsBy p str = case dropWhile p str of
     ""   -> []
