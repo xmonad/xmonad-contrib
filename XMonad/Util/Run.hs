@@ -374,12 +374,12 @@ inTerm = asks $ mkDList . terminal . config
 -- For programs such as Emacs, 'eval' may be the safer option; while
 -- @emacsclient@ supports @-e@, the @emacs@ executable itself does not.
 execute :: String -> X Input
-execute this = pure ((" -e " <> this) <>)
+execute this = pure ((" -e " <> tryQuote this) <>)
 
 -- | Eval(uate) the argument.  Current /thing/ must support a @--eval@
 -- option.
 eval :: String -> X Input
-eval this = pure ((" --eval " <> this) <>)
+eval this = pure ((" --eval " <> tryQuote this) <>)
 
 -- | Use 'emacs'.
 inEmacs :: X Input
@@ -412,6 +412,9 @@ setXClass = pure . mkDList . (" --class " <>)
 -- support the @--working-directory@ option.
 termInDir :: X Input
 termInDir = inTerm >-> inWorkingDir
+
+-----------------------------------------------------------------------
+-- Emacs
 
 -- | Transform the given input into an elisp function; i.e., surround it
 -- with parentheses.
@@ -493,3 +496,8 @@ inParens :: String -> String
 inParens s = case s of
   '(' : _ -> s
   _       -> "(" <> s <> ")"
+
+tryQuote :: String -> String
+tryQuote s = case dropWhile (== ' ') s of
+  '\'' : _ -> s
+  _        -> "'" <> s <> "'"

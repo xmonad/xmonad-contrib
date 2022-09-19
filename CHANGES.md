@@ -11,6 +11,11 @@
   - Added `borderResizeNear` as a variant of `borderResize` that can
     control how many pixels near a border resizing still works.
 
+* `XMonad.Util.Run`
+
+  - It is now ensured that all arguments of `execute` and `eval` are
+    quoted.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
