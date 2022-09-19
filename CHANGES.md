@@ -16,6 +16,8 @@
   - It is now ensured that all arguments of `execute` and `eval` are
     quoted.
 
+  - Added `findFile` as a shorthand to call `find-file`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

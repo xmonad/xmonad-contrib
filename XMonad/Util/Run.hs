@@ -75,6 +75,7 @@ module XMonad.Util.Run (
   require,
   progn,
   quote,
+  findFile,
 
   -- * Re-exports
   hPutStr,
@@ -453,6 +454,13 @@ require = inParens . ("require " <>) . quote
 -- "(quote new-process)"
 quote :: String -> String
 quote = inParens . ("quote " <>)
+
+-- | Call @find-file@.
+--
+-- >>> findFile "/path/to/file"
+-- "(find-file \"/path/to/file\" )"
+findFile :: String -> String
+findFile = inParens . ("find-file" <>) . asString
 
 -----------------------------------------------------------------------
 -- Batch mode
