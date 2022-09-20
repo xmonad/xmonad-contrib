@@ -3,7 +3,13 @@
 ## _unreleased_
 
 ### Breaking Changes
+
+* `XMonad.Util.NamedScratchpad`:
+
+  - Deprecated the module; use `XMonad.Util.NamedScratchpad` instead.
+
 ### New Modules
+
 ### Bug Fixes and Minor Changes
 
 * `XMonad.Layout.BorderResize`
