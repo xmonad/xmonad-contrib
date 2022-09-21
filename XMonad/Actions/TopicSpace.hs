@@ -103,6 +103,9 @@ import XMonad.Hooks.WorkspaceHistory
 -- display your topics in an historical way using a custom `pprWindowSet'
 -- function. You can also easily switch to recent topics using this history
 -- of last focused topics.
+--
+-- A blog post highlighting some features of this module can be found
+-- <https://tony-zorman.com/posts/topic-space/2022-09-11-topic-spaces.html here>.
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

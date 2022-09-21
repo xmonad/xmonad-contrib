@@ -301,6 +301,10 @@ becomes
 
 which would be quite bothersome to type indeed!
 
+A blog post going into some more detail and also explaining how to
+integrate this new language with the "XMonad.Util.NamedScratchpad"
+module is available
+<https://tony-zorman.com/posts/2022-05-25-calling-emacs-from-xmonad.html here>.
 -}
 
 -----------------------------------------------------------------------
