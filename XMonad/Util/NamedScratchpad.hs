@@ -60,7 +60,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- Allows to have several floating scratchpads running different applications.
--- Bind a key to 'namedScratchpadSpawnAction'.
+-- Bind a key to 'namedScratchpadAction'.
 -- Pressing it will spawn configured application, or bring it to the current
 -- workspace if it already exists.
 -- Pressing the key with the application on the current workspace will
