@@ -20,7 +20,7 @@ module XMonad.Layout.MouseResizableTile (
                                     -- $usage
                                     mouseResizableTile,
                                     mouseResizableTileMirrored,
-                                    MRTMessage (ShrinkSlave, ExpandSlave),
+                                    MRTMessage (ShrinkSlave, ExpandSlave, SetMasterFraction, SetLeftSlaveFraction, SetRightSlaveFraction),
 
                                     -- * Parameters
                                     -- $mrtParameters
