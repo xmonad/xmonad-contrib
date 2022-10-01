@@ -36,6 +36,7 @@ module XMonad.Util.Parser (
   runParser,
 
   -- * Primitive Parsers
+  pfail,
   eof,
   num,
   char,
@@ -43,10 +44,17 @@ module XMonad.Util.Parser (
   skipSpaces,
   get,
   look,
+  gather,
 
   -- * Combining Parsers
   satisfy,
   choice,
+  count,
+  between,
+  option,
+  optionally,
+  skipMany,
+  skipMany1,
   many1,
   sepBy,
   sepBy1,
@@ -54,7 +62,11 @@ module XMonad.Util.Parser (
   endBy1,
   munch,
   munch1,
-  pfail
+  chainr,
+  chainr1,
+  chainl,
+  chainl1,
+  manyTill,
 ) where
 
 import XMonad.Prelude
@@ -161,11 +173,21 @@ get = coerce ReadP.get
 look :: Parser String
 look = coerce ReadP.look
 
+-- | Transform a parser into one that does the same, but in addition
+-- returns the exact characters read.
+--
+-- >>> runParser (         string "* " $> True) "* hi"
+-- Just True
+-- >>> runParser (gather $ string "* " $> True) "* hi"
+-- Just ("* ",True)
+gather :: forall a. Parser a -> Parser (String, a)
+gather = coerce (ReadP.gather @a)
+
 -- | Succeeds if and only if we are at the end of input.
 eof :: Parser ()
 eof = coerce ReadP.eof
 
--- | Parse an integral number number.
+-- | Parse an integral number.
 num :: (Read a, Integral a) => Parser a
 num = read <$> munch1 isDigit
 {-# SPECIALISE num :: Parser Word    #-}
@@ -192,6 +214,33 @@ satisfy = coerce ReadP.satisfy
 -- | Combine all parsers in the given list in a left-biased way.
 choice :: [Parser a] -> Parser a
 choice = foldl' (<>) mempty
+
+-- | @count n p@ parses @n@ occurrences of @p@ in sequence and returns a
+-- list of results.
+count :: Int -> Parser a -> Parser [a]
+count = replicateM
+
+-- | @between open close p@ parses @open@, followed by @p@ and finally
+-- @close@.  Only the value of @p@ is returned.
+between :: Parser open -> Parser close -> Parser a -> Parser a
+between open close p = open *> p <* close
+
+-- | @option def p@ will try to parse @p@ and, if it fails, simply
+-- return @def@ without consuming any input.
+option :: a -> Parser a -> Parser a
+option def p = p <|> pure def
+
+-- | @optionally p@ optionally parses @p@ and always returns @()@.
+optionally :: Parser a -> Parser ()
+optionally p = void p <|> pure ()
+
+-- | Like 'many', but discard the result.
+skipMany :: Parser a -> Parser ()
+skipMany = void . many
+
+-- | Like 'many1', but discard the result.
+skipMany1 :: Parser a -> Parser ()
+skipMany1 p = p *> skipMany p
 
 -- | Parse the first zero or more characters satisfying the predicate.
 -- Always succeeds; returns an empty string if the predicate returns
@@ -228,3 +277,48 @@ sepBy p sep = sepBy1 p sep <> pure []
 -- @sep@.  Returns a list of values returned by @p@.
 sepBy1 :: Parser a -> Parser sep -> Parser [a]
 sepBy1 p sep = liftA2 (:) p (many (sep *> p))
+
+-- | @chainr p op x@ parses zero or more occurrences of @p@, separated
+-- by @op@.  Returns a value produced by a /right/ associative
+-- application of all functions returned by @op@.  If there are no
+-- occurrences of @p@, @x@ is returned.
+chainr :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
+chainr p op x = option x (chainr1 p op)
+
+-- | Like 'chainr', but parses one or more occurrences of @p@.
+chainr1 :: forall a. Parser a -> Parser (a -> a -> a) -> Parser a
+chainr1 p op = scan
+ where
+  scan :: Parser a
+  scan = p >>= rest
+
+  rest :: a -> Parser a
+  rest x = option x $ do f <- op
+                         f x <$> scan
+
+-- | @chainl p op x@ parses zero or more occurrences of @p@, separated
+-- by @op@.  Returns a value produced by a /left/ associative
+-- application of all functions returned by @op@.  If there are no
+-- occurrences of @p@, @x@ is returned.
+chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
+chainl p op x = option x (chainl1 p op)
+
+-- | Like 'chainl', but parses one or more occurrences of @p@.
+chainl1 :: forall a. Parser a -> Parser (a -> a -> a) -> Parser a
+chainl1 p op = scan
+ where
+  scan :: Parser a
+  scan = p >>= rest
+
+  rest :: a -> Parser a
+  rest x = option x $ do f <- op
+                         y <- p
+                         rest (f x y)
+
+-- | @manyTill p end@ parses zero or more occurrences of @p@, until
+-- @end@ succeeds.  Returns a list of values returned by @p@.
+manyTill :: forall a end. Parser a -> Parser end -> Parser [a]
+manyTill p end = scan
+ where
+  scan :: Parser [a]
+  scan = end $> [] <|> liftA2 (:) p scan

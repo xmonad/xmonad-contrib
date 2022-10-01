@@ -66,6 +66,13 @@
 
   - Added `findFile` as a shorthand to call `find-file`.
 
+* `XMonad.Util.Parser`
+
+  - Added the `gather`, `count`, `between`, `option`, `optionally`,
+    `skipMany`, `skipMany1`, `chainr`, `chainr1`, `chainl`, `chainl1`,
+    and `manyTill` functions, in order to achieve feature parity with
+    `Text.ParserCombinators.ReadP`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
