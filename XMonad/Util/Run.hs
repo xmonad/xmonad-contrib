@@ -446,14 +446,14 @@ elispFun f = " '( " <> f <> " )' "
 asString :: String -> String
 asString s = " \"" <> s <> "\" "
 
--- | Wrap the given commands in a @progn@ and also escape it by wrapping
--- it inside single quotes.  The given commands need not be wrapped in
--- parentheses, this will be done by the function.  For example:
+-- | Wrap the given commands in a @progn@.  The given commands need not
+-- be wrapped in parentheses (but can); this will be done by the
+-- function.  For example:
 --
 -- >>> progn [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
--- " '( progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2) )' "
+-- "(progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2))"
 progn :: [String] -> String
-progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
+progn = inParens . ("progn " <>) . unwords . map inParens
 
 -- | Require a package.
 --
