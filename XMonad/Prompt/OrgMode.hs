@@ -202,7 +202,7 @@ orgPrompt
                --   a single @*@
   -> FilePath  -- ^ Path to @.org@ file, e.g. @home\/me\/todos.org@
   -> X ()
-orgPrompt xpc = (mkOrgPrompt xpc =<<) .: mkOrgCfg NoClpSupport
+orgPrompt xpc = (void . mkOrgPrompt xpc =<<) .: mkOrgCfg NoClpSupport
 
 -- | Like 'orgPrompt', but additionally make use of the primary
 -- selection.  If it is a URL, then use an org-style link
@@ -212,12 +212,14 @@ orgPrompt xpc = (mkOrgPrompt xpc =<<) .: mkOrgCfg NoClpSupport
 -- The prompt will display a little @+ PS@ in the window
 -- after the type of note.
 orgPromptPrimary :: XPConfig -> String -> FilePath -> X ()
-orgPromptPrimary xpc = (mkOrgPrompt xpc =<<) .: mkOrgCfg PrimarySelection
+orgPromptPrimary xpc = (void . mkOrgPrompt xpc =<<) .: mkOrgCfg PrimarySelection
 
--- | Create the actual prompt.
-mkOrgPrompt :: XPConfig -> OrgMode -> X ()
+-- | Create the actual prompt.  Returns 'False' when the input was
+-- cancelled by the user (by, for example, pressing @Esc@ or @C-g@) and
+-- 'True' otherwise.
+mkOrgPrompt :: XPConfig -> OrgMode -> X Bool
 mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
-  mkXPrompt oc xpc (const (pure [])) appendNote
+  isJust <$> mkXPromptWithReturn oc xpc (const (pure [])) appendNote
  where
   -- | Parse the user input, create an @org-mode@ note out of that and
   -- try to append it to the given file.
