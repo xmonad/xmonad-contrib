@@ -9,6 +9,19 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+{- |
+
+Cyclic one-dimensional workspace layouts for XMonad
+
+This module is intended mostly to serve as another example workspace
+layout other than 'XMonad.WorkspaceLayout.Grid'.
+
+However, a cyclic layout is not particularly useful, and so this
+module isn't /really/ intended to be used. Feel free to if you want,
+though. It should still work!
+
+-}
+
 module XMonad.WorkspaceLayout.Cycle
   ( Coord (..)
   , Config (..)

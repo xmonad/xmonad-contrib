@@ -10,6 +10,14 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+{- |
+
+Generic operations for workspace layouts
+
+See 'XMonad.WorkspaceLayout.Grid'
+
+-}
+
 module XMonad.WorkspaceLayout.Core where
 
 import           Prelude                      hiding (span)
@@ -35,13 +43,26 @@ data WorkspaceLayoutView = WSLView
   } deriving (Generic)
 
 
+-- |
+--
+-- Render a workspace layout to a 'PP'
+--
+-- If you add additional modifications on top of this, take care not to overwrite
+-- what's already been set. For instance, instead of doing:
+--
+-- > (render view) { ppHidden = myHidden }
+--
+-- prefer
+--
+-- > let rendered = render view
+-- > in rendered { ppHidden = myHidden . rendered }
 render :: WorkspaceLayoutView -> PP
 render (WSLView { neighborhood, toName, label }) =
   def
     -- display the workspace names
-    { ppCurrent = toName
-    , ppHidden = toName
-    , ppHiddenNoWindows = toName
+    { ppCurrent = ppCurrent def . toName
+    , ppHidden = ppHidden def . toName
+    , ppHiddenNoWindows = (map (const '.')) . toName
 
     -- display only a subset of workspaces (the "neighborhood") of the current workspace
     , ppSort = do
