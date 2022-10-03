@@ -77,6 +77,8 @@ module XMonad.Util.Run (
   progn,
   quote,
   findFile,
+  list,
+  saveExcursion,
 
   -- * Re-exports
   hPutStr,
@@ -473,6 +475,20 @@ quote = inParens . ("quote " <>)
 -- "(find-file \"/path/to/file\" )"
 findFile :: String -> String
 findFile = inParens . ("find-file" <>) . asString
+
+-- | Make a list of the given inputs.
+--
+-- >>> list ["foo", "bar", "baz", "qux"]
+-- "(list foo bar baz qux)"
+list :: [String] -> String
+list = inParens . ("list " <>) . unwords
+
+-- | Like 'progn', but with @save-excursion@.
+--
+-- >>> saveExcursion [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
+-- "(save-excursion (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2))"
+saveExcursion :: [String] -> String
+saveExcursion = inParens . ("save-excursion " <>) . unwords . map inParens
 
 -----------------------------------------------------------------------
 -- Batch mode

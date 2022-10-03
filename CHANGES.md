@@ -67,6 +67,8 @@
 
   - Added `findFile` as a shorthand to call `find-file`.
 
+  - Added `list` and `saveExcursion` to the list of Emacs commands.
+
 * `XMonad.Util.Parser`
 
   - Added the `gather`, `count`, `between`, `option`, `optionally`,
