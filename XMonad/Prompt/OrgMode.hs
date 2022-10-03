@@ -173,6 +173,9 @@ data OrgMode = OrgMode
   , orgFile    :: FilePath
   }
 
+mkOrgCfg :: ClipboardSupport -> String -> FilePath -> X OrgMode
+mkOrgCfg clp header fp = OrgMode clp header <$> mkAbsolutePath fp
+
 -- | Whether we should use a clipboard and which one to use.
 data ClipboardSupport
   = PrimarySelection
@@ -199,7 +202,7 @@ orgPrompt
                --   a single @*@
   -> FilePath  -- ^ Path to @.org@ file, e.g. @home\/me\/todos.org@
   -> X ()
-orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
+orgPrompt xpc = (mkOrgPrompt xpc =<<) .: mkOrgCfg NoClpSupport
 
 -- | Like 'orgPrompt', but additionally make use of the primary
 -- selection.  If it is a URL, then use an org-style link
@@ -209,7 +212,7 @@ orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
 -- The prompt will display a little @+ PS@ in the window
 -- after the type of note.
 orgPromptPrimary :: XPConfig -> String -> FilePath -> X ()
-orgPromptPrimary xpc = mkOrgPrompt xpc .: OrgMode PrimarySelection
+orgPromptPrimary xpc = (mkOrgPrompt xpc =<<) .: mkOrgCfg PrimarySelection
 
 -- | Create the actual prompt.
 mkOrgPrompt :: XPConfig -> OrgMode -> X ()
@@ -228,10 +231,7 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
                then Header sel
                else Body   $ "\n " <> sel
 
-    -- Expand path if applicable
-    fp <- mkAbsolutePath orgFile
-
-    withFile fp AppendMode . flip hPutStrLn
+    withFile orgFile AppendMode . flip hPutStrLn
       <=< maybe (pure "") (ppNote clpStr todoHeader) . pInput
         $ input
 
