@@ -37,24 +37,18 @@ data WorkspaceLayoutView = WSLView
 
 render :: WorkspaceLayoutView -> PP
 render (WSLView { neighborhood, toName, label }) =
-
-  withLabel . withNameTransform . withNeighborhood $ def
-
-  where
-
-  withNameTransform pp = pp
+  def
+    -- display the workspace names
     { ppCurrent = toName
     , ppHidden = toName
     , ppHiddenNoWindows = toName
-    }
 
-  withNeighborhood pp = pp
-    { ppSort = do
+    -- display only a subset of workspaces (the "neighborhood") of the current workspace
+    , ppSort = do
         sort <- (mkWsSort . pure) (compare `on` flip elemIndex neighborhood)
         pure $ filter (tag >>> (`elem` neighborhood)) >>> sort
-    }
 
-  withLabel pp = pp
-    { ppOrder = \(workspaces : rest) -> (label <> workspaces) : rest
+    -- display the label to the left
+    , ppOrder = \(workspaces : rest) -> (label <> workspaces) : rest
     }
 
