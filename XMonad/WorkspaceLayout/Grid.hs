@@ -43,11 +43,9 @@ module XMonad.WorkspaceLayout.Grid
 
 import           Prelude                     hiding (span)
 
-import           Control.Category            ((>>>))
 import           Data.Foldable               (fold, toList)
 import           Data.Function               ((&))
-import           Data.List                   (intercalate, nub)
-import           Data.List.Split             (splitOn)
+import           Data.List                   (nub)
 import           Data.Map                    (Map)
 import qualified Data.Map                    as Map
 import           Data.Maybe                  (catMaybes, fromMaybe)
@@ -59,8 +57,6 @@ import           XMonad.StackSet             (greedyView, shift)
 import qualified XMonad.Util.OneState        as St
 import           XMonad.WorkspaceLayout.Core (WorkspaceLayoutView (..))
 import           XMonad.WorkspaceLayout.Util (affineMod)
-
-
 
 data Formatted
 
@@ -97,7 +93,13 @@ doToName :: forall ftd. IsFormatted ftd => WorkspaceId -> String
 doToName =
   case demoteFormatted @ftd of
     Unformatted -> id
-    Formatted   -> splitOn ":" >>> drop 1 >>> intercalate ":"
+    Formatted   -> dropThrough ':'
+
+  where
+
+  -- dropThrough '~' "aa~bb~cc" == "bb~cc"
+  dropThrough :: Char -> String -> String
+  dropThrough delim = drop 1 . dropWhile (/= delim)
 
 
 class IsFormatted (ftd :: Formatted) where

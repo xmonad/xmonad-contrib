@@ -371,6 +371,7 @@ library
                         XMonad.Util.NamedScratchpad
                         XMonad.Util.NamedWindows
                         XMonad.Util.NoTaskbar
+                        XMonad.Util.OneState
                         XMonad.Util.Parser
                         XMonad.Util.Paste
                         XMonad.Util.PositionStore
@@ -396,6 +397,10 @@ library
                         XMonad.Util.WorkspaceCompare
                         XMonad.Util.XSelection
                         XMonad.Util.XUtils
+                        XMonad.WorkspaceLayout.Core
+                        XMonad.WorkspaceLayout.Cycle
+                        XMonad.WorkspaceLayout.Grid
+                        XMonad.WorkspaceLayout.Util
 
 test-suite tests
   type:           exitcode-stdio-1.0
