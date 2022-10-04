@@ -29,7 +29,7 @@ module XMonad.Config.Bluetile (
 import XMonad
 
 import XMonad.Layout.BorderResize
-import XMonad.Layout.BoringWindows
+import XMonad.Layout.BoringWindows hiding (Replace)
 import XMonad.Layout.ButtonDecoration
 import XMonad.Layout.Decoration
 import XMonad.Layout.DecorationAddons
@@ -37,7 +37,7 @@ import XMonad.Layout.DraggingVisualizer
 import XMonad.Layout.Maximize
 import XMonad.Layout.Minimize
 import XMonad.Layout.MouseResizableTile
-import XMonad.Layout.Named
+import XMonad.Layout.Renamed
 import XMonad.Layout.NoBorders
 import XMonad.Layout.PositionStoreFloat
 import XMonad.Layout.WindowSwitcherDecoration
@@ -183,10 +183,10 @@ bluetileManageHook = composeAll
                 , isFullscreen --> doFullFloat]
 
 bluetileLayoutHook = avoidStruts $ minimize $ boringWindows $
-                        named "Floating" floating |||
-                        named "Tiled1" tiled1 |||
-                        named "Tiled2" tiled2 |||
-                        named "Fullscreen" fullscreen
+                        renamed [Replace "Floating"] floating |||
+                        renamed [Replace "Tiled1"] tiled1 |||
+                        renamed [Replace "Tiled2"] tiled2 |||
+                        renamed [Replace "Fullscreen"] fullscreen
         where
             floating = floatingDeco $ maximize $ borderResize positionStoreFloat
             tiled1 = tilingDeco $ maximize mouseResizableTileMirrored
