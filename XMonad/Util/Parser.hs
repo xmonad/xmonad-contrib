@@ -135,18 +135,22 @@ instance Semigroup (Parser a) where
   -- produces any result at all, then right parser is not used.
   (<>) :: Parser a -> Parser a -> Parser a
   (<>) = coerce ((<++) @a)
+  {-# INLINE (<>) #-}
 
 instance Monoid (Parser a) where
   -- | A parser that always fails.
   mempty :: Parser a
   mempty = Parser empty
+  {-# INLINE mempty #-}
 
 instance Alternative Parser where
   empty :: Parser a
   empty = mempty
+  {-# INLINE empty #-}
 
   (<|>) :: Parser a -> Parser a -> Parser a
   (<|>) = (<>)
+  {-# INLINE (<|>) #-}
 
 -- | When @-XOverloadedStrings@ is on, treat a string @s@ as the parser
 -- @'string' s@, when appropriate.  This allows one to write things like
@@ -154,24 +158,29 @@ instance Alternative Parser where
 instance a ~ String => IsString (Parser a) where
   fromString :: String -> Parser a
   fromString = string
+  {-# INLINE fromString #-}
 
 -- | Run a parser on a given string.
 runParser :: Parser a -> String -> Maybe a
 runParser (Parser p) = fmap fst . listToMaybe . ReadP.readP_to_S p
+{-# INLINE runParser #-}
 
 -- | Always fails
 pfail :: Parser a
 pfail = empty
+{-# INLINE pfail #-}
 
 -- | Consume and return the next character.  Fails if there is no input
 -- left.
 get :: Parser Char
 get = coerce ReadP.get
+{-# INLINE get #-}
 
 -- | Look-ahead: return the part of the input that is left, without
 -- consuming it.
 look :: Parser String
 look = coerce ReadP.look
+{-# INLINE look #-}
 
 -- | Transform a parser into one that does the same, but in addition
 -- returns the exact characters read.
@@ -182,101 +191,119 @@ look = coerce ReadP.look
 -- Just ("* ",True)
 gather :: forall a. Parser a -> Parser (String, a)
 gather = coerce (ReadP.gather @a)
+{-# INLINE gather #-}
 
 -- | Succeeds if and only if we are at the end of input.
 eof :: Parser ()
 eof = coerce ReadP.eof
+{-# INLINE eof #-}
 
 -- | Parse an integral number.
 num :: (Read a, Integral a) => Parser a
 num = read <$> munch1 isDigit
-{-# SPECIALISE num :: Parser Word    #-}
-{-# SPECIALISE num :: Parser Int     #-}
-{-# SPECIALISE num :: Parser Integer #-}
+{-# INLINE num #-}
 
 -- | Parse and return the specified character.
 char :: Char -> Parser Char
 char = coerce ReadP.char
+{-# INLINE char #-}
 
 -- | Parse and return the specified string.
 string :: String -> Parser String
 string = coerce ReadP.string
+{-# INLINE string #-}
 
 -- | Skip all whitespace.
 skipSpaces :: Parser ()
 skipSpaces = coerce ReadP.skipSpaces
+{-# INLINE skipSpaces #-}
 
 -- | Consume and return the next character if it satisfies the specified
 -- predicate.
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy = coerce ReadP.satisfy
+{-# INLINE satisfy #-}
 
 -- | Combine all parsers in the given list in a left-biased way.
 choice :: [Parser a] -> Parser a
 choice = foldl' (<>) mempty
+{-# INLINE choice #-}
 
 -- | @count n p@ parses @n@ occurrences of @p@ in sequence and returns a
 -- list of results.
 count :: Int -> Parser a -> Parser [a]
 count = replicateM
+{-# INLINE count #-}
 
 -- | @between open close p@ parses @open@, followed by @p@ and finally
 -- @close@.  Only the value of @p@ is returned.
 between :: Parser open -> Parser close -> Parser a -> Parser a
 between open close p = open *> p <* close
+{-# INLINE between #-}
 
 -- | @option def p@ will try to parse @p@ and, if it fails, simply
 -- return @def@ without consuming any input.
 option :: a -> Parser a -> Parser a
 option def p = p <|> pure def
+{-# INLINE option #-}
 
 -- | @optionally p@ optionally parses @p@ and always returns @()@.
 optionally :: Parser a -> Parser ()
 optionally p = void p <|> pure ()
+{-# INLINE optionally #-}
 
 -- | Like 'many', but discard the result.
 skipMany :: Parser a -> Parser ()
 skipMany = void . many
+{-# INLINE skipMany #-}
 
 -- | Like 'many1', but discard the result.
 skipMany1 :: Parser a -> Parser ()
 skipMany1 p = p *> skipMany p
+{-# INLINE skipMany1 #-}
 
 -- | Parse the first zero or more characters satisfying the predicate.
 -- Always succeeds; returns an empty string if the predicate returns
 -- @False@ on the first character of input.
 munch :: (Char -> Bool) -> Parser String
 munch = coerce ReadP.munch
+{-# INLINE munch #-}
 
 -- | Parse the first one or more characters satisfying the predicate.
 -- Fails if none, else succeeds exactly once having consumed all the
 -- characters.
 munch1 :: (Char -> Bool) -> Parser String
 munch1 = coerce ReadP.munch1
+{-# INLINE munch1 #-}
 
 -- | @endBy p sep@ parses zero or more occurrences of @p@, separated and
 -- ended by @sep@.
 endBy :: Parser a -> Parser sep -> Parser [a]
 endBy p sep = many (p <* sep)
+{-# INLINE endBy #-}
 
 -- | @endBy p sep@ parses one or more occurrences of @p@, separated and
 -- ended by @sep@.
 endBy1 :: Parser a -> Parser sep -> Parser [a]
 endBy1 p sep = many1 (p <* sep)
+{-# INLINE endBy1 #-}
 
 -- | Parse one or more occurrences of the given parser.
 many1 :: Parser a -> Parser [a]
-many1 p = liftA2 (:) p (many p)
+many1 = some
+{-# INLINE many1 #-}
 
 -- | @sepBy p sep@ parses zero or more occurrences of @p@, separated by
 -- @sep@.  Returns a list of values returned by @p@.
 sepBy :: Parser a -> Parser sep -> Parser [a]
 sepBy p sep = sepBy1 p sep <> pure []
+{-# INLINE sepBy #-}
 
 -- | @sepBy1 p sep@ parses one or more occurrences of @p@, separated by
 -- @sep@.  Returns a list of values returned by @p@.
 sepBy1 :: Parser a -> Parser sep -> Parser [a]
 sepBy1 p sep = liftA2 (:) p (many (sep *> p))
+{-# INLINE sepBy1 #-}
 
 -- | @chainr p op x@ parses zero or more occurrences of @p@, separated
 -- by @op@.  Returns a value produced by a /right/ associative
@@ -284,6 +311,7 @@ sepBy1 p sep = liftA2 (:) p (many (sep *> p))
 -- occurrences of @p@, @x@ is returned.
 chainr :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
 chainr p op x = option x (chainr1 p op)
+{-# INLINE chainr #-}
 
 -- | Like 'chainr', but parses one or more occurrences of @p@.
 chainr1 :: forall a. Parser a -> Parser (a -> a -> a) -> Parser a
@@ -295,6 +323,7 @@ chainr1 p op = scan
   rest :: a -> Parser a
   rest x = option x $ do f <- op
                          f x <$> scan
+{-# INLINE chainr1 #-}
 
 -- | @chainl p op x@ parses zero or more occurrences of @p@, separated
 -- by @op@.  Returns a value produced by a /left/ associative
@@ -302,6 +331,7 @@ chainr1 p op = scan
 -- occurrences of @p@, @x@ is returned.
 chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
 chainl p op x = option x (chainl1 p op)
+{-# INLINE chainl #-}
 
 -- | Like 'chainl', but parses one or more occurrences of @p@.
 chainl1 :: forall a. Parser a -> Parser (a -> a -> a) -> Parser a
@@ -314,6 +344,7 @@ chainl1 p op = scan
   rest x = option x $ do f <- op
                          y <- p
                          rest (f x y)
+{-# INLINE chainl1 #-}
 
 -- | @manyTill p end@ parses zero or more occurrences of @p@, until
 -- @end@ succeeds.  Returns a list of values returned by @p@.
@@ -322,3 +353,4 @@ manyTill p end = scan
  where
   scan :: Parser [a]
   scan = end $> [] <|> liftA2 (:) p scan
+{-# INLINE manyTill #-}
