@@ -92,6 +92,12 @@
     in case `lineNavigation` can't find a window.  This benefits
     especially users who use `XMonad.Layout.Spacing`.
 
+* `XMonad.Prompt.OrgMode`
+
+  - Added `orgPromptRefile` and `orgPromptRefileTo` for interactive and
+    targeted refiling of the entered note into some existing tree of
+    headings, respectively.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
