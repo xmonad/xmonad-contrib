@@ -4,7 +4,7 @@
 
 ### Breaking Changes
 
-  * `XMonad.Util.NamedScratchpad`:
+  * `XMonad.Util.Scratchpad`:
 
     - Deprecated the module; use `XMonad.Util.NamedScratchpad` instead.
 
