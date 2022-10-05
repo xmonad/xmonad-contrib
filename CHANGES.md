@@ -6,7 +6,7 @@
 
   * `XMonad.Util.NamedScratchpad`:
 
-  - Deprecated the module; use `XMonad.Util.NamedScratchpad` instead.
+    - Deprecated the module; use `XMonad.Util.NamedScratchpad` instead.
 
   * `XMonad.Actions.Navigation2D`
 
@@ -20,8 +20,8 @@
 
   * `XMonad.Actions.MessageFeedback`
 
-    - Removed deprecated functions `send`, `sendSM`, `sendSM`_,
-      `tryInOrder`, `tryInOrder`_, `tryMessage`, and `tryMessage`_.
+    - Removed deprecated functions `send`, `sendSM`, `sendSM_`,
+      `tryInOrder`, `tryInOrder_`, `tryMessage`, and `tryMessage_`.
 
   * `XMonad.Prompt.Window`
 
@@ -83,7 +83,7 @@
     - Deprecated all of these modules.  The user-specific configuration
       modules may still be found [on the website].
 
- * `XMonad.Util.NamedScratchpad`
+  * `XMonad.Util.NamedScratchpad`
 
     - Scratchpads are now only based on the argument given to
       `namedScratchpadManageHook`; all other scratchpad arguments are,
@@ -147,7 +147,7 @@
     A module for adding a keybinding to repeat the last action, similar
     to Vim's `.` or Emacs's `dot-mode`.
 
- * `XMonad.Util.Grab`
+  * `XMonad.Util.Grab`
 
     Utilities for making grabbing and ungrabbing keys more convenient.
 
