@@ -47,26 +47,23 @@ data WorkspaceLayoutView = WSLView
 --
 -- Render a workspace layout to a 'PP'
 --
--- If you're just getting up-and-running, prefer 'render'' for now.
+-- When modifying the result 'PP', be careful when overwriting any of
 --
--- The result @PP@ will not add any styling to differentiate focused/hidden/etc
--- windows. You will have to add additional modifications on top (or just
--- use 'render''). When doing so, take care not to overwrite
--- what's already been set. For instance, instead of doing:
+-- * 'ppRename'
+-- * 'ppSort'
+-- * 'ppOrder'
 --
--- > (render view) { ppHidden = myHidden }
---
--- prefer
---
--- > let rendered = render view
--- > in rendered { ppHidden = myHidden . rendered }
+-- as the provided implementations are designed to make the workspace
+-- layout perform as expected
 render :: WorkspaceLayoutView -> PP
 render (WSLView { neighborhood, toName, label }) =
   def
     -- display the workspace names
-    { ppCurrent = toName
-    , ppHidden = toName
-    , ppHiddenNoWindows = toName
+    { ppRename = const . toName
+
+    -- display hidden windows as ellipses because blanking out hidden
+    -- windows doesn't make as much sense in the grid paradigm
+    , ppHiddenNoWindows = map (const '.')
 
     -- display only a subset of workspaces (the "neighborhood") of the current workspace
     , ppSort = do
@@ -75,13 +72,4 @@ render (WSLView { neighborhood, toName, label }) =
 
     -- display the label to the left
     , ppOrder = \(workspaces : rest) -> (label <> workspaces) : rest
-    }
-
--- | Like 'render' but with some defaults for how to display focused/hidden/etc windows
-render' :: WorkspaceLayoutView -> PP
-render' wsl =
-  let pp = render wsl in pp
-    { ppCurrent = ppCurrent def . ppCurrent pp
-    , ppHidden = ppHidden def . ppHidden pp
-    , ppHiddenNoWindows = (map (const '.')) . ppHiddenNoWindows pp
     }

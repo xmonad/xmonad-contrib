@@ -397,7 +397,7 @@ hook Init { initMapping, initWrapping, initLabelf } =
 --
 -- Generate the layout view.
 --
--- Use this with 'XMonad.WorkspaceLayout.Core.render'' to render to your status bar.
+-- Use this with 'XMonad.WorkspaceLayout.Core.render' to render to your status bar.
 getView :: X WorkspaceLayoutView
 getView = do
   State { coord, mapping, labelf } <- St.get
@@ -455,7 +455,7 @@ For this config to actually be useful, we also need to:
 
 - Hook into XMonad with @Grid.hook gridConfig@
 - Set up keybindings for 'move' to move around the layout
-- Set up the layout display by generating a 'XMonad.Hooks.StatusBar.PP.PP' with @XMonad.WorkspaceLayouts.Core.render' \<$\> Grid.getView@ and displaying that @PP@ however we like
+- Set up the layout display by generating a 'XMonad.Hooks.StatusBar.PP.PP' with @XMonad.WorkspaceLayouts.Core.render \<$\> Grid.getView@ and displaying that @PP@ however we like
 
 I use XMobar to display my status bar, and with this configuration I get something that looks like this:
 
