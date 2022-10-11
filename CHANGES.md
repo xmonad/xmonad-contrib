@@ -62,7 +62,8 @@
 * `XMonad.Util.Run`
 
   - It is now ensured that all arguments of `execute` and `eval` are
-    quoted.
+    quoted.  Likewise, `executeNoQuote` is added as a version of
+    `execute` that does not do that.
 
   - Added `findFile` as a shorthand to call `find-file`.
 

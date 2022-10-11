@@ -60,8 +60,9 @@ module XMonad.Util.Run (
   (>->),
   (>-$),
   inWorkingDir,
-  execute,
   eval,
+  execute,
+  executeNoQuote,
   setXClass,
   asString,
 
@@ -378,8 +379,15 @@ inTerm = asks $ mkDList . terminal . config
 -- | Execute the argument.  Current /thing/ must support a @-e@ option.
 -- For programs such as Emacs, 'eval' may be the safer option; while
 -- @emacsclient@ supports @-e@, the @emacs@ executable itself does not.
+--
+-- Note that this function always wraps its argument in single quotes;
+-- see 'executeNoQuote' for an alternative.
 execute :: String -> X Input
 execute this = pure ((" -e " <> tryQuote this) <>)
+
+-- | Like 'execute', but doesn't wrap its argument in single quotes.
+executeNoQuote :: String -> X Input
+executeNoQuote this = pure ((" -e " <> this) <>)
 
 -- | Eval(uate) the argument.  Current /thing/ must support a @--eval@
 -- option.
