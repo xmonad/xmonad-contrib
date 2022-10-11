@@ -43,33 +43,22 @@ data WorkspaceLayoutView = WSLView
   } deriving (Generic)
 
 
--- |
---
--- Render a workspace layout to a 'PP'
---
--- When modifying the result 'PP', be careful when overwriting any of
---
--- * 'ppRename'
--- * 'ppSort'
--- * 'ppOrder'
---
--- as the provided implementations are designed to make the workspace
--- layout perform as expected
-render :: WorkspaceLayoutView -> PP
-render (WSLView { neighborhood, toName, label }) =
-  def
+-- | Render a workspace layout onto an existing 'PP'
+modPPWithWorkspaceLayout :: WorkspaceLayoutView -> (PP -> PP)
+modPPWithWorkspaceLayout (WSLView { neighborhood, toName, label }) pp =
+  pp
     -- display the workspace names
-    { ppRename = const . toName
-
-    -- display hidden windows as ellipses because blanking out hidden
-    -- windows doesn't make as much sense in the grid paradigm
-    , ppHiddenNoWindows = map (const '.')
+    { ppRename = (fmap . fmap) toName (ppRename pp)
 
     -- display only a subset of workspaces (the "neighborhood") of the current workspace
     , ppSort = do
-        sort <- (mkWsSort . pure) (compare `on` flip elemIndex neighborhood)
-        pure $ filter (tag >>> (`elem` neighborhood)) >>> sort
+        oldSort <- ppSort pp
+        newSort <- do
+          sortIt <- (mkWsSort . pure) (compare `on` flip elemIndex neighborhood)
+          let filterIt = filter (tag >>> (`elem` neighborhood))
+          pure $ filterIt >>> sortIt
+        pure $ newSort . oldSort
 
-    -- display the label to the left
-    , ppOrder = \(workspaces : rest) -> (label <> workspaces) : rest
+    -- display label to the left
+    , ppOrder = ppOrder pp >>> (\(ws : rest) -> (label <> ws) : rest)
     }
