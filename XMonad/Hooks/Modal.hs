@@ -117,7 +117,7 @@ import           XMonad.Util.Parser            ( runParser )
 --
 --   - @[(String, X ())]@, or
 --
---   - @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@).
+--   - @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@.
 --
 -- The former—accessible via 'mkKeysEz'—is how specifying keys work with
 -- "XMonad.Util.EZConfig", while the latter is more geared towards how
@@ -135,21 +135,17 @@ import           XMonad.Util.Parser            ( runParser )
 
 -- --< Types >-- {{{
 
--- | Internally, we represent keys as the usual function type:
--- @XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())@.
-type Keys = XConfig Layout -> M.Map (ButtonMask, KeySym) (X ())
-
 -- | From a list of 'XMonad.Util.EZConfig'-style bindings, generate a
 -- key representation.
 --
 -- >>> mkKeysEz [("h", xmessage "Hello, world!")]
-mkKeysEz :: [(String, X ())] -> Keys
+mkKeysEz :: [(String, X ())] -> (XConfig Layout -> M.Map (ButtonMask, KeySym) (X ()))
 mkKeysEz = flip mkKeymap
 
 -- | The mode type. Use 'mode' or 'modeWithExit' to create modes.
 data Mode = Mode
   { label     :: !String
-  , boundKeys :: !Keys
+  , boundKeys :: !(XConfig Layout -> M.Map (ButtonMask, KeySym) (X ()))
   }
 
 -- | Newtype for the extensible config.
@@ -213,14 +209,14 @@ modal modes = XC.once
 
 -- | Create a 'Mode' from the given binding to 'exitMode', label and
 -- keybindings.
-modeWithExit :: String -> String -> Keys -> Mode
+modeWithExit :: String -> String -> (XConfig Layout -> M.Map (KeyMask, KeySym) (X ())) -> Mode
 modeWithExit exitKey mlabel keys = Mode mlabel $ \cnf ->
   let exit = fromMaybe (0, xK_Escape) $ runParser (parseKeyCombo cnf) exitKey
    in M.insert exit exitMode (keys cnf)
 
 -- | Create a 'Mode' from the given label and keybindings. Sets the
 -- @escape@ key to 'exitMode'.
-mode :: String -> Keys -> Mode
+mode :: String -> (XConfig Layout -> M.Map (KeyMask, KeySym) (X ())) -> Mode
 mode = modeWithExit "<Escape>"
 
 -- | Set the current 'Mode' based on its label.
