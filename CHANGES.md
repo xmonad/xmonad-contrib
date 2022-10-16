@@ -84,6 +84,12 @@
   - Added `setupInsertPosition` as a combinator alternative to
     `insertPosition`.
 
+* `XMonad.Actions.Navigation2D`
+
+  - Added `sideNavigation` as a fallback to the default tiling strategy,
+    in case `lineNavigation` can't find a window.  This benefits
+    especially users who use `XMonad.Layout.Spacing`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

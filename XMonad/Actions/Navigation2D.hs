@@ -98,8 +98,9 @@ import XMonad.Util.Types
 -- >               $ def
 --
 -- /NOTE/: the @def@ argument to 'navigation2D' contains the strategy
--- that decides which windows actually get selected.  If you use modules
--- that influence tiling in some way, like "XMonad.Layout.Spacing" or
+-- that decides which windows actually get selected.  While the default
+-- behaviour tries to keep them into account, if you use modules that
+-- influence tiling in some way, like "XMonad.Layout.Spacing" or
 -- "XMonad.Layout.Gaps", you should think about using a different
 -- strategy, if you find the default behaviour to be unnatural.  Check
 -- out the [finer points](#g:Finer_Points) below for more information.
@@ -463,7 +464,7 @@ withNavigation2DConfig conf2d xconf = xconf { startupHook  = startupHook xconf
                                             }
 
 instance Default Navigation2DConfig where
-    def                   = Navigation2DConfig { defaultTiledNavigation = lineNavigation
+    def                   = Navigation2DConfig { defaultTiledNavigation = hybridOf lineNavigation sideNavigation
                                                , floatNavigation        = centerNavigation
                                                , screenNavigation       = lineNavigation
                                                , layoutNavigation       = []
