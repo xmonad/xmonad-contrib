@@ -45,9 +45,9 @@ import Control.Arrow ((***), (>>>), (&&&), first)
 --
 -- > main = xmonad def { layoutHook = windowArrangeAll myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You may also want to define some key binding to move or resize
 -- windows. These are good defaults:
@@ -68,7 +68,7 @@ import Control.Arrow ((***), (>>>), (&&&), first)
 -- >        , ((modm .|. controlMask .|. shiftMask, xK_Up   ), sendMessage (DecreaseUp    1))
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | A layout modifier to float the windows in a workspace
 windowArrange :: l a -> ModifiedLayout WindowArranger l a

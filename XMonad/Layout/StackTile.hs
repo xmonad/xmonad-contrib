@@ -36,9 +36,9 @@ import XMonad.Prelude
 -- > myLayout =  StackTile 1 (3/100) (1/2) ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 data StackTile a = StackTile !Int !Rational !Rational deriving (Show, Read)
 

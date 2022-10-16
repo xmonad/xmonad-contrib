@@ -36,9 +36,9 @@ import qualified Data.Map as M
 -- > myLayout =  ResizableTall 1 (3/100) (1/2) [] ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You may also want to add the following key bindings:
 --
@@ -47,7 +47,7 @@ import qualified Data.Map as M
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data MirrorResize = MirrorShrink | MirrorExpand
 instance Message MirrorResize

@@ -56,9 +56,9 @@ import XMonad.Prelude
 -- columns, the screen is instead split equally among all columns. Therefore,
 -- if equal size among all columns are desired, set the size to -0.5.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | Layout constructor.
 multiCol

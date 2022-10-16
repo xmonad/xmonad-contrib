@@ -38,7 +38,7 @@ import XMonad.Util.Run
 >   , ((modm .|. controlMask, xK_x), zshPrompt def "/path/to/capture.zsh")
 
 For detailed instruction on editing the key binding see
-"XMonad.Doc.Extending#Editing_key_bindings". -}
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>. -}
 
 data Zsh = Zsh
 

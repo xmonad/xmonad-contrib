@@ -41,7 +41,7 @@ import XMonad.StackSet ( integrate )
 -- >         [(tabbed,3),(tabbed,30),(tabbed,1),(tabbed,1)]
 
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data Square a = Square deriving ( Read, Show )
 

@@ -45,9 +45,9 @@ import qualified Data.Map as M
 -- > main = xmonad def { layoutHook = myLayout,
 -- >                     handleEventHook = promoteWarp }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | Create a new layout which automagically puts the focused window
 --   in the master area.

@@ -39,7 +39,7 @@ import XMonad.Prelude (fi)
 -- >  , ((modm,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | @keysMoveWindow (dx, dy)@ moves the window by @dx@ pixels to the
 --   right and @dy@ pixels down.

@@ -75,9 +75,9 @@ import System.Posix.Signals
 -- layoutHook you have to provide manageHook from
 -- "XMonad.Util.RemoteWindows" module.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 signalWindow :: Signal -> Window -> X ()
 signalWindow s w = do

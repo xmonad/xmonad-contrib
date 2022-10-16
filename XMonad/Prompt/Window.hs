@@ -65,7 +65,7 @@ import XMonad.Util.NamedWindows
 -- keystrokes to the selected client.
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- Describe actions that can applied  on the selected window
 data WindowPrompt = Goto | Bring | BringCopy | BringToMaster | WithWindow String (Window ->  X())

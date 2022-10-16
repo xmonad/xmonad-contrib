@@ -83,8 +83,8 @@ import qualified Data.Map as M
 --
 -- > import qualified XMonad.Layout.Groups as G
 --
--- For more information on how to extend your layour hook and key bindings, see
--- "XMonad.Doc.Extending".
+-- For more information on how to extend your layoutHook and key bindings, see
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 
 -- ** Layout-generic actions
 -- #Layout-generic actions#

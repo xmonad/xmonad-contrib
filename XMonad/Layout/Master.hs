@@ -52,6 +52,7 @@ import Control.Arrow (first)
 -- Grid manage the right half.
 --
 -- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- Like 'XMonad.Layout.Tall', 'withMaster' supports the

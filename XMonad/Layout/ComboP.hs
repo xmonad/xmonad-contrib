@@ -44,9 +44,9 @@ import qualified XMonad.StackSet as W
 -- to your layouts. This way all windows with class = \"Firefox\" will always go
 -- to the left pane, all others - to the right.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- 'combineTwoP' is a simple layout combinator based on 'combineTwo' from Combo, with
 -- addition of a 'Property' which tells where to put new windows. Windows mathing
@@ -64,7 +64,7 @@ import qualified XMonad.StackSet as W
 -- >    , ((modm .|. controlMask .|. shiftMask, xK_s    ), sendMessage $ SwapWindow)
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data SwapWindow =  SwapWindow        -- ^ Swap window between panes
                  | SwapWindowN Int   -- ^ Swap window between panes in the N-th nested ComboP. @SwapWindowN 0@ equals to SwapWindow

@@ -53,8 +53,8 @@ import           XMonad.Layout.LayoutHints
 -- depending on the size hints (for example for programs like mpv),
 -- see "XMonad.Layout.LayoutHints"
 --
--- See "XMonad.Doc.Extending#Editing_the_layout_hook" for more info on
--- the 'layoutHook'.
+-- See <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook" for more info on the 'layoutHook'.
 --
 -- You also want to add keybindings to set and clear the aspect ratio:
 --
@@ -73,7 +73,7 @@ import           XMonad.Layout.LayoutHints
 --
 -- >  , ((modMask .|. shiftMask, xK_c), withFocused (sendMessage . ResetRatio) >> kill)
 --
--- See "XMonad.Doc.Extending#Editing_key_bindings" for more info
+-- See <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> for more info
 -- on customizing the keybindings.
 --
 -- This layout also comes with a 'ManageHook' 'doFixAspect' to
@@ -84,7 +84,8 @@ import           XMonad.Layout.LayoutHints
 -- >   ...
 -- > ]
 --
--- Check "XMonad.Doc.Extending#Editing_the_manage_hook" for more information on
+-- Check <https://xmonad.org/TUTORIAL.html#final-touches the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_manage_hook" for more information on
 -- customizing the manage hook.
 
 -- | Similar to 'layoutHintsWithReplacement', but relies on the user to

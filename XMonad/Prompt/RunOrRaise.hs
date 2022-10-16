@@ -45,7 +45,8 @@ econst = const . return
 >   , ((modm .|. controlMask, xK_x), runOrRaisePrompt def)
 
 For detailed instruction on editing the key binding see
-"XMonad.Doc.Extending#Editing_key_bindings". -}
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
+-}
 
 data RunOrRaisePrompt = RRP
 instance XPrompt RunOrRaisePrompt where

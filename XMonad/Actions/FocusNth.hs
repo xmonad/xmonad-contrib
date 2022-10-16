@@ -36,7 +36,7 @@ import XMonad.StackSet
 -- >     | (i, k) <- zip [0 .. 8] [xK_1 ..]]
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Give focus to the nth window of the current workspace.
 focusNth :: Int -> X ()

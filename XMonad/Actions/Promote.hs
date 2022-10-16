@@ -37,7 +37,7 @@ import XMonad.StackSet
 -- >   , ((modm,               xK_Return), promote)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Move the focused window to the master pane. All other windows
 --   retain their order. If focus is in the master, swap it with the

@@ -39,9 +39,9 @@ import XMonad.Layout.Decoration
 --
 -- > layoutHook = resizeHorizontal 40 Full
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 resizeHorizontal :: Int -> l a -> ModifiedLayout ResizeScreen l a
 resizeHorizontal i = ModifiedLayout (ResizeScreen L i)

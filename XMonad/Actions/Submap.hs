@@ -56,7 +56,7 @@ because that is a special value passed to XGrabKey() and not an actual
 modifier.
 
 For detailed instructions on editing your key bindings, see
-"XMonad.Doc.Extending#Editing_key_bindings".
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -}
 

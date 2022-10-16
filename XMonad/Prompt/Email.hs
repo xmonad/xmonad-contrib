@@ -50,7 +50,7 @@ import XMonad.Prompt.Input
 -- characters and then hit \'tab\'.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 
 -- | Prompt the user for a recipient, subject, and body, and send an

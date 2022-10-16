@@ -40,9 +40,9 @@ import qualified XMonad.StackSet as W ( differentiate )
 --
 -- to your layouts.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- combineTwo is a new simple layout combinator. It allows the
 -- combination of two layouts using a third to split the screen
@@ -57,7 +57,7 @@ import qualified XMonad.StackSet as W ( differentiate )
 -- >    , ((modm .|. controlMask .|. shiftMask, xK_Down ), sendMessage $ Move D)
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- These bindings will move a window into the sublayout that is
 -- up\/down\/left\/right of its current position.  Note that there is some

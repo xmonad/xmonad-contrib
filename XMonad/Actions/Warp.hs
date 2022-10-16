@@ -45,7 +45,7 @@ Note that warping to a particular screen may change the focus.
 -}
 
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 
 data Corner = UpperLeft | UpperRight | LowerLeft | LowerRight

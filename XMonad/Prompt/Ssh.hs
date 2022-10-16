@@ -46,7 +46,7 @@ econst = const . return
 -- disable the "HashKnownHosts" option in your ssh_config
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data Ssh = Ssh
 

@@ -38,7 +38,9 @@ import XMonad.Prelude (fi)
 --
 -- > myLayoutHook = centeredIfSingle 0.7 0.8 Grid ||| ...
 --
--- For more information on configuring your layouts see "XMonad.Doc.Extending".
+-- For more information on configuring your layouts see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>
+-- and "XMonad.Doc.Extending".
 
 
 -- | Layout Modifier that places a window in the center of the screen,

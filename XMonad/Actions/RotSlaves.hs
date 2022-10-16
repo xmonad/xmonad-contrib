@@ -39,7 +39,7 @@ import XMonad.Prelude
 -- TwoPane layout (see "XMonad.Layout.TwoPane").
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Rotate the windows in the current stack, excluding the first one
 --   (master).

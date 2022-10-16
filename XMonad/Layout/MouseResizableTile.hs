@@ -53,9 +53,9 @@ import Graphics.X11 as X
 -- > main = xmonad def { layoutHook = myLayout }
 --
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You may also want to add the following key bindings:
 --
@@ -64,7 +64,7 @@ import Graphics.X11 as X
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- $mrtParameters
 -- The following functions are also labels for updating the @data@ (whose

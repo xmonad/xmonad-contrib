@@ -76,9 +76,9 @@ import XMonad.StackSet
 -- functions in this module are essentially just creative applications
 -- of it.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- Magnifier supports some commands, see 'MagnifyMsg'.  To use them add
 -- something like this to your key bindings:
@@ -101,7 +101,7 @@ import XMonad.StackSet
 -- like @Mag.Toggle@, @Mag.magnifier@, and so on.
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Add magnification capabilities to a certain layout.
 --

@@ -57,7 +57,7 @@ import qualified XMonad.StackSet as W
 -- >   , ((modm .|. controlMask .|. shiftMask, xK_space), rescreen)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Modify all screens.
 layoutScreens :: LayoutClass l Int => Int -> l Int -> X ()

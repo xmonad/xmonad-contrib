@@ -46,9 +46,9 @@ import XMonad.Prelude
 -- built-in Tall with HintedTile, change @import Xmonad@ to
 -- @import Xmonad hiding (Tall)@.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 data HintedTile a = HintedTile
     { nmaster     :: !Int         -- ^ number of windows in the master pane

@@ -47,13 +47,12 @@ import qualified XMonad.StackSet as W
 -- you will need to have xcompmgr <http://freedesktop.org/wiki/Software/xapps>
 -- or something similar for this to do anything
 --
--- For more detailed instructions on editing the logHook see:
+-- For more detailed instructions on editing the logHook see
+-- <https://xmonad.org/TUTORIAL.html#make-xmonad-and-xmobar-talk-to-each-other the tutorial>.
 --
--- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
---
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | Converts a percentage to the format required for _NET_WM_WINDOW_OPACITY
 rationalToOpacity :: Integral a => Rational -> a

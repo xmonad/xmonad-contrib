@@ -161,7 +161,7 @@ import XMonad.Util.Types
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- $finer_points
 -- #Finer_Points#

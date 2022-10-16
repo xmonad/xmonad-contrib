@@ -163,10 +163,9 @@ import qualified Data.Set as S
 --  could not be used in the keybinding instead? It avoids having to explicitly
 --  pass the conf.
 --
--- For more detailed instructions, see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
--- "XMonad.Doc.Extending#Adding_key_bindings"
+-- For more detailed instructions, see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>
+-- and "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | The main layout modifier arguments:
 --

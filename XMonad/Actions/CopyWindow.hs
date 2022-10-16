@@ -77,7 +77,7 @@ import qualified XMonad.StackSet as W
 -- >  , ((modm .|. shiftMask, xK_v ),  killAllOtherCopies) -- @@ Toggle window state back
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- $logHook
 --

@@ -91,7 +91,7 @@ import qualified Data.Map as M
 
 -- $customizing
 -- To customize a desktop config, modify its fields as is illustrated with
--- the default configuration @def@ in "XMonad.Doc.Extending#Extending xmonad".
+-- the default configuration @def@ in <https://xmonad.org/TUTORIAL.html the tutorial>.
 
 -- $layouts
 -- See also "XMonad.Util.EZConfig" for more options for modifying key bindings.

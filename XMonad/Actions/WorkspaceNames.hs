@@ -88,7 +88,7 @@ import qualified Data.Map as M
 -- >     | (i, k) <- zip workspaces [xK_1 ..]]
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 
 

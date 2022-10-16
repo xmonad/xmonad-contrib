@@ -46,9 +46,9 @@ import qualified XMonad.StackSet as W
 -- > myLayout = hiddenWindows (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- In the key bindings, do something like:
 --
@@ -58,7 +58,7 @@ import qualified XMonad.StackSet as W
 --
 -- For detailed instruction on editing the key bindings see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 --------------------------------------------------------------------------------
 newtype HiddenWindows a = HiddenWindows [Window] deriving (Show, Read)
