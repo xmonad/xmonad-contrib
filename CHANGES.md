@@ -79,6 +79,11 @@
   - Added `directionMoveWindow` and `directionMoveWindow` as more
     alternatives to the existing functions.
 
+* `XMonad.Hooks.InsertPosition`
+
+  - Added `setupInsertPosition` as a combinator alternative to
+    `insertPosition`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
