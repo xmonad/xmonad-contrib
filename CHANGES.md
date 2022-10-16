@@ -74,6 +74,11 @@
     and `manyTill` functions, in order to achieve feature parity with
     `Text.ParserCombinators.ReadP`.
 
+* `XMonad.Actions.FloatKeys`
+
+  - Added `directionMoveWindow` and `directionMoveWindow` as more
+    alternatives to the existing functions.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
