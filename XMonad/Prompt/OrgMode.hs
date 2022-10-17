@@ -414,7 +414,7 @@ pInput inp = (`runParser` inp) . choice $
 
 -- | Parse a 'Priority'.
 pPriority :: Parser Priority
-pPriority = pLast (pure NoPriority) $
+pPriority = option NoPriority $
   " " *> skipSpaces *> choice
     [ "#" *> ("A" <|> "a") $> A
     , "#" *> ("B" <|> "b") $> B
@@ -423,7 +423,7 @@ pPriority = pLast (pure NoPriority) $
 
 -- | Try to parse a 'Time'.
 pTimeOfDay :: Parser (Maybe TimeOfDay)
-pTimeOfDay = pLast (pure Nothing) $
+pTimeOfDay = option Nothing $
   skipSpaces *> choice
     [ Just <$> (TimeOfDay <$> pHour <* string ":" <*> pMinute) -- HH:MM
     , Just <$> (TimeOfDay <$> pHour               <*> pure 0 ) -- HH
@@ -485,8 +485,3 @@ pNumBetween lo hi = do
   n <- num
   n <$ guard (n >= lo && n <= hi)
 
--- | A flipped version of '(<|>)'.  Useful when @p'@ is some complicated
--- expression that, for example, consumes spaces and @p@ does not want
--- to do that.
-pLast :: Parser a -> Parser a -> Parser a
-pLast p p' = p' <|> p
