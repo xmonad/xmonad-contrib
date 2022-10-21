@@ -25,11 +25,10 @@ module XMonad.Actions.CycleWorkspaceByScreen (
 
 import           Data.IORef
 
-import           Graphics.X11.Xlib.Extras
-
 import           XMonad
 import           XMonad.Prelude
 import           XMonad.Hooks.WorkspaceHistory
+import           XMonad.Actions.Repeatable (repeatable)
 import qualified XMonad.StackSet as W
 
 -- $usage
@@ -53,22 +52,9 @@ import qualified XMonad.StackSet as W
 --
 -- > , ((mod4Mask, xK_slash), cycleWorkspaceOnCurrentScreen [xK_Super_L] xK_slash xK_p)
 
-repeatableAction :: [KeySym] -> (EventType -> KeySym -> X ()) -> X ()
-repeatableAction mods pressHandler = do
-  XConf {theRoot = root, display = d} <- ask
-  let getNextEvent = io $ allocaXEvent $ \p ->
-                 do
-                   maskEvent d (keyPressMask .|. keyReleaseMask) p
-                   KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent p
-                   s <- io $ keycodeToKeysym d c 0
-                   return (t, s)
-      handleEvent (t, s)
-        | t == keyRelease && s `elem` mods = return ()
-        | otherwise = pressHandler t s >> getNextEvent >>= handleEvent
-
-  io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
-  getNextEvent >>= handleEvent
-  io $ ungrabKeyboard d currentTime
+{-# DEPRECATED repeatableAction "Use XMonad.Actions.Repeatable.repeatable" #-}
+repeatableAction :: [KeySym] -> KeySym -> (EventType -> KeySym -> X ()) -> X ()
+repeatableAction = repeatable
 
 handleKeyEvent :: EventType
                -> KeySym
@@ -109,8 +95,7 @@ cycleWorkspaceOnScreen screenId mods nextKey prevKey = workspaceHistoryTransacti
         return $ cycleWorkspaces !! current
       focusIncrement i = io (getAndIncrementWS i) >>= (windows . W.greedyView)
 
-  focusIncrement 1 -- Do the first workspace cycle
-  repeatableAction mods $
+  repeatable mods nextKey $
     runFirst
       [ handleKeyEvent keyPress nextKey $ focusIncrement 1
       , handleKeyEvent keyPress prevKey $ focusIncrement (-1)

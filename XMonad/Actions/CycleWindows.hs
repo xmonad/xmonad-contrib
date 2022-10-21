@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, MultiWayIf #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -59,8 +59,10 @@ import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import qualified Data.List.NonEmpty as NE
 import XMonad.Actions.RotSlaves
+import XMonad.Actions.Repeatable (repeatableSt)
 
 import Control.Arrow (second)
+import Control.Monad.Trans (lift)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
@@ -139,27 +141,19 @@ cycleStacks' :: (W.Stack Window -> [W.Stack Window]) -- ^ A function to a finite
                                     -> KeySym    -- ^ Key used to select a \"previous\" stack.
                                     -> X ()
 cycleStacks' filteredPerms mods keyNext keyPrev = do
-    XConf {theRoot = root, display = d} <- ask
-    stacks <- gets $ maybe [] filteredPerms . W.stack . W.workspace . W.current . windowset
-
-    let evt = allocaXEvent $
-                  \p -> do maskEvent d (keyPressMask .|. keyReleaseMask) p
-                           KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent p
-                           s <- keycodeToKeysym d c 0
-                           return (t, s)
-        choose n (t, s)
-              | t == keyPress   && s == keyNext  = io evt >>= choose (n+1)
-              | t == keyPress   && s == keyPrev  = io evt >>= choose (n-1)
-              | t == keyPress   && s `elem` [xK_0..xK_9] = io evt >>= choose (numKeyToN s)
-              | t == keyRelease && s `elem` mods = return ()
-              | otherwise                        = doStack n >> io evt >>= choose n
-        doStack n = windows . W.modify' . const $ stacks `cycref` n
-
-    io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
-    io evt >>= choose 1
-    io $ ungrabKeyboard d currentTime
-  where cycref l i = l !! (i `mod` length l) -- modify' ensures l is never [], but must also be finite
-        numKeyToN = subtract 48 . read . show
+  stacks <- gets $ maybe [] filteredPerms
+                 . W.stack . W.workspace . W.current . windowset
+  let
+    preview = do
+      i <- get
+      lift . windows . W.modify' . const $ stacks !! (i `mod` n)
+      where n = length stacks
+  void $ repeatableSt 0 mods keyNext $ \t s -> if
+    | t == keyPress && s == keyNext          -> modify succ
+    | t == keyPress && s == keyPrev          -> modify pred
+    | t == keyPress && s `elem` [xK_0..xK_9] -> put (numKeyToN s)
+    | otherwise                              -> preview
+  where numKeyToN = subtract 48 . read . show
 
 -- | Given a stack element and a stack, shift or insert the element (window)
 --   at the currently focused position.

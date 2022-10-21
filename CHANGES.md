@@ -11,6 +11,11 @@
     - Deprecated the module in favour of the (new) exclusive scratchpad
       functionality of `XMonad.Util.NamedScratchpad`.
 
+  * `XMonad.Actions.CycleWorkspaceByScreen`
+
+    - The type of `repeatableAction` has changed, and it's deprecated in
+      favour of `X.A.Repeatable.repeatable`.
+
   * `XMonad.Hooks.DynamicProperty`
 
     - Deprecated the module in favour of the more aptly named
@@ -71,6 +76,11 @@
       always be the topmost, meaning the last in the list.
 
 ### New Modules
+
+  * `XMonad.Actions.Repeatable`
+
+    - Actions you'd like to repeat. Factors out the shared logic of
+      `X.A.CycleRecentWS`, `X.A.CycleWorkspaceByScreen` and `X.A.CycleWindows`.
 
   * `XMonad.Hooks.OnPropertyChange`:
 

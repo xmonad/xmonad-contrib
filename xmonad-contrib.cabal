@@ -132,6 +132,7 @@ library
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
                         XMonad.Actions.RepeatAction
+                        XMonad.Actions.Repeatable
                         XMonad.Actions.RotSlaves
                         XMonad.Actions.RotateSome
                         XMonad.Actions.Search
@@ -415,6 +416,7 @@ test-suite tests
                   XMonad.Actions.FocusNth
                   XMonad.Actions.GridSelect
                   XMonad.Actions.PhysicalScreens
+                  XMonad.Actions.Repeatable
                   XMonad.Actions.RotateSome
                   XMonad.Actions.Submap
                   XMonad.Actions.SwapWorkspaces
