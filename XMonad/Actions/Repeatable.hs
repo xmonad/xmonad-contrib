@@ -10,7 +10,8 @@
 -- Portability :  unportable
 --
 -- This module factors out the shared logic of "XMonad.Actions.CycleRecentWS",
--- "XMonad.Actions.CycleWorkspaceByScreen" and "XMonad.Actions.CycleWindows".
+-- "XMonad.Actions.CycleWorkspaceByScreen", "XMonad.Actions.CycleWindows" and
+-- "XMonad.Actions.MostRecentlyUsed".
 --
 -- See the source of these modules for usage examples.
 --

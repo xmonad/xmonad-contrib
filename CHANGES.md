@@ -77,6 +77,11 @@
 
 ### New Modules
 
+  * `XMonad.Actions.MostRecentlyUsed`
+
+    - Tab through windows by recency of use. Based on the Alt+Tab behaviour
+      common outside of xmonad.
+
   * `XMonad.Util.History`
 
     - Track history in *O(log n)* time. Provides `History`, a variation on a

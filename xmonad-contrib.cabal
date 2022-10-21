@@ -118,6 +118,7 @@ library
                         XMonad.Actions.LinkWorkspaces
                         XMonad.Actions.MessageFeedback
                         XMonad.Actions.Minimize
+                        XMonad.Actions.MostRecentlyUsed
                         XMonad.Actions.MouseGestures
                         XMonad.Actions.MouseResize
                         XMonad.Actions.Navigation2D
