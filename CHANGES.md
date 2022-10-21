@@ -77,6 +77,12 @@
 
 ### New Modules
 
+  * `XMonad.Util.History`
+
+    - Track history in *O(log n)* time. Provides `History`, a variation on a
+      LIFO stack with a uniqueness property. In order to achieve the desired
+      asymptotics, the data type is implemented as an ordered Map.
+
   * `XMonad.Actions.Repeatable`
 
     - Actions you'd like to repeat. Factors out the shared logic of

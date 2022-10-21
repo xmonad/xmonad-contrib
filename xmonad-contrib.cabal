@@ -361,6 +361,7 @@ library
                         XMonad.Util.Font
                         XMonad.Util.Grab
                         XMonad.Util.Hacks
+                        XMonad.Util.History
                         XMonad.Util.Image
                         XMonad.Util.Invisible
                         XMonad.Util.Loggers
