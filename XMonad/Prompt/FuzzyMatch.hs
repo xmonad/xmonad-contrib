@@ -63,7 +63,7 @@ import qualified Data.List.NonEmpty as NE
 -- > , ((modm .|. shiftMask, xK_g), windowPrompt myXPConfig Goto allWindows)
 --
 -- For detailed instructions on editing the key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Returns True if the first argument is a subsequence of the second argument,
 -- that is, it can be obtained from the second sequence by deleting elements.

@@ -79,8 +79,8 @@ import XMonad.Layout.Simplest
 --
 -- and so on.
 --
--- For more information on how to extend your layout hook and key bindings, see
--- "XMonad.Doc.Extending".
+-- For more information on how to extend your layoutHook and key bindings, see
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 --
 -- Finally, you will probably want to be able to move focus and windows
 -- between groups in a consistent fashion. For this, you should take a look

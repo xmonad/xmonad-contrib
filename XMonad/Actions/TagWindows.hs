@@ -64,7 +64,7 @@ econst = const . return
 --       the tags \"a\" and \"b\" but not \"a b\".
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | set multiple tags for a window at once (overriding any previous tags)
 setTags :: [String] -> Window -> X ()

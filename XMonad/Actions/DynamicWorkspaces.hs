@@ -75,7 +75,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >    zip (zip (repeat (modm .|. controlMask)) [xK_1..xK_9]) (map (setWorkspaceIndex) [1..])
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings". See also the documentation for
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>. See also the documentation for
 -- "XMonad.Actions.CopyWindow", 'windows', 'shift', and 'XPConfig'.
 
 type WorkspaceTag = String

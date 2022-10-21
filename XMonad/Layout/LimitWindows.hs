@@ -56,7 +56,7 @@ import qualified XMonad.StackSet as W
 -- actions.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- See also 'XMonad.Layout.BoringWindows.boringAuto' for keybindings that skip
 -- the hidden windows.

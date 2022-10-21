@@ -35,7 +35,7 @@ import XMonad.Util.Run
 -- In this example, a popup date menu will now be bound to @mod-d@.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 date :: X ()
 date = unsafeSpawn "(date; sleep 10) | dzen2"

@@ -32,4 +32,4 @@ import XMonad.Actions.WithAll (sinkAll)
 -- >   , ((modm .|. shiftMask, xK_t), sinkAll)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.

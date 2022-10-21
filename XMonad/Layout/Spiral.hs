@@ -40,9 +40,9 @@ import XMonad.StackSet ( integrate )
 -- > myLayout =  spiral (6/7) ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 fibs :: [Integer]
 fibs = 1 : 1 : zipWith (+) fibs (tail fibs)

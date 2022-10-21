@@ -33,7 +33,7 @@
 -- fails miserably by guessing absolutely bogus values.
 --
 -- For detailed instructions on editing your hooks, see
--- "XMonad.Doc.Extending#4".
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.SetWMName (

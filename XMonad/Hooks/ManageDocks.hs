@@ -83,7 +83,7 @@ import qualified XMonad.StackSet as W
 -- > layoutHook = avoidStrutsOn [U,L] (tall ||| mirror tall ||| ...)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 
 -- | Add docks functionality to the given config.  See above for an example.

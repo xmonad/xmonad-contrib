@@ -122,7 +122,7 @@ import XMonad.Util.WorkspaceCompare
 -- >            windows . view $ t                                         )
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- When using the toggle functions, in order to ensure that the workspace
 -- to which you switch is the previously viewed workspace, use the

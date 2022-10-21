@@ -46,7 +46,7 @@ import XMonad.Util.NamedWindows (getName, getNameWMClass)
 -- > , ((modm .|. shiftMask, xK_b     ), bringMenu)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data WindowBringerConfig = WindowBringerConfig
     { menuCommand :: String -- ^ The shell command that will handle window selection

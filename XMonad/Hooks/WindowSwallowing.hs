@@ -66,7 +66,7 @@ import           System.Posix.Types             ( ProcessID )
 -- instead of swallowing the window it will merge the child window with the parent. (this does not work with floating windows)
 --
 -- For more information on editing your handleEventHook and key bindings,
--- see "XMonad.Doc.Extending".
+-- see <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 
 -- | Run @action@ iff both parent- and child queries match and the child
 -- is a child by PID.

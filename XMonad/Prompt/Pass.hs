@@ -113,7 +113,7 @@ import XMonad.Util.Run (runProcessWithInput)
 --
 -- For detailed instructions on:
 --
--- - editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings".
+-- - editing your key bindings, see <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- - how to setup the password store, see <http://git.zx2c4.com/password-store/about/>
 --   or @man 1 pass@.

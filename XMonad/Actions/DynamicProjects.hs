@@ -113,7 +113,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >  , ((modm, xK_slash), shiftToProjectPrompt def)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 --------------------------------------------------------------------------------
 type ProjectName  = String

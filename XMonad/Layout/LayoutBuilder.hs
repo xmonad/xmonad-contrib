@@ -103,9 +103,9 @@ import XMonad.Util.WindowProperties
 --
 -- These examples require "XMonad.Layout.Tabbed".
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You may wish to add the following keybindings:
 --
@@ -114,7 +114,7 @@ import XMonad.Util.WindowProperties
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 --------------------------------------------------------------------------------
 -- $selectWin

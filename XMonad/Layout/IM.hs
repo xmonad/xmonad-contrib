@@ -55,9 +55,9 @@ import Control.Arrow (first)
 --
 -- Screenshot: <http://haskell.org/haskellwiki/Image:Xmonad-layout-im.png>
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- $hints
 --

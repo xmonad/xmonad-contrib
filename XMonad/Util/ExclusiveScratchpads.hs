@@ -71,11 +71,12 @@ import qualified XMonad.StackSet as W
 --
 -- > scratchpads = exclusiveSps ++ regularSps
 --
--- Add the hooks to your managehook (see "XMonad.Doc.Extending#Editing_the_manage_hook"), eg.:
+-- Add the hooks to your managehook (see "XMonad.Doc.Extending#Editing_the_manage_hook" or
+-- <https://xmonad.org/TUTORIAL.html#final-touches the tutorial>); e.g.,
 --
 -- > manageHook = myManageHook <> xScratchpadsManageHook scratchpads
 --
--- And finally add some keybindings (see "XMonad.Doc.Extending#Editing_key_bindings"):
+-- And finally add some keybindings (see <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>):
 --
 -- > , ((modMask, xK_h), scratchpadAction scratchpads "htop")
 -- > , ((modMask, xK_c), scratchpadAction scratchpads "xclock")

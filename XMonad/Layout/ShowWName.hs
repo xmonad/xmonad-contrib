@@ -41,9 +41,9 @@ import XMonad.Util.XUtils
 -- > myLayout = layoutHook def
 -- > main = xmonad def { layoutHook = showWName myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | A layout modifier to show the workspace name when switching
 showWName :: l a -> ModifiedLayout ShowWName l a

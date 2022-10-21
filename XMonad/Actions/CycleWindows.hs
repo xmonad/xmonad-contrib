@@ -79,7 +79,7 @@ import Control.Arrow (second)
 --
 -- Also, if you use focus follows mouse, you will want to read the section
 -- on updating the mouse pointer below.  For detailed instructions on
--- editing your key bindings, see "XMonad.Doc.Extending#Editing_key_bindings".
+-- editing your key bindings, see <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 {- $pointer
 With FocusFollowsMouse == True, the focus is updated after binding
 actions, possibly focusing a window you didn't intend to focus. Most

@@ -69,7 +69,7 @@ import System.IO
 -- the file too.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype AppendFile = AppendFile FilePath
 

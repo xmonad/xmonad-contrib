@@ -59,7 +59,7 @@ import XMonad.Util.Run
 -- > myNewKeys (XConfig {modMask = modm}) = planeKeys modm (Lines 3) Finite
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Direction to go in the plane.
 data Direction =  ToLeft | ToUp | ToRight | ToDown deriving Enum

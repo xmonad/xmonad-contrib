@@ -39,9 +39,9 @@ import XMonad.Prompt ( XPPosition (..) )
 --
 -- > main = xmonad def { layoutHook = simpleTabBar $ layoutHook def}
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- 'tabBar' will give you the possibility of setting a custom shrinker
 -- and a custom theme.

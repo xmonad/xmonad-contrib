@@ -44,7 +44,7 @@ import XMonad.Util.WorkspaceCompare
 -- will swap workspaces 1 and 5.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Swaps the currently focused workspace with the given workspace tag, via
 --   @swapWorkspaces@.

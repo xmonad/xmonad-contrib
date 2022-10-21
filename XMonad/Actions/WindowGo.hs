@@ -66,7 +66,8 @@ appropriate one, or cover your bases by using instead something like:
 > (className =? "Firefox" <||> className =? "Firefox-bin")
 
 For detailed instructions on editing your key bindings, see
-"XMonad.Doc.Extending#Editing_key_bindings". -}
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
+-}
 
 -- | Get the list of workspaces sorted by their tag
 workspacesSorted :: Ord i => W.StackSet i l a s sd -> [W.Workspace i l a]

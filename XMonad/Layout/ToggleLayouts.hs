@@ -34,9 +34,9 @@ import XMonad.StackSet (Workspace (..))
 -- > myLayout = toggleLayouts Full (Tall 1 (3/100) (1/2)) ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- To toggle between layouts add a key binding like
 --
@@ -48,7 +48,7 @@ import XMonad.StackSet (Workspace (..))
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data ToggleLayouts lt lf a = ToggleLayouts Bool (lt a) (lf a) deriving (Read,Show)
 data ToggleLayout = ToggleLayout | Toggle String deriving (Read,Show)

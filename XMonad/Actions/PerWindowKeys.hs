@@ -41,7 +41,7 @@ import XMonad
 -- doThisIfTheOthersFail)]@.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Run an action if a Query holds true. Doesn't stop at the first one that
 -- does, however, and could potentially run all actions.

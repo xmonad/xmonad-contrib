@@ -101,7 +101,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >  , manageHook = namedScratchpadManageHook scratchpads
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings"
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>
 --
 -- For some applications (like displaying your workspaces in a status bar) it
 -- is convenient to filter out the @NSP@ workspace when looking at all

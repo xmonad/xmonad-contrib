@@ -70,7 +70,7 @@ import XMonad.Prompt
 -- invoked.
 --
 -- (For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".)
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.)
 --
 -- "XMonad.Prompt.Input" is also intended to ease the process of
 -- developing other modules which require user input. For an example

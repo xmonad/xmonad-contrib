@@ -46,9 +46,9 @@ import XMonad.Prelude ( partition )
 -- > myLayout = maximizeWithPadding 10 (Tall 1 (3/100) (1/2)) ||| Full ||| etc..)
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- In the key-bindings, do something like:
 --
@@ -57,7 +57,7 @@ import XMonad.Prelude ( partition )
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data Maximize a = Maximize Dimension (Maybe Window) deriving ( Read, Show )
 maximize :: LayoutClass l Window => l Window -> ModifiedLayout Maximize l Window

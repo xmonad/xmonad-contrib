@@ -51,9 +51,8 @@ import           System.IO                       (hPutStrLn
 -- the key; @mask@ is raw, and @clean@ is what @xmonad@ sees after
 -- sanitizing it (removing @numberLockMask@, etc.)
 --
--- For more detailed instructions on editing the logHook see:
---
--- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
+-- For more detailed instructions on editing the logHook see
+-- <https://xmonad.org/TUTORIAL.html#make-xmonad-and-xmobar-talk-to-each-other the tutorial>.
 
 -- | Print key events to stderr for debugging
 debugKeyEvents :: Event -> X All

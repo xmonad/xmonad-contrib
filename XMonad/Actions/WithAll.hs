@@ -33,7 +33,7 @@ import XMonad.StackSet
 --     , ((modm .|. shiftMask, xK_t), sinkAll)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Un-float all floating windows on the current workspace.
 sinkAll :: X ()

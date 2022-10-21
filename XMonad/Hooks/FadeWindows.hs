@@ -105,9 +105,8 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 -- aren't running a compositing manager, the opacity will be recorded
 -- but won't take effect until a compositing manager is started.
 --
--- For more detailed instructions on editing the 'logHook' see:
---
--- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
+-- For more detailed instructions on editing the 'logHook' see
+-- <https://xmonad.org/TUTORIAL.html#make-xmonad-and-xmobar-talk-to-each-other the tutorial>.
 --
 -- For more detailed instructions on editing the 'handleEventHook',
 -- see:

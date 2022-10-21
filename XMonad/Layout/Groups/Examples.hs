@@ -84,8 +84,8 @@ import XMonad.Layout.Simplest
 --   the "XMonad.Layout.Groups.Helpers" module, which are all
 --   re-exported by this module.
 --
--- For more information on how to extend your layour hook and key bindings, see
---   "XMonad.Doc.Extending".
+-- For more information on how to extend your layoutHook and key bindings, see
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 
 
 -- * Helper: ZoomRow of Group elements

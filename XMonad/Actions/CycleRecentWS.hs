@@ -49,7 +49,7 @@ import Data.Function (on)
 -- >   , ((modm, xK_Tab), cycleRecentWS [xK_Alt_L] xK_Tab xK_grave)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Cycle through most recent workspaces with repeated presses of a key, while
 --   a modifier key is held down. The recency of workspaces previewed while browsing
