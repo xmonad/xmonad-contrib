@@ -162,7 +162,7 @@ automatically
 <https://orgmode.org/manual/Refile-and-Copy.html refile>
 the generated item under a heading of choice.  For example, binding
 
-> orgPromptRefile def ["TODO", "DONE", "SOMEDAY"] "TODO" "todos.org"
+> orgPromptRefile def "TODO" "todos.org"
 
 to a key will first pop up an ordinary prompt that works exactly like
 'orgPrompt', and then query the user for an already existing heading
@@ -170,12 +170,6 @@ to a key will first pop up an ordinary prompt that works exactly like
 prompt is cancelled, the heading will appear in the org file as normal
 (i.e., at the end of the file); otherwise, it gets refiled under the
 selected heading.
-
-The second argument to 'orgPromptRefile'—in this case, @["TODO", "DONE",
-"SOMEDAY"]@—says which keywords you want to have recognised as todo
-keywords.  This means that they won't be shown in the prompt when
-selecting headings.  This should probably be at least close to the value
-of @org-todo-keywords@.
 
 -}
 
@@ -255,14 +249,8 @@ instance XPrompt RefilePrompt where
 -- instructions in "XMonad.Util.Run#g:EDSL"; more specifically, by
 -- changing the 'XMonad.Util.Run.emacs' field of
 -- 'XMonad.Util.Run.ProcessConfig'.
-orgPromptRefile
-  :: XPConfig
-  -> [String]  -- ^ List of strings to be treated as todo keywords.
-               --   Should reflect the value of @org-todo-keywords@.
-  -> String
-  -> FilePath
-  -> X ()
-orgPromptRefile xpc todoPrefixes str fp = do
+orgPromptRefile :: XPConfig -> String -> FilePath -> X ()
+orgPromptRefile xpc str fp = do
   orgCfg <- mkOrgCfg NoClpSupport str fp
 
   -- NOTE: Ideally we would just use System.IO.readFile' here
@@ -278,7 +266,7 @@ orgPromptRefile xpc todoPrefixes str fp = do
   when notCancelled $
     -- If the user didn't cancel, try to parse the org file and offer to
     -- refile the entry if possible.
-    whenJust (runParser (pOrgFile todoPrefixes) fileContents) $ \headings ->
+    whenJust (runParser pOrgFile fileContents) $ \headings ->
       mkXPromptWithReturn Refile xpc (completeHeadings headings) pure >>= \case
         Nothing     -> pure ()
         Just parent -> refile parent (orgFile orgCfg)
@@ -610,25 +598,19 @@ pNumBetween lo hi = do
 data Heading = Heading
   { level       :: Natural
     -- ^ Level of the Org heading; i.e., the number of leading stars.
-  , todoType    :: String
-    -- ^ Type of the Org heading.  This is some todo keyword used as a
-    -- prefix to mark the heading as such.
   , headingText :: String
-    -- ^ The heading text without its level and prefix keyword.
+    -- ^ The heading text without its level.
   }
 
 -- | Naïvely parse an Org file.  At this point, only the headings are
 -- parsed into a non-nested list (ignoring parent-child relations); no
 -- further analysis is done on the individual lines themselves.
-pOrgFile :: [String] -> Parser [Heading]
-pOrgFile = many . pHeading
+pOrgFile :: Parser [Heading]
+pOrgFile = many pHeading
 
-pHeading :: [String] -> Parser Heading
-pHeading todoPrefixes = skipSpaces *> do
+pHeading :: Parser Heading
+pHeading = skipSpaces *> do
   level       <- genericLength <$> munch1 (== '*') <* " "
-  todoType    <- option "" $ do word <- munch1 (/= ' ') <* skipSpaces
-                                guard (word `elem` todoPrefixes)
-                                pure word
   headingText <- pLine
   void $ many (pLine >>= \line -> guard (isNotHeading line) $> line) -- skip body
   pure Heading{..}
