@@ -4,6 +4,11 @@
 
 ### Breaking Changes
 
+  * `XMonad.Hooks.DynamicProperty`
+
+    - Deprecated the module in favour of the more aptly named
+      `XMonad.Hooks.OnPropertyChange`.
+
   * `XMonad.Util.Scratchpad`:
 
     - Deprecated the module; use `XMonad.Util.NamedScratchpad` instead.
@@ -51,6 +56,11 @@
       instead.
 
 ### New Modules
+
+* `XMonad.Hooks.OnPropertyChange`:
+
+  - A new module replicating the functionality of
+    `XMonad.Hooks.DynamicProperty`, but with more discoverable names.
 
 ### Bug Fixes and Minor Changes
 
