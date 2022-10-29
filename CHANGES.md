@@ -55,6 +55,14 @@
     - Deprecated the entire module, use `XMonad.Actions.WithAll`
       instead.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - `_NET_CLIENT_LIST_STACKING` puts windows in the current workspace at the
+      top in bottom-to-top order, followed by visible workspaces, followed by
+      invisible workspaces.  Within visible and invisible groups, workspaces are
+      ordered lexicographically, as before.  Currently focused window will
+      always be the topmost, meaning the last in the list.
+
 ### New Modules
 
 * `XMonad.Hooks.OnPropertyChange`:

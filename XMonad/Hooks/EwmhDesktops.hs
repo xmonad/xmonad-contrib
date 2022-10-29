@@ -320,10 +320,33 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWi
     let clientList = nub . concatMap (W.integrate' . W.stack) $ ws
     whenChanged (ClientList clientList) $ setClientList clientList
 
-    -- Set stacking client list which should have bottom-to-top
-    -- stacking order, i.e. focused window should be last
-    let clientListStacking = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
-    whenChanged (ClientListStacking clientListStacking) $ setClientListStacking clientListStacking
+    -- @ws@ is sorted in the "workspace order", which, by default, is
+    -- the lexicographical sorting on @WorkspaceId@.
+    -- @_NET_CLIENT_LIST_STACKING@ is expected to be in the "bottom-to-top
+    -- stacking order".  It is unclear what that would mean for windows on
+    -- invisible workspaces, but it seems reasonable to assume that windows on
+    -- the current workspace should be "at the top".  With the focused window to
+    -- be the top most, meaning the last.
+    --
+    -- There has been a number of discussions on the order of windows within a
+    -- workspace.  See:
+    --
+    --   https://github.com/xmonad/xmonad-contrib/issues/567
+    --   https://github.com/xmonad/xmonad-contrib/pull/568
+    --   https://github.com/xmonad/xmonad-contrib/pull/772
+    let clientListStacking =
+          let wsInFocusOrder = W.hidden s
+                               ++ (map W.workspace . W.visible) s
+                               ++ [W.workspace $ W.current s]
+              stackWindows (W.Stack cur up down) = reverse up ++ down ++ [cur]
+              workspaceWindows = maybe [] stackWindows . W.stack
+              -- In case a window is a member of multiple workspaces, we keep
+              -- only the last occurrence in the list.  One that is closer to
+              -- the top in the focus order.
+              uniqueKeepLast = reverse . nub . reverse
+           in uniqueKeepLast $ concatMap workspaceWindows wsInFocusOrder
+    whenChanged (ClientListStacking clientListStacking) $
+      setClientListStacking clientListStacking
 
     -- Set current desktop number
     let current = W.currentTag s `elemIndex` map W.tag ws
