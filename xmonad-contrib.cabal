@@ -196,6 +196,7 @@ library
                         XMonad.Hooks.ManageHelpers
                         XMonad.Hooks.Minimize
                         XMonad.Hooks.Modal
+                        XMonad.Hooks.OnPropertyChange
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
                         XMonad.Hooks.RefocusLast
