@@ -64,6 +64,13 @@
 
 ### Bug Fixes and Minor Changes
 
+* `XMonad.Util.NamedScratchpad`
+
+  - Added `addExclusives`, `resetFocusedNSP`, `setNoexclusive`,
+    `resizeNoexclusive`, and `floatMoveNoexclusive` in order to augment
+    named scratchpads with the exclusive scratchpad functionality of
+    `XMonad.Util.ExclusiveScratchpads`.
+
 * `XMonad.Layout.BorderResize`
 
   - Added `borderResizeNear` as a variant of `borderResize` that can
