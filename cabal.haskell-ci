@@ -14,3 +14,6 @@ raw-project
   package xmonad-contrib
     flags: +pedantic
     ghc-options: -j
+
+-- avoid --haddock-all which overwrites *-docs.tar.gz with tests docs
+haddock-components: libs
