@@ -448,8 +448,8 @@ xmobarRaw :: String -> String
 xmobarRaw "" = ""
 xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
 
--- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
--- the matching tags like </fc>.
+-- | Strip xmobar markup, specifically the \<fc\>, \<icon\> and \<action\> tags
+-- and the matching tags like \</fc\>.
 xmobarStrip :: String -> String
 xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
@@ -458,7 +458,7 @@ converge f a = let xs = iterate f a
     in fst $ head $ dropWhile (uncurry (/=)) $ zip xs $ tail xs
 
 xmobarStripTags :: [String] -- ^ tags
-        -> String -> String -- ^ with all <tag>...</tag> removed
+        -> String -> String -- ^ with all \<tag\>...\</tag\> removed
 xmobarStripTags tags = strip [] where
     strip keep [] = keep
     strip keep x

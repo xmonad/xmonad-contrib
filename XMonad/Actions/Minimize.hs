@@ -12,7 +12,7 @@
 -- Adds actions for minimizing and maximizing windows
 --
 -- This module should be used with "XMonad.Layout.Minimize". Add 'minimize' to your
--- layout modifiers as described in "XMonad.Layout.Minimized" and use actions from
+-- layout modifiers as described in "XMonad.Layout.Minimize" and use actions from
 -- this module
 --
 -- Possible keybindings:

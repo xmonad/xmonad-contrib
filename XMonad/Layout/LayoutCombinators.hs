@@ -80,7 +80,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
          */* , **/* , ***/* , ****/* , ***/** , ****/*** , ***/**** , */**** , **/*** , */*** , */**
 
 -- $dpv
--- These combinators combine two layouts using "XMonad.DragPane" in
+-- These combinators combine two layouts using "XMonad.Layout.DragPane" in
 -- vertical mode.
 
 (*||*),(**||*),(***||*),(****||*), (***||**),(****||***),
@@ -100,7 +100,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 (*||**)     = combineTwo (dragPane Vertical 0.1 (1/3))
 
 -- $dph
--- These combinators combine two layouts using "XMonad.DragPane" in
+-- These combinators combine two layouts using "XMonad.Layout.DragPane" in
 -- horizontal mode.
 
 (*//*),(**//*),(***//*),(****//*), (***//**),(****//***),

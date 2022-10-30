@@ -46,7 +46,7 @@ data Property = Title String
               | Or  Property Property
               | Not Property
               | Const Bool
-              | Tagged String -- ^ Tagged via 'XMonad.Actions.TagWindows'
+              | Tagged String -- ^ Tagged via "XMonad.Actions.TagWindows"
               deriving (Read, Show)
 infixr 9 `And`
 infixr 8 `Or`

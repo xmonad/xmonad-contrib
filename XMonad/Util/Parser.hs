@@ -98,7 +98,7 @@ consider the 'ReadP'-based parser
 > pLongerSequence = ReadP.char '<' *> ReadP.string "f" <* ReadP.char '>'
 > pCombination = pLangle ReadP.+++ pLongerSequence
 
-Parsing the string @"<f>"@ will return
+Parsing the string @"\<f\>"@ will return
 
 >>> ReadP.readP_to_S pCombination "<f>"
 [("<","f>"),("f","")]

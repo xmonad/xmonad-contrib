@@ -43,8 +43,8 @@ import XMonad.Util.Types
 -- >  , ((modm,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
 --
 -- Using "XMonad.Util.EZConfig" syntax, we can easily build keybindings
--- where @M-<arrow-keys>@ moves the currently focused window and
--- @M-S-<arrow-keys>@ resizes it using 'directionMoveWindow' and
+-- where @M-\<arrow-keys\>@ moves the currently focused window and
+-- @M-S-\<arrow-keys\>@ resizes it using 'directionMoveWindow' and
 -- 'directionResizeWindow':
 --
 -- > [ ("M-" <> m <> k, withFocused $ f i)

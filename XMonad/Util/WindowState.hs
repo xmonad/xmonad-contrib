@@ -33,22 +33,22 @@ import Data.Typeable (typeOf)
 --
 -- This module have advantage over "XMonad.Actions.TagWindows" in that it
 -- hides from you implementation details and provides simple type-safe
--- interface.  Main datatype is "StateQuery", which is simple wrapper around
--- "Query", which is instance of MonadState, with 'put' and 'get' are
--- functions to acess data, stored in "Window".
+-- interface.  Main datatype is 'StateQuery', which is simple wrapper around
+-- 'Query', which is instance of MonadState, with 'put' and 'get' are
+-- functions to acess data, stored in 'Window'.
 --
 -- To save some data in window you probably want to do following:
 -- > (runStateQuery  (put $ Just value)  win) :: X ()
 -- To retrive it, you can use
 -- > (runStateQuery get win) :: X (Maybe YourValueType)
--- "Query" can be promoted to "StateQuery" simply by constructor,
+-- 'Query' can be promoted to 'StateQuery' simply by constructor,
 -- and reverse is 'getQuery'.
 --
 -- For example, I use it to have all X applications @russian@ or @dvorak@
 -- layout, but emacs have only @us@, to not screw keybindings. Use your
 -- imagination!
 
--- | Wrapper around "Query" with phanom type @s@, representing state, saved in
+-- | Wrapper around 'Query' with phantom type @s@, representing state, saved in
 -- window.
 newtype StateQuery s a = StateQuery {
       getQuery :: Query a
@@ -57,11 +57,11 @@ newtype StateQuery s a = StateQuery {
 packIntoQuery :: (Window -> X a) -> Query a
 packIntoQuery = Query . ReaderT
 
--- | Apply "StateQuery" to "Window".
+-- | Apply 'StateQuery' to 'Window'.
 runStateQuery :: StateQuery s a -> Window ->  X a
 runStateQuery = runQuery . getQuery
 
--- | Lifted to "Query" version of 'catchX'
+-- | Lifted to 'Query' version of 'catchX'
 catchQuery :: Query a -> Query (Maybe a)
 catchQuery q = packIntoQuery $ \win -> userCode $ runQuery q win
 

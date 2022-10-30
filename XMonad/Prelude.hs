@@ -97,7 +97,7 @@ notEmpty :: HasCallStack => [a] -> NonEmpty a
 notEmpty [] = error "unexpected empty list"
 notEmpty (x:xs) = x :| xs
 
--- | A safe version of 'Graphics.X11.Extras.getWindowAttributes'.
+-- | A safe version of 'Graphics.X11.Xlib.Extras.getWindowAttributes'.
 safeGetWindowAttributes :: Window -> X (Maybe WindowAttributes)
 safeGetWindowAttributes w = withDisplay $ \dpy -> io . alloca $ \p ->
   xGetWindowAttributes dpy w p >>= \case
@@ -199,7 +199,7 @@ regularKeys = map (first (:[]))
 allSpecialKeys :: [(String, KeySym)]
 allSpecialKeys = functionKeys <> specialKeys <> multimediaKeys
 
--- | A list pairing function key descriptor strings (e.g. @\"<F2>\"@)
+-- | A list pairing function key descriptor strings (e.g. @\"\<F2\>\"@)
 -- with the associated KeySyms.
 functionKeys :: [(String, KeySym)]
 functionKeys = [ ('F' : show n, k)

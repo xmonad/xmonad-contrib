@@ -212,7 +212,7 @@ import XMonad.Hooks.ManageHelpers (currentWs)
 --
 --  - /mod4Mask+v/ key toggles focus lock (when enabled, neither focus nor
 --  workspace won't be switched).
---  - I need 'XMonad.Hooks.EwmhDesktops' module for enabling window
+--  - I need "XMonad.Hooks.EwmhDesktops" module for enabling window
 --  activation.
 --  - 'FocusHook' in 'manageHook' will be called /only/ for new windows.
 --  - 'FocusHook' in 'setEwmhActivateHook' will be called /only/ for activated windows.

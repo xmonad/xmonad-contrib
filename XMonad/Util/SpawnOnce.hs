@@ -53,7 +53,7 @@ spawnOnce = doOnce spawn
 
 -- $spawnon
 -- These functions combine 'spawnOnce' with their relatives in
--- 'XMonad.Actions.SpawnOn'. You must add 'manageSpawn' to your
+-- "XMonad.Actions.SpawnOn". You must add 'manageSpawn' to your
 -- @manageHook@ for them to work, as with @SpawnOn@.
 
 -- | Like 'spawnOnce' but launches the application on the given workspace.

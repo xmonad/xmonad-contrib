@@ -16,7 +16,7 @@
 -- a main master, which is the original master window;
 -- a sub master, the first window of the second pane.
 -- This combinator can be nested, and has a good support for using
--- 'XMonad.Layout.Tabbed' as a sublayout.
+-- "XMonad.Layout.Tabbed" as a sublayout.
 --
 -----------------------------------------------------------------------------
 

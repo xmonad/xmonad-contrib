@@ -26,7 +26,7 @@ import Data.Unique
 
 -- $usage
 -- This module can be used to setup a timer to handle deferred events.
--- See 'XMonad.Layout.ShowWName' for an usage example.
+-- See "XMonad.Layout.ShowWName" for an usage example.
 
 type TimerId = Int
 

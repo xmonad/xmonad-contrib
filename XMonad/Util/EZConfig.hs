@@ -437,7 +437,7 @@ parseModifier c = (string "M-" $> modMask c)
                      return $ indexMod (read [n] - 1)
     where indexMod = (!!) [mod1Mask,mod2Mask,mod3Mask,mod4Mask,mod5Mask]
 
--- | Parse an unmodified basic key, like @\"x\"@, @\"<F1>\"@, etc.
+-- | Parse an unmodified basic key, like @\"x\"@, @\"\<F1\>\"@, etc.
 parseKey :: Parser KeySym
 parseKey = parseSpecial <> parseRegular
 

@@ -14,7 +14,7 @@
 -- Each window is half the height of the previous,
 -- except for the last pair of windows.
 --
--- Note: Originally based on 'XMonad.Layout.Column' with changes:
+-- Note: Originally based on "XMonad.Layout.Column" with changes:
 --
 -- * Adding/removing windows doesn't resize all other windows.
 -- (last window pair exception).

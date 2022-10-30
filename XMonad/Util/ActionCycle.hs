@@ -33,7 +33,7 @@ import Data.List.NonEmpty ((!!), NonEmpty((:|)))
 
 
 -- $usage
--- You can use this module to implement cycling key-bindings by importing 'XMonad.Util.ActionCycle'
+-- You can use this module to implement cycling key-bindings by importing "XMonad.Util.ActionCycle"
 --
 -- > import XMonad.Util.ActionCycle
 --

@@ -135,7 +135,7 @@ import           XMonad.Util.Parser            ( runParser )
 
 -- --< Types >-- {{{
 
--- | From a list of 'XMonad.Util.EZConfig'-style bindings, generate a
+-- | From a list of "XMonad.Util.EZConfig"-style bindings, generate a
 -- key representation.
 --
 -- >>> mkKeysEz [("h", xmessage "Hello, world!")]
