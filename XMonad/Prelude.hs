@@ -24,6 +24,7 @@ module XMonad.Prelude (
     notEmpty,
     safeGetWindowAttributes,
     mkAbsolutePath,
+    findM,
 
     -- * Keys
     keyToString,
@@ -88,6 +89,21 @@ chunksOf i xs = chunk : chunksOf i rest
 -- > f .: g ≡ (f .) . g ≡ \c d -> f (g c d)
 (.:) :: (a -> b) -> (c -> d -> a) -> c -> d -> b
 (.:) = (.) . (.)
+
+-- | Like 'find', but takes a monadic function instead; retains the
+-- short-circuiting behaviour of the non-monadic version.
+--
+-- For example,
+--
+-- > findM (\a -> putStr (show a <> " ") >> pure False) [1..10]
+--
+-- would print "1 2 3 4 5 6 7 8 9 10" and return @Nothing@, while
+--
+-- > findM (\a -> putStr (show a <> " ") >> pure True) [1..10]
+--
+-- would print @"1"@ and return @Just 1@.
+findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
+findM p = foldr (\x -> ifM (p x) (pure $ Just x)) (pure Nothing)
 
 -- | 'Data.List.NonEmpty.fromList' with a better error message. Useful to
 -- silence GHC's Pattern match(es) are non-exhaustive warning in places where
