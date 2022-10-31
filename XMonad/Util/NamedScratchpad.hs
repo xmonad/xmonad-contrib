@@ -154,6 +154,11 @@ defaultFloating = doFloat
 customFloating :: W.RationalRect -> ManageHook
 customFloating = doRectFloat
 
+-- | @isNSP win nsps@ checks whether the window @win@ is any scratchpad
+-- in @nsps@.
+isNSP :: Window -> NamedScratchpads -> X Bool
+isNSP w = fmap or . traverse ((`runQuery` w) . query)
+
 -- | Named scratchpads configuration
 type NamedScratchpads = [NamedScratchpad]
 
@@ -225,11 +230,8 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
     let cur = W.currentTag winSet
     withRecentsIn cur () $ \lastFocus _ ->
         when (lastFocus `elem` W.index winSet && cur /= scratchpadWorkspaceTag) $
-            whenX (isNS lastFocus) $
+            whenX (isNSP lastFocus scratches) $
                 shiftToNSP (W.workspaces winSet) ($ lastFocus)
-  where
-    isNS :: Window -> X Bool
-    isNS w = or <$> traverse ((`runQuery` w) . query) scratches
 
 -- | Execute some action on a named scratchpad.
 --
