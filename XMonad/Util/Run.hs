@@ -77,6 +77,8 @@ module XMonad.Util.Run (
   progn,
   quote,
   findFile,
+  list,
+  saveExcursion,
 
   -- * Re-exports
   hPutStr,
@@ -444,14 +446,14 @@ elispFun f = " '( " <> f <> " )' "
 asString :: String -> String
 asString s = " \"" <> s <> "\" "
 
--- | Wrap the given commands in a @progn@ and also escape it by wrapping
--- it inside single quotes.  The given commands need not be wrapped in
--- parentheses, this will be done by the function.  For example:
+-- | Wrap the given commands in a @progn@.  The given commands need not
+-- be wrapped in parentheses (but can); this will be done by the
+-- function.  For example:
 --
 -- >>> progn [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
--- " '( progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2) )' "
+-- "(progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2))"
 progn :: [String] -> String
-progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
+progn = inParens . ("progn " <>) . unwords . map inParens
 
 -- | Require a package.
 --
@@ -473,6 +475,20 @@ quote = inParens . ("quote " <>)
 -- "(find-file \"/path/to/file\" )"
 findFile :: String -> String
 findFile = inParens . ("find-file" <>) . asString
+
+-- | Make a list of the given inputs.
+--
+-- >>> list ["foo", "bar", "baz", "qux"]
+-- "(list foo bar baz qux)"
+list :: [String] -> String
+list = inParens . ("list " <>) . unwords
+
+-- | Like 'progn', but with @save-excursion@.
+--
+-- >>> saveExcursion [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
+-- "(save-excursion (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2))"
+saveExcursion :: [String] -> String
+saveExcursion = inParens . ("save-excursion " <>) . unwords . map inParens
 
 -----------------------------------------------------------------------
 -- Batch mode

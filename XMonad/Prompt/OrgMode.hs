@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
 --------------------------------------------------------------------
@@ -23,8 +24,8 @@
 --
 -- It can be used to quickly save TODOs, NOTEs, and the like with the
 -- additional capability to schedule/deadline a task, add a priority,
--- and use the system's clipboard (really: the primary selection) as the
--- contents of the note.
+-- refile to some existing heading, and use the system's clipboard
+-- (really: the primary selection) as the contents of the note.
 --
 -- A blog post highlighting some features of this module can be found
 -- <https://tony-zorman.com/posts/orgmode-prompt/2022-08-27-xmonad-and-org-mode.html here>.
@@ -36,6 +37,8 @@ module XMonad.Prompt.OrgMode (
 
     -- * Prompts
     orgPrompt,              -- :: XPConfig -> String -> FilePath -> X ()
+    orgPromptRefile,        -- :: XPConfig -> [String] -> String -> FilePath -> X ()
+    orgPromptRefileTo,      -- :: XPConfig -> String -> String -> FilePath -> X ()
     orgPromptPrimary,       -- :: XPConfig -> String -> FilePath -> X ()
 
     -- * Types
@@ -56,13 +59,16 @@ module XMonad.Prompt.OrgMode (
 
 import XMonad.Prelude
 
-import XMonad (X, io)
-import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPrompt)
+import XMonad (X, io, whenJust)
+import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPromptWithReturn, mkComplFunFromList, ComplFunction)
 import XMonad.Util.Parser
 import XMonad.Util.XSelection (getSelection)
+import XMonad.Util.Run
 
+import Control.DeepSeq (deepseq)
 import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
-import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
+import GHC.Natural (Natural)
+import System.IO (IOMode (AppendMode, ReadMode), hClose, hGetContents, openFile, withFile)
 
 {- $usage
 
@@ -151,6 +157,20 @@ especially useful when you want to quickly save a URL for later and
 return to whatever you were doing before.  See the 'orgPromptPrimary'
 prompt for that.
 
+Finally, 'orgPromptRefile' and 'orgPromptRefileTo' provide support to
+automatically
+<https://orgmode.org/manual/Refile-and-Copy.html refile>
+the generated item under a heading of choice.  For example, binding
+
+> orgPromptRefile def "TODO" "todos.org"
+
+to a key will first pop up an ordinary prompt that works exactly like
+'orgPrompt', and then query the user for an already existing heading
+(with completions) as provided by the @~/todos.org@ file.  If that
+prompt is cancelled, the heading will appear in the org file as normal
+(i.e., at the end of the file); otherwise, it gets refiled under the
+selected heading.
+
 -}
 
 {- TODO
@@ -172,6 +192,9 @@ data OrgMode = OrgMode
   , todoHeader :: String    -- ^ Will display like @* todoHeader @
   , orgFile    :: FilePath
   }
+
+mkOrgCfg :: ClipboardSupport -> String -> FilePath -> X OrgMode
+mkOrgCfg clp header fp = OrgMode clp header <$> mkAbsolutePath fp
 
 -- | Whether we should use a clipboard and which one to use.
 data ClipboardSupport
@@ -199,7 +222,7 @@ orgPrompt
                --   a single @*@
   -> FilePath  -- ^ Path to @.org@ file, e.g. @home\/me\/todos.org@
   -> X ()
-orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
+orgPrompt xpc = (void . mkOrgPrompt xpc =<<) .: mkOrgCfg NoClpSupport
 
 -- | Like 'orgPrompt', but additionally make use of the primary
 -- selection.  If it is a URL, then use an org-style link
@@ -209,12 +232,78 @@ orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
 -- The prompt will display a little @+ PS@ in the window
 -- after the type of note.
 orgPromptPrimary :: XPConfig -> String -> FilePath -> X ()
-orgPromptPrimary xpc = mkOrgPrompt xpc .: OrgMode PrimarySelection
+orgPromptPrimary xpc = (void . mkOrgPrompt xpc =<<) .: mkOrgCfg PrimarySelection
 
--- | Create the actual prompt.
-mkOrgPrompt :: XPConfig -> OrgMode -> X ()
+-- | Internal type in order to generate a nice prompt in
+-- 'orgPromptRefile' and 'orgPromptRefileTo'.
+data RefilePrompt = Refile
+instance XPrompt RefilePrompt where
+  showXPrompt :: RefilePrompt -> String
+  showXPrompt Refile = "Refile note to: "
+
+-- | Like 'orgPrompt' (which see for the other arguments), but offer to
+-- refile the entered note afterwards.
+--
+-- Note that refiling is done by shelling out to Emacs, hence an @emacs@
+-- binary must be in @$PATH@.  One may customise this by following the
+-- instructions in "XMonad.Util.Run#g:EDSL"; more specifically, by
+-- changing the 'XMonad.Util.Run.emacs' field of
+-- 'XMonad.Util.Run.ProcessConfig'.
+orgPromptRefile :: XPConfig -> String -> FilePath -> X ()
+orgPromptRefile xpc str fp = do
+  orgCfg <- mkOrgCfg NoClpSupport str fp
+
+  -- NOTE: Ideally we would just use System.IO.readFile' here
+  -- (especially because it also reads everything strictly), but this is
+  -- only available starting in base 4.15.x.
+  fileContents <- io $ do
+    handle   <- openFile (orgFile orgCfg) ReadMode
+    contents <- hGetContents handle
+    contents <$ (contents `deepseq` hClose handle)
+
+  -- Save the entry as soon as possible.
+  notCancelled <- mkOrgPrompt xpc orgCfg
+  when notCancelled $
+    -- If the user didn't cancel, try to parse the org file and offer to
+    -- refile the entry if possible.
+    whenJust (runParser pOrgFile fileContents) $ \headings ->
+      mkXPromptWithReturn Refile xpc (completeHeadings headings) pure >>= \case
+        Nothing     -> pure ()
+        Just parent -> refile parent (orgFile orgCfg)
+ where
+  completeHeadings :: [Heading] -> ComplFunction
+  completeHeadings = mkComplFunFromList xpc . map headingText
+
+-- | Like 'orgPromptRefile', but with a fixed heading for refiling; no
+-- prompt will appear to query for a target.
+--
+-- Heading names may omit tags, but generally need to be prefixed by the
+-- correct todo keywords; e.g.,
+--
+-- > orgPromptRefileTo def "PROJECT Work" "TODO" "~/todos.org"
+--
+-- Will refile the created note @"TODO <text>"@ to the @"PROJECT Work"@
+-- heading, even with the actual name is @"PROJECT Work
+-- :work:other_tags:"@.  Just entering @"Work"@ will not work, as Emacs
+-- doesn't recognise @"PROJECT"@ as an Org keyword by default (i.e. when
+-- started in batch-mode).
+orgPromptRefileTo
+  :: XPConfig
+  -> String     -- ^ Heading to refile the entry under.
+  -> String
+  -> FilePath
+  -> X ()
+orgPromptRefileTo xpc refileHeading str fp = do
+  orgCfg       <- mkOrgCfg NoClpSupport str fp
+  notCancelled <- mkOrgPrompt xpc orgCfg
+  when notCancelled $ refile refileHeading (orgFile orgCfg)
+
+-- | Create the actual prompt.  Returns 'False' when the input was
+-- cancelled by the user (by, for example, pressing @Esc@ or @C-g@) and
+-- 'True' otherwise.
+mkOrgPrompt :: XPConfig -> OrgMode -> X Bool
 mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
-  mkXPrompt oc xpc (const (pure [])) appendNote
+  isJust <$> mkXPromptWithReturn oc xpc (const (pure [])) appendNote
  where
   -- | Parse the user input, create an @org-mode@ note out of that and
   -- try to append it to the given file.
@@ -228,12 +317,30 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
                then Header sel
                else Body   $ "\n " <> sel
 
-    -- Expand path if applicable
-    fp <- mkAbsolutePath orgFile
-
-    withFile fp AppendMode . flip hPutStrLn
+    withFile orgFile AppendMode . flip hPutStrLn
       <=< maybe (pure "") (ppNote clpStr todoHeader) . pInput
         $ input
+
+------------------------------------------------------------------------
+-- Refiling
+
+-- | Let Emacs do the refiling, as this seems—and I know how this
+-- sounds—more robust than trying to do it ad-hoc in this module.
+refile :: String -> FilePath -> X ()
+refile parent fp =
+  proc $ inEmacs
+     >-> asBatch
+     >-> eval (progn [ findFile fp
+                     , "end-of-buffer"
+                     , "org-refile nil nil"
+                         <> list [ asString parent
+                                 , asString fp
+                                 , "nil"
+                                 , saveExcursion ["org-find-exact-headline-in-buffer"
+                                                    <> asString parent]
+                                 ]
+                     , "save-buffer"
+                     ])
 
 ------------------------------------------------------------------------
 -- Time
@@ -375,7 +482,7 @@ ppNote clp todo = \case
       otherPrio  -> " [#" <> show otherPrio <> "] "
 
 ------------------------------------------------------------------------
--- Parsing
+-- Note parsing
 
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
@@ -485,3 +592,34 @@ pNumBetween lo hi = do
   n <- num
   n <$ guard (n >= lo && n <= hi)
 
+------------------------------------------------------------------------
+-- File parsing
+
+data Heading = Heading
+  { level       :: Natural
+    -- ^ Level of the Org heading; i.e., the number of leading stars.
+  , headingText :: String
+    -- ^ The heading text without its level.
+  }
+
+-- | Naïvely parse an Org file.  At this point, only the headings are
+-- parsed into a non-nested list (ignoring parent-child relations); no
+-- further analysis is done on the individual lines themselves.
+pOrgFile :: Parser [Heading]
+pOrgFile = many pHeading
+
+pHeading :: Parser Heading
+pHeading = skipSpaces *> do
+  level       <- genericLength <$> munch1 (== '*') <* " "
+  headingText <- pLine
+  void $ many (pLine >>= \line -> guard (isNotHeading line) $> line) -- skip body
+  pure Heading{..}
+
+pLine :: Parser String
+pLine = munch (/= '\n') <* "\n"
+
+isNotHeading :: String -> Bool
+isNotHeading str = case break (/= '*') str of
+  ("", _)       -> True
+  (_ , ' ' : _) -> False
+  _             -> True

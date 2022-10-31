@@ -77,6 +77,8 @@
 
   - Added `findFile` as a shorthand to call `find-file`.
 
+  - Added `list` and `saveExcursion` to the list of Emacs commands.
+
 * `XMonad.Util.Parser`
 
   - Added the `gather`, `count`, `between`, `option`, `optionally`,
@@ -99,6 +101,12 @@
   - Added `sideNavigation` as a fallback to the default tiling strategy,
     in case `lineNavigation` can't find a window.  This benefits
     especially users who use `XMonad.Layout.Spacing`.
+
+* `XMonad.Prompt.OrgMode`
+
+  - Added `orgPromptRefile` and `orgPromptRefileTo` for interactive and
+    targeted refiling of the entered note into some existing tree of
+    headings, respectively.
 
 ### Other changes
 
