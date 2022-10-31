@@ -35,9 +35,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler: ghc-9.2.2
+          - compiler: ghc-9.4.2
             compilerKind: ghc
-            compilerVersion: 9.2.2
+            compilerVersion: 9.4.2
+            setup-method: ghcup
+            allow-failure: false
+          - compiler: ghc-9.2.4
+            compilerKind: ghc
+            compilerVersion: 9.2.4
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.0.2
@@ -240,7 +245,7 @@ jobs:
           ${CABAL} -vnormal check
       - name: haddock
         run: |
-          $CABAL v2-haddock --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH --haddock-for-hackage --builddir $GITHUB_WORKSPACE/haddock all
+          $CABAL v2-haddock $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH --haddock-for-hackage --builddir $GITHUB_WORKSPACE/haddock all
       - name: unconstrained build
         run: |
           rm -f cabal.project.local
