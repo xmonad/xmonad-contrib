@@ -122,6 +122,25 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- the list of workspaces from EWMH.  See the documentation of these functions
 -- for examples.
 --
+-- If you want to explore this module further, scratchpads can come in
+-- many forms and flavours:
+--
+--   + \"Regular\" scratchpads: they can be predefined and
+--     summoned/banished with a key press.  These are the scratchpads
+--     that you have seen above.
+--
+--   + [Dynamic scratchpads](#g:dynamic-scratchpads), which allow you to
+--     dynamically declare existing windows as scratchpads.  These can
+--     be treated as a separate type of scratchpad.
+--
+--   + [Exclusive](#g:exclusive-scratchpads) scratchpads, which can be
+--     seen as a property of already existing scratchpads.  Marking
+--     scratchpads as exclusive will not allow them to be shown on the
+--     same workspace; the scratchpad being brought up will hide the
+--     others.
+--
+-- See the relevant sections in the documentation for more information.
+--
 -- Further, there is also a @logHook@ that you can use to hide
 -- scratchpads when they lose focus; this is functionality akin to what
 -- some dropdown terminals provide.  See the documentation of
