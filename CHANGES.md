@@ -4,6 +4,11 @@
 
 ### Breaking Changes
 
+  * `XMonad.Util.ExclusiveScratchpads`
+
+    - Deprecated the module in favour of the (new) exclusive scratchpad
+      functionality of `XMonad.Util.NamedScratchpad`.
+
   * `XMonad.Hooks.DynamicProperty`
 
     - Deprecated the module in favour of the more aptly named

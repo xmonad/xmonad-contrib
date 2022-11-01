@@ -15,7 +15,9 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.ExclusiveScratchpads (
+module XMonad.Util.ExclusiveScratchpads
+  {-# DEPRECATED "Use the exclusive scratchpad functionality of \"XMonad.Util.NamedScratchpad\" insead." #-}
+  (
   -- * Usage
   -- $usage
   mkXScratchpads,
