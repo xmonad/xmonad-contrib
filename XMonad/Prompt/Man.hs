@@ -88,7 +88,7 @@ manCompl c mans s | s == "" || last s == ' ' = return []
 
 -- | Run a command using shell and return its output.
 --
--- XXX Merge into 'XMonad.Util.Run'?
+-- XXX Merge into "XMonad.Util.Run"?
 --
 -- (Ask \"gurus\" whether @evaluate (length ...)@ approach is
 -- better\/more idiomatic.)

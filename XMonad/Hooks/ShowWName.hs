@@ -9,7 +9,7 @@
 -- Maintainer  :  Tony Zorman <soliditsallgood@mailbox.org>
 --
 -- Flash the names of workspaces name when switching to them.  This is a
--- reimplementation of 'XMonad.Layout.ShowWName' as a logHook.
+-- reimplementation of "XMonad.Layout.ShowWName" as a logHook.
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.ShowWName (

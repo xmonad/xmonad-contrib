@@ -75,7 +75,7 @@ limitWindows :: Int -> l a -> ModifiedLayout LimitWindows l a
 limitWindows n = ModifiedLayout (LimitWindows FirstN n)
 
 -- | Only display @n@ windows around the focused window. This makes sense with
--- layouts that arrange windows linearily, like 'XMonad.Layout.Layout.Accordion'.
+-- layouts that arrange windows linearily, like "XMonad.Layout.Accordion".
 limitSlice :: Int -> l a -> ModifiedLayout LimitWindows l a
 limitSlice n = ModifiedLayout (LimitWindows Slice n)
 

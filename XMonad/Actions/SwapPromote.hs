@@ -99,7 +99,7 @@ import           Control.Arrow
 -- So far floating windows have been treated no differently than tiled windows
 -- even though their positions are independent of the stack. Often, yanking
 -- floating windows in and out of the workspace will obliterate the stack
--- history - particularly frustrating with 'XMonad.Util.Scratchpad' since it is
+-- history - particularly frustrating with "XMonad.Util.Scratchpad" since it is
 -- toggled so frequenty and always replaces the master window. That's why the
 -- swap functions accept a boolean argument; when @True@ non-focused floating
 -- windows will be ignored.

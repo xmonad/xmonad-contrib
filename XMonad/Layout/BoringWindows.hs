@@ -93,7 +93,7 @@ siftUp = sendMessage UpdateBoring >> sendMessage SiftUp
 siftDown = sendMessage UpdateBoring >> sendMessage SiftDown
 
 -- | Mark current focused window boring for all layouts.
--- This is useful in combination with the 'XMonad.Actions.CopyWindow' module.
+-- This is useful in combination with the "XMonad.Actions.CopyWindow" module.
 markBoringEverywhere :: X ()
 markBoringEverywhere = withFocused (broadcastMessage . IsBoring)
 

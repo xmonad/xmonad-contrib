@@ -44,7 +44,7 @@ import XMonad.Util.EZConfig (readKeySequence)
 {- $usage
 
 This module implements Emacs-style prefix argument.  The argument
-comes in two flavours, "Raw" and "Numeric".
+comes in two flavours, 'Raw' and 'Numeric'.
 
 To initiate the "prefix mode" you hit the prefix keybinding (default
 C-u).  This sets the Raw argument value to 1.  Repeatedly hitting this
@@ -72,7 +72,7 @@ Binding it in your config
 
 >    ((modm, xK_a), withPrefixArgument addMaybeClean)
 
-Hitting MOD-a will add the <file> to the playlist while C-u MOD-a will
+Hitting MOD-a will add the @\<file\>@ to the playlist while C-u MOD-a will
 clear the playlist and then add the file.
 
 You can of course use an anonymous action, like so:

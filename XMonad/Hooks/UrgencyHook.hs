@@ -242,8 +242,8 @@ data SuppressWhen = Visible  -- ^ the window is currently visible
 --
 -- The interval arguments are in seconds. See the 'minutes' helper.
 data RemindWhen = Dont                    -- ^ triggering once is enough
-                | Repeatedly Int Interval -- ^ repeat <arg1> times every <arg2> seconds
-                | Every Interval          -- ^ repeat every <arg1> until the urgency hint is cleared
+                | Repeatedly Int Interval -- ^ repeat \<arg1\> times every \<arg2\> seconds
+                | Every Interval          -- ^ repeat every \<arg1\> until the urgency hint is cleared
                 deriving (Read, Show)
 
 -- | A prettified way of multiplying by 60. Use like: @(5 `minutes`)@.

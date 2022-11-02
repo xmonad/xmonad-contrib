@@ -388,7 +388,7 @@ instance RemovableClass MouseBindings [(ButtonMask, Button)] where
   MouseBindings { mRemove = r } =- sadBindings = return . r sadBindings
 
 -- | Mouse button bindings to an 'X' actions on a window. Default: see @`man
--- xmonad`@. To make mod-<scrollwheel> switch workspaces:
+-- xmonad`@. To make @mod-\<scrollwheel\>@ switch workspaces:
 --
 -- > import XMonad.Actions.CycleWS (nextWS, prevWS)
 -- > ...

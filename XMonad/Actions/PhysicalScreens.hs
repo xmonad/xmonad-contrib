@@ -75,7 +75,7 @@ getScreenIdAndRectangle :: W.Screen i l a ScreenId ScreenDetail -> (ScreenId, Re
 getScreenIdAndRectangle screen = (W.screen screen, rect) where
   rect = screenRect $ W.screenDetail screen
 
--- | Translate a physical screen index to a "ScreenId"
+-- | Translate a physical screen index to a 'ScreenId'
 getScreen:: ScreenComparator -> PhysicalScreen -> X (Maybe ScreenId)
 getScreen (ScreenComparator cmpScreen) (P i) = do w <- gets windowset
                                                   let screens = W.current w : W.visible w

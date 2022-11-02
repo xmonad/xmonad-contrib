@@ -43,7 +43,7 @@ econst = const . return
 -- >   , ((modm .|. controlMask, xK_s), sshPrompt def)
 --
 -- Keep in mind, that if you want to use the completion you have to
--- disable the "HashKnownHosts" option in your ssh_config
+-- disable the \"HashKnownHosts\" option in your ssh_config
 --
 -- For detailed instruction on editing the key binding see
 -- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.

@@ -11,9 +11,9 @@
 -- Portability :  unportable
 --
 -- A layout transformer to have a layout respect a given screen
--- geometry. Mostly used with "Decoration" (the Horizontal and the
--- Vertical version will react to SetTheme and change their dimension
--- accordingly.
+-- geometry. Mostly used with "XMonad.Layout.Decoration" (the
+-- Horizontal and the Vertical version will react to SetTheme and
+-- change their dimension accordingly.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.ResizeScreen

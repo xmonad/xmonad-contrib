@@ -111,9 +111,7 @@ It then all depends on what you want to do:
   - For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh".
 
   - For an example usage of 'runProcessWithInput' see
-    "XMonad.Prompt.DirectoryPrompt", "XMonad.Util.Dmenu",
-    "XMonad.Prompt.ShellPrompt", "XMonad.Actions.WmiiActions", or
-    "XMonad.Prompt.WorkspaceDir".
+    "XMonad.Util.Dmenu", or "XMonad.Prompt.Shell".
 
   - For an example usage of 'runProcessWithInputAndWait' see
     "XMonad.Util.Dzen".
