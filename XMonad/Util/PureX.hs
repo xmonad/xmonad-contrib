@@ -53,7 +53,7 @@ module XMonad.Util.PureX (
 
 -- xmonad
 import XMonad
-import XMonad.Prelude (Any (..), liftA2, WindowScreen)
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import qualified XMonad.Actions.FocusNth
 

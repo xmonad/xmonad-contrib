@@ -26,7 +26,8 @@ import XMonad
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
-import Control.Monad.Except (lift, runExceptT, throwError)
+import Control.Monad.Except (runExceptT, throwError)
+import Control.Monad.Trans (lift)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:

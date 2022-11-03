@@ -33,8 +33,8 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       , isOnAnyVisibleWS
                                       ) where
 
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.Reader (ask, asks)
+import Control.Monad.State (gets)
 import Control.DeepSeq
 import Data.Map ((!))
 import qualified Data.Map as Map
@@ -47,7 +47,7 @@ import Prelude hiding (drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
 import XMonad.Operations (windows, withFocused)
-import XMonad.Prelude (elem, foldl')
+import XMonad.Prelude (elem, foldl', (>=>))
 import qualified XMonad.StackSet as SS
 import qualified XMonad.Util.ExtensibleState as XS
 
