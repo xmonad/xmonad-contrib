@@ -142,8 +142,8 @@ import Data.Word (Word8)
 --
 -- Then you can bind to:
 --
--- >     ,((modm, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
--- >     ,((modm, xK_p), spawnSelected $ spawnSelected defaultColorizer)
+-- >     ,((modm, xK_g), goToSelected $ gsconfig2 myWinColorizer)
+-- >     ,((modm, xK_p), spawnSelected (gsconfig2 defaultColorizer) ["xterm","gvim"])
 
 -- $keybindings
 --
