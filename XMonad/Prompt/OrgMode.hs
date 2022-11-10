@@ -115,8 +115,8 @@ troubles.  Weekdays always schedule into the future; e.g., if today is
 Monday and you schedule something for Monday, you will actually schedule
 it for the /next/ Monday (the one in seven days).
 
-The time is specified in the @HH:MM@ format.  The minutes may be
-omitted, in which case we assume a full hour is specified.
+The time is specified in the @HH:MM@ or @HHMM@ format.  The minutes may
+be omitted, in which case we assume a full hour is specified.
 
 A few examples are probably in order.  Suppose we have bound the key
 above, pressed it, and are now confronted with a prompt:
@@ -532,13 +532,22 @@ pPriority = option NoPriority $
 -- | Try to parse a 'Time'.
 pTimeOfDay :: Parser (Maybe TimeOfDay)
 pTimeOfDay = option Nothing $
-  skipSpaces *> choice
-    [ Just <$> (TimeOfDay <$> pHour <* ":" <*> pMinute) -- HH:MM
-    , Just <$> (TimeOfDay <$> pHour        <*> pure 0 ) -- HH
+  skipSpaces >> Just <$> choice
+    [ TimeOfDay <$> pHour <* ":" <*> pMinute -- HH:MM
+    , pHHMM                                  -- HHMM
+    , TimeOfDay <$> pHour        <*> pure 0  -- HH
     ]
  where
-  pMinute :: Parser Int = pNumBetween 0 59
+  pHHMM :: Parser TimeOfDay
+  pHHMM = do
+    let getTwo = count 2 (satisfy isDigit)
+    hh <- read <$> getTwo
+    guard (hh >= 0 && hh <= 23)
+    mm <- read <$> getTwo
+    guard (mm >= 0 && mm <= 59)
+    pure $ TimeOfDay hh mm
   pHour   :: Parser Int = pNumBetween 0 23
+  pMinute :: Parser Int = pNumBetween 0 59
 
 -- | Parse a 'Date'.
 pDate :: Parser Date

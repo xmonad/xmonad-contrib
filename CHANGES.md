@@ -116,6 +116,8 @@
     targeted refiling of the entered note into some existing tree of
     headings, respectively.
 
+  - Allowed the time specification in `HHMM` format.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

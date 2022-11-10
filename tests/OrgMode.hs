@@ -150,6 +150,7 @@ instance Arbitrary OrgMsg where
     hourGen :: Gen String
     hourGen = oneof
       [ pure " " <<>> (pad <$> hourInt) <<>> pure ":" <<>> (pad <$> minuteInt)
+      , pure " " <<>> (pad <$> hourInt) <<>>               (pad <$> minuteInt)
       , pure ""
       ]
      where
