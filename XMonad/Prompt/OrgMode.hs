@@ -533,12 +533,12 @@ pPriority = option NoPriority $
 pTimeOfDay :: Parser (Maybe TimeOfDay)
 pTimeOfDay = option Nothing $
   skipSpaces *> choice
-    [ Just <$> (TimeOfDay <$> pHour <* string ":" <*> pMinute) -- HH:MM
-    , Just <$> (TimeOfDay <$> pHour               <*> pure 0 ) -- HH
+    [ Just <$> (TimeOfDay <$> pHour <* ":" <*> pMinute) -- HH:MM
+    , Just <$> (TimeOfDay <$> pHour        <*> pure 0 ) -- HH
     ]
  where
-  pMinute :: Parser Int = pNumBetween 1 60
-  pHour   :: Parser Int = pNumBetween 1 24
+  pMinute :: Parser Int = pNumBetween 0 59
+  pHour   :: Parser Int = pNumBetween 0 23
 
 -- | Parse a 'Date'.
 pDate :: Parser Date
