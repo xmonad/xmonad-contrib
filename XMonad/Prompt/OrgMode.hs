@@ -6,6 +6,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
+{-# LANGUAGE ViewPatterns        #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.OrgMode
@@ -523,9 +524,9 @@ pInput inp = (`runParser` inp) . choice $
 pPriority :: Parser Priority
 pPriority = option NoPriority $
   " " *> skipSpaces *> choice
-    [ "#" *> ("A" <|> "a") $> A
-    , "#" *> ("B" <|> "b") $> B
-    , "#" *> ("C" <|> "c") $> C
+    [ "#" *> foldCase "a" $> A
+    , "#" *> foldCase "b" $> B
+    , "#" *> foldCase "c" $> C
     ]
 
 -- | Try to parse a 'Time'.
@@ -577,12 +578,12 @@ pDate = skipSpaces *> choice
                ])
          <*> optional (skipSpaces *> num >>= \i -> guard (i >= 25) $> i)
 
-  -- | Parse a prefix and drop a potential suffix up to the next (space
+  -- Parse a prefix and drop a potential suffix up to the next (space
   -- separated) word.  If successful, return @ret@.
-  pPrefix :: Parser String -> String -> a -> Parser a
-  pPrefix start leftover ret = do
-    void start
-    l <- munch (/= ' ')
+  pPrefix :: String -> String -> a -> Parser a
+  pPrefix start (map toLower -> leftover) ret = do
+    void (foldCase start)
+    l <- map toLower <$> munch (/= ' ')
     guard (l `isPrefixOf` leftover)
     pure ret
 
@@ -591,6 +592,10 @@ pNumBetween :: Int -> Int -> Parser Int
 pNumBetween lo hi = do
   n <- num
   n <$ guard (n >= lo && n <= hi)
+
+-- Parse the given string case insensitively.
+foldCase :: String -> Parser String
+foldCase = traverse (\c -> char (toLower c) <|> char (toUpper c))
 
 ------------------------------------------------------------------------
 -- File parsing
