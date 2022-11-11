@@ -134,11 +134,6 @@ focusTagged' :: (WindowSet -> [Window]) -> String -> X ()
 focusTagged' wl t = gets windowset >>= findM (hasTag t) . wl >>=
     maybe (return ()) (windows . focusWindow)
 
-findM :: (Monad m) => (a -> m Bool) -> [a] -> m (Maybe a)
-findM _ []      = return Nothing
-findM p (x:xs)  = do b <- p x
-                     if b then return (Just x) else findM p xs
-
 -- | apply a pure function to windows with a tag
 withTaggedP, withTaggedGlobalP :: String -> (Window -> WindowSet -> WindowSet) -> X ()
 withTaggedP       t f = withTagged'       t (winMap f)

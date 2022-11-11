@@ -1,5 +1,6 @@
-{-# LANGUAGE InstanceSigs     #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE InstanceSigs   #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ViewPatterns   #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.NamedScratchpad
@@ -36,24 +37,34 @@ module XMonad.Util.NamedScratchpad (
   dynamicNSPAction,
   toggleDynamicNSP,
 
+  -- * Exclusive Scratchpads
+  -- $exclusive-scratchpads
+  addExclusives,
+  -- ** Keyboard related
+  resetFocusedNSP,
+  -- ** Mouse related
+  setNoexclusive,
+  resizeNoexclusive,
+  floatMoveNoexclusive,
+
   -- * Deprecations
   namedScratchpadFilterOutWorkspace,
   namedScratchpadFilterOutWorkspacePP,
 
   ) where
 
-import Data.Coerce (coerce)
 import Data.Map.Strict (Map, (!?))
 import XMonad
 import XMonad.Actions.DynamicWorkspaces (addHiddenWorkspace)
 import XMonad.Actions.SpawnOn (spawnHere)
+import XMonad.Actions.TagWindows (addTag, delTag)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Hooks.RefocusLast (withRecentsIn)
 import XMonad.Hooks.StatusBar.PP (PP, ppSort)
-import XMonad.Prelude (filterM, unless, when)
+import XMonad.Prelude (appEndo, filterM, findM, foldl', for_, unless, void, when, (<=<))
 
-import qualified Data.Map.Strict    as Map
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Map.Strict    as Map
 
 import qualified XMonad.StackSet             as W
 import qualified XMonad.Util.ExtensibleState as XS
@@ -111,6 +122,25 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- the list of workspaces from EWMH.  See the documentation of these functions
 -- for examples.
 --
+-- If you want to explore this module further, scratchpads can come in
+-- many forms and flavours:
+--
+--   + \"Regular\" scratchpads: they can be predefined and
+--     summoned/banished with a key press.  These are the scratchpads
+--     that you have seen above.
+--
+--   + [Dynamic scratchpads](#g:dynamic-scratchpads), which allow you to
+--     dynamically declare existing windows as scratchpads.  These can
+--     be treated as a separate type of scratchpad.
+--
+--   + [Exclusive](#g:exclusive-scratchpads) scratchpads, which can be
+--     seen as a property of already existing scratchpads.  Marking
+--     scratchpads as exclusive will not allow them to be shown on the
+--     same workspace; the scratchpad being brought up will hide the
+--     others.
+--
+-- See the relevant sections in the documentation for more information.
+--
 -- Further, there is also a @logHook@ that you can use to hide
 -- scratchpads when they lose focus; this is functionality akin to what
 -- some dropdown terminals provide.  See the documentation of
@@ -124,23 +154,51 @@ data NamedScratchpad = NS { name   :: String      -- ^ Scratchpad name
                           , hook   :: ManageHook  -- ^ Manage hook called for application window, use it to define the placement. See @nonFloating@, @defaultFloating@ and @customFloating@
                           }
 
--- | The NSP state associates a name to an entire scratchpad.
-newtype NSPState = NSPState (Map String NamedScratchpad)
+-- | The NSP state.
+data NSPState = NSPState
+  { nspExclusives  :: !(Map String NamedScratchpads)
+    -- ^ Associates the name of a scratchpad to some list of scratchpads
+    -- that should be mutually exclusive to it.
+  , nspScratchpads :: !(Map String NamedScratchpad)
+    -- ^ Associates a name to an entire scratchpad.
+  }
 
 instance ExtensionClass NSPState where
   initialValue :: NSPState
-  initialValue = NSPState mempty
+  initialValue = NSPState mempty mempty
 
--- | Try to fill the 'NSPState' with the given list of scratchpads.  In
--- case the state is already non-empty, don't do anything and return
--- that state.  Otherwise, fill the state with the given scratchpads.
+-- | Try to:
+--
+--    (i) Fill the 'nspScratchpads' portion of the 'NSPState' with the
+--        given list of scratchpads.  In case that particular map of the
+--        state is already non-empty, don't do anything and return that
+--        state.
+--
+--   (ii) Replace possibly dummy scratchpads in @nspExclusives@ with
+--        proper values.  For convenience, the user may specify
+--        exclusive scratchpads by name in the startup hook.  However,
+--        we don't necessarily have all information then to immediately
+--        turn these into proper NamedScratchpads.  As such, we thinly
+--        wrap the names into an NSP skeleton, to be filled in later.
+--        This function, to be executed _before_
+--        'someNamedScratchpadAction' is the (latest) point where that
+--        happens.
 fillNSPState :: NamedScratchpads -> X NSPState
 fillNSPState nsps = do
-    nsp@(NSPState xs) <- XS.get
-    let nspState = NSPState . Map.fromList $ zip (map name nsps) nsps
-    if null xs
-        then nspState <$ XS.put nspState
-        else pure nsp
+    nsp@(NSPState exs scratches) <- XS.get
+    if null scratches
+      then let nspState = NSPState (fillOut exs) nspScratches
+            in nspState <$ XS.put nspState
+      else pure nsp
+  where
+    -- @fillNSPState@ only runs once, so the complexity here is probably
+    -- not a big deal.
+    nspScratches :: Map String NamedScratchpad
+    nspScratches = Map.fromList $ zip (map name nsps) nsps
+    fillOut :: Map String [NamedScratchpad] -> Map String [NamedScratchpad]
+    fillOut exs = foldl' (\nspMap n -> Map.map (replaceWith n) nspMap) exs nsps
+    replaceWith :: NamedScratchpad -> [NamedScratchpad] -> [NamedScratchpad]
+    replaceWith n = map (\x -> if name x == name n then n else x)
 
 -- | Manage hook that makes the window non-floating
 nonFloating :: ManageHook
@@ -153,6 +211,11 @@ defaultFloating = doFloat
 -- | Manage hook that makes the window floating with custom placement
 customFloating :: W.RationalRect -> ManageHook
 customFloating = doRectFloat
+
+-- | @isNSP win nsps@ checks whether the window @win@ is any scratchpad
+-- in @nsps@.
+isNSP :: Window -> NamedScratchpads -> X Bool
+isNSP w = fmap or . traverse ((`runQuery` w) . query)
 
 -- | Named scratchpads configuration
 type NamedScratchpads = [NamedScratchpad]
@@ -225,11 +288,8 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
     let cur = W.currentTag winSet
     withRecentsIn cur () $ \lastFocus _ ->
         when (lastFocus `elem` W.index winSet && cur /= scratchpadWorkspaceTag) $
-            whenX (isNS lastFocus) $
+            whenX (isNSP lastFocus scratches) $
                 shiftToNSP (W.workspaces winSet) ($ lastFocus)
-  where
-    isNS :: Window -> X Bool
-    isNS w = or <$> traverse ((`runQuery` w) . query) scratches
 
 -- | Execute some action on a named scratchpad.
 --
@@ -241,19 +301,23 @@ someNamedScratchpadAction :: ((Window -> X ()) -> NE.NonEmpty Window -> X ())
                           -> String
                           -> X ()
 someNamedScratchpadAction f runApp _ns scratchpadName = do
-    NSPState scratchpadConfig <- fillNSPState _ns  -- See Note [Filling NSPState]
-    case scratchpadConfig !? scratchpadName of
+    NSPState{ nspScratchpads } <- fillNSPState _ns  -- See Note [Filling NSPState]
+    case nspScratchpads !? scratchpadName of
         Just conf -> withWindowSet $ \winSet -> do
-            let focusedWspWindows = maybe [] W.integrate (W.stack . W.workspace . W.current $ winSet)
+            let focusedWspWindows = W.index winSet
                 allWindows        = W.allWindows winSet
             matchingOnCurrent <- filterM (runQuery (query conf)) focusedWspWindows
             matchingOnAll     <- filterM (runQuery (query conf)) allWindows
 
             case NE.nonEmpty matchingOnCurrent of
                 -- no matching window on the current workspace -> scratchpad not running or in background
-                Nothing -> case NE.nonEmpty matchingOnAll of
-                    Nothing   -> runApp conf
-                    Just wins -> f (windows . W.shiftWin (W.currentTag winSet)) wins
+                Nothing -> do
+                    -- summon the scratchpad
+                    case NE.nonEmpty matchingOnAll of
+                        Nothing   -> runApp conf
+                        Just wins -> f (windows . W.shiftWin (W.currentTag winSet)) wins
+                    -- check for exclusive scratchpads to hide
+                    hideUnwanted (name conf)
 
                 -- matching window running on current workspace -> window should be shifted to scratchpad workspace
                 Just wins -> shiftToNSP (W.workspaces winSet) (`f` wins)
@@ -284,7 +348,7 @@ scratchpadWorkspaceTag = "NSP"
 namedScratchpadManageHook :: NamedScratchpads -- ^ Named scratchpads configuration
                           -> ManageHook
 namedScratchpadManageHook nsps = do
-    ns <- Map.elems . coerce <$> liftX (fillNSPState nsps)
+    ns <- Map.elems . nspScratchpads <$> liftX (fillNSPState nsps)
     composeAll $ fmap (\c -> query c --> hook c) ns
 
 -- | Shift some windows to the scratchpad workspace according to the
@@ -339,11 +403,12 @@ mkDynamicNSP s w =
 
 -- | Make a window a dynamic scratchpad
 addDynamicNSP :: String -> Window -> X ()
-addDynamicNSP s w = XS.modify @NSPState . coerce $ Map.insert s (mkDynamicNSP s w)
+addDynamicNSP s w = XS.modify $ \(NSPState exs ws) ->
+  NSPState exs (Map.insert s (mkDynamicNSP s w) ws)
 
 -- | Make a window stop being a dynamic scratchpad
 removeDynamicNSP :: String -> X ()
-removeDynamicNSP s = XS.modify @NSPState . coerce $ Map.delete @_ @NamedScratchpad s
+removeDynamicNSP s = XS.modify $ \(NSPState exs ws) -> NSPState exs (Map.delete s ws)
 
 -- | Toggle the visibility of a dynamic scratchpad.
 dynamicNSPAction :: String -> X ()
@@ -353,12 +418,138 @@ dynamicNSPAction = customRunNamedScratchpadAction (const $ pure ()) []
 -- a window from being one if it already is.
 toggleDynamicNSP :: String -> Window -> X ()
 toggleDynamicNSP s w = do
-    NSPState nsps <- XS.get
-    case nsps !? s of
+    NSPState{ nspScratchpads } <- XS.get
+    case nspScratchpads !? s of
         Nothing  -> addDynamicNSP s w
         Just nsp -> ifM (runQuery (query nsp) w)
                         (removeDynamicNSP s)
                         (addDynamicNSP s w)
+
+-----------------------------------------------------------------------
+-- Exclusive scratchpads
+
+-- $exclusive-scratchpads
+--
+-- Exclusive scratchpads allow you to hide certain scratchpads in
+-- relation to others.  There can be multiple groups of pairwise
+-- exclusive scratchpads; whenever one such scratchpad gets called, it
+-- will hide all other scratchpads on the focused workspace that are in
+-- this group.
+--
+-- For example, having defined "Calc", "Mail", and "Term" scratchpads,
+-- you can use 'addExclusives' to make some of them dislike each other:
+--
+-- > myExclusives = [ ["Calc", "Mail"]
+-- >                , ["Mail", "Term"]
+-- >                ]
+--
+-- You now have to add @myExclusives@ to you startupHook:
+--
+-- > main :: IO
+-- > main = xmonad . … . $ def
+-- >   { …
+-- >   , startupHook = myStartupHook >> myExclusives
+-- >   }
+--
+-- This will hide the "Mail" scratchpad whenever the "Calc" scratchpad
+-- is brought up, and vice-versa.  Likewise, "Mail" and "Term" behave in
+-- this way, but "Calc" and "Term" may peacefully coexist.
+--
+-- If you move a scratchpad it still gets hidden when you fetch a
+-- scratchpad of the same family.  To change that behaviour—and make
+-- windows not exclusive anymore when they get resized or moved—add
+-- these mouse bindings (see
+-- "XMonad.Doc.Extending#Editing_mouse_bindings"):
+--
+-- >     , ((mod4Mask, button1), floatMoveNoexclusive)
+-- >     , ((mod4Mask, button3), resizeNoexclusive)
+--
+-- To reset a moved scratchpad to the original position that you set
+-- with its hook, focus is and then call 'resetFocusedNSP'.  For
+-- example, if you want to extend @M-\<Return\>@ to reset the placement
+-- when a scratchpad is in focus but keep the default behaviour for
+-- tiled windows, set these key bindings:
+--
+-- > , ((modMask, xK_Return), windows W.swapMaster >> resetFocusedNSP)
+
+-- | Make some scratchpads exclusive.
+addExclusives :: [[String]] -> X ()
+addExclusives exs = do
+    NSPState _ ws <- XS.get
+    -- Re-initialise `ws' to nothing, so we can react to changes in case
+    -- of a restart.  See 'fillNSPState' for more details on filling.
+    XS.put (NSPState (foldl' (go []) mempty exs) mempty)
+    unless (null ws) $
+        void (fillNSPState (Map.elems ws))
+  where
+    -- Ignoring that this is specialised to NSPs, it works something like
+    -- >>> foldl' (go []) mempty [[1, 2], [3, 4], [1, 3]]
+    -- fromList [(1, [3, 2]), (2, [1]), (3, [1, 4]), (4, [3])]
+    go _  m []       = m
+    go ms m (n : ns) = go (n : ms) (Map.insertWith (<>) n (mkNSP (ms <> ns)) m) ns
+    mkNSP = map (\n -> NS n mempty (pure False) mempty)
+
+-- | @setNoexclusive w@ makes the window @w@ lose its exclusivity
+-- features.
+setNoexclusive :: Window -> X ()
+setNoexclusive w = do
+    NSPState _ ws <- XS.get
+    whenX (isNSP w (Map.elems ws)) $
+        addTag "_NSP_NOEXCLUSIVE" w
+
+-- | If the focused window is a scratchpad, the scratchpad gets reset to
+-- the original placement specified with the hook and becomes exclusive
+-- again.
+resetFocusedNSP :: X ()
+resetFocusedNSP = do
+    NSPState _ (Map.elems -> ws) <- XS.get
+    withFocused $ \w -> do
+        mbWin <- findM ((`runQuery` w) . query) ws
+        whenJust mbWin $ \win -> do
+            (windows . appEndo <=< runQuery (hook win)) w
+            hideUnwanted (name win)
+            delTag "_NSP_NOEXCLUSIVE" w
+
+-- | @hideUnwanted nspWindow@ hides all windows that @nspWindow@ does
+-- not like; i.e., windows that are in some kind of exclusivity contract
+-- with it.
+--
+-- A consistency assumption for this is that @nspWindow@ must be the
+-- currently focused window.  For this to take effect, @nspWindow@ must
+-- not have set the @_NSP_NOEXCLUSIVE@ property, neither must any
+-- exclusive window we'd like to hide.
+hideUnwanted :: String -> X ()
+hideUnwanted nspWindow = withWindowSet $ \winSet -> do
+    NSPState{ nspExclusives } <- XS.get
+    whenJust (nspExclusives !? nspWindow) $ \unwanted ->
+        withFocused $ \w -> whenX (runQuery notIgnored w) $ do
+            for_ (W.index winSet) $ \win ->
+                whenX (runQuery (isUnwanted unwanted) win) $
+                    shiftToNSP (W.workspaces winSet) ($ win)
+  where
+    notIgnored :: Query Bool
+    notIgnored = notElem "_NSP_NOEXCLUSIVE" . words <$> stringProperty "_XMONAD_TAGS"
+
+    isUnwanted :: [NamedScratchpad] -> Query Bool
+    isUnwanted = (notIgnored <&&>) . foldr (\nsp qs -> qs <||> query nsp) (pure False)
+
+-- | Float and drag the window; make it lose its exclusivity status in
+-- the process.
+floatMoveNoexclusive :: Window -- ^ Window which should be moved
+                     -> X ()
+floatMoveNoexclusive = mouseHelper mouseMoveWindow
+
+-- | Resize window and make it lose its exclusivity status in the
+-- process.
+resizeNoexclusive :: Window -- ^ Window which should be resized
+                  -> X ()
+resizeNoexclusive = mouseHelper mouseResizeWindow
+
+mouseHelper :: (Window -> X a) -> Window -> X ()
+mouseHelper f w = setNoexclusive w
+               >> focus w
+               >> f w
+               >> windows W.shiftMaster
 
 ------------------------------------------------------------------------
 -- Deprecations

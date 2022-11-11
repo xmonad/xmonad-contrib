@@ -30,10 +30,11 @@ module XMonad.Layout.IM (
 ) where
 
 import XMonad
-import qualified XMonad.StackSet as S
 import XMonad.Layout.Grid
 import XMonad.Layout.LayoutModifier
+import XMonad.Prelude
 import XMonad.Util.WindowProperties
+import qualified XMonad.StackSet as S
 
 import Control.Arrow (first)
 
@@ -109,11 +110,6 @@ applyIM ratio prop wksp rect = do
             wrs <- runLayout (wksp {S.stack = filteredStack}) slaveRect
             return (first ((w, masterRect) :) wrs)
         Nothing -> runLayout wksp rect
-
--- | Like find, but works with monadic computation instead of pure function.
-findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
-findM _ [] = return Nothing
-findM f (x:xs) = do { b <- f x; if b then return (Just x) else findM f xs }
 
 -- | This is for compatibility with old configs only and will be removed in future versions!
 data IM a = IM Rational Property deriving (Read, Show)

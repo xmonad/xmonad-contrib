@@ -4,6 +4,11 @@
 
 ### Breaking Changes
 
+  * `XMonad.Util.ExclusiveScratchpads`
+
+    - Deprecated the module in favour of the (new) exclusive scratchpad
+      functionality of `XMonad.Util.NamedScratchpad`.
+
   * `XMonad.Hooks.DynamicProperty`
 
     - Deprecated the module in favour of the more aptly named
@@ -65,50 +70,57 @@
 
 ### New Modules
 
-* `XMonad.Hooks.OnPropertyChange`:
+  * `XMonad.Hooks.OnPropertyChange`:
 
-  - A new module replicating the functionality of
-    `XMonad.Hooks.DynamicProperty`, but with more discoverable names.
+    - A new module replicating the functionality of
+      `XMonad.Hooks.DynamicProperty`, but with more discoverable names.
 
 ### Bug Fixes and Minor Changes
 
-* `XMonad.Layout.BorderResize`
+  * `XMonad.Util.NamedScratchpad`
 
-  - Added `borderResizeNear` as a variant of `borderResize` that can
-    control how many pixels near a border resizing still works.
+    - Added `addExclusives`, `resetFocusedNSP`, `setNoexclusive`,
+      `resizeNoexclusive`, and `floatMoveNoexclusive` in order to augment
+      named scratchpads with the exclusive scratchpad functionality of
+      `XMonad.Util.ExclusiveScratchpads`.
 
-* `XMonad.Util.Run`
+  * `XMonad.Layout.BorderResize`
 
-  - It is now ensured that all arguments of `execute` and `eval` are
-    quoted.  Likewise, `executeNoQuote` is added as a version of
-    `execute` that does not do that.
+    - Added `borderResizeNear` as a variant of `borderResize` that can
+      control how many pixels near a border resizing still works.
 
-  - Added `findFile` as a shorthand to call `find-file`.
+  * `XMonad.Util.Run`
 
-  - Added `list` and `saveExcursion` to the list of Emacs commands.
+    - It is now ensured that all arguments of `execute` and `eval` are
+      quoted.  Likewise, `executeNoQuote` is added as a version of
+      `execute` that does not do that.
 
-* `XMonad.Util.Parser`
+    - Added `findFile` as a shorthand to call `find-file`.
 
-  - Added the `gather`, `count`, `between`, `option`, `optionally`,
-    `skipMany`, `skipMany1`, `chainr`, `chainr1`, `chainl`, `chainl1`,
-    and `manyTill` functions, in order to achieve feature parity with
-    `Text.ParserCombinators.ReadP`.
+    - Added `list` and `saveExcursion` to the list of Emacs commands.
 
-* `XMonad.Actions.FloatKeys`
+  * `XMonad.Util.Parser`
 
-  - Added `directionMoveWindow` and `directionMoveWindow` as more
-    alternatives to the existing functions.
+    - Added the `gather`, `count`, `between`, `option`, `optionally`,
+      `skipMany`, `skipMany1`, `chainr`, `chainr1`, `chainl`, `chainl1`,
+      and `manyTill` functions, in order to achieve feature parity with
+      `Text.ParserCombinators.ReadP`.
 
-* `XMonad.Hooks.InsertPosition`
+  * `XMonad.Actions.FloatKeys`
 
-  - Added `setupInsertPosition` as a combinator alternative to
-    `insertPosition`.
+    - Added `directionMoveWindow` and `directionMoveWindow` as more
+      alternatives to the existing functions.
 
-* `XMonad.Actions.Navigation2D`
+  * `XMonad.Hooks.InsertPosition`
 
-  - Added `sideNavigation` as a fallback to the default tiling strategy,
-    in case `lineNavigation` can't find a window.  This benefits
-    especially users who use `XMonad.Layout.Spacing`.
+    - Added `setupInsertPosition` as a combinator alternative to
+      `insertPosition`.
+
+  * `XMonad.Actions.Navigation2D`
+
+    - Added `sideNavigation` as a fallback to the default tiling strategy,
+      in case `lineNavigation` can't find a window.  This benefits
+      especially users who use `XMonad.Layout.Spacing`.
 
 * `XMonad.Prompt.OrgMode`
 
