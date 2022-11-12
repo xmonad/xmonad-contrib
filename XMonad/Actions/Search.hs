@@ -31,14 +31,17 @@ module XMonad.Actions.Search (   -- * Usage
                                  prefixAware,
                                  namedEngine,
 
-                                 amazon,
                                  alpha,
+                                 amazon,
+                                 aur,
                                  codesearch,
                                  deb,
                                  debbts,
                                  debpts,
                                  dictionary,
+                                 duckduckgo,
                                  ebay,
+                                 flora,
                                  github,
                                  google,
                                  hackage,
@@ -48,16 +51,21 @@ module XMonad.Actions.Search (   -- * Usage
                                  lucky,
                                  maps,
                                  mathworld,
+                                 ncatlab,
                                  openstreetmap,
+                                 protondb,
+                                 rosettacode,
                                  scholar,
+                                 sourcehut,
                                  stackage,
+                                 steam,
                                  thesaurus,
+                                 vocabulary,
+                                 voidpackages,
                                  wayback,
                                  wikipedia,
                                  wiktionary,
                                  youtube,
-                                 vocabulary,
-                                 duckduckgo,
                                  multi,
                                   -- * Use case: searching with a submap
                                   -- $tip
@@ -102,9 +110,11 @@ import           XMonad.Util.XSelection   (getSelection)
 
    The currently available search engines are:
 
+* 'alpha' -- Wolfram|Alpha query.
+
 * 'amazon' -- Amazon keyword search.
 
-* 'alpha' -- Wolfram|Alpha query.
+* 'aur' -- Arch User Repository.
 
 * 'codesearch' -- Google Labs Code Search search.
 
@@ -116,7 +126,11 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'dictionary' -- dictionary.reference.com search.
 
+* 'duckduckgo' -- DuckDuckGo search engine.
+
 * 'ebay' -- Ebay keyword search.
+
+* 'flora' -- Prettier Haskell package database.
 
 * 'github' -- GitHub keyword search.
 
@@ -125,8 +139,6 @@ import           XMonad.Util.XSelection   (getSelection)
 * 'hackage' -- Hackage, the Haskell package database.
 
 * 'hoogle' -- Hoogle, the Haskell libraries API search engine.
-
-* 'stackage' -- Stackage, An alternative Haskell libraries API search engine.
 
 * 'images' -- Google images.
 
@@ -138,21 +150,35 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'mathworld' -- Wolfram MathWorld search.
 
+* 'ncatlab' -- Higer Algebra, Homotopy and Category Theory Wiki.
+
 * 'openstreetmap' -- OpenStreetMap free wiki world map.
+
+* 'protondb' -- Steam Proton Game Database.
+
+* 'rosettacode' -- Programming chrestomathy wiki.
 
 * 'scholar' -- Google scholar academic search.
 
+* 'sourcehut' -- Sourcehut projects search.
+
+* 'stackage' -- Stackage, An alternative Haskell libraries API search engine.
+
+* 'steam' -- Steam games search.
+
 * 'thesaurus' -- thesaurus.com search.
+
+* 'vocabulary' -- Dictionary search.
+
+* 'voidpackages' -- Void Linux packages search.
 
 * 'wayback' -- the Wayback Machine.
 
 * 'wikipedia' -- basic Wikipedia search.
 
+* 'wiktionary' -- Wiktionary search.
+
 * 'youtube' -- Youtube video search.
-
-* 'vocabulary' -- Dictionary search
-
-* 'duckduckgo' -- DuckDuckGo search engine.
 
 * 'multi' -- Search based on the prefix. \"amazon:Potter\" will use amazon, etc. With no prefix searches google.
 
@@ -286,17 +312,20 @@ searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
 
 -- The engines.
-amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, github, google, hackage, hoogle,
-  images, imdb, lucky, maps, mathworld, openstreetmap, scholar, stackage, thesaurus, vocabulary, wayback, wikipedia, wiktionary,
-  youtube, duckduckgo :: SearchEngine
-amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
+alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, google,
+  hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode,
+  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpackages, wayback, wikipedia, wiktionary, youtube :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
+amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
+aur           = searchEngine "aur"           "https://aur.archlinux.org/packages?&K="
 codesearch    = searchEngine "codesearch"    "https://developers.google.com/s/results/code-search?q="
 deb           = searchEngine "deb"           "https://packages.debian.org/"
 debbts        = searchEngine "debbts"        "https://bugs.debian.org/"
 debpts        = searchEngine "debpts"        "https://packages.qa.debian.org/"
 dictionary    = searchEngine "dict"          "https://dictionary.reference.com/browse/"
+duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 ebay          = searchEngine "ebay"          "https://www.ebay.com/sch/i.html?_nkw="
+flora         = searchEngine "flora"         "https://flora.pm/search?q="
 github        = searchEngine "github"        "https://github.com/search?q="
 google        = searchEngine "google"        "https://www.google.com/search?q="
 hackage       = searchEngine "hackage"       "https://hackage.haskell.org/package/"
@@ -306,19 +335,24 @@ imdb          = searchEngine "imdb"          "https://www.imdb.com/find?s=all&q=
 lucky         = searchEngine "lucky"         "https://www.google.com/search?btnI&q="
 maps          = searchEngine "maps"          "https://maps.google.com/maps?q="
 mathworld     = searchEngine "mathworld"     "https://mathworld.wolfram.com/search/?query="
+ncatlab       = searchEngine "ncatlab"       "https://ncatlab.org/nlab/search?query="
 openstreetmap = searchEngine "openstreetmap" "https://www.openstreetmap.org/search?query="
+protondb      = searchEngine "protondb"      "https://www.protondb.com/search?q="
+rosettacode   = searchEngine "rosettacode"  "https://rosettacode.org/w/index.php?search="
 scholar       = searchEngine "scholar"       "https://scholar.google.com/scholar?q="
+sourcehut     = searchEngine "sourcehut"     "https://sr.ht/projects?search="
 stackage      = searchEngine "stackage"      "https://www.stackage.org/lts/hoogle?q="
+steam         = searchEngine "steam"         "https://store.steampowered.com/search/?term="
 thesaurus     = searchEngine "thesaurus"     "https://thesaurus.com/browse/"
+vocabulary    = searchEngine "vocabulary"    "https://www.vocabulary.com/search?q="
+voidpackages  = searchEngine "voidpackages"  "https://voidlinux.org/packages/?arch=x86_64&q="
+wayback       = searchEngineF "wayback"      ("https://web.archive.org/web/*/"++)
 wikipedia     = searchEngine "wiki"          "https://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary    = searchEngine "wikt"          "https://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "https://www.youtube.com/results?search_type=search_videos&search_query="
-wayback       = searchEngineF "wayback"      ("https://web.archive.org/web/*/"++)
-vocabulary    = searchEngine "vocabulary"    "https://www.vocabulary.com/search?q="
-duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, github, google, hackage, hoogle, images, imdb, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, prefixAware google]
+multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpackages, wayback, wikipedia, wiktionary, youtube, prefixAware google]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
