@@ -122,13 +122,17 @@
       in case `lineNavigation` can't find a window.  This benefits
       especially users who use `XMonad.Layout.Spacing`.
 
-* `XMonad.Prompt.OrgMode`
+  * `XMonad.Prompt.OrgMode`
 
   - Added `orgPromptRefile` and `orgPromptRefileTo` for interactive and
     targeted refiling of the entered note into some existing tree of
     headings, respectively.
 
   - Allowed the time specification in `HHMM` format.
+
+  * `XMonad.Actions.Search`
+
+  - Added `aur`, `flora`, `ncatlab`, `protondb`, `rosettacode`, `sourcehut`, `steam` and `voidpackages` search engines.
 
 ### Other changes
 
