@@ -61,7 +61,8 @@ module XMonad.Actions.Search (   -- * Usage
                                  steam,
                                  thesaurus,
                                  vocabulary,
-                                 voidpackages,
+                                 voidpgks_x86_64,
+                                 voidpgks_x86_64_musl,
                                  wayback,
                                  wikipedia,
                                  wiktionary,
@@ -170,7 +171,9 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'vocabulary' -- Dictionary search.
 
-* 'voidpackages' -- Void Linux packages search.
+* 'voidpgks_x86_64' -- Void Linux packages search for @x86_64@.
+
+* 'voidpgks_x86_64_musl' -- Void Linux packages search for @x86_64-musl@.
 
 * 'wayback' -- the Wayback Machine.
 
@@ -314,7 +317,7 @@ searchEngineF = SearchEngine
 -- The engines.
 alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, google,
   hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode,
-  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpackages, wayback, wikipedia, wiktionary, youtube :: SearchEngine
+  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
 amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
 aur           = searchEngine "aur"           "https://aur.archlinux.org/packages?&K="
@@ -338,21 +341,22 @@ mathworld     = searchEngine "mathworld"     "https://mathworld.wolfram.com/sear
 ncatlab       = searchEngine "ncatlab"       "https://ncatlab.org/nlab/search?query="
 openstreetmap = searchEngine "openstreetmap" "https://www.openstreetmap.org/search?query="
 protondb      = searchEngine "protondb"      "https://www.protondb.com/search?q="
-rosettacode   = searchEngine "rosettacode"  "https://rosettacode.org/w/index.php?search="
+rosettacode   = searchEngine "rosettacode"   "https://rosettacode.org/w/index.php?search="
 scholar       = searchEngine "scholar"       "https://scholar.google.com/scholar?q="
 sourcehut     = searchEngine "sourcehut"     "https://sr.ht/projects?search="
 stackage      = searchEngine "stackage"      "https://www.stackage.org/lts/hoogle?q="
 steam         = searchEngine "steam"         "https://store.steampowered.com/search/?term="
 thesaurus     = searchEngine "thesaurus"     "https://thesaurus.com/browse/"
 vocabulary    = searchEngine "vocabulary"    "https://www.vocabulary.com/search?q="
-voidpackages  = searchEngine "voidpackages"  "https://voidlinux.org/packages/?arch=x86_64&q="
+voidpgks_x86_64      = searchEngine "voidpackages" "https://voidlinux.org/packages/?arch=x86_64&q="
+voidpgks_x86_64_musl = searchEngine "voidpackages" "https://voidlinux.org/packages/?arch=x86_64-musl&q="
 wayback       = searchEngineF "wayback"      ("https://web.archive.org/web/*/"++)
 wikipedia     = searchEngine "wiki"          "https://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary    = searchEngine "wikt"          "https://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "https://www.youtube.com/results?search_type=search_videos&search_query="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpackages, wayback, wikipedia, wiktionary, youtube, prefixAware google]
+multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube, prefixAware google]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than

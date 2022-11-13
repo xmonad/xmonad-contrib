@@ -133,7 +133,8 @@
   * `XMonad.Actions.Search`
 
     - Added `aur`, `flora`, `ncatlab`, `protondb`, `rosettacode`,
-      `sourcehut`, `steam` and `voidpackages` search engines.
+      `sourcehut`, `steam`, `voidpgks_x86_64`, and
+      `voidpgks_x86_64_musl` search engines.
 
 ### Other changes
 
