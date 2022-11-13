@@ -124,15 +124,16 @@
 
   * `XMonad.Prompt.OrgMode`
 
-  - Added `orgPromptRefile` and `orgPromptRefileTo` for interactive and
-    targeted refiling of the entered note into some existing tree of
-    headings, respectively.
+    - Added `orgPromptRefile` and `orgPromptRefileTo` for interactive
+      and targeted refiling of the entered note into some existing tree
+      of headings, respectively.
 
-  - Allowed the time specification in `HHMM` format.
+    - Allowed the time specification in `HHMM` format.
 
   * `XMonad.Actions.Search`
 
-  - Added `aur`, `flora`, `ncatlab`, `protondb`, `rosettacode`, `sourcehut`, `steam` and `voidpackages` search engines.
+    - Added `aur`, `flora`, `ncatlab`, `protondb`, `rosettacode`,
+      `sourcehut`, `steam` and `voidpackages` search engines.
 
 ### Other changes
 
