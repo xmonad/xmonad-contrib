@@ -33,8 +33,11 @@ module XMonad.Actions.Search (   -- * Usage
 
                                  alpha,
                                  amazon,
+                                 arXiv,
                                  aur,
+                                 clojureDocs,
                                  codesearch,
+                                 cratesIo,
                                  deb,
                                  debbts,
                                  debpts,
@@ -55,6 +58,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  openstreetmap,
                                  protondb,
                                  rosettacode,
+                                 rustStd,
                                  scholar,
                                  sourcehut,
                                  stackage,
@@ -67,6 +71,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  wikipedia,
                                  wiktionary,
                                  youtube,
+                                 zbmath,
                                  multi,
                                   -- * Use case: searching with a submap
                                   -- $tip
@@ -115,9 +120,15 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'amazon' -- Amazon keyword search.
 
+* 'arXiv' -- Open-access preprint archive.
+
 * 'aur' -- Arch User Repository.
 
+* 'clojureDocs' -- Documentation and examples repository for Clojure.
+
 * 'codesearch' -- Google Labs Code Search search.
+
+* 'cratesIo' -- Rust crate registry.
 
 * 'deb'    -- Debian package search.
 
@@ -159,6 +170,8 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'rosettacode' -- Programming chrestomathy wiki.
 
+* 'rustStd' -- Rust standard library documentation.
+
 * 'scholar' -- Google scholar academic search.
 
 * 'sourcehut' -- Sourcehut projects search.
@@ -182,6 +195,8 @@ import           XMonad.Util.XSelection   (getSelection)
 * 'wiktionary' -- Wiktionary search.
 
 * 'youtube' -- Youtube video search.
+
+* 'zbmath' -- Open alternative to MathSciNet.
 
 * 'multi' -- Search based on the prefix. \"amazon:Potter\" will use amazon, etc. With no prefix searches google.
 
@@ -315,13 +330,17 @@ searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
 
 -- The engines.
-alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, google,
-  hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode,
-  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube :: SearchEngine
+alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
+  github, google, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, rustStd,
+  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary,
+  youtube, zbmath :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
 amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
+arXiv         = searchEngineF "arXiv"        (\s -> "https://arxiv.org/search/?query=" <> s <> "&searchtype=all")
 aur           = searchEngine "aur"           "https://aur.archlinux.org/packages?&K="
+clojureDocs   = searchEngine "clojureDocs"   "https://clojuredocs.org/search?q="
 codesearch    = searchEngine "codesearch"    "https://developers.google.com/s/results/code-search?q="
+cratesIo      = searchEngine  "cratesIo"     "https://crates.io/search?q="
 deb           = searchEngine "deb"           "https://packages.debian.org/"
 debbts        = searchEngine "debbts"        "https://bugs.debian.org/"
 debpts        = searchEngine "debpts"        "https://packages.qa.debian.org/"
@@ -342,6 +361,7 @@ ncatlab       = searchEngine "ncatlab"       "https://ncatlab.org/nlab/search?qu
 openstreetmap = searchEngine "openstreetmap" "https://www.openstreetmap.org/search?query="
 protondb      = searchEngine "protondb"      "https://www.protondb.com/search?q="
 rosettacode   = searchEngine "rosettacode"   "https://rosettacode.org/w/index.php?search="
+rustStd       = searchEngine "rustStd"       "https://doc.rust-lang.org/std/index.html?search="
 scholar       = searchEngine "scholar"       "https://scholar.google.com/scholar?q="
 sourcehut     = searchEngine "sourcehut"     "https://sr.ht/projects?search="
 stackage      = searchEngine "stackage"      "https://www.stackage.org/lts/hoogle?q="
@@ -354,6 +374,7 @@ wayback       = searchEngineF "wayback"      ("https://web.archive.org/web/*/"++
 wikipedia     = searchEngine "wiki"          "https://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary    = searchEngine "wikt"          "https://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "https://www.youtube.com/results?search_type=search_videos&search_query="
+zbmath        = searchEngine "zbmath"        "https://zbmath.org/?q="
 
 multi :: SearchEngine
 multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube, prefixAware google]
