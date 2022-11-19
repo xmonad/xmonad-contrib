@@ -38,7 +38,7 @@ cabal-version:      1.12
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with:        GHC == 8.4.4 || == 8.6.5 || == 8.8.4 || == 8.10.7 || == 9.0.2 || == 9.2.5 || == 9.4.2
+tested-with:        GHC == 8.6.5 || == 8.8.4 || == 8.10.7 || == 9.0.2 || == 9.2.5 || == 9.4.2
 
 source-repository head
   type:     git
@@ -79,7 +79,7 @@ library
        ghc-options: -Werror -Wwarn=deprecations -Wwarn=dodgy-imports
 
     -- Keep this in sync with the oldest version in 'tested-with'
-    if impl(ghc > 8.4.4)
+    if impl(ghc > 8.6.5)
        -- don't treat unused-imports warning as errors, they may be necessary
        -- for compatibility with older versions of base (or other deps)
        ghc-options: -Wwarn=unused-imports
@@ -480,7 +480,7 @@ test-suite tests
      ghc-options: -Werror -Wwarn=deprecations -Wwarn=dodgy-imports
 
   -- Keep this in sync with the oldest version in 'tested-with'
-  if impl(ghc > 8.4.4)
+  if impl(ghc > 8.6.5)
      -- don't treat unused-imports warning as errors, they may be necessary
      -- for compatibility with older versions of base (or other deps)
      ghc-options: -Wwarn=unused-imports
