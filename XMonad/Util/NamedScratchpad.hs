@@ -286,8 +286,15 @@ allNamedScratchpadAction = someNamedScratchpadAction mapM_ runApplication
 nsHideOnFocusLoss :: NamedScratchpads -> X ()
 nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
     let cur = W.currentTag winSet
-    withRecentsIn cur () $ \lastFocus _ ->
-        when (lastFocus `elem` W.index winSet && cur /= scratchpadWorkspaceTag) $
+    withRecentsIn cur () $ \lastFocus curFocus -> do
+        let isWorthy =
+              -- Check for the window being on the current workspace; if there
+              -- is no history (i.e., curFocus ≡ lastFocus), don't do anything
+              -- because the potential scratchpad is definitely focused.
+              lastFocus `elem` W.index winSet && lastFocus /= curFocus
+              -- Don't do anything on the NSP workspace, lest the world explodes.
+              && cur /= scratchpadWorkspaceTag
+        when isWorthy $
             whenX (isNSP lastFocus scratches) $
                 shiftToNSP (W.workspaces winSet) ($ lastFocus)
 
