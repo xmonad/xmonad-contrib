@@ -67,7 +67,12 @@ import XMonad.Util.XSelection (getSelection)
 import XMonad.Util.Run
 
 import Control.DeepSeq (deepseq)
-import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
+import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, fromGregorian, getCurrentTime, nominalDay, toGregorian)
+#if MIN_VERSION_time(1, 9, 0)
+import Data.Time.Format.ISO8601 (iso8601Show)
+#else
+import Data.Time.Format (defaultTimeLocale, formatTime, iso8601DateFormat)
+#endif
 import GHC.Natural (Natural)
 import System.IO (IOMode (AppendMode, ReadMode), hClose, hGetContents, openFile, withFile)
 
@@ -382,7 +387,11 @@ toOrgFmt tod day =
   mconcat ["<", isoDay, " ", take 3 $ show (dayOfWeek day), time, ">"]
  where
   time   :: String = maybe "" ((' ' :) . show) tod
+#if MIN_VERSION_time(1, 9, 0)
+  isoDay :: String = iso8601Show day
+#else
   isoDay :: String = formatTime defaultTimeLocale (iso8601DateFormat Nothing) day
+#endif
 
 -- | Pretty print a 'Date' and an optional time to reflect the actual
 -- date.
