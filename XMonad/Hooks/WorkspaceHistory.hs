@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WorkspaceHistory
@@ -63,14 +64,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 newtype WorkspaceHistory = WorkspaceHistory
   { history :: [(ScreenId, WorkspaceId)] -- ^ Workspace Screens in
                                          -- reverse-chronological order.
-  } deriving (Read, Show)
-
--- @ScreenId@ is not an instance of NFData, but is a newtype on @Int@. @seq@
--- is enough for forcing it. This requires us to provide an instance.
-instance NFData WorkspaceHistory where
-  rnf (WorkspaceHistory hist) =
-    let go = liftRnf2 rwhnf rwhnf
-    in liftRnf go hist
+  }
+  deriving (Read, Show)
+  deriving NFData via [(Int, WorkspaceId)]
 
 instance ExtensionClass WorkspaceHistory where
     initialValue = WorkspaceHistory []

@@ -4,6 +4,8 @@
 
 ### Breaking Changes
 
+  * Dropped support for GHC 8.4.
+
   * `XMonad.Util.ExclusiveScratchpads`
 
     - Deprecated the module in favour of the (new) exclusive scratchpad
