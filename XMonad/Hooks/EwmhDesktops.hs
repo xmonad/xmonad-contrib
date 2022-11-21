@@ -86,6 +86,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- 'XConfig'.  See above for an example.
 ewmh :: XConfig a -> XConfig a
 ewmh c = c { startupHook     = ewmhDesktopsStartup <> startupHook c
+           , manageHook      = ewmhManageHook <> manageHook c
            , handleEventHook = ewmhDesktopsEventHook <> handleEventHook c
            , logHook         = ewmhDesktopsLogHook <> logHook c }
 
@@ -232,7 +233,9 @@ setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
 {-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
 ewmhDesktopsStartup :: X ()
-ewmhDesktopsStartup = setSupported
+ewmhDesktopsStartup = do
+  setSupported
+  initAllowedActionsForAllWindows
 
 -- | Notifies pagers and window lists, such as those in the gnome-panel of the
 -- current state of workspaces and windows.
@@ -246,6 +249,9 @@ ewmhDesktopsLogHook = XC.withDef ewmhDesktopsLogHook'
 ewmhDesktopsLogHookCustom :: WorkspaceSort -> X ()
 ewmhDesktopsLogHookCustom f =
     ewmhDesktopsLogHook' def{ workspaceSort = (f .) <$> workspaceSort def }
+
+ewmhManageHook :: ManageHook
+ewmhManageHook = ask >>= liftX . initAllowedActions >> idHook
 
 -- | Intercepts messages from pagers and similar applications and reacts on them.
 --
@@ -430,12 +436,19 @@ ewmhDesktopsEventHook' _ _ = mempty
 -- | Add EWMH fullscreen functionality to the given config.
 ewmhFullscreen :: XConfig a -> XConfig a
 ewmhFullscreen c = c { startupHook     = startupHook c <> fullscreenStartup
+                     , manageHook      = manageHook c <> fullscreenManageHook
                      , handleEventHook = handleEventHook c <> fullscreenEventHook }
 
--- | Advertises EWMH fullscreen support to the X server.
+-- | Advertises EWMH fullscreen support to the X server and all managed windows.
 {-# DEPRECATED fullscreenStartup "Use ewmhFullscreen instead." #-}
 fullscreenStartup :: X ()
-fullscreenStartup = setFullscreenSupported
+fullscreenStartup = do
+  addFullscreenSupportedOnRoot
+  addFullscreenSupportedOnAllWindows
+
+-- | Adds fullscreen support for the newly added window.
+fullscreenManageHook :: ManageHook
+fullscreenManageHook = ask >>= liftX . addFullscreenSupport >> idHook
 
 -- | An event hook to handle applications that wish to fullscreen using the
 -- @_NET_WM_STATE@ protocol. This includes users of the @gtk_window_fullscreen()@
@@ -550,5 +563,39 @@ addSupported props = withDisplay $ \dpy -> do
         supportedList <- join . maybeToList <$> getWindowProperty32 dpy a r
         changeProperty32 dpy r a aTOM propModeReplace (nub $ newSupportedList ++ supportedList)
 
-setFullscreenSupported :: X ()
-setFullscreenSupported = addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
+addFullscreenSupportedOnRoot :: X ()
+addFullscreenSupportedOnRoot =
+  addSupported ["_NET_WM_STATE", "_NET_WM_STATE_FULLSCREEN"]
+
+-- | Initializes @_NET_WM_ACTION_CLOSE@ for a given window.
+initAllowedActions :: Window -> X ()
+initAllowedActions = setAllowedActions ["_NET_WM_ACTION_CLOSE"]
+
+-- | Initializes @_NET_WM_ACTION_CLOSE@ for all managed windows.  This function
+-- should be run once when XMonad starts.
+initAllowedActionsForAllWindows :: X ()
+initAllowedActionsForAllWindows = withWindowSet $ \s ->
+  for_ (W.allWindows s) initAllowedActions
+
+-- | Sets the @_NET_WM_ALLOWED_ACTIONS@ value for a given window.
+setAllowedActions :: [String] -> Window -> X ()
+setAllowedActions props win = withDisplay $ \dpy -> do
+  a <- getAtom "_NET_WM_ALLOWED_ACTIONS"
+  newActions <- mapM (fmap fromIntegral . getAtom) props
+  io $ changeProperty32 dpy win a aTOM propModeReplace newActions
+
+addToAllowedActions :: [String] -> Window -> X ()
+addToAllowedActions props win = withDisplay $ \dpy -> do
+  a <- getAtom "_NET_WM_ALLOWED_ACTIONS"
+  newActions <- mapM (fmap fromIntegral . getAtom) props
+  io $ do
+    existingActions <- join . maybeToList <$> getWindowProperty32 dpy a win
+    changeProperty32 dpy win a aTOM propModeReplace
+      (nub $ newActions ++ existingActions)
+
+addFullscreenSupportedOnAllWindows :: X ()
+addFullscreenSupportedOnAllWindows = withWindowSet $ \s ->
+  for_ (W.allWindows s) addFullscreenSupport
+
+addFullscreenSupport :: Window -> X ()
+addFullscreenSupport = addToAllowedActions ["_NET_WM_ACTION_FULLSCREEN"]

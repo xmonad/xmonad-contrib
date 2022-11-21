@@ -139,6 +139,13 @@
       `arXiv`, `clojureDocs`, `cratesIo`, `rustStd`, and `zbmath` search
       engines.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Initialize `_NET_WM_ALLOWED_ACTIONS` on all managed windows.
+
+    - Add `_NET_WM_ACTION_FULLSCREEN` to `_NET_WM_ALLOWED_ACTIONS` when
+      `ewmhFullscreen` is used to enable fullscreen support.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
