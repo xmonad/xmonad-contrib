@@ -72,12 +72,12 @@ instance LayoutClass l Window => LayoutClass (FocusTracking l) Window where
   description (FocusTracking _ child)
     | chDesc == "Full"  = "StateFull"
     | ' ' `elem` chDesc = "FocusTracking (" ++ chDesc ++ ")"
-    | otherwise           = "FocusTracking " ++ chDesc
+    | otherwise         = "FocusTracking "  ++ chDesc
     where chDesc = description child
 
   runLayout (W.Workspace i (FocusTracking mOldFoc childL) mSt) sr = do
 
-    mRealFoc <- gets (W.peek . windowset)
+    mRealFoc <- gets (W.peek . W.view i . windowset)
     let mGivenFoc = W.focus <$> mSt
         passedMSt = if mRealFoc == mGivenFoc then mSt
                     else (mOldFoc >>= \oF -> findZ (==oF) mSt) <|> mSt
