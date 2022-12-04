@@ -4,6 +4,10 @@
 
 ### Breaking Changes
 
+  * Deprecated the `XMonad.Layout.StateFull` module and
+    `XMonad.Layout.TrackFloating.(t|T)rackFloating` in favour of
+    `XMonad.Layout.FocusTracking`.
+
   * Dropped support for GHC 8.4.
 
   * `XMonad.Util.ExclusiveScratchpads`
@@ -76,6 +80,10 @@
       always be the topmost, meaning the last in the list.
 
 ### New Modules
+
+  * `XMonad.Layout.FocusTracking`.
+
+    - Replaces `X.L.StateFull` and half of `X.L.TrackFloating`.
 
   * `XMonad.Actions.MostRecentlyUsed`
 

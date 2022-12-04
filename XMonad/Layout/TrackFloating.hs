@@ -2,7 +2,7 @@
 {- |
 
 Module      :  XMonad.Layout.TrackFloating
-Description :  Track focus in the tiled layer.
+Description :  Let focused tiles track focused floats
 Copyright   :  (c) 2010 & 2013 Adam Vogt
                2011 Willem Vanlint
 License     :  BSD-style (see xmonad/LICENSE)
@@ -11,14 +11,9 @@ Maintainer  :  vogt.adam@gmail.com
 Stability   :  unstable
 Portability :  unportable
 
-Layout modifier that tracks focus in the tiled layer while the floating layer
-or another sublayout is in use. This is particularly helpful for tiled layouts
-where the focus determines what is visible. It can also be used to improve the
-behaviour of a child layout that has not been given the focused window.
+Provides layout modifier 'UseTransientFor': when a float has focus and is
+@WM_TRANSIENT_FOR@ a tile, run the underlying layout as if that tile had focus.
 
-The relevant bugs are Issue 4 and 306:
-<http://code.google.com/p/xmonad/issues/detail?id=4>,
-<http://code.google.com/p/xmonad/issues/detail?id=306>
 -}
 module XMonad.Layout.TrackFloating
     (-- * Usage
@@ -37,31 +32,15 @@ module XMonad.Layout.TrackFloating
 import XMonad.Prelude
 import XMonad
 import XMonad.Layout.LayoutModifier
+import XMonad.Layout.FocusTracking
 import XMonad.Util.Stack (findZ)
 import qualified XMonad.StackSet as W
 
 import qualified Data.Traversable as T
 
 
-newtype TrackFloating a = TrackFloating (Maybe Window)
-    deriving (Read,Show)
-
-
-instance LayoutModifier TrackFloating Window where
-    modifyLayoutWithUpdate (TrackFloating mw) ws@W.Workspace{ W.stack = ms } r
-      = do
-        xCur <- gets (W.peek . W.view (W.tag ws) . windowset)
-        let isF = xCur /= (W.focus <$> ms)
-            -- use the remembered focus point when true focus differs from
-            -- what this (sub)layout is given, which happens e.g. when true
-            -- focus is in floating layer or when another sublayout has focus
-            newStack | isF = (mw >>= \w -> findZ (w==) ms) <|> ms
-                     | otherwise = ms
-            newState | isF = mw
-                     | otherwise = xCur
-        ran <- runLayout ws{ W.stack = newStack } r
-        return (ran, guard (newState /= mw) >> Just (TrackFloating newState))
-
+{-# DEPRECATED TrackFloating "Use X.L.FocusTracking.FocusTracking." #-}
+type TrackFloating = FocusTracking
 
 
 {- | When focus is on the tiled layer, the underlying layout is run with focus
@@ -128,8 +107,9 @@ window regardless of which tiled window was focused before.
 * the remembered focus hasn't since been killed
 
 -}
+{-# DEPRECATED trackFloating "Use X.L.FocusTracking.focusTracking." #-}
 trackFloating ::  l a -> ModifiedLayout TrackFloating l a
-trackFloating = ModifiedLayout (TrackFloating Nothing)
+trackFloating = focusTracking
 
 {- $layoutModifier
 It also corrects focus issues for full-like layouts inside other layout

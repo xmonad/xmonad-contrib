@@ -20,19 +20,18 @@
 -- behaviour of a child layout that has not been given the focused window.
 --------------------------------------------------------------------------------
 
-module XMonad.Layout.StateFull (
+module XMonad.Layout.StateFull {-# DEPRECATED "Use X.L.TrackFloating." #-} (
   -- * Usage
   -- $Usage
   pattern StateFull,
   StateFull,
-  FocusTracking(..),
-  focusTracking
+  FocusTracking,
+  F.focusTracking
 ) where
 
-import XMonad hiding ((<&&>))
-import XMonad.Prelude (fromMaybe, (<|>))
-import qualified XMonad.StackSet as W
-import XMonad.Util.Stack (findZ)
+import XMonad
+import XMonad.Layout.LayoutModifier
+import qualified XMonad.Layout.FocusTracking as F
 
 -- $Usage
 --
@@ -50,43 +49,14 @@ import XMonad.Util.Stack (findZ)
 -- > main = xmonad def
 -- >  { layoutHook = someParentLayoutWith aChild (focusTracking anotherChild) }
 
--- | The @FocusTracking@ data type for which the @LayoutClass@ instance is
---   provided.
-data FocusTracking l a = FocusTracking (Maybe a) (l a)
-  deriving (Show, Read)
-
--- | Transform a layout into one that remembers and uses its last focus.
-focusTracking :: l a -> FocusTracking l a
-focusTracking = FocusTracking Nothing
+-- | The @FocusTracking@ type for which the @LayoutClass@ instance is provided.
+type FocusTracking = ModifiedLayout F.FocusTracking
 
 -- | A type synonym to match the @StateFull@ pattern synonym.
 type StateFull = FocusTracking Full
 
 -- | A pattern synonym for the primary use case of the @FocusTracking@
 --   transformer; using @Full@.
-pattern StateFull :: FocusTracking Full a
-pattern StateFull = FocusTracking Nothing Full
+pattern StateFull :: StateFull a
+pattern StateFull = ModifiedLayout (F.FocusTracking Nothing) Full
 
-instance LayoutClass l Window => LayoutClass (FocusTracking l) Window where
-
-  description (FocusTracking _ child)
-    | chDesc == "Full"  = "StateFull"
-    | ' ' `elem` chDesc = "FocusTracking (" ++ chDesc ++ ")"
-    | otherwise           = "FocusTracking " ++ chDesc
-    where chDesc = description child
-
-  runLayout (W.Workspace i (FocusTracking mOldFoc childL) mSt) sr = do
-
-    mRealFoc <- gets (W.peek . windowset)
-    let mGivenFoc = W.focus <$> mSt
-        passedMSt = if mRealFoc == mGivenFoc then mSt
-                    else (mOldFoc >>= \oF -> findZ (==oF) mSt) <|> mSt
-
-    (wrs, mChildL') <- runLayout (W.Workspace i childL passedMSt) sr
-    let newFT = if mRealFoc /= mGivenFoc then FocusTracking mOldFoc <$> mChildL'
-                else Just $ FocusTracking mGivenFoc (fromMaybe childL mChildL')
-
-    return (wrs, newFT)
-
-  handleMessage (FocusTracking mf childLayout) m =
-    (fmap . fmap) (FocusTracking mf) (handleMessage childLayout m)

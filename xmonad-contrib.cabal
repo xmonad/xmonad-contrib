@@ -245,6 +245,7 @@ library
                         XMonad.Layout.DwmStyle
                         XMonad.Layout.FixedAspectRatio
                         XMonad.Layout.FixedColumn
+                        XMonad.Layout.FocusTracking
                         XMonad.Layout.Fullscreen
                         XMonad.Layout.Gaps
                         XMonad.Layout.Grid
