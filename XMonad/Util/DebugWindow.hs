@@ -107,8 +107,7 @@ debugWindow w =  do
 getEWMHTitle       :: String -> Window -> X String
 getEWMHTitle sub w =  do
   a <- getAtom $ "_NET_WM_" ++ (if null sub then "" else '_':sub) ++ "_NAME"
-  (Just t) <- withDisplay $ \d -> io $ getWindowProperty32 d a w
-  return $ map (toEnum . fromEnum) t
+  getDecodedStringProp w a -- should always be UTF8_STRING but rules are made to be broken
 
 getICCCMTitle   :: Window -> X String
 getICCCMTitle w =  getDecodedStringProp w wM_NAME
@@ -116,7 +115,7 @@ getICCCMTitle w =  getDecodedStringProp w wM_NAME
 getDecodedStringProp     :: Window -> Atom -> X String
 getDecodedStringProp w a =  do
   t@(TextProperty t' _ 8 _) <- withDisplay $ \d -> io $ getTextProperty d w a
-  [s] <- catchX' (tryUTF8     t) $
+  [s] <- catchX' (tryUTF8     t) $ -- shouldn't happen but some apps do it
          catchX' (tryCompound t) $
          io ((:[]) <$> peekCString t')
   return s
