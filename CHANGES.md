@@ -139,6 +139,11 @@
       `arXiv`, `clojureDocs`, `cratesIo`, `rustStd`, and `zbmath` search
       engines.
 
+  * `XMonad.Layout.ResizableThreeColumns`
+
+    - Fixed an issue where the bottom right window would not respond to
+      `MirrorShrink` and `MirrorExpand` messages.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
