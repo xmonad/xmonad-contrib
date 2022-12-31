@@ -13,7 +13,7 @@
 --
 -- A layout similar to tall but with three columns. With 2560x1600 pixels this
 -- layout can be used for a huge main window and up to six reasonable sized
--- resizable slave windows.
+-- resizable stack windows.
 -----------------------------------------------------------------------------
 
 module XMonad.Layout.ResizableThreeColumns (
@@ -45,7 +45,7 @@ import Data.Ratio
 -- resizing and the third argument specifies the initial size of the columns.
 -- A positive size designates the fraction of the screen that the main window
 -- should occupy, but if the size is negative the absolute value designates the
--- fraction a slave column should occupy. If both slave columns are visible,
+-- fraction a stack column should occupy. If both stack columns are visible,
 -- they always occupy the same amount of space.
 --
 -- You may also want to add the following key bindings:
@@ -53,7 +53,7 @@ import Data.Ratio
 -- > , ((modm,               xK_a), sendMessage MirrorShrink)
 -- > , ((modm,               xK_z), sendMessage MirrorExpand)
 --
--- The ResizableThreeColMid variant places the main window between the slave columns.
+-- The ResizableThreeColMid variant places the main window between the stack columns.
 --
 -- For more detailed instructions on editing the layoutHook see
 -- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
@@ -128,23 +128,23 @@ tile3 middle f mf r nmaster n
   | n <= nmaster+1 = splitVertically mf nmaster s1
                   ++ splitVertically (drop nmaster mf) (n-nmaster) s2
   | otherwise = concat [ splitVertically mf nmaster r1
-                       , splitVertically (drop nmaster mf) nslave1 r2
-                       , splitVertically (drop (nmaster + nslave1) mf) nslave2 r3
+                       , splitVertically (drop nmaster mf) nstack1 r2
+                       , splitVertically (drop (nmaster + nstack1) mf) nstack2 r3
                        ]
   where
     (r1, r2, r3) = split3HorizontallyBy middle (if f<0 then 1+2*f else f) r
     (s1, s2)     = splitHorizontallyBy (if f<0 then 1+f else f) r
-    nslave       = n - nmaster
-    nslave1      = ceiling (nslave % 2)
-    nslave2      = n - nmaster - nslave1
+    nstack       = n - nmaster
+    nstack1      = ceiling (nstack % 2)
+    nstack2      = nstack - nstack1
 
 splitVertically :: RealFrac r => [r] -> Int -> Rectangle -> [Rectangle]
 splitVertically [] _ r = [r]
 splitVertically _ n r | n < 2 = [r]
 splitVertically (f:fx) n (Rectangle sx sy sw sh) =
-  let smallh = min sh (floor $ fromIntegral (sh `div` fromIntegral n) * f)
+  let smallh = min sh (floor $ fi (sh `div` fi n) * f)
   in Rectangle sx sy sw smallh :
-       splitVertically fx (n-1) (Rectangle sx (sy+fromIntegral smallh) sw (sh-smallh))
+       splitVertically fx (n-1) (Rectangle sx (sy+fi smallh) sw (sh-smallh))
 
 split3HorizontallyBy :: Bool -> Rational -> Rectangle -> (Rectangle, Rectangle, Rectangle)
 split3HorizontallyBy middle f (Rectangle sx sy sw sh) =
