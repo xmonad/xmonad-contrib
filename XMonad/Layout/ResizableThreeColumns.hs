@@ -99,8 +99,13 @@ instance LayoutClass ResizableThreeCol a where
       mresize s MirrorExpand = mresize' s (negate delta)
       mresize' s delt =
         let up = length $ W.up s
-            total = up + length (W.down s) + 1
-            pos = if up == (nmaster-1) || up == (total-1) then up-1 else up
+            down = length $ W.down s
+            total = up + down + 1
+            pos = if up == nmaster - 1           -- upper right
+                  || up == total - 1             -- upper left
+                  || up `elem` [down, down + 1]  -- lower right
+                  then up - 1
+                  else up
             mfrac' = modifymfrac (mfrac ++ repeat 1) delt pos
         in l { threeColSlaves = take total mfrac'}
       modifymfrac [] _ _ = []
