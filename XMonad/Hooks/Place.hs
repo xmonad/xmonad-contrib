@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.Place
@@ -188,7 +189,7 @@ placeHook p = do window <- ask
                       let infos = filter ((window `elem`) . stackContents . S.stack . fst)
                                      $ [screenInfo $ S.current theWS]
                                         ++ map screenInfo (S.visible theWS)
-                                        ++ zip (S.hidden theWS) (repeat currentRect)
+                                        ++ map (, currentRect) (S.hidden theWS)
 
                       guard(not $ null infos)
 

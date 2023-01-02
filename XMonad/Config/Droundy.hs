@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -114,9 +115,9 @@ keys x = M.fromList $
     ]
 
     ++
-    zip (zip (repeat $ modMask x) [xK_F1..xK_F12]) (map (withNthWorkspace W.greedyView) [0..])
+    zip (map (modMask x,) [xK_F1..xK_F12]) (map (withNthWorkspace W.greedyView) [0..])
     ++
-    zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
+    zip (map (modMask x .|. shiftMask,) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
 config = docks $ ewmh def
          { borderWidth = 1 -- Width of the window border in pixels.

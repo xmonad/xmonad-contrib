@@ -1,8 +1,9 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternGuards         #-}
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE TupleSections         #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Decoration
@@ -241,7 +242,7 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                                     toDel = todel d dwrs
                                     toAdd = toadd a wrs
                                 deleteDecos (map snd toDel)
-                                let ndwrs = zip toAdd $ repeat (Nothing,Nothing)
+                                let ndwrs = map (, (Nothing,Nothing)) toAdd
                                 ndecos <- resync (ndwrs ++ del_dwrs d dwrs) wrs
                                 processState (s {decos = ndecos })
 

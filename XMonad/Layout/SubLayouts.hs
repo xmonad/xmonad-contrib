@@ -4,6 +4,7 @@
 {-# LANGUAGE ParallelListComp #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -----------------------------------------------------------------------------
@@ -347,7 +348,7 @@ instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => L
             return $ Just $ Sublayout (I ((sm,w):ms)) defl sls
 
         | Just (Broadcast sm) <- fromMessage m = do
-            ms' <- fmap (zip (repeat sm) . W.integrate') currentStack
+            ms' <- fmap (map (sm,) . W.integrate') currentStack
             return $ if null ms' then Nothing
                 else Just $ Sublayout (I $ ms' ++ ms) defl sls
 
@@ -408,7 +409,7 @@ instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => L
            catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
            catchLayoutMess x = do
             let m' = x `asTypeOf` (undefined :: LayoutMessages)
-            ms' <- zip (repeat $ SomeMessage m') . W.integrate'
+            ms' <- map (SomeMessage m',) . W.integrate'
                     <$> currentStack
             return $ do guard $ not $ null ms'
                         Just $ Sublayout (I $ ms' ++ ms) defl sls

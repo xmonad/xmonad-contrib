@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TupleSections #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Simplest
@@ -39,4 +41,4 @@ import qualified XMonad.StackSet as S
 
 data Simplest a = Simplest deriving (Show, Read)
 instance LayoutClass Simplest a where
-    pureLayout Simplest rec (S.Stack w l r) = zip (w : reverse l ++ r) (repeat rec)
+    pureLayout Simplest rec (S.Stack w l r) = map (, rec) (w : reverse l ++ r)

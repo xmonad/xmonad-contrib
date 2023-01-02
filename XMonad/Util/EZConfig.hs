@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TupleSections #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.EZConfig
@@ -123,7 +124,7 @@ removeKeys conf keyList =
 
 removeKeysP :: XConfig l -> [String] -> XConfig l
 removeKeysP conf keyList =
-    conf { keys = \cnf -> keys conf cnf `M.difference` mkKeymap cnf (zip keyList $ repeat (return ())) }
+    conf { keys = \cnf -> keys conf cnf `M.difference` mkKeymap cnf (map (, return ()) keyList) }
 
 -- | Like 'additionalKeys', but for mouse bindings.
 additionalMouseBindings :: XConfig a -> [((ButtonMask, Button), Window -> X ())] -> XConfig a
