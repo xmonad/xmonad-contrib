@@ -40,6 +40,10 @@ module XMonad.Hooks.EwmhDesktops (
     -- $customActivate
     setEwmhActivateHook,
 
+    -- ** @_NET_DESKTOP_VIEWPORT@
+    -- $customManageDesktopViewport
+    disableEwmhManageDesktopViewport,
+
     -- * Standalone hooks (deprecated)
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
@@ -102,6 +106,8 @@ data EwmhDesktopsConfig =
             -- ^ configurable workspace rename (see 'XMonad.Hooks.StatusBar.PP.ppRename')
         , activateHook :: ManageHook
             -- ^ configurable handling of window activation requests
+        , manageDesktopViewport :: Bool
+            -- ^ manage @_NET_DESKTOP_VIEWPORT@?
         }
 
 instance Default EwmhDesktopsConfig where
@@ -109,6 +115,7 @@ instance Default EwmhDesktopsConfig where
         { workspaceSort = getSortByIndex
         , workspaceRename = pure pure
         , activateHook = doFocus
+        , manageDesktopViewport = True
         }
 
 
@@ -228,6 +235,26 @@ setEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = f }
 setEwmhActivateHook :: ManageHook -> XConfig l -> XConfig l
 setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 
+-- $customManageDesktopViewport
+-- Setting @_NET_DESKTOP_VIEWPORT@ is typically desired but can lead to a
+-- confusing workspace list in polybar, where this information is used to
+-- re-group the workspaces by monitor. See
+-- <https://github.com/polybar/polybar/issues/2603 polybar#2603>.
+--
+-- To avoid this, you can use:
+--
+-- > main = xmonad $ … . disableEwmhManageDesktopViewport . ewmh . … $ def{…}
+--
+-- Note that if you apply this configuration in an already running environment,
+-- the property may remain at its previous value. It can be removed by running:
+--
+-- > xprop -root -remove _NET_DESKTOP_VIEWPORT
+--
+-- Which should immediately fix your bar.
+--
+disableEwmhManageDesktopViewport :: XConfig l -> XConfig l
+disableEwmhManageDesktopViewport = XC.modifyDef $ \c -> c{ manageDesktopViewport = False }
+
 
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
 {-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
@@ -303,7 +330,7 @@ whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
 whenChanged = whenX . XS.modified . const
 
 ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
-ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWindowSet $ \s -> do
+ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename, manageDesktopViewport} = withWindowSet $ \s -> do
     sort' <- workspaceSort
     let ws = sort' $ W.workspaces s
 
@@ -365,9 +392,10 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWi
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
     -- Set desktop Viewport
-    let visibleScreens = W.current s : W.visible s
-        currentTags    = map (W.tag . W.workspace) visibleScreens
-    whenChanged (MonitorTags currentTags) $ mkViewPorts s (map W.tag ws)
+    when manageDesktopViewport $ do
+        let visibleScreens = W.current s : W.visible s
+            currentTags    = map (W.tag . W.workspace) visibleScreens
+        whenChanged (MonitorTags currentTags) $ mkViewPorts s (map W.tag ws)
 
 -- | Create the viewports from the current 'WindowSet' and a list of
 -- already sorted workspace IDs.
