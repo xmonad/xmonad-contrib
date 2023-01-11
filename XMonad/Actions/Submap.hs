@@ -76,17 +76,17 @@ submap = submapDefault (return ())
 -- >
 -- > gotoLayout :: [(String, X ())]   -- for use with EZConfig
 -- > gotoLayout =  -- assumes you have a layout named "Tall" and one named "Full".
--- >   ["M-l", visualSubmap def $ Map.fromList $ map (\(k, s, a) -> ((0, k), (s, a)))
--- >             [ (xK_t, "Tall", switchToLayout "Tall")     -- "M-l t" switches to "Tall"
--- >             , (xK_r, "Full", switchToLayout "Full")     -- "M-l r" switches to "full"
--- >             ]]
+-- >   [("M-l", visualSubmap def $ Map.fromList $ map (\(k, s, a) -> ((0, k), (s, a)))
+-- >              [ (xK_t, "Tall", switchToLayout "Tall")     -- "M-l t" switches to "Tall"
+-- >              , (xK_r, "Full", switchToLayout "Full")     -- "M-l r" switches to "full"
+-- >              ])]
 --
 -- One could alternatively also write @gotoLayout@ as
 --
--- > gotoLayout = ["M-l", visualSubmap def $ Map.fromList $
--- >                        [ ((0, xK_t), subName "Tall" $ switchToLayout "Tall")
--- >                        , ((0, xK_r), subName "Full" $ switchToLayout "Full")
--- >                        ]]
+-- > gotoLayout = [("M-l", visualSubmap def $ Map.fromList $
+-- >                         [ ((0, xK_t), subName "Tall" $ switchToLayout "Tall")
+-- >                         , ((0, xK_r), subName "Full" $ switchToLayout "Full")
+-- >                         ])]
 visualSubmap :: WindowConfig -- ^ The config for the spawned window.
              -> M.Map (KeyMask, KeySym) (String, X ())
                              -- ^ A map @keybinding -> (description, action)@.
