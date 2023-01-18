@@ -55,6 +55,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  maps,
                                  mathworld,
                                  ncatlab,
+                                 noogle,
                                  openstreetmap,
                                  protondb,
                                  rosettacode,
