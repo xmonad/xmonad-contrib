@@ -100,6 +100,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Util.EZConfig`
+
+    - Added `remapKeysP`, which remaps keybindings from one binding to
+      another.
+
   * `XMonad.Util.NamedScratchpad`
 
     - Added `addExclusives`, `resetFocusedNSP`, `setNoexclusive`,
