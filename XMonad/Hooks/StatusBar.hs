@@ -56,6 +56,7 @@ module XMonad.Hooks.StatusBar (
   spawnStatusBar,
   killStatusBar,
   killAllStatusBars,
+  startAllStatusBars,
   ) where
 
 import Control.Exception (SomeException, try)
@@ -564,3 +565,9 @@ spawnStatusBar cmd = do
 killAllStatusBars :: X ()
 killAllStatusBars =
   XS.gets (M.elems . getPIDs) >>= io . traverse_ killPid >> XS.put (StatusBarPIDs mempty)
+
+-- | Start all status bars. Note that you do not need this in your startup hook.
+-- This can be bound to a keybinding for example to be used in tandem with
+-- `killAllStatusBars`.
+startAllStatusBars :: X ()
+startAllStatusBars = XS.get >>= traverse_ (sbStartupHook . snd) . getASBs

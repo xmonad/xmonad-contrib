@@ -172,6 +172,9 @@
       some status bars (see this
       [polybar issue](https://github.com/polybar/polybar/issues/2603)).
 
+  * `XMonad.Hooks.StatusBar`
+    - Added `startAllStatusBars` to start the configured status bars.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
