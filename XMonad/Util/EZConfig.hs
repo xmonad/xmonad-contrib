@@ -24,6 +24,7 @@ module XMonad.Util.EZConfig (
                              -- * Adding or removing keybindings
 
                              additionalKeys, additionalKeysP,
+                             remapKeysP,
                              removeKeys, removeKeysP,
                              additionalMouseBindings, removeMouseBindings,
 
@@ -105,6 +106,40 @@ additionalKeys conf keyList =
 additionalKeysP :: XConfig l -> [(String, X ())] -> XConfig l
 additionalKeysP conf keyList =
     conf { keys = \cnf -> M.union (mkKeymap cnf keyList) (keys conf cnf) }
+
+-- |
+-- Remap keybindings from one binding to another.  More precisely, the
+-- input list contains pairs of the form @(TO, FROM)@, and maps the
+-- action bound to @FROM@ to the key @TO@.  For example, the following
+-- would bind @"M-m"@ to what's bound to @"M-c"@ (which is to close the
+-- focused window, in this case):
+--
+-- > main :: IO ()
+-- > main = xmonad $ def `remapKeysP` [("M-m", "M-c")]
+--
+-- NOTE: Submaps are not transparent, and thus these keys can't be
+-- accessed in this way: more explicitly, the @FROM@ string may **not**
+-- be a submap.  However, the @TO@ can be a submap without problems.
+-- This means that
+--
+-- > xmonad $ def `remapKeysP` [("M-m", "M-c a")]
+--
+-- is illegal (and indeed will just disregard the binding altogether),
+-- while
+--
+-- > xmonad $ def `remapKeysP` [("M-c a", "M-m")]
+--
+-- is totally fine.
+remapKeysP :: XConfig l -> [(String, String)] -> XConfig l
+remapKeysP conf keyList =
+    conf { keys = \cnf -> mkKeymap cnf (keyList' cnf) <> keys conf cnf }
+  where
+   keyList' :: XConfig Layout -> [(String, X ())]
+   keyList' cnf =
+     mapMaybe (traverse (\s -> case readKeySequence cnf s of
+                                 Just [ks] -> keys conf cnf M.!? ks
+                                 _         -> Nothing))
+              keyList
 
 -- |
 -- Remove standard keybindings you're not using. Example use:
