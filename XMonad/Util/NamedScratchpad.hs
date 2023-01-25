@@ -446,9 +446,10 @@ toggleDynamicNSP s w = do
 -- For example, having defined "Calc", "Mail", and "Term" scratchpads,
 -- you can use 'addExclusives' to make some of them dislike each other:
 --
--- > myExclusives = [ ["Calc", "Mail"]
--- >                , ["Mail", "Term"]
--- >                ]
+-- > myExclusives = addExclusives
+-- >   [ ["Calc", "Mail"]
+-- >   , ["Mail", "Term"]
+-- >   ]
 --
 -- You now have to add @myExclusives@ to you startupHook:
 --
