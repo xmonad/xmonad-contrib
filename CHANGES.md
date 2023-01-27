@@ -173,7 +173,13 @@
       [polybar issue](https://github.com/polybar/polybar/issues/2603)).
 
   * `XMonad.Hooks.StatusBar`
+
     - Added `startAllStatusBars` to start the configured status bars.
+
+  * `XMonad.Util.NamedActions`
+
+    - Changed `addDescrKeys` and `addDescrKeys'` to not discard the
+      keybindings in the current config.
 
 ### Other changes
 
