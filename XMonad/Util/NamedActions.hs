@@ -205,7 +205,7 @@ addDescrKeys' :: (HasName b) =>
 addDescrKeys' (k,f) ks conf =
     let shk l = f $ [(k,f $ ks l)] ^++^ ks l
         keylist l = M.map getAction $ M.fromList $ ks l ^++^ [(k, shk l)]
-    in conf { keys = keylist }
+     in conf { keys = keylist <> keys conf }
 
 -- | A version of the default keys from the default configuration, but with
 -- 'NamedAction'  instead of @X ()@
