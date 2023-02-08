@@ -92,6 +92,7 @@ import Data.Ord (comparing)
 additionalKeys :: XConfig a -> [((KeyMask, KeySym), X ())] -> XConfig a
 additionalKeys conf keyList =
     conf { keys = M.union (M.fromList keyList) . keys conf }
+infixl 4 `additionalKeys`
 
 -- | Like 'additionalKeys', except using short @String@ key
 --   descriptors like @\"M-m\"@ instead of @(modMask, xK_m)@, as
@@ -106,6 +107,7 @@ additionalKeys conf keyList =
 additionalKeysP :: XConfig l -> [(String, X ())] -> XConfig l
 additionalKeysP conf keyList =
     conf { keys = \cnf -> M.union (mkKeymap cnf keyList) (keys conf cnf) }
+infixl 4 `additionalKeysP`
 
 -- |
 -- Remap keybindings from one binding to another.  More precisely, the
@@ -140,6 +142,7 @@ remapKeysP conf keyList =
                                  Just [ks] -> keys conf cnf M.!? ks
                                  _         -> Nothing))
               keyList
+infixl 4 `remapKeysP`
 
 -- |
 -- Remove standard keybindings you're not using. Example use:
@@ -149,6 +152,7 @@ remapKeysP conf keyList =
 removeKeys :: XConfig a -> [(KeyMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
     conf { keys = \cnf -> foldr M.delete (keys conf cnf) keyList }
+infixl 4 `removeKeys`
 
 -- | Like 'removeKeys', except using short @String@ key descriptors
 --   like @\"M-m\"@ instead of @(modMask, xK_m)@, as described in the
@@ -160,16 +164,19 @@ removeKeys conf keyList =
 removeKeysP :: XConfig l -> [String] -> XConfig l
 removeKeysP conf keyList =
     conf { keys = \cnf -> keys conf cnf `M.difference` mkKeymap cnf (map (, return ()) keyList) }
+infixl 4 `removeKeysP`
 
 -- | Like 'additionalKeys', but for mouse bindings.
 additionalMouseBindings :: XConfig a -> [((ButtonMask, Button), Window -> X ())] -> XConfig a
 additionalMouseBindings conf mouseBindingsList =
     conf { mouseBindings = M.union (M.fromList mouseBindingsList) . mouseBindings conf }
+infixl 4 `additionalMouseBindings`
 
 -- | Like 'removeKeys', but for mouse bindings.
 removeMouseBindings :: XConfig a -> [(ButtonMask, Button)] -> XConfig a
 removeMouseBindings conf mouseBindingList =
     conf { mouseBindings = \cnf -> foldr M.delete (mouseBindings conf cnf) mouseBindingList }
+infixl 4 `removeMouseBindings`
 
 
 --------------------------------------------------------------

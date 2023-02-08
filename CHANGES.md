@@ -105,6 +105,10 @@
     - Added `remapKeysP`, which remaps keybindings from one binding to
       another.
 
+    - Made `additionalKeys{,P}`, `removeKeys{,P}`, `remapKeysP`, and
+      `{additional,remove}MouseBindings` `infixl 4` so they can more easily
+      be concatenated with `(++)`.
+
   * `XMonad.Util.NamedScratchpad`
 
     - Added `addExclusives`, `resetFocusedNSP`, `setNoexclusive`,
