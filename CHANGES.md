@@ -99,6 +99,12 @@
       `XMonad.Hooks.DynamicProperty`, but with more discoverable names.
 
 ### Bug Fixes and Minor Changes
+  * `XMonad.Util.Loggers`
+
+    - Added `logClassname`, `logClassnames`, `logClassnames'`,
+      `logClassnameOnScreen`, `logClassnamesOnScreen`, `logClassnamesOnScreen'`,
+      and `ClassnamesFormat`. These are all equivalents of their `Title`
+      counterparts, allowing logging the window classname instead.
 
   * `XMonad.Util.EZConfig`
 
