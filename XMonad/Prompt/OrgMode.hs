@@ -333,17 +333,17 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
 -- | Let Emacs do the refiling, as this seems—and I know how this
 -- sounds—more robust than trying to do it ad-hoc in this module.
 refile :: String -> FilePath -> X ()
-refile parent fp =
+refile (asString -> parent) (asString -> fp) =
   proc $ inEmacs
      >-> asBatch
-     >-> eval (progn [ findFile fp
+     >-> eval (progn [ "find-file" <> fp
                      , "end-of-buffer"
                      , "org-refile nil nil"
-                         <> list [ asString parent
-                                 , asString fp
+                         <> list [ parent
+                                 , fp
                                  , "nil"
                                  , saveExcursion ["org-find-exact-headline-in-buffer"
-                                                    <> asString parent]
+                                                    <> parent]
                                  ]
                      , "save-buffer"
                      ])
