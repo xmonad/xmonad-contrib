@@ -32,6 +32,7 @@ module XMonad.Hooks.StatusBar.PP (
     -- * Build your own formatter
     PP(..), def,
     dynamicLogString,
+    dynamicLogString',
     dynamicLogWithPP,
 
     -- * Predicates and formatters
@@ -55,6 +56,7 @@ module XMonad.Hooks.StatusBar.PP (
     ) where
 
 import Control.Monad.Reader
+import Control.DeepSeq
 
 import XMonad
 import XMonad.Prelude
@@ -181,7 +183,14 @@ dynamicLogWithPP pp = dynamicLogString pp >>= io . ppOutput pp
 --   allow for further processing, or use in some application other than
 --   a status bar.
 dynamicLogString :: PP -> X String
-dynamicLogString pp = do
+dynamicLogString pp = userCodeDef "_|_" (dynamicLogString' pp)
+
+-- | The guts of 'dynamicLogString'. Forces the result, so it may throw
+--   an exception (most commonly because 'ppOrder' is non-total). Use
+--   'dynamicLogString' for a version that catches the exception and
+--   produces an error string.
+dynamicLogString' :: PP -> X String
+dynamicLogString' pp = do
 
     winset <- gets windowset
     urgents <- readUrgents
@@ -199,7 +208,7 @@ dynamicLogString pp = do
     -- window title
     wt <- maybe (pure "") (fmap show . getName) . S.peek $ winset
 
-    return $ sepBy (ppSep pp) . ppOrder pp $
+    return $! force $ sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp $ ppTitleSanitize pp wt
