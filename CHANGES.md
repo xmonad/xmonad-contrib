@@ -114,6 +114,12 @@
       and `ClassnamesFormat`. These are all equivalents of their `Title`
       counterparts, allowing logging the window classname instead.
 
+  * `XMonad.Hooks.StatusBar.PP`
+
+    - `dynamicLogString` now forces its result and produces an error string if
+      it throws an exception. Use `dynamicLogString'` if for some reason you
+      need the old behavior.
+
   * `XMonad.Util.EZConfig`
 
     - Added `remapKeysP`, which remaps keybindings from one binding to
