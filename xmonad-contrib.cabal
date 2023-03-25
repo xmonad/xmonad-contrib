@@ -147,6 +147,7 @@ library
                         XMonad.Actions.SwapWorkspaces
                         XMonad.Actions.TagWindows
                         XMonad.Actions.TiledWindowDragging
+                        XMonad.Actions.ToggleFullFloat
                         XMonad.Actions.TopicSpace
                         XMonad.Actions.TreeSelect
                         XMonad.Actions.UpdateFocus

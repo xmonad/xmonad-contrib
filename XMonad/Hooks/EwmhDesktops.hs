@@ -250,6 +250,9 @@ setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 -- stateless: windows are fullscreened by turning them into fullscreen floats,
 -- and reverted by sinking them into the tiling layer. This behaviour can be
 -- configured by supplying a pair of 'ManageHook's to 'setEwmhFullscreenHooks'.
+--
+-- See "XMonad.Actions.ToggleFullFloat" for a pair of hooks that store the
+-- original state of floating windows.
 
 -- | Set (replace) the hooks invoked when clients ask to add/remove the
 -- $_NET_WM_STATE_FULLSCREEN@ state. The defaults are 'doFullFloat' and
