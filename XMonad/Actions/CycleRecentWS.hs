@@ -39,12 +39,12 @@ module XMonad.Actions.CycleRecentWS (
 import XMonad.Actions.Repeatable (repeatableSt)
 
 import XMonad hiding (workspaces)
+import XMonad.Prelude (void, when)
 import XMonad.StackSet hiding (filter, modify)
 
 import Control.Arrow ((&&&))
 import Data.Function (on)
-import Data.Functor (void)
-import Control.Monad.State (lift, when)
+import Control.Monad.State (lift)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
