@@ -210,6 +210,11 @@
     - Changed `addDescrKeys` and `addDescrKeys'` to not discard the
       keybindings in the current config.
 
+  * `XMonad.Prompt`
+
+    - The `emacsLikeXPKeymap` and `vimLikeXPKeymap` keymaps now treat
+      `C-m` the same as `Return`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

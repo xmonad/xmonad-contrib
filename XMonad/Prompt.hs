@@ -1009,6 +1009,7 @@ emacsLikeXPKeymap' p = M.fromList $
   , (xK_g, quit)
   , (xK_bracketleft, quit)
   , (xK_t, transposeChars)
+  , (xK_m, acceptSelection)
   ] ++
   map (first $ (,) mod1Mask) -- meta key + <key>
   [ (xK_BackSpace, killWord' p Prev)
@@ -1058,6 +1059,9 @@ vimLikeXPKeymap' :: (XPColor -> XPColor)
                     -- alternates.
                  -> M.Map (KeyMask,KeySym) (XP ())
 vimLikeXPKeymap' fromColor promptF pasteFilter notWord = M.fromList $
+    map (first $ (,) controlMask) -- control + <key>
+    [ (xK_m, acceptSelection)
+    ] ++
     map (first $ (,) 0)
     [ (xK_Return,       acceptSelection)
     , (xK_KP_Enter,     acceptSelection)
