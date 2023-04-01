@@ -106,7 +106,14 @@
     - A new module replicating the functionality of
       `XMonad.Hooks.DynamicProperty`, but with more discoverable names.
 
+  * `XMonad.Actions.ToggleFullFloat`:
+
+    - Fullscreen (float) a window while remembering its original state.
+      There's both an action to be bound to a key, and hooks that plug into
+      `XMonad.Hooks.EwmhDesktops`.
+
 ### Bug Fixes and Minor Changes
+
   * `XMonad.Util.Loggers`
 
     - Added `logClassname`, `logClassnames`, `logClassnames'`,
@@ -200,6 +207,11 @@
       `_NET_DESKTOP_VIEWPORT` property, as it can lead to issues with
       some status bars (see this
       [polybar issue](https://github.com/polybar/polybar/issues/2603)).
+
+    - Added `setEwmhFullscreenHooks` to override the default fullfloat/sink
+      behaviour of `_NET_WM_STATE_FULLSCREEN` requests. See also
+      `XMonad.Actions.ToggleFullFloat` for a float-restoring implementation of
+      fullscreening.
 
   * `XMonad.Hooks.StatusBar`
 
