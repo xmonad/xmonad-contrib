@@ -81,6 +81,11 @@
 
 ### New Modules
 
+  * `XMonad.Layout.CenterMainFluid`
+    - A three column layout with main column in the center and two stack
+      column surrounding it. Master window will be on center column and
+      spaces on the sides are reserved.
+
   * `XMonad.Layout.FocusTracking`.
 
     - Replaces `X.L.StateFull` and half of `X.L.TrackFloating`.

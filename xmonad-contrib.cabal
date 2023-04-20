@@ -228,6 +228,7 @@ library
                         XMonad.Layout.BorderResize
                         XMonad.Layout.BoringWindows
                         XMonad.Layout.ButtonDecoration
+                        XMonad.Layout.CenterMainFluid
                         XMonad.Layout.CenteredIfSingle
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
