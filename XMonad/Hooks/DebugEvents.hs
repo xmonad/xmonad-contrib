@@ -37,12 +37,13 @@ import           Control.Monad.Fail
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Codec.Binary.UTF8.String
-import           Foreign
+import           Foreign                                     hiding (void)
 import           Foreign.C.Types
 import           Numeric                                     (showHex)
 import           System.Exit
 import           System.IO
 import           System.Process
+import           GHC.Stack                                   (HasCallStack, prettyCallStack, callStack)
 
 -- | Event hook to dump all received events.  You should probably not use this
 --   unconditionally; it will produce massive amounts of output.
@@ -203,7 +204,7 @@ windowEvent l w =  debugWindow w >>= say l
 
 -- | Helper to emit tagged event information.
 say     :: String -> String -> X ()
-say l s =  trace $ l ++ ' ':s
+say l s =  XMonad.trace $ l ++ ' ':s
 
 -- | Deconstuct a list of 'CInt's into raw bytes
 splitCInt    :: [CInt] -> IO Raw
@@ -240,7 +241,7 @@ data DecodeState = DecS {value :: Raw           -- unconsumed raw property value
                         }
 
 newtype Decoder a = Decoder (ReaderT Decode (StateT DecodeState X) a)
-#ifndef __HADDOCK__
+
     deriving (Functor
              ,Applicative
              ,Monad
@@ -249,12 +250,12 @@ newtype Decoder a = Decoder (ReaderT Decode (StateT DecodeState X) a)
              ,MonadState  DecodeState
              ,MonadReader Decode
              )
-#endif
+
 
 -- | Retrive, parse, and dump a window property.  As all the high-level property
 --   interfaces lose information necessary to decode properties correctly, we
 --   work at the lowest level available.
-dumpProperty          :: Atom -> String -> Window -> Int -> X String
+dumpProperty          :: HasCallStack => Atom -> String -> Window -> Int -> X String
 dumpProperty a n w i  =  do
   prop <- withDisplay $ \d ->
     io     $
@@ -279,7 +280,7 @@ dumpProperty a n w i  =  do
     case rc of
       0 -> do
         fmt <- fromIntegral <$> peek fmtp
-        vs' <-                     peek vsp
+        vs' <-                  peek vsp
         sz  <- fromIntegral <$> peek szp
         case () of
           () | fmt == none     -> xFree vs' >> return (Left   "(property deleted)"   )
@@ -303,7 +304,8 @@ dumpProperty a n w i  =  do
 
 -- @@@ am I better off passing in the Decode and DecodeState?
 -- | Parse and dump a property (or a 'ClientMessage').
-dumpProperty'                             :: Window -- source window
+dumpProperty'                             :: HasCallStack
+                                          => Window -- source window
                                           -> Atom   -- property id
                                           -> String -- property name
                                           -> Atom   -- property type
@@ -334,11 +336,11 @@ dumpProperty' w a n fmt sz vs ack i =  do
   (_,ds') <- runDecode dec ds $ dumpProp a n
   let fin = length (value ds')
       len = length vs
-      lost = if ack == 0 then "" else "and " ++ show ack ++ " lost bytes"
+      lost = if ack == 0 then "" else " and " ++ show ack ++ " lost bytes"
       unk = case () of
               () | fin == len -> "undecodeable "
                  | fin == 0   -> "."
-                 | otherwise  -> "and remainder (" ++ show (len - fin) ++ '/':show len ++ ")"
+                 | otherwise  -> " and remainder (" ++ show (len - fin) ++ '/':show len ++ ")"
   (_,ds'') <- if fin == 0
               then return (True,ds')
               else runDecode dec' (withJoint' unk ds' ) $ dumpArray dump8
@@ -349,7 +351,7 @@ dumpProperty' w a n fmt sz vs ack i =  do
 
 -- | A simplified version of 'dumpProperty\'', to format random values from
 --   events.
-quickFormat     :: (Storable i, Integral i) => [i] -> Decoder Bool -> X String
+quickFormat     :: (HasCallStack, Storable i, Integral i) => [i] -> Decoder Bool -> X String
 quickFormat v f =  do
   let vl = length v
   vs <- io $
@@ -382,7 +384,7 @@ bytes w =  w `div` 8
 -- | The top level property decoder, for a wide variety of standard ICCCM and
 --   EWMH window properties.  We pass part of the 'ReaderT' as arguments for
 --   pattern matching.
-dumpProp                                              :: Atom -> String -> Decoder Bool
+dumpProp                                              :: HasCallStack => Atom -> String -> Decoder Bool
 
 dumpProp _ "CLIPBOARD"                                =  dumpSelection
 dumpProp _ "_NET_SUPPORTED"                           =  dumpArray dumpAtom
@@ -426,10 +428,13 @@ dumpProp _ "_NET_WM_NAME"                             =  dumpUTF
 dumpProp _ "_NET_WM_VISIBLE_NAME"                     =  dumpUTF
 dumpProp _ "_NET_WM_ICON_NAME"                        =  dumpUTF
 dumpProp _ "_NET_WM_VISIBLE_ICON_NAME"                =  dumpUTF
-dumpProp _ "_NET_WM_DESKTOP"                          =  dumpExcept [(0xFFFFFFFF,"all")]
-                                                                    dump32
+-- @@@ the property is CARDINAL; the message is _NET_WM_DESKTOP of 5 dump32s
+--     [desktop/all, source indication, 3 zeroes]
+-- dumpProp _ "_NET_WM_DESKTOP"                          =  dumpExcept [(0xFFFFFFFF,"all")]
+--                                                                     dump32
+dumpProp _ "_NET_WM_DESKTOP"                          =  dumpSetDesktop
 dumpProp _ "_NET_WM_WINDOW_TYPE"                      =  dumpArray dumpAtom
-dumpProp _ "_NET_WM_STATE"                            =  dumpArray dumpAtom
+dumpProp _ "_NET_WM_STATE"                            =  dumpNWState
 dumpProp _ "_NET_WM_ALLOWED_ACTIONS"                  =  dumpArray dumpAtom
 dumpProp _ "_NET_WM_STRUT"                            =  dumpList [("left gap"  ,dump32)
                                                                   ,("right gap" ,dump32)
@@ -467,6 +472,12 @@ dumpProp _ "_NET_FRAME_EXTENTS"                       =  dumpList [("left"  ,dum
                                                                   ]
 dumpProp _ "_NET_WM_SYNC_REQUEST_COUNTER"             =  dumpExcept [(0,"illegal value 0")]
                                                                     dump64
+dumpProp _ "_NET_WM_OPAQUE_REGION"                    =  dumpArray $ dumpList [("x",dump32)
+                                                                              ,("y",dump32)
+                                                                              ,("w",dump32)
+                                                                              ,("h",dump32)
+                                                                              ]
+dumpProp _ "_NET_WM_BYPASS_COMPOSITOR"                =  dumpEnum cpState
 dumpProp _ "_NET_STARTUP_ID"                          =  dumpUTF
 dumpProp _ "WM_PROTOCOLS"                             =  dumpArray dumpAtom
 dumpProp _ "WM_COLORMAP_WINDOWS"                      =  dumpArray dumpWindow
@@ -521,8 +532,8 @@ dumpProp a _ | a == wM_NAME                           =  dumpString
                                                                              ]
                                                                    )
                                                                   ]
-             | a == wM_NORMAL_HINTS                   =  (...)
-             | a == wM_ZOOM_HINTS                     =  (...) -- same as previous
+             | a == wM_NORMAL_HINTS                   =  dumpSizeHints
+             | a == wM_ZOOM_HINTS                     =  dumpSizeHints
              | a == rGB_DEFAULT_MAP                   =  (...) -- XStandardColormap
              | a == rGB_BEST_MAP                      =  (...) -- "
              | a == rGB_RED_MAP                       =  (...) -- "
@@ -567,12 +578,12 @@ withIndent   :: Int -> Decoder a -> Decoder a
 withIndent w =  local (\r -> r {indent = indent r + w})
 
 -- dump an array of items.  this dumps the entire property
-dumpArray      :: Decoder Bool -> Decoder Bool
+dumpArray      :: HasCallStack => Decoder Bool -> Decoder Bool
 dumpArray item =  do
   withIndent 1 $ append "[" >> withJoint "" (dumpArray' item "")
 
 -- step through values as an array, ending on parse error or end of list
-dumpArray'          :: Decoder Bool -> String -> Decoder Bool
+dumpArray'          :: HasCallStack => Decoder Bool -> String -> Decoder Bool
 dumpArray' item pfx =  do
   vs <- gets value
   if null vs
@@ -582,12 +593,12 @@ dumpArray' item pfx =  do
 -- keep parsing until a parse step fails
 -- @@@ which points out that all my uses of @whenX (return ...)@ are actually 'when',
 --     which suggests that 'whenX' is *also* the same function... yep.  ISAGN
-whenD     :: Monad m => m Bool -> m Bool -> m Bool
+whenD     :: (HasCallStack, Monad m) => m Bool -> m Bool -> m Bool
 whenD p f =  p >>= \b -> if b then f else return False
 
 -- verify a decoder parameter, else call error reporter
 -- once again, it's more general than I originally wrote
-guardR                  :: (MonadReader r m, Eq v)
+guardR                  :: (HasCallStack, MonadReader r m, Eq v)
                         => (r -> v)                -- value selector
                         -> v                       -- expected value
                         -> (v -> v -> m a)         -- error reporter
@@ -598,43 +609,47 @@ guardR sel val err good =  do
   if v == val then good else err v val
 
 -- this is kinda dumb
-fi       :: Bool -> a -> a -> a
+fi       :: HasCallStack => Bool -> a -> a -> a
 fi p n y =  if p then y else n -- flip (if' p), if that existed
 
 -- verify we have the expected word size
-guardSize      :: Int -> Decoder Bool -> Decoder Bool
+guardSize      :: HasCallStack => Int -> Decoder Bool -> Decoder Bool
 -- see XSync documentation for this insanity
-guardSize 64 =  guardR width 32 propSizeErr . guardSize' 8         propShortErr
-guardSize  w =  guardR width  w propSizeErr . guardSize' (bytes w) propShortErr
+guardSize 64 =  guardR width 32 propSizeErr . guardSize' 8         (propShortErr' 1)
+guardSize  w =  guardR width  w propSizeErr . guardSize' (bytes w) (propShortErr' 2)
 
-guardSize'       :: Int -> Decoder a -> Decoder a -> Decoder a
-guardSize' l n y =  gets value >>= \vs -> fi (length vs >= l) n y
+guardSize'       :: HasCallStack => Int -> Decoder a -> Decoder a -> Decoder a
+guardSize' l n y =  gets value >>= \vs -> fi (length vs >= bytes l) n y
+
+-- @guardSize@ doesn't work with empty arrays
+guardSize''       :: HasCallStack => Int -> Decoder a -> Decoder a -> Decoder a
+guardSize'' l n y =  gets value >>= \vs -> fi (null vs || length vs >= bytes l) n y
 
 -- verify we have the expected property type
-guardType    :: Atom -> Decoder Bool -> Decoder Bool
+guardType    :: HasCallStack => Atom -> Decoder Bool -> Decoder Bool
 guardType  t =  guardR pType t propTypeErr
 
 -- dump a structure as a named tuple
-dumpList       :: [(String,Decoder Bool)] -> Decoder Bool
+dumpList       :: HasCallStack => [(String,Decoder Bool)] -> Decoder Bool
 dumpList proto =  do
   a <- asks pType
   dumpList'' (maxBound :: CULong) (map (\(s,d) -> (s,d,a)) proto) "("
 
 -- same but elements have their own distinct types
-dumpList'       :: [(String,Decoder Bool,Atom)] -> Decoder Bool
+dumpList'       :: HasCallStack => [(String,Decoder Bool,Atom)] -> Decoder Bool
 dumpList' proto =  dumpList'' (maxBound :: CULong) proto "("
 
 -- same but only dump elements identified by provided mask
-dumpListByMask     :: CULong -> [(String,Decoder Bool)] -> Decoder Bool
+dumpListByMask     :: HasCallStack => CULong -> [(String,Decoder Bool)] -> Decoder Bool
 dumpListByMask m p =  do
   a <- asks pType
   dumpList'' m (map (\(s,d) -> (s,d,a)) p) "("
 
 -- and the previous two combined
-dumpListByMask'     :: CULong -> [(String,Decoder Bool,Atom)] -> Decoder Bool
+dumpListByMask'     :: HasCallStack => CULong -> [(String,Decoder Bool,Atom)] -> Decoder Bool
 dumpListByMask' m p =  dumpList'' m p "("
 
-dumpList''                    :: CULong -> [(String,Decoder Bool,Atom)] -> String -> Decoder Bool
+dumpList''                    :: HasCallStack => CULong -> [(String,Decoder Bool,Atom)] -> String -> Decoder Bool
 dumpList'' _ []           _   =  append ")" >> return True
 dumpList'' 0 _            _   =  append ")" >> return True
 dumpList'' m ((l,p,t):ps) sep = do
@@ -659,13 +674,13 @@ dumpList'' m ((l,p,t):ps) sep = do
 
 -- do the getTextProperty dance, the hard way.
 -- @@@ @COMPOUND_TEXT@ not supported yet.
-dumpString :: Decoder Bool
+dumpString :: HasCallStack => Decoder Bool
 dumpString =  do
   fmt <- asks pType
   [cOMPOUND_TEXT,uTF8_STRING] <- inX $ mapM getAtom ["COMPOUND_TEXT","UTF8_STRING"]
   case () of
-    () | fmt == cOMPOUND_TEXT -> guardSize 16 (...)
-       | fmt == sTRING        -> guardSize  8 $ do
+    () | fmt == cOMPOUND_TEXT -> guardSize'' 16 (propShortErr' 3) ( ... )
+       | fmt == sTRING        -> guardSize''  8 (propShortErr' 4) $ do
                                    vs <- gets value
                                    modify (\r -> r {value = []})
                                    let ss = flip unfoldr (map twiddle vs) $
@@ -688,7 +703,7 @@ dumpString =  do
                                  failure . ("unrecognized string type " ++)
 
 -- show who owns a selection
-dumpSelection :: Decoder Bool
+dumpSelection :: HasCallStack => Decoder Bool
 dumpSelection =  do
   -- system selections contain a window ID; others are random
   -- note that the window ID will be the same as the owner, so
@@ -702,14 +717,14 @@ dumpSelection =  do
       append $ "owned by " ++ w
 
 -- for now, not querying Xkb
-dumpXKlInds :: Decoder Bool
+dumpXKlInds :: HasCallStack => Decoder Bool
 dumpXKlInds =  guardType iNTEGER $ do
                  n <- fmap fromIntegral <$> getInt' 32
                  case n of
-                   Nothing -> propShortErr
+                   Nothing -> propShortErr' 5
                    Just is -> append $ "indicators " ++ unwords (dumpInds is 1 1 [])
   where
-    dumpInds                               :: Word32 -> Word32 -> Int -> [String] -> [String]
+    dumpInds                               :: HasCallStack => Word32 -> Word32 -> Int -> [String] -> [String]
     dumpInds n bt c bs | n == 0 && c == 1 =  ["none"]
                        | n == 0           =  bs
                        | n .&. bt /= 0    =  dumpInds (n .&. complement bt)
@@ -722,9 +737,20 @@ dumpXKlInds =  guardType iNTEGER $ do
                                                       bs
 
 -- decode an Atom
-dumpAtom :: Decoder Bool
-dumpAtom =
-  guardType aTOM $ do
+
+dumpAtom :: HasCallStack => Decoder Bool
+dumpAtom = dumpAtom'' aTOM
+
+{-
+dumpAtom' :: HasCallStack => String -> Decoder Bool
+dumpAtom' t' = do
+  t <- inX $ getAtom t'
+  dumpAtom'' t
+-}
+
+dumpAtom'' :: HasCallStack => Atom -> Decoder Bool
+dumpAtom'' t =
+  guardType t $ do
   a <- getInt' 32
   case a of
     Nothing -> return False
@@ -732,15 +758,16 @@ dumpAtom =
            an <- inX $ atomName $ fromIntegral a'
            append an
 
-dumpWindow :: Decoder Bool
+dumpWindow :: HasCallStack => Decoder Bool
 dumpWindow =  guardSize 32 $ guardType wINDOW $ do
                 w <- getInt' 32
                 case w of
                   Nothing -> return False
+                  Just 0  -> append "none"
                   Just w' -> inX (debugWindow (fromIntegral w')) >>= append
 
 -- a bit of a hack; as a Property it's a wINDOW, as a ClientMessage it's a list
-dumpActiveWindow :: Decoder Bool
+dumpActiveWindow :: HasCallStack => Decoder Bool
 dumpActiveWindow =  guardSize 32 $ do
                       t <- asks pType
                       nAW <- inX $ getAtom "_NET_ACTIVE_WINDOW"
@@ -754,49 +781,87 @@ dumpActiveWindow =  guardSize 32 $ do
                                      t' <- inX $ atomName t
                                      failure $ concat ["(bad type "
                                                       ,t'
-                                                      ,"; expected WINDOW or _NET_ACTIVE_WINDOW"
+                                                      ,"; expected WINDOW or _NET_ACTIVE_WINDOW)"
                                                       ]
+
+-- likewise but for _NET_WM_DESKTOP
+dumpSetDesktop :: HasCallStack => Decoder Bool
+dumpSetDesktop =  guardSize 32 $ do
+                    t <- asks pType
+                    nWD <- inX $ getAtom "_NET_WM_DESKTOP"
+                    case () of
+                      () | t == cARDINAL -> dumpExcept [(0xFFFFFFFF,"all")]
+                                                       dump32
+                         | t == nWD      -> dumpList' [("desktop",dumpExcept [(0xFFFFFFFF,"all")]
+                                                                             dump32              ,cARDINAL)
+                                                      ,("source" ,dumpEnum awSource              ,cARDINAL)
+                                                      ]
+                      _                -> do
+                                     t' <- inX $ atomName t
+                                     failure $ concat ["(bad type "
+                                                      ,t'
+                                                      ,"; expected CARDINAL or _NET_WM_DESKTOP)"
+                                                      ]
+
+-- and again for _NET_WM_STATE
+dumpNWState :: HasCallStack => Decoder Bool
+dumpNWState =  guardSize'' 32 propShortErr $ do
+                    t <- asks pType
+                    nWS <- inX $ getAtom "_NET_WM_STATE"
+                    case () of
+                      () | t == aTOM -> dumpArray dumpAtom
+                         | t == nWS  -> dumpList' [("action",dumpEnum nwAction,cARDINAL)
+                                                  ,("atom1" ,dumpAtom         ,aTOM)
+                                                  ,("atom2" ,dumpAtom         ,aTOM)
+                                                  ]
+                      _                -> do
+                                     t' <- inX $ atomName t
+                                     failure $ concat ["(bad type "
+                                                      ,t'
+                                                      ,"; expected ATOM or _NET_WM_STATE)"
+                                                      ]
+
 -- dump a generic CARDINAL value
-dumpInt   :: Int -> Decoder Bool
+dumpInt   :: HasCallStack => Int -> Decoder Bool
 dumpInt w =  guardSize w $ guardType cARDINAL $ getInt w show
 
 -- INTEGER is the signed version of CARDINAL
-dumpInteger   :: Int -> Decoder Bool
+dumpInteger   :: HasCallStack => Int -> Decoder Bool
 dumpInteger w =  guardSize w $ guardType iNTEGER $ getInt w (show . signed w)
 
 -- reinterpret an unsigned as a signed
-signed     :: Int -> Integer -> Integer
+signed     :: HasCallStack => Int -> Integer -> Integer
 signed w i =  bit (w + 1) - i
 
 -- and wrappers to keep the parse list in bounds
-dump64 :: Decoder Bool
+dump64 :: HasCallStack => Decoder Bool
 dump64 =  dumpInt 64
 
-dump32 :: Decoder Bool
+dump32 :: HasCallStack => Decoder Bool
 dump32 =  dumpInt 32
 
 {- not used in standard properties
-dump16 :: Decoder Bool
+dump16 :: HasCallStack => Decoder Bool
 dump16 =  dumpInt 16
 -}
 
-dump8 :: Decoder Bool
+dump8 :: HasCallStack => Decoder Bool
 dump8 =  dumpInt 8
 
 -- I am assuming for the moment that this is a single string.
 -- This might be false; consider the way the STRING properties
 -- handle lists.
-dumpUTF :: Decoder Bool
+dumpUTF :: HasCallStack => Decoder Bool
 dumpUTF =  do
   uTF8_STRING <- inX $ getAtom "UTF8_STRING"
-  guardType uTF8_STRING $ guardSize 8 $ do
+  guardType uTF8_STRING $ guardSize'' 8 propShortErr $ do
     s <- gets value
     modify (\r -> r {value = []})
     append . show . decode . map fromIntegral $ s
     return True
 
 -- dump an enumerated value using a translation table
-dumpEnum'        :: [String] -> Atom -> Decoder Bool
+dumpEnum'        :: HasCallStack => [String] -> Atom -> Decoder Bool
 dumpEnum' ss fmt =  guardType fmt $
                     getInt 32     $
                     \r -> case () of
@@ -805,11 +870,12 @@ dumpEnum' ss fmt =  guardType fmt $
                                | otherwise             -> genericIndex ss r
 
 -- we do not, unlike @xev@, try to ascii-art pixmaps.
-dumpPixmap :: Decoder Bool
+dumpPixmap :: HasCallStack => Decoder Bool
 dumpPixmap =  guardType pIXMAP $ do
                 p' <- getInt' 32
                 case p' of
                   Nothing -> return False
+                  Just 0  -> append "none"
                   Just p  -> do
                     append $ "pixmap " ++ showHex p ""
                     g' <- inX $ withDisplay $ \d -> io $
@@ -833,46 +899,80 @@ dumpPixmap =  guardType pIXMAP $ do
                                      ,")"
                                      ]
 
-dumpOLAttrs :: Decoder Bool
+dumpOLAttrs :: HasCallStack => Decoder Bool
 dumpOLAttrs = do
   pt <- inX $ getAtom "_OL_WIN_ATTR"
   guardType pt $ do
     msk <- getInt' 32
     case msk of
-      Nothing   -> propShortErr
+      Nothing   -> propShortErr' 7
       Just msk' -> dumpListByMask (fromIntegral msk') [("window type" ,dumpAtom     )
                                                       ,("menu"        ,dump32       ) -- @@@ unk
                                                       ,("pushpin"     ,dumpEnum bool)
                                                       ,("limited menu",dump32       ) -- @@@ unk
                                                       ]
 
-dumpMwmHints :: Decoder Bool
+dumpMwmHints :: HasCallStack => Decoder Bool
 dumpMwmHints =  do
   ta <- asks property
   guardType ta $ do
     msk <- getInt' 32
     case msk of
-      Nothing   -> propShortErr
-      Just msk' -> dumpListByMask (fromIntegral msk') [("functions"  ,dumpBits mwmFuncs    )
-                                                      ,("decorations",dumpBits mwmDecos    )
-                                                      ,("input mode" ,dumpEnum mwmInputMode)
-                                                      ,("status"     ,dumpBits mwmState    )
-                                                      ]
+      Nothing   -> propShortErr' 8
+      Just msk' -> dumpListByMask' (fromIntegral msk') [("functions"  ,dumpBits mwmFuncs    ,cARDINAL)
+                                                       ,("decorations",dumpBits mwmDecos    ,cARDINAL)
+                                                       ,("input mode" ,dumpEnum mwmInputMode,cARDINAL) -- @@@ s/b iNTEGER?
+                                                       ,("status"     ,dumpBits mwmState    ,cARDINAL)
+                                                       ]
 
-dumpMwmInfo :: Decoder Bool
+dumpMwmInfo :: HasCallStack => Decoder Bool
 dumpMwmInfo =  do
   ta <- asks property
   guardType ta $ dumpList' [("flags" ,dumpBits mwmHints,cARDINAL)
                            ,("window",dumpWindow       ,wINDOW  )
                            ]
 
+dumpSizeHints :: HasCallStack => Decoder Bool
+dumpSizeHints =  do
+  guardType wM_SIZE_HINTS $ do
+    -- flags, 4 unused CARD32s, fields as specified by flags
+    msk <- fmap fromIntegral <$> getInt' 32
+    eat (4 * 4) >> pure False
+    case msk of
+      Nothing   -> propShortErr' 9
+      Just msk' -> dumpListByMask' msk' [("min size"    ,dumpSize  ,cARDINAL)
+                                        ,("max size"    ,dumpSize  ,cARDINAL)
+                                        ,("increment"   ,dumpSize  ,cARDINAL)
+                                        ,("aspect ratio",dumpAspect,cARDINAL)
+                                        ,("base size"   ,dumpSize  ,cARDINAL)
+                                        ,("gravity"     ,dumpGrav  ,cARDINAL)
+                                        ]
+
+dumpSize :: HasCallStack => Decoder Bool
+dumpSize =  append "(" >> dump32 >> append "," >> dump32 >> append ")"
+
+dumpAspect :: HasCallStack => Decoder Bool
+dumpAspect =  do
+  -- have to do this manually since it doesn't really fit
+  append "min = "
+  dump32
+  append "/"
+  dump32
+  append ", max = "
+  dump32
+  append "/"
+  dump32
+
+dumpGrav :: HasCallStack => Decoder Bool
+dumpGrav =  dumpEnum wmGravity
+
 -- the most common case
-dumpEnum    :: [String] -> Decoder Bool
+dumpEnum    :: HasCallStack => [String] -> Decoder Bool
 dumpEnum ss =  dumpEnum' ss cARDINAL
 
 -- implement exceptional cases atop a normal dumper
 -- @@@ there's gotta be a better way
-dumpExcept           :: [(Integer,String)] -> Decoder Bool -> Decoder Bool
+dumpExcept           :: HasCallStack => [(Integer,String)] -> Decoder Bool -> Decoder Bool
 dumpExcept xs item = do
   -- this horror brought to you by reparsing to get the right value for our use
   sp <- get
@@ -887,7 +987,8 @@ dumpExcept xs item = do
     -- and after all that, we can process the exception list
     dumpExcept' xs that v
 
-dumpExcept'                                      :: [(Integer,String)]
+dumpExcept'                                      :: HasCallStack
+                                                 => [(Integer,String)]
                                                  -> DecodeState
                                                  -> Integer
                                                  -> Decoder Bool
@@ -897,7 +998,7 @@ dumpExcept' ((exc,str):xs) that val | exc == val =  append str
 
 -- use @ps@ to get process information.
 -- @@@@ assumes a POSIX @ps@, not a BSDish one.
-dumpPid :: Decoder Bool
+dumpPid :: HasCallStack => Decoder Bool
 dumpPid =  guardType cARDINAL $ do
              n <- getInt' 32
              case n of
@@ -915,17 +1016,17 @@ dumpPid =  guardType cARDINAL $ do
                                            then "pid " ++ pid
                                            else prc !! 1
 
-dumpTime :: Decoder Bool
+dumpTime :: HasCallStack => Decoder Bool
 dumpTime =  append "server event # " >> dump32
 
-dumpState :: Decoder Bool
+dumpState :: HasCallStack => Decoder Bool
 dumpState =  do
   wM_STATE <- inX $ getAtom "WM_STATE"
   guardType wM_STATE $ dumpList' [("state"      ,dumpEnum wmState,cARDINAL)
                                  ,("icon window",dumpWindow      ,wINDOW  )
                                  ]
 
-dumpMotifDragReceiver :: Decoder Bool
+dumpMotifDragReceiver :: HasCallStack => Decoder Bool
 dumpMotifDragReceiver =  do
   ta <- inX $ getAtom "_MOTIF_DRAG_RECEIVER_INFO"
   guardType ta $ dumpList' [("endian"    ,dumpMotifEndian,cARDINAL)
@@ -933,11 +1034,11 @@ dumpMotifDragReceiver =  do
                            ,("style"     ,dumpMDropStyle ,cARDINAL) -- @@@ dummy
                            ]
 
-dumpMDropStyle :: Decoder Bool
+dumpMDropStyle :: HasCallStack => Decoder Bool
 dumpMDropStyle =  do
   d <- getInt' 8
   pad 1 $ case d of
-            Nothing             -> propShortErr
+            Nothing             -> propShortErr' 9
             Just ps | ps == 0   -> pad 12 $ append "none"
                     | ps == 1   -> pad 12 $ append "drop only"
                     | ps == 2   ->          append "prefer preregister " >> dumpMDPrereg
@@ -947,7 +1048,7 @@ dumpMDropStyle =  do
                     | ps == 6   -> pad 12 $ append "prefer receiver"
                     | otherwise -> failure $ "unknown drop style " ++ show ps
 
-dumpMDPrereg :: Decoder Bool
+dumpMDPrereg :: HasCallStack => Decoder Bool
 dumpMDPrereg =  do
   -- this is a bit ugly; we pretend to be extending the above dumpList'
   append ","
@@ -957,7 +1058,7 @@ dumpMDPrereg =  do
   append "drop sites = "
   dsc' <- getInt' 16
   case dsc' of
-    Nothing  -> propShortErr
+    Nothing  -> propShortErr' 10
     Just dsc -> do
       withIndent 13 $ append (show dsc)
       pad 2 $ do
@@ -969,7 +1070,7 @@ dumpMDPrereg =  do
 dumpMDBlocks   :: Int -> Decoder Bool
 dumpMDBlocks _ =  propSimple "(drop site info)" -- @@@ maybe later if needed
 
-dumpMotifEndian :: Decoder Bool
+dumpMotifEndian :: HasCallStack => Decoder Bool
 dumpMotifEndian =  guardType cARDINAL $ guardSize 8 $ do
   c <- map twiddle <$> eat 1
   case c of
@@ -977,14 +1078,14 @@ dumpMotifEndian =  guardType cARDINAL $ guardSize 8 $ do
     ['B'] -> append "big"
     _     -> failure "bad endian flag"
 
-pad     :: Int -> Decoder Bool -> Decoder Bool
+pad     :: HasCallStack => Int -> Decoder Bool -> Decoder Bool
 pad n p =  do
   vs <- gets value
   if length vs < n
-    then propShortErr
+    then propShortErr' 11
     else modify (\r -> r {value = drop n vs}) >> p
 
-dumpPercent :: Decoder Bool
+dumpPercent :: HasCallStack => Decoder Bool
 dumpPercent =  guardType cARDINAL $ do
                  n <- getInt' 32
                  case n of
@@ -994,7 +1095,7 @@ dumpPercent =  guardType cARDINAL $ do
                            pct :: Double
                         in append $ show (round pct :: Integer) ++ "%"
 
-dumpWmHints :: Decoder Bool
+dumpWmHints :: HasCallStack => Decoder Bool
 dumpWmHints =
   guardType wM_HINTS $ do
   msk <- getInt' 32
@@ -1011,7 +1112,7 @@ dumpWmHints =
                                  ,("window_group" ,dumpWindow      ,wINDOW  )
                                  ]
 
-dumpBits    :: [String] -> Decoder Bool
+dumpBits    :: HasCallStack => [String] -> Decoder Bool
 dumpBits bs =  guardType cARDINAL $ do
                  n <- getInt' 32
                  case n of
@@ -1069,6 +1170,9 @@ awSource =  ["unspecified"
             ,"pager/task list"
             ]
 
+cpState :: [String]
+cpState =  ["no preference","disable compositing","force compositing"]
+
 {- eventually...
 wmHintsFlags :: [String]
 wmHintsFlags =  ["Input"
@@ -1112,6 +1216,12 @@ nwmOrigin =  nwmEnum Nothing ["TOPLEFT","TOPRIGHT","BOTTOMRIGHT","BOTTOMLEFT"]
 wmState :: [String]
 wmState =  ["Withdrawn","Normal","Zoomed (obsolete)","Iconified","Inactive"]
 
+nwAction :: [String]
+nwAction =  ["Clear", "Set", "Toggle"]
+
+wmGravity :: [String]
+wmGravity =  ["forget/unmap","NW","N","NE","W","C","E","SW","S","SE","static"]
+
 nwmEnum                  :: Maybe String
                          -> [String]
                          -> [String]
@@ -1121,7 +1231,7 @@ nwmEnum (Just prefix) vs =  map (("_NET_WM_" ++ prefix ++ "_") ++) vs
 -- and the lowest level coercions --
 
 -- parse and return an integral value
-getInt'    :: Int -> Decoder (Maybe Integer)
+getInt'    :: HasCallStack => Int -> Decoder (Maybe Integer)
 -- see XSync documentation for this insanity
 getInt' 64 =  guardR width 32 (\a e -> propSizeErr a e >> return Nothing) $
               guardSize' 8 (propShortErr >> return Nothing) $ do
@@ -1129,7 +1239,7 @@ getInt' 64 =  guardR width 32 (\a e -> propSizeErr a e >> return Nothing) $
                 hi <- inhale 32
                 return $ Just $ lo + hi * (fromIntegral (maxBound :: Word32) + 1)
 getInt' w  =  guardR width w  (\a e -> propSizeErr a e >> return Nothing) $
-              guardSize' (bytes w) (propShortErr >> return Nothing)       $
+              guardSize' (bytes w) (propShortErr' 13 >> return Nothing)       $
               Just <$> inhale w
 
 -- parse an integral value and feed it to a show-er of some kind
@@ -1171,8 +1281,8 @@ append :: String -> Decoder Bool
 append =  append' True
 
 -- and the same but for errors
-failure :: String -> Decoder Bool
-failure =  append' False
+failure :: HasCallStack => String -> Decoder Bool
+failure =  append' False . (++ prettyCallStack callStack)
 
 -- common appender
 append'     :: Bool -> String -> Decoder Bool
@@ -1186,8 +1296,12 @@ propSimple   :: String -> Decoder Bool
 propSimple s =  modify (\r -> r {value = []}) >> append s
 
 -- report various errors
-propShortErr :: Decoder Bool
+propShortErr :: HasCallStack => Decoder Bool
 propShortErr =  failure "(property ended prematurely)"
+
+-- debug version
+propShortErr'   :: HasCallStack => Int -> Decoder Bool
+propShortErr' n =  failure $ "(short prop " ++ show n ++ ")"
 
 propSizeErr     :: Int -> Int -> Decoder Bool
 propSizeErr e a =  failure $ "(bad bit width " ++
