@@ -124,7 +124,7 @@ tryUTF8                          :: TextProperty -> X [String]
 tryUTF8 (TextProperty s enc _ _) =  do
   uTF8_STRING <- getAtom "UTF8_STRING"
   when (enc /= uTF8_STRING) $ error "String is not UTF8_STRING"
-  map decodeString . splitNul <$> io (peekCString s)
+  map decodeString . splitNul <$> io (peekCAString s)
 
 tryCompound                            :: TextProperty -> X [String]
 tryCompound t@(TextProperty _ enc _ _) =  do
