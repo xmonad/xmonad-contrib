@@ -29,6 +29,7 @@ module XMonad.Actions.Prefix
        , withPrefixArgument
        , isPrefixRaw
        , isPrefixNumeric
+       , orIfPrefixed
        , ppFormatPrefix
        ) where
 
@@ -173,7 +174,7 @@ handlePrefixArg events = do
 --
 -- First, fetch the current prefix, then pass it as argument to the
 -- original function.  You should use this to "run" your commands.
-withPrefixArgument :: (PrefixArgument -> X ()) -> X ()
+withPrefixArgument :: (PrefixArgument -> X a) -> X a
 withPrefixArgument = (>>=) XS.get
 
 -- | Test if 'PrefixArgument' is 'Raw' or not.
@@ -185,6 +186,13 @@ isPrefixRaw _ = False
 isPrefixNumeric :: PrefixArgument -> Bool
 isPrefixNumeric (Numeric _) = True
 isPrefixNumeric _ = False
+
+-- | Execute the first action, unless any prefix argument is given,
+-- in which case the second action is chosen instead.
+--
+-- > action1 `orIfPrefixed` action2
+orIfPrefixed :: X a -> X a -> X a
+orIfPrefixed xa xb = withPrefixArgument $ bool xa xb . isPrefixRaw
 
 -- | Format the prefix using the Emacs convetion for use in a
 -- statusbar, like xmobar.

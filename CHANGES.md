@@ -232,6 +232,11 @@
     - The `emacsLikeXPKeymap` and `vimLikeXPKeymap` keymaps now treat
       `C-m` the same as `Return`.
 
+  * `XMonad.Actions.Prefix`
+
+    - Added `orIfPrefixed`, a combinator to decide upon an action based
+      on whether any prefix argument was given.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
