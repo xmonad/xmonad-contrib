@@ -23,8 +23,10 @@ jobs:
           - resolver: lts-19  # GHC 9.0
             yaml: stack-master.yaml
           - resolver: lts-20  # GHC 9.2
+            yaml: stack-master.yaml
+          - resolver: lts-21  # GHC 9.4
             yaml: stack.yaml
-          - resolver: lts-20  # GHC 9.2
+          - resolver: lts-21  # GHC 9.4
             yaml: stack-master.yaml
 
     steps:
