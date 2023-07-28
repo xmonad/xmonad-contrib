@@ -120,8 +120,8 @@
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Layout.Magnifier`
-    - Added `Toggle(..)` and changed `Magnifier` to `Magnifier(..)` in the exports
-      for Magnifier.hs, to allow for custom horizontal and vertical sizes for magnifiers.
+    - Exposed `Toggle(..)` and the `Mag` constructor, to allow for custom
+      horizontal and vertical sizes for magnifiers.
 
   * `XMonad.Util.Loggers`
 
