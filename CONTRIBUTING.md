@@ -1,4 +1,4 @@
-# Contributing to xmonad and xmonad-contrib
+Contributing to xmonad and xmonad-contrib
 
 Please refer to XMonad's [CONTRIBUTING][gh:xmonad:contributing].
 
