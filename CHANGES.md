@@ -119,6 +119,13 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.Magnifier`
+
+    - Added `magnifyxy` to allow for different magnification in the
+      horizontal and vertical directions. Added `magnifierxy`,
+      `magnifierxy'`, `magnifierxyOff`, and `magnifierxyOff'` as
+      particular combinators.
+
   * `XMonad.Util.Loggers`
 
     - Added `logClassname`, `logClassnames`, `logClassnames'`,
