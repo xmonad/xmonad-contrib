@@ -170,6 +170,8 @@
 
     - Added `list` and `saveExcursion` to the list of Emacs commands.
 
+    - Added `toList` to easily lift a `String` to an `X Input`.
+
   * `XMonad.Util.Parser`
 
     - Added the `gather`, `count`, `between`, `option`, `optionally`,

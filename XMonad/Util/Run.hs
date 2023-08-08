@@ -49,6 +49,7 @@ module XMonad.Util.Run (
   spawnExternalProcess,
   proc,
   getInput,
+  toInput,
 
   -- ** Programs
   inEditor,
@@ -363,6 +364,10 @@ infixr 3 >-$
 -- | Spawn a completed input.
 proc :: X Input -> X ()
 proc xi = spawn =<< getInput xi
+
+-- | Create an effectful 'Input' from a 'String'.
+toInput :: String -> X Input
+toInput = pure . mkDList
 
 -- | Get the completed input string.
 getInput :: X Input -> X String
