@@ -60,6 +60,8 @@ module XMonad.Util.Run (
   -- ** General Combinators
   (>->),
   (>-$),
+  (>&&>),
+  (>||>),
   inWorkingDir,
   eval,
   execute,
@@ -361,6 +363,24 @@ infixr 3 >->
 (>-$) xi xs = xi >-> fmap mkDList xs
 infixr 3 >-$
 
+-- | @a >&&> b@ glues the different inputs @a@ and @b@ by means of @&&@.
+-- For example,
+--
+-- @
+-- pure "do something" >&&> pure "do another thing"
+-- @
+--
+-- would result in @do something && do another thing@ being executed by a
+-- shell.
+(>&&>) :: X Input -> X Input -> X Input
+a >&&> b = comp3 <$> a <*> toInput " && " <*> b
+infixr 2 >&&>
+
+-- | Like '(>&&>)', but with @||@.
+(>||>) :: X Input -> X Input -> X Input
+a >||> b = comp3 <$> a <*> toInput " || " <*> b
+infixr 2 >||>
+
 -- | Spawn a completed input.
 proc :: X Input -> X ()
 proc xi = spawn =<< getInput xi
@@ -540,3 +560,6 @@ tryQuote :: String -> String
 tryQuote s = case dropWhile (== ' ') s of
   '\'' : _ -> s
   _        -> "'" <> s <> "'"
+
+comp3 :: (c -> d) -> (b -> c) -> (a -> b) -> a -> d
+comp3 f g h = f . g . h

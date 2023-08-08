@@ -172,6 +172,8 @@
 
     - Added `toList` to easily lift a `String` to an `X Input`.
 
+    - Added `>&&>` and `>||>` to glue together different inputs.
+
   * `XMonad.Util.Parser`
 
     - Added the `gather`, `count`, `between`, `option`, `optionally`,
