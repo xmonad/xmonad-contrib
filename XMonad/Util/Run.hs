@@ -373,12 +373,12 @@ infixr 3 >-$
 -- would result in @do something && do another thing@ being executed by a
 -- shell.
 (>&&>) :: X Input -> X Input -> X Input
-a >&&> b = comp3 <$> a <*> toInput " && " <*> b
+a >&&> b = a <> toInput " && " <> b
 infixr 2 >&&>
 
 -- | Like '(>&&>)', but with @||@.
 (>||>) :: X Input -> X Input -> X Input
-a >||> b = comp3 <$> a <*> toInput " || " <*> b
+a >||> b = a <> toInput " || " <> b
 infixr 2 >||>
 
 -- | Spawn a completed input.
@@ -560,6 +560,3 @@ tryQuote :: String -> String
 tryQuote s = case dropWhile (== ' ') s of
   '\'' : _ -> s
   _        -> "'" <> s <> "'"
-
-comp3 :: (c -> d) -> (b -> c) -> (a -> b) -> a -> d
-comp3 f g h = f . g . h
