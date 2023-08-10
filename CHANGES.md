@@ -248,6 +248,10 @@
     - Added `orIfPrefixed`, a combinator to decide upon an action based
       on whether any prefix argument was given.
 
+  * `XMonad.Actions.WorkspaceNames`
+
+    - Enabled prompt completion (from history) in `renameWorkspace`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

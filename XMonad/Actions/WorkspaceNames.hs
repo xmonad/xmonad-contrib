@@ -51,7 +51,7 @@ import XMonad.Actions.CycleWS (findWorkspace, WSType(..), Direction1D(..), anyWS
 import qualified XMonad.Actions.SwapWorkspaces as Swap
 import XMonad.Hooks.StatusBar.PP (PP(..))
 import XMonad.Hooks.EwmhDesktops (addEwmhWorkspaceRename)
-import XMonad.Prompt (mkXPrompt, XPConfig)
+import XMonad.Prompt (mkXPrompt, XPConfig, historyCompletionP)
 import XMonad.Prompt.Workspace (Wor(Wor))
 import XMonad.Util.WorkspaceCompare (getSortByIndex)
 
@@ -137,9 +137,11 @@ setCurrentWorkspaceName name = do
 
 -- | Prompt for a new name for the current workspace and set it.
 renameWorkspace :: XPConfig -> X ()
-renameWorkspace conf =
-    mkXPrompt pr conf (const (return [])) setCurrentWorkspaceName
-    where pr = Wor "Workspace name: "
+renameWorkspace conf = do
+    completion <- historyCompletionP (prompt ==)
+    mkXPrompt (Wor prompt) conf completion setCurrentWorkspaceName
+  where
+    prompt = "Workspace name: "
 
 -- | See 'XMonad.Actions.SwapWorkspaces.swapTo'. This is the same with names.
 swapTo :: Direction1D -> X ()
