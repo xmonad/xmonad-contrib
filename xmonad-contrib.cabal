@@ -234,6 +234,7 @@ library
                         XMonad.Layout.Circle
                         XMonad.Layout.Column
                         XMonad.Layout.Combo
+                        XMonad.Layout.ConditionalLayout
                         XMonad.Layout.ComboP
                         XMonad.Layout.Cross
                         XMonad.Layout.Decoration

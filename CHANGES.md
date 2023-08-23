@@ -81,7 +81,14 @@
 
 ### New Modules
 
+  * `XMonad.Layout.ConditionalLayout`
+
+	- Provide conditional variants of `ModifiedLayout` and `Choose`,
+      so that modifications (specific layouts) are only applied when
+      a particular condition is met.
+
   * `XMonad.Layout.CenterMainFluid`
+
     - A three column layout with main column in the center and two stack
       column surrounding it. Master window will be on center column and
       spaces on the sides are reserved.
