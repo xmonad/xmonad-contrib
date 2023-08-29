@@ -4,7 +4,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StrictData #-}
 
 {- |
    Module       : XMonad.Layout.ConditionalLayout
@@ -79,7 +78,7 @@ apply tabs, one would write
 
 alternatively, to conditionally switch between two layouts:
 
->                  -- Full for workspaces with more than 4 windows, Tall otherwise.
+>                  -- Full for workspaces with more than 2 windows, Tall otherwise.
 >   , layoutHook = condChoose IfMax2 (Tall 1 (3/100) (1/2)) Full $ layoutHook def
 -}
 
@@ -108,11 +107,11 @@ class (Read c, Show c) => ModifierCondition c where
 
 -- | 'ModifiedLayout' extended with a condition and its last evaluation result
 -- (for methods that can't evaluate it).
-data CondModifiedLayout c m l a = CondModifiedLayout Bool c (ModifiedLayout m l a)
+data CondModifiedLayout c m l a = CondModifiedLayout !Bool !c !(ModifiedLayout m l a)
   deriving (Read, Show)
 
 -- | 'Choose' extended with a condition.
-data CondChoose c l r a = CondChoose Bool c (Choose l r a)
+data CondChoose c l r a = CondChoose !Bool !c !(Choose l r a)
   deriving (Read, Show)
 
 instance (ModifierCondition c, LayoutModifier m a, LayoutClass l a, Typeable c, Typeable m)
