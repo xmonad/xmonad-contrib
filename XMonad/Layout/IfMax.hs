@@ -1,3 +1,9 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.IfMax
@@ -15,8 +21,6 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, FlexibleContexts, PatternGuards #-}
-
 module XMonad.Layout.IfMax
     ( -- * Usage
       -- $usage
@@ -29,6 +33,7 @@ import qualified Data.List as L
 import qualified Data.Map  as M
 
 import XMonad
+import XMonad.Layout.ConditionalLayout
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
@@ -42,7 +47,7 @@ import qualified XMonad.StackSet as W
 --
 -- Then add layouts to your layoutHook:
 --
--- > myLayoutHook = IfMax 2 Full (Tall ...) ||| ...
+-- > myLayoutHook = ifMax 2 Full (Tall ...) ||| ...
 --
 -- In this example, if there are 1 or 2 windows, Full layout will be used;
 -- otherwise, Tall layout will be used.
@@ -50,6 +55,7 @@ import qualified XMonad.StackSet as W
 
 data IfMax l1 l2 w = IfMax Int (l1 w) (l2 w)
   deriving (Read, Show)
+{-# DEPRECATED IfMax  "Use ifMax instead." #-}
 
 instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1 l2) Window where
 
@@ -85,10 +91,18 @@ instance (LayoutClass l1 Window, LayoutClass l2 Window) => LayoutClass (IfMax l1
   description (IfMax n l1 l2) = "If number of windows is <= " ++ show n ++ ", then " ++
                                 description l1 ++ ", else " ++ description l2
 
+newtype IfMaxN = IfMaxN Int deriving (Read, Show)
+
+instance ModifierCondition IfMaxN where
+    shouldApply :: IfMaxN -> WorkspaceId -> X Bool
+    shouldApply (IfMaxN n) wsId = do
+        ws <- fmap length <$> getWorkspaceWindows wsId
+        pure $ Just n >= ws
+
 -- | Layout itself
 ifMax :: (LayoutClass l1 w, LayoutClass l2 w)
       => Int            -- ^ Maximum number of windows for the first layout
       -> l1 w           -- ^ First layout
       -> l2 w           -- ^ Second layout
-      -> IfMax l1 l2 w
-ifMax = IfMax
+      -> CondChoose IfMaxN l1 l2 w
+ifMax n = condChoose (IfMaxN n)

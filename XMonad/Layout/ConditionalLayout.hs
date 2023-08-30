@@ -27,6 +27,8 @@ module XMonad.Layout.ConditionalLayout (
 
   -- * Building Conditions
   ModifierCondition (shouldApply),
+  CondChoose, -- opaque
+
   -- * Utility functions
   getWorkspace,
   getWorkspaceWindows,
