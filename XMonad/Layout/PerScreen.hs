@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,9 +26,9 @@ module XMonad.Layout.PerScreen
     ) where
 
 import XMonad
-import qualified XMonad.StackSet as W
-
+import XMonad.Layout.ConditionalLayout
 import XMonad.Prelude (fromMaybe)
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:
@@ -41,13 +43,23 @@ import XMonad.Prelude (fromMaybe)
 -- ifWider can also be used inside other layout combinators.
 
 ifWider :: (LayoutClass l1 a, LayoutClass l2 a)
-               => Dimension   -- ^ target screen width
-               -> l1 a        -- ^ layout to use when the screen is wide enough
-               -> l2 a        -- ^ layout to use otherwise
-               -> PerScreen l1 l2 a
-ifWider w = PerScreen w False
+        => Dimension   -- ^ target screen width
+        -> l1 a        -- ^ layout to use when the screen is wide enough
+        -> l2 a        -- ^ layout to use otherwise
+        -> CondChoose PerScreenCond l1 l2 a
+ifWider w = condChoose (PerScreenCond w)
+
+newtype PerScreenCond = PerScreenCond Dimension
+    deriving (Read, Show)
+
+instance ModifierCondition PerScreenCond where
+    shouldApply :: PerScreenCond -> WorkspaceId -> X Bool
+    shouldApply (PerScreenCond w) wsId = do
+        r <- fmap (rect_width . screenRect . W.screenDetail) <$> getScreen wsId
+        pure $ r > Just w
 
 data PerScreen l1 l2 a = PerScreen Dimension Bool (l1 a) (l2 a) deriving (Read, Show)
+{-# DEPRECATED PerScreen  "ifWider now uses X.L.ConditionalLayout internally." #-}
 
 -- | Construct new PerScreen values with possibly modified layouts.
 mkNewPerScreenT :: PerScreen l1 l2 a -> Maybe (l1 a) ->

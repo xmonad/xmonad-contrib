@@ -32,6 +32,7 @@ module XMonad.Layout.ConditionalLayout (
   -- * Utility functions
   getWorkspace,
   getWorkspaceWindows,
+  getScreen,
 ) where
 
 import XMonad hiding (hide)
@@ -166,3 +167,7 @@ getWorkspace wsId = gets $ find ((wsId ==) . W.tag) . W.workspaces . windowset
 
 getWorkspaceWindows :: WorkspaceId -> X (Maybe [Window])
 getWorkspaceWindows wsId = fmap (W.integrate' . W.stack) <$> getWorkspace wsId
+
+getScreen :: WorkspaceId -> X (Maybe WindowScreen)
+getScreen wsId =
+  find (\s -> wsId == W.tag (W.workspace s)) <$> gets (W.screens . windowset)
