@@ -87,8 +87,8 @@ alternatively, to conditionally switch between two layouts:
 -- | Conditionally apply a layout modifier.
 --
 -- > conditional MyCond myModifier myLayout
-conditional :: ModifierCondition c => c -> (l a -> ModifiedLayout m l a) -> (l a -> CondModifiedLayout c m l a)
-conditional c ml = CondModifiedLayout True c . ml
+conditional :: ModifierCondition c => c -> (l a -> l' a) -> l a -> CondChoose c l' l a
+conditional c ml l = CondChoose True c (Choose CL (ml l) l)
 
 -- | Conditionally choose between two layouts.
 --
@@ -115,38 +115,6 @@ data CondModifiedLayout c m l a = CondModifiedLayout !Bool !c !(ModifiedLayout m
 -- | 'Choose' extended with a condition.
 data CondChoose c l r a = CondChoose !Bool !c !(Choose l r a)
   deriving (Read, Show)
-
-instance (ModifierCondition c, LayoutModifier m a, LayoutClass l a, Typeable c, Typeable m)
-  => LayoutClass (CondModifiedLayout c m l) a
- where
-  runLayout :: (ModifierCondition c, LayoutModifier m a, LayoutClass l a, Typeable m, Typeable c)
-            => Workspace WorkspaceId (CondModifiedLayout c m l a) a
-            -> Rectangle
-            -> X ([(a, Rectangle)], Maybe (CondModifiedLayout c m l a))
-  runLayout (W.Workspace i cml@(CondModifiedLayout a c _) ms) r = do
-    a' <- shouldApply c i
-    cml' <- if a == a' then pure Nothing else Just . switch <$> hide cml
-    fmap (<|> cml') <$> run (fromMaybe cml cml')
-   where
-    switch :: CondModifiedLayout c m l a -> CondModifiedLayout c m l a
-    switch (CondModifiedLayout a' c' ml') = CondModifiedLayout (not a') c' ml'
-
-    run :: CondModifiedLayout c m l a -> X ([(a, Rectangle)], Maybe (CondModifiedLayout c m l a))
-    run (CondModifiedLayout True c' ml) =
-      fmap (fmap (CondModifiedLayout True c')) <$> runLayout (W.Workspace i ml ms) r
-    run (CondModifiedLayout False c' (ModifiedLayout m l)) =
-      fmap (fmap (CondModifiedLayout False c' . ModifiedLayout m)) <$> runLayout (W.Workspace i l ms) r
-
-  handleMessage :: CondModifiedLayout c m l a -> SomeMessage -> X (Maybe (CondModifiedLayout c m l a))
-  handleMessage (CondModifiedLayout a c ml@(ModifiedLayout lm l)) m
-    | Just ReleaseResources <- fromMessage m = fmap (CondModifiedLayout a c) <$> handleMessage ml m
-    | a                                      = fmap (CondModifiedLayout a c) <$> handleMessage ml m
-    | otherwise          = fmap (CondModifiedLayout a c . ModifiedLayout lm) <$> handleMessage l m
-
-  description :: CondModifiedLayout c m l a -> String
-  description (CondModifiedLayout a _ ml@(ModifiedLayout _ l))
-    | a         = description ml
-    | otherwise = description l
 
 instance (ModifierCondition c, LayoutClass l a, LayoutClass r a, Typeable c)
   => LayoutClass (CondChoose c l r) a
