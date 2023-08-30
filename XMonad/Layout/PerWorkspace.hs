@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,9 +26,9 @@ module XMonad.Layout.PerWorkspace
     ) where
 
 import XMonad
-import qualified XMonad.StackSet as W
-
+import XMonad.Layout.ConditionalLayout
 import XMonad.Prelude (fromMaybe)
+import qualified XMonad.StackSet as W
 
 -- $usage
 -- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:
@@ -52,6 +54,13 @@ import XMonad.Prelude (fromMaybe)
 --
 -- > layoutHook = A ||| B ||| onWorkspace "foo" D C
 
+newtype PerWorkspaceCond = PerWorkspaceCond [WorkspaceId]
+    deriving (Read, Show)
+
+instance ModifierCondition PerWorkspaceCond where
+    shouldApply :: PerWorkspaceCond -> WorkspaceId -> X Bool
+    shouldApply (PerWorkspaceCond ws) wsId = pure $ wsId `elem` ws
+
 -- | Specify one layout to use on a particular workspace, and another
 --   to use on all others.  The second layout can be another call to
 --   'onWorkspace', and so on.
@@ -59,7 +68,7 @@ onWorkspace :: (LayoutClass l1 a, LayoutClass l2 a)
                => WorkspaceId -- ^ the tag of the workspace to match
                -> l1 a        -- ^ layout to use on the matched workspace
                -> l2 a        -- ^ layout to use everywhere else
-               -> PerWorkspace l1 l2 a
+               -> CondChoose PerWorkspaceCond l1 l2 a
 onWorkspace wsId = onWorkspaces [wsId]
 
 -- | Specify one layout to use on a particular set of workspaces, and
@@ -68,7 +77,7 @@ onWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
                 => [WorkspaceId]  -- ^ tags of workspaces to match
                 -> l1 a           -- ^ layout to use on matched workspaces
                 -> l2 a           -- ^ layout to use everywhere else
-                -> PerWorkspace l1 l2 a
+                -> CondChoose PerWorkspaceCond l1 l2 a
 onWorkspaces wsIds = modWorkspaces wsIds . const
 
 -- | Specify a layout modifier to apply to a particular workspace; layouts
@@ -77,18 +86,18 @@ modWorkspace :: (LayoutClass l1 a, LayoutClass l2 a)
              => WorkspaceId    -- ^ tag of the workspace to match
              -> (l2 a -> l1 a)  -- ^ the modifier to apply on the matching workspace
              -> l2 a           -- ^ the base layout
-             -> PerWorkspace l1 l2 a
+             -> CondChoose PerWorkspaceCond l1 l2 a
 modWorkspace wsId = modWorkspaces [wsId]
 
 -- | Specify a layout modifier to apply to a particular set of
 --   workspaces; layouts on all other workspaces will remain
 --   unmodified.
 modWorkspaces :: (LayoutClass l1 a, LayoutClass l2 a)
-              => [WorkspaceId] -- ^ tags of the workspaces to match
+              => [WorkspaceId]  -- ^ tags of the workspaces to match
               -> (l2 a -> l1 a) -- ^ the modifier to apply on the matching workspaces
-              -> l2 a          -- ^ the base layout
-              -> PerWorkspace l1 l2 a
-modWorkspaces wsIds f l = PerWorkspace wsIds False (f l) l
+              -> l2 a           -- ^ the base layout
+              -> CondChoose PerWorkspaceCond l1 l2 a
+modWorkspaces wsIds = conditional (PerWorkspaceCond wsIds)
 
 -- | Structure for representing a workspace-specific layout along with
 -- a layout for all other workspaces. We store the tags of workspaces
@@ -99,6 +108,7 @@ data PerWorkspace l1 l2 a = PerWorkspace [WorkspaceId]
                                          (l1 a)
                                          (l2 a)
     deriving (Read, Show)
+{-# DEPRECATED PerWorkspace "X.L.PerWorkspace now uses X.L.ConditionalLayout." #-}
 
 instance (LayoutClass l1 a, LayoutClass l2 a, Show a) => LayoutClass (PerWorkspace l1 l2) a where
     runLayout (W.Workspace i p@(PerWorkspace wsIds _ lt lf) ms) r
