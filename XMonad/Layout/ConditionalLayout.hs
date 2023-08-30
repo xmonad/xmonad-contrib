@@ -27,6 +27,9 @@ module XMonad.Layout.ConditionalLayout (
 
   -- * Building Conditions
   ModifierCondition (shouldApply),
+  -- * Utility functions
+  getWorkspace,
+  getWorkspaceWindows,
 ) where
 
 import XMonad hiding (hide)
@@ -61,8 +64,7 @@ workspace:
 >
 > instance ModifierCondition IfMax2 where
 >   shouldApply _ wsId = do
->     wins <- gets $ find ((wsId ==) . W.tag) . W.workspaces . windowset
->     let ws = W.integrate' . W.stack <$> wins
+>     wsWins <- getWorkspaceWindows wsId
 >     pure $ Just 2 >= (length <$> ws)
 
 the @IfMax2@ type can now be used with the provided combinators. To
@@ -188,3 +190,9 @@ decideSide = \case
 
 hide :: LayoutClass l a => l a -> X (l a)
 hide x = fromMaybe x <$> handleMessage x (SomeMessage Hide)
+
+getWorkspace :: WorkspaceId -> X (Maybe WindowSpace)
+getWorkspace wsId = gets $ find ((wsId ==) . W.tag) . W.workspaces . windowset
+
+getWorkspaceWindows :: WorkspaceId -> X (Maybe [Window])
+getWorkspaceWindows wsId = fmap (W.integrate' . W.stack) <$> getWorkspace wsId
