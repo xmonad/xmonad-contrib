@@ -143,6 +143,8 @@ instance (ModifierCondition c, LayoutClass l a, LayoutClass r a, Typeable c)
   handleMessage (CondChoose a c ch@(Choose _ l r)) m
     | Just ReleaseResources <- fromMessage m =
         fmap (CondChoose a c) <$> handleMessage ch m
+    | Just NextLayout <- fromMessage m =
+        fmap (CondChoose a c) <$> handleMessage ch m
     | otherwise =
         fmap (CondChoose a c) <$> handleMessage (Choose (decideSide a) l r) m
 
