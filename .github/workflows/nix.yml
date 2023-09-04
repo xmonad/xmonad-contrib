@@ -20,7 +20,7 @@ jobs:
             experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Build
         # "nix build" builds with full optimization and includes a profiling
         # build, so just the build of xmonad-contrib itself takes 3 minutes.
