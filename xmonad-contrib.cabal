@@ -261,6 +261,7 @@ library
                         XMonad.Layout.HintedTile
                         XMonad.Layout.IM
                         XMonad.Layout.IfMax
+                        XMonad.Layout.IfWidth
                         XMonad.Layout.ImageButtonDecoration
                         XMonad.Layout.IndependentScreens
                         XMonad.Layout.LayoutBuilder

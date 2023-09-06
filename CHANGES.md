@@ -81,6 +81,15 @@
 
 ### New Modules
 
+  * `XMonad.Layout.IfWidth`
+    - The `ifWidth` layout modifier from `XMonad.Layout.PerScreen` has been moved
+      here. It is re-exported by the new `PerScreen` module, but is marked as
+      deprecated with a pointer to this module.
+
+  * `XMonad.Layout.PerScreen`
+    - A complete reimplementation that provides proper `onScreen` and `onScreens`
+      layout modifiers. It also re-exports `ifWidth` for backward compatibility.
+
   * `XMonad.Layout.CenterMainFluid`
     - A three column layout with main column in the center and two stack
       column surrounding it. Master window will be on center column and
