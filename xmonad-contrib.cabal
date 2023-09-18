@@ -55,7 +55,7 @@ flag pedantic
 
 library
     build-depends: base >= 4.11 && < 5,
-                   bytestring >= 0.10 && < 0.12,
+                   bytestring >= 0.10 && < 0.13,
                    containers >= 0.5 && < 0.7,
                    directory,
                    filepath,
@@ -467,7 +467,7 @@ test-suite tests
   build-depends: base
                , QuickCheck >= 2
                , X11 >= 1.10 && < 1.11
-               , bytestring >= 0.10 && < 0.12
+               , bytestring >= 0.10 && < 0.13
                , containers
                , directory
                , time >= 1.8 && < 1.13
