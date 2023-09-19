@@ -42,12 +42,13 @@ module XMonad.Layout.TallMastersCombo (
 ) where
 
 import XMonad hiding (focus, (|||))
-import XMonad.Prelude (delete, find, foldM, fromMaybe, isJust)
-import XMonad.StackSet (Workspace(..),integrate',Stack(..))
-import qualified XMonad.StackSet as W
 import qualified XMonad.Layout as LL
-import XMonad.Layout.Simplest (Simplest(..))
 import XMonad.Layout.Decoration
+import XMonad.Layout.Simplest (Simplest (..))
+import XMonad.Prelude (delete, find, foldM, fromMaybe, isJust)
+import XMonad.StackSet (Stack (..), Workspace (..), integrate')
+import qualified XMonad.StackSet as W
+import XMonad.Util.Stack (zipperFocusedAtFirstOf)
 
 ---------------------------------------------------------------------------------
 -- $usage
@@ -302,19 +303,6 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
               mlayout2 <- handleMessage layout2 m
               return $ mergeSubLayouts mlayout1 mlayout2 i False
 
-
-
--- code from CombineTwo
--- given two sets of zs and xs takes the first z from zs that also belongs to xs
--- and turns xs into a stack with z being current element. Acts as
--- StackSet.differentiate if zs and xs don't intersect
-differentiate :: Eq q => [q] -> [q] -> Maybe (Stack q)
-differentiate (z:zs) xs | z `elem` xs = Just $ Stack { focus=z
-                                                     , up = reverse $ takeWhile (/=z) xs
-                                                     , down = tail $ dropWhile (/=z) xs }
-                        | otherwise = differentiate zs xs
-differentiate [] xs = W.differentiate xs
-
 -- | Swap a given window with the focused window.
 swapWindow :: (Eq a) => a -> Stack a -> Stack a
 swapWindow w (Stack foc upLst downLst)
@@ -388,9 +376,9 @@ splitStack f nmaster frac s =
                        Nothing   -> f
         snum = length slst
         (slst1, slst2) = splitAt nmaster slst
-        s0 = differentiate f' slst
-        s1' = differentiate f' slst1
-        s2' = differentiate f' slst2
+        s0 = zipperFocusedAtFirstOf f' slst
+        s1' = zipperFocusedAtFirstOf f' slst1
+        s2' = zipperFocusedAtFirstOf f' slst2
         (s1,s2,frac') | nmaster == 0    = (Nothing,s0,0)
                       | nmaster >= snum = (s0,Nothing,1)
                       | otherwise       = (s1',s2',frac)

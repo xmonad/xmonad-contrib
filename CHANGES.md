@@ -265,6 +265,11 @@
     - Added `passOTPTypePrompt` to type out one-time-passwords via
       `xdotool`.
 
+  * `XMonad.Util.Stack`
+
+    - Added `zipperFocusedAtFirstOf` to differentiate two lists into a
+      zipper.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)
