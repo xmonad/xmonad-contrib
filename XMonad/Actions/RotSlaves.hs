@@ -17,7 +17,11 @@
 module XMonad.Actions.RotSlaves (
         -- $usage
         rotSlaves', rotSlavesUp, rotSlavesDown,
-        rotAll', rotAllUp, rotAllDown
+        rotAll', rotAllUp, rotAllDown,
+
+        -- * Generic list rotations
+        -- $generic
+        rotUp, rotDown
         ) where
 
 import XMonad
@@ -44,8 +48,8 @@ import XMonad.Prelude
 -- | Rotate the windows in the current stack, excluding the first one
 --   (master).
 rotSlavesUp,rotSlavesDown :: X ()
-rotSlavesUp   = windows $ modify' (rotSlaves' (\l -> tail l++[head l]))
-rotSlavesDown = windows $ modify' (rotSlaves' (\l -> last l : init l))
+rotSlavesUp   = windows $ modify' (rotSlaves' rotUp)
+rotSlavesDown = windows $ modify' (rotSlaves' rotDown)
 
 -- | The actual rotation, as a pure function on the window stack.
 rotSlaves' :: ([a] -> [a]) -> Stack a -> Stack a
@@ -57,10 +61,19 @@ rotSlaves' f s@(Stack _ ls _ ) = Stack t' (reverse revls') rs'    -- otherwise
 
 -- | Rotate all the windows in the current stack.
 rotAllUp,rotAllDown :: X ()
-rotAllUp   = windows $ modify' (rotAll' (\l -> tail l++[head l]))
-rotAllDown = windows $ modify' (rotAll' (\l -> last l : init l))
+rotAllUp   = windows $ modify' (rotAll' rotUp)
+rotAllDown = windows $ modify' (rotAll' rotDown)
 
 -- | The actual rotation, as a pure function on the window stack.
 rotAll' :: ([a] -> [a]) -> Stack a -> Stack a
 rotAll' f s = Stack r (reverse revls) rs
     where (revls, notEmpty -> r :| rs) = splitAt (length (up s)) (f (integrate s))
+
+-- $generic
+-- Generic list rotations such that @rotUp [1..4]@ is equivalent to
+-- @[2,3,4,1]@ and @rotDown [1..4]@ to @[4,1,2,3]@. They both are
+-- @id@ for null or singleton lists.
+rotUp :: [a] -> [a]
+rotUp   l = drop 1 l ++ take 1 l
+rotDown :: [a] -> [a]
+rotDown = reverse . rotUp . reverse
