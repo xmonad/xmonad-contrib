@@ -439,7 +439,7 @@ mkSubmaps' subm binds = map combine gathered
                  $ binds
         combine [([k],act)] = (k,act)
         combine ks = (head . fst . head $ ks,
-                      subm . mkSubmaps' subm $ map (first tail) ks)
+                      subm . mkSubmaps' subm $ map (first (drop 1)) ks)
         fstKey = (==) `on` (head . fst)
 
 -- | Given a configuration record and a list of (key sequence

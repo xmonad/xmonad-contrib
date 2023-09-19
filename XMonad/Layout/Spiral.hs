@@ -45,7 +45,7 @@ import XMonad.StackSet ( integrate )
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 fibs :: [Integer]
-fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
+fibs = 1 : 1 : zipWith (+) fibs (drop 1 fibs)
 
 mkRatios :: [Integer] -> [Rational]
 mkRatios (x1:x2:xs) = (x1 % x2) : mkRatios (x2:xs)
@@ -82,7 +82,7 @@ data SpiralWithDir a = SpiralWithDir Direction Rotation Rational
 instance LayoutClass SpiralWithDir a where
     pureLayout (SpiralWithDir dir rot scale) sc stack = zip ws rects
         where ws = integrate stack
-              ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ tail fibs
+              ratios = blend scale . reverse . take (length ws - 1) . mkRatios $ drop 1 fibs
               rects = divideRects (zip ratios dirs) sc
               dirs  = dropWhile (/= dir) $ case rot of
                                            CW  -> cycle [East .. North]

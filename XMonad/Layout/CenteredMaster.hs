@@ -84,7 +84,7 @@ applyPosition pos wksp rect = do
      runLayout wksp rect
      else do
        let firstW = head ws
-       let other  = tail ws
+       let other  = drop 1 ws
        let filtStack = stack >>= W.filter (firstW /=)
        wrs <- runLayout (wksp {W.stack = filtStack}) rect
        return $ first ((firstW, place pos other rect) :) wrs

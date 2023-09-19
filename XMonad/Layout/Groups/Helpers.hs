@@ -155,7 +155,7 @@ focusHelper :: (Bool -> Bool) -- ^ if you want to focus a floating window, 'id'.
             -> X ()
 focusHelper f g = withFocused $ \w -> do
                  ws <- getWindows
-                 let (before, tail -> after) = span (/=w) ws
+                 let (before, drop 1 -> after) = span (/=w) ws
                  let toFocus = g $ after ++ before
                  floats <- getFloats
                  case filter (f . flip elem floats) toFocus of

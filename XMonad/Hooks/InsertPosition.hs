@@ -83,4 +83,4 @@ insertDown w = W.swapDown . W.insertUp w
 
 focusLast' ::  W.Stack a -> W.Stack a
 focusLast' st = let ws = W.integrate st
-    in W.Stack (last ws) (tail $ reverse ws) []
+    in W.Stack (last ws) (drop 1 $ reverse ws) []

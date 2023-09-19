@@ -322,7 +322,7 @@ searchEngine name site = searchEngineF name (\s -> site ++ escape s)
    inside of a URL instead of in the end) you can use the alternative 'searchEngineF' function.
 
 > searchFunc :: String -> String
-> searchFunc s | "wiki:"    `isPrefixOf` s = "https://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
+> searchFunc s | "wiki:"    `isPrefixOf` s = "https://en.wikipedia.org/wiki/" ++ (escape $ drop 1 $ snd $ break (==':') s)
 >              | "https://" `isPrefixOf` s = s
 >              | otherwise                 = (use google) s
 > myNewEngine = searchEngineF "mymulti" searchFunc

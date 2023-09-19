@@ -687,9 +687,7 @@ dumpString =  do
                                             \s -> if null s
                                                   then Nothing
                                                   else let (w,s'') = break (== '\NUL') s
-                                                           s'      = if null s''
-                                                                     then s''
-                                                                     else tail s''
+                                                           s'      = drop 1 s''
                                                         in Just (w,s')
                                    case ss of
                                      [s] -> append $ show s

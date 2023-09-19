@@ -132,7 +132,7 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
 differentiate :: Eq q => [q] -> [q] -> Maybe (Stack q)
 differentiate (z:zs) xs | z `elem` xs = Just $ Stack { focus=z
                                                      , up = reverse $ takeWhile (/=z) xs
-                                                     , down = tail $ dropWhile (/=z) xs }
+                                                     , down = drop 1 $ dropWhile (/=z) xs }
                         | otherwise = differentiate zs xs
 differentiate [] xs = W.differentiate xs
 
