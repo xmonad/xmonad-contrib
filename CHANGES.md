@@ -252,6 +252,11 @@
 
     - Enabled prompt completion (from history) in `renameWorkspace`.
 
+  * `XMonad.Prompt.Pass`
+
+    - Added `passOTPTypePrompt` to type out one-time-passwords via
+      `xdotool`.
+
 ### Other changes
 
 ## 0.17.1 (September 3, 2022)

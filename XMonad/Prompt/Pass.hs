@@ -17,12 +17,15 @@
 -- completion system provided by "XMonad.Prompt".  Specifically, we
 -- provide
 --
--- - two functions to lookup passwords in the password-store:
+-- - various functions to lookup passwords in the password-store:
 --
---     - 'passPrompt' copies the password directly to the clipboard.
+--     + 'passPrompt' copies the password directly to the clipboard.
 --
---     - 'passTypePrompt' uses @xdotool@ to type the password
---       directly.
+--     + 'passOTPPrompt' copies a one-time-password to the clipboard
+--        (this uses <https://github.com/tadfisher/pass-otp pass-otp>).
+--
+--     + 'passTypePrompt' and 'passOTPTypePrompt' work like the above,
+--       respectively, but use @xdotool@ to type out the password.
 --
 -- - 'passGeneratePrompt' generates a password for a given password
 --   label that the user inputs.
@@ -67,6 +70,7 @@ module XMonad.Prompt.Pass
 
       -- * One-time-passwords
     , passOTPPrompt
+    , passOTPTypePrompt
     ) where
 
 import System.Directory (getHomeDirectory)
@@ -150,6 +154,13 @@ passPrompt' s = mkPassPrompt s selectPassword
 --
 passOTPPrompt :: XPConfig -> X ()
 passOTPPrompt = mkPassPrompt "Select OTP" selectOTP
+
+-- | A prompt to retrieve a OTP from a given entry.  Note that you will
+-- need to use the <https://github.com/tadfisher/pass-otp pass-otp>
+-- extension for this to work.
+--
+passOTPTypePrompt :: XPConfig -> X ()
+passOTPTypePrompt = mkPassPrompt "Select OTP" selectOTPType
 
 -- | A prompt to generate a password for a given entry.
 -- This can be used to override an already stored entry.
