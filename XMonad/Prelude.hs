@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -47,8 +48,8 @@ import Data.Bool           as Exports
 import Data.Char           as Exports
 import Data.Foldable       as Exports
 import Data.Function       as Exports
-import Data.Functor        as Exports
-import Data.List           as Exports
+import Data.Functor        as Exports hiding (unzip)
+import Data.List           as Exports hiding ((!?))
 import Data.Maybe          as Exports
 import Data.Monoid         as Exports
 import Data.Traversable    as Exports
