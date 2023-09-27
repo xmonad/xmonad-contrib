@@ -340,9 +340,9 @@ searchEngineF = SearchEngine
 
 -- The engines.
 alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
-  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, rustStd,
-  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary,
-  youtube, zbmath, nixos, noogle :: SearchEngine
+  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, nixos, noogle, openstreetmap, protondb, 
+  rosettacode, rustStd, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, 
+  wikipedia, wiktionary, youtube, zbmath :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
 amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
 arXiv         = searchEngineF "arXiv"        (\s -> "https://arxiv.org/search/?query=" <> s <> "&searchtype=all")
