@@ -48,6 +48,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  github,
                                  google,
                                  hackage,
+                                 homeManager,
                                  hoogle,
                                  images,
                                  imdb,
@@ -151,6 +152,8 @@ import           XMonad.Util.XSelection   (getSelection)
 * 'google' -- basic Google search.
 
 * 'hackage' -- Hackage, the Haskell package database.
+
+* 'homeManager' -- Search Nix's home-manager's options.
 
 * 'hoogle' -- Hoogle, the Haskell libraries API search engine.
 
@@ -337,7 +340,7 @@ searchEngineF = SearchEngine
 
 -- The engines.
 alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
-  github, google, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, rustStd,
+  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, rustStd,
   scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary,
   youtube, zbmath, nixos, noogle :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
@@ -357,6 +360,7 @@ flora         = searchEngine "flora"         "https://flora.pm/search?q="
 github        = searchEngine "github"        "https://github.com/search?q="
 google        = searchEngine "google"        "https://www.google.com/search?q="
 hackage       = searchEngine "hackage"       "https://hackage.haskell.org/package/"
+homeManager   = searchEngine "homeManager"   "https://mipmip.github.io/home-manager-option-search/?query="
 hoogle        = searchEngine "hoogle"        "https://hoogle.haskell.org/?hoogle="
 images        = searchEngine "images"        "https://images.google.fr/images?q="
 imdb          = searchEngine "imdb"          "https://www.imdb.com/find?s=all&q="
