@@ -48,6 +48,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  github,
                                  google,
                                  hackage,
+                                 homeManager,
                                  hoogle,
                                  images,
                                  imdb,
@@ -55,6 +56,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  maps,
                                  mathworld,
                                  ncatlab,
+                                 nixos,
                                  noogle,
                                  openstreetmap,
                                  protondb,
@@ -151,6 +153,8 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'hackage' -- Hackage, the Haskell package database.
 
+* 'homeManager' -- Search Nix's home-manager's options.
+
 * 'hoogle' -- Hoogle, the Haskell libraries API search engine.
 
 * 'images' -- Google images.
@@ -164,6 +168,8 @@ import           XMonad.Util.XSelection   (getSelection)
 * 'mathworld' -- Wolfram MathWorld search.
 
 * 'ncatlab' -- Higer Algebra, Homotopy and Category Theory Wiki.
+
+* 'nixos' -- Search NixOS packages and options.
 
 * 'noogle' -- 'hoogle'-like Nix API search engine.
 
@@ -334,9 +340,9 @@ searchEngineF = SearchEngine
 
 -- The engines.
 alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
-  github, google, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, rustStd,
-  scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary,
-  youtube, zbmath, noogle :: SearchEngine
+  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, nixos, noogle, openstreetmap, protondb, 
+  rosettacode, rustStd, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, 
+  wikipedia, wiktionary, youtube, zbmath :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
 amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
 arXiv         = searchEngineF "arXiv"        (\s -> "https://arxiv.org/search/?query=" <> s <> "&searchtype=all")
@@ -354,6 +360,7 @@ flora         = searchEngine "flora"         "https://flora.pm/search?q="
 github        = searchEngine "github"        "https://github.com/search?q="
 google        = searchEngine "google"        "https://www.google.com/search?q="
 hackage       = searchEngine "hackage"       "https://hackage.haskell.org/package/"
+homeManager   = searchEngine "homeManager"   "https://mipmip.github.io/home-manager-option-search/?query="
 hoogle        = searchEngine "hoogle"        "https://hoogle.haskell.org/?hoogle="
 images        = searchEngine "images"        "https://images.google.fr/images?q="
 imdb          = searchEngine "imdb"          "https://www.imdb.com/find?s=all&q="
@@ -361,6 +368,7 @@ lucky         = searchEngine "lucky"         "https://www.google.com/search?btnI
 maps          = searchEngine "maps"          "https://maps.google.com/maps?q="
 mathworld     = searchEngine "mathworld"     "https://mathworld.wolfram.com/search/?query="
 ncatlab       = searchEngine "ncatlab"       "https://ncatlab.org/nlab/search?query="
+nixos         = searchEngine "nixos"         "https://search.nixos.org/packages?channel=unstable&from=0&size=200&sort=relevance&type=packages&query="
 noogle        = searchEngineF "noogle"       (\s -> "https://noogle.dev/?search=" <> s <> "&page=1&to=any&from=any")
 openstreetmap = searchEngine "openstreetmap" "https://www.openstreetmap.org/search?query="
 protondb      = searchEngine "protondb"      "https://www.protondb.com/search?q="
