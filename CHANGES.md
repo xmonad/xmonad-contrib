@@ -243,6 +243,10 @@
     - The `emacsLikeXPKeymap` and `vimLikeXPKeymap` keymaps now treat
       `C-m` the same as `Return`.
 
+    - Added `prevCompletionKey` to `XPConfig`, facilitating the ability
+      to cycle through the completions backwards. This is bound to
+      `S-<TAB>` by default.
+
   * `XMonad.Actions.Prefix`
 
     - Added `orIfPrefixed`, a combinator to decide upon an action based
