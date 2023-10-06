@@ -302,11 +302,12 @@ typeString cmd = cmd ++ " | head -n1 | tr -d '\n' | xdotool type --clearmodifier
 
 -- | Generate a pass prompt.
 --
--- >>> pass "otp" "git\"hub\""
--- "pass otp \"git\\\"hub\\\"\""
+-- >>> pass "otp" "\\n'git'\"hub\""
+-- "pass otp \"\\\\n'git'\\\"hub\\\"\""
 pass :: String -> String -> String
 pass cmd label = concat ["pass ", cmd, " \"", concatMap escape label, "\""]
  where
   escape :: Char -> String
-  escape '"' = "\\\""
-  escape x   = [x]
+  escape '"'  = "\\\""
+  escape '\\' = "\\\\"
+  escape x    = [x]
