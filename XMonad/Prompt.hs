@@ -7,6 +7,7 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt
@@ -183,7 +184,8 @@ data XPConfig =
                                                 -- history entries to remember
         , promptKeymap          :: M.Map (KeyMask,KeySym) (XP ())
                                                 -- ^ Mapping from key combinations to actions
-        , completionKey         :: (KeyMask, KeySym)     -- ^ Key that should trigger completion
+        , completionKey         :: (KeyMask, KeySym)     -- ^ Key to trigger forward completion
+        , prevCompletionKey     :: (KeyMask, KeySym)     -- ^ Key to trigger backward completion
         , changeModeKey         :: KeySym       -- ^ Key to change mode (when the prompt has multiple modes)
         , defaultText           :: String       -- ^ The text by default in the prompt line
         , autoComplete          :: Maybe Int    -- ^ Just x: if only one completion remains, auto-select it,
@@ -329,7 +331,8 @@ instance Default XPConfig where
         , borderColor           = border def
         , promptBorderWidth     = 1
         , promptKeymap          = defaultXPKeymap
-        , completionKey         = (0,xK_Tab)
+        , completionKey         = (0, xK_Tab)
+        , prevCompletionKey     = (shiftMask, xK_Tab)
         , changeModeKey         = xK_grave
         , position              = Bottom
         , height                = 18
@@ -688,29 +691,31 @@ merely discarded, but passed to the respective application window.
 -- | Prompt event handler for the main loop. Dispatches to input, completion
 -- and mode switching handlers.
 handleMain :: KeyStroke -> Event -> XP ()
-handleMain stroke@(keysym,_) KeyEvent{ev_event_type = t, ev_state = m} = do
-    (compKey,modeKey) <- gets $ (completionKey &&& changeModeKey) . config
-    keymask <- gets cleanMask <*> pure m
-    -- haven't subscribed to keyRelease, so just in case
-    when (t == keyPress) $
-        if (keymask,keysym) == compKey
-           then getCurrentCompletions >>= handleCompletionMain
-           else do
-                setCurrentCompletions Nothing
-                if keysym == modeKey
-                   then modify setNextMode >> updateWindows
-                   else handleInputMain keymask stroke
-handleMain stroke event = handleOther stroke event
-
--- | Prompt input handler for the main loop.
-handleInputMain :: KeyMask -> KeyStroke -> XP ()
-handleInputMain keymask (keysym,keystr) = do
-    keymap <- gets (promptKeymap . config)
-    case M.lookup (keymask,keysym) keymap of
-        -- 'null keystr' i.e. when only a modifier was pressed
-        Just action -> action >> updateWindows
-        Nothing     -> unless (null keystr) $
-            when (keymask .&. controlMask == 0) $ do
+handleMain stroke@(keysym, keystr) = \case
+    KeyEvent{ev_event_type = t, ev_state = m} -> do
+      (prevCompKey, (compKey, modeKey)) <- gets $
+          (prevCompletionKey &&& completionKey &&& changeModeKey) . config
+      keymask <- gets cleanMask <*> pure m
+      -- haven't subscribed to keyRelease, so just in case
+      when (t == keyPress) $ if
+          | (keymask, keysym) == compKey ->
+               getCurrentCompletions >>= handleCompletionMain Next
+          | (keymask, keysym) == prevCompKey ->
+               getCurrentCompletions >>= handleCompletionMain Prev
+          | otherwise -> unless (null keystr) $ do -- null keystr = only a modifier was pressed
+               setCurrentCompletions Nothing
+               if keysym == modeKey
+                  then modify setNextMode >> updateWindows
+                  else handleInput keymask
+    event -> handleOther stroke event
+  where
+    -- Prompt input handler for the main loop.
+    handleInput :: KeyMask -> XP ()
+    handleInput keymask = do
+        keymap <- gets (promptKeymap . config)
+        case M.lookup (keymask,keysym) keymap of
+            Just action -> action >> updateWindows
+            Nothing     -> when (keymask .&. controlMask == 0) $ do
                 insertString $ utf8Decode keystr
                 updateWindows
                 updateHighlightedCompl
@@ -725,17 +730,18 @@ handleInputMain keymask (keysym,keystr) = do
 --
 -- | Prompt completion handler for the main loop. Given 'Nothing', generate the
 -- current completion list. With the current list, trigger a completion.
-handleCompletionMain :: Maybe [String] -> XP ()
-handleCompletionMain Nothing   = do
-    cs <- getCompletions
-    when (length cs > 1) $
-        modify $ \s -> s { showComplWin = True }
-    setCurrentCompletions $ Just cs
-    handleCompletion cs
-handleCompletionMain (Just cs) = handleCompletion cs
+handleCompletionMain :: Direction1D -> Maybe [String] -> XP ()
+handleCompletionMain dir compls = case compls of
+   Just cs -> handleCompletion dir cs
+   Nothing -> do
+       cs <- getCompletions
+       when (length cs > 1) $
+           modify $ \s -> s { showComplWin = True }
+       setCurrentCompletions $ Just cs
+       handleCompletion dir cs
 
-handleCompletion :: [String] -> XP ()
-handleCompletion cs = do
+handleCompletion :: Direction1D -> [String] -> XP ()
+handleCompletion dir cs = do
     alwaysHlight <- gets $ alwaysHighlight . config
     st <- get
 
@@ -790,7 +796,7 @@ handleCompletion cs = do
           | otherwise = replaceCompletion prevCompl
          where
           hlCompl     :: String       = fromMaybe (command st) $ highlightedItem st l
-          complIndex' :: (Int, Int)   = nextComplIndex st
+          complIndex' :: (Int, Int)   = computeComplIndex dir st
           nextHlCompl :: Maybe String = highlightedItem st{ complIndex = complIndex' } cs
 
           isSuffixOfCmd        :: Bool = hlCompl `isSuffixOf` command st
@@ -905,18 +911,24 @@ handleInputBuffer f keymask (keysym,keystr) event =
 bufferOne :: String -> String -> (Bool,Bool)
 bufferOne xs x = (null xs && null x,True)
 
--- | Return the @(column, row)@ of the next highlight, or @(0, 0)@ if
+-- | Return the @(column, row)@ of the desired highlight, or @(0, 0)@ if
 -- there is no prompt window or a wrap-around occurs.
-nextComplIndex :: XPState -> (Int, Int)
-nextComplIndex st = case complWinDim st of
+computeComplIndex :: Direction1D -> XPState -> (Int, Int)
+computeComplIndex dir st = case complWinDim st of
   Nothing -> (0, 0)  -- no window dimensions (just destroyed or not created)
   Just ComplWindowDim{ cwCols, cwRows } ->
-    let (currentcol, currentrow) = complIndex st
-        (colm, rowm) =
-          ((currentcol + 1) `mod` length cwCols, (currentrow + 1) `mod` length cwRows)
-     in if rowm == currentrow + 1
-        then (currentcol, currentrow + 1)  -- We are not in the last row, so go down
-        else (colm, rowm)                  -- otherwise advance to the next column
+    if rowm == currentrow + direction
+    then (currentcol, rowm)  -- We are not in the last row, so advance the row
+    else (colm, rowm)        -- otherwise advance to the respective column
+   where
+    (currentcol, currentrow) = complIndex st
+    (colm, rowm) =
+      ( (currentcol + direction) `mod` length cwCols
+      , (currentrow + direction) `mod` length cwRows
+      )
+    direction = case dir of
+      Next ->  1
+      Prev -> -1
 
 tryAutoComplete :: XP Bool
 tryAutoComplete = do
