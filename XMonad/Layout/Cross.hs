@@ -12,7 +12,7 @@
 --
 -- A Cross Layout with the main window in the center.
 --
-module XMonad.Layout.Cross(
+module XMonad.Layout.Cross {-# DEPRECATED "Use XMonad.Layout.Circle or XMonad.Layout.ThreeColumn.ThreeColMid instead" #-} (
                           -- * Usage
                           -- $usage
                           simpleCross
