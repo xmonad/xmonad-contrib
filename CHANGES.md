@@ -4,6 +4,10 @@
 
 ### Breaking Changes
 
+  * Deprecated `XMonad.Layout.Cross` due to bitrot; refer to
+    `XMonad.Layout.Circle` and `XMonad.Layout.ThreeColumns` for
+    alternatives.
+
   * Deprecated the `XMonad.Layout.StateFull` module and
     `XMonad.Layout.TrackFloating.(t|T)rackFloating` in favour of
     `XMonad.Layout.FocusTracking`.
