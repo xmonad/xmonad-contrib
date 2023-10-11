@@ -627,6 +627,10 @@ runXP st = do
 
 type KeyStroke = (KeySym, String)
 
+-- | Check whether the given key stroke is a modifier.
+isModifier :: KeyStroke -> Bool
+isModifier (_, keyString) = null keyString
+
 -- | Main event "loop". Gives priority to events from the state's event buffer.
 eventLoop :: (KeyStroke -> Event -> XP ())
           -> XP Bool
@@ -649,7 +653,7 @@ eventLoop handle stopAction = do
                 modify $ \s -> s { eventBuffer = tail l }
                 return $ head l
     handle (keysym,keystr) event
-    stopAction >>= flip unless (eventLoop handle stopAction)
+    stopAction >>= \stop -> unless stop (eventLoop handle stopAction)
 
 -- | Default event loop stop condition.
 evDefaultStop :: XP Bool
@@ -702,7 +706,7 @@ handleMain stroke@(keysym, keystr) = \case
                getCurrentCompletions >>= handleCompletionMain Next
           | (keymask, keysym) == prevCompKey ->
                getCurrentCompletions >>= handleCompletionMain Prev
-          | otherwise -> unless (null keystr) $ do -- null keystr = only a modifier was pressed
+          | otherwise -> unless (isModifier stroke) $ do
                setCurrentCompletions Nothing
                if keysym == modeKey
                   then modify setNextMode >> updateWindows
@@ -837,10 +841,10 @@ handleInputSubmap :: XP ()
                   -> KeyMask
                   -> KeyStroke
                   -> XP ()
-handleInputSubmap defaultAction keymap keymask (keysym,keystr) =
+handleInputSubmap defaultAction keymap keymask stroke@(keysym, _) =
     case M.lookup (keymask,keysym) keymap of
         Just action -> action >> updateWindows
-        Nothing     -> unless (null keystr) $ defaultAction >> updateWindows
+        Nothing     -> unless (isModifier stroke) $ defaultAction >> updateWindows
 
 -- | Initiate a prompt input buffer event loop. Input is sent to a buffer and
 -- bypasses the prompt. The provided function is given the existing buffer and
@@ -894,8 +898,8 @@ handleInputBuffer :: (String -> String -> (Bool,Bool))
                   -> KeyStroke
                   -> Event
                   -> XP ()
-handleInputBuffer f keymask (keysym,keystr) event =
-    unless (null keystr || keymask .&. controlMask /= 0) $ do
+handleInputBuffer f keymask stroke@(keysym, keystr) event =
+    unless (isModifier stroke || keymask .&. controlMask /= 0) $ do
         (evB,inB) <- gets (eventBuffer &&& inputBuffer)
         let keystr' = utf8Decode keystr
         let (cont,keep) = f inB keystr'
