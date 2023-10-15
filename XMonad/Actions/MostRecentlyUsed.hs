@@ -68,6 +68,7 @@ import XMonad.Util.PureX
   (handlingRefresh, curScreenId, curTag, greedyView, view, peek, focusWindow)
 import XMonad.Util.History (History, origin, event, erase, ledger)
 import XMonad.Actions.Repeatable (repeatableSt)
+import XMonad.Prelude (Stream (..), cycleS)
 
 -- }}}
 
@@ -208,20 +209,3 @@ winHistEH ev = All True <$ case ev of
   where collect w = XS.modify $ \wh@WinHist{hist} -> wh{ hist = erase w hist }
 
 -- }}}
-
--- --< Auxiliary Data Type: Stream >-- {{{
-
--- To satisfy the almighty exhaustivity checker.
-
-data Stream a = !a :~ Stream a
-infixr 5 :~
-
-(+~) :: [a] -> Stream a -> Stream a
-xs +~ s = foldr (:~) s xs
-infixr 5 +~
-
-cycleS :: NonEmpty a -> Stream a
-cycleS (x :| xs) = s where s = x :~ xs +~ s
-
--- }}}
-

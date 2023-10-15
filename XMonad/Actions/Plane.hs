@@ -41,7 +41,7 @@ module XMonad.Actions.Plane
 
 import Data.Map (Map, fromList)
 
-import XMonad.Prelude
+import XMonad.Prelude hiding (fromList)
 import XMonad
 import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Run

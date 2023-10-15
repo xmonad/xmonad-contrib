@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -Wno-dodgy-imports #-}
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prelude
@@ -37,6 +39,13 @@ module XMonad.Prelude (
     multimediaKeys,
     functionKeys,
     WindowScreen,
+
+    -- * Infinite streams
+    Stream(..),
+    (+~),
+    cycleS,
+    toList,
+    fromList,
 ) where
 
 import Foreign (alloca, peek)
@@ -46,7 +55,7 @@ import Control.Applicative as Exports
 import Control.Monad       as Exports
 import Data.Bool           as Exports
 import Data.Char           as Exports
-import Data.Foldable       as Exports
+import Data.Foldable       as Exports hiding (toList)
 import Data.Function       as Exports
 import Data.Functor        as Exports hiding (unzip)
 import Data.List           as Exports hiding ((!?))
@@ -57,14 +66,15 @@ import Data.Traversable    as Exports
 import qualified Data.Map.Strict as Map
 
 import Control.Arrow ((&&&), first)
+import Control.Exception (SomeException, handle)
 import Data.Bifunctor (bimap)
 import Data.Bits
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Tuple (swap)
+import GHC.Exts (IsList(..))
 import GHC.Stack
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
-import Control.Exception (SomeException, handle)
 import qualified XMonad.StackSet as W
 
 -- | Short for 'fromIntegral'.
@@ -466,3 +476,31 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
 -- | The specialized 'W.Screen' derived from 'WindowSet'.
 type WindowScreen -- FIXME move to core
     = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
+
+-- | An infinite stream type
+data Stream a = !a :~ Stream a
+infixr 5 :~
+
+instance Functor Stream where
+  fmap :: (a -> b) -> Stream a -> Stream b
+  fmap f = go
+   where go (x :~ xs) = f x :~ go xs
+
+instance IsList (Stream a) where
+  type (Item (Stream a)) = a
+
+  fromList :: [a] -> Stream a
+  fromList (x : xs) = x :~ fromList xs
+  fromList []       = errorWithoutStackTrace "XMonad.Prelude.Stream.fromList: Can't create stream out of finite list."
+
+  toList :: Stream a -> [a]
+  toList (x :~ xs) = x : toList xs
+
+-- | Absorb a list into an infinite stream.
+(+~) :: [a] -> Stream a -> Stream a
+xs +~ s = foldr (:~) s xs
+infixr 5 +~
+
+-- | Absorb a non-empty list into an infinite stream.
+cycleS :: NonEmpty a -> Stream a
+cycleS (x :| xs) = s where s = x :~ xs +~ s

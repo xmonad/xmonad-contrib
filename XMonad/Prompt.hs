@@ -99,7 +99,7 @@ module XMonad.Prompt
     ) where
 
 import           XMonad                       hiding (cleanMask, config)
-import           XMonad.Prelude               hiding (toList)
+import           XMonad.Prelude               hiding (toList, fromList)
 import qualified XMonad.StackSet              as W
 import           XMonad.Util.Font
 import           XMonad.Util.Types
