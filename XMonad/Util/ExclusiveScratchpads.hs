@@ -39,7 +39,7 @@ module XMonad.Util.ExclusiveScratchpads
   customFloating
   ) where
 
-import XMonad.Prelude (appEndo, filterM, liftA2, (<=<))
+import XMonad.Prelude
 import XMonad
 import XMonad.Actions.Minimize
 import XMonad.Actions.TagWindows (addTag,delTag)

@@ -47,7 +47,7 @@ module XMonad.Actions.MessageFeedback
 import XMonad               ( Window )
 import XMonad.Core          ( X(), Message, SomeMessage(..), LayoutClass(..), windowset, catchX, WorkspaceId, Layout, whenJust )
 import XMonad.Operations    ( updateLayout, windowBracket, modifyWindowSet )
-import XMonad.Prelude       ( isJust, liftA2, void )
+import XMonad.Prelude
 import XMonad.StackSet      ( Workspace, current, workspace, layout, tag )
 
 import Control.Monad.State  ( gets )

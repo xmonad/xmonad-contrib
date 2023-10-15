@@ -22,7 +22,7 @@ module XMonad.Prompt.RunOrRaise
     ) where
 
 import XMonad hiding (config)
-import XMonad.Prelude (isNothing, isSuffixOf, liftA2)
+import XMonad.Prelude
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Actions.WindowGo (runOrRaise)

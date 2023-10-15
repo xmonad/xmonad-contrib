@@ -31,14 +31,8 @@ module XMonad.Actions.MostRecentlyUsed (
   ) where
 
 -- base
-import Data.Maybe (fromMaybe)
-import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
-import Data.Monoid (All(..), Any)
-import Data.Foldable (for_)
-import Data.Functor (($>))
+import Data.List.NonEmpty (nonEmpty)
 import Data.IORef (newIORef, readIORef, writeIORef, modifyIORef)
-import Control.Applicative (liftA2)
-import Control.Monad (when, unless, join)
 import Control.Monad.IO.Class (MonadIO)
 
 -- mtl
@@ -68,7 +62,7 @@ import XMonad.Util.PureX
   (handlingRefresh, curScreenId, curTag, greedyView, view, peek, focusWindow)
 import XMonad.Util.History (History, origin, event, erase, ledger)
 import XMonad.Actions.Repeatable (repeatableSt)
-import XMonad.Prelude (Stream (..), cycleS)
+import XMonad.Prelude
 
 -- }}}
 

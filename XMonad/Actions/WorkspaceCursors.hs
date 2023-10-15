@@ -50,7 +50,7 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
 import XMonad(Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
 import XMonad.Util.Stack (reverseS)
-import XMonad.Prelude (find, fromJust, guard, liftA2, toList, when, (<=<))
+import XMonad.Prelude
 
 -- $usage
 --
