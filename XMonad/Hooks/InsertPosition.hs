@@ -82,5 +82,7 @@ insertDown :: (Eq a) => a -> W.StackSet i l a s sd -> W.StackSet i l a s sd
 insertDown w = W.swapDown . W.insertUp w
 
 focusLast' ::  W.Stack a -> W.Stack a
-focusLast' st = let ws = W.integrate st
-    in W.Stack (last ws) (drop 1 $ reverse ws) []
+focusLast' st =
+  case reverse (W.integrate st) of
+    []       -> st
+    (l : ws) -> W.Stack l ws []

@@ -401,7 +401,7 @@ dzenStrip = strip [] where
     strip keep x
       | null x              = keep
       | "^^" `isPrefixOf` x = strip (keep ++ "^") (drop 2 x)
-      | '^' == head x       = strip keep (drop 1 . dropWhile (/= ')') $ x)
+      | "^"  `isPrefixOf` x = strip keep (drop 1 . dropWhile (/= ')') $ x)
       | otherwise           = let (good,x') = span (/= '^') x
                               in strip (keep ++ good) x'
 

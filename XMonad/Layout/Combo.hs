@@ -91,7 +91,7 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                                          handleMessage super (SomeMessage ReleaseResources)
                                return ([(w,rinput)], Just $ C2 [w] [w] super' l1' l2')
               arrange origws =
-                  do let w2' = case origws `intersect` w2 of [] -> [head origws]
+                  do let w2' = case origws `intersect` w2 of [] -> take 1 origws
                                                              [x] -> [x]
                                                              x -> case origws \\ x of
                                                                   [] -> init x

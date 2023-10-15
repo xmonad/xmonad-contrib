@@ -80,11 +80,9 @@ applyPosition :: (LayoutClass l a, Eq a) =>
 applyPosition pos wksp rect = do
   let stack = W.stack wksp
   let ws = W.integrate' stack
-  if null ws then
-     runLayout wksp rect
-     else do
-       let firstW = head ws
-       let other  = drop 1 ws
+  case ws of
+    []               -> runLayout wksp rect
+    (firstW : other) -> do
        let filtStack = stack >>= W.filter (firstW /=)
        wrs <- runLayout (wksp {W.stack = filtStack}) rect
        return $ first ((firstW, place pos other rect) :) wrs

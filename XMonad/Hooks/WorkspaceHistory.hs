@@ -34,7 +34,7 @@ import Control.DeepSeq
 import Prelude
 import XMonad
 import XMonad.StackSet hiding (delete, filter, new)
-import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy)
+import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy, listToMaybe)
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
@@ -90,7 +90,7 @@ workspaceHistoryWithScreen = XS.gets history
 
 workspaceHistoryByScreen :: X [(ScreenId, [WorkspaceId])]
 workspaceHistoryByScreen =
-  map (\wss -> (fst $ head wss, map snd wss)) .
+  map (\wss -> (maybe 0 fst (listToMaybe wss), map snd wss)) .
   groupBy (\a b -> fst a == fst b) .
   sortBy (\a b -> compare (fst a) $ fst b)<$>
   workspaceHistoryWithScreen

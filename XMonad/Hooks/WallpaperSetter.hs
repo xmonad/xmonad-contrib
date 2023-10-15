@@ -140,7 +140,7 @@ getPicPath conf (WallpaperDir dir) = do
   direxists <- doesDirectoryExist $ wallpaperBaseDir conf </> dir
   if direxists
     then do files <- getDirectoryContents $ wallpaperBaseDir conf </> dir
-            let files' = filter ((/='.').head) files
+            let files' = filter (not . ("." `isPrefixOf`)) files
             file <- pickFrom files'
             return $ Just $ wallpaperBaseDir conf </> dir </> file
     else return Nothing
