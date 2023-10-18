@@ -83,6 +83,11 @@
       ordered lexicographically, as before.  Currently focused window will
       always be the topmost, meaning the last in the list.
 
+  * `XMonad.Util.NamedScratchpad`
+
+    - Added `nsSingleScratchpadPerWorkspace`—a logHook to allow only one
+      active scratchpad per workspace.
+
 ### New Modules
 
   * `XMonad.Layout.CenterMainFluid`

@@ -31,6 +31,7 @@ module XMonad.Util.NamedScratchpad (
   allNamedScratchpadAction,
   namedScratchpadManageHook,
   nsHideOnFocusLoss,
+  nsSingleScratchpadPerWorkspace,
 
   -- * Dynamic Scratchpads
   -- $dynamic-scratchpads
@@ -297,6 +298,40 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
         when isWorthy $
             whenX (isNSP lastFocus scratches) $
                 shiftToNSP (W.workspaces winSet) ($ lastFocus)
+
+-- | A @logHook@ to have only one active scratchpad on a workspace. This can be
+-- useful when working with multiple floating scratchpads which would otherwise be stacked. Note that this also requires you
+-- to use the 'XMonad.Hooks.RefocusLast.refocusLastLogHook'.
+--
+-- ==== __Example__
+--
+-- > import XMonad.Hooks.RefocusLast (refocusLastLogHook)
+-- > import XMonad.Util.NamedScratchpad
+-- >
+-- > main = xmonad $ def
+-- >   { logHook = refocusLastLogHook
+-- >            >> nsHideOnNewScratchpad myScratchpads
+-- >               -- enable hiding for all of @myScratchpads@
+-- >   }
+nsSingleScratchpadPerWorkspace :: NamedScratchpads -> X ()
+nsSingleScratchpadPerWorkspace scratches = withWindowSet $ \winSet -> do
+    let cur = W.currentTag winSet
+    let allWindowsOnCurrentWorkspace = W.index winSet
+    withRecentsIn cur () $ \lastFocus curFocus -> do
+        allScratchesOnCurrentWS <- filterM (`isNSP` scratches) allWindowsOnCurrentWorkspace
+        let allScratchesButCurrent = filter (/= curFocus) allScratchesOnCurrentWS
+            hideScratch = \s -> shiftToNSP (W.workspaces winSet) ($ s)
+
+        let isWorthy =
+              -- Check for the window being on the current workspace; if there
+              -- is no history (i.e., curFocus ≡ lastFocus), don't do anything
+              -- because the potential scratchpad is definitely focused.
+              lastFocus `elem` W.index winSet && lastFocus /= curFocus
+              -- Don't do anything on the NSP workspace, lest the world explodes.
+              && cur /= scratchpadWorkspaceTag
+        when isWorthy $
+            whenX (isNSP curFocus scratches) $
+              for_ allScratchesButCurrent hideScratch
 
 -- | Execute some action on a named scratchpad.
 --
