@@ -25,12 +25,13 @@ module XMonad.Layout.ComboP (
                              Property(..)
                             ) where
 
-import XMonad.Prelude
 import XMonad hiding (focus)
-import XMonad.StackSet ( Workspace (..), Stack(..) )
 import XMonad.Layout.WindowNavigation
-import XMonad.Util.WindowProperties
+import XMonad.Prelude
+import XMonad.StackSet ( Workspace (..), Stack(..) )
 import qualified XMonad.StackSet as W
+import XMonad.Util.Stack (zipperFocusedAtFirstOf)
+import XMonad.Util.WindowProperties
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -99,10 +100,10 @@ instance (LayoutClass l (), LayoutClass l1 Window, LayoutClass l2 Window) =>
             f' = focus s:delete (focus s) f  -- list of focused windows, contains 2 elements at most
         in do
             matching <- hasProperty prop `filterM` new  -- new windows matching predecate
-            let w1' = w1c ++ matching                     -- updated first pane windows
-                w2' = w2c ++ (new \\ matching)            -- updated second pane windows
-                s1 = differentiate f' w1'                 -- first pane stack
-                s2 = differentiate f' w2'                 -- second pane stack
+            let w1' = w1c ++ matching                   -- updated first pane windows
+                w2' = w2c ++ (new \\ matching)          -- updated second pane windows
+                s1 = zipperFocusedAtFirstOf f' w1'      -- first pane stack
+                s2 = zipperFocusedAtFirstOf f' w2'      -- second pane stack
             ([((),r1),((),r2)], msuper') <- runLayout (Workspace "" super superstack) rinput
             (wrs1, ml1') <- runLayout (Workspace "" l1 s1) r1
             (wrs2, ml2') <- runLayout (Workspace "" l2 s2) r2
@@ -176,16 +177,5 @@ forwardIfFocused l w m = do
     send st = if W.focus st `elem` w
                 then handleMessage l m
                 else return Nothing
-
--- code from CombineTwo
--- given two sets of zs and xs takes the first z from zs that also belongs to xs
--- and turns xs into a stack with z being current element. Acts as
--- StackSet.differentiate if zs and xs don't intersect
-differentiate :: Eq q => [q] -> [q] -> Maybe (Stack q)
-differentiate (z:zs) xs | z `elem` xs = Just $ Stack { focus=z
-                                                     , up = reverse $ takeWhile (/=z) xs
-                                                     , down = tail $ dropWhile (/=z) xs }
-                        | otherwise = differentiate zs xs
-differentiate [] xs = W.differentiate xs
 
 -- vim:ts=4:shiftwidth=4:softtabstop=4:expandtab:foldlevel=20:

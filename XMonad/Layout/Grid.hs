@@ -61,7 +61,7 @@ arrange aspectRatio (Rectangle rx ry rw rh) st = zip st rectangles
     mincs = max 1 $ nwins `div` ncols
     extrs = nwins - ncols * mincs
     chop :: Int -> Dimension -> [(Position, Dimension)]
-    chop n m = ((0, m - k * fromIntegral (pred n)) :) . map (, k) . tail . reverse . take n . tail . iterate (subtract k') $ m'
+    chop n m = ((0, m - k * fromIntegral (pred n)) :) . map (, k) . drop 1 . reverse . take n . drop 1 . iterate (subtract k') $ m'
         where
         k :: Dimension
         k = m `div` fromIntegral n

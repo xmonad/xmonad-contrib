@@ -1,5 +1,8 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
-             UndecidableInstances, PatternGuards #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,10 +27,10 @@ module XMonad.Layout.Combo (
                            ) where
 
 import XMonad hiding (focus)
+import XMonad.Layout.WindowNavigation (MoveWindowToWindow (..))
 import XMonad.Prelude (delete, fromMaybe, intersect, isJust, (\\))
-import XMonad.StackSet ( integrate', Workspace (..), Stack(..) )
-import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
-import qualified XMonad.StackSet as W ( differentiate )
+import XMonad.StackSet (Stack (..), Workspace (..), integrate')
+import XMonad.Util.Stack (zipperFocusedAtFirstOf)
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -88,14 +91,14 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                                          handleMessage super (SomeMessage ReleaseResources)
                                return ([(w,rinput)], Just $ C2 [w] [w] super' l1' l2')
               arrange origws =
-                  do let w2' = case origws `intersect` w2 of [] -> [head origws]
+                  do let w2' = case origws `intersect` w2 of [] -> take 1 origws
                                                              [x] -> [x]
                                                              x -> case origws \\ x of
                                                                   [] -> init x
                                                                   _ -> x
                          superstack = Stack { focus=(), up=[], down=[()] }
-                         s1 = differentiate f' (origws \\ w2')
-                         s2 = differentiate f' w2'
+                         s1 = zipperFocusedAtFirstOf f' (origws \\ w2')
+                         s2 = zipperFocusedAtFirstOf f' w2'
                          f' = case s of (Just s') -> focus s':delete (focus s') f
                                         Nothing -> f
                      ([((),r1),((),r2)], msuper') <- runLayout (Workspace "" super (Just superstack)) rinput
@@ -127,14 +130,6 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                             else return Nothing
     description (C2 _ _ super l1 l2) = "combining "++ description l1 ++" and "++
                                        description l2 ++" with "++ description super
-
-
-differentiate :: Eq q => [q] -> [q] -> Maybe (Stack q)
-differentiate (z:zs) xs | z `elem` xs = Just $ Stack { focus=z
-                                                     , up = reverse $ takeWhile (/=z) xs
-                                                     , down = tail $ dropWhile (/=z) xs }
-                        | otherwise = differentiate zs xs
-differentiate [] xs = W.differentiate xs
 
 broadcastPrivate :: LayoutClass l b => SomeMessage -> [l b] -> X (Maybe [l b])
 broadcastPrivate a ol = do nml <- mapM f ol

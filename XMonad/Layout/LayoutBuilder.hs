@@ -57,9 +57,11 @@ module XMonad.Layout.LayoutBuilder (
   LayoutN,
 ) where
 
+import Data.Maybe (maybeToList)
 import XMonad
 import XMonad.Prelude (foldM, (<|>), isJust, fromMaybe, isNothing, listToMaybe)
 import qualified XMonad.StackSet as W
+import XMonad.Util.Stack (zipperFocusedAtFirstOf)
 import XMonad.Util.WindowProperties
 
 --------------------------------------------------------------------------------
@@ -452,11 +454,4 @@ calcArea (SubBox xpos ypos width height) rect =
 
 --------------------------------------------------------------------------------
 differentiate' :: Eq q => Maybe q -> [q] -> Maybe (W.Stack q)
-differentiate' _ [] = Nothing
-differentiate' Nothing w = W.differentiate w
-differentiate' (Just f) w
-    | f `elem` w = Just W.Stack { W.focus = f
-                                , W.up    = reverse $ takeWhile (/=f) w
-                                , W.down  = tail $ dropWhile (/=f) w
-                                }
-    | otherwise = W.differentiate w
+differentiate' = zipperFocusedAtFirstOf . maybeToList

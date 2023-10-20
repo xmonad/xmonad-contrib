@@ -197,7 +197,7 @@ getCommands = do
     p  <- getEnv "PATH" `E.catch` econst []
     let ds = filter (/= "") $ split ':' p
     es <- forM ds $ \d -> getDirectoryContents d `E.catch` econst []
-    return . uniqSort . filter ((/= '.') . head) . concat $ es
+    return . uniqSort . filter (not . ("." `isPrefixOf`)) . concat $ es
 
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []

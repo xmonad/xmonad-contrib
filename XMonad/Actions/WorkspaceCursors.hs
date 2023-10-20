@@ -50,7 +50,7 @@ import XMonad.Layout.LayoutModifier(ModifiedLayout(..),
 import XMonad(Message, WorkspaceId, X, XState(windowset),
               fromMessage, sendMessage, windows, gets)
 import XMonad.Util.Stack (reverseS)
-import XMonad.Prelude (find, fromJust, guard, liftA2, toList, when, (<=<))
+import XMonad.Prelude
 
 -- $usage
 --
@@ -98,7 +98,7 @@ makeCursors ::  [[String]] -> Cursors String
 makeCursors [] = error "Workspace Cursors cannot be empty"
 makeCursors a = concat . reverse <$> foldl addDim x xs
     where x = end $ map return $ head a
-          xs = map (map return) $ tail a
+          xs = map (map return) $ drop 1 a
           -- this could probably be simplified, but this true:
           -- toList . makeCursors == map (concat . reverse) . sequence . reverse . map (map (:[]))
           -- the strange order is used because it makes the regular M-1..9

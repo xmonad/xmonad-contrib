@@ -105,8 +105,8 @@ data Uniq = U Integer Integer
 -- seed. All keys generated with this method will be different
 -- provided you don't use 'gen' again with a key from the list.
 -- (if you need to do that, see 'split' instead)
-gen :: Uniq -> (Uniq, [Uniq])
-gen (U i1 i2) = (U (i1+1) i2, map (U i1) [i2..])
+gen :: Uniq -> (Uniq, Stream Uniq)
+gen (U i1 i2) = (U (i1+1) i2, fmap (U i1) (fromList [i2..]))
 
 -- | Split an infinite list into two. I ended up not
 -- needing this, but let's keep it just in case.
@@ -197,16 +197,16 @@ instance Message GroupsMessage
 
 modifyGroups :: (Zipper (Group l a) -> Zipper (Group l a))
              -> Groups l l2 a -> Groups l l2 a
-modifyGroups f g = let (seed', ids) = gen (seed g)
-                       defaultGroups = fromJust $ singletonZ $ G (ID (head ids) $ baseLayout g) emptyZ
+modifyGroups f g = let (seed', ident :~ _) = gen (seed g)
+                       defaultGroups = fromJust $ singletonZ $ G (ID ident $ baseLayout g) emptyZ
                    in g { groups = fromMaybe defaultGroups . f . Just $ groups g
                         , seed = seed' }
 
 modifyGroupsX :: (Zipper (Group l a) -> X (Zipper (Group l a)))
               -> Groups l l2 a -> X (Groups l l2 a)
 modifyGroupsX f g = do
-  let (seed', ids) = gen (seed g)
-      defaultGroups = fromJust $ singletonZ $ G (ID (head ids) $ baseLayout g) emptyZ
+  let (seed', ident :~ _) = gen (seed g)
+      defaultGroups = fromJust $ singletonZ $ G (ID ident $ baseLayout g) emptyZ
   g' <- f . Just $ groups g
   return g { groups = fromMaybe defaultGroups g', seed = seed' }
 
@@ -218,12 +218,12 @@ modifyGroupsX f g = do
 -- other stack changes as gracefully as possible.
 readapt :: Eq a => Zipper a -> Groups l l2 a -> Groups l l2 a
 readapt z g = let mf = getFocusZ z
-                  (seed', ids) = gen $ seed g
+                  (seed', ident :~ _) = gen $ seed g
                   g' = g { seed = seed' }
               in flip modifyGroups g' $ mapZ_ (onZipper $ removeDeleted z)
                                         >>> filterKeepLast (isJust . gZipper)
                                         >>> findNewWindows (W.integrate' z)
-                                        >>> addWindows (ID (head ids) $ baseLayout g)
+                                        >>> addWindows (ID ident $ baseLayout g)
                                         >>> focusGroup mf
                                         >>> onFocusedZ (onZipper $ focusWindow mf)
     where filterKeepLast _ Nothing = Nothing
@@ -379,10 +379,10 @@ type ModifySpecX = forall l. WithID l Window
 -- | Apply a ModifySpec.
 applySpec :: ModifySpec -> Groups l l2 Window -> Maybe (Groups l l2 Window)
 applySpec f g =
-    let (seed', ids) =  gen $ seed g
-        g' = flip modifyGroups g $ f (ID (head ids) $ baseLayout g)
+    let (seed', ident :~ ids) =  gen $ seed g -- gen generates an infinite list
+        g' = flip modifyGroups g $ f (ID ident $ baseLayout g)
                                    >>> toTags
-                                   >>> foldr (reID g) ((tail ids, []), [])
+                                   >>> foldr (reID g) ((ids, []), [])
                                    >>> snd
                                    >>> fromTags
     in if groups g == groups g'
@@ -391,10 +391,10 @@ applySpec f g =
 
 applySpecX :: ModifySpecX -> Groups l l2 Window -> X (Maybe (Groups l l2 Window))
 applySpecX f g = do
-    let (seed', ids) = gen $ seed g
-    g' <- flip modifyGroupsX g $ f (ID (head ids) $ baseLayout g)
+    let (seed', ident :~ ids) = gen $ seed g -- gen generates an infinite list
+    g' <- flip modifyGroupsX g $ f (ID ident $ baseLayout g)
                                 >>> fmap toTags
-                                >>> fmap (foldr (reID g) ((tail ids, []), []))
+                                >>> fmap (foldr (reID g) ((ids, []), []))
                                 >>> fmap snd
                                 >>> fmap fromTags
     return $ if groups g == groups g'
@@ -403,14 +403,13 @@ applySpecX f g = do
 
 reID :: Groups l l2 Window
      -> Either (Group l Window) (Group l Window)
-     -> (([Uniq], [Uniq]), [Either (Group l Window) (Group l Window)])
-     -> (([Uniq], [Uniq]), [Either (Group l Window) (Group l Window)])
-reID _ _ (([], _), _) = undefined -- The list of ids is infinite
-reID g eg ((id:ids, seen), egs) = if myID `elem` seen
-                                  then ((ids, seen), mapE_ (setID id) eg:egs)
-                                  else ((id:ids, myID:seen), eg:egs)
-    where myID = getID $ gLayout $ fromE eg
-          setID id (G (ID _ _) z) = G (ID id $ baseLayout g) z
+     -> ((Stream Uniq, [Uniq]), [Either (Group l Window) (Group l Window)])
+     -> ((Stream Uniq, [Uniq]), [Either (Group l Window) (Group l Window)])
+reID g eg ((ident :~ ids, seen), egs)
+    | myID `elem` seen = ((ids, seen), mapE_ (setID ident) eg:egs)
+    | otherwise = ((ident :~ ids, myID:seen), eg:egs)
+  where myID = getID $ gLayout $ fromE eg
+        setID id (G (ID _ _) z) = G (ID id $ baseLayout g) z
 
 -- ** Misc. ModifySpecs
 

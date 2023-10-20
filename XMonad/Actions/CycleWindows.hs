@@ -50,7 +50,6 @@ module XMonad.Actions.CycleWindows (
         -- $pointer
 
         -- * Generic list rotations
-        -- $generic
         rotUp, rotDown
 ) where
 
@@ -223,12 +222,3 @@ rotUnfocused' f s@(W.Stack _ [] _ ) = rotSlaves' f s                 -- Master h
 rotUnfocused' f   (W.Stack t ls rs) = W.Stack t (reverse revls') rs' -- otherwise
     where  (master :| revls) = NE.reverse (let l:ll = ls in l :| ll)
            (revls',rs') = splitAt (length ls) (f $ master:revls ++ rs)
-
--- $generic
--- Generic list rotations such that @rotUp [1..4]@ is equivalent to
--- @[2,3,4,1]@ and @rotDown [1..4]@ to @[4,1,2,3]@. They both are
--- @id@ for null or singleton lists.
-rotUp :: [a] -> [a]
-rotUp   l = drop 1 l ++ take 1 l
-rotDown :: [a] -> [a]
-rotDown = reverse . rotUp . reverse

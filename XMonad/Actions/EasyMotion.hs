@@ -387,5 +387,5 @@ handleKeyboard dpy drawFn cancel selected deselected = do
       _   -> handleKeyboard dpy drawFn cancel (trim fg) (clear bg) >>= retryBackspace
    where
     (fg, bg) = partition ((== Just keySym) . listToMaybe . chord) selected
-    trim = map (\o -> o { chord = tail $ chord o })
+    trim = map (\o -> o { chord = drop 1 $ chord o })
     clear = map (\o -> o { chord = [] })

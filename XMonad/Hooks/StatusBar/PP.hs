@@ -401,7 +401,7 @@ dzenStrip = strip [] where
     strip keep x
       | null x              = keep
       | "^^" `isPrefixOf` x = strip (keep ++ "^") (drop 2 x)
-      | '^' == head x       = strip keep (drop 1 . dropWhile (/= ')') $ x)
+      | "^"  `isPrefixOf` x = strip keep (drop 1 . dropWhile (/= ')') $ x)
       | otherwise           = let (good,x') = span (/= '^') x
                               in strip (keep ++ good) x'
 
@@ -464,7 +464,7 @@ xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
 converge :: (Eq a) => (a -> a) -> a -> a
 converge f a = let xs = iterate f a
-    in fst $ head $ dropWhile (uncurry (/=)) $ zip xs $ tail xs
+    in fst $ head $ dropWhile (uncurry (/=)) $ zip xs $ drop 1 xs
 
 xmobarStripTags :: [String] -- ^ tags
         -> String -> String -- ^ with all \<tag\>...\</tag\> removed

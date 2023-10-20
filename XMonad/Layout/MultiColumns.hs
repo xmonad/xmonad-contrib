@@ -96,7 +96,7 @@ instance LayoutClass MultiCol a where
                       ,fmap incmastern (fromMessage m)]
             where resize Shrink = l { multiColSize = max (-0.5) $ s-ds }
                   resize Expand = l { multiColSize = min 1 $ s+ds }
-                  incmastern (IncMasterN x) = l { multiColNWin = take a n ++ [newval] ++ tail r }
+                  incmastern (IncMasterN x) = l { multiColNWin = take a n ++ [newval] ++ drop 1 r }
                       where newval =  max 0 $ head r + x
                             r = drop a n
                   n = multiColNWin l

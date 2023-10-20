@@ -783,8 +783,7 @@ doCenterNavigation dir (cur, rect) winrects
 
     -- All the points that coincide with the current center and succeed it
     -- in the (appropriately ordered) window stack.
-    onCtr' = L.tail $ L.dropWhile ((cur /=) . fst) onCtr
-             -- tail should be safe here because cur should be in onCtr
+    onCtr' = L.drop 1 $ L.dropWhile ((cur /=) . fst) onCtr
 
     -- All the points that do not coincide with the current center and which
     -- lie in the (rotated) right cone.
@@ -885,7 +884,7 @@ swap win winset = W.focusWindow cur
     newvisws  = zipWith (\ws wns -> ws { W.stack = W.differentiate wns }) visws newwins
     newscrs   = zipWith (\scr ws -> scr { W.workspace = ws }) scrs newvisws
     newwinset = winset { W.current = head newscrs
-                       , W.visible = tail newscrs
+                       , W.visible = drop 1 newscrs
                        }
 
 -- | Calculates the center of a rectangle

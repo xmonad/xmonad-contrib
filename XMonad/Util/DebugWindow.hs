@@ -57,9 +57,7 @@ debugWindow w =  do
                              \s -> if null s
                                      then Nothing
                                      else let (w'',s'') = break (== '\NUL') s
-                                              s'      = if null s''
-                                                          then s''
-                                                          else tail s''
+                                              s'        = drop 1 s''
                                           in Just (w'',s')
       t <- catchX' (wrap <$> getEWMHTitle  "VISIBLE" w) $
            catchX' (wrap <$> getEWMHTitle  ""        w) $
@@ -202,7 +200,7 @@ windowType d w ts =  do
                                       Just s'' -> s''
                                       _        -> '<':show a ++ ">"
                             unAtoms as (t ++ (if i then ' ':s else s)) True
-    
+
     simplify       :: String -> Atom -> X String
     simplify pfx a =  do
                         s' <- io $ getAtomName d a
@@ -214,10 +212,10 @@ windowType d w ts =  do
                                        return s
 
     -- note that above it says this checks all of them before simplifying.
-    -- I'll do that after I'm confident this works as intended.    
+    -- I'll do that after I'm confident this works as intended.
     windowState     :: [Atom] -> X String
     windowState []  =  return ""
     windowState as' =  go as' ";"
       where
         go []     t = return t
-        go (a:as) t = simplify "_NET_WM_STATE_" a >>= \t' -> go as (t ++ ' ':t') 
+        go (a:as) t = simplify "_NET_WM_STATE_" a >>= \t' -> go as (t ++ ' ':t')

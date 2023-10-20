@@ -99,7 +99,7 @@ module XMonad.Prompt
     ) where
 
 import           XMonad                       hiding (cleanMask, config)
-import           XMonad.Prelude               hiding (toList)
+import           XMonad.Prelude               hiding (toList, fromList)
 import qualified XMonad.StackSet              as W
 import           XMonad.Util.Font
 import           XMonad.Util.Types
@@ -540,7 +540,7 @@ mkXPromptWithModes modes conf = do
   let defaultMode = head modes
       modeStack = W.Stack { W.focus = defaultMode -- Current mode
                           , W.up = []
-                          , W.down = tail modes -- Other modes
+                          , W.down = drop 1 modes -- Other modes
                           }
       om = XPMultipleModes modeStack
   st' <- mkXPromptImplementation (showXPrompt defaultMode) conf { alwaysHighlight = True } om
@@ -650,7 +650,7 @@ eventLoop handle stopAction = do
                                 return (ks, s, ev)
                         else return (noSymbol, "", ev)
         l   -> do
-                modify $ \s -> s { eventBuffer = tail l }
+                modify $ \s -> s { eventBuffer = drop 1 l }
                 return $ head l
     handle (keysym,keystr) event
     stopAction >>= \stop -> unless stop (eventLoop handle stopAction)
@@ -1315,7 +1315,7 @@ deleteString d =
         c oc oo
             | oo >= length oc && d == Prev = take (oo - 1) oc
             | oo <  length oc && d == Prev = take (oo - 1) f ++ ss
-            | oo <  length oc && d == Next = f ++ tail ss
+            | oo <  length oc && d == Next = f ++ drop 1 ss
             | otherwise = oc
             where (f,ss) = splitAt oo oc
 
@@ -1523,7 +1523,7 @@ printPrompt drw = do
       (preCursor, cursor, postCursor) = if offset >= length com
                  then (str, " ","") -- add a space: it will be our cursor ;-)
                  else let (a, b) = splitAt offset com
-                      in (prt ++ a, [head b], tail b)
+                      in (prt ++ a, take 1 b, drop 1 b)
 
   -- vertical and horizontal text alignment
   (asc, desc) <- io $ textExtentsXMF fontS str  -- font ascent and descent
@@ -1780,7 +1780,7 @@ breakAtSpace s
     | " \\" `isPrefixOf` s2 = (s1 ++ " " ++ s1', s2')
     | otherwise = (s1, s2)
       where (s1, s2 ) = break isSpace s
-            (s1',s2') = breakAtSpace $ tail s2
+            (s1',s2') = breakAtSpace $ drop 1 s2
 
 -- | 'historyCompletion' provides a canned completion function much like
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
