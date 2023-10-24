@@ -491,3 +491,6 @@ test-suite tests
      -- don't treat unused-imports warning as errors, they may be necessary
      -- for compatibility with older versions of base (or other deps)
      ghc-options: -Wwarn=unused-imports
+
+  if impl(ghc > 9.8)
+    ghc-options:   -Wno-x-partial
