@@ -62,7 +62,7 @@ import XMonad.Actions.TagWindows (addTag, delTag)
 import XMonad.Hooks.ManageHelpers (doRectFloat)
 import XMonad.Hooks.RefocusLast (withRecentsIn)
 import XMonad.Hooks.StatusBar.PP (PP, ppSort)
-import XMonad.Prelude (appEndo, filterM, findM, foldl', for_, unless, void, when, (<=<))
+import XMonad.Prelude (appEndo, filterM, findM, foldl', for_, liftA2, unless, void, when, (<=<))
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict    as Map
@@ -285,23 +285,15 @@ allNamedScratchpadAction = someNamedScratchpadAction mapM_ runApplication
 -- >               -- enable hiding for all of @myScratchpads@
 -- >   }
 nsHideOnFocusLoss :: NamedScratchpads -> X ()
-nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
-    let cur = W.currentTag winSet
-    withRecentsIn cur () $ \lastFocus curFocus -> do
-        let isWorthy =
-              -- Check for the window being on the current workspace; if there
-              -- is no history (i.e., curFocus ≡ lastFocus), don't do anything
-              -- because the potential scratchpad is definitely focused.
-              lastFocus `elem` W.index winSet && lastFocus /= curFocus
-              -- Don't do anything on the NSP workspace, lest the world explodes.
-              && cur /= scratchpadWorkspaceTag
-        when isWorthy $
-            whenX (isNSP lastFocus scratches) $
-                shiftToNSP (W.workspaces winSet) ($ lastFocus)
+nsHideOnFocusLoss scratches =
+    nsHideOnCondition $ \ lastFocus _curFoc _ws hideScratch ->
+        whenX (isNSP lastFocus scratches) $
+            hideScratch lastFocus
 
--- | A @logHook@ to have only one active scratchpad on a workspace. This can be
--- useful when working with multiple floating scratchpads which would otherwise be stacked. Note that this also requires you
--- to use the 'XMonad.Hooks.RefocusLast.refocusLastLogHook'.
+-- | A @logHook@ to have only one active scratchpad on a workspace. This can
+-- be useful when working with multiple floating scratchpads which would
+-- otherwise be stacked. Note that this also requires you to use the
+-- 'XMonad.Hooks.RefocusLast.refocusLastLogHook'.
 --
 -- ==== __Example__
 --
@@ -314,24 +306,37 @@ nsHideOnFocusLoss scratches = withWindowSet $ \winSet -> do
 -- >               -- enable hiding for all of @myScratchpads@
 -- >   }
 nsSingleScratchpadPerWorkspace :: NamedScratchpads -> X ()
-nsSingleScratchpadPerWorkspace scratches = withWindowSet $ \winSet -> do
-    let cur = W.currentTag winSet
-    let allWindowsOnCurrentWorkspace = W.index winSet
-    withRecentsIn cur () $ \lastFocus curFocus -> do
-        allScratchesOnCurrentWS <- filterM (`isNSP` scratches) allWindowsOnCurrentWorkspace
-        let allScratchesButCurrent = filter (/= curFocus) allScratchesOnCurrentWS
-            hideScratch = \s -> shiftToNSP (W.workspaces winSet) ($ s)
+nsSingleScratchpadPerWorkspace scratches =
+    nsHideOnCondition $ \ _lastFocus curFocus winSet hideScratch -> do
+        allScratchesButCurrent <-
+            filterM (liftA2 (<||>) (pure . (/= curFocus)) (`isNSP` scratches))
+                    (W.index winSet)
+        whenX (isNSP curFocus scratches) $
+            for_ allScratchesButCurrent hideScratch
 
-        let isWorthy =
-              -- Check for the window being on the current workspace; if there
-              -- is no history (i.e., curFocus ≡ lastFocus), don't do anything
-              -- because the potential scratchpad is definitely focused.
-              lastFocus `elem` W.index winSet && lastFocus /= curFocus
-              -- Don't do anything on the NSP workspace, lest the world explodes.
-              && cur /= scratchpadWorkspaceTag
+-- | Hide scratchpads according to some condition. See 'nsHideOnFocusLoss' and
+-- 'nsSingleScratchpadPerWorkspace' for usage examples.
+nsHideOnCondition
+    :: (  Window           -- Last focus.
+       -> Window           -- Current focus.
+       -> WindowSet        -- Current windowset.
+       -> (Window -> X ()) -- A function to hide the named scratchpad.
+       -> X ())
+    -> X ()
+nsHideOnCondition cond = withWindowSet $ \winSet -> do
+    let cur = W.currentTag winSet
+    withRecentsIn cur () $ \lastFocus curFocus -> do
+        let hideScratch :: Window -> X ()
+            hideScratch win = shiftToNSP (W.workspaces winSet) ($ win)
+            isWorthy =
+                -- Check for the window being on the current workspace; if there
+                -- is no history (i.e., curFocus ≡ lastFocus), don't do anything
+                -- because the potential scratchpad is definitely focused.
+                lastFocus `elem` W.index winSet && lastFocus /= curFocus
+                -- Don't do anything on the NSP workspace, lest the world explodes.
+                && cur /= scratchpadWorkspaceTag
         when isWorthy $
-            whenX (isNSP curFocus scratches) $
-              for_ allScratchesButCurrent hideScratch
+            cond lastFocus curFocus winSet hideScratch
 
 -- | Execute some action on a named scratchpad.
 --
