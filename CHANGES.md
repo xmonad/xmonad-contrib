@@ -88,6 +88,11 @@
     - Added `nsSingleScratchpadPerWorkspace`—a logHook to allow only one
       active scratchpad per workspace.
 
+  * `XMonad.Util.EZConfig`
+
+    - The function `readKeySequence` now returns a non-empty list if it
+      succeeded.
+
 ### New Modules
 
   * `XMonad.Layout.CenterMainFluid`

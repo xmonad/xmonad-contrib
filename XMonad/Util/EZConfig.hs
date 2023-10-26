@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.EZConfig
@@ -51,8 +52,10 @@ import XMonad.Util.NamedActions
 import XMonad.Util.Parser
 
 import Control.Arrow (first, (&&&))
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 import Data.Ord (comparing)
+import Data.List.NonEmpty (nonEmpty)
 
 -- $usage
 -- To use this module, first import it into your @~\/.xmonad\/xmonad.hs@:
@@ -139,8 +142,8 @@ remapKeysP conf keyList =
    keyList' :: XConfig Layout -> [(String, X ())]
    keyList' cnf =
      mapMaybe (traverse (\s -> case readKeySequence cnf s of
-                                 Just [ks] -> keys conf cnf M.!? ks
-                                 _         -> Nothing))
+                                 Just (ks :| []) -> keys conf cnf M.!? ks
+                                 _               -> Nothing))
               keyList
 infixl 4 `remapKeysP`
 
@@ -426,35 +429,40 @@ mkNamedKeymap c = mkNamedSubmaps . readKeymap c
 -- | Given a list of pairs of parsed key sequences and actions,
 --   group them into submaps in the appropriate way.
 
-mkNamedSubmaps :: [([(KeyMask, KeySym)], NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
+mkNamedSubmaps :: [(NonEmpty (KeyMask, KeySym), NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
 mkNamedSubmaps = mkSubmaps' submapName
 
-mkSubmaps :: [ ([(KeyMask,KeySym)], X ()) ] -> [((KeyMask, KeySym), X ())]
+mkSubmaps :: [ (NonEmpty (KeyMask, KeySym), X ()) ] -> [((KeyMask, KeySym), X ())]
 mkSubmaps = mkSubmaps' $ submap . M.fromList
 
-mkSubmaps' ::  (Ord a) => ([(a, c)] -> c) -> [([a], c)] -> [(a, c)]
+mkSubmaps' :: forall a b. (Ord a) => ([(a, b)] -> b) -> [(NonEmpty a, b)] -> [(a, b)]
 mkSubmaps' subm binds = map combine gathered
-  where gathered = groupBy fstKey
-                 . sortBy (comparing fst)
-                 $ binds
-        combine [([k],act)] = (k,act)
-        combine ks = (head . fst . head $ ks,
-                      subm . mkSubmaps' subm $ map (first (drop 1)) ks)
-        fstKey = (==) `on` (head . fst)
+  where
+   gathered :: [[(NonEmpty a, b)]]
+   gathered = groupBy fstKey . sortBy (comparing fst) $ binds
+
+   combine :: [(NonEmpty a, b)] -> (a, b)
+   combine [(k :| [], act)] = (k, act)
+   combine ks = ( NE.head . fst . NE.head . notEmpty $ ks
+                , subm . mkSubmaps' subm $ map (first (notEmpty . NE.drop 1)) ks
+                )
+
+   fstKey :: (NonEmpty a, b) -> (NonEmpty a, b) -> Bool
+   fstKey = (==) `on` (NE.head . fst)
 
 -- | Given a configuration record and a list of (key sequence
 --   description, action) pairs, parse the key sequences into lists of
 --   @(KeyMask,KeySym)@ pairs.  Key sequences which fail to parse will
 --   be ignored.
-readKeymap :: XConfig l -> [(String, t)] -> [([(KeyMask, KeySym)], t)]
+readKeymap :: XConfig l -> [(String, t)] -> [(NonEmpty (KeyMask, KeySym), t)]
 readKeymap c = mapMaybe (maybeKeys . first (readKeySequence c))
   where maybeKeys (Nothing,_) = Nothing
         maybeKeys (Just k, act) = Just (k, act)
 
 -- | Parse a sequence of keys, returning Nothing if there is
 --   a parse failure (no parse, or ambiguous parse).
-readKeySequence :: XConfig l -> String -> Maybe [(KeyMask, KeySym)]
-readKeySequence c = runParser (parseKeySequence c <* eof)
+readKeySequence :: XConfig l -> String -> Maybe (NonEmpty (KeyMask, KeySym))
+readKeySequence c = nonEmpty <=< runParser (parseKeySequence c <* eof)
 
 -- | Parse a sequence of key combinations separated by spaces, e.g.
 --   @\"M-c x C-S-2\"@ (mod+c, x, ctrl+shift+2).
@@ -544,8 +552,8 @@ doKeymapCheck :: XConfig l -> [(String,a)] -> ([String], [String])
 doKeymapCheck conf km = (bad,dups)
   where ks = map ((readKeySequence conf &&& id) . fst) km
         bad = nub . map snd . filter (isNothing . fst) $ ks
-        dups = map (snd . head)
-             . filter ((>1) . length)
+        dups = map (snd . NE.head)
+             . mapMaybe nonEmpty
              . groupBy ((==) `on` fst)
              . sortBy (comparing fst)
              . map (first fromJust)

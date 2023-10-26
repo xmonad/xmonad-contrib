@@ -132,8 +132,8 @@ usePrefixArgument prefix conf =
   conf{ keys = M.insert binding (handlePrefixArg [binding]) . keys conf }
  where
   binding = case readKeySequence conf prefix of
-    Just [key] -> key
-    _          -> (controlMask, xK_u)
+    Just (key :| []) -> key
+    _                -> (controlMask, xK_u)
 
 -- | Set Prefix up with default prefix key (C-u).
 useDefaultPrefixArgument :: LayoutClass l Window
