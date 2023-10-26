@@ -44,6 +44,7 @@ module XMonad.Prelude (
     Stream(..),
     (+~),
     cycleS,
+    takeS,
     toList,
     fromList,
 ) where
@@ -504,3 +505,8 @@ infixr 5 +~
 -- | Absorb a non-empty list into an infinite stream.
 cycleS :: NonEmpty a -> Stream a
 cycleS (x :| xs) = s where s = x :~ xs +~ s
+
+-- | @takeS n stream@ returns the first @n@ elements of @stream@; if @n < 0@,
+-- this returns the empty list.
+takeS :: Int -> Stream a -> [a]
+takeS n = take n . toList
