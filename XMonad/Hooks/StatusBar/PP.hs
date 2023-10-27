@@ -465,7 +465,7 @@ xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
 converge :: (Eq a) => (a -> a) -> a -> a
 converge f a
-  = fst . NE.head . notEmpty -- *If* this function terminates, we will find a match.
+  = fst . NE.head . notEmpty -- If this function terminates, we will find a match.
   . dropWhile (uncurry (/=))
   . zip xs
   $ drop 1 xs
