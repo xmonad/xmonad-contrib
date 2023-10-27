@@ -186,21 +186,22 @@ placeHook p = do window <- ask
                         -- spawned. Each of them also needs an associated screen
                         -- rectangle; for hidden workspaces, we use the current
                         -- workspace's screen.
-                      let infos = filter ((window `elem`) . stackContents . S.stack . fst)
+                      let infos = find ((window `elem`) . stackContents . S.stack . fst)
                                      $ [screenInfo $ S.current theWS]
                                         ++ map screenInfo (S.visible theWS)
                                         ++ map (, currentRect) (S.hidden theWS)
 
-                      guard(not $ null infos)
+                      case infos of
+                        Nothing   -> empty
+                        Just info -> do
+                          let (workspace, screen) = info
+                              rs = mapMaybe (`M.lookup` allRs)
+                                   $ organizeClients workspace window floats
+                              r' = purePlaceWindow p screen rs pointer r
+                              newRect = r2rr screen r'
+                              newFloats = M.insert window newRect (S.floating theWS)
 
-                      let (workspace, screen) = head infos
-                          rs = mapMaybe (`M.lookup` allRs)
-                               $ organizeClients workspace window floats
-                          r' = purePlaceWindow p screen rs pointer r
-                          newRect = r2rr screen r'
-                          newFloats = M.insert window newRect (S.floating theWS)
-
-                      return $ theWS { S.floating = newFloats }
+                          return $ theWS { S.floating = newFloats }
 
 
 placeWindow :: Placement -> Window

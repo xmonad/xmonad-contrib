@@ -63,6 +63,7 @@ import qualified XMonad.Util.ExtensibleState    as XS
 import qualified Data.Map                       as M
 import qualified Data.Set                       as S
 import           Control.Arrow
+import qualified Data.List.NonEmpty             as NE
 
 
 -- $usage
@@ -240,8 +241,8 @@ swapApply ignoreFloats swapFunction = do
                 (r,s2) = stackSplit s1 fl' :: ([(Int,Window)],W.Stack Window)
                 (b,s3) = swapFunction pm s2
                 s4 = stackMerge s3 r
-                mh = let w = head . W.integrate $ s3
-                     in  const $ w : delete w ch
+                mh = let w = NE.head . notEmpty . W.integrate $ s3
+                     in const $ w : delete w ch
             in (b,Just s4,mh)
         (x,y,z) = maybe (False,Nothing,id) swapApply' st
     -- Any floating master windows will be added to the history when 'windows'

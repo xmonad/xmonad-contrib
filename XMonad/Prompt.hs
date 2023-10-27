@@ -113,11 +113,13 @@ import           Control.Monad.State
 import           Data.Bifunctor               (bimap)
 import           Data.Bits
 import           Data.IORef
+import qualified Data.List.NonEmpty           as NE
 import qualified Data.Map                     as M
 import           Data.Set                     (fromList, toList)
 import           System.IO
 import           System.IO.Unsafe             (unsafePerformIO)
 import           System.Posix.Files
+import Data.List.NonEmpty (nonEmpty)
 
 -- $usage
 -- For usage examples see "XMonad.Prompt.Shell",
@@ -536,11 +538,11 @@ mkXPrompt t conf compl action = void $ mkXPromptWithReturn t conf compl action
 -- The argument supplied to the action to execute is always the current highlighted item,
 -- that means that this prompt overrides the value `alwaysHighlight` for its configuration to True.
 mkXPromptWithModes :: [XPType] -> XPConfig -> X ()
-mkXPromptWithModes modes conf = do
-  let defaultMode = head modes
-      modeStack = W.Stack { W.focus = defaultMode -- Current mode
+mkXPromptWithModes [] _ = pure ()
+mkXPromptWithModes (defaultMode : modes) conf = do
+  let modeStack = W.Stack { W.focus = defaultMode -- Current mode
                           , W.up = []
-                          , W.down = drop 1 modes -- Other modes
+                          , W.down = modes -- Other modes
                           }
       om = XPMultipleModes modeStack
   st' <- mkXPromptImplementation (showXPrompt defaultMode) conf { alwaysHighlight = True } om
@@ -649,9 +651,9 @@ eventLoop handle stopAction = do
                                 ks <- keycodeToKeysym d (ev_keycode ev) 0
                                 return (ks, s, ev)
                         else return (noSymbol, "", ev)
-        l   -> do
-                modify $ \s -> s { eventBuffer = drop 1 l }
-                return $ head l
+        (l : ls) -> do
+                modify $ \s -> s { eventBuffer = ls }
+                return l
     handle (keysym,keystr) event
     stopAction >>= \stop -> unless stop (eventLoop handle stopAction)
 
@@ -785,8 +787,10 @@ handleCompletion dir cs = do
 
           | -- We only have one suggestion, so we need to be a little
             -- bit smart in order to avoid a loop.
-            length cs == 1 =
-              if command st == hlCompl then put st else replaceCompletion (head cs)
+            Just (ch :| []) <- nonEmpty cs =
+              if command st == hlCompl
+              then put st
+              else replaceCompletion ch
 
             -- The current suggestion matches the command, so advance
             -- to the next completion and try again.
@@ -1396,11 +1400,11 @@ moveHistory f = do
 -- starting cursor character is not considered, and the cursor is placed over
 -- the matching character.
 toHeadChar :: Direction1D -> String -> XP ()
-toHeadChar d s = unless (null s) $ do
+toHeadChar _ ""      = pure ()
+toHeadChar d (c : _) = do
     cmd <- gets command
     off <- gets offset
-    let c = head s
-        off' = (if d == Prev then negate . fst else snd)
+    let off' = (if d == Prev then negate . fst else snd)
              . join (***) (maybe 0 (+1) . elemIndex c)
              . (reverse *** drop 1)
              $ splitAt off cmd
@@ -1464,9 +1468,7 @@ redrawWindows
 redrawWindows emptyAction compls = do
   d <- gets dpy
   drawWin
-  case compls of
-    [] -> emptyAction
-    l  -> redrawComplWin l
+  maybe emptyAction redrawComplWin (nonEmpty compls)
   io $ sync d False
  where
   -- | Draw the main prompt window.
@@ -1485,14 +1487,14 @@ redrawWindows emptyAction compls = do
     io $ freePixmap dpy pm
 
 -- | Redraw the completion window, if necessary.
-redrawComplWin ::  [String] -> XP ()
+redrawComplWin ::  NonEmpty String -> XP ()
 redrawComplWin compl = do
   XPS{ showComplWin, complWinDim, complWin } <- get
   nwi <- getComplWinDim compl
   let recreate = do destroyComplWin
                     w <- createComplWin nwi
                     drawComplWin w compl
-  if compl /= [] && showComplWin
+  if showComplWin
      then io (readIORef complWin) >>= \case
             Just w -> case complWinDim of
                         Just wi -> if nwi == wi -- complWinDim did not change
@@ -1566,7 +1568,7 @@ destroyComplWin = do
 
 -- | Given the completions that we would like to show, calculate the
 -- required dimensions for the completion windows.
-getComplWinDim :: [String] -> XP ComplWindowDim
+getComplWinDim :: NonEmpty String -> XP ComplWindowDim
 getComplWinDim compl = do
   XPS{ config = cfg, screen = scr, fontS = fs, dpy, winWidth } <- get
   let -- Height of a single completion row
@@ -1607,7 +1609,7 @@ getComplWinDim compl = do
 
   -- Get font ascent and descent.  Coherence condition: we will print
   -- everything using the same font.
-  (asc, desc) <- io $ textExtentsXMF fs $ head compl
+  (asc, desc) <- io $ textExtentsXMF fs $ NE.head compl
   let yp    = fi $ (ht + fi (asc - desc)) `div` 2 -- y position of the first row
       yRows = take (fi rows) [yp, yp + fi ht ..]  -- y positions of all rows
 
@@ -1617,7 +1619,7 @@ getComplWinDim compl = do
   pure $ ComplWindowDim x y winWidth rowHeight xCols yRows
 
 -- | Draw the completion window.
-drawComplWin :: Window -> [String] -> XP ()
+drawComplWin :: Window -> NonEmpty String -> XP ()
 drawComplWin w entries = do
   XPS{ config, color, dpy, gcon } <- get
   let scr = defaultScreenOfDisplay dpy
@@ -1640,7 +1642,7 @@ printComplEntries
   -> GC
   -> String         -- ^ Default foreground color
   -> String         -- ^ Default background color
-  -> [String]       -- ^ Entries to be printed...
+  -> NonEmpty String -- ^ Entries to be printed...
   -> ComplWindowDim -- ^ ...into a window of this size
   -> XP ()
 printComplEntries dpy drw gc fc bc entries ComplWindowDim{ cwCols, cwRows } = do
@@ -1662,7 +1664,7 @@ printComplEntries dpy drw gc fc bc entries ComplWindowDim{ cwCols, cwRows } = do
  where
   -- | Create the completion matrix to be printed.
   complMat :: [[String]]
-    = chunksOf (length cwRows) (take (length cwCols * length cwRows) entries)
+    = chunksOf (length cwRows) (take (length cwCols * length cwRows) (NE.toList entries))
 
   -- | Find the column and row indexes in which a string appears.
   -- If the string is not in the matrix, the indices default to @(0, 0)@.
@@ -1808,7 +1810,8 @@ uniqSort = toList . fromList
 -- immediately next to each other.
 deleteAllDuplicates, deleteConsecutive :: [String] -> [String]
 deleteAllDuplicates = nub
-deleteConsecutive = map head . group
+deleteConsecutive = map (NE.head . notEmpty) . group
+-- The elements of group will always have at least one element.
 
 newtype HistoryMatches = HistoryMatches (IORef ([String],Maybe (W.Stack String)))
 

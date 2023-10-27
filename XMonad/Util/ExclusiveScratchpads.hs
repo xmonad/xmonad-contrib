@@ -46,6 +46,7 @@ import XMonad.Actions.TagWindows (addTag,delTag)
 import XMonad.Hooks.ManageHelpers (doRectFloat,isInProperty)
 
 import qualified XMonad.StackSet as W
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
@@ -174,8 +175,8 @@ resetExclusiveSp xs = withFocused $ \w -> whenX (isScratchpad xs w) $ do
   let ys = filterM (flip runQuery w . query) xs
 
   unlessX (null <$> ys) $ do
-    mh <- head . map hook <$> ys  -- ys /= [], so `head` is fine
-    n  <- head . map name <$> ys  -- same
+    mh <- NE.head . notEmpty . map hook <$> ys  -- ys /= [], so `head` is fine
+    n  <- NE.head . notEmpty . map name <$> ys  -- same
 
     (windows . appEndo <=< runQuery mh) w
     hideOthers xs n

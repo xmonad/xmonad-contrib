@@ -95,10 +95,10 @@ import XMonad.Prelude
 
 -- | makeCursors requires a nonempty string, and each sublist must be nonempty
 makeCursors ::  [[String]] -> Cursors String
-makeCursors [] = error "Workspace Cursors cannot be empty"
-makeCursors a = concat . reverse <$> foldl addDim x xs
-    where x = end $ map return $ head a
-          xs = map (map return) $ drop 1 a
+makeCursors []       = error "Workspace Cursors cannot be empty"
+makeCursors (a : as) = concat . reverse <$> foldl addDim x xs
+    where x = end $ map return a
+          xs = map (map return) as
           -- this could probably be simplified, but this true:
           -- toList . makeCursors == map (concat . reverse) . sequence . reverse . map (map (:[]))
           -- the strange order is used because it makes the regular M-1..9

@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.ShowText
@@ -26,7 +27,7 @@ module XMonad.Actions.ShowText
 import Data.Map (Map,empty,insert,lookup)
 import Prelude hiding (lookup)
 import XMonad
-import XMonad.Prelude (All, fi, when)
+import XMonad.Prelude (All, fi, listToMaybe)
 import XMonad.StackSet (current,screen)
 import XMonad.Util.Font (Align(AlignCenter)
                        , initXMF
@@ -87,8 +88,9 @@ handleTimerEvent :: Event -> X All
 handleTimerEvent (ClientMessageEvent _ _ _ dis _ mtyp d) = do
     (ShowText m) <- ES.get :: X ShowText
     a <- io $ internAtom dis "XMONAD_TIMER" False
-    when (mtyp == a && not (null d))
-         (whenJust (lookup (fromIntegral $ head d) m) deleteWindow)
+    if | mtyp == a, Just dh <- listToMaybe d ->
+           whenJust (lookup (fromIntegral dh) m) deleteWindow
+       | otherwise -> pure ()
     mempty
 handleTimerEvent _ = mempty
 
