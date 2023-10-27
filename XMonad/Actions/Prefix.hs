@@ -41,6 +41,8 @@ import XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Paste (sendKey)
 import XMonad.Actions.Submap (submapDefaultWithKey)
 import XMonad.Util.EZConfig (readKeySequence)
+import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty ((<|))
 
 {- $usage
 
@@ -129,7 +131,7 @@ usePrefixArgument :: LayoutClass l Window
                   -> XConfig l
                   -> XConfig l
 usePrefixArgument prefix conf =
-  conf{ keys = M.insert binding (handlePrefixArg [binding]) . keys conf }
+  conf{ keys = M.insert binding (handlePrefixArg (binding :| [])) . keys conf }
  where
   binding = case readKeySequence conf prefix of
     Just (key :| []) -> key
@@ -141,7 +143,7 @@ useDefaultPrefixArgument :: LayoutClass l Window
                          -> XConfig l
 useDefaultPrefixArgument = usePrefixArgument "C-u"
 
-handlePrefixArg :: [(KeyMask, KeySym)] -> X ()
+handlePrefixArg :: NonEmpty (KeyMask, KeySym) -> X ()
 handlePrefixArg events = do
   ks <- asks keyActions
   logger <- asks (logHook . config)
@@ -162,12 +164,12 @@ handlePrefixArg events = do
               Raw _ -> XS.put $ Numeric x
               Numeric a -> XS.put $ Numeric $ a * 10 + x
               None -> return () -- should never happen
-            handlePrefixArg (key:events)
+            handlePrefixArg (key <| events)
           else do
             prefix <- XS.get
             mapM_ (uncurry sendKey) $ case prefix of
-              Raw a -> replicate a (head events) ++ [key]
-              _ -> reverse (key:events)
+              Raw a -> replicate a (NE.head events) ++ [key]
+              _ -> reverse (key : toList events)
         keyToNum = (xK_0, 0) : zip [xK_1 .. xK_9] [1..9]
 
 -- | Turn a prefix-aware X action into an X-action.

@@ -28,7 +28,7 @@ module XMonad.Layout.Combo (
 
 import XMonad hiding (focus)
 import XMonad.Layout.WindowNavigation (MoveWindowToWindow (..))
-import XMonad.Prelude (delete, fromMaybe, intersect, isJust, (\\))
+import XMonad.Prelude (delete, fromMaybe, intersect, isJust, (\\), listToMaybe)
 import XMonad.StackSet (Stack (..), Workspace (..), integrate')
 import XMonad.Util.Stack (zipperFocusedAtFirstOf)
 
@@ -124,9 +124,9 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                          msuper' <- broadcastPrivate m [super]
                          if isJust msuper' || isJust ml1' || isJust ml2'
                             then return $ Just $ C2 f ws2
-                                                 (maybe super head msuper')
-                                                 (maybe l1 head ml1')
-                                                 (maybe l2 head ml2')
+                                                 (fromMaybe super (listToMaybe =<< msuper'))
+                                                 (fromMaybe l1    (listToMaybe =<< ml1'))
+                                                 (fromMaybe l2    (listToMaybe =<< ml2'))
                             else return Nothing
     description (C2 _ _ super l1 l2) = "combining "++ description l1 ++" and "++
                                        description l2 ++" with "++ description super

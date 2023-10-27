@@ -1,5 +1,9 @@
 -- {-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, TypeSynonymInstances, MultiParamTypeClasses #-}
-{-# LANGUAGE PatternGuards, FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards #-}
+
 ---------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.TallMastersCombo
@@ -45,7 +49,7 @@ import XMonad hiding (focus, (|||))
 import qualified XMonad.Layout as LL
 import XMonad.Layout.Decoration
 import XMonad.Layout.Simplest (Simplest (..))
-import XMonad.Prelude (delete, find, foldM, fromMaybe, isJust)
+import XMonad.Prelude (delete, find, foldM, fromMaybe, isJust, listToMaybe)
 import XMonad.StackSet (Stack (..), Workspace (..), integrate')
 import qualified XMonad.StackSet as W
 import XMonad.Util.Stack (zipperFocusedAtFirstOf)
@@ -245,14 +249,14 @@ instance (GetFocused l1 Window, GetFocused l2 Window) => LayoutClass (TMSCombine
                return $ mergeSubLayouts  mlayout1 mlayout2 (TMSCombineTwo f w1 w2 (not vsp) nmaster delta frac layout1 layout2) True
     | Just SwapSubMaster <- fromMessage m =
         -- first get the submaster window
-        let subMaster = if null w2 then Nothing else Just $ head w2
+        let subMaster = listToMaybe w2
         in case subMaster of
             Just mw -> do windows $ W.modify' $ swapWindow mw
                           return Nothing
             Nothing -> return Nothing
     | Just FocusSubMaster <- fromMessage m =
         -- first get the submaster window
-        let subMaster = if null w2 then Nothing else Just $ head w2
+        let subMaster = listToMaybe w2
         in case subMaster of
             Just mw -> do windows $ W.modify' $ focusWindow mw
                           return Nothing

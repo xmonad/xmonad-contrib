@@ -66,6 +66,7 @@ import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
 import XMonad.Util.Types
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 -- #Usage#
@@ -883,7 +884,7 @@ swap win winset = W.focusWindow cur
     -- Reconstruct the workspaces' window stacks to reflect the swap.
     newvisws  = zipWith (\ws wns -> ws { W.stack = W.differentiate wns }) visws newwins
     newscrs   = zipWith (\scr ws -> scr { W.workspace = ws }) scrs newvisws
-    newwinset = winset { W.current = head newscrs
+    newwinset = winset { W.current = NE.head (notEmpty newscrs) -- Always at least one screen.
                        , W.visible = drop 1 newscrs
                        }
 

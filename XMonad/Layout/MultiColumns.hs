@@ -97,7 +97,7 @@ instance LayoutClass MultiCol a where
             where resize Shrink = l { multiColSize = max (-0.5) $ s-ds }
                   resize Expand = l { multiColSize = min 1 $ s+ds }
                   incmastern (IncMasterN x) = l { multiColNWin = take a n ++ [newval] ++ drop 1 r }
-                      where newval =  max 0 $ head r + x
+                      where newval = max 0 $ maybe 0 (x +) (listToMaybe r)
                             r = drop a n
                   n = multiColNWin l
                   ds = multiColDeltaSize l

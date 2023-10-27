@@ -57,6 +57,7 @@ module XMonad.Hooks.StatusBar.PP (
 
 import Control.Monad.Reader
 import Control.DeepSeq
+import qualified Data.List.NonEmpty as NE
 
 import XMonad
 import XMonad.Prelude
@@ -463,8 +464,12 @@ xmobarStrip :: String -> String
 xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
 converge :: (Eq a) => (a -> a) -> a -> a
-converge f a = let xs = iterate f a
-    in fst $ head $ dropWhile (uncurry (/=)) $ zip xs $ drop 1 xs
+converge f a
+  = fst . NE.head . notEmpty -- If this function terminates, we will find a match.
+  . dropWhile (uncurry (/=))
+  . zip xs
+  $ drop 1 xs
+ where xs = iterate f a
 
 xmobarStripTags :: [String] -- ^ tags
         -> String -> String -- ^ with all \<tag\>...\</tag\> removed

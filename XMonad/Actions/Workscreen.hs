@@ -109,5 +109,6 @@ shiftWs a = drop 1 a ++ take 1 a
 -- @WorkscreenId@.
 shiftToWorkscreen :: WorkscreenId -> X ()
 shiftToWorkscreen wscrId = do (WorkscreenStorage _ a) <- XS.get
-                              let ws = head . workspaces $ a !! wscrId
-                              windows $ W.shift ws
+                              case workspaces (a !! wscrId) of
+                                []      -> pure ()
+                                (w : _) -> windows $ W.shift w

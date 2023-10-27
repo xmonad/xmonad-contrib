@@ -97,6 +97,7 @@ import XMonad.Actions.WindowBringer (bringWindow)
 import Text.Printf
 import System.Random (mkStdGen, randomR)
 import Data.Word (Word8)
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
@@ -302,14 +303,14 @@ diamondLayer n =
       r  = tr ++ map (\(x,y) -> (y,-x)) tr
   in r ++ map (negate *** negate) r
 
-diamond :: (Enum a, Num a, Eq a) => [(a, a)]
-diamond = concatMap diamondLayer [0..]
+diamond :: (Enum a, Num a, Eq a) => Stream (a, a)
+diamond = fromList $ concatMap diamondLayer [0..]
 
 diamondRestrict :: Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
 diamondRestrict x y originX originY =
   L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
   map (\(x', y') -> (x' + fromInteger originX, y' + fromInteger originY)) .
-  take 1000 $ diamond
+  takeS 1000 $ diamond
 
 findInElementMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
 findInElementMap pos = find ((== pos) . fst)
@@ -658,7 +659,7 @@ gridselect gsconfig elements =
                                 originPosX = floor $ (gs_originFractX gsconfig - (1/2)) * 2 * fromIntegral restrictX
                                 originPosY = floor $ (gs_originFractY gsconfig - (1/2)) * 2 * fromIntegral restrictY
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
-                                s = TwoDState { td_curpos = head coords,
+                                s = TwoDState { td_curpos = NE.head (notEmpty coords),
                                                 td_availSlots = coords,
                                                 td_elements = elements,
                                                 td_gsconfig = gsconfig,

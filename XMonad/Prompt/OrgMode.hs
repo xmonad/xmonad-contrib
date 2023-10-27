@@ -67,6 +67,7 @@ import XMonad.Util.XSelection (getSelection)
 import XMonad.Util.Run
 
 import Control.DeepSeq (deepseq)
+import qualified Data.List.NonEmpty as NE (head)
 import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, fromGregorian, getCurrentTime, nominalDay, toGregorian)
 #if MIN_VERSION_time(1, 9, 0)
 import Data.Time.Format.ISO8601 (iso8601Show)
@@ -525,7 +526,7 @@ pInput inp = (`runParser` inp) . choice $
    where
     go :: String -> Parser String
     go consumed = do
-      str  <- munch  (/= head ptn)
+      str  <- munch  (/= NE.head (notEmpty ptn))
       word <- munch1 (/= ' ')
       bool go pure (word == ptn) $ consumed <> str <> word
 
