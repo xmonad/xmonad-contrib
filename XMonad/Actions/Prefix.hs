@@ -131,7 +131,7 @@ usePrefixArgument :: LayoutClass l Window
                   -> XConfig l
                   -> XConfig l
 usePrefixArgument prefix conf =
-  conf{ keys = M.insert binding (handlePrefixArg (NE.singleton binding)) . keys conf }
+  conf{ keys = M.insert binding (handlePrefixArg (binding :| [])) . keys conf }
  where
   binding = case readKeySequence conf prefix of
     Just (key :| []) -> key
