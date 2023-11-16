@@ -93,6 +93,9 @@
     - The function `readKeySequence` now returns a non-empty list if it
       succeeded.
 
+  * Deprecate `XMonad.Util.Ungrab`; it was moved to `XMonad.Operations`
+    in core.
+
 ### New Modules
 
   * `XMonad.Layout.CenterMainFluid`

@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.Ungrab
+module XMonad.Util.Ungrab {-# DEPRECATED "Use XMonad.Operations.unGrab instead" #-}
     ( -- * Usage:
       -- $usage
       unGrab
