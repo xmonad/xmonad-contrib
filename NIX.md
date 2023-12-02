@@ -103,3 +103,4 @@ The `prefix` option is used if you wish to select your haskell packages from
 within, e.g., unstable overlaid into `pkgs` as `pkgs.unstable`.
 
 See the flakes themselves and nix flake documentation for full detail.
+Additionally, a semi-walkthrough is available [here](https://tony-zorman.com/posts/xmonad-on-nixos.html).
