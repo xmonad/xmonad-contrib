@@ -1,5 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-
+-- TODO: Remove when we depend on a version of xmonad that has unGrab.
+{-# OPTIONS_GHC -Wno-deprecations  #-}
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Config.Mate
@@ -28,15 +30,14 @@ module XMonad.Config.Mate (
     desktopLayoutModifiers
     ) where
 
-import XMonad
-import XMonad.Config.Desktop
-import XMonad.Util.Run (safeSpawn)
-import XMonad.Util.Ungrab
-import XMonad.Prelude (toUpper)
-
+import System.Environment (getEnvironment)
 import qualified Data.Map as M
 
-import System.Environment (getEnvironment)
+import XMonad hiding (unGrab)
+import XMonad.Config.Desktop
+import XMonad.Prelude (toUpper)
+import XMonad.Util.Run (safeSpawn)
+import XMonad.Util.Ungrab (unGrab)
 
 -- $usage
 -- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
