@@ -135,6 +135,11 @@
       There's both an action to be bound to a key, and hooks that plug into
       `XMonad.Hooks.EwmhDesktops`.
 
+  * `XMonad.Layout.CircleEx`:
+
+    - A new window layout, similar to X.L.Circle, but with more
+      possibilities for customisation.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Layout.Magnifier`

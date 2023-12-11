@@ -232,6 +232,7 @@ library
                         XMonad.Layout.CenteredIfSingle
                         XMonad.Layout.CenteredMaster
                         XMonad.Layout.Circle
+                        XMonad.Layout.CircleEx
                         XMonad.Layout.Column
                         XMonad.Layout.Combo
                         XMonad.Layout.ComboP
