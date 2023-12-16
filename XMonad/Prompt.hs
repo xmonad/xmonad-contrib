@@ -708,25 +708,28 @@ handleMain stroke@(keysym, keystr) = \case
                getCurrentCompletions >>= handleCompletionMain Next
           | (keymask, keysym) == prevCompKey ->
                getCurrentCompletions >>= handleCompletionMain Prev
-          | otherwise -> unless (isModifier stroke) $ do
-               setCurrentCompletions Nothing
-               if keysym == modeKey
-                  then modify setNextMode >> updateWindows
-                  else handleInput keymask
+          | otherwise -> do
+               keymap <- gets (promptKeymap . config)
+               let mbAction = M.lookup (keymask, keysym) keymap
+               -- Either run when we can insert a valid character, or the
+               -- pressed key has an action associated to it.
+               unless (isModifier stroke && isNothing mbAction) $ do
+                   setCurrentCompletions Nothing
+                   if keysym == modeKey
+                      then modify setNextMode >> updateWindows
+                      else handleInput keymask mbAction
     event -> handleOther stroke event
   where
     -- Prompt input handler for the main loop.
-    handleInput :: KeyMask -> XP ()
-    handleInput keymask = do
-        keymap <- gets (promptKeymap . config)
-        case M.lookup (keymask,keysym) keymap of
-            Just action -> action >> updateWindows
-            Nothing     -> when (keymask .&. controlMask == 0) $ do
-                insertString $ utf8Decode keystr
-                updateWindows
-                updateHighlightedCompl
-                complete <- tryAutoComplete
-                when complete acceptSelection
+    handleInput :: KeyMask -> Maybe (XP ()) -> XP ()
+    handleInput keymask = \case
+        Just action -> action >> updateWindows
+        Nothing     -> when (keymask .&. controlMask == 0) $ do
+            insertString $ utf8Decode keystr
+            updateWindows
+            updateHighlightedCompl
+            complete <- tryAutoComplete
+            when complete acceptSelection
 
 -- There are two options to store the completion list during the main loop:
 -- * Use the State monad, with 'Nothing' as the initial state.
