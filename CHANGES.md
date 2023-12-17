@@ -246,6 +246,10 @@
       `XMonad.Actions.ToggleFullFloat` for a float-restoring implementation of
       fullscreening.
 
+    - Added `ewmhDesktops(Maybe)ManageHook` that places windows in their
+      preferred workspaces. This is useful when restoring a browser session
+      after a restart.
+
   * `XMonad.Hooks.StatusBar`
 
     - Added `startAllStatusBars` to start the configured status bars.
