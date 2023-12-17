@@ -76,6 +76,11 @@
     - Deprecated the entire module, use `XMonad.Actions.WithAll`
       instead.
 
+  * `XMonad.Layout.Circle`:
+
+    - Deprecated the entire module, use the `circle` function from
+      `XMonad.Layout.CircleEx` instead.
+
   * `XMonad.Hooks.EwmhDesktops`
 
     - `_NET_CLIENT_LIST_STACKING` puts windows in the current workspace at the

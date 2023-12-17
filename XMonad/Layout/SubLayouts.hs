@@ -47,8 +47,6 @@ module XMonad.Layout.SubLayouts (
     )
     where
 
-import XMonad.Layout.Circle () -- so haddock can find the link
-
 import XMonad.Layout.Decoration(Decoration, DefaultShrinker)
 import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
                                     redoLayout),
@@ -184,11 +182,11 @@ import qualified Data.Set as S
 --  [@outerLayout@] The layout that determines the rectangles given to each
 --  group.
 --
---  Ex. The second group is 'Tall', the third is 'Circle', all others are tabbed
---  with:
+--  Ex. The second group is 'Tall', the third is 'XMonad.Layout.CircleEx.circle',
+--  all others are tabbed with:
 --
 --  > myLayout = addTabs shrinkText def
---  >          $ subLayout [0,1,2] (Simplest ||| Tall 1 0.2 0.5 ||| Circle)
+--  >          $ subLayout [0,1,2] (Simplest ||| Tall 1 0.2 0.5 ||| circle)
 --  >          $ Tall 1 0.2 0.5 ||| Full
 subLayout :: [Int] -> subl a -> l a -> ModifiedLayout (Sublayout subl) l a
 subLayout nextLayout sl = ModifiedLayout (Sublayout (I []) (nextLayout,sl) [])

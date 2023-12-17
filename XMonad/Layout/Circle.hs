@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -15,15 +16,14 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.Circle (
-                             -- * Usage
-                             -- $usage
-                             Circle (..)
-                            ) where -- actually it's an ellipse
+module XMonad.Layout.Circle {-# DEPRECATED "Use XMonad.Layout.CircleEx instead" #-}
+  ( -- * Usage
+    -- $usage
+    pattern Circle
+  ) where -- actually it's an ellipse
 
-import XMonad.Prelude
-import XMonad
-import XMonad.StackSet (integrate, peek)
+import GHC.Real (Ratio(..))
+import XMonad.Layout.CircleEx
 
 -- $usage
 -- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
@@ -39,37 +39,6 @@ import XMonad.StackSet (integrate, peek)
 -- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
-data Circle a = Circle deriving ( Read, Show )
+pattern Circle :: CircleEx a
+pattern Circle = CircleEx 1 (70 :% 99) (2 :% 5) 1 0
 
-instance LayoutClass Circle Window where
-    doLayout Circle r s = do layout <- raiseFocus $ circleLayout r $ integrate s
-                             return (layout, Nothing)
-
-circleLayout :: Rectangle -> [a] -> [(a, Rectangle)]
-circleLayout _ []     = []
-circleLayout r (w:ws) = master : rest
-    where master = (w, center r)
-          rest   = zip ws $ map (satellite r) [0, pi * 2 / fromIntegral (length ws) ..]
-
-raiseFocus :: [(Window, Rectangle)] -> X [(Window, Rectangle)]
-raiseFocus xs = do focused <- withWindowSet (return . peek)
-                   return $ case find ((== focused) . Just . fst) xs of
-                              Just x  -> x : delete x xs
-                              Nothing -> xs
-
-center :: Rectangle -> Rectangle
-center (Rectangle sx sy sw sh) = Rectangle x y w h
-    where s = sqrt 2 :: Double
-          w = round (fromIntegral sw / s)
-          h = round (fromIntegral sh / s)
-          x = sx + fromIntegral (sw - w) `div` 2
-          y = sy + fromIntegral (sh - h) `div` 2
-
-satellite :: Rectangle -> Double -> Rectangle
-satellite (Rectangle sx sy sw sh) a = Rectangle (sx + round (rx + rx * cos a))
-                                                (sy + round (ry + ry * sin a))
-                                                w h
-    where rx = fromIntegral (sw - w) / 2
-          ry = fromIntegral (sh - h) / 2
-          w = sw * 10 `div` 25
-          h = sh * 10 `div` 25

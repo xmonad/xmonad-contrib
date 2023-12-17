@@ -97,7 +97,7 @@ data CircleEx a = CircleEx
 -- * @cMultiplier@ is set to 1, which means all secondary windows
 --   will have the same size
 --
--- This can be used as a drop-in replacement for "XMonad.Layout.Circle.Circle".
+-- This can be used as a drop-in replacement for "XMonad.Layout.Circle".
 circle :: CircleEx a
 circle = CircleEx 1 (70%99) (2%5) 1 0
 
