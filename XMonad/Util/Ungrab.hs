@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.Ungrab
@@ -19,6 +20,9 @@ module XMonad.Util.Ungrab {-# DEPRECATED "Use XMonad.Operations.unGrab instead" 
       unGrab
     ) where
 
+#if MIN_VERSION_xmonad(0, 17, 9)
+import XMonad.Operations (unGrab)
+#else
 import Graphics.X11.Xlib (sync)
 import Graphics.X11.Xlib.Extras (currentTime)
 import Graphics.X11.Xlib.Misc (ungrabKeyboard, ungrabPointer)
@@ -43,3 +47,4 @@ import XMonad.Core
 -- | Release xmonad's keyboard grab, so other grabbers can do their thing.
 unGrab :: X ()
 unGrab = withDisplay $ \d -> io (ungrabKeyboard d currentTime >> ungrabPointer d currentTime >> sync d False)
+#endif
