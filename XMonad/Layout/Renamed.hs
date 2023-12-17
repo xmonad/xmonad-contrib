@@ -19,6 +19,7 @@
 module XMonad.Layout.Renamed ( -- * Usage
                                -- $usage
                                renamed
+                             , named
                              , Rename(..) ) where
 
 import XMonad
@@ -39,6 +40,10 @@ import XMonad.Layout.LayoutModifier
 -- | Apply a list of 'Rename' values to a layout, from left to right.
 renamed :: [Rename a] -> l a -> ModifiedLayout Rename l a
 renamed = ModifiedLayout . Chain
+
+-- | Rename a layout. (Convenience alias for @renamed [Replace s]@.)
+named :: String -> l a -> ModifiedLayout Rename l a
+named s = renamed [Replace s]
 
 -- | The available renaming operations
 data Rename a = CutLeft Int -- ^ Remove a number of characters from the left

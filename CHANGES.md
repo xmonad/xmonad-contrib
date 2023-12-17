@@ -68,7 +68,8 @@
 
   * `XMonad.Layout.Named`
 
-    - Deprecated the entire module, use `XMonad.Layout.Renamed` instead.
+    - Deprecated the entire module, use `XMonad.Layout.Renamed` (which newly
+      provides `named` for convenience) instead.
 
   * `XMonad.Actions.SinkAll`
 
