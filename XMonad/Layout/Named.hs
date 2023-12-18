@@ -44,10 +44,6 @@ import XMonad.Layout.Renamed
 -- Note that this module has been deprecated and may be removed in a future
 -- release, please use "XMonad.Layout.Renamed" instead.
 
--- | (Deprecated) Rename a layout.
-named :: String -> l a -> ModifiedLayout Rename l a
-named s = renamed [Replace s]
-
 -- | (Deprecated) Remove the first word of the name.
 nameTail :: l a -> ModifiedLayout Rename l a
 nameTail = renamed [CutWordsLeft 1]
