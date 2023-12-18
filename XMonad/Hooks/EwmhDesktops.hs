@@ -24,6 +24,8 @@ module XMonad.Hooks.EwmhDesktops (
     -- $usage
     ewmh,
     ewmhFullscreen,
+    ewmhDesktopsManageHook,
+    ewmhDesktopsMaybeManageHook,
 
     -- * Customization
     -- $customization
@@ -480,6 +482,31 @@ ewmhDesktopsEventHook'
 
         mempty
 ewmhDesktopsEventHook' _ _ = mempty
+
+-- | A 'ManageHook' that shifts windows to the workspace they want to be in.
+-- Useful for restoring browser windows to where they were before restart.
+--
+-- To only use this for browsers (which might be a good idea, as many apps try
+-- to restore their window to their original position, but it's rarely
+-- desirable outside of security updates of multi-window apps like a browser),
+-- use this:
+--
+-- > stringProperty "WM_WINDOW_ROLE" =? "browser" --> ewmhDesktopsManageHook
+ewmhDesktopsManageHook :: ManageHook
+ewmhDesktopsManageHook = maybeToDefinite ewmhDesktopsMaybeManageHook
+
+-- | 'ewmhDesktopsManageHook' as a 'MaybeManageHook' for use with
+-- 'composeOne'. Returns 'Nothing' if the window didn't indicate any desktop
+-- preference, otherwise 'Just' (even if the preferred desktop was out of
+-- bounds).
+ewmhDesktopsMaybeManageHook :: MaybeManageHook
+ewmhDesktopsMaybeManageHook = desktop >>= traverse doShiftI
+  where
+    doShiftI :: Int -> ManageHook
+    doShiftI d = do
+        sort' <- liftX . XC.withDef $ \EwmhDesktopsConfig{workspaceSort} -> workspaceSort
+        ws <- liftX . gets $ map W.tag . sort' . W.workspaces . windowset
+        maybe idHook doShift $ ws !? d
 
 -- | Add EWMH fullscreen functionality to the given config.
 ewmhFullscreen :: XConfig a -> XConfig a

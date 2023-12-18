@@ -52,6 +52,7 @@ module XMonad.Hooks.ManageHelpers (
     isMinimized,
     isDialog,
     pid,
+    desktop,
     transientTo,
     maybeToDefinite,
     MaybeManageHook,
@@ -199,6 +200,15 @@ isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 -- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm45623487788432>.
 pid :: Query (Maybe ProcessID)
 pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w <&> \case
+    Just [x] -> Just (fromIntegral x)
+    _        -> Nothing
+
+-- | This function returns 'Just' the @_NET_WM_DESKTOP@ property for a
+-- particular window if set, 'Nothing' otherwise.
+--
+-- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm46181547492704>.
+desktop :: Query (Maybe Int)
+desktop = ask >>= \w -> liftX $ getProp32s "_NET_WM_DESKTOP" w <&> \case
     Just [x] -> Just (fromIntegral x)
     _        -> Nothing
 
