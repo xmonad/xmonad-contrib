@@ -1138,6 +1138,8 @@ vimLikeXPKeymap' fromColor promptF pasteFilter notWord = M.fromList $
         , (xK_c,            promptSubmap (setModeDone True) changeVimXPKeymap
                                 >> setModeDone True
           )
+        , (xK_Return,       acceptSelection)
+        , (xK_KP_Enter,     acceptSelection)
         ] ++
         map (first $ (,) shiftMask)
         [ (xK_dollar,       endOfLine >> moveCursor Prev)

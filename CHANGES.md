@@ -269,6 +269,9 @@
       to cycle through the completions backwards. This is bound to
       `S-<TAB>` by default.
 
+    - The `vimLikeXPKeymap` now accepts the prompt upon pressing enter
+      in normal mode.
+
   * `XMonad.Actions.Prefix`
 
     - Added `orIfPrefixed`, a combinator to decide upon an action based
