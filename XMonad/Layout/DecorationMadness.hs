@@ -17,7 +17,7 @@ module XMonad.Layout.DecorationMadness
     ( -- * Usage
       -- $usage
 
-      -- * Decorated layouts based on Circle
+      -- * Decorated layouts based on CircleEx
       -- $circle
       circleSimpleDefault
     , circleDefault
@@ -94,7 +94,7 @@ import XMonad.Layout.SimpleDecoration
 import XMonad.Layout.TabBarDecoration
 
 import XMonad.Layout.Accordion
-import XMonad.Layout.Circle
+import XMonad.Layout.CircleEx
 import XMonad.Layout.WindowArranger
 import XMonad.Layout.SimpleFloat
 
@@ -132,39 +132,39 @@ import XMonad.Layout.SimpleFloat
 -- "XMonad.Util.Themes"
 
 -- $circle
--- Here you will find 'Circle' based decorated layouts.
+-- Here you will find 'CircleEx' based decorated layouts.
 
--- | A 'Circle' layout with the xmonad default decoration, default
+-- | A 'CircleEx' layout with the xmonad default decoration, default
 -- theme and default shrinker.
 --
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDefault.png>
-circleSimpleDefault :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker) Circle Window
-circleSimpleDefault = decoration shrinkText def DefaultDecoration Circle
+circleSimpleDefault :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker) CircleEx Window
+circleSimpleDefault = decoration shrinkText def DefaultDecoration circle
 
 -- | Similar to 'circleSimpleDefault' but with the possibility of
 -- setting a custom shrinker and a custom theme.
 circleDefault :: Shrinker s => s -> Theme
-              -> ModifiedLayout (Decoration DefaultDecoration s) Circle Window
-circleDefault s t = decoration s t DefaultDecoration Circle
+              -> ModifiedLayout (Decoration DefaultDecoration s) CircleEx Window
+circleDefault s t = decoration s t DefaultDecoration circle
 
--- | A 'Circle' layout with the xmonad simple decoration, default
+-- | A 'CircleEx' layout with the xmonad simple decoration, default
 -- theme and default shrinker.
 --
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDeco.png>
-circleSimpleDeco :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker) Circle Window
-circleSimpleDeco = decoration shrinkText def (Simple True) Circle
+circleSimpleDeco :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker) CircleEx Window
+circleSimpleDeco = decoration shrinkText def (Simple True) circle
 
 -- | Similar to 'circleSimpleDece' but with the possibility of
 -- setting a custom shrinker and a custom theme.
 circleDeco :: Shrinker s => s -> Theme
-           -> ModifiedLayout (Decoration SimpleDecoration s) Circle Window
-circleDeco s t = decoration s t (Simple True) Circle
+           -> ModifiedLayout (Decoration SimpleDecoration s) CircleEx Window
+circleDeco s t = decoration s t (Simple True) circle
 
--- | A 'Circle' layout with the xmonad default decoration, default
+-- | A 'CircleEx' layout with the xmonad default decoration, default
 -- theme and default shrinker, but with the possibility of moving
 -- windows with the mouse, and resize\/move them with the keyboard.
 --
@@ -172,17 +172,17 @@ circleDeco s t = decoration s t (Simple True) Circle
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDefaultResizable.png>
 circleSimpleDefaultResizable :: ModifiedLayout (Decoration DefaultDecoration DefaultShrinker)
-                                (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
-circleSimpleDefaultResizable = decoration shrinkText def DefaultDecoration (mouseResize $ windowArrange Circle)
+                                (ModifiedLayout MouseResize (ModifiedLayout WindowArranger CircleEx)) Window
+circleSimpleDefaultResizable = decoration shrinkText def DefaultDecoration (mouseResize $ windowArrange circle)
 
 -- | Similar to 'circleSimpleDefaultResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleDefaultResizable :: Shrinker s => s -> Theme
                        -> ModifiedLayout (Decoration DefaultDecoration s)
-                          (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
-circleDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ windowArrange Circle)
+                          (ModifiedLayout MouseResize (ModifiedLayout WindowArranger CircleEx)) Window
+circleDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ windowArrange circle)
 
--- | A 'Circle' layout with the xmonad simple decoration, default
+-- | A 'CircleEx' layout with the xmonad simple decoration, default
 -- theme and default shrinker, but with the possibility of moving
 -- windows with the mouse, and resize\/move them with the keyboard.
 --
@@ -190,45 +190,45 @@ circleDefaultResizable s t = decoration s t DefaultDecoration (mouseResize $ win
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDecoResizable.png>
 circleSimpleDecoResizable :: ModifiedLayout (Decoration SimpleDecoration DefaultShrinker)
-                             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
-circleSimpleDecoResizable = decoration shrinkText def (Simple True) (mouseResize $ windowArrange Circle)
+                             (ModifiedLayout MouseResize (ModifiedLayout WindowArranger CircleEx)) Window
+circleSimpleDecoResizable = decoration shrinkText def (Simple True) (mouseResize $ windowArrange circle)
 
 -- | Similar to 'circleSimpleDecoResizable' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleDecoResizable :: Shrinker s => s -> Theme
                     -> ModifiedLayout (Decoration SimpleDecoration s)
-                       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger Circle)) Window
-circleDecoResizable s t = decoration s t (Simple True) (mouseResize $ windowArrange Circle)
+                       (ModifiedLayout MouseResize (ModifiedLayout WindowArranger CircleEx)) Window
+circleDecoResizable s t = decoration s t (Simple True) (mouseResize $ windowArrange circle)
 
--- | A 'Circle' layout with the xmonad DwmStyle decoration, default
+-- | A 'CircleEx' layout with the xmonad DwmStyle decoration, default
 -- theme and default shrinker.
 --
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleDwmStyle.png>
-circleSimpleDwmStyle :: ModifiedLayout (Decoration DwmStyle DefaultShrinker) Circle Window
-circleSimpleDwmStyle = decoration shrinkText def Dwm Circle
+circleSimpleDwmStyle :: ModifiedLayout (Decoration DwmStyle DefaultShrinker) CircleEx Window
+circleSimpleDwmStyle = decoration shrinkText def Dwm circle
 
 -- | Similar to 'circleSimpleDwmStyle' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleDwmStyle :: Shrinker s => s -> Theme
-               -> ModifiedLayout (Decoration DwmStyle s) Circle Window
-circleDwmStyle s t = decoration s t Dwm Circle
+               -> ModifiedLayout (Decoration DwmStyle s) CircleEx Window
+circleDwmStyle s t = decoration s t Dwm circle
 
--- | A 'Circle' layout with the xmonad tabbed decoration, default
+-- | A 'CircleEx' layout with the xmonad tabbed decoration, default
 -- theme and default shrinker.
 --
 -- Here you can find a screen shot:
 --
 -- <http://code.haskell.org/~arossato/xmonadShots/circleSimpleTabbed.png>
-circleSimpleTabbed :: ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) (ModifiedLayout ResizeScreen Circle) Window
-circleSimpleTabbed = simpleTabBar Circle
+circleSimpleTabbed :: ModifiedLayout (Decoration TabBarDecoration DefaultShrinker) (ModifiedLayout ResizeScreen CircleEx) Window
+circleSimpleTabbed = simpleTabBar circle
 
 -- | Similar to 'circleSimpleTabbed' but with the
 -- possibility of setting a custom shrinker and a custom theme.
 circleTabbed :: Shrinker s => s -> Theme
-             -> ModifiedLayout (Decoration TabBarDecoration s) (ModifiedLayout ResizeScreen Circle) Window
-circleTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) Circle)
+             -> ModifiedLayout (Decoration TabBarDecoration s) (ModifiedLayout ResizeScreen CircleEx) Window
+circleTabbed s t = tabBar s t Top (resizeVertical (fi $ decoHeight t) circle)
 
 
 -- $accordion

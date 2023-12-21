@@ -76,6 +76,11 @@
     - Deprecated the entire module, use `XMonad.Actions.WithAll`
       instead.
 
+  * `XMonad.Layout.Circle`:
+
+    - Deprecated the entire module, use the `circle` function from
+      `XMonad.Layout.CircleEx` instead.
+
   * `XMonad.Hooks.EwmhDesktops`
 
     - `_NET_CLIENT_LIST_STACKING` puts windows in the current workspace at the
@@ -134,6 +139,11 @@
     - Fullscreen (float) a window while remembering its original state.
       There's both an action to be bound to a key, and hooks that plug into
       `XMonad.Hooks.EwmhDesktops`.
+
+  * `XMonad.Layout.CircleEx`:
+
+    - A new window layout, similar to X.L.Circle, but with more
+      possibilities for customisation.
 
 ### Bug Fixes and Minor Changes
 
