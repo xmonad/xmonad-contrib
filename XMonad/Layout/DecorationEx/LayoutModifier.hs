@@ -303,7 +303,7 @@ updateDeco engine shrinker theme decoState wd isExpose =
   case (wdDecoWindow wd, wdDecoRect wd) of
     (Just decoWindow, Just decoRect@(Rectangle _ _ wh ht)) -> do
       let origWin = wdOrigWindow wd
-      drawData <- mkDrawData theme decoState origWin decoRect
+      drawData <- mkDrawData engine theme decoState origWin decoRect
       widgetPlaces <- placeWidgets engine theme shrinker decoState decoRect (wdOrigWindow wd) (themeWidgets theme)
       -- io $ print widgetPlaces
       paintDecoration engine decoWindow wh ht shrinker (drawData {ddWidgetPlaces = widgetPlaces}) isExpose
