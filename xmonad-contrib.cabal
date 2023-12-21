@@ -238,6 +238,16 @@ library
                         XMonad.Layout.ComboP
                         XMonad.Layout.Cross
                         XMonad.Layout.Decoration
+                        XMonad.Layout.DecorationEx
+                        XMonad.Layout.DecorationEx.Types
+                        XMonad.Layout.DecorationEx.Engine
+                        XMonad.Layout.DecorationEx.Geometry
+                        XMonad.Layout.DecorationEx.Widgets
+                        XMonad.Layout.DecorationEx.Theme
+                        XMonad.Layout.DecorationEx.LayoutModifier
+                        XMonad.Layout.DecorationEx.TextEngine
+                        XMonad.Layout.DecorationEx.DwmGeometry
+                        XMonad.Layout.DecorationEx.TabbedGeometry
                         XMonad.Layout.DecorationAddons
                         XMonad.Layout.DecorationMadness
                         XMonad.Layout.Dishes
