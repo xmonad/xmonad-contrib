@@ -26,8 +26,6 @@ module XMonad.Layout.DecorationEx.DwmGeometry (
     dwmStyleDeco, dwmStyleDecoEx
   ) where 
 
-import Data.Default
-
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
@@ -74,20 +72,20 @@ fi = fromIntegral
 instance DecorationGeometry DwmGeometry Window where
   describeGeometry _ = "DwmStyle"
 
-  pureDecoration (DwmGeometry {..}) screenRect stack wrs (w, Rectangle x y windowWidth windowHeight) =
+  pureDecoration (DwmGeometry {..}) _ stack _ (w, Rectangle x y windowWidth _) =
     let width = min windowWidth dwmDecoWidth
         halfWidth = width `div` 2
         minCenterX = x + fi halfWidth
         maxCenterX = x + fi windowWidth - fromIntegral halfWidth
-        centerX = round $ (1 - dwmHorizontalPosition)*fi minCenterX + dwmHorizontalPosition*fi maxCenterX
+        centerX = round ((1 - dwmHorizontalPosition)*fi minCenterX + dwmHorizontalPosition*fi maxCenterX) :: Position
         decoX = centerX - fi halfWidth
         focusedWindow = W.focus stack
         isFocused = focusedWindow == w
     in  if (not dwmShowForFocused && isFocused) || not (D.isInStack stack w)
           then Nothing
-          else Just $ Rectangle (fi decoX) y width dwmDecoHeight
+          else Just $ Rectangle decoX y width dwmDecoHeight
 
-  shrinkWindow _ decoRect windowRect = windowRect
+  shrinkWindow _ _ windowRect = windowRect
 
 -- | Add a decoration to window layout. Widgets are indicated with text fragments using TextDecoration;
 -- decoration placement can be adjusted.

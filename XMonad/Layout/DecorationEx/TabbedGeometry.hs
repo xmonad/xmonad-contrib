@@ -32,8 +32,6 @@ module XMonad.Layout.DecorationEx.TabbedGeometry (
     SingleTabMode (..)
   ) where 
 
-import Data.Default
-
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Prelude
@@ -92,7 +90,7 @@ instance DecorationGeometry TabbedGeometry Window where
 
   describeGeometry _ = "Tabbed"
 
-  pureDecoration tabs screenRect stack wrs (window, windowRect) =
+  pureDecoration tabs _ stack wrs (window, windowRect) =
     let Rectangle windowX windowY windowWidth windowHeight = windowRect
         -- windows that are mapped onto the same rectangle as current one are considered to
         -- be in one tabs group
@@ -126,7 +124,7 @@ instance DecorationGeometry TabbedGeometry Window where
                   allTabsWidth =
                     case hTabWidth' of
                       AutoWidth -> fi windowWidth
-                      FixedWidth tabWidth -> fi $ min windowWidth $ effectiveTabWidth * max 1 (fi numWindows)
+                      FixedWidth _ -> fi $ min windowWidth $ effectiveTabWidth * max 1 (fi numWindows)
 
                   tabsStartX =
                     case hTabAlignment of
@@ -138,7 +136,7 @@ instance DecorationGeometry TabbedGeometry Window where
                   tabX i = tabsStartX +
                         case hTabWidth' of
                           AutoWidth -> fi ((windowWidth * fi i) `div` max 1 (fi numWindows))
-                          FixedWidth tabWidth -> fi effectiveTabWidth * fi i
+                          FixedWidth _ -> fi effectiveTabWidth * fi i
 
               VerticalTabs {..} ->
                   Just $ case vTabPlacement of

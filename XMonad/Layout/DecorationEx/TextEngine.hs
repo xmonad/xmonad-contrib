@@ -60,8 +60,8 @@ instance (TextWidget widget, ClickHandler (GenericTheme SimpleStyle) widget)
 
   paintDecoration = paintDecorationSimple
 
-  initializeState engine geom theme = initXMF (themeFontName theme)
-  releaseStateResources engine = releaseXMF
+  initializeState _ _ theme = initXMF (themeFontName theme)
+  releaseStateResources _ = releaseXMF
 
 -- | Implementation of @paintWidget@ for decoration engines based on @TextDecoration@.
 paintTextWidget :: (TextWidget widget,
@@ -78,7 +78,7 @@ paintTextWidget :: (TextWidget widget,
                 -> widget
                 -> Bool
                 -> X ()
-paintTextWidget engine (dpy, pixmap, gc) place shrinker dd widget isExpose = do
+paintTextWidget engine (dpy, pixmap, gc) place shrinker dd widget _ = do
     let style = ddStyle dd
         rect = wpRectangle place
         x = rect_x rect
@@ -97,10 +97,9 @@ calcTextWidgetPlace :: (TextWidget widget,
                     -> DrawData engine widget
                     -> widget
                     -> X WidgetPlace
-calcTextWidgetPlace deco dd widget = do
+calcTextWidgetPlace _ dd widget = do
     str <- widgetString dd widget
-    let w = rect_width (ddDecoRect dd)
-        h = rect_height (ddDecoRect dd)
+    let h = rect_height (ddDecoRect dd)
         font = ddEngineState dd
     withDisplay $ \dpy -> do
       width <- fi <$> textWidthXMF dpy (ddEngineState dd) str

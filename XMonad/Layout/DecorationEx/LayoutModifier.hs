@@ -109,14 +109,14 @@ deriving instance (Read (Theme engine widget), Read shrinker, Read (engine widge
 -- 'handleEvent', which will call the appropriate 'DecorationEngine'
 -- methods to perform its tasks.
 instance (DecorationEngine engine widget Window, DecorationGeometry geom Window, Shrinker shrinker) => LayoutModifier (DecorationEx engine widget geom shrinker) Window where
-    redoLayout (DecorationEx (I (Just state)) shrinker theme engine geom) _ Nothing _ = do
-        releaseResources engine state
+    redoLayout (DecorationEx (I (Just decoState)) shrinker theme engine geom) _ Nothing _ = do
+        releaseResources engine decoState
         return ([], Just $ DecorationEx (I Nothing) shrinker theme engine geom)
     redoLayout _ _ Nothing _  = return ([], Nothing)
 
-    redoLayout (DecorationEx st shrinker theme engine geom) screenRect (Just stack) srcPairs
-        | I Nothing  <- st = initState theme engine geom shrinker screenRect stack srcPairs >>= processState
-        | I (Just s) <- st = do
+    redoLayout (DecorationEx invState shrinker theme engine geom) screenRect (Just stack) srcPairs
+        | I Nothing  <- invState = initState theme engine geom shrinker screenRect stack srcPairs >>= processState
+        | I (Just s) <- invState = do
             let decorations  = dsDecorations s
                 (d,a) = curry diff (getOrigWindows decorations) srcWindows
                 toDel = todel d decorations
@@ -303,7 +303,7 @@ updateDeco engine shrinker theme decoState wd isExpose =
   case (wdDecoWindow wd, wdDecoRect wd) of
     (Just decoWindow, Just decoRect@(Rectangle _ _ wh ht)) -> do
       let origWin = wdOrigWindow wd
-      drawData <- mkDrawData engine shrinker theme decoState origWin decoRect
+      drawData <- mkDrawData theme decoState origWin decoRect
       widgetPlaces <- placeWidgets engine theme shrinker decoState decoRect (wdOrigWindow wd) (themeWidgets theme)
       -- io $ print widgetPlaces
       paintDecoration engine decoWindow wh ht shrinker (drawData {ddWidgetPlaces = widgetPlaces}) isExpose

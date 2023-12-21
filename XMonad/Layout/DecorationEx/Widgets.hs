@@ -167,7 +167,7 @@ class DecorationWidget widget => TextWidget widget where
 
 instance TextWidget StandardWidget where
     widgetString dd TitleWidget = return $ ddWindowTitle dd
-    widgetString dd (WindowIcon {}) = return "[*]"
+    widgetString _ (WindowIcon {}) = return "[*]"
     widgetString dd w = do
       checked <- isWidgetChecked w (ddOrigWindow dd)
       if checked

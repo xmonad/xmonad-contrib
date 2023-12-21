@@ -38,6 +38,7 @@ module XMonad.Layout.DecorationEx.Engine (
 
 import Control.Monad
 import Data.Bits (testBit)
+import Data.Kind
 import Foreign.C.Types (CInt)
 
 import XMonad
@@ -95,7 +96,7 @@ class (Read (engine widget a), Show (engine widget a),
     -- | Type of themes used by decoration engine.
     -- This type must be parametrized over widget type,
     -- because theme will contain a list of widgets.
-    type Theme engine :: * -> *           
+    type Theme engine :: Type -> Type           
                                           
     -- | Type of data used by engine as a context during painting;
     -- for plain X11-based implementation this is Display, Pixmap
@@ -143,31 +144,47 @@ class (Read (engine widget a), Show (engine widget a),
                  -> Window                       -- ^ Original window to be decorated
                  -> WidgetLayout widget          -- ^ Widgets layout
                  -> X (WidgetLayout WidgetPlace)
-    placeWidgets engine theme shrinker decoStyle decoRect window wlayout = do
+    placeWidgets engine theme _ decoStyle decoRect window wlayout = do
         let leftWidgets = wlLeft wlayout
             rightWidgets = wlRight wlayout
             centerWidgets = wlCenter wlayout
 
-        dd <- mkDrawData engine shrinker theme decoStyle window decoRect
-        let dd' = dd {ddDecoRect = pad (widgetsPadding theme) (ddDecoRect dd)}
-        rightRects <- alignRight engine dd' rightWidgets
-        leftRects <- alignLeft engine dd' leftWidgets
+        dd <- mkDrawData theme decoStyle window decoRect
+        let paddedDecoRect = pad (widgetsPadding theme) (ddDecoRect dd)
+            paddedDd = dd {ddDecoRect = paddedDecoRect}
+        rightRects <- alignRight engine paddedDd rightWidgets
+        leftRects <- alignLeft engine paddedDd leftWidgets
         let wantedLeftWidgetsWidth = sum $ map (rect_width . wpRectangle) leftRects
             wantedRightWidgetsWidth = sum $ map (rect_width . wpRectangle) rightRects
             hasShrinkableOnLeft = any isShrinkable leftWidgets
             hasShrinkableOnRight = any isShrinkable rightWidgets
             decoWidth = rect_width decoRect
-            (leftWidgetsWidth, rightWidgetsWidth) =
-              if hasShrinkableOnLeft
-                then (min (decoWidth - wantedRightWidgetsWidth) wantedLeftWidgetsWidth,
+            (leftWidgetsWidth, rightWidgetsWidth)
+              | hasShrinkableOnLeft = 
+                  (min (decoWidth - wantedRightWidgetsWidth) wantedLeftWidgetsWidth,
                       wantedRightWidgetsWidth)
-                else (wantedLeftWidgetsWidth,
+              | hasShrinkableOnRight =
+                  (wantedLeftWidgetsWidth,
                       min (decoWidth - wantedLeftWidgetsWidth) wantedRightWidgetsWidth)
-            dd'' = dd' {ddDecoRect = padCenter leftWidgetsWidth rightWidgetsWidth (ddDecoRect dd')}
-        centerRects <- alignCenter engine dd'' centerWidgets
-        return $ WidgetLayout leftRects centerRects rightRects
+              | otherwise = (wantedLeftWidgetsWidth, wantedRightWidgetsWidth)
+            ddForCenter = paddedDd {ddDecoRect = padCenter leftWidgetsWidth rightWidgetsWidth paddedDecoRect}
+        centerRects <- alignCenter engine ddForCenter centerWidgets
+        let shrinkedLeftRects = packLeft (rect_x paddedDecoRect) $ shrinkPlaces leftWidgetsWidth $ zip leftRects (map isShrinkable leftWidgets)
+            shrinkedRightRects = packRight (rect_width paddedDecoRect) $ shrinkPlaces rightWidgetsWidth $ zip rightRects (map isShrinkable rightWidgets)
+        return $ WidgetLayout shrinkedLeftRects centerRects shrinkedRightRects
       where
-        pad p (Rectangle x y w h) =
+        shrinkPlaces targetWidth ps =
+          let nShrinkable = length (filter snd ps)
+              totalUnshrinkedWidth = sum $ map (rect_width . wpRectangle . fst) $ filter (not . snd) ps
+              shrinkedWidth = (targetWidth - totalUnshrinkedWidth) `div` fi nShrinkable
+
+              resetX place = place {wpRectangle = (wpRectangle place) {rect_x = 0}}
+
+              adjust (place, True) = resetX $ place {wpRectangle = (wpRectangle place) {rect_width = shrinkedWidth}}
+              adjust (place, False) = resetX place
+          in  map adjust ps
+
+        pad p (Rectangle _ _ w h) =
           Rectangle (fi (bxLeft p)) (fi (bxTop p))
                     (w - bxLeft p - bxRight p)
                     (h - bxTop p - bxBottom p)
@@ -188,7 +205,7 @@ class (Read (engine widget a), Show (engine widget a),
 
     default getShrinkedWindowName :: (Shrinker shrinker, DecorationEngineState engine ~ XMonadFont)
                                   => engine widget a -> shrinker -> DecorationEngineState engine -> String -> Dimension -> Dimension -> X String
-    getShrinkedWindowName engine shrinker font name wh ht = do
+    getShrinkedWindowName _ shrinker font name wh ht = do
       let s = shrinkIt shrinker
       dpy <- asks display
       shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy font n
@@ -318,29 +335,32 @@ performWindowSwitching win =
 alignLeft :: forall engine widget a. DecorationEngine engine widget a => engine widget a -> DrawData engine widget -> [widget] -> X [WidgetPlace]
 alignLeft engine dd widgets = do
     places <- mapM (calcWidgetPlace engine dd) widgets
-    let places' = go (rect_x $ ddDecoRect dd) places
-    return places'
-  where
-    go _ [] = []
-    go x0 (place : places) =
-      let rect = wpRectangle place
-          x' = x0 + rect_x rect
-          rect' = rect {rect_x = x'}
-          place' = place {wpRectangle = rect'}
-      in  place' : go (x' + fi (rect_width rect)) places
+    return $ packLeft (rect_x $ ddDecoRect dd) places
+
+packLeft :: Position -> [WidgetPlace] -> [WidgetPlace]
+packLeft _ [] = []
+packLeft x0 (place : places) =
+  let rect = wpRectangle place
+      x' = x0 + rect_x rect
+      rect' = rect {rect_x = x'}
+      place' = place {wpRectangle = rect'}
+  in  place' : packLeft (x' + fi (rect_width rect)) places
 
 alignRight :: forall engine widget a. DecorationEngine engine widget a => engine widget a -> DrawData engine widget -> [widget] -> X [WidgetPlace]
 alignRight engine dd widgets = do
     places <- mapM (calcWidgetPlace engine dd) widgets
-    return $ reverse $ go (rect_width $ ddDecoRect dd) places
+    return $ packRight (rect_width $ ddDecoRect dd) places
+
+packRight :: Dimension -> [WidgetPlace] -> [WidgetPlace]
+packRight x0 places = reverse $ go x0 places
   where
     go _ [] = []
-    go x0 (place : places) = 
+    go x (place : rest) = 
       let rect = wpRectangle place
-          x' = x0 - rect_width rect
+          x' = x - rect_width rect
           rect' = rect {rect_x = fi x'}
           place' = place {wpRectangle = rect'}
-      in  place' : go x' places
+      in  place' : go x' rest
 
 alignCenter :: forall engine widget a. DecorationEngine engine widget a => engine widget a -> DrawData engine widget -> [widget] -> X [WidgetPlace]
 alignCenter engine dd widgets = do
@@ -367,15 +387,13 @@ alignCenter engine dd widgets = do
       in  place' : pack remaining places
 
 -- | Build an instance of DrawData type.
-mkDrawData :: (DecorationEngine engine widget a, Shrinker shrinker, ThemeAttributes (Theme engine widget), HasWidgets (Theme engine) widget)
-           => engine widget a                -- ^ Decoration engine instance
-           -> shrinker                       -- ^ Strings shrinker
-           -> Theme engine widget            -- ^ Decoration theme
+mkDrawData :: (ThemeAttributes (Theme engine widget), HasWidgets (Theme engine) widget)
+           => Theme engine widget            -- ^ Decoration theme
            -> DecorationEngineState engine   -- ^ State of decoration engine
            -> Window                         -- ^ Original window (to be decorated)
            -> Rectangle                      -- ^ Decoration rectangle
            -> X (DrawData engine widget)
-mkDrawData engine shrinker theme decoState origWindow decoRect@(Rectangle _ _ wh ht) = do
+mkDrawData theme decoState origWindow decoRect = do
     -- xmonad-contrib #809
     -- qutebrowser will happily shovel a 389K multiline string into @_NET_WM_NAME@
     -- and the 'defaultShrinker' (a) doesn't handle multiline strings well (b) is
@@ -422,7 +440,7 @@ windowStyleType win = do
 -- | Mouse focus and mouse drag are handled by the same function, this
 -- way we can start dragging unfocused windows too.
 handleMouseFocusDrag :: (DecorationEngine engine widget a, Shrinker shrinker) => engine widget a -> Theme engine widget -> DecorationLayoutState engine -> shrinker -> Event -> X ()
-handleMouseFocusDrag ds theme (DecorationLayoutState {dsDecorations}) shrinker (ButtonEvent {ev_window, ev_x_root, ev_y_root, ev_event_type, ev_button})
+handleMouseFocusDrag ds theme (DecorationLayoutState {dsDecorations}) _ (ButtonEvent {ev_window, ev_x_root, ev_y_root, ev_event_type, ev_button})
     | ev_event_type == buttonPress
     , Just (WindowDecoration {..}) <- findDecoDataByDecoWindow ev_window dsDecorations = do
         let decoRect@(Rectangle dx dy _ _) = fromJust wdDecoRect
@@ -431,7 +449,7 @@ handleMouseFocusDrag ds theme (DecorationLayoutState {dsDecorations}) shrinker (
             button = fi ev_button
         dealtWith <- handleDecorationClick ds theme decoRect (map wpRectangle wdWidgets) wdOrigWindow x y button
         unless dealtWith $ when (isDraggingEnabled theme button) $
-            mouseDrag (\x y -> focus wdOrigWindow >> decorationWhileDraggingHook ds ev_x_root ev_y_root (wdOrigWindow, wdOrigWinRect) x y)
+            mouseDrag (\dragX dragY -> focus wdOrigWindow >> decorationWhileDraggingHook ds ev_x_root ev_y_root (wdOrigWindow, wdOrigWinRect) dragX dragY)
                       (decorationAfterDraggingHook ds (wdOrigWindow, wdOrigWinRect) ev_window)
 handleMouseFocusDrag _ _ _ _ _ = return ()
 
@@ -452,7 +470,7 @@ decorationHandler :: forall engine widget a.
                   -> Int
                   -> Int
                   -> X Bool
-decorationHandler deco theme decoRect widgetPlaces window x y button = do
+decorationHandler _ theme _ widgetPlaces window x y button = do
     widgetDone <- go $ zip (widgetLayout $ themeWidgets theme) widgetPlaces
     if widgetDone
       then return True

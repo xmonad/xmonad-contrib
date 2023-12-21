@@ -23,9 +23,9 @@ module XMonad.Layout.DecorationEx.Theme (
 
 import qualified Data.Map as M
 
+import XMonad
 import qualified XMonad.Layout.Decoration as D
 
-import XMonad
 import XMonad.Layout.DecorationEx.Types
 import XMonad.Layout.DecorationEx.Widgets
 

@@ -51,7 +51,7 @@ module XMonad.Layout.DecorationEx (
   -- * Decoration-related types
   TextDecoration (..), DefaultGeometry (..),
   TabbedGeometry (..), DwmGeometry (..),
-  DecorationEx (..),
+  DecorationEx,
   -- * Theme types
   BoxBorders (..), BorderColors,
   SimpleStyle (..), GenericTheme (..),
