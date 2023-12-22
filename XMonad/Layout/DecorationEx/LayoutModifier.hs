@@ -39,7 +39,7 @@ import XMonad.Layout.WindowArranger (diff, listFromList)
 import XMonad.Util.Invisible
 import XMonad.Util.XUtils hiding (paintTextAndIcons)
 
-import XMonad.Layout.DecorationEx.Types
+import XMonad.Layout.DecorationEx.Common
 import XMonad.Layout.DecorationEx.Engine
 import XMonad.Layout.DecorationEx.Geometry
 

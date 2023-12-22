@@ -48,7 +48,7 @@ import XMonad.Layout.DecorationAddons (handleScreenCrossing)
 import XMonad.Util.Font
 import XMonad.Util.NamedWindows (getName)
 
-import XMonad.Layout.DecorationEx.Types
+import XMonad.Layout.DecorationEx.Common
 
 -- | Auxiliary type for data which are passed from
 -- decoration layout modifier to decoration engine.

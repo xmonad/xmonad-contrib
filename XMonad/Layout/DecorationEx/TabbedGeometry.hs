@@ -38,7 +38,7 @@ import XMonad.Prelude
 import XMonad.Layout.Decoration (ModifiedLayout, Shrinker (..))
 
 import XMonad.Layout.DecorationEx.LayoutModifier
-import XMonad.Layout.DecorationEx.Types
+import XMonad.Layout.DecorationEx.Common
 import XMonad.Layout.DecorationEx.Geometry
 import XMonad.Layout.DecorationEx.Widgets
 import XMonad.Layout.DecorationEx.TextEngine

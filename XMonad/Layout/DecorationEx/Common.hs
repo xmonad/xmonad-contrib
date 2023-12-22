@@ -7,8 +7,9 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Module      :  XMonad.Layout.DecorationEx.Types
--- Description :  Declaration of types used by DecorationEx module.
+-- Module      :  XMonad.Layout.DecorationEx.Common
+-- Description :  Declaration of types used by DecorationEx module,
+--                and commonly used utility functions.
 -- Copyright   :  (c) 2007 Andrea Rossato, 2009 Jan Vornberger, 2023 Ilya Portnov
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
@@ -20,7 +21,8 @@
 -- of "XMonad.Layout.DecorationEx" module.
 -----------------------------------------------------------------------------
 
-module XMonad.Layout.DecorationEx.Types (
+module XMonad.Layout.DecorationEx.Common (
+    -- * Common types
     WindowDecoration (..)
   , WindowCommand (..)
   , DecorationWidget (..)
@@ -30,9 +32,13 @@ module XMonad.Layout.DecorationEx.Types (
   , ClickHandler (..)
   , ThemeAttributes (..)
   , XPaintingContext
-  , BoxBorders (..), BorderColors
+  , BoxBorders (..)
+  , BorderColors
   , ThemeStyleType (..)
-  , SimpleStyle (..), GenericTheme (..), ThemeEx 
+  , SimpleStyle (..)
+  , GenericTheme (..)
+  , ThemeEx 
+  -- * Utilities
   , widgetLayout
   , windowStyleType
   , genericWindowStyle

@@ -70,7 +70,7 @@ module XMonad.Layout.DecorationEx (
   ) where
 
 import XMonad.Layout.Decoration
-import XMonad.Layout.DecorationEx.Types
+import XMonad.Layout.DecorationEx.Common
 import XMonad.Layout.DecorationEx.Widgets
 import XMonad.Layout.DecorationEx.Geometry
 import XMonad.Layout.DecorationEx.LayoutModifier

@@ -41,7 +41,7 @@ import XMonad.Layout.Maximize
 import XMonad.Actions.Minimize
 import XMonad.Actions.WindowMenu
 
-import XMonad.Layout.DecorationEx.Types
+import XMonad.Layout.DecorationEx.Common
 import XMonad.Layout.DecorationEx.Engine
 
 -- | Standard window commands.
