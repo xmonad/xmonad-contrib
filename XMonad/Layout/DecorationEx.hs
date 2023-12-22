@@ -61,12 +61,15 @@ module XMonad.Layout.DecorationEx (
   StandardWidget,
   -- * Utility functions for themes
   themeEx, borderColor, shadowBorder,
+  -- * Convinience re-exports
+  Shrinker (..), shrinkText,
   -- * Standard widgets
   titleW, toggleStickyW, minimizeW,
   maximizeW, closeW, dwmpromoteW,
   moveToNextGroupW, moveToPrevGroupW
   ) where
 
+import XMonad.Layout.Decoration
 import XMonad.Layout.DecorationEx.Types
 import XMonad.Layout.DecorationEx.Widgets
 import XMonad.Layout.DecorationEx.Theme
