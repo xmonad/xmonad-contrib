@@ -70,6 +70,9 @@ data StandardCommand =
     | GridWindowMenu   -- ^ Show window menu via "XMonad.Actions.GridSelect" (see "XMonad.Actions.WindowMenu")
   deriving (Eq, Show, Read)
 
+instance Default StandardCommand where
+  def = FocusWindow
+
 instance WindowCommand StandardCommand where
   executeWindowCommand FocusWindow w = do
     focus w
