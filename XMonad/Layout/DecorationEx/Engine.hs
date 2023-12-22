@@ -209,7 +209,7 @@ class (Read (engine widget a), Show (engine widget a),
       let s = shrinkIt shrinker
       dpy <- asks display
       shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy font n
-                              return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) name
+                              return $ size > fromIntegral wh) name
 
     -- | Mask of X11 events on which the decoration engine should do something.
     -- @exposureMask@ should be included here so that decoration engine could
