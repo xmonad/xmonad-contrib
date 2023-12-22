@@ -81,7 +81,7 @@ import XMonad.Layout.DecorationEx.DwmGeometry
 -- $usage
 --
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.DecorationEx
 -- Then edit your @layoutHook@ by adding the DwmStyle decoration to

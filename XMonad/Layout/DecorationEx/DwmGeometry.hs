@@ -39,7 +39,7 @@ import XMonad.Layout.DecorationEx.TextEngine
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.DecorationEx.DwmStyle
 -- Then edit your @layoutHook@ by adding the DwmStyle decoration to
