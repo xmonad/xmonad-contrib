@@ -88,7 +88,7 @@ deriving instance (Read (Theme engine widget), Read shrinker, Read (engine widge
 -- In 'redoLayout' we check the state: if there is no state we
 -- initialize it.
 --
--- The state is 'diff'ed against the list of windows produced by the
+-- The state is @diff@ed against the list of windows produced by the
 -- underlying layout: removed windows get deleted and new ones
 -- decorated by 'createDecos', which will call 'decorate' to decide if
 -- a window must be given a 'Rectangle', in which case a decoration
