@@ -72,7 +72,6 @@ module XMonad.Layout.DecorationEx (
 import XMonad.Layout.Decoration
 import XMonad.Layout.DecorationEx.Types
 import XMonad.Layout.DecorationEx.Widgets
-import XMonad.Layout.DecorationEx.Theme
 import XMonad.Layout.DecorationEx.Geometry
 import XMonad.Layout.DecorationEx.LayoutModifier
 import XMonad.Layout.DecorationEx.TextEngine

@@ -34,11 +34,20 @@ module XMonad.Layout.DecorationEx.Types (
   , ThemeStyleType (..)
   , SimpleStyle (..), GenericTheme (..), ThemeEx 
   , widgetLayout
+  , windowStyleType
+  , genericWindowStyle
+  , themeEx
+  , borderColor
+  , shadowBorder
   ) where
 
 import qualified Data.Map as M
+import Data.Bits (testBit)
 
 import XMonad
+import qualified XMonad.StackSet as W
+import XMonad.Hooks.UrgencyHook
+import qualified XMonad.Layout.Decoration as D
 
 -- | Information about decoration of one window
 data WindowDecoration = WindowDecoration {
@@ -190,4 +199,69 @@ widgetLayout ws = wlLeft ws ++ wlCenter ws ++ wlRight ws
 
 -- | Painting context for decoration engines based on plain X11 calls.
 type XPaintingContext = (Display, Pixmap, GC)
+
+instance (Show widget, Read widget, Read (WidgetCommand widget), Show (WidgetCommand widget))
+        => ThemeAttributes (ThemeEx widget) where
+  type Style (ThemeEx widget) = SimpleStyle
+  selectWindowStyle theme w = genericWindowStyle w theme
+  defaultBgColor t = sBgColor $ exInactive t
+  widgetsPadding = exPadding
+  themeFontName = exFontName
+
+instance ClickHandler (GenericTheme SimpleStyle) widget where
+  onDecorationClick theme button = M.lookup button (exOnDecoClick theme)
+  isDraggingEnabled theme button = button `elem` exDragWindowButtons theme
+
+-- | Generic utility function to select style from @GenericTheme@
+-- based on current state of the window.
+genericWindowStyle :: Window -> GenericTheme style widget -> X style
+genericWindowStyle win theme = do
+  styleType <- windowStyleType win
+  return $ case styleType of
+             ActiveWindow -> exActive theme
+             InactiveWindow -> exInactive theme
+             UrgentWindow -> exUrgent theme
+
+-- | Detect type of style to be used from current state of the window.
+windowStyleType :: Window -> X ThemeStyleType
+windowStyleType win = do
+  mbFocused <- W.peek <$> gets windowset
+  isWmStateUrgent <- (win `elem`) <$> readUrgents
+  isUrgencyBitSet <- withDisplay $ \dpy -> do
+                       hints <- io $ getWMHints dpy win
+                       return $ wmh_flags hints `testBit` urgencyHintBit
+  if isWmStateUrgent || isUrgencyBitSet
+    then return UrgentWindow
+    else return $
+      case mbFocused of
+        Nothing -> InactiveWindow
+        Just focused
+          | focused == win -> ActiveWindow
+          | otherwise -> InactiveWindow
+
+-- | Convert Theme type from "XMonad.Layout.Decoration" to 
+-- theme type used by "XMonad.Layout.DecorationEx.TextEngine".
+themeEx :: Default (WidgetCommand widget) => D.Theme -> ThemeEx widget
+themeEx t =
+    GenericTheme {
+          exActive = SimpleStyle (D.activeColor t) (D.activeTextColor t) (D.activeColor t) (D.activeBorderWidth t) (borderColor $ D.activeColor t)
+        , exInactive = SimpleStyle (D.inactiveColor t) (D.inactiveTextColor t) (D.inactiveColor t) (D.inactiveBorderWidth t) (borderColor $ D.inactiveColor t)
+        , exUrgent = SimpleStyle (D.urgentColor t) (D.urgentTextColor t) (D.urgentColor t) (D.urgentBorderWidth t) (borderColor $ D.urgentColor t)
+        , exPadding = BoxBorders 0 4 0 4
+        , exFontName = D.fontName t
+        , exOnDecoClick = M.fromList [(1, def)]
+        , exDragWindowButtons = [1]
+        , exWidgetsLeft = []
+        , exWidgetsCenter = []
+        , exWidgetsRight = []
+      }
+
+instance Default (WidgetCommand widget) => Default (ThemeEx widget) where
+  def = themeEx (def :: D.Theme)
+
+borderColor :: String -> BorderColors
+borderColor c = BoxBorders c c c c
+
+shadowBorder :: String -> String -> BorderColors
+shadowBorder highlight shadow = BoxBorders highlight shadow shadow highlight
 

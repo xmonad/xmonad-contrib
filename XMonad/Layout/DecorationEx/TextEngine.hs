@@ -42,10 +42,6 @@ import XMonad.Layout.DecorationEx.Widgets
 data TextDecoration widget a = TextDecoration
   deriving (Show, Read)
 
-instance ClickHandler (GenericTheme SimpleStyle) StandardWidget where
-  onDecorationClick theme button = M.lookup button (exOnDecoClick theme)
-  isDraggingEnabled theme button = button `elem` exDragWindowButtons theme
-
 instance (TextWidget widget, ClickHandler (GenericTheme SimpleStyle) widget)
   => DecorationEngine TextDecoration widget Window where
   type Theme TextDecoration = GenericTheme SimpleStyle

@@ -32,12 +32,10 @@ module XMonad.Layout.DecorationEx.Engine (
     Shrinker (..), shrinkText,
     -- * Utility functions
     mkDrawData,
-    paintDecorationSimple,
-    windowStyleType, genericWindowStyle
+    paintDecorationSimple
   ) where
 
 import Control.Monad
-import Data.Bits (testBit)
 import Data.Kind
 import Foreign.C.Types (CInt)
 
@@ -49,17 +47,8 @@ import XMonad.Layout.DraggingVisualizer (DraggingVisualizerMsg (..))
 import XMonad.Layout.DecorationAddons (handleScreenCrossing)
 import XMonad.Util.Font
 import XMonad.Util.NamedWindows (getName)
-import XMonad.Hooks.UrgencyHook
 
 import XMonad.Layout.DecorationEx.Types
-
-instance (Show widget, Read widget, Read (WidgetCommand widget), Show (WidgetCommand widget))
-        => ThemeAttributes (ThemeEx widget) where
-  type Style (ThemeEx widget) = SimpleStyle
-  selectWindowStyle theme w = genericWindowStyle w theme
-  defaultBgColor t = sBgColor $ exInactive t
-  widgetsPadding = exPadding
-  themeFontName = exFontName
 
 -- | Auxiliary type for data which are passed from
 -- decoration layout modifier to decoration engine.
@@ -410,33 +399,6 @@ mkDrawData _ theme decoState origWindow decoRect = do
                    ddWidgets = themeWidgets theme,
                    ddWidgetPlaces = WidgetLayout [] [] []
                   }
-
--- | Generic utility function to select style from @GenericTheme@
--- based on current state of the window.
-genericWindowStyle :: Window -> GenericTheme style widget -> X style
-genericWindowStyle win theme = do
-  styleType <- windowStyleType win
-  return $ case styleType of
-             ActiveWindow -> exActive theme
-             InactiveWindow -> exInactive theme
-             UrgentWindow -> exUrgent theme
-
--- | Detect type of style to be used from current state of the window.
-windowStyleType :: Window -> X ThemeStyleType
-windowStyleType win = do
-  mbFocused <- W.peek <$> gets windowset
-  isWmStateUrgent <- (win `elem`) <$> readUrgents
-  isUrgencyBitSet <- withDisplay $ \dpy -> do
-                       hints <- io $ getWMHints dpy win
-                       return $ wmh_flags hints `testBit` urgencyHintBit
-  if isWmStateUrgent || isUrgencyBitSet
-    then return UrgentWindow
-    else return $
-      case mbFocused of
-        Nothing -> InactiveWindow
-        Just focused
-          | focused == win -> ActiveWindow
-          | otherwise -> InactiveWindow
 
 -- | Mouse focus and mouse drag are handled by the same function, this
 -- way we can start dragging unfocused windows too.

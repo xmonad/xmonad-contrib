@@ -243,7 +243,6 @@ library
                         XMonad.Layout.DecorationEx.Engine
                         XMonad.Layout.DecorationEx.Geometry
                         XMonad.Layout.DecorationEx.Widgets
-                        XMonad.Layout.DecorationEx.Theme
                         XMonad.Layout.DecorationEx.LayoutModifier
                         XMonad.Layout.DecorationEx.TextEngine
                         XMonad.Layout.DecorationEx.DwmGeometry
