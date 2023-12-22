@@ -27,7 +27,7 @@ import XMonad.StackSet (integrate)
 import XMonad.Prelude (ap)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Dishes
 --

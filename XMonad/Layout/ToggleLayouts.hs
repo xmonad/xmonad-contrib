@@ -25,7 +25,7 @@ import XMonad.Prelude (fromMaybe)
 import XMonad.StackSet (Workspace (..))
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.ToggleLayouts
 --

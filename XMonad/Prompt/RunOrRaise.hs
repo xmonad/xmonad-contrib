@@ -35,7 +35,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 {- $usage
-1. In your @~\/.xmonad\/xmonad.hs@:
+1. In your @xmonad.hs@:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.RunOrRaise

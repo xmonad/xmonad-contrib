@@ -28,7 +28,7 @@ import XMonad.Util.Run
 
 {- $usage
 1. Grab the @capture.zsh@ script to capture zsh completions from <https://github.com/Valodim/zsh-capture-completion>
-2. In your @~\/.xmonad\/xmonad.hs@:
+2. In your @xmonad.hs@:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.Zsh

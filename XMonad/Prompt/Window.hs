@@ -44,7 +44,7 @@ import XMonad.Util.NamedWindows
 -- where you left your XChat. It also offers helpers to build the
 -- subset of windows which is used for the prompt completion.
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Window

@@ -51,7 +51,7 @@ import qualified Data.Map.Strict as M     (Map, elems, map, mapWithKey)
 -- $usage
 --
 -- You can use this module's basic functionality with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- >    import XMonad.Actions.EasyMotion (selectWindow)
 --

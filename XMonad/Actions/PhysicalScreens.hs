@@ -46,7 +46,7 @@ To create a screen comparator you can use screenComparatorByRectangle or screenC
 The default ScreenComparator orders screens by the upper-left-most corner, from top-to-bottom
 and then left-to-right.
 
-Example usage in your @~\/.xmonad\/xmonad.hs@ file:
+Example usage in your @xmonad.hs@ file:
 
 > import XMonad.Actions.PhysicalScreens
 > import Data.Default

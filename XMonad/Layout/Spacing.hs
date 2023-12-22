@@ -51,7 +51,7 @@ import           XMonad.Actions.MessageFeedback
 
 
 -- $usage
--- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@
+-- You can use this module by importing it into your @xmonad.hs@
 -- file:
 --
 -- > import XMonad.Layout.Spacing

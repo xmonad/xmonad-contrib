@@ -25,7 +25,7 @@ import XMonad.Prelude (fi)
 import Foreign.C.Types
 
 -- $usage
--- To use, first import this module into your @~\/.xmonad\/xmonad.hs@ file:
+-- To use, first import this module into your @xmonad.hs@ file:
 --
 -- > import qualified XMonad.Actions.FlexibleResize as Flex
 --

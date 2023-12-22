@@ -52,7 +52,7 @@ import qualified Data.List.NonEmpty as NE
 
 {- $usage
 
-Import the module into your @~\/.xmonad\/xmonad.hs@:
+Import the module into your @xmonad.hs@:
 
 > import XMonad.Actions.WindowGo
 

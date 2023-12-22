@@ -27,7 +27,7 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map as M
 
 -- $usage
--- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
+-- To use this module, start with the following @xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Config.Azerty

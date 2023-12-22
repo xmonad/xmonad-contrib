@@ -76,7 +76,7 @@ import XMonad.Layout.Simplest
 --
 -- > import XMonad.Layout.Groups.Examples
 --
--- to the top of your @.\/.xmonad\/xmonad.hs@.
+-- to the top of your @xmonad.hs@.
 --
 -- For more information on using any of the layouts, jump directly
 --   to its \"Example\" section.

@@ -65,7 +65,7 @@ import System.Exit
 import XMonad.Prelude(when)
 
 -- $usage
--- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
+-- To use this module, start with the following @xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Config.Bluetile

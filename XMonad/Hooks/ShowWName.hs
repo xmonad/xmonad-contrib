@@ -33,7 +33,7 @@ import Control.Concurrent (threadDelay)
 {- $usage
 
 You can use this module with the following in your
-@~\/.xmonad\/xmonad.hs@:
+@xmonad.hs@:
 
 > import XMonad.Hooks.ShowWName
 >

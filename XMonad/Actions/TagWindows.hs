@@ -39,7 +39,7 @@ econst = const . return
 
 -- $usage
 --
--- To use window tags, import this module into your @~\/.xmonad\/xmonad.hs@:
+-- To use window tags, import this module into your @xmonad.hs@:
 --
 -- > import XMonad.Actions.TagWindows
 -- > import XMonad.Prompt    -- to use tagPrompt

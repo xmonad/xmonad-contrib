@@ -15,7 +15,7 @@
 -- May be useful for making Java GUI programs work, just set WM name to \"LG3D\"
 -- and use Java 1.6u1 (1.6.0_01-ea-b03 works for me) or later.
 --
--- To your @~\/.xmonad\/xmonad.hs@ file, add the following line:
+-- To your @xmonad.hs@ file, add the following line:
 --
 -- > import XMonad.Hooks.SetWMName
 --

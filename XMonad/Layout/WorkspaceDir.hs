@@ -41,7 +41,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.StackSet ( tag, currentTag )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.WorkspaceDir
 --

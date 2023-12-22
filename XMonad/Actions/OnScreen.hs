@@ -148,7 +148,7 @@ toggleOrView' f i st = fromMaybe (f i st) $ do
 --
 -- This module provides an easy way to control, what you see on other screens in
 -- xinerama mode without having to focus them. Put this into your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Actions.OnScreen
 --

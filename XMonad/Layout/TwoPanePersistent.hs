@@ -28,7 +28,7 @@ import XMonad.StackSet (focus, up, down, Stack, Stack(..))
 import XMonad hiding (focus)
 
 -- $usage
--- Import the module in @~\/.xmonad\/xmonad.hs@:
+-- Import the module in @xmonad.hs@:
 --
 -- > import XMonad.Layout.TwoPanePersistent
 --

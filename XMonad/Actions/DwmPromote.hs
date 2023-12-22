@@ -31,7 +31,7 @@ import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.DwmPromote
 --

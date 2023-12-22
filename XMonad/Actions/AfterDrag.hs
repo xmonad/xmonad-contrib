@@ -24,7 +24,7 @@ import XMonad
 import Data.Time (NominalDiffTime, diffUTCTime, getCurrentTime)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.AfterDrag
 --

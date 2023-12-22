@@ -51,7 +51,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Actions.TopicSpace
 
 -- $usage
--- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:
+-- You can use this module by importing it into your @xmonad.hs@ file:
 --
 -- > import XMonad.Actions.DynamicWorkspaceGroups
 --

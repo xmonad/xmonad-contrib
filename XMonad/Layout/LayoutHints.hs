@@ -47,7 +47,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.LayoutHints
 --

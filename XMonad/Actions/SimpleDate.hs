@@ -24,7 +24,7 @@ import XMonad.Core
 import XMonad.Util.Run
 
 -- $usage
--- To use, import this module into @~\/.xmonad\/xmonad.hs@:
+-- To use, import this module into @xmonad.hs@:
 --
 -- >     import XMonad.Actions.SimpleDate
 --

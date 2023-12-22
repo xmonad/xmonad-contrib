@@ -25,7 +25,7 @@ import XMonad.StackSet
 
 -- $usage
 --
--- To use, import this module into your @~\/.xmonad\/xmonad.hs@:
+-- To use, import this module into your @xmonad.hs@:
 --
 -- >   import XMonad.Actions.FindEmptyWorkspace
 --

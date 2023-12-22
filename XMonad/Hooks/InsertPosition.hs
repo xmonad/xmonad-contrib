@@ -26,7 +26,7 @@ import XMonad.Prelude (Endo (Endo), find)
 import qualified XMonad.StackSet as W
 
 -- $usage
--- You can use this module by importing it in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module by importing it in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.InsertPosition
 --

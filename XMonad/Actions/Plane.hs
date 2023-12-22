@@ -47,7 +47,7 @@ import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Run
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Actions.Plane
 -- > import Data.Map (union)

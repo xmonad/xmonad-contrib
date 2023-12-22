@@ -54,7 +54,7 @@ import qualified Data.List.NonEmpty as NE
 -- "XMonad.Layout.Minimize", please refer to the documentation of these modules for more
 -- information on how to configure them.
 --
--- To use this module, put the following in your @~\/.xmonad\/xmonad.hs@:
+-- To use this module, put the following in your @xmonad.hs@:
 --
 -- > import XMonad.Utils.ExclusiveScratchpads
 -- > import XMonad.ManageHook (title,appName)

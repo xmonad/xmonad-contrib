@@ -26,7 +26,7 @@ import GHC.Real (Ratio(..))
 import XMonad.Layout.CircleEx
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Circle
 --

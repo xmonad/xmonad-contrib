@@ -25,7 +25,7 @@ import XMonad.Prelude
 import XMonad.StackSet
 
 -- $usage
--- Add the import to your @~\/.xmonad\/xmonad.hs@:
+-- Add the import to your @xmonad.hs@:
 --
 -- > import XMonad.Actions.FocusNth
 --

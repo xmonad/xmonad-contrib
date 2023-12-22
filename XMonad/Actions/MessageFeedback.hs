@@ -53,7 +53,7 @@ import XMonad.StackSet      ( Workspace, current, workspace, layout, tag )
 import Control.Monad.State  ( gets )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Actions.MessageFeedback
 --

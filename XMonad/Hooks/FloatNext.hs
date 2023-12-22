@@ -47,7 +47,7 @@ hookName = "__float"
 -- to automatically send the next spawned window(s) to the floating
 -- layer.
 --
--- You can use it by including the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use it by including the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.FloatNext
 --

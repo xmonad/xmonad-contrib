@@ -31,7 +31,7 @@ import XMonad.Layout.Decoration
 
 -- $usage
 -- You can use this module by importing it into your
--- @~\/.xmonad\/xmonad.hs@ file:
+-- @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.ResizeScreen
 --

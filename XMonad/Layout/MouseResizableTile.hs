@@ -41,7 +41,7 @@ import XMonad.Util.XUtils
 import Graphics.X11 as X
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.MouseResizableTile
 --

@@ -51,7 +51,7 @@ import Control.Monad.Trans (lift)
 -- floating windows at appropriate positions on the screen, as well
 -- as an 'X' action to manually trigger repositioning.
 --
--- You can use this module by including the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module by including the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.Place
 --

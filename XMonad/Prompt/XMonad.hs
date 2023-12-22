@@ -28,7 +28,7 @@ import XMonad.Actions.Commands (defaultCommands)
 import XMonad.Prelude (fromMaybe)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.XMonad

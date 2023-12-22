@@ -37,7 +37,7 @@ import XMonad.Util.XUtils
 -- "XMonad.Layout.SimpleFloat" or "XMonad.Layout.DecorationMadness".
 --
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Actions.MouseResize
 -- > import XMonad.Layout.WindowArranger

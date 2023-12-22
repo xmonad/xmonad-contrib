@@ -40,7 +40,7 @@ import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.Ungrab (unGrab)
 
 -- $usage
--- To use this module, start with the following @~\/.xmonad\/xmonad.hs@:
+-- To use this module, start with the following @xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Config.Mate

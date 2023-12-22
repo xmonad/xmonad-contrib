@@ -39,7 +39,7 @@ import qualified XMonad.StackSet as S
 import Control.Arrow (first)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.IM
 -- > import Data.Ratio ((%))

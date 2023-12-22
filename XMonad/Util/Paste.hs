@@ -35,7 +35,7 @@ import XMonad.Util.Parser (runParser)
 
 {- $usage
 
-Import this module into your xmonad.hs as usual:
+Import this module into your @xmonad.hs@ as usual:
 
 > import XMonad.Util.Paste
 

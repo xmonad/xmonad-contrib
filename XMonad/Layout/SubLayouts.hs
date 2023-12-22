@@ -113,7 +113,7 @@ import qualified Data.Set as S
 --
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.SubLayouts
 -- > import XMonad.Layout.WindowNavigation

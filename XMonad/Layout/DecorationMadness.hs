@@ -100,7 +100,7 @@ import XMonad.Layout.SimpleFloat
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.DecorationMadness
 --

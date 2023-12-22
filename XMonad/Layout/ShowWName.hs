@@ -35,7 +35,7 @@ import XMonad.Util.XUtils
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.ShowWName
 -- > myLayout = layoutHook def

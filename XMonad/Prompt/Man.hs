@@ -39,7 +39,7 @@ import System.Process
 import qualified Control.Exception as E
 
 -- $usage
--- 1. In your @~\/.xmonad\/xmonad.hs@:
+-- 1. In your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Man
