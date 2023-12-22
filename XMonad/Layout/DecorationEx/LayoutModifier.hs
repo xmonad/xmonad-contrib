@@ -18,7 +18,7 @@
 -- Portability :  unportable
 --
 -- Layout modifier, which is responsible for creation of decoration rectangles
--- (windows), updating and removing them when needed. It is parametrized by
+-- (windows), updating and removing them when needed. It is parameterized by
 -- @DecorationGeometry@, which says where decorations should be placed, and by
 -- @DecorationEngine@, which says how decorations should look.
 -----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ import XMonad.Layout.DecorationEx.Geometry
 -- This module exports @decorationEx@ function, which is a generic function for
 -- adding decorations to your layouts. It can be used to use different
 -- decoration geometries and engines in any combination.
--- For most used combinations, there are convinience functions in
+-- For most used combinations, there are convenience functions in
 -- "XMonad.Layout.DecorationEx.TextEngine", "XMonad.Layout.DecorationEx.TabbedGeometry",
 -- and "XMonad.Layout.DecorationEx.DwmGeometry".
 --

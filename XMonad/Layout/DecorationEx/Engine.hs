@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.DecorationEx.Engine
--- Description :  Type class and it's default implementation for window decoration engines.
+-- Description :  Type class and its default implementation for window decoration engines.
 -- Copyright   :  (c) 2007 Andrea Rossato, 2009 Jan Vornberger, 2023 Ilya Portnov
 -- License     :  BSD-style (see xmonad/LICENSE)
 --
@@ -83,8 +83,8 @@ class (Read (engine widget a), Show (engine widget a),
     => DecorationEngine engine widget a where
 
     -- | Type of themes used by decoration engine.
-    -- This type must be parametrized over widget type,
-    -- because theme will contain a list of widgets.
+    -- This type must be parameterized over a widget type,
+    -- because a theme will contain a list of widgets.
     type Theme engine :: Type -> Type           
                                           
     -- | Type of data used by engine as a context during painting;
@@ -259,7 +259,7 @@ class (Read (engine widget a), Show (engine widget a),
     -- | This hoook is called after a window has been dragged using the decoration.
     -- This is called from default implementation of "decorationEventHookEx".
     decorationAfterDraggingHook :: engine widget a     -- ^ Decoration engine instance
-                                -> (Window, Rectangle) -- ^ Original window and it's rectangle
+                                -> (Window, Rectangle) -- ^ Original window and its rectangle
                                 -> Window              -- ^ Decoration window
                                 -> X ()
     decorationAfterDraggingHook _ds (w, _r) decoWin = do
@@ -375,7 +375,7 @@ alignCenter engine dd widgets = do
           place' = place {wpRectangle = rect'}
       in  place' : pack remaining places
 
--- | Build an instance of DrawData type.
+-- | Build an instance of 'DrawData' type.
 mkDrawData :: (DecorationEngine engine widget a, ThemeAttributes (Theme engine widget), HasWidgets (Theme engine) widget)
            => engine widget a
            -> Theme engine widget            -- ^ Decoration theme
