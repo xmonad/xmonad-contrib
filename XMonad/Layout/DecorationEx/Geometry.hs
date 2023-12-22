@@ -31,9 +31,9 @@ import qualified XMonad.StackSet as W
 import qualified XMonad.Layout.Decoration as D
 
 -- | Decoration geometry class.
--- Decoration geometyr is responsible for placement of window decorations: whether
+-- Decoration geometry is responsible for placement of window decorations: whether
 -- they should be on the top of the window or on the bottom, should they go for 
--- full window widht or only be of certain width, etc.
+-- full window width or only be of certain width, etc.
 -- This does not know what will be drawn inside decorations.
 class (Read (geom a), Show (geom a),
        Eq a)
@@ -48,25 +48,25 @@ class (Read (geom a), Show (geom a),
 
     -- | The pure version of the main method, 'decorate'.
     -- The method should return a rectangle where to place window decoration,
-    -- or Nothing if this window is not to be decorated.
+    -- or 'Nothing' if this window is not to be decorated.
     pureDecoration :: geom a          -- ^ Decoration geometry instance
                    -> Rectangle       -- ^ Screen rectangle
                    -> W.Stack a       -- ^ Current stack of windows being displayed
                    -> [(a,Rectangle)] -- ^ Set of all windows with their corresponding rectangle
-                   -> (a,Rectangle)   -- ^ Window being decorated and it's rectangle
+                   -> (a,Rectangle)   -- ^ Window being decorated and its rectangle
                    -> Maybe Rectangle
 
     -- | The method should return a rectangle where to place window decoration,
-    -- or Nothing if this window is not to be decorated.
+    -- or 'Nothing' if this window is not to be decorated.
     decorateWindow :: geom a           -- ^ Decoration geometry instance
                    -> Rectangle        -- ^ Screen rectangle
                    -> W.Stack a        -- ^ Current stack of windows being displayed
                    -> [(a, Rectangle)] -- ^ Set of all windows with their corresponding rectangle
-                   -> (a, Rectangle)   -- ^ Window being decorated and it's rectangle
+                   -> (a, Rectangle)   -- ^ Window being decorated and its rectangle
                    -> X (Maybe Rectangle)
     decorateWindow geom r s wrs wr = return $ pureDecoration geom r s wrs wr
 
--- | Data type for default implementation of DecorationGeometry.
+-- | Data type for default implementation of 'DecorationGeometry'.
 -- This defines simple decorations: a horizontal bar at the top of each window,
 -- running for full width of the window.
 newtype DefaultGeometry a = DefaultGeometry {

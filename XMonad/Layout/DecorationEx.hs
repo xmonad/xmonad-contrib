@@ -16,26 +16,26 @@
 -- Within this mechanism, there are the following entities which define
 -- how decorations will look and work:
 --
--- * Main object is @DecorationEx@ layout modifier. It is from where everyting
+-- * Main object is @DecorationEx@ layout modifier. It is from where everything
 --   starts. It creates, shows and hides decoration windows (rectangles) when
---   needed. It is parametrized with decoration geometry, decoration engine and
---   theme. It calls these components to do their part of work.
+--   needed. It is parameterized with decoration geometry, decoration engine and
+--   theme. It calls these components to do their parts of the work.
 -- * @DecorationGeometry@ defines where decoration rectangles should be placed.
 --   For example, standard horizontal bar above each window; or tab bar.
 -- * @DecorationEngine@ defines how decorations look and how they react on clicks.
---   Different implementations of decoration engine can use different API
+--   Different implementations of the decoration engine can use different APIs
 --   to draw decorations. Within this package, there is one implementation 
 --   (@TextDecoration@), which uses plain Xlib calls, and displays decoration
 --   widgets with text fragments, like @[X]@ or @[_]@. Other engines can, for
---   example, use Cairo library to draw nice gradients and image-based widgets.
--- * Decoration widget is an element placed on window decoration. It defines how
+--   example, use the Cairo library to draw nice gradients and image-based widgets.
+-- * A Decoration widget is an element placed on a window decoration. It defines how
 --   it looks and how it responds to clicks. Examples include usual window 
 --   buttons (minimize, maximize, close), window icon, window title.
--- * Decoration theme defines colors and fonts for decoration engine. It also
+-- * A Decoration theme defines colors and fonts for the decoration engine. It also
 --   contains a list of decoration widgets and says where to place them (at the
 --   left, at the right or in the center).
 -- 
--- This mechanism makes a huge use of parametrized data types and type families,
+-- This mechanism makes major use of parameterized data types and type families,
 -- in order to make it possible to define different types of decorations, and
 -- easily combine different aspects of decorations. For example, each decoration
 -- engine can be combined with each decoration geometry.

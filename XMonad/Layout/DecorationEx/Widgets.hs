@@ -145,7 +145,7 @@ data GenericWidget cmd =
     }
     deriving (Show, Read)
 
--- | Generic widget type specialized for StandardCommand
+-- | Generic widget type specialized for 'StandardCommand'
 type StandardWidget = GenericWidget StandardCommand
 
 instance DecorationWidget (GenericWidget StandardCommand) where
@@ -164,7 +164,7 @@ isWidgetChecked :: DecorationWidget widget => widget -> Window -> X Bool
 isWidgetChecked wdt = isCommandChecked (widgetCommand wdt 1)
 
 -- | Type class for widgets that can be displayed as
--- text fragments by TextDecoration engine.
+-- text fragments by 'TextDecoration' engine.
 class DecorationWidget widget => TextWidget widget where
   widgetString :: DrawData engine widget -> widget -> X String
 
