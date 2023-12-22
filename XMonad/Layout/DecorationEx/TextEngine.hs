@@ -25,8 +25,6 @@ module XMonad.Layout.DecorationEx.TextEngine (
     TextDecoration (..)
   ) where 
 
-import qualified Data.Map as M
-
 import XMonad
 import XMonad.Prelude
 import XMonad.Layout.LayoutModifier

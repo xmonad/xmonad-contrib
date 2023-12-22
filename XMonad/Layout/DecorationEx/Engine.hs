@@ -194,7 +194,7 @@ class (Read (engine widget a), Show (engine widget a),
 
     default getShrinkedWindowName :: (Shrinker shrinker, DecorationEngineState engine ~ XMonadFont)
                                   => engine widget a -> shrinker -> DecorationEngineState engine -> String -> Dimension -> Dimension -> X String
-    getShrinkedWindowName _ shrinker font name wh ht = do
+    getShrinkedWindowName _ shrinker font name wh _ = do
       let s = shrinkIt shrinker
       dpy <- asks display
       shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy font n
