@@ -54,7 +54,7 @@ import qualified Data.Map.Strict               as M
 import           System.Posix.Types             ( ProcessID )
 
 -- $usage
--- You can use this module by including  the following in your @~\/.xmonad/xmonad.hs@:
+-- You can use this module by including  the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.WindowSwallowing
 --

@@ -49,7 +49,7 @@ import Control.Arrow (second)
 -- and decreased, and a window can be set to use the whole available
 -- space whenever it has focus.
 --
--- You can use this module by including  the following in your @~\/.xmonad/xmonad.hs@:
+-- You can use this module by including  the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.ZoomRow
 --

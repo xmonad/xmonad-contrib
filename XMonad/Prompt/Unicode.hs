@@ -52,7 +52,7 @@ instance ExtensionClass UnicodeData where
 {- $usage
 
 You can use this module by importing it, along with
-"XMonad.Prompt", into your ~\/.xmonad\/xmonad.hs file:
+"XMonad.Prompt", into your @xmonad.hs@ file:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.Unicode

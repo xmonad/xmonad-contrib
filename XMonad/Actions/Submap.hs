@@ -32,10 +32,7 @@ import XMonad.Util.XUtils
 
 {- $usage
 
-
-
-
-First, import this module into your @~\/.xmonad\/xmonad.hs@:
+First, import this module into your @xmonad.hs@:
 
 > import XMonad.Actions.Submap
 

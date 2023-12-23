@@ -36,7 +36,7 @@ import XMonad.Util.NamedWindows (getName, getNameWMClass)
 
 -- $usage
 --
--- Import the module into your @~\/.xmonad\/xmonad.hs@:
+-- Import the module into your @xmonad.hs@:
 --
 -- > import XMonad.Actions.WindowBringer
 --

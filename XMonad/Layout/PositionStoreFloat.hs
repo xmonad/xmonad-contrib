@@ -33,7 +33,7 @@ import XMonad.Layout.WindowArranger
 import XMonad.Prelude (fromMaybe, isJust, nub, when)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.PositionStoreFloat
 -- > import XMonad.Layout.NoFrillsDecoration

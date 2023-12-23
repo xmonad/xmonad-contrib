@@ -30,7 +30,7 @@ import XMonad.Util.WorkspaceCompare
 
 
 -- $usage
--- Add this import to your @~\/.xmonad\/xmonad.hs@:
+-- Add this import to your @xmonad.hs@:
 --
 -- > import XMonad.Actions.SwapWorkspaces
 --

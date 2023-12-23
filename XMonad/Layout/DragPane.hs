@@ -35,7 +35,7 @@ import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.DragPane
 --

@@ -85,7 +85,7 @@ import qualified Data.List.NonEmpty as NE
 -- layers and allows customization of the navigation strategy for the tiled
 -- layer based on the layout currently in effect.
 --
--- You can use this module with (a subset of) the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with (a subset of) the following in your @xmonad.hs@:
 --
 -- > import XMonad.Actions.Navigation2D
 --

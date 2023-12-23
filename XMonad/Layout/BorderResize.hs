@@ -38,7 +38,7 @@ import qualified Data.Map as M
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.BorderResize
 -- > myLayout = borderResize (... layout setup that reacts to SetGeometry ...)

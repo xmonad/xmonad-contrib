@@ -500,7 +500,7 @@ with a specific layout combinator: 'XMonad.Layout.|||'.
 Suppose we want a list with the 'XMonad.Layout.Full',
 'XMonad.Layout.Tabbed.tabbed' and
 'XMonad.Layout.Accordion.Accordion' layouts. First we import, in our
-@~\/.xmonad\/xmonad.hs@, all the needed modules:
+@xmonad.hs@, all the needed modules:
 
 >    import XMonad
 >
@@ -529,7 +529,7 @@ If we want only the tabbed layout without borders, then we may write:
 
 >    mylayoutHook = Full ||| noBorders (tabbed shrinkText def) ||| Accordion
 
-Our @~\/.xmonad\/xmonad.hs@ will now look like this:
+Our @xmonad.hs@ will now look like this:
 
 >    import XMonad
 >

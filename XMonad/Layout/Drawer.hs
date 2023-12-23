@@ -41,7 +41,7 @@ import XMonad.StackSet as S
 import XMonad.Layout.Reflect
 
 -- $usage
--- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
+-- To use this module, add the following import to @xmonad.hs@:
 --
 -- > import XMonad.Layout.Drawer
 --

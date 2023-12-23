@@ -26,7 +26,7 @@ import XMonad.Prompt.Workspace ( Wor(..) )
 import XMonad.StackSet ( workspaces, layout )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Layout

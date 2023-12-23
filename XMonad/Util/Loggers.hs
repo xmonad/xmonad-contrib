@@ -74,7 +74,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 -- $usage
--- Use this module by importing it into your @~\/.xmonad\/xmonad.hs@:
+-- Use this module by importing it into your @xmonad.hs@:
 --
 -- > import XMonad.Util.Loggers
 --
@@ -217,7 +217,7 @@ logTitlesOnScreen' sid (TitlesFormat formatFoc formatUnfoc formatUrg) =
 -- | Like 'logTitlesOnScreen', but directly use the "focused" screen
 -- (the one with the currently focused workspace).
 logTitles :: (String -> String) -> (String -> String) -> Logger
-logTitles formatFoc formatUnfoc = 
+logTitles formatFoc formatUnfoc =
   logWindowInfoFocusedScreen fetchWindowTitle formatFoc formatUnfoc formatUnfoc
 
 -- | Variant of 'logTitles', but with support for urgent windows.
@@ -293,11 +293,11 @@ instance Default ClassnamesFormat where
     }
 
 -- | Internal function to get the specified window information for all windows on
--- the visible workspace of the given screen and format them according to the 
+-- the visible workspace of the given screen and format them according to the
 -- given functions.
-logWindowInfoOnScreen 
+logWindowInfoOnScreen
   :: (Window -> X String)
-  -> ScreenId 
+  -> ScreenId
   -> (String -> String)
   -> (String -> String)
   -> (String -> String)
@@ -312,10 +312,10 @@ logWindowInfoOnScreen getWindowInfo sid formatFoc formatUnfoc formatUrg =
          | otherwise          -> formatUnfoc name
 
 -- | Internal helper function for 'logWindowInfoOnScreen'.
-logWindowInfoOnScreenWorker 
-  :: (Window -> X String) 
-  -> WindowScreen 
-  -> (Window -> String -> String) 
+logWindowInfoOnScreenWorker
+  :: (Window -> X String)
+  -> WindowScreen
+  -> (Window -> String -> String)
   -> Logger
 logWindowInfoOnScreenWorker getWindowInfo screen logger = do
   let wins = maybe [] W.integrate . W.stack . W.workspace $ screen
@@ -396,7 +396,7 @@ logTitleOnScreen = logWindowInfoFocusedWindowOnScreen fetchWindowTitle
 logClassnameOnScreen :: ScreenId -> Logger
 logClassnameOnScreen = logWindowInfoFocusedWindowOnScreen fetchWindowClassname
 
--- | Internal function to get the specified information for the focused window, 
+-- | Internal function to get the specified information for the focused window,
 -- on the given screen.
 logWindowInfoFocusedWindowOnScreen :: (Window -> X String) -> ScreenId -> Logger
 logWindowInfoFocusedWindowOnScreen getWindowInfo =

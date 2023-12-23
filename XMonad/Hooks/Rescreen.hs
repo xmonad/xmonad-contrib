@@ -32,7 +32,7 @@ import qualified XMonad.Util.ExtensibleConf as XC
 -- ('XMonad.Hooks.StatusBar.dynamicSBs' uses this module internally), as well
 -- as to actually invoke xrandr or autorandr when an output is (dis)connected.
 --
--- To use this, include the following in your @~\/.xmonad\/xmonad.hs@:
+-- To use this, include the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.Rescreen
 --

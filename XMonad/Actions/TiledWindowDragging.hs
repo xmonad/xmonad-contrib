@@ -27,7 +27,7 @@ import qualified XMonad.StackSet               as W
 import           XMonad.Layout.DraggingVisualizer
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Actions.TiledWindowDragging
 -- > import XMonad.Layout.DraggingVisualizer

@@ -35,7 +35,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 
 -- $usage
--- You can use this module with the following in your ~\/.xmonad\/xmonad.hs file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.AvoidFloats
 --

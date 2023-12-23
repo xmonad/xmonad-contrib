@@ -38,7 +38,7 @@ import           XMonad.Layout.Decoration
 import           XMonad.Layout.LayoutHints
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.FixedAspectRatio
 -- Then add it to your layout:

@@ -108,7 +108,7 @@ import XMonad.Hooks.WorkspaceHistory
 -- <https://tony-zorman.com/posts/topic-space/2022-09-11-topic-spaces.html here>.
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import qualified Data.Map.Strict as M
 -- > import qualified XMonad.StackSet as W

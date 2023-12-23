@@ -58,7 +58,7 @@ import qualified Data.Map as M
 --
 -- > import XMonad.Layout.Groups.Helpers
 --
--- to the top of your @.\/.xmonad\/xmonad.hs@.
+-- to the top of your @xmonad.hs@.
 --
 -- "XMonad.Layout.Groups"-based layouts do not have the same notion
 -- of window ordering as the rest of XMonad. For this reason, the usual

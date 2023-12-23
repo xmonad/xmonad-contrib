@@ -36,7 +36,7 @@ import qualified XMonad.StackSet as W
 -- email window at all times, a crude mimic of sticky windows).
 --
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@ file:
+-- @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.LayoutScreens
 -- > import XMonad.Layout.TwoPane

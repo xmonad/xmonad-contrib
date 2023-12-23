@@ -39,7 +39,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- To record the order in which you view workspaces, you can use this
--- module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.WorkspaceHistory (workspaceHistoryHook)
 --

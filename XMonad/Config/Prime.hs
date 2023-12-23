@@ -126,7 +126,7 @@ import qualified XMonad as X (xmonad, XConfig(..))
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, removeKeysP, removeMouseBindings)
 
 -- $start_here
--- To start with, create a @~\/.xmonad\/xmonad.hs@ that looks like this:
+-- To start with, create a @xmonad.hs@ that looks like this:
 --
 -- > {-# LANGUAGE RebindableSyntax #-}
 -- > import XMonad.Config.Prime

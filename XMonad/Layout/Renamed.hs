@@ -30,7 +30,7 @@ import XMonad.Layout.LayoutModifier
 --
 -- > import XMonad.Layout.Renamed
 --
--- to your @~\/.xmonad\/xmonad.hs@.
+-- to your @xmonad.hs@.
 --
 -- You can then use 'renamed' to modify the description of your
 -- layouts. For example:

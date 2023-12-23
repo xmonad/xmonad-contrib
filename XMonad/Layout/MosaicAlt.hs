@@ -38,7 +38,7 @@ import XMonad.Prelude ( sortBy )
 import Data.Ratio
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.MosaicAlt
 -- > import qualified Data.Map as M

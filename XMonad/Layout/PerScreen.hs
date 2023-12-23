@@ -29,7 +29,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Prelude (fromMaybe)
 
 -- $usage
--- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:
+-- You can use this module by importing it into your @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.PerScreen
 --

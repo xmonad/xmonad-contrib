@@ -30,7 +30,7 @@ import XMonad.Layout.BoringWindows as BW
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Minimize
 --

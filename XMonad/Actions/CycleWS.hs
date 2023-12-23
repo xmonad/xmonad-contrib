@@ -92,7 +92,7 @@ import XMonad.Util.Types
 import XMonad.Util.WorkspaceCompare
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Actions.CycleWS
 -- >

@@ -58,7 +58,7 @@ import Data.Ord (comparing)
 import Data.List.NonEmpty (nonEmpty)
 
 -- $usage
--- To use this module, first import it into your @~\/.xmonad\/xmonad.hs@:
+-- To use this module, first import it into your @xmonad.hs@:
 --
 -- > import XMonad.Util.EZConfig
 --

@@ -39,7 +39,7 @@ import qualified XMonad.StackSet as W
 import XMonad
 
 -- $usage
--- To use demanage, add this import to your @~\/.xmonad\/xmonad.hs@:
+-- To use demanage, add this import to your @xmonad.hs@:
 --
 -- >     import XMonad.Actions.DeManage
 --

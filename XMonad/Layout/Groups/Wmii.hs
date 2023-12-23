@@ -66,7 +66,7 @@ import XMonad.Layout.Simplest
 --
 -- > import XMonad.Layout.Groups.Wmii
 --
--- to the top of your @.\/.xmonad\/xmonad.hs@, and adding 'wmii'
+-- to the top of your @xmonad.hs@, and adding 'wmii'
 -- (with a 'Shrinker' and decoration 'Theme' as
 -- parameters) to your layout hook, for example:
 --
