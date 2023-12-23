@@ -145,6 +145,12 @@
     - A new window layout, similar to X.L.Circle, but with more
       possibilities for customisation.
 
+  * `XMonad.Layout.DecorationEx`:
+
+    - A new, more extensible, mechanism for window decorations, and some
+      standard types of decorations, including usual bar on top of window,
+      tabbed decorations and dwm-like decorations.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Layout.Magnifier`
