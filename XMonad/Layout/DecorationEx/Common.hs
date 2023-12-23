@@ -120,7 +120,6 @@ type BorderColors = BoxBorders String
 -- in particular state (active or inactive)
 data SimpleStyle = SimpleStyle {
     sBgColor :: !String                 -- ^ Decoration background color
-  -- , sBorderColor :: !String             
   , sTextColor :: !String               -- ^ Text (foreground) color
   , sTextBgColor :: !String             -- ^ Text background color
   , sDecoBorderWidth :: !Dimension      -- ^ Width of border of decoration rectangle. Set to 0 to disable the border.
