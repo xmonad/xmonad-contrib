@@ -56,8 +56,8 @@ instance LayoutClass TwoPane a where
 
     handleMessage (TwoPane delta split) x =
         return $ case fromMessage x of
-                   Just Shrink -> Just (TwoPane delta (split - delta))
-                   Just Expand -> Just (TwoPane delta (split + delta))
+                   Just Shrink -> Just (TwoPane delta (max 0 (split - delta)))
+                   Just Expand -> Just (TwoPane delta (min 1 (split + delta)))
                    _           -> Nothing
 
     description _ = "TwoPane"
