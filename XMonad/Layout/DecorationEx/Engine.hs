@@ -112,12 +112,9 @@ class (Read (engine widget a), Show (engine widget a),
                           -> X ()
 
     -- | Calculate place which will be occupied by one widget.
-    -- This method is expected to always return a rectangle which has X = 0,
-    -- i.e. at the very left of available space. This is because this method
-    -- is not responsible for calculating resulting placement of the widget
-    -- on the decoration bar, it only should calculate how much space the widget
-    -- will take, so that later we could place the widget corresponding to
-    -- widgets order and alignments.
+    -- NB: X coordinate of the returned rectangle will be ignored, because
+    -- the rectangle will be moved to the right or to the left for proper alignment
+    -- of widgets.
     calcWidgetPlace :: engine widget a         -- ^ Decoration engine instance
                     -> DrawData engine widget  -- ^ Information about window and decoration
                     -> widget                  -- ^ Widget to be placed
@@ -321,10 +318,13 @@ performWindowSwitching win =
             | x == b    = a
             | otherwise = x
 
+ignoreX :: WidgetPlace -> WidgetPlace
+ignoreX place = place {wpRectangle = (wpRectangle place) {rect_x = 0}}
+
 alignLeft :: forall engine widget a. DecorationEngine engine widget a => engine widget a -> DrawData engine widget -> [widget] -> X [WidgetPlace]
 alignLeft engine dd widgets = do
     places <- mapM (calcWidgetPlace engine dd) widgets
-    return $ packLeft (rect_x $ ddDecoRect dd) places
+    return $ packLeft (rect_x $ ddDecoRect dd) $ map ignoreX places
 
 packLeft :: Position -> [WidgetPlace] -> [WidgetPlace]
 packLeft _ [] = []
@@ -338,7 +338,7 @@ packLeft x0 (place : places) =
 alignRight :: forall engine widget a. DecorationEngine engine widget a => engine widget a -> DrawData engine widget -> [widget] -> X [WidgetPlace]
 alignRight engine dd widgets = do
     places <- mapM (calcWidgetPlace engine dd) widgets
-    return $ packRight (rect_width $ ddDecoRect dd) places
+    return $ packRight (rect_width $ ddDecoRect dd) $ map ignoreX places
 
 packRight :: Dimension -> [WidgetPlace] -> [WidgetPlace]
 packRight x0 places = reverse $ go x0 places
