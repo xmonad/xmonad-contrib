@@ -56,7 +56,7 @@ import XMonad.Prompt
 -- create an autocompleting version, like this:
 --
 -- > firingPrompt' = inputPromptWithCompl def "Fire"
--- >                     (mkComplFunFromList employees) ?+ fireEmployee
+-- >                     (mkComplFunFromList def employees) ?+ fireEmployee
 --
 -- Now all he has to do is add a keybinding to @firingPrompt@ (or
 -- @firingPrompt'@), such as
