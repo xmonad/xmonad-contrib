@@ -148,13 +148,13 @@ data GenericWidget cmd =
 -- | Generic widget type specialized for 'StandardCommand'
 type StandardWidget = GenericWidget StandardCommand
 
-instance DecorationWidget (GenericWidget StandardCommand) where
+instance (Default cmd, Read cmd, Show cmd, WindowCommand cmd) => DecorationWidget (GenericWidget cmd) where
 
-  type WidgetCommand (GenericWidget StandardCommand) = StandardCommand
+  type WidgetCommand (GenericWidget cmd) = cmd
 
-  widgetCommand TitleWidget _ = FocusWindow
+  widgetCommand TitleWidget _ = def
   widgetCommand w 1 = swCommand w
-  widgetCommand _ _ = FocusWindow
+  widgetCommand _ _ = def
 
   isShrinkable TitleWidget = True
   isShrinkable _ = False
