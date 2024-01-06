@@ -192,10 +192,6 @@ instance (DecorationEngine engine widget Window, DecorationGeometry geom Window,
             return (dwrs_to_wrs decorations, Just (DecorationEx (I (Just (st {dsDecorations = decorations}))) shrinker theme engine geom))
 
     handleMess (DecorationEx (I (Just st)) shrinker theme engine geom) m
-        | Just e <- fromMessage m = do
-            decorationEventHookEx engine theme st shrinker e
-            handleEvent engine shrinker theme st e
-            return Nothing
         | Just Hide <- fromMessage m = do
             hideDecos $ dsDecorations st
             return Nothing
@@ -206,6 +202,10 @@ instance (DecorationEngine engine widget Window, DecorationGeometry geom Window,
         | Just ReleaseResources <- fromMessage m = do
             releaseResources engine st
             return $ Just $ DecorationEx (I Nothing) shrinker theme  engine geom
+        | Just e <- fromMessage m = do
+            decorationEventHookEx engine theme st shrinker e
+            handleEvent engine shrinker theme st e
+            return Nothing
     handleMess _ _ = return Nothing
 
     modifierDescription (DecorationEx _ _ _ engine geom) = describeEngine engine ++ describeGeometry geom
