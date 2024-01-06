@@ -27,6 +27,7 @@ module XMonad.Layout.DecorationEx.DwmGeometry (
   ) where 
 
 import XMonad
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Layout.LayoutModifier
 import qualified XMonad.Layout.Decoration as D
@@ -65,9 +66,6 @@ data DwmGeometry a = DwmGeometry {
 
 instance Default (DwmGeometry a) where
   def = DwmGeometry False 1 20 200
-
-fi :: (Integral a, Num b) => a -> b
-fi = fromIntegral
 
 instance DecorationGeometry DwmGeometry Window where
   describeGeometry _ = "DwmStyle"
