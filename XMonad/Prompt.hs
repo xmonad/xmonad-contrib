@@ -62,6 +62,7 @@ module XMonad.Prompt
     , defaultColor, modifyColor, setColor
     , resetColor, setBorderColor
     , modifyPrompter, setPrompter, resetPrompter
+    , selectedCompletion, setCurrentCompletions, getCurrentCompletions
     , moveWord, moveWord', killWord, killWord'
     , changeWord, deleteString
     , moveHistory, setSuccess, setDone, setModeDone
