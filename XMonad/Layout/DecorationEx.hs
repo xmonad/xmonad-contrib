@@ -13,6 +13,10 @@
 -- This set of modules contains a set of type classes and their implementations
 -- which define a flexible and extensible mechanism of window decorations.
 --
+-- <<https://github.com/xmonad/xmonad-contrib/assets/50166980/ccc20e1b-6762-48d9-8195-579f77a98396>>
+-- Click <https://github.com/xmonad/xmonad-contrib/assets/50166980/64847a85-33c4-4b5f-8ec8-df73d3e4d58d here>
+-- for a larger version.
+--
 -- Within this mechanism, there are the following entities which define
 -- how decorations will look and work:
 --
