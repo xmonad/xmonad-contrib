@@ -246,7 +246,7 @@ setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 
 
 -- $customFullscreen
--- When a client sends a @_NET_WM_STATE@ request to add/remove/toggle the
+-- When a client sends a @_NET_WM_STATE@ request to add\/remove\/toggle the
 -- @_NET_WM_STATE_FULLSCREEN@ state, 'ewmhFullscreen' uses a pair of hooks to
 -- make the window fullscreen and revert its state. The default hooks are
 -- stateless: windows are fullscreened by turning them into fullscreen floats,
