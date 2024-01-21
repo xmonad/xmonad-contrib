@@ -6,47 +6,25 @@ Description :  Document key bindings.
 License     :  BSD-style (see LICENSE)
 
 Maintainer  :  Jan Esser <jesser@gmx.de>
-Stability   :  stable
+Stability   :  unstable
 Portability :  portable
 
-A convenient way to document the keybinding.
-Outputs can be used with `XMonad.Prompt.Man`.
+Allows writing X.U.NamedActions to a markdown/man file.
 
-For now ~/.ghcup/share/man is assumed to be in the manpath.
+FIXME For now ~/.ghcup/share/man is assumed to be in the manpath.
 -}
-module XMonad.Util.DocumentedKeys (additionalKeysPdoc, docKey, docSpawn) where
+module XMonad.Util.DocumentedKeys (writeKeysMarkdown) where
+
+import XMonad.Util.NamedActions
 
 import Control.Exception
-import Data.Bifunctor
 import Data.Time
-import XMonad
-import XMonad.Util.EZConfig
-
 import System.IO.Unsafe
 import System.Process
+import XMonad
 
--- like additionalKeys but for docKey and for docSpawn
-additionalKeysPdoc :: XConfig l -> [(String, BindingAction)] -> XConfig l
-additionalKeysPdoc conf keyList = unsafePerformIO $ do
-    _ <- writeKeysMarkdown keyList $ todayDate
-    return $ additionalKeysP conf (map (second toAction) keyList)
-infixl 4 `additionalKeysPdoc`
-
--- example: docKey "layoutScreens 4 Grid" $ layoutScreens 4 Grid
-docKey :: String -> X () -> BindingAction
-docKey d f = Doc f d
-
--- example: docSpawn "pcmanfm")
-docSpawn :: String -> BindingAction
-docSpawn p = docKey p $ spawn p
-
---
-
-todayDate :: String
-todayDate = unsafePerformIO $ formatTime defaultTimeLocale "[%d.%m.%Y]" <$> getCurrentTime
-
-writeKeysMarkdown :: [(String, BindingAction)] -> String -> IO ()
-writeKeysMarkdown keyList today = do
+writeKeysMarkdown :: [((KeyMask, KeySym), NamedAction)] -> IO ()
+writeKeysMarkdown keyList = do
     callCommandH $ "mkdir -p " ++ workDir
     callCommandH $ "mkdir -p " ++ manDir
     writeFile mdFile content
@@ -64,30 +42,23 @@ writeKeysMarkdown keyList today = do
             ++ "section: 7\n"
             ++ "header: xmonad keybindings manual\n"
             ++ "date: "
-            ++ today
+            ++ todayDate
             ++ "\n---"
     header =
         "| Key | Command |\n\
         \| --- | --------|"
-    content = manTitle ++ "\n\n" ++ header ++ "\n" ++ docKeys
-    docKeys = concatMap keyStr keyList
-    keyStr (k, c) = "|<kbd>" ++ escapedKey k ++ "</kbd>|```" ++ show c ++ "```|\n"
-    escapedKey ('<' : xs) = "&lt;" ++ escapedKey xs
-    escapedKey ('>' : xs) = "&gt;" ++ escapedKey xs
-    escapedKey (x : xs) = x : escapedKey xs
-    escapedKey [] = []
+    content = manTitle ++ "\n\n" ++ header ++ "\n"
+        ++ unlines (showKm keyList) -- TODO fit in markdown syntax
 
-data BindingAction = Doc (X ()) String
+--
 
-instance Show BindingAction where
-    show (Doc _ m) = m
-
-toAction :: BindingAction -> X ()
-toAction (Doc f _) = f
+todayDate :: String
+{-# NOINLINE todayDate #-}
+todayDate = unsafePerformIO $ formatTime defaultTimeLocale "[%d.%m.%Y]" <$> getCurrentTime
 
 callCommandH :: String -> IO ()
 callCommandH cmd = catch (callCommand cmd) handler
   where
-    handler = \e -> do
+    handler e = do
         let err = show (e :: IOException)
         putStrLn $ "Warning: " ++ err
