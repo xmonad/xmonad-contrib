@@ -290,14 +290,14 @@ data XPPosition = Top
                 | Bottom
                 -- | Prompt will be placed in the center horizontally and
                 --   in the certain place of screen vertically. If it's in the upper
-                --   part of the screen, completion window will be placed below(like
-                --   in 'Top') and otherwise above(like in 'Bottom')
+                --   part of the screen, completion window will be placed below (like
+                --   in 'Top') and otherwise above (like in 'Bottom')
                 | CenteredAt { xpCenterY :: Rational
                              -- ^ Rational between 0 and 1, giving
                              -- y coordinate of center of the prompt relative to the screen height.
                              , xpWidth  :: Rational
                              -- ^ Rational between 0 and 1, giving
-                             -- width of the prompt relatave to the screen width.
+                             -- width of the prompt relative to the screen width.
                              }
                   deriving (Show,Read)
 
@@ -445,7 +445,7 @@ setCommand xs s = s { commandHistory = (commandHistory s) { W.focus = xs }}
 setInput :: String -> XP ()
 setInput = modify . setCommand
 
--- | Returns the current input string. Intented for use in custom keymaps
+-- | Returns the current input string. Intended for use in custom keymaps
 -- where 'get' or similar can't be used to retrieve it.
 getInput :: XP String
 getInput = gets command
