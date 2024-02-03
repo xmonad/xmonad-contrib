@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.17.1.9
+version:            0.18.0
 -- ^ also update cpp-options: -DXMONAD_CONTRIB_VERSION_*
 
 homepage:           https://xmonad.org/
@@ -71,8 +71,8 @@ library
     default-language: Haskell2010
 
     cpp-options:   -DXMONAD_CONTRIB_VERSION_MAJOR=0
-                   -DXMONAD_CONTRIB_VERSION_MINOR=17
-                   -DXMONAD_CONTRIB_VERSION_PATCH=1
+                   -DXMONAD_CONTRIB_VERSION_MINOR=18
+                   -DXMONAD_CONTRIB_VERSION_PATCH=0
     ghc-options:   -Wall -Wno-unused-do-bind
 
     if flag(pedantic)
