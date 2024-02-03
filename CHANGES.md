@@ -1,6 +1,16 @@
 # Change Log / Release Notes
 
-## 0.18.0 (February 3, 2024)
+## _unreleased_
+
+### Breaking Changes
+
+### New Modules
+
+### Bug Fixes and Minor Changes
+
+### Other changes
+
+## 0.18.0 (February 3, 20
 
 ### Breaking Changes
 
@@ -306,8 +316,6 @@
 
     - Added `zipperFocusedAtFirstOf` to differentiate two lists into a
       zipper.
-
-### Other changes
 
 ## 0.17.1 (September 3, 2022)
 
