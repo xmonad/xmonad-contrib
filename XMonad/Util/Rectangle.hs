@@ -67,7 +67,7 @@ data PointRectangle a = PointRectangle
 -- @[N,N+1]@, as though each real-valued coordinate had been rounded (either
 -- down or up) to the nearest integers. So each pixel, from zero, is listed as:
 -- @[0,0]@, @[1,1]@, @[2,2]@, and so on. Rather than a coordinate system, this
--- considers pixels as row/colum indices.  While easiest to reason with,
+-- considers pixels as row/column indices.  While easiest to reason with,
 -- indices are unable to represent zero-dimension rectangles.
 --
 -- Consider pixels as indices. Do not use this on empty rectangles.
