@@ -36,7 +36,7 @@ import qualified XMonad.StackSet as W
 -- IfMax layout will run one layout if number of windows on workspace is as
 -- maximum N, and else will run another layout.
 --
--- You can use this module by adding folowing in your @xmonad.hs@:
+-- You can use this module by adding following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.IfMax
 --

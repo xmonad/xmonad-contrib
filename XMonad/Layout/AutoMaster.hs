@@ -35,7 +35,7 @@ import Control.Arrow (first)
 -- in one row, in slave area underlying layout is run. Size of slave area
 -- automatically increases when number of slave windows is increasing.
 --
--- You can use this module by adding folowing in your @xmonad.hs@:
+-- You can use this module by adding following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.AutoMaster
 --
