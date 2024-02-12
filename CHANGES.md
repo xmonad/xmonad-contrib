@@ -8,6 +8,8 @@
 
 ### Bug Fixes and Minor Changes
 
+  * Fix build-with-cabal.sh when XDG_CONFIG_HOME is defined.
+
 ### Other changes
 
 ## 0.18.0 (February 3, 20
