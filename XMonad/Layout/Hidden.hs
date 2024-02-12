@@ -118,7 +118,7 @@ popHiddenWindow = sendMessage . PopSpecificHiddenWindow
 --------------------------------------------------------------------------------
 hideWindowMsg :: HiddenWindows a -> Window -> X (Maybe (HiddenWindows a))
 hideWindowMsg (HiddenWindows hidden) win = do
-  modify (\s -> s { windowset = W.delete' win $ windowset s })
+  modifyWindowSet $ W.delete' win
   return . Just . HiddenWindows $ hidden ++ [win]
 
 --------------------------------------------------------------------------------
