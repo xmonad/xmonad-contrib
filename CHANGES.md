@@ -5,6 +5,11 @@
 ### Breaking Changes
 
 ### New Modules
+ 
+  * `XMonad.Actions.Profiles`.
+  
+    - Group workspaces by similarity. Usefull when one has lots 
+	  of workspaces and uses only a couple per unit of work.
 
 ### Bug Fixes and Minor Changes
 
