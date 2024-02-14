@@ -130,6 +130,7 @@ library
                         XMonad.Actions.PhysicalScreens
                         XMonad.Actions.Plane
                         XMonad.Actions.Prefix
+                        XMonad.Actions.Profiles
                         XMonad.Actions.Promote
                         XMonad.Actions.RandomBackground
                         XMonad.Actions.RepeatAction
