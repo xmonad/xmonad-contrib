@@ -552,8 +552,8 @@ doKeymapCheck :: XConfig l -> [(String,a)] -> ([String], [String])
 doKeymapCheck conf km = (bad,dups)
   where ks = map ((readKeySequence conf &&& id) . fst) km
         bad = nub . map snd . filter (isNothing . fst) $ ks
-        dups = map (snd . NE.head)
-             . mapMaybe nonEmpty
+        dups = map (snd . NE.head . notEmpty)
+             . filter ((>1) . length)
              . groupBy ((==) `on` fst)
              . sortBy (comparing fst)
              . map (first fromJust)

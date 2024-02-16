@@ -10,6 +10,10 @@
 
   * Fix build-with-cabal.sh when XDG_CONFIG_HOME is defined.
 
+  * `XMonad.Util.EZConfig`
+
+    - Fixed `checkKeymap` warning that all keybindings are duplicates.
+
 ### Other changes
 
 ## 0.18.0 (February 3, 20
