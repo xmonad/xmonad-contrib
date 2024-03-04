@@ -51,6 +51,7 @@ module XMonad.Hooks.ManageHelpers (
     isFullscreen,
     isMinimized,
     isDialog,
+    isNotification,
     pid,
     desktop,
     transientTo,
@@ -191,8 +192,17 @@ isMinimized :: Query Bool
 isMinimized = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_HIDDEN"
 
 -- | A predicate to check whether a window is a dialog.
+--
+-- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm46485863906176>.
 isDialog :: Query Bool
 isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
+
+-- | A predicate to check whether a window is a notification.
+--
+-- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm46485863906176>.
+isNotification :: Query Bool
+isNotification =
+  isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_NOTIFICATION"
 
 -- | This function returns 'Just' the @_NET_WM_PID@ property for a
 -- particular window if set, 'Nothing' otherwise.

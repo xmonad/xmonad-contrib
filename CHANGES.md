@@ -7,7 +7,7 @@
 ### New Modules
  
   * `XMonad.Actions.Profiles`.
-  
+
     - Group workspaces by similarity. Usefull when one has lots 
 	  of workspaces and uses only a couple per unit of work.
 
@@ -19,9 +19,14 @@
 
     - Fixed `checkKeymap` warning that all keybindings are duplicates.
 
+  * `XMonad.Hooks.ManageHelpers`
+
+    - Added `isNotification` predicate to check for windows with
+      `_NET_WM_WINDOW_TYPE` property of `_NET_WM_WINDOW_TYPE_NOTIFICATION`.
+
 ### Other changes
 
-## 0.18.0 (February 3, 20
+## 0.18.0 (February 3, 2024)
 
 ### Breaking Changes
 
