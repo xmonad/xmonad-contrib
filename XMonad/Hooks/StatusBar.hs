@@ -452,7 +452,7 @@ instance ExtensionClass ActiveSBs where
 -- 'avoidStruts', check 'dynamicEasySBs'.
 --
 -- Heavily inspired by "XMonad.Hooks.DynamicBars"
-dynamicSBs :: (ScreenId -> IO StatusBarConfig) -> XConfig l -> XConfig l
+dynamicSBs :: (ScreenId -> X StatusBarConfig) -> XConfig l -> XConfig l
 dynamicSBs f conf = addAfterRescreenHook (updateSBs f) $ conf
   { startupHook = startupHook conf >> killAllStatusBars >> updateSBs f
   , logHook     = logHook conf >> logSBs
@@ -462,7 +462,7 @@ dynamicSBs f conf = addAfterRescreenHook (updateSBs f) $ conf
 -- resulting config and adds 'avoidStruts' to the
 -- layout.
 dynamicEasySBs :: LayoutClass l Window
-               => (ScreenId -> IO StatusBarConfig)
+               => (ScreenId -> X StatusBarConfig)
                -> XConfig l
                -> XConfig (ModifiedLayout AvoidStruts l)
 dynamicEasySBs f conf =
@@ -471,7 +471,7 @@ dynamicEasySBs f conf =
 -- | Given the function to create status bars, update
 -- the status bars by killing those that shouldn't be
 -- visible anymore and creates any missing status bars
-updateSBs :: (ScreenId -> IO StatusBarConfig) -> X ()
+updateSBs :: (ScreenId -> X StatusBarConfig) -> X ()
 updateSBs f = do
   actualScreens    <- withWindowSet $ return . map W.screen . W.screens
   (toKeep, toKill) <-
@@ -480,7 +480,7 @@ updateSBs f = do
   cleanSBs (map snd toKill)
   -- Create new status bars if needed
   let missing = actualScreens \\ map fst toKeep
-  added <- io $ traverse (\s -> (s,) <$> f s) missing
+  added <- traverse (\s -> (s,) <$> f s) missing
   traverse_ (sbStartupHook . snd) added
   XS.put (ASB (toKeep ++ added))
 
