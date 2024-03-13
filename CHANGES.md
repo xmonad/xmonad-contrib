@@ -4,6 +4,15 @@
 
 ### Breaking Changes
 
+  * `XMonad.Hooks.StatusBars`
+
+    - Move status bar functions from the `IO` to the `X` monad to
+       allow them to look up information from `X`, like the screen
+       width. Existing configurations may need to use `io` from
+       `XMonad.Core` or `liftIO` from `Control.Monad.IO.Class` in
+       order to lift any existing `IO StatusBarConfig` values into
+       `X StatusBarConfig` values.
+
 ### New Modules
  
   * `XMonad.Actions.Profiles`.
