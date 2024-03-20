@@ -47,7 +47,7 @@ import XMonad.Prelude
 --
 -- >  main = xmonad $ def
 -- >      { ...
--- >      , handleEventHook = onXPropertyChange "WM_NAME" (title =? "Spotify" --> doShift "5"))
+-- >      , handleEventHook = onXPropertyChange "WM_NAME" (title =? "Spotify" --> doShift "5")
 -- >      , ...
 -- >      }
 --
