@@ -1794,17 +1794,17 @@ breakAtSpace s
 -- | 'historyCompletion' provides a canned completion function much like
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in the XMonad cache directory.
-historyCompletion :: X ComplFunction
-historyCompletion = historyCompletionP (const True)
+historyCompletion :: XPConfig -> X ComplFunction
+historyCompletion conf = historyCompletionP conf (const True)
 
 -- | Like 'historyCompletion' but only uses history data from Prompts whose
 -- name satisfies the given predicate.
-historyCompletionP :: (String -> Bool) -> X ComplFunction
-historyCompletionP p = do
+historyCompletionP :: XPConfig -> (String -> Bool) -> X ComplFunction
+historyCompletionP conf p = do
     cd <- asks (cacheDir . directories)
     pure $ \x ->
         let toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
-         in toComplList . M.filterWithKey (const . p) <$> readHistory def cd
+         in toComplList . M.filterWithKey (const . p) <$> readHistory conf cd
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.
