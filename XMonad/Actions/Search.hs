@@ -437,14 +437,14 @@ namedEngine name (SearchEngine _ site) = searchEngineF name site
    browser. -}
 promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
 promptSearchBrowser config browser (SearchEngine name site) = do
-    hc <- historyCompletionP ("Search [" `isPrefixOf`)
+    hc <- historyCompletionP config ("Search [" `isPrefixOf`)
     mkXPrompt (Search name) config hc $ search browser site
 
 {- | Like 'promptSearchBrowser', but only suggest previous searches for the
    given 'SearchEngine' in the prompt. -}
 promptSearchBrowser' :: XPConfig -> Browser -> SearchEngine -> X ()
 promptSearchBrowser' config browser (SearchEngine name site) = do
-    hc <- historyCompletionP (searchName `isPrefixOf`)
+    hc <- historyCompletionP config (searchName `isPrefixOf`)
     mkXPrompt (Search name) config hc $ search browser site
   where
     searchName = showXPrompt (Search name)

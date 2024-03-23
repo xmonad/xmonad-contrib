@@ -562,7 +562,7 @@ mkXPromptImplementation historyKey conf om = do
   s <- gets $ screenRect . W.screenDetail . W.current . windowset
   cleanMask <- cleanKeyMask
   cachedir <- asks (cacheDir . directories)
-  hist <- io $ readHistory cachedir
+  hist <- io $ readHistory conf cachedir
   fs <- initXMF (font conf)
   let width = getWinWidth s (position conf)
   st' <- io $
@@ -582,7 +582,7 @@ mkXPromptImplementation historyKey conf om = do
   releaseXMF fs
   when (successful st') $ do
     let prune = take (historySize conf)
-    io $ writeHistory cachedir $
+    io $ writeHistory conf cachedir $
       M.insertWith
       (\xs ys -> prune . historyFilter conf $ xs ++ ys)
       historyKey
@@ -1690,16 +1690,18 @@ emptyHistory = M.empty
 getHistoryFile :: FilePath -> FilePath
 getHistoryFile cachedir = cachedir ++ "/prompt-history"
 
-readHistory :: FilePath -> IO History
-readHistory cachedir = readHist `E.catch` \(SomeException _) -> return emptyHistory
+readHistory :: XPConfig -> FilePath -> IO History
+readHistory (XPC { historySize = 0 }) _ = return emptyHistory
+readHistory _ cachedir = readHist `E.catch` \(SomeException _) -> return emptyHistory
  where
     readHist = do
         let path = getHistoryFile cachedir
         xs <- withFile path ReadMode hGetLine
         readIO xs
 
-writeHistory :: FilePath -> History -> IO ()
-writeHistory cachedir hist = do
+writeHistory :: XPConfig -> FilePath -> History -> IO ()
+writeHistory (XPC { historySize = 0 }) _ _ = return ()
+writeHistory _ cachedir hist = do
   let path = getHistoryFile cachedir
       filtered = M.filter (not . null) hist
   writeFile path (show filtered) `E.catch` \(SomeException e) ->
@@ -1793,17 +1795,17 @@ breakAtSpace s
 -- | 'historyCompletion' provides a canned completion function much like
 --   'getShellCompl'; you pass it to mkXPrompt, and it will make completions work
 --   from the query history stored in the XMonad cache directory.
-historyCompletion :: X ComplFunction
-historyCompletion = historyCompletionP (const True)
+historyCompletion :: XPConfig -> X ComplFunction
+historyCompletion conf = historyCompletionP conf (const True)
 
 -- | Like 'historyCompletion' but only uses history data from Prompts whose
 -- name satisfies the given predicate.
-historyCompletionP :: (String -> Bool) -> X ComplFunction
-historyCompletionP p = do
+historyCompletionP :: XPConfig -> (String -> Bool) -> X ComplFunction
+historyCompletionP conf p = do
     cd <- asks (cacheDir . directories)
     pure $ \x ->
         let toComplList = deleteConsecutive . filter (isInfixOf x) . M.foldr (++) []
-         in toComplList . M.filterWithKey (const . p) <$> readHistory cd
+         in toComplList . M.filterWithKey (const . p) <$> readHistory conf cd
 
 -- | Sort a list and remove duplicates. Like 'deleteAllDuplicates', but trades off
 --   laziness and stability for efficiency.
