@@ -533,7 +533,7 @@ pInput inp = (`runParser` inp) . choice $
 -- | Parse a 'Priority'.
 pPriority :: Parser Priority
 pPriority = option NoPriority $
-  " " *> skipSpaces *> choice
+  skipSpaces *> choice
     [ "#" *> foldCase "a" $> A
     , "#" *> foldCase "b" $> B
     , "#" *> foldCase "c" $> C
@@ -546,7 +546,7 @@ pTimeOfDay = option Nothing $
     [ TimeOfDay <$> pHour <* ":" <*> pMinute -- HH:MM
     , pHHMM                                  -- HHMM
     , TimeOfDay <$> pHour        <*> pure 0  -- HH
-    ]
+    ] <* (void " " <|> eof)
  where
   pHHMM :: Parser TimeOfDay
   pHHMM = do
@@ -566,6 +566,7 @@ pDate = skipSpaces *> choice
   , pPrefix "tom" "orrow" Tomorrow
   , Next <$> pNext
   , Date <$> pDate'
+  , pure Today       -- Fallback to today if no date was given.
   ]
  where
   pNext :: Parser DayOfWeek = choice
@@ -585,7 +586,7 @@ pDate = skipSpaces *> choice
 
   pDate' :: Parser (Int, Maybe Int, Maybe Integer)
   pDate' =
-    (,,) <$> pNumBetween 1 31               -- day
+    (,,) <$> (pNumBetween 1 31 <* (void " " <|> eof))  -- day
          <*> optional (skipSpaces *> choice
                [ pPrefix "ja"  "nuary"    1 , pPrefix "f"   "ebruary" 2
                , pPrefix "mar" "ch"       3 , pPrefix "ap"  "ril"     4
