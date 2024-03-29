@@ -14,10 +14,10 @@
        `X StatusBarConfig` values.
 
 ### New Modules
- 
+
   * `XMonad.Actions.Profiles`.
 
-    - Group workspaces by similarity. Usefull when one has lots 
+    - Group workspaces by similarity. Useful when one has lots
 	  of workspaces and uses only a couple per unit of work.
 
 ### Bug Fixes and Minor Changes
@@ -32,6 +32,10 @@
 
     - Added `isNotification` predicate to check for windows with
       `_NET_WM_WINDOW_TYPE` property of `_NET_WM_WINDOW_TYPE_NOTIFICATION`.
+
+  * `XMonad.Prompt.OrgMode`
+
+    - Added `HH:MM-HH:MM` and `HH:MM+HH` syntax to specify time spans.
 
 ### Other changes
 
