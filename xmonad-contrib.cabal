@@ -481,7 +481,7 @@ test-suite tests
                , bytestring >= 0.10 && < 0.13
                , containers
                , directory
-               , time >= 1.8 && < 1.13
+               , time >= 1.8 && < 1.15
                , hspec >= 2.4.0 && < 3
                , mtl
                , random
