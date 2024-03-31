@@ -138,7 +138,7 @@ setCurrentWorkspaceName name = do
 -- | Prompt for a new name for the current workspace and set it.
 renameWorkspace :: XPConfig -> X ()
 renameWorkspace conf = do
-    completion <- historyCompletionP (prompt ==)
+    completion <- historyCompletionP conf (prompt ==)
     mkXPrompt (Wor prompt) conf completion setCurrentWorkspaceName
   where
     prompt = "Workspace name: "

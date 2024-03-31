@@ -13,6 +13,13 @@
        order to lift any existing `IO StatusBarConfig` values into
        `X StatusBarConfig` values.
 
+  * `XMonad.Prompt`
+
+    - Added an additional `XPConfig` argument to `historyCompletion` and
+      `historyCompletionP`. Calls along the lines of `historyCompletionP
+      myFunc` should be changed to `historyCompletionP myConf myFunc`.
+      If not `myConf` is lying around, `def` can be used instead.
+
 ### New Modules
 
   * `XMonad.Actions.Profiles`.
@@ -36,6 +43,11 @@
   * `XMonad.Prompt.OrgMode`
 
     - Added `HH:MM-HH:MM` and `HH:MM+HH` syntax to specify time spans.
+
+  * `XMonad.Prompt`
+
+    - The history file is not extraneously read and written anymore if
+      the `historySize` is set to 0.
 
 ### Other changes
 
