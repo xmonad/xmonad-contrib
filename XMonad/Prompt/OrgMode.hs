@@ -53,6 +53,7 @@ module XMonad.Prompt.OrgMode (
     Date (..),
     Time (..),
     TimeOfDay (..),
+    OrgTime (..),
     DayOfWeek (..),
 #endif
 
@@ -122,7 +123,9 @@ Monday and you schedule something for Monday, you will actually schedule
 it for the /next/ Monday (the one in seven days).
 
 The time is specified in the @HH:MM@ or @HHMM@ format.  The minutes may
-be omitted, in which case we assume a full hour is specified.
+be omitted, in which case we assume a full hour is specified.  It is also
+possible to enter a time span using the syntax @HH:MM-HH:MM@ or @HH:MM+HH@.
+In the former case, minutes may be omitted.
 
 A few examples are probably in order.  Suppose we have bound the key
 above, pressed it, and are now confronted with a prompt:
@@ -136,6 +139,10 @@ above, pressed it, and are now confronted with a prompt:
 
   - @hello +d today 12:30@ works just like above, but creates a
     deadline.
+
+  - @hello +d today 12:30-14:30@ works like the above, but gives the
+    event a duration of two hours.  An alternative way to specify
+    this would be @hello +d today 12:30+2@.
 
   - @hello +s thu@ would schedule the note for next thursday.
 
@@ -356,20 +363,29 @@ refile (asString -> parent) (asString -> fp) =
 -- @HH:MM@ time.
 data Time = Time
   { date :: Date
-  , tod  :: Maybe TimeOfDay
+  , tod  :: Maybe OrgTime
   }
   deriving (Eq, Show)
 
 -- | The time in HH:MM.
-data TimeOfDay = TimeOfDay Int Int
+data TimeOfDay = HHMM Int Int
   deriving (Eq)
 
 instance Show TimeOfDay where
   show :: TimeOfDay -> String
-  show (TimeOfDay h m) = pad h <> ":" <> pad m
+  show (HHMM h m) = pad h <> ":" <> pad m
    where
     pad :: Int -> String
     pad n = (if n <= 9 then "0" else "") <> show n
+
+-- | The time—possibly as a span—in HH:MM format.
+data OrgTime = MomentInTime TimeOfDay | TimeSpan TimeOfDay TimeOfDay
+  deriving (Eq)
+
+instance Show OrgTime where
+  show :: OrgTime -> String
+  show (MomentInTime tod)  = show tod
+  show (TimeSpan tod tod') = show tod <> "-" <> show tod'
 
 -- | Type for specifying exactly which day one wants.
 data Date
@@ -383,7 +399,7 @@ data Date
     -- ^ Manual date entry in the format DD [MM] [YYYY]
   deriving (Eq, Ord, Show)
 
-toOrgFmt :: Maybe TimeOfDay -> Day -> String
+toOrgFmt :: Maybe OrgTime -> Day -> String
 toOrgFmt tod day =
   mconcat ["<", isoDay, " ", take 3 $ show (dayOfWeek day), time, ">"]
  where
@@ -498,8 +514,8 @@ ppNote clp todo = \case
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
 pInput inp = (`runParser` inp) . choice $
-  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
-  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
+  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
+  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
   , do s <- munch1 (pure True)
        let (s', p) = splitAt (length s - 3) s
        pure $ case tryPrio p of
@@ -533,21 +549,33 @@ pInput inp = (`runParser` inp) . choice $
 -- | Parse a 'Priority'.
 pPriority :: Parser Priority
 pPriority = option NoPriority $
-  " " *> skipSpaces *> choice
+  skipSpaces *> choice
     [ "#" *> foldCase "a" $> A
     , "#" *> foldCase "b" $> B
     , "#" *> foldCase "c" $> C
     ]
 
 -- | Try to parse a 'Time'.
-pTimeOfDay :: Parser (Maybe TimeOfDay)
-pTimeOfDay = option Nothing $
-  skipSpaces >> Just <$> choice
-    [ TimeOfDay <$> pHour <* ":" <*> pMinute -- HH:MM
-    , pHHMM                                  -- HHMM
-    , TimeOfDay <$> pHour        <*> pure 0  -- HH
-    ]
+pOrgTime :: Parser (Maybe OrgTime)
+pOrgTime = option Nothing $
+  between skipSpaces (void " " <|> eof) $
+    Just <$> choice
+      [ TimeSpan <$> (pTimeOfDay <* ("--" <|> "-" <|> "–")) <*> pTimeOfDay
+      -- Org is not super smart around times with this syntax, so
+      -- we pretend not to be as well.
+      , do from@(HHMM h m) <- pTimeOfDay <* "+"
+           off <- pHour
+           pure $ TimeSpan from (HHMM (h + off) m)
+      , MomentInTime <$> pTimeOfDay
+      ]
  where
+  pTimeOfDay :: Parser TimeOfDay
+  pTimeOfDay = choice
+    [ HHMM <$> pHour <* ":" <*> pMinute -- HH:MM
+    , pHHMM                             -- HHMM
+    , HHMM <$> pHour        <*> pure 0  -- HH
+    ]
+
   pHHMM :: Parser TimeOfDay
   pHHMM = do
     let getTwo = count 2 (satisfy isDigit)
@@ -555,7 +583,8 @@ pTimeOfDay = option Nothing $
     guard (hh >= 0 && hh <= 23)
     mm <- read <$> getTwo
     guard (mm >= 0 && mm <= 59)
-    pure $ TimeOfDay hh mm
+    pure $ HHMM hh mm
+
   pHour   :: Parser Int = pNumBetween 0 23
   pMinute :: Parser Int = pNumBetween 0 59
 
@@ -566,6 +595,7 @@ pDate = skipSpaces *> choice
   , pPrefix "tom" "orrow" Tomorrow
   , Next <$> pNext
   , Date <$> pDate'
+  , pure Today       -- Fallback to today if no date was given.
   ]
  where
   pNext :: Parser DayOfWeek = choice
@@ -585,7 +615,7 @@ pDate = skipSpaces *> choice
 
   pDate' :: Parser (Int, Maybe Int, Maybe Integer)
   pDate' =
-    (,,) <$> pNumBetween 1 31               -- day
+    (,,) <$> (pNumBetween 1 31 <* (void " " <|> eof))  -- day
          <*> optional (skipSpaces *> choice
                [ pPrefix "ja"  "nuary"    1 , pPrefix "f"   "ebruary" 2
                , pPrefix "mar" "ch"       3 , pPrefix "ap"  "ril"     4
