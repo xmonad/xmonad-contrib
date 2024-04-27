@@ -192,6 +192,7 @@ library
                         XMonad.Hooks.EwmhDesktops
                         XMonad.Hooks.FadeInactive
                         XMonad.Hooks.FadeWindows
+                        XMonad.Hooks.FloatConfigureReq
                         XMonad.Hooks.FloatNext
                         XMonad.Hooks.Focus
                         XMonad.Hooks.InsertPosition
