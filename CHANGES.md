@@ -7,11 +7,11 @@
   * `XMonad.Hooks.StatusBars`
 
     - Move status bar functions from the `IO` to the `X` monad to
-       allow them to look up information from `X`, like the screen
-       width. Existing configurations may need to use `io` from
-       `XMonad.Core` or `liftIO` from `Control.Monad.IO.Class` in
-       order to lift any existing `IO StatusBarConfig` values into
-       `X StatusBarConfig` values.
+      allow them to look up information from `X`, like the screen
+      width. Existing configurations may need to use `io` from
+      `XMonad.Core` or `liftIO` from `Control.Monad.IO.Class` in
+      order to lift any existing `IO StatusBarConfig` values into
+      `X StatusBarConfig` values.
 
   * `XMonad.Prompt`
 
@@ -22,10 +22,10 @@
 
 ### New Modules
 
-  * `XMonad.Actions.Profiles`.
+  * `XMonad.Actions.Profiles`
 
     - Group workspaces by similarity. Useful when one has lots
-	  of workspaces and uses only a couple per unit of work.
+      of workspaces and uses only a couple per unit of work.
 
 ### Bug Fixes and Minor Changes
 
