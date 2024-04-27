@@ -40,10 +40,14 @@ module XMonad.Util.Hacks (
   trayerPaddingXmobarEventHook,
   trayPaddingXmobarEventHook,
   trayPaddingEventHook,
+
+  -- * Steam flickering fix
+  fixSteamFlicker,
   ) where
 
 
 import XMonad
+import XMonad.Hooks.FloatConfigureReq (fixSteamFlicker)
 import XMonad.Hooks.StatusBar (xmonadPropLog')
 import XMonad.Prelude (All (All), fi, filterM, when)
 import System.Posix.Env (putEnv)

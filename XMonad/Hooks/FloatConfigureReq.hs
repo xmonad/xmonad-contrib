@@ -25,6 +25,10 @@ module XMonad.Hooks.FloatConfigureReq (
     -- $usage
     MaybeMaybeManageHook,
     floatConfReqHook,
+
+    -- * Known workarounds
+    fixSteamFlicker,
+    fixSteamFlickerMMMH,
     ) where
 
 import qualified Data.Map.Strict as M
@@ -66,6 +70,10 @@ import qualified XMonad.StackSet as W
 -- meaningful in the context of a tiling WM):
 --
 -- > map toLower `fmap` className =? "steam" -?> mempty
+--
+-- (this example is also available as 'fixSteamFlickerMMMH' to be added to
+-- one's @myFloatConfReqHook@ and also 'fixSteamFlicker' to be added directly
+-- to one's 'handleEventHook')
 
 -- | A variant of 'MaybeManageHook' that additionally may or may not make
 -- changes to the 'WindowSet'.
@@ -107,3 +115,12 @@ floatConfReqHook _ _ = mempty
 -- | A 'Query' to determine if a window is floating.
 isFloatQ :: Query Bool
 isFloatQ = ask >>= \w -> liftX . gets $ M.member w . W.floating . windowset
+
+-- | A pre-packaged 'floatConfReqHook' that fixes flickering of the Steam client by ignoring 'ConfigureRequestEvent's on any of its floating windows.
+--
+-- To use this, add 'fixSteamFlicker' to your 'handleEventHook'.
+fixSteamFlicker :: Event -> X All
+fixSteamFlicker = floatConfReqHook fixSteamFlickerMMMH
+
+fixSteamFlickerMMMH :: MaybeMaybeManageHook
+fixSteamFlickerMMMH = map toLower `fmap` className =? "steam" -?> mempty
