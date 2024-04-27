@@ -514,8 +514,8 @@ ppNote clp todo = \case
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
 pInput inp = (`runParser` inp) . choice $
-  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
-  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
+  [ Scheduled <$> (getLast "+s" <* " ") <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
+  , Deadline  <$> (getLast "+d" <* " ") <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
   , do s <- munch1 (pure True)
        let (s', p) = splitAt (length s - 3) s
        pure $ case tryPrio p of
