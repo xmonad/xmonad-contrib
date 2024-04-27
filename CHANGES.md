@@ -27,6 +27,13 @@
     - Group workspaces by similarity. Useful when one has lots
       of workspaces and uses only a couple per unit of work.
 
+  * `XMonad.Hooks.FloatConfigureReq`
+
+    - Customize handling of floating windows' move/resize/restack requests
+      (ConfigureRequest). Useful as a workaround for some misbehaving client
+      applications (Steam, rxvt-unicode, anything that tries to restore
+      absolute position of floats).
+
 ### Bug Fixes and Minor Changes
 
   * Fix build-with-cabal.sh when XDG_CONFIG_HOME is defined.
@@ -48,6 +55,15 @@
 
     - The history file is not extraneously read and written anymore if
       the `historySize` is set to 0.
+
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Requests for unmanaged windows no longer cause a refresh. This avoids
+      flicker and also fixes disappearing menus in the Steam client and
+      possibly a few other client applications.
+
+      (See also `XMonad.Hooks.FloatConfigureReq` and/or `XMonad.Util.Hacks`
+      for additional Steam client workarounds.)
 
 ### Other changes
 
