@@ -459,7 +459,14 @@ ewmhDesktopsEventHook'
         a_aw <- getAtom "_NET_ACTIVE_WINDOW"
         a_cw <- getAtom "_NET_CLOSE_WINDOW"
 
-        if  | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
+        if  | mt == a_cw ->
+                killWindow w
+            | not (w `W.member` s) ->
+                -- do nothing for unmanaged windows; it'd be just a useless
+                -- refresh which breaks menus/popups of misbehaving apps that
+                -- send _NET_ACTIVE_WINDOW requests for override-redirect wins
+                mempty
+            | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
                 if W.currentTag s == W.tag ww then mempty else windows $ W.view (W.tag ww)
             | mt == a_cd ->
                 trace $ "Bad _NET_CURRENT_DESKTOP with data=" ++ show d
@@ -473,8 +480,6 @@ ewmhDesktopsEventHook'
                 if W.peek s == Just w then mempty else windows $ W.focusWindow w
             | mt == a_aw -> do
                 if W.peek s == Just w then mempty else windows . appEndo =<< runQuery activateHook w
-            | mt == a_cw ->
-                killWindow w
             | otherwise ->
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager

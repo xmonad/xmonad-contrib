@@ -7,11 +7,11 @@
   * `XMonad.Hooks.StatusBars`
 
     - Move status bar functions from the `IO` to the `X` monad to
-       allow them to look up information from `X`, like the screen
-       width. Existing configurations may need to use `io` from
-       `XMonad.Core` or `liftIO` from `Control.Monad.IO.Class` in
-       order to lift any existing `IO StatusBarConfig` values into
-       `X StatusBarConfig` values.
+      allow them to look up information from `X`, like the screen
+      width. Existing configurations may need to use `io` from
+      `XMonad.Core` or `liftIO` from `Control.Monad.IO.Class` in
+      order to lift any existing `IO StatusBarConfig` values into
+      `X StatusBarConfig` values.
 
   * `XMonad.Prompt`
 
@@ -22,10 +22,17 @@
 
 ### New Modules
 
-  * `XMonad.Actions.Profiles`.
+  * `XMonad.Actions.Profiles`
 
     - Group workspaces by similarity. Useful when one has lots
-	  of workspaces and uses only a couple per unit of work.
+      of workspaces and uses only a couple per unit of work.
+
+  * `XMonad.Hooks.FloatConfigureReq`
+
+    - Customize handling of floating windows' move/resize/restack requests
+      (ConfigureRequest). Useful as a workaround for some misbehaving client
+      applications (Steam, rxvt-unicode, anything that tries to restore
+      absolute position of floats).
 
 ### Bug Fixes and Minor Changes
 
@@ -48,6 +55,15 @@
 
     - The history file is not extraneously read and written anymore if
       the `historySize` is set to 0.
+
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Requests for unmanaged windows no longer cause a refresh. This avoids
+      flicker and also fixes disappearing menus in the Steam client and
+      possibly a few other client applications.
+
+      (See also `XMonad.Hooks.FloatConfigureReq` and/or `XMonad.Util.Hacks`
+      for additional Steam client workarounds.)
 
 ### Other changes
 
