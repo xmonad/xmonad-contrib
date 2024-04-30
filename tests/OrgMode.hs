@@ -61,13 +61,15 @@ spec = do
         `shouldBe` Just (Scheduled "todo" (Time {date = Today, tod = Just $ MomentInTime(HHMM 12 0)}) NoPriority)
       pInput "todo +d 14:05 #B"
         `shouldBe` Just (Deadline "todo" (Time {date = Today, tod = Just $ MomentInTime(HHMM 14 5)}) B)
-    it "parses `blah+d` and `blah +d` as normal messages, but `blah +d ` as a deadline for today" $ do
+    it "parses `blah+d`, `blah +d`, `blah +d `, and `blah +d #B` as normal messages" $ do
       pInput "blah+d"
         `shouldBe` Just (NormalMsg "blah+d" NoPriority)
       pInput "blah +d"
         `shouldBe` Just (NormalMsg "blah +d" NoPriority)
       pInput "blah +d "
-        `shouldBe` Just (Deadline "blah" (Time {date = Today, tod = Nothing}) NoPriority)
+        `shouldBe` Just (NormalMsg "blah +d " NoPriority)
+      pInput "blah +d #B"
+        `shouldBe` Just (NormalMsg "blah +d" B)
 
   context "no priority#b" $ do
     it "parses to the correct thing" $

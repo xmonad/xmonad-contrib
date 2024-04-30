@@ -514,8 +514,8 @@ ppNote clp todo = \case
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
 pInput inp = (`runParser` inp) . choice $
-  [ Scheduled <$> (getLast "+s" <* " ") <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
-  , Deadline  <$> (getLast "+d" <* " ") <*> (Time <$> pDate <*> pOrgTime) <*> pPriority
+  [ Scheduled <$> (getLast "+s" <* " ") <*> join (fixTime <$> pDate <*> pOrgTime) <*> pPriority
+  , Deadline  <$> (getLast "+d" <* " ") <*> join (fixTime <$> pDate <*> pOrgTime) <*> pPriority
   , do s <- munch1 (pure True)
        let (s', p) = splitAt (length s - 3) s
        pure $ case tryPrio p of
@@ -523,6 +523,12 @@ pInput inp = (`runParser` inp) . choice $
          Nothing   -> NormalMsg s                   NoPriority
   ]
  where
+  fixTime :: Maybe Date -> Maybe OrgTime -> Parser Time
+  fixTime d tod = case (d, tod) of
+    (Nothing, Nothing) -> mempty                -- no day and no time
+    (Nothing, Just{})  -> pure (Time Today tod) -- no day, but a time
+    (Just d', _)       -> pure (Time d'    tod) -- day given
+
   tryPrio :: String -> Maybe Priority
   tryPrio [' ', '#', x]
     | x `elem` ("Aa" :: String) = Just A
@@ -588,15 +594,14 @@ pOrgTime = option Nothing $
   pHour   :: Parser Int = pNumBetween 0 23
   pMinute :: Parser Int = pNumBetween 0 59
 
--- | Parse a 'Date'.
-pDate :: Parser Date
-pDate = skipSpaces *> choice
+-- | Try to parse a 'Date'.
+pDate :: Parser (Maybe Date)
+pDate = skipSpaces *> optional (choice
   [ pPrefix "tod" "ay"    Today
   , pPrefix "tom" "orrow" Tomorrow
   , Next <$> pNext
   , Date <$> pDate'
-  , pure Today       -- Fallback to today if no date was given.
-  ]
+  ])
  where
   pNext :: Parser DayOfWeek = choice
     [ pPrefix "m"  "onday"    Monday   , pPrefix "tu" "esday"  Tuesday
