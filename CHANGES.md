@@ -34,6 +34,11 @@
       applications (Steam, rxvt-unicode, anything that tries to restore
       absolute position of floats).
 
+  * `XMonad.Layout.Columns`
+
+    - Organize windows in columns. This layout allows to move/resize windows in
+      every directions.
+
 ### Bug Fixes and Minor Changes
 
   * Fix build-with-cabal.sh when XDG_CONFIG_HOME is defined.
