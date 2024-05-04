@@ -461,15 +461,15 @@ ewmhDesktopsEventHook'
 
         if  | mt == a_cw ->
                 killWindow w
+            | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
+                if W.currentTag s == W.tag ww then mempty else windows $ W.view (W.tag ww)
+            | mt == a_cd ->
+                trace $ "Bad _NET_CURRENT_DESKTOP with data=" ++ show d
             | not (w `W.member` s) ->
                 -- do nothing for unmanaged windows; it'd be just a useless
                 -- refresh which breaks menus/popups of misbehaving apps that
                 -- send _NET_ACTIVE_WINDOW requests for override-redirect wins
                 mempty
-            | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
-                if W.currentTag s == W.tag ww then mempty else windows $ W.view (W.tag ww)
-            | mt == a_cd ->
-                trace $ "Bad _NET_CURRENT_DESKTOP with data=" ++ show d
             | mt == a_d, n : _ <- d, Just ww <- ws !? fi n ->
                 if W.findTag w s == Just (W.tag ww) then mempty else windows $ W.shiftWin (W.tag ww) w
             | mt == a_d ->
