@@ -47,7 +47,7 @@ import Control.Monad (guard)
 import Control.Monad.State (modify)
 import Control.Monad.Trans.Maybe (MaybeT (..))
 import Data.Foldable (Foldable (..))
-import Data.List (scanl', singleton)
+import Data.List (scanl')
 import Data.Maybe (listToMaybe)
 import Data.Ratio ((%))
 import XMonad
@@ -358,7 +358,7 @@ mapWindow :: (Window -> Window) -> Columns -> Columns
 mapWindow = fmap . fmap . fmap . fmap
 
 columnsToWindows :: Columns -> [Window]
-columnsToWindows = foldMap (singleton . snd) . foldMap snd
+columnsToWindows = foldMap ((:[]) . snd) . foldMap snd
 
 swapWindowBetween ::
   Window ->
