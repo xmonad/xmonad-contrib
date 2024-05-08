@@ -18,6 +18,7 @@ module XMonad.Actions.Submap (
                              -- $usage
                              submap,
                              visualSubmap,
+                             visualSubmapSorted,
                              submapDefault,
                              submapDefaultWithKey,
 
@@ -88,15 +89,32 @@ visualSubmap :: WindowConfig -- ^ The config for the spawned window.
              -> M.Map (KeyMask, KeySym) (String, X ())
                              -- ^ A map @keybinding -> (description, action)@.
              -> X ()
-visualSubmap wc keys =
+visualSubmap = visualSubmapSorted id
+
+-- | Like 'visualSubmap', but is able to sort the descriptions.
+-- For example,
+--
+-- > import Data.Ord (comparing, Down)
+-- >
+-- > visualSubmapSorted (sortBy (comparing Down)) def
+--
+-- would sort the @(key, description)@ pairs by their keys in descending
+-- order.
+visualSubmapSorted :: ([((KeyMask, KeySym), String)] -> [((KeyMask, KeySym), String)])
+                             -- ^ A function to resort the descriptions
+             -> WindowConfig -- ^ The config for the spawned window.
+             -> M.Map (KeyMask, KeySym) (String, X ())
+                             -- ^ A map @keybinding -> (description, action)@.
+             -> X ()
+visualSubmapSorted sorted wc keys =
     withSimpleWindow wc descriptions waitForKeyPress >>= \(m', s) ->
         maybe (pure ()) snd (M.lookup (m', s) keys)
   where
     descriptions :: [String]
     descriptions =
-        zipWith (\key desc -> keyToString key <> ": " <> desc)
-                (M.keys keys)
-                (map fst (M.elems keys))
+        map (\(key, desc) -> keyToString key <> ": " <> desc)
+            . sorted
+            $ zip (M.keys keys) (map fst (M.elems keys))
 
 -- | Give a name to an action.
 subName :: String -> X () -> (String, X ())
