@@ -65,6 +65,11 @@
       (See also `XMonad.Hooks.FloatConfigureReq` and/or `XMonad.Util.Hacks`
       for additional Steam client workarounds.)
 
+  * `XMonad.Actions.Submap`
+
+    - Added `visualSubmapSorted` to enable sorting of the keymap
+      descriptions.
+
 ### Other changes
 
 ## 0.18.0 (February 3, 2024)
