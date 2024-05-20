@@ -17,12 +17,11 @@
 -- A layout which tiles the windows in columns. The windows can be moved and
 -- resized in every directions.
 --
--- The first window appears:
+-- The first window appears in a single column in the center of the screen. Its
+-- width is configurable (See 'coOneWindowWidth').
 --
--- * in the center on wide screens
--- * fullscreen otherwise
---
--- The second window appears on a second column.
+-- The second window appears in a second column. Starting with two columns, they
+-- fill up the screen.
 --
 -- Subsequent windows appear on the bottom of the last columns.
 module XMonad.Layout.Columns
@@ -78,7 +77,7 @@ import qualified XMonad.StackSet as StackSet
 -- $usage
 -- Add 'Columns' to your @layoutHook@ with an initial empty state:
 --
--- > myLayout = Full ||| Columns []
+-- > myLayout = Full ||| Columns 1 []
 --
 -- Here is an example of keybindings:
 --
@@ -156,37 +155,40 @@ type Column = [(Rational, Window)]
 -- | The layout is a list of 'Column' with their relative horizontal dimensions.
 type Columns = [(Rational, Column)]
 
-newtype ColumnsLayout a = Columns Columns
+data ColumnsLayout a = Columns
+  { -- | With of the first column when there is only one window. Usefull on wide
+    -- screens.
+    coOneWindowWidth :: Rational,
+    -- | The current state
+    coColumns :: Columns
+  }
   deriving (Show, Read)
 
 instance LayoutClass ColumnsLayout Window where
   description _ = layoutDescription
 
-  emptyLayout _ _ = pure ([], Just $ Columns [])
-
-  doLayout (Columns columns) rectangle stack =
-    pure (rectangles, Just (Columns columns'))
+  doLayout (Columns oneWindowWidth columns) rectangle stack =
+    pure (rectangles, Just (Columns oneWindowWidth columns'))
     where
       hackedColumns = hackForTabs columns stack
       columns' = updateWindowList hackedColumns stack
       rectangles = toRectangles rectangle' columns'
-      -- If there is only one window and the screen is big, we reduce the
-      -- destination rectangle to put the window on the center of the screen.
+      -- If there is only one window, we set the destination rectangle according
+      -- to the width in the layout setting.
       rectangle'
-        | rect_width rectangle > 2000 && (length . toList $ stack) == 1 =
+        | (length . toList $ stack) == 1 =
             scaleRationalRect rectangle singleColumnRR
         | otherwise = rectangle
-      singleColumnWidth = 1 % 2
-      singleColumnOffset = (1 - singleColumnWidth) / 2
-      singleColumnRR = RationalRect singleColumnOffset 0 singleColumnWidth 1
+      singleColumnOffset = (1 - oneWindowWidth) / 2
+      singleColumnRR = RationalRect singleColumnOffset 0 oneWindowWidth 1
 
-  handleMessage layout@(Columns columns) message = do
+  handleMessage layout@(Columns oneWindowWidth columns) message = do
     mbStack <- runMaybeT $ handleFocus' =<< getStack
     changedFocus <- traverse updateStack' mbStack
 
     movedOrResized <-
       runMaybeT $
-        Columns
+        Columns oneWindowWidth
           <$> (handleMoveOrResize' =<< peekFocus)
 
     pure $ movedOrResized <|> changedFocus
@@ -358,7 +360,7 @@ mapWindow :: (Window -> Window) -> Columns -> Columns
 mapWindow = fmap . fmap . fmap . fmap
 
 columnsToWindows :: Columns -> [Window]
-columnsToWindows = foldMap ((:[]) . snd) . foldMap snd
+columnsToWindows = foldMap ((: []) . snd) . foldMap snd
 
 swapWindowBetween ::
   Window ->
