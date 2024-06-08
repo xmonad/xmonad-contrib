@@ -75,6 +75,11 @@
     - Added `visualSubmapSorted` to enable sorting of the keymap
       descriptions.
 
+  * `XMonad.Hooks.ScreenCorners`
+
+    - Added screen edge support with `SCTop`, `SCBottom`, `SCLeft` and
+      `SCRight`. Now both corners and edges are supported.
+
 ### Other changes
 
 ## 0.18.0 (February 3, 2024)
