@@ -20,6 +20,14 @@
       myFunc` should be changed to `historyCompletionP myConf myFunc`.
       If not `myConf` is lying around, `def` can be used instead.
 
+  * `XMonad.Actions.GridSelect`
+
+    - Added the `gs_cancelOnEmptyClick` field to `GSConfig`, which makes
+      mouse clicks into "empty space" cancel the current grid-select.
+      Users explicitly defining their own `GSConfig` record will have to
+      add this to their definitions. Additionally, the field defaults to
+      `True`—to retain the old behaviour, set it to `False`.
+
 ### New Modules
 
   * `XMonad.Actions.Profiles`

@@ -203,10 +203,13 @@ data GSConfig a = GSConfig {
       gs_colorizer :: a -> Bool -> X (String, String),
       gs_font :: String,
       gs_navigate :: TwoD a (Maybe a),
+      -- ^ Customize key bindings for a GridSelect
       gs_rearranger :: Rearranger a,
       gs_originFractX :: Double,
       gs_originFractY :: Double,
-      gs_bordercolor :: String
+      gs_bordercolor :: String,
+      gs_cancelOnEmptyClick :: Bool
+      -- ^ When True, click on empty space will cancel GridSelect
 }
 
 -- | That is 'fromClassName' if you are selecting a 'Window', or
@@ -386,13 +389,20 @@ updateElementsWithColorizer colorizer elementmap = do
 stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
 stdHandle ButtonEvent{ ev_event_type = t, ev_x = x, ev_y = y } contEventloop
     | t == buttonRelease = do
-        s@TwoDState { td_paneX = px, td_paneY = py,
-                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _ _) } <- get
+        s@TwoDState{ td_paneX = px
+                   , td_paneY = py
+                   , td_gsconfig = GSConfig{ gs_cellheight = ch
+                                           , gs_cellwidth = cw
+                                           , gs_cancelOnEmptyClick = cancelOnEmptyClick
+                                           }
+                   } <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) (td_elementmap s) of
              Just (_,el) -> return (Just el)
-             Nothing -> contEventloop
+             Nothing     -> if cancelOnEmptyClick
+                            then return Nothing
+                            else contEventloop
     | otherwise = contEventloop
 
 stdHandle ExposeEvent{} contEventloop = updateAllElements >> contEventloop
@@ -648,7 +658,7 @@ gridselect gsconfig elements =
     liftIO $ mapWindow dpy win
     liftIO $ selectInput dpy win (exposureMask .|. keyPressMask .|. buttonReleaseMask)
     status <- io $ grabKeyboard dpy win True grabModeAsync grabModeAsync currentTime
-    io $ grabPointer dpy win True buttonReleaseMask grabModeAsync grabModeAsync none none currentTime
+    void $ io $ grabPointer dpy win True buttonReleaseMask grabModeAsync grabModeAsync none none currentTime
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width scr
         screenHeight = toInteger $ rect_height scr
@@ -706,7 +716,7 @@ decorateName' w = do
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2) "white"
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2) "white" True
 
 -- | Brings selected window to the current workspace.
 bringSelected :: GSConfig Window -> X ()
