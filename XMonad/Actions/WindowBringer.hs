@@ -193,7 +193,7 @@ decorateName ws w = do
   return $ name ++ " [" ++ W.tag ws ++ "]"
 
 -- | Returns the window name as will be listed in dmenu.  This will
--- return the executable name of the window along with it's workspace
+-- return the executable name of the window along with its workspace
 -- ID.
 decorateAppName :: X.WindowSpace -> Window -> X String
 decorateAppName ws w = do
