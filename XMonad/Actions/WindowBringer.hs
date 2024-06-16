@@ -22,6 +22,7 @@ module XMonad.Actions.WindowBringer (
                     WindowBringerConfig(..),
                     gotoMenu, gotoMenuConfig, gotoMenu', gotoMenuArgs, gotoMenuArgs',
                     bringMenu, bringMenuConfig, bringMenu', bringMenuArgs, bringMenuArgs',
+                    copyMenu, copyMenuConfig, copyMenu', copyMenuArgs, copyMenuArgs',
                     windowMap, windowAppMap, windowMap', bringWindow, actionMenu
                    ) where
 
@@ -33,6 +34,7 @@ import XMonad
 import qualified XMonad as X
 import XMonad.Util.Dmenu (menuMapArgs)
 import XMonad.Util.NamedWindows (getName, getNameWMClass)
+import XMonad.Actions.CopyWindow (copyWindow)
 
 -- $usage
 --
@@ -44,6 +46,7 @@ import XMonad.Util.NamedWindows (getName, getNameWMClass)
 --
 -- > , ((modm .|. shiftMask, xK_g     ), gotoMenu)
 -- > , ((modm .|. shiftMask, xK_b     ), bringMenu)
+-- > , ((modm .|. shiftMask, xK_y     ), copyMenu)
 --
 -- For detailed instructions on editing your key bindings, see
 -- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
@@ -89,6 +92,37 @@ gotoMenu' cmd = gotoMenuConfig def { menuArgs = [], menuCommand = cmd }
 --   list of arguments to pass to dmenu.
 gotoMenuArgs' :: String -> [String] -> X ()
 gotoMenuArgs' cmd args = gotoMenuConfig def { menuCommand = cmd, menuArgs = args }
+
+-- | Pops open a dmenu with window titles. Choose one, and it will be copied into your current workspace.
+copyMenu :: X ()
+copyMenu = copyMenuArgs def
+
+-- | Pops open a dmenu with window titles. Choose one, and it will be
+--   copied into your current workspace. This version
+--   accepts a configuration object.
+copyMenuConfig :: WindowBringerConfig -> X ()
+copyMenuConfig wbConfig = actionMenu wbConfig copyBringWindow
+
+-- | Pops open a dmenu with window titles. Choose one, and it will be
+--   copied into your current workspace. This version
+--   takes a list of arguments to pass to dmenu.
+copyMenuArgs :: [String] -> X ()
+copyMenuArgs args = copyMenuConfig def { menuArgs = args }
+
+-- | Pops open an application with window titles given over stdin. Choose one,
+--   and it will be copied into your current workspace.
+copyMenu' :: String -> X ()
+copyMenu' cmd = copyMenuConfig def { menuArgs = [], menuCommand = cmd }
+
+-- | Pops open an application with window titles given over stdin. Choose one,
+--   and it will be copied into your current
+--   workspace. This version allows arguments to the chooser to be specified.
+copyMenuArgs' :: String -> [String] -> X ()
+copyMenuArgs' cmd args = copyMenuConfig def { menuArgs = args, menuCommand = cmd }
+
+-- | Brings a copy of the specified window into the current workspace.
+copyBringWindow :: Window -> X.WindowSet -> X.WindowSet
+copyBringWindow w ws = copyWindow w (W.currentTag ws) ws
 
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace.
