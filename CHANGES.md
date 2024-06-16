@@ -47,6 +47,10 @@
     - Organize windows in columns. This layout allows to move/resize windows in
       every directions.
 
+  * `XMonad.Prompt.WindowBringer`
+
+    - Added `copyMenu`, a convenient way to copy a window to the current workspace.
+
 ### Bug Fixes and Minor Changes
 
   * Fix build-with-cabal.sh when XDG_CONFIG_HOME is defined.
