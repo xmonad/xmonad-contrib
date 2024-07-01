@@ -429,6 +429,7 @@ test-suite tests
                   RotateSome
                   Selective
                   SwapWorkspaces
+                  WindowNavigation
                   Utils
                   XMonad.Actions.CopyWindow
                   XMonad.Actions.CycleRecentWS
@@ -443,6 +444,7 @@ test-suite tests
                   XMonad.Actions.TagWindows
                   XMonad.Actions.WindowBringer
                   XMonad.Actions.WindowGo
+                  XMonad.Actions.WindowNavigation
                   XMonad.Hooks.ManageDocks
                   XMonad.Hooks.ManageHelpers
                   XMonad.Hooks.UrgencyHook

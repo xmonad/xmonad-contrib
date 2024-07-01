@@ -92,6 +92,11 @@
     - Added screen edge support with `SCTop`, `SCBottom`, `SCLeft` and
       `SCRight`. Now both corners and edges are supported.
 
+  * `XMonad.Actions.WindowNavigation`
+
+    - Improve navigation in presence of floating windows.
+    - Handle window switching when in `Full` layout.
+
 ### Other changes
 
 ## 0.18.0 (February 3, 2024)
