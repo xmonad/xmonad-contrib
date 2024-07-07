@@ -38,7 +38,7 @@ cabal-version:      1.12
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with:        GHC == 8.6.5 || == 8.8.4 || == 8.10.7 || == 9.0.2 || == 9.2.8 || == 9.4.8 || == 9.6.5 || == 9.8.2 || == 9.10.1
+tested-with:        GHC == 8.6.5 || == 8.8.4 || == 8.10.7 || == 9.0.2 || == 9.2.8 || == 9.4.8 || == 9.6.6 || == 9.8.2 || == 9.10.1
 
 source-repository head
   type:     git
@@ -481,7 +481,7 @@ test-suite tests
                   XMonad.Util.XUtils
                   XPrompt
   hs-source-dirs: tests, .
-  build-depends: base
+  build-depends: base >= 4.12 && < 5
                , QuickCheck >= 2
                , X11 >= 1.10 && < 1.11
                , bytestring >= 0.10 && < 0.13
