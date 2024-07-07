@@ -481,7 +481,7 @@ test-suite tests
                   XMonad.Util.XUtils
                   XPrompt
   hs-source-dirs: tests, .
-  build-depends: base
+  build-depends: base >= 4.12 && < 5
                , QuickCheck >= 2
                , X11 >= 1.10 && < 1.11
                , bytestring >= 0.10 && < 0.13
