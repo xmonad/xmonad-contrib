@@ -54,7 +54,7 @@ flag pedantic
   manual:      True
 
 library
-    build-depends: base >= 4.11 && < 5,
+    build-depends: base >= 4.12 && < 5,
                    bytestring >= 0.10 && < 0.13,
                    containers >= 0.5 && < 0.8,
                    directory,
