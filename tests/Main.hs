@@ -14,6 +14,7 @@ import qualified CycleRecentWS
 import qualified OrgMode
 import qualified GridSelect
 import qualified EZConfig
+import qualified WindowNavigation
 
 main :: IO ()
 main = hspec $ do
@@ -53,3 +54,4 @@ main = hspec $ do
     context "OrgMode"        OrgMode.spec
     context "GridSelect"     GridSelect.spec
     context "EZConfig"       EZConfig.spec
+    context "WindowNavigation" WindowNavigation.spec
