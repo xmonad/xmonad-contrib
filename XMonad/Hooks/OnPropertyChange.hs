@@ -41,7 +41,7 @@ import XMonad.Prelude
 -- $usage
 -- You can use this module with the following in your @xmonad.hs@:
 --
--- > import XMonad.Hooks.DynamicProperty
+-- > import XMonad.Hooks.OnPropertyChange
 --
 -- Enable it by including in you handleEventHook definition:
 --
