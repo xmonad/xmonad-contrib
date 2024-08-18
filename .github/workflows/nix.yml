@@ -25,4 +25,6 @@ jobs:
         # "nix build" builds with full optimization and includes a profiling
         # build, so just the build of xmonad-contrib itself takes 3 minutes.
         # As a workaround, we invoke cabal manually here.
-        run: nix develop -c cabal v2-build -O0 -j
+        run: |
+          nix develop -c cabal v2-update -O0 -j
+          nix develop -c cabal v2-build -O0 -j
