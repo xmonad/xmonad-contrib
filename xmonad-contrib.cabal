@@ -1,5 +1,5 @@
 name:               xmonad-contrib
-version:            0.18.0.9
+version:            0.18.1
 -- ^ also update cpp-options: -DXMONAD_CONTRIB_VERSION_*
 
 homepage:           https://xmonad.org/

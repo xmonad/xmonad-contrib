@@ -2,6 +2,8 @@
 
 ## _unreleased_
 
+## 0.18.1 (August 20, 2024)
+
 ### Breaking Changes
 
   * `XMonad.Hooks.StatusBars`
