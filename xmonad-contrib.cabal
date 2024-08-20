@@ -73,7 +73,7 @@ library
 
     cpp-options:   -DXMONAD_CONTRIB_VERSION_MAJOR=0
                    -DXMONAD_CONTRIB_VERSION_MINOR=18
-                   -DXMONAD_CONTRIB_VERSION_PATCH=0
+                   -DXMONAD_CONTRIB_VERSION_PATCH=1
     ghc-options:   -Wall -Wno-unused-do-bind
 
     if flag(pedantic)
