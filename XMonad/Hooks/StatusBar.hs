@@ -426,12 +426,12 @@ statusBarPipe cmd xpp = do
 -- > xmobarBottom = statusBarPropTo "_XMONAD_LOG_2" "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
 -- > xmobar1      = statusBarPropTo "_XMONAD_LOG_3" "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
 -- >
--- > barSpawner :: ScreenId -> IO StatusBarConfig
--- > barSpawner 0 = pure $ xmobarTop <> xmobarBottom -- two bars on the main screen
--- > barSpawner 1 = pure $ xmobar1
+-- > barSpawner :: ScreenId -> StatusBarConfig
+-- > barSpawner 0 = xmobarTop <> xmobarBottom -- two bars on the main screen
+-- > barSpawner 1 = xmobar1
 -- > barSpawner _ = mempty -- nothing on the rest of the screens
 -- >
--- > main = xmonad $ dynamicSBs barSpawner (def { ... })
+-- > main = xmonad $ dynamicSBs (pure . barSpawner) (def { ... })
 --
 -- Make sure you specify which screen to place the status bar on (in xmobar,
 -- this is achieved by the @-x@ argument). In addition to making sure that your
