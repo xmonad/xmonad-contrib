@@ -128,9 +128,9 @@ instance (LayoutClass l1 a, LayoutClass l2 a, Show a) => LayoutClass (OnHost l1 
         else do (wrs, mlt') <- runLayout (W.Workspace i lf ms) r
                 return (wrs, Just $ mkNewOnHostF p mlt')
 
-    handleMessage (OnHost hosts bool lt lf) m
-        | bool      = handleMessage lt m >>= maybe (return Nothing) (\nt -> return . Just $ OnHost hosts bool nt lf)
-        | otherwise = handleMessage lf m >>= maybe (return Nothing) (return . Just . OnHost hosts bool lt)
+    handleMessage (OnHost hosts choice lt lf) m
+        | choice    = handleMessage lt m >>= maybe (return Nothing) (\nt -> return . Just $ OnHost hosts choice nt lf)
+        | otherwise = handleMessage lf m >>= maybe (return Nothing) (return . Just . OnHost hosts choice lt)
 
     description (OnHost _ True  l1 _) = description l1
     description (OnHost _ _     _ l2) = description l2
