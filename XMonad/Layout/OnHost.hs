@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
-
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.OnHost
@@ -27,10 +28,12 @@ module XMonad.Layout.OnHost (-- * Usage
 
 import           XMonad
 import qualified XMonad.StackSet              as W
+import           XMonad.Prelude
 
 import           XMonad.Layout.LayoutModifier
 
-import           Data.Maybe                        (fromMaybe)
+import           Foreign                           (allocaArray0)
+import           Foreign.C
 import           System.Posix.Env                  (getEnv)
 
 -- $usage
@@ -56,11 +59,13 @@ import           System.Posix.Env                  (getEnv)
 --
 -- > layoutHook = A ||| B ||| onHost "foo" D C
 --
--- Note that we rely on '$HOST' being set in the environment, as is true on most
--- modern systems; if it's not, you may want to use a wrapper around xmonad or
--- perhaps use 'System.Posix.Env.setEnv' (or 'putEnv') to set it in 'main'.
--- This is to avoid dragging in the network package as an xmonad dependency.
--- If '$HOST' is not defined, it will behave as if the host name never matches.
+-- Note that we rely on either @$HOST@ being set in the environment, or
+-- <https://linux.die.net/man/2/gethostname gethostname> returning something
+-- useful, as is true on most modern systems; if this is not the case for you,
+-- you may want to use a wrapper around xmonad or perhaps use
+-- 'System.Posix.Env.setEnv' (or 'putEnv') to set @$HOST@ in 'main'. If
+-- neither of the two methods work, the module will behave as if the host name
+-- never matches.
 --
 -- Also note that '$HOST' is usually a fully qualified domain name, not a short name.
 -- If you use a short name, this code will try to truncate $HOST to match; this may
@@ -116,7 +121,7 @@ data OnHost l1 l2 a = OnHost [String]
 
 instance (LayoutClass l1 a, LayoutClass l2 a, Show a) => LayoutClass (OnHost l1 l2) a where
     runLayout (W.Workspace i p@(OnHost hosts _ lt lf) ms) r = do
-      h <- io $ getEnv "HOST"
+      h <- io $ getEnv "HOST" <|> getHostName
       if maybe False (`elemFQDN` hosts) h
         then do (wrs, mlt') <- runLayout (W.Workspace i lt ms) r
                 return (wrs, Just $ mkNewOnHostT p mlt')
@@ -154,3 +159,17 @@ eqFQDN a b
   | '.' `elem` a                 = takeWhile (/= '.') a ==                    b
   |                 '.' `elem` b =                    a == takeWhile (/= '.') b
   | otherwise                    =                    a ==                    b
+
+-----------------------------------------------------------------------
+-- cbits
+
+foreign import ccall "gethostname" gethostname :: CString -> CSize -> IO CInt
+
+getHostName :: IO (Maybe String)
+getHostName = allocaArray0 size $ \cstr -> do
+  throwErrnoIfMinus1_ "getHostName" $ gethostname cstr (fromIntegral size)
+  peekCString cstr <&> \case
+    "" -> Nothing
+    s  -> Just s
+ where
+  size = 256
