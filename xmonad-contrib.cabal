@@ -154,6 +154,7 @@ library
                         XMonad.Actions.TreeSelect
                         XMonad.Actions.UpdateFocus
                         XMonad.Actions.UpdatePointer
+                        XMonad.Actions.UpKeys
                         XMonad.Actions.Warp
                         XMonad.Actions.WindowBringer
                         XMonad.Actions.WindowGo
