@@ -69,7 +69,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- the working directory to the one configured for the matching
 -- project.  If the workspace doesn't have any windows, the project's
 -- start-up hook is executed.  This allows you to launch applications
--- or further configure the workspace/project.
+-- or further configure the workspace/project. To close a project,
+-- you can use the functions provided by "XMonad.Actions.DynamicWorkspaces",
+-- such as @removeWorkspace@ or @removeWorkspaceByTag@.
 --
 -- When using the @switchProjectPrompt@ function, workspaces are
 -- created as needed.  This means you can create new project spaces
@@ -230,7 +232,9 @@ lookupProject name = Map.lookup name <$> XS.gets projects
 
 --------------------------------------------------------------------------------
 -- | Fetch the current project (the one being used for the currently
--- active workspace).
+-- active workspace). If the workspace doesn't have a project, a
+-- default project is returned, using the workspace name as the
+-- project name.
 currentProject :: X Project
 currentProject = do
   name <- gets (W.tag . W.workspace . W.current . windowset)
