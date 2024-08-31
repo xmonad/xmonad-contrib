@@ -255,20 +255,7 @@ modifyProject f = do
 --------------------------------------------------------------------------------
 -- | Switch to the given project.
 switchProject :: Project -> X ()
-switchProject p = do
-  oldws <- gets (W.workspace . W.current . windowset)
-  oldp <- currentProject
-
-  let name = W.tag oldws
-      ws   = W.integrate' (W.stack oldws)
-
-  -- If the project we are switching away from has no windows, and
-  -- it's a dynamic project, remove it from the configuration.
-  when (null ws && isNothing (projectStartHook oldp)) $ do
-    removeWorkspaceByTag name -- also remove the old workspace
-    XS.modify (\s -> s {projects = Map.delete name $ projects s})
-
-  appendWorkspace (projectName p)
+switchProject p = appendWorkspace (projectName p)
 
 --------------------------------------------------------------------------------
 -- | Prompt for a project name and then switch to it.  Automatically
