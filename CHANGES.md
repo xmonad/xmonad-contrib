@@ -2,6 +2,15 @@
 
 ## _unreleased_
 
+### Bug Fixes and Minor Changes
+
+  * `XMonad.Actions.DynamicProjects`
+
+    - No longer autodelete projects when `switchProject` is called from
+      an empty workspace. This also fixes a bug where static workspaces
+      would be deleted when switching to a dynamic project.
+    - Improved documentation on how to close a project.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
