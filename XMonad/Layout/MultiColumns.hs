@@ -29,7 +29,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Prelude
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.MultiColumns
 --
@@ -56,9 +56,9 @@ import XMonad.Prelude
 -- columns, the screen is instead split equally among all columns. Therefore,
 -- if equal size among all columns are desired, set the size to -0.5.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | Layout constructor.
 multiCol
@@ -96,8 +96,8 @@ instance LayoutClass MultiCol a where
                       ,fmap incmastern (fromMessage m)]
             where resize Shrink = l { multiColSize = max (-0.5) $ s-ds }
                   resize Expand = l { multiColSize = min 1 $ s+ds }
-                  incmastern (IncMasterN x) = l { multiColNWin = take a n ++ [newval] ++ tail r }
-                      where newval =  max 0 $ head r + x
+                  incmastern (IncMasterN x) = l { multiColNWin = take a n ++ [newval] ++ drop 1 r }
+                      where newval = max 0 $ maybe 0 (x +) (listToMaybe r)
                             r = drop a n
                   n = multiColNWin l
                   ds = multiColDeltaSize l

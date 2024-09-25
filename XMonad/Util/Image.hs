@@ -22,7 +22,8 @@ module XMonad.Util.Image
     ) where
 
 import XMonad
-import XMonad.Util.Font (stringToPixel,fi)
+import XMonad.Prelude
+import XMonad.Util.Font (stringToPixel)
 
 -- | Placement of the icon in the title bar
 data Placement = OffsetLeft Int Int   -- ^ An exact amount of pixels from the upper left corner
@@ -42,7 +43,7 @@ data Placement = OffsetLeft Int Int   -- ^ An exact amount of pixels from the up
 
 -- | Gets the ('width', 'height') of an image
 imageDims :: [[Bool]] -> (Int, Int)
-imageDims img = (length (head img), length img)
+imageDims img = (length (fromMaybe [] (listToMaybe img)), length img)
 
 -- | Return the 'x' and 'y' positions inside a 'Rectangle' to start drawing
 --   the image given its 'Placement'

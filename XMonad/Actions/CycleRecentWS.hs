@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.CycleRecentWS
@@ -35,21 +36,25 @@ module XMonad.Actions.CycleRecentWS (
 #endif
 ) where
 
+import XMonad.Actions.Repeatable (repeatableSt)
+
 import XMonad hiding (workspaces)
-import XMonad.StackSet hiding (filter)
+import XMonad.Prelude (void, when)
+import XMonad.StackSet hiding (filter, modify)
 
 import Control.Arrow ((&&&))
 import Data.Function (on)
+import Control.Monad.State (lift)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Actions.CycleRecentWS
 -- >
 -- >   , ((modm, xK_Tab), cycleRecentWS [xK_Alt_L] xK_Tab xK_grave)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Cycle through most recent workspaces with repeated presses of a key, while
 --   a modifier key is held down. The recency of workspaces previewed while browsing
@@ -111,25 +116,15 @@ cycleWindowSets :: (WindowSet -> [WorkspaceId]) -- ^ A function used to create a
                 -> X ()
 cycleWindowSets genOptions mods keyNext keyPrev = do
   (options, unView') <- gets $ (genOptions &&& unView) . windowset
-  XConf {theRoot = root, display = d} <- ask
-  let event = allocaXEvent $ \p -> do
-                maskEvent d (keyPressMask .|. keyReleaseMask) p
-                KeyEvent {ev_event_type = t, ev_keycode = c} <- getEvent p
-                s <- keycodeToKeysym d c 0
-                return (t, s)
-  let setOption n = do windows $ view (options `cycref` n) . unView'
-                       (t, s) <- io event
-                       case () of
-                         () | t == keyPress   && s == keyNext  -> setOption (n+1)
-                            | t == keyPress   && s == keyPrev  -> setOption (n-1)
-                            | t == keyRelease && s `elem` mods -> return ()
-                            | otherwise                        -> setOption n
-  io $ grabKeyboard d root False grabModeAsync grabModeAsync currentTime
-  setOption 0
-  io $ ungrabKeyboard d currentTime
- where
-  cycref :: [a] -> Int -> a
-  cycref l i = l !! (i `mod` length l)
+  let
+    preview = do
+      i <- get
+      lift $ windows (view (options !! (i `mod` n)) . unView')
+      where n = length options
+  void . repeatableSt (-1) mods keyNext $ \t s -> when (t == keyPress) $ if
+    | s == keyNext -> modify succ >> preview
+    | s == keyPrev -> modify pred >> preview
+    | otherwise    -> pure ()
 
 -- | Given an old and a new 'WindowSet', which is __exactly__ one
 -- 'view' away from the old one, restore the workspace order of the

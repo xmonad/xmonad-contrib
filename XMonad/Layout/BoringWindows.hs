@@ -45,7 +45,7 @@ import qualified XMonad.StackSet as W
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.BoringWindows
 --
@@ -60,9 +60,9 @@ import qualified XMonad.StackSet as W
 -- > , ((modm, xK_k), focusDown)
 -- > , ((modm, xK_m), focusMaster)
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 
 data BoringMessage = FocusUp | FocusDown | FocusMaster | IsBoring Window | ClearBoring
@@ -93,7 +93,7 @@ siftUp = sendMessage UpdateBoring >> sendMessage SiftUp
 siftDown = sendMessage UpdateBoring >> sendMessage SiftDown
 
 -- | Mark current focused window boring for all layouts.
--- This is useful in combination with the 'XMonad.Actions.CopyWindow' module.
+-- This is useful in combination with the "XMonad.Actions.CopyWindow" module.
 markBoringEverywhere :: X ()
 markBoringEverywhere = withFocused (broadcastMessage . IsBoring)
 

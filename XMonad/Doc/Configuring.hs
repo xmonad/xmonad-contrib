@@ -14,7 +14,9 @@
 -- <https://xmonad.org/TUTORIAL.html xmonad website>.
 --
 -- For more detailed instructions on extending xmonad with the
--- xmonad-contrib library, see "XMonad.Doc.Extending".
+-- xmonad-contrib library, see
+-- <https://xmonad.org/TUTORIAL.html the tutorial>
+-- and "XMonad.Doc.Extending".
 --
 -----------------------------------------------------------------------------
 

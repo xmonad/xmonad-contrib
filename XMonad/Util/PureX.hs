@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleContexts #-}
+{-# LANGUAGE DerivingVia, GeneralizedNewtypeDeriving, FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -53,7 +53,7 @@ module XMonad.Util.PureX (
 
 -- xmonad
 import XMonad
-import XMonad.Prelude (Any (..), liftA2, WindowScreen)
+import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import qualified XMonad.Actions.FocusNth
 
@@ -110,12 +110,7 @@ import Control.Monad.Reader
 -- | The @PureX@ newtype over @ReaderT XConf (State XState) a@.
 newtype PureX a = PureX (ReaderT XConf (State XState) a)
   deriving (Functor, Applicative, Monad, MonadReader XConf, MonadState XState)
-
-instance Semigroup a => Semigroup (PureX a) where
-  (<>) = liftA2 (<>)
-
-instance Monoid a => Monoid (PureX a) where
-  mempty  = return mempty
+  deriving (Semigroup, Monoid) via Ap PureX a
 
 -- | The @XLike@ typeclass over monads reading @XConf@ values and tracking
 --   @XState@ state.

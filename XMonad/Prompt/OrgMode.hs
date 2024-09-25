@@ -3,8 +3,10 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
+{-# LANGUAGE ViewPatterns        #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prompt.OrgMode
@@ -23,8 +25,8 @@
 --
 -- It can be used to quickly save TODOs, NOTEs, and the like with the
 -- additional capability to schedule/deadline a task, add a priority,
--- and use the system's clipboard (really: the primary selection) as the
--- contents of the note.
+-- refile to some existing heading, and use the system's clipboard
+-- (really: the primary selection) as the contents of the note.
 --
 -- A blog post highlighting some features of this module can be found
 -- <https://tony-zorman.com/posts/orgmode-prompt/2022-08-27-xmonad-and-org-mode.html here>.
@@ -36,6 +38,8 @@ module XMonad.Prompt.OrgMode (
 
     -- * Prompts
     orgPrompt,              -- :: XPConfig -> String -> FilePath -> X ()
+    orgPromptRefile,        -- :: XPConfig -> [String] -> String -> FilePath -> X ()
+    orgPromptRefileTo,      -- :: XPConfig -> String -> String -> FilePath -> X ()
     orgPromptPrimary,       -- :: XPConfig -> String -> FilePath -> X ()
 
     -- * Types
@@ -49,6 +53,7 @@ module XMonad.Prompt.OrgMode (
     Date (..),
     Time (..),
     TimeOfDay (..),
+    OrgTime (..),
     DayOfWeek (..),
 #endif
 
@@ -56,13 +61,22 @@ module XMonad.Prompt.OrgMode (
 
 import XMonad.Prelude
 
-import XMonad (X, io)
-import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPrompt)
+import XMonad (X, io, whenJust)
+import XMonad.Prompt (XPConfig, XPrompt (showXPrompt), mkXPromptWithReturn, mkComplFunFromList, ComplFunction)
 import XMonad.Util.Parser
 import XMonad.Util.XSelection (getSelection)
+import XMonad.Util.Run
 
-import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, defaultTimeLocale, formatTime, fromGregorian, getCurrentTime, iso8601DateFormat, nominalDay, toGregorian)
-import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
+import Control.DeepSeq (deepseq)
+import qualified Data.List.NonEmpty as NE (head)
+import Data.Time (Day (ModifiedJulianDay), NominalDiffTime, UTCTime (utctDay), addUTCTime, fromGregorian, getCurrentTime, nominalDay, toGregorian)
+#if MIN_VERSION_time(1, 9, 0)
+import Data.Time.Format.ISO8601 (iso8601Show)
+#else
+import Data.Time.Format (defaultTimeLocale, formatTime, iso8601DateFormat)
+#endif
+import GHC.Natural (Natural)
+import System.IO (IOMode (AppendMode, ReadMode), hClose, hGetContents, openFile, withFile)
 
 {- $usage
 
@@ -108,8 +122,10 @@ troubles.  Weekdays always schedule into the future; e.g., if today is
 Monday and you schedule something for Monday, you will actually schedule
 it for the /next/ Monday (the one in seven days).
 
-The time is specified in the @HH:MM@ format.  The minutes may be
-omitted, in which case we assume a full hour is specified.
+The time is specified in the @HH:MM@ or @HHMM@ format.  The minutes may
+be omitted, in which case we assume a full hour is specified.  It is also
+possible to enter a time span using the syntax @HH:MM-HH:MM@ or @HH:MM+HH@.
+In the former case, minutes may be omitted.
 
 A few examples are probably in order.  Suppose we have bound the key
 above, pressed it, and are now confronted with a prompt:
@@ -123,6 +139,10 @@ above, pressed it, and are now confronted with a prompt:
 
   - @hello +d today 12:30@ works just like above, but creates a
     deadline.
+
+  - @hello +d today 12:30-14:30@ works like the above, but gives the
+    event a duration of two hours.  An alternative way to specify
+    this would be @hello +d today 12:30+2@.
 
   - @hello +s thu@ would schedule the note for next thursday.
 
@@ -151,6 +171,20 @@ especially useful when you want to quickly save a URL for later and
 return to whatever you were doing before.  See the 'orgPromptPrimary'
 prompt for that.
 
+Finally, 'orgPromptRefile' and 'orgPromptRefileTo' provide support to
+automatically
+<https://orgmode.org/manual/Refile-and-Copy.html refile>
+the generated item under a heading of choice.  For example, binding
+
+> orgPromptRefile def "TODO" "todos.org"
+
+to a key will first pop up an ordinary prompt that works exactly like
+'orgPrompt', and then query the user for an already existing heading
+(with completions) as provided by the @~/todos.org@ file.  If that
+prompt is cancelled, the heading will appear in the org file as normal
+(i.e., at the end of the file); otherwise, it gets refiled under the
+selected heading.
+
 -}
 
 {- TODO
@@ -172,6 +206,9 @@ data OrgMode = OrgMode
   , todoHeader :: String    -- ^ Will display like @* todoHeader @
   , orgFile    :: FilePath
   }
+
+mkOrgCfg :: ClipboardSupport -> String -> FilePath -> X OrgMode
+mkOrgCfg clp header fp = OrgMode clp header <$> mkAbsolutePath fp
 
 -- | Whether we should use a clipboard and which one to use.
 data ClipboardSupport
@@ -199,7 +236,7 @@ orgPrompt
                --   a single @*@
   -> FilePath  -- ^ Path to @.org@ file, e.g. @home\/me\/todos.org@
   -> X ()
-orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
+orgPrompt xpc = (void . mkOrgPrompt xpc =<<) .: mkOrgCfg NoClpSupport
 
 -- | Like 'orgPrompt', but additionally make use of the primary
 -- selection.  If it is a URL, then use an org-style link
@@ -209,12 +246,78 @@ orgPrompt xpc = mkOrgPrompt xpc .: OrgMode NoClpSupport
 -- The prompt will display a little @+ PS@ in the window
 -- after the type of note.
 orgPromptPrimary :: XPConfig -> String -> FilePath -> X ()
-orgPromptPrimary xpc = mkOrgPrompt xpc .: OrgMode PrimarySelection
+orgPromptPrimary xpc = (void . mkOrgPrompt xpc =<<) .: mkOrgCfg PrimarySelection
 
--- | Create the actual prompt.
-mkOrgPrompt :: XPConfig -> OrgMode -> X ()
+-- | Internal type in order to generate a nice prompt in
+-- 'orgPromptRefile' and 'orgPromptRefileTo'.
+data RefilePrompt = Refile
+instance XPrompt RefilePrompt where
+  showXPrompt :: RefilePrompt -> String
+  showXPrompt Refile = "Refile note to: "
+
+-- | Like 'orgPrompt' (which see for the other arguments), but offer to
+-- refile the entered note afterwards.
+--
+-- Note that refiling is done by shelling out to Emacs, hence an @emacs@
+-- binary must be in @$PATH@.  One may customise this by following the
+-- instructions in "XMonad.Util.Run#g:EDSL"; more specifically, by
+-- changing the 'XMonad.Util.Run.emacs' field of
+-- 'XMonad.Util.Run.ProcessConfig'.
+orgPromptRefile :: XPConfig -> String -> FilePath -> X ()
+orgPromptRefile xpc str fp = do
+  orgCfg <- mkOrgCfg NoClpSupport str fp
+
+  -- NOTE: Ideally we would just use System.IO.readFile' here
+  -- (especially because it also reads everything strictly), but this is
+  -- only available starting in base 4.15.x.
+  fileContents <- io $ do
+    handle   <- openFile (orgFile orgCfg) ReadMode
+    contents <- hGetContents handle
+    contents <$ (contents `deepseq` hClose handle)
+
+  -- Save the entry as soon as possible.
+  notCancelled <- mkOrgPrompt xpc orgCfg
+  when notCancelled $
+    -- If the user didn't cancel, try to parse the org file and offer to
+    -- refile the entry if possible.
+    whenJust (runParser pOrgFile fileContents) $ \headings ->
+      mkXPromptWithReturn Refile xpc (completeHeadings headings) pure >>= \case
+        Nothing     -> pure ()
+        Just parent -> refile parent (orgFile orgCfg)
+ where
+  completeHeadings :: [Heading] -> ComplFunction
+  completeHeadings = mkComplFunFromList xpc . map headingText
+
+-- | Like 'orgPromptRefile', but with a fixed heading for refiling; no
+-- prompt will appear to query for a target.
+--
+-- Heading names may omit tags, but generally need to be prefixed by the
+-- correct todo keywords; e.g.,
+--
+-- > orgPromptRefileTo def "PROJECT Work" "TODO" "~/todos.org"
+--
+-- Will refile the created note @"TODO <text>"@ to the @"PROJECT Work"@
+-- heading, even with the actual name is @"PROJECT Work
+-- :work:other_tags:"@.  Just entering @"Work"@ will not work, as Emacs
+-- doesn't recognise @"PROJECT"@ as an Org keyword by default (i.e. when
+-- started in batch-mode).
+orgPromptRefileTo
+  :: XPConfig
+  -> String     -- ^ Heading to refile the entry under.
+  -> String
+  -> FilePath
+  -> X ()
+orgPromptRefileTo xpc refileHeading str fp = do
+  orgCfg       <- mkOrgCfg NoClpSupport str fp
+  notCancelled <- mkOrgPrompt xpc orgCfg
+  when notCancelled $ refile refileHeading (orgFile orgCfg)
+
+-- | Create the actual prompt.  Returns 'False' when the input was
+-- cancelled by the user (by, for example, pressing @Esc@ or @C-g@) and
+-- 'True' otherwise.
+mkOrgPrompt :: XPConfig -> OrgMode -> X Bool
 mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
-  mkXPrompt oc xpc (const (pure [])) appendNote
+  isJust <$> mkXPromptWithReturn oc xpc (const (pure [])) appendNote
  where
   -- | Parse the user input, create an @org-mode@ note out of that and
   -- try to append it to the given file.
@@ -228,12 +331,30 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
                then Header sel
                else Body   $ "\n " <> sel
 
-    -- Expand path if applicable
-    fp <- mkAbsolutePath orgFile
-
-    withFile fp AppendMode . flip hPutStrLn
+    withFile orgFile AppendMode . flip hPutStrLn
       <=< maybe (pure "") (ppNote clpStr todoHeader) . pInput
         $ input
+
+------------------------------------------------------------------------
+-- Refiling
+
+-- | Let Emacs do the refiling, as this seems—and I know how this
+-- sounds—more robust than trying to do it ad-hoc in this module.
+refile :: String -> FilePath -> X ()
+refile (asString -> parent) (asString -> fp) =
+  proc $ inEmacs
+     >-> asBatch
+     >-> eval (progn [ "find-file" <> fp
+                     , "end-of-buffer"
+                     , "org-refile nil nil"
+                         <> list [ parent
+                                 , fp
+                                 , "nil"
+                                 , saveExcursion ["org-find-exact-headline-in-buffer"
+                                                    <> parent]
+                                 ]
+                     , "save-buffer"
+                     ])
 
 ------------------------------------------------------------------------
 -- Time
@@ -242,20 +363,29 @@ mkOrgPrompt xpc oc@OrgMode{ todoHeader, orgFile, clpSupport } =
 -- @HH:MM@ time.
 data Time = Time
   { date :: Date
-  , tod  :: Maybe TimeOfDay
+  , tod  :: Maybe OrgTime
   }
   deriving (Eq, Show)
 
 -- | The time in HH:MM.
-data TimeOfDay = TimeOfDay Int Int
+data TimeOfDay = HHMM Int Int
   deriving (Eq)
 
 instance Show TimeOfDay where
   show :: TimeOfDay -> String
-  show (TimeOfDay h m) = pad h <> ":" <> pad m
+  show (HHMM h m) = pad h <> ":" <> pad m
    where
     pad :: Int -> String
     pad n = (if n <= 9 then "0" else "") <> show n
+
+-- | The time—possibly as a span—in HH:MM format.
+data OrgTime = MomentInTime TimeOfDay | TimeSpan TimeOfDay TimeOfDay
+  deriving (Eq)
+
+instance Show OrgTime where
+  show :: OrgTime -> String
+  show (MomentInTime tod)  = show tod
+  show (TimeSpan tod tod') = show tod <> "-" <> show tod'
 
 -- | Type for specifying exactly which day one wants.
 data Date
@@ -269,12 +399,16 @@ data Date
     -- ^ Manual date entry in the format DD [MM] [YYYY]
   deriving (Eq, Ord, Show)
 
-toOrgFmt :: Maybe TimeOfDay -> Day -> String
+toOrgFmt :: Maybe OrgTime -> Day -> String
 toOrgFmt tod day =
   mconcat ["<", isoDay, " ", take 3 $ show (dayOfWeek day), time, ">"]
  where
   time   :: String = maybe "" ((' ' :) . show) tod
+#if MIN_VERSION_time(1, 9, 0)
+  isoDay :: String = iso8601Show day
+#else
   isoDay :: String = formatTime defaultTimeLocale (iso8601DateFormat Nothing) day
+#endif
 
 -- | Pretty print a 'Date' and an optional time to reflect the actual
 -- date.
@@ -375,13 +509,13 @@ ppNote clp todo = \case
       otherPrio  -> " [#" <> show otherPrio <> "] "
 
 ------------------------------------------------------------------------
--- Parsing
+-- Note parsing
 
 -- | Parse the given string into a 'Note'.
 pInput :: String -> Maybe Note
 pInput inp = (`runParser` inp) . choice $
-  [ Scheduled <$> getLast "+s" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
-  , Deadline  <$> getLast "+d" <*> (Time <$> pDate <*> pTimeOfDay) <*> pPriority
+  [ Scheduled <$> (getLast "+s" <* " ") <*> join (fixTime <$> pDate <*> pOrgTime) <*> pPriority
+  , Deadline  <$> (getLast "+d" <* " ") <*> join (fixTime <$> pDate <*> pOrgTime) <*> pPriority
   , do s <- munch1 (pure True)
        let (s', p) = splitAt (length s - 3) s
        pure $ case tryPrio p of
@@ -389,6 +523,12 @@ pInput inp = (`runParser` inp) . choice $
          Nothing   -> NormalMsg s                   NoPriority
   ]
  where
+  fixTime :: Maybe Date -> Maybe OrgTime -> Parser Time
+  fixTime d tod = case (d, tod) of
+    (Nothing, Nothing) -> mempty                -- no day and no time
+    (Nothing, Just{})  -> pure (Time Today tod) -- no day, but a time
+    (Just d', _)       -> pure (Time d'    tod) -- day given
+
   tryPrio :: String -> Maybe Priority
   tryPrio [' ', '#', x]
     | x `elem` ("Aa" :: String) = Just A
@@ -408,38 +548,60 @@ pInput inp = (`runParser` inp) . choice $
    where
     go :: String -> Parser String
     go consumed = do
-      str  <- munch  (/= head ptn)
+      str  <- munch  (/= NE.head (notEmpty ptn))
       word <- munch1 (/= ' ')
       bool go pure (word == ptn) $ consumed <> str <> word
 
 -- | Parse a 'Priority'.
 pPriority :: Parser Priority
-pPriority = pLast (pure NoPriority) $
-  " " *> skipSpaces *> choice
-    [ "#" *> ("A" <|> "a") $> A
-    , "#" *> ("B" <|> "b") $> B
-    , "#" *> ("C" <|> "c") $> C
+pPriority = option NoPriority $
+  skipSpaces *> choice
+    [ "#" *> foldCase "a" $> A
+    , "#" *> foldCase "b" $> B
+    , "#" *> foldCase "c" $> C
     ]
 
 -- | Try to parse a 'Time'.
-pTimeOfDay :: Parser (Maybe TimeOfDay)
-pTimeOfDay = pLast (pure Nothing) $
-  skipSpaces *> choice
-    [ Just <$> (TimeOfDay <$> pHour <* string ":" <*> pMinute) -- HH:MM
-    , Just <$> (TimeOfDay <$> pHour               <*> pure 0 ) -- HH
-    ]
+pOrgTime :: Parser (Maybe OrgTime)
+pOrgTime = option Nothing $
+  between skipSpaces (void " " <|> eof) $
+    Just <$> choice
+      [ TimeSpan <$> (pTimeOfDay <* ("--" <|> "-" <|> "–")) <*> pTimeOfDay
+      -- Org is not super smart around times with this syntax, so
+      -- we pretend not to be as well.
+      , do from@(HHMM h m) <- pTimeOfDay <* "+"
+           off <- pHour
+           pure $ TimeSpan from (HHMM (h + off) m)
+      , MomentInTime <$> pTimeOfDay
+      ]
  where
-  pMinute :: Parser Int = pNumBetween 1 60
-  pHour   :: Parser Int = pNumBetween 1 24
+  pTimeOfDay :: Parser TimeOfDay
+  pTimeOfDay = choice
+    [ HHMM <$> pHour <* ":" <*> pMinute -- HH:MM
+    , pHHMM                             -- HHMM
+    , HHMM <$> pHour        <*> pure 0  -- HH
+    ]
 
--- | Parse a 'Date'.
-pDate :: Parser Date
-pDate = skipSpaces *> choice
+  pHHMM :: Parser TimeOfDay
+  pHHMM = do
+    let getTwo = count 2 (satisfy isDigit)
+    hh <- read <$> getTwo
+    guard (hh >= 0 && hh <= 23)
+    mm <- read <$> getTwo
+    guard (mm >= 0 && mm <= 59)
+    pure $ HHMM hh mm
+
+  pHour   :: Parser Int = pNumBetween 0 23
+  pMinute :: Parser Int = pNumBetween 0 59
+
+-- | Try to parse a 'Date'.
+pDate :: Parser (Maybe Date)
+pDate = skipSpaces *> optional (choice
   [ pPrefix "tod" "ay"    Today
   , pPrefix "tom" "orrow" Tomorrow
   , Next <$> pNext
   , Date <$> pDate'
-  ]
+  ])
  where
   pNext :: Parser DayOfWeek = choice
     [ pPrefix "m"  "onday"    Monday   , pPrefix "tu" "esday"  Tuesday
@@ -458,7 +620,7 @@ pDate = skipSpaces *> choice
 
   pDate' :: Parser (Int, Maybe Int, Maybe Integer)
   pDate' =
-    (,,) <$> pNumBetween 1 31               -- day
+    (,,) <$> (pNumBetween 1 31 <* (void " " <|> eof))  -- day
          <*> optional (skipSpaces *> choice
                [ pPrefix "ja"  "nuary"    1 , pPrefix "f"   "ebruary" 2
                , pPrefix "mar" "ch"       3 , pPrefix "ap"  "ril"     4
@@ -470,12 +632,12 @@ pDate = skipSpaces *> choice
                ])
          <*> optional (skipSpaces *> num >>= \i -> guard (i >= 25) $> i)
 
-  -- | Parse a prefix and drop a potential suffix up to the next (space
+  -- Parse a prefix and drop a potential suffix up to the next (space
   -- separated) word.  If successful, return @ret@.
-  pPrefix :: Parser String -> String -> a -> Parser a
-  pPrefix start leftover ret = do
-    void start
-    l <- munch (/= ' ')
+  pPrefix :: String -> String -> a -> Parser a
+  pPrefix start (map toLower -> leftover) ret = do
+    void (foldCase start)
+    l <- map toLower <$> munch (/= ' ')
     guard (l `isPrefixOf` leftover)
     pure ret
 
@@ -485,8 +647,38 @@ pNumBetween lo hi = do
   n <- num
   n <$ guard (n >= lo && n <= hi)
 
--- | A flipped version of '(<|>)'.  Useful when @p'@ is some complicated
--- expression that, for example, consumes spaces and @p@ does not want
--- to do that.
-pLast :: Parser a -> Parser a -> Parser a
-pLast p p' = p' <|> p
+-- Parse the given string case insensitively.
+foldCase :: String -> Parser String
+foldCase = traverse (\c -> char (toLower c) <|> char (toUpper c))
+
+------------------------------------------------------------------------
+-- File parsing
+
+data Heading = Heading
+  { level       :: Natural
+    -- ^ Level of the Org heading; i.e., the number of leading stars.
+  , headingText :: String
+    -- ^ The heading text without its level.
+  }
+
+-- | Naïvely parse an Org file.  At this point, only the headings are
+-- parsed into a non-nested list (ignoring parent-child relations); no
+-- further analysis is done on the individual lines themselves.
+pOrgFile :: Parser [Heading]
+pOrgFile = many pHeading
+
+pHeading :: Parser Heading
+pHeading = skipSpaces *> do
+  level       <- genericLength <$> munch1 (== '*') <* " "
+  headingText <- pLine
+  void $ many (pLine >>= \line -> guard (isNotHeading line) $> line) -- skip body
+  pure Heading{..}
+
+pLine :: Parser String
+pLine = munch (/= '\n') <* "\n"
+
+isNotHeading :: String -> Bool
+isNotHeading str = case break (/= '*') str of
+  ("", _)       -> True
+  (_ , ' ' : _) -> False
+  _             -> True

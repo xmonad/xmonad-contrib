@@ -32,7 +32,7 @@ import XMonad.Layout.Decoration
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.SimpleDecoration
 --
@@ -42,9 +42,9 @@ import XMonad.Layout.Decoration
 -- > myL = simpleDeco shrinkText def (layoutHook def)
 -- > main = xmonad def { layoutHook = myL }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You can also edit the default configuration options.
 --

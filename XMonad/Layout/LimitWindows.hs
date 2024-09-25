@@ -44,7 +44,7 @@ import XMonad.Prelude (fromJust, guard, (<=<))
 import qualified XMonad.StackSet as W
 
 -- $usage
--- To use this module, add the following import to @~\/.xmonad\/xmonad.hs@:
+-- To use this module, add the following import to @xmonad.hs@:
 --
 -- > import XMonad.Layout.LimitWindows
 --
@@ -56,7 +56,7 @@ import qualified XMonad.StackSet as W
 -- actions.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- See also 'XMonad.Layout.BoringWindows.boringAuto' for keybindings that skip
 -- the hidden windows.
@@ -75,7 +75,7 @@ limitWindows :: Int -> l a -> ModifiedLayout LimitWindows l a
 limitWindows n = ModifiedLayout (LimitWindows FirstN n)
 
 -- | Only display @n@ windows around the focused window. This makes sense with
--- layouts that arrange windows linearily, like 'XMonad.Layout.Layout.Accordion'.
+-- layouts that arrange windows linearily, like "XMonad.Layout.Accordion".
 limitSlice :: Int -> l a -> ModifiedLayout LimitWindows l a
 limitSlice n = ModifiedLayout (LimitWindows Slice n)
 

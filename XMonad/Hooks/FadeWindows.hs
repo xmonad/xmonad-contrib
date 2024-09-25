@@ -96,7 +96,7 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 --
 -- at the top of @myFadeHook@.
 --
--- This module is best used with "XMonad.Hooks.MoreManageHelpers", which
+-- This module is best used with "XMonad.Hooks.ManageHelpers", which
 -- exports a number of Queries that can be used in either @ManageHook@
 -- or @FadeHook@.
 --
@@ -105,9 +105,8 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 -- aren't running a compositing manager, the opacity will be recorded
 -- but won't take effect until a compositing manager is started.
 --
--- For more detailed instructions on editing the 'logHook' see:
---
--- "XMonad.Doc.Extending#The_log_hook_and_external_status_bars"
+-- For more detailed instructions on editing the 'logHook' see
+-- <https://xmonad.org/TUTORIAL.html#make-xmonad-and-xmobar-talk-to-each-other the tutorial>.
 --
 -- For more detailed instructions on editing the 'handleEventHook',
 -- see:
@@ -217,7 +216,7 @@ fadeWindowsLogHook h =  withWindowSet $ \s -> do
 
 -- | A 'handleEventHook' to handle fading and unfading of newly mapped
 --   or unmapped windows; this avoids problems with layouts such as
---   "XMonad.Layout.Full" or "XMonad.Layout.Tabbed".  This hook may
+--   'XMonad.Layout.Full' or "XMonad.Layout.Tabbed".  This hook may
 --   also be useful with "XMonad.Hooks.FadeInactive".
 fadeWindowsEventHook                     :: Event -> X All
 fadeWindowsEventHook MapNotifyEvent{} =

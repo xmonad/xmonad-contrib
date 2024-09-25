@@ -19,14 +19,18 @@ module XMonad.Actions.FloatKeys (
                 keysMoveWindowTo,
                 keysResizeWindow,
                 keysAbsResizeWindow,
+                directionMoveWindow,
+                directionResizeWindow,
+                Direction2D(..),
                 P, G, ChangeDim
                 ) where
 
 import XMonad
 import XMonad.Prelude (fi)
+import XMonad.Util.Types
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.FloatKeys
 --
@@ -38,8 +42,36 @@ import XMonad.Prelude (fi)
 -- >  , ((modm .|. shiftMask, xK_s     ), withFocused (keysAbsResizeWindow (10,10) (1024,752)))
 -- >  , ((modm,               xK_a     ), withFocused (keysMoveWindowTo (512,384) (1%2,1%2)))
 --
+-- Using "XMonad.Util.EZConfig" syntax, we can easily build keybindings
+-- where @M-\<arrow-keys\>@ moves the currently focused window and
+-- @M-S-\<arrow-keys\>@ resizes it using 'directionMoveWindow' and
+-- 'directionResizeWindow':
+--
+-- > [ ("M-" <> m <> k, withFocused $ f i)
+-- > | (i, k) <- zip [U, D, R, L] ["<Up>", "<Down>", "<Right>", "<Left>"]
+-- > , (f, m) <- [(directionMoveWindow 10, ""), (directionResizeWindow 10, "S-")]
+-- > ]
+--
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
+
+-- | @directionMoveWindow delta dir win@ moves the window @win@ by
+--   @delta@ pixels in direction @dir@.
+directionMoveWindow :: Int -> Direction2D -> Window -> X ()
+directionMoveWindow delta dir win = case dir of
+  U -> keysMoveWindow (0, -delta) win
+  D -> keysMoveWindow (0, delta)  win
+  R -> keysMoveWindow (delta, 0)  win
+  L -> keysMoveWindow (-delta, 0) win
+
+-- | @directionResizeWindow delta dir win@ resizes the window @win@ by
+--   @delta@ pixels in direction @dir@.
+directionResizeWindow :: Int -> Direction2D -> Window -> X ()
+directionResizeWindow delta dir win = case dir of
+  U -> keysResizeWindow (0, -delta) (0, 0) win
+  D -> keysResizeWindow (0, delta)  (0, 0) win
+  R -> keysResizeWindow (delta, 0)  (0, 0) win
+  L -> keysResizeWindow (-delta, 0) (0, 0) win
 
 -- | @keysMoveWindow (dx, dy)@ moves the window by @dx@ pixels to the
 --   right and @dy@ pixels down.

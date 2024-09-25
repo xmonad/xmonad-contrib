@@ -33,7 +33,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 -- $usage
--- 1. In your @~\/.xmonad\/xmonad.hs@:
+-- 1. In your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Ssh
@@ -43,10 +43,10 @@ econst = const . return
 -- >   , ((modm .|. controlMask, xK_s), sshPrompt def)
 --
 -- Keep in mind, that if you want to use the completion you have to
--- disable the "HashKnownHosts" option in your ssh_config
+-- disable the \"HashKnownHosts\" option in your ssh_config
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data Ssh = Ssh
 

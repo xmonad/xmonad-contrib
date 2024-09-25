@@ -33,8 +33,8 @@ module XMonad.Actions.GroupNavigation ( -- * Usage
                                       , isOnAnyVisibleWS
                                       ) where
 
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.Reader (ask, asks)
+import Control.Monad.State (gets)
 import Control.DeepSeq
 import Data.Map ((!))
 import qualified Data.Map as Map
@@ -47,13 +47,13 @@ import Prelude hiding (drop, elem, filter, null, reverse)
 import XMonad.Core
 import XMonad.ManageHook
 import XMonad.Operations (windows, withFocused)
-import XMonad.Prelude (elem, foldl')
+import XMonad.Prelude (elem, foldl', (>=>))
 import qualified XMonad.StackSet as SS
 import qualified XMonad.Util.ExtensibleState as XS
 
 {- $usage
 
-Import the module into your @~\/.xmonad\/xmonad.hs@:
+Import the module into your @xmonad.hs@:
 
 > import XMonad.Actions.GroupNavigation
 
@@ -129,7 +129,7 @@ focusNextMatchOrDo qry act = findM (runQuery qry)
                              >=> maybe act (windows . SS.focusWindow)
 
 -- Returns the list of windows ordered by workspace as specified in
--- ~/.xmonad/xmonad.hs
+-- @xmonad.hs@.
 orderedWindowList :: Direction -> X (Seq Window)
 orderedWindowList History = fmap (\(HistoryDB w ws) -> maybe ws (ws |>) w) XS.get
 orderedWindowList dir     = withWindowSet $ \ss -> do
@@ -145,7 +145,7 @@ orderedWindowList dir     = withWindowSet $ \ss -> do
     dirfun _        = id
     rotfun wins x   = rotate $ rotateTo (== x) wins
 
--- Returns the ordered workspace list as specified in ~/.xmonad/xmonad.hs
+-- Returns the ordered workspace list as specified in @xmonad.hs@.
 orderedWorkspaceList :: WindowSet -> Seq String -> Seq WindowSpace
 orderedWorkspaceList ss wsids = rotateTo isCurWS wspcs'
     where

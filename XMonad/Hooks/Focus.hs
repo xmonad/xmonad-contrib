@@ -1,6 +1,8 @@
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE DerivingVia                #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# OPTIONS_HADDOCK show-extensions     #-}
 
 -- |
 -- Module:      XMonad.Hooks.Focus
@@ -212,7 +214,7 @@ import XMonad.Hooks.ManageHelpers (currentWs)
 --
 --  - /mod4Mask+v/ key toggles focus lock (when enabled, neither focus nor
 --  workspace won't be switched).
---  - I need 'XMonad.Hooks.EwmhDesktops' module for enabling window
+--  - I need "XMonad.Hooks.EwmhDesktops" module for enabling window
 --  activation.
 --  - 'FocusHook' in 'manageHook' will be called /only/ for new windows.
 --  - 'FocusHook' in 'setEwmhActivateHook' will be called /only/ for activated windows.
@@ -355,28 +357,13 @@ focusLockOff        = XS.modify (const (FocusLock False))
 -- | Monad on top of 'Query' providing additional information about new
 -- window.
 newtype FocusQuery a = FocusQuery (ReaderT Focus Query a)
-instance Functor FocusQuery where
-    fmap f (FocusQuery x) = FocusQuery (fmap f x)
-instance Applicative FocusQuery where
-    pure x                              = FocusQuery (pure x)
-    (FocusQuery f) <*> (FocusQuery mx)  = FocusQuery (f <*> mx)
-instance Monad FocusQuery where
-    (FocusQuery mx) >>= f   = FocusQuery $ mx >>= \x ->
-                              let FocusQuery y = f x in y
-instance MonadReader Focus FocusQuery where
-    ask                     = FocusQuery ask
-    local f (FocusQuery mx) = FocusQuery (local f mx)
-instance MonadIO FocusQuery where
-    liftIO mx       = FocusQuery (liftIO mx)
-instance Semigroup a => Semigroup (FocusQuery a) where
-    (<>)            = liftM2 (<>)
-instance Monoid a => Monoid (FocusQuery a) where
-    mempty          = return mempty
+  deriving newtype (Functor, Applicative, Monad, MonadReader Focus, MonadIO)
+  deriving (Semigroup, Monoid) via Ap FocusQuery a
 
 runFocusQuery :: FocusQuery a -> Focus -> Query a
 runFocusQuery (FocusQuery m)    = runReaderT m
 
-type FocusHook      = FocusQuery (Endo WindowSet)
+type FocusHook = FocusQuery (Endo WindowSet)
 
 
 -- Lifting into 'FocusQuery'.

@@ -49,6 +49,7 @@ module XMonad.Util.Run (
   spawnExternalProcess,
   proc,
   getInput,
+  toInput,
 
   -- ** Programs
   inEditor,
@@ -59,9 +60,12 @@ module XMonad.Util.Run (
   -- ** General Combinators
   (>->),
   (>-$),
+  (>&&>),
+  (>||>),
   inWorkingDir,
-  execute,
   eval,
+  execute,
+  executeNoQuote,
   setXClass,
   asString,
 
@@ -75,6 +79,9 @@ module XMonad.Util.Run (
   require,
   progn,
   quote,
+  findFile,
+  list,
+  saveExcursion,
 
   -- * Re-exports
   hPutStr,
@@ -107,9 +114,7 @@ It then all depends on what you want to do:
   - For an example usage of 'runInTerm' see "XMonad.Prompt.Ssh".
 
   - For an example usage of 'runProcessWithInput' see
-    "XMonad.Prompt.DirectoryPrompt", "XMonad.Util.Dmenu",
-    "XMonad.Prompt.ShellPrompt", "XMonad.Actions.WmiiActions", or
-    "XMonad.Prompt.WorkspaceDir".
+    "XMonad.Util.Dmenu", or "XMonad.Prompt.Shell".
 
   - For an example usage of 'runProcessWithInputAndWait' see
     "XMonad.Util.Dzen".
@@ -300,6 +305,10 @@ becomes
 
 which would be quite bothersome to type indeed!
 
+A blog post going into some more detail and also explaining how to
+integrate this new language with the "XMonad.Util.NamedScratchpad"
+module is available
+<https://tony-zorman.com/posts/2022-05-25-calling-emacs-from-xmonad.html here>.
 -}
 
 -----------------------------------------------------------------------
@@ -354,9 +363,31 @@ infixr 3 >->
 (>-$) xi xs = xi >-> fmap mkDList xs
 infixr 3 >-$
 
+-- | @a >&&> b@ glues the different inputs @a@ and @b@ by means of @&&@.
+-- For example,
+--
+-- @
+-- pure "do something" >&&> pure "do another thing"
+-- @
+--
+-- would result in @do something && do another thing@ being executed by a
+-- shell.
+(>&&>) :: X Input -> X Input -> X Input
+a >&&> b = a <> toInput " && " <> b
+infixr 2 >&&>
+
+-- | Like '(>&&>)', but with @||@.
+(>||>) :: X Input -> X Input -> X Input
+a >||> b = a <> toInput " || " <> b
+infixr 2 >||>
+
 -- | Spawn a completed input.
 proc :: X Input -> X ()
 proc xi = spawn =<< getInput xi
+
+-- | Create an effectful 'Input' from a 'String'.
+toInput :: String -> X Input
+toInput = pure . mkDList
 
 -- | Get the completed input string.
 getInput :: X Input -> X String
@@ -373,13 +404,20 @@ inTerm = asks $ mkDList . terminal . config
 -- | Execute the argument.  Current /thing/ must support a @-e@ option.
 -- For programs such as Emacs, 'eval' may be the safer option; while
 -- @emacsclient@ supports @-e@, the @emacs@ executable itself does not.
+--
+-- Note that this function always wraps its argument in single quotes;
+-- see 'executeNoQuote' for an alternative.
 execute :: String -> X Input
-execute this = pure ((" -e " <> this) <>)
+execute this = pure ((" -e " <> tryQuote this) <>)
+
+-- | Like 'execute', but doesn't wrap its argument in single quotes.
+executeNoQuote :: String -> X Input
+executeNoQuote this = pure ((" -e " <> this) <>)
 
 -- | Eval(uate) the argument.  Current /thing/ must support a @--eval@
 -- option.
 eval :: String -> X Input
-eval this = pure ((" --eval " <> this) <>)
+eval this = pure ((" --eval " <> tryQuote this) <>)
 
 -- | Use 'emacs'.
 inEmacs :: X Input
@@ -413,6 +451,9 @@ setXClass = pure . mkDList . (" --class " <>)
 termInDir :: X Input
 termInDir = inTerm >-> inWorkingDir
 
+-----------------------------------------------------------------------
+-- Emacs
+
 -- | Transform the given input into an elisp function; i.e., surround it
 -- with parentheses.
 --
@@ -428,14 +469,14 @@ elispFun f = " '( " <> f <> " )' "
 asString :: String -> String
 asString s = " \"" <> s <> "\" "
 
--- | Wrap the given commands in a @progn@ and also escape it by wrapping
--- it inside single quotes.  The given commands need not be wrapped in
--- parentheses, this will be done by the function.  For example:
+-- | Wrap the given commands in a @progn@.  The given commands need not
+-- be wrapped in parentheses (but can); this will be done by the
+-- function.  For example:
 --
 -- >>> progn [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
--- " '( progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2) )' "
+-- "(progn (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2))"
 progn :: [String] -> String
-progn cmds = elispFun $ "progn " <> unwords (map inParens cmds)
+progn = inParens . ("progn " <>) . unwords . map inParens
 
 -- | Require a package.
 --
@@ -450,6 +491,27 @@ require = inParens . ("require " <>) . quote
 -- "(quote new-process)"
 quote :: String -> String
 quote = inParens . ("quote " <>)
+
+-- | Call @find-file@.
+--
+-- >>> findFile "/path/to/file"
+-- "(find-file \"/path/to/file\" )"
+findFile :: String -> String
+findFile = inParens . ("find-file" <>) . asString
+
+-- | Make a list of the given inputs.
+--
+-- >>> list ["foo", "bar", "baz", "qux"]
+-- "(list foo bar baz qux)"
+list :: [String] -> String
+list = inParens . ("list " <>) . unwords
+
+-- | Like 'progn', but with @save-excursion@.
+--
+-- >>> saveExcursion [require "this-lib", "function-from-this-lib arg", "(other-function arg2)"]
+-- "(save-excursion (require (quote this-lib)) (function-from-this-lib arg) (other-function arg2))"
+saveExcursion :: [String] -> String
+saveExcursion = inParens . ("save-excursion " <>) . unwords . map inParens
 
 -----------------------------------------------------------------------
 -- Batch mode
@@ -493,3 +555,8 @@ inParens :: String -> String
 inParens s = case s of
   '(' : _ -> s
   _       -> "(" <> s <> ")"
+
+tryQuote :: String -> String
+tryQuote s = case dropWhile (== ' ') s of
+  '\'' : _ -> s
+  _        -> "'" <> s <> "'"

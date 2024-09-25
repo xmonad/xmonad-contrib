@@ -52,7 +52,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 {- $usage
-1. In your @~\/.xmonad\/xmonad.hs@:
+1. In your @xmonad.hs@:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.Shell
@@ -62,7 +62,8 @@ econst = const . return
 >   , ((modm .|. controlMask, xK_x), shellPrompt def)
 
 For detailed instruction on editing the key binding see
-"XMonad.Doc.Extending#Editing_key_bindings". -}
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
+-}
 
 data Shell = Shell
 type Predicate = String -> String -> Bool
@@ -196,7 +197,7 @@ getCommands = do
     p  <- getEnv "PATH" `E.catch` econst []
     let ds = filter (/= "") $ split ':' p
     es <- forM ds $ \d -> getDirectoryContents d `E.catch` econst []
-    return . uniqSort . filter ((/= '.') . head) . concat $ es
+    return . uniqSort . filter (not . ("." `isPrefixOf`)) . concat $ es
 
 split :: Eq a => a -> [a] -> [[a]]
 split _ [] = []

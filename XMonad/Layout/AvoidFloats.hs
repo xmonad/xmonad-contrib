@@ -35,7 +35,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 
 -- $usage
--- You can use this module with the following in your ~\/.xmonad\/xmonad.hs file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.AvoidFloats
 --
@@ -44,8 +44,9 @@ import qualified Data.Set as S
 --
 -- > layoutHook = ... ||| avoidFloats Full ||| ...
 --
--- For more detailed instructions on editing the layoutHook see:
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- Then add appropriate key bindings, for example:
 --
@@ -54,7 +55,7 @@ import qualified Data.Set as S
 -- > ,((modm .|. shiftMask .|. controlMask, xK_b), sendMessage (AvoidFloatSet False) >> sendMessage AvoidFloatClearItems)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- Note that this module is incompatible with an old way of configuring
 -- "XMonad.Actions.FloatSnap". If you are having problems, please update your

@@ -52,7 +52,7 @@ instance ExtensionClass UnicodeData where
 {- $usage
 
 You can use this module by importing it, along with
-"XMonad.Prompt", into your ~\/.xmonad\/xmonad.hs file:
+"XMonad.Prompt", into your @xmonad.hs@ file:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.Unicode
@@ -60,6 +60,11 @@ You can use this module by importing it, along with
 and adding an appropriate keybinding, for example:
 
 >  , ((modm .|. controlMask, xK_u), unicodePrompt "/path/to/unicode-data" def)
+
+A path to a @UnicodeData.txt@ file or equivalent must be provided.  This file
+should be available through your package manager; search for @unicode-data@.
+If no package is found, one may opt to download this file directly from
+[unicode.org](http://www.unicode.org/Public/UNIDATA/UnicodeData.txt).
 
 More flexibility is given by the @mkUnicodePrompt@ function, which takes a
 command and a list of arguments to pass as its first two arguments. See

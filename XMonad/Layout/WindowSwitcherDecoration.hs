@@ -36,7 +36,7 @@ import Foreign.C.Types(CInt)
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.WindowSwitcherDecoration
 -- > import XMonad.Layout.DraggingVisualizer

@@ -27,7 +27,7 @@ import XMonad.StackSet (integrate)
 import XMonad.Prelude (ap)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Dishes
 --
@@ -36,9 +36,9 @@ import XMonad.Prelude (ap)
 -- > myLayout = Dishes 2 (1/6) ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 data Dishes a = Dishes Int Rational deriving (Show, Read)
 instance LayoutClass Dishes a where

@@ -11,7 +11,7 @@
 --
 -- A module for spawning a command once, and only once.  Useful to start
 -- status bars and make session settings inside startupHook. See also
--- 'XMonad.Util.SessionStart' for a different and more flexible way to
+-- "XMonad.Util.SessionStart" for a different and more flexible way to
 -- run commands only on first startup.
 --
 -----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ spawnOnce = doOnce spawn
 
 -- $spawnon
 -- These functions combine 'spawnOnce' with their relatives in
--- 'XMonad.Actions.SpawnOn'. You must add 'manageSpawn' to your
+-- "XMonad.Actions.SpawnOn". You must add 'manageSpawn' to your
 -- @manageHook@ for them to work, as with @SpawnOn@.
 
 -- | Like 'spawnOnce' but launches the application on the given workspace.

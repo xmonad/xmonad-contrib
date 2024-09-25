@@ -4,6 +4,7 @@
 {-# LANGUAGE ParallelListComp #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -----------------------------------------------------------------------------
@@ -45,8 +46,6 @@ module XMonad.Layout.SubLayouts (
     -- $todo
     )
     where
-
-import XMonad.Layout.Circle () -- so haddock can find the link
 
 import XMonad.Layout.Decoration(Decoration, DefaultShrinker)
 import XMonad.Layout.LayoutModifier(LayoutModifier(handleMess, modifyLayout,
@@ -114,7 +113,7 @@ import qualified Data.Set as S
 --
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.SubLayouts
 -- > import XMonad.Layout.WindowNavigation
@@ -163,10 +162,9 @@ import qualified Data.Set as S
 --  could not be used in the keybinding instead? It avoids having to explicitly
 --  pass the conf.
 --
--- For more detailed instructions, see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
--- "XMonad.Doc.Extending#Adding_key_bindings"
+-- For more detailed instructions, see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>
+-- and "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | The main layout modifier arguments:
 --
@@ -184,11 +182,11 @@ import qualified Data.Set as S
 --  [@outerLayout@] The layout that determines the rectangles given to each
 --  group.
 --
---  Ex. The second group is 'Tall', the third is 'Circle', all others are tabbed
---  with:
+--  Ex. The second group is 'Tall', the third is 'XMonad.Layout.CircleEx.circle',
+--  all others are tabbed with:
 --
 --  > myLayout = addTabs shrinkText def
---  >          $ subLayout [0,1,2] (Simplest ||| Tall 1 0.2 0.5 ||| Circle)
+--  >          $ subLayout [0,1,2] (Simplest ||| Tall 1 0.2 0.5 ||| circle)
 --  >          $ Tall 1 0.2 0.5 ||| Full
 subLayout :: [Int] -> subl a -> l a -> ModifiedLayout (Sublayout subl) l a
 subLayout nextLayout sl = ModifiedLayout (Sublayout (I []) (nextLayout,sl) [])
@@ -348,7 +346,7 @@ instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => L
             return $ Just $ Sublayout (I ((sm,w):ms)) defl sls
 
         | Just (Broadcast sm) <- fromMessage m = do
-            ms' <- fmap (zip (repeat sm) . W.integrate') currentStack
+            ms' <- fmap (map (sm,) . W.integrate') currentStack
             return $ if null ms' then Nothing
                 else Just $ Sublayout (I $ ms' ++ ms) defl sls
 
@@ -409,7 +407,7 @@ instance forall l. (Read (l Window), Show (l Window), LayoutClass l Window) => L
            catchLayoutMess :: LayoutMessages -> X (Maybe (Sublayout l Window))
            catchLayoutMess x = do
             let m' = x `asTypeOf` (undefined :: LayoutMessages)
-            ms' <- zip (repeat $ SomeMessage m') . W.integrate'
+            ms' <- map (SomeMessage m',) . W.integrate'
                     <$> currentStack
             return $ do guard $ not $ null ms'
                         Just $ Sublayout (I $ ms' ++ ms) defl sls

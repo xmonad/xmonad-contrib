@@ -23,7 +23,7 @@ import XMonad.Prelude (elemIndex, fromMaybe)
 import qualified XMonad.StackSet as S
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Actions.CycleSelectedLayouts
@@ -39,8 +39,9 @@ cycleToNext lst a = do
 -- | If the current layout is in the list, cycle to the next layout. Otherwise,
 --   apply the first layout from list.
 cycleThroughLayouts :: [String] -> X ()
-cycleThroughLayouts lst = do
+cycleThroughLayouts []         = pure ()
+cycleThroughLayouts lst@(x: _) = do
     winset <- gets windowset
     let ld = description . S.layout . S.workspace . S.current $ winset
-    let newld = fromMaybe (head lst) (cycleToNext lst ld)
+    let newld = fromMaybe x (cycleToNext lst ld)
     sendMessage $ JumpToLayout newld

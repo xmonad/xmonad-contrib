@@ -35,7 +35,7 @@ import XMonad.Layout.LayoutModifier (LayoutModifier(..), ModifiedLayout(..))
 import Control.Arrow (second)
 
 -- $usage
--- You can use this module by importing it into your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module by importing it into your @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.MessageEscape
 --

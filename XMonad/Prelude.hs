@@ -1,6 +1,9 @@
+{-# OPTIONS_GHC -Wno-dodgy-imports #-}
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Prelude
@@ -24,6 +27,7 @@ module XMonad.Prelude (
     notEmpty,
     safeGetWindowAttributes,
     mkAbsolutePath,
+    findM,
 
     -- * Keys
     keyToString,
@@ -35,6 +39,14 @@ module XMonad.Prelude (
     multimediaKeys,
     functionKeys,
     WindowScreen,
+
+    -- * Infinite streams
+    Stream(..),
+    (+~),
+    cycleS,
+    takeS,
+    toList,
+    fromList,
 ) where
 
 import Foreign (alloca, peek)
@@ -44,10 +56,10 @@ import Control.Applicative as Exports
 import Control.Monad       as Exports
 import Data.Bool           as Exports
 import Data.Char           as Exports
-import Data.Foldable       as Exports
+import Data.Foldable       as Exports hiding (toList)
 import Data.Function       as Exports
-import Data.Functor        as Exports
-import Data.List           as Exports
+import Data.Functor        as Exports hiding (unzip)
+import Data.List           as Exports hiding ((!?))
 import Data.Maybe          as Exports
 import Data.Monoid         as Exports
 import Data.Traversable    as Exports
@@ -55,14 +67,15 @@ import Data.Traversable    as Exports
 import qualified Data.Map.Strict as Map
 
 import Control.Arrow ((&&&), first)
+import Control.Exception (SomeException, handle)
 import Data.Bifunctor (bimap)
 import Data.Bits
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Tuple (swap)
+import GHC.Exts (IsList(..))
 import GHC.Stack
 import System.Directory (getHomeDirectory)
 import System.Environment (getEnv)
-import Control.Exception (SomeException, handle)
 import qualified XMonad.StackSet as W
 
 -- | Short for 'fromIntegral'.
@@ -89,6 +102,21 @@ chunksOf i xs = chunk : chunksOf i rest
 (.:) :: (a -> b) -> (c -> d -> a) -> c -> d -> b
 (.:) = (.) . (.)
 
+-- | Like 'find', but takes a monadic function instead; retains the
+-- short-circuiting behaviour of the non-monadic version.
+--
+-- For example,
+--
+-- > findM (\a -> putStr (show a <> " ") >> pure False) [1..10]
+--
+-- would print "1 2 3 4 5 6 7 8 9 10" and return @Nothing@, while
+--
+-- > findM (\a -> putStr (show a <> " ") >> pure True) [1..10]
+--
+-- would print @"1"@ and return @Just 1@.
+findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
+findM p = foldr (\x -> ifM (p x) (pure $ Just x)) (pure Nothing)
+
 -- | 'Data.List.NonEmpty.fromList' with a better error message. Useful to
 -- silence GHC's Pattern match(es) are non-exhaustive warning in places where
 -- the programmer knows it's always non-empty, but it's infeasible to express
@@ -97,7 +125,7 @@ notEmpty :: HasCallStack => [a] -> NonEmpty a
 notEmpty [] = error "unexpected empty list"
 notEmpty (x:xs) = x :| xs
 
--- | A safe version of 'Graphics.X11.Extras.getWindowAttributes'.
+-- | A safe version of 'Graphics.X11.Xlib.Extras.getWindowAttributes'.
 safeGetWindowAttributes :: Window -> X (Maybe WindowAttributes)
 safeGetWindowAttributes w = withDisplay $ \dpy -> io . alloca $ \p ->
   xGetWindowAttributes dpy w p >>= \case
@@ -199,7 +227,7 @@ regularKeys = map (first (:[]))
 allSpecialKeys :: [(String, KeySym)]
 allSpecialKeys = functionKeys <> specialKeys <> multimediaKeys
 
--- | A list pairing function key descriptor strings (e.g. @\"<F2>\"@)
+-- | A list pairing function key descriptor strings (e.g. @\"\<F2\>\"@)
 -- with the associated KeySyms.
 functionKeys :: [(String, KeySym)]
 functionKeys = [ ('F' : show n, k)
@@ -449,3 +477,36 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
 -- | The specialized 'W.Screen' derived from 'WindowSet'.
 type WindowScreen -- FIXME move to core
     = W.Screen WorkspaceId (Layout Window) Window ScreenId ScreenDetail
+
+-- | An infinite stream type
+data Stream a = !a :~ Stream a
+infixr 5 :~
+
+instance Functor Stream where
+  fmap :: (a -> b) -> Stream a -> Stream b
+  fmap f = go
+   where go (x :~ xs) = f x :~ go xs
+
+instance IsList (Stream a) where
+  type (Item (Stream a)) = a
+
+  fromList :: [a] -> Stream a
+  fromList (x : xs) = x :~ fromList xs
+  fromList []       = errorWithoutStackTrace "XMonad.Prelude.Stream.fromList: Can't create stream out of finite list."
+
+  toList :: Stream a -> [a]
+  toList (x :~ xs) = x : toList xs
+
+-- | Absorb a list into an infinite stream.
+(+~) :: [a] -> Stream a -> Stream a
+xs +~ s = foldr (:~) s xs
+infixr 5 +~
+
+-- | Absorb a non-empty list into an infinite stream.
+cycleS :: NonEmpty a -> Stream a
+cycleS (x :| xs) = s where s = x :~ xs +~ s
+
+-- | @takeS n stream@ returns the first @n@ elements of @stream@; if @n < 0@,
+-- this returns the empty list.
+takeS :: Int -> Stream a -> [a]
+takeS n = take n . toList

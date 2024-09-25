@@ -22,7 +22,7 @@ module XMonad.Prompt.RunOrRaise
     ) where
 
 import XMonad hiding (config)
-import XMonad.Prelude (isNothing, isSuffixOf, liftA2)
+import XMonad.Prelude
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Actions.WindowGo (runOrRaise)
@@ -35,7 +35,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 {- $usage
-1. In your @~\/.xmonad\/xmonad.hs@:
+1. In your @xmonad.hs@:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.RunOrRaise
@@ -45,7 +45,8 @@ econst = const . return
 >   , ((modm .|. controlMask, xK_x), runOrRaisePrompt def)
 
 For detailed instruction on editing the key binding see
-"XMonad.Doc.Extending#Editing_key_bindings". -}
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
+-}
 
 data RunOrRaisePrompt = RRP
 instance XPrompt RunOrRaisePrompt where

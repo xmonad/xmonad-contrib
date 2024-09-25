@@ -37,7 +37,7 @@ import System.IO
 -- $usage
 --
 -- You can use this module by importing it, along with
--- "XMonad.Prompt", into your ~\/.xmonad\/xmonad.hs file:
+-- "XMonad.Prompt", into your @xmonad.hs@ file:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.AppendFile
@@ -69,7 +69,7 @@ import System.IO
 -- the file too.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype AppendFile = AppendFile FilePath
 

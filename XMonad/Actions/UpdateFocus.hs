@@ -27,7 +27,7 @@ import qualified XMonad.StackSet as W
 
 -- $usage
 -- To make the focus update on mouse movement within an unfocused window, add the
--- following to your @~\/.xmonad\/xmonad.hs@:
+-- following to your @xmonad.hs@:
 --
 -- > import XMonad.Actions.UpdateFocus
 -- > xmonad $ def {

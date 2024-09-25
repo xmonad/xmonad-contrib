@@ -43,7 +43,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Process (getPPIDChain)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.SpawnOn
 --
@@ -63,7 +63,7 @@ import XMonad.Util.Process (getPPIDChain)
 -- the spawned application(e.g. float or resize it).
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype Spawner = Spawner {pidsRef :: [(ProcessID, ManageHook)]}
 

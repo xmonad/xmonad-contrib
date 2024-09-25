@@ -24,7 +24,7 @@ module XMonad.Config.Desktop (
     -- specification. Extra xmonad settings unique to specific DE's are
     -- added by overriding or modifying @desktopConfig@ fields in the
     -- same way that the default configuration is customized in
-    -- @~\/.xmonad/xmonad.hs@.
+    -- @xmonad.hs@.
     --
     -- For more information about EWMH see:
     --
@@ -72,7 +72,7 @@ import qualified Data.Map as M
 -- <http://haskell.org/haskellwiki/Xmonad>
 --
 -- To configure xmonad for use with a DE or with DE tools like panels
--- and pagers, in place of @def@ in your @~\/.xmonad/xmonad.hs@,
+-- and pagers, in place of @def@ in your @xmonad.hs@,
 -- use @desktopConfig@ or one of the other desktop configs from the
 -- @XMonad.Config@ namespace. The following setup and customization examples
 -- work the same way for the other desktop configs as for @desktopConfig@.
@@ -91,7 +91,7 @@ import qualified Data.Map as M
 
 -- $customizing
 -- To customize a desktop config, modify its fields as is illustrated with
--- the default configuration @def@ in "XMonad.Doc.Extending#Extending xmonad".
+-- the default configuration @def@ in <https://xmonad.org/TUTORIAL.html the tutorial>.
 
 -- $layouts
 -- See also "XMonad.Util.EZConfig" for more options for modifying key bindings.

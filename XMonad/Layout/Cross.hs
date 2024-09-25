@@ -12,7 +12,7 @@
 --
 -- A Cross Layout with the main window in the center.
 --
-module XMonad.Layout.Cross(
+module XMonad.Layout.Cross {-# DEPRECATED "Use XMonad.Layout.Circle or XMonad.Layout.ThreeColumn.ThreeColMid instead" #-} (
                           -- * Usage
                           -- $usage
                           simpleCross
@@ -23,7 +23,7 @@ import XMonad.StackSet( focus, up, down )
 import XMonad.Prelude( msum )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Cross
 --

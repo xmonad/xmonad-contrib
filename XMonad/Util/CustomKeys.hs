@@ -25,7 +25,7 @@ import qualified Data.Map as M
 
 -- $usage
 --
--- In @~\/.xmonad\/xmonad.hs@ add:
+-- In @xmonad.hs@ add:
 --
 -- > import XMonad.Util.CustomKeys
 --

@@ -39,7 +39,7 @@ import qualified XMonad.StackSet as W
 import XMonad
 
 -- $usage
--- To use demanage, add this import to your @~\/.xmonad\/xmonad.hs@:
+-- To use demanage, add this import to your @xmonad.hs@:
 --
 -- >     import XMonad.Actions.DeManage
 --
@@ -48,7 +48,7 @@ import XMonad
 -- > , ((modm,               xK_d     ), withFocused demanage)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Stop managing the currently focused window.
 demanage :: Window -> X ()

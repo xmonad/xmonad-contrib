@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.ServerMode
@@ -35,7 +36,7 @@ import XMonad.Actions.Commands
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Hooks.ServerMode
 --
@@ -89,13 +90,14 @@ serverModeEventHookCmd' cmdAction = serverModeEventHookF "XMONAD_COMMAND" (mapM_
 --
 serverModeEventHookF :: String -> (String -> X ()) -> Event -> X All
 serverModeEventHookF key func ClientMessageEvent {ev_message_type = mt, ev_data = dt} = do
-        d <- asks display
-        atm <- io $ internAtom d key False
-        when (mt == atm && dt /= []) $ do
-         let atom = fromIntegral (head dt)
+  d <- asks display
+  atm <- io $ internAtom d key False
+  if | mt == atm, Just dth <- listToMaybe dt -> do
+         let atom = fromIntegral dth
          cmd <- io $ getAtomName d atom
          case cmd of
-              Just command -> func command
-              Nothing -> io $ hPutStrLn stderr ("Couldn't retrieve atom " ++ show atom)
-        return (All True)
+           Just command -> func command
+           Nothing -> io $ hPutStrLn stderr ("Couldn't retrieve atom " ++ show atom)
+     | otherwise -> pure ()
+  return (All True)
 serverModeEventHookF _ _ _ = return (All True)

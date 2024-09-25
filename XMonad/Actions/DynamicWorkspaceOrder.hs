@@ -49,7 +49,7 @@ import XMonad.Prelude (fromJust, fromMaybe)
 import Data.Ord (comparing)
 
 -- $usage
--- You can use this module by importing it into your ~\/.xmonad\/xmonad.hs file:
+-- You can use this module by importing it into your @xmonad.hs@ file:
 --
 -- > import qualified XMonad.Actions.DynamicWorkspaceOrder as DO
 --

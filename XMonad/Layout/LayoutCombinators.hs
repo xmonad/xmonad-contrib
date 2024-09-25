@@ -51,7 +51,7 @@ import XMonad.Layout.Combo
 import XMonad.Layout.DragPane
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.LayoutCombinators
 --
@@ -61,9 +61,9 @@ import XMonad.Layout.DragPane
 -- > myLayout = (Tall 1 (3/100) (1/2) *//* Full)  ||| (Tall 1 (3/100) (1/2) ***||** Full) ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the @layoutHook@ see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the @layoutHook@ see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 
 -- $combine
@@ -80,7 +80,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
          */* , **/* , ***/* , ****/* , ***/** , ****/*** , ***/**** , */**** , **/*** , */*** , */**
 
 -- $dpv
--- These combinators combine two layouts using "XMonad.DragPane" in
+-- These combinators combine two layouts using "XMonad.Layout.DragPane" in
 -- vertical mode.
 
 (*||*),(**||*),(***||*),(****||*), (***||**),(****||***),
@@ -100,7 +100,7 @@ infixr 6 *||*, **||*, ***||*, ****||*, ***||**, ****||***, ***||****, *||****, *
 (*||**)     = combineTwo (dragPane Vertical 0.1 (1/3))
 
 -- $dph
--- These combinators combine two layouts using "XMonad.DragPane" in
+-- These combinators combine two layouts using "XMonad.Layout.DragPane" in
 -- horizontal mode.
 
 (*//*),(**//*),(***//*),(****//*), (***//**),(****//***),

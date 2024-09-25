@@ -54,7 +54,7 @@ import qualified Data.Map.Strict               as M
 import           System.Posix.Types             ( ProcessID )
 
 -- $usage
--- You can use this module by including  the following in your @~\/.xmonad/xmonad.hs@:
+-- You can use this module by including  the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.WindowSwallowing
 --
@@ -62,11 +62,11 @@ import           System.Posix.Types             ( ProcessID )
 --
 -- > myHandleEventHook = swallowEventHook (className =? "Alacritty" <||> className =? "Termite") (return True)
 --
--- The variant 'swallowEventHookSub' can be used if a layout from "XMonad.Layouts.SubLayouts" is used;
+-- The variant 'swallowEventHookSub' can be used if a layout from "XMonad.Layout.SubLayouts" is used;
 -- instead of swallowing the window it will merge the child window with the parent. (this does not work with floating windows)
 --
 -- For more information on editing your handleEventHook and key bindings,
--- see "XMonad.Doc.Extending".
+-- see <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 
 -- | Run @action@ iff both parent- and child queries match and the child
 -- is a child by PID.
@@ -98,7 +98,7 @@ handleMapRequestEvent parentQ childQ childWindow action =
       return ()
 
 -- | handleEventHook that will merge child windows via
--- "XMonad.Layouts.SubLayouts" when they are opened from another window.
+-- "XMonad.Layout.SubLayouts" when they are opened from another window.
 swallowEventHookSub
   :: Query Bool -- ^ query the parent window has to match for window swallowing to occur.
                 --   Set this to @return True@ to run swallowing for every parent.

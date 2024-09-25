@@ -31,7 +31,7 @@ import XMonad.Prompt ( XPPosition (..) )
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.TabBarDecoration
 --
@@ -39,15 +39,15 @@ import XMonad.Prompt ( XPPosition (..) )
 --
 -- > main = xmonad def { layoutHook = simpleTabBar $ layoutHook def}
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- 'tabBar' will give you the possibility of setting a custom shrinker
 -- and a custom theme.
 --
--- The deafult theme can be dynamically change with the xmonad theme
--- selector. See "XMonad.Prompt.Theme". For more themse, look at
+-- The default theme can be dynamically changed with the xmonad theme
+-- selector. See "XMonad.Prompt.Theme". For more themes, look at
 -- "XMonad.Util.Themes"
 
 -- | Add, on the top of the screen, a simple bar of tabs to a given

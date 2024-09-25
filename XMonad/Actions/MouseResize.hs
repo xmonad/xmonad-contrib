@@ -37,7 +37,7 @@ import XMonad.Util.XUtils
 -- "XMonad.Layout.SimpleFloat" or "XMonad.Layout.DecorationMadness".
 --
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Actions.MouseResize
 -- > import XMonad.Layout.WindowArranger
@@ -50,9 +50,9 @@ import XMonad.Util.XUtils
 --
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 mouseResize :: l a -> ModifiedLayout MouseResize l a
 mouseResize = ModifiedLayout (MR [])

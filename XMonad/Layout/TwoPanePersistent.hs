@@ -28,7 +28,7 @@ import XMonad.StackSet (focus, up, down, Stack, Stack(..))
 import XMonad hiding (focus)
 
 -- $usage
--- Import the module in @~\/.xmonad\/xmonad.hs@:
+-- Import the module in @xmonad.hs@:
 --
 -- > import XMonad.Layout.TwoPanePersistent
 --
@@ -58,8 +58,8 @@ instance (Show a, Eq a) => LayoutClass TwoPanePersistent a where
 
   pureMessage (TwoPanePersistent w delta split) x =
     case fromMessage x of
-      Just Shrink -> Just (TwoPanePersistent w delta (split - delta))
-      Just Expand -> Just (TwoPanePersistent w delta (split + delta))
+      Just Shrink -> Just (TwoPanePersistent w delta (max 0 (split - delta)))
+      Just Expand -> Just (TwoPanePersistent w delta (min 1 (split + delta)))
       _ -> Nothing
 
   description _ = "TwoPanePersistent"

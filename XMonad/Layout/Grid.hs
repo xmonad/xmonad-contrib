@@ -25,7 +25,7 @@ import XMonad
 import XMonad.StackSet
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Grid
 --
@@ -40,9 +40,9 @@ import XMonad.StackSet
 --
 -- > myLayout = GridRatio (4/3) ||| etc.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 data Grid a = Grid | GridRatio Double deriving (Read, Show)
 
@@ -61,7 +61,7 @@ arrange aspectRatio (Rectangle rx ry rw rh) st = zip st rectangles
     mincs = max 1 $ nwins `div` ncols
     extrs = nwins - ncols * mincs
     chop :: Int -> Dimension -> [(Position, Dimension)]
-    chop n m = ((0, m - k * fromIntegral (pred n)) :) . map (, k) . tail . reverse . take n . tail . iterate (subtract k') $ m'
+    chop n m = ((0, m - k * fromIntegral (pred n)) :) . map (, k) . drop 1 . reverse . take n . drop 1 . iterate (subtract k') $ m'
         where
         k :: Dimension
         k = m `div` fromIntegral n

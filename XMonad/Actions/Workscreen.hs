@@ -43,7 +43,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Actions.OnScreen
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Actions.Workscreen
 -- > myWorkspaces = let myOldWorkspaces = ["adm","work","mail"]
@@ -58,7 +58,7 @@ import XMonad.Actions.OnScreen
 -- >      , (f, m) <- [(Workscreen.viewWorkscreen, 0), (Workscreen.shiftToWorkscreen, shiftMask)]]
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 
 data Workscreen = Workscreen{workscreenId::Int,workspaces::[WorkspaceId]} deriving (Show)
@@ -109,5 +109,6 @@ shiftWs a = drop 1 a ++ take 1 a
 -- @WorkscreenId@.
 shiftToWorkscreen :: WorkscreenId -> X ()
 shiftToWorkscreen wscrId = do (WorkscreenStorage _ a) <- XS.get
-                              let ws = head . workspaces $ a !! wscrId
-                              windows $ W.shift ws
+                              case workspaces (a !! wscrId) of
+                                []      -> pure ()
+                                (w : _) -> windows $ W.shift w

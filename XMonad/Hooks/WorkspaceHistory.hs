@@ -1,3 +1,4 @@
+{-# LANGUAGE DerivingVia #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.WorkspaceHistory
@@ -33,12 +34,12 @@ import Control.DeepSeq
 import Prelude
 import XMonad
 import XMonad.StackSet hiding (delete, filter, new)
-import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy)
+import XMonad.Prelude (delete, find, foldl', groupBy, nub, sortBy, listToMaybe)
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
 -- To record the order in which you view workspaces, you can use this
--- module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.WorkspaceHistory (workspaceHistoryHook)
 --
@@ -63,14 +64,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 newtype WorkspaceHistory = WorkspaceHistory
   { history :: [(ScreenId, WorkspaceId)] -- ^ Workspace Screens in
                                          -- reverse-chronological order.
-  } deriving (Read, Show)
-
--- @ScreenId@ is not an instance of NFData, but is a newtype on @Int@. @seq@
--- is enough for forcing it. This requires us to provide an instance.
-instance NFData WorkspaceHistory where
-  rnf (WorkspaceHistory hist) =
-    let go = liftRnf2 rwhnf rwhnf
-    in liftRnf go hist
+  }
+  deriving (Read, Show)
+  deriving NFData via [(Int, WorkspaceId)]
 
 instance ExtensionClass WorkspaceHistory where
     initialValue = WorkspaceHistory []
@@ -94,7 +90,7 @@ workspaceHistoryWithScreen = XS.gets history
 
 workspaceHistoryByScreen :: X [(ScreenId, [WorkspaceId])]
 workspaceHistoryByScreen =
-  map (\wss -> (fst $ head wss, map snd wss)) .
+  map (\wss -> (maybe 0 fst (listToMaybe wss), map snd wss)) .
   groupBy (\a b -> fst a == fst b) .
   sortBy (\a b -> compare (fst a) $ fst b)<$>
   workspaceHistoryWithScreen

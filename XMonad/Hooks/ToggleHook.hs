@@ -77,7 +77,7 @@ modify' n f = XS.modify (HookState . setter . hooks)
 -- This module provides actions (that can be set as keybindings)
 -- to be able to cause hooks to be occur on a conditional basis.
 --
--- You can use it by including the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use it by including the following in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.ToggleHook
 --

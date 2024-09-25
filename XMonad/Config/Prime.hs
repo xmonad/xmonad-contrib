@@ -126,7 +126,7 @@ import qualified XMonad as X (xmonad, XConfig(..))
 import XMonad.Util.EZConfig (additionalKeysP, additionalMouseBindings, checkKeymap, removeKeysP, removeMouseBindings)
 
 -- $start_here
--- To start with, create a @~\/.xmonad\/xmonad.hs@ that looks like this:
+-- To start with, create a @xmonad.hs@ that looks like this:
 --
 -- > {-# LANGUAGE RebindableSyntax #-}
 -- > import XMonad.Config.Prime
@@ -388,7 +388,7 @@ instance RemovableClass MouseBindings [(ButtonMask, Button)] where
   MouseBindings { mRemove = r } =- sadBindings = return . r sadBindings
 
 -- | Mouse button bindings to an 'X' actions on a window. Default: see @`man
--- xmonad`@. To make mod-<scrollwheel> switch workspaces:
+-- xmonad`@. To make @mod-\<scrollwheel\>@ switch workspaces:
 --
 -- > import XMonad.Actions.CycleWS (nextWS, prevWS)
 -- > ...

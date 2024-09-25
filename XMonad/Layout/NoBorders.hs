@@ -45,7 +45,7 @@ import qualified Data.Map                       as M
 
 
 -- $usage
--- You can use this module with the following in your ~\/.xmonad\/xmonad.hs file:
+-- You can use this module with the following in your xmonad.hs file:
 --
 -- > import XMonad.Layout.NoBorders
 --
@@ -54,9 +54,9 @@ import qualified Data.Map                       as M
 --
 -- > layoutHook = ... ||| noBorders Full ||| ...
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- todo, use an InvisibleList.
 data WithBorder a = WithBorder Dimension [a] deriving ( Read, Show )

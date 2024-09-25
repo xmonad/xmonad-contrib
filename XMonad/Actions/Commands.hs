@@ -37,7 +37,7 @@ import XMonad.Prelude
 
 -- $usage
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.Commands
 --
@@ -57,7 +57,7 @@ import XMonad.Prelude
 -- bindings!)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Create a 'Data.Map.Map' from @String@s to xmonad actions from a
 --   list of pairs.

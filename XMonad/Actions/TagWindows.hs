@@ -39,7 +39,7 @@ econst = const . return
 
 -- $usage
 --
--- To use window tags, import this module into your @~\/.xmonad\/xmonad.hs@:
+-- To use window tags, import this module into your @xmonad.hs@:
 --
 -- > import XMonad.Actions.TagWindows
 -- > import XMonad.Prompt    -- to use tagPrompt
@@ -64,7 +64,7 @@ econst = const . return
 --       the tags \"a\" and \"b\" but not \"a b\".
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | set multiple tags for a window at once (overriding any previous tags)
 setTags :: [String] -> Window -> X ()
@@ -133,11 +133,6 @@ wsToListGlobal ws = concat ([crs] ++ rws ++ lws ++ [cls])
 focusTagged' :: (WindowSet -> [Window]) -> String -> X ()
 focusTagged' wl t = gets windowset >>= findM (hasTag t) . wl >>=
     maybe (return ()) (windows . focusWindow)
-
-findM :: (Monad m) => (a -> m Bool) -> [a] -> m (Maybe a)
-findM _ []      = return Nothing
-findM p (x:xs)  = do b <- p x
-                     if b then return (Just x) else findM p xs
 
 -- | apply a pure function to windows with a tag
 withTaggedP, withTaggedGlobalP :: String -> (Window -> WindowSet -> WindowSet) -> X ()

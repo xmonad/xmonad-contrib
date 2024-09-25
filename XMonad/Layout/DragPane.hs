@@ -35,7 +35,7 @@ import XMonad.Util.Invisible
 import XMonad.Util.XUtils
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.DragPane
 --
@@ -44,9 +44,9 @@ import XMonad.Util.XUtils
 -- > myLayout = dragPane Horizontal 0.1 0.5 ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 halfHandleWidth :: Integral a => a
 halfHandleWidth = 1

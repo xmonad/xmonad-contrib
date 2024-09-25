@@ -28,7 +28,7 @@ import XMonad.Layout.LayoutModifier
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Layout.SimplestFloat
 --
@@ -37,9 +37,9 @@ import XMonad.Layout.LayoutModifier
 -- > myLayout = simplestFloat ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | A simple floating layout where every window is placed according
 -- to the window's initial attributes.

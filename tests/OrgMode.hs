@@ -45,7 +45,7 @@ spec = do
         `shouldBe` Just
           ( Deadline
               "todo"
-              (Time {date = Date (1, Nothing, Nothing), tod = Just $ TimeOfDay 1 1})
+              (Time {date = Date (1, Nothing, Nothing), tod = Just $ MomentInTime(HHMM 1 1)})
               NoPriority
           )
     it "works with todo +d 22 jan 2021 01:01 #b" $ do
@@ -53,9 +53,23 @@ spec = do
         `shouldBe` Just
           ( Deadline
                 "todo"
-                (Time {date = Date (22, Just 1, Just 2021), tod = Just $ TimeOfDay 1 1})
+                (Time {date = Date (22, Just 1, Just 2021), tod = Just $ MomentInTime(HHMM 1 1)})
                 B
           )
+    it "parses no day as today when given a time" $ do
+      pInput "todo +s 12:00"
+        `shouldBe` Just (Scheduled "todo" (Time {date = Today, tod = Just $ MomentInTime(HHMM 12 0)}) NoPriority)
+      pInput "todo +d 14:05 #B"
+        `shouldBe` Just (Deadline "todo" (Time {date = Today, tod = Just $ MomentInTime(HHMM 14 5)}) B)
+    it "parses `blah+d`, `blah +d`, `blah +d `, and `blah +d #B` as normal messages" $ do
+      pInput "blah+d"
+        `shouldBe` Just (NormalMsg "blah+d" NoPriority)
+      pInput "blah +d"
+        `shouldBe` Just (NormalMsg "blah +d" NoPriority)
+      pInput "blah +d "
+        `shouldBe` Just (NormalMsg "blah +d " NoPriority)
+      pInput "blah +d #B"
+        `shouldBe` Just (NormalMsg "blah +d" B)
 
   context "no priority#b" $ do
     it "parses to the correct thing" $
@@ -100,10 +114,10 @@ ppPrio = \case
   prio       -> " #" <> show prio
 
 ppTime :: Time -> String
-ppTime (Time d t) = ppDate d <> ppTOD t
+ppTime (Time d t) = ppDate d <> ppOrgTime t
  where
-  ppTOD :: Maybe TimeOfDay -> String
-  ppTOD = maybe "" ((' ' :) . show)
+  ppOrgTime :: Maybe OrgTime -> String
+  ppOrgTime = maybe "" ((' ' :) . show)
 
   ppDate :: Date -> String
   ppDate dte = case days !? dte of
@@ -150,6 +164,7 @@ instance Arbitrary OrgMsg where
     hourGen :: Gen String
     hourGen = oneof
       [ pure " " <<>> (pad <$> hourInt) <<>> pure ":" <<>> (pad <$> minuteInt)
+      , pure " " <<>> (pad <$> hourInt) <<>>               (pad <$> minuteInt)
       , pure ""
       ]
      where
@@ -178,7 +193,7 @@ instance Arbitrary Date where
     [ pure Today
     , pure Tomorrow
     , Next . toEnum <$> choose (0, 6)
-    , do d <- posInt
+    , do d <- posInt `suchThat` (<= 31)
          m <- mbPos `suchThat` (<= Just 12)
          Date . (d, m, ) <$> if   isNothing m
                              then pure Nothing
@@ -187,7 +202,14 @@ instance Arbitrary Date where
 
 instance Arbitrary TimeOfDay where
   arbitrary :: Gen TimeOfDay
-  arbitrary = TimeOfDay <$> hourInt <*> minuteInt
+  arbitrary = HHMM <$> hourInt <*> minuteInt
+
+instance Arbitrary OrgTime where
+  arbitrary :: Gen OrgTime
+  arbitrary = oneof
+    [ MomentInTime <$> arbitrary
+    , TimeSpan <$> arbitrary <*> arbitrary
+    ]
 
 ------------------------------------------------------------------------
 -- Util

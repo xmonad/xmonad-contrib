@@ -73,7 +73,7 @@ import XMonad.StackSet ( Stack, Workspace (..) )
 --
 -- * "XMonad.Layout.Reflect"
 --
--- * "XMonad.Layout.Named"
+-- * "XMonad.Layout.Renamed"
 --
 -- * "XMonad.Layout.WindowNavigation"
 --

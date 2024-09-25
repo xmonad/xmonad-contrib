@@ -37,7 +37,7 @@ import XMonad.Util.Types (Direction2D(..))
 import XMonad.Actions.AfterDrag
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.FloatSnap
 --
@@ -53,7 +53,7 @@ import XMonad.Actions.AfterDrag
 -- >        , ((modm .|. shiftMask, xK_Down),  withFocused $ snapGrow D Nothing)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- And possibly add appropriate mouse bindings, for example:
 --

@@ -34,7 +34,7 @@ import XMonad.Layout.Grid
 import XMonad.Layout.IndependentScreens hiding (withScreen)
 import XMonad.Layout.Magnifier
 import XMonad.Layout.NoBorders
-import XMonad.Prelude
+import XMonad.Prelude hiding (fromList)
 import XMonad.Util.Dzen hiding (x, y)
 import XMonad.Util.SpawnOnce
 -- }}}

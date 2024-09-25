@@ -29,7 +29,7 @@ import qualified Prelude as P
 import Prelude (Double, Integer, Ord (..), const, fromIntegral, fst, id, otherwise, round, snd, uncurry, ($))
 
 -- $usage
--- First, add this import to your @~\/.xmonad\/xmonad.hs@:
+-- First, add this import to your @xmonad.hs@:
 --
 -- > import qualified XMonad.Actions.FlexibleManipulate as Flex
 --

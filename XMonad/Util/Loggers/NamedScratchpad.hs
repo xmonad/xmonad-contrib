@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- 'XMonad.Util.Loggers' for 'XMonad.Util.NamedScratchpad'
+-- "XMonad.Util.Loggers" for "XMonad.Util.NamedScratchpad"
 --
 -----------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ import qualified XMonad.StackSet as W (allWindows)
 -- (This is difficult to change; "minimizing" by moving it back to 'NSP'
 -- is even harder.)
 -- I hide the 'NamedScratchpad's from the taskbar and use this to track
--- them instead (see 'XMonad.Util.NoTaskbar').
+-- them instead (see "XMonad.Util.NoTaskbar").
 
 -- The extension data for tracking NSP windows
 newtype NSPTrack = NSPTrack [Maybe Window]

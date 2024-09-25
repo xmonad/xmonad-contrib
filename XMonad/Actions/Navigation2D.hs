@@ -46,7 +46,6 @@ module XMonad.Actions.Navigation2D ( -- * Usage
                                    , sideNavigation
                                    , sideNavigationWithBias
                                    , hybridOf
-                                   , hybridNavigation
                                    , fullScreenRect
                                    , singleWindowRect
                                    , switchLayer
@@ -67,6 +66,7 @@ import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
 import XMonad.Util.Types
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 -- #Usage#
@@ -85,7 +85,7 @@ import XMonad.Util.Types
 -- layers and allows customization of the navigation strategy for the tiled
 -- layer based on the layout currently in effect.
 --
--- You can use this module with (a subset of) the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with (a subset of) the following in your @xmonad.hs@:
 --
 -- > import XMonad.Actions.Navigation2D
 --
@@ -98,7 +98,15 @@ import XMonad.Util.Types
 -- >                              False
 -- >               $ def
 --
--- Alternatively, you can use navigation2DP:
+-- /NOTE/: the @def@ argument to 'navigation2D' contains the strategy
+-- that decides which windows actually get selected.  While the default
+-- behaviour tries to keep them into account, if you use modules that
+-- influence tiling in some way, like "XMonad.Layout.Spacing" or
+-- "XMonad.Layout.Gaps", you should think about using a different
+-- strategy, if you find the default behaviour to be unnatural.  Check
+-- out the [finer points](#g:Finer_Points) below for more information.
+--
+-- Alternatively to 'navigation2D', you can use 'navigation2DP':
 --
 -- > main = xmonad $ navigation2DP def
 -- >                               ("<Up>", "<Left>", "<Down>", "<Right>")
@@ -108,7 +116,7 @@ import XMonad.Util.Types
 -- >               $ def
 --
 -- That's it. If instead you'd like more control, you can combine
--- withNavigation2DConfig and additionalNav2DKeys or additionalNav2DKeysP:
+-- 'withNavigation2DConfig' and 'additionalNav2DKeys' or 'additionalNav2DKeysP':
 --
 -- > main = xmonad $ withNavigation2DConfig def
 -- >               $ additionalNav2DKeys (xK_Up, xK_Left, xK_Down, xK_Right)
@@ -162,7 +170,7 @@ import XMonad.Util.Types
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- $finer_points
 -- #Finer_Points#
@@ -179,9 +187,19 @@ import XMonad.Util.Types
 -- values in the above example to 'True'.  You could also decide you want
 -- wrapping only for a subset of the operations and no wrapping for others.
 --
--- By default, all layouts use the 'defaultTiledNavigation' strategy specified
--- in the 'Navigation2DConfig' (by default, line navigation is used).  To
--- override this behaviour for some layouts, add a pair (\"layout name\",
+-- By default, all layouts use the 'defaultTiledNavigation' strategy
+-- specified in the 'Navigation2DConfig' (by default, line navigation is
+-- used).  Many more navigation strategies are available; some may feel
+-- more natural, depending on the layout and user:
+--
+--   * 'lineNavigation'
+--   * 'centerNavigation'
+--   * 'sideNavigation'
+--   * 'sideNavigationWithBias'
+--
+-- There is also the ability to combine two strategies with 'hybridOf'.
+--
+-- To override the default behaviour for some layouts, add a pair (\"layout name\",
 -- navigation strategy) to the 'layoutNavigation' list in the
 -- 'Navigation2DConfig', where \"layout name\" is the string reported by the
 -- layout's description method (normally what is shown as the layout name in
@@ -327,7 +345,7 @@ centerNavigation = N 2 doCenterNavigation
 -- and push it to the right until it intersects with at least one other window.
 -- Of those windows, one with a point that is the closest to the centre of the
 -- line (+1) is selected. This is probably the most intuitive strategy for the
--- tiled layer when using XMonad.Layout.Spacing.
+-- tiled layer when using "XMonad.Layout.Spacing".
 sideNavigation :: Navigation2D
 sideNavigation = N 1 (doSideNavigationWithBias 1)
 
@@ -358,10 +376,6 @@ hybridOf :: Navigation2D -> Navigation2D -> Navigation2D
 hybridOf (N g1 s1) (N g2 s2) = N (max g1 g2) $ applyToBoth s1 s2
   where
     applyToBoth f g a b c = f a b c <|> g a b c
-
-{-# DEPRECATED hybridNavigation "Use hybridOf with lineNavigation and centerNavigation as arguments." #-}
-hybridNavigation :: Navigation2D
-hybridNavigation = hybridOf lineNavigation centerNavigation
 
 -- | Stores the configuration of directional navigation. The 'Default' instance
 -- uses line navigation for the tiled layer and for navigation between screens,
@@ -451,7 +465,7 @@ withNavigation2DConfig conf2d xconf = xconf { startupHook  = startupHook xconf
                                             }
 
 instance Default Navigation2DConfig where
-    def                   = Navigation2DConfig { defaultTiledNavigation = lineNavigation
+    def                   = Navigation2DConfig { defaultTiledNavigation = hybridOf lineNavigation sideNavigation
                                                , floatNavigation        = centerNavigation
                                                , screenNavigation       = lineNavigation
                                                , layoutNavigation       = []
@@ -770,8 +784,7 @@ doCenterNavigation dir (cur, rect) winrects
 
     -- All the points that coincide with the current center and succeed it
     -- in the (appropriately ordered) window stack.
-    onCtr' = L.tail $ L.dropWhile ((cur /=) . fst) onCtr
-             -- tail should be safe here because cur should be in onCtr
+    onCtr' = L.drop 1 $ L.dropWhile ((cur /=) . fst) onCtr
 
     -- All the points that do not coincide with the current center and which
     -- lie in the (rotated) right cone.
@@ -871,8 +884,8 @@ swap win winset = W.focusWindow cur
     -- Reconstruct the workspaces' window stacks to reflect the swap.
     newvisws  = zipWith (\ws wns -> ws { W.stack = W.differentiate wns }) visws newwins
     newscrs   = zipWith (\scr ws -> scr { W.workspace = ws }) scrs newvisws
-    newwinset = winset { W.current = head newscrs
-                       , W.visible = tail newscrs
+    newwinset = winset { W.current = NE.head (notEmpty newscrs) -- Always at least one screen.
+                       , W.visible = drop 1 newscrs
                        }
 
 -- | Calculates the center of a rectangle

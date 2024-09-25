@@ -12,10 +12,10 @@
 -- Sets the WM name to a given string, so that it could be detected using
 -- _NET_SUPPORTING_WM_CHECK protocol.
 --
--- May be useful for making Java GUI programs work, just set WM name to "LG3D"
+-- May be useful for making Java GUI programs work, just set WM name to \"LG3D\"
 -- and use Java 1.6u1 (1.6.0_01-ea-b03 works for me) or later.
 --
--- To your @~\/.xmonad\/xmonad.hs@ file, add the following line:
+-- To your @xmonad.hs@ file, add the following line:
 --
 -- > import XMonad.Hooks.SetWMName
 --
@@ -33,7 +33,7 @@
 -- fails miserably by guessing absolutely bogus values.
 --
 -- For detailed instructions on editing your hooks, see
--- "XMonad.Doc.Extending#4".
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 -----------------------------------------------------------------------------
 
 module XMonad.Hooks.SetWMName (

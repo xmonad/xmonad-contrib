@@ -35,7 +35,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.StackSet (integrate)
 
 -- $usage
--- You can use this module with the following in your ~\/.xmonad/xmonad.hs
+-- You can use this module with the following in your @xmonad.hs@
 -- file:
 --
 -- > import XMonad.Layout.VoidBorders
@@ -46,9 +46,9 @@ import XMonad.StackSet (integrate)
 --
 -- > layoutHook = ... ||| voidBorders Full ||| normalBorders Tall ...
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 data VoidBorders a = VoidBorders deriving (Read, Show)
 

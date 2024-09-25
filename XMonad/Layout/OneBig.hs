@@ -55,23 +55,25 @@ oneBigMessage (OneBig cx cy) m = fmap resize (fromMessage m)
 
 -- | Main layout function
 oneBigLayout :: OneBig a -> Rectangle -> W.Stack a -> [(a, Rectangle)]
-oneBigLayout (OneBig cx cy) rect stack = [(master,masterRect)]
-                                      ++ divideBottom bottomRect bottomWs
-                                      ++ divideRight rightRect rightWs
-      where ws = W.integrate stack
-            n = length ws
-            ht (Rectangle _ _ _ hh) = hh
-            wd (Rectangle _ _ ww _) = ww
-            h' = round (fromIntegral (ht rect)*cy)
-            w = wd rect
-            m = calcBottomWs n w h'
-            master = head ws
-            other  = tail ws
-            bottomWs = take m other
-            rightWs = drop m other
-            masterRect = cmaster n m cx cy rect
-            bottomRect = cbottom cy rect
-            rightRect  = cright cx cy rect
+oneBigLayout (OneBig cx cy) rect stack =
+  let ws = W.integrate stack
+      n  = length ws
+   in case ws of
+    []               -> []
+    (master : other) -> [(master,masterRect)]
+                     ++ divideBottom bottomRect bottomWs
+                     ++ divideRight rightRect rightWs
+     where
+      ht (Rectangle _ _ _ hh) = hh
+      wd (Rectangle _ _ ww _) = ww
+      h' = round (fromIntegral (ht rect)*cy)
+      w = wd rect
+      m = calcBottomWs n w h'
+      bottomWs = take m other
+      rightWs = drop m other
+      masterRect = cmaster n m cx cy rect
+      bottomRect = cbottom cy rect
+      rightRect  = cright cx cy rect
 
 -- | Calculate how many windows must be placed at bottom
 calcBottomWs :: Int -> Dimension -> Dimension -> Int

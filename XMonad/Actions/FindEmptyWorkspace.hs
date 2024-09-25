@@ -25,7 +25,7 @@ import XMonad.StackSet
 
 -- $usage
 --
--- To use, import this module into your @~\/.xmonad\/xmonad.hs@:
+-- To use, import this module into your @xmonad.hs@:
 --
 -- >   import XMonad.Actions.FindEmptyWorkspace
 --
@@ -38,7 +38,7 @@ import XMonad.StackSet
 -- will tag the current window to an empty workspace and view it.
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Find the first hidden empty workspace in a StackSet. Returns
 -- Nothing if all workspaces are in use. Function searches currently

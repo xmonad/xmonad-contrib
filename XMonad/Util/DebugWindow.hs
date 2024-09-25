@@ -57,9 +57,7 @@ debugWindow w =  do
                              \s -> if null s
                                      then Nothing
                                      else let (w'',s'') = break (== '\NUL') s
-                                              s'      = if null s''
-                                                          then s''
-                                                          else tail s''
+                                              s'        = drop 1 s''
                                           in Just (w'',s')
       t <- catchX' (wrap <$> getEWMHTitle  "VISIBLE" w) $
            catchX' (wrap <$> getEWMHTitle  ""        w) $
@@ -107,8 +105,7 @@ debugWindow w =  do
 getEWMHTitle       :: String -> Window -> X String
 getEWMHTitle sub w =  do
   a <- getAtom $ "_NET_WM_" ++ (if null sub then "" else '_':sub) ++ "_NAME"
-  (Just t) <- withDisplay $ \d -> io $ getWindowProperty32 d a w
-  return $ map (toEnum . fromEnum) t
+  getDecodedStringProp w a -- should always be UTF8_STRING but rules are made to be broken
 
 getICCCMTitle   :: Window -> X String
 getICCCMTitle w =  getDecodedStringProp w wM_NAME
@@ -116,7 +113,7 @@ getICCCMTitle w =  getDecodedStringProp w wM_NAME
 getDecodedStringProp     :: Window -> Atom -> X String
 getDecodedStringProp w a =  do
   t@(TextProperty t' _ 8 _) <- withDisplay $ \d -> io $ getTextProperty d w a
-  [s] <- catchX' (tryUTF8     t) $
+  [s] <- catchX' (tryUTF8     t) $ -- shouldn't happen but some apps do it
          catchX' (tryCompound t) $
          io ((:[]) <$> peekCString t')
   return s
@@ -125,7 +122,7 @@ tryUTF8                          :: TextProperty -> X [String]
 tryUTF8 (TextProperty s enc _ _) =  do
   uTF8_STRING <- getAtom "UTF8_STRING"
   when (enc /= uTF8_STRING) $ error "String is not UTF8_STRING"
-  map decodeString . splitNul <$> io (peekCString s)
+  map decodeString . splitNul <$> io (peekCAString s)
 
 tryCompound                            :: TextProperty -> X [String]
 tryCompound t@(TextProperty _ enc _ _) =  do
@@ -203,7 +200,7 @@ windowType d w ts =  do
                                       Just s'' -> s''
                                       _        -> '<':show a ++ ">"
                             unAtoms as (t ++ (if i then ' ':s else s)) True
-    
+
     simplify       :: String -> Atom -> X String
     simplify pfx a =  do
                         s' <- io $ getAtomName d a
@@ -215,10 +212,10 @@ windowType d w ts =  do
                                        return s
 
     -- note that above it says this checks all of them before simplifying.
-    -- I'll do that after I'm confident this works as intended.    
+    -- I'll do that after I'm confident this works as intended.
     windowState     :: [Atom] -> X String
     windowState []  =  return ""
     windowState as' =  go as' ";"
       where
         go []     t = return t
-        go (a:as) t = simplify "_NET_WM_STATE_" a >>= \t' -> go as (t ++ ' ':t') 
+        go (a:as) t = simplify "_NET_WM_STATE_" a >>= \t' -> go as (t ++ ' ':t')

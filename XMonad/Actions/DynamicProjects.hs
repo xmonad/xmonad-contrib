@@ -69,7 +69,9 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- the working directory to the one configured for the matching
 -- project.  If the workspace doesn't have any windows, the project's
 -- start-up hook is executed.  This allows you to launch applications
--- or further configure the workspace/project.
+-- or further configure the workspace/project. To close a project,
+-- you can use the functions provided by "XMonad.Actions.DynamicWorkspaces",
+-- such as @removeWorkspace@ or @removeWorkspaceByTag@.
 --
 -- When using the @switchProjectPrompt@ function, workspaces are
 -- created as needed.  This means you can create new project spaces
@@ -113,7 +115,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- >  , ((modm, xK_slash), shiftToProjectPrompt def)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 --------------------------------------------------------------------------------
 type ProjectName  = String
@@ -230,7 +232,9 @@ lookupProject name = Map.lookup name <$> XS.gets projects
 
 --------------------------------------------------------------------------------
 -- | Fetch the current project (the one being used for the currently
--- active workspace).
+-- active workspace). If the workspace doesn't have a project, a
+-- default project is returned, using the workspace name as the
+-- project name.
 currentProject :: X Project
 currentProject = do
   name <- gets (W.tag . W.workspace . W.current . windowset)
@@ -255,20 +259,7 @@ modifyProject f = do
 --------------------------------------------------------------------------------
 -- | Switch to the given project.
 switchProject :: Project -> X ()
-switchProject p = do
-  oldws <- gets (W.workspace . W.current . windowset)
-  oldp <- currentProject
-
-  let name = W.tag oldws
-      ws   = W.integrate' (W.stack oldws)
-
-  -- If the project we are switching away from has no windows, and
-  -- it's a dynamic project, remove it from the configuration.
-  when (null ws && isNothing (projectStartHook oldp)) $ do
-    removeWorkspaceByTag name -- also remove the old workspace
-    XS.modify (\s -> s {projects = Map.delete name $ projects s})
-
-  appendWorkspace (projectName p)
+switchProject p = appendWorkspace (projectName p)
 
 --------------------------------------------------------------------------------
 -- | Prompt for a project name and then switch to it.  Automatically

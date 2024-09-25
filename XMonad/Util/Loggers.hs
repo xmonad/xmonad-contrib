@@ -35,13 +35,16 @@ module XMonad.Util.Loggers (
     -- $xmonad
     , logCurrent, logLayout
     , logTitle, logTitles, logTitles'
+    , logClassname, logClassnames, logClassnames'
     , logConst, logDefault, (.|)
     -- * XMonad: Screen-specific Loggers
     -- $xmonad-screen
     , logCurrentOnScreen, logLayoutOnScreen
-    , logTitleOnScreen, logWhenActive
+    , logTitleOnScreen, logClassnameOnScreen, logWhenActive
     , logTitlesOnScreen, logTitlesOnScreen'
+    , logClassnamesOnScreen, logClassnamesOnScreen'
     , TitlesFormat(..)
+    , ClassnamesFormat(..)
     -- * Formatting Utilities
     -- $format
     , onLogger
@@ -58,7 +61,7 @@ import qualified XMonad.StackSet as W
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Hooks.UrgencyHook (readUrgents)
 import XMonad.Util.Font (Align (..))
-import XMonad.Util.NamedWindows (getName)
+import XMonad.Util.NamedWindows (getName, getNameWMClass)
 
 import Control.Exception as E
 import XMonad.Prelude (find, fromMaybe, isPrefixOf, isSuffixOf, WindowScreen)
@@ -71,7 +74,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 -- $usage
--- Use this module by importing it into your @~\/.xmonad\/xmonad.hs@:
+-- Use this module by importing it into your @xmonad.hs@:
 --
 -- > import XMonad.Util.Loggers
 --
@@ -175,9 +178,13 @@ maildirNew mdir = logFileCount (mdir ++ "/new/") (not . isPrefixOf ".")
 -- example you can loggerize the number of windows on each workspace, or
 -- titles on other workspaces, or the id of the previously focused workspace....
 
+-- | Internal function to get a wrapped title string from a window
+fetchWindowTitle :: Window -> X String
+fetchWindowTitle = fmap show . getName
+
 -- | Get the title (name) of the focused window.
 logTitle :: Logger
-logTitle = withWindowSet $ traverse (fmap show . getName) . W.peek
+logTitle = logWindowInfoFocusedWindow fetchWindowTitle
 
 -- | Get the titles of all windows on the visible workspace of the given
 -- screen and format them according to the given functions.
@@ -199,41 +206,24 @@ logTitlesOnScreen
   -> (String -> String) -- ^ Formatting for the unfocused window
   -> Logger
 logTitlesOnScreen sid formatFoc formatUnfoc =
-  logTitlesOnScreen' sid TitlesFormat{ focusedFormat   = formatFoc
-                                     , unfocusedFormat = formatUnfoc
-                                     , urgentFormat    = formatUnfoc
-                                     }
+  logWindowInfoOnScreen fetchWindowTitle sid formatFoc formatUnfoc formatUnfoc
 
 -- | Like 'logTitlesOnScreen' but with support for urgent windows.  To
 -- be used with "XMonad.Hooks.UrgencyHook".
 logTitlesOnScreen' :: ScreenId -> TitlesFormat -> Logger
 logTitlesOnScreen' sid (TitlesFormat formatFoc formatUnfoc formatUrg) =
-  (`withScreen` sid) $ \screen -> do
-    let focWin = fmap W.focus . W.stack . W.workspace $ screen
-    urgWins <- readUrgents
-    logTitlesOnScreenWorker screen $ \win name ->
-      if | Just win == focWin -> formatFoc   name
-         | win `elem` urgWins -> formatUrg   name
-         | otherwise          -> formatUnfoc name
-
--- | Internal function for 'logTitlesOnScreen' and 'logTitlesOnScreen''.
-logTitlesOnScreenWorker :: WindowScreen -> (Window -> String -> String) -> Logger
-logTitlesOnScreenWorker screen logger = do
-  let wins = maybe [] W.integrate . W.stack . W.workspace $ screen
-  winNames <- traverse (fmap show . getName) wins
-  pure . Just . unwords $ zipWith logger wins winNames
+  logWindowInfoOnScreen fetchWindowTitle sid formatFoc formatUnfoc formatUrg
 
 -- | Like 'logTitlesOnScreen', but directly use the "focused" screen
 -- (the one with the currently focused workspace).
 logTitles :: (String -> String) -> (String -> String) -> Logger
-logTitles formatFoc formatUnfoc = do
-  sid <- gets $ W.screen . W.current . windowset
-  logTitlesOnScreen sid formatFoc formatUnfoc
+logTitles formatFoc formatUnfoc =
+  logWindowInfoFocusedScreen fetchWindowTitle formatFoc formatUnfoc formatUnfoc
 
 -- | Variant of 'logTitles', but with support for urgent windows.
 logTitles' :: TitlesFormat -> Logger
-logTitles' formatter =
-  gets (W.screen . W.current . windowset) >>= (`logTitlesOnScreen'` formatter)
+logTitles' (TitlesFormat formatFoc formatUnfoc formatUrg) =
+  logWindowInfoFocusedScreen fetchWindowTitle formatFoc formatUnfoc formatUrg
 
 -- | Formatting applied to the titles of certain windows.
 data TitlesFormat = TitlesFormat
@@ -246,10 +236,113 @@ data TitlesFormat = TitlesFormat
 -- 'logTitlesOnScreen''.
 instance Default TitlesFormat where
   def = TitlesFormat
-    { focusedFormat   = wrap "[" "]" . xmobarRaw . shorten 30 . xmobarStrip
-    , unfocusedFormat =                xmobarRaw . shorten 30 . xmobarStrip
-    , urgentFormat    = wrap "!" "!" . xmobarRaw . shorten 30 . xmobarStrip
+    { focusedFormat   = xmobarFocusedFormat
+    , unfocusedFormat = xmobarWsFormat
+    , urgentFormat    = xmobarUrgentFormat
     }
+
+-- | Internal function to get a wrapped classname string from a window
+fetchWindowClassname :: Window -> X String
+fetchWindowClassname = fmap show . getNameWMClass
+
+-- | Get the classname of the focused window.
+logClassname :: Logger
+logClassname = logWindowInfoFocusedWindow fetchWindowClassname
+
+-- | Get the classnames of all windows on the visible workspace of the given
+-- screen and format them according to the given functions.
+logClassnamesOnScreen
+  :: ScreenId           -- ^ Screen to log the classnames on
+  -> (String -> String) -- ^ Formatting for the focused window
+  -> (String -> String) -- ^ Formatting for the unfocused window
+  -> Logger
+logClassnamesOnScreen sid formatFoc formatUnfoc =
+  logWindowInfoOnScreen fetchWindowClassname sid formatFoc formatUnfoc formatUnfoc
+
+-- | Like 'logClassnamesOnScreen' but with support for urgent windows.  To
+-- be used with "XMonad.Hooks.UrgencyHook".
+logClassnamesOnScreen' :: ScreenId -> ClassnamesFormat -> Logger
+logClassnamesOnScreen' sid (ClassnamesFormat formatFoc formatUnfoc formatUrg) =
+  logWindowInfoOnScreen fetchWindowClassname sid formatFoc formatUnfoc formatUrg
+
+-- | Like 'logClassnamesOnScreen', but directly use the "focused" screen
+-- (the one with the currently focused workspace).
+logClassnames :: (String -> String) -> (String -> String) -> Logger
+logClassnames formatFoc formatUnfoc =
+  logWindowInfoFocusedScreen fetchWindowClassname formatFoc formatUnfoc formatUnfoc
+
+-- | Variant of 'logClassnames', but with support for urgent windows.
+logClassnames' :: ClassnamesFormat -> Logger
+logClassnames' (ClassnamesFormat formatFoc formatUnfoc formatUrg) =
+  logWindowInfoFocusedScreen fetchWindowClassname formatFoc formatUnfoc formatUrg
+
+-- | Formatting applied to the classnames of certain windows.
+data ClassnamesFormat = ClassnamesFormat
+  { focusedFormatClassname   :: String -> String  -- ^ Focused formatting.
+  , unfocusedFormatClassname :: String -> String  -- ^ Unfocused formatting.
+  , urgentFormatClassname    :: String -> String  -- ^ Formatting when urgent.
+  }
+
+-- | How to format these classnames by default when using 'logClassnames'' and
+-- 'logClassnamesOnScreen''.
+instance Default ClassnamesFormat where
+  def = ClassnamesFormat
+    { focusedFormatClassname   = xmobarFocusedFormat
+    , unfocusedFormatClassname = xmobarWsFormat
+    , urgentFormatClassname    = xmobarUrgentFormat
+    }
+
+-- | Internal function to get the specified window information for all windows on
+-- the visible workspace of the given screen and format them according to the
+-- given functions.
+logWindowInfoOnScreen
+  :: (Window -> X String)
+  -> ScreenId
+  -> (String -> String)
+  -> (String -> String)
+  -> (String -> String)
+  -> Logger
+logWindowInfoOnScreen getWindowInfo sid formatFoc formatUnfoc formatUrg =
+  (`withScreen` sid) $ \screen -> do
+    let focWin = fmap W.focus . W.stack . W.workspace $ screen
+    urgWins <- readUrgents
+    logWindowInfoOnScreenWorker getWindowInfo screen $ \win name ->
+      if | Just win == focWin -> formatFoc   name
+         | win `elem` urgWins -> formatUrg   name
+         | otherwise          -> formatUnfoc name
+
+-- | Internal helper function for 'logWindowInfoOnScreen'.
+logWindowInfoOnScreenWorker
+  :: (Window -> X String)
+  -> WindowScreen
+  -> (Window -> String -> String)
+  -> Logger
+logWindowInfoOnScreenWorker getWindowInfo screen logger = do
+  let wins = maybe [] W.integrate . W.stack . W.workspace $ screen
+  winNames <- traverse getWindowInfo wins
+  pure . Just . unwords $ zipWith logger wins winNames
+
+-- | Internal. Like 'logWindowInfoOnScreen', but directly use the "focused" screen
+-- (the one with the currently focused workspace).
+logWindowInfoFocusedScreen
+  :: (Window -> X String)
+  -> (String -> String)
+  -> (String -> String)
+  -> (String -> String)
+  -> Logger
+logWindowInfoFocusedScreen getWindowInfo formatFoc formatUnfoc formatUrg = do
+  sid <- gets $ W.screen . W.current . windowset
+  logWindowInfoOnScreen getWindowInfo sid formatFoc formatUnfoc formatUrg
+
+-- | Internal function to get the specified information for the currently focused window
+logWindowInfoFocusedWindow :: (Window -> X String) -> Logger
+logWindowInfoFocusedWindow getWindowInfo = withWindowSet $ traverse getWindowInfo . W.peek
+
+-- | Internal formatting helpers
+xmobarWsFormat, xmobarFocusedFormat, xmobarUrgentFormat :: String -> String
+xmobarWsFormat      = xmobarRaw . shorten 30 . xmobarStrip
+xmobarFocusedFormat = wrap "[" "]" . xmobarWsFormat
+xmobarUrgentFormat  = wrap "!" "!" . xmobarWsFormat
 
 -- | Get the name of the current layout.
 logLayout :: Logger
@@ -297,9 +390,18 @@ logWhenActive n l = do
 
 -- | Get the title (name) of the focused window, on the given screen.
 logTitleOnScreen :: ScreenId -> Logger
-logTitleOnScreen =
+logTitleOnScreen = logWindowInfoFocusedWindowOnScreen fetchWindowTitle
+
+-- | Get the classname of the focused window, on the given screen.
+logClassnameOnScreen :: ScreenId -> Logger
+logClassnameOnScreen = logWindowInfoFocusedWindowOnScreen fetchWindowClassname
+
+-- | Internal function to get the specified information for the focused window,
+-- on the given screen.
+logWindowInfoFocusedWindowOnScreen :: (Window -> X String) -> ScreenId -> Logger
+logWindowInfoFocusedWindowOnScreen getWindowInfo =
   withScreen
-    $ traverse (fmap show . getName)
+    $ traverse getWindowInfo
     . (W.focus <$>)
     . W.stack
     . W.workspace

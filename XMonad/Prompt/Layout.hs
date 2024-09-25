@@ -26,7 +26,7 @@ import XMonad.Prompt.Workspace ( Wor(..) )
 import XMonad.StackSet ( workspaces, layout )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Layout
@@ -34,7 +34,7 @@ import XMonad.StackSet ( workspaces, layout )
 -- >   , ((modm .|. shiftMask, xK_m     ), layoutPrompt def)
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- WARNING: This prompt won't display all possible layouts, because the
 -- code to enable this was rejected from xmonad core.  It only displays

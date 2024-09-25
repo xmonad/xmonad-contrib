@@ -25,14 +25,14 @@ import XMonad.StackSet as S
 
 -- $usage
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >  import XMonad.Actions.PerLayoutKeys
 --
 -- >   ,((0, xK_F2), bindByLayout [("Tall", spawn "rxvt"), ("Mirror Tall", spawn "xeyes"), ("", spawn "xmessage hello")])
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Uses supplied function to decide which action to run depending on current layout name.
 chooseActionByLayout :: (String->X()) -> X()

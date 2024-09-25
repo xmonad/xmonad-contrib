@@ -28,7 +28,7 @@ import XMonad.Prelude
 import qualified XMonad.StackSet as W
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.FixedColumn
 --
@@ -37,9 +37,9 @@ import qualified XMonad.StackSet as W
 -- > myLayout = FixedColumn 1 20 80 10 ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | A tiling mode based on preserving a nice fixed width
 --   window. Supports 'Shrink', 'Expand' and 'IncMasterN'.

@@ -26,11 +26,6 @@ module XMonad.Prompt.Window
     allApplications,
     wsWindows,
     XWindowMap,
-
-    -- * Deprecated
-    windowPromptGoto,
-    windowPromptBring,
-    windowPromptBringCopy,
     ) where
 
 import XMonad.Prelude (forM)
@@ -49,7 +44,7 @@ import XMonad.Util.NamedWindows
 -- where you left your XChat. It also offers helpers to build the
 -- subset of windows which is used for the prompt completion.
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Window
@@ -70,7 +65,7 @@ import XMonad.Util.NamedWindows
 -- keystrokes to the selected client.
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- Describe actions that can applied  on the selected window
 data WindowPrompt = Goto | Bring | BringCopy | BringToMaster | WithWindow String (Window ->  X())
@@ -111,15 +106,6 @@ instance XPrompt WindowModePrompt where
         bringAction      = winAction bringWindow
         bringCopyAction  = winAction bringCopyWindow
         bringToMaster    = winAction (\w s -> W.shiftMaster . W.focusWindow w $ bringWindow w s)
-
--- | Deprecated. Use windowPrompt instead.
-{-# DEPRECATED windowPromptGoto      "Use windowPrompt instead." #-}
-{-# DEPRECATED windowPromptBring     "Use windowPrompt instead." #-}
-{-# DEPRECATED windowPromptBringCopy "Use windowPrompt instead." #-}
-windowPromptGoto, windowPromptBring, windowPromptBringCopy :: XPConfig -> X ()
-windowPromptGoto c = windowPrompt c Goto windowMap
-windowPromptBring c = windowPrompt c Bring windowMap
-windowPromptBringCopy c = windowPrompt c BringCopy windowMap
 
 -- | A helper to get the map of all windows.
 allWindows :: XWindowMap

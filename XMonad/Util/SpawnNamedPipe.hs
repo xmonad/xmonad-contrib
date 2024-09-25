@@ -9,7 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  not portable
 --
--- A module for spawning a pipe whose "Handle" lives in the Xmonad state.
+-- A module for spawning a pipe whose 'Handle' lives in the Xmonad state.
 --
 -----------------------------------------------------------------------------
 
@@ -55,10 +55,10 @@ newtype NamedPipes = NamedPipes { pipeMap :: Map.Map String Handle }
 instance ExtensionClass NamedPipes where
     initialValue = NamedPipes Map.empty
 
--- | When 'spawnNamedPipe' is executed with a command "String" and a name
--- "String" respectively.  The command string is spawned with 'spawnPipe' (as
--- long as the name chosen hasn't been used already) and the "Handle" returned
--- is saved in Xmonad's state associated with the name "String".
+-- | When 'spawnNamedPipe' is executed with a command 'String' and a name
+-- 'String' respectively.  The command string is spawned with 'spawnPipe' (as
+-- long as the name chosen hasn't been used already) and the 'Handle' returned
+-- is saved in Xmonad's state associated with the name 'String'.
 spawnNamedPipe :: String -> String -> X ()
 spawnNamedPipe cmd name = do
   b <- XS.gets (Map.member name . pipeMap)
@@ -66,7 +66,7 @@ spawnNamedPipe cmd name = do
     h <- spawnPipe cmd
     XS.modify (NamedPipes . Map.insert name h . pipeMap)
 
--- | Attempts to retrieve a "Handle" to a pipe previously stored in Xmonad's
+-- | Attempts to retrieve a 'Handle' to a pipe previously stored in Xmonad's
 -- state associated with the given string via a call to 'spawnNamedPipe'. If the
 -- given string doesn't exist in the map stored in Xmonad's state Nothing is
 -- returned.

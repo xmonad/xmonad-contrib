@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.Scratchpad (
+module XMonad.Util.Scratchpad {-# DEPRECATED "Use XMonad.Util.NamedScratchpad instead" #-} (
   -- * Usage
   -- $usage
   scratchpadSpawnAction

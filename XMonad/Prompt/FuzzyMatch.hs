@@ -32,21 +32,21 @@ import qualified Data.List.NonEmpty as NE
 -- subsequence is a valid completion; matching is case insensitive.  This means
 -- that the sequence of typed characters can be obtained from the completion by
 -- deleting an appropriate subset of its characters.  Example: "spr" matches
--- "FastSPR" but also "SuccinctParallelTrees" because it's a subsequence of the
--- latter: "S.......P.r..........".
+-- \"FastSPR\" but also \"SuccinctParallelTrees\" because it's a subsequence of
+-- the latter: "S.......P.r..........".
 --
 -- While this type of inclusiveness is helpful most of the time, it sometimes
 -- also produces surprising matches.  'fuzzySort' helps sorting matches by
 -- relevance, using a simple heuristic for measuring relevance.  The matches are
 -- sorted primarily by the length of the substring that contains the query
 -- characters and secondarily the starting position of the match.  So, if the
--- search string is "spr" and the matches are "FastSPR", "FasterSPR", and
--- "SuccinctParallelTrees", then the order is "FastSPR", "FasterSPR",
--- "SuccinctParallelTrees" because both "FastSPR" and "FasterSPR" contain "spr"
--- within a substring of length 3 ("SPR") while the shortest substring of
--- "SuccinctParallelTrees" that matches "spr" is "SuccinctPar", which has length
--- 11.  "FastSPR" is ranked before "FasterSPR" because its match starts at
--- position 5 while the match in "FasterSPR" starts at position 7.
+-- search string is "spr" and the matches are \"FastSPR\", \"FasterSPR\", and
+-- \"SuccinctParallelTrees\", then the order is \"FastSPR\", \"FasterSPR\",
+-- \"SuccinctParallelTrees\" because both \"FastSPR\" and \"FasterSPR\" contain
+-- "spr" within a substring of length 3 (\"SPR\") while the shortest substring
+-- of \"SuccinctParallelTrees\" that matches "spr" is \"SuccinctPar\", which has
+-- length 11.  \"FastSPR\" is ranked before \"FasterSPR\" because its match
+-- starts at position 5 while the match in \"FasterSPR\" starts at position 7.
 --
 -- To use these functions in an XPrompt, for example, for windowPrompt:
 --
@@ -63,7 +63,7 @@ import qualified Data.List.NonEmpty as NE
 -- > , ((modm .|. shiftMask, xK_g), windowPrompt myXPConfig Goto allWindows)
 --
 -- For detailed instructions on editing the key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Returns True if the first argument is a subsequence of the second argument,
 -- that is, it can be obtained from the second sequence by deleting elements.

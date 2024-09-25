@@ -17,27 +17,41 @@
 module XMonad.Hooks.InsertPosition (
     -- * Usage
     -- $usage
-    insertPosition
+    setupInsertPosition, insertPosition
     ,Focus(..), Position(..)
     ) where
 
-import XMonad(ManageHook, MonadReader(ask))
+import XMonad (ManageHook, MonadReader (ask), XConfig (manageHook))
 import XMonad.Prelude (Endo (Endo), find)
 import qualified XMonad.StackSet as W
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module by importing it in your @xmonad.hs@:
 --
 -- > import XMonad.Hooks.InsertPosition
+--
+-- You then just have to add 'setupInsertPosition' to your @main@ function:
+--
+-- > main = xmonad $ … $ setupInsertPosition Master Newer $ def { … }
+--
+-- Alternatively (i.e., you should /not/ do this if you already have set
+-- up the above combinator), you can also directly insert
+-- 'insertPosition' into your manageHook:
+--
 -- > xmonad def { manageHook = insertPosition Master Newer <> myManageHook }
 --
--- You should you put the manageHooks that use 'doShift' to take effect
+-- NOTE: You should you put the manageHooks that use 'doShift' to take effect
 -- /before/ 'insertPosition', so that the window order will be consistent.
 -- Because ManageHooks compose from right to left (like function composition
 -- '.'), this means that 'insertPosition' should be the leftmost ManageHook.
 
 data Position = Master | End | Above | Below
 data Focus = Newer | Older
+
+-- | A combinator for setting up 'insertPosition'.
+setupInsertPosition :: Position -> Focus -> XConfig a -> XConfig a
+setupInsertPosition pos foc cfg =
+  cfg{ manageHook = insertPosition pos foc <> manageHook cfg }
 
 -- | insertPosition. A manage hook for placing new windows. XMonad's default is
 -- the same as using: @insertPosition Above Newer@.
@@ -68,5 +82,7 @@ insertDown :: (Eq a) => a -> W.StackSet i l a s sd -> W.StackSet i l a s sd
 insertDown w = W.swapDown . W.insertUp w
 
 focusLast' ::  W.Stack a -> W.Stack a
-focusLast' st = let ws = W.integrate st
-    in W.Stack (last ws) (tail $ reverse ws) []
+focusLast' st =
+  case reverse (W.integrate st) of
+    []       -> st
+    (l : ws) -> W.Stack l ws []

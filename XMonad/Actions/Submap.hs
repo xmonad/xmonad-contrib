@@ -18,6 +18,7 @@ module XMonad.Actions.Submap (
                              -- $usage
                              submap,
                              visualSubmap,
+                             visualSubmapSorted,
                              submapDefault,
                              submapDefaultWithKey,
 
@@ -32,10 +33,7 @@ import XMonad.Util.XUtils
 
 {- $usage
 
-
-
-
-First, import this module into your @~\/.xmonad\/xmonad.hs@:
+First, import this module into your @xmonad.hs@:
 
 > import XMonad.Actions.Submap
 
@@ -56,7 +54,7 @@ because that is a special value passed to XGrabKey() and not an actual
 modifier.
 
 For detailed instructions on editing your key bindings, see
-"XMonad.Doc.Extending#Editing_key_bindings".
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -}
 
@@ -76,30 +74,47 @@ submap = submapDefault (return ())
 -- >
 -- > gotoLayout :: [(String, X ())]   -- for use with EZConfig
 -- > gotoLayout =  -- assumes you have a layout named "Tall" and one named "Full".
--- >   ["M-l", visualSubmap def $ Map.fromList $ map (\(k, s, a) -> ((0, k), (s, a)))
--- >             [ (xK_t, "Tall", switchToLayout "Tall")     -- "M-l t" switches to "Tall"
--- >             , (xK_r, "Full", switchToLayout "Full")     -- "M-l r" switches to "full"
--- >             ]]
+-- >   [("M-l", visualSubmap def $ Map.fromList $ map (\(k, s, a) -> ((0, k), (s, a)))
+-- >              [ (xK_t, "Tall", switchToLayout "Tall")     -- "M-l t" switches to "Tall"
+-- >              , (xK_r, "Full", switchToLayout "Full")     -- "M-l r" switches to "full"
+-- >              ])]
 --
 -- One could alternatively also write @gotoLayout@ as
 --
--- > gotoLayout = ["M-l", visualSubmap def $ Map.fromList $
--- >                        [ ((0, xK_t), subName "Tall" $ switchToLayout "Tall")
--- >                        , ((0, xK_r), subName "Full" $ switchToLayout "Full")
--- >                        ]]
+-- > gotoLayout = [("M-l", visualSubmap def $ Map.fromList $
+-- >                         [ ((0, xK_t), subName "Tall" $ switchToLayout "Tall")
+-- >                         , ((0, xK_r), subName "Full" $ switchToLayout "Full")
+-- >                         ])]
 visualSubmap :: WindowConfig -- ^ The config for the spawned window.
              -> M.Map (KeyMask, KeySym) (String, X ())
                              -- ^ A map @keybinding -> (description, action)@.
              -> X ()
-visualSubmap wc keys =
+visualSubmap = visualSubmapSorted id
+
+-- | Like 'visualSubmap', but is able to sort the descriptions.
+-- For example,
+--
+-- > import Data.Ord (comparing, Down)
+-- >
+-- > visualSubmapSorted (sortBy (comparing Down)) def
+--
+-- would sort the @(key, description)@ pairs by their keys in descending
+-- order.
+visualSubmapSorted :: ([((KeyMask, KeySym), String)] -> [((KeyMask, KeySym), String)])
+                             -- ^ A function to resort the descriptions
+             -> WindowConfig -- ^ The config for the spawned window.
+             -> M.Map (KeyMask, KeySym) (String, X ())
+                             -- ^ A map @keybinding -> (description, action)@.
+             -> X ()
+visualSubmapSorted sorted wc keys =
     withSimpleWindow wc descriptions waitForKeyPress >>= \(m', s) ->
         maybe (pure ()) snd (M.lookup (m', s) keys)
   where
     descriptions :: [String]
     descriptions =
-        zipWith (\key desc -> keyToString key <> ": " <> desc)
-                (M.keys keys)
-                (map fst (M.elems keys))
+        map (\(key, desc) -> keyToString key <> ": " <> desc)
+            . sorted
+            $ zip (M.keys keys) (map fst (M.elems keys))
 
 -- | Give a name to an action.
 subName :: String -> X () -> (String, X ())

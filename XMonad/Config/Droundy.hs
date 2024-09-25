@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-orphans #-}
 -----------------------------------------------------------------------------
 -- |
@@ -20,7 +21,7 @@ import System.Exit ( exitSuccess )
 import XMonad.Layout.Tabbed ( tabbed,
                               shrinkText, Shrinker, shrinkIt, CustomShrink(CustomShrink) )
 import XMonad.Layout.Combo ( combineTwo )
-import XMonad.Layout.Named ( named )
+import XMonad.Layout.Renamed ( Rename(Replace), renamed )
 import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.Square ( Square(Square) )
 import XMonad.Layout.WindowNavigation ( Navigate(Move,Swap,Go), Direction2D(U,D,R,L),
@@ -114,9 +115,9 @@ keys x = M.fromList $
     ]
 
     ++
-    zip (zip (repeat $ modMask x) [xK_F1..xK_F12]) (map (withNthWorkspace W.greedyView) [0..])
+    zip (map (modMask x,) [xK_F1..xK_F12]) (map (withNthWorkspace W.greedyView) [0..])
     ++
-    zip (zip (repeat (modMask x .|. shiftMask)) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
+    zip (map (modMask x .|. shiftMask,) [xK_F1..xK_F12]) (map (withNthWorkspace copy) [0..])
 
 config = docks $ ewmh def
          { borderWidth = 1 -- Width of the window border in pixels.
@@ -124,10 +125,10 @@ config = docks $ ewmh def
          , layoutHook = showWName $ workspaceDir "~" $
                         boringWindows $ smartBorders $ windowNavigation $
                         maximizeVertical $ toggleLayouts Full $ avoidStruts $
-                        named "tabbed" mytab |||
-                        named "xclock" (mytab ****//* combineTwo Square mytab mytab) |||
-                        named "three" (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
-                        named "widescreen" ((mytab *||* mytab)
+                        renamed [Replace "tabbed"] mytab |||
+                        renamed [Replace "xclock"] (mytab ****//* combineTwo Square mytab mytab) |||
+                        renamed [Replace "three"] (mytab **//* mytab *//* combineTwo Square mytab mytab) |||
+                        renamed [Replace "widescreen"] ((mytab *||* mytab)
                                                 ****//* combineTwo Square mytab mytab) --   |||
                         --mosaic 0.25 0.5
          , terminal = "xterm" -- The preferred terminal program.

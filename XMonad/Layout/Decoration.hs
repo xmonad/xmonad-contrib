@@ -1,8 +1,9 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PatternGuards         #-}
-{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE TupleSections         #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Layout.Decoration
@@ -241,7 +242,7 @@ instance (DecorationStyle ds Window, Shrinker s) => LayoutModifier (Decoration d
                                     toDel = todel d dwrs
                                     toAdd = toadd a wrs
                                 deleteDecos (map snd toDel)
-                                let ndwrs = zip toAdd $ repeat (Nothing,Nothing)
+                                let ndwrs = map (, (Nothing,Nothing)) toAdd
                                 ndecos <- resync (ndwrs ++ del_dwrs d dwrs) wrs
                                 processState (s {decos = ndecos })
 
@@ -399,7 +400,11 @@ updateDecos s t f = mapM_ $ updateDeco s t f
 -- structure and the needed 'Rectangle's
 updateDeco :: Shrinker s => s -> Theme -> XMonadFont -> (OrigWin,DecoWin) -> X ()
 updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
-  nw  <- getName w
+  -- xmonad-contrib #809
+  -- qutebrowser will happily shovel a 389K multiline string into @_NET_WM_NAME@
+  -- and the 'defaultShrinker' (a) doesn't handle multiline strings well (b) is
+  -- quadratic due to using 'init'
+  nw  <- fmap (take 2048 . takeWhile (/= '\n') . show) (getName w)
   ur  <- readUrgents
   dpy <- asks display
   let focusColor win ic ac uc = maybe ic (\focusw -> case () of
@@ -413,7 +418,7 @@ updateDeco sh t fs ((w,_),(Just dw,Just (Rectangle _ _ wh ht))) = do
                  (urgentColor   t, urgentBorderColor   t, urgentBorderWidth   t, urgentTextColor   t)
   let s = shrinkIt sh
   name <- shrinkWhile s (\n -> do size <- io $ textWidthXMF dpy fs n
-                                  return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) (show nw)
+                                  return $ size > fromIntegral wh - fromIntegral (ht `div` 2)) nw
   let als = AlignCenter : map snd (windowTitleAddons t)
       strs = name : map fst (windowTitleAddons t)
       i_als = map snd (windowTitleIcons t)

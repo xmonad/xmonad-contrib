@@ -15,7 +15,9 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Util.ExclusiveScratchpads (
+module XMonad.Util.ExclusiveScratchpads
+  {-# DEPRECATED "Use the exclusive scratchpad functionality of \"XMonad.Util.NamedScratchpad\" insead." #-}
+  (
   -- * Usage
   -- $usage
   mkXScratchpads,
@@ -37,13 +39,14 @@ module XMonad.Util.ExclusiveScratchpads (
   customFloating
   ) where
 
-import XMonad.Prelude (appEndo, filterM, liftA2, (<=<))
+import XMonad.Prelude
 import XMonad
 import XMonad.Actions.Minimize
 import XMonad.Actions.TagWindows (addTag,delTag)
 import XMonad.Hooks.ManageHelpers (doRectFloat,isInProperty)
 
 import qualified XMonad.StackSet as W
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
@@ -51,7 +54,7 @@ import qualified XMonad.StackSet as W
 -- "XMonad.Layout.Minimize", please refer to the documentation of these modules for more
 -- information on how to configure them.
 --
--- To use this module, put the following in your @~\/.xmonad\/xmonad.hs@:
+-- To use this module, put the following in your @xmonad.hs@:
 --
 -- > import XMonad.Utils.ExclusiveScratchpads
 -- > import XMonad.ManageHook (title,appName)
@@ -71,11 +74,12 @@ import qualified XMonad.StackSet as W
 --
 -- > scratchpads = exclusiveSps ++ regularSps
 --
--- Add the hooks to your managehook (see "XMonad.Doc.Extending#Editing_the_manage_hook"), eg.:
+-- Add the hooks to your managehook (see "XMonad.Doc.Extending#Editing_the_manage_hook" or
+-- <https://xmonad.org/TUTORIAL.html#final-touches the tutorial>); e.g.,
 --
 -- > manageHook = myManageHook <> xScratchpadsManageHook scratchpads
 --
--- And finally add some keybindings (see "XMonad.Doc.Extending#Editing_key_bindings"):
+-- And finally add some keybindings (see <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>):
 --
 -- > , ((modMask, xK_h), scratchpadAction scratchpads "htop")
 -- > , ((modMask, xK_c), scratchpadAction scratchpads "xclock")
@@ -171,8 +175,8 @@ resetExclusiveSp xs = withFocused $ \w -> whenX (isScratchpad xs w) $ do
   let ys = filterM (flip runQuery w . query) xs
 
   unlessX (null <$> ys) $ do
-    mh <- head . map hook <$> ys  -- ys /= [], so `head` is fine
-    n  <- head . map name <$> ys  -- same
+    mh <- NE.head . notEmpty . map hook <$> ys  -- ys /= [], so `head` is fine
+    n  <- NE.head . notEmpty . map name <$> ys  -- same
 
     (windows . appEndo <=< runQuery mh) w
     hideOthers xs n

@@ -25,14 +25,14 @@ import XMonad.StackSet as S
 
 -- $usage
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >  import XMonad.Actions.PerWorkspaceKeys
 --
 -- >   ,((0, xK_F2), bindOn [("1", spawn "rxvt"), ("2", spawn "xeyes"), ("", spawn "xmessage hello")])
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Uses supplied function to decide which action to run depending on current workspace name.
 chooseAction :: (String->X()) -> X()

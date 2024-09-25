@@ -31,33 +31,50 @@ module XMonad.Actions.Search (   -- * Usage
                                  prefixAware,
                                  namedEngine,
 
-                                 amazon,
                                  alpha,
+                                 amazon,
+                                 arXiv,
+                                 aur,
+                                 clojureDocs,
                                  codesearch,
+                                 cratesIo,
                                  deb,
                                  debbts,
                                  debpts,
                                  dictionary,
+                                 duckduckgo,
                                  ebay,
+                                 flora,
                                  github,
                                  google,
                                  hackage,
+                                 homeManager,
                                  hoogle,
                                  images,
                                  imdb,
                                  lucky,
                                  maps,
                                  mathworld,
+                                 ncatlab,
+                                 nixos,
+                                 noogle,
                                  openstreetmap,
+                                 protondb,
+                                 rosettacode,
+                                 rustStd,
                                  scholar,
+                                 sourcehut,
                                  stackage,
+                                 steam,
                                  thesaurus,
+                                 vocabulary,
+                                 voidpgks_x86_64,
+                                 voidpgks_x86_64_musl,
                                  wayback,
                                  wikipedia,
                                  wiktionary,
                                  youtube,
-                                 vocabulary,
-                                 duckduckgo,
+                                 zbmath,
                                  multi,
                                   -- * Use case: searching with a submap
                                   -- $tip
@@ -102,11 +119,19 @@ import           XMonad.Util.XSelection   (getSelection)
 
    The currently available search engines are:
 
-* 'amazon' -- Amazon keyword search.
-
 * 'alpha' -- Wolfram|Alpha query.
 
+* 'amazon' -- Amazon keyword search.
+
+* 'arXiv' -- Open-access preprint archive.
+
+* 'aur' -- Arch User Repository.
+
+* 'clojureDocs' -- Documentation and examples repository for Clojure.
+
 * 'codesearch' -- Google Labs Code Search search.
+
+* 'cratesIo' -- Rust crate registry.
 
 * 'deb'    -- Debian package search.
 
@@ -116,7 +141,11 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'dictionary' -- dictionary.reference.com search.
 
+* 'duckduckgo' -- DuckDuckGo search engine.
+
 * 'ebay' -- Ebay keyword search.
+
+* 'flora' -- Prettier Haskell package database.
 
 * 'github' -- GitHub keyword search.
 
@@ -124,9 +153,9 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'hackage' -- Hackage, the Haskell package database.
 
-* 'hoogle' -- Hoogle, the Haskell libraries API search engine.
+* 'homeManager' -- Search Nix's home-manager's options.
 
-* 'stackage' -- Stackage, An alternative Haskell libraries API search engine.
+* 'hoogle' -- Hoogle, the Haskell libraries API search engine.
 
 * 'images' -- Google images.
 
@@ -138,21 +167,45 @@ import           XMonad.Util.XSelection   (getSelection)
 
 * 'mathworld' -- Wolfram MathWorld search.
 
+* 'ncatlab' -- Higer Algebra, Homotopy and Category Theory Wiki.
+
+* 'nixos' -- Search NixOS packages and options.
+
+* 'noogle' -- 'hoogle'-like Nix API search engine.
+
 * 'openstreetmap' -- OpenStreetMap free wiki world map.
+
+* 'protondb' -- Steam Proton Game Database.
+
+* 'rosettacode' -- Programming chrestomathy wiki.
+
+* 'rustStd' -- Rust standard library documentation.
 
 * 'scholar' -- Google scholar academic search.
 
+* 'sourcehut' -- Sourcehut projects search.
+
+* 'stackage' -- Stackage, An alternative Haskell libraries API search engine.
+
+* 'steam' -- Steam games search.
+
 * 'thesaurus' -- thesaurus.com search.
+
+* 'vocabulary' -- Dictionary search.
+
+* 'voidpgks_x86_64' -- Void Linux packages search for @x86_64@.
+
+* 'voidpgks_x86_64_musl' -- Void Linux packages search for @x86_64-musl@.
 
 * 'wayback' -- the Wayback Machine.
 
 * 'wikipedia' -- basic Wikipedia search.
 
+* 'wiktionary' -- Wiktionary search.
+
 * 'youtube' -- Youtube video search.
 
-* 'vocabulary' -- Dictionary search
-
-* 'duckduckgo' -- DuckDuckGo search engine.
+* 'zbmath' -- Open alternative to MathSciNet.
 
 * 'multi' -- Search based on the prefix. \"amazon:Potter\" will use amazon, etc. With no prefix searches google.
 
@@ -269,7 +322,7 @@ searchEngine name site = searchEngineF name (\s -> site ++ escape s)
    inside of a URL instead of in the end) you can use the alternative 'searchEngineF' function.
 
 > searchFunc :: String -> String
-> searchFunc s | "wiki:"    `isPrefixOf` s = "https://en.wikipedia.org/wiki/" ++ (escape $ tail $ snd $ break (==':') s)
+> searchFunc s | "wiki:"    `isPrefixOf` s = "https://en.wikipedia.org/wiki/" ++ (escape $ drop 1 $ snd $ break (==':') s)
 >              | "https://" `isPrefixOf` s = s
 >              | otherwise                 = (use google) s
 > myNewEngine = searchEngineF "mymulti" searchFunc
@@ -286,39 +339,57 @@ searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
 
 -- The engines.
-amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, github, google, hackage, hoogle,
-  images, imdb, lucky, maps, mathworld, openstreetmap, scholar, stackage, thesaurus, vocabulary, wayback, wikipedia, wiktionary,
-  youtube, duckduckgo :: SearchEngine
-amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
+alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
+  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, nixos, noogle, openstreetmap, protondb, 
+  rosettacode, rustStd, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, 
+  wikipedia, wiktionary, youtube, zbmath :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
+amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
+arXiv         = searchEngineF "arXiv"        (\s -> "https://arxiv.org/search/?query=" <> s <> "&searchtype=all")
+aur           = searchEngine "aur"           "https://aur.archlinux.org/packages?&K="
+clojureDocs   = searchEngine "clojureDocs"   "https://clojuredocs.org/search?q="
 codesearch    = searchEngine "codesearch"    "https://developers.google.com/s/results/code-search?q="
+cratesIo      = searchEngine  "cratesIo"     "https://crates.io/search?q="
 deb           = searchEngine "deb"           "https://packages.debian.org/"
 debbts        = searchEngine "debbts"        "https://bugs.debian.org/"
 debpts        = searchEngine "debpts"        "https://packages.qa.debian.org/"
 dictionary    = searchEngine "dict"          "https://dictionary.reference.com/browse/"
+duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 ebay          = searchEngine "ebay"          "https://www.ebay.com/sch/i.html?_nkw="
+flora         = searchEngine "flora"         "https://flora.pm/search?q="
 github        = searchEngine "github"        "https://github.com/search?q="
 google        = searchEngine "google"        "https://www.google.com/search?q="
 hackage       = searchEngine "hackage"       "https://hackage.haskell.org/package/"
+homeManager   = searchEngine "homeManager"   "https://mipmip.github.io/home-manager-option-search/?query="
 hoogle        = searchEngine "hoogle"        "https://hoogle.haskell.org/?hoogle="
 images        = searchEngine "images"        "https://images.google.fr/images?q="
 imdb          = searchEngine "imdb"          "https://www.imdb.com/find?s=all&q="
 lucky         = searchEngine "lucky"         "https://www.google.com/search?btnI&q="
 maps          = searchEngine "maps"          "https://maps.google.com/maps?q="
 mathworld     = searchEngine "mathworld"     "https://mathworld.wolfram.com/search/?query="
+ncatlab       = searchEngine "ncatlab"       "https://ncatlab.org/nlab/search?query="
+nixos         = searchEngine "nixos"         "https://search.nixos.org/packages?channel=unstable&from=0&size=200&sort=relevance&type=packages&query="
+noogle        = searchEngineF "noogle"       (\s -> "https://noogle.dev/?search=" <> s <> "&page=1&to=any&from=any")
 openstreetmap = searchEngine "openstreetmap" "https://www.openstreetmap.org/search?query="
+protondb      = searchEngine "protondb"      "https://www.protondb.com/search?q="
+rosettacode   = searchEngine "rosettacode"   "https://rosettacode.org/w/index.php?search="
+rustStd       = searchEngine "rustStd"       "https://doc.rust-lang.org/std/index.html?search="
 scholar       = searchEngine "scholar"       "https://scholar.google.com/scholar?q="
+sourcehut     = searchEngine "sourcehut"     "https://sr.ht/projects?search="
 stackage      = searchEngine "stackage"      "https://www.stackage.org/lts/hoogle?q="
+steam         = searchEngine "steam"         "https://store.steampowered.com/search/?term="
 thesaurus     = searchEngine "thesaurus"     "https://thesaurus.com/browse/"
+vocabulary    = searchEngine "vocabulary"    "https://www.vocabulary.com/search?q="
+voidpgks_x86_64      = searchEngine "voidpackages" "https://voidlinux.org/packages/?arch=x86_64&q="
+voidpgks_x86_64_musl = searchEngine "voidpackages" "https://voidlinux.org/packages/?arch=x86_64-musl&q="
+wayback       = searchEngineF "wayback"      ("https://web.archive.org/web/*/"++)
 wikipedia     = searchEngine "wiki"          "https://en.wikipedia.org/wiki/Special:Search?go=Go&search="
 wiktionary    = searchEngine "wikt"          "https://en.wiktionary.org/wiki/Special:Search?go=Go&search="
 youtube       = searchEngine "youtube"       "https://www.youtube.com/results?search_type=search_videos&search_query="
-wayback       = searchEngineF "wayback"      ("https://web.archive.org/web/*/"++)
-vocabulary    = searchEngine "vocabulary"    "https://www.vocabulary.com/search?q="
-duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
+zbmath        = searchEngine "zbmath"        "https://zbmath.org/?q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [amazon, alpha, codesearch, deb, debbts, debpts, dictionary, ebay, github, google, hackage, hoogle, images, imdb, lucky, maps, mathworld, openstreetmap, scholar, thesaurus, wayback, wikipedia, wiktionary, duckduckgo, prefixAware google]
+multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube, prefixAware google]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than
@@ -366,14 +437,14 @@ namedEngine name (SearchEngine _ site) = searchEngineF name site
    browser. -}
 promptSearchBrowser :: XPConfig -> Browser -> SearchEngine -> X ()
 promptSearchBrowser config browser (SearchEngine name site) = do
-    hc <- historyCompletionP ("Search [" `isPrefixOf`)
+    hc <- historyCompletionP config ("Search [" `isPrefixOf`)
     mkXPrompt (Search name) config hc $ search browser site
 
 {- | Like 'promptSearchBrowser', but only suggest previous searches for the
    given 'SearchEngine' in the prompt. -}
 promptSearchBrowser' :: XPConfig -> Browser -> SearchEngine -> X ()
 promptSearchBrowser' config browser (SearchEngine name site) = do
-    hc <- historyCompletionP (searchName `isPrefixOf`)
+    hc <- historyCompletionP config (searchName `isPrefixOf`)
     mkXPrompt (Search name) config hc $ search browser site
   where
     searchName = showXPrompt (Search name)

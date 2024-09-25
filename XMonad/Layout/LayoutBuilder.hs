@@ -57,14 +57,16 @@ module XMonad.Layout.LayoutBuilder (
   LayoutN,
 ) where
 
+import Data.Maybe (maybeToList)
 import XMonad
 import XMonad.Prelude (foldM, (<|>), isJust, fromMaybe, isNothing, listToMaybe)
 import qualified XMonad.StackSet as W
+import XMonad.Util.Stack (zipperFocusedAtFirstOf)
 import XMonad.Util.WindowProperties
 
 --------------------------------------------------------------------------------
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.LayoutBuilder
 --
@@ -103,9 +105,9 @@ import XMonad.Util.WindowProperties
 --
 -- These examples require "XMonad.Layout.Tabbed".
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You may wish to add the following keybindings:
 --
@@ -114,7 +116,7 @@ import XMonad.Util.WindowProperties
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 --------------------------------------------------------------------------------
 -- $selectWin
@@ -452,11 +454,4 @@ calcArea (SubBox xpos ypos width height) rect =
 
 --------------------------------------------------------------------------------
 differentiate' :: Eq q => Maybe q -> [q] -> Maybe (W.Stack q)
-differentiate' _ [] = Nothing
-differentiate' Nothing w = W.differentiate w
-differentiate' (Just f) w
-    | f `elem` w = Just W.Stack { W.focus = f
-                                , W.up    = reverse $ takeWhile (/=f) w
-                                , W.down  = tail $ dropWhile (/=f) w
-                                }
-    | otherwise = W.differentiate w
+differentiate' = zipperFocusedAtFirstOf . maybeToList

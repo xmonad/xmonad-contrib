@@ -15,7 +15,7 @@ output="$1"
 
 if [ "$SRC_DIR" = "" ]; then
     # look for the config directory, fall back to the old one
-    SRC_DIR="${XMONAD_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config/xmonad}}"
+    SRC_DIR="${XMONAD_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/xmonad}"
     if test -f "$SRC_DIR/build"; then
 	:
     else

@@ -56,7 +56,7 @@ import XMonad.Prompt
 -- create an autocompleting version, like this:
 --
 -- > firingPrompt' = inputPromptWithCompl def "Fire"
--- >                     (mkComplFunFromList employees) ?+ fireEmployee
+-- >                     (mkComplFunFromList def employees) ?+ fireEmployee
 --
 -- Now all he has to do is add a keybinding to @firingPrompt@ (or
 -- @firingPrompt'@), such as
@@ -70,7 +70,7 @@ import XMonad.Prompt
 -- invoked.
 --
 -- (For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".)
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.)
 --
 -- "XMonad.Prompt.Input" is also intended to ease the process of
 -- developing other modules which require user input. For an example

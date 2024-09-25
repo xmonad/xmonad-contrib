@@ -13,16 +13,16 @@ jobs:
 
     steps:
       - name: Clone project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Haskell
-        uses: haskell/actions/setup@v1
+        uses: haskell-actions/setup@v2
         with:
           # packdeps doesn't build with newer as of 2021-10
           ghc-version: '8.8'
       - name: Install packdeps
         run: |
           set -ex
-          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+          cd  # go somewhere without a cabal.project
           cabal install packdeps
       - name: Check package bounds (all)
         continue-on-error: true
@@ -42,10 +42,9 @@ jobs:
             *.cabal
 
   workflow-keepalive:
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     steps:
-      - name: Re-enable workflow
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh api -X PUT repos/${{ github.repository }}/actions/workflows/packdeps.yml/enable
+      - uses: liskin/gh-workflow-keepalive@v1

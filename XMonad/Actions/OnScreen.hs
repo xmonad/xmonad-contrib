@@ -27,7 +27,7 @@ module XMonad.Actions.OnScreen (
     ) where
 
 import XMonad
-import XMonad.Prelude (fromMaybe, guard)
+import XMonad.Prelude (fromMaybe, guard, empty)
 import XMonad.StackSet hiding (new)
 
 
@@ -140,16 +140,15 @@ toggleOrView' f i st = fromMaybe (f i st) $ do
     let st' = hidden st
     -- make sure we actually have to do something
     guard $ i == (tag . workspace $ current st)
-    guard $ not (null st')
-    -- finally, toggle!
-    return $ f (tag . head $ st') st
-
+    case st' of
+      []      -> empty
+      (h : _) -> return $ f (tag h) st  -- finally, toggle!
 
 -- $usage
 --
 -- This module provides an easy way to control, what you see on other screens in
 -- xinerama mode without having to focus them. Put this into your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Actions.OnScreen
 --
@@ -183,4 +182,4 @@ toggleOrView' f i st = fromMaybe (f i st) $ do
 -- where 0 is the first screen and \"1\" the workspace with the tag \"1\".
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.

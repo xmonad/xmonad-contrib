@@ -43,7 +43,7 @@ import XMonad.Layout.Simplest ( Simplest(Simplest) )
 import XMonad.Util.Types (Direction2D(..))
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Tabbed
 --
@@ -67,9 +67,9 @@ import XMonad.Util.Types (Direction2D(..))
 -- on the workspace.  To have it always shown, use one of the layouts or
 -- modifiers ending in @Always@.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- You can also edit the default configuration options.
 --

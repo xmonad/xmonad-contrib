@@ -28,7 +28,7 @@ import XMonad.StackSet ( workspaces, tag )
 import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Workspace
@@ -36,7 +36,7 @@ import XMonad.Util.WorkspaceCompare ( getSortByIndex )
 -- >   , ((modm .|. shiftMask, xK_m     ), workspacePrompt def (windows . W.shift))
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype Wor = Wor String
 

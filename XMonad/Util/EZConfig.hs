@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 --------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Util.EZConfig
@@ -23,6 +25,7 @@ module XMonad.Util.EZConfig (
                              -- * Adding or removing keybindings
 
                              additionalKeys, additionalKeysP,
+                             remapKeysP,
                              removeKeys, removeKeysP,
                              additionalMouseBindings, removeMouseBindings,
 
@@ -49,11 +52,13 @@ import XMonad.Util.NamedActions
 import XMonad.Util.Parser
 
 import Control.Arrow (first, (&&&))
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 import Data.Ord (comparing)
+import Data.List.NonEmpty (nonEmpty)
 
 -- $usage
--- To use this module, first import it into your @~\/.xmonad\/xmonad.hs@:
+-- To use this module, first import it into your @xmonad.hs@:
 --
 -- > import XMonad.Util.EZConfig
 --
@@ -90,6 +95,7 @@ import Data.Ord (comparing)
 additionalKeys :: XConfig a -> [((KeyMask, KeySym), X ())] -> XConfig a
 additionalKeys conf keyList =
     conf { keys = M.union (M.fromList keyList) . keys conf }
+infixl 4 `additionalKeys`
 
 -- | Like 'additionalKeys', except using short @String@ key
 --   descriptors like @\"M-m\"@ instead of @(modMask, xK_m)@, as
@@ -104,6 +110,42 @@ additionalKeys conf keyList =
 additionalKeysP :: XConfig l -> [(String, X ())] -> XConfig l
 additionalKeysP conf keyList =
     conf { keys = \cnf -> M.union (mkKeymap cnf keyList) (keys conf cnf) }
+infixl 4 `additionalKeysP`
+
+-- |
+-- Remap keybindings from one binding to another.  More precisely, the
+-- input list contains pairs of the form @(TO, FROM)@, and maps the
+-- action bound to @FROM@ to the key @TO@.  For example, the following
+-- would bind @"M-m"@ to what's bound to @"M-c"@ (which is to close the
+-- focused window, in this case):
+--
+-- > main :: IO ()
+-- > main = xmonad $ def `remapKeysP` [("M-m", "M-c")]
+--
+-- NOTE: Submaps are not transparent, and thus these keys can't be
+-- accessed in this way: more explicitly, the @FROM@ string may **not**
+-- be a submap.  However, the @TO@ can be a submap without problems.
+-- This means that
+--
+-- > xmonad $ def `remapKeysP` [("M-m", "M-c a")]
+--
+-- is illegal (and indeed will just disregard the binding altogether),
+-- while
+--
+-- > xmonad $ def `remapKeysP` [("M-c a", "M-m")]
+--
+-- is totally fine.
+remapKeysP :: XConfig l -> [(String, String)] -> XConfig l
+remapKeysP conf keyList =
+    conf { keys = \cnf -> mkKeymap cnf (keyList' cnf) <> keys conf cnf }
+  where
+   keyList' :: XConfig Layout -> [(String, X ())]
+   keyList' cnf =
+     mapMaybe (traverse (\s -> case readKeySequence cnf s of
+                                 Just (ks :| []) -> keys conf cnf M.!? ks
+                                 _               -> Nothing))
+              keyList
+infixl 4 `remapKeysP`
 
 -- |
 -- Remove standard keybindings you're not using. Example use:
@@ -113,6 +155,7 @@ additionalKeysP conf keyList =
 removeKeys :: XConfig a -> [(KeyMask, KeySym)] -> XConfig a
 removeKeys conf keyList =
     conf { keys = \cnf -> foldr M.delete (keys conf cnf) keyList }
+infixl 4 `removeKeys`
 
 -- | Like 'removeKeys', except using short @String@ key descriptors
 --   like @\"M-m\"@ instead of @(modMask, xK_m)@, as described in the
@@ -123,17 +166,20 @@ removeKeys conf keyList =
 
 removeKeysP :: XConfig l -> [String] -> XConfig l
 removeKeysP conf keyList =
-    conf { keys = \cnf -> keys conf cnf `M.difference` mkKeymap cnf (zip keyList $ repeat (return ())) }
+    conf { keys = \cnf -> keys conf cnf `M.difference` mkKeymap cnf (map (, return ()) keyList) }
+infixl 4 `removeKeysP`
 
 -- | Like 'additionalKeys', but for mouse bindings.
 additionalMouseBindings :: XConfig a -> [((ButtonMask, Button), Window -> X ())] -> XConfig a
 additionalMouseBindings conf mouseBindingsList =
     conf { mouseBindings = M.union (M.fromList mouseBindingsList) . mouseBindings conf }
+infixl 4 `additionalMouseBindings`
 
 -- | Like 'removeKeys', but for mouse bindings.
 removeMouseBindings :: XConfig a -> [(ButtonMask, Button)] -> XConfig a
 removeMouseBindings conf mouseBindingList =
     conf { mouseBindings = \cnf -> foldr M.delete (mouseBindings conf cnf) mouseBindingList }
+infixl 4 `removeMouseBindings`
 
 
 --------------------------------------------------------------
@@ -383,35 +429,40 @@ mkNamedKeymap c = mkNamedSubmaps . readKeymap c
 -- | Given a list of pairs of parsed key sequences and actions,
 --   group them into submaps in the appropriate way.
 
-mkNamedSubmaps :: [([(KeyMask, KeySym)], NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
+mkNamedSubmaps :: [(NonEmpty (KeyMask, KeySym), NamedAction)] -> [((KeyMask, KeySym), NamedAction)]
 mkNamedSubmaps = mkSubmaps' submapName
 
-mkSubmaps :: [ ([(KeyMask,KeySym)], X ()) ] -> [((KeyMask, KeySym), X ())]
+mkSubmaps :: [ (NonEmpty (KeyMask, KeySym), X ()) ] -> [((KeyMask, KeySym), X ())]
 mkSubmaps = mkSubmaps' $ submap . M.fromList
 
-mkSubmaps' ::  (Ord a) => ([(a, c)] -> c) -> [([a], c)] -> [(a, c)]
+mkSubmaps' :: forall a b. (Ord a) => ([(a, b)] -> b) -> [(NonEmpty a, b)] -> [(a, b)]
 mkSubmaps' subm binds = map combine gathered
-  where gathered = groupBy fstKey
-                 . sortBy (comparing fst)
-                 $ binds
-        combine [([k],act)] = (k,act)
-        combine ks = (head . fst . head $ ks,
-                      subm . mkSubmaps' subm $ map (first tail) ks)
-        fstKey = (==) `on` (head . fst)
+  where
+   gathered :: [[(NonEmpty a, b)]]
+   gathered = groupBy fstKey . sortBy (comparing fst) $ binds
+
+   combine :: [(NonEmpty a, b)] -> (a, b)
+   combine [(k :| [], act)] = (k, act)
+   combine ks = ( NE.head . fst . NE.head . notEmpty $ ks
+                , subm . mkSubmaps' subm $ map (first (notEmpty . NE.drop 1)) ks
+                )
+
+   fstKey :: (NonEmpty a, b) -> (NonEmpty a, b) -> Bool
+   fstKey = (==) `on` (NE.head . fst)
 
 -- | Given a configuration record and a list of (key sequence
 --   description, action) pairs, parse the key sequences into lists of
 --   @(KeyMask,KeySym)@ pairs.  Key sequences which fail to parse will
 --   be ignored.
-readKeymap :: XConfig l -> [(String, t)] -> [([(KeyMask, KeySym)], t)]
+readKeymap :: XConfig l -> [(String, t)] -> [(NonEmpty (KeyMask, KeySym), t)]
 readKeymap c = mapMaybe (maybeKeys . first (readKeySequence c))
   where maybeKeys (Nothing,_) = Nothing
         maybeKeys (Just k, act) = Just (k, act)
 
 -- | Parse a sequence of keys, returning Nothing if there is
 --   a parse failure (no parse, or ambiguous parse).
-readKeySequence :: XConfig l -> String -> Maybe [(KeyMask, KeySym)]
-readKeySequence c = runParser (parseKeySequence c <* eof)
+readKeySequence :: XConfig l -> String -> Maybe (NonEmpty (KeyMask, KeySym))
+readKeySequence c = nonEmpty <=< runParser (parseKeySequence c <* eof)
 
 -- | Parse a sequence of key combinations separated by spaces, e.g.
 --   @\"M-c x C-S-2\"@ (mod+c, x, ctrl+shift+2).
@@ -437,7 +488,7 @@ parseModifier c = (string "M-" $> modMask c)
                      return $ indexMod (read [n] - 1)
     where indexMod = (!!) [mod1Mask,mod2Mask,mod3Mask,mod4Mask,mod5Mask]
 
--- | Parse an unmodified basic key, like @\"x\"@, @\"<F1>\"@, etc.
+-- | Parse an unmodified basic key, like @\"x\"@, @\"\<F1\>\"@, etc.
 parseKey :: Parser KeySym
 parseKey = parseSpecial <> parseRegular
 
@@ -501,7 +552,7 @@ doKeymapCheck :: XConfig l -> [(String,a)] -> ([String], [String])
 doKeymapCheck conf km = (bad,dups)
   where ks = map ((readKeySequence conf &&& id) . fst) km
         bad = nub . map snd . filter (isNothing . fst) $ ks
-        dups = map (snd . head)
+        dups = map (snd . NE.head . notEmpty)
              . filter ((>1) . length)
              . groupBy ((==) `on` fst)
              . sortBy (comparing fst)

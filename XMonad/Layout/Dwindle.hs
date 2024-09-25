@@ -68,9 +68,9 @@ import XMonad.Util.Types ( Direction2D(..) )
 -- 1.1, is the factor by which the third parameter increases or decreases in
 -- response to Expand or Shrink messages.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
 -- | Layouts with geometrically decreasing window sizes.  'Spiral' and 'Dwindle'
 -- split the screen into a rectangle for the first window and a rectangle for
@@ -159,8 +159,8 @@ squeeze dir ratio rect st = zip wins rects
         nwins   = length wins
         sizes   = take nwins $ unfoldr (\r -> Just (r * ratio, r * ratio)) 1
         totals' = 0 : zipWith (+) sizes totals'
-        totals  = tail totals'
-        splits  = zip (tail sizes) totals
+        totals  = drop 1 totals'
+        splits  = zip (drop 1 sizes) totals
         ratios  = reverse $ map (uncurry (/)) splits
         rects   = genRects rect ratios
         genRects r []     = [r]

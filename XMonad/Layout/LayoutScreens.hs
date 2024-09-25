@@ -36,7 +36,7 @@ import qualified XMonad.StackSet as W
 -- email window at all times, a crude mimic of sticky windows).
 --
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@ file:
+-- @xmonad.hs@ file:
 --
 -- > import XMonad.Layout.LayoutScreens
 -- > import XMonad.Layout.TwoPane
@@ -57,7 +57,7 @@ import qualified XMonad.StackSet as W
 -- >   , ((modm .|. controlMask .|. shiftMask, xK_space), rescreen)
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Modify all screens.
 layoutScreens :: LayoutClass l Int => Int -> l Int -> X ()

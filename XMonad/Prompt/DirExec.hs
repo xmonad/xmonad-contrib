@@ -35,7 +35,7 @@ econst :: Monad m => a -> IOException -> m a
 econst = const . return
 
 -- $usage
--- 1. In your @~\/.xmonad\/xmonad.hs@:
+-- 1. In your @xmonad.hs@:
 --
 -- > import XMonad.Prompt.DirExec
 --
@@ -63,7 +63,7 @@ econst = const . return
 -- terminal
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype DirExec = DirExec String
 

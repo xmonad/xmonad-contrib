@@ -86,7 +86,7 @@ customize the window manager to fit her needs.
 
 Basically, xmonad and the xmonad-contrib libraries let users write
 their own window manager in just a few lines of code. While
-@~\/.xmonad\/xmonad.hs@ at first seems to be simply a configuration
+@xmonad.hs@ at first seems to be simply a configuration
 file, it is actually a complete Haskell program which uses the xmonad
 and xmonad-contrib libraries to create a custom window manager.
 
@@ -106,13 +106,13 @@ manager you are writing in any way you see fit.
 xmonad installs a binary, @xmonad@, which must be executed by the
 Xsession starting script. This binary, whose code can be read in
 @Main.hs@ of the xmonad source tree, will use 'XMonad.Core.recompile'
-to run @ghc@ in order to build a binary from @~\/.xmonad\/xmonad.hs@.
+to run @ghc@ in order to build a binary from @xmonad.hs@.
 If this compilation process fails, for any reason, a default @main@
 entry point will be used, which calls the 'XMonad.Main.xmonad'
 function with a default configuration.
 
 Thus, the real @main@ entry point, the one that even the users' custom
-window manager application in @~\/.xmonad\/xmonad.hs@ must call, is
+window manager application in @xmonad.hs@ must call, is
 the 'XMonad.Main.xmonad' function. This function takes a configuration
 as its only argument, whose type ('XMonad.Core.XConfig')
 is defined in "XMonad.Core".

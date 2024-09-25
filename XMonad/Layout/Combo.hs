@@ -1,5 +1,8 @@
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses,
-             UndecidableInstances, PatternGuards #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -24,13 +27,13 @@ module XMonad.Layout.Combo (
                            ) where
 
 import XMonad hiding (focus)
-import XMonad.Prelude (delete, fromMaybe, intersect, isJust, (\\))
-import XMonad.StackSet ( integrate', Workspace (..), Stack(..) )
-import XMonad.Layout.WindowNavigation ( MoveWindowToWindow(..) )
-import qualified XMonad.StackSet as W ( differentiate )
+import XMonad.Layout.WindowNavigation (MoveWindowToWindow (..))
+import XMonad.Prelude (delete, fromMaybe, intersect, isJust, (\\), listToMaybe)
+import XMonad.StackSet (Stack (..), Workspace (..), integrate')
+import XMonad.Util.Stack (zipperFocusedAtFirstOf)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.Combo
 --
@@ -40,9 +43,9 @@ import qualified XMonad.StackSet as W ( differentiate )
 --
 -- to your layouts.
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- combineTwo is a new simple layout combinator. It allows the
 -- combination of two layouts using a third to split the screen
@@ -57,7 +60,7 @@ import qualified XMonad.StackSet as W ( differentiate )
 -- >    , ((modm .|. controlMask .|. shiftMask, xK_Down ), sendMessage $ Move D)
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 --
 -- These bindings will move a window into the sublayout that is
 -- up\/down\/left\/right of its current position.  Note that there is some
@@ -88,14 +91,14 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                                          handleMessage super (SomeMessage ReleaseResources)
                                return ([(w,rinput)], Just $ C2 [w] [w] super' l1' l2')
               arrange origws =
-                  do let w2' = case origws `intersect` w2 of [] -> [head origws]
+                  do let w2' = case origws `intersect` w2 of [] -> take 1 origws
                                                              [x] -> [x]
                                                              x -> case origws \\ x of
                                                                   [] -> init x
                                                                   _ -> x
                          superstack = Stack { focus=(), up=[], down=[()] }
-                         s1 = differentiate f' (origws \\ w2')
-                         s2 = differentiate f' w2'
+                         s1 = zipperFocusedAtFirstOf f' (origws \\ w2')
+                         s2 = zipperFocusedAtFirstOf f' w2'
                          f' = case s of (Just s') -> focus s':delete (focus s') f
                                         Nothing -> f
                      ([((),r1),((),r2)], msuper') <- runLayout (Workspace "" super (Just superstack)) rinput
@@ -121,20 +124,12 @@ instance (LayoutClass l (), LayoutClass l1 a, LayoutClass l2 a, Read a, Show a, 
                          msuper' <- broadcastPrivate m [super]
                          if isJust msuper' || isJust ml1' || isJust ml2'
                             then return $ Just $ C2 f ws2
-                                                 (maybe super head msuper')
-                                                 (maybe l1 head ml1')
-                                                 (maybe l2 head ml2')
+                                                 (fromMaybe super (listToMaybe =<< msuper'))
+                                                 (fromMaybe l1    (listToMaybe =<< ml1'))
+                                                 (fromMaybe l2    (listToMaybe =<< ml2'))
                             else return Nothing
     description (C2 _ _ super l1 l2) = "combining "++ description l1 ++" and "++
                                        description l2 ++" with "++ description super
-
-
-differentiate :: Eq q => [q] -> [q] -> Maybe (Stack q)
-differentiate (z:zs) xs | z `elem` xs = Just $ Stack { focus=z
-                                                     , up = reverse $ takeWhile (/=z) xs
-                                                     , down = tail $ dropWhile (/=z) xs }
-                        | otherwise = differentiate zs xs
-differentiate [] xs = W.differentiate xs
 
 broadcastPrivate :: LayoutClass l b => SomeMessage -> [l b] -> X (Maybe [l b])
 broadcastPrivate a ol = do nml <- mapM f ol

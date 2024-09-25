@@ -28,7 +28,7 @@ import XMonad.Actions.Commands (defaultCommands)
 import XMonad.Prelude (fromMaybe)
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.XMonad
@@ -38,7 +38,7 @@ import XMonad.Prelude (fromMaybe)
 -- >   , ((modm .|. controlMask, xK_x), xmonadPrompt def)
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype XMonad = XMonad String
 

@@ -24,6 +24,8 @@ module XMonad.Hooks.EwmhDesktops (
     -- $usage
     ewmh,
     ewmhFullscreen,
+    ewmhDesktopsManageHook,
+    ewmhDesktopsMaybeManageHook,
 
     -- * Customization
     -- $customization
@@ -39,6 +41,14 @@ module XMonad.Hooks.EwmhDesktops (
     -- ** Window activation
     -- $customActivate
     setEwmhActivateHook,
+
+    -- ** Fullscreen
+    -- $customFullscreen
+    setEwmhFullscreenHooks,
+
+    -- ** @_NET_DESKTOP_VIEWPORT@
+    -- $customManageDesktopViewport
+    disableEwmhManageDesktopViewport,
 
     -- * Standalone hooks (deprecated)
     ewmhDesktopsStartup,
@@ -66,7 +76,7 @@ import qualified XMonad.Util.ExtensibleConf as XC
 import qualified XMonad.Util.ExtensibleState as XS
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Hooks.EwmhDesktops
@@ -102,6 +112,10 @@ data EwmhDesktopsConfig =
             -- ^ configurable workspace rename (see 'XMonad.Hooks.StatusBar.PP.ppRename')
         , activateHook :: ManageHook
             -- ^ configurable handling of window activation requests
+        , fullscreenHooks :: (ManageHook, ManageHook)
+            -- ^ configurable handling of fullscreen state requests
+        , manageDesktopViewport :: Bool
+            -- ^ manage @_NET_DESKTOP_VIEWPORT@?
         }
 
 instance Default EwmhDesktopsConfig where
@@ -109,6 +123,8 @@ instance Default EwmhDesktopsConfig where
         { workspaceSort = getSortByIndex
         , workspaceRename = pure pure
         , activateHook = doFocus
+        , fullscreenHooks = (doFullFloat, doSink)
+        , manageDesktopViewport = True
         }
 
 
@@ -229,6 +245,45 @@ setEwmhActivateHook :: ManageHook -> XConfig l -> XConfig l
 setEwmhActivateHook h = XC.modifyDef $ \c -> c{ activateHook = h }
 
 
+-- $customFullscreen
+-- When a client sends a @_NET_WM_STATE@ request to add\/remove\/toggle the
+-- @_NET_WM_STATE_FULLSCREEN@ state, 'ewmhFullscreen' uses a pair of hooks to
+-- make the window fullscreen and revert its state. The default hooks are
+-- stateless: windows are fullscreened by turning them into fullscreen floats,
+-- and reverted by sinking them into the tiling layer. This behaviour can be
+-- configured by supplying a pair of 'ManageHook's to 'setEwmhFullscreenHooks'.
+--
+-- See "XMonad.Actions.ToggleFullFloat" for a pair of hooks that store the
+-- original state of floating windows.
+
+-- | Set (replace) the hooks invoked when clients ask to add/remove the
+-- $_NET_WM_STATE_FULLSCREEN@ state. The defaults are 'doFullFloat' and
+-- 'doSink'.
+setEwmhFullscreenHooks :: ManageHook -> ManageHook -> XConfig l -> XConfig l
+setEwmhFullscreenHooks f uf = XC.modifyDef $ \c -> c{ fullscreenHooks = (f, uf) }
+
+
+-- $customManageDesktopViewport
+-- Setting @_NET_DESKTOP_VIEWPORT@ is typically desired but can lead to a
+-- confusing workspace list in polybar, where this information is used to
+-- re-group the workspaces by monitor. See
+-- <https://github.com/polybar/polybar/issues/2603 polybar#2603>.
+--
+-- To avoid this, you can use:
+--
+-- > main = xmonad $ … . disableEwmhManageDesktopViewport . ewmh . … $ def{…}
+--
+-- Note that if you apply this configuration in an already running environment,
+-- the property may remain at its previous value. It can be removed by running:
+--
+-- > xprop -root -remove _NET_DESKTOP_VIEWPORT
+--
+-- Which should immediately fix your bar.
+--
+disableEwmhManageDesktopViewport :: XConfig l -> XConfig l
+disableEwmhManageDesktopViewport = XC.modifyDef $ \c -> c{ manageDesktopViewport = False }
+
+
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
 {-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
 ewmhDesktopsStartup :: X ()
@@ -303,7 +358,7 @@ whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
 whenChanged = whenX . XS.modified . const
 
 ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
-ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWindowSet $ \s -> do
+ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename, manageDesktopViewport} = withWindowSet $ \s -> do
     sort' <- workspaceSort
     let ws = sort' $ W.workspaces s
 
@@ -320,10 +375,33 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWi
     let clientList = nub . concatMap (W.integrate' . W.stack) $ ws
     whenChanged (ClientList clientList) $ setClientList clientList
 
-    -- Set stacking client list which should have bottom-to-top
-    -- stacking order, i.e. focused window should be last
-    let clientListStacking = nub . concatMap (maybe [] (\(W.Stack x l r) -> reverse l ++ r ++ [x]) . W.stack) $ ws
-    whenChanged (ClientListStacking clientListStacking) $ setClientListStacking clientListStacking
+    -- @ws@ is sorted in the "workspace order", which, by default, is
+    -- the lexicographical sorting on @WorkspaceId@.
+    -- @_NET_CLIENT_LIST_STACKING@ is expected to be in the "bottom-to-top
+    -- stacking order".  It is unclear what that would mean for windows on
+    -- invisible workspaces, but it seems reasonable to assume that windows on
+    -- the current workspace should be "at the top".  With the focused window to
+    -- be the top most, meaning the last.
+    --
+    -- There has been a number of discussions on the order of windows within a
+    -- workspace.  See:
+    --
+    --   https://github.com/xmonad/xmonad-contrib/issues/567
+    --   https://github.com/xmonad/xmonad-contrib/pull/568
+    --   https://github.com/xmonad/xmonad-contrib/pull/772
+    let clientListStacking =
+          let wsInFocusOrder = W.hidden s
+                               ++ (map W.workspace . W.visible) s
+                               ++ [W.workspace $ W.current s]
+              stackWindows (W.Stack cur up down) = reverse up ++ down ++ [cur]
+              workspaceWindows = maybe [] stackWindows . W.stack
+              -- In case a window is a member of multiple workspaces, we keep
+              -- only the last occurrence in the list.  One that is closer to
+              -- the top in the focus order.
+              uniqueKeepLast = reverse . nub . reverse
+           in uniqueKeepLast $ concatMap workspaceWindows wsInFocusOrder
+    whenChanged (ClientListStacking clientListStacking) $
+      setClientListStacking clientListStacking
 
     -- Set current desktop number
     let current = W.currentTag s `elemIndex` map W.tag ws
@@ -342,9 +420,10 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename} = withWi
     whenChanged (ActiveWindow activeWindow') $ setActiveWindow activeWindow'
 
     -- Set desktop Viewport
-    let visibleScreens = W.current s : W.visible s
-        currentTags    = map (W.tag . W.workspace) visibleScreens
-    whenChanged (MonitorTags currentTags) $ mkViewPorts s (map W.tag ws)
+    when manageDesktopViewport $ do
+        let visibleScreens = W.current s : W.visible s
+            currentTags    = map (W.tag . W.workspace) visibleScreens
+        whenChanged (MonitorTags currentTags) $ mkViewPorts s (map W.tag ws)
 
 -- | Create the viewports from the current 'WindowSet' and a list of
 -- already sorted workspace IDs.
@@ -380,10 +459,17 @@ ewmhDesktopsEventHook'
         a_aw <- getAtom "_NET_ACTIVE_WINDOW"
         a_cw <- getAtom "_NET_CLOSE_WINDOW"
 
-        if  | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
+        if  | mt == a_cw ->
+                killWindow w
+            | mt == a_cd, n : _ <- d, Just ww <- ws !? fi n ->
                 if W.currentTag s == W.tag ww then mempty else windows $ W.view (W.tag ww)
             | mt == a_cd ->
                 trace $ "Bad _NET_CURRENT_DESKTOP with data=" ++ show d
+            | not (w `W.member` s) ->
+                -- do nothing for unmanaged windows; it'd be just a useless
+                -- refresh which breaks menus/popups of misbehaving apps that
+                -- send _NET_ACTIVE_WINDOW requests for override-redirect wins
+                mempty
             | mt == a_d, n : _ <- d, Just ww <- ws !? fi n ->
                 if W.findTag w s == Just (W.tag ww) then mempty else windows $ W.shiftWin (W.tag ww) w
             | mt == a_d ->
@@ -394,8 +480,6 @@ ewmhDesktopsEventHook'
                 if W.peek s == Just w then mempty else windows $ W.focusWindow w
             | mt == a_aw -> do
                 if W.peek s == Just w then mempty else windows . appEndo =<< runQuery activateHook w
-            | mt == a_cw ->
-                killWindow w
             | otherwise ->
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager
@@ -403,6 +487,31 @@ ewmhDesktopsEventHook'
 
         mempty
 ewmhDesktopsEventHook' _ _ = mempty
+
+-- | A 'ManageHook' that shifts windows to the workspace they want to be in.
+-- Useful for restoring browser windows to where they were before restart.
+--
+-- To only use this for browsers (which might be a good idea, as many apps try
+-- to restore their window to their original position, but it's rarely
+-- desirable outside of security updates of multi-window apps like a browser),
+-- use this:
+--
+-- > stringProperty "WM_WINDOW_ROLE" =? "browser" --> ewmhDesktopsManageHook
+ewmhDesktopsManageHook :: ManageHook
+ewmhDesktopsManageHook = maybeToDefinite ewmhDesktopsMaybeManageHook
+
+-- | 'ewmhDesktopsManageHook' as a 'MaybeManageHook' for use with
+-- 'composeOne'. Returns 'Nothing' if the window didn't indicate any desktop
+-- preference, otherwise 'Just' (even if the preferred desktop was out of
+-- bounds).
+ewmhDesktopsMaybeManageHook :: MaybeManageHook
+ewmhDesktopsMaybeManageHook = desktop >>= traverse doShiftI
+  where
+    doShiftI :: Int -> ManageHook
+    doShiftI d = do
+        sort' <- liftX . XC.withDef $ \EwmhDesktopsConfig{workspaceSort} -> workspaceSort
+        ws <- liftX . gets $ map W.tag . sort' . W.workspaces . windowset
+        maybe idHook doShift $ ws !? d
 
 -- | Add EWMH fullscreen functionality to the given config.
 ewmhFullscreen :: XConfig a -> XConfig a
@@ -421,7 +530,12 @@ fullscreenStartup = setFullscreenSupported
 -- Note this is not included in 'ewmh'.
 {-# DEPRECATED fullscreenEventHook "Use ewmhFullscreen instead." #-}
 fullscreenEventHook :: Event -> X All
-fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
+fullscreenEventHook = XC.withDef . fullscreenEventHook'
+
+fullscreenEventHook' :: Event -> EwmhDesktopsConfig -> X All
+fullscreenEventHook'
+    ClientMessageEvent{ev_event_display = dpy, ev_window = win, ev_message_type = typ, ev_data = action:dats}
+    EwmhDesktopsConfig{fullscreenHooks = (fullscreenHook, unFullscreenHook)} = do
   managed <- isClient win
   wmstate <- getAtom "_NET_WM_STATE"
   fullsc <- getAtom "_NET_WM_STATE_FULLSCREEN"
@@ -436,16 +550,16 @@ fullscreenEventHook (ClientMessageEvent _ _ _ dpy win typ (action:dats)) = do
       chWstate f = io $ changeProperty32 dpy win wmstate aTOM propModeReplace (f wstate)
 
   when (managed && typ == wmstate && fi fullsc `elem` dats) $ do
-    when (action == add || (action == toggle && not isFull)) $ do
+    when (not isFull && (action == add || action == toggle)) $ do
       chWstate (fi fullsc:)
-      windows $ W.float win $ W.RationalRect 0 0 1 1
-    when (action == remove || (action == toggle && isFull)) $ do
+      windows . appEndo =<< runQuery fullscreenHook win
+    when (isFull && (action == remove || action == toggle)) $ do
       chWstate $ delete (fi fullsc)
-      windows $ W.sink win
+      windows . appEndo =<< runQuery unFullscreenHook win
 
   return $ All True
 
-fullscreenEventHook _ = return $ All True
+fullscreenEventHook' _ _ = return $ All True
 
 setNumberOfDesktops :: (Integral a) => a -> X ()
 setNumberOfDesktops n = withDisplay $ \dpy -> do
@@ -511,6 +625,7 @@ setSupported = withDisplay $ \dpy -> do
                          ,"_NET_ACTIVE_WINDOW"
                          ,"_NET_WM_DESKTOP"
                          ,"_NET_WM_STRUT"
+                         ,"_NET_WM_STRUT_PARTIAL"
                          ,"_NET_DESKTOP_VIEWPORT"
                          ]
     io $ changeProperty32 dpy r a aTOM propModeReplace (fmap fromIntegral supp)

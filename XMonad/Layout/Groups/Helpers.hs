@@ -58,7 +58,7 @@ import qualified Data.Map as M
 --
 -- > import XMonad.Layout.Groups.Helpers
 --
--- to the top of your @.\/.xmonad\/xmonad.hs@.
+-- to the top of your @xmonad.hs@.
 --
 -- "XMonad.Layout.Groups"-based layouts do not have the same notion
 -- of window ordering as the rest of XMonad. For this reason, the usual
@@ -83,8 +83,8 @@ import qualified Data.Map as M
 --
 -- > import qualified XMonad.Layout.Groups as G
 --
--- For more information on how to extend your layour hook and key bindings, see
--- "XMonad.Doc.Extending".
+-- For more information on how to extend your layoutHook and key bindings, see
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 
 -- ** Layout-generic actions
 -- #Layout-generic actions#
@@ -155,7 +155,7 @@ focusHelper :: (Bool -> Bool) -- ^ if you want to focus a floating window, 'id'.
             -> X ()
 focusHelper f g = withFocused $ \w -> do
                  ws <- getWindows
-                 let (before, tail -> after) = span (/=w) ws
+                 let (before, drop 1 -> after) = span (/=w) ws
                  let toFocus = g $ after ++ before
                  floats <- getFloats
                  case filter (f . flip elem floats) toFocus of

@@ -47,7 +47,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.LayoutHints
 --
@@ -66,9 +66,9 @@ import qualified Data.Set as Set
 --
 -- > myLayout = layoutHintsToCenter (Tall 1 (3/100) (1/2))
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- To make XMonad reflect changes in window hints immediately, add
 -- 'hintsEventHook' to your 'handleEventHook'.

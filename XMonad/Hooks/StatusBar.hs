@@ -56,6 +56,7 @@ module XMonad.Hooks.StatusBar (
   spawnStatusBar,
   killStatusBar,
   killAllStatusBars,
+  startAllStatusBars,
   ) where
 
 import Control.Exception (SomeException, try)
@@ -81,7 +82,7 @@ import XMonad.Hooks.StatusBar.PP
 import qualified XMonad.StackSet as W
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad
 -- > import XMonad.Hooks.StatusBar
@@ -425,12 +426,12 @@ statusBarPipe cmd xpp = do
 -- > xmobarBottom = statusBarPropTo "_XMONAD_LOG_2" "xmobar -x 0 ~/.config/xmobar/xmobarrc_bottom" (pure ppBottom)
 -- > xmobar1      = statusBarPropTo "_XMONAD_LOG_3" "xmobar -x 1 ~/.config/xmobar/xmobarrc1"       (pure pp1)
 -- >
--- > barSpawner :: ScreenId -> IO StatusBarConfig
--- > barSpawner 0 = pure $ xmobarTop <> xmobarBottom -- two bars on the main screen
--- > barSpawner 1 = pure $ xmobar1
+-- > barSpawner :: ScreenId -> StatusBarConfig
+-- > barSpawner 0 = xmobarTop <> xmobarBottom -- two bars on the main screen
+-- > barSpawner 1 = xmobar1
 -- > barSpawner _ = mempty -- nothing on the rest of the screens
 -- >
--- > main = xmonad $ dynamicSBs barSpawner (def { ... })
+-- > main = xmonad $ dynamicSBs (pure . barSpawner) (def { ... })
 --
 -- Make sure you specify which screen to place the status bar on (in xmobar,
 -- this is achieved by the @-x@ argument). In addition to making sure that your
@@ -451,7 +452,7 @@ instance ExtensionClass ActiveSBs where
 -- 'avoidStruts', check 'dynamicEasySBs'.
 --
 -- Heavily inspired by "XMonad.Hooks.DynamicBars"
-dynamicSBs :: (ScreenId -> IO StatusBarConfig) -> XConfig l -> XConfig l
+dynamicSBs :: (ScreenId -> X StatusBarConfig) -> XConfig l -> XConfig l
 dynamicSBs f conf = addAfterRescreenHook (updateSBs f) $ conf
   { startupHook = startupHook conf >> killAllStatusBars >> updateSBs f
   , logHook     = logHook conf >> logSBs
@@ -461,7 +462,7 @@ dynamicSBs f conf = addAfterRescreenHook (updateSBs f) $ conf
 -- resulting config and adds 'avoidStruts' to the
 -- layout.
 dynamicEasySBs :: LayoutClass l Window
-               => (ScreenId -> IO StatusBarConfig)
+               => (ScreenId -> X StatusBarConfig)
                -> XConfig l
                -> XConfig (ModifiedLayout AvoidStruts l)
 dynamicEasySBs f conf =
@@ -470,7 +471,7 @@ dynamicEasySBs f conf =
 -- | Given the function to create status bars, update
 -- the status bars by killing those that shouldn't be
 -- visible anymore and creates any missing status bars
-updateSBs :: (ScreenId -> IO StatusBarConfig) -> X ()
+updateSBs :: (ScreenId -> X StatusBarConfig) -> X ()
 updateSBs f = do
   actualScreens    <- withWindowSet $ return . map W.screen . W.screens
   (toKeep, toKill) <-
@@ -479,7 +480,7 @@ updateSBs f = do
   cleanSBs (map snd toKill)
   -- Create new status bars if needed
   let missing = actualScreens \\ map fst toKeep
-  added <- io $ traverse (\s -> (s,) <$> f s) missing
+  added <- traverse (\s -> (s,) <$> f s) missing
   traverse_ (sbStartupHook . snd) added
   XS.put (ASB (toKeep ++ added))
 
@@ -564,3 +565,9 @@ spawnStatusBar cmd = do
 killAllStatusBars :: X ()
 killAllStatusBars =
   XS.gets (M.elems . getPIDs) >>= io . traverse_ killPid >> XS.put (StatusBarPIDs mempty)
+
+-- | Start all status bars. Note that you do not need this in your startup hook.
+-- This can be bound to a keybinding for example to be used in tandem with
+-- `killAllStatusBars`.
+startAllStatusBars :: X ()
+startAllStatusBars = XS.get >>= traverse_ (sbStartupHook . snd) . getASBs

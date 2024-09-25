@@ -47,7 +47,7 @@ import XMonad.Util.Themes
 
 -- $usage
 -- The simplest way to use this configuration module is to use an
--- @~\/.xmonad\/xmonad.hs@ like this:
+-- @xmonad.hs@ like this:
 --
 -- > module Main (main) where
 -- >
@@ -64,7 +64,7 @@ import XMonad.Util.Themes
 --
 -- You can use this module also as a starting point for writing your
 -- own configuration module from scratch. Save it as your
--- @~\/.xmonad\/xmonad.hs@ and:
+-- @xmonad.hs@ and:
 --
 -- 1. Change the module name from
 --

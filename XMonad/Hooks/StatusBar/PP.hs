@@ -32,6 +32,7 @@ module XMonad.Hooks.StatusBar.PP (
     -- * Build your own formatter
     PP(..), def,
     dynamicLogString,
+    dynamicLogString',
     dynamicLogWithPP,
 
     -- * Predicates and formatters
@@ -55,6 +56,8 @@ module XMonad.Hooks.StatusBar.PP (
     ) where
 
 import Control.Monad.Reader
+import Control.DeepSeq
+import qualified Data.List.NonEmpty as NE
 
 import XMonad
 import XMonad.Prelude
@@ -181,7 +184,14 @@ dynamicLogWithPP pp = dynamicLogString pp >>= io . ppOutput pp
 --   allow for further processing, or use in some application other than
 --   a status bar.
 dynamicLogString :: PP -> X String
-dynamicLogString pp = do
+dynamicLogString pp = userCodeDef "_|_" (dynamicLogString' pp)
+
+-- | The guts of 'dynamicLogString'. Forces the result, so it may throw
+--   an exception (most commonly because 'ppOrder' is non-total). Use
+--   'dynamicLogString' for a version that catches the exception and
+--   produces an error string.
+dynamicLogString' :: PP -> X String
+dynamicLogString' pp = do
 
     winset <- gets windowset
     urgents <- readUrgents
@@ -199,7 +209,7 @@ dynamicLogString pp = do
     -- window title
     wt <- maybe (pure "") (fmap show . getName) . S.peek $ winset
 
-    return $ sepBy (ppSep pp) . ppOrder pp $
+    return $! force $ sepBy (ppSep pp) . ppOrder pp $
                         [ ws
                         , ppLayout pp ld
                         , ppTitle  pp $ ppTitleSanitize pp wt
@@ -392,7 +402,7 @@ dzenStrip = strip [] where
     strip keep x
       | null x              = keep
       | "^^" `isPrefixOf` x = strip (keep ++ "^") (drop 2 x)
-      | '^' == head x       = strip keep (drop 1 . dropWhile (/= ')') $ x)
+      | "^"  `isPrefixOf` x = strip keep (drop 1 . dropWhile (/= ')') $ x)
       | otherwise           = let (good,x') = span (/= '^') x
                               in strip (keep ++ good) x'
 
@@ -448,17 +458,21 @@ xmobarRaw :: String -> String
 xmobarRaw "" = ""
 xmobarRaw s  = concat ["<raw=", show $ length s, ":", s, "/>"]
 
--- | Strip xmobar markup, specifically the <fc>, <icon> and <action> tags and
--- the matching tags like </fc>.
+-- | Strip xmobar markup, specifically the \<fc\>, \<icon\> and \<action\> tags
+-- and the matching tags like \</fc\>.
 xmobarStrip :: String -> String
 xmobarStrip = converge (xmobarStripTags ["fc","icon","action"])
 
 converge :: (Eq a) => (a -> a) -> a -> a
-converge f a = let xs = iterate f a
-    in fst $ head $ dropWhile (uncurry (/=)) $ zip xs $ tail xs
+converge f a
+  = fst . NE.head . notEmpty -- If this function terminates, we will find a match.
+  . dropWhile (uncurry (/=))
+  . zip xs
+  $ drop 1 xs
+ where xs = iterate f a
 
 xmobarStripTags :: [String] -- ^ tags
-        -> String -> String -- ^ with all <tag>...</tag> removed
+        -> String -> String -- ^ with all \<tag\>...\</tag\> removed
 xmobarStripTags tags = strip [] where
     strip keep [] = keep
     strip keep x

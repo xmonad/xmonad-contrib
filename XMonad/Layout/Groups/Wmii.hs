@@ -41,7 +41,6 @@ import XMonad.Layout.Groups.Examples
 import XMonad.Layout.Groups.Helpers
 
 import XMonad.Layout.Tabbed
-import XMonad.Layout.Named
 import XMonad.Layout.Renamed
 import XMonad.Layout.MessageControl
 import XMonad.Layout.Simplest
@@ -67,7 +66,7 @@ import XMonad.Layout.Simplest
 --
 -- > import XMonad.Layout.Groups.Wmii
 --
--- to the top of your @.\/.xmonad\/xmonad.hs@, and adding 'wmii'
+-- to the top of your @xmonad.hs@, and adding 'wmii'
 -- (with a 'Shrinker' and decoration 'Theme' as
 -- parameters) to your layout hook, for example:
 --
@@ -80,8 +79,8 @@ import XMonad.Layout.Simplest
 --
 -- and so on.
 --
--- For more information on how to extend your layout hook and key bindings, see
--- "XMonad.Doc.Extending".
+-- For more information on how to extend your layoutHook and key bindings, see
+-- <https://xmonad.org/TUTORIAL.html the tutorial> and "XMonad.Doc.Extending".
 --
 -- Finally, you will probably want to be able to move focus and windows
 -- between groups in a consistent fashion. For this, you should take a look
@@ -90,8 +89,8 @@ import XMonad.Layout.Simplest
 
 -- | A layout inspired by wmii
 wmii s t = G.group innerLayout zoomRowG
-    where column = named "Column" $ Tall 0 (3/100) (1/2)
-          tabs = named "Tabs" Simplest
+    where column = renamed [Replace "Column"] $ Tall 0 (3/100) (1/2)
+          tabs = renamed [Replace "Tabs"] Simplest
           innerLayout = renamed [CutWordsLeft 3]
                         $ addTabs s t
                         $ ignore NextLayout

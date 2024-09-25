@@ -38,7 +38,7 @@ import Control.Arrow (first)
 -- All other windows in background are managed by base layout.
 -- topRightMaster is like centerMaster, but places master window in top right corner instead of center.
 --
--- Yo can use this module by adding folowing in your @xmonad.hs@:
+-- You can use this module by adding following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.CenteredMaster
 --
@@ -80,11 +80,9 @@ applyPosition :: (LayoutClass l a, Eq a) =>
 applyPosition pos wksp rect = do
   let stack = W.stack wksp
   let ws = W.integrate' stack
-  if null ws then
-     runLayout wksp rect
-     else do
-       let firstW = head ws
-       let other  = tail ws
+  case ws of
+    []               -> runLayout wksp rect
+    (firstW : other) -> do
        let filtStack = stack >>= W.filter (firstW /=)
        wrs <- runLayout (wksp {W.stack = filtStack}) rect
        return $ first ((firstW, place pos other rect) :) wrs

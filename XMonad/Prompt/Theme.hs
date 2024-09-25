@@ -29,7 +29,7 @@ import XMonad.Util.Themes
 
 -- $usage
 -- You can use this module with the following in your
--- @~\/.xmonad\/xmonad.hs@:
+-- @xmonad.hs@:
 --
 -- > import XMonad.Prompt
 -- > import XMonad.Prompt.Theme
@@ -39,7 +39,7 @@ import XMonad.Util.Themes
 -- >   , ((modm .|. controlMask, xK_t), themePrompt def)
 --
 -- For detailed instruction on editing the key binding see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data ThemePrompt = ThemePrompt
 

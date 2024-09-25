@@ -41,7 +41,7 @@ import XMonad.Layout.LayoutModifier
 import XMonad.StackSet ( tag, currentTag )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.WorkspaceDir
 --
@@ -51,9 +51,9 @@ import XMonad.StackSet ( tag, currentTag )
 -- > myLayout = workspaceDir "~" (Tall 1 (3/100) (1/2))  ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- WorkspaceDir provides also a prompt. To use it you need to import
 -- "XMonad.Prompt" and add something like this to your key bindings:
@@ -67,7 +67,7 @@ import XMonad.StackSet ( tag, currentTag )
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 newtype Chdir = Chdir String
 instance Message Chdir

@@ -41,13 +41,13 @@ module XMonad.Actions.Plane
 
 import Data.Map (Map, fromList)
 
-import XMonad.Prelude
+import XMonad.Prelude hiding (fromList)
 import XMonad
 import XMonad.StackSet hiding (workspaces)
 import XMonad.Util.Run
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Actions.Plane
 -- > import Data.Map (union)
@@ -59,7 +59,7 @@ import XMonad.Util.Run
 -- > myNewKeys (XConfig {modMask = modm}) = planeKeys modm (Lines 3) Finite
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 -- | Direction to go in the plane.
 data Direction =  ToLeft | ToUp | ToRight | ToDown deriving Enum

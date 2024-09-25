@@ -97,10 +97,11 @@ import XMonad.Actions.WindowBringer (bringWindow)
 import Text.Printf
 import System.Random (mkStdGen, randomR)
 import Data.Word (Word8)
+import qualified Data.List.NonEmpty as NE
 
 -- $usage
 --
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- >    import XMonad.Actions.GridSelect
 --
@@ -142,8 +143,8 @@ import Data.Word (Word8)
 --
 -- Then you can bind to:
 --
--- >     ,((modm, xK_g), goToSelected  $ gsconfig2 myWinColorizer)
--- >     ,((modm, xK_p), spawnSelected $ spawnSelected defaultColorizer)
+-- >     ,((modm, xK_g), goToSelected $ gsconfig2 myWinColorizer)
+-- >     ,((modm, xK_p), spawnSelected (gsconfig2 defaultColorizer) ["xterm","gvim"])
 
 -- $keybindings
 --
@@ -202,10 +203,13 @@ data GSConfig a = GSConfig {
       gs_colorizer :: a -> Bool -> X (String, String),
       gs_font :: String,
       gs_navigate :: TwoD a (Maybe a),
+      -- ^ Customize key bindings for a GridSelect
       gs_rearranger :: Rearranger a,
       gs_originFractX :: Double,
       gs_originFractY :: Double,
-      gs_bordercolor :: String
+      gs_bordercolor :: String,
+      gs_cancelOnEmptyClick :: Bool
+      -- ^ When True, click on empty space will cancel GridSelect
 }
 
 -- | That is 'fromClassName' if you are selecting a 'Window', or
@@ -302,14 +306,14 @@ diamondLayer n =
       r  = tr ++ map (\(x,y) -> (y,-x)) tr
   in r ++ map (negate *** negate) r
 
-diamond :: (Enum a, Num a, Eq a) => [(a, a)]
-diamond = concatMap diamondLayer [0..]
+diamond :: (Enum a, Num a, Eq a) => Stream (a, a)
+diamond = fromList $ concatMap diamondLayer [0..]
 
 diamondRestrict :: Integer -> Integer -> Integer -> Integer -> [(Integer, Integer)]
 diamondRestrict x y originX originY =
   L.filter (\(x',y') -> abs x' <= x && abs y' <= y) .
   map (\(x', y') -> (x' + fromInteger originX, y' + fromInteger originY)) .
-  take 1000 $ diamond
+  takeS 1000 $ diamond
 
 findInElementMap :: (Eq a) => a -> [(a, b)] -> Maybe (a, b)
 findInElementMap pos = find ((== pos) . fst)
@@ -385,13 +389,20 @@ updateElementsWithColorizer colorizer elementmap = do
 stdHandle :: Event -> TwoD a (Maybe a) -> TwoD a (Maybe a)
 stdHandle ButtonEvent{ ev_event_type = t, ev_x = x, ev_y = y } contEventloop
     | t == buttonRelease = do
-        s@TwoDState { td_paneX = px, td_paneY = py,
-                         td_gsconfig = (GSConfig ch cw _ _ _ _ _ _ _ _) } <- get
+        s@TwoDState{ td_paneX = px
+                   , td_paneY = py
+                   , td_gsconfig = GSConfig{ gs_cellheight = ch
+                                           , gs_cellwidth = cw
+                                           , gs_cancelOnEmptyClick = cancelOnEmptyClick
+                                           }
+                   } <- get
         let gridX = (fi x - (px - cw) `div` 2) `div` cw
             gridY = (fi y - (py - ch) `div` 2) `div` ch
         case lookup (gridX,gridY) (td_elementmap s) of
              Just (_,el) -> return (Just el)
-             Nothing -> contEventloop
+             Nothing     -> if cancelOnEmptyClick
+                            then return Nothing
+                            else contEventloop
     | otherwise = contEventloop
 
 stdHandle ExposeEvent{} contEventloop = updateAllElements >> contEventloop
@@ -647,7 +658,7 @@ gridselect gsconfig elements =
     liftIO $ mapWindow dpy win
     liftIO $ selectInput dpy win (exposureMask .|. keyPressMask .|. buttonReleaseMask)
     status <- io $ grabKeyboard dpy win True grabModeAsync grabModeAsync currentTime
-    io $ grabPointer dpy win True buttonReleaseMask grabModeAsync grabModeAsync none none currentTime
+    void $ io $ grabPointer dpy win True buttonReleaseMask grabModeAsync grabModeAsync none none currentTime
     font <- initXMF (gs_font gsconfig)
     let screenWidth = toInteger $ rect_width scr
         screenHeight = toInteger $ rect_height scr
@@ -658,7 +669,7 @@ gridselect gsconfig elements =
                                 originPosX = floor $ (gs_originFractX gsconfig - (1/2)) * 2 * fromIntegral restrictX
                                 originPosY = floor $ (gs_originFractY gsconfig - (1/2)) * 2 * fromIntegral restrictY
                                 coords = diamondRestrict restrictX restrictY originPosX originPosY
-                                s = TwoDState { td_curpos = head coords,
+                                s = TwoDState { td_curpos = NE.head (notEmpty coords),
                                                 td_availSlots = coords,
                                                 td_elements = elements,
                                                 td_gsconfig = gsconfig,
@@ -705,7 +716,7 @@ decorateName' w = do
 
 -- | Builds a default gs config from a colorizer function.
 buildDefaultGSConfig :: (a -> Bool -> X (String,String)) -> GSConfig a
-buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2) "white"
+buildDefaultGSConfig col = GSConfig 50 130 10 col "xft:Sans-8" defaultNavigation noRearranger (1/2) (1/2) "white" True
 
 -- | Brings selected window to the current workspace.
 bringSelected :: GSConfig Window -> X ()

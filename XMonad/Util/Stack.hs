@@ -27,6 +27,7 @@ module XMonad.Util.Stack ( -- * Usage
                          , toIndex
                          , fromTags
                          , toTags
+                         , zipperFocusedAtFirstOf
 
                            -- * 'Zipper' manipulation functions
                            -- ** Insertion, movement
@@ -123,6 +124,18 @@ toTags Nothing = []
 toTags (Just s) = map Left (reverse . W.up $ s) ++ [Right . W.focus $ s]
                   ++ map Left (W.down s)
 
+-- | @differentiate zs xs@ takes the first @z@ from @z2 that also belongs to
+-- @xs@ and turns @xs@ into a stack with @z@ being the current element. Acts
+-- as 'XMonad.StackSet.differentiate' if @zs@ and @xs@ don't intersect.
+zipperFocusedAtFirstOf :: Eq q => [q] -> [q] -> Zipper q
+zipperFocusedAtFirstOf []       xs = W.differentiate xs
+zipperFocusedAtFirstOf (z : zs) xs
+  | z `elem` xs = Just $
+        W.Stack { W.focus = z
+                , W.up    = reverse $ takeWhile (/= z) xs
+                , W.down  = drop 1  $ dropWhile (/= z) xs
+                }
+  | otherwise = zipperFocusedAtFirstOf zs xs
 
 -- * Zipper functions
 
@@ -162,20 +175,20 @@ focusUpZ :: Zipper a -> Zipper a
 focusUpZ Nothing = Nothing
 focusUpZ (Just s) | u:up <- W.up s = Just $ W.Stack u up (W.focus s:W.down s)
 focusUpZ (Just s) | null $ W.down s = Just s
-focusUpZ (Just (W.Stack f _ down)) = Just $ W.Stack (last down) (tail (reverse down) ++ [f]) []
+focusUpZ (Just (W.Stack f _ down)) = Just $ W.Stack (last down) (drop 1 (reverse down) ++ [f]) []
 
 -- | Move the focus to the next element
 focusDownZ :: Zipper a -> Zipper a
 focusDownZ Nothing = Nothing
 focusDownZ (Just s) | d:down <- W.down s = Just $ W.Stack d (W.focus s:W.up s) down
 focusDownZ (Just s) | null $ W.up s = Just s
-focusDownZ (Just (W.Stack f up _)) = Just $ W.Stack (last up) [] (tail (reverse up) ++ [f])
+focusDownZ (Just (W.Stack f up _)) = Just $ W.Stack (last up) [] (drop 1 (reverse up) ++ [f])
 
 -- | Move the focus to the first element
 focusMasterZ :: Zipper a -> Zipper a
 focusMasterZ Nothing = Nothing
 focusMasterZ (Just (W.Stack f up down)) | not $ null up
-    = Just $ W.Stack (last up) [] (tail (reverse up) ++ [f] ++ down)
+    = Just $ W.Stack (last up) [] (drop 1 (reverse up) ++ [f] ++ down)
 focusMasterZ (Just s) = Just s
 
 -- | Refocus a @Stack a@ on an element satisfying the predicate, or fail to

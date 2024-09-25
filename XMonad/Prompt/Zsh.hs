@@ -28,7 +28,7 @@ import XMonad.Util.Run
 
 {- $usage
 1. Grab the @capture.zsh@ script to capture zsh completions from <https://github.com/Valodim/zsh-capture-completion>
-2. In your @~\/.xmonad\/xmonad.hs@:
+2. In your @xmonad.hs@:
 
 > import XMonad.Prompt
 > import XMonad.Prompt.Zsh
@@ -38,7 +38,7 @@ import XMonad.Util.Run
 >   , ((modm .|. controlMask, xK_x), zshPrompt def "/path/to/capture.zsh")
 
 For detailed instruction on editing the key binding see
-"XMonad.Doc.Extending#Editing_key_bindings". -}
+<https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>. -}
 
 data Zsh = Zsh
 

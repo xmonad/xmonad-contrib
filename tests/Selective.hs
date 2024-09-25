@@ -34,14 +34,14 @@ prop_select_focus sel (stk :: Stack Int) = focus stk == focus (select sel' stk)
 prop_select_increasing :: Selection l -> Stack Int -> Bool
 prop_select_increasing sel (stk :: Stack Int) =
     let res = integrate $ select sel stk
-     in and . zipWith (<) res $ tail res
+     in and . zipWith (<) res $ drop 1 res
 
 -- selection has the form [0..l] ++ [m..n]
 -- relies on the Arbitrary instance for Stack Int generating stacks like [0..k]
 prop_select_two_consec :: Selection l -> Stack Int -> Bool
 prop_select_two_consec sel (stk :: Stack Int) =
     let wins = integrate $ select sel stk
-     in (length . filter not . zipWith ((==) . (+1)) wins $ tail wins) <= 1
+     in (length . filter not . zipWith ((==) . (+1)) wins $ drop 1 wins) <= 1
 
 -- update preserves invariants on selections
 prop_update_nm :: Selection l -> Stack Int -> Bool

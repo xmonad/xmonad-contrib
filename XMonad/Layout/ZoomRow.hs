@@ -49,7 +49,7 @@ import Control.Arrow (second)
 -- and decreased, and a window can be set to use the whole available
 -- space whenever it has focus.
 --
--- You can use this module by including  the following in your @~\/.xmonad/xmonad.hs@:
+-- You can use this module by including  the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.ZoomRow
 --
@@ -69,8 +69,9 @@ import Control.Arrow (second)
 -- >   -- (Un)Maximize the focused window
 -- > , ((modMask             , xK_f    ), sendMessage ToggleZoomFull)
 --
--- For more information on editing your layout hook and key bindings,
--- see "XMonad.Doc.Extending".
+-- For more information on editing your layoutHook and key bindings,
+-- see <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>
+-- and "XMonad.Doc.Extending".
 
 -- * Creation functions
 

@@ -29,6 +29,7 @@ module XMonad.Actions.Prefix
        , withPrefixArgument
        , isPrefixRaw
        , isPrefixNumeric
+       , orIfPrefixed
        , ppFormatPrefix
        ) where
 
@@ -40,11 +41,13 @@ import XMonad.Util.ExtensibleState as XS
 import XMonad.Util.Paste (sendKey)
 import XMonad.Actions.Submap (submapDefaultWithKey)
 import XMonad.Util.EZConfig (readKeySequence)
+import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty ((<|))
 
 {- $usage
 
 This module implements Emacs-style prefix argument.  The argument
-comes in two flavours, "Raw" and "Numeric".
+comes in two flavours, 'Raw' and 'Numeric'.
 
 To initiate the "prefix mode" you hit the prefix keybinding (default
 C-u).  This sets the Raw argument value to 1.  Repeatedly hitting this
@@ -72,7 +75,7 @@ Binding it in your config
 
 >    ((modm, xK_a), withPrefixArgument addMaybeClean)
 
-Hitting MOD-a will add the <file> to the playlist while C-u MOD-a will
+Hitting MOD-a will add the @\<file\>@ to the playlist while C-u MOD-a will
 clear the playlist and then add the file.
 
 You can of course use an anonymous action, like so:
@@ -128,11 +131,11 @@ usePrefixArgument :: LayoutClass l Window
                   -> XConfig l
                   -> XConfig l
 usePrefixArgument prefix conf =
-  conf{ keys = M.insert binding (handlePrefixArg [binding]) . keys conf }
+  conf{ keys = M.insert binding (handlePrefixArg (binding :| [])) . keys conf }
  where
   binding = case readKeySequence conf prefix of
-    Just [key] -> key
-    _          -> (controlMask, xK_u)
+    Just (key :| []) -> key
+    _                -> (controlMask, xK_u)
 
 -- | Set Prefix up with default prefix key (C-u).
 useDefaultPrefixArgument :: LayoutClass l Window
@@ -140,7 +143,7 @@ useDefaultPrefixArgument :: LayoutClass l Window
                          -> XConfig l
 useDefaultPrefixArgument = usePrefixArgument "C-u"
 
-handlePrefixArg :: [(KeyMask, KeySym)] -> X ()
+handlePrefixArg :: NonEmpty (KeyMask, KeySym) -> X ()
 handlePrefixArg events = do
   ks <- asks keyActions
   logger <- asks (logHook . config)
@@ -161,19 +164,19 @@ handlePrefixArg events = do
               Raw _ -> XS.put $ Numeric x
               Numeric a -> XS.put $ Numeric $ a * 10 + x
               None -> return () -- should never happen
-            handlePrefixArg (key:events)
+            handlePrefixArg (key <| events)
           else do
             prefix <- XS.get
             mapM_ (uncurry sendKey) $ case prefix of
-              Raw a -> replicate a (head events) ++ [key]
-              _ -> reverse (key:events)
+              Raw a -> replicate a (NE.head events) ++ [key]
+              _ -> reverse (key : toList events)
         keyToNum = (xK_0, 0) : zip [xK_1 .. xK_9] [1..9]
 
 -- | Turn a prefix-aware X action into an X-action.
 --
 -- First, fetch the current prefix, then pass it as argument to the
 -- original function.  You should use this to "run" your commands.
-withPrefixArgument :: (PrefixArgument -> X ()) -> X ()
+withPrefixArgument :: (PrefixArgument -> X a) -> X a
 withPrefixArgument = (>>=) XS.get
 
 -- | Test if 'PrefixArgument' is 'Raw' or not.
@@ -185,6 +188,13 @@ isPrefixRaw _ = False
 isPrefixNumeric :: PrefixArgument -> Bool
 isPrefixNumeric (Numeric _) = True
 isPrefixNumeric _ = False
+
+-- | Execute the first action, unless any prefix argument is given,
+-- in which case the second action is chosen instead.
+--
+-- > action1 `orIfPrefixed` action2
+orIfPrefixed :: X a -> X a -> X a
+orIfPrefixed xa xb = withPrefixArgument $ bool xa xb . isPrefixRaw
 
 -- | Format the prefix using the Emacs convetion for use in a
 -- statusbar, like xmobar.

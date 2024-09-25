@@ -35,7 +35,7 @@ import XMonad.Util.Types (Direction2D(..))
 import XMonad.Util.XUtils
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.WindowNavigation
 --
@@ -45,9 +45,9 @@ import XMonad.Util.XUtils
 -- > myLayout = windowNavigation (Tall 1 (3/100) (1/2)) ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the 'layoutHook' see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the 'layoutHook' see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- In keybindings:
 --
@@ -62,7 +62,7 @@ import XMonad.Util.XUtils
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 
 data MoveWindowToWindow a = MoveWindowToWindow a a deriving ( Read, Show)
@@ -75,10 +75,10 @@ instance Message Navigate
 -- | Used with 'configurableNavigation' to specify how to show reachable windows'
 -- borders. You cannot create 'WNConfig' values directly; use 'def' or one of the following
 -- three functions to create one.
--- 
+--
 -- 'def', and 'windowNavigation', uses the focused border color at 40% brightness, as if
 -- you had specified
--- 
+--
 -- > configurableNavigation (navigateBrightness 0.4)
 data WNConfig =
     WNC { brightness    :: Maybe Double -- Indicates a fraction of the focus color.

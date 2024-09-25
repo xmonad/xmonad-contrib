@@ -36,7 +36,7 @@ import qualified Data.Map as M
     ( insert, delete, Map, lookup, empty, filter )
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@ file:
+-- You can use this module with the following in your @xmonad.hs@ file:
 --
 -- > import XMonad.Actions.LinkWorkspaces
 --
@@ -58,7 +58,7 @@ import qualified Data.Map as M
 -- >       , (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]]
 --
 -- For detailed instructions on editing your key bindings, see
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data MessageConfig = MessageConfig {  messageFunction :: ScreenId -> [Char] -> [Char] -> [Char] -> X()
                     , foreground :: [Char]

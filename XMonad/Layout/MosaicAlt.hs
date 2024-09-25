@@ -38,7 +38,7 @@ import XMonad.Prelude ( sortBy )
 import Data.Ratio
 
 -- $usage
--- You can use this module with the following in your @~\/.xmonad\/xmonad.hs@:
+-- You can use this module with the following in your @xmonad.hs@:
 --
 -- > import XMonad.Layout.MosaicAlt
 -- > import qualified Data.Map as M
@@ -48,9 +48,9 @@ import Data.Ratio
 -- > myLayout = MosaicAlt M.empty ||| Full ||| etc..
 -- > main = xmonad def { layoutHook = myLayout }
 --
--- For more detailed instructions on editing the layoutHook see:
---
--- "XMonad.Doc.Extending#Editing_the_layout_hook"
+-- For more detailed instructions on editing the layoutHook see
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
+-- "XMonad.Doc.Extending#Editing_the_layout_hook".
 --
 -- In the key-bindings, do something like:
 --
@@ -63,7 +63,7 @@ import Data.Ratio
 --
 -- For detailed instruction on editing the key binding see:
 --
--- "XMonad.Doc.Extending#Editing_key_bindings".
+-- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
 data HandleWindowAlt =
     ShrinkWindowAlt Window
