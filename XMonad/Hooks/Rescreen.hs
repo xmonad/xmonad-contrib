@@ -16,10 +16,12 @@ module XMonad.Hooks.Rescreen (
     addAfterRescreenHook,
     addRandrChangeHook,
     setRescreenWorkspacesHook,
+    setRescreenDelay,
     RescreenConfig(..),
     rescreenHook,
     ) where
 
+import Control.Concurrent (threadDelay)
 import Graphics.X11.Xrandr
 import XMonad
 import XMonad.Prelude
@@ -61,6 +63,7 @@ data RescreenConfig = RescreenConfig
     { afterRescreenHook :: X () -- ^ hook to invoke after 'rescreen'
     , randrChangeHook :: X () -- ^ hook for other randr changes, e.g. (dis)connects
     , rescreenWorkspacesHook :: Last (X ()) -- ^ hook to invoke instead of 'rescreen'
+    , rescreenDelay :: Last Int -- ^ delay (in microseconds) to wait for events to settle
     }
 
 instance Default RescreenConfig where
@@ -68,10 +71,12 @@ instance Default RescreenConfig where
         { afterRescreenHook = mempty
         , randrChangeHook = mempty
         , rescreenWorkspacesHook = mempty
+        , rescreenDelay = mempty
         }
 
 instance Semigroup RescreenConfig where
-    RescreenConfig arh rch rwh <> RescreenConfig arh' rch' rwh' = RescreenConfig (arh <> arh') (rch <> rch') (rwh <> rwh')
+    RescreenConfig arh rch rwh rd <> RescreenConfig arh' rch' rwh' rd' =
+        RescreenConfig (arh <> arh') (rch <> rch') (rwh <> rwh') (rd <> rd')
 
 instance Monoid RescreenConfig where
     mempty = def
@@ -95,6 +100,10 @@ instance Monoid RescreenConfig where
 -- 'rescreenWorkspacesHook' allows tweaking the 'rescreen' implementation,
 -- to change the order workspaces are assigned to physical screens for
 -- example.
+--
+-- 'rescreenDelay' makes xmonad wait a bit for events to settle (after the
+-- first event is received) — useful when multiple @xrandr@ invocations are
+-- being used to change the screen layout.
 --
 -- Note that 'rescreenHook' is safe to use several times, 'rescreen' is still
 -- done just once and hooks are invoked in sequence (except
@@ -124,6 +133,10 @@ addRandrChangeHook h = rescreenHook def{ randrChangeHook = h }
 setRescreenWorkspacesHook :: X () -> XConfig l -> XConfig l
 setRescreenWorkspacesHook h = rescreenHook def{ rescreenWorkspacesHook = pure h }
 
+-- | Shortcut for 'rescreenHook'.
+setRescreenDelay :: Int -> XConfig l -> XConfig l
+setRescreenDelay d = rescreenHook def{ rescreenDelay = pure d }
+
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
 rescreenStartupHook :: X ()
 rescreenStartupHook = do
@@ -146,6 +159,7 @@ handleEvent :: Event -> X ()
 handleEvent e = XC.with $ \RescreenConfig{..} -> do
     -- Xorg emits several events after every change, clear them to prevent
     -- triggering the hook multiple times.
+    whenJust (getLast rescreenDelay) (io . threadDelay)
     moreConfigureEvents <- clearTypedWindowEvents (ev_window e) configureNotify
     _ <- clearTypedWindowRREvents (ev_window e) rrScreenChangeNotify
     -- If there were any ConfigureEvents, this is an actual screen
