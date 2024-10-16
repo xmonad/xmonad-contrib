@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ParallelListComp #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module       : XMonad.Actions.PhysicalScreens
@@ -28,10 +30,13 @@ module XMonad.Actions.PhysicalScreens (
                                       , getScreenIdAndRectangle
                                       , screenComparatorById
                                       , screenComparatorByRectangle
+                                      , rescreen
                                       ) where
 
-import XMonad
-import XMonad.Prelude (elemIndex, fromMaybe, on, sortBy)
+import Data.List.NonEmpty (nonEmpty)
+import XMonad hiding (rescreen)
+import XMonad.Prelude (elemIndex, fromMaybe, on, sortBy, NonEmpty((:|)))
+import qualified Data.List.NonEmpty as NE
 import qualified XMonad.StackSet as W
 
 {- $usage
@@ -146,3 +151,53 @@ onNextNeighbour sc = neighbourWindows sc 1
 -- | Apply operation on a WindowSet with the WorkspaceId of the previous screen in the physical order as parameter.
 onPrevNeighbour :: ScreenComparator -> (WorkspaceId -> WindowSet -> WindowSet) -> X ()
 onPrevNeighbour sc = neighbourWindows sc (-1)
+
+-- | An alternative to 'XMonad.Operations.rescreen' that avoids reshuffling
+-- the workspaces if the number of screens doesn't change and only their
+-- locations do. Useful for users of @xrandr --setmonitor@.
+--
+-- See 'XMonad.Hooks.Rescreen.setRescreenWorkspacesHook', which lets you
+-- replace the builtin rescreen handler.
+rescreen :: ScreenComparator -> X ()
+rescreen (ScreenComparator cmpScreen) = withDisplay (fmap nonEmpty . getCleanedScreenInfo) >>= \case
+    Nothing -> trace "getCleanedScreenInfo returned []"
+    Just xinescs -> windows $ rescreen' xinescs
+  where
+    rescreen' :: NonEmpty Rectangle -> WindowSet -> WindowSet
+    rescreen' xinescs ws
+      | NE.length xinescs == length (W.visible ws) + 1 = rescreenSameLength xinescs ws
+      | otherwise = rescreenCore xinescs ws
+
+    -- the 'XMonad.Operations.rescreen' implementation from core as a fallback
+    rescreenCore :: NonEmpty Rectangle -> WindowSet -> WindowSet
+    rescreenCore (xinesc :| xinescs) ws@W.StackSet{ W.current = v, W.visible = vs, W.hidden = hs } =
+        let (xs, ys) = splitAt (length xinescs) (map W.workspace vs ++ hs)
+            a = W.Screen (W.workspace v) 0 (SD xinesc)
+            as = zipWith3 W.Screen xs [1..] $ map SD xinescs
+        in  ws{ W.current = a
+              , W.visible = as
+              , W.hidden  = ys }
+
+    -- sort both existing screens and the screens we just got from xinerama
+    -- using cmpScreen, and then replace the rectangles in the WindowSet,
+    -- keeping the order of current/visible workspaces intact
+    rescreenSameLength :: NonEmpty Rectangle -> WindowSet -> WindowSet
+    rescreenSameLength xinescs ws =
+        ws{ W.current = (W.current ws){ W.screenDetail = SD newCurrentRect }
+          , W.visible = [ w{ W.screenDetail = SD r } | w <- W.visible ws | r <- newVisibleRects ]
+          }
+      where
+        undoSort =
+            NE.map fst $
+            NE.sortBy (cmpScreen `on` (getScreenIdAndRectangle . snd)) $
+            NE.zip ((0 :: Int) :| [1..]) $ -- add indices to undo the sort later
+            W.current ws :| W.visible ws
+        newCurrentRect :| newVisibleRects =
+            NE.map snd $ NE.sortWith fst $ NE.zip undoSort $ -- sort back into current:visible order
+            NE.map snd $ NE.sortBy cmpScreen $ NE.zip (0 :| [1..]) xinescs
+
+    -- TODO:
+    -- If number of screens before and after isn't the same, we might still
+    -- try to match locations and avoid changing the workspace for those that
+    -- didn't move, while making sure that the current workspace is still
+    -- visible somewhere.
