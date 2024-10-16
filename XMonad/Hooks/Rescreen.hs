@@ -101,21 +101,28 @@ instance Monoid RescreenConfig where
 -- 'rescreenWorkspacesHook', which has a replace rather than sequence
 -- semantics), also just once.
 rescreenHook :: RescreenConfig -> XConfig l -> XConfig l
-rescreenHook = XC.once $ \c -> c
-    { startupHook = startupHook c <> rescreenStartupHook
-    , handleEventHook = handleEventHook c <> rescreenEventHook }
+rescreenHook = XC.once hook . catchUserCode
+  where
+    hook c = c
+        { startupHook = startupHook c <> rescreenStartupHook
+        , handleEventHook = handleEventHook c <> rescreenEventHook }
+    catchUserCode rc@RescreenConfig{..} = rc
+        { afterRescreenHook = userCodeDef () afterRescreenHook
+        , randrChangeHook = userCodeDef () randrChangeHook
+        , rescreenWorkspacesHook = flip catchX rescreen <$> rescreenWorkspacesHook
+        }
 
 -- | Shortcut for 'rescreenHook'.
 addAfterRescreenHook :: X () -> XConfig l -> XConfig l
-addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = userCodeDef () h }
+addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = h }
 
 -- | Shortcut for 'rescreenHook'.
 addRandrChangeHook :: X () -> XConfig l -> XConfig l
-addRandrChangeHook h = rescreenHook def{ randrChangeHook = userCodeDef () h }
+addRandrChangeHook h = rescreenHook def{ randrChangeHook = h }
 
 -- | Shortcut for 'rescreenHook'.
 setRescreenWorkspacesHook :: X () -> XConfig l -> XConfig l
-setRescreenWorkspacesHook h = rescreenHook def{ rescreenWorkspacesHook = pure (catchX h rescreen) }
+setRescreenWorkspacesHook h = rescreenHook def{ rescreenWorkspacesHook = pure h }
 
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
 rescreenStartupHook :: X ()
