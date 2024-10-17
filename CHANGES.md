@@ -430,7 +430,8 @@
   * `XMonad.Config.{Arossato,Dmwit,Droundy,Monad,Prime,Saegesser,Sjanssen}`
 
     - Deprecated all of these modules.  The user-specific configuration
-      modules may still be found [on the website].
+      modules may still be found [on the
+      website](https://xmonad.org/configurations.html)
 
   * `XMonad.Util.NamedScratchpad`
 
@@ -450,8 +451,6 @@
 
     - Deprecated `urgencyConfig`; use `def` from the new `Default`
       instance of `UrgencyConfig` instead.
-
-[on the website]: https://xmonad.org/configurations.html
 
 ### New Modules
 
@@ -527,7 +526,8 @@
       `todo +d 12 02 2024` work.
 
     - Added the ability to specify alphabetic (`#A`, `#B`, and `#C`)
-      [priorities] at the end of the input note.
+      [priorities](https://orgmode.org/manual/Priorities.html) at the end of
+      the input note.
 
   * `XMonad.Prompt.Unicode`
 
@@ -621,7 +621,8 @@
 
     - Modified `mkAbsolutePath` to support a leading environment variable, so
       things like `$HOME/NOTES` work. If you want more general environment
-      variable support, comment on [this PR].
+      variable support, comment on [this
+      PR](https://github.com/xmonad/xmonad-contrib/pull/744)
 
   * `XMonad.Util.XUtils`
 
@@ -659,9 +660,6 @@
   * `XMonad.Hooks.UrgencyHook`
 
     - Added a `Default` instance for `UrgencyConfig` and `DzenUrgencyHook`.
-
-[this PR]: https://github.com/xmonad/xmonad-contrib/pull/744
-[priorities]: https://orgmode.org/manual/Priorities.html
 
 ### Other changes
 
@@ -2188,8 +2186,8 @@
 
   * `XMonad.Prompt.Pass`
 
-    This module provides 3 `XMonad.Prompt`s to ease passwords
-    manipulation (generate, read, remove) via [pass][].
+    This module provides 3 `XMonad.Prompt`s to ease passwords manipulation
+    (generate, read, remove) via [pass](http://www.passwordstore.org/).
 
   * `XMonad.Util.RemoteWindows`
 
@@ -2265,5 +2263,3 @@
 ## See Also
 
 <https://wiki.haskell.org/Xmonad/Notable_changes_since_0.8>
-
-[pass]: http://www.passwordstore.org/
