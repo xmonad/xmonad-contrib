@@ -11,6 +11,19 @@
       would be deleted when switching to a dynamic project.
     - Improved documentation on how to close a project.
 
+  * `XMonad.Hooks.Rescreen`
+
+    - Allow overriding the `rescreen` operation itself. Additionally, the
+      `XMonad.Actions.PhysicalScreens` module now provides an alternative
+      implementation of `rescreen` that avoids reshuffling the workspaces if
+      the number of screens doesn't change and only their locations do (which
+      is especially common if one uses `xrandr --setmonitor` to split an
+      ultra-wide display in two).
+
+    - Added an optional delay when waiting for events to settle. This may be
+      used to avoid flicker and unnecessary workspace reshuffling if multiple
+      `xrandr` commands are used to reconfigure the display layout.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
