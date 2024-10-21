@@ -15,10 +15,13 @@ module XMonad.Hooks.Rescreen (
     -- $usage
     addAfterRescreenHook,
     addRandrChangeHook,
+    setRescreenWorkspacesHook,
+    setRescreenDelay,
     RescreenConfig(..),
     rescreenHook,
     ) where
 
+import Control.Concurrent (threadDelay)
 import Graphics.X11.Xrandr
 import XMonad
 import XMonad.Prelude
@@ -59,16 +62,21 @@ import qualified XMonad.Util.ExtensibleConf as XC
 data RescreenConfig = RescreenConfig
     { afterRescreenHook :: X () -- ^ hook to invoke after 'rescreen'
     , randrChangeHook :: X () -- ^ hook for other randr changes, e.g. (dis)connects
+    , rescreenWorkspacesHook :: Last (X ()) -- ^ hook to invoke instead of 'rescreen'
+    , rescreenDelay :: Last Int -- ^ delay (in microseconds) to wait for events to settle
     }
 
 instance Default RescreenConfig where
     def = RescreenConfig
         { afterRescreenHook = mempty
         , randrChangeHook = mempty
+        , rescreenWorkspacesHook = mempty
+        , rescreenDelay = mempty
         }
 
 instance Semigroup RescreenConfig where
-    RescreenConfig arh rch <> RescreenConfig arh' rch' = RescreenConfig (arh <> arh') (rch <> rch')
+    RescreenConfig arh rch rwh rd <> RescreenConfig arh' rch' rwh' rd' =
+        RescreenConfig (arh <> arh') (rch <> rch') (rwh <> rwh') (rd <> rd')
 
 instance Monoid RescreenConfig where
     mempty = def
@@ -89,20 +97,45 @@ instance Monoid RescreenConfig where
 -- 'randrChangeHook' may be used to automatically trigger xrandr (or perhaps
 -- autorandr) when outputs are (dis)connected.
 --
+-- 'rescreenWorkspacesHook' allows tweaking the 'rescreen' implementation,
+-- to change the order workspaces are assigned to physical screens for
+-- example.
+--
+-- 'rescreenDelay' makes xmonad wait a bit for events to settle (after the
+-- first event is received) — useful when multiple @xrandr@ invocations are
+-- being used to change the screen layout.
+--
 -- Note that 'rescreenHook' is safe to use several times, 'rescreen' is still
--- done just once and hooks are invoked in sequence, also just once.
+-- done just once and hooks are invoked in sequence (except
+-- 'rescreenWorkspacesHook', which has a replace rather than sequence
+-- semantics), also just once.
 rescreenHook :: RescreenConfig -> XConfig l -> XConfig l
-rescreenHook = XC.once $ \c -> c
-    { startupHook = startupHook c <> rescreenStartupHook
-    , handleEventHook = handleEventHook c <> rescreenEventHook }
+rescreenHook = XC.once hook . catchUserCode
+  where
+    hook c = c
+        { startupHook = startupHook c <> rescreenStartupHook
+        , handleEventHook = handleEventHook c <> rescreenEventHook }
+    catchUserCode rc@RescreenConfig{..} = rc
+        { afterRescreenHook = userCodeDef () afterRescreenHook
+        , randrChangeHook = userCodeDef () randrChangeHook
+        , rescreenWorkspacesHook = flip catchX rescreen <$> rescreenWorkspacesHook
+        }
 
 -- | Shortcut for 'rescreenHook'.
 addAfterRescreenHook :: X () -> XConfig l -> XConfig l
-addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = userCodeDef () h }
+addAfterRescreenHook h = rescreenHook def{ afterRescreenHook = h }
 
 -- | Shortcut for 'rescreenHook'.
 addRandrChangeHook :: X () -> XConfig l -> XConfig l
-addRandrChangeHook h = rescreenHook def{ randrChangeHook = userCodeDef () h }
+addRandrChangeHook h = rescreenHook def{ randrChangeHook = h }
+
+-- | Shortcut for 'rescreenHook'.
+setRescreenWorkspacesHook :: X () -> XConfig l -> XConfig l
+setRescreenWorkspacesHook h = rescreenHook def{ rescreenWorkspacesHook = pure h }
+
+-- | Shortcut for 'rescreenHook'.
+setRescreenDelay :: Int -> XConfig l -> XConfig l
+setRescreenDelay d = rescreenHook def{ rescreenDelay = pure d }
 
 -- | Startup hook to listen for @RRScreenChangeNotify@ events.
 rescreenStartupHook :: X ()
@@ -126,13 +159,14 @@ handleEvent :: Event -> X ()
 handleEvent e = XC.with $ \RescreenConfig{..} -> do
     -- Xorg emits several events after every change, clear them to prevent
     -- triggering the hook multiple times.
+    whenJust (getLast rescreenDelay) (io . threadDelay)
     moreConfigureEvents <- clearTypedWindowEvents (ev_window e) configureNotify
     _ <- clearTypedWindowRREvents (ev_window e) rrScreenChangeNotify
     -- If there were any ConfigureEvents, this is an actual screen
     -- configuration change, so rescreen and fire rescreenHook. Otherwise,
     -- this is just a connect/disconnect, fire randrChangeHook.
     if ev_event_type e == configureNotify || moreConfigureEvents
-        then rescreen >> afterRescreenHook
+        then fromMaybe rescreen (getLast rescreenWorkspacesHook) >> afterRescreenHook
         else randrChangeHook
 
 -- | Remove all X events of a given window and type from the event queue,
