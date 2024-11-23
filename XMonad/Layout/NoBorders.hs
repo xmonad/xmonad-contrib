@@ -143,10 +143,8 @@ data ConfigurableBorder p w = ConfigurableBorder
 
 -- | Only necessary with 'BorderMessage' - remove non-existent windows from the
 -- 'alwaysHidden' or 'neverHidden' lists.
+{-# DEPRECATED borderEventHook "No longer needed." #-}
 borderEventHook :: Event -> X All
-borderEventHook DestroyWindowEvent{ ev_window = w } = do
-    broadcastMessage $ ResetBorder w
-    return $ All True
 borderEventHook _ = return $ All True
 
 instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder p) Window where
@@ -167,14 +165,17 @@ instance (Read p, Show p, SetsAmbiguous p) => LayoutModifier (ConfigurableBorder
             in  ConfigurableBorder gh <$> consNewIf ah (not b)
                                         <*> consNewIf nh b
                                         <*> pure ch
-        | Just (ResetBorder w) <- fromMessage m =
+        | Just (ResetBorder w) <- fromMessage m = resetBorder w
+        | Just DestroyWindowEvent { ev_window = w } <- fromMessage m = resetBorder w
+        | otherwise = Nothing
+      where
+        resetBorder w =
             let delete' e l = if e `elem` l then (True,delete e l) else (False,l)
                 (da,ah') = delete' w ah
                 (dn,nh') = delete' w nh
             in  if da || dn
                 then Just cb { alwaysHidden = ah', neverHidden = nh' }
                 else Nothing
-        | otherwise = Nothing
 
 -- | SetsAmbiguous allows custom actions to generate lists of windows that
 -- should not have borders drawn through 'ConfigurableBorder'
