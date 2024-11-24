@@ -24,6 +24,13 @@
       used to avoid flicker and unnecessary workspace reshuffling if multiple
       `xrandr` commands are used to reconfigure the display layout.
 
+  * `XMonad.Layout.NoBorders`
+
+    - It's no longer necessary to use `borderEventHook` to garbage collect
+      `alwaysHidden`/`neverHidden` lists. The layout listens to
+      `DestroyWindowEvent` messages instead, which are broadcast to layouts
+      since xmonad v0.17.0.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
