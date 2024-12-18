@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, FunctionalDependencies, KindSignatures, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
