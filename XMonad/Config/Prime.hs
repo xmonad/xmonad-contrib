@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK not-home #-}
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, FunctionalDependencies, KindSignatures, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
