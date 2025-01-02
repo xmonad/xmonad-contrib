@@ -3,10 +3,10 @@
 -- |
 -- Module      :  XMonad.Hooks.ScreenCorners
 -- Description :  Run X () actions by touching the edge of your screen with your mouse.
--- Copyright   :  (c) 2009 Nils Schweinsberg, 2015 Evgeny Kurnevsky, 2024 Yuanle Song
+-- Copyright   :  (c) 2009-2025 Nils Schweinsberg, 2015 Evgeny Kurnevsky, 2024 Yuanle Song
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  Nils Schweinsberg <mail@n-sch.de>
+-- Maintainer  :  Nils Schweinsberg <mail@nils.cc>
 -- Stability   :  unstable
 -- Portability :  unportable
 --

@@ -2,10 +2,10 @@
 -- |
 -- Module      :  XMonad.Actions.OnScreen
 -- Description :  Control workspaces on different screens (in xinerama mode).
--- Copyright   :  (c) 2009 Nils Schweinsberg
+-- Copyright   :  (c) 2009-2025 Nils Schweinsberg
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  Nils Schweinsberg <mail@n-sch.de>
+-- Maintainer  :  Nils Schweinsberg <mail@nils.cc>
 -- Stability   :  unstable
 -- Portability :  unportable
 --
