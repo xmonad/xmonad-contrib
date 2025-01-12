@@ -419,6 +419,7 @@ infixl 4 `removeMouseBindings`
 -- > <XF86_Next_VMode>
 -- > <XF86_Prev_VMode>
 -- > <XF86Bluetooth>
+-- > <XF86WLAN>
 
 mkKeymap :: XConfig l -> [(String, X ())] -> M.Map (KeyMask, KeySym) (X ())
 mkKeymap c = M.fromList . mkSubmaps . readKeymap c

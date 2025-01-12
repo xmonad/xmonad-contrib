@@ -4,6 +4,10 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Util.EZConfig`
+
+    - Added `XF86WLAN` to the list of supported special keys.
+
   * `XMonad.Actions.DynamicProjects`
 
     - No longer autodelete projects when `switchProject` is called from

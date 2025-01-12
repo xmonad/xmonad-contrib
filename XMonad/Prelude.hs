@@ -472,6 +472,7 @@ multimediaKeys = filter ((/= noSymbol) . snd) . map (id &&& stringToKeysym) $
   , "XF86_Next_VMode"
   , "XF86_Prev_VMode"
   , "XF86Bluetooth"
+  , "XF86WLAN"
   ]
 
 -- | The specialized 'W.Screen' derived from 'WindowSet'.
