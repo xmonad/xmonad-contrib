@@ -2,6 +2,10 @@
 
 ## _unreleased_
 
+### Breaking Changes
+
+  * Drop support for GHC 8.6
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Util.EZConfig`
