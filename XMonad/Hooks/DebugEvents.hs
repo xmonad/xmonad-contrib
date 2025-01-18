@@ -33,7 +33,6 @@ import           XMonad.Util.DebugWindow                     (debugWindow)
 -- import           Graphics.X11.Xlib.Extras.GetAtomName        (getAtomName)
 
 import           Control.Exception                    as E
-import           Control.Monad.Fail
 import           Control.Monad.State
 import           Control.Monad.Reader
 import           Codec.Binary.UTF8.String
