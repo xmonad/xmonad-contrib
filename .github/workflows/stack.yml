@@ -12,10 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - resolver: lts-14  # GHC 8.6
-            yaml: stack.yaml
-          - resolver: lts-14  # GHC 8.6
-            yaml: stack-master.yaml
           - resolver: lts-16  # GHC 8.8
             yaml: stack-master.yaml
           - resolver: lts-18  # GHC 8.10
