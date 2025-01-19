@@ -39,6 +39,17 @@
       `DestroyWindowEvent` messages instead, which are broadcast to layouts
       since xmonad v0.17.0.
 
+  * `XMonad.Hooks.ScreenCorners`
+
+    - Screencorners were only possible at the edge of the screen canvas not
+      the edges of monitors. This worked on single monitor setups because there
+      the screen canvas edges and the monitor edges fall into the some place.
+      This is not the case in multi monitor setups and therefore how corners/
+      edges were only possible on the outer edges/ corners of the outmost
+      monitors if those monitors were not shifted in the y axis.
+      With `addMonitorCorner` and `addMonitorCorners` it is now possible to add
+      hot cornern for each corner of a monitor.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
