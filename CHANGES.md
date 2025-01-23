@@ -39,6 +39,12 @@
       `DestroyWindowEvent` messages instead, which are broadcast to layouts
       since xmonad v0.17.0.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - Added a customization option for the action that gets executed when
+      a client sends a **_NET_CURRENT_DESKTOP** request. It is now possible
+      to change it using the `setEwmhSwitchDesktopHook`.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
