@@ -45,6 +45,11 @@
       a client sends a **_NET_CURRENT_DESKTOP** request. It is now possible
       to change it using the `setEwmhSwitchDesktopHook`.
 
+  * `XMonad.Layout.IndependentScreens`
+
+    - Added `focusWorkspace` for focusing workspaces on the screen that they
+      belong to.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
