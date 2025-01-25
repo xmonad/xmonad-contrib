@@ -27,7 +27,7 @@ module XMonad.Layout.IndependentScreens (
     whenCurrentOn,
     countScreens,
     workspacesOn,
-    workspaceOnScreen, focusWindow', focusScreen, nthWorkspace, withWspOnScreen,
+    workspaceOnScreen, focusWindow', focusScreen, focusWorkspace, nthWorkspace, withWspOnScreen,
     -- * Converting between virtual and physical workspaces
     -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
@@ -40,6 +40,7 @@ import XMonad
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
+import XMonad.Actions.OnScreen (viewOnScreen)
 
 -- $usage
 -- You can use this module with the following in your @xmonad.hs@:
@@ -162,6 +163,11 @@ focusWindow' window ws
 -- | Focus a given screen.
 focusScreen :: ScreenId -> WindowSet -> WindowSet
 focusScreen screenId = withWspOnScreen screenId W.view
+
+-- | Focus the given workspace on the correct Xinerama screen.
+-- An example usage can be found at `XMonad.Hooks.EwmhDesktops.setEwmhSwitchDesktopHook`
+focusWorkspace :: WorkspaceId -> WindowSet -> WindowSet
+focusWorkspace workspaceId = viewOnScreen (unmarshallS workspaceId) workspaceId
 
 -- | Get the nth virtual workspace
 nthWorkspace :: Int -> X (Maybe VirtualWorkspace)
