@@ -116,7 +116,7 @@ data CircleExMsg
   = Rotate !Double            -- ^ Rotate secondary windows by specific angle
   | IncStackRatio !Rational   -- ^ Increase (or decrease, with negative value) sizes of secondary windows
   | IncMultiplier !Rational   -- ^ Increase 'cMultiplier'.
-  deriving (Eq, Show, Typeable)
+  deriving (Eq, Show)
 
 instance Message CircleExMsg
 

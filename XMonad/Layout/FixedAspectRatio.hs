@@ -158,6 +158,5 @@ data ManageAspectRatio =
     FixRatio Rational Window    -- ^ Set the aspect ratio for the window
   | ResetRatio Window           -- ^ Remove the aspect ratio for the window
   | ToggleRatio Rational Window -- ^ Toggle the reatio
-  deriving Typeable
 
 instance Message ManageAspectRatio
