@@ -27,7 +27,7 @@ module XMonad.Layout.IndependentScreens (
     whenCurrentOn,
     countScreens,
     workspacesOn,
-    workspaceOnScreen, focusWindow', focusScreen, focusWorkspace, nthWorkspace, withWspOnScreen,
+    workspaceOnScreen, focusWindow', doFocus', focusScreen, focusWorkspace, nthWorkspace, withWspOnScreen,
     -- * Converting between virtual and physical workspaces
     -- $converting
     marshall, unmarshall, unmarshallS, unmarshallW,
@@ -159,6 +159,11 @@ focusWindow' window ws
   | otherwise = case W.findTag window ws of
       Just tag -> W.focusWindow window $ focusScreen (unmarshallS tag) ws
       Nothing -> ws
+
+-- | ManageHook to focus a window, switching workspace on the correct Xinerama screen if neccessary.
+-- Useful in 'XMonad.Hooks.EwmhDesktops.setActivateHook' when using this module.
+doFocus' :: ManageHook
+doFocus' = doF . focusWindow' =<< ask
 
 -- | Focus a given screen.
 focusScreen :: ScreenId -> WindowSet -> WindowSet
