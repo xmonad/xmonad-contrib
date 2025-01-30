@@ -309,7 +309,7 @@ nsSingleScratchpadPerWorkspace :: NamedScratchpads -> X ()
 nsSingleScratchpadPerWorkspace scratches =
     nsHideOnCondition $ \ _lastFocus curFocus winSet hideScratch -> do
         allScratchesButCurrent <-
-            filterM (liftA2 (<||>) (pure . (/= curFocus)) (`isNSP` scratches))
+            filterM (liftA2 (<&&>) (pure . (/= curFocus)) (`isNSP` scratches))
                     (W.index winSet)
         whenX (isNSP curFocus scratches) $
             for_ allScratchesButCurrent hideScratch
