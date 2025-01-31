@@ -238,8 +238,8 @@ setEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = f }
 -- >   [ className =? "Google-chrome" <||> className =? "google-chrome" -?> doAskUrgent
 -- >   , pure True -?> doFocus ]
 --
--- See "XMonad.ManageHook", "XMonad.Hooks.ManageHelpers" and "XMonad.Hooks.Focus"
--- for functions that can be useful here.
+-- See "XMonad.ManageHook", "XMonad.Hooks.ManageHelpers", "XMonad.Hooks.Focus" and
+-- "XMonad.Layout.IndependentScreens" for functions that can be useful here.
 
 -- | Set (replace) the hook which is invoked when a client sends a
 -- @_NET_ACTIVE_WINDOW@ request to activate a window. The default is 'doFocus'
