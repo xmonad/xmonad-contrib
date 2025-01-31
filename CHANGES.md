@@ -50,6 +50,11 @@
     - Added `focusWorkspace` for focusing workspaces on the screen that they
       belong to.
 
+  * `XMonad.Util.NamedScratchPad`
+
+    - Fix unintended window hiding in `nsSingleScratchpadPerWorkspace`.
+      Only hide the previously active scratchpad.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
