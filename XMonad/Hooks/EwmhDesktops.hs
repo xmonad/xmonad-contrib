@@ -54,6 +54,9 @@ module XMonad.Hooks.EwmhDesktops (
     -- $customManageDesktopViewport
     disableEwmhManageDesktopViewport,
 
+    -- $customHiddenWorkspaceMapper
+    setEwmhHiddenWorkspaceToScreenMapping,
+
     -- * Standalone hooks (deprecated)
     ewmhDesktopsStartup,
     ewmhDesktopsLogHook,
@@ -122,6 +125,8 @@ data EwmhDesktopsConfig =
             -- ^ configurable action for handling _NET_CURRENT_DESKTOP
         , manageDesktopViewport :: Bool
             -- ^ manage @_NET_DESKTOP_VIEWPORT@?
+        , hiddenWorkspaceToScreen :: WindowSet -> WindowSpace -> WindowScreen
+            -- ^ map hidden workspaces to screens for @_NET_DESKTOP_VIEWPORT@
         }
 
 instance Default EwmhDesktopsConfig where
@@ -132,6 +137,8 @@ instance Default EwmhDesktopsConfig where
         , fullscreenHooks = (doFullFloat, doSink)
         , switchDesktopHook = W.view
         , manageDesktopViewport = True
+        -- Hidden workspaces are mapped to the current screen by default.
+        , hiddenWorkspaceToScreen = \winset _ -> W.current winset
         }
 
 
@@ -316,6 +323,35 @@ disableEwmhManageDesktopViewport :: XConfig l -> XConfig l
 disableEwmhManageDesktopViewport = XC.modifyDef $ \c -> c{ manageDesktopViewport = False }
 
 
+-- $customHiddenWorkspaceMapper
+--
+-- Mapping the hidden workspaces to the current screen is a good default behavior,
+-- but it makes the assumption that workspaces don't belong to a sepcific screen.
+-- If the default behaviour is undesired, for example when using "XMonad.Layout.IndependentScreens",
+-- it can be customized.
+--
+-- The following example demonstrates a way to configure the mapping when using "XMonad.Layout.IndependentScreens":
+--
+-- > import XMonad.Layout.IndependentScreens
+-- >
+-- > customMapper :: WindowSet -> (WindowSpace -> WindowScreen)
+-- > customMapper winset (Workspace wsid _ _) = fromMaybe (W.current winset) screenOnMonitor
+-- >  where
+-- >    screenId = unmarshallS wsid
+-- >    screenOnMonitor :: Maybe WindowScreen
+-- >    screenOnMonitor = find ((screenId ==) . W.screen) (W.current winset : W.visible winset)
+-- >
+-- >
+-- > main = xmonad $ ... . setEwmhHiddenWorkspaceToScreenMapping customMapper . ewmh . ... $ def{...}
+
+-- | Set (replace) the function responsible for mapping the hidden workspaces to screens.
+setEwmhHiddenWorkspaceToScreenMapping :: (WindowSet -> (WindowSpace -> WindowScreen))
+                                        -- ^ Function that given the current WindowSet
+                                        -- produces a function to maps a (hidden) workspace to a screen.
+                                        -> XConfig l -> XConfig l
+setEwmhHiddenWorkspaceToScreenMapping mapper = XC.modifyDef $ \c -> c{ hiddenWorkspaceToScreen = mapper }
+
+
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
 {-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
 ewmhDesktopsStartup :: X ()
@@ -390,7 +426,7 @@ whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
 whenChanged = whenX . XS.modified . const
 
 ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
-ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename, manageDesktopViewport} = withWindowSet $ \s -> do
+ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename, manageDesktopViewport, hiddenWorkspaceToScreen} = withWindowSet $ \s -> do
     sort' <- workspaceSort
     let ws = sort' $ W.workspaces s
 
@@ -455,18 +491,20 @@ ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename, manageDe
     when manageDesktopViewport $ do
         let visibleScreens = W.current s : W.visible s
             currentTags    = map (W.tag . W.workspace) visibleScreens
-        whenChanged (MonitorTags currentTags) $ mkViewPorts s (map W.tag ws)
+        whenChanged (MonitorTags currentTags) $ mkViewPorts s hiddenWorkspaceToScreen (map W.tag ws)
 
 -- | Create the viewports from the current 'WindowSet' and a list of
 -- already sorted workspace IDs.
-mkViewPorts :: WindowSet -> [WorkspaceId] -> X ()
-mkViewPorts winset = setDesktopViewport . concat . mapMaybe (viewPorts M.!?)
+mkViewPorts :: WindowSet -> (WindowSet -> WindowSpace -> WindowScreen) -> [WorkspaceId] -> X ()
+mkViewPorts winset hiddenWorkspaceMapper = setDesktopViewport . concat . mapMaybe (viewPorts M.!?)
   where
     foc = W.current winset
-    -- Hidden workspaces are mapped to the current screen's viewport.
     viewPorts :: M.Map WorkspaceId [Position]
     viewPorts = M.fromList $ map mkVisibleViewPort (foc : W.visible winset)
-                          ++ map (mkViewPort foc)  (W.hidden winset)
+                          ++ map (uncurry mkViewPort) hiddenWorkspacesWithScreens
+
+    hiddenWorkspacesWithScreens :: [(WindowScreen,WindowSpace)]
+    hiddenWorkspacesWithScreens = map (\x -> (hiddenWorkspaceMapper winset x, x)) (W.hidden winset)
 
     mkViewPort :: WindowScreen -> WindowSpace -> (WorkspaceId, [Position])
     mkViewPort scr w = (W.tag w, mkPos scr)
