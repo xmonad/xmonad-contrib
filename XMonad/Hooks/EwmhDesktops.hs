@@ -335,11 +335,10 @@ disableEwmhManageDesktopViewport = XC.modifyDef $ \c -> c{ manageDesktopViewport
 -- > import XMonad.Layout.IndependentScreens
 -- >
 -- > customMapper :: WindowSet -> (WindowSpace -> WindowScreen)
--- > customMapper winset (Workspace wsid _ _) = fromMaybe (W.current winset) screenOnMonitor
+-- > customMapper winset (Workspace wsid _ _) = fromMaybe (W.current winset) maybeMappedScreen
 -- >  where
 -- >    screenId = unmarshallS wsid
--- >    screenOnMonitor :: Maybe WindowScreen
--- >    screenOnMonitor = find ((screenId ==) . W.screen) (W.current winset : W.visible winset)
+-- >    maybeMappedScreen = screenOnMonitor screenId winset
 -- >
 -- >
 -- > main = xmonad $ ... . setEwmhHiddenWorkspaceToScreenMapping customMapper . ewmh . ... $ def{...}

@@ -54,6 +54,7 @@
       belong to.
     - Added `doFocus'` hook as an alternative for `doFocus` when using
       IndependentScreens.
+    - Added `screenOnMonitor` for getting the active screen for a monitor.
 
   * `XMonad.Util.NamedScratchPad`
 
