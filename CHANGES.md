@@ -10,7 +10,7 @@
 
   * `XMonad.Util.EZConfig`
 
-    - Added `XF86WLAN` to the list of supported special keys.
+    - Added `XF86WLAN` and `Menu` to the list of supported special keys.
 
   * `XMonad.Actions.DynamicProjects`
 
