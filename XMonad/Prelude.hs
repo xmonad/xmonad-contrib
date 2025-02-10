@@ -313,6 +313,7 @@ specialKeys =
   , ("KP_7"       , xK_KP_7)
   , ("KP_8"       , xK_KP_8)
   , ("KP_9"       , xK_KP_9)
+  , ("Menu"       , xK_Menu)
   ]
 
 -- | List of multimedia keys. If Xlib does not know about some keysym
