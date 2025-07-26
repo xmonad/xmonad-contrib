@@ -69,7 +69,8 @@ getSelection = io $ do
     result <- if ev_event_type ev == selectionNotify
                  then do res <- getWindowProperty8 dpy clp win
                          return $ decode . maybe [] (map fromIntegral) $ res
-                 else destroyWindow dpy win >> return ""
+                 else return ""
+    destroyWindow dpy win
     closeDisplay dpy
     return result
 
