@@ -8,6 +8,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Util.XSelection`
+
+    - Added `getClipboard` to query the X clipboard.
+      Also added `getSecondarySelection`.
+
   * `XMonad.Util.EZConfig`
 
     - Added `XF86WLAN` and `Menu` to the list of supported special keys.
