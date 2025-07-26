@@ -217,8 +217,8 @@ rotUnfocusedDown = windows . W.modify' $ rotUnfocused' rotDown
 
 -- | The unfocused rotation on a stack.
 rotUnfocused' :: ([a] -> [a]) -> W.Stack a -> W.Stack a
-rotUnfocused' _ s@(W.Stack _ [] []) = s
-rotUnfocused' f s@(W.Stack _ [] _ ) = rotSlaves' f s                 -- Master has focus
-rotUnfocused' f   (W.Stack t ls rs) = W.Stack t (reverse revls') rs' -- otherwise
-    where  (master :| revls) = NE.reverse (let l:ll = ls in l :| ll)
+rotUnfocused' _ s@(W.Stack _ []        []) = s
+rotUnfocused' f s@(W.Stack _ []        _ ) = rotSlaves' f s                 -- Master has focus
+rotUnfocused' f   (W.Stack t ls@(l:ll) rs) = W.Stack t (reverse revls') rs' -- otherwise
+    where  (master :| revls) = NE.reverse (l :| ll)
            (revls',rs') = splitAt (length ls) (f $ master:revls ++ rs)
