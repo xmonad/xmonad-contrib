@@ -59,7 +59,12 @@ import Codec.Binary.UTF8.String (decode)
    Future improvements for XSelection:
 
    * More elaborate functionality: Emacs' registers are nice; if you
-      don't know what they are, see <http://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html#Registers> -}
+      don't know what they are, see <http://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html#Registers>
+
+   WARNING: these functions are fundamentally implemented incorrectly and may,
+   among other possible failure modes, deadlock or crash. For details, see
+   <http://code.google.com/p/xmonad/issues/detail?id=573>.
+   (These errors are generally very rare in practice, but still exist.) -}
 
 -- Query the content of a selection in X
 getSelectionNamed :: String -> IO String
@@ -89,28 +94,16 @@ getSelectionNamed sel_name = do
 
 -- | Returns a String corresponding to the current mouse selection in X;
 --   if there is none, an empty string is returned.
---
--- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
--- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
--- (These errors are generally very rare in practice, but still exist.)
 getSelection :: MonadIO m => m String
 getSelection = io $ getSelectionNamed "PRIMARY"
 
 -- | Returns a String corresponding to the current clipboard in X;
 --   if there is none, an empty string is returned.
---
--- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
--- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
--- (These errors are generally very rare in practice, but still exist.)
 getClipboard :: MonadIO m => m String
 getClipboard = io $ getSelectionNamed "CLIPBOARD"
 
 -- | Returns a String corresponding to the secondary selection in X;
 --   if there is none, an empty string is returned.
---
--- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
--- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
--- (These errors are generally very rare in practice, but still exist.)
 getSecondarySelection :: MonadIO m => m String
 getSecondarySelection = io $ getSelectionNamed "SECONDARY"
 
