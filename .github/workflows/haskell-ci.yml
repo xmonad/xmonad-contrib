@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.19.20250506
+# version: 0.19.20250722
 #
-# REGENDATA ("0.19.20250506",["github","cabal.project"])
+# REGENDATA ("0.19.20250722",["github","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -197,7 +197,11 @@ jobs:
           touch cabal.project.local
           echo "packages: ${PKGDIR_xmonad_contrib}" >> cabal.project
           echo "package xmonad-contrib" >> cabal.project
-          echo "    ghc-options: -Werror=missing-methods" >> cabal.project
+          echo "    ghc-options: -Werror=missing-methods -Werror=missing-fields" >> cabal.project
+          if [ $((HCNUMVER >= 90400)) -ne 0 ] ; then echo "package xmonad-contrib" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 90400)) -ne 0 ] ; then echo "    ghc-options: -Werror=unused-packages" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "package xmonad-contrib" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 90000)) -ne 0 ] ; then echo "    ghc-options: -Werror=incomplete-patterns -Werror=incomplete-uni-patterns" >> cabal.project ; fi
           cat >> cabal.project <<EOF
           source-repository-package
             type:     git
