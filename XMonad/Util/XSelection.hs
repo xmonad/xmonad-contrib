@@ -33,12 +33,28 @@ import Codec.Binary.UTF8.String (decode)
 
 {- $usage
    Add @import XMonad.Util.XSelection@ to the top of Config.hs
-   Then make use of getSelection or promptSelection as needed; if
-   one wanted to run Firefox with the selection as an argument (perhaps
+
+   If one wanted to run Firefox with the selection as an argument (perhaps
    the selection string is an URL you just highlighted), then one could add
    to the xmonad.hs a line like thus:
 
    > , ((modm .|. shiftMask, xK_b), promptSelection "firefox")
+
+   To add a 'paste' keybinding in your prompts, use:
+
+   > prompt_extra_bindings = [
+   >   ((mod1Mask, xK_v), getClipboard >>= insertString) -- Alt+v to paste
+   >   ]
+   > 
+   > prompt_conf = def {
+   >   promptKeymap =
+   >     foldl (\m (k, a) -> M.insert k a m) defaultXPKeymap prompt_extra_bindings,
+   >   -- other prompt config
+   > }
+
+   Next use it to construct a prompt, for example in your bindings:
+
+   > ("M-p", shellPrompt prompt_conf),
 
    Future improvements for XSelection:
 
