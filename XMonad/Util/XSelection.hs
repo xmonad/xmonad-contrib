@@ -18,6 +18,8 @@ A module for accessing and manipulating X Window's mouse selection (the buffer u
 module XMonad.Util.XSelection (  -- * Usage
                                  -- $usage
                                  getSelection,
+                                 getClipboard,
+                                 getSecondarySelection,
                                  promptSelection,
                                  safePromptSelection,
                                  transformPromptSelection,
@@ -43,19 +45,13 @@ import Codec.Binary.UTF8.String (decode)
    * More elaborate functionality: Emacs' registers are nice; if you
       don't know what they are, see <http://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html#Registers> -}
 
--- | Returns a String corresponding to the current mouse selection in X;
---   if there is none, an empty string is returned.
---
--- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
--- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
--- (These errors are generally very rare in practice, but still exist.)
-getSelection :: MonadIO m => m String
-getSelection = io $ do
+-- Query the content of a selection in X
+getSelectionNamed sel_name = do
   dpy <- openDisplay ""
   let dflt = defaultScreen dpy
   rootw  <- rootWindow dpy dflt
   win <- createSimpleWindow dpy rootw 0 0 1 1 0 0 0
-  p <- internAtom dpy "PRIMARY" True
+  p <- internAtom dpy sel_name True
   ty <- E.catch
                (E.catch
                      (internAtom dpy "UTF8_STRING" False)
@@ -73,6 +69,33 @@ getSelection = io $ do
     destroyWindow dpy win
     closeDisplay dpy
     return result
+
+-- | Returns a String corresponding to the current mouse selection in X;
+--   if there is none, an empty string is returned.
+--
+-- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
+-- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
+-- (These errors are generally very rare in practice, but still exist.)
+getSelection :: MonadIO m => m String
+getSelection = io $ getSelectionNamed "PRIMARY"
+
+-- | Returns a String corresponding to the current clipboard in X;
+--   if there is none, an empty string is returned.
+--
+-- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
+-- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
+-- (These errors are generally very rare in practice, but still exist.)
+getClipboard :: MonadIO m => m String
+getClipboard = io $ getSelectionNamed "CLIPBOARD"
+
+-- | Returns a String corresponding to the secondary selection in X;
+--   if there is none, an empty string is returned.
+--
+-- WARNING: this function is fundamentally implemented incorrectly and may, among other possible failure modes,
+-- deadlock or crash. For details, see <http://code.google.com/p/xmonad/issues/detail?id=573>.
+-- (These errors are generally very rare in practice, but still exist.)
+getSecondarySelection :: MonadIO m => m String
+getSecondarySelection = io $ getSelectionNamed "SECONDARY"
 
 {- | A wrapper around 'getSelection'. Makes it convenient to run a program with the current selection as an argument.
   This is convenient for handling URLs, in particular. For example, in your Config.hs you could bind a key to
