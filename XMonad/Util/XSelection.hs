@@ -62,6 +62,7 @@ import Codec.Binary.UTF8.String (decode)
       don't know what they are, see <http://www.gnu.org/software/emacs/manual/html_node/emacs/Registers.html#Registers> -}
 
 -- Query the content of a selection in X
+getSelectionNamed :: String -> IO String
 getSelectionNamed sel_name = do
   dpy <- openDisplay ""
   let dflt = defaultScreen dpy
