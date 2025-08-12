@@ -16,7 +16,7 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Clone project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Build
         # "nix build" builds with full optimization and includes a profiling
         # build, so just the build of xmonad-contrib itself takes 3 minutes.
