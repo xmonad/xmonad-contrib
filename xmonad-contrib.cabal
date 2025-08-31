@@ -59,7 +59,7 @@ library
                    containers >= 0.5 && < 0.9,
                    directory,
                    filepath,
-                   time >= 1.8 && < 1.15,
+                   time >= 1.8 && < 1.16,
                    process,
                    random,
                    mtl >= 1 && < 3,
