@@ -66,6 +66,13 @@
     - Fix unintended window hiding in `nsSingleScratchpadPerWorkspace`.
       Only hide the previously active scratchpad.
 
+  * `XMonad.Actions.Search`
+
+    - Added `multiChar`, `combineChar`, and `prefixAwareChar` as
+      slightly generalised versions of `prefixAware` and `(!>)` that
+      allow specifying the character that separates a search engine's
+      prefix with the query when combining engines.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes

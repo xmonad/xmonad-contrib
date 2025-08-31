@@ -30,6 +30,9 @@ module XMonad.Actions.Search (   -- * Usage
                                  (!>),
                                  prefixAware,
                                  namedEngine,
+                                 multiChar,
+                                 combineChar,
+                                 prefixAwareChar,
 
                                  alpha,
                                  amazon,
@@ -89,7 +92,7 @@ import           XMonad                   (X (), liftIO)
 import           XMonad.Prompt            (XPConfig (), XPrompt (showXPrompt, nextCompletion, commandToComplete),
                                            getNextCompletion,
                                            historyCompletionP, mkXPrompt)
-import           XMonad.Prelude           (isAlphaNum, isAscii, isPrefixOf)
+import           XMonad.Prelude           (NonEmpty ((:|)), isAlphaNum, isAscii, isPrefixOf)
 import           XMonad.Prompt.Shell      (getBrowser)
 import           XMonad.Util.Run          (safeSpawn)
 import           XMonad.Util.XSelection   (getSelection)
@@ -340,8 +343,8 @@ searchEngineF = SearchEngine
 
 -- The engines.
 alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
-  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, nixos, noogle, openstreetmap, protondb, 
-  rosettacode, rustStd, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, 
+  github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, nixos, noogle, openstreetmap, protondb,
+  rosettacode, rustStd, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback,
   wikipedia, wiktionary, youtube, zbmath :: SearchEngine
 alpha         = searchEngine "alpha"         "https://www.wolframalpha.com/input/?i="
 amazon        = searchEngine "amazon"        "https://www.amazon.com/s/ref=nb_sb_noss_2?url=search-alias%3Daps&field-keywords="
@@ -401,10 +404,26 @@ multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, 
 intelligent :: SearchEngine -> SearchEngine
 intelligent (SearchEngine name site) = searchEngineF name (\s -> if takeWhile (/= ':') s `elem` ["http", "https", "ftp"] then s else site s)
 
--- | > removeColonPrefix "foo://bar" ~> "//bar"
--- > removeColonPrefix "foo//bar" ~> "foo//bar"
-removeColonPrefix :: String -> String
-removeColonPrefix s = if ':' `elem` s then drop 1 $ dropWhile (':' /=) s else s
+-- >>> rmChar ':' "foo://bar"
+-- "//bar"
+-- >>> rmChar 'z' "foo://bar"
+-- "foo://bar"
+rmChar :: Char -> String -> String
+rmChar c s = if c `elem` s then drop 1 (dropWhile (c /=) s) else s
+
+-- | Connect the given list of search engines into one. Selecting a search
+-- engine works by its prefix, separated by the given separation character.
+-- This is a generalisation of '(!>)' and 'prefixAware' with a custom
+-- character that separates the prefix from the query. The first search engine
+-- is the fallback; for example,
+--
+-- > multiChar ':' (google :| [wikipedia, mathworld])
+--
+-- is equivalent to
+--
+-- > wikipedia !> mathworld !> (prefixAware google)
+multiChar :: Char -> NonEmpty SearchEngine -> SearchEngine
+multiChar c (se :| ses) = foldr (combineChar c) (prefixAwareChar c se) ses
 
 {- | Connects a few search engines into one. If the search engines\' names are
    \"s1\", \"s2\" and \"s3\", then the resulting engine will use s1 if the query
@@ -418,15 +437,29 @@ removeColonPrefix s = if ':' `elem` s then drop 1 $ dropWhile (':' /=) s else s
   \"mathworld:integral\" will search mathworld, and everything else will fall back to
   google. The use of intelligent will make sure that URLs are opened directly. -}
 (!>) :: SearchEngine -> SearchEngine -> SearchEngine
-(SearchEngine name1 site1) !> (SearchEngine name2 site2) = searchEngineF (name1 ++ "/" ++ name2) (\s -> if (name1++":") `isPrefixOf` s then site1 (removeColonPrefix s) else site2 s)
+(!>) = combineChar ':'
 infixr 6 !>
+
+-- | @combineChar c s s'@ combines the search engines @s@ and @s'@ into one,
+-- where prefixes are separated by the character @c@. It works analogously to
+-- '(!>)', only with a chosen separating character: @combineChar ':'@ is the
+-- same as '(!>)'.
+combineChar :: Char -> SearchEngine -> SearchEngine -> SearchEngine
+combineChar c (SearchEngine name1 site1) (SearchEngine name2 site2) =
+  searchEngineF (name1 ++ "/" ++ name2) (\s -> if (name1++[c]) `isPrefixOf` s then site1 (rmChar c s) else site2 s)
 
 {- | Makes a search engine prefix-aware. Especially useful together with '!>'.
    It will automatically remove the prefix from a query so that you don\'t end
      up searching for google:xmonad if google is your fallback engine and you
      explicitly add the prefix. -}
 prefixAware :: SearchEngine -> SearchEngine
-prefixAware (SearchEngine name site) = SearchEngine name (\s -> if (name++":") `isPrefixOf` s then site $ removeColonPrefix s else site s)
+prefixAware = prefixAwareChar ':'
+
+-- | Like 'prefixAware', but one gets to choose the character that separates
+-- the prefix from the search query.
+prefixAwareChar :: Char -> SearchEngine -> SearchEngine
+prefixAwareChar c (SearchEngine name site) =
+  SearchEngine name (\s -> if (name++[c]) `isPrefixOf` s then site (rmChar c s) else site s)
 
 {- | Changes search engine's name -}
 namedEngine :: Name -> SearchEngine -> SearchEngine
