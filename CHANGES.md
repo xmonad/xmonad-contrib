@@ -8,6 +8,20 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.WindowBringer`
+
+    - Make sure functions that internally use their `…Args` versions
+      pass on the default `dmenu` arguments.
+
+      These are also now exported as `defaultDMenuArgs` for users using
+      the `…Args` versions but want to augment instead of replacing the
+      default `dmenu` arguments.
+
+      For users, the visible change will be that `bringMenu` and `copyMenu`
+      now behave identically to `gotoMenu`, as expected, instead of being
+      case sensitive. Users who might have been relying on the incorrect
+      behavior should replace `*Menu` with `*MenuArgs []`.
+
   * `XMonad.Util.XSelection`
 
     - Added `getClipboard` to query the X clipboard.
