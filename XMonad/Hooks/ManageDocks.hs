@@ -343,9 +343,5 @@ reduce (RectC (sx0, sy0, sx1, sy1)) (s, n, l, h) (RectC (x0, y0, x1, y1)) =
 -- Precondition for every input range @(x, y)@: @x '<=' y@.
 --
 -- A range @(x, y)@ is assumed to include every pixel from @x@ to @y@.
-
 overlaps :: Ord a => (a, a) -> (a, a) -> Bool
-(a, b) `overlaps` (x, y) =
-  inRange (a, b) x || inRange (a, b) y || inRange (x, y) a
-  where
-  inRange (i, j) k = i <= k && k <= j
+(a, b) `overlaps` (x, y) = not (b < x || y < a) -- not disjoint
