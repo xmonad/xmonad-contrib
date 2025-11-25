@@ -23,7 +23,8 @@ module XMonad.Actions.WindowBringer (
                     gotoMenu, gotoMenuConfig, gotoMenu', gotoMenuArgs, gotoMenuArgs',
                     bringMenu, bringMenuConfig, bringMenu', bringMenuArgs, bringMenuArgs',
                     copyMenu, copyMenuConfig, copyMenu', copyMenuArgs, copyMenuArgs',
-                    windowMap, windowAppMap, windowMap', bringWindow, actionMenu
+                    windowMap, windowAppMap, windowMap', bringWindow, actionMenu,
+                    defaultDMenuArgs
                    ) where
 
 import Control.Monad
@@ -51,6 +52,11 @@ import XMonad.Actions.CopyWindow (copyWindow)
 -- For detailed instructions on editing your key bindings, see
 -- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial>.
 
+-- | The default arguments passed to dmenu. You may want to use this with
+--   the *MenuArgs functions.
+defaultDMenuArgs :: [String]
+defaultDMenuArgs = ["-i"]
+
 data WindowBringerConfig = WindowBringerConfig
     { menuCommand :: String -- ^ The shell command that will handle window selection
     , menuArgs :: [String] -- ^ Arguments to be passed to menuCommand
@@ -60,7 +66,7 @@ data WindowBringerConfig = WindowBringerConfig
 
 instance Default WindowBringerConfig where
     def = WindowBringerConfig{ menuCommand = "dmenu"
-                             , menuArgs = ["-i"]
+                             , menuArgs = defaultDMenuArgs
                              , windowTitler = decorateName
                              , windowFilter = \_ -> return True
                              }
@@ -95,7 +101,7 @@ gotoMenuArgs' cmd args = gotoMenuConfig def { menuCommand = cmd, menuArgs = args
 
 -- | Pops open a dmenu with window titles. Choose one, and it will be copied into your current workspace.
 copyMenu :: X ()
-copyMenu = copyMenuArgs def
+copyMenu = copyMenuArgs defaultDMenuArgs
 
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   copied into your current workspace. This version
@@ -127,7 +133,7 @@ copyBringWindow w ws = copyWindow w (W.currentTag ws) ws
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace.
 bringMenu :: X ()
-bringMenu = bringMenuArgs def
+bringMenu = bringMenuArgs defaultDMenuArgs
 
 -- | Pops open a dmenu with window titles. Choose one, and it will be
 --   dragged, kicking and screaming, into your current workspace. This version
