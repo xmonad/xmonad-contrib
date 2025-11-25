@@ -73,6 +73,10 @@
       allow specifying the character that separates a search engine's
       prefix with the query when combining engines.
 
+  * `XMonad.Hooks.ManageDocks`
+
+    - Added `onAllDocks` to run an action on all recognised docks.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes

@@ -16,7 +16,7 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn,
+    docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn, onAllDocks,
     ToggleStruts(..),
     SetStruts(..),
     module XMonad.Util.Types,
@@ -133,6 +133,10 @@ updateStrut w cache = do
     when (w `M.notMember` cache) $ requestDockEvents w
     strut <- getStrut w
     pure $ M.insert w strut cache
+
+-- | Perform the given action on all docks.
+onAllDocks :: (Window -> X ()) -> X ()
+onAllDocks act = traverse_ (act . fst) . M.toList =<< getStrutCache
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
