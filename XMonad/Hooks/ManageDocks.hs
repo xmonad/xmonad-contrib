@@ -16,7 +16,7 @@
 module XMonad.Hooks.ManageDocks (
     -- * Usage
     -- $usage
-    docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn,
+    docks, manageDocks, checkDock, AvoidStruts(..), avoidStruts, avoidStrutsOn, onAllDocks,
     ToggleStruts(..),
     SetStruts(..),
     module XMonad.Util.Types,
@@ -133,6 +133,10 @@ updateStrut w cache = do
     when (w `M.notMember` cache) $ requestDockEvents w
     strut <- getStrut w
     pure $ M.insert w strut cache
+
+-- | Perform the given action on all docks.
+onAllDocks :: (Window -> X ()) -> X ()
+onAllDocks act = traverse_ (act . fst) . M.toList =<< getStrutCache
 
 -- | Detects if the given window is of type DOCK and if so, reveals
 --   it, but does not manage it.
@@ -343,9 +347,5 @@ reduce (RectC (sx0, sy0, sx1, sy1)) (s, n, l, h) (RectC (x0, y0, x1, y1)) =
 -- Precondition for every input range @(x, y)@: @x '<=' y@.
 --
 -- A range @(x, y)@ is assumed to include every pixel from @x@ to @y@.
-
 overlaps :: Ord a => (a, a) -> (a, a) -> Bool
-(a, b) `overlaps` (x, y) =
-  inRange (a, b) x || inRange (a, b) y || inRange (x, y) a
-  where
-  inRange (i, j) k = i <= k && k <= j
+(a, b) `overlaps` (x, y) = not (b < x || y < a) -- not disjoint
