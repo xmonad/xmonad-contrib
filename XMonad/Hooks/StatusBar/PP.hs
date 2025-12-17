@@ -38,8 +38,8 @@ module XMonad.Hooks.StatusBar.PP (
     -- * Predicates and formatters
     -- $predicates
     WS(..), WSPP, WSPP', fallbackPrinters,
-    isUrgent, isCurrent, isCurrentNoWindows, isVisible, isVisibleNoWindows,
-    isHidden, hasWindows,
+    isUrgent, isCurrent, isCurrentNoWindows, isCurrentHasWindows,
+    isVisible, isVisibleNoWindows, isHidden, hasWindows,
 
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
@@ -276,13 +276,13 @@ type WSPP = WSPP' (WorkspaceId -> String)
 -- post-process their output. (For pre-processing their input, there's
 -- 'ppRename'.)
 fallbackPrinters :: WSPP
-fallbackPrinters = isUrgent            ?-> ppUrgent
-               <|> isCurrent'          ?-> ppCurrent
-               <|> isCurrentNoWindows' ?-> liftA2 fromMaybe ppCurrent ppCurrentNoWindows
-               <|> isVisible'          ?-> ppVisible
-               <|> isVisibleNoWindows' ?-> liftA2 fromMaybe ppVisible ppVisibleNoWindows
-               <|> isHidden'           ?-> ppHidden
-               <|> pure True           ?-> ppHiddenNoWindows
+fallbackPrinters = isUrgent             ?-> ppUrgent
+               <|> isCurrentHasWindows' ?-> ppCurrent
+               <|> isCurrentNoWindows'  ?-> liftA2 fromMaybe ppCurrent ppCurrentNoWindows
+               <|> isVisible'           ?-> ppVisible
+               <|> isVisibleNoWindows'  ?-> liftA2 fromMaybe ppVisible ppVisibleNoWindows
+               <|> isHidden'            ?-> ppHidden
+               <|> pure True            ?-> ppHiddenNoWindows
   where
     cond ?-> ppr = (asks cond >>= guard) *> asks (ppr . wsPP)
 
@@ -293,23 +293,29 @@ isUrgent WS{..} = any (\x -> (== Just (S.tag wsWS)) (S.findTag x wsWindowSet)) w
 -- | Predicate for the current workspace. Caution: assumes default
 -- precedence is respected.
 isCurrent' :: WS -> Bool
-isCurrent' = isCurrentNoWindows' <&&> hasWindows
+isCurrent' WS{..} = S.tag wsWS == S.currentTag wsWindowSet
 
 -- | Predicate for the current workspace.
 isCurrent :: WS -> Bool
 isCurrent = (not <$> isUrgent) <&&> isCurrent'
 
+-- | Predicate for the current workspace with one or more windows.
+-- Caution: assumes default precedence is respected.
+isCurrentHasWindows' :: WS -> Bool
+isCurrentHasWindows' = isCurrent' <&&> hasWindows
+
+-- | Predicate for the current workspace with one or more windows.
+isCurrentHasWindows :: WS -> Bool
+isCurrentHasWindows = (not <$> isUrgent) <&&> isCurrentHasWindows'
+
 -- | Predicate for the current workspace with no windows. Caution:
 -- assumes default precedence is respected.
 isCurrentNoWindows' :: WS -> Bool
-isCurrentNoWindows' WS{..} = S.tag wsWS == S.currentTag wsWindowSet
+isCurrentNoWindows' = isCurrent' <&&> (not <$> hasWindows)
 
 -- | Predicate for the current workspace with no windows.
 isCurrentNoWindows :: WS -> Bool
-isCurrentNoWindows =
-    (not <$> isUrgent)
-        <&&> (not <$> hasWindows)
-        <&&> isCurrentNoWindows'
+isCurrentNoWindows = (not <$> isUrgent) <&&> isCurrentNoWindows'
 
 -- | Predicate for visible workspaces. Caution: assumes default
 -- precedence is respected.

@@ -6,15 +6,6 @@
 
   * Drop support for GHC 8.6
 
-  * `XMonad.Hooks.StatusBar.PP`
-
-    - Added `ppCurrentNoWindows` to `PP`, to match `ppHiddenNoWindows`
-      and `ppVisibleNoWindows`.
-    - Added `isCurrentNoWindows` and `hasWindows` predicates.
-    - `isCurrent` now checks if the workspace contains any windows,
-      akin to `isVisible`. This may break certain configurations that
-      rely on `isCurrent`.
-
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.WindowBringer`
@@ -99,6 +90,18 @@
   * `XMonad.Hooks.ManageDocks`
 
     - Added `onAllDocks` to run an action on all recognised docks.
+
+  * `XMonad.Hooks.StatusBar.PP`
+
+    - Added `ppCurrentNoWindows` to `PP`, to match `ppHiddenNoWindows`
+      and `ppVisibleNoWindows`. `ppCurrentNoWindows` falls back
+      to `ppCurrent` if unset/set to `Nothing`.
+    - Added `isCurrentNoWindows`, `isCurrentHasWindows`, and `hasWindows`
+      predicates.
+    - `isCurrent` remains as was and doesn't check for presence
+      of windows. The changes only added a simple way to check whether
+      the workspace is a current workspace that does/doesn't contain
+      windows.
 
 ## 0.18.1 (August 20, 2024)
 
