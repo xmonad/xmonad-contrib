@@ -67,6 +67,9 @@
       when setting the **_NET_DESKTOP_VIEWPORT**. This can be done using
       the `setEwmhHiddenWorkspaceToScreenMapping`.
 
+    - Added support for **_NET_WM_STATE_{ABOVE,BELOW}** to place windows
+      correctly.
+
   * `XMonad.Layout.IndependentScreens`
 
     - Added `focusWorkspace` for focusing workspaces on the screen that they
