@@ -131,7 +131,7 @@ data EwmhDesktopsConfig =
             -- ^ manage @_NET_DESKTOP_VIEWPORT@?
         , hiddenWorkspaceToScreen :: WindowSet -> WindowSpace -> WindowScreen
             -- ^ map hidden workspaces to screens for @_NET_DESKTOP_VIEWPORT@
-        , handleAboveBelowstate :: Bool
+        , handleAboveBelowState :: Bool
             -- ^ handle @_NET_WM_STATE_ABOVE@ and @_NET_WM_STATE_BELOW@?
         }
 
@@ -145,7 +145,7 @@ instance Default EwmhDesktopsConfig where
         , manageDesktopViewport = True
         -- Hidden workspaces are mapped to the current screen by default.
         , hiddenWorkspaceToScreen = \winset _ -> W.current winset
-        , handleAboveBelowstate = False
+        , handleAboveBelowState = False
         }
 
 
@@ -340,14 +340,14 @@ disableEwmhManageDesktopViewport = XC.modifyDef $ \c -> c{ manageDesktopViewport
 -- This will make xmonad respond to requests to set these states by calling
 -- lowerWindow and raiseWindow respectively.
 enableEwmhManageAboveBelowState :: XConfig l -> XConfig l
-enableEwmhManageAboveBelowState = XC.modifyDef (\c -> c{handleAboveBelowstate = True})
+enableEwmhManageAboveBelowState = XC.modifyDef (\c -> c{handleAboveBelowState = True})
 
 aboveBelowManageHook :: ManageHook
 aboveBelowManageHook =
     ((isEnabled <&&> isInProperty "_NET_WM_STATE" "_NET_WM_STATE_BELOW") --> doLower)
         <> ((isEnabled <&&> isInProperty "_NET_WM_STATE" "_NET_WM_STATE_ABOVE") --> doRaise)
   where
-    isEnabled = liftX (XC.withDef (pure . handleAboveBelowstate))
+    isEnabled = liftX (XC.withDef (pure . handleAboveBelowState))
 
 aboveBelowEventHook :: Event -> X ()
 aboveBelowEventHook
@@ -497,9 +497,9 @@ whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
 whenChanged = whenX . XS.modified . const
 
 ewmhDesktopsStartupHook' :: EwmhDesktopsConfig -> X ()
-ewmhDesktopsStartupHook' EwmhDesktopsConfig{handleAboveBelowstate} =
+ewmhDesktopsStartupHook' EwmhDesktopsConfig{handleAboveBelowState} =
     when
-        handleAboveBelowstate
+        handleAboveBelowState
         (addSupported ["_NET_WM_STATE", "_NET_WM_STATE_ABOVE", "_NET_WM_STATE_BELOW"])
 
 ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
@@ -596,7 +596,7 @@ mkViewPorts winset hiddenWorkspaceMapper = setDesktopViewport . concat . mapMayb
 ewmhDesktopsEventHook' :: Event -> EwmhDesktopsConfig -> X All
 ewmhDesktopsEventHook'
         e@ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d}
-        EwmhDesktopsConfig{workspaceSort, activateHook, switchDesktopHook, handleAboveBelowstate} =
+        EwmhDesktopsConfig{workspaceSort, activateHook, switchDesktopHook, handleAboveBelowState} =
     withWindowSet $ \s -> do
         sort' <- workspaceSort
         let ws = sort' $ W.workspaces s
@@ -631,7 +631,7 @@ ewmhDesktopsEventHook'
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager
                 mempty
-        when handleAboveBelowstate (aboveBelowEventHook e)
+        when handleAboveBelowState (aboveBelowEventHook e)
         mempty
 ewmhDesktopsEventHook' _ _ = mempty
 
