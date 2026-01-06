@@ -56,6 +56,9 @@ module XMonad.Hooks.EwmhDesktops (
 
     -- $customHiddenWorkspaceMapper
     setEwmhHiddenWorkspaceToScreenMapping,
+    -- ** @_NET_WM_STATE_{ABOVE,BELOW}@
+    -- $customManageAboveBelowState
+    enableEwmhManageAboveBelowState,
 
     -- * Standalone hooks (deprecated)
     ewmhDesktopsStartup,
@@ -104,7 +107,8 @@ import qualified XMonad.Util.ExtensibleState as XS
 ewmh :: XConfig a -> XConfig a
 ewmh c = c { startupHook     = ewmhDesktopsStartup <> startupHook c
            , handleEventHook = ewmhDesktopsEventHook <> handleEventHook c
-           , logHook         = ewmhDesktopsLogHook <> logHook c }
+           , logHook         = ewmhDesktopsLogHook <> logHook c
+           , manageHook      = ewmhDesktopsManageHook' <> manageHook c }
 
 
 -- $customization
@@ -127,6 +131,8 @@ data EwmhDesktopsConfig =
             -- ^ manage @_NET_DESKTOP_VIEWPORT@?
         , hiddenWorkspaceToScreen :: WindowSet -> WindowSpace -> WindowScreen
             -- ^ map hidden workspaces to screens for @_NET_DESKTOP_VIEWPORT@
+        , handleAboveBelowState :: Bool
+            -- ^ handle @_NET_WM_STATE_ABOVE@ and @_NET_WM_STATE_BELOW@?
         }
 
 instance Default EwmhDesktopsConfig where
@@ -139,6 +145,7 @@ instance Default EwmhDesktopsConfig where
         , manageDesktopViewport = True
         -- Hidden workspaces are mapped to the current screen by default.
         , hiddenWorkspaceToScreen = \winset _ -> W.current winset
+        , handleAboveBelowState = False
         }
 
 
@@ -322,6 +329,65 @@ setEwmhFullscreenHooks f uf = XC.modifyDef $ \c -> c{ fullscreenHooks = (f, uf) 
 disableEwmhManageDesktopViewport :: XConfig l -> XConfig l
 disableEwmhManageDesktopViewport = XC.modifyDef $ \c -> c{ manageDesktopViewport = False }
 
+-- $customManageAboveBelowState
+-- Some applications use the @_NET_WM_STATE_ABOVE@ and @_NET_WM_STATE_BELOW@
+-- states to request being kept above or below other windows. By default, xmonad
+-- does not handle these states. To enable handling of these states, you can use
+-- the following hook:
+--
+-- > main = xmonad $ … . enableEwmhManageAboveBelowState . ewmh . … $ def{…}
+--
+-- This will make xmonad respond to requests to set these states by calling
+-- lowerWindow and raiseWindow respectively.
+enableEwmhManageAboveBelowState :: XConfig l -> XConfig l
+enableEwmhManageAboveBelowState = XC.modifyDef (\c -> c{handleAboveBelowState = True})
+
+aboveBelowManageHook :: ManageHook
+aboveBelowManageHook =
+    ((isEnabled <&&> isInProperty "_NET_WM_STATE" "_NET_WM_STATE_BELOW") --> doLower)
+        <> ((isEnabled <&&> isInProperty "_NET_WM_STATE" "_NET_WM_STATE_ABOVE") --> doRaise)
+  where
+    isEnabled = liftX (XC.withDef (pure . handleAboveBelowState))
+
+aboveBelowEventHook :: Event -> X ()
+aboveBelowEventHook
+    ClientMessageEvent{ev_event_display = dpy, ev_window = w, ev_message_type = typ, ev_data = action : dats} =
+        do
+            wmstate <- getAtom "_NET_WM_STATE"
+            above <- getAtom "_NET_WM_STATE_ABOVE"
+            below <- getAtom "_NET_WM_STATE_BELOW"
+
+            wstate <- fromMaybe [] <$> getProp32 wmstate w
+
+            let isAbove = fi above `elem` wstate
+                isBelow = fi below `elem` wstate
+                chWstate f = io $ changeProperty32 dpy w wmstate aTOM propModeReplace (f wstate)
+                raise = chWstate (filter (/= fi below) . (fi above :)) >> io (raiseWindow dpy w)
+                lower = chWstate (filter (/= fi above) . (fi below :)) >> io (lowerWindow dpy w)
+                clear st = chWstate (filter (/= fi st))
+            when (typ == wmstate) $
+                if
+                        -- remove
+                        | action == 0 -> do
+                            when (fi above `elem` dats && isAbove) $ clear above
+                            when (fi below `elem` dats && isBelow) $ clear below
+                        -- add
+                        | action == 1 -> do
+                            when (fi above `elem` dats && not isAbove) raise
+                            when (fi below `elem` dats && not isBelow) lower
+                        -- toggle
+                        | action == 2 -> do
+                            when (fi above `elem` dats) $
+                                if isAbove
+                                    then clear above
+                                    else raise
+                            when (fi below `elem` dats) $
+                                if isBelow
+                                    then clear below
+                                    else lower
+                        | otherwise -> trace ("Bad _NET_WM_STATE with data =" <> show action)
+            mempty
+aboveBelowEventHook _ = mempty
 
 -- $customHiddenWorkspaceMapper
 --
@@ -354,7 +420,7 @@ setEwmhHiddenWorkspaceToScreenMapping mapper = XC.modifyDef $ \c -> c{ hiddenWor
 -- | Initializes EwmhDesktops and advertises EWMH support to the X server.
 {-# DEPRECATED ewmhDesktopsStartup "Use ewmh instead." #-}
 ewmhDesktopsStartup :: X ()
-ewmhDesktopsStartup = setSupported
+ewmhDesktopsStartup = setSupported >> XC.withDef ewmhDesktopsStartupHook'
 
 -- | Notifies pagers and window lists, such as those in the gnome-panel of the
 -- current state of workspaces and windows.
@@ -368,6 +434,12 @@ ewmhDesktopsLogHook = XC.withDef ewmhDesktopsLogHook'
 ewmhDesktopsLogHookCustom :: WorkspaceSort -> X ()
 ewmhDesktopsLogHookCustom f =
     ewmhDesktopsLogHook' def{ workspaceSort = (f .) <$> workspaceSort def }
+
+-- | Manage hook that EWMH extensions can hook into. Should be named
+-- ewmhDesktopsManageHook for consistency with ewmhDesktopsLogHook for example,
+-- but that name is taken.
+ewmhDesktopsManageHook' :: ManageHook
+ewmhDesktopsManageHook' = aboveBelowManageHook
 
 -- | Intercepts messages from pagers and similar applications and reacts on them.
 --
@@ -423,6 +495,12 @@ instance ExtensionClass MonitorTags where initialValue = MonitorTags []
 -- action if it has changed.
 whenChanged :: (Eq a, ExtensionClass a) => a -> X () -> X ()
 whenChanged = whenX . XS.modified . const
+
+ewmhDesktopsStartupHook' :: EwmhDesktopsConfig -> X ()
+ewmhDesktopsStartupHook' EwmhDesktopsConfig{handleAboveBelowState} =
+    when
+        handleAboveBelowState
+        (addSupported ["_NET_WM_STATE", "_NET_WM_STATE_ABOVE", "_NET_WM_STATE_BELOW"])
 
 ewmhDesktopsLogHook' :: EwmhDesktopsConfig -> X ()
 ewmhDesktopsLogHook' EwmhDesktopsConfig{workspaceSort, workspaceRename, manageDesktopViewport, hiddenWorkspaceToScreen} = withWindowSet $ \s -> do
@@ -517,8 +595,8 @@ mkViewPorts winset hiddenWorkspaceMapper = setDesktopViewport . concat . mapMayb
 
 ewmhDesktopsEventHook' :: Event -> EwmhDesktopsConfig -> X All
 ewmhDesktopsEventHook'
-        ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d}
-        EwmhDesktopsConfig{workspaceSort, activateHook, switchDesktopHook} =
+        e@ClientMessageEvent{ev_window = w, ev_message_type = mt, ev_data = d}
+        EwmhDesktopsConfig{workspaceSort, activateHook, switchDesktopHook, handleAboveBelowState} =
     withWindowSet $ \s -> do
         sort' <- workspaceSort
         let ws = sort' $ W.workspaces s
@@ -553,7 +631,7 @@ ewmhDesktopsEventHook'
                 -- The Message is unknown to us, but that is ok, not all are meant
                 -- to be handled by the window manager
                 mempty
-
+        when handleAboveBelowState (aboveBelowEventHook e)
         mempty
 ewmhDesktopsEventHook' _ _ = mempty
 
