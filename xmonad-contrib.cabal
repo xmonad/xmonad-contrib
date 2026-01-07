@@ -38,7 +38,7 @@ cabal-version:      1.12
 build-type:         Simple
 bug-reports:        https://github.com/xmonad/xmonad-contrib/issues
 
-tested-with:        GHC == 8.8.4 || == 8.10.7 || == 9.0.2 || == 9.2.8 || == 9.4.8 || == 9.6.7 || == 9.8.4 || == 9.10.3 || == 9.12.2
+tested-with:        GHC == 8.8.4 || == 8.10.7 || == 9.0.2 || == 9.2.8 || == 9.4.8 || == 9.6.7 || == 9.8.4 || == 9.10.3 || == 9.12.2 || == 9.14.1
 
 source-repository head
   type:     git
@@ -78,6 +78,8 @@ library
 
     if flag(pedantic)
        ghc-options: -Werror -Wwarn=deprecations
+    if impl(ghc >= 9.10)
+       ghc-options: -Wno-incomplete-record-selectors
 
     -- Keep this in sync with the oldest version in 'tested-with'
     if impl(ghc > 8.8.4)
@@ -505,6 +507,8 @@ test-suite tests
 
   if flag(pedantic)
      ghc-options: -Werror -Wwarn=deprecations
+    if impl(ghc >= 9.10)
+       ghc-options: -Wno-incomplete-record-selectors
 
   -- Keep this in sync with the oldest version in 'tested-with'
   if impl(ghc > 8.8.4)
