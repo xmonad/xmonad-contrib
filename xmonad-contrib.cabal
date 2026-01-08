@@ -406,6 +406,7 @@ library
                         XMonad.Util.SpawnNamedPipe
                         XMonad.Util.SpawnOnce
                         XMonad.Util.Stack
+                        XMonad.Util.StickyWindows
                         XMonad.Util.StringProp
                         XMonad.Util.Themes
                         XMonad.Util.Timer
