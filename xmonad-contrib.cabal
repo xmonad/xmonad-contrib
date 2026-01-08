@@ -507,7 +507,7 @@ test-suite tests
 
   if flag(pedantic)
      ghc-options: -Werror -Wwarn=deprecations
-    if impl(ghc >= 9.10)
+     if impl(ghc >= 9.10)
        ghc-options: -Wno-incomplete-record-selectors
 
   -- Keep this in sync with the oldest version in 'tested-with'
