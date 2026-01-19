@@ -47,6 +47,7 @@ module XMonad.Actions.Search (   -- * Usage
                                  dictionary,
                                  duckduckgo,
                                  ebay,
+                                 ecosia,
                                  flora,
                                  github,
                                  google,
@@ -147,6 +148,8 @@ import           XMonad.Util.XSelection   (getSelection)
 * 'duckduckgo' -- DuckDuckGo search engine.
 
 * 'ebay' -- Ebay keyword search.
+
+* 'ecosia' -- Ecosia search engine.
 
 * 'flora' -- Prettier Haskell package database.
 
@@ -342,7 +345,7 @@ searchEngineF :: Name -> Site -> SearchEngine
 searchEngineF = SearchEngine
 
 -- The engines.
-alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora,
+alpha, amazon, arXiv, aur, clojureDocs, codesearch, cratesIo, deb, debbts, debpts, dictionary, duckduckgo, ebay, ecosia, flora,
   github, google, hackage, homeManager, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, nixos, noogle, openstreetmap, protondb,
   rosettacode, rustStd, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback,
   wikipedia, wiktionary, youtube, zbmath :: SearchEngine
@@ -359,6 +362,7 @@ debpts        = searchEngine "debpts"        "https://packages.qa.debian.org/"
 dictionary    = searchEngine "dict"          "https://dictionary.reference.com/browse/"
 duckduckgo    = searchEngine "duckduckgo"    "https://duckduckgo.com/?t=lm&q="
 ebay          = searchEngine "ebay"          "https://www.ebay.com/sch/i.html?_nkw="
+ecosia        = searchEngine "ecosia"        "https://www.ecosia.org/search?q="
 flora         = searchEngine "flora"         "https://flora.pm/search?q="
 github        = searchEngine "github"        "https://github.com/search?q="
 google        = searchEngine "google"        "https://www.google.com/search?q="
@@ -392,7 +396,7 @@ youtube       = searchEngine "youtube"       "https://www.youtube.com/results?se
 zbmath        = searchEngine "zbmath"        "https://zbmath.org/?q="
 
 multi :: SearchEngine
-multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube, prefixAware google]
+multi = namedEngine "multi" $ foldr1 (!>) [alpha, amazon, aur, codesearch, deb, debbts, debpts, dictionary, duckduckgo, ebay, ecosia, flora, github, hackage, hoogle, images, imdb, lucky, maps, mathworld, ncatlab, openstreetmap, protondb, rosettacode, scholar, sourcehut, stackage, steam, thesaurus, vocabulary, voidpgks_x86_64, voidpgks_x86_64_musl, wayback, wikipedia, wiktionary, youtube, prefixAware google]
 
 {- | This function wraps up a search engine and creates a new one, which works
    like the argument, but goes directly to a URL if one is given rather than

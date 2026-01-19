@@ -90,6 +90,8 @@
       allow specifying the character that separates a search engine's
       prefix with the query when combining engines.
 
+    - Added the `ecosia` search engine.
+
   * `XMonad.Hooks.ManageDocks`
 
     - Added `onAllDocks` to run an action on all recognised docks.
