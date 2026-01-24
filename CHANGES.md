@@ -6,6 +6,12 @@
 
   * Drop support for GHC 8.6
 
+### New Modules
+
+  * `XMonad.Util.StickyWindows`
+
+    - Stick windows on screens so they follow you across desktops.
+
 ### Bug Fixes and Minor Changes
 
   * `XMonad.Actions.WindowBringer`
