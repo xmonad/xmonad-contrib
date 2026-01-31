@@ -102,6 +102,18 @@
 
     - Added `onAllDocks` to run an action on all recognised docks.
 
+  * `XMonad.Hooks.StatusBar.PP`
+
+    - Added `ppCurrentNoWindows` to `PP`, to match `ppHiddenNoWindows`
+      and `ppVisibleNoWindows`. `ppCurrentNoWindows` falls back
+      to `ppCurrent` if unset/set to `Nothing`.
+    - Added `isCurrentNoWindows`, `isCurrentHasWindows`, and `hasWindows`
+      predicates.
+    - `isCurrent` remains as was and doesn't check for presence
+      of windows. The changes only added a simple way to check whether
+      the workspace is a current workspace that does/doesn't contain
+      windows.
+
 ## 0.18.1 (August 20, 2024)
 
 ### Breaking Changes
