@@ -242,6 +242,7 @@ library
                         XMonad.Layout.Column
                         XMonad.Layout.Columns
                         XMonad.Layout.Combo
+                        XMonad.Layout.ConditionalLayout
                         XMonad.Layout.ComboP
                         XMonad.Layout.Cross
                         XMonad.Layout.Decoration
