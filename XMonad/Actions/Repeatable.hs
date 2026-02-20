@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Repeatable
@@ -23,6 +24,8 @@ module XMonad.Actions.Repeatable
   , repeatableM
   ) where
 
+import Data.Bits
+
 -- mtl
 import Control.Monad.State (StateT(..))
 
@@ -31,6 +34,7 @@ import Graphics.X11.Xlib.Extras
 
 -- xmonad
 import XMonad
+import XMonad.Prelude
 
 
 -- | An action that temporarily usurps and responds to key press/release events,
@@ -38,6 +42,8 @@ import XMonad
 repeatable
   :: [KeySym]                      -- ^ The list of 'KeySym's under the
                                    --   modifiers used to invoke the action.
+                                   --   If empty, auto-detect from
+                                   --   'currentEvent'.
   -> KeySym                        -- ^ The keypress that invokes the action.
   -> (EventType -> KeySym -> X ()) -- ^ The keypress handler.
   -> X ()
@@ -51,6 +57,8 @@ repeatableSt
   -> [KeySym]                              -- ^ The list of 'KeySym's under the
                                            --   modifiers used to invoke the
                                            --   action.
+                                           --   If empty, auto-detect from
+                                           --   'currentEvent'.
   -> KeySym                                -- ^ The keypress that invokes the
                                            --   action.
   -> (EventType -> KeySym -> StateT s X a) -- ^ The keypress handler.
@@ -64,18 +72,23 @@ repeatableM
   => (m a -> X b)                 -- ^ How to run the monad in 'X'.
   -> [KeySym]                     -- ^ The list of 'KeySym's under the
                                   --   modifiers used to invoke the action.
+                                  --   If empty, auto-detect from
+                                  --   'currentEvent'.
   -> KeySym                       -- ^ The keypress that invokes the action.
   -> (EventType -> KeySym -> m a) -- ^ The keypress handler.
   -> X b
 repeatableM run mods key pressHandler = do
   XConf{ theRoot = root, display = d } <- ask
-  run (repeatableRaw d root mods key pressHandler)
+  mods' <- if null mods then getCurrentMods d else pure mods
+  run (repeatableRaw d root mods' key pressHandler)
 
 repeatableRaw
   :: (MonadIO m, Monoid a)
   => Display -> Window
   -> [KeySym] -> KeySym -> (EventType -> KeySym -> m a) -> m a
-repeatableRaw d root mods key pressHandler = do
+repeatableRaw d root mods key pressHandler
+    | null mods = error "XMonad.Actions.Repeatable: null mods, would loop indefinitely"
+    | otherwise = do
   io (grabKeyboard d root False grabModeAsync grabModeAsync currentTime)
   handleEvent (keyPress, key) <* io (ungrabKeyboard d currentTime)
   where
@@ -87,3 +100,34 @@ repeatableRaw d root mods key pressHandler = do
     handleEvent (t, s)
       | t == keyRelease && s `elem` mods = pure mempty
       | otherwise = (<>) <$> pressHandler t s <*> (getNextEvent >>= handleEvent)
+
+-- | Get 'KeySym's of currently pressed modifiers (assuming the event
+-- currently being handled is a 'KeyEvent').
+getCurrentMods :: Display -> X [KeySym]
+getCurrentMods d = ask >>= \case
+  XConf{ currentEvent = Just KeyEvent{ ev_state = mask } } -> io $ getCurrentMods' mask
+  _ -> pure []
+  where
+    getCurrentMods' mask = do
+      modMap <- modsToMasks <$> getModifierMapping d
+      keycodesToKeysyms $ currentModKeys mask modMap
+
+    modsToMasks :: [(Modifier, [KeyCode])] -> [(KeyMask, [KeyCode])]
+    modsToMasks modMap = [ (mask, kcs) | (modi, kcs) <- modMap, mask <- maybeToList (modi `lookup` masks) ]
+
+    masks =
+      [ (shiftMapIndex,   shiftMask)
+      , (lockMapIndex,    lockMask)
+      , (controlMapIndex, controlMask)
+      , (mod1MapIndex,    mod1Mask)
+      , (mod2MapIndex,    mod2Mask)
+      , (mod3MapIndex,    mod3Mask)
+      , (mod4MapIndex,    mod4Mask)
+      , (mod5MapIndex,    mod5Mask)
+      ]
+
+    currentModKeys :: KeyMask -> [(KeyMask, [KeyCode])] -> [KeyCode]
+    currentModKeys mask modMap = [ kc | (m, kcs) <- modMap, mask .&. m /= 0, kc <- kcs, kc /= 0 ]
+
+    keycodesToKeysyms :: [KeyCode] -> IO [KeySym]
+    keycodesToKeysyms = traverse $ \kc -> keycodeToKeysym d kc 0
