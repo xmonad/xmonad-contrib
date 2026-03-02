@@ -19,13 +19,14 @@ set in GitHub repository secrets.
 
 --- .github/workflows/haskell-ci.yml.orig
 +++ .github/workflows/haskell-ci.yml
-@@ -14,9 +14,16 @@
+@@ -14,10 +14,16 @@
  #
  name: Haskell-CI
  on:
 -  - push
 -  - pull_request
 -  - merge_group
+-  - workflow_dispatch
 +  push:
 +  pull_request:
 +  merge_group:
@@ -47,7 +48,7 @@ set in GitHub repository secrets.
            - compiler: ghc-9.6.7
              compilerKind: ghc
              compilerVersion: 9.6.7
-@@ -257,6 +265,10 @@
+@@ -258,6 +265,10 @@
        - name: haddock
          run: |
            $CABAL v2-haddock --disable-documentation $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
@@ -58,7 +59,7 @@ set in GitHub repository secrets.
        - name: unconstrained build
          run: |
            rm -f cabal.project.local
-@@ -267,3 +279,80 @@
+@@ -268,3 +279,80 @@
          with:
            key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
            path: ~/.cabal/store
@@ -67,13 +68,13 @@ set in GitHub repository secrets.
 +      # https://github.com/actions/upload-artifact/issues/457
 +      - name: upload artifact (sdist)
 +        if: matrix.upload
-+        uses: actions/upload-artifact@v5
++        uses: actions/upload-artifact@v7
 +        with:
 +          name: sdist
 +          path: ${{ github.workspace }}/sdist/*.tar.gz
 +      - name: upload artifact (haddock)
 +        if: matrix.upload
-+        uses: actions/upload-artifact@v5
++        uses: actions/upload-artifact@v7
 +        with:
 +          name: haddock
 +          path: ${{ github.workspace }}/haddock/*-docs.tar.gz
