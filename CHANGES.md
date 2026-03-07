@@ -1,6 +1,6 @@
 # Change Log / Release Notes
 
-## _unreleased_
+## 0.18.2 (March 7, 2026)
 
 ### Breaking Changes
 
