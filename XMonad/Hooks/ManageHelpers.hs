@@ -52,6 +52,7 @@ module XMonad.Hooks.ManageHelpers (
     isMinimized,
     isDialog,
     isNotification,
+    hasNoFocusOnMap,
     pid,
     desktop,
     transientTo,
@@ -82,6 +83,7 @@ import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties (getProp32s)
 
+import Control.Monad.Trans.Maybe (MaybeT (..))
 import System.Posix (ProcessID)
 
 -- | Denotes a side of a screen. @S@ stands for South, @NE@ for Northeast
@@ -203,6 +205,32 @@ isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 isNotification :: Query Bool
 isNotification =
   isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_NOTIFICATION"
+
+-- | A predicate to check whether a window should avoid stealing focus
+-- when it is mapped. This is the case when the @_NET_WM_USER_TIME@
+-- property for a particular window is zero. Useful with
+-- 'XMonad.Hooks.Focus.keepFocus', for example:
+--
+-- > import XMonad.Hooks.Focus
+-- > -- Honour requests from Emacs to not switch focus to new windows.
+-- > myFocus :: FocusHook
+-- > myFocus = new (className =? "Emacs" <&&> hasNoFocusOnMap) --> keepFocus
+--
+-- See <https://specifications.freedesktop.org/wm/1.5/ar01s05.html#id-1.6.16>.
+hasNoFocusOnMap :: Query Bool
+hasNoFocusOnMap = do
+    w <- ask
+    -- Per the spec, _NET_WM_USER_TIME_WINDOW should take precedence
+    -- over _NET_WM_USER_TIME. However, some X clients set a zero
+    -- value only on the base window, so check both.
+    liftX . fmap isJust . runMaybeT $ maybeZero w <|> maybeZeroW w
+  where
+    maybeZero w = do
+        [t] <- MaybeT $ getProp32s "_NET_WM_USER_TIME" w
+        guard $ t == 0
+    maybeZeroW w = do
+        [w'] <- MaybeT $ getProp32s "_NET_WM_USER_TIME_WINDOW" w
+        maybeZero $ fi w'
 
 -- | This function returns 'Just' the @_NET_WM_PID@ property for a
 -- particular window if set, 'Nothing' otherwise.
