@@ -44,7 +44,7 @@ import qualified XMonad.StackSet as W
 -- > main = xmonad def { logHook = myLogHook }
 --
 -- fadeAmount can be any rational between 0 and 1.
--- you will need to have xcompmgr <http://freedesktop.org/wiki/Software/xapps>
+-- you will need to have xcompmgr <https://freedesktop.org/wiki/Software/xapps/>
 -- or something similar for this to do anything
 --
 -- For more detailed instructions on editing the logHook see

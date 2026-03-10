@@ -28,7 +28,7 @@ module XMonad.Config.Desktop (
     --
     -- For more information about EWMH see:
     --
-    -- <http://standards.freedesktop.org/wm-spec/wm-spec-latest.html>
+    -- <https://specifications.freedesktop.org/wm/latest/>
     --
     -- See also: "XMonad.Hooks.EwmhDesktops", "XMonad.Hooks.ManageDocks",
     -- "XMonad.Util.EZConfig".

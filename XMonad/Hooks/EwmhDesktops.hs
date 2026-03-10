@@ -14,7 +14,7 @@
 -- Portability  : unportable
 --
 -- Makes xmonad use the
--- <https://specifications.freedesktop.org/wm-spec/latest/ EWMH>
+-- <https://specifications.freedesktop.org/wm/latest/ EWMH>
 -- hints to tell panel applications about its workspaces and the windows
 -- therein. It also allows the user to interact with xmonad by clicking on
 -- panels and window lists.
@@ -100,7 +100,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 -- You may also be interested in 'XMonad.Hooks.ManageDocks.docks' and
 -- 'XMonad.Hooks.UrgencyHook.withUrgencyHook', which provide support for other
 -- parts of the
--- <https://specifications.freedesktop.org/wm-spec/latest/ EWMH specification>.
+-- <https://specifications.freedesktop.org/wm/latest/ EWMH specification>.
 
 -- | Add EWMH support for workspaces (virtual desktops) to the given
 -- 'XConfig'.  See above for an example.
@@ -225,7 +225,7 @@ setEwmhWorkspaceRename f = XC.modifyDef $ \c -> c{ workspaceRename = f }
 -- $customActivate
 -- When a client sends a @_NET_ACTIVE_WINDOW@ request to activate a window, by
 -- default that window is activated by invoking the 'doFocus' 'ManageHook'.
--- <https://specifications.freedesktop.org/wm-spec/1.5/ar01s03.html#idm45623294083744 The EWMH specification suggests>
+-- <https://specifications.freedesktop.org/wm/1.5/ar01s03.html#id-1.4.10 The EWMH specification suggests>
 -- that a window manager may instead just mark the window as urgent, and this
 -- can be achieved using the following:
 --
@@ -623,7 +623,7 @@ ewmhDesktopsEventHook'
                 trace $ "Bad _NET_WM_DESKTOP with data=" ++ show d
             | mt == a_aw, 2 : _ <- d ->
                 -- when the request comes from a pager, honor it unconditionally
-                -- https://specifications.freedesktop.org/wm-spec/wm-spec-1.3.html#sourceindication
+                -- https://specifications.freedesktop.org/wm/1.5/ar01s03.html#id-1.4.10
                 if W.peek s == Just w then mempty else windows $ W.focusWindow w
             | mt == a_aw -> do
                 if W.peek s == Just w then mempty else windows . appEndo =<< runQuery activateHook w
