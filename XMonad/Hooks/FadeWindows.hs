@@ -100,7 +100,7 @@ import           Graphics.X11.Xlib.Extras                (Event(..))
 -- exports a number of Queries that can be used in either @ManageHook@
 -- or @FadeHook@.
 --
--- Note that you need a compositing manager such as @xcompmgr@,
+-- Note that you need a compositing manager such as @picom@, @xcompmgr@,
 -- @dcompmgr@, or @cairo-compmgr@ for window fading to work.  If you
 -- aren't running a compositing manager, the opacity will be recorded
 -- but won't take effect until a compositing manager is started.

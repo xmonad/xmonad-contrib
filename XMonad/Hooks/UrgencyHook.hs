@@ -523,7 +523,7 @@ instance Default DzenUrgencyHook where
 
 -- | Spawn a commandline thing, appending the window id to the prefix string
 -- you provide. (Make sure to add a space if you need it.) Do your crazy
--- xcompmgr thing.
+-- xcompmgr/compositor thing.
 spawnUrgencyHook :: String -> Window -> X ()
 spawnUrgencyHook = urgencyHook . SpawnUrgencyHook
 newtype SpawnUrgencyHook = SpawnUrgencyHook String deriving (Read, Show)
