@@ -193,13 +193,13 @@ isMinimized = isInProperty "_NET_WM_STATE" "_NET_WM_STATE_HIDDEN"
 
 -- | A predicate to check whether a window is a dialog.
 --
--- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm46485863906176>.
+-- See <https://specifications.freedesktop.org/wm/1.5/ar01s05.html#id-1.6.7>.
 isDialog :: Query Bool
 isDialog = isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_DIALOG"
 
 -- | A predicate to check whether a window is a notification.
 --
--- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm46485863906176>.
+-- See <https://specifications.freedesktop.org/wm/1.5/ar01s05.html#id-1.6.7>.
 isNotification :: Query Bool
 isNotification =
   isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_NOTIFICATION"
@@ -207,7 +207,7 @@ isNotification =
 -- | This function returns 'Just' the @_NET_WM_PID@ property for a
 -- particular window if set, 'Nothing' otherwise.
 --
--- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm45623487788432>.
+-- See <https://specifications.freedesktop.org/wm/1.5/ar01s05.html#id-1.6.14>.
 pid :: Query (Maybe ProcessID)
 pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w <&> \case
     Just [x] -> Just (fromIntegral x)
@@ -216,7 +216,7 @@ pid = ask >>= \w -> liftX $ getProp32s "_NET_WM_PID" w <&> \case
 -- | This function returns 'Just' the @_NET_WM_DESKTOP@ property for a
 -- particular window if set, 'Nothing' otherwise.
 --
--- See <https://specifications.freedesktop.org/wm-spec/wm-spec-1.5.html#idm46181547492704>.
+-- See <https://specifications.freedesktop.org/wm/1.5/ar01s05.html#id-1.6.6>.
 desktop :: Query (Maybe Int)
 desktop = ask >>= \w -> liftX $ getProp32s "_NET_WM_DESKTOP" w <&> \case
     Just [x] -> Just (fromIntegral x)
