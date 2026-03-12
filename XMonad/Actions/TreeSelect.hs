@@ -152,9 +152,10 @@ import Graphics.X11.Xft
 
 -- $pixel
 --
--- The 'Pixel' Color format is in the form of @0xaarrggbb@
+-- The 'Pixel' Color format is in the form of @0xaarrggbb@.
 --
--- Note that transparency is only supported if you have a window compositor running like <https://github.com/chjj/compton compton>
+-- Note that transparency is only supported if you have a window compositor
+-- such as <https://github.com/yshui/picom picom> running.
 --
 -- Some Examples:
 --

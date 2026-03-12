@@ -9,9 +9,9 @@
 -- Stability    : unstable
 -- Portability  : unportable
 --
--- Makes XMonad set the _NET_WM_WINDOW_OPACITY atom for inactive windows,
--- which causes those windows to become slightly translucent if something
--- like xcompmgr is running
+-- Makes XMonad set the @_NET_WM_WINDOW_OPACITY@ atom for inactive windows,
+-- which causes those windows to become slightly translucent if a compositor
+-- like picom or xcompmgr is running.
 -----------------------------------------------------------------------------
 module XMonad.Hooks.FadeInactive (
     -- * Usage
@@ -43,14 +43,13 @@ import qualified XMonad.StackSet as W
 -- >
 -- > main = xmonad def { logHook = myLogHook }
 --
--- fadeAmount can be any rational between 0 and 1.
--- you will need to have xcompmgr <https://freedesktop.org/wiki/Software/xapps/>
--- or something similar for this to do anything
+-- @fadeAmount@ can be any rational between 0 and 1.
+-- You will need to have a compositor such as
+-- <https://github.com/yshui/picom picom> running for this to do anything.
 --
--- For more detailed instructions on editing the logHook see
+-- For more detailed instructions on editing the 'logHook' see
 -- <https://xmonad.org/TUTORIAL.html#make-xmonad-and-xmobar-talk-to-each-other the tutorial>.
---
--- For more detailed instructions on editing the layoutHook see
+-- For more detailed instructions on editing the 'layoutHook' see
 -- <https://xmonad.org/TUTORIAL.html#customizing-xmonad the tutorial> and
 -- "XMonad.Doc.Extending#Editing_the_layout_hook".
 
