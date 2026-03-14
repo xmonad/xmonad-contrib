@@ -253,8 +253,8 @@ greedyView = viewWith W.greedyView
 invisiView :: XLike m => WorkspaceId -> m Any
 invisiView = viewWith $ \tag ws ->
   if   tag `elem` (W.tag . W.workspace <$> W.current ws : W.visible ws)
-  then W.view tag ws
-  else ws
+  then ws
+  else W.view tag ws
 
 -- | A refresh-tracking version of @W.Shift@.
 shift :: XLike m => WorkspaceId -> m Any
