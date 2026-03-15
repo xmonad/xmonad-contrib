@@ -1,11 +1,13 @@
+{-# LANGUAGE BangPatterns, BlockArguments, LambdaCase #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.Repeatable
 -- Description :  Actions you'd like to repeat.
--- Copyright   :  (c) 2022 L. S. Leary
+-- Copyright   :  (c) 2022,2026 L. S. Leary
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  @LSLeary (on github)
+-- Maintainer  :  L.S.Leary.II@gmail.com
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -17,11 +19,24 @@
 --
 -----------------------------------------------------------------------------
 
-module XMonad.Actions.Repeatable
-  ( repeatable
-  , repeatableSt
-  , repeatableM
-  ) where
+module XMonad.Actions.Repeatable (
+
+  -- * Repeatable
+  repeatable,
+  repeatableSt,
+  repeatableM,
+
+  -- * Concludable
+  NotOurEvent(..),
+  Done(..),
+  concludable,
+  concludableSt,
+  concludableM,
+
+) where
+
+-- base
+import Data.Functor (($>))
 
 -- mtl
 import Control.Monad.State (StateT(..))
@@ -55,7 +70,7 @@ repeatableSt
                                            --   action.
   -> (EventType -> KeySym -> StateT s X a) -- ^ The keypress handler.
   -> X (a, s)
-repeatableSt iSt = repeatableM $ \m -> runStateT m iSt
+repeatableSt iSt = repeatableM \m -> runStateT m iSt
 
 -- | A more general variant of 'repeatable' with an arbitrary monadic handler,
 --   accumulating a monoidal return value throughout the events.
@@ -67,23 +82,100 @@ repeatableM
   -> KeySym                       -- ^ The keypress that invokes the action.
   -> (EventType -> KeySym -> m a) -- ^ The keypress handler.
   -> X b
-repeatableM run mods key pressHandler = do
-  XConf{ theRoot = root, display = d } <- ask
-  run (repeatableRaw d root mods key pressHandler)
+repeatableM run mods key handler = concludableM run mods key press event
+ where
+  press t s = pure (Right (t, s))
+  event (t, s) = Right <$> handler t s
 
-repeatableRaw
+
+data Done        = Done
+data NotOurEvent = NotOurEvent
+
+-- | A generalisation of `repeatable` which may conclude early with `NotOurEvent` or `Done`.
+concludable
+  -- | The list of 'KeySym's under the modifiers used to invoke the action.
+  :: [KeySym]
+  -- | The keypress that invokes the action.
+  -> KeySym
+  -- | Handle keypresses by translating them into custom events.
+  --   If the function produces `NotOurEvent` then we conclude and put the
+  --   X `Event` back into the queue.
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -- | The custom event handler.
+  -> (e -> X (Either Done ()))
+  -> X ()
+concludable = concludableM id
+
+-- | A more general variant of 'concludable' with a stateful handler,
+--   accumulating a monoidal return value throughout the events.
+concludableSt
+  :: Monoid a
+  -- | Initial state.
+  => s
+  -- | The list of 'KeySym's under the modifiers used to invoke the action.
+  -> [KeySym]
+  -- | The keypress that invokes the action.
+  -> KeySym
+  -- | Handle keypresses by translating them into custom events.
+  --   If the function produces `NotOurEvent` then we conclude and put the
+  --   X `Event` back into the queue.
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -- | The custom event handler.
+  -> (e -> StateT s X (Either Done a))
+  -> X (a, s)
+concludableSt iSt = concludableM \m -> runStateT m iSt
+
+-- | A more general variant of 'concludable' with an arbitrary monadic handler,
+--   accumulating a monoidal return value throughout the events.
+concludableM
+  :: (MonadIO m, Monoid a)
+  -- | How to run the monad in 'X'.
+  => (m a -> X b)
+  -- | The list of 'KeySym's under the modifiers used to invoke the action.
+  -> [KeySym]
+  -- | The keypress that invokes the action.
+  -> KeySym
+  -- | Handle keypresses by translating them into custom events.
+  --   If the function produces `NotOurEvent` then we conclude and put the
+  --   X `Event` back into the queue.
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -- | The custom event handler.
+  -> (e -> m (Either Done a))
+  -> X b
+concludableM run mods key pressHandler eventHandler = do
+  XConf{ theRoot = root, display = d } <- ask
+  run (concludableRaw d root mods key pressHandler eventHandler)
+
+concludableRaw
   :: (MonadIO m, Monoid a)
   => Display -> Window
-  -> [KeySym] -> KeySym -> (EventType -> KeySym -> m a) -> m a
-repeatableRaw d root mods key pressHandler = do
+  -> [KeySym] -> KeySym
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -> (e -> m (Either Done a))
+  -> m a
+concludableRaw d root mods key pressHandler eventHandler = do
   io (grabKeyboard d root False grabModeAsync grabModeAsync currentTime)
-  handleEvent (keyPress, key) <* io (ungrabKeyboard d currentTime)
-  where
-    getNextEvent = io $ allocaXEvent $ \p -> do
-      maskEvent d (keyPressMask .|. keyReleaseMask) p
-      KeyEvent{ ev_event_type = t, ev_keycode = c } <- getEvent p
-      s <- keycodeToKeysym d c 0
-      return (t, s)
-    handleEvent (t, s)
-      | t == keyRelease && s `elem` mods = pure mempty
-      | otherwise = (<>) <$> pressHandler t s <*> (getNextEvent >>= handleEvent)
+  mev <- io (pressHandler' (pure ()) keyPress key)
+  x   <- maybe (pure mempty) (eventHandler' mempty) mev
+  io (ungrabKeyboard d currentTime)
+  pure x
+ where
+  pressHandler' putBack t s
+    | t == keyRelease && s `elem` mods = pure Nothing
+    | otherwise                        = pressHandler t s >>= \case
+      Left NotOurEvent -> putBack $> Nothing
+      Right ev         -> pure (Just ev)
+  eventHandler' !x ev = do
+    c <- eventHandler ev
+    case c of
+      Left  Done -> pure x
+      Right y    -> do
+        mev <- getNextEvent
+        maybe (pure xy) (eventHandler' xy) mev
+       where xy = x <> y
+  getNextEvent = (io . allocaXEvent) \p -> do
+    maskEvent d (keyPressMask .|. keyReleaseMask) p
+    KeyEvent{ ev_event_type = t, ev_keycode = c } <- getEvent p
+    s <- keycodeToKeysym d c 0
+    pressHandler' (putBackEvent d p) t s
+

@@ -8,6 +8,11 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Actions.Repeatable`
+
+    - Generalised the `repeatable` family of functions with new `concludable`
+      variants, providing control over how repeatable actions conclude.
+
 ## 0.18.2 (March 7, 2026)
 
 ### Breaking Changes
