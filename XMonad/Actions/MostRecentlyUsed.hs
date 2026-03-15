@@ -1,13 +1,17 @@
-{-# LANGUAGE NamedFieldPuns, GeneralizedNewtypeDeriving #-}
+{-#
+LANGUAGE
+  BlockArguments, NamedFieldPuns, MultiWayIf,
+  GeneralizedNewtypeDeriving, FlexibleContexts
+#-}
 
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Actions.MostRecentlyUsed
 -- Description :  Tab through windows by recency of use.
--- Copyright   :  (c) 2022 L. S. Leary
+-- Copyright   :  (c) 2022,2026 L. S. Leary
 -- License     :  BSD3-style (see LICENSE)
 --
--- Maintainer  :  @LSLeary (on github)
+-- Maintainer  :  L.S.Leary.II@gmail.com
 -- Stability   :  unstable
 -- Portability :  unportable
 --
@@ -44,7 +48,7 @@ import qualified Data.Map.Strict as M
 
 -- xmonad
 import XMonad
-  ( Window, KeySym, keyPress, io
+  ( Window, KeySym, keyRelease, io, xK_Escape
   , Event (DestroyWindowEvent, UnmapEvent, ev_send_event, ev_window)
   )
 import XMonad.Core
@@ -61,7 +65,7 @@ import qualified XMonad.Util.ExtensibleState as XS
 import XMonad.Util.PureX
   (handlingRefresh, curScreenId, curTag, greedyView, view, peek, focusWindow)
 import XMonad.Util.History (History, origin, event, erase, ledger)
-import XMonad.Actions.Repeatable (repeatableSt)
+import XMonad.Actions.Repeatable (concludableSt, NotOurEvent(..), Done(..))
 import XMonad.Prelude
 
 -- }}}
@@ -117,6 +121,7 @@ newtype MRU = MRU () deriving Semigroup
 
 -- | An action to browse through the history of focused windows, taking
 --   another step back with each tap of the key.
+--   Press /Escape/ to cancel the selection and return whence you came.
 mostRecentlyUsed
   :: [KeySym] -- ^ The 'KeySym's corresponding to the modifier to which the
               --   action is bound.
@@ -127,16 +132,16 @@ mostRecentlyUsed mods key = do
   (toUndo, undo) <- undoer
   let undoably curThing withThing thing = curThing >>= \cur ->
         when (cur /= thing) $ withThing thing >> toUndo (withThing cur)
-  withMostRecentlyUsed mods key $ \win Location{workspace,screen} ->
-    handlingRefresh $ do
+  withMostRecentlyUsed mods key \win Location{workspace,screen} ->
+    handlingRefresh do
       undo
       undoably curScreenId viewScreen screen
       undoably curTag      greedyView workspace
       mi <- gets (W.findTag win . windowset)
-      for_ mi $ \i -> do
+      for_ mi \i -> do
         undoably curTag greedyView i
         mfw <- peek
-        for_ mfw $ \fw -> do
+        for_ mfw \fw -> do
           undoably (pure fw) focusWindow win
   where
     undoer :: (MonadIO m, Monoid a) => m (m a -> m (), m a)
@@ -164,20 +169,34 @@ withMostRecentlyUsed mods tab preview = do
   unless busy $ do
     XS.put wh{ busy = True }
 
-    for_ (nonEmpty $ ledger hist) $ \ne -> do
-      mfw <- gets (W.peek . windowset)
-      let iSt = case cycleS ne of
-            (w, _) :~ s | mfw == Just w -> s
-            s                           -> s
-      repeatableSt iSt mods tab $ \t s ->
-        when (t == keyPress && s == tab) (pop >>= lift . uncurry preview)
+    for_ (nonEmpty $ ledger hist) \ne -> do
+      let home    = case        ne of wl :| _   -> wl
+          options = case cycleS ne of _  :~ wls -> wls
+      concludableSt options mods tab pressHandler (eventHandler home)
 
-    XS.modify $ \ws@WinHist{} -> ws{ busy = False }
+    XS.modify \ws@WinHist{} -> ws{ busy = False }
     logWinHist
-  where
+ where
+  pressHandler t s = pure if
+    | s == tab       -> press Next
+    | s == xK_Escape -> press Cancel
+    | otherwise      -> Left NotOurEvent
+   where press = Right . ignore (t == keyRelease)
+  eventHandler home ev = case ev of
+    Ignore -> pure (Right ())
+    Next   -> do
+      (w, l) <- pop
+      lift (Right <$> preview w l)
+    Cancel -> lift (uncurry preview home) $> Left Done
+   where
     pop = do
-      h :~ t <- get
-      put t $> h
+      x :~ xs <- get
+      put xs $> x
+
+data MruEvent = Ignore | Next | Cancel
+
+ignore :: Bool -> MruEvent -> MruEvent
+ignore b e = if b then Ignore else e
 
 -- }}}
 
@@ -203,3 +222,4 @@ winHistEH ev = All True <$ case ev of
   where collect w = XS.modify $ \wh@WinHist{hist} -> wh{ hist = erase w hist }
 
 -- }}}
+

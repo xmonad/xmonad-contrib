@@ -13,6 +13,16 @@
     - Generalised the `repeatable` family of functions with new `concludable`
       variants, providing control over how repeatable actions conclude.
 
+  * `XMonad.Actions.MostRecentlyUsed`
+
+    - Improved ergonomics for `mostRecentlyUsed`.
+
+      * The *Escape* key can now be used to cancel the selection and return
+        whence you came.
+
+      * No longer does a modifier need to be lifted in order to conclude the
+        selection; any unexpected keypress (or release) will do.
+
 ## 0.18.2 (March 7, 2026)
 
 ### Breaking Changes
