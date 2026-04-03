@@ -6,6 +6,11 @@
 
 ### New Modules
 
+  * `XMonad.Hooks.Qubes`
+
+    - Refresh focused and visible window borders from the
+      `_QUBES_LABEL_COLOR` property used by Qubes OS.
+
 ### Bug Fixes and Minor Changes
 
 ## 0.18.2 (March 7, 2026)
