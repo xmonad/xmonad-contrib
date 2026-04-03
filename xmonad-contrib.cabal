@@ -208,6 +208,7 @@ library
                         XMonad.Hooks.OnPropertyChange
                         XMonad.Hooks.Place
                         XMonad.Hooks.PositionStoreHooks
+                        XMonad.Hooks.Qubes
                         XMonad.Hooks.RefocusLast
                         XMonad.Hooks.Rescreen
                         XMonad.Hooks.ScreenCorners
