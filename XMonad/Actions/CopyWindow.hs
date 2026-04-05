@@ -29,7 +29,6 @@ module XMonad.Actions.CopyWindow (
 import XMonad
 import XMonad.Prelude
 import Control.Arrow ((&&&))
-import qualified Data.List as L
 
 import XMonad.Actions.WindowGo
 import XMonad.Hooks.StatusBar.PP (PP(..), WS(..), isHidden)
@@ -117,7 +116,7 @@ copyWindow w n = copy'
           insertUp' a = W.modify (Just $ W.Stack a [] [])
                           (\(W.Stack t l r) -> if a `elem` t:l++r
                                              then Just $ W.Stack t l r
-                                             else Just $ W.Stack a (L.delete a l) (L.delete a (t:r)))
+                                             else Just $ W.Stack a l (t:r))
 
 
 -- | runOrCopy will run the provided shell command unless it can
