@@ -70,7 +70,7 @@ repeatableSt
                                            --   action.
   -> (EventType -> KeySym -> StateT s X a) -- ^ The keypress handler.
   -> X (a, s)
-repeatableSt iSt = repeatableM \m -> runStateT m iSt
+repeatableSt iSt = repeatableM (`runStateT` iSt)
 
 -- | A more general variant of 'repeatable' with an arbitrary monadic handler,
 --   accumulating a monoidal return value throughout the events.
@@ -93,16 +93,16 @@ data NotOurEvent = NotOurEvent
 
 -- | A generalisation of `repeatable` which may conclude early with `NotOurEvent` or `Done`.
 concludable
-  -- | The list of 'KeySym's under the modifiers used to invoke the action.
   :: [KeySym]
-  -- | The keypress that invokes the action.
+  -- ^ The list of 'KeySym's under the modifiers used to invoke the action.
   -> KeySym
-  -- | Handle keypresses by translating them into custom events.
+  -- ^ The keypress that invokes the action.
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -- ^ Handle keypresses by translating them into custom events.
   --   If the function produces `NotOurEvent` then we conclude and put the
   --   X `Event` back into the queue.
-  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
-  -- | The custom event handler.
   -> (e -> X (Either Done ()))
+  -- ^ The custom event handler.
   -> X ()
 concludable = concludableM id
 
@@ -110,37 +110,37 @@ concludable = concludableM id
 --   accumulating a monoidal return value throughout the events.
 concludableSt
   :: Monoid a
-  -- | Initial state.
   => s
-  -- | The list of 'KeySym's under the modifiers used to invoke the action.
+  -- ^ Initial state.
   -> [KeySym]
-  -- | The keypress that invokes the action.
+  -- ^ The list of 'KeySym's under the modifiers used to invoke the action.
   -> KeySym
-  -- | Handle keypresses by translating them into custom events.
+  -- ^ The keypress that invokes the action.
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -- ^ Handle keypresses by translating them into custom events.
   --   If the function produces `NotOurEvent` then we conclude and put the
   --   X `Event` back into the queue.
-  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
-  -- | The custom event handler.
   -> (e -> StateT s X (Either Done a))
+  -- ^ The custom event handler.
   -> X (a, s)
-concludableSt iSt = concludableM \m -> runStateT m iSt
+concludableSt iSt = concludableM (`runStateT` iSt)
 
 -- | A more general variant of 'concludable' with an arbitrary monadic handler,
 --   accumulating a monoidal return value throughout the events.
 concludableM
   :: (MonadIO m, Monoid a)
-  -- | How to run the monad in 'X'.
   => (m a -> X b)
-  -- | The list of 'KeySym's under the modifiers used to invoke the action.
+  -- ^ How to run the monad in 'X'.
   -> [KeySym]
-  -- | The keypress that invokes the action.
+  -- ^ The list of 'KeySym's under the modifiers used to invoke the action.
   -> KeySym
-  -- | Handle keypresses by translating them into custom events.
+  -- ^ The keypress that invokes the action.
+  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
+  -- ^ Handle keypresses by translating them into custom events.
   --   If the function produces `NotOurEvent` then we conclude and put the
   --   X `Event` back into the queue.
-  -> (EventType -> KeySym -> IO (Either NotOurEvent e))
-  -- | The custom event handler.
   -> (e -> m (Either Done a))
+  -- ^ The custom event handler.
   -> X b
 concludableM run mods key pressHandler eventHandler = do
   XConf{ theRoot = root, display = d } <- ask
@@ -178,4 +178,3 @@ concludableRaw d root mods key pressHandler eventHandler = do
     KeyEvent{ ev_event_type = t, ev_keycode = c } <- getEvent p
     s <- keycodeToKeysym d c 0
     pressHandler' (putBackEvent d p) t s
-
