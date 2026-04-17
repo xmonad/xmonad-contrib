@@ -498,7 +498,6 @@ test-suite tests
                , mtl
                , random
                , process
-               , transformers
                , unix
                , utf8-string
                , deepseq

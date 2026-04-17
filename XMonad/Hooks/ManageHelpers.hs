@@ -83,7 +83,6 @@ import XMonad.Prelude
 import qualified XMonad.StackSet as W
 import XMonad.Util.WindowProperties (getProp32s)
 
-import Control.Monad.Trans.Maybe (MaybeT (..))
 import System.Posix (ProcessID)
 
 -- | Denotes a side of a screen. @S@ stands for South, @NE@ for Northeast
@@ -223,13 +222,11 @@ hasNoFocusOnMap = do
     -- Per the spec, _NET_WM_USER_TIME_WINDOW should take precedence
     -- over _NET_WM_USER_TIME. However, some X clients set a zero
     -- value only on the base window, so check both.
-    liftX . fmap isJust . runMaybeT $ maybeZero w <|> maybeZeroW w
+    liftX $ maybeZero w <||> maybeZeroW w
   where
-    maybeZero w = do
-        [t] <- MaybeT $ getProp32s "_NET_WM_USER_TIME" w
-        guard $ t == 0
+    maybeZero w = (Just [0] ==) <$> getProp32s "_NET_WM_USER_TIME" w
     maybeZeroW w = do
-        [w'] <- MaybeT $ getProp32s "_NET_WM_USER_TIME_WINDOW" w
+        Just [w'] <- getProp32s "_NET_WM_USER_TIME_WINDOW" w
         maybeZero $ fi w'
 
 -- | This function returns 'Just' the @_NET_WM_PID@ property for a
