@@ -48,7 +48,8 @@ module XMonad.Layout.Magnifier
       -- * Messages and Types
       MagnifyMsg (..),
       MagnifyThis(..),
-      Magnifier,
+      Magnifier(..),
+      Toggle(..)
     ) where
 
 import Numeric.Natural (Natural)
