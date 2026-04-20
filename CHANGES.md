@@ -23,6 +23,20 @@
       * No longer does a modifier need to be lifted in order to conclude the
         selection; any unexpected keypress (or release) will do.
 
+  * `XMonad.Hooks.EwmhDesktops`
+
+    - `_NET_WM_USER_TIME` and `_NET_WM_USER_TIME_WINDOW` were added to the list
+      of supported hints (as per `_NET_SUPPORTED`). These hints are understood
+      by the new `X.H.ManageHelpers.hasNoFocusOnMap` predicate. This enables
+      certain applications (e.g. Emacs text editor) that check whether the hint
+      is supported to use it.
+
+  * `XMonad.Hooks.ManageHelpers`
+
+    - Added `hasNoFocusOnMap` predicate to check for windows with a
+      `_NET_WM_USER_TIME` property value of zero, which requests that a new
+      window not receive focus.
+
 ## 0.18.2 (March 7, 2026)
 
 ### Breaking Changes
