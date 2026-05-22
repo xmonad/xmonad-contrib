@@ -23,6 +23,12 @@
       * No longer does a modifier need to be lifted in order to conclude the
         selection; any unexpected keypress (or release) will do.
 
+  * `XMonad.Hooks.StatusBar.PP`
+
+    - Added `ppCurrentNoWindows` to `PP`, to match `ppHiddenNoWindows`
+      and `ppVisibleNoWindows`. `ppCurrentNoWindows` falls back
+      to `ppCurrent` if unset/set to `Nothing`.
+
 ## 0.18.2 (March 7, 2026)
 
 ### Breaking Changes
@@ -127,9 +133,6 @@
 
   * `XMonad.Hooks.StatusBar.PP`
 
-    - Added `ppCurrentNoWindows` to `PP`, to match `ppHiddenNoWindows`
-      and `ppVisibleNoWindows`. `ppCurrentNoWindows` falls back
-      to `ppCurrent` if unset/set to `Nothing`.
     - Added `isCurrentNoWindows`, `isCurrentHasWindows`, and `hasWindows`
       predicates.
     - `isCurrent` remains as was and doesn't check for presence
