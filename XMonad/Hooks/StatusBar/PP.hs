@@ -38,7 +38,8 @@ module XMonad.Hooks.StatusBar.PP (
     -- * Predicates and formatters
     -- $predicates
     WS(..), WSPP, WSPP', fallbackPrinters,
-    isUrgent, isCurrent, isVisible, isVisibleNoWindows, isHidden,
+    isUrgent, isCurrent, isCurrentNoWindows, isCurrentHasWindows,
+    isVisible, isVisibleNoWindows, isHidden, hasWindows,
 
     -- * Example formatters
     dzenPP, xmobarPP, sjanssenPP, byorgeyPP,
@@ -96,6 +97,9 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
                -- ^ how to print tags of empty hidden workspaces
              , ppVisibleNoWindows :: Maybe (WorkspaceId -> String)
                -- ^ how to print tags of empty visible workspaces
+             , ppCurrentNoWindows :: Maybe (WorkspaceId -> String)
+               -- ^ how to print the tag of the currently focused
+               -- workspace if the workspace is empty
              , ppUrgent :: WorkspaceId -> String
                -- ^ format to be applied to tags of urgent workspaces.
              , ppRename :: String -> WindowSpace -> String
@@ -156,6 +160,7 @@ data PP = PP { ppCurrent :: WorkspaceId -> String
 -- workspace layout, and the title of the focused window.
 instance Default PP where
   def = PP { ppCurrent          = wrap "[" "]"
+           , ppCurrentNoWindows = Nothing
            , ppVisible          = wrap "<" ">"
            , ppHidden           = id
            , ppHiddenNoWindows  = const ""
@@ -271,12 +276,13 @@ type WSPP = WSPP' (WorkspaceId -> String)
 -- post-process their output. (For pre-processing their input, there's
 -- 'ppRename'.)
 fallbackPrinters :: WSPP
-fallbackPrinters = isUrgent            ?-> ppUrgent
-               <|> isCurrent'          ?-> ppCurrent
-               <|> isVisible'          ?-> ppVisible
-               <|> isVisibleNoWindows' ?-> liftA2 fromMaybe ppVisible ppVisibleNoWindows
-               <|> isHidden'           ?-> ppHidden
-               <|> pure True           ?-> ppHiddenNoWindows
+fallbackPrinters = isUrgent             ?-> ppUrgent
+               <|> isCurrentHasWindows' ?-> ppCurrent
+               <|> isCurrentNoWindows'  ?-> liftA2 fromMaybe ppCurrent ppCurrentNoWindows
+               <|> isVisible'           ?-> ppVisible
+               <|> isVisibleNoWindows'  ?-> liftA2 fromMaybe ppVisible ppVisibleNoWindows
+               <|> isHidden'            ?-> ppHidden
+               <|> pure True            ?-> ppHiddenNoWindows
   where
     cond ?-> ppr = (asks cond >>= guard) *> asks (ppr . wsPP)
 
@@ -293,10 +299,28 @@ isCurrent' WS{..} = S.tag wsWS == S.currentTag wsWindowSet
 isCurrent :: WS -> Bool
 isCurrent = (not <$> isUrgent) <&&> isCurrent'
 
+-- | Predicate for the current workspace with one or more windows.
+-- Caution: assumes default precedence is respected.
+isCurrentHasWindows' :: WS -> Bool
+isCurrentHasWindows' = isCurrent' <&&> hasWindows
+
+-- | Predicate for the current workspace with one or more windows.
+isCurrentHasWindows :: WS -> Bool
+isCurrentHasWindows = (not <$> isUrgent) <&&> isCurrentHasWindows'
+
+-- | Predicate for the current workspace with no windows. Caution:
+-- assumes default precedence is respected.
+isCurrentNoWindows' :: WS -> Bool
+isCurrentNoWindows' = isCurrent' <&&> (not <$> hasWindows)
+
+-- | Predicate for the current workspace with no windows.
+isCurrentNoWindows :: WS -> Bool
+isCurrentNoWindows = (not <$> isUrgent) <&&> isCurrentNoWindows'
+
 -- | Predicate for visible workspaces. Caution: assumes default
 -- precedence is respected.
 isVisible' :: WS -> Bool
-isVisible' = isVisibleNoWindows' <&&> isJust . S.stack . wsWS
+isVisible' = isVisibleNoWindows' <&&> hasWindows
 
 -- | Predicate for visible workspaces.
 isVisible :: WS -> Bool
@@ -312,14 +336,14 @@ isVisibleNoWindows' WS{..} = S.tag wsWS `elem` visibles
 isVisibleNoWindows :: WS -> Bool
 isVisibleNoWindows =
     (not <$> isUrgent)
-        <&&> (not <$> isCurrent')
-        <&&> (not <$> isVisible')
+        <&&> (not <$> isCurrentNoWindows')
+        <&&> (not <$> hasWindows)
         <&&> isVisibleNoWindows'
 
 -- | Predicate for non-empty hidden workspaces. Caution: assumes default
 -- precedence is respected.
 isHidden' :: WS -> Bool
-isHidden' = isJust . S.stack . wsWS
+isHidden' = hasWindows
 
 -- | Predicate for hidden workspaces.
 isHidden :: WS -> Bool
@@ -329,6 +353,10 @@ isHidden =
         <&&> (not <$> isVisible')
         <&&> (not <$> isVisibleNoWindows')
         <&&> isHidden'
+
+-- | Predicate for workspaces with windows.
+hasWindows :: WS -> Bool
+hasWindows = isJust . S.stack . wsWS
 
 pprWindowSetXinerama :: WindowSet -> String
 pprWindowSetXinerama ws = "[" ++ unwords onscreen ++ "] " ++ unwords offscreen
