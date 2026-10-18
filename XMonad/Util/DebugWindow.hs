@@ -130,6 +130,7 @@ tryCompound t@(TextProperty _ enc _ _) =  do
   when (enc /= cOMPOUND_TEXT) $ error "String is not COMPOUND_TEXT"
   withDisplay $ \d -> io $ wcTextPropertyToTextList d t
 
+-- @@@ can this be reused above?
 splitNul    :: String -> [String]
 splitNul "" =  []
 splitNul s  =  let (s',ss') = break (== '\NUL') s in s' : splitNul ss'
@@ -156,7 +157,6 @@ wrap s =  ' ' : '"' : wrap' s ++ "\""
                   | otherwise  =        s' : wrap' ss
     wrap' ""                   =             ""
 
--- and so is getCommand
 safeGetCommand     :: Display -> Window -> X [String]
 safeGetCommand d w =  do
   wC <- getAtom "WM_COMMAND"
@@ -177,9 +177,10 @@ getMachine w =  catchX' (getAtom "WM_CLIENT_MACHINE" >>= getDecodedStringProp w)
 -- if it's one EWMH atom then we strip prefix and lowercase, otherwise we
 -- return the whole thing. we also get the state here, with similar rules
 -- (all EWMH = all prefixes removed and lowercased)
+-- XXX should this also handle KDE, lowercased but "KDE:" prepended?
 windowType        :: Display -> Window -> [Atom] -> X String
 windowType d w ts =  do
-  tstr <- decodeType ts
+  tstr <- catchX' (decodeType ts) (rawDecode ts "" "")
   wS <- getAtom "_NET_WM_STATE"
   ss' <- io $ getWindowProperty32 d wS w
   sstr <- case ss' of
@@ -187,35 +188,53 @@ windowType d w ts =  do
             _       -> return ""
   return $ " (" ++ tstr ++ sstr ++ ")"
   where
-    decodeType     :: [Atom] -> X String
-    decodeType []  =  return ""
-    decodeType [t] =  simplify "_NET_WM_WINDOW_TYPE_" t
-    decodeType tys =  unAtoms tys " (" False
+    decodeType         :: [Atom] -> X String
+    decodeType []      =  return ""
+    decodeType tys@[_] =  unAtoms "_NET_WM_WINDOW_TYPE_" "" tys ""
+    decodeType tys     =  unAtoms "_NET_WM_WINDOW_TYPE_" "]" tys "["
 
-    unAtoms             :: [Atom] -> String -> Bool -> X String
-    unAtoms []     t i  =  return $ if i then t else t ++ ")"
-    unAtoms (a:as) t i  =  do
-                            s' <- io $ getAtomName d a
-                            let s = case s' of
-                                      Just s'' -> s''
-                                      _        -> '<':show a ++ ">"
-                            unAtoms as (t ++ (if i then ' ':s else s)) True
+    unAtoms              :: String -> String -> [Atom] -> String -> X String
+    unAtoms pfx sfx as t =  unAtoms' pfx sfx as t False
 
-    simplify       :: String -> Atom -> X String
-    simplify pfx a =  do
-                        s' <- io $ getAtomName d a
-                        case s' of
-                          Nothing -> return $ '<':show a ++ ">"
-                          Just s  -> if pfx `isPrefixOf` s then
-                                       return $ map toLower (drop (length pfx) s)
-                                     else
-                                       return s
-
-    -- note that above it says this checks all of them before simplifying.
-    -- I'll do that after I'm confident this works as intended.
-    windowState     :: [Atom] -> X String
-    windowState []  =  return ""
-    windowState as' =  go as' ";"
+    unAtoms'                   :: String -> String -> [Atom] -> String -> Bool -> X String
+    unAtoms' pfx sfx =  go
       where
-        go []     t = return t
-        go (a:as) t = simplify "_NET_WM_STATE_" a >>= \t' -> go as (t ++ ' ':t')
+        go                :: [Atom] -> String -> Bool -> X String
+        go []     t False =  return $ t ++ sfx
+        go []     t True  =  return t
+        go (a:as) t i     =  do
+                              s' <- io $ getAtomName d a
+                              s <- case s' of
+                                     Just s'' -> simplify pfx s''
+                                     _        -> fail "unknown atom"
+                              let sep | i         = ", "
+                                      | otherwise = ""
+                              go as (t ++ sep ++ s) True
+
+    -- someday refactor so a list of simplifications can be passed, per KDE comment above
+    -- reminder: this is in 'X' so 'fail' throws and re-dumps the list "raw" (see 'catchX''
+    -- at the start of @eindowType@ above and in @windowState@ below)
+    simplify       :: String -> String -> X String
+    simplify pfx s =  if pfx `isPrefixOf` s then
+                        return $ map toLower (drop (length pfx) s)
+                      else
+                        fail "incorrect prefix"
+
+    windowState    :: [Atom] -> X String
+    windowState [] =  return ""
+    windowState as =  catchX' (unAtoms "_NET_WM_STATE_" "" as "; ") (rawDecode as "; " "")
+
+    rawDecode             :: [Atom] -> String -> String -> X String
+    rawDecode as' pfx sfx =  go as' "{" False
+      where
+        go            :: [Atom] -> String -> Bool -> X String
+        go []     _ False =  return ""
+        go []     s True  =  return $ pfx ++ s ++ "}" ++ sfx
+        go (a:as) s i     =  do
+                              s' <- io $ getAtomName d a
+                              let s''' = case s' of
+                                          Just s'' -> s''
+                                          _        -> '<':show a ++ ">"
+                                  sep | i         = " ,"
+                                      | otherwise = ""
+                              go as (s ++ sep ++ s''') True
