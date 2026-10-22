@@ -101,7 +101,7 @@ instance Default Theme where
           , urgentColor         = "#FFFF00"
           , activeBorderColor   = "#FFFFFF"
           , inactiveBorderColor = "#BBBBBB"
-          , urgentBorderColor   = "##00FF00"
+          , urgentBorderColor   = "#00FF00"
           , activeBorderWidth   = 1
           , inactiveBorderWidth = 1
           , urgentBorderWidth   = 1
