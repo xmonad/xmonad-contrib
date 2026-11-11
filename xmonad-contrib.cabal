@@ -427,6 +427,7 @@ test-suite tests
                   EZConfig
                   ExtensibleConf
                   GridSelect
+                  IndependentScreens
                   Instances
                   ManageDocks
                   NoBorders
@@ -441,6 +442,7 @@ test-suite tests
                   XMonad.Actions.CycleWS
                   XMonad.Actions.FocusNth
                   XMonad.Actions.GridSelect
+                  XMonad.Actions.OnScreen
                   XMonad.Actions.PhysicalScreens
                   XMonad.Actions.Repeatable
                   XMonad.Actions.RotateSome
@@ -456,6 +458,7 @@ test-suite tests
                   XMonad.Hooks.WorkspaceHistory
                   XMonad.Hooks.StatusBar.PP
                   XMonad.Layout.Decoration
+                  XMonad.Layout.IndependentScreens
                   XMonad.Layout.LayoutModifier
                   XMonad.Layout.LimitWindows
                   XMonad.Layout.NoBorders

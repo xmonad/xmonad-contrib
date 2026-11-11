@@ -15,6 +15,7 @@ import qualified OrgMode
 import qualified GridSelect
 import qualified EZConfig
 import qualified WindowNavigation
+import qualified IndependentScreens
 
 main :: IO ()
 main = hspec $ do
@@ -55,3 +56,4 @@ main = hspec $ do
     context "GridSelect"     GridSelect.spec
     context "EZConfig"       EZConfig.spec
     context "WindowNavigation" WindowNavigation.spec
+    context "IndependentScreens" IndependentScreens.spec

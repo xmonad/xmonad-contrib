@@ -23,6 +23,8 @@ module XMonad.Layout.IndependentScreens (
     workspaces',
     withScreen, withScreens,
     onCurrentScreen,
+    currentScreenWS,
+    onScreenWS,
     marshallPP,
     whenCurrentOn,
     countScreens,
@@ -40,6 +42,7 @@ import XMonad
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Prelude
 import qualified XMonad.StackSet as W
+import XMonad.Actions.CycleWS (WSType (WSIs))
 import XMonad.Actions.OnScreen (viewOnScreen)
 
 -- $usage
@@ -77,6 +80,15 @@ import XMonad.Actions.OnScreen (viewOnScreen)
 -- of virtual workspaces to functions of physical workspaces, which work
 -- by marshalling the virtual workspace name and the currently focused
 -- screen into a physical workspace name.
+--
+-- To cycle through only the workspaces of the current screen (as
+-- 'XMonad.Actions.CycleWS.nextWS' and 'XMonad.Actions.CycleWS.prevWS' do
+-- for all workspaces), use 'currentScreenWS' with
+-- 'XMonad.Actions.CycleWS.moveTo' and 'XMonad.Actions.CycleWS.shiftTo':
+--
+-- > , ((modm, xK_Right), moveTo Next currentScreenWS)
+-- > , ((modm, xK_Left ), moveTo Prev currentScreenWS)
+-- > , ((modm .|. shiftMask, xK_Right), shiftTo Next currentScreenWS)
 --
 -- A complete example abusing many of the functions below is available in the
 -- <https://xmonad.org/configurations.html XMonad.Config.Dmwit> configuration.
@@ -131,6 +143,26 @@ onCurrentScreen :: (PhysicalWorkspace -> WindowSet -> a) -> (VirtualWorkspace ->
 onCurrentScreen f vws ws =
   let currentScreenId = W.screen $ W.current ws
    in f (marshall currentScreenId vws) ws
+
+-- | A 'WSType' matching exactly the workspaces that belong to the currently
+-- focused screen, i.e. those whose tag was created for it by 'withScreens'.
+-- Tags that are not marshalled (such as the @NSP@ scratchpad workspace) never
+-- match. This is meant to be used with the workspace-cycling functions of
+-- "XMonad.Actions.CycleWS", for example
+--
+-- > moveTo Next currentScreenWS
+-- > moveTo Prev (currentScreenWS :&: hiddenWS :&: Not emptyWS)
+--
+currentScreenWS :: WSType
+currentScreenWS = WSIs $ gets (onScreenPred . W.screen . W.current . windowset)
+
+-- | Like 'currentScreenWS', but for the workspaces of an arbitrary screen.
+onScreenWS :: ScreenId -> WSType
+onScreenWS = WSIs . return . onScreenPred
+
+-- | Does the workspace belong to the given screen?
+onScreenPred :: ScreenId -> WindowSpace -> Bool
+onScreenPred sid = (marshall sid "" `isPrefixOf`) . W.tag
 
 -- | Get the workspace currently active on a given screen
 workspaceOnScreen :: ScreenId -> WindowSet -> Maybe PhysicalWorkspace
