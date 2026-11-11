@@ -13,6 +13,14 @@
 
 ### Bug Fixes and Minor Changes
 
+  * `XMonad.Layout.IndependentScreens`
+
+    - Added `currentScreenWS` and `onScreenWS`, `XMonad.Actions.CycleWS`
+      `WSType`s matching only the workspaces that belong to the focused
+      (respectively a given) screen. For example,
+      `moveTo Next currentScreenWS` cycles through just the current
+      screen's workspaces.
+
   * `XMonad.Hooks.ManageDebug`
 
     - `debugManageHookOn` now sends the debug output to `$XMONAD_XMESSAGE`
