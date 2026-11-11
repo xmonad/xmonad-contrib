@@ -44,6 +44,12 @@
       and `ppVisibleNoWindows`. `ppCurrentNoWindows` falls back
       to `ppCurrent` if unset/set to `Nothing`.
 
+  * `XMonad.Hooks.WindowSwallowing`
+
+    - `swallowEventHook` now runs the user's `manageHook` on the child
+      window, so that rules like `doFloat`, `doShift`, or per-window
+      border widths are applied correctly.
+
 ## 0.18.2 (March 7, 2026)
 
 ### Breaking Changes

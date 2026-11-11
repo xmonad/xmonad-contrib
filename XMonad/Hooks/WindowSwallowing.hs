@@ -130,8 +130,15 @@ swallowEventHook parentQ childQ event = do
         -- We set the newly opened window as the focused window, replacing the parent window.
         -- If the parent window was floating, we transfer that data to the child,
         -- such that it shows up at the same position, with the same dimensions.
+        --
+        -- As the child is manually inserted into the window set, xmonad's
+        -- default MapRequestEvent handler will consider it already managed
+        -- and skip running the user's manageHook, so we do that ourselves.
+        mh <- asks (manageHook . config)
+        g  <- appEndo <$> userCodeDef (Endo id) (runQuery mh childWindow)
         windows
-          ( W.modify' (\x -> x { W.focus = childWindow })
+          ( g
+          . W.modify' (\x -> x { W.focus = childWindow })
           . moveFloatingState parentWindow childWindow
           )
         XS.modify (addSwallowedParent parentWindow childWindow)
