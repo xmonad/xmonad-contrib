@@ -43,6 +43,8 @@
       nativeBuildInputs = [ pkgs.cabal-install ];
     });
     defaultPackage = hpkg.xmonad-contrib;
-    modernise = xmonad.modernise.${system};
+    modernise = nixpkgs.lib.warn
+      "xmonad-contrib.modernise is deprecated and does nothing; you can safely remove it."
+      { };
   }) // { inherit hoverlay overlay overlays nixosModule nixosModules; } ;
 }

@@ -55,17 +55,12 @@ You can bring them into your system flake like so:
       system = <system>;
       # NixOS module composition is /not/ commutative; order matters.
       # To avoid issues, add `xmonad-contrib.nixosModules` after your standard
-      # configuration, but before `modernise` or any module overlaying in a
-      # "prefix".
+      # configuration, but before any module overlaying in a "prefix".
       modules = [
         ./configuration.nix
         ./hardware-configuration.nix
         <myMiscConfigModule>
       ] ++ xmonad-contrib.nixosModules ++ [
-        # `modernise` replaces the standard xmonad module and wrapper script
-        # with those from unstable. This is currently a necessary workaround to
-        # make Mod-q recompilation work.
-        xmonad-contrib.modernise.${system}
         <myPrefixModule>
       ];
     };
