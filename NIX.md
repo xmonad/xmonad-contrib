@@ -42,12 +42,12 @@ You can bring them into your system flake like so:
 ```nix
 {
   inputs = {
-    nixpkgs.url = github:NixOS/nixpkgs/nixos-<version>;
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-<version>";
     # The xmonad-contrib flake depends upon and re-exports from the xmonad
     # flake. As such, you don't need to use the latter directly. If you wish to
     # use /only/ the xmonad flake, you should beware that the version of
     # contrib you get from nixpkgs might not build against it.
-    xmonad-contrib.url = github:xmonad/xmonad-contrib;
+    xmonad-contrib.url = "github:xmonad/xmonad-contrib";
   };
 
   outputs = { self, nixpkgs, xmonad-contrib }: {
