@@ -37,6 +37,10 @@ module XMonad.Hooks.StatusBar (
   statusBarPropTo,
   statusBarGeneric,
   statusBarPipe,
+  OnRescreen(..),
+  statusBarProp',
+  statusBarPropTo',
+  statusBarGeneric',
 
   -- * Multiple Status Bars
   -- $multiple
@@ -55,6 +59,7 @@ module XMonad.Hooks.StatusBar (
   -- $sbprocess
   spawnStatusBar,
   killStatusBar,
+  signalStatusBar,
   killAllStatusBars,
   startAllStatusBars,
   ) where
@@ -64,7 +69,7 @@ import Data.IORef (newIORef, readIORef, writeIORef)
 import qualified Codec.Binary.UTF8.String as UTF8 (encode)
 import qualified Data.Map as M
 import System.IO (hClose)
-import System.Posix.Signals (sigTERM, signalProcessGroup)
+import System.Posix.Signals (Signal, sigTERM, signalProcessGroup)
 import System.Posix.Types (ProcessID)
 
 import Foreign.C (CChar)
@@ -243,18 +248,34 @@ data StatusBarConfig = StatusBarConfig  { sbLogHook     :: X ()
                                         -- ^ How to start the status bar.
                                         , sbCleanupHook :: X ()
                                         -- ^ How to kill the status bar.
+                                        , sbRescreenHook :: X ()
+                                        -- ^ What to do when the screen of the status bar
+                                        -- moves or is resized. Only used by 'dynamicSBs'.
                                         }
 
 instance Semigroup StatusBarConfig where
-    StatusBarConfig l s c <> StatusBarConfig l' s' c' =
-      StatusBarConfig (l <> l') (s <> s') (c <> c')
+    StatusBarConfig l s c r <> StatusBarConfig l' s' c' r' =
+      StatusBarConfig (l <> l') (s <> s') (c <> c') (r <> r')
 
 instance Monoid StatusBarConfig where
-    mempty = StatusBarConfig mempty mempty mempty
+    mempty = StatusBarConfig mempty mempty mempty mempty
 
 -- | Per default, all the hooks do nothing.
 instance Default StatusBarConfig where
     def = mempty
+
+-- | What a status bar does when the screen it is on moves or is resized
+-- (see 'sbRescreenHook'). Used by the primed constructors like
+-- 'statusBarProp''.
+data OnRescreen
+    = Restart
+    -- ^ Kill the status bar and start it again. This is the default, as most
+    -- status bars compute their position only once, when they start.
+    | SendSignal Signal
+    -- ^ Send a signal to the status bar, for status bars that can reposition
+    -- themselves. For xmobar, use @sigUSR2@.
+    | Ignore
+    -- ^ Do nothing.
 
 -- | Incorporates a 'StatusBarConfig' into an 'XConfig' by taking care of the
 -- necessary plumbing (starting, restarting and logging to it).
@@ -266,7 +287,7 @@ withSB :: LayoutClass l Window
        => StatusBarConfig    -- ^ The status bar config
        -> XConfig l          -- ^ The base config
        -> XConfig l
-withSB (StatusBarConfig lh sh ch) conf = conf
+withSB (StatusBarConfig lh sh ch _) conf = conf
     { logHook     = logHook conf *> lh
     , startupHook = startupHook conf *> ch *> sh
     }
@@ -311,15 +332,14 @@ defToggleStrutsKey XConfig{modMask = modm} = (modm, xK_b)
 statusBarProp :: String -- ^ The command line to launch the status bar
               -> X PP   -- ^ The pretty printing options
               -> StatusBarConfig
-statusBarProp = statusBarPropTo xmonadDefProp
+statusBarProp = statusBarProp' Restart
 
 -- | Like 'statusBarProp', but lets you define the property
 statusBarPropTo :: String -- ^ Property to write the string to
                 -> String -- ^ The command line to launch the status bar
                 -> X PP   -- ^ The pretty printing options
                 -> StatusBarConfig
-statusBarPropTo prop cmd pp = statusBarGeneric cmd $
-    xmonadPropLog' prop =<< dynamicLogString =<< pp
+statusBarPropTo = statusBarPropTo' Restart
 
 -- | A generic 'StatusBarConfig' that launches a status bar but takes a
 -- generic @X ()@ logging function instead of a 'PP'. This has several uses:
@@ -335,27 +355,61 @@ statusBarPropTo prop cmd pp = statusBarGeneric cmd $
 statusBarGeneric :: String -- ^ The command line to launch the status bar
                  -> X ()   -- ^ What and how to log to the status bar ('sbLogHook')
                  -> StatusBarConfig
-statusBarGeneric cmd lh = def
-    { sbLogHook     = lh
-    , sbStartupHook = spawnStatusBar cmd
-    , sbCleanupHook = killStatusBar cmd
+statusBarGeneric = statusBarGeneric' Restart
+
+-- | Like 'statusBarProp', but chooses what the status bar does when its
+-- screen moves or is resized. For example, to let xmobar reposition itself
+-- instead of restarting it:
+--
+-- > statusBarProp' (SendSignal sigUSR2) "xmobar -x 0" (pure xmobarPP)
+statusBarProp' :: OnRescreen -- ^ What to do when the screen moves or is resized
+               -> String     -- ^ The command line to launch the status bar
+               -> X PP       -- ^ The pretty printing options
+               -> StatusBarConfig
+statusBarProp' onRescreen = statusBarPropTo' onRescreen xmonadDefProp
+
+-- | Like 'statusBarPropTo', but chooses what the status bar does when its
+-- screen moves or is resized. See 'statusBarProp''.
+statusBarPropTo' :: OnRescreen -- ^ What to do when the screen moves or is resized
+                 -> String     -- ^ Property to write the string to
+                 -> String     -- ^ The command line to launch the status bar
+                 -> X PP       -- ^ The pretty printing options
+                 -> StatusBarConfig
+statusBarPropTo' onRescreen prop cmd pp = statusBarGeneric' onRescreen cmd $
+    xmonadPropLog' prop =<< dynamicLogString =<< pp
+
+-- | Like 'statusBarGeneric', but chooses what the status bar does when its
+-- screen moves or is resized. See 'statusBarProp''.
+statusBarGeneric' :: OnRescreen -- ^ What to do when the screen moves or is resized
+                  -> String     -- ^ The command line to launch the status bar
+                  -> X ()       -- ^ What and how to log to the status bar ('sbLogHook')
+                  -> StatusBarConfig
+statusBarGeneric' onRescreen cmd lh = def
+    { sbLogHook      = lh
+    , sbStartupHook  = spawnStatusBar cmd
+    , sbCleanupHook  = killStatusBar cmd
+    , sbRescreenHook = case onRescreen of
+        Restart        -> killStatusBar cmd >> spawnStatusBar cmd
+        SendSignal sig -> signalStatusBar sig cmd
+        Ignore         -> mempty
     }
 
--- | Like 'statusBarProp', but uses pipe-based logging instead.
+-- | Like 'statusBarProp', but uses pipe-based logging instead. The status bar
+-- is restarted when its screen moves or is resized.
 statusBarPipe :: String -- ^ The command line to launch the status bar
               -> X PP   -- ^ The pretty printing options
               -> IO StatusBarConfig
 statusBarPipe cmd xpp = do
     hRef <- newIORef Nothing
+    let start = io (writeIORef hRef . Just =<< spawnPipe cmd)
+        cleanup = io $ readIORef hRef >>= (`whenJust` hClose) >> writeIORef hRef Nothing
     return $ def
-        { sbStartupHook = io (writeIORef hRef . Just =<< spawnPipe cmd)
-        , sbLogHook     = do
+        { sbStartupHook  = start
+        , sbLogHook      = do
               h' <- io (readIORef hRef)
               whenJust h' $ \h -> io . hPutStrLn h =<< dynamicLogString =<< xpp
-        , sbCleanupHook = io
-                          $   readIORef hRef
-                          >>= (`whenJust` hClose)
-                          >>  writeIORef hRef Nothing
+        , sbCleanupHook  = cleanup
+        , sbRescreenHook = cleanup >> start
         }
 
 
@@ -440,11 +494,42 @@ statusBarPipe cmd xpp = do
 --
 -- Note also that this interface can be used with one screen, or if
 -- the screen configuration doesn't change.
+--
+-- When a screen moves or is resized, for example after changing the
+-- primary output or the resolution, its status bars are restarted by
+-- default. Status bars that can reposition themselves can be told so with
+-- the primed constructors, e.g. 'statusBarPropTo''. xmobar repositions itself
+-- on @SIGUSR2@, so in the example above, the top bar could be:
+--
+-- > xmobarTop = statusBarPropTo' (SendSignal sigUSR2) "_XMONAD_LOG_1" "xmobar -x 0 ~/.config/xmobar/xmobarrc_top" (pure ppTop)
+--
+-- Choose this per status bar, before combining them with '<>'. Status bars
+-- that need a restart, like @trayer@, keep the default:
+--
+-- > trayer = statusBarGeneric "trayer --monitor primary" mempty
+-- >
+-- > barSpawner 0 = xmobarTop <> xmobarBottom <> trayer
+--
+-- If the screen layout changes in several steps (e.g. several @xrandr@
+-- calls), a status bar may be signalled or restarted before the layout is
+-- settled. 'setRescreenDelay' from "XMonad.Hooks.Rescreen" makes xmonad
+-- wait for it:
+--
+-- > main = xmonad . setRescreenDelay 500000 . dynamicSBs (pure . barSpawner) $ def { ... }
+--
+-- The status bars are tracked by their command, so give each one a
+-- distinct command. Otherwise, restarting or signalling one status bar may
+-- affect another one with the same command.
 
-newtype ActiveSBs = ASB {getASBs :: [(ScreenId,  StatusBarConfig)]}
+-- | A running status bar, and the geometry of its screen when it was
+-- last started or repositioned.
+data ActiveSB = ActiveSB { asbRect :: Rectangle, asbConfig :: StatusBarConfig }
+
+-- | The active status bars, by the screen they are on.
+newtype ActiveSBs = ASB { getASBs :: M.Map ScreenId ActiveSB }
 
 instance ExtensionClass ActiveSBs where
-  initialValue = ASB []
+  initialValue = ASB M.empty
 
 -- | Given a function to create status bars, 'dynamicSBs'
 -- adds the dynamic status bar capabilities to the config.
@@ -468,30 +553,31 @@ dynamicEasySBs :: LayoutClass l Window
 dynamicEasySBs f conf =
   docks . dynamicSBs f $ conf { layoutHook = avoidStruts (layoutHook conf) }
 
--- | Given the function to create status bars, update
--- the status bars by killing those that shouldn't be
--- visible anymore and creates any missing status bars
+-- | Given the function to create status bars, update the status bars:
+-- kill those whose screen is gone, start those for new screens, and run
+-- 'sbRescreenHook' for those whose screen moved or was resized.
 updateSBs :: (ScreenId -> X StatusBarConfig) -> X ()
 updateSBs f = do
-  actualScreens    <- withWindowSet $ return . map W.screen . W.screens
-  (toKeep, toKill) <-
-    partition ((`elem` actualScreens) . fst) . getASBs <$> XS.get
-  -- Kill the status bars
-  cleanSBs (map snd toKill)
-  -- Create new status bars if needed
-  let missing = actualScreens \\ map fst toKeep
-  added <- traverse (\s -> (s,) <$> f s) missing
-  traverse_ (sbStartupHook . snd) added
-  XS.put (ASB (toKeep ++ added))
+  actualScreens <- withWindowSet $
+      pure . M.fromList . map (\s -> (W.screen s, screenRect (W.screenDetail s))) . W.screens
+  savedScreens <- XS.gets getASBs
+  let gone  = savedScreens M.\\ actualScreens
+      new   = actualScreens M.\\ savedScreens
+      -- The saved status bar, and the current geometry of its screen
+      kept  = M.intersectionWith (,) savedScreens actualScreens
+      moved = M.filter (\(asb, newRect) -> asbRect asb /= newRect) kept
+  added <- M.traverseWithKey (\s r -> ActiveSB r <$> f s) new
+
+  traverse_ (sbCleanupHook . asbConfig) gone
+  traverse_ (sbStartupHook . asbConfig) added
+  traverse_ (sbRescreenHook . asbConfig . fst) moved
+
+  let kept' = M.map (\(asb, newRect) -> asb { asbRect = newRect }) kept
+  XS.put (ASB (M.union added kept'))
 
 -- | Run 'sbLogHook' for the saved 'StatusBarConfig's
 logSBs :: X ()
-logSBs = XS.get >>= traverse_ (sbLogHook . snd) . getASBs
-
--- | Kill the given 'StatusBarConfig's from the given
--- list
-cleanSBs :: [StatusBarConfig] -> X ()
-cleanSBs = traverse_ sbCleanupHook
+logSBs = XS.get >>= traverse_ (sbLogHook . asbConfig) . getASBs
 
 -- | The default property xmonad writes to. (@_XMONAD_LOG@).
 xmonadDefProp :: String
@@ -546,7 +632,20 @@ killStatusBar cmd = do
     XS.modify (StatusBarPIDs . M.delete cmd . getPIDs)
 
 killPid :: ProcessID -> IO ()
-killPid pidToKill = void $ try @SomeException (signalProcessGroup sigTERM pidToKill)
+killPid = signalPid sigTERM
+
+-- | Sends a signal to the status bar started with 'spawnStatusBar' using the
+-- given command, e.g. to make it reposition itself. Like 'killStatusBar', it
+-- signals the whole process group, so make sure the status bar handles the
+-- signal: most programs exit on a signal they do not handle.
+signalStatusBar :: Signal -- ^ The signal to send
+                -> String -- ^ The command used to start the status bar
+                -> X ()
+signalStatusBar sig cmd =
+    XS.gets (M.lookup cmd . getPIDs) >>= flip whenJust (io . signalPid sig)
+
+signalPid :: Signal -> ProcessID -> IO ()
+signalPid sig pid = void $ try @SomeException (signalProcessGroup sig pid)
 
 -- | Spawns a status bar and saves its PID together with the commands that was
 -- used to start it. This is useful when the status bars should be restarted
@@ -570,4 +669,4 @@ killAllStatusBars =
 -- This can be bound to a keybinding for example to be used in tandem with
 -- `killAllStatusBars`.
 startAllStatusBars :: X ()
-startAllStatusBars = XS.get >>= traverse_ (sbStartupHook . snd) . getASBs
+startAllStatusBars = XS.get >>= traverse_ (sbStartupHook . asbConfig) . getASBs
