@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, TypeApplications, TupleSections  #-}
+{-# LANGUAGE FlexibleContexts, TypeApplications  #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  XMonad.Hooks.StatusBar
