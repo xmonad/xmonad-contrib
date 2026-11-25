@@ -189,7 +189,7 @@ safeSpawn :: MonadIO m => FilePath -> [String] -> m ()
 safeSpawn prog args = io $ void_ $ forkProcess $ do
   uninstallSignalHandlers
   _ <- createSession
-  executeFile (encodeString prog) True (map encodeString args) Nothing
+  executeFile (encodeString prog) True args Nothing
     where void_ = (>> return ()) -- TODO: replace with Control.Monad.void / void not in ghc6 apparently
 
 -- | Simplified 'safeSpawn'; only takes a program (and no arguments):
@@ -243,7 +243,7 @@ spawnPipe' encoding x = io $ do
     hSetBuffering h LineBuffering
     _ <- xfork $ do
           _ <- dupTo rd stdInput
-          executeFile "/bin/sh" False ["-c", encodeString x] Nothing
+          executeFile "/bin/sh" False ["-c", x] Nothing
     closeFd rd
     return h
 
