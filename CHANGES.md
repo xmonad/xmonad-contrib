@@ -4,6 +4,12 @@
 
 ### Breaking Changes
 
+  * `XMonad.Hooks.StatusBar`
+
+    - `StatusBarConfig` has a new field, `sbRescreenHook`. Code that builds a
+      `StatusBarConfig` without `def` or the provided constructors needs to
+      set it.
+
 ### New Modules
 
   * `XMonad.Hooks.Qubes`
@@ -40,6 +46,22 @@
 
       * No longer does a modifier need to be lifted in order to conclude the
         selection; any unexpected keypress (or release) will do.
+
+  * `XMonad.Hooks.StatusBar`
+
+    - `dynamicSBs` now runs `sbRescreenHook` when the geometry of a screen
+      changes, not only when the screen id appears or disappears. Previously,
+      changing the primary monitor or the resolution could leave a bar on the
+      wrong screen or with the wrong size. By default, the status bar is
+      restarted.
+
+    - Added `statusBarProp'`, `statusBarPropTo'` and `statusBarGeneric'`,
+      which take an `OnRescreen` to choose what a status bar does when its
+      screen changes: restart it, send it a signal (e.g. `SIGUSR2` for
+      xmobar to reposition itself), or ignore it.
+
+    - Added `signalStatusBar`, to send a signal to a status bar started with
+      `spawnStatusBar`.
 
   * `XMonad.Hooks.StatusBar.PP`
 
